@@ -2,6 +2,6 @@
 
 ## now loadding!!
 
-## [Yggdrash WIKI Open](wiki/home)
+## [Yggdrash WIKI Open](https://github.com/yggdrash/yggdrash/wiki)
 
 [Yggdrash Homepage](https://yggdrash.io)
