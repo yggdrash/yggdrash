@@ -2,11 +2,11 @@
 
 ![Architecture 180404](images/architecture.png)
 
-## GateWay
+## Gateway
 - network area
-    - Grpc method
-    - jsonrpc method
-    - resful method
+    - grpc method
+    - json rpc method
+    - restful method
 
 ## Cache
 - synced blockchain network address
@@ -22,7 +22,7 @@
 - blockchain data access control
 - node information access
 
-## Blockchan Area
+## Blockchain Area
 
 ### Chain Manager
 ### Chain Event
@@ -32,7 +32,8 @@
 ## Node Management Services
 * Node Log
 * Node Status api
-* excute method
+* execute method
     * reload
     * shutdown (kill)
     * stop
+    
