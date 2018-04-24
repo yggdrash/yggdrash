@@ -48,6 +48,7 @@ subprojects {
 }
 
 project(':yggdrash-core') {
+    apply plugin: 'groovy'
     apply plugin: 'com.google.protobuf'
 
     dependencies {
