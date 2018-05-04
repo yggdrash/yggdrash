@@ -1,5 +1,6 @@
 package io.yggdrash.core;
 
+import org.junit.Before;
 import org.junit.Test;
 
 import java.time.LocalDateTime;
@@ -9,38 +10,33 @@ import java.time.ZonedDateTime;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockTests {
+    private BlockGenerator blockGenerator;
+
+    @Before
+    public void setUp() {
+        blockGenerator = new BlockGenerator();
+    }
+
     @Test
     public void 다음_블록_생성() {
-        String data = "second block";
-        Block previousBlock = getLatestBlock();
-        Long nextIndex = previousBlock.index + 1;
-        Long nextTimestamp = previousBlock.timestamp + 10 * 1000;
-        Block nextBlock = new Block(nextIndex, HashUtils.sha256Hex(previousBlock.toString()),
-                previousBlock.getHash(), nextTimestamp, data);
-        assertThat(nextBlock).isNotNull();
-        assertThat(previousBlock.getHash())
-                .isEqualTo("e428e2e7e18314d6b11f0e94967a14dec83af1a4c8b6681efd88329b9bca14db");
-        assertThat(nextBlock.getHash())
-                .isEqualTo("c23da635daae440321ba56bedea70bb988da700dbac73657a2d0a7460b393697");
-    }
-
-    private Block getLatestBlock() {
-        return createGenesisBlock();
+        blockGenerator.generate("genesis", getStaticTime());
+        Block b2 = blockGenerator.generate("second", getStaticTime()+10*1000);
+        assertThat(b2.hash)
+                .isEqualTo("d1561a4c3174eb99777e9d68179f67bdb7e39f772180f9004fe50fe377ea7830");
     }
 
     @Test
-    public void 해쉬_계산() {
+    public void 최초_블록_생성() {
         // https://www.fileformat.info/tool/hash.htm
-        Block block = createGenesisBlock();
-        String blockHash = block.getHash();
-
+        Block block = blockGenerator.generate("genesis", getStaticTime());
+        String blockHash = block.hash;
         assertThat(blockHash)
                 .isEqualTo("e428e2e7e18314d6b11f0e94967a14dec83af1a4c8b6681efd88329b9bca14db");
     }
 
-    private Block createGenesisBlock() {
+    private Long getStaticTime() {
         LocalDateTime ldt = LocalDateTime.of(2018, 5, 4, 12, 0, 0);
         ZonedDateTime zdt = ldt.atZone(ZoneId.of("UTC"));
-        return new Block(0L, "", "", zdt.toInstant().toEpochMilli(), "genesis");
+        return zdt.toInstant().toEpochMilli();
     }
 }

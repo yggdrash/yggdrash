@@ -7,24 +7,34 @@ public class Block {
     Long timestamp;
     String data;
 
-    public Block(Long index, String hash, String previousHash, Long timestamp, String data) {
+    public Block(Long index, String previousHash, Long timestamp, String data) {
         this.index = index;
-        this.hash = hash;
         this.previousHash = previousHash;
         this.timestamp = timestamp;
         this.data = data;
+        this.hash = calculateHash();
     }
 
-    public String getHash() {
-        return calculateHash();
+    public Long nextIndex() {
+        return this.index + 1;
+    }
+
+    public String calculateHash() {
+        return HashUtils.sha256Hex(mergeData());
+    }
+
+    public String mergeData() {
+        return index + previousHash + timestamp + data;
     }
 
     @Override
     public String toString() {
-        return index + hash + previousHash + timestamp + data;
-    }
-
-    private String calculateHash() {
-        return HashUtils.sha256Hex(toString());
+        return "Block{" +
+                "index=" + index +
+                ", hash='" + hash + '\'' +
+                ", previousHash='" + previousHash + '\'' +
+                ", timestamp=" + timestamp +
+                ", data='" + data + '\'' +
+                '}';
     }
 }

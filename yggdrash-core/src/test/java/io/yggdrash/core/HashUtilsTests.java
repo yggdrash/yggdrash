@@ -1,6 +1,5 @@
 package io.yggdrash.core;
 
-import io.yggdrash.core.HashUtils;
 import org.junit.Test;
 
 import java.security.NoSuchAlgorithmException;

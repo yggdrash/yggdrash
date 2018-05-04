@@ -17,6 +17,7 @@ public class HashUtils {
     private static final Logger log = LoggerFactory.getLogger(HashUtils.class);
 
     public static String sha256Hex(final String originalString) {
+        log.debug("raw data: {}", originalString);
         final MessageDigest digest;
         try {
             digest = MessageDigest.getInstance("SHA-256");
