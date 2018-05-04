@@ -1,66 +1,28 @@
 package io.yggdrash.core;
 
+import org.apache.commons.codec.binary.Hex;
+import org.apache.commons.codec.binary.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Base64;
 
-/*
-    https://github.com/eugenp/tutorials/blob/master/core-java/src/main/java/com/baeldung/hashing/SHA256Hashing.java
-    https://stackoverflow.com/questions/5531455/how-to-hash-some-string-with-sha256-in-java
- */
 public class HashUtils {
-
+    // hash algorithm is fixed
+    private static final String HASH_ALGORITHM = "SHA-256";
     private static final Logger log = LoggerFactory.getLogger(HashUtils.class);
 
-    public static String sha256Hex(final String originalString) {
-        log.debug("raw data: {}", originalString);
-        final MessageDigest digest;
+    public static byte[] sha256(byte[] input) {
         try {
-            digest = MessageDigest.getInstance("SHA-256");
+            return MessageDigest.getInstance(HashUtils.HASH_ALGORITHM).digest(input);
         } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
-            return null;
+            log.error("No Such Algorithm", e);
+            throw new RuntimeException(e);
         }
-        final byte[] encodedHash = digest.digest(originalString.getBytes(StandardCharsets.UTF_8));
-        return bytesToHex(encodedHash);
     }
 
-    public static String sha256Base64(final String originalString) throws
-            NoSuchAlgorithmException {
-        final MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        final byte[] encodedHash = digest.digest(originalString.getBytes(StandardCharsets.UTF_8));
-        return Base64.getEncoder().encodeToString(encodedHash);
-    }
-
-//    public static String HashWithGuava(final String originalString) {
-//        final String sha256hex = Hashing.sha256().hashString(originalString, StandardCharsets.UTF_8).toString();
-//        return sha256hex;
-//    }
-//
-//    public static String HashWithApacheCommons(final String originalString) {
-//        final String sha256hex = DigestUtils.sha256Hex(originalString);
-//        return sha256hex;
-//    }
-//
-//    public static String HashWithBouncyCastle(final String originalString) throws NoSuchAlgorithmException {
-//        final MessageDigest digest = MessageDigest.getInstance("SHA-256");
-//        final byte[] hash = digest.digest(originalString.getBytes(StandardCharsets.UTF_8));
-//        final String sha256hex = new String(Hex.encode(hash));
-//        return sha256hex;
-//    }
-
-    private static String bytesToHex(byte[] hash) {
-        StringBuilder hexString = new StringBuilder();
-        for (byte aHash : hash) {
-            String hex = Integer.toHexString(0xff & aHash);
-            if (hex.length() == 1)
-                hexString.append('0');
-            hexString.append(hex);
-        }
-        return hexString.toString();
+    public static String hashString(String input) {
+        return Hex.encodeHexString(HashUtils.sha256(StringUtils.getBytesUtf8(input)));
     }
 }
