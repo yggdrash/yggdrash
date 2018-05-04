@@ -27,6 +27,10 @@ public class Block {
         return index + previousHash + timestamp + data;
     }
 
+    void setData(String data) {
+        this.data = data;
+    }
+
     @Override
     public String toString() {
         return "Block{" +
