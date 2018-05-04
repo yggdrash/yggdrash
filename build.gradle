@@ -12,7 +12,7 @@ buildscript {
     }
 }
 
-apply plugin: 'groovy'
+apply plugin: 'java'
 apply plugin: 'idea'
 
 group = 'io.yggdrash'
@@ -42,13 +42,10 @@ subprojects {
 
         runtime('org.springframework.boot:spring-boot-devtools')
         testCompile('org.springframework.boot:spring-boot-starter-test')
-        testCompile('org.spockframework:spock-core:1.1-groovy-2.4')
-        testCompile('org.spockframework:spock-spring:1.1-groovy-2.4')
     }
 }
 
 project(':yggdrash-core') {
-    apply plugin: 'groovy'
     apply plugin: 'com.google.protobuf'
 
     dependencies {
