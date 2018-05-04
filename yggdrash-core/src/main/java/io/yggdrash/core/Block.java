@@ -20,7 +20,7 @@ public class Block {
     }
 
     public String calculateHash() {
-        return HashUtils.sha256Hex(mergeData());
+        return HashUtils.hashString(mergeData());
     }
 
     public String mergeData() {
