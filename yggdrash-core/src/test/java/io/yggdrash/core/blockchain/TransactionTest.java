@@ -14,7 +14,7 @@ public class TransactionTest {
     public void transactionTest(){
         Transaction t = new Transaction();
 
-        assert t.validation(t);
+        assert t.validation();
 
 
     }
