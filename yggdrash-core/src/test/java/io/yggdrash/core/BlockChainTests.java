@@ -14,6 +14,47 @@ public class BlockChainTests {
     }
 
     @Test
+    public void hash로_블록_가져오기() {
+        Block b0 = blockGenerator.generate("0");
+        Block b1 = blockGenerator.generate("1");
+        Block b2 = blockGenerator.generate("2");
+        BlockChain blockChain = new BlockChain();
+        blockChain.addBlock(b0);
+        blockChain.addBlock(b1);
+        blockChain.addBlock(b2);
+
+        String b1Hash = b1.hash;
+        Block foundBlock = blockChain.getBlockByHash(b1Hash);
+        assertThat(foundBlock).isEqualTo(b1);
+    }
+
+    @Test
+    public void Index로_블록_가져오기() {
+        Block b0 = blockGenerator.generate("0");
+        Block b1 = blockGenerator.generate("1");
+        Block b2 = blockGenerator.generate("2");
+        BlockChain blockChain = new BlockChain();
+        blockChain.addBlock(b0);
+        blockChain.addBlock(b1);
+        blockChain.addBlock(b2);
+
+        assertThat(blockChain.getBlockByIndex(0)).isEqualTo(b0);
+        assertThat(blockChain.getBlockByIndex(1)).isEqualTo(b1);
+        assertThat(blockChain.getBlockByIndex(2)).isEqualTo(b2);
+    }
+
+    @Test
+    public void 블록체인_검증() {
+        BlockChain blockChain = new BlockChain();
+        Block genesisBlock = blockGenerator.generate("0");
+        blockChain.addBlock(genesisBlock);
+        blockChain.addBlock(blockGenerator.generate("1"));
+        blockChain.addBlock(blockGenerator.generate("2"));
+
+        assertThat(blockChain.isValidChain()).isEqualTo(true);
+    }
+
+    @Test
     public void 블록체인_블록_추가시_검증() {
         Block b1 = blockGenerator.generate("0");
         Block b2 = blockGenerator.generate("1");

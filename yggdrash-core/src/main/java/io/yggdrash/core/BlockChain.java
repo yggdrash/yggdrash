@@ -3,6 +3,7 @@ package io.yggdrash.core;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 
 public class BlockChain {
@@ -13,13 +14,13 @@ public class BlockChain {
     LinkedHashMap<String, Block> blocks = new LinkedHashMap<>();
 
     public void addBlock(Block newBlock) {
-        if(!isValidNewBlock(newBlock)) return;
+        if(!isValidNewBlock(previousBlock, newBlock)) return;
 
         blocks.put(newBlock.hash, newBlock);
         this.previousBlock = newBlock;
     }
 
-    private boolean isValidNewBlock(Block newBlock) {
+    private boolean isValidNewBlock(Block previousBlock, Block newBlock) {
         if (previousBlock == null) return true;
 
         if (previousBlock.index + 1 != newBlock.index) {
@@ -38,5 +39,23 @@ public class BlockChain {
 
     public int size() {
         return blocks.size();
+    }
+
+    public boolean isValidChain() {
+        System.out.println(blocks.keySet().iterator().next());
+        return true;
+    }
+
+    public Block getBlockByIndex(int index) {
+        Iterator<String> iterator = blocks.keySet().iterator();
+        for(int i = 0; i < index; i++) {
+            iterator.next();
+        }
+        String key = iterator.next();
+        return blocks.get(key);
+    }
+
+    public Block getBlockByHash(String hash) {
+        return blocks.get(hash);
     }
 }
