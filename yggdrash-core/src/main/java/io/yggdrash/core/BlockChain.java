@@ -10,14 +10,29 @@ public class BlockChain {
     private static final Logger log = LoggerFactory.getLogger(BlockChain.class);
 
     Block previousBlock;
+    Block genesisBlock;
 
     LinkedHashMap<String, Block> blocks = new LinkedHashMap<>();
 
     public void addBlock(Block newBlock) {
-        if(!isValidNewBlock(previousBlock, newBlock)) return;
+        if(isGenesisBlock(newBlock)) {
+            try {
+                this.genesisBlock = (Block) newBlock.clone();
+            } catch (CloneNotSupportedException e) {
+                e.printStackTrace();
+                log.warn("{}", e);
+            }
+        } else if(!isValidNewBlock(previousBlock, newBlock)) {
+            //TODO Exception 날려야 한다.
+            return;
+        }
 
         blocks.put(newBlock.hash, newBlock);
         this.previousBlock = newBlock;
+    }
+
+    private boolean isGenesisBlock(Block newBlock) {
+        return genesisBlock == null && previousBlock == null && newBlock.index == 0;
     }
 
     private boolean isValidNewBlock(Block previousBlock, Block newBlock) {
@@ -42,7 +57,21 @@ public class BlockChain {
     }
 
     public boolean isValidChain() {
-        System.out.println(blocks.keySet().iterator().next());
+        Iterator<String> iterator = blocks.keySet().iterator();
+        Block firstBlock = blocks.get(iterator.next());
+        if (!this.genesisBlock.equals(firstBlock)) return false;
+
+        Block previousBlock = firstBlock;
+        Block nextBlock;
+        while (iterator.hasNext()) {
+            nextBlock = blocks.get(iterator.next());
+            if (!isValidNewBlock(previousBlock, nextBlock)) {
+                return false;
+            }
+            previousBlock = nextBlock;
+        }
+
+
         return true;
     }
 

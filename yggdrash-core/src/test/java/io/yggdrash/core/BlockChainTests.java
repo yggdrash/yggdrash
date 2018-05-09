@@ -50,8 +50,18 @@ public class BlockChainTests {
         blockChain.addBlock(genesisBlock);
         blockChain.addBlock(blockGenerator.generate("1"));
         blockChain.addBlock(blockGenerator.generate("2"));
-
         assertThat(blockChain.isValidChain()).isEqualTo(true);
+
+        // 제네시스 블록 검증
+        genesisBlock.setData("changed data");
+        assertThat(blockChain.isValidChain()).isEqualTo(false);
+
+        // 중간 블록 변경 감지
+        genesisBlock.setData("0");
+        assertThat(blockChain.isValidChain()).isEqualTo(true);
+        Block secondBlock = blockChain.getBlockByIndex(1);
+        secondBlock.setData("changed data");
+        assertThat(blockChain.isValidChain()).isEqualTo(false);
     }
 
     @Test
@@ -78,7 +88,7 @@ public class BlockChainTests {
         //블록 Hash 값 유효
         Block validBlock = new Block(2L, b2.hash, System.currentTimeMillis(),
                 "valid Index");
-        validBlock.setData("changed data");
+        validBlock.data = "changed data";
         blockChain.addBlock(validBlock);
         assertThat(blockChain.size()).isEqualTo(2);
     }
