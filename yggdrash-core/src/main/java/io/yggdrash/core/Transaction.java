@@ -1,8 +1,10 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.core.TxHeader;
+import io.yggdrash.util.HashUtils;
+import io.yggdrash.util.SerializeUtils;
 
+import java.io.IOException;
 import java.io.Serializable;
 
 public class Transaction implements Serializable {
@@ -15,29 +17,24 @@ public class Transaction implements Serializable {
 
 
     // Constructor
-    public Transaction() {
-        this.header = new TxHeader();
-        this.data = new JsonObject();
+    public Transaction(Account from, Account to, JsonObject data) throws IOException {
+        makeTransaction(from, to, data);
     }
 
-    public boolean makeTransaction(TxHeader header, JsonObject data) {
+    public void makeTransaction(Account from, Account to, JsonObject data) throws IOException {
 
-        // 1. make header
-        this.header = new TxHeader();
-        if(!this.header.makeTxHeader())
-            return false;
+        // 1. make data
+        this.data = data;
 
-        // 2. make data
-        if(!makeTxData(this.data))
-            return false;
-
-        return ture;
-    }
-
-
-    public boolean makeTxData() {
+        // 2. make header
+        byte[] bin = SerializeUtils.serialize(data);
+        this.header = new TxHeader(from, to, HashUtils.sha256(bin), bin.length);
 
     }
 
+    public void printTransaction() {
+        this.header.printTxHeader();
+        System.out.println("TX="+this.data.toString());
+    }
 
 }

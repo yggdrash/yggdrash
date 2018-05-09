@@ -37,12 +37,12 @@ public class Block implements Serializable {
     // Method
 
 
-    public boolenan makeBlock(byte[] header, Transactions data){
-
-
-
-        return ture;
-    }
+//    public boolenan makeBlock(byte[] header, Transactions data){
+//
+//
+//
+//        return ture;
+//    }
 
 
 

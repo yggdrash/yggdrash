@@ -20,6 +20,7 @@ public class Account {
     }
 
     public Account() {
+        generateAccount();
     }
 
 
@@ -58,7 +59,7 @@ public class Account {
 
 
     // <Method>
-    public generateAccount() {
+    public void generateAccount() {
         this.key = new Key();
         this.balance = 0;
         this.state_root = new byte[32];

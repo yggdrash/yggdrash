@@ -17,7 +17,7 @@ public class Key {
         this.pub_key = getPubKey(this.pri_key);
     }
 
-    // < Get_set Method>
+    // <Get_set Method>
     public byte[] getPri_key() {
         return pri_key;
     }
