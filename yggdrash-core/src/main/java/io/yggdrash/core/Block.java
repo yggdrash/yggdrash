@@ -1,44 +1,49 @@
 package io.yggdrash.core;
 
-public class Block {
-    Long index;
-    String hash;
-    String previousHash;
-    Long timestamp;
-    String data;
+import io.yggdrash.core.BlockHeader;
+import io.yggdrash.core.Transactions;
 
-    public Block(Long index, String previousHash, Long timestamp, String data) {
-        this.index = index;
-        this.previousHash = previousHash;
-        this.timestamp = timestamp;
-        this.data = data;
-        this.hash = calculateHash();
-    }
+import java.io.Serializable;
 
-    public Long nextIndex() {
-        return this.index + 1;
-    }
+public class Block implements Serializable {
 
-    public String calculateHash() {
-        return HashUtils.hashString(mergeData());
-    }
+    // Header
+    private BlockHeader header;
 
-    public String mergeData() {
-        return index + previousHash + timestamp + data;
-    }
+    // Data
+    private Transactions data;
 
-    void setData(String data) {
+
+    // Constructor
+
+    public Block(BlockHeader header, Transactions data) {
+        this.header = header;
         this.data = data;
     }
 
-    @Override
-    public String toString() {
-        return "Block{" +
-                "index=" + index +
-                ", hash='" + hash + '\'' +
-                ", previousHash='" + previousHash + '\'' +
-                ", timestamp=" + timestamp +
-                ", data='" + data + '\'' +
-                '}';
+//    public Block() {
+//        this.index = getNextBlockIndex();
+//        this.timestamp = getCurrentTime();
+//        this.pre_block_hash = getPreBlockHash();
+//        this.author = getAccount();
+//
+//        this.transactions = getNewTransactions();
+//        this.merkle_root = getMerkleRoot();
+//        this.data_size = this.transactions.size();
+//        this.signature = getSignature();
+//    }
+
+
+    // Method
+
+
+    public boolenan makeBlock(byte[] header, Transactions data){
+
+
+
+        return ture;
     }
+
+
+
 }
