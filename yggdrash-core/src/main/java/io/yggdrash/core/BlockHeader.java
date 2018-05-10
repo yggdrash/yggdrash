@@ -28,11 +28,11 @@ public class BlockHeader implements Serializable {
 
     public void makeBlockHeader(){
 
-        // 1. get config (version, payload)
+//        // 1. get config (version, payload)
 //        this.version = 0x00;
 //        this.payload = {0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-
-        // 2. get pre_block_info(pre_index, pre_block_hash)
+//
+//        // 2. get pre_block_info(pre_index, pre_block_hash)
 //        this.index = getNextBlockIndex();
 //        this.pre_block_hash = getPreBlockHash();
 //
@@ -46,6 +46,7 @@ public class BlockHeader implements Serializable {
 //        // 5. get signature (with timestamp)
 //        this.timestamp = getCurrentTime();
 //        this.signature = getSignature(this.transactions);
+
 
     }
 

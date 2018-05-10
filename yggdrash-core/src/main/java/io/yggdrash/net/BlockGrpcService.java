@@ -1,4 +1,4 @@
-package io.yggdrash.core;
+package io.yggdrash.net;
 
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.proto.Block;
