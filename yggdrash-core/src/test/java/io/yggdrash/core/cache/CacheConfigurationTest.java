@@ -1,7 +1,6 @@
 package io.yggdrash.core.cache;
 
 
-import groovy.util.logging.Log4j;
 import io.yggdrash.core.blockchain.Transaction;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,11 +12,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
-import org.springframework.cache.concurrent.ConcurrentMapCacheManager;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentMap;
 
@@ -38,7 +35,7 @@ public class CacheConfigurationTest {
 
 
     @Test
-    public void uTxCache(){
+    public void uTxCache() {
         assert uTx.getName() != "";
 
         uTx.put("TEST0", new Transaction());
@@ -47,15 +44,15 @@ public class CacheConfigurationTest {
 
         Transaction tx = uTx.get("TEST0", Transaction.class);
 
-        log.debug(""+tx.getTimestamp());
+        log.debug("" + tx.getTimestamp());
         assert tx.getTimestamp() != 0L;
 
         ConcurrentMap eh = uTx.getNativeCache();
         Iterator<Object> list = eh.keySet().iterator();
         Object key;
-        while (list.hasNext()){
+        while (list.hasNext()) {
             key = list.next();
-            log.debug(key+""+uTx.get(key).toString());
+            log.debug(key + "" + uTx.get(key).toString());
         }
         assert eh.size() > 0;
 

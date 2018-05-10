@@ -1,4 +1,4 @@
-package io.yggdrash.core;
+package io.yggdrash.util;
 
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.codec.binary.StringUtils;

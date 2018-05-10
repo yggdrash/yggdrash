@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
-@Component
+//@Component
 public class GrpcMessageSender {
 
     private static final Logger log = LoggerFactory.getLogger(GrpcMessageSender.class);

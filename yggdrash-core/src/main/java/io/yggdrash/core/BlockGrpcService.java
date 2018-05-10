@@ -7,7 +7,7 @@ import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@GRpcService
+//@GRpcService
 public class BlockGrpcService extends BlockServiceGrpc.BlockServiceImplBase {
 
     private Logger log = LoggerFactory.getLogger(this.getClass());
@@ -15,7 +15,7 @@ public class BlockGrpcService extends BlockServiceGrpc.BlockServiceImplBase {
     @Override
     public void sync(Block request, StreamObserver<Block> responseObserver) {
         log.debug("request: " + request);
-        Block block = Block.newBuilder().setHeight(request.getHeight()).setData("zzzzz").build();
+        Block block = Block.newBuilder().setHeight(request.getHeight()).build();
         responseObserver.onNext(block);
         responseObserver.onCompleted();
     }
