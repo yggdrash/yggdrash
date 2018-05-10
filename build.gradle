@@ -58,6 +58,7 @@ project(':yggdrash-core') {
         compile "commons-codec:commons-codec:${commonsCodec}"
         compile group: 'org.ehcache', name: 'ehcache', version: '3.5.2'
         testCompile "io.grpc:grpc-testing:${grpcVersion}"
+        compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
     }
 
     protobuf {

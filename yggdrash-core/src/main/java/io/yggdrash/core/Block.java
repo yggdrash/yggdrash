@@ -1,13 +1,22 @@
 package io.yggdrash.core;
 
+import io.yggdrash.util.HashUtils;
+
+import java.io.Serializable;
 import java.util.Objects;
 
-public class Block implements Cloneable {
+public class Block implements Cloneable, Serializable {
     Long index;
     String hash;
     String previousHash;
     Long timestamp;
     String data;
+
+    // Header
+    private BlockHeader header;
+
+    // Data
+    private Transactions body;
 
     public Block(Long index, String previousHash, Long timestamp, String data) {
         this.index = index;
@@ -15,6 +24,11 @@ public class Block implements Cloneable {
         this.timestamp = timestamp;
         this.data = data;
         this.hash = calculateHash();
+    }
+
+    public Block(BlockHeader header, Transactions body) {
+        this.header = header;
+        this.body = body;
     }
 
     public Long nextIndex() {

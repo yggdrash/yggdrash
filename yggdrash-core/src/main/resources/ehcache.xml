@@ -5,7 +5,7 @@
     <diskStore path="/var/tmp/" />
 
     <cache name="unconfirmTransaction"
-           maxEntriesLocalHeap="1000"
+           maxEntriesLocalHeap="100000"
            maxEntriesLocalDisk="1000"
            eternal="false"
            diskSpoolBufferSizeMB="20"
@@ -15,7 +15,7 @@
         <persistence strategy="localTempSwap" />
     </cache>
     <cache name="confirmedTransaction"
-           maxEntriesLocalHeap="100"
+           maxEntriesLocalHeap="100000"
            maxEntriesLocalDisk="1000"
            eternal="false"
            diskSpoolBufferSizeMB="20"

@@ -2,15 +2,27 @@ package io.yggdrash.core.blockchain;
 
 import java.io.Serializable;
 import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * Transaction
+ */
 public class Transaction implements Serializable {
     String hash;
     String sign;
     long timestamp;
-    Array parmas;
+    List params;
 
     public Transaction() {
         this.timestamp = System.currentTimeMillis();
+    }
+    // new Transaction from Tranaction
+    public Transaction(Transaction tx) {
+        this.hash = tx.hash;
+        this.sign = tx.hash;
+        this.timestamp = tx.timestamp;
     }
 
     public boolean validation() {
@@ -41,11 +53,17 @@ public class Transaction implements Serializable {
         this.timestamp = timestamp;
     }
 
-    public Array getParmas() {
-        return parmas;
+    public Object[] getParams() {
+        return this.params.toArray();
     }
 
-    public void setParmas(Array parmas) {
-        this.parmas = parmas;
+    public void setParams(Object[] params) {
+        this.params.addAll(Arrays.asList(params));
     }
+
+    public boolean validate() {
+        // Make Validate
+        return true;
+    }
+
 }
