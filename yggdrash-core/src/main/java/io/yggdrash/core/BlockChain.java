@@ -57,21 +57,23 @@ public class BlockChain {
     }
 
     public boolean isValidChain() {
-        Iterator<String> iterator = blocks.keySet().iterator();
-        Block firstBlock = blocks.get(iterator.next());
+        return isValidChain(this);
+    }
+
+    public boolean isValidChain(BlockChain blockChain) {
+        Iterator<String> iterator = blockChain.blocks.keySet().iterator();
+        Block firstBlock = blockChain.blocks.get(iterator.next());
         if (!this.genesisBlock.equals(firstBlock)) return false;
 
         Block previousBlock = firstBlock;
         Block nextBlock;
         while (iterator.hasNext()) {
-            nextBlock = blocks.get(iterator.next());
+            nextBlock = blockChain.blocks.get(iterator.next());
             if (!isValidNewBlock(previousBlock, nextBlock)) {
                 return false;
             }
             previousBlock = nextBlock;
         }
-
-
         return true;
     }
 
@@ -86,5 +88,16 @@ public class BlockChain {
 
     public Block getBlockByHash(String hash) {
         return blocks.get(hash);
+    }
+
+    public void replaceChain(BlockChain otherChain) {
+        if(isValidChain(otherChain) && otherChain.size() > this.size()) {
+            log.info("Received blockchain is valid. Replacing current blockchain with received " +
+                    "blockchain");
+            this.blocks = otherChain.blocks;
+            //TODO broadcastLatest();
+        } else {
+            log.info("Received blockchain invalid");
+        }
     }
 }

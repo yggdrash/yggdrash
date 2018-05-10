@@ -14,6 +14,48 @@ public class BlockChainTests {
     }
 
     @Test
+    public void 가장_긴_체인_선택() {
+        BlockChain blockChain = new BlockChain();
+        Block b0 = blockGenerator.generate("0");
+        Block b1 = blockGenerator.generate("1");
+        Block b2 = blockGenerator.generate("2");
+        Block b3 = blockGenerator.generate("3");
+        blockChain.addBlock(b0);
+        blockChain.addBlock(b1);
+        blockChain.addBlock(b2);
+
+        // 더 긴 체인
+        BlockChain longerChain = new BlockChain();
+        longerChain.addBlock(b0);
+        longerChain.addBlock(b1);
+        longerChain.addBlock(b2);
+        longerChain.addBlock(b3);
+
+        blockChain.replaceChain(longerChain);
+        assertThat(blockChain.size()).isEqualTo(4);
+
+        // 짧은 체인
+        BlockChain shorterChain = new BlockChain();
+        shorterChain.addBlock(b0);
+        shorterChain.addBlock(b1);
+        blockChain.replaceChain(shorterChain);
+        assertThat(blockChain.size()).isEqualTo(4);
+
+        // 더 길지만 조작된 체인
+        BlockChain scamChain = new BlockChain();
+        Block b4 = blockGenerator.generate("4");
+        scamChain.addBlock(b0);
+        scamChain.addBlock(b1);
+        scamChain.addBlock(b2);
+        scamChain.addBlock(b3);
+        scamChain.addBlock(b4);
+        // b4.data = "changed data";
+        b2.setData("recalculate hash but... invalid previous hash");
+        blockChain.replaceChain(scamChain);
+        assertThat(blockChain.size()).isEqualTo(4);
+    }
+
+    @Test
     public void hash로_블록_가져오기() {
         Block b0 = blockGenerator.generate("0");
         Block b1 = blockGenerator.generate("1");
