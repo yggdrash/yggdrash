@@ -106,4 +106,10 @@ public class BlockChain {
     public LinkedHashMap<String, Block> getBlocks() {
         return blocks;
     }
+
+    public void clear() {
+        this.blocks.clear();
+        this.previousBlock = null;
+        this.genesisBlock = null;
+    }
 }
