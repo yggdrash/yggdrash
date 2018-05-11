@@ -78,6 +78,8 @@ public class BlockChain {
     }
 
     public Block getBlockByIndex(int index) {
+        if(blocks.size() - 1 < index) return null;
+
         Iterator<String> iterator = blocks.keySet().iterator();
         for(int i = 0; i < index; i++) {
             iterator.next();
@@ -99,5 +101,15 @@ public class BlockChain {
         } else {
             log.info("Received blockchain invalid");
         }
+    }
+
+    public LinkedHashMap<String, Block> getBlocks() {
+        return blocks;
+    }
+
+    public void clear() {
+        this.blocks.clear();
+        this.previousBlock = null;
+        this.genesisBlock = null;
     }
 }

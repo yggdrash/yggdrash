@@ -79,4 +79,27 @@ public class Block implements Cloneable, Serializable {
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
+
+    /*
+     *  getter...
+     */
+    public Long getIndex() {
+        return index;
+    }
+
+    public String getHash() {
+        return hash;
+    }
+
+    public String getPreviousHash() {
+        return previousHash;
+    }
+
+    public Long getTimestamp() {
+        return timestamp;
+    }
+
+    public String getData() {
+        return data;
+    }
 }
