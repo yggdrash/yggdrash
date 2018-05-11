@@ -4,7 +4,10 @@ import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.LinkedHashMap;
 
 @RestController
 @RequestMapping("blocks")
@@ -19,14 +22,14 @@ class BlockController {
     }
 
     @PostMapping
-    public Block add(@RequestBody String data) {
+    public ResponseEntity add(@RequestBody String data) {
         Block generatedBlock = blockGenerator.generate(data);
         blockChain.addBlock(generatedBlock);
-        return generatedBlock;
+        return ResponseEntity.ok(generatedBlock);
     }
 
     @GetMapping("{id}")
-    public Block get(@PathVariable(name = "id") String id) {
+    public ResponseEntity get(@PathVariable(name = "id") String id) {
         Block foundBlock;
         if (isNumeric(id)) {
             int index = Integer.parseInt(id);
@@ -34,8 +37,16 @@ class BlockController {
         } else {
             foundBlock = blockChain.getBlockByHash(id);
         }
-        
-        return foundBlock;
+
+        if (foundBlock == null) return ResponseEntity.notFound().build();
+
+        return ResponseEntity.ok(foundBlock);
+    }
+
+    @GetMapping
+    public ResponseEntity getAll() {
+        LinkedHashMap<String, Block> blocks = blockChain.getBlocks();
+        return ResponseEntity.ok(blocks);
     }
 
     private boolean isNumeric(String str) {
