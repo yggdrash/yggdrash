@@ -40,7 +40,7 @@ public class BlockControllerTests {
     public void setUp() {
         JacksonTester.initFields(this, new ObjectMapper());
         blockGenerator.init();
-        //blockChain.clear();
+        blockChain.clear();
     }
 
     @Test
