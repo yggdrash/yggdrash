@@ -1,7 +1,9 @@
 package io.yggdrash.core.cache;
 
 
-import io.yggdrash.core.blockchain.Transaction;
+import com.google.gson.JsonObject;
+import io.yggdrash.core.Account;
+import io.yggdrash.core.Transaction;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -15,6 +17,8 @@ import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import javax.swing.text.html.HTMLDocument;
+import java.io.IOException;
 import java.util.Iterator;
 import java.util.concurrent.ConcurrentMap;
 
@@ -35,17 +39,18 @@ public class CacheConfigurationTest {
 
 
     @Test
-    public void uTxCache() {
+    public void uTxCache() throws IOException {
         assert uTx.getName() != "";
-
-        uTx.put("TEST0", new Transaction());
-        uTx.put("TEST1", new Transaction());
-        uTx.put("TEST2", new Transaction());
+        Account account = new Account();
+        JsonObject json = new JsonObject();
+        uTx.put("TEST0", new Transaction(account, account, json));
+        uTx.put("TEST1", new Transaction(account, account, json));
+        uTx.put("TEST2", new Transaction(account, account, json));
 
         Transaction tx = uTx.get("TEST0", Transaction.class);
 
-        log.debug("" + tx.getTimestamp());
-        assert tx.getTimestamp() != 0L;
+//        log.debug("" + tx.getTimestamp());
+//        assert tx.getTimestamp() != 0L;
 
         ConcurrentMap eh = uTx.getNativeCache();
         Iterator<Object> list = eh.keySet().iterator();
@@ -67,6 +72,10 @@ public class CacheConfigurationTest {
         log.debug(cacheManager.toString());
 
 
+    }
+
+    public void flushCache() {
+        Iterator<Object> unconfirmTransaction = uTx.getNativeCache().keySet().iterator();
     }
 
 
