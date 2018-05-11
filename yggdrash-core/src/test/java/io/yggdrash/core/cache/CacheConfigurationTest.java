@@ -17,7 +17,6 @@ import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import javax.swing.text.html.HTMLDocument;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -38,7 +37,6 @@ public class CacheConfigurationTest {
 
     @Autowired
     private Object cacheManager;
-
 
     @Test
     public void uTxCache() throws IOException {
@@ -63,11 +61,12 @@ public class CacheConfigurationTest {
         }
         assert eh.size() > 0;
 
+        uTx.clear();
     }
 
     @Test
     public void uTxCacheClear() {
-        Cache confirm = ((CacheManager)this.cacheManager).getCache("confirmBlock");
+        Cache confirm = ((CacheManager) this.cacheManager).getCache("confirmBlock");
         log.debug(confirm.getName());
 
         log.debug(cacheManager.getClass().getName());
@@ -78,11 +77,11 @@ public class CacheConfigurationTest {
 
     @Test
     public void flushCache() throws IOException {
-        int testCount = 10000000;
-        for(int i=0;i<testCount;i++){
+        int testCount = 100000;
+        for (int i = 0; i < testCount; i++) {
             addNewTransaction();
         }
-        log.debug("Size : "+uTx.getNativeCache().size());
+        log.debug("Size : " + uTx.getNativeCache().size());
         assert uTx.getNativeCache().size() == testCount;
 
         Iterator<Object> unconfirmTransaction = uTx.getNativeCache().keySet().iterator();
@@ -97,11 +96,11 @@ public class CacheConfigurationTest {
         Account account = new Account();
         JsonObject json = new JsonObject();
         Transaction tx = new Transaction(account, account, json);
-        // Transacction has random hashcode
-        if(uTx.get(tx.hashCode()) != null){
+        // Transaction has random hashcode
+        if (uTx.get(tx.getHash()) != null) {
             addNewTransaction();
-        }else{
-            uTx.put(tx.hashCode(), tx);
+        } else {
+            uTx.put(tx.getHash(), tx);
         }
 
     }
