@@ -1,6 +1,5 @@
 package io.yggdrash.core;
 
-import io.yggdrash.core.blockchain.Blockchain;
 import io.yggdrash.crypto.Signature;
 import io.yggdrash.util.HashUtils;
 import io.yggdrash.util.SerializeUtils;

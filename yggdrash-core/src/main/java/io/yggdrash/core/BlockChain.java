@@ -175,4 +175,9 @@ public class BlockChain {
         }
     }
 
+    public void clear() {
+        this.blocks.clear();
+        this.previousBlock = null;
+        this.genesisBlock = null;
+    }
 }

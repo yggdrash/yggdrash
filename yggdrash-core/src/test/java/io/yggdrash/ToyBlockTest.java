@@ -71,7 +71,7 @@ public class ToyBlockTest {
         bc = new BlockChain(from);
         bc.printBlockChain();
 
-        for(int i=0; i < 10; i++) {
+        for(int i=0; i < 100; i++) {
             // create next block
             bk1 = new Block(from, bc, txs);
 
