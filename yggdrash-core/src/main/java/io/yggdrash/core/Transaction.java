@@ -32,6 +32,14 @@ public class Transaction implements Serializable {
 
     }
 
+    public String getHashString() {
+        return this.header.hashString();
+    }
+
+    public byte[] getHash() {
+        return this.header.hash();
+    }
+
     public void printTransaction() {
         this.header.printTxHeader();
         System.out.println("TX="+this.data.toString());
