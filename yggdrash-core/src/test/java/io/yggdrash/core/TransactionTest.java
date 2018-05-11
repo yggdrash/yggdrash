@@ -2,6 +2,7 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.core.cache.CacheConfigurationTest;
+import org.apache.commons.codec.binary.Hex;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -29,19 +30,19 @@ public class TransactionTest {
     @Test
     public void makeTransactionTest() throws IOException {
         // check transaction
-        int makeTransaction = 10000;
+        int makeTransaction = 100000;
 
-        HashMap<Integer,Transaction> hash = new HashMap<>();
+        HashMap<byte[],Transaction> hash = new HashMap<>();
         for(int i=0;i<makeTransaction;i++) {
-            Transaction tx = addNewTransaction();
-            log.debug("hashcode : " + tx.hashCode());
-            assert hash.get(tx.hashCode()) == null;
-            hash.put(tx.hashCode(), tx);
+            Transaction tx = newTransaction();
+            log.debug("hashcode : " + new String(Hex.encodeHex(tx.getHash(),true)) );
+            assert hash.get(tx.getHash()) == null;
+            hash.put(tx.getHash(), tx);
         }
 
     }
 
-    public Transaction addNewTransaction() throws IOException {
+    public Transaction newTransaction() throws IOException {
         Account account = new Account();
         JsonObject json = new JsonObject();
         return new Transaction(account, account, json);

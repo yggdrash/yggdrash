@@ -23,6 +23,6 @@ public class HashUtils {
     }
 
     public static String hashString(String input) {
-        return Hex.encodeHexString(HashUtils.sha256(StringUtils.getBytesUtf8(input)));
+        return Hex.encodeHexString(sha256(StringUtils.getBytesUtf8(input)));
     }
 }

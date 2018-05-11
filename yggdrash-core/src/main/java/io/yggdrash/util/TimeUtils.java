@@ -6,4 +6,7 @@ public class TimeUtils {
         return System.currentTimeMillis();
     }
 
+    public static long time() {
+        return System.nanoTime();
+    }
 }
