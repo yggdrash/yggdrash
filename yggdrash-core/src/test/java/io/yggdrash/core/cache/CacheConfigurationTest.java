@@ -19,7 +19,9 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.swing.text.html.HTMLDocument;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ConcurrentMap;
 
 @RunWith(SpringRunner.class)
@@ -74,10 +76,34 @@ public class CacheConfigurationTest {
 
     }
 
-    public void flushCache() {
+    @Test
+    public void flushCache() throws IOException {
+        int testCount = 10000000;
+        for(int i=0;i<testCount;i++){
+            addNewTransaction();
+        }
+        log.debug("Size : "+uTx.getNativeCache().size());
+        assert uTx.getNativeCache().size() == testCount;
+
         Iterator<Object> unconfirmTransaction = uTx.getNativeCache().keySet().iterator();
+        List<Object> unconfirmList = new ArrayList<>();
+        unconfirmTransaction.forEachRemaining(unconfirmList::add);
+        unconfirmList.forEach(uTx::evict);
+
+        assert uTx.getNativeCache().size() == 0;
     }
 
+    public void addNewTransaction() throws IOException {
+        Account account = new Account();
+        JsonObject json = new JsonObject();
+        Transaction tx = new Transaction(account, account, json);
+        // Transacction has random hashcode
+        if(uTx.get(tx.hashCode()) != null){
+            addNewTransaction();
+        }else{
+            uTx.put(tx.hashCode(), tx);
+        }
 
+    }
 
 }
