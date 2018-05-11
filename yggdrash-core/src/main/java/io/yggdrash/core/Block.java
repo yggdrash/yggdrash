@@ -2,22 +2,23 @@ package io.yggdrash.core;
 
 import io.yggdrash.util.HashUtils;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.Objects;
 
 public class Block implements Cloneable, Serializable {
+
+    // <Variable>
     Long index;
     String hash;
     String previousHash;
     Long timestamp;
     String data;
-
-    // Header
     private BlockHeader header;
-
-    // Data
     private Transactions body;
 
+
+    // <Constuctor>
     public Block(Long index, String previousHash, Long timestamp, String data) {
         this.index = index;
         this.previousHash = previousHash;
@@ -31,6 +32,41 @@ public class Block implements Cloneable, Serializable {
         this.body = body;
     }
 
+    public Block(Account author, BlockChain bc, Transactions txs) throws IOException {
+        this.header = new BlockHeader(author, bc, txs);
+        this.body = txs;
+    }
+
+    public Block(Account author, byte[] pre_block_hash, long index, Transactions txs) throws IOException {
+        this.header = new BlockHeader(author, pre_block_hash, index, txs);
+        this.body = txs;
+    }
+
+    // <Get_Set Method>
+    public BlockHeader getHeader() {
+        return header;
+    }
+
+    public void setHeader(BlockHeader header) {
+        this.header = header;
+    }
+
+    public Transactions getBody() {
+        return body;
+    }
+
+    public void setBody(Transactions body) {
+        this.body = body;
+    }
+
+    void setData(String data) {
+        this.data = data;
+        this.hash = calculateHash();
+    }
+
+
+    // <Method>
+
     public Long nextIndex() {
         return this.index + 1;
     }
@@ -41,11 +77,6 @@ public class Block implements Cloneable, Serializable {
 
     public String mergeData() {
         return index + previousHash + timestamp + data;
-    }
-
-    void setData(String data) {
-        this.data = data;
-        this.hash = calculateHash();
     }
 
     @Override
@@ -79,4 +110,23 @@ public class Block implements Cloneable, Serializable {
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
     }
+
+    public void makeBlock(Account author, BlockChain bc, Transactions txs) throws IOException {
+
+        // 1. set data
+        this.body = txs;
+
+        // 2. make header
+        this.header = new BlockHeader(author, bc, txs);
+    }
+
+    public void printBlock() {
+        System.out.println("<Block>");
+        this.header.printBlockHeader();
+        System.out.println("BlockBody=");
+        if(this.body != null) this.body.printTransactions();
+    }
+
+
+
 }
