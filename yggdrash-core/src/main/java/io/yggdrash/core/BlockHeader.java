@@ -24,6 +24,7 @@ public class BlockHeader implements Serializable {
 
 
     // <Constructor>
+
     public BlockHeader(Account author, BlockChain bc, Transactions txs) throws IOException {
         this.version = 0x00;
         this.payload = new byte[7];
@@ -118,7 +119,7 @@ public class BlockHeader implements Serializable {
     public void makeBlockHeader(Account author, BlockChain bc, Transactions txs) throws IOException {
 
         // 1. set pre_block_info(index, pre_block_hash)
-        if(bc == null) {
+        if(bc == null || bc.getPreviousBlock() == null) {
             this.index = 0;
             this.pre_block_hash = null;
         } else {
@@ -130,8 +131,13 @@ public class BlockHeader implements Serializable {
         this.author = author.getKey().getPub_key();
 
         // 3. set txs info (merkle_root, data_size)
-        this.merkle_root = txs.getMerkleRoot();
-        this.data_size = txs.getSize();
+        if(txs == null) {
+            this.merkle_root = null;
+            this.data_size = 0;
+        } else {
+            this.merkle_root = txs.getMerkleRoot();
+            this.data_size = txs.getSize();
+        }
 
         // 4. set signature (with timestamp)
         this.timestamp = TimeUtils.getCurrenttime();
@@ -154,7 +160,7 @@ public class BlockHeader implements Serializable {
         this.author = author.getKey().getPub_key();
 
         // 3. set txs info (merkle_root, data_size)
-        this.merkle_root = new byte[32];
+        this.merkle_root = null;
         this.data_size = 0;
 
         // 4. set signature (with timestamp)
@@ -170,17 +176,14 @@ public class BlockHeader implements Serializable {
     public void printBlockHeader() {
         System.out.println("<BlockHeader>");
         System.out.println("version=" + Integer.toHexString(this.version));
-        System.out.println("payload=" + Hex.encodeHexString(this.payload));
+        if(this.payload != null) System.out.println("payload=" + Hex.encodeHexString(this.payload));
         System.out.println("index=" + this.index);
         System.out.println("timestamp=" + this.timestamp);
-
-        System.out.println("pre_block_hash=");
-        if(this.pre_block_hash != null) System.out.println(Hex.encodeHexString(this.pre_block_hash));
-
-        System.out.println("author=" + Hex.encodeHexString(this.author));
-        System.out.println("merkle_root=" + Hex.encodeHexString(this.merkle_root));
+        if(this.pre_block_hash != null) System.out.println("pre_block_hash="+Hex.encodeHexString(this.pre_block_hash));
+        if(this.author != null) System.out.println("author=" + Hex.encodeHexString(this.author));
+        if(this.merkle_root != null) System.out.println("merkle_root=" + Hex.encodeHexString(this.merkle_root));
         System.out.println("data_size=" + this.data_size);
-        System.out.println("signature=" + Hex.encodeHexString(this.signature));
+        if(this.signature != null) System.out.println("signature=" + Hex.encodeHexString(this.signature));
     }
 
 

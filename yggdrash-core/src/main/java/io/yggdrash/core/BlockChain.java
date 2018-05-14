@@ -12,16 +12,15 @@ public class BlockChain {
 
     // <Variable>
 
-    private static Block genesisBlock;
+    private Block genesisBlock;
     private Block previousBlock;
-    private static LinkedHashMap<byte[], Block> blocks; // <blockheader_hash, block>
+    private LinkedHashMap<byte[], Block> blocks; // <blockheader_hash, block>
 
 
     // <Constructor>
 
     public BlockChain() throws IOException {
         Account from = new Account();
-
         BlockChain bc = new BlockChain(from);
         this.genesisBlock = bc.getGenesisBlock();
         this.previousBlock = bc.getPreviousBlock();
@@ -37,14 +36,15 @@ public class BlockChain {
     }
 
 
+
     // <Get_Set Method>
 
-    public static Block getGenesisBlock() {
-        return genesisBlock;
+    public Block getGenesisBlock() {
+        return this.genesisBlock;
     }
 
     public Block getPreviousBlock() {
-        return previousBlock;
+        return this.previousBlock;
     }
 
     public void setPreviousBlock(Block previousBlock) {
@@ -62,7 +62,7 @@ public class BlockChain {
 
     // <Method>
 
-    public void addBlock(Block newBlock) {
+    public void addBlock(Block newBlock) throws IOException {
         if(isGenesisBlock(newBlock)) {
             try {
                 this.genesisBlock = (Block) newBlock.clone();
@@ -75,16 +75,13 @@ public class BlockChain {
             return;
         }
 
-        blocks.put(newBlock.hash.getBytes(), newBlock);
+        blocks.put(newBlock.getHeader().getHash(), newBlock);
         this.previousBlock = newBlock;
     }
 
     public boolean add(Block bk) throws IOException {
 
-        // check block index
-        if(bk.getHeader().getPre_block_hash().equals(this.previousBlock.getHeader().getHash())) {
-            return false;
-        }
+        if(bk == null || bk.getHeader() == null) return false;
 
         this.blocks.put(bk.getHeader().getHash(), bk);
         this.previousBlock = bk;
@@ -94,19 +91,19 @@ public class BlockChain {
 
 
     private boolean isGenesisBlock(Block newBlock) {
-        return genesisBlock == null && previousBlock == null && newBlock.index == 0;
+        return genesisBlock == null && previousBlock == null && newBlock.getHeader().getIndex() == 0;
     }
 
-    private boolean isValidNewBlock(Block previousBlock, Block newBlock) {
+    private boolean isValidNewBlock(Block previousBlock, Block newBlock) throws IOException {
         if (previousBlock == null) return true;
 
-        if (previousBlock.index + 1 != newBlock.index) {
-            log.warn("invalid index: prev:{} / new:{}", previousBlock.index, newBlock.index);
+        if (previousBlock.getHeader().getIndex() + 1 != newBlock.getHeader().getIndex()) {
+            log.warn("invalid index: prev:{} / new:{}", previousBlock.getHeader().getIndex(), newBlock.getHeader().getIndex());
             return false;
-        } else if (!previousBlock.hash.equals(newBlock.previousHash)) {
+        } else if (!previousBlock.getHeader().getHash().equals(newBlock.getHeader().getHash())) {
             log.warn("invalid previous hash");
             return false;
-        } else if (!newBlock.calculateHash().equals(newBlock.hash)) {
+        } else if (!newBlock.getHeader().getHash().equals(newBlock.getHeader().getHash())) {
             log.warn("invalid block hash");
             return false;
         }
@@ -118,11 +115,11 @@ public class BlockChain {
         return blocks.size();
     }
 
-    public boolean isValidChain() {
+    public boolean isValidChain() throws IOException {
         return isValidChain(this);
     }
 
-    public boolean isValidChain(BlockChain blockChain) {
+    public boolean isValidChain(BlockChain blockChain) throws IOException {
         Iterator<byte[]> iterator = blockChain.blocks.keySet().iterator();
         Block firstBlock = blockChain.blocks.get(iterator.next());
         if (!this.genesisBlock.equals(firstBlock)) return false;
@@ -152,7 +149,12 @@ public class BlockChain {
         return blocks.get(hash);
     }
 
-    public void replaceChain(BlockChain otherChain) {
+    public Block getBlockByHash(byte[] hash) {
+        return blocks.get(hash);
+    }
+
+
+    public void replaceChain(BlockChain otherChain) throws IOException {
         if(isValidChain(otherChain) && otherChain.size() > this.size()) {
             log.info("Received blockchain is valid. Replacing current blockchain with received " +
                     "blockchain");

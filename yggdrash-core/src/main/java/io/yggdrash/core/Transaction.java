@@ -21,6 +21,15 @@ public class Transaction implements Serializable {
         makeTransaction(from, to, data);
     }
 
+    // generate TX for testing
+    public Transaction(String data) throws IOException {
+        JsonObject data1 = new JsonObject();
+        data1.addProperty("key", "balance");
+        data1.addProperty("operator", "transfer");
+        data1.addProperty("value", data);
+        makeTransaction(new Account(), new Account(), data1);
+    }
+
     public void makeTransaction(Account from, Account to, JsonObject data) throws IOException {
 
         // 1. make data

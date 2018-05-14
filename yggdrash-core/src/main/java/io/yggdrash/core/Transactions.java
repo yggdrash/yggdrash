@@ -2,7 +2,9 @@ package io.yggdrash.core;
 
 import io.yggdrash.trie.Trie;
 
+import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Transactions implements Serializable {
@@ -15,6 +17,15 @@ public class Transactions implements Serializable {
 
     public Transactions(List<Transaction> txs) {
         this.txs = txs;
+    }
+
+    // generate Txs for testing
+    public Transactions(String data) throws IOException {
+        List<Transaction> txs_list;
+        txs_list = new ArrayList<Transaction>();
+        txs_list.add(new Transaction(data));
+
+        this.txs = txs_list;
     }
 
     // Method
