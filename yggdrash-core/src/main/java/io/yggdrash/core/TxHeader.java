@@ -6,6 +6,8 @@ import io.yggdrash.util.SerializeUtils;
 import io.yggdrash.util.TimeUtils;
 import org.apache.commons.codec.binary.Hex;
 
+import java.io.IOException;
+import java.io.Serializable;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
@@ -43,6 +45,7 @@ public class TxHeader implements Serializable {
 
     // Method
     public void makeTxHeader(Account from, Account to, byte[] data_hash, long data_size) throws IOException {
+//        this.timestamp = TimeUtils.getCurrenttime();
         this.timestamp = TimeUtils.time();
         this.from = from.getKey().getPub_key();
         this.to = to.getKey().getPub_key();
@@ -60,6 +63,7 @@ public class TxHeader implements Serializable {
     private void makeTxHash() throws IOException {
         // Transction Merge Bytes
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+
         // Long Type to byte
         ByteBuffer buffer = ByteBuffer.allocate(Long.BYTES);
 

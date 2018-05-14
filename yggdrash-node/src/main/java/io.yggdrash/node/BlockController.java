@@ -45,7 +45,7 @@ class BlockController {
 
     @GetMapping
     public ResponseEntity getAll() {
-        LinkedHashMap<String, Block> blocks = blockChain.getBlocks();
+        LinkedHashMap<byte[], Block> blocks = blockChain.getBlocks();
         return ResponseEntity.ok(blocks);
     }
 

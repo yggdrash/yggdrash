@@ -1,4 +1,4 @@
-package io.yggdrash.core;
+package io.yggdrash.net;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -7,7 +7,6 @@ import io.yggdrash.proto.BlockServiceGrpc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
 
