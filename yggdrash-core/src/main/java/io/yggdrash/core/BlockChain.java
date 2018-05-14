@@ -19,8 +19,13 @@ public class BlockChain {
 
     // <Constructor>
 
-    public BlockChain() {
+    public BlockChain() throws IOException {
+        Account from = new Account();
 
+        BlockChain bc = new BlockChain(from);
+        this.genesisBlock = bc.getGenesisBlock();
+        this.previousBlock = bc.getPreviousBlock();
+        this.blocks = bc.getBlocks();
     }
 
     // create blockchain & add genesis block
