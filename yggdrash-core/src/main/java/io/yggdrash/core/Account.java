@@ -8,11 +8,11 @@ public class Account {
     private Key key;
     private long balance;
     private byte[] state_root;
-    private Transactions txs;
+    private BlockBody txs;
 
 
     // <Constructor>
-    public Account(Key key, long balance, byte[] state_root, Transactions txs) {
+    public Account(Key key, long balance, byte[] state_root, BlockBody txs) {
         this.key = key;
         this.balance = balance;
         this.state_root = state_root;
@@ -49,11 +49,11 @@ public class Account {
         this.state_root = state_root;
     }
 
-    public Transactions getTxs() {
+    public BlockBody getTxs() {
         return txs;
     }
 
-    public void setTxs(Transactions txs) {
+    public void setTxs(BlockBody txs) {
         this.txs = txs;
     }
 

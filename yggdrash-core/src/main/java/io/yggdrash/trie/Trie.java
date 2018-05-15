@@ -1,7 +1,6 @@
 package io.yggdrash.trie;
 
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.Transactions;
 import io.yggdrash.util.HashUtils;
 
 import java.security.MessageDigest;
