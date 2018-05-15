@@ -131,18 +131,14 @@ public class BlockChain {
         return (this.prevBlock == null);
     }
 
-    public void printBlockChain() {
-        // TODO CHANGE toString overwrite
-        System.out.println("BlockChain");
-        System.out.println("genesisBlock=");
-        this.genesisBlock.printBlock();
-        System.out.println("prevBlock=");
-        if(this.prevBlock != null) this.prevBlock.printBlock();
-
-        System.out.println("\nBlockChain");
-        for (Object key : this.blocks.keySet()) {
-            System.out.print("-"+this.blocks.get(key).getIndex());
-        }
+    @Override
+    public String toString() {
+        return "BlockChain{" +
+                "genesisBlock=" + genesisBlock +
+                ", prevBlock=" + prevBlock +
+                ", blocks=" + blocks +
+                ", packageInfo=" + packageInfo +
+                '}';
     }
 
     public void clear() {

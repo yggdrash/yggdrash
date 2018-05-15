@@ -53,11 +53,11 @@ public class Block implements Cloneable, Serializable {
         return super.clone();
     }
 
-    public void printBlock() {
-        // TODO toString overwrite
-        System.out.println("<Block>");
-        this.header.printBlockHeader();
-        System.out.println("BlockBody=");
-        if (this.data != null) this.data.printTransactions();
+    @Override
+    public String toString() {
+        return "Block{" +
+                "header=" + header +
+                ", data=" + data +
+                '}';
     }
 }
