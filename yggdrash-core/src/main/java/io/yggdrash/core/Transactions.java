@@ -29,6 +29,16 @@ public class Transactions implements Serializable {
         this.txs = txs_list;
     }
 
+    // <Get_Set Method>
+
+    public List<Transaction> getTxs() {
+        return txs;
+    }
+
+    public void setTxs(List<Transaction> txs) {
+        this.txs = txs;
+    }
+
     // Method
     public void addTransaction(Transaction tx) {
         this.txs.add(tx);
@@ -39,7 +49,7 @@ public class Transactions implements Serializable {
     }
 
     public byte[] getMerkleRoot() {
-        return Trie.getMercleRoot(this);
+        return Trie.getMerkleRoot(this.txs);
     }
 
     public long getSize() {
@@ -53,9 +63,6 @@ public class Transactions implements Serializable {
         }
     }
 
-    public byte[] getMerkleRoot(Transactions txs) {
-        return "merkleroot1234567890123456789012".getBytes();
-    }
 }
 
 
