@@ -1,5 +1,6 @@
 package io.yggdrash.core;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.core.exception.NotValidteException;
 import io.yggdrash.proto.Blockchain;
 import io.yggdrash.util.HashUtils;
@@ -52,6 +53,30 @@ public class BlockChainTests {
         assertThat(blockChain.size()).isEqualTo(4);
     }
 
+    @Test
+    public void TransactionGenTest() throws IOException, NotValidteException {
+        // 모든 테스트는 독립적으로 동작 해야 합니다
+        BlockChain blockchain = instanteBlockchain();
+        int testBlock = 100;
+        Account author = new Account();
+        // create blockchain with genesis block
+        for(int i=0; i < testBlock; i++) {
+            // create next block
+            Block block = new Block(author, blockchain.getPrevBlock(), new Transactions(""));
+            log.debug(""+block.getHeader().getIndex());
+            if(blockchain.getPrevBlock() != null) {
+                log.debug("chain prev block hash : "+blockchain.getPrevBlock().getHeader().hashString());
+
+            }
+            assert block.getHeader().getIndex() == i+3;
+            // add next block in blockchain
+            blockchain.addBlock(block);
+        }
+
+        assert blockchain.size() == testBlock+3;
+
+    }
+
     private BlockChain instanteBlockchain() throws IOException, NotValidteException {
         Account author = new Account();
         BlockChain blockChain = new BlockChain();
@@ -61,4 +86,6 @@ public class BlockChainTests {
         blockChain.addBlock(new Block(author, blockChain.getPrevBlock(), new Transactions("2")));
         return blockChain;
     }
+
+
 }
