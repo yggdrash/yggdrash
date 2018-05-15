@@ -1,6 +1,9 @@
 package io.yggdrash.core;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.core.exception.NotValidteException;
+import io.yggdrash.proto.Blockchain;
+import io.yggdrash.util.HashUtils;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Before;
 import org.junit.Test;
@@ -8,18 +11,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockChainTests {
     private static final Logger log = LoggerFactory.getLogger(BlockChainTests.class);
-
-    BlockGenerator blockGenerator;
-
-    @Before
-    public void setUp() {
-        blockGenerator = new BlockGenerator();
-    }
 
     @Test
     public void hash로_블록_가져오기() throws IOException {
@@ -57,12 +54,27 @@ public class BlockChainTests {
     }
 
     @Test
-    public void 블록체인에_블록_추가() throws IOException, NotValidteException {
+    public void TransactionGenTest() throws IOException, NotValidteException {
+        // 모든 테스트는 독립적으로 동작 해야 합니다
+        BlockChain blockchain = instantBlockchain();
+        int testBlock = 100;
         Account author = new Account();
-        BlockChain blockChain = new BlockChain();
-        Block genesisBlock = blockGenerator.generate(author, blockChain, new Transactions("0"));
-        blockChain.addBlock(genesisBlock);
-        assertThat(blockChain.size()).isEqualTo(1);
+        // create blockchain with genesis block
+        for(int i=0; i < testBlock; i++) {
+            // create next block
+            Block block = new Block(author, blockchain.getPrevBlock(), new Transactions(""));
+            log.debug(""+block.getHeader().getIndex());
+            if(blockchain.getPrevBlock() != null) {
+                log.debug("chain prev block hash : "+blockchain.getPrevBlock().getPrevBlockHash());
+
+            }
+            assert block.getHeader().getIndex() == i+3;
+            // add next block in blockchain
+            blockchain.addBlock(block);
+        }
+
+        assert blockchain.size() == testBlock+3;
+
     }
 
     private BlockChain instantBlockchain() throws IOException {
