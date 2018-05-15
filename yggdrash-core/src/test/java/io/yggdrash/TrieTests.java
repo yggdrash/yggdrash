@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class TrieTests
@@ -23,7 +22,7 @@ public class TrieTests
     public Account to;
     public Transaction tx1;
     public Transaction tx2;
-    public Transactions txs;
+    public BlockBody txs;
     public BlockChain bc;
     public Block gbk;
     public Block bk1;
@@ -62,7 +61,7 @@ public class TrieTests
         txs_list.add(this.tx1);
         txs_list.add(this.tx2);
         txs_list.add(this.tx2);
-        this.txs = new Transactions(txs_list);
+        this.txs = new BlockBody(txs_list);
     }
 
     @Test

@@ -24,14 +24,14 @@ public class BlockHeader implements Serializable {
     private long data_size;
     private byte[] signature;
 
-    public BlockHeader(Account author, byte[] prevBlockHash, long index, Transactions txs) throws IOException {
+    public BlockHeader(Account author, byte[] prevBlockHash, long index, BlockBody txs) throws IOException {
         this.version = 0x00;
         this.payload = new byte[7];
 
         makeBlockHeader(author, prevBlockHash, index, txs);
     }
 
-    public BlockHeader(Account author, BlockHeader prevBlockHeader, Transactions transactionList) throws IOException {
+    public BlockHeader(Account author, BlockHeader prevBlockHeader, BlockBody transactionList) throws IOException {
         // TODO 정합성 검토
         this.version = 0x00;
         this.payload = new byte[7];
@@ -121,7 +121,7 @@ public class BlockHeader implements Serializable {
 
     // <Method>
 
-    public void makeBlockHeader(Account author, BlockChain bc, Transactions txs) throws IOException {
+    public void makeBlockHeader(Account author, BlockChain bc, BlockBody txs) throws IOException {
 
         // 1. set pre_block_info(index, prevBlockHash)
         if(bc == null || bc.getPrevBlock() == null) {
@@ -152,7 +152,7 @@ public class BlockHeader implements Serializable {
         this.signature = Signature.sign(author.getKey(), SerializeUtils.serialize(this));
     }
 
-    public void makeBlockHeader(Account author, byte[] pre_block_hash, long index, Transactions txs) throws IOException {
+    public void makeBlockHeader(Account author, byte[] pre_block_hash, long index, BlockBody txs) throws IOException {
 
         // 1. set pre_block_info(index, prevBlockHash)
         if(index == 0 && pre_block_hash == null) {
