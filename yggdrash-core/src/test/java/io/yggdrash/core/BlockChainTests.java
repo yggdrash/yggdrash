@@ -1,6 +1,7 @@
 package io.yggdrash.core;
 
 import io.yggdrash.core.exception.NotValidteException;
+import io.yggdrash.proto.Blockchain;
 import io.yggdrash.util.HashUtils;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Before;
@@ -15,13 +16,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockChainTests {
     private static final Logger log = LoggerFactory.getLogger(BlockChainTests.class);
-
-    BlockGenerator blockGenerator;
-
-    @Before
-    public void setUp() {
-        blockGenerator = new BlockGenerator();
-    }
 
     @Test
     public void hash로_블록_가져오기() throws IOException, NotValidteException {
@@ -56,15 +50,6 @@ public class BlockChainTests {
         Account anotherAuth = new Account();
         blockChain.addBlock(new Block(anotherAuth, blockChain.getPrevBlock(), new Transactions("6")));
         assertThat(blockChain.size()).isEqualTo(4);
-    }
-
-    @Test
-    public void 블록체인에_블록_추가() throws IOException, NotValidteException {
-        Account author = new Account();
-        BlockChain blockChain = new BlockChain();
-        Block genesisBlock = blockGenerator.generate(author, blockChain, new Transactions("0"));
-        blockChain.addBlock(genesisBlock);
-        assertThat(blockChain.size()).isEqualTo(1);
     }
 
     private BlockChain instanteBlockchain() throws IOException, NotValidteException {
