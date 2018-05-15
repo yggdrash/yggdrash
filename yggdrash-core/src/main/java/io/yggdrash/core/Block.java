@@ -4,6 +4,7 @@ import io.yggdrash.util.HashUtils;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Objects;
 
 public class Block implements Cloneable, Serializable {
@@ -33,10 +34,22 @@ public class Block implements Cloneable, Serializable {
         this.data = data;
     }
 
-    public Block(Account author, BlockChain bc, Transactions txs) throws IOException {
-        this.header = new BlockHeader(author, bc, txs);
-        this.data = txs;
+//    public Block(Account author, BlockChain bc, Transactions txs) throws IOException {
+//        this.header = new BlockHeader(author, bc, txs);
+//        this.data = txs;
+//    }
+
+    public Block(Account author, Block prevBlock, Transactions transactionList) throws IOException {
+        if(prevBlock == null){
+            this.header = new BlockHeader(author, null, transactionList);
+        }else{
+            this.header = new BlockHeader(author, prevBlock.getHeader(), transactionList);
+        }
+
+        this.data = transactionList;
+
     }
+
 
     public Block(Account author, byte[] pre_block_hash, long index, Transactions txs) throws IOException {
         this.header = new BlockHeader(author, pre_block_hash, index, txs);
@@ -110,15 +123,6 @@ public class Block implements Cloneable, Serializable {
 
     public Object clone() throws CloneNotSupportedException {
         return super.clone();
-    }
-
-    public void makeBlock(Account author, BlockChain bc, Transactions txs) throws IOException {
-
-        // 1. set data
-        this.data = txs;
-
-        // 2. make header
-        this.header = new BlockHeader(author, bc, txs);
     }
 
     public void printBlock() {
