@@ -77,7 +77,7 @@ public class CacheConfigurationTest {
 
     @Test
     public void flushCache() throws IOException {
-        int testCount = 100000;
+        int testCount = 1000;
         for (int i = 0; i < testCount; i++) {
             addNewTransaction();
         }

@@ -3,6 +3,7 @@ package io.yggdrash.core;
 import com.google.gson.JsonObject;
 import io.yggdrash.util.HashUtils;
 import io.yggdrash.util.SerializeUtils;
+import org.apache.commons.codec.binary.Hex;
 
 import java.io.IOException;
 import java.io.Serializable;
@@ -58,7 +59,7 @@ public class Transaction implements Serializable {
     }
 
     public String getFrom() {
-        return HashUtils.bytesToHexString(header.getFrom());
+        return Hex.encodeHexString(header.getFrom());
     }
 
     public String getData() {
