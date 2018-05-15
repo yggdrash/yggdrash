@@ -38,11 +38,11 @@ public class Block implements Cloneable, Serializable {
     }
 
     public String getBlockHash() {
-        return bytesToHexString(header.getBlockHash());
+        return Hex.encodeHexString(header.getBlockHash());
     }
 
     public String getPrevBlockHash() {
-        return bytesToHexString(header.getPrevBlockHash());
+        return Hex.encodeHexString(header.getPrevBlockHash());
     }
 
     public Object clone() throws CloneNotSupportedException {
@@ -55,9 +55,5 @@ public class Block implements Cloneable, Serializable {
         this.header.printBlockHeader();
         System.out.println("BlockBody=");
         if (this.data != null) this.data.printTransactions();
-    }
-
-    private String bytesToHexString(byte[] bytes) {
-        return Hex.encodeHexString(bytes);
     }
 }
