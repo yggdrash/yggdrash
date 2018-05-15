@@ -26,4 +26,7 @@ public class HashUtils {
         return Hex.encodeHexString(sha256(StringUtils.getBytesUtf8(input)));
     }
 
+    public static String bytesToHexString(byte[] bytes) {
+        return Hex.encodeHexString(bytes);
+    }
 }

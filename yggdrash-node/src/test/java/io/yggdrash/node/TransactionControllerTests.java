@@ -15,6 +15,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -30,14 +31,37 @@ public class TransactionControllerTests {
     private JacksonTester<TxDto> json;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         JacksonTester.initFields(this, new ObjectMapper());
+    }
+
+    @Test
+    public void 트랜잭션_해쉬로_조회() throws Exception {
+        // 트랜잭션 풀에 있는 트랜잭션을 조회 후 블록 내 트랜잭션 조회 로직 추가 필요.
+        TxDto req = new TxDto();
+        req.setFrom("Dezang");
+        req.setData("transaction data");
+
+        MockHttpServletResponse response = mockMvc.perform(post("/txs")
+                .contentType(MediaType.APPLICATION_JSON).content(json.write(req).getJson()))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andReturn().getResponse();
+
+        String txHash = json.parseObject(response.getContentAsString()).getTxHash();
+
+        MockHttpServletResponse findRes = mockMvc.perform(get("/txs/" + txHash))
+                .andExpect(status().isOk())
+                .andDo(print())
+                .andReturn().getResponse();
+
+        log.debug(findRes.getContentAsString());
     }
 
     @Test
     public void 트랜잭션이_트랜잭션풀에_추가되어야_한다() throws Exception {
         TxDto req = new TxDto();
-        req.setFrom("Dezang");
+        req.setData("Dezang");
 
         MockHttpServletResponse response = mockMvc.perform(post("/txs")
                 .contentType(MediaType.APPLICATION_JSON).content(json.write(req).getJson()))

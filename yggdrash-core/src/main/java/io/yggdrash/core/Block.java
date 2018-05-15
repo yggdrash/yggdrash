@@ -1,5 +1,6 @@
 package io.yggdrash.core;
 
+import io.yggdrash.util.HashUtils;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,11 +39,11 @@ public class Block implements Cloneable, Serializable {
     }
 
     public String getBlockHash() {
-        return bytesToHexString(header.getBlockHash());
+        return HashUtils.bytesToHexString(header.getBlockHash());
     }
 
     public String getPrevBlockHash() {
-        return bytesToHexString(header.getPrevBlockHash());
+        return HashUtils.bytesToHexString(header.getPrevBlockHash());
     }
 
     public Object clone() throws CloneNotSupportedException {
@@ -55,9 +56,5 @@ public class Block implements Cloneable, Serializable {
         this.header.printBlockHeader();
         System.out.println("BlockBody=");
         if (this.data != null) this.data.printTransactions();
-    }
-
-    private String bytesToHexString(byte[] bytes) {
-        return Hex.encodeHexString(bytes);
     }
 }

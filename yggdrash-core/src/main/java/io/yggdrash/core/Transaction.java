@@ -26,7 +26,7 @@ public class Transaction implements Serializable {
     }
 
     // generate TX for testing
-    public Transaction(String data) throws IOException {
+    public Transaction(String data) {
         JsonObject data1 = new JsonObject();
         data1.addProperty("key", "balance");
         data1.addProperty("operator", "transfer");
@@ -34,14 +34,18 @@ public class Transaction implements Serializable {
         makeTransaction(new Account(), new Account(), data1);
     }
 
-    public void makeTransaction(Account from, Account to, JsonObject data) throws IOException {
+    public void makeTransaction(Account from, Account to, JsonObject data) {
 
         // 1. make data
         this.data = data;
 
         // 2. make header
-        byte[] bin = SerializeUtils.serialize(data);
-        this.header = new TxHeader(from, to, HashUtils.sha256(bin), bin.length);
+        try {
+            byte[] bin = SerializeUtils.serialize(data);
+            this.header = new TxHeader(from, to, HashUtils.sha256(bin), bin.length);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -51,6 +55,14 @@ public class Transaction implements Serializable {
 
     public byte[] getHash() {
         return this.header.hash();
+    }
+
+    public String getFrom() {
+        return HashUtils.bytesToHexString(header.getFrom());
+    }
+
+    public String getData() {
+        return this.data.toString();
     }
 
     public void printTransaction() {
