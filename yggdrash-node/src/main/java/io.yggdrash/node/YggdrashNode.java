@@ -1,7 +1,7 @@
 package io.yggdrash.node;
 
-import io.yggdrash.core.BlockChain;
-import io.yggdrash.core.BlockGenerator;
+import io.yggdrash.node.mock.BlockBuilderMock;
+import io.yggdrash.node.mock.BlockChainMock;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
@@ -18,13 +18,13 @@ public class YggdrashNode {
     class NodeConfig {
 
         @Bean
-        BlockGenerator blockGenerator() {
-            return new BlockGenerator();
+        BlockBuilder blockBuilder() {
+            return new BlockBuilderMock();
         }
 
         @Bean
         BlockChain blockChain() {
-            return new BlockChain();
+            return new BlockChainMock();
         }
     }
 }

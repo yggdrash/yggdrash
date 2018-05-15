@@ -1,8 +1,6 @@
 package io.yggdrash.node;
 
-import io.yggdrash.core.Block;
-import io.yggdrash.core.BlockChain;
-import io.yggdrash.core.BlockGenerator;
+import io.yggdrash.node.mock.Block;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,18 +10,18 @@ import java.util.LinkedHashMap;
 @RestController
 @RequestMapping("blocks")
 class BlockController {
-    private final BlockGenerator blockGenerator;
+    private final BlockBuilder blockBuilder;
     private final BlockChain blockChain;
 
     @Autowired
-    public BlockController(BlockGenerator blockGenerator, BlockChain blockChain) {
-        this.blockGenerator = blockGenerator;
+    public BlockController(BlockBuilder blockBuilder, BlockChain blockChain) {
+        this.blockBuilder = blockBuilder;
         this.blockChain = blockChain;
     }
 
     @PostMapping
     public ResponseEntity add(@RequestBody String data) {
-        Block generatedBlock = blockGenerator.generate(data);
+        Block generatedBlock = blockBuilder.build(data);
         blockChain.addBlock(generatedBlock);
         return ResponseEntity.ok(generatedBlock);
     }
