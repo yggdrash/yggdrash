@@ -42,7 +42,7 @@ public class BlockGenerator {
             return null;
         }
 
-        new_bh = new BlockHeader(author, bc, txs);
+        new_bh = new BlockHeader(author, null, txs);
         new_bk = new Block(new_bh, txs);
 
         return new_bk;
