@@ -74,7 +74,7 @@ public class ToyBlockTest {
             Block block = new Block(from, bc.getPrevBlock(), txList);
             log.debug(""+block.getHeader().getIndex());
             if(bc.getPrevBlock() != null) {
-                log.debug("chain prev block hash : "+bc.getPrevBlock().getHeader().hashString());
+                log.debug("chain prev block hash : "+bc.getPrevBlock().getBlockHash());
 
             }
 
