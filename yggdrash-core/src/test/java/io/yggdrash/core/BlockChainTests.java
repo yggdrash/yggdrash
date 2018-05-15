@@ -1,7 +1,6 @@
 package io.yggdrash.core;
 
 import io.yggdrash.core.exception.NotValidteException;
-import org.apache.commons.codec.binary.Hex;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +28,7 @@ public class BlockChainTests {
     public void Index로_블록_가져오기() throws IOException {
         BlockChain blockChain = instantBlockchain();
         Block prevBlock = blockChain.getPrevBlock();
-        String hash = Hex.encodeHexString(prevBlock.getHeader().getPrevBlockHash());
+        String hash = prevBlock.getPrevBlockHash();
         assertThat(blockChain.getBlockByIndex(0L)).isEqualTo(blockChain.getGenesisBlock());
         assertThat(blockChain.getBlockByIndex(2L)).isEqualTo(prevBlock);
         assertThat(blockChain.getBlockByIndex(1L)).isEqualTo(blockChain.getBlockByHash(hash));
@@ -59,12 +58,12 @@ public class BlockChainTests {
         for(int i=0; i < testBlock; i++) {
             // create next block
             Block block = new Block(author, blockchain.getPrevBlock(), new BlockBody(Arrays.asList()));
-            log.debug(""+block.getHeader().getIndex());
+            log.debug(""+block.getIndex());
             if(blockchain.getPrevBlock() != null) {
                 log.debug("chain prev block hash : "+blockchain.getPrevBlock().getPrevBlockHash());
 
             }
-            assert block.getHeader().getIndex() == i+3;
+            assert block.getIndex() == i+3;
             // add next block in blockchain
             blockchain.addBlock(block);
         }

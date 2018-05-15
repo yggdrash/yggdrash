@@ -10,8 +10,8 @@ import java.io.Serializable;
 public class Block implements Cloneable, Serializable {
     private final static Logger log = LoggerFactory.getLogger(Block.class);
 
-    private BlockHeader header;
-    private BlockBody data;
+    private final BlockHeader header;
+    private final BlockBody data;
 
     public Block(BlockHeader header, BlockBody data) {
         this.header = header;
@@ -22,7 +22,7 @@ public class Block implements Cloneable, Serializable {
         if (prevBlock == null) {
             this.header = new BlockHeader(author, null, transactionList);
         } else {
-            this.header = new BlockHeader(author, prevBlock.getHeader(), transactionList);
+            this.header = new BlockHeader(author, prevBlock, transactionList);
         }
 
         this.data = transactionList;
@@ -33,16 +33,20 @@ public class Block implements Cloneable, Serializable {
         this.data = txs;
     }
 
-    public BlockHeader getHeader() {
-        return header;
-    }
-
     public String getBlockHash() {
         return Hex.encodeHexString(header.getBlockHash());
     }
 
     public String getPrevBlockHash() {
         return Hex.encodeHexString(header.getPrevBlockHash());
+    }
+
+    byte[] getBlockByteHash() {
+        return header.getBlockHash();
+    }
+
+    public long getIndex() {
+        return header.getIndex();
     }
 
     public Object clone() throws CloneNotSupportedException {

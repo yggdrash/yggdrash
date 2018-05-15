@@ -31,15 +31,17 @@ public class BlockHeader implements Serializable {
         makeBlockHeader(author, prevBlockHash, index, txs);
     }
 
-    public BlockHeader(Account author, BlockHeader prevBlockHeader, BlockBody transactionList) throws IOException {
+    public BlockHeader(Account author, Block prevBlock, BlockBody transactionList) throws
+            IOException {
         // TODO 정합성 검토
         this.version = 0x00;
         this.payload = new byte[7];
-        if(prevBlockHeader == null) {
-            // genensis block
+        if(prevBlock == null) {
+            // genesis block
             makeBlockHeader(author, null, 0, transactionList);
         }else{
-            makeBlockHeader(author, prevBlockHeader.getBlockHash(), prevBlockHeader.getIndex()+1, transactionList);
+            makeBlockHeader(author, prevBlock.getBlockByteHash(), prevBlock.getIndex()+1,
+                    transactionList);
         }
 
     }
@@ -125,13 +127,13 @@ public class BlockHeader implements Serializable {
 
         // 1. set pre_block_info(index, prevBlockHash)
         if(bc == null || bc.getPrevBlock() == null) {
-            // Genesys Block
+            // Genesis Block
             this.index = 0;
             this.prevBlockHash = null;
         } else {
             log.debug(bc.getPrevBlock().getBlockHash());
-            this.index = bc.getPrevBlock().getHeader().getIndex() + 1;
-            this.prevBlockHash = bc.getPrevBlock().getHeader().getBlockHash();
+            this.index = bc.getPrevBlock().getIndex() + 1;
+            this.prevBlockHash = bc.getPrevBlock().getBlockByteHash();
         }
 
         // 2. set author

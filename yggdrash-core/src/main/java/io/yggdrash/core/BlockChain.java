@@ -20,13 +20,13 @@ public class BlockChain {
 
 
     // <Constructor>
-    public BlockChain() throws IOException {
+    public BlockChain() {
         this.packageInfo = new JsonObject();
         this.blocks = new HashMap<>();
     }
 
     // create blockchain & add genesis block
-    public BlockChain(JsonObject packageInfo) throws IOException {
+    public BlockChain(JsonObject packageInfo) {
         this.packageInfo = packageInfo;
         this.blocks = new HashMap<>();
     }
@@ -50,7 +50,7 @@ public class BlockChain {
 
     // <Method>
 
-    public void addBlock(Block nextBlock) throws IOException, NotValidteException {
+    public void addBlock(Block nextBlock) throws NotValidteException {
         if(isGenesisBlock(nextBlock)) {
                 this.genesisBlock = nextBlock;
         } else if(!isValidNewBlock(prevBlock, nextBlock)) {
@@ -60,25 +60,23 @@ public class BlockChain {
         // ADD List hash
         // TODO CHANGE DATABASE
         this.blocks.put(nextBlock.getBlockHash(), nextBlock);
-        this.blocks.put(nextBlock.getHeader().getIndex(), nextBlock);
+        this.blocks.put(nextBlock.getIndex(), nextBlock);
         this.prevBlock = nextBlock;
     }
 
     private boolean isGenesisBlock(Block newBlock) {
-        return genesisBlock == null && prevBlock == null && newBlock.getHeader().getIndex() == 0;
+        return genesisBlock == null && prevBlock == null && newBlock.getIndex() == 0;
     }
 
-    private boolean isValidNewBlock(Block prevBlock, Block nextBlock) throws IOException {
+    private boolean isValidNewBlock(Block prevBlock, Block nextBlock) {
         if (prevBlock == null) return true;
-        BlockHeader prevBlockHeader = prevBlock.getHeader();
-        BlockHeader nextBlockHeader = nextBlock.getHeader();
         log.debug(" prev : " + prevBlock.getBlockHash());
         log.debug(" new : " + nextBlock.getBlockHash());
 
-        if (prevBlockHeader.getIndex() + 1 != nextBlockHeader.getIndex()) {
-            log.warn("invalid index: prev:{} / new:{}", prevBlockHeader.getIndex(), nextBlockHeader.getIndex());
+        if (prevBlock.getIndex() + 1 != nextBlock.getIndex()) {
+            log.warn("invalid index: prev:{} / new:{}", prevBlock.getIndex(), nextBlock.getIndex());
             return false;
-        } else if (!Arrays.equals(prevBlockHeader.getBlockHash(), nextBlockHeader.getPrevBlockHash())) {
+        } else if (!prevBlock.getBlockHash().equals(nextBlock.getPrevBlockHash())) {
             log.warn("invalid previous hash");
             return false;
         }
@@ -97,10 +95,10 @@ public class BlockChain {
     public boolean isValidChain(BlockChain blockChain) throws IOException {
         if(blockChain.getPrevBlock() != null){
             Block block = blockChain.getPrevBlock(); // Get Last Block
-            while(block.getHeader().getIndex() != 0L) {
-                block = blockChain.getBlockByHash(Hex.encodeHexString(block.getHeader().getPrevBlockHash()));
+            while(block.getIndex() != 0L) {
+                block = blockChain.getBlockByHash(block.getPrevBlockHash());
             }
-            return block.getHeader().getIndex() == 0L;
+            return block.getIndex() == 0L;
         }
         return true;
     }
@@ -134,7 +132,7 @@ public class BlockChain {
     }
 
     public void printBlockChain() {
-        // TODO CHAINGE toString overwrite
+        // TODO CHANGE toString overwrite
         System.out.println("BlockChain");
         System.out.println("genesisBlock=");
         this.genesisBlock.printBlock();
@@ -143,7 +141,7 @@ public class BlockChain {
 
         System.out.println("\nBlockChain");
         for (Object key : this.blocks.keySet()) {
-            System.out.print("-"+this.blocks.get(key).getHeader().getIndex());
+            System.out.print("-"+this.blocks.get(key).getIndex());
         }
     }
 
