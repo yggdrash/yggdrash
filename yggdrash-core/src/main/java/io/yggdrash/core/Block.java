@@ -1,43 +1,18 @@
 package io.yggdrash.core;
 
-import io.yggdrash.util.HashUtils;
-
 import java.io.IOException;
 import java.io.Serializable;
-import java.util.List;
-import java.util.Objects;
 
 public class Block implements Cloneable, Serializable {
-
-    // <Variable>
-//    Long index;
-//    String hash;
-//    String previousHash;
-//    Long timestamp;
-//    String data;
 
     private BlockHeader header;
     private Transactions data;
 
 
-    // <Constuctor>
-//    public Block(Long index, String previousHash, Long timestamp, String data) {
-//        this.index = index;
-//        this.previousHash = previousHash;
-//        this.timestamp = timestamp;
-//        this.data = data;
-//        this.hash = calculateHash();
-//    }
-
     public Block(BlockHeader header, Transactions data) {
         this.header = header;
         this.data = data;
     }
-
-//    public Block(Account author, BlockChain bc, Transactions txs) throws IOException {
-//        this.header = new BlockHeader(author, bc, txs);
-//        this.data = txs;
-//    }
 
     public Block(Account author, Block prevBlock, Transactions transactionList) throws IOException {
         if(prevBlock == null){

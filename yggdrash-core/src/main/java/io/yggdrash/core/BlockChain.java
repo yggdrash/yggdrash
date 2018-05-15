@@ -13,7 +13,6 @@ public class BlockChain {
     private static final Logger log = LoggerFactory.getLogger(BlockChain.class);
 
     // <Variable>
-
     private Block genesisBlock;
     private Block prevBlock;
     private Map<Object, Block> blocks; // <blockheader_hash, block>
@@ -21,7 +20,6 @@ public class BlockChain {
 
 
     // <Constructor>
-
     public BlockChain() throws IOException {
         this.packageInfo = new JsonObject();
         this.blocks = new HashMap<>();
@@ -38,7 +36,6 @@ public class BlockChain {
     }
 
     // <Get_Set Method>
-
     public Block getGenesisBlock() {
         return this.genesisBlock;
     }
@@ -47,18 +44,9 @@ public class BlockChain {
         return this.prevBlock;
     }
 
-    public void setPrevBlock(Block prevBlock) {
-        this.prevBlock = prevBlock;
-    }
-
     public Map<Object, Block> getBlocks() {
         return blocks;
     }
-
-    public void setBlocks(Map<Object, Block> blocks) {
-        this.blocks = blocks;
-    }
-
 
     // <Method>
 
@@ -126,7 +114,7 @@ public class BlockChain {
     }
 
     public Block getBlockByHash(byte[] hash) {
-        return blocks.get(hash);
+        return blocks.get(Hex.encodeHexString(hash));
     }
 
 
@@ -146,6 +134,7 @@ public class BlockChain {
     }
 
     public void printBlockChain() {
+        // TODO CHAINGE toString overwrite
         System.out.println("BlockChain");
         System.out.println("genesisBlock=");
         this.genesisBlock.printBlock();
