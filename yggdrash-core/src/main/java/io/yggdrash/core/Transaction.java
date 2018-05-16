@@ -52,12 +52,11 @@ public class Transaction implements Serializable {
         return this.data.toString();
     }
 
+    @Override
     public String toString() {
-        StringBuffer buffer = new StringBuffer();
-        buffer.append(this.header.toString());
-        buffer.append("transactionData=").append(this.data.toString());
-
-        return buffer.toString();
+        return "Transaction{" +
+                "header=" + header +
+                ", data=" + data +
+                '}';
     }
-
 }
