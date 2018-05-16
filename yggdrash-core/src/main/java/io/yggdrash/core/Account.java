@@ -8,21 +8,17 @@ public class Account {
     private Key key;
     private long balance;
     private byte[] state_root;
-    private Transactions txs;
-
 
     // <Constructor>
-    public Account(Key key, long balance, byte[] state_root, Transactions txs) {
+    public Account(Key key, long balance, byte[] state_root) {
         this.key = key;
         this.balance = balance;
         this.state_root = state_root;
-        this.txs = txs;
     }
 
     public Account() {
         generateAccount();
     }
-
 
     // <Get_set method>
     public Key getKey() {
@@ -49,21 +45,11 @@ public class Account {
         this.state_root = state_root;
     }
 
-    public Transactions getTxs() {
-        return txs;
-    }
-
-    public void setTxs(Transactions txs) {
-        this.txs = txs;
-    }
-
-
     // <Method>
     public void generateAccount() {
         this.key = new Key();
         this.balance = 0;
         this.state_root = new byte[32];
-        this.txs = null;
     }
 
 

@@ -16,7 +16,6 @@ public class Trie {
             return null;
 
         ArrayList<byte[]> tree = new ArrayList<>();
-
         for (Transaction tx : txs) {
             tree.add(tx.getHash());
         }
