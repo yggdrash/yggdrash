@@ -10,10 +10,8 @@ import java.io.Serializable;
 
 public class Transaction implements Serializable {
 
-    // Header
+    // <Variable>
     private TxHeader header;
-
-    // Data
     private JsonObject data;
 
 
@@ -22,11 +20,22 @@ public class Transaction implements Serializable {
 
     }
 
-    public Transaction(Account from, Account to, JsonObject data) throws IOException {
+    /**
+     * Transaction Constructor
+     * @param from account for creating transaction
+     * @param to account for targeting
+     * @param data transaction data(Json)
+     */
+    public Transaction(Account from, Account to, JsonObject data) {
         makeTransaction(from, to, data);
     }
 
     // generate TX for testing
+
+    /**
+     * Transaction Constructor with tx data
+     * @param data tx data
+     */
     public Transaction(String data) {
         JsonObject data1 = new JsonObject();
         data1.addProperty("key", "balance");
@@ -35,7 +44,7 @@ public class Transaction implements Serializable {
         makeTransaction(new Account(), new Account(), data1);
     }
 
-    public void makeTransaction(Account from, Account to, JsonObject data) {
+    private void makeTransaction(Account from, Account to, JsonObject data) {
 
         // 1. make data
         this.data = data;
@@ -50,22 +59,41 @@ public class Transaction implements Serializable {
 
     }
 
+    /**
+     * get transaction hash
+     * @return transaction hash
+     */
     public String getHashString() {
         return this.header.hashString();
     }
 
+    /**
+     * get transaction hash
+     * @return transaction hash
+     */
     public byte[] getHash() {
         return this.header.hash();
     }
 
+    /**
+     * get account for created tx
+     * @return transaction hash
+     */
     public String getFrom() {
         return Hex.encodeHexString(header.getFrom());
     }
 
+    /**
+     * get transaction data
+     * @return tx data
+     */
     public String getData() {
         return this.data.toString();
     }
 
+    /**
+     * print transaction
+     */
     public void printTransaction() {
         this.header.printTxHeader();
         System.out.println("TX="+this.data.toString());

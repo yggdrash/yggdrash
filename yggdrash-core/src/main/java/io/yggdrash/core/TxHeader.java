@@ -11,19 +11,29 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.nio.ByteBuffer;
 
+/**
+ * Transaction Header Class
+ */
 public class TxHeader implements Serializable {
 
-    private byte version;
-    private byte[] type;
-    private long timestamp;
-    private byte[] from;
-    private byte[] to;
-    private byte[] data_hash;
-    private long data_size;
-    private byte[] signature;
-    private byte[] txHash;
+    private byte version; /** transaction version */
+    private byte[] type; /** transaction type */
+    private long timestamp; /** Transaction timestamp */
+    private byte[] from; /** account for created tx */
+    private byte[] to; /** account for targeted tx */
+    private byte[] data_hash; /** transaction data hash */
+    private long data_size; /** transaction data size */
+    private byte[] signature; /** transaction signature */
+    private byte[] txHash; /** transaction hash */
 
-    // Constructor
+    /**
+     * Transaction Header Constructor
+     * @param from account for created tx
+     * @param to account for targeted tx
+     * @param data_hash transaction data hash
+     * @param data_size transaction data size
+     * @throws IOException
+     */
     public TxHeader(Account from, Account to, byte[] data_hash, long data_size) throws IOException {
         this.version  = 0x00;
         this.type = new byte[7];
@@ -33,8 +43,7 @@ public class TxHeader implements Serializable {
     }
 
 
-    // Method
-    public void makeTxHeader(Account from, Account to, byte[] data_hash, long data_size) throws IOException {
+    private void makeTxHeader(Account from, Account to, byte[] data_hash, long data_size) throws IOException {
         this.timestamp = TimeUtils.time();
         this.from = from.getKey().getPub_key();
         this.to = to.getKey().getPub_key();
@@ -45,11 +54,7 @@ public class TxHeader implements Serializable {
         this.signature = Signature.sign(from.getKey(), SerializeUtils.serialize(this));
     }
 
-    /**
-     * Make Transaction Hash
-     *
-     * @throws IOException
-     */
+
     private void makeTxHash() throws IOException {
         // Transaction Merge Bytes
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -67,6 +72,7 @@ public class TxHeader implements Serializable {
         outputStream.write(to);
         outputStream.write(data_hash);
         outputStream.write(from);
+
         // Data Size to Byte[]
         buffer.clear();
         buffer.putLong(data_size);
@@ -77,18 +83,33 @@ public class TxHeader implements Serializable {
         this.txHash = HashUtils.sha256(outputStream.toByteArray());
     }
 
+    /**
+     * get transaction hash
+     * @return transaction hash
+     */
     public byte[] hash() {
         return this.txHash;
     }
 
+    /**
+     * get transaction hash string
+     * @return transaction hash string
+     */
     public String hashString() {
         return Hex.encodeHexString(this.txHash);
     }
 
+    /**
+     * get account for created tx
+     * @return
+     */
     public byte[] getFrom() {
         return from;
     }
 
+    /**
+     * print transaction header
+     */
     public void printTxHeader() {
         System.out.println("txHash=" + Hex.encodeHexString(this.txHash));
         System.out.println("version=" + Integer.toHexString(this.version));

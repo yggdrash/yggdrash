@@ -8,8 +8,18 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Trie Class
+ */
 public class Trie {
 
+    /**
+     * Get merkle root vaule
+     * @param txs Transaction list
+     * @return
+     * byte[32] - merkle root value <br>
+     * null - if txs is null or txs.size is smaller than 1
+     */
     public static byte[] getMerkleRoot(List<Transaction> txs) {
 
         if(txs == null || txs.size() < 1)

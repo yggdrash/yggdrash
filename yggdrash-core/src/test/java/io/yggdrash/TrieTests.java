@@ -100,6 +100,7 @@ public class TrieTests
             System.out.println("MerkleRoot with tx 0 = null");
         }
 
+
         // 4. test with tx null
         merkle_root = Trie.getMerkleRoot(null);
         if(merkle_root !=  null) {
