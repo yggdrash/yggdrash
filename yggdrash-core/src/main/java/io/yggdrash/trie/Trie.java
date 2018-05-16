@@ -1,7 +1,6 @@
 package io.yggdrash.trie;
 
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.Transactions;
 import io.yggdrash.util.HashUtils;
 
 import java.security.MessageDigest;
@@ -12,6 +11,9 @@ import java.util.List;
 public class Trie {
 
     public static byte[] getMerkleRoot(List<Transaction> txs) {
+
+        if(txs == null || txs.size() < 1)
+            return null;
 
         ArrayList<byte[]> tree = new ArrayList<>();
 

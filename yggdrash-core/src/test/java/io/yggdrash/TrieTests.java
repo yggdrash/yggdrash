@@ -52,6 +52,15 @@ public class TrieTests
         this.tx1 = new Transaction(from, to, data1);
         this.tx2 = new Transaction(from, to, data2);
 
+
+    }
+
+    @Test
+    public void MerkleRootTest() throws IOException, NotValidteException {
+
+        byte[] merkle_root;
+
+        // 1. test merkle root with tx 7
         // create transactions
         List<Transaction> txs_list;
         txs_list = new ArrayList<Transaction>();
@@ -63,16 +72,29 @@ public class TrieTests
         txs_list.add(this.tx2);
         txs_list.add(this.tx2);
         this.txs = new Transactions(txs_list);
-    }
-
-    @Test
-    public void MerkleRootTest() throws IOException, NotValidteException {
-
-        byte[] merkle_root;
 
         merkle_root = Trie.getMerkleRoot(this.txs.getTxs());
 
-        System.out.println("MerkelRoot="+ Hex.encodeHexString(merkle_root));
+        if(merkle_root !=  null) System.out.println("MerkelRoot with tx 7="+ Hex.encodeHexString(merkle_root));
+
+
+        // 2. test with tx 1
+        txs_list = new ArrayList<Transaction>();
+        txs_list.add(this.tx1);
+        this.txs = new Transactions(txs_list);
+        merkle_root = Trie.getMerkleRoot(this.txs.getTxs());
+        if(merkle_root !=  null) System.out.println("MerkelRoot with tx 1="+ Hex.encodeHexString(merkle_root));
+
+
+        // 3. test with tx 0
+        txs_list = new ArrayList<Transaction>();
+        this.txs = new Transactions(txs_list);
+        merkle_root = Trie.getMerkleRoot(this.txs.getTxs());
+        if(merkle_root !=  null) System.out.println("MerkelRoot with tx 0="+ Hex.encodeHexString(merkle_root));
+
+        // 4. test with tx null
+        merkle_root = Trie.getMerkleRoot(null);
+        if(merkle_root !=  null) System.out.println("MerkelRoot with tx 0="+ Hex.encodeHexString(merkle_root));
 
     }
 }
