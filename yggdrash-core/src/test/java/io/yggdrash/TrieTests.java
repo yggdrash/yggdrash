@@ -76,7 +76,7 @@ public class TrieTests
         if(merkle_root !=  null) {
             System.out.println("MerkelRoot with tx 7="+ Hex.encodeHexString(merkle_root));
         } else {
-            System.out.println("MerkleRoot with tx 7 = null")
+            System.out.println("MerkleRoot with tx 7 = null");
         }
 
 
@@ -87,7 +87,7 @@ public class TrieTests
         if(merkle_root !=  null) {
             System.out.println("MerkelRoot with tx 1="+ Hex.encodeHexString(merkle_root));
         } else {
-            System.out.println("MerkleRoot with tx 1 = null")
+            System.out.println("MerkleRoot with tx 1 = null");
         }
 
 
@@ -97,15 +97,15 @@ public class TrieTests
         if(merkle_root !=  null) {
             System.out.println("MerkelRoot with tx 0="+ Hex.encodeHexString(merkle_root));
         } else {
-            System.out.println("MerkleRoot with tx 0 = null")
+            System.out.println("MerkleRoot with tx 0 = null");
         }
 
         // 4. test with tx null
         merkle_root = Trie.getMerkleRoot(null);
         if(merkle_root !=  null) {
-            System.out.println("MerkelRoot with tx 0="+ Hex.encodeHexString(merkle_root));
+            System.out.println("MerkelRoot with tx null="+ Hex.encodeHexString(merkle_root));
         } else {
-            System.out.println("MerkleRoot with tx 0 = null")
+            System.out.println("MerkleRoot with tx null = null");
         }
 
     }
