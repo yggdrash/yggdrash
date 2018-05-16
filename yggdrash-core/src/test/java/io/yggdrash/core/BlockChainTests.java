@@ -14,7 +14,7 @@ public class BlockChainTests {
     private static final Logger log = LoggerFactory.getLogger(BlockChainTests.class);
 
     @Test
-    public void hash로_블록_가져오기() throws IOException {
+    public void hash로_블록_가져오기() {
         BlockChain blockChain = instantBlockchain();
         Block b0 = blockChain.getGenesisBlock();
         String blockHash = b0.getBlockHash();
@@ -25,7 +25,7 @@ public class BlockChainTests {
     }
 
     @Test
-    public void Index로_블록_가져오기() throws IOException {
+    public void Index로_블록_가져오기() {
         BlockChain blockChain = instantBlockchain();
         Block prevBlock = blockChain.getPrevBlock();
         String hash = prevBlock.getPrevBlockHash();
@@ -41,27 +41,25 @@ public class BlockChainTests {
     }
 
     @Test
-    public void 블록체인_블록_추가시_검증() throws IOException, NotValidteException {
-        BlockChain blockChain = instantBlockchain();
-        Account anotherAuth = new Account();
-        blockChain.addBlock(new Block(anotherAuth, blockChain.getPrevBlock(), new BlockBody(Arrays.asList())));
-        assertThat(blockChain.size()).isEqualTo(4);
-    }
-
-    @Test
-    public void TransactionGenTest() throws IOException, NotValidteException {
+    public void TransactionGenTest() throws NotValidteException {
         // 모든 테스트는 독립적으로 동작 해야 합니다
         BlockChain blockchain = instantBlockchain();
         int testBlock = 100;
         Account author = new Account();
         // create blockchain with genesis block
-        for(int i=0; i < testBlock; i++) {
+        BlockBody sampleBody = new BlockBody(Arrays.asList(new Transaction("tx")));
+        BlockHeader.Builder builder = new BlockHeader.Builder()
+                .account(author)
+                .blockBody(sampleBody);
+        BlockHeader blockHeader;
+        for (int i = 0; i < testBlock; i++) {
             // create next block
-            Block block = new Block(author, blockchain.getPrevBlock(), new BlockBody(Arrays.asList()));
-            log.debug(""+block.getIndex());
-            if(blockchain.getPrevBlock() != null) {
-                log.debug("chain prev block hash : "+blockchain.getPrevBlock().getPrevBlockHash());
+            blockHeader = builder.prevBlock(blockchain.getPrevBlock()).build();
+            Block block = new Block(blockHeader, sampleBody);
+            log.debug("" + block.getIndex());
 
+            if (blockchain.getPrevBlock() != null) {
+                log.debug("chain prev block hash : " + blockchain.getPrevBlock().getPrevBlockHash());
             }
             assert block.getIndex() == i+3;
             // add next block in blockchain
@@ -72,14 +70,33 @@ public class BlockChainTests {
 
     }
 
-    private BlockChain instantBlockchain() throws IOException {
+    private BlockChain instantBlockchain() {
         Account author = new Account();
         BlockChain blockChain = new BlockChain();
-        Block b0 = new Block(author, null, new BlockBody(Arrays.asList()));
+
+        BlockBody sampleBody = new BlockBody(Arrays.asList(new Transaction("tx1"))
+        );
+
+        BlockHeader blockHeader = new BlockHeader.Builder()
+                .account(author)
+                .blockBody(sampleBody)
+                .prevBlock(null)
+                .build();
+
+        Block b0 = new Block(blockHeader, sampleBody);
+
         try {
             blockChain.addBlock(b0);
-            blockChain.addBlock(new Block(author, blockChain.getPrevBlock(), new BlockBody(Arrays.asList())));
-            blockChain.addBlock(new Block(author, blockChain.getPrevBlock(), new BlockBody(Arrays.asList())));
+            blockChain.addBlock(
+                    new Block(new BlockHeader.Builder()
+                            .account(author)
+                            .prevBlock(blockChain.getPrevBlock())
+                            .blockBody(sampleBody).build(), sampleBody));
+            blockChain.addBlock(
+                    new Block(new BlockHeader.Builder()
+                            .account(author)
+                            .prevBlock(blockChain.getPrevBlock())
+                            .blockBody(sampleBody).build(), sampleBody));
         } catch (NotValidteException e) {
             e.printStackTrace();
             log.warn("invalid block....");

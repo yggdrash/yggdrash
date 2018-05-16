@@ -4,7 +4,6 @@ import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.io.Serializable;
 
 public class Block implements Cloneable, Serializable {
@@ -18,19 +17,14 @@ public class Block implements Cloneable, Serializable {
         this.data = data;
     }
 
-    public Block(Account author, Block prevBlock, BlockBody transactionList) throws IOException {
-        if (prevBlock == null) {
-            this.header = new BlockHeader(author, null, transactionList);
-        } else {
-            this.header = new BlockHeader(author, prevBlock, transactionList);
-        }
+    public Block(Account author, Block prevBlock, BlockBody blockBody) {
+        this.header = new BlockHeader.Builder()
+                .account(author)
+                .prevBlock(prevBlock)
+                .blockBody(blockBody)
+                .build();
 
-        this.data = transactionList;
-    }
-
-    public Block(Account author, byte[] pre_block_hash, long index, BlockBody txs) throws IOException {
-        this.header = new BlockHeader(author, pre_block_hash, index, txs);
-        this.data = txs;
+        this.data = blockBody;
     }
 
     public String getBlockHash() {
@@ -47,6 +41,10 @@ public class Block implements Cloneable, Serializable {
 
     public long getIndex() {
         return header.getIndex();
+    }
+
+    public long nextIndex() {
+        return header.getIndex() + 1;
     }
 
     public Object clone() throws CloneNotSupportedException {
