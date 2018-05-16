@@ -28,7 +28,7 @@ public class TransactionControllerTests {
     @Autowired
     private MockMvc mockMvc;
 
-    private JacksonTester<TxDto> json;
+    private JacksonTester<TransactionDto> json;
 
     @Before
     public void setUp() {
@@ -38,7 +38,7 @@ public class TransactionControllerTests {
     @Test
     public void 트랜잭션_해쉬로_조회() throws Exception {
         // 트랜잭션 풀에 있는 트랜잭션을 조회 후 블록 내 트랜잭션 조회 로직 추가 필요.
-        TxDto req = new TxDto();
+        TransactionDto req = new TransactionDto();
         req.setFrom("Dezang");
         req.setData("transaction data");
 
@@ -60,7 +60,7 @@ public class TransactionControllerTests {
 
     @Test
     public void 트랜잭션이_트랜잭션풀에_추가되어야_한다() throws Exception {
-        TxDto req = new TxDto();
+        TransactionDto req = new TransactionDto();
         req.setData("Dezang");
 
         MockHttpServletResponse response = mockMvc.perform(post("/txs")

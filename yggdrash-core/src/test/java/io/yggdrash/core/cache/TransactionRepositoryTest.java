@@ -40,6 +40,6 @@ public class TransactionRepositoryTest {
     public Transaction newTransaction() throws IOException {
         Account account = new Account();
         JsonObject json = new JsonObject();
-        return new Transaction(account, account, json);
+        return new Transaction(account, json);
     }
 }
