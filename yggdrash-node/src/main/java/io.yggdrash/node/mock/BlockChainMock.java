@@ -1,5 +1,6 @@
 package io.yggdrash.node.mock;
 
+import io.yggdrash.core.Block;
 import io.yggdrash.node.BlockChain;
 
 import java.util.LinkedHashMap;
@@ -9,13 +10,14 @@ public class BlockChainMock implements BlockChain {
 
     @Override
     public Block addBlock(Block nextBlock) {
-        blocks.put("Hash", nextBlock);
+        blocks.put(nextBlock.getBlockHash(), nextBlock);
+        blocks.put(String.valueOf(nextBlock.getIndex()), nextBlock);
         return nextBlock;
     }
 
     @Override
     public Block getBlockByIndex(int index) {
-        return new Block();
+        return blocks.get(String.valueOf(index));
     }
 
     @Override

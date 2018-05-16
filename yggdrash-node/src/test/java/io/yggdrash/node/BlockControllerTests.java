@@ -56,8 +56,8 @@ public class BlockControllerTests {
 
     @Test
     public void 해쉬로_블록_조회() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(post("/blocks")
-                .contentType(MediaType.APPLICATION_JSON).content("queryByHash"))
+        MvcResult mvcResult = mockMvc.perform(post("/blocks"))
+                .andExpect(status().isOk())
                 .andReturn();
 
         String contentAsString = mvcResult.getResponse().getContentAsString();
@@ -83,13 +83,10 @@ public class BlockControllerTests {
     }
 
     @Test
-    public void 블록이_추가되어야_한다() throws Exception {
-        mockMvc.perform(post("/blocks")
-                .contentType(MediaType.APPLICATION_JSON).content("dezang"))
+    public void 블록이_생성되어야_한다() throws Exception {
+        mockMvc.perform(post("/blocks"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("@.index").value(0))
-                .andExpect(jsonPath("@.data").value("dezang"))
-                .andReturn();
+                .andExpect(jsonPath("@.index").value(0));
     }
 }

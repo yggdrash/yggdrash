@@ -31,6 +31,9 @@ public class BlockHeader implements Serializable {
     public long getIndex() {
         return index;
     }
+    public long getTimestamp() {
+        return timestamp;
+    }
 
     public byte[] getBlockHash() {
         return HashUtils.sha256(SerializeUtils.serialize(this));
