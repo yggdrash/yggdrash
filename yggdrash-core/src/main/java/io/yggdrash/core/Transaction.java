@@ -26,7 +26,7 @@ public class Transaction implements Serializable {
         makeTransaction(from, data);
     }
 
-    public void makeTransaction(Account from, JsonObject data) {
+    private void makeTransaction(Account from, JsonObject data) {
 
         // 1. make data
         this.data = data;
@@ -36,7 +36,7 @@ public class Transaction implements Serializable {
             byte[] bin = SerializeUtils.serialize(data);
             this.header = new TransactionHeader(from, HashUtils.sha256(bin), bin.length);
         } catch (IOException e) {
-            e.printStackTrace();
+            e.printStackTrace(); // need to check error
         }
 
     }

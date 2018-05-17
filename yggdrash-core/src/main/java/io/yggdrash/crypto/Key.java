@@ -40,17 +40,34 @@ public class Key {
         this.publicKey = publicKey;
     }
 
+
     // <Method>
+
+    /**
+     * generate PrivateKey (temporarily)
+     * @return private key
+     */
     public byte[] generateKey() {
-        // TODO key generate
+        // TODO implement
         return "prikey7890123456789012".getBytes();
     }
 
+    /**
+     * generate address (temporarily)
+     * @return address
+     */
     public byte[] getAddress() {
+        // TODO implement
         return "address8901234567890".getBytes();
     }
 
-    public byte[] getPubKey(byte[] privateKey) {
+    /**
+     * get public key with private key
+     * @param pri_key private key
+     * @return public key
+     */
+    public byte[] getPubKey(byte[] pri_key) {
+        // TODO implement
         return "pubkey7890123456789012".getBytes();
     }
 

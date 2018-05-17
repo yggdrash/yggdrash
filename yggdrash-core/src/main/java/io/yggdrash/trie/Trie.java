@@ -10,6 +10,7 @@ import java.util.List;
 
 /**
  * Trie Class
+ * <br> referenced <a href="https://github.com/bitcoinj"> bitcoinj </a>
  */
 public class Trie {
 

@@ -24,7 +24,13 @@ public class TransactionHeader implements Serializable {
     private byte[] signature;
     private byte[] transactionHash;
 
-    // Constructor
+    /**
+     * TransactionHeader Constructor
+     * @param from account for creating tx
+     * @param dataHash data hash
+     * @param dataSize data size
+     * @throws IOException IOException
+     */
     public TransactionHeader(Account from, byte[] dataHash, long dataSize) throws IOException {
         this.version  = 0x00;
         this.type = new byte[7];
