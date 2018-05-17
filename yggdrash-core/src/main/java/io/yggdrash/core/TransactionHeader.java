@@ -41,7 +41,7 @@ public class TransactionHeader implements Serializable {
      */
     public void makeTxHeader(Account from, byte[] dataHash, long dataSize) throws IOException {
         this.timestamp = TimeUtils.time();
-        this.from = from.getKey().getPub_key();
+        this.from = from.getKey().getPublicKey();
         this.dataHash = dataHash;
         this.dataSize = dataSize;
 

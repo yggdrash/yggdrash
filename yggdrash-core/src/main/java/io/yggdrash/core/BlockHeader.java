@@ -75,7 +75,7 @@ public class BlockHeader implements Serializable {
 
         public Builder account(Account account) {
             this.account = account;
-            this.author = account.getKey().getPub_key();
+            this.author = account.getKey().getPublicKey();
             return this;
         }
 
