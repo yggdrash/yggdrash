@@ -1,15 +1,18 @@
-# yggdrash
-_We will change the world by blockchain._
+# 이그드라시 - 블록체인 플랫폼
+- [ENGLISH](README-en.md)
 
-## [Yggdrash WIKI](https://github.com/yggdrash/yggdrash/wiki)
-* yggdrash concept and description, 이그드라시 문서
+> We will change the world by blockchain.
 
-## [Yggdrash Technical Document](docs)
-* 이그드라시 기술문서
+## 문서
+- 모든 문서를 보고 싶다면 [wiki](https://github.com/yggdrash/yggdrash/wiki) 에 방문하세요.
+- 개발자라면 [yggdrash technical document](docs) 를 읽어보세요.
 
-[Yggdrash Homepage](https://yggdrash.io)
+## 특징
 
-# [LICENSE](LICENSE)
+## 시작하기
 
-### Follow me if you can.
- 
+## 더 많은 정보
+- [이그드라시 웹사이트](https://yggdrash.io)
+
+## 라이센스
+[Apache License 2.0](LICENSE)

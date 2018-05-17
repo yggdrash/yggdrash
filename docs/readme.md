@@ -3,7 +3,7 @@
 - 이 문서는 이그드라시 기술 설명 및 각 모듈별 설명 그리고 구현레벨 및 테스트 내용을 작성 합니다. 
 
 
-# [Yggdrash Architecture](architecture)
+# [Yggdrash Architecture](architecture.md)
 * 이그드라시의 아키텍쳐 영역을 설명 합니다.
 
 ## Develop By Agile Model 
