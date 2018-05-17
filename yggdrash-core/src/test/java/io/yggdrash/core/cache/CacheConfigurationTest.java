@@ -43,9 +43,9 @@ public class CacheConfigurationTest {
         assert uTx.getName() != "";
         Account account = new Account();
         JsonObject json = new JsonObject();
-        uTx.put("TEST0", new Transaction(account, account, json));
-        uTx.put("TEST1", new Transaction(account, account, json));
-        uTx.put("TEST2", new Transaction(account, account, json));
+        uTx.put("TEST0", new Transaction(account, json));
+        uTx.put("TEST1", new Transaction(account, json));
+        uTx.put("TEST2", new Transaction(account, json));
 
         Transaction tx = uTx.get("TEST0", Transaction.class);
 
@@ -95,7 +95,7 @@ public class CacheConfigurationTest {
     public void addNewTransaction() throws IOException {
         Account account = new Account();
         JsonObject json = new JsonObject();
-        Transaction tx = new Transaction(account, account, json);
+        Transaction tx = new Transaction(account, json);
         // Transaction has random hashcode
         if (uTx.get(tx.getHash()) != null) {
             addNewTransaction();

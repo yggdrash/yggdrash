@@ -1,5 +1,6 @@
 package io.yggdrash.core;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.core.exception.NotValidteException;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -14,7 +15,7 @@ public class BlockChainTests {
     private static final Logger log = LoggerFactory.getLogger(BlockChainTests.class);
 
     @Test
-    public void hash로_블록_가져오기() {
+    public void hash로_블록_가져오기() throws IOException {
         BlockChain blockChain = instantBlockchain();
         Block b0 = blockChain.getGenesisBlock();
         String blockHash = b0.getBlockHash();
@@ -25,7 +26,7 @@ public class BlockChainTests {
     }
 
     @Test
-    public void Index로_블록_가져오기() {
+    public void Index로_블록_가져오기() throws IOException {
         BlockChain blockChain = instantBlockchain();
         Block prevBlock = blockChain.getPrevBlock();
         String hash = prevBlock.getPrevBlockHash();
@@ -41,13 +42,14 @@ public class BlockChainTests {
     }
 
     @Test
-    public void TransactionGenTest() throws NotValidteException {
+    public void TransactionGenTest() throws NotValidteException, IOException {
         // 모든 테스트는 독립적으로 동작 해야 합니다
         BlockChain blockchain = instantBlockchain();
         int testBlock = 100;
         Account author = new Account();
         // create blockchain with genesis block
-        BlockBody sampleBody = new BlockBody(Arrays.asList(new Transaction("tx")));
+        Transaction tx = new Transaction(author, new JsonObject());
+        BlockBody sampleBody = new BlockBody(Arrays.asList(new Transaction[]{tx}));
         BlockHeader.Builder builder = new BlockHeader.Builder()
                 .account(author)
                 .blockBody(sampleBody);
@@ -70,12 +72,11 @@ public class BlockChainTests {
 
     }
 
-    private BlockChain instantBlockchain() {
+    private BlockChain instantBlockchain() throws IOException {
         Account author = new Account();
         BlockChain blockChain = new BlockChain();
-
-        BlockBody sampleBody = new BlockBody(Arrays.asList(new Transaction("tx1"))
-        );
+        Transaction tx = new Transaction(author, new JsonObject());
+        BlockBody sampleBody = new BlockBody(Arrays.asList(new Transaction[]{tx}));
 
         BlockHeader blockHeader = new BlockHeader.Builder()
                 .account(author)

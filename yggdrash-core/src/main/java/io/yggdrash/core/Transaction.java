@@ -10,41 +10,23 @@ import java.io.Serializable;
 
 public class Transaction implements Serializable {
 
-    // <Variable>
-    private TxHeader header;
+    // Header
+    private TransactionHeader header;
+
+    // Data
     private JsonObject data;
 
-
-    // Constructor
-    public Transaction() {
-
-    }
 
     /**
      * Transaction Constructor
      * @param from account for creating transaction
-     * @param to account for targeting
      * @param data transaction data(Json)
      */
-    public Transaction(Account from, Account to, JsonObject data) {
-        makeTransaction(from, to, data);
+    public Transaction(Account from, JsonObject data) throws IOException {
+        makeTransaction(from, data);
     }
 
-    // generate TX for testing
-
-    /**
-     * Transaction Constructor with tx data
-     * @param data tx data
-     */
-    public Transaction(String data) {
-        JsonObject data1 = new JsonObject();
-        data1.addProperty("key", "balance");
-        data1.addProperty("operator", "transfer");
-        data1.addProperty("value", data);
-        makeTransaction(new Account(), new Account(), data1);
-    }
-
-    private void makeTransaction(Account from, Account to, JsonObject data) {
+    public void makeTransaction(Account from, JsonObject data) {
 
         // 1. make data
         this.data = data;
@@ -52,7 +34,7 @@ public class Transaction implements Serializable {
         // 2. make header
         try {
             byte[] bin = SerializeUtils.serialize(data);
-            this.header = new TxHeader(from, to, HashUtils.sha256(bin), bin.length);
+            this.header = new TransactionHeader(from, HashUtils.sha256(bin), bin.length);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -94,9 +76,12 @@ public class Transaction implements Serializable {
     /**
      * print transaction
      */
-    public void printTransaction() {
-        this.header.printTxHeader();
-        System.out.println("TX="+this.data.toString());
+    public String toString() {
+        StringBuffer buffer = new StringBuffer();
+        buffer.append(this.header.toString());
+        buffer.append("transactionData=").append(this.data.toString());
+
+        return buffer.toString();
     }
 
 }

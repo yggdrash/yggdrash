@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+
 @RestController
 @RequestMapping("txs")
 public class TransactionController {
@@ -18,10 +20,16 @@ public class TransactionController {
     }
 
     @PostMapping
-    public ResponseEntity add(@RequestBody TxDto request) {
-        Transaction tx = TxDto.of(request);
-        Transaction addedTx = txPool.addTx(tx);
-        return ResponseEntity.ok(TxDto.createBy(addedTx));
+    public ResponseEntity add(@RequestBody TransactionDto request) {
+        try {
+            Transaction tx = TransactionDto.of(request);
+            Transaction addedTx = txPool.addTx(tx);
+            return ResponseEntity.ok(TransactionDto.createBy(addedTx));
+        } catch (IOException e) {
+            e.printStackTrace();
+            // TODO 에러정의를 다시 해 볼수 있도록 합니다.
+            return ResponseEntity.status(500).build();
+        }
     }
 
     @GetMapping("{id}")
@@ -32,6 +40,6 @@ public class TransactionController {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
 
-        return ResponseEntity.ok(TxDto.createBy(tx));
+        return ResponseEntity.ok(TransactionDto.createBy(tx));
     }
 }
