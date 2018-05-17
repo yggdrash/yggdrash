@@ -1,11 +1,23 @@
 package io.yggdrash.node;
 
+import io.yggdrash.core.Block;
+import io.yggdrash.core.BlockBody;
+
 public class BlockDto {
     private long index;
     private String hash;
     private String previousHash;
     private long timestamp;
-    private String data;
+    private BlockBody body;
+
+    public static BlockDto createBy(Block block) {
+        BlockDto blockDto = new BlockDto();
+        blockDto.setIndex(block.getIndex());
+        blockDto.setHash(block.getBlockHash());
+        blockDto.setPreviousHash(block.getPrevBlockHash());
+        blockDto.setTimestamp(block.getTimestamp());
+        return blockDto;
+    }
 
     public long getIndex() {
         return index;
@@ -39,11 +51,11 @@ public class BlockDto {
         this.timestamp = timestamp;
     }
 
-    public String getData() {
-        return data;
+    public BlockBody getBody() {
+        return body;
     }
 
-    public void setData(String data) {
-        this.data = data;
+    public void setBody(BlockBody body) {
+        this.body = body;
     }
 }

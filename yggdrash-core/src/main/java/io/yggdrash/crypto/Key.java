@@ -2,41 +2,47 @@ package io.yggdrash.crypto;
 
 public class Key {
 
-    // <Variable>
-    private byte[] pri_key;
-    private byte[] pub_key;
+    private byte[] privateKey;
+    private byte[] publicKey;
 
-    // <Constructor>
-    public Key(byte[] pri_key, byte[] pub_key) {
-        this.pri_key = pri_key;
-        this.pub_key = pub_key;
+    /**
+     * PKI
+     * @param privateKey
+     * @param publicKey
+     */
+    public Key(byte[] privateKey, byte[] publicKey) {
+        this.privateKey = privateKey;
+        this.publicKey = publicKey;
     }
 
+    /**
+     * PKI
+     */
     public Key() {
-        this.pri_key = generateKey();
-        this.pub_key = getPubKey(this.pri_key);
+        this.privateKey = generateKey();
+        this.publicKey = getPubKey(this.privateKey);
     }
 
     // <Get_set Method>
-    public byte[] getPri_key() {
-        return pri_key;
+    public byte[] getPrivateKey() {
+        return privateKey;
     }
 
-    public void setPri_key(byte[] pri_key) {
-        this.pri_key = pri_key;
+    public void setPrivateKey(byte[] privateKey) {
+        this.privateKey = privateKey;
     }
 
-    public byte[] getPub_key() {
-        return pub_key;
+    public byte[] getPublicKey() {
+        return publicKey;
     }
 
-    public void setPub_key(byte[] pub_key) {
-        this.pub_key = pub_key;
+    public void setPublicKey(byte[] publicKey) {
+        this.publicKey = publicKey;
     }
-
 
     // <Method>
     public byte[] generateKey() {
+        // TODO key generate
         return "prikey7890123456789012".getBytes();
     }
 
@@ -44,7 +50,7 @@ public class Key {
         return "address8901234567890".getBytes();
     }
 
-    public byte[] getPubKey(byte[] pri_key) {
+    public byte[] getPubKey(byte[] privateKey) {
         return "pubkey7890123456789012".getBytes();
     }
 

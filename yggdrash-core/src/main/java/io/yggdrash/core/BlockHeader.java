@@ -31,6 +31,9 @@ public class BlockHeader implements Serializable {
     public long getIndex() {
         return index;
     }
+    public long getTimestamp() {
+        return timestamp;
+    }
 
     public byte[] getBlockHash() {
         return HashUtils.sha256(SerializeUtils.serialize(this));
@@ -72,7 +75,7 @@ public class BlockHeader implements Serializable {
 
         public Builder account(Account account) {
             this.account = account;
-            this.author = account.getKey().getPub_key();
+            this.author = account.getKey().getPublicKey();
             return this;
         }
 

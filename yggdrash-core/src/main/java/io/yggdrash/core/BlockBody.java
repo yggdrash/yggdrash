@@ -2,42 +2,37 @@ package io.yggdrash.core;
 
 import io.yggdrash.trie.Trie;
 
-import java.io.IOException;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.List;
 
 public class BlockBody implements Serializable {
 
-    // <Variable>
-    private List<Transaction> txs;
+    private List<Transaction> transactionList;
 
-    // Constructor
-    public BlockBody(List<Transaction> txs) {
-        this.txs = txs;
+    public BlockBody(List<Transaction> transactionList) {
+        this.transactionList = transactionList;
     }
 
-    // <Get_Set Method>
-    public List<Transaction> getTxs() {
-        return txs;
+    public List<Transaction> getTransactionList() {
+        return transactionList;
     }
 
-    public void setTxs(List<Transaction> txs) {
-        this.txs = txs;
+    public void setTransactionList(List<Transaction> transactionList) {
+        this.transactionList = transactionList;
     }
 
     public byte[] getMerkleRoot() {
-        return Trie.getMerkleRoot(this.txs);
+        return Trie.getMerkleRoot(this.transactionList);
     }
 
     public long getSize() {
-        return this.txs.size(); // check byte
+        return this.transactionList.size(); // check byte
     }
 
     public String toString() {
         StringBuffer buffer = new StringBuffer();
         buffer.append("transactionList=>");
-        for (Transaction tx : this.txs) {
+        for (Transaction tx : this.transactionList) {
             buffer.append(tx.toString());
         }
         return buffer.toString();

@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.util.HashMap;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest
 public class TransactionTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionTest.class);
 
@@ -24,6 +23,9 @@ public class TransactionTest {
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
         Transaction t = new Transaction(account1, json);
+        log.debug(t.toString());
+
+        assert !t.getHashString().isEmpty();
     }
 
     @Test

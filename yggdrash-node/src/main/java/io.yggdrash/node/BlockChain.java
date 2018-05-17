@@ -1,6 +1,6 @@
 package io.yggdrash.node;
 
-import io.yggdrash.node.mock.Block;
+import io.yggdrash.core.Block;
 
 import java.util.LinkedHashMap;
 
@@ -11,5 +11,5 @@ public interface BlockChain {
 
     Block getBlockByHash(String id);
 
-    LinkedHashMap<byte[],Block> getBlocks();
+    LinkedHashMap<byte[], Block> getBlocks();
 }
