@@ -6,9 +6,10 @@ public class Key {
     private byte[] publicKey;
 
     /**
-     * PKI
-     * @param privateKey
-     * @param publicKey
+     * Instantiates a new Key.
+     *
+     * @param privateKey the private key
+     * @param publicKey  the public key
      */
     public Key(byte[] privateKey, byte[] publicKey) {
         this.privateKey = privateKey;
@@ -16,7 +17,7 @@ public class Key {
     }
 
     /**
-     * PKI
+     * Instantiates a new Key.
      */
     public Key() {
         this.privateKey = generateKey();
@@ -45,6 +46,7 @@ public class Key {
 
     /**
      * generate PrivateKey (temporarily)
+     *
      * @return private key
      */
     public byte[] generateKey() {
@@ -54,6 +56,7 @@ public class Key {
 
     /**
      * generate address (temporarily)
+     *
      * @return address
      */
     public byte[] getAddress() {
@@ -63,10 +66,11 @@ public class Key {
 
     /**
      * get public key with private key
-     * @param pri_key private key
+     *
+     * @param privateKey private key
      * @return public key
      */
-    public byte[] getPubKey(byte[] pri_key) {
+    public byte[] getPubKey(byte[] privateKey) {
         // TODO implement
         return "pubkey7890123456789012".getBytes();
     }

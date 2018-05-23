@@ -26,24 +26,27 @@ public class TransactionHeader implements Serializable {
 
     /**
      * TransactionHeader Constructor
-     * @param from account for creating tx
+     *
+     * @param from     account for creating tx
      * @param dataHash data hash
      * @param dataSize data size
      * @throws IOException IOException
      */
     public TransactionHeader(Account from, byte[] dataHash, long dataSize) throws IOException {
-        this.version  = 0x00;
+        this.version = 0x00;
         this.type = new byte[7];
 
         makeTxHeader(from, dataHash, dataSize);
     }
 
+
     /**
-     * Transaction Header
-     * @param from
-     * @param dataHash
-     * @param dataSize
-     * @throws IOException
+     * Make tx header.
+     *
+     * @param from     the from
+     * @param dataHash the data hash
+     * @param dataSize the data size
+     * @throws IOException the io exception
      */
     public void makeTxHeader(Account from, byte[] dataHash, long dataSize) throws IOException {
         this.timestamp = TimeUtils.time();
@@ -66,11 +69,6 @@ public class TransactionHeader implements Serializable {
         makeTxHash();
     }
 
-    /**
-     * Make Transaction Hash
-     *
-     * @throws IOException
-     */
     private void makeTxHash() throws IOException {
         // Transaction Merge Bytes
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -109,16 +107,16 @@ public class TransactionHeader implements Serializable {
 
     @Override
     public String toString() {
-        return "TransactionHeader{" +
-                "version=" + version +
-                ", type=" + Hex.encodeHexString(type) +
-                ", timestamp=" + timestamp +
-                ", from=" + Hex.encodeHexString(from) +
-                ", dataHash=" + Hex.encodeHexString(dataHash) +
-                ", dataSize=" + dataSize +
-                ", signature=" + Hex.encodeHexString(signature) +
-                ", transactionHash=" + Hex.encodeHexString(transactionHash) +
-                '}';
+        return "TransactionHeader{"
+                + "version=" + version
+                + ", type=" + Hex.encodeHexString(type)
+                + ", timestamp=" + timestamp
+                + ", from=" + Hex.encodeHexString(from)
+                + ", dataHash=" + Hex.encodeHexString(dataHash)
+                + ", dataSize=" + dataSize
+                + ", signature=" + Hex.encodeHexString(signature)
+                + ", transactionHash=" + Hex.encodeHexString(transactionHash)
+                + '}';
     }
 
 

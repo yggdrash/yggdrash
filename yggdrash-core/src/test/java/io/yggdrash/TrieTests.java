@@ -1,7 +1,8 @@
 package io.yggdrash;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.core.*;
+import io.yggdrash.core.Account;
+import io.yggdrash.core.Transaction;
 import io.yggdrash.core.exception.NotValidteException;
 import io.yggdrash.trie.Trie;
 import org.apache.commons.codec.binary.Hex;
@@ -14,8 +15,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TrieTests
-{
+public class TrieTests {
     private static final Logger log = LoggerFactory.getLogger(Trie.class);
 
     public Account from;
@@ -29,13 +29,13 @@ public class TrieTests
         JsonObject data1 = new JsonObject();
         data1.addProperty("key", "balance");
         data1.addProperty("operator", "transfer");
-        data1.addProperty("value",30);
+        data1.addProperty("value", 30);
 
         // create tx_data2
         JsonObject data2 = new JsonObject();
         data2.addProperty("key", "balance");
         data2.addProperty("operator", "transfer");
-        data2.addProperty("value",10);
+        data2.addProperty("value", 10);
 
         // create account
         this.from = new Account();
@@ -66,8 +66,8 @@ public class TrieTests
 
         merkle_root = Trie.getMerkleRoot(txs_list);
 
-        if(merkle_root !=  null) {
-            System.out.println("MerkelRoot with tx 7="+ Hex.encodeHexString(merkle_root));
+        if (merkle_root != null) {
+            System.out.println("MerkelRoot with tx 7=" + Hex.encodeHexString(merkle_root));
         } else {
             System.out.println("MerkleRoot with tx 7 = null");
         }
@@ -77,8 +77,8 @@ public class TrieTests
         txs_list = new ArrayList<Transaction>();
         txs_list.add(this.tx1);
         merkle_root = Trie.getMerkleRoot(txs_list);
-        if(merkle_root !=  null) {
-            System.out.println("MerkelRoot with tx 1="+ Hex.encodeHexString(merkle_root));
+        if (merkle_root != null) {
+            System.out.println("MerkelRoot with tx 1=" + Hex.encodeHexString(merkle_root));
         } else {
             System.out.println("MerkleRoot with tx 1 = null");
         }
@@ -87,8 +87,8 @@ public class TrieTests
         // 3. test with tx 0
         txs_list = new ArrayList<Transaction>();
         merkle_root = Trie.getMerkleRoot(txs_list);
-        if(merkle_root !=  null) {
-            System.out.println("MerkelRoot with tx 0="+ Hex.encodeHexString(merkle_root));
+        if (merkle_root != null) {
+            System.out.println("MerkelRoot with tx 0=" + Hex.encodeHexString(merkle_root));
         } else {
             System.out.println("MerkleRoot with tx 0 = null");
         }
@@ -96,8 +96,8 @@ public class TrieTests
 
         // 4. test with tx null
         merkle_root = Trie.getMerkleRoot(null);
-        if(merkle_root !=  null) {
-            System.out.println("MerkelRoot with tx null="+ Hex.encodeHexString(merkle_root));
+        if (merkle_root != null) {
+            System.out.println("MerkelRoot with tx null=" + Hex.encodeHexString(merkle_root));
         } else {
             System.out.println("MerkleRoot with tx null = null");
         }
