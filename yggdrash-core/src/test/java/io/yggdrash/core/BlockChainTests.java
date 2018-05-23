@@ -19,7 +19,7 @@ public class BlockChainTests {
         BlockChain blockChain = instantBlockchain();
         Block b0 = blockChain.getGenesisBlock();
         String blockHash = b0.getBlockHash();
-        log.debug("Block hashString : "+ blockHash);
+        log.debug("Block hashString : " + blockHash);
         Block foundBlock = blockChain.getBlockByHash(blockHash);
 
         assertThat(foundBlock.getBlockHash()).isEqualTo(blockHash);
@@ -49,7 +49,7 @@ public class BlockChainTests {
         Account author = new Account();
         // create blockchain with genesis block
         Transaction tx = new Transaction(author, new JsonObject());
-        BlockBody sampleBody = new BlockBody(Arrays.asList(new Transaction[]{tx}));
+        BlockBody sampleBody = new BlockBody(Arrays.asList(new Transaction[] {tx}));
         BlockHeader.Builder builder = new BlockHeader.Builder()
                 .account(author)
                 .blockBody(sampleBody);
@@ -63,12 +63,12 @@ public class BlockChainTests {
             if (blockchain.getPrevBlock() != null) {
                 log.debug("chain prev block hash : " + blockchain.getPrevBlock().getPrevBlockHash());
             }
-            assert block.getIndex() == i+3;
+            assert block.getIndex() == i + 3;
             // add next block in blockchain
             blockchain.addBlock(block);
         }
 
-        assert blockchain.size() == testBlock+3;
+        assert blockchain.size() == testBlock + 3;
 
     }
 
@@ -76,7 +76,7 @@ public class BlockChainTests {
         Account author = new Account();
         BlockChain blockChain = new BlockChain();
         Transaction tx = new Transaction(author, new JsonObject());
-        BlockBody sampleBody = new BlockBody(Arrays.asList(new Transaction[]{tx}));
+        BlockBody sampleBody = new BlockBody(Arrays.asList(new Transaction[] {tx}));
 
         BlockHeader blockHeader = new BlockHeader.Builder()
                 .account(author)

@@ -7,6 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.stereotype.Repository;
 
+/**
+ * The type Transaction repository.
+ */
 @Repository("yggdrash.transaction")
 public class TransactionRepository {
 
@@ -14,9 +17,10 @@ public class TransactionRepository {
     private ConcurrentMapCache transactionPool;
 
     /**
-     * get Transaction Cache
-     * @param hash
-     * @return
+     * Gets transaction.
+     *
+     * @param hash the hash
+     * @return the transaction
      */
     public Transaction getTransaction(byte[] hash) {
         // check Cache
@@ -29,10 +33,11 @@ public class TransactionRepository {
     }
 
     /**
-     * get Transaction By hashString from Transaction Cache
-     * @param hashString
-     * @return
-     * @throws DecoderException
+     * Gets transaction.
+     *
+     * @param hashString the hash string
+     * @return the transaction
+     * @throws DecoderException the decoder exception
      */
     public Transaction getTransaction(String hashString) throws DecoderException {
         byte[] hash = Hex.decodeHex(hashString.toCharArray());
@@ -46,9 +51,10 @@ public class TransactionRepository {
     }
 
     /**
-     * add Transaction to Transaction Cache
-     * @param transaction
-     * @return
+     * Add transaction int.
+     *
+     * @param transaction the transaction
+     * @return the int
      */
     public int addTransaction(Transaction transaction) {
         // FIXME get transaction hash value
@@ -59,7 +65,6 @@ public class TransactionRepository {
 
         return 0;
     }
-
 
 
 }

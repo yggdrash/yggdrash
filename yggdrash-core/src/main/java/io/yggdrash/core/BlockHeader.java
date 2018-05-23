@@ -8,6 +8,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 
+/**
+ * The type Block header.
+ */
 public class BlockHeader implements Serializable {
     private static final Logger log = LoggerFactory.getLogger(BlockHeader.class);
 
@@ -22,25 +25,6 @@ public class BlockHeader implements Serializable {
     private final byte[] signature;
 
 
-    /*
-     * Getter & Setter
-     *
-     * 객체를 최대한 캡슐화 하기 위해서 getter, setter 는 최소한으로 작성. 특히 setter 는 지양
-     */
-    public long getIndex() {
-        return index;
-    }
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public byte[] getBlockHash() {
-        return HashUtil.sha256(SerializeUtils.serialize(this));
-    }
-    public byte[] getPrevBlockHash() {
-        return prevBlockHash;
-    }
-
     private BlockHeader(Builder builder) {
         this.version = builder.version;
         this.payload = builder.payload;
@@ -53,6 +37,50 @@ public class BlockHeader implements Serializable {
         this.signature = builder.signature;
     }
 
+    /**
+     * Gets index.
+     *
+     * @return the index
+     */
+    /*
+     * Getter & Setter
+     *
+     * 객체를 최대한 캡슐화 하기 위해서 getter, setter 는 최소한으로 작성. 특히 setter 는 지양
+     */
+    public long getIndex() {
+        return index;
+    }
+
+    /**
+     * Gets timestamp.
+     *
+     * @return the timestamp
+     */
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    /**
+     * Get block hash byte [ ].
+     *
+     * @return the byte [ ]
+     */
+    public byte[] getBlockHash() {
+        return HashUtil.sha256(SerializeUtils.serialize(this));
+    }
+
+    /**
+     * Get prev block hash byte [ ].
+     *
+     * @return the byte [ ]
+     */
+    public byte[] getPrevBlockHash() {
+        return prevBlockHash;
+    }
+
+    /**
+     * The type Builder.
+     */
     public static class Builder {
 
         private byte version;
@@ -66,18 +94,33 @@ public class BlockHeader implements Serializable {
         private byte[] signature;
         private Account account;
 
+        /**
+         * Instantiates a new Builder.
+         */
         public Builder() {
             version = 0x00;
             payload = new byte[7];
             timestamp = TimeUtils.getCurrenttime();
         }
 
+        /**
+         * Account builder.
+         *
+         * @param account the account
+         * @return the builder
+         */
         public Builder account(Account account) {
             this.account = account;
             this.author = account.getKey().getPubKey();
             return this;
         }
 
+        /**
+         * Prev block builder.
+         *
+         * @param prevBlock the prev block
+         * @return the builder
+         */
         public Builder prevBlock(Block prevBlock) {
             if (prevBlock == null) {
                 this.index = 0;
@@ -89,14 +132,26 @@ public class BlockHeader implements Serializable {
             return this;
         }
 
+        /**
+         * Block body builder.
+         *
+         * @param blockBody the block body
+         * @return the builder
+         */
         public Builder blockBody(BlockBody blockBody) {
             this.merkleRoot = blockBody.getMerkleRoot();
             this.dataSize = blockBody.getSize();
             return this;
         }
 
+        /**
+         * Build block header.
+         *
+         * @return the block header
+         */
         public BlockHeader build() {
-            this.signature = this.account.getKey().sign(HashUtil.sha256(SerializeUtils.serialize(this))).toByteArray();
+            this.signature = this.account.getKey().sign(
+                    HashUtil.sha256(SerializeUtils.serialize(this))).toByteArray();
             return new BlockHeader(this);
         }
     }

@@ -7,7 +7,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BlockChain {
     private static final Logger log = LoggerFactory.getLogger(BlockChain.class);
@@ -19,13 +20,11 @@ public class BlockChain {
     private JsonObject packageInfo;
 
 
-    // <Constructor>
     public BlockChain() {
         this.packageInfo = new JsonObject();
         this.blocks = new HashMap<>();
     }
 
-    // create blockchain & add genesis block
     public BlockChain(JsonObject packageInfo) {
         this.packageInfo = packageInfo;
         this.blocks = new HashMap<>();
@@ -48,12 +47,16 @@ public class BlockChain {
         return blocks;
     }
 
-    // <Method>
-
+    /**
+     * Add block.
+     *
+     * @param nextBlock the next block
+     * @throws NotValidteException the not validte exception
+     */
     public void addBlock(Block nextBlock) throws NotValidteException {
-        if(isGenesisBlock(nextBlock)) {
-                this.genesisBlock = nextBlock;
-        } else if(!isValidNewBlock(prevBlock, nextBlock)) {
+        if (isGenesisBlock(nextBlock)) {
+            this.genesisBlock = nextBlock;
+        } else if (!isValidNewBlock(prevBlock, nextBlock)) {
             throw new NotValidteException();
         }
         log.debug("blockHash : " + nextBlock.getBlockHash());
@@ -69,7 +72,9 @@ public class BlockChain {
     }
 
     private boolean isValidNewBlock(Block prevBlock, Block nextBlock) {
-        if (prevBlock == null) return true;
+        if (prevBlock == null) {
+            return true;
+        }
         log.debug(" prev : " + prevBlock.getBlockHash());
         log.debug(" new : " + nextBlock.getBlockHash());
 
@@ -85,17 +90,30 @@ public class BlockChain {
     }
 
     public int size() {
-        return blocks.size()/2;
+        return blocks.size() / 2;
     }
 
+    /**
+     * Is valid chain boolean.
+     *
+     * @return the boolean
+     * @throws IOException the io exception
+     */
     public boolean isValidChain() throws IOException {
         return isValidChain(this);
     }
 
+    /**
+     * Is valid chain boolean.
+     *
+     * @param blockChain the block chain
+     * @return the boolean
+     * @throws IOException the io exception
+     */
     public boolean isValidChain(BlockChain blockChain) throws IOException {
-        if(blockChain.getPrevBlock() != null){
+        if (blockChain.getPrevBlock() != null) {
             Block block = blockChain.getPrevBlock(); // Get Last Block
-            while(block.getIndex() != 0L) {
+            while (block.getIndex() != 0L) {
                 block = blockChain.getBlockByHash(block.getPrevBlockHash());
             }
             return block.getIndex() == 0L;
@@ -107,19 +125,37 @@ public class BlockChain {
         return blocks.get(new Long(index));
     }
 
+    /**
+     * Gets block by hash.
+     *
+     * @param hash the hash
+     * @return the block by hash
+     */
     public Block getBlockByHash(String hash) {
         return blocks.get(hash);
     }
 
+    /**
+     * Gets block by hash.
+     *
+     * @param hash the hash
+     * @return the block by hash
+     */
     public Block getBlockByHash(byte[] hash) {
         return blocks.get(Hex.encodeHexString(hash));
     }
 
 
+    /**
+     * Replace chain.
+     *
+     * @param otherChain the other chain
+     * @throws IOException the io exception
+     */
     public void replaceChain(BlockChain otherChain) throws IOException {
-        if(isValidChain(otherChain) && otherChain.size() > this.size()) {
-            log.info("Received blockchain is valid. Replacing current blockchain with received " +
-                    "blockchain");
+        if (isValidChain(otherChain) && otherChain.size() > this.size()) {
+            log.info("Received blockchain is valid. Replacing current blockchain with received "
+                    + "blockchain");
             this.blocks = otherChain.blocks;
             //TODO broadcastLatest();
         } else {
@@ -127,20 +163,28 @@ public class BlockChain {
         }
     }
 
+    /**
+     * Is genesis block chain boolean.
+     *
+     * @return the boolean
+     */
     public boolean isGenesisBlockChain() {
         return (this.prevBlock == null);
     }
 
     @Override
     public String toString() {
-        return "BlockChain{" +
-                "genesisBlock=" + genesisBlock +
-                ", prevBlock=" + prevBlock +
-                ", blocks=" + blocks +
-                ", packageInfo=" + packageInfo +
-                '}';
+        return "BlockChain{"
+                + "genesisBlock=" + genesisBlock
+                + ", prevBlock=" + prevBlock
+                + ", blocks=" + blocks
+                + ", packageInfo=" + packageInfo
+                + '}';
     }
 
+    /**
+     * Clear.
+     */
     public void clear() {
         this.blocks.clear();
         this.prevBlock = null;

@@ -21,9 +21,9 @@ message BlockHeader {
 }
 
 service BlockService {
-    rpc Sync(Block) returns (Block) {}
+    rpc Sync (Block) returns (Block) {
+    }
 }
-
 
 // Tx
 message Transaction {
