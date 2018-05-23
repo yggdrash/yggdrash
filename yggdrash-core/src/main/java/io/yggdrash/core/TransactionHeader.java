@@ -1,7 +1,6 @@
 package io.yggdrash.core;
 
-import io.yggdrash.crypto.Signature;
-import io.yggdrash.util.HashUtils;
+import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.util.TimeUtils;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
@@ -47,7 +46,7 @@ public class TransactionHeader implements Serializable {
      */
     public void makeTxHeader(Account from, byte[] dataHash, long dataSize) throws IOException {
         this.timestamp = TimeUtils.time();
-        this.from = from.getKey().getPublicKey();
+        this.from = from.getKey().getPubKey();
         this.dataHash = dataHash;
         this.dataSize = dataSize;
 
@@ -62,7 +61,7 @@ public class TransactionHeader implements Serializable {
         buffer.putLong(this.dataSize);
         transaction.write(buffer.array());
 
-        this.signature = Signature.sign(from.getKey(), transaction.toByteArray());
+        this.signature = from.getKey().sign(HashUtil.sha256(transaction.toByteArray())).toByteArray();
         makeTxHash();
     }
 
@@ -92,7 +91,7 @@ public class TransactionHeader implements Serializable {
 
         outputStream.write(signature);
 
-        this.transactionHash = HashUtils.sha256(outputStream.toByteArray());
+        this.transactionHash = HashUtil.sha256(outputStream.toByteArray());
     }
 
     public byte[] hash() {
@@ -105,6 +104,10 @@ public class TransactionHeader implements Serializable {
 
     public byte[] getFrom() {
         return from;
+    }
+
+    public byte[] getSignature() {
+        return signature;
     }
 
     @Override

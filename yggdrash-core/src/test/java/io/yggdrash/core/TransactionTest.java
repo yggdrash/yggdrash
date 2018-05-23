@@ -31,7 +31,7 @@ public class TransactionTest {
     @Test
     public void makeTransactionTest() throws IOException {
         // check transaction
-        int makeTransaction = 100000;
+        int makeTransaction = 10;
 
         HashMap<byte[],Transaction> hash = new HashMap<>();
         for(int i=0;i<makeTransaction;i++) {
