@@ -64,7 +64,8 @@ public class TransactionHeader implements Serializable {
         buffer.putLong(this.dataSize);
         transaction.write(buffer.array());
 
-        this.signature = from.getKey().sign(HashUtil.sha256(transaction.toByteArray())).toByteArray();
+        this.signature = from.getKey().sign(
+                HashUtil.sha256(transaction.toByteArray())).toByteArray();
         makeTxHash();
     }
 
