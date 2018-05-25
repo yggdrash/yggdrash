@@ -25,3 +25,6 @@ out/
 /dist/
 /nbdist/
 /.nb-gradle/
+
+### Project ###
+config/checkstyle/
