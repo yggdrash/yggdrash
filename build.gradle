@@ -55,7 +55,6 @@ project(':yggdrash-core') {
         compile "io.grpc:grpc-protobuf:${grpcVersion}"
         compile "io.grpc:grpc-stub:${grpcVersion}"
         compile "io.grpc:grpc-netty-shaded:${grpcVersion}"
-        compile('org.lognet:grpc-spring-boot-starter:2.3.1')
         compile "commons-codec:commons-codec:${commonsCodec}"
         compile group: 'org.ehcache', name: 'ehcache', version: '3.5.2'
         testCompile "io.grpc:grpc-testing:${grpcVersion}"
