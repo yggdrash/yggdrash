@@ -17,21 +17,24 @@
  */
 package io.yggdrash.crypto;
 
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-
+import com.google.gson.JsonObject;
+import io.yggdrash.core.Account;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.crypto.ECKey.ECDSASignature;
 import io.yggdrash.crypto.jce.SpongyCastleProvider;
-import org.junit.Assert;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
-
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPairGenerator;
@@ -40,16 +43,12 @@ import java.security.SecureRandom;
 import java.security.Security;
 import java.security.SignatureException;
 import java.util.List;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
-
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import org.junit.Assert;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 public class ECKeyTest {
     private static final Logger log = LoggerFactory.getLogger(ECKeyTest.class);
@@ -193,78 +192,142 @@ public class ECKeyTest {
         ECDSASignature signature = key.sign(messageHash);
         String output = signature.toHex();
         System.out.println("Signature\t: " + output + " (Hex, length: " + output.length() + ")");
+
         assertEquals(signatureHex, output);
     }
 
     @Test
     public void testVerifySignature1() {
         ECKey key = ECKey.fromPublicOnly(pubKey);
-        BigInteger r = new BigInteger("28157690258821599598544026901946453245423343069728565040002908283498585537001");
-        BigInteger s = new BigInteger("30212485197630673222315826773656074299979444367665131281281249560925428307087");
+        BigInteger r = new BigInteger("95350169487015575001444507567851457309689354890536757640816472151471942911739");
+        BigInteger s = new BigInteger("53263359985948886716508128220321578640585687230908938312863706887350789467339");
         ECDSASignature sig = ECDSASignature.fromComponents(r.toByteArray(), s.toByteArray(), (byte) 28);
-        key.verify(HashUtil.sha3(exampleMessage.getBytes()), sig);
+
+        assertTrue(key.verify(HashUtil.sha3(exampleMessage.getBytes()), sig));
     }
 
     @Test
-    public void testVerifySignature2() {
+    public void testVerifySignature2() throws SignatureException {
         BigInteger r = new BigInteger("c52c114d4f5a3ba904a9b3036e5e118fe0dbb987fe3955da20f2cd8f6c21ab9c", 16);
         BigInteger s = new BigInteger("6ba4c2874299a55ad947dbc98a25ee895aabf6b625c26c435e84bfd70edf2f69", 16);
         ECDSASignature sig = ECDSASignature.fromComponents(r.toByteArray(), s.toByteArray(), (byte) 0x1b);
         byte[] rawtx = Hex.decode("f82804881bc16d674ec8000094cd2a3d9f938e13cd947ec05abc7fe734df8dd8268609184e72a0006480");
         byte[] rawHash = HashUtil.sha3(rawtx);
         byte[] address = Hex.decode("cd2a3d9f938e13cd947ec05abc7fe734df8dd826");
-        try {
-            ECKey key = ECKey.signatureToKey(rawHash, sig);
+        ECKey key = ECKey.signatureToKey(rawHash, sig);
 
-            System.out.println("Signature public key\t: " + Hex.toHexString(key.getPubKey()));
-            System.out.println("Sender is\t\t: " + Hex.toHexString(key.getAddress()));
+        assertEquals(key, ECKey.signatureToKey(rawHash, sig.toBase64()));
+        assertEquals(key, ECKey.recoverFromSignature(0, sig, rawHash));
+        assertArrayEquals(key.getPubKey(), ECKey.recoverPubBytesFromSignature(0, sig, rawHash));
 
-            assertEquals(key, ECKey.signatureToKey(rawHash, sig.toBase64()));
-            assertEquals(key, ECKey.recoverFromSignature(0, sig, rawHash));
-            assertArrayEquals(key.getPubKey(), ECKey.recoverPubBytesFromSignature(0, sig, rawHash));
+        assertArrayEquals(address, key.getAddress());
+        assertArrayEquals(address, ECKey.signatureToAddress(rawHash, sig));
+        assertArrayEquals(address, ECKey.signatureToAddress(rawHash, sig.toBase64()));
+        assertArrayEquals(address, ECKey.recoverAddressFromSignature(0, sig, rawHash));
 
-
-            assertArrayEquals(address, key.getAddress());
-            assertArrayEquals(address, ECKey.signatureToAddress(rawHash, sig));
-            assertArrayEquals(address, ECKey.signatureToAddress(rawHash, sig.toBase64()));
-            assertArrayEquals(address, ECKey.recoverAddressFromSignature(0, sig, rawHash));
-
-            assertTrue(key.verify(rawHash, sig));
-        } catch (SignatureException e) {
-            fail();
-        }
+        assertTrue(key.verify(rawHash, sig));
     }
 
     @Test
-    public void testVerifySignature3() throws SignatureException {
+    public void testVerifySignature3() throws SignatureException, IOException {
 
-//        byte[] rawtx = Hex.decode("f88080893635c9adc5dea000008609184e72a00094109f3535353535353535353535353535353535359479b08ad8787060333663d19704909ee7b1903e58801ba0899b92d0c76cbf18df24394996beef19c050baa9823b4a9828cd9b260c97112ea0c9e62eb4cf0a9d95ca35c8830afac567619d6b3ebee841a3c8be61d35acd8049");
-//
-//        Transaction tx = new Transaction(rawtx);
-//        ECKey key = ECKey.signatureToKey(HashUtil.sha3(rawtx), tx.getHeader().getSignature());
-//
-//        System.out.println("Signature public key\t: " + Hex.toHexString(key.getPubKey()));
-//        System.out.println("Sender is\t\t: " + Hex.toHexString(key.getAddress()));
+        // create account with set privateKey
+        Account account = new Account(ECKey.fromPrivate(privateKey));
 
-        //  sender: CD2A3D9F938E13CD947EC05ABC7FE734DF8DD826
-        // todo: add test assertion when the sign/verify part actually works.
+        // create tx data(test)
+        JsonObject data = new JsonObject();
+        data.addProperty("balance","10");
+
+        // create tx
+        Transaction tx = new Transaction(account, data);
+
+        // get the sig & key(pub)
+        byte[] messageHash = tx.getHeader().getSignDataHash();
+        byte[] signature = tx.getHeader().getSignature();
+        ECDSASignature sig = new ECDSASignature(signature);
+        ECKey key = ECKey.signatureToKey(messageHash, sig);
+
+        assertTrue(key.verify(messageHash, sig));
     }
 
     @Test // result is a point at infinity
-    public void testVerifySignature4() {
+    public void testVerifySignature4() throws SignatureException {
 
-        byte[] hash = Hex.decode("acb1c19ac0832320815b5e886c6b73ad7d6177853d44b026f2a7a9e11bb899fc");
-        byte[] r = Hex.decode("89ea49159b334f9aebbf54481b69d000d285baa341899db355a4030f6838394e");
-        byte[] s = Hex.decode("540e9f9fa17bef441e32d98d5f4554cfefdc6a56101352e4b92efafd0d9646e8");
-        byte v = (byte) 28;
+        byte[] hash = Hex.decode("6ee854b88dbf19846c58fd2beac582adcf28cfdd2b3a8427ac29d7b70153d35c");
+        BigInteger r = new BigInteger("95350169487015575001444507567851457309689354890536757640816472151471942911739");
+        BigInteger s = new BigInteger("53263359985948886716508128220321578640585687230908938312863706887350789467339");
+        ECDSASignature sig = ECDSASignature.fromComponents(r.toByteArray(), s.toByteArray(), (byte) 28);
+        ECKey key = ECKey.signatureToKey(hash, sig);
 
-        ECDSASignature sig = ECKey.ECDSASignature.fromComponents(r, s, v);
+        assertTrue(key.verify(hash, sig));
+    }
 
-        try {
-            ECKey.signatureToKey(hash, sig);
-            fail("Result is a point at infinity, recovery must fail");
-        } catch (SignatureException e) {
-        }
+    @Test
+    public void testVerifySignature5() {
+        ECKey key = ECKey.fromPrivate(privateKey);
+        byte[] messageHash = HashUtil.sha3(exampleMessage.getBytes());
+        ECDSASignature signature = key.sign(messageHash);
+
+        assertTrue(key.verify(messageHash, signature));
+    }
+
+    @Test
+    public void testVerifySignature6() throws SignatureException {
+        // generate ECkey object with privateKey
+        ECKey key = ECKey.fromPrivate(privateKey);
+
+        // check public key with pubKey
+        assertArrayEquals(pubKey, key.getPubKey());
+
+        // generate messageHash with exampleMessage
+        byte[] messageHash = HashUtil.sha3(exampleMessage.getBytes());
+
+        // generate ECDSASignature with ECKey, messageHash
+        ECDSASignature signature = key.sign(messageHash);
+
+        // verify the sign message
+        assertTrue(key.verify(messageHash, signature));
+
+        // get public key with messageHash, ECDSASignature
+        ECKey keyFromSig = ECKey.signatureToKey(messageHash, signature);
+        byte[] pubKeyFromSig = keyFromSig.getPubKey();
+        assertArrayEquals(pubKey, pubKeyFromSig);
+
+        // verify the sign message
+        assertTrue(keyFromSig.verify(messageHash, signature));
+    }
+
+
+    @Test
+    public void testVerifySignature7() throws SignatureException, IOException {
+        // create account with privateKey
+        Account account = new Account(ECKey.fromPrivate(privateKey));
+        ECKey key = account.getKey();
+
+        // check public & private key with key
+        assertArrayEquals(pubKey, key.getPubKey());
+        assertEquals(privateKey, key.getPrivKey());
+
+        // create tx
+        JsonObject data = new JsonObject();
+        data.addProperty("balance","10");
+        Transaction tx = new Transaction(account, data);
+
+        // get the sig & key(pub)
+        byte[] messageHash = tx.getHeader().getSignDataHash();
+        byte[] signature = tx.getHeader().getSignature();
+        ECDSASignature sig = new ECDSASignature(signature);
+        ECKey keyFromSig = ECKey.signatureToKey(messageHash, sig);
+
+        // verify
+        assertTrue(keyFromSig.verify(messageHash,sig));
+
+        // check signature
+        assertArrayEquals(sig.toBinary(), tx.getHeader().getSignature());
+
+        // check public key
+        assertArrayEquals(keyFromSig.getPubKey(),pubKey);
+
     }
 
     @Test

@@ -1,7 +1,6 @@
 package io.yggdrash.core;
 
 import io.yggdrash.crypto.ECKey;
-import io.yggdrash.crypto.HashUtil;
 
 /**
  * Account Class
@@ -41,7 +40,7 @@ public class Account {
 
     /**
      * get Account Address
-     * @return
+     * @return address
      */
     public byte[] getAddress() {
         return address;

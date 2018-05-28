@@ -590,6 +590,18 @@ public class ECKey implements Serializable {
         }
 
         /**
+         * Constructs a signature with the binary signature data
+         *
+         * @param r -
+         * @param s -
+         */
+        public ECDSASignature(byte[] signature) {
+            this.r = ByteUtil.bytesToBigInteger(ByteUtil.parseBytes(signature,1,32));
+            this.s = ByteUtil.bytesToBigInteger(ByteUtil.parseBytes(signature,33,32));
+            this.v = signature[0];
+        }
+
+        /**
          *t
          * @param r
          * @param s
@@ -686,6 +698,14 @@ public class ECKey implements Serializable {
             System.arraycopy(bigIntegerToBytes(this.r, 32), 0, sigData, 1, 32);
             System.arraycopy(bigIntegerToBytes(this.s, 32), 0, sigData, 33, 32);
             return new String(Base64.encode(sigData), Charset.forName("UTF-8"));
+        }
+
+        public byte[] toBinary() {
+            byte[] sigData = new byte[65];  // 1 header + 32 bytes for R + 32 bytes for S
+            sigData[0] = v;
+            System.arraycopy(bigIntegerToBytes(this.r, 32), 0, sigData, 1, 32);
+            System.arraycopy(bigIntegerToBytes(this.s, 32), 0, sigData, 33, 32);
+            return sigData;
         }
 
         public byte[] toByteArray() {
@@ -815,6 +835,30 @@ public class ECKey implements Serializable {
                 (byte) (signatureEncoded[0] & 0xFF)));
     }
 
+    /**
+     * Given a piece of text and a message signature encoded in binary, returns an ECKey
+     * containing the public key that was used to sign it. This can then be compared to the expected public key to
+     * determine if the signature was correct.
+     *
+     * @param messageHash a piece of human readable text that was signed
+     * @param signatureEncoded The signature message in binary
+     *
+     * @return -
+     * @throws SignatureException If the public key could not be recovered or if there was a signature format error.
+     */
+    public static byte[] signatureToKeyBytes(byte[] messageHash, byte[] signatureEncoded) throws SignatureException {
+        // Parse the signature bytes into r/s and the selector value.
+        if (signatureEncoded.length < 65)
+            throw new SignatureException("Signature truncated, expected 65 bytes and got " + signatureEncoded.length);
+
+        return signatureToKeyBytes(
+            messageHash,
+            ECDSASignature.fromComponents(
+                Arrays.copyOfRange(signatureEncoded, 1, 33),
+                Arrays.copyOfRange(signatureEncoded, 33, 65),
+                (byte) (signatureEncoded[0] & 0xFF)));
+    }
+
     public static byte[] signatureToKeyBytes(byte[] messageHash, ECDSASignature sig) throws SignatureException {
         check(messageHash.length == 32, "messageHash argument has length " + messageHash.length);
         int header = sig.v;
@@ -863,6 +907,18 @@ public class ECKey implements Serializable {
      */
     public static ECKey signatureToKey(byte[] messageHash, String signatureBase64) throws SignatureException {
         final byte[] keyBytes = signatureToKeyBytes(messageHash, signatureBase64);
+        return ECKey.fromPublicOnly(keyBytes);
+    }
+
+    /**
+     * Compute the key that signed the given signature.
+     *
+     * @param messageHash 32-byte hash of message
+     * @param signatureBin Binary encoded signature
+     * @return ECKey
+     */
+    public static ECKey signatureToKey(byte[] messageHash, byte[] signatureBin) throws SignatureException {
+        final byte[] keyBytes = signatureToKeyBytes(messageHash, signatureBin);
         return ECKey.fromPublicOnly(keyBytes);
     }
 
