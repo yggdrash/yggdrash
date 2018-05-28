@@ -18,10 +18,9 @@ import java.io.IOException;
 @SpringBootTest
 public class TransactionRepositoryTest {
 
+    private static final Logger log = LoggerFactory.getLogger(TransactionRepositoryTest.class);
     @Resource(name = "yggdrash.transaction")
     private TransactionRepository txr;
-
-    private static final Logger log = LoggerFactory.getLogger(TransactionRepositoryTest.class);
 
     @Test
     public void addNewTransaction() throws IOException {

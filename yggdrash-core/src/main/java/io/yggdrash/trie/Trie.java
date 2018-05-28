@@ -1,8 +1,8 @@
 package io.yggdrash.trie;
 
 import io.yggdrash.core.Transaction;
-
 import io.yggdrash.crypto.HashUtil;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -16,15 +16,16 @@ public class Trie {
 
     /**
      * Get merkle root vaule
+     *
      * @param txs Transaction list
-     * @return
-     * byte[32] - merkle root value <br>
+     * @return byte[32] - merkle root value <br>
      * null - if txs is null or txs.size is smaller than 1
      */
     public static byte[] getMerkleRoot(List<Transaction> txs) {
 
-        if(txs == null || txs.size() < 1)
+        if (txs == null || txs.size() < 1) {
             return null;
+        }
 
         ArrayList<byte[]> tree = new ArrayList<>();
         for (Transaction tx : txs) {
@@ -43,18 +44,19 @@ public class Trie {
             levelOffset += levelSize;
         }
 
-        return HashUtil.sha256(tree.get(tree.size()-1));
+        return HashUtil.sha256(tree.get(tree.size() - 1));
     }
 
     private static byte[] reverseBytes(byte[] bytes) {
         byte[] buf = new byte[bytes.length];
-        for (int i = 0; i < bytes.length; i++)
+        for (int i = 0; i < bytes.length; i++) {
             buf[i] = bytes[bytes.length - 1 - i];
+        }
         return buf;
     }
 
     private static byte[] hashTwice(byte[] input1, int offset1, int length1,
-                                   byte[] input2, int offset2, int length2) {
+                                    byte[] input2, int offset2, int length2) {
         MessageDigest digest = newDigest();
         digest.update(input1, offset1, length1);
         digest.update(input2, offset2, length2);

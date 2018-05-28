@@ -89,7 +89,7 @@ import java.util.Arrays;
 import javax.annotation.Nullable;
 import javax.crypto.KeyAgreement;
 
-import static io.yggdrash.util.BIUtil.isLessThan;
+import static io.yggdrash.util.BiUtil.isLessThan;
 import static io.yggdrash.util.ByteUtil.bigIntegerToBytes;
 
 /**

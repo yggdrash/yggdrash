@@ -3,7 +3,11 @@ package io.yggdrash.node;
 import io.yggdrash.core.Block;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.LinkedHashMap;
 
@@ -36,7 +40,9 @@ class BlockController {
             foundBlock = blockChain.getBlockByHash(id);
         }
 
-        if (foundBlock == null) return ResponseEntity.notFound().build();
+        if (foundBlock == null) {
+            return ResponseEntity.notFound().build();
+        }
 
         return ResponseEntity.ok(BlockDto.createBy(foundBlock));
     }

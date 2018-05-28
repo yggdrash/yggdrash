@@ -3,7 +3,6 @@ package io.yggdrash.net;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.proto.Block;
 import io.yggdrash.proto.BlockServiceGrpc;
-import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
