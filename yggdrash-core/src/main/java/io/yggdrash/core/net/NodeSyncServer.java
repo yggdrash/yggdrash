@@ -33,7 +33,7 @@ public class NodeSyncServer {
     private Server server;
     private int port;
 
-    public NodeSyncServer(int port) {
+    public void setPort(int port) {
         this.port = port;
     }
 
@@ -42,7 +42,7 @@ public class NodeSyncServer {
                 .addService(new PingPongImpl())
                 .build()
                 .start();
-        log.info("Server started, listening on " + port);
+        log.info("GRPC Server started, listening on " + port);
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             // Use stderr here since the logger may has been reset by its JVM shutdown hook.
             System.err.println("*** shutting down gRPC server since JVM is shutting down");
@@ -51,7 +51,9 @@ public class NodeSyncServer {
         }));
     }
 
-    /** Stop serving requests and shutdown resources. */
+    /**
+     * Stop serving requests and shutdown resources.
+     */
     public void stop() {
         if (server != null) {
             server.shutdown();
@@ -65,7 +67,6 @@ public class NodeSyncServer {
     }
 
     static class PingPongImpl extends PingPongGrpc.PingPongImplBase {
-
         @Override
         public void play(Ping request, StreamObserver<Pong> responseObserver) {
             System.out.println(request.getPing());

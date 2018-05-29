@@ -43,7 +43,11 @@ public class NodeSyncClient {
 
     public void ping(String message) {
         Ping request = Ping.newBuilder().setPing(message).build();
-        Pong pong = blockingStub.play(request);
-        log.debug(pong.getPong());
+        try {
+            Pong pong = blockingStub.play(request);
+            log.debug(pong.getPong());
+        } catch (Exception e) {
+            System.out.println("retrying...");
+        }
     }
 }
