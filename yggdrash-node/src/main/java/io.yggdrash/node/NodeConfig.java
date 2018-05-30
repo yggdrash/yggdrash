@@ -18,6 +18,7 @@ package io.yggdrash.node;
 
 import io.yggdrash.core.TransactionPool;
 import io.yggdrash.core.net.NodeSyncServer;
+import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.node.mock.BlockBuilderMock;
 import io.yggdrash.node.mock.BlockChainMock;
 import io.yggdrash.node.mock.TransactionPoolMock;
@@ -45,5 +46,10 @@ class NodeConfig {
     @Bean
     NodeSyncServer nodeSyncServer() {
         return new NodeSyncServer();
+    }
+
+    @Bean
+    PeerGroup peerGroup() {
+        return new PeerGroup();
     }
 }
