@@ -64,6 +64,10 @@ project(':yggdrash-core') {
         compile group: 'org.iq80.leveldb', name: 'leveldb', version: '0.10'
     }
 
+    jar {
+        enabled = true
+    }
+
     protobuf {
         protoc {
             artifact = "com.google.protobuf:protoc:3.5.1-1"
