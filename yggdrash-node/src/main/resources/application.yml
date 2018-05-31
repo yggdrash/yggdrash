@@ -1,0 +1,4 @@
+grpc.port: 9090
+logging:
+  level:
+   io.yggdrash: debug

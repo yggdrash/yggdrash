@@ -14,10 +14,25 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.core.net;
 
-import io.yggdrash.core.Block;
+import java.io.IOException;
 
-public interface BlockBuilder {
-    Block build(String data);
+/**
+ * The type Node sync demo server.
+ *
+ */
+public class NodeSyncDemoServer {
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     * @throws IOException          the io exception
+     * @throws InterruptedException the interrupted exception
+     */
+    public static void main(String[] args) throws IOException, InterruptedException {
+        NodeSyncServer server = new NodeSyncServer(8090);
+        server.start();
+        server.blockUntilShutdown();
+    }
 }

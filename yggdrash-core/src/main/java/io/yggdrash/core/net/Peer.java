@@ -14,10 +14,30 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.core.net;
 
-import io.yggdrash.core.Block;
+public class Peer {
+    String host;
+    int port;
 
-public interface BlockBuilder {
-    Block build(String data);
+    public Peer(String host, int port) {
+        this.host = host;
+        this.port = port;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
 }

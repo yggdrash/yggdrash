@@ -2,6 +2,9 @@ package io.yggdrash.core;
 
 import io.yggdrash.crypto.ECKey;
 
+/**
+ * Account Class
+ */
 public class Account {
 
     // <Variable>
@@ -10,9 +13,8 @@ public class Account {
 
 
     /**
-     * Instantiates a new Account.
-     *
-     * @param key the key
+     * Account Constructor
+     * @param key account key
      */
     public Account(ECKey key) {
         this.key = key;
@@ -20,7 +22,7 @@ public class Account {
     }
 
     /**
-     * Account Constructor.
+     * Account Constructor
      * - generate account with new key
      */
     public Account() {
@@ -30,7 +32,6 @@ public class Account {
 
     /**
      * get Account Key
-     *
      * @return
      */
     public ECKey getKey() {
@@ -39,10 +40,13 @@ public class Account {
 
     /**
      * get Account Address
-     *
-     * @return
+     * @return address
      */
     public byte[] getAddress() {
         return address;
     }
+
+    // <Method>
+
+
 }

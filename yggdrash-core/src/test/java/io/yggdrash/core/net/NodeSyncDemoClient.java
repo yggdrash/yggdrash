@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.core.net;
 
-import io.yggdrash.core.Block;
-
-public interface BlockBuilder {
-    Block build(String data);
+/**
+ * The type Node sync demo client.
+ */
+public class NodeSyncDemoClient {
+    /**
+     * The entry point of application.
+     *
+     * @param args the input arguments
+     */
+    public static void main(String[] args) {
+        NodeSyncClient client = new NodeSyncClient("localhost", 8090);
+        client.ping("ping");
+    }
 }

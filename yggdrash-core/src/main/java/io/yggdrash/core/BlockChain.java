@@ -28,6 +28,7 @@ public class BlockChain {
     public BlockChain(JsonObject packageInfo) {
         this.packageInfo = packageInfo;
         this.blocks = new HashMap<>();
+        // TODO: generate genesisBlock & add into blockchain
     }
 
     public JsonObject getPackageInfo() {

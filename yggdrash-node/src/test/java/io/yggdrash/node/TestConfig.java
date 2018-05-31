@@ -16,8 +16,10 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.Block;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Import;
 
-public interface BlockBuilder {
-    Block build(String data);
+@TestConfiguration
+@Import(NodeConfig.class)
+public class TestConfig {
 }

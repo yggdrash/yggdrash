@@ -14,10 +14,19 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.core.net;
 
-import io.yggdrash.core.Block;
+import java.util.ArrayList;
+import java.util.List;
 
-public interface BlockBuilder {
-    Block build(String data);
+public class PeerGroup {
+    List<Peer> peers = new ArrayList<>();
+
+    public void addPeer(Peer peer) {
+        peers.add(peer);
+    }
+
+    public List<Peer> getPeers() {
+        return peers;
+    }
 }
