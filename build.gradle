@@ -64,6 +64,10 @@ project(':yggdrash-core') {
 
     }
 
+    jar {
+        enabled = true
+    }
+
     protobuf {
         protoc {
             artifact = "com.google.protobuf:protoc:3.5.1-1"
