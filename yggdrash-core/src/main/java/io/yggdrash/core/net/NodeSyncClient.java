@@ -18,6 +18,11 @@ package io.yggdrash.core.net;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.Status;
+import io.grpc.stub.StreamObserver;
+import io.yggdrash.core.Transaction;
+import io.yggdrash.proto.BlockChainGrpc;
+import io.yggdrash.proto.BlockChainOuterClass;
 import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
@@ -29,6 +34,7 @@ public class NodeSyncClient {
 
     private final ManagedChannel channel;
     private final PingPongGrpc.PingPongBlockingStub blockingStub;
+    private final BlockChainGrpc.BlockChainStub asyncStub;
 
     public NodeSyncClient(String host, int port) {
         this(ManagedChannelBuilder.forAddress(host, port)
@@ -39,6 +45,7 @@ public class NodeSyncClient {
     NodeSyncClient(ManagedChannel channel) {
         this.channel = channel;
         blockingStub = PingPongGrpc.newBlockingStub(channel);
+        asyncStub = BlockChainGrpc.newStub(channel);
     }
 
     public void ping(String message) {
@@ -49,5 +56,39 @@ public class NodeSyncClient {
         } catch (Exception e) {
             System.out.println("retrying...");
         }
+    }
+
+    public void broadcast(Transaction[] txs) {
+        log.info("*** Broadcasting...");
+        StreamObserver<BlockChainOuterClass.Transaction> requestObserver =
+                asyncStub.broadcast(new StreamObserver<BlockChainOuterClass.Transaction>() {
+                    @Override
+                    public void onNext(BlockChainOuterClass.Transaction tx) {
+                        log.info("Got transaction");
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        log.warn("broadcast Failed: {}", Status.fromThrowable(t));
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        log.info("Finished Broadcasting");
+                    }
+                });
+
+        BlockChainOuterClass.Transaction[] requests = {
+                BlockChainOuterClass.Transaction.newBuilder().setData("Tx1").build(),
+                BlockChainOuterClass.Transaction.newBuilder().setData("Tx2").build(),
+                BlockChainOuterClass.Transaction.newBuilder().setData("Tx3").build(),
+                BlockChainOuterClass.Transaction.newBuilder().setData("Tx4").build()
+        };
+
+        for (BlockChainOuterClass.Transaction request : requests) {
+            requestObserver.onNext(request);
+        }
+
+        requestObserver.onCompleted();
     }
 }
