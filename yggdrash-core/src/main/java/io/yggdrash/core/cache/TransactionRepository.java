@@ -32,9 +32,11 @@ public class TransactionRepository {
     DB db = null;
 
     public TransactionRepository(){
+        // make database
         Options options = new Options();
         options.createIfMissing(true);
         try {
+            // TOOD resource path set by profile or setting file
             this.db = factory.open(new File("resources/db/transaction"), options);
         } catch (IOException e) {
             e.printStackTrace();
@@ -57,8 +59,6 @@ public class TransactionRepository {
             }
         }
         return tx;
-
-
     }
 
     public void flushPool() {
@@ -86,11 +86,15 @@ public class TransactionRepository {
     public int addTransaction(Transaction transaction) {
         // FIXME get transaction hash value
         this.transactionPool.putIfAbsent(transaction.getHash(), transaction);
-        saveTransction(transaction);
+        saveTransaction(transaction);
         return 0;
     }
 
-    private void saveTransction(Transaction transaction) {
+    /**
+     * Save Transaction levelDB
+     * @param transaction
+     */
+    private void saveTransaction(Transaction transaction) {
 
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out = null;
@@ -111,6 +115,11 @@ public class TransactionRepository {
         }
     }
 
+    /**
+     * Load Transaction levelDb
+     * @param transactionHash transaction Hash
+     * @return Transaction or null
+     */
     private Transaction loadTransactionIfExist(byte[] transactionHash){
 
         Transaction transaction = null;
