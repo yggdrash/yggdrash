@@ -10,9 +10,7 @@ import java.io.ObjectOutputStream;
 
 import static org.iq80.leveldb.impl.Iq80DBFactory.factory;
 
-import com.sun.xml.internal.messaging.saaj.util.ByteInputStream;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.util.SerializeUtils;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.iq80.leveldb.DB;
@@ -36,7 +34,7 @@ public class TransactionRepository {
         Options options = new Options();
         options.createIfMissing(true);
         try {
-            // TOOD resource path set by profile or setting file
+            // TODO resource path set by profile or setting file
             this.db = factory.open(new File("resources/db/transaction"), options);
         } catch (IOException e) {
             e.printStackTrace();
@@ -81,13 +79,12 @@ public class TransactionRepository {
      * Add transaction int.
      *
      * @param transaction the transaction
-     * @return the int
      */
-    public int addTransaction(Transaction transaction) {
-        // FIXME get transaction hash value
+    public void addTransaction(Transaction transaction, boolean store) {
         this.transactionPool.putIfAbsent(transaction.getHash(), transaction);
-        saveTransaction(transaction);
-        return 0;
+        if (store) {
+            saveTransaction(transaction);
+        }
     }
 
     /**
@@ -95,10 +92,10 @@ public class TransactionRepository {
      * @param transaction
      */
     private void saveTransaction(Transaction transaction) {
-
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out = null;
+        ByteArrayOutputStream bos = null;
         try {
+            bos = new ByteArrayOutputStream();
             out = new ObjectOutputStream(bos);
             out.writeObject(transaction);
             out.flush();
@@ -109,6 +106,7 @@ public class TransactionRepository {
         } finally {
             try {
                 bos.close();
+                out.close();
             } catch (IOException ex) {
                 // ignore close exception
             }
@@ -117,27 +115,24 @@ public class TransactionRepository {
 
     /**
      * Load Transaction levelDb
-     * @param transactionHash transaction Hash
+     * @param hash transaction Hash
      * @return Transaction or null
      */
-    private Transaction loadTransactionIfExist(byte[] transactionHash){
-
+    private Transaction loadTransactionIfExist(byte[] hash){
         Transaction transaction = null;
-        if (transactionHash == null) {
+        if (hash == null) {
             return null;
         }
-        byte[] transactionBytes = this.db.get(transactionHash);
-        if (transactionBytes == null) {
-            return null;
-        }
-
         try {
+            byte[] transactionBytes = this.db.get(hash);
             ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(transactionBytes));
             transaction = (Transaction)ois.readObject();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
             e.printStackTrace();
+        } catch (NullPointerException e) {
+            // pass
         }
         return transaction;
     }

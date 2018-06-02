@@ -14,6 +14,7 @@ public class Transaction implements Serializable {
     private TransactionHeader header;
 
     // Data
+    // TODO Data Object re modelling
     private String data;
 
 
@@ -75,7 +76,7 @@ public class Transaction implements Serializable {
      * @return tx data
      */
     public String getData() {
-        return this.data.toString();
+        return this.data;
     }
 
     /**

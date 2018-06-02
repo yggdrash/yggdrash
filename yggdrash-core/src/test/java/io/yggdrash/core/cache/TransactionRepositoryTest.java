@@ -28,14 +28,13 @@ public class TransactionRepositoryTest {
         for (int i = 0; i < 100; i++) {
             Transaction tmpTx = newTransaction();
             log.debug(tmpTx.getHashString());
-            txr.addTransaction(newTransaction());
+            txr.addTransaction(newTransaction(), false);
         }
-        txr.addTransaction(tx);
+        txr.addTransaction(tx, false);
         Transaction getTx = txr.getTransaction(tx.getHash());
         assert getTx == tx;
 
     }
-
 
     /**
      * Test
@@ -44,11 +43,21 @@ public class TransactionRepositoryTest {
     @Test
     public void flushAndLoad() throws IOException {
         Transaction tx = newTransaction();
-        txr.addTransaction(tx);
+        txr.addTransaction(tx, true);
         txr.flushPool();
         Transaction tx2 = txr.getTransaction(tx.getHash());
 
         assert tx.getHashString().equals(tx2.getHashString());
+    }
+
+    @Test
+    public void flushAndNotLoad() throws IOException {
+        Transaction tx = newTransaction();
+        txr.addTransaction(tx, false);
+        txr.flushPool();
+        Transaction tx2 = txr.getTransaction(tx.getHash());
+
+        assert tx2 == null;
     }
 
 
