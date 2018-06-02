@@ -36,6 +36,22 @@ public class TransactionRepositoryTest {
 
     }
 
+
+    /**
+     * Test
+     * @throws IOException
+     */
+    @Test
+    public void flushAndLoad() throws IOException {
+        Transaction tx = newTransaction();
+        txr.addTransaction(tx);
+        txr.flushPool();
+        Transaction tx2 = txr.getTransaction(tx.getHash());
+
+        assert tx.getHashString().equals(tx2.getHashString());
+    }
+
+
     public Transaction newTransaction() throws IOException {
         Account account = new Account();
         JsonObject json = new JsonObject();

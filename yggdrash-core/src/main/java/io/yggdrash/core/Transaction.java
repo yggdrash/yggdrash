@@ -14,7 +14,7 @@ public class Transaction implements Serializable {
     private TransactionHeader header;
 
     // Data
-    private JsonObject data;
+    private String data;
 
 
     /**
@@ -30,7 +30,7 @@ public class Transaction implements Serializable {
     private void makeTransaction(Account from, JsonObject data) {
 
         // 1. make data
-        this.data = data;
+        this.data = data.toString();
 
         // 2. make header
         try {
