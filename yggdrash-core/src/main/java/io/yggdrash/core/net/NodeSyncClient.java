@@ -20,7 +20,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
-import io.yggdrash.core.Transaction;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.BlockChainOuterClass;
 import io.yggdrash.proto.Ping;
@@ -28,6 +27,8 @@ import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.TimeUnit;
 
 public class NodeSyncClient {
     public static final Logger log = LoggerFactory.getLogger(NodeSyncClient.class);
@@ -48,6 +49,10 @@ public class NodeSyncClient {
         asyncStub = BlockChainGrpc.newStub(channel);
     }
 
+    public void shutdown() throws InterruptedException {
+        this.channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+    }
+
     public void ping(String message) {
         Ping request = Ping.newBuilder().setPing(message).build();
         try {
@@ -58,13 +63,13 @@ public class NodeSyncClient {
         }
     }
 
-    public void broadcast(Transaction[] txs) {
+    public void broadcast(BlockChainOuterClass.Transaction[] txs) {
         log.info("*** Broadcasting...");
         StreamObserver<BlockChainOuterClass.Transaction> requestObserver =
                 asyncStub.broadcast(new StreamObserver<BlockChainOuterClass.Transaction>() {
                     @Override
                     public void onNext(BlockChainOuterClass.Transaction tx) {
-                        log.info("Got transaction");
+                        log.info("Got transaction: {}", tx);
                     }
 
                     @Override
@@ -78,15 +83,9 @@ public class NodeSyncClient {
                     }
                 });
 
-        BlockChainOuterClass.Transaction[] requests = {
-                BlockChainOuterClass.Transaction.newBuilder().setData("Tx1").build(),
-                BlockChainOuterClass.Transaction.newBuilder().setData("Tx2").build(),
-                BlockChainOuterClass.Transaction.newBuilder().setData("Tx3").build(),
-                BlockChainOuterClass.Transaction.newBuilder().setData("Tx4").build()
-        };
-
-        for (BlockChainOuterClass.Transaction request : requests) {
-            requestObserver.onNext(request);
+        for (BlockChainOuterClass.Transaction tx : txs) {
+            System.out.println(tx);
+            requestObserver.onNext(tx);
         }
 
         requestObserver.onCompleted();

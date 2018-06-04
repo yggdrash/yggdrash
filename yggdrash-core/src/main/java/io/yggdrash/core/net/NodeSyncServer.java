@@ -91,11 +91,13 @@ public class NodeSyncServer {
 
                 @Override
                 public void onError(Throwable t) {
-                    log.warn("broadcast cancelled");
+                    log.warn("Broadcasting Failed: {}", t);
                 }
 
                 @Override
                 public void onCompleted() {
+                    responseObserver.onNext(BlockChainOuterClass.Transaction.newBuilder()
+                            .setData("return").build());
                     responseObserver.onCompleted();
                 }
             };
