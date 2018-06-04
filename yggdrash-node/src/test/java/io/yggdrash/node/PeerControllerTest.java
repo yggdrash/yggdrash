@@ -17,6 +17,7 @@
 package io.yggdrash.node;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.yggdrash.core.net.PeerGroup;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,11 +45,15 @@ public class PeerControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
+    @Autowired
+    private PeerGroup peerGroup;
+
     private JacksonTester<PeerDto> json;
 
     @Before
     public void setUp() {
         JacksonTester.initFields(this, new ObjectMapper());
+        peerGroup.clear();
     }
 
     @Test
