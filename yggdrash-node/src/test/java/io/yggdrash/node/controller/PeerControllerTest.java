@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.node.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.node.TestConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -57,7 +58,7 @@ public class PeerControllerTest {
     }
 
     @Test
-    public void shouldBeAddPeer() throws Exception {
+    public void shouldAddPeer() throws Exception {
         requestPeerPost(new PeerDto("127.0.0.1", 8080))
                 .andDo(print())
                 .andExpect(jsonPath("$.host", equalTo("127.0.0.1")))
@@ -65,7 +66,7 @@ public class PeerControllerTest {
     }
 
     @Test
-    public void shouldBeGetPeers() throws Exception {
+    public void shouldGetPeers() throws Exception {
         requestPeerPost(new PeerDto("127.0.0.1", 8080));
         requestPeerPost(new PeerDto("30.30.30.30", 8080));
 

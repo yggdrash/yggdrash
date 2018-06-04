@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.node.controller;
 
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionPool;

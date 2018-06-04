@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.node.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.yggdrash.node.TestConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -40,8 +41,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(TransactionController.class)
 @Import(TestConfig.class)
-public class TransactionControllerTests {
-    private static final Logger log = LoggerFactory.getLogger(TransactionControllerTests.class);
+public class TransactionControllerTest {
+    private static final Logger log = LoggerFactory.getLogger(TransactionControllerTest.class);
 
     @Autowired
     private MockMvc mockMvc;
@@ -54,7 +55,7 @@ public class TransactionControllerTests {
     }
 
     @Test
-    public void 트랜잭션_해쉬로_조회() throws Exception {
+    public void shouldGetTransactionByHash() throws Exception {
         // 트랜잭션 풀에 있는 트랜잭션을 조회 후 블록 내 트랜잭션 조회 로직 추가 필요.
         TransactionDto req = new TransactionDto();
         req.setFrom("Dezang");
@@ -77,7 +78,7 @@ public class TransactionControllerTests {
     }
 
     @Test
-    public void 트랜잭션이_트랜잭션풀에_추가되어야_한다() throws Exception {
+    public void shouldAddTransactionAtTransactionPool() throws Exception {
         TransactionDto req = new TransactionDto();
         req.setData("Dezang");
 

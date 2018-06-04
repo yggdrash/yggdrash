@@ -36,8 +36,8 @@ class NodeScheduler {
         nodeSyncClient = new NodeSyncClient("localhost", port);
     }
 
-    @Scheduled(fixedRate = 3000)
+    @Scheduled(fixedRate = 1000 * 60)
     public void ping() {
-        nodeSyncClient.ping("ping");
+        nodeSyncClient.ping("Ping");
     }
 }

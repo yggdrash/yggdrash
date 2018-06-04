@@ -59,7 +59,7 @@ public class NodeSyncClient {
             Pong pong = blockingStub.play(request);
             log.debug(pong.getPong());
         } catch (Exception e) {
-            System.out.println("retrying...");
+            log.info("Ping retrying...");
         }
     }
 
@@ -84,7 +84,7 @@ public class NodeSyncClient {
                 });
 
         for (BlockChainOuterClass.Transaction tx : txs) {
-            System.out.println(tx);
+            log.trace("Sending Transaction: {}", tx);
             requestObserver.onNext(tx);
         }
 

@@ -72,7 +72,7 @@ public class NodeSyncServer {
     static class PingPongImpl extends PingPongGrpc.PingPongImplBase {
         @Override
         public void play(Ping request, StreamObserver<Pong> responseObserver) {
-            System.out.println(request.getPing());
+            log.debug(request.getPing());
             Pong pong = Pong.newBuilder().setPong("Pong").build();
             responseObserver.onNext(pong);
             responseObserver.onCompleted();
@@ -86,7 +86,7 @@ public class NodeSyncServer {
             return new StreamObserver<BlockChainOuterClass.Transaction>() {
                 @Override
                 public void onNext(BlockChainOuterClass.Transaction tx) {
-                    System.out.println(tx);
+                    log.debug("Received Tx: {}", tx);
                 }
 
                 @Override

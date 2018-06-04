@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.node.controller;
 
 import io.yggdrash.core.Block;
+import io.yggdrash.node.BlockBuilder;
+import io.yggdrash.node.BlockChain;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
