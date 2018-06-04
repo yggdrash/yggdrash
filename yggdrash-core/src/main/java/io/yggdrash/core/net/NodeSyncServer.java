@@ -28,6 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NodeSyncServer {
     private static final Logger log = LoggerFactory.getLogger(NodeSyncServer.class);
@@ -80,24 +82,35 @@ public class NodeSyncServer {
     }
 
     static class BlockChainImpl extends BlockChainGrpc.BlockChainImplBase {
+        private static Set<StreamObserver<BlockChainOuterClass.Transaction>> observers =
+                ConcurrentHashMap.newKeySet();
+
         @Override
         public StreamObserver<BlockChainOuterClass.Transaction> broadcast(
                 StreamObserver<BlockChainOuterClass.Transaction> responseObserver) {
+
+            observers.add(responseObserver);
+
             return new StreamObserver<BlockChainOuterClass.Transaction>() {
                 @Override
                 public void onNext(BlockChainOuterClass.Transaction tx) {
                     log.debug("Received Tx: {}", tx);
+
+                    for (StreamObserver<BlockChainOuterClass.Transaction> observer : observers) {
+                        observer.onNext(tx);
+                    }
                 }
 
                 @Override
                 public void onError(Throwable t) {
                     log.warn("Broadcasting Failed: {}", t);
+                    observers.remove(responseObserver);
+                    responseObserver.onError(t);
                 }
 
                 @Override
                 public void onCompleted() {
-                    responseObserver.onNext(BlockChainOuterClass.Transaction.newBuilder()
-                            .setData("return").build());
+                    observers.remove(responseObserver);
                     responseObserver.onCompleted();
                 }
             };

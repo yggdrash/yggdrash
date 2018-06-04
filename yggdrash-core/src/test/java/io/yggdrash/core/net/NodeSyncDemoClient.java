@@ -28,9 +28,9 @@ public class NodeSyncDemoClient {
      * @param args the input arguments
      */
     public static void main(String[] args) throws InterruptedException {
-        NodeSyncClient client = new NodeSyncClient("127.0.0.1", 8080);
+        NodeSyncClient client = new NodeSyncClient("127.0.0.1", 9090);
         client.ping("ping");
-        client.broadcast(createTransactions());
+        client.broadcast(BlockChainOuterClass.Transaction.newBuilder().setData("tx1").build());
         client.shutdown();
     }
 
