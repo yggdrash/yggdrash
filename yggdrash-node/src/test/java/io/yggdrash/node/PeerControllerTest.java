@@ -52,7 +52,7 @@ public class PeerControllerTest {
     }
 
     @Test
-    public void 피어가_추가되어야_한다() throws Exception {
+    public void shouldBeAddPeer() throws Exception {
         requestPeerPost(new PeerDto("127.0.0.1", 8080))
                 .andDo(print())
                 .andExpect(jsonPath("$.host", equalTo("127.0.0.1")))
@@ -60,7 +60,7 @@ public class PeerControllerTest {
     }
 
     @Test
-    public void 피어목록이_조회되어야_한다() throws Exception {
+    public void shouldBeGetPeers() throws Exception {
         requestPeerPost(new PeerDto("127.0.0.1", 8080));
         requestPeerPost(new PeerDto("30.30.30.30", 8080));
 

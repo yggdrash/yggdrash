@@ -29,8 +29,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("peers")
 class PeerController {
+    private final PeerGroup peerGroup;
+
     @Autowired
-    PeerGroup peerGroup;
+    public PeerController(PeerGroup peerGroup) {
+        this.peerGroup = peerGroup;
+    }
 
     @PostMapping
     public ResponseEntity add(@RequestBody PeerDto peerDto) {

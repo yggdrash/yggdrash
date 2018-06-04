@@ -19,6 +19,8 @@ package io.yggdrash.core.net;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.proto.BlockChainGrpc;
+import io.yggdrash.proto.BlockChainOuterClass;
 import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
@@ -40,6 +42,7 @@ public class NodeSyncServer {
     public void start() throws IOException {
         server = ServerBuilder.forPort(port)
                 .addService(new PingPongImpl())
+                .addService(new BlockChainImpl())
                 .build()
                 .start();
         log.info("GRPC Server started, listening on " + port);
@@ -73,6 +76,31 @@ public class NodeSyncServer {
             Pong pong = Pong.newBuilder().setPong("Pong").build();
             responseObserver.onNext(pong);
             responseObserver.onCompleted();
+        }
+    }
+
+    static class BlockChainImpl extends BlockChainGrpc.BlockChainImplBase {
+        @Override
+        public StreamObserver<BlockChainOuterClass.Transaction> broadcast(
+                StreamObserver<BlockChainOuterClass.Transaction> responseObserver) {
+            return new StreamObserver<BlockChainOuterClass.Transaction>() {
+                @Override
+                public void onNext(BlockChainOuterClass.Transaction tx) {
+                    System.out.println(tx);
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    log.warn("Broadcasting Failed: {}", t);
+                }
+
+                @Override
+                public void onCompleted() {
+                    responseObserver.onNext(BlockChainOuterClass.Transaction.newBuilder()
+                            .setData("return").build());
+                    responseObserver.onCompleted();
+                }
+            };
         }
     }
 }

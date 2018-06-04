@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+option java_package = "io.yggdrash.proto";
+
+service BlockChain {
+    rpc AddTransaction(Transaction) returns (Transaction) {}
+
+    // A server to client streaming RPC.
+
+    // A client to server streaming RPC.
+
+    // A Bidirectional streaming RPC.
+    rpc broadcast(stream Transaction) returns (stream Transaction) {}
+}
+message Transaction {
+    string data = 1;
+}
