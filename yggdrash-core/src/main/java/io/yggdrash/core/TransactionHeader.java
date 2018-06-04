@@ -22,9 +22,8 @@ public class TransactionHeader implements Serializable {
     private long dataSize;
     private byte[] signature;
 
-    transient private byte[] transactionHash;
-    transient private byte[] signatureData;
-    transient private ECDSASignature sig;
+    private byte[] transactionHash;
+    private byte[] signatureData;
 
     /**
      * TransactionHeader Constructor
@@ -54,8 +53,8 @@ public class TransactionHeader implements Serializable {
         this.dataHash = dataHash;
         this.dataSize = dataSize;
         this.signatureData = getSignDataHash();
-        this.sig = from.getKey().sign(signatureData);
-        this.signature = this.sig.toBinary();
+        // signature is just byteArray
+        this.signature = from.getKey().sign(signatureData).toBinary();
     }
 
     /**

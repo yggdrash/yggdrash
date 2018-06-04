@@ -14,7 +14,8 @@ public class Transaction implements Serializable {
     private TransactionHeader header;
 
     // Data
-    private JsonObject data;
+    // TODO Data Object re modelling
+    private String data;
 
 
     /**
@@ -30,7 +31,7 @@ public class Transaction implements Serializable {
     private void makeTransaction(Account from, JsonObject data) {
 
         // 1. make data
-        this.data = data;
+        this.data = data.toString();
 
         // 2. make header
         try {
@@ -75,7 +76,7 @@ public class Transaction implements Serializable {
      * @return tx data
      */
     public String getData() {
-        return this.data.toString();
+        return this.data;
     }
 
     /**

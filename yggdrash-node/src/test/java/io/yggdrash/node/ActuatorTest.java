@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class ActuatorTests {
+public class ActuatorTest {
     @Autowired
     private TestRestTemplate restTemplate;
 
@@ -38,7 +38,7 @@ public class ActuatorTests {
     int randomServerPort;
 
     @Test
-    public void health_url에_접근하면_상태를_조회_할_수_있다() {
+    public void shouldBeCheckHealthOfNode() {
         ResponseEntity<String> entity = this.restTemplate.getForEntity(
                 "/actuator/health", String.class);
         assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.OK);

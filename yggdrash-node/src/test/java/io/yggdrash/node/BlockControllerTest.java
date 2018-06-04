@@ -40,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(BlockController.class)
 @Import(TestConfig.class)
-public class BlockControllerTests {
+public class BlockControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
@@ -59,7 +59,7 @@ public class BlockControllerTests {
 
     @Test
     @DirtiesContext
-    public void 인덱스로_블록_조회() throws Exception {
+    public void shouldBeGetBlockByIndex() throws Exception {
         MockHttpServletResponse postResponse = mockMvc.perform(post("/blocks")
                 .contentType(MediaType.APPLICATION_JSON).content("queryByIndex"))
                 .andReturn().getResponse();
@@ -73,7 +73,7 @@ public class BlockControllerTests {
     }
 
     @Test
-    public void 해쉬로_블록_조회() throws Exception {
+    public void shouldBeGetBlockByHash() throws Exception {
         MvcResult mvcResult = mockMvc.perform(post("/blocks"))
                 .andExpect(status().isOk())
                 .andReturn();
@@ -88,7 +88,7 @@ public class BlockControllerTests {
     }
 
     @Test
-    public void 블록_전체_조회() throws Exception {
+    public void shouldBeGetAllBlocks() throws Exception {
         mockMvc.perform(post("/blocks")
                 .contentType(MediaType.APPLICATION_JSON).content("0"));
         mockMvc.perform(post("/blocks")
@@ -101,7 +101,7 @@ public class BlockControllerTests {
     }
 
     @Test
-    public void 블록이_생성되어야_한다() throws Exception {
+    public void shouldBeCreateBlock() throws Exception {
         mockMvc.perform(post("/blocks"))
                 .andDo(print())
                 .andExpect(status().isOk())
