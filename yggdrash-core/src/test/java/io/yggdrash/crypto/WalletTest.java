@@ -27,46 +27,6 @@ import org.spongycastle.util.encoders.Hex;
 public class WalletTest {
   private static final Logger log = LoggerFactory.getLogger(WalletTest.class);
 
-  // key encryption with derivate iv
-  @Test
-  public void testKeyEncryption() {
-
-    final int AES_KEYLENGTH = 128;
-
-    // key generation
-    ECKey ecKey = new ECKey();
-    byte[] priKey = ecKey.getPrivKeyBytes();
-
-    // password generation using KDF
-    String password = "Aa1234567890#";
-    byte[] kdf = Password.generateKeyDerivation(password.getBytes(), 32);
-    byte[] keyBytes = ByteUtil.parseBytes(kdf,0,32);
-
-    byte[] ivBytes = ByteUtil.parseBytes(kdf,32,16);
-
-    byte[] plainBytes = "01234567890123456789".getBytes();
-    log.info("plain: {}",Hex.toHexString(plainBytes));
-
-    KeyParameter key = new KeyParameter(keyBytes);
-    ParametersWithIV params = new ParametersWithIV(key, ivBytes);
-
-    AESEngine engine = new AESEngine();
-    SICBlockCipher ctrEngine = new SICBlockCipher(engine);
-
-    ctrEngine.init(true, params);
-
-    byte[] cipher = new byte[plainBytes.length];
-    ctrEngine.processBytes(plainBytes, 0, plainBytes.length, cipher, 0);
-    log.info("cipher: {}", Hex.toHexString(cipher));
-
-    byte[] output = new byte[cipher.length];
-    ctrEngine.init(false, params);
-    ctrEngine.processBytes(cipher, 0, cipher.length, output, 0);
-    log.info("plain: {}", Hex.toHexString(output));
-
-    assertArrayEquals(plainBytes, output);
-  }
-
   // key encryption with random iv
   @Test
   public void testKeyEncryption2() {
