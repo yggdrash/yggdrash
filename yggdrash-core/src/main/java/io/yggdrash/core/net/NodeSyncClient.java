@@ -63,7 +63,7 @@ public class NodeSyncClient {
         }
     }
 
-    public void broadcast(BlockChainOuterClass.Transaction[] txs) {
+    public void broadcast(BlockChainOuterClass.Transaction tx) {
         log.info("*** Broadcasting...");
         StreamObserver<BlockChainOuterClass.Transaction> requestObserver =
                 asyncStub.broadcast(new StreamObserver<BlockChainOuterClass.Transaction>() {
@@ -83,11 +83,8 @@ public class NodeSyncClient {
                     }
                 });
 
-        for (BlockChainOuterClass.Transaction tx : txs) {
-            log.trace("Sending Transaction: {}", tx);
-            requestObserver.onNext(tx);
-        }
-
+        log.trace("Sending Transaction: {}", tx);
+        requestObserver.onNext(tx);
         requestObserver.onCompleted();
     }
 }
