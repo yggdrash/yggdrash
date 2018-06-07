@@ -52,4 +52,9 @@ class NodeConfig {
     PeerGroup peerGroup() {
         return new PeerGroup();
     }
+
+    @Bean
+    MessageSender messageSender() {
+        return new MessageSender();
+    }
 }

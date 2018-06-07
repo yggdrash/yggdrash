@@ -14,26 +14,25 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.net;
+package io.yggdrash.node.controller;
 
-import java.io.IOException;
+import io.yggdrash.core.Account;
+import org.apache.commons.codec.binary.Hex;
 
-/**
- * The type Node sync demo server.
- *
- */
-public class NodeSyncDemoServer {
-    /**
-     * The entry point of application.
-     *
-     * @param args the input arguments
-     * @throws IOException          the io exception
-     * @throws InterruptedException the interrupted exception
-     */
-    public static void main(String[] args) throws IOException, InterruptedException {
-        NodeSyncServer server = new NodeSyncServer();
-        server.setPort(9090);
-        server.start();
-        server.blockUntilShutdown();
+public class AccountDto {
+    String address;
+
+    public static AccountDto createBy(Account account) {
+        AccountDto dto = new AccountDto();
+        dto.setAddress(Hex.encodeHexString(account.getAddress()));
+        return dto;
+    }
+
+    public String getAddress() {
+        return address;
+    }
+
+    public void setAddress(String address) {
+        this.address = address;
     }
 }

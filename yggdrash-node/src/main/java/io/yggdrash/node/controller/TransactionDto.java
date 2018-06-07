@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.node.controller;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.core.Account;
