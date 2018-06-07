@@ -61,6 +61,7 @@ project(':yggdrash-core') {
         compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
         compile "com.madgag.spongycastle:core:${scastleVersion}" // for SHA3 and SECP256K1
         compile "com.madgag.spongycastle:prov:${scastleVersion}" // for SHA3 and SECP256K1
+        compile group: 'commons-io', name: 'commons-io', version: '2.4'
         compile group: 'org.iq80.leveldb', name: 'leveldb', version: '0.10'
     }
 
