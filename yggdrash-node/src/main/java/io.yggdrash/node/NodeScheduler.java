@@ -16,28 +16,17 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.net.NodeSyncClient;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import javax.annotation.PostConstruct;
-
 @Component
 class NodeScheduler {
-    @Value("${grpc.port}")
-    private int grpcPort;
+    @Autowired
+    MessageSender messageSender;
 
-    private NodeSyncClient nodeSyncClient;
-
-    @PostConstruct
-    public void init() {
-        int port = grpcPort == 9090 ? 9091 : 9090;
-        nodeSyncClient = new NodeSyncClient("localhost", port);
-    }
-
-    @Scheduled(fixedRate = 1000 * 60)
+    @Scheduled(fixedRate = 1000 * 60 * 5)
     public void ping() {
-        nodeSyncClient.ping("Ping");
+        messageSender.ping();
     }
 }

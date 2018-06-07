@@ -14,26 +14,19 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.net;
+package io.yggdrash.node.controller;
 
-import java.io.IOException;
+import io.yggdrash.core.Account;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-/**
- * The type Node sync demo server.
- *
- */
-public class NodeSyncDemoServer {
-    /**
-     * The entry point of application.
-     *
-     * @param args the input arguments
-     * @throws IOException          the io exception
-     * @throws InterruptedException the interrupted exception
-     */
-    public static void main(String[] args) throws IOException, InterruptedException {
-        NodeSyncServer server = new NodeSyncServer();
-        server.setPort(9090);
-        server.start();
-        server.blockUntilShutdown();
+@RestController
+public class AccountController {
+    @PostMapping
+    public ResponseEntity create() {
+        Account account = new Account();
+        AccountDto response = AccountDto.createBy(account);
+        return ResponseEntity.ok(response);
     }
 }

@@ -48,6 +48,7 @@ public class TransactionControllerTest {
     private MockMvc mockMvc;
 
     private JacksonTester<TransactionDto> json;
+    private final String FROM = "fb6b782a7f40de97e50181ee31cba6ed352e2a4e";
 
     @Before
     public void setUp() {
@@ -56,9 +57,10 @@ public class TransactionControllerTest {
 
     @Test
     public void shouldGetTransactionByHash() throws Exception {
+
         // 트랜잭션 풀에 있는 트랜잭션을 조회 후 블록 내 트랜잭션 조회 로직 추가 필요.
         TransactionDto req = new TransactionDto();
-        req.setFrom("Dezang");
+        req.setFrom(FROM);
         req.setData("transaction data");
 
         MockHttpServletResponse response = mockMvc.perform(post("/txs")
@@ -80,6 +82,7 @@ public class TransactionControllerTest {
     @Test
     public void shouldAddTransactionAtTransactionPool() throws Exception {
         TransactionDto req = new TransactionDto();
+        req.setFrom(FROM);
         req.setData("Dezang");
 
         MockHttpServletResponse response = mockMvc.perform(post("/txs")

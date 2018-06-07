@@ -49,8 +49,16 @@ public class NodeSyncClient {
         asyncStub = BlockChainGrpc.newStub(channel);
     }
 
-    public void shutdown() throws InterruptedException {
-        this.channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+    public void stop() {
+        if (channel != null) {
+            channel.shutdown();
+        }
+    }
+
+    public void blockUtilShutdown() throws InterruptedException {
+        if (channel != null) {
+            channel.awaitTermination(5, TimeUnit.MINUTES);
+        }
     }
 
     public void ping(String message) {
