@@ -11,26 +11,26 @@ import org.spongycastle.crypto.params.ParametersWithIV;
 
 /**
  * AESEncrypt Class
- * 128bit AES CBC PKCS7Padding.
+ * AES CBC PKCS5Padding.
  */
 public class AESEncrypt {
 
   //todo: security check
 
-  private static int AES_KEYLENGTH=128;
+  private static int AES_KEYLENGTH = 128;
 
   /**
-   * encrypt data
+   * encrypt data as AES.
    * @param plain plain data
    * @param key key data
    * @return encrypted data
-   * @throws InvalidCipherTextException
+   * @throws InvalidCipherTextException InvalidCipherTextException
    */
   public static byte[] encrypt(byte[] plain, byte[] key) throws InvalidCipherTextException {
 
-    //todo: exception catch
-
-    PaddedBufferedBlockCipher bbc = new PaddedBufferedBlockCipher(new CBCBlockCipher(new AESEngine()), new PKCS7Padding());
+    //todo: exception catch for security
+    PaddedBufferedBlockCipher bbc =
+        new PaddedBufferedBlockCipher(new CBCBlockCipher(new AESEngine()), new PKCS7Padding());
     KeyParameter kp = new KeyParameter(key);
     byte[] ivBytes = new byte[AES_KEYLENGTH / 8];
     SecureRandom prng = new SecureRandom();
@@ -41,7 +41,7 @@ public class AESEncrypt {
     int len = bbc.processBytes(plain, 0, plain.length, encData, 0);
     len += bbc.doFinal(encData, len);
 
-    byte[] ivEncData = new byte[len+ivBytes.length];
+    byte[] ivEncData = new byte[len + ivBytes.length];
     System.arraycopy(ivBytes, 0, ivEncData, 0, ivBytes.length);
     System.arraycopy(encData, 0, ivEncData, ivBytes.length, encData.length);
 
@@ -50,17 +50,17 @@ public class AESEncrypt {
   }
 
   /**
-   * decrypt data
+   * decrypt data as AES.
    * @param ivEncData encrypted data with iv (iv(16) + encData)
    * @param key key data
    * @return plain data
-   * @throws InvalidCipherTextException
+   * @throws InvalidCipherTextException InvalidCipherTextException
    */
   public static byte[] decrypt(byte[] ivEncData, byte[] key) throws InvalidCipherTextException {
 
-    //todo: exception catch
-
-    PaddedBufferedBlockCipher bbc = new PaddedBufferedBlockCipher(new CBCBlockCipher(new AESEngine()), new PKCS7Padding());
+    //todo: exception catch for security
+    PaddedBufferedBlockCipher bbc =
+        new PaddedBufferedBlockCipher(new CBCBlockCipher(new AESEngine()), new PKCS7Padding());
     KeyParameter kp = new KeyParameter(key);
     byte[] ivBytes = new byte[AES_KEYLENGTH / 8];
     System.arraycopy(ivEncData, 0, ivBytes, 0, ivBytes.length);

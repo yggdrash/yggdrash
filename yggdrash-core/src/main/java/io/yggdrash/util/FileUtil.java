@@ -11,16 +11,16 @@ import org.apache.commons.io.FileUtils;
 public class FileUtil extends org.apache.commons.io.FileUtils {
 
   /**
-   * write file as byte[]
+   * write file as byte[].
    * @param filePath file path
    * @param fileName file name
    * @param data data
-   * @throws IOException
+   * @throws IOException IOException
    */
   public static void writeFile(String filePath, String fileName, byte[] data)
       throws IOException {
 
-    //todo: check exception, return boolean
+    //todo: check exception, return boolean, check file permission
 
     File file = new File(filePath, fileName);
 
@@ -29,15 +29,15 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
   }
 
   /**
-   * read file as byte[]
+   * read file as byte[].
    * @param filePath file path
    * @param fileName file name
    * @return data
-   * @throws IOException
+   * @throws IOException IOException
    */
   public static byte[] readFile(String filePath, String fileName) throws IOException {
 
-    File file = FileUtils.getFile(filePath+fileName);
+    File file = FileUtils.getFile(filePath + fileName);
 
     return FileUtils.readFileToByteArray(file);
   }

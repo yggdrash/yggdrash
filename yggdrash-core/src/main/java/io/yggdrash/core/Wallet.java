@@ -35,7 +35,7 @@ public class Wallet {
   }
 
   /**
-   * Wallet Consturctor.
+   * Wallet Consturctor as generating a new key.
    * @param key ECKey
    * @param path file path(directory)
    * @param password password
@@ -58,10 +58,11 @@ public class Wallet {
     byte[] encData = AESEncrypt.encrypt(key.getPrivKeyBytes(), kdfPass);
 
     FileUtil.writeFile(this.path, this.keyName, encData);
+
   }
 
   /**
-   * Wallet Constructor.
+   * Wallet Constructor as loading the keyfile.
    * @param path file path
    * @param fileName file name
    * @param password password
@@ -98,10 +99,11 @@ public class Wallet {
   }
 
   /**
-   * get ECKey.
+   * get ECKey object.
    * @return ECKey
    */
-  public ECKey getECKey() {
+  public ECKey getKey() {
     return key;
   }
+
 }

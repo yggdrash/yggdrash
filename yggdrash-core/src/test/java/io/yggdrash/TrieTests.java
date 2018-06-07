@@ -1,5 +1,8 @@
 package io.yggdrash;
 
+import static junit.framework.TestCase.assertNull;
+import static org.junit.Assert.assertNotNull;
+
 import com.google.gson.JsonObject;
 import io.yggdrash.core.Account;
 import io.yggdrash.core.Transaction;
@@ -44,7 +47,6 @@ public class TrieTests {
         this.tx1 = new Transaction(from, data1);
         this.tx2 = new Transaction(from, data2);
 
-
     }
 
     @Test
@@ -65,6 +67,7 @@ public class TrieTests {
         txs_list.add(this.tx2);
 
         merkle_root = Trie.getMerkleRoot(txs_list);
+        assertNotNull(merkle_root);
 
         if (merkle_root != null) {
             System.out.println("MerkelRoot with tx 7=" + Hex.encodeHexString(merkle_root));
@@ -77,6 +80,8 @@ public class TrieTests {
         txs_list = new ArrayList<Transaction>();
         txs_list.add(this.tx1);
         merkle_root = Trie.getMerkleRoot(txs_list);
+        assertNotNull(merkle_root);
+
         if (merkle_root != null) {
             System.out.println("MerkelRoot with tx 1=" + Hex.encodeHexString(merkle_root));
         } else {
@@ -87,6 +92,8 @@ public class TrieTests {
         // 3. test with tx 0
         txs_list = new ArrayList<Transaction>();
         merkle_root = Trie.getMerkleRoot(txs_list);
+        assertNull(merkle_root);
+
         if (merkle_root != null) {
             System.out.println("MerkelRoot with tx 0=" + Hex.encodeHexString(merkle_root));
         } else {
@@ -96,6 +103,8 @@ public class TrieTests {
 
         // 4. test with tx null
         merkle_root = Trie.getMerkleRoot(null);
+        assertNull(merkle_root);
+
         if (merkle_root != null) {
             System.out.println("MerkelRoot with tx null=" + Hex.encodeHexString(merkle_root));
         } else {

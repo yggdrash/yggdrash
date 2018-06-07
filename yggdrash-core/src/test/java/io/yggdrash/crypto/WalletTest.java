@@ -160,23 +160,16 @@ public class WalletTest {
     byte[] encData = FileUtil.readFile(wt.getPath(), wt.getKeyName());
     System.out.println("path:"+wt.getPath()+wt.getKeyName());
     System.out.println("encData:"+Hex.toHexString(encData));
-    System.out.println("pubKey:"+Hex.toHexString(wt.getECKey().getPubKey()));
-    System.out.println("priKey:"+Hex.toHexString(wt.getECKey().getPrivKeyBytes()));
+    System.out.println("pubKey:"+Hex.toHexString(wt.getKey().getPubKey()));
+    System.out.println("priKey:"+Hex.toHexString(wt.getKey().getPrivKeyBytes()));
 
     // load key
     Wallet wt2 = new Wallet("/tmp/", wt.getKeyName(), "Password1234!");
-    System.out.println("pubKey2:"+Hex.toHexString(wt2.getECKey().getPubKey()));
-    System.out.println("priKey2:"+Hex.toHexString(wt2.getECKey().getPrivKeyBytes()));
+    System.out.println("pubKey2:"+Hex.toHexString(wt2.getKey().getPubKey()));
+    System.out.println("priKey2:"+Hex.toHexString(wt2.getKey().getPrivKeyBytes()));
 
-    assertArrayEquals(wt.getECKey().getPrivKeyBytes(), wt2.getECKey().getPrivKeyBytes());
+    assertArrayEquals(wt.getKey().getPrivKeyBytes(), wt2.getKey().getPrivKeyBytes());
   }
 
-  // make a transaction using the key
-
-  // verify the transaction
-
-  // make a block using the key
-
-  // verify the block
 
 }
