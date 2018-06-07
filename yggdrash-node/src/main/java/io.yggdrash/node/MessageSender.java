@@ -21,13 +21,14 @@ import io.yggdrash.core.net.NodeSyncClient;
 import io.yggdrash.proto.BlockChainOuterClass;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 
 @Service
-public class MessageSender {
+public class MessageSender implements DisposableBean {
     private static final Logger log = LoggerFactory.getLogger(MessageSender.class);
 
     @Value("${grpc.port}")
@@ -40,7 +41,7 @@ public class MessageSender {
         int port = grpcPort == 9090 ? 9091 : 9090;
         log.info("Connecting gRPC Server at [{}]", port);
         nodeSyncClient = new NodeSyncClient("localhost", port);
-        nodeSyncClient.shutdown();
+//        nodeSyncClient.blockUtilShutdown();
     }
 
     public void ping() {
@@ -48,6 +49,20 @@ public class MessageSender {
     }
 
     public void broadcast(Transaction tx) {
-        nodeSyncClient.broadcast(BlockChainOuterClass.Transaction.newBuilder().setData("tx1").build());
+        log.trace("{}", tx);
+        nodeSyncClient.broadcast(createTransactions());
+    }
+
+    @Override
+    public void destroy() {
+        nodeSyncClient.stop();
+    }
+
+    private static BlockChainOuterClass.Transaction[] createTransactions() {
+        return new BlockChainOuterClass.Transaction[] {
+                BlockChainOuterClass.Transaction.newBuilder().setData("tx1").build(),
+                BlockChainOuterClass.Transaction.newBuilder().setData("tx2").build(),
+                BlockChainOuterClass.Transaction.newBuilder().setData("tx3").build()
+        };
     }
 }

@@ -32,7 +32,7 @@ public class NodeSyncDemoServer {
      */
     public static void main(String[] args) throws IOException, InterruptedException {
         NodeSyncServer server = new NodeSyncServer();
-        server.setPort(8080);
+        server.setPort(9090);
         server.start();
         server.blockUntilShutdown();
     }

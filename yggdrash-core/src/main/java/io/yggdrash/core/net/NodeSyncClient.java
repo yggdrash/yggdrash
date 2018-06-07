@@ -49,8 +49,16 @@ public class NodeSyncClient {
         asyncStub = BlockChainGrpc.newStub(channel);
     }
 
-    public void shutdown() throws InterruptedException {
-        this.channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+    public void stop() {
+        if (channel != null) {
+            channel.shutdown();
+        }
+    }
+
+    public void blockUtilShutdown() throws InterruptedException {
+        if (channel != null) {
+            channel.awaitTermination(5, TimeUnit.MINUTES);
+        }
     }
 
     public void ping(String message) {
@@ -63,7 +71,7 @@ public class NodeSyncClient {
         }
     }
 
-    public void broadcast(BlockChainOuterClass.Transaction tx) {
+    public void broadcast(BlockChainOuterClass.Transaction[] txs) {
         log.info("*** Broadcasting...");
         StreamObserver<BlockChainOuterClass.Transaction> requestObserver =
                 asyncStub.broadcast(new StreamObserver<BlockChainOuterClass.Transaction>() {
@@ -83,8 +91,11 @@ public class NodeSyncClient {
                     }
                 });
 
-        log.trace("Sending Transaction: {}", tx);
-        requestObserver.onNext(tx);
+        for (BlockChainOuterClass.Transaction tx : txs) {
+            log.trace("Sending Transaction: {}", tx);
+            requestObserver.onNext(tx);
+        }
+
         requestObserver.onCompleted();
     }
 }
