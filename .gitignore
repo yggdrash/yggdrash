@@ -2,6 +2,7 @@
 build/
 out/
 !gradle/wrapper/gradle-wrapper.jar
+yggdrash-core/resources/db
 
 ### STS ###
 .apt_generated

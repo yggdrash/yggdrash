@@ -20,9 +20,10 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 
 ext {
-    grpcVersion = '1.11.0'
+    grpcVersion = '1.12.0'
     leveldbVersion = '0.10'
     commonsCodec = '1.10'
+    scastleVersion = '1.58.0.0'
 }
 
 allprojects {
@@ -54,11 +55,18 @@ project(':yggdrash-core') {
         compile "io.grpc:grpc-protobuf:${grpcVersion}"
         compile "io.grpc:grpc-stub:${grpcVersion}"
         compile "io.grpc:grpc-netty-shaded:${grpcVersion}"
-        compile('org.lognet:grpc-spring-boot-starter:2.3.1')
         compile "commons-codec:commons-codec:${commonsCodec}"
         compile group: 'org.ehcache', name: 'ehcache', version: '3.5.2'
         testCompile "io.grpc:grpc-testing:${grpcVersion}"
         compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
+        compile "com.madgag.spongycastle:core:${scastleVersion}" // for SHA3 and SECP256K1
+        compile "com.madgag.spongycastle:prov:${scastleVersion}" // for SHA3 and SECP256K1
+        compile group: 'commons-io', name: 'commons-io', version: '2.4'
+        compile group: 'org.iq80.leveldb', name: 'leveldb', version: '0.10'
+    }
+
+    jar {
+        enabled = true
     }
 
     protobuf {

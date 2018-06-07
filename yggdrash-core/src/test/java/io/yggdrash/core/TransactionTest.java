@@ -1,13 +1,11 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.core.cache.CacheConfigurationTest;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
@@ -31,12 +29,12 @@ public class TransactionTest {
     @Test
     public void makeTransactionTest() throws IOException {
         // check transaction
-        int makeTransaction = 100000;
+        int makeTransaction = 10;
 
-        HashMap<byte[],Transaction> hash = new HashMap<>();
-        for(int i=0;i<makeTransaction;i++) {
+        HashMap<byte[], Transaction> hash = new HashMap<>();
+        for (int i = 0; i < makeTransaction; i++) {
             Transaction tx = newTransaction();
-            log.debug("hashcode : " + new String(Hex.encodeHex(tx.getHash(),true)) );
+            log.debug("hashcode : " + new String(Hex.encodeHex(tx.getHash(), true)));
             assert hash.get(tx.getHash()) == null;
             hash.put(tx.getHash(), tx);
         }

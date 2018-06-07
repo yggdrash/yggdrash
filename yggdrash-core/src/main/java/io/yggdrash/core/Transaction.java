@@ -1,7 +1,7 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.util.HashUtils;
+import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.util.SerializeUtils;
 import org.apache.commons.codec.binary.Hex;
 
@@ -14,27 +14,29 @@ public class Transaction implements Serializable {
     private TransactionHeader header;
 
     // Data
-    private JsonObject data;
+    // TODO Data Object re modelling
+    private String data;
 
 
     /**
      * Transaction Constructor
+     *
      * @param from account for creating transaction
      * @param data transaction data(Json)
      */
-    public Transaction(Account from, JsonObject data) throws IOException {
+    public Transaction(Account from, JsonObject data) {
         makeTransaction(from, data);
     }
 
     private void makeTransaction(Account from, JsonObject data) {
 
         // 1. make data
-        this.data = data;
+        this.data = data.toString();
 
         // 2. make header
         try {
             byte[] bin = SerializeUtils.serialize(data);
-            this.header = new TransactionHeader(from, HashUtils.sha256(bin), bin.length);
+            this.header = new TransactionHeader(from, HashUtil.sha256(bin), bin.length);
         } catch (IOException e) {
             e.printStackTrace(); // need to check error
         }
@@ -43,6 +45,7 @@ public class Transaction implements Serializable {
 
     /**
      * get transaction hash
+     *
      * @return transaction hash
      */
     public String getHashString() {
@@ -51,6 +54,7 @@ public class Transaction implements Serializable {
 
     /**
      * get transaction hash
+     *
      * @return transaction hash
      */
     public byte[] getHash() {
@@ -59,6 +63,7 @@ public class Transaction implements Serializable {
 
     /**
      * get account for created tx
+     *
      * @return transaction hash
      */
     public String getFrom() {
@@ -67,10 +72,19 @@ public class Transaction implements Serializable {
 
     /**
      * get transaction data
+     *
      * @return tx data
      */
     public String getData() {
-        return this.data.toString();
+        return this.data;
+    }
+
+    /**
+     * get Transaction Header
+     * @return
+     */
+    public TransactionHeader getHeader() {
+        return header;
     }
 
     /**
