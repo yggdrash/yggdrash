@@ -2,6 +2,7 @@
 
 [![Build Status](https://travis-ci.org/dezang/yggdrash.svg?branch=develop)]
 (https://travis-ci.org/dezang/yggdrash)
+[![Coverage Status](https://coveralls.io/repos/github/dezang/yggdrash/badge.svg?branch=develop)](https://coveralls.io/github/dezang/yggdrash?branch=develop)
 
 - [KOREAN](README.md)
 
