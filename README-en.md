@@ -1,4 +1,10 @@
 # Yggdrash - Blockchain Platform
+
+[![Build Status](https://travis-ci.org/dezang/yggdrash.svg?branch=develop)]
+(https://travis-ci.org/dezang/yggdrash)
+
+- [KOREAN](README.md)
+
 > We will change the world by blockchain.
 
 ## Documentation

@@ -1,4 +1,7 @@
 # 이그드라시 - 블록체인 플랫폼
+
+[![Build Status](https://travis-ci.org/dezang/yggdrash.svg?branch=develop)](https://travis-ci.org/dezang/yggdrash)
+
 - [ENGLISH](README-en.md)
 
 > We will change the world by blockchain.
