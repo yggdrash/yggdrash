@@ -1,9 +1,8 @@
 # Yggdrash - Blockchain Platform
 
-[![Build Status](https://travis-ci.org/dezang/yggdrash.svg?branch=develop)]
-(https://travis-ci.org/dezang/yggdrash)
-[![Coverage Status](https://coveralls.io/repos/github/dezang/yggdrash/badge.svg?branch=develop)](https://coveralls.io/github/dezang/yggdrash?branch=develop)
-[![codecov](https://codecov.io/gh/dezang/yggdrash/branch/develop/graph/badge.svg)](https://codecov.io/gh/dezang/yggdrash)
+[![Build Status](https://travis-ci.org/yggdrash/yggdrash.svg?branch=develop)](https://travis-ci.org/yggdrash/yggdrash)
+[![Coverage Status](https://coveralls.io/repos/github/yggdrash/yggdrash/badge.svg?branch=develop)](https://coveralls.io/github/yggdrash/yggdrash?branch=develop)
+[![codecov](https://codecov.io/gh/yggdrash/yggdrash/branch/develop/graph/badge.svg)](https://codecov.io/gh/yggdrash/yggdrash)
 
 - [KOREAN](README.md)
 
