@@ -120,6 +120,15 @@ task jacocoRootReport(type: JacocoReport) {
     sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs)
     classDirectories =  files(subprojects.sourceSets.main.output)
     executionData = files(subprojects.jacocoTestReport.executionData)
+
+    afterEvaluate {
+        classDirectories = files(classDirectories.files.collect {
+            fileTree(dir: it,
+                exclude: ['io/yggdrash/proto/**']
+            )
+        })
+    }
+
     reports {
         html.enabled = true // For Developer
         xml.enabled = true // For coveralls
