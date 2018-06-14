@@ -2,6 +2,7 @@ package io.yggdrash.core;
 
 import io.yggdrash.trie.Trie;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class BlockBody implements Serializable {
     this.transactionList = transactionList;
   }
 
-  public byte[] getMerkleRoot() {
+  public byte[] getMerkleRoot() throws IOException {
     return Trie.getMerkleRoot(this.transactionList);
   }
 

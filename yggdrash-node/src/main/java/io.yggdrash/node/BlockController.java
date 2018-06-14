@@ -17,6 +17,7 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.Block;
+import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -40,7 +41,7 @@ class BlockController {
     }
 
     @PostMapping
-    public ResponseEntity add() {
+    public ResponseEntity add() throws IOException {
         Block generatedBlock = blockBuilder.build("sample");
         blockChain.addBlock(generatedBlock);
         return ResponseEntity.ok(BlockDto.createBy(generatedBlock));

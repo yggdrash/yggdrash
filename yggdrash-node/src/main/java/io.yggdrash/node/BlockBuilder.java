@@ -17,7 +17,8 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.Block;
+import java.io.IOException;
 
 public interface BlockBuilder {
-    Block build(String data);
+    Block build(String data) throws IOException;
 }

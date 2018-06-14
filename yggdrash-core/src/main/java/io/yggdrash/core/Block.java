@@ -1,5 +1,6 @@
 package io.yggdrash.core;
 
+import java.io.IOException;
 import java.io.Serializable;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
@@ -26,7 +27,7 @@ public class Block implements Cloneable, Serializable {
    * @param prevBlock the prev block
    * @param blockBody the block body
    */
-  public Block(Account author, Block prevBlock, BlockBody blockBody) {
+  public Block(Account author, Block prevBlock, BlockBody blockBody) throws IOException {
     this.header = new BlockHeader.Builder()
       .account(author)
       .prevBlock(prevBlock)

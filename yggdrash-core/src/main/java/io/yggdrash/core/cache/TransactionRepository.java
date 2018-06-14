@@ -1,5 +1,7 @@
 package io.yggdrash.core.cache;
 
+import io.yggdrash.core.TransactionHeader;
+import io.yggdrash.util.ByteUtil;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -11,11 +13,15 @@ import java.io.ObjectOutputStream;
 import static org.iq80.leveldb.impl.Iq80DBFactory.factory;
 
 import io.yggdrash.core.Transaction;
+import java.util.Arrays;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.stereotype.Repository;
 
@@ -24,6 +30,8 @@ import org.springframework.stereotype.Repository;
  */
 @Repository("yggdrash.transaction")
 public class TransactionRepository {
+
+    private static final Logger log = LoggerFactory.getLogger(TransactionRepository.class);
 
     @Value("#{cacheManager.getCache('transactionPool')}")
     private ConcurrentMapCache transactionPool;
@@ -47,13 +55,16 @@ public class TransactionRepository {
      * @param hash the hash
      * @return the transaction
      */
-    public Transaction getTransaction(byte[] hash) {
+    public Transaction getTransaction(String hashString) throws DecoderException {
+
         // check Cache
-        Transaction tx = transactionPool.get(hash, Transaction.class);
+        Transaction tx = transactionPool.get(hashString, Transaction.class);
+        log.debug("get transaction hash : "+ hashString);
+
         if (tx == null) {
-            tx = loadTransactionIfExist(hash);
+            tx = loadTransactionIfExist(hashString);
             if (tx != null) {
-                transactionPool.putIfAbsent(hash, tx);
+                transactionPool.putIfAbsent(hashString, tx);
             }
         }
         return tx;
@@ -64,24 +75,15 @@ public class TransactionRepository {
     }
 
     /**
-     * Gets transaction.
-     *
-     * @param hashString the hash string
-     * @return the transaction
-     * @throws DecoderException the decoder exception
-     */
-    public Transaction getTransaction(String hashString) throws DecoderException {
-        byte[] hash = Hex.decodeHex(hashString.toCharArray());
-        return getTransaction(hash);
-    }
-
-    /**
      * Add transaction int.
      *
      * @param transaction the transaction
      */
-    public void addTransaction(Transaction transaction, boolean store) {
-        this.transactionPool.putIfAbsent(transaction.getHash(), transaction);
+    public void addTransaction(Transaction transaction, boolean store) throws IOException {
+        this.transactionPool.putIfAbsent(transaction.getHashString(), transaction);
+        //todo: check from byte[] to object
+        log.debug("add transaction hash : " + transaction.getHashString());
+
         if (store) {
             saveTransaction(transaction);
         }
@@ -115,16 +117,16 @@ public class TransactionRepository {
 
     /**
      * Load Transaction levelDb
-     * @param hash transaction Hash
+     * @param hashString transaction Hash
      * @return Transaction or null
      */
-    private Transaction loadTransactionIfExist(byte[] hash){
+    private Transaction loadTransactionIfExist(String hashString) throws DecoderException {
         Transaction transaction = null;
-        if (hash == null) {
+        if (hashString == null) {
             return null;
         }
         try {
-            byte[] transactionBytes = this.db.get(hash);
+            byte[] transactionBytes = this.db.get(Hex.decodeHex(hashString.toCharArray()));
             ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(transactionBytes));
             transaction = (Transaction)ois.readObject();
         } catch (IOException e) {
