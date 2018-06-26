@@ -27,6 +27,7 @@ public class BlockChainMock implements BlockChain {
     @Override
     public Block addBlock(Block nextBlock) {
         blocks.put(nextBlock.getBlockHash(), nextBlock);
+        blocks.put(String.valueOf(nextBlock.getIndex()), nextBlock);
         return nextBlock;
     }
 
