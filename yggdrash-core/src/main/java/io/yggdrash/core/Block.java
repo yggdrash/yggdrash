@@ -29,10 +29,9 @@ public class Block implements Cloneable, Serializable {
    */
   public Block(Account author, Block prevBlock, BlockBody blockBody) throws IOException {
     this.header = new BlockHeader.Builder()
-      .account(author)
       .prevBlock(prevBlock)
       .blockBody(blockBody)
-      .build();
+      .build(author);
 
     this.data = blockBody;
   }

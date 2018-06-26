@@ -16,27 +16,26 @@ import java.util.Arrays;
 public class BlockHeader implements Serializable {
     private static final Logger log = LoggerFactory.getLogger(BlockHeader.class);
 
-    private final byte version;
-    private final byte[] payload;
-    private final long index;
-    private final long timestamp;
+    private final byte[] type;
+    private final byte[] version;
     private final byte[] prevBlockHash;
-    private final byte[] author;
     private final byte[] merkleRoot;
+    private final long timestamp;
     private final long dataSize;
     private final byte[] signature;
 
+    private final transient long index;
 
     private BlockHeader(Builder builder) {
+        this.type = builder.type;
         this.version = builder.version;
-        this.payload = builder.payload;
-        this.index = builder.index;
-        this.timestamp = builder.timestamp;
         this.prevBlockHash = builder.prevBlockHash;
-        this.author = builder.author;
         this.merkleRoot = builder.merkleRoot;
+        this.timestamp = builder.timestamp;
         this.dataSize = builder.dataSize;
         this.signature = builder.signature;
+
+        this.index = builder.index;
     }
 
     /**
@@ -85,36 +84,22 @@ public class BlockHeader implements Serializable {
      */
     public static class Builder {
 
-        private byte version;
-        private byte[] payload;
-        private long index;
-        private long timestamp;
+        private byte[] type;
+        private byte[] version;
         private byte[] prevBlockHash;
-        private byte[] author;
         private byte[] merkleRoot;
+        private long timestamp;
         private long dataSize;
         private byte[] signature;
-        private Account account;
+
+        private long index;
 
         /**
          * Instantiates a new Builder.
          */
         public Builder() {
-            version = 0x00;
-            payload = new byte[7];
-            timestamp = TimeUtils.getCurrenttime();
-        }
-
-        /**
-         * Account builder.
-         *
-         * @param account the account
-         * @return the builder
-         */
-        public Builder account(Account account) {
-            this.account = account;
-            this.author = account.getKey().getPubKey();
-            return this;
+            type = new byte[4];
+            version = new byte[4];
         }
 
         /**
@@ -151,8 +136,9 @@ public class BlockHeader implements Serializable {
          *
          * @return the block header
          */
-        public BlockHeader build() {
-            this.signature = this.account.getKey().sign(
+        public BlockHeader build(Account from) {
+            timestamp = TimeUtils.getCurrenttime();
+            this.signature = from.getKey().sign(
                     HashUtil.sha256(SerializeUtils.serialize(this))).toByteArray();
             return new BlockHeader(this);
         }

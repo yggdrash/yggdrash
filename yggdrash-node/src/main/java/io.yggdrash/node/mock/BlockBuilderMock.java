@@ -31,9 +31,8 @@ public class BlockBuilderMock implements BlockBuilder {
         Account account = new Account();
         BlockBody blockBody = new BlockBody(Arrays.asList());
         BlockHeader blockHeader = new BlockHeader.Builder()
-                .account(account)
                 .prevBlock(null)
-                .blockBody(blockBody).build();
+                .blockBody(blockBody).build(account);
         return new Block(blockHeader, blockBody);
     }
 }
