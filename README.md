@@ -1,4 +1,9 @@
 # 이그드라시 - 블록체인 플랫폼
+
+[![Build Status](https://travis-ci.org/yggdrash/yggdrash.svg?branch=develop)](https://travis-ci.org/yggdrash/yggdrash)
+[![Coverage Status](https://coveralls.io/repos/github/yggdrash/yggdrash/badge.svg?branch=develop)](https://coveralls.io/github/yggdrash/yggdrash?branch=develop)
+[![codecov](https://codecov.io/gh/yggdrash/yggdrash/branch/develop/graph/badge.svg)](https://codecov.io/gh/yggdrash/yggdrash)(https://codecov.io/gh/dezang/yggdrash)
+
 - [ENGLISH](README-en.md)
 
 > We will change the world by blockchain.
