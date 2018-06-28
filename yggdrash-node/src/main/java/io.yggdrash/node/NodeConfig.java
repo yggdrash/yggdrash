@@ -24,6 +24,7 @@ import io.yggdrash.node.mock.BlockChainMock;
 import io.yggdrash.node.mock.TransactionPoolMock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping;
 
 @Configuration
 class NodeConfig {
@@ -56,5 +57,10 @@ class NodeConfig {
     @Bean
     MessageSender messageSender() {
         return new MessageSender();
+    }
+
+    @Bean
+    BeanNameUrlHandlerMapping beanNameUrlHandlerMapping() {
+        return new BeanNameUrlHandlerMapping();
     }
 }
