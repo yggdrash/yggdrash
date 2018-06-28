@@ -18,7 +18,7 @@ package io.yggdrash.node;
 
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.net.NodeSyncClient;
-import io.yggdrash.proto.BlockChainOuterClass;
+import io.yggdrash.proto.BlockChainProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -58,11 +58,11 @@ public class MessageSender implements DisposableBean {
         nodeSyncClient.stop();
     }
 
-    private static BlockChainOuterClass.Transaction[] createTransactions() {
-        return new BlockChainOuterClass.Transaction[] {
-                BlockChainOuterClass.Transaction.newBuilder().setData("tx1").build(),
-                BlockChainOuterClass.Transaction.newBuilder().setData("tx2").build(),
-                BlockChainOuterClass.Transaction.newBuilder().setData("tx3").build()
+    private static BlockChainProto.Transaction[] createTransactions() {
+        return new BlockChainProto.Transaction[] {
+                BlockChainProto.Transaction.newBuilder().setData("tx1").build(),
+                BlockChainProto.Transaction.newBuilder().setData("tx2").build(),
+                BlockChainProto.Transaction.newBuilder().setData("tx3").build()
         };
     }
 }

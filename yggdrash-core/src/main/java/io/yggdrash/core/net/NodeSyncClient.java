@@ -21,7 +21,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.proto.BlockChainGrpc;
-import io.yggdrash.proto.BlockChainOuterClass;
+import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
@@ -71,12 +71,12 @@ public class NodeSyncClient {
         }
     }
 
-    public void broadcast(BlockChainOuterClass.Transaction[] txs) {
+    public void broadcast(BlockChainProto.Transaction[] txs) {
         log.info("*** Broadcasting...");
-        StreamObserver<BlockChainOuterClass.Transaction> requestObserver =
-                asyncStub.broadcast(new StreamObserver<BlockChainOuterClass.Transaction>() {
+        StreamObserver<BlockChainProto.Transaction> requestObserver =
+                asyncStub.broadcast(new StreamObserver<BlockChainProto.Transaction>() {
                     @Override
-                    public void onNext(BlockChainOuterClass.Transaction tx) {
+                    public void onNext(BlockChainProto.Transaction tx) {
                         log.info("Got transaction: {}", tx);
                     }
 
@@ -91,7 +91,7 @@ public class NodeSyncClient {
                     }
                 });
 
-        for (BlockChainOuterClass.Transaction tx : txs) {
+        for (BlockChainProto.Transaction tx : txs) {
             log.trace("Sending Transaction: {}", tx);
             requestObserver.onNext(tx);
         }
