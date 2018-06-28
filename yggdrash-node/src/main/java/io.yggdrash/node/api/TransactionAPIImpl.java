@@ -1,5 +1,6 @@
 package io.yggdrash.node.api;
 
+import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import org.springframework.stereotype.Service;
 
@@ -11,77 +12,88 @@ public class TransactionAPIImpl implements TransactionAPI {
         return a + b;
     }
 
+    int numOfTx = 0;
+    int filterId = 0;
+    String txHash = "0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf";
+    String zeroHash = "0x0000000000000000000000000000000000000000";
+
+
     /* get */
     @Override
     public int getTransactionCount(String address, String tag) {
-        return 0;
+        return numOfTx;
     }
 
     @Override
     public int getTransactionCount(String address, int blockNumber) {
-        return 100;
+        return numOfTx;
     }
 
     @Override
     public int getBlockTransactionCountByHash(String hashOfBlock) {
-        return 1;
+        return numOfTx;
     }
 
     @Override
     public int getBlockTransactionCountByNumber(int blockNumber) {
-        return 2;
+        return numOfTx;
     }
 
     @Override
     public int getBlockTransactionCountByNumber(String tag) {
-        return 2;
+        return numOfTx;
     }
 
     @Override
-    public TransactionDto getTransactionByHash(String hashOfTx) {
-        TransactionDto transactionDto = new TransactionDto();
-        return transactionDto;
+    public JsonObject getTransactionByHash(String hashOfTx) {
+        TransactionMock txMock = new TransactionMock();
+        JsonObject tx = txMock.retTxMock();
+        return tx;
     }
 
     @Override
-    public TransactionDto getTransactionByBlockHashAndIndex(String hashOfBlock, int txIndexPosition) {
-        TransactionDto transactionDto = new TransactionDto();
-        return transactionDto;
+    public JsonObject getTransactionByBlockHashAndIndex(String hashOfBlock, int txIndexPosition) {
+        TransactionMock txMock = new TransactionMock();
+        JsonObject txObj = txMock.retTxMock();
+        return txObj;
     }
 
     @Override
-    public TransactionDto getTransactionByBlockNumberAndIndex(int hashOfBlock, int txIndexPosition) {
-        TransactionDto transactionDto = new TransactionDto();
-        return transactionDto;
+    public JsonObject getTransactionByBlockNumberAndIndex(int hashOfBlock, int txIndexPosition) {
+        TransactionMock txMock = new TransactionMock();
+        JsonObject txObj = txMock.retTxMock();
+        return txObj;
     }
 
     @Override
-    public TransactionDto getTransactionByBlockNumberAndIndex(String tag, int txIndexPosition) {
-        TransactionDto transactionDto = new TransactionDto();
-        return transactionDto;
+    public JsonObject getTransactionByBlockNumberAndIndex(String tag, int txIndexPosition) {
+        TransactionMock txMock = new TransactionMock();
+        JsonObject txObj = txMock.retTxMock();
+        return txObj;
     }
 
     @Override
-    public TransactionReceiptDto getTransactionReceipt(String hashOfTx) {
-        TransactionReceiptDto transactionReceiptDto = new TransactionReceiptDto();
-        return transactionReceiptDto;
+    public JsonObject getTransactionReceipt(String hashOfTx) {
+        TransactionReceiptMock txReceiptMock = new TransactionReceiptMock();
+        JsonObject txReceiptObj = txReceiptMock.retTxReceiptMock();
+        return txReceiptObj;
     }
 
     /* send */
     @Override
-    public String sendTransaction(TransactionDto transactionDto) {
-        return "3";
+    public String sendTransaction(JsonObject txObj) {
+        return txHash;
     }
 
     @Override
-    public String sendRawTransaction(TransactionDto transactionDto) {
-        return "4";
+    public String sendRawTransaction(JsonObject txObj) {
+        return zeroHash;
     }
 
     /* filter */
     @Override
     public int newPendingTransactionFilter() {
-         return 9;
+         return filterId;
     }
 
 }
