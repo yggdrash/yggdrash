@@ -19,6 +19,7 @@ package io.yggdrash.node.controller;
 import io.yggdrash.core.Block;
 import io.yggdrash.node.BlockBuilder;
 import io.yggdrash.node.BlockChain;
+import io.yggdrash.node.MessageSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -34,6 +35,9 @@ import java.util.LinkedHashMap;
 class BlockController {
     private final BlockBuilder blockBuilder;
     private final BlockChain blockChain;
+
+    @Autowired
+    private MessageSender messageSender;
 
     @Autowired
     public BlockController(BlockBuilder blockBuilder, BlockChain blockChain) {
@@ -63,6 +67,12 @@ class BlockController {
         }
 
         return ResponseEntity.ok(BlockDto.createBy(foundBlock));
+    }
+
+    @GetMapping("test")
+    public ResponseEntity test() {
+        messageSender.broadcastBlock();
+        return ResponseEntity.ok("ok");
     }
 
     @GetMapping

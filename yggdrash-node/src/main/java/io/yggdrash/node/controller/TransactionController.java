@@ -70,7 +70,7 @@ public class TransactionController {
 
     @GetMapping("test")
     public ResponseEntity test() {
-        messageSender.broadcast(null);
+        messageSender.broadcastTransaction(null);
         return ResponseEntity.ok("ok");
     }
 }

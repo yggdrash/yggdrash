@@ -11,8 +11,32 @@ service BlockChain {
     // A client to server streaming RPC.
 
     // A Bidirectional streaming RPC.
-    rpc broadcast(stream Transaction) returns (stream Transaction) {}
+    rpc broadcastBlock(stream Block) returns (stream Block) {}
+    rpc broadcastTransaction(stream Transaction) returns (stream Transaction) {}
 }
+
+message Block {
+    BlockHeader header = 1;
+    BlockBody data     = 2;
+}
+
+message BlockHeader {
+
+    bytes version       = 1; // Version indicates message protocol version
+    bytes payload       = 2;
+    uint64 index        = 3; // The index in the blockchain
+    uint64 timestamp    = 4; // google.protobuf.Timestamp timestamp ?
+    bytes prevBlockHash = 5; // The hash of the previous block header
+    bytes author        = 6; // The name of the miner
+    bytes merkleRoot    = 7; // The hash of the BlockBody, by MerkleTree
+    uint64 dataSize     = 8;
+    bytes signature     = 9;
+}
+
+message BlockBody {
+    repeated Transaction trasactions = 1; // A collection of txns
+}
+
 message Transaction {
     string data = 1;
 }
