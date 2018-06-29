@@ -1,0 +1,13 @@
+language: java
+jdk:
+  - oraclejdk8
+cache:
+  directories:
+  - $HOME/.m2/repository
+  - $HOME/.gradle
+script:
+  - ./gradlew clean build
+
+after_success:
+  - ./gradlew jacocoRootReport coveralls
+  - bash <(curl -s https://codecov.io/bash)

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.node.controller;
 
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;

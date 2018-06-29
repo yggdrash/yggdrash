@@ -152,7 +152,7 @@ public class Utils {
 
         // on android this property equals to 0
         if (version.equals("0")) return 0;
-
+        if (version.indexOf(".") == -1) return Double.parseDouble(version);
         int pos = 0, count = 0;
         for (; pos < version.length() && count < 2; pos++) {
             if (version.charAt(pos) == '.') count++;

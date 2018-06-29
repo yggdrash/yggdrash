@@ -20,7 +20,7 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.proto.BlockChainGrpc;
-import io.yggdrash.proto.BlockChainOuterClass;
+import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
@@ -28,6 +28,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class NodeSyncServer {
     private static final Logger log = LoggerFactory.getLogger(NodeSyncServer.class);
@@ -72,7 +74,7 @@ public class NodeSyncServer {
     static class PingPongImpl extends PingPongGrpc.PingPongImplBase {
         @Override
         public void play(Ping request, StreamObserver<Pong> responseObserver) {
-            System.out.println(request.getPing());
+            log.debug(request.getPing());
             Pong pong = Pong.newBuilder().setPong("Pong").build();
             responseObserver.onNext(pong);
             responseObserver.onCompleted();
@@ -80,24 +82,69 @@ public class NodeSyncServer {
     }
 
     static class BlockChainImpl extends BlockChainGrpc.BlockChainImplBase {
+        private static Set<StreamObserver<BlockChainProto.Transaction>> txObservers =
+                ConcurrentHashMap.newKeySet();
+
+        private static Set<StreamObserver<BlockChainProto.Block>> blockObservers =
+                ConcurrentHashMap.newKeySet();
+
         @Override
-        public StreamObserver<BlockChainOuterClass.Transaction> broadcast(
-                StreamObserver<BlockChainOuterClass.Transaction> responseObserver) {
-            return new StreamObserver<BlockChainOuterClass.Transaction>() {
+        public StreamObserver<BlockChainProto.Transaction> broadcastTransaction(
+                StreamObserver<BlockChainProto.Transaction> responseObserver) {
+
+            txObservers.add(responseObserver);
+
+            return new StreamObserver<BlockChainProto.Transaction>() {
                 @Override
-                public void onNext(BlockChainOuterClass.Transaction tx) {
-                    System.out.println(tx);
+                public void onNext(BlockChainProto.Transaction tx) {
+                    log.debug("Received transaction: {}", tx);
+
+                    for (StreamObserver<BlockChainProto.Transaction> observer : txObservers) {
+                        observer.onNext(tx);
+                    }
                 }
 
                 @Override
                 public void onError(Throwable t) {
-                    log.warn("Broadcasting Failed: {}", t);
+                    log.warn("Broadcasting transaction failed: {}", t);
+                    txObservers.remove(responseObserver);
+                    responseObserver.onError(t);
                 }
 
                 @Override
                 public void onCompleted() {
-                    responseObserver.onNext(BlockChainOuterClass.Transaction.newBuilder()
-                            .setData("return").build());
+                    txObservers.remove(responseObserver);
+                    responseObserver.onCompleted();
+                }
+            };
+        }
+
+        @Override
+        public StreamObserver<BlockChainProto.Block> broadcastBlock(
+                StreamObserver<BlockChainProto.Block> responseObserver) {
+
+            blockObservers.add(responseObserver);
+
+            return new StreamObserver<BlockChainProto.Block>() {
+                @Override
+                public void onNext(BlockChainProto.Block block) {
+                    log.debug("Received block: {}", block);
+
+                    for (StreamObserver<BlockChainProto.Block> observer : blockObservers) {
+                        observer.onNext(block);
+                    }
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                    log.warn("Broadcasting block failed: {}", t);
+                    blockObservers.remove(responseObserver);
+                    responseObserver.onError(t);
+                }
+
+                @Override
+                public void onCompleted() {
+                    blockObservers.remove(responseObserver);
                     responseObserver.onCompleted();
                 }
             };

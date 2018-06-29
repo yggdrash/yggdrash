@@ -1,0 +1,11 @@
+# You can specify a custom docker image from Docker Hub as your build environment.
+image: java:8
+
+pipelines:
+  default:
+    - step:
+        caches:
+          - gradle
+        script:
+          # https://docs.gradle.org/current/userguide/gradle_wrapper.html
+          - bash ./gradlew build
