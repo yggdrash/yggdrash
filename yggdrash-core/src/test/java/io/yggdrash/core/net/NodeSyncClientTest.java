@@ -17,6 +17,7 @@
 package io.yggdrash.core.net;
 
 import io.grpc.testing.GrpcServerRule;
+import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
 import org.junit.Before;
@@ -25,38 +26,63 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Matchers;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.AdditionalAnswers.delegatesTo;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 
 @RunWith(JUnit4.class)
 public class NodeSyncClientTest {
+
     @Rule
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
 
-    private final PingPongGrpc.PingPongImplBase serviceImpl =
+    private final PingPongGrpc.PingPongImplBase pingPongService =
             mock(PingPongGrpc.PingPongImplBase.class, delegatesTo(
                     new NodeSyncServer.PingPongImpl() {}));
+
+    private final BlockChainGrpc.BlockChainImplBase blockChainService =
+            mock(BlockChainGrpc.BlockChainImplBase.class, delegatesTo(
+                    new NodeSyncServer.BlockChainImpl() {}));
+
     private NodeSyncClient client;
 
     @Before
     public void setUp() {
-        grpcServerRule.getServiceRegistry().addService(serviceImpl);
         client = new NodeSyncClient(grpcServerRule.getChannel());
     }
 
     @Test
-    public void messageDeliveredToServer() {
+    public void play() {
+        grpcServerRule.getServiceRegistry().addService(pingPongService);
         ArgumentCaptor<Ping> requestCaptor = ArgumentCaptor.forClass(Ping.class);
         String ping = "Ping";
 
         client.ping(ping);
 
-        verify(serviceImpl)
-                .play(requestCaptor.capture(), Matchers.any());
+        verify(pingPongService).play(requestCaptor.capture(), any());
+
         assertEquals(ping, requestCaptor.getValue().getPing());
     }
+
+    @Test
+    public void broadcastTransaction() {
+        grpcServerRule.getServiceRegistry().addService(blockChainService);
+
+        client.broadcastTransaction(NodeTestData.transactions());
+
+        verify(blockChainService).broadcastTransaction(any());
+    }
+
+    @Test
+    public void broadcastBlock() {
+        grpcServerRule.getServiceRegistry().addService(blockChainService);
+
+        client.broadcastBlock(NodeTestData.blocks());
+
+        verify(blockChainService).broadcastBlock(any());
+    }
+
 }
