@@ -75,12 +75,14 @@ public class TransactionAPIImpl implements TransactionAPI {
     /* send */
     @Override
     public String sendTransaction(String tx) {
-        return txHash;
+        String ret = "{[get : " + tx + "][result : {txhash : " + txHash + "}]}";
+        return ret;
     }
 
     @Override
-    public String sendRawTransaction(String tawTx) {
-        return zeroHash;
+    public String sendRawTransaction(String rawTx) {
+        String ret = "{[get : " + rawTx + "][result : {txhash : " + zeroHash + "}]}";
+        return ret;
     }
 
     /* filter */
@@ -113,6 +115,9 @@ public class TransactionAPIImpl implements TransactionAPI {
  > txObj
  curl -H "Content-Type:application/json" -d '{"id":"1","jsonrpc":"2.0","method":"getTransactionReceipt","params":{"hashOfTx":"0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf"}}' http://localhost:8080/transaction
  > txReceiptObj
+
+ curl -H "Content-Type:application/json" -d '{"id":"1","jsonrpc":"2.0","method":"sendTransaction","params":{"hello"}}' http://localhost:8080/transaction
+ curl -H "Content-Type:application/json" -d '{"id":"1","jsonrpc":"2.0","method":"sendRawTransaction","params":{"hello"}}' http://localhost:8080/transaction
 
  curl -H "Content-Type:application/json" -d '{"id":"1","jsonrpc":"2.0","method":"newPendingTransactionFilter","params":{}}' http://localhost:8080/transaction
  > 6

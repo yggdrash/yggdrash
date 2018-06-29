@@ -1,6 +1,5 @@
 package io.yggdrash.node.api;
 
-import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
 
@@ -20,8 +19,8 @@ public interface TransactionAPI {
     String getTransactionReceipt(@JsonRpcParam(value = "hashOfTx") String hashOfTx);
 
     /* send */
-    String sendTransaction(String tx);
-    String sendRawTransaction(String rawTx);
+    String sendTransaction(@JsonRpcParam(value = "tx") String tx);
+    String sendRawTransaction(@JsonRpcParam(value = "rawTx") String rawTx);
 
     /* filter */
     int newPendingTransactionFilter();

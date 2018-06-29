@@ -51,6 +51,15 @@ public class TransactionAPITest {
         assertThat(txObj).isEqualTo(txapi.getTransactionByBlockNumberAndIndex(blockNumber, txIndexPosition));
         assertThat(txReceiptObj).isEqualTo(txapi.getTransactionReceipt(hashOfTx));
 
+        String tx = "hello";
+        String rawTx = "hahahahaha";
+        String txHash = "0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf";
+        String zeroHash = "0x0000000000000000000000000000000000000000";
+        String resTx = "{[get : " + tx + "][result : {txhash : " + txHash + "}]}";
+        String resRawTx = "{[get : " + rawTx + "][result : {txhash : " + zeroHash + "}]}";
+        assertThat(resTx).isEqualTo(txapi.sendTransaction(tx));
+        assertThat(resRawTx).isEqualTo(txapi.sendRawTransaction(rawTx));
+
         assertThat(6).isEqualTo(txapi.newPendingTransactionFilter());
 
         System.out.println("================================================================================");
