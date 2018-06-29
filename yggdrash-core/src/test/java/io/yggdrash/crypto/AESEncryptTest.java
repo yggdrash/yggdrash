@@ -59,4 +59,28 @@ public class AESEncryptTest {
     assertArrayEquals(plainBytes, plainData);
 
   }
+
+  /**
+   * test encryption/decryption with large data 100 MByte.
+   * @throws InvalidCipherTextException
+   */
+  @Test
+  public void testEncryptDecrypt3() throws InvalidCipherTextException {
+
+    // password generation using KDF
+    String password = "Aa1234567890#";
+    byte[] kdf = Password.generateKeyDerivation(password.getBytes(), 32);
+
+    byte[] plain = "0123456789".getBytes();
+    byte[] plainBytes = new byte[100000000];
+    for(int i=0; i<plainBytes.length/plain.length; i++) {
+      System.arraycopy(plain, 0, plainBytes, i*plain.length, plain.length);
+    }
+
+    byte[] encData = AESEncrypt.encrypt(plainBytes, kdf);
+    byte[] plainData = AESEncrypt.decrypt(encData, kdf);
+
+    assertArrayEquals(plainBytes, plainData);
+
+  }
 }

@@ -11,7 +11,7 @@ import org.spongycastle.crypto.params.ParametersWithIV;
 
 /**
  * AESEncrypt Class
- * AES CBC PKCS5Padding.
+ * AES CBC PKCS7Padding.
  */
 public class AESEncrypt {
 
