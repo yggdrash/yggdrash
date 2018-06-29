@@ -1,18 +1,14 @@
 package io.yggdrash.node.api;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 
 public class TransactionMock {
 
-    public TransactionMock() {
-        retTxMock();
-    }
-
-    public JsonObject retTxMock() {
+    public String retTxMock() {
         JsonObject txObj = new JsonObject();
         JsonObject txData = new JsonObject();
-
-        txData.addProperty("test", "testData");
 
         txObj.addProperty("version", "0");
         txObj.addProperty("type", "00000000000000");
@@ -24,7 +20,7 @@ public class TransactionMock {
         txObj.addProperty("transactionHash", "c6b5e583ec18891e9de0e29c3f0358a5c99c474bc3ee78e90c618db72193c0");
         txObj.addProperty("transactionData", txData.toString());
 
-        return txObj;
+        return txObj.toString();
     }
 }
 

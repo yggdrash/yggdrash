@@ -4,12 +4,9 @@ import com.google.gson.JsonObject;
 
 public class TransactionReceiptMock {
 
-    public TransactionReceiptMock() {
-        retTxReceiptMock();
-    }
-
-    public JsonObject retTxReceiptMock() {
+    public String retTxReceiptMock() {
         JsonObject txReceiptObj = new JsonObject();
+
         JsonObject txLog = new JsonObject();
 
         txReceiptObj.addProperty("id", 1);
@@ -24,7 +21,7 @@ public class TransactionReceiptMock {
         txReceiptObj.addProperty("logsBloom", "0x00...0");
         txReceiptObj.addProperty("status", "0x01");
 
-        return txReceiptObj;
+        return txReceiptObj.toString();
     }
 }
 

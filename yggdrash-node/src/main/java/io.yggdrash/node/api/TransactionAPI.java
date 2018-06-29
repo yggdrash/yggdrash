@@ -6,7 +6,6 @@ import com.googlecode.jsonrpc4j.JsonRpcService;
 
 @JsonRpcService("/transaction")
 public interface TransactionAPI {
-    int test(@JsonRpcParam(value = "a") int a, @JsonRpcParam(value = "b") int b);
 
     /* get */
     int getTransactionCount(@JsonRpcParam(value = "address") String address, @JsonRpcParam(value = "tag") String tag);
@@ -14,15 +13,15 @@ public interface TransactionAPI {
     int getBlockTransactionCountByHash(@JsonRpcParam(value = "hashOfBlock") String hashOfBlock);
     int getBlockTransactionCountByNumber(@JsonRpcParam(value = "blockNumber") int blockNumber);
     int getBlockTransactionCountByNumber(@JsonRpcParam(value = "tag") String tag);
-    JsonObject getTransactionByHash(@JsonRpcParam(value = "hashOfTx") String hashOfTx);
-    JsonObject getTransactionByBlockHashAndIndex(@JsonRpcParam(value = "hashOfBlock") String hashOfBlock, @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
-    JsonObject getTransactionByBlockNumberAndIndex(@JsonRpcParam(value = "blockNumber") int blockNumber, @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
-    JsonObject getTransactionByBlockNumberAndIndex(@JsonRpcParam(value = "tag") String tag, @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
-    JsonObject getTransactionReceipt(@JsonRpcParam(value = "hashOfTx") String hashOfTx);
+    String getTransactionByHash(@JsonRpcParam(value = "hashOfTx") String hashOfTx);
+    String getTransactionByBlockHashAndIndex(@JsonRpcParam(value = "hashOfBlock") String hashOfBlock, @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
+    String getTransactionByBlockNumberAndIndex(@JsonRpcParam(value = "blockNumber") int blockNumber, @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
+    String getTransactionByBlockNumberAndIndex(@JsonRpcParam(value = "tag") String tag, @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
+    String getTransactionReceipt(@JsonRpcParam(value = "hashOfTx") String hashOfTx);
 
     /* send */
-    String sendTransaction(JsonObject JsonObject);
-    String sendRawTransaction(JsonObject JsonObject);
+    String sendTransaction(String tx);
+    String sendRawTransaction(String rawTx);
 
     /* filter */
     int newPendingTransactionFilter();
