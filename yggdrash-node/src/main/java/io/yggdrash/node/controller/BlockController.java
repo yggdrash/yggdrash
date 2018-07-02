@@ -19,6 +19,8 @@ package io.yggdrash.node.controller;
 import io.yggdrash.core.Block;
 import io.yggdrash.node.BlockBuilder;
 import io.yggdrash.node.BlockChain;
+import io.yggdrash.node.MessageSender;
+import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,13 +38,16 @@ class BlockController {
     private final BlockChain blockChain;
 
     @Autowired
+    private MessageSender messageSender;
+
+    @Autowired
     public BlockController(BlockBuilder blockBuilder, BlockChain blockChain) {
         this.blockBuilder = blockBuilder;
         this.blockChain = blockChain;
     }
 
     @PostMapping
-    public ResponseEntity add() {
+    public ResponseEntity add() throws IOException {
         Block generatedBlock = blockBuilder.build("sample");
         blockChain.addBlock(generatedBlock);
         return ResponseEntity.ok(BlockDto.createBy(generatedBlock));
@@ -63,6 +68,12 @@ class BlockController {
         }
 
         return ResponseEntity.ok(BlockDto.createBy(foundBlock));
+    }
+
+    @GetMapping("test")
+    public ResponseEntity test() {
+        messageSender.broadcastBlock();
+        return ResponseEntity.ok("ok");
     }
 
     @GetMapping

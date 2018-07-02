@@ -3,6 +3,7 @@ build/
 out/
 !gradle/wrapper/gradle-wrapper.jar
 yggdrash-core/resources/db
+.coveralls.yml
 
 ### STS ###
 .apt_generated

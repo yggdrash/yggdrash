@@ -21,7 +21,7 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.proto.BlockChainGrpc;
-import io.yggdrash.proto.BlockChainOuterClass;
+import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.TimeUnit;
 
 public class NodeSyncClient {
+
     public static final Logger log = LoggerFactory.getLogger(NodeSyncClient.class);
 
     private final ManagedChannel channel;
@@ -39,7 +40,7 @@ public class NodeSyncClient {
 
     public NodeSyncClient(String host, int port) {
         this(ManagedChannelBuilder.forAddress(host, port)
-                .usePlaintext(true)
+                .usePlaintext()
                 .build());
     }
 
@@ -71,29 +72,57 @@ public class NodeSyncClient {
         }
     }
 
-    public void broadcast(BlockChainOuterClass.Transaction[] txs) {
-        log.info("*** Broadcasting...");
-        StreamObserver<BlockChainOuterClass.Transaction> requestObserver =
-                asyncStub.broadcast(new StreamObserver<BlockChainOuterClass.Transaction>() {
+    public void broadcastTransaction(BlockChainProto.Transaction[] txs) {
+        log.info("*** Broadcasting tx...");
+        StreamObserver<BlockChainProto.Transaction> requestObserver =
+                asyncStub.broadcastTransaction(new StreamObserver<BlockChainProto.Transaction>() {
                     @Override
-                    public void onNext(BlockChainOuterClass.Transaction tx) {
+                    public void onNext(BlockChainProto.Transaction tx) {
                         log.info("Got transaction: {}", tx);
                     }
 
                     @Override
                     public void onError(Throwable t) {
-                        log.warn("broadcast Failed: {}", Status.fromThrowable(t));
+                        log.warn("Broadcast transaction failed: {}", Status.fromThrowable(t));
                     }
 
                     @Override
                     public void onCompleted() {
-                        log.info("Finished Broadcasting");
+                        log.info("Finished broadcasting");
                     }
                 });
 
-        for (BlockChainOuterClass.Transaction tx : txs) {
-            log.trace("Sending Transaction: {}", tx);
+        for (BlockChainProto.Transaction tx : txs) {
+            log.trace("Sending transaction: {}", tx);
             requestObserver.onNext(tx);
+        }
+
+        requestObserver.onCompleted();
+    }
+
+    public void broadcastBlock(BlockChainProto.Block[] blocks) {
+        log.info("*** Broadcasting blocks...");
+        StreamObserver<BlockChainProto.Block> requestObserver =
+                asyncStub.broadcastBlock(new StreamObserver<BlockChainProto.Block>() {
+                    @Override
+                    public void onNext(BlockChainProto.Block block) {
+                        log.info("Got block: {}", block);
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        log.warn("Broadcast block failed: {}", Status.fromThrowable(t));
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        log.info("Finished broadcasting");
+                    }
+                });
+
+        for (BlockChainProto.Block block : blocks) {
+            log.trace("Sending block: {}", block);
+            requestObserver.onNext(block);
         }
 
         requestObserver.onCompleted();
