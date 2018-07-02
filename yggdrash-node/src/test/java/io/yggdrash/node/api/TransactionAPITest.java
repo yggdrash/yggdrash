@@ -1,11 +1,18 @@
 package io.yggdrash.node.api;
 
+import io.yggdrash.core.Block;
+import io.yggdrash.node.BlockBuilder;
+import io.yggdrash.node.mock.BlockBuilderMock;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import java.io.IOException;
+import java.util.LinkedHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -64,6 +71,15 @@ public class TransactionAPITest {
         log.debug("=============================[Account Test]=====================================");
         log.debug("[res] accountStr : " + account);
         log.debug("================================================================================");
+
+        BlockMock blockMock = new BlockMock();
+        log.debug("blockMock" + blockMock.retBlockMock());
+
+        BlockBuilderMock blockBuilderMock = new BlockBuilderMock();
+        Block block = blockBuilderMock.build("test");
+        log.debug(block.getBlockHash());
+        log.debug(block.getPrevBlockHash());
+        log.debug("blockBuilderMock : " + block.toString());
 
     }
 }

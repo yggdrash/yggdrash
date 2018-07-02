@@ -21,9 +21,9 @@ public class TransactionDto {
 
     public static TransactionDto createBy(Transaction tx) {
         TransactionDto transactionDto = new TransactionDto();
-        transactionDto.setFrom(tx.getFrom());
+        //transactionDto.setFrom(tx.getFrom());
         transactionDto.setData(tx.getData());
-        transactionDto.setTxHash(tx.getHashString());
+        //transactionDto.setTxHash(tx.getHashString());
         return transactionDto;
     }
 
