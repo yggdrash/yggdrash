@@ -40,7 +40,7 @@ public class BlockBuilderMock implements BlockBuilder {
                 .blockBody(blockBody).build(account);
         return new Block(blockHeader, blockBody);
     }
-    
+
     @Override
     public Block build() throws IOException {
         /* 1. Create an account */

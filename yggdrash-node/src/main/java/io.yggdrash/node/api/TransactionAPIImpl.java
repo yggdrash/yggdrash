@@ -1,8 +1,10 @@
 package io.yggdrash.node.api;
 
-import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
+import io.yggdrash.core.Transaction;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
 
 @Service
 @AutoJsonRpcServiceImpl
@@ -38,31 +40,31 @@ public class TransactionAPIImpl implements TransactionAPI {
     }
 
     @Override
-    public String getTransactionByHash(String hashOfTx) {
+    public String getTransactionByHash(String hashOfTx) throws IOException {
         TransactionMock txMock = new TransactionMock();
-        String tx = txMock.retTxMock();
-        return tx;
+        Transaction tx = txMock.retTxMock();
+        return tx.toString();
     }
 
     @Override
-    public String getTransactionByBlockHashAndIndex(String hashOfBlock, int txIndexPosition) {
+    public String getTransactionByBlockHashAndIndex(String hashOfBlock, int txIndexPosition)  throws IOException {
         TransactionMock txMock = new TransactionMock();
-        String txObj = txMock.retTxMock();
-        return txObj;
+        Transaction tx = txMock.retTxMock();
+        return tx.toString();
     }
 
     @Override
-    public String getTransactionByBlockNumberAndIndex(int blockNumber, int txIndexPosition) {
+    public String getTransactionByBlockNumberAndIndex(int blockNumber, int txIndexPosition) throws IOException {
         TransactionMock txMock = new TransactionMock();
-        String txObj = txMock.retTxMock();
-        return txObj;
+        Transaction tx = txMock.retTxMock();
+        return tx.toString();
     }
 
     @Override
-    public String getTransactionByBlockNumberAndIndex(String tag, int txIndexPosition) {
+    public String getTransactionByBlockNumberAndIndex(String tag, int txIndexPosition)  throws IOException {
         TransactionMock txMock = new TransactionMock();
-        String txObj = txMock.retTxMock();
-        return txObj;
+        Transaction tx = txMock.retTxMock();
+        return tx.toString();
     }
 
     @Override

@@ -3,6 +3,8 @@ package io.yggdrash.node.api;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
 
+import java.io.IOException;
+
 @JsonRpcService("/transaction")
 public interface TransactionAPI {
 
@@ -12,10 +14,10 @@ public interface TransactionAPI {
     int getBlockTransactionCountByHash(@JsonRpcParam(value = "hashOfBlock") String hashOfBlock);
     int getBlockTransactionCountByNumber(@JsonRpcParam(value = "blockNumber") int blockNumber);
     int getBlockTransactionCountByNumber(@JsonRpcParam(value = "tag") String tag);
-    String getTransactionByHash(@JsonRpcParam(value = "hashOfTx") String hashOfTx);
-    String getTransactionByBlockHashAndIndex(@JsonRpcParam(value = "hashOfBlock") String hashOfBlock, @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
-    String getTransactionByBlockNumberAndIndex(@JsonRpcParam(value = "blockNumber") int blockNumber, @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
-    String getTransactionByBlockNumberAndIndex(@JsonRpcParam(value = "tag") String tag, @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
+    String getTransactionByHash(@JsonRpcParam(value = "hashOfTx") String hashOfTx) throws IOException;
+    String getTransactionByBlockHashAndIndex(@JsonRpcParam(value = "hashOfBlock") String hashOfBlock, @JsonRpcParam(value = "txIndexPosition") int txIndexPosition) throws IOException;
+    String getTransactionByBlockNumberAndIndex(@JsonRpcParam(value = "blockNumber") int blockNumber, @JsonRpcParam(value = "txIndexPosition") int txIndexPosition) throws IOException;
+    String getTransactionByBlockNumberAndIndex(@JsonRpcParam(value = "tag") String tag, @JsonRpcParam(value = "txIndexPosition") int txIndexPosition) throws IOException;
     String getTransactionReceipt(@JsonRpcParam(value = "hashOfTx") String hashOfTx);
 
     /* send */
