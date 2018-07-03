@@ -6,4 +6,6 @@ public interface TransactionPool {
     Transaction getTxByHash(String id);
 
     Transaction addTx(Transaction tx) throws IOException;
+
+    void setListener(TransactionPoolListener listener);
 }

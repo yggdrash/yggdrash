@@ -18,6 +18,7 @@ package io.yggdrash.node;
 
 import com.google.protobuf.ByteString;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.TransactionPoolListener;
 import io.yggdrash.core.net.NodeSyncClient;
 import io.yggdrash.proto.BlockChainProto;
 import org.slf4j.Logger;
@@ -29,7 +30,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 
 @Service
-public class MessageSender implements DisposableBean {
+public class MessageSender implements DisposableBean, TransactionPoolListener {
     private static final Logger log = LoggerFactory.getLogger(MessageSender.class);
 
     @Value("${grpc.port}")
@@ -89,5 +90,10 @@ public class MessageSender implements DisposableBean {
                         .setData(BlockChainProto.BlockBody.newBuilder().addTrasactions(tx)).build()
 
         };
+    }
+
+    @Override
+    public void newTransaction(Transaction tx) {
+        log.debug("New transaction={}", tx.getData());
     }
 }

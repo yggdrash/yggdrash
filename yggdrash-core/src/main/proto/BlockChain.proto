@@ -38,5 +38,15 @@ message BlockBody {
 }
 
 message Transaction {
-    string data = 1;
+    TransactionHeader header = 1;
+    string data              = 2;
+}
+
+message TransactionHeader {
+    bytes type       = 1;
+    bytes version    = 2;
+    bytes dataHash   = 3;
+    uint64 timestamp = 4;
+    uint64 dataSize  = 5;
+    uint64 signature = 6;
 }
