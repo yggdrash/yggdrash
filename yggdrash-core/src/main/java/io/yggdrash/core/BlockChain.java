@@ -56,7 +56,7 @@ public class BlockChain {
    * @param nextBlock the next block
    * @throws NotValidteException the not validte exception
    */
-  public void addBlock(Block nextBlock) throws NotValidteException {
+  public void addBlock(Block nextBlock) throws NotValidteException, IOException {
     if (isGenesisBlock(nextBlock)) {
       this.genesisBlock = nextBlock;
     } else if (!isValidNewBlock(prevBlock, nextBlock)) {
@@ -74,7 +74,7 @@ public class BlockChain {
     return genesisBlock == null && prevBlock == null && newBlock.getIndex() == 0;
   }
 
-  private boolean isValidNewBlock(Block prevBlock, Block nextBlock) {
+  private boolean isValidNewBlock(Block prevBlock, Block nextBlock) throws IOException {
     if (prevBlock == null) {
       return true;
     }

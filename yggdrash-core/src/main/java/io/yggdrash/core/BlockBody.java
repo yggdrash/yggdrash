@@ -1,9 +1,11 @@
 package io.yggdrash.core;
 
+import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.trie.Trie;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BlockBody implements Serializable {
@@ -23,16 +25,20 @@ public class BlockBody implements Serializable {
     return transactionList;
   }
 
-  public void setTransactionList(List<Transaction> transactionList) {
-    this.transactionList = transactionList;
-  }
-
   public byte[] getMerkleRoot() throws IOException {
     return Trie.getMerkleRoot(this.transactionList);
   }
 
   public long getSize() {
     return this.transactionList.size(); // check byte
+  }
+
+  public static BlockBody valueOf(BlockChainProto.BlockBody data) {
+    List<Transaction> transactionList = new ArrayList<>();
+    for(BlockChainProto.Transaction tx : data.getTrasactionsList()) {
+      transactionList.add(Transaction.valueOf(tx));
+    }
+    return new BlockBody(transactionList);
   }
 
   @Override

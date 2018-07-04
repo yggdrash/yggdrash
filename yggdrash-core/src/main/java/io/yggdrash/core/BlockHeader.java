@@ -1,14 +1,17 @@
 package io.yggdrash.core;
 
+import com.google.protobuf.ByteString;
 import io.yggdrash.crypto.HashUtil;
+import io.yggdrash.proto.BlockChainProto;
+import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.SerializeUtils;
 import io.yggdrash.util.TimeUtils;
-import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.Serializable;
-import java.util.Arrays;
 
 /**
  * The type Block header.
@@ -24,7 +27,7 @@ public class BlockHeader implements Serializable {
     private final long dataSize;
     private final byte[] signature;
 
-    private final transient long index;
+    private final long index;
 
     private BlockHeader(Builder builder) {
         this.type = builder.type;
@@ -66,8 +69,19 @@ public class BlockHeader implements Serializable {
      *
      * @return the byte [ ]
      */
-    public byte[] getBlockHash() {
-        return HashUtil.sha256(SerializeUtils.serialize(this));
+    public byte[] getBlockHash() throws IOException {
+        ByteArrayOutputStream block = new ByteArrayOutputStream();
+
+        block.write(type);
+        block.write(version);
+        if (prevBlockHash != null) block.write(prevBlockHash);
+        if (merkleRoot != null) block.write(merkleRoot);
+        block.write(ByteUtil.longToBytes(timestamp));
+        block.write(ByteUtil.longToBytes(dataSize));
+        block.write(signature);
+        block.write(ByteUtil.longToBytes(index));
+
+        return HashUtil.sha256(block.toByteArray());
     }
 
     /**
@@ -77,6 +91,49 @@ public class BlockHeader implements Serializable {
      */
     public byte[] getPrevBlockHash() {
         return prevBlockHash;
+    }
+
+    /**
+     * Value of block header.
+     *
+     * @param protoHeader the proto header
+     * @return the block header
+     */
+    public static BlockHeader valueOf(BlockChainProto.BlockHeader protoHeader) {
+        Builder builder = new Builder();
+        builder.index = protoHeader.getIndex();
+        builder.prevBlockHash = protoHeader.getPrevBlockHash().toByteArray();
+        builder.merkleRoot = protoHeader.getMerkleRoot().toByteArray();
+        builder.timestamp = protoHeader.getTimestamp();
+        builder.dataSize = protoHeader.getDataSize();
+        builder.signature = protoHeader.getSignature().toByteArray();
+        return new BlockHeader(builder);
+    }
+
+    /**
+     * Of block chain proto . block header.
+     *
+     * @param header the header
+     * @return the block chain proto . block header
+     */
+    public static BlockChainProto.BlockHeader of(BlockHeader header) {
+        BlockChainProto.BlockHeader.Builder builder = BlockChainProto.BlockHeader.newBuilder()
+                .setType(ByteString.copyFrom(header.type))
+                .setVersion(ByteString.copyFrom(header.version))
+                .setIndex(header.index)
+                .setTimestamp(header.timestamp)
+                .setDataSize(header.dataSize);
+
+        if (header.prevBlockHash != null) {
+            builder.setPrevBlockHash(ByteString.copyFrom(header.prevBlockHash));
+        }
+        if (header.merkleRoot != null) {
+            builder.setMerkleRoot(ByteString.copyFrom(header.merkleRoot));
+        }
+        if (header.signature != null) {
+            builder.setSignature(ByteString.copyFrom(header.signature));
+        }
+        return builder.build();
     }
 
     /**
@@ -108,7 +165,7 @@ public class BlockHeader implements Serializable {
          * @param prevBlock the prev block
          * @return the builder
          */
-        public Builder prevBlock(Block prevBlock) {
+        public Builder prevBlock(Block prevBlock) throws IOException {
             if (prevBlock == null) {
                 this.index = 0;
                 this.prevBlockHash = null;

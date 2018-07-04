@@ -108,7 +108,7 @@ public class TransactionHeader implements Serializable {
 
     transaction.write(type);
     transaction.write(version);
-    transaction.write(this.dataHash);
+    transaction.write(dataHash);
     transaction.write(ByteUtil.longToBytes(timestamp));
     transaction.write(ByteUtil.longToBytes(dataSize));
 

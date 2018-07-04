@@ -16,6 +16,8 @@
 
 package io.yggdrash.core;
 
-public interface TransactionEventListener {
+public interface NodeEventListener {
     void newTransaction(Transaction tx);
+
+    void newBlock(Block block);
 }

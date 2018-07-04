@@ -31,6 +31,5 @@ public interface NodeManager {
 
     Set<Block> getBlocks();
 
-
     Block getBlockByIndexOrHash(String indexOrHash);
 }

@@ -16,9 +16,9 @@
 
 package io.yggdrash.node.mock;
 
+import io.yggdrash.core.NodeEventListener;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionPool;
-import io.yggdrash.core.TransactionEventListener;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -28,7 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class TransactionPoolMock implements TransactionPool {
     private final Map<String, Transaction> txs = new ConcurrentHashMap<>();
-    private TransactionEventListener listener;
+    private NodeEventListener listener;
 
     @Override
     public Transaction getTxByHash(String id) {
@@ -53,7 +53,7 @@ public class TransactionPoolMock implements TransactionPool {
     }
 
     @Override
-    public void setListener(TransactionEventListener listener) {
+    public void setListener(NodeEventListener listener) {
         this.listener = listener;
     }
 

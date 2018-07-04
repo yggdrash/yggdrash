@@ -10,5 +10,5 @@ public interface TransactionPool {
 
     List getTransactionList();
 
-    void setListener(TransactionEventListener listener);
+    void setListener(NodeEventListener listener);
 }

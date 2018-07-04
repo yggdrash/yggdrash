@@ -16,23 +16,21 @@
 
 package io.yggdrash.node;
 
-import com.google.protobuf.ByteString;
+import io.yggdrash.core.Block;
+import io.yggdrash.core.NodeEventListener;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionEventListener;
 import io.yggdrash.core.net.NodeSyncClient;
 import io.yggdrash.proto.BlockChainProto;
-import io.yggdrash.util.SerializeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.springframework.util.SerializationUtils;
 
 import javax.annotation.PostConstruct;
 
 @Service
-public class MessageSender implements DisposableBean, TransactionEventListener {
+public class MessageSender implements DisposableBean, NodeEventListener {
     private static final Logger log = LoggerFactory.getLogger(MessageSender.class);
 
     @Value("${grpc.port}")
@@ -41,19 +39,14 @@ public class MessageSender implements DisposableBean, TransactionEventListener {
     private NodeSyncClient nodeSyncClient;
 
     @PostConstruct
-    public void init() throws InterruptedException {
+    public void init() {
         int port = grpcPort == 9090 ? 9091 : 9090;
         log.info("Connecting gRPC Server at [{}]", port);
         nodeSyncClient = new NodeSyncClient("localhost", port);
-//        nodeSyncClient.blockUtilShutdown();
     }
 
     public void ping() {
         nodeSyncClient.ping("Ping");
-    }
-
-    public void broadcastBlock() {
-        nodeSyncClient.broadcastBlock(createBlocks());
     }
 
     @Override
@@ -61,23 +54,15 @@ public class MessageSender implements DisposableBean, TransactionEventListener {
         nodeSyncClient.stop();
     }
 
-    private static BlockChainProto.Block[] createBlocks() {
-        return new BlockChainProto.Block[] {
-                BlockChainProto.Block.newBuilder()
-                        .setHeader(BlockChainProto.BlockHeader.newBuilder().setAuthor(
-                                ByteString.copyFromUtf8("author1"))).build(),
-                BlockChainProto.Block.newBuilder()
-                        .setHeader(BlockChainProto.BlockHeader.newBuilder().setAuthor(
-                                ByteString.copyFromUtf8("author2"))).build(),
-                BlockChainProto.Block.newBuilder()
-                        .setHeader(BlockChainProto.BlockHeader.newBuilder().setAuthor(
-                                ByteString.copyFromUtf8("author3"))).build()
-        };
+    @Override
+    public void newTransaction(Transaction tx) {
+        log.debug("New transaction={}", tx);
+        nodeSyncClient.broadcastTransaction(new BlockChainProto.Transaction[] {Transaction.of(tx)});
     }
 
     @Override
-    public void newTransaction(Transaction tx) {
-        log.debug("New transaction={}", tx.getData());
-        nodeSyncClient.broadcastTransaction(new BlockChainProto.Transaction[] {Transaction.of(tx)});
+    public void newBlock(Block block) {
+        log.debug("New block={}", block);
+        //nodeSyncClient.broadcastBlock(new BlockChainProto.Block[] {Block.of(block)});
     }
 }

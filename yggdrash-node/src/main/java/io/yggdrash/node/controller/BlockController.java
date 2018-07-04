@@ -19,9 +19,6 @@ package io.yggdrash.node.controller;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.exception.NotValidteException;
-import io.yggdrash.node.MessageSender;
-import java.io.IOException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.util.Set;
 
 @RestController
@@ -37,12 +35,8 @@ class BlockController {
 
     private final NodeManager nodeManager;
 
-    private final MessageSender messageSender;
-
-    @Autowired
-    public BlockController(NodeManager nodeManager, MessageSender messageSender) {
+    public BlockController(NodeManager nodeManager) {
         this.nodeManager = nodeManager;
-        this.messageSender = messageSender;
     }
 
     @PostMapping
@@ -52,19 +46,13 @@ class BlockController {
     }
 
     @GetMapping("{id}")
-    public ResponseEntity get(@PathVariable(name = "id") String id) {
+    public ResponseEntity get(@PathVariable(name = "id") String id) throws IOException {
         Block foundBlock = nodeManager.getBlockByIndexOrHash(id);
 
         if (foundBlock == null) return ResponseEntity.notFound().build();
         else {
             return ResponseEntity.ok(BlockDto.createBy(foundBlock));
         }
-    }
-
-    @GetMapping("test")
-    public ResponseEntity test() {
-        messageSender.broadcastBlock();
-        return ResponseEntity.ok("ok");
     }
 
     @GetMapping

@@ -2,6 +2,8 @@ package io.yggdrash.core;
 
 import java.io.IOException;
 import java.io.Serializable;
+
+import io.yggdrash.proto.BlockChainProto;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,7 +38,7 @@ public class Block implements Cloneable, Serializable {
     this.data = blockBody;
   }
 
-  public String getBlockHash() {
+  public String getBlockHash() throws IOException {
     return Hex.encodeHexString(header.getBlockHash());
   }
 
@@ -45,7 +47,7 @@ public class Block implements Cloneable, Serializable {
       Hex.encodeHexString(header.getPrevBlockHash());
   }
 
-  byte[] getBlockByteHash() {
+  byte[] getBlockByteHash() throws IOException {
     return header.getBlockHash();
   }
 
@@ -64,9 +66,28 @@ public class Block implements Cloneable, Serializable {
   public BlockBody getData() {
     return data;
   }
-  
+
   public Object clone() throws CloneNotSupportedException {
     return super.clone();
+  }
+
+  public static Block valueOf(BlockChainProto.Block protoBlock) {
+    BlockHeader header = BlockHeader.valueOf(protoBlock.getHeader());
+    BlockBody data = BlockBody.valueOf(protoBlock.getData());
+    return new Block(header, data);
+  }
+
+  public static BlockChainProto.Block of(Block block) {
+    BlockHeader header = block.header;
+    BlockBody data = block.data;
+
+    BlockChainProto.BlockBody.Builder bodyBuilder = BlockChainProto.BlockBody.newBuilder();
+    for (Transaction tx : data.getTransactionList()) {
+      bodyBuilder.addTrasactions(Transaction.of(tx));
+    }
+
+    return BlockChainProto.Block.newBuilder()
+            .setHeader(BlockHeader.of(header)).setData(bodyBuilder).build();
   }
 
   @Override
