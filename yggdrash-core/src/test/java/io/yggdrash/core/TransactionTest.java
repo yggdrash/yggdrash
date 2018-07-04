@@ -1,14 +1,19 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
+import com.google.protobuf.ByteString;
+import io.yggdrash.proto.BlockChainProto;
+import io.yggdrash.util.SerializeUtils;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.SerializationUtils;
 
 import java.io.IOException;
+import java.util.Base64;
 import java.util.HashMap;
 
 @RunWith(SpringRunner.class)
@@ -38,14 +43,29 @@ public class TransactionTest {
             assert hash.get(tx.getHash()) == null;
             hash.put(tx.getHash(), tx);
         }
-
     }
 
-    public Transaction newTransaction() throws IOException {
+    @Test
+    public void serializeTransactionTest() throws IOException {
+        Transaction tx = newTransaction();
+        byte[] bytes = SerializationUtils.serialize(tx);
+        ByteString byteString = ByteString.copyFrom(bytes);
+        byte[] byteStringBytes = byteString.toByteArray();
+        assert bytes.length == byteStringBytes.length;
+        Transaction deserializedTx = (Transaction)SerializationUtils.deserialize(byteStringBytes);
+        assert tx.getHashString().equals(deserializedTx.getHashString());
+    }
+
+    @Test
+    public void sereializeByUtilTest() throws IOException {
+        Transaction tx = newTransaction();
+        Transaction deserializedTx = Transaction.valueOf(Transaction.of(tx));
+        assert tx.getHashString().equals(deserializedTx.getHashString());
+    }
+
+    private Transaction newTransaction() throws IOException {
         Account account = new Account();
         JsonObject json = new JsonObject();
         return new Transaction(account, json);
     }
-
-
 }

@@ -18,7 +18,7 @@ package io.yggdrash.node;
 
 import io.yggdrash.core.Block;
 
-import java.util.LinkedHashMap;
+import java.util.Set;
 
 public interface BlockChain {
     Block addBlock(Block generatedBlock);
@@ -27,5 +27,5 @@ public interface BlockChain {
 
     Block getBlockByHash(String id);
 
-    LinkedHashMap<byte[], Block> getBlocks();
+    Set<Block> getBlocks();
 }

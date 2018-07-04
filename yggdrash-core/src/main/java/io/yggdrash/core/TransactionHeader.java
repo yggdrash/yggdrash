@@ -1,18 +1,20 @@
 package io.yggdrash.core;
 
-import static org.junit.Assert.assertArrayEquals;
-
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.protobuf.ByteString;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
+import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.TimeUtils;
+import org.apache.commons.codec.binary.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
 import java.security.SignatureException;
-import org.apache.commons.codec.binary.Hex;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TransactionHeader implements Serializable {
 
@@ -26,6 +28,12 @@ public class TransactionHeader implements Serializable {
   private long dataSize;
   private byte[] signature;
 
+  private TransactionHeader(byte[] dataHash, long dataSize) {
+    this.type = new byte[4];
+    this.version = new byte[4];
+    this.dataHash = dataHash;
+    this.dataSize = dataSize;
+  }
 
   /**
    * TransactionHeader Constructor.
@@ -141,10 +149,31 @@ public class TransactionHeader implements Serializable {
    * get ECKey(include pubKey) using sig & signData.
    * @return ECKey(include pubKey)
    */
+  @JsonIgnore
   public ECKey getECKey() throws IOException, SignatureException {
     ECKey keyFromSig = ECKey.signatureToKey(getSignDataHash(), signature);
 
     return keyFromSig;
+  }
+
+  public static TransactionHeader valueOf(BlockChainProto.TransactionHeader txHeader) {
+
+    TransactionHeader header = new TransactionHeader(txHeader.getDataHash().toByteArray(),
+            txHeader.getDataSize());
+    header.timestamp = txHeader.getTimestamp();
+    header.signature = txHeader.getSignature().toByteArray();
+    return header;
+  }
+
+  public static BlockChainProto.TransactionHeader of(TransactionHeader header) {
+    return BlockChainProto.TransactionHeader.newBuilder()
+            .setType(toByteString(header.type)).setVersion(toByteString(header.version))
+            .setDataHash(toByteString(header.dataHash)).setTimestamp(header.timestamp)
+            .setDataSize(header.dataSize).setSignature(toByteString(header.signature)).build();
+  }
+
+  private static ByteString toByteString(byte[] bytes) {
+   return ByteString.copyFrom(bytes);
   }
 
   @Override

@@ -1,7 +1,9 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
+import com.google.protobuf.ByteString;
 import io.yggdrash.crypto.HashUtil;
+import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.util.SerializeUtils;
 import org.apache.commons.codec.binary.Hex;
 
@@ -17,6 +19,9 @@ public class Transaction implements Serializable {
     // TODO Data Object re modelling
     private String data;
 
+    private Transaction(String data) {
+        this.data = data;
+    }
 
     /**
      * Transaction Constructor
@@ -79,4 +84,15 @@ public class Transaction implements Serializable {
         return buffer.toString();
     }
 
+    public static Transaction valueOf(BlockChainProto.Transaction tx) {
+        Transaction transaction = new Transaction(tx.getData());
+        transaction.header = TransactionHeader.valueOf(tx.getHeader());
+        return transaction;
+    }
+
+    public static BlockChainProto.Transaction of(Transaction tx) {
+        TransactionHeader header = tx.getHeader();
+        return BlockChainProto.Transaction.newBuilder().setData(tx.getData())
+                .setHeader(TransactionHeader.of(header)).build();
+    }
 }

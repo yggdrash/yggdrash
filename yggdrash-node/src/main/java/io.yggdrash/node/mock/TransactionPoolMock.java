@@ -18,15 +18,17 @@ package io.yggdrash.node.mock;
 
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionPool;
-import io.yggdrash.core.TransactionPoolListener;
+import io.yggdrash.core.TransactionEventListener;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TransactionPoolMock implements TransactionPool {
-    private Map<String, Transaction> txs = new HashMap<>();
-    private TransactionPoolListener listener;
+    private final Map<String, Transaction> txs = new ConcurrentHashMap<>();
+    private TransactionEventListener listener;
 
     @Override
     public Transaction getTxByHash(String id) {
@@ -35,6 +37,9 @@ public class TransactionPoolMock implements TransactionPool {
 
     @Override
     public Transaction addTx(Transaction tx) throws IOException {
+        if (txs.containsKey(tx.getHashString())) {
+            return null;
+        }
         txs.put(tx.getHashString(), tx);
         if (listener != null) {
             listener.newTransaction(tx);
@@ -43,7 +48,12 @@ public class TransactionPoolMock implements TransactionPool {
     }
 
     @Override
-    public void setListener(TransactionPoolListener listener) {
+    public List<Transaction> getTransactionList() {
+        return new ArrayList(txs.values());
+    }
+
+    @Override
+    public void setListener(TransactionEventListener listener) {
         this.listener = listener;
     }
 

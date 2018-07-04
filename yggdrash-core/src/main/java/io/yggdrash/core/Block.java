@@ -61,6 +61,10 @@ public class Block implements Cloneable, Serializable {
     return header.getTimestamp();
   }
 
+  public BlockBody getData() {
+    return data;
+  }
+  
   public Object clone() throws CloneNotSupportedException {
     return super.clone();
   }

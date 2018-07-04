@@ -16,6 +16,6 @@
 
 package io.yggdrash.core;
 
-public interface TransactionPoolListener {
+public interface TransactionEventListener {
     void newTransaction(Transaction tx);
 }
