@@ -18,7 +18,6 @@ package io.yggdrash.node.controller;
 
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.node.MessageSender;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,13 +34,10 @@ import java.security.SignatureException;
 @RequestMapping("txs")
 public class TransactionController {
 
-    private final MessageSender messageSender;
-
     private final NodeManager nodeManager;
 
-    public TransactionController(NodeManager nodeManager, MessageSender messageSender) {
+    public TransactionController(NodeManager nodeManager) {
         this.nodeManager = nodeManager;
-        this.messageSender = messageSender;
     }
 
     @PostMapping

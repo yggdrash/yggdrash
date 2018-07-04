@@ -18,8 +18,7 @@ package io.yggdrash.node.controller;
 
 import io.yggdrash.core.Block;
 import io.yggdrash.core.NodeManager;
-import io.yggdrash.node.BlockBuilder;
-import io.yggdrash.node.BlockChain;
+import io.yggdrash.core.exception.NotValidteException;
 import io.yggdrash.node.MessageSender;
 import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,8 +29,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
 import java.util.Set;
 
 @RestController
@@ -49,8 +46,8 @@ class BlockController {
     }
 
     @PostMapping
-    public ResponseEntity generateBlock() throws IOException {
-        Block generatedBlock = nodeManager.generateBlock();
+    public ResponseEntity add() throws IOException, NotValidteException {
+        Block generatedBlock = nodeManager.addBlock();
         return ResponseEntity.ok(BlockDto.createBy(generatedBlock));
     }
 

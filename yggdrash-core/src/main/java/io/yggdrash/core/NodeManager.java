@@ -16,18 +16,21 @@
 
 package io.yggdrash.core;
 
+import io.yggdrash.core.exception.NotValidteException;
+
 import java.io.IOException;
 import java.util.Set;
 
 public interface NodeManager {
 
+    Transaction addTransaction(Transaction tx) throws IOException;
+
     Transaction getTxByHash(String id);
 
-    Transaction addTransaction(Transaction tx) throws IOException;
+    Block addBlock() throws IOException, NotValidteException;
 
     Set<Block> getBlocks();
 
-    Block generateBlock() throws IOException;
 
     Block getBlockByIndexOrHash(String indexOrHash);
 }

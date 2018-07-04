@@ -31,11 +31,11 @@ import java.util.List;
 public class BlockBuilderMock implements BlockBuilder {
 
     @Override
-    public Block build(List<Transaction> txList) throws IOException {
+    public Block build(List<Transaction> txList, Block prevBlock) throws IOException {
         Account account = new Account();
         BlockBody blockBody = new BlockBody(txList);
         BlockHeader blockHeader = new BlockHeader.Builder()
-                .prevBlock(null)
+                .prevBlock(prevBlock)
                 .blockBody(blockBody).build(account);
         return new Block(blockHeader, blockBody);
     }

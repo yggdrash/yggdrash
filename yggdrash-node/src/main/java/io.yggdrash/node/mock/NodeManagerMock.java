@@ -17,21 +17,23 @@
 package io.yggdrash.node.mock;
 
 import io.yggdrash.core.Block;
+import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionPool;
+import io.yggdrash.core.exception.NotValidteException;
 import io.yggdrash.node.BlockBuilder;
-import io.yggdrash.node.BlockChain;
 import io.yggdrash.node.MessageSender;
 
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 
 public class NodeManagerMock implements NodeManager {
 
     private final BlockBuilder blockBuilder = new BlockBuilderMock();
 
-    private final BlockChain blockChain = new BlockChainMock();
+    private final BlockChain blockChain = new BlockChain();
 
     private final TransactionPool transactionPool = new TransactionPoolMock();
 
@@ -51,12 +53,17 @@ public class NodeManagerMock implements NodeManager {
 
     @Override
     public Set<Block> getBlocks() {
-        return blockChain.getBlocks();
+        Set<Block> blockSet = new HashSet<>();
+        for (Block block : blockChain.getBlocks().values()) {
+            blockSet.add(block);
+        }
+        return blockSet;
     }
 
     @Override
-    public Block generateBlock() throws IOException {
-        Block block = blockBuilder.build(transactionPool.getTransactionList());
+    public Block addBlock() throws IOException, NotValidteException {
+        Block block =
+                blockBuilder.build(transactionPool.getTransactionList(), blockChain.getPrevBlock());
         blockChain.addBlock(block);
         return block;
     }

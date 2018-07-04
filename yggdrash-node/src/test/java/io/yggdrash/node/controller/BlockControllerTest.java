@@ -17,9 +17,6 @@
 package io.yggdrash.node.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.yggdrash.core.NodeManager;
-import io.yggdrash.node.BlockBuilder;
-import io.yggdrash.node.BlockChain;
 import io.yggdrash.node.TestConfig;
 import org.junit.Before;
 import org.junit.Test;
@@ -28,18 +25,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.context.annotation.Import;
-import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
-import javax.xml.soap.Node;
-
-import java.io.IOException;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -54,42 +45,36 @@ public class BlockControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @Autowired
-    private NodeManager nodeManager;
-
     private JacksonTester<BlockDto> json;
 
     @Before
-    public void setUp() throws IOException {
+    public void setUp() {
         JacksonTester.initFields(this, new ObjectMapper());
-
-        TransactionDto dto = new TransactionDto();
-        dto.setData("Dezang");
-        nodeManager.addTransaction(TransactionDto.of(dto));
     }
 
     @Test
     @DirtiesContext
     public void shouldGetBlockByIndex() throws Exception {
-        MockHttpServletResponse postResponse = mockMvc.perform(post("/blocks")
-                .contentType(MediaType.APPLICATION_JSON).content("queryByIndex"))
-                .andReturn().getResponse();
-
-        MockHttpServletResponse getResponse = mockMvc.perform(get("/blocks/" + 0))
-                .andDo(print())
+        MockHttpServletResponse postResponse = mockMvc.perform(post("/blocks"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
 
-        assertThat(postResponse.getContentAsString()).isEqualTo(getResponse.getContentAsString());
+        String contentAsString = postResponse.getContentAsString();
+        long index = json.parseObject(contentAsString).getIndex();
+
+        mockMvc.perform(get("/blocks/" + index))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json(contentAsString));
     }
 
     @Test
     public void shouldGetBlockByHash() throws Exception {
-        MvcResult mvcResult = mockMvc.perform(post("/blocks"))
+        MockHttpServletResponse postResponse = mockMvc.perform(post("/blocks"))
                 .andExpect(status().isOk())
-                .andReturn();
+                .andReturn().getResponse();
 
-        String contentAsString = mvcResult.getResponse().getContentAsString();
+        String contentAsString = postResponse.getContentAsString();
         String hash = json.parseObject(contentAsString).getHash();
 
         mockMvc.perform(get("/blocks/" + hash))
@@ -100,22 +85,13 @@ public class BlockControllerTest {
 
     @Test
     public void shouldGetAllBlocks() throws Exception {
-        mockMvc.perform(post("/blocks")
-                .contentType(MediaType.APPLICATION_JSON).content("0"));
-        mockMvc.perform(post("/blocks")
-                .contentType(MediaType.APPLICATION_JSON).content("1"));
-        mockMvc.perform(post("/blocks")
-                .contentType(MediaType.APPLICATION_JSON).content("2"));
+        mockMvc.perform(post("/blocks"));
+        mockMvc.perform(post("/blocks"));
+        mockMvc.perform(post("/blocks"));
 
         mockMvc.perform(get("/blocks")).andDo(print())
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    public void shouldCreateBlock() throws Exception {
-        mockMvc.perform(post("/blocks"))
-                .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("@.index").value(0));
+                .andExpect(jsonPath("$", hasSize(3)));
+
     }
 }

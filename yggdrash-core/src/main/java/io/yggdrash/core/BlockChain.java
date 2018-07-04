@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import com.google.gson.JsonObject;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import io.yggdrash.core.exception.NotValidteException;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
@@ -27,7 +29,7 @@ public class BlockChain {
 
   public BlockChain(JsonObject packageInfo) {
     this.packageInfo = packageInfo;
-    this.blocks = new HashMap<>();
+    this.blocks = new ConcurrentHashMap<>();
     // TODO: generate genesisBlock & add into blockchain
   }
 
