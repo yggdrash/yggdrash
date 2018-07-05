@@ -23,11 +23,15 @@ import java.util.Set;
 
 public interface NodeManager {
 
+    void setListener(NodeEventListener listener);
+
     Transaction addTransaction(Transaction tx) throws IOException;
 
     Transaction getTxByHash(String id);
 
-    Block addBlock() throws IOException, NotValidteException;
+    Block generateBlock() throws IOException, NotValidteException;
+
+    Block addBlock(Block block) throws IOException, NotValidteException;
 
     Set<Block> getBlocks();
 

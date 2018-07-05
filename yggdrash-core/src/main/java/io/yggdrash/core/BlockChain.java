@@ -21,7 +21,6 @@ public class BlockChain {
   private Map<Object, Block> blocks; // <blockheader_hash, block>
   private JsonObject packageInfo;
 
-
   public BlockChain() {
     this.packageInfo = new JsonObject();
     this.blocks = new HashMap<>();

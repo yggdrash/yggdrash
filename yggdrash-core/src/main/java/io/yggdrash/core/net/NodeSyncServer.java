@@ -19,6 +19,7 @@ package io.yggdrash.core.net;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.core.Block;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.proto.BlockChainGrpc;
@@ -151,6 +152,18 @@ public class NodeSyncServer {
                 @Override
                 public void onNext(BlockChainProto.Block block) {
                     log.debug("Received block: {}", block);
+                    Block newBlock = null;
+                    if (nodeManager != null) {
+                        try {
+                            newBlock = nodeManager.addBlock(Block.valueOf(block));
+                        } catch (Exception e) {
+                            log.error(e.getMessage());
+                        }
+                        // ignore broadcast by other node's broadcast
+                        if (newBlock == null) {
+                            return;
+                        }
+                    }
 
                     for (StreamObserver<BlockChainProto.Block> observer : blockObservers) {
                         observer.onNext(block);

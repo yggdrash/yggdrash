@@ -63,6 +63,6 @@ public class MessageSender implements DisposableBean, NodeEventListener {
     @Override
     public void newBlock(Block block) {
         log.debug("New block={}", block);
-        //nodeSyncClient.broadcastBlock(new BlockChainProto.Block[] {Block.of(block)});
+        nodeSyncClient.broadcastBlock(new BlockChainProto.Block[] {Block.of(block)});
     }
 }

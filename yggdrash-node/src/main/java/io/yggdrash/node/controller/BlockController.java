@@ -41,7 +41,7 @@ class BlockController {
 
     @PostMapping
     public ResponseEntity add() throws IOException, NotValidteException {
-        Block generatedBlock = nodeManager.addBlock();
+        Block generatedBlock = nodeManager.generateBlock();
         return ResponseEntity.ok(BlockDto.createBy(generatedBlock));
     }
 

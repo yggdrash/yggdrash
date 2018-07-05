@@ -8,7 +8,8 @@ public interface TransactionPool {
 
     Transaction addTx(Transaction tx) throws IOException;
 
-    List getTransactionList();
+    List getTxList();
 
-    void setListener(NodeEventListener listener);
+    void removeTx(List<String> hashList);
 }
+

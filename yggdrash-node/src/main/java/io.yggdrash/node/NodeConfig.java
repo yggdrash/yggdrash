@@ -38,7 +38,9 @@ class NodeConfig {
 
     @Bean
     NodeManager nodeManager(MessageSender messageSender) {
-        return new NodeManagerMock(messageSender);
+        NodeManager manager = new NodeManagerMock();
+        manager.setListener(messageSender);
+        return manager;
     }
 
     @Bean
