@@ -16,7 +16,8 @@
 
 package io.yggdrash.node;
 
-import com.google.protobuf.ByteString;
+import io.yggdrash.core.Block;
+import io.yggdrash.core.NodeEventListener;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.net.NodeSyncClient;
 import io.yggdrash.proto.BlockChainProto;
@@ -29,7 +30,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 
 @Service
-public class MessageSender implements DisposableBean {
+public class MessageSender implements DisposableBean, NodeEventListener {
     private static final Logger log = LoggerFactory.getLogger(MessageSender.class);
 
     @Value("${grpc.port}")
@@ -38,24 +39,14 @@ public class MessageSender implements DisposableBean {
     private NodeSyncClient nodeSyncClient;
 
     @PostConstruct
-    public void init() throws InterruptedException {
+    public void init() {
         int port = grpcPort == 9090 ? 9091 : 9090;
         log.info("Connecting gRPC Server at [{}]", port);
         nodeSyncClient = new NodeSyncClient("localhost", port);
-//        nodeSyncClient.blockUtilShutdown();
     }
 
     public void ping() {
         nodeSyncClient.ping("Ping");
-    }
-
-    public void broadcastBlock() {
-        nodeSyncClient.broadcastBlock(createBlocks());
-    }
-
-    public void broadcastTransaction(Transaction tx) {
-        log.trace("{}", tx);
-        nodeSyncClient.broadcastTransaction(createTransactions());
     }
 
     @Override
@@ -63,31 +54,15 @@ public class MessageSender implements DisposableBean {
         nodeSyncClient.stop();
     }
 
-    private static BlockChainProto.Transaction[] createTransactions() {
-        return new BlockChainProto.Transaction[] {
-                BlockChainProto.Transaction.newBuilder().setData("tx1").build(),
-                BlockChainProto.Transaction.newBuilder().setData("tx2").build(),
-                BlockChainProto.Transaction.newBuilder().setData("tx3").build()
-        };
+    @Override
+    public void newTransaction(Transaction tx) {
+        log.debug("New transaction={}", tx);
+        nodeSyncClient.broadcastTransaction(new BlockChainProto.Transaction[] {Transaction.of(tx)});
     }
 
-    private static BlockChainProto.Block[] createBlocks() {
-        BlockChainProto.Transaction tx
-                = BlockChainProto.Transaction.newBuilder().setData("tx").build();
-        return new BlockChainProto.Block[] {
-                BlockChainProto.Block.newBuilder()
-                        .setHeader(BlockChainProto.BlockHeader.newBuilder().setAuthor(
-                                ByteString.copyFromUtf8("author1")))
-                        .setData(BlockChainProto.BlockBody.newBuilder().addTrasactions(tx)).build(),
-                BlockChainProto.Block.newBuilder()
-                        .setHeader(BlockChainProto.BlockHeader.newBuilder().setAuthor(
-                                ByteString.copyFromUtf8("author2")))
-                        .setData(BlockChainProto.BlockBody.newBuilder().addTrasactions(tx)).build(),
-                BlockChainProto.Block.newBuilder()
-                        .setHeader(BlockChainProto.BlockHeader.newBuilder().setAuthor(
-                                ByteString.copyFromUtf8("author3")))
-                        .setData(BlockChainProto.BlockBody.newBuilder().addTrasactions(tx)).build()
-
-        };
+    @Override
+    public void newBlock(Block block) {
+        log.debug("New block={}", block);
+        nodeSyncClient.broadcastBlock(new BlockChainProto.Block[] {Block.of(block)});
     }
 }

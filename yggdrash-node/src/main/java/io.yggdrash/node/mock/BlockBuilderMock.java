@@ -20,18 +20,22 @@ import io.yggdrash.core.Account;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
+import io.yggdrash.core.Transaction;
 import io.yggdrash.node.BlockBuilder;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
 public class BlockBuilderMock implements BlockBuilder {
+
     @Override
-    public Block build(String data) throws IOException {
+    public Block build(List<Transaction> txList, Block prevBlock) throws IOException {
         Account account = new Account();
-        BlockBody blockBody = new BlockBody(Arrays.asList());
+        BlockBody blockBody = new BlockBody(txList);
         BlockHeader blockHeader = new BlockHeader.Builder()
-                .prevBlock(null)
+                .prevBlock(prevBlock)
                 .blockBody(blockBody).build(account);
         return new Block(blockHeader, blockBody);
     }

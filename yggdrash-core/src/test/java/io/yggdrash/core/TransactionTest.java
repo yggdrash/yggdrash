@@ -1,51 +1,48 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
-import org.apache.commons.codec.binary.Hex;
+import com.google.protobuf.ByteString;
+import io.yggdrash.proto.BlockChainProto;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.util.SerializationUtils;
 
 import java.io.IOException;
-import java.util.HashMap;
 
 @RunWith(SpringRunner.class)
 public class TransactionTest {
-    private static final Logger log = LoggerFactory.getLogger(TransactionTest.class);
+
+    private Transaction tx;
+
+    @Before
+    public void setUp() throws Exception {
+        Account account = new Account();
+        JsonObject json = new JsonObject();
+        json.addProperty("data", "TEST");
+        this.tx = new Transaction(account, json);
+    }
 
     @Test
     public void transactionTest() throws IOException {
-        Account account1 = new Account();
-        JsonObject json = new JsonObject();
-        json.addProperty("data", "TEST");
-        Transaction t = new Transaction(account1, json);
-        log.debug(t.toString());
-
-        assert !t.getHashString().isEmpty();
+        assert !tx.getHashString().isEmpty();
     }
 
     @Test
-    public void makeTransactionTest() throws IOException {
-        // check transaction
-        int makeTransaction = 10;
-
-        HashMap<byte[], Transaction> hash = new HashMap<>();
-        for (int i = 0; i < makeTransaction; i++) {
-            Transaction tx = newTransaction();
-            log.debug("hashcode : " + new String(Hex.encodeHex(tx.getHash(), true)));
-            assert hash.get(tx.getHash()) == null;
-            hash.put(tx.getHash(), tx);
-        }
-
+    public void deserializeTransactionFromSerializerTest() throws IOException {
+        byte[] bytes = SerializationUtils.serialize(tx);
+        ByteString byteString = ByteString.copyFrom(bytes);
+        byte[] byteStringBytes = byteString.toByteArray();
+        assert bytes.length == byteStringBytes.length;
+        Transaction deserializeTx = (Transaction) SerializationUtils.deserialize(byteStringBytes);
+        assert tx.getHashString().equals(deserializeTx.getHashString());
     }
 
-    public Transaction newTransaction() throws IOException {
-        Account account = new Account();
-        JsonObject json = new JsonObject();
-        return new Transaction(account, json);
+    @Test
+    public void deserializeTransactionFromProtoTest() throws IOException {
+        BlockChainProto.Transaction protoTx = Transaction.of(tx);
+        Transaction deserializeTx = Transaction.valueOf(protoTx);
+        assert tx.getHashString().equals(deserializeTx.getHashString());
     }
-
-
 }

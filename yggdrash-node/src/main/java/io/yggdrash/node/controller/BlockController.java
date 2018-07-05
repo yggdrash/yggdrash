@@ -17,11 +17,8 @@
 package io.yggdrash.node.controller;
 
 import io.yggdrash.core.Block;
-import io.yggdrash.node.BlockBuilder;
-import io.yggdrash.node.BlockChain;
-import io.yggdrash.node.MessageSender;
-import java.io.IOException;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.exception.NotValidteException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,66 +26,38 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.LinkedHashMap;
+import java.io.IOException;
+import java.util.Set;
 
 @RestController
 @RequestMapping("blocks")
 class BlockController {
-    private final BlockBuilder blockBuilder;
-    private final BlockChain blockChain;
 
-    @Autowired
-    private MessageSender messageSender;
+    private final NodeManager nodeManager;
 
-    @Autowired
-    public BlockController(BlockBuilder blockBuilder, BlockChain blockChain) {
-        this.blockBuilder = blockBuilder;
-        this.blockChain = blockChain;
+    public BlockController(NodeManager nodeManager) {
+        this.nodeManager = nodeManager;
     }
 
     @PostMapping
-    public ResponseEntity add() throws IOException {
-        Block generatedBlock = blockBuilder.build("sample");
-        blockChain.addBlock(generatedBlock);
+    public ResponseEntity add() throws IOException, NotValidteException {
+        Block generatedBlock = nodeManager.generateBlock();
         return ResponseEntity.ok(BlockDto.createBy(generatedBlock));
     }
 
     @GetMapping("{id}")
-    public ResponseEntity get(@PathVariable(name = "id") String id) {
-        Block foundBlock;
-        if (isNumeric(id)) {
-            int index = Integer.parseInt(id);
-            foundBlock = blockChain.getBlockByIndex(index);
-        } else {
-            foundBlock = blockChain.getBlockByHash(id);
+    public ResponseEntity get(@PathVariable(name = "id") String id) throws IOException {
+        Block foundBlock = nodeManager.getBlockByIndexOrHash(id);
+
+        if (foundBlock == null) return ResponseEntity.notFound().build();
+        else {
+            return ResponseEntity.ok(BlockDto.createBy(foundBlock));
         }
-
-        if (foundBlock == null) {
-            return ResponseEntity.notFound().build();
-        }
-
-        return ResponseEntity.ok(BlockDto.createBy(foundBlock));
-    }
-
-    @GetMapping("test")
-    public ResponseEntity test() {
-        messageSender.broadcastBlock();
-        return ResponseEntity.ok("ok");
     }
 
     @GetMapping
     public ResponseEntity getAll() {
-        LinkedHashMap<byte[], Block> blocks = blockChain.getBlocks();
+        Set<Block> blocks = nodeManager.getBlocks();
         return ResponseEntity.ok(blocks);
-    }
-
-    private boolean isNumeric(String str) {
-        try {
-            Integer.parseInt(str);
-        } catch (NumberFormatException e) {
-            return false;
-        }
-
-        return true;
     }
 }

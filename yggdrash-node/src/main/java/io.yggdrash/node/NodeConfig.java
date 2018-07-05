@@ -16,37 +16,15 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.TransactionPool;
+import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.net.NodeSyncServer;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.node.mock.BlockBuilderMock;
-import io.yggdrash.node.mock.BlockChainMock;
-import io.yggdrash.node.mock.TransactionPoolMock;
+import io.yggdrash.node.mock.NodeManagerMock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 class NodeConfig {
-
-    @Bean
-    BlockBuilder blockBuilder() {
-        return new BlockBuilderMock();
-    }
-
-    @Bean
-    BlockChain blockChain() {
-        return new BlockChainMock();
-    }
-
-    @Bean
-    TransactionPool transactionPool() {
-        return new TransactionPoolMock();
-    }
-
-    @Bean
-    NodeSyncServer nodeSyncServer() {
-        return new NodeSyncServer();
-    }
 
     @Bean
     PeerGroup peerGroup() {
@@ -56,5 +34,17 @@ class NodeConfig {
     @Bean
     MessageSender messageSender() {
         return new MessageSender();
+    }
+
+    @Bean
+    NodeManager nodeManager(MessageSender messageSender) {
+        NodeManager manager = new NodeManagerMock();
+        manager.setListener(messageSender);
+        return manager;
+    }
+
+    @Bean
+    NodeSyncServer nodeSyncServer(NodeManager nodeManager) {
+        return new NodeSyncServer(nodeManager);
     }
 }

@@ -21,9 +21,8 @@ message Block {
 }
 
 message BlockHeader {
-
-    bytes version       = 1; // Version indicates message protocol version
-    bytes payload       = 2;
+    bytes type          = 1;
+    bytes version       = 2; // Version indicates message protocol version
     uint64 index        = 3; // The index in the blockchain
     uint64 timestamp    = 4; // google.protobuf.Timestamp timestamp ?
     bytes prevBlockHash = 5; // The hash of the previous block header
@@ -38,5 +37,15 @@ message BlockBody {
 }
 
 message Transaction {
-    string data = 1;
+    TransactionHeader header = 1;
+    string data              = 2;
+}
+
+message TransactionHeader {
+    bytes type       = 1;
+    bytes version    = 2;
+    bytes dataHash   = 3;
+    uint64 timestamp = 4;
+    uint64 dataSize  = 5;
+    bytes signature  = 6;
 }
