@@ -62,14 +62,14 @@ public class NodeManagerTest {
     }
 
     @Test
-    public void addTransaction() throws Exception {
+    public void addTransactionTest() throws Exception {
         nodeManager.addTransaction(tx);
         Transaction pooledTx = nodeManager.getTxByHash(tx.getHashString());
         assert pooledTx.getHashString().equals(tx.getHashString());
     }
 
     @Test
-    public void addBlock() throws IOException, NotValidteException {
+    public void addBlockTest() throws IOException, NotValidteException {
         nodeManager.addTransaction(tx);
         nodeManager.addBlock(genesisBlock);
         nodeManager.addBlock(block);
@@ -79,13 +79,13 @@ public class NodeManagerTest {
     }
 
     @Test
-    public void generateBlock() throws IOException, NotValidteException {
+    public void generateBlockTest() throws IOException, NotValidteException {
         nodeManager.addTransaction(tx);
         Block newBlock = nodeManager.generateBlock();
         assert nodeManager.getBlocks().size() == 1;
-        Block chanedBlock =  nodeManager.getBlockByIndexOrHash(newBlock.getBlockHash());
-        assert chanedBlock.getBlockHash().equals(newBlock.getBlockHash());
-        assert chanedBlock.getData().getSize() == 1;
+        Block chainedBlock =  nodeManager.getBlockByIndexOrHash(newBlock.getBlockHash());
+        assert chainedBlock.getBlockHash().equals(newBlock.getBlockHash());
+        assert chainedBlock.getData().getSize() == 1;
         assert nodeManager.getTxByHash(tx.getHashString()) == null;
     }
 }
