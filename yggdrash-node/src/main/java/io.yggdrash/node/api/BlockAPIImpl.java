@@ -1,7 +1,7 @@
 package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
-import io.yggdrash.core.Block;
+import io.yggdrash.node.mock.BlockMock;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;

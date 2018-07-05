@@ -18,6 +18,7 @@ package io.yggdrash.node.controller;
 
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionPool;
+import io.yggdrash.core.format.TransactionFormat;
 import io.yggdrash.node.MessageSender;
 import java.security.SignatureException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +50,7 @@ public class TransactionController {
     public ResponseEntity add(@RequestBody TransactionDto request) throws SignatureException {
         try {
             Transaction tx = TransactionDto.of(request);
-            Transaction addedTx = txPool.addTx(tx);
+            TransactionFormat addedTx = txPool.addTx(tx);
             return ResponseEntity.ok(TransactionDto.createBy(addedTx));
         } catch (IOException e) {
             e.printStackTrace();
@@ -60,7 +61,7 @@ public class TransactionController {
 
     @GetMapping("{id}")
     public ResponseEntity get(@PathVariable String id) throws IOException, SignatureException {
-        Transaction tx = txPool.getTxByHash(id);
+        TransactionFormat tx = txPool.getTxByHash(id);
 
         if (tx == null) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);

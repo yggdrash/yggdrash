@@ -24,12 +24,12 @@ public class TransactionReceiptDto {
 //    private String contractAddress;
 //    private String branchAddress;
 //    private JsonObject logs;
-
-    public String get(String hash) {
-        Transaction tx = txPool.getTxByHash(hash);
-        if (tx != null) {
-            return tx.toString();
-        }
-        return "no transaction";
-    }
+//
+//    public String get(String hash) {
+//        Transaction tx = txPool.getTxByHash(hash);
+//        if (tx != null) {
+//            return tx.toString();
+//        }
+//        return "no transaction";
+//    }
 }

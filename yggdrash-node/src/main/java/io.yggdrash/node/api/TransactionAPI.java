@@ -1,5 +1,6 @@
 package io.yggdrash.node.api;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
 
@@ -26,6 +27,9 @@ public interface TransactionAPI {
 
     /* filter */
     int newPendingTransactionFilter();
+
+    /* test */
+    String getJsonObj(@JsonRpcParam(value = "tx") String tx) throws IOException, JsonProcessingException;
 }
 
 

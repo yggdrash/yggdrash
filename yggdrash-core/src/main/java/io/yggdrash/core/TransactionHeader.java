@@ -14,6 +14,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+@JsonRootName(valu="headr")
 public class TransactionHeader implements Serializable {
 
   private static final Logger log = LoggerFactory.getLogger(TransactionHeader.class);
@@ -27,10 +28,20 @@ public class TransactionHeader implements Serializable {
   private byte[] signature;
 
 
+  public TransactionHeader(byte[] type, byte[] version, byte[] dataHash, long timestamp, long dataSize, byte[] signature) {
+    this.type = type;
+    this.version = version;
+    this.dataHash = dataHash;
+    this.timestamp = timestamp;
+    this.dataSize = dataSize;
+    this.signature = signature;
+  }
+
   /**
    * TransactionHeader Constructor.
    *
    * @param from account for creating tx
+
    * @param dataHash data hash
    * @param dataSize data size
    * @throws IOException IOException

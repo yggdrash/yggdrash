@@ -1,14 +1,14 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.core.format.TransactionFormat;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.util.SerializeUtils;
-import org.apache.commons.codec.binary.Hex;
 
 import java.io.IOException;
 import java.io.Serializable;
 
-public class Transaction implements Serializable {
+public class Transaction implements Serializable,TransactionFormat {
 
     // Header
     private TransactionHeader header;

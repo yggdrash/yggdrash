@@ -17,6 +17,7 @@
 package io.yggdrash.node.mock;
 
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.format.TransactionFormat;
 import io.yggdrash.core.TransactionPool;
 
 import java.io.IOException;
@@ -24,15 +25,16 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TransactionPoolMock implements TransactionPool {
-    private Map<String, Transaction> txs = new HashMap<>();
+    private Map<String, TransactionFormat> txs = new HashMap<>();
 
     @Override
-    public Transaction getTxByHash(String id) {
+    public TransactionFormat getTxByHash(String id) {
         return txs.get(id);
     }
 
     @Override
-    public Transaction addTx(Transaction tx) throws IOException {
+    public TransactionFormat addTx(TransactionFormat tx) throws IOException {
+        System.out.println("TransactionPoolMock :: addTx : " + tx);
         txs.put(tx.getHashString(), tx);
         return tx;
     }

@@ -1,9 +1,11 @@
 package io.yggdrash.core;
 
+import io.yggdrash.core.format.TransactionFormat;
+
 import java.io.IOException;
 
 public interface TransactionPool {
-    Transaction getTxByHash(String id);
+    TransactionFormat getTxByHash(String id);
 
-    Transaction addTx(Transaction tx) throws IOException;
+    TransactionFormat addTx(TransactionFormat tx) throws IOException;
 }

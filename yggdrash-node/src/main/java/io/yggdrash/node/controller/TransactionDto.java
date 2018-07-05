@@ -19,6 +19,7 @@ package io.yggdrash.node.controller;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.Account;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.format.TransactionFormat;
 
 import java.io.IOException;
 import java.security.SignatureException;
@@ -36,7 +37,7 @@ public class TransactionDto {
         return new Transaction(account, jsonData);
     }
 
-    public static TransactionDto createBy(Transaction tx) throws IOException, SignatureException {
+    public static TransactionDto createBy(TransactionFormat tx) throws IOException, SignatureException {
         TransactionDto transactionDto = new TransactionDto();
         transactionDto.setFrom(tx.getHeader().getAddressToString());
         transactionDto.setData(tx.getData());

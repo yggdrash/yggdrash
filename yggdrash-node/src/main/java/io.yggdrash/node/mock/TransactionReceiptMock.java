@@ -1,4 +1,4 @@
-package io.yggdrash.node.api;
+package io.yggdrash.node.mock;
 
 import com.google.gson.JsonObject;
 
