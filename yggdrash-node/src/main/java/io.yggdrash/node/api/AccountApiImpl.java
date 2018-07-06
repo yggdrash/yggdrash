@@ -8,7 +8,7 @@ import java.util.ArrayList;
 
 @Service
 @AutoJsonRpcServiceImpl
-public class AccountAPIImpl implements AccountAPI {
+public class AccountApiImpl implements AccountApi {
 
     private ArrayList<String> addresses = new ArrayList<>();
     private int balance = 100000;

@@ -15,17 +15,18 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with the ethereumJ library. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package io.yggdrash.config;
 
 import java.math.BigInteger;
 
 /**
  * Describes different constants specific for a blockchain
- *
+ * <p>
  * Created by Anton Nashatyrev on 25.02.2016.
  */
 public class Constants {
-//    private static final int MAXIMUM_EXTRA_DATA_SIZE = 32;
+    //    private static final int MAXIMUM_EXTRA_DATA_SIZE = 32;
 //    private static final int MIN_GAS_LIMIT = 125000;
 //    private static final int GAS_LIMIT_BOUND_DIVISOR = 1024;
 //    private static final BigInteger MINIMUM_DIFFICULTY = BigInteger.valueOf(131072);

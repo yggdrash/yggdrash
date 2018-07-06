@@ -36,10 +36,9 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class NodeSyncServer {
     private static final Logger log = LoggerFactory.getLogger(NodeSyncServer.class);
-
+    private static NodeManager nodeManager;
     private Server server;
     private int port;
-    private static NodeManager nodeManager;
 
     public NodeSyncServer() {
     }

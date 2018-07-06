@@ -20,7 +20,6 @@ import java.io.IOException;
 
 /**
  * The type Node sync demo server.
- *
  */
 public class NodeSyncDemoServer {
     /**

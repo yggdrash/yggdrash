@@ -37,7 +37,8 @@ public class TransactionDto {
         return new Transaction(account, jsonData);
     }
 
-    public static TransactionDto createBy(TransactionFormat tx) throws IOException, SignatureException {
+    public static TransactionDto createBy(TransactionFormat tx)
+            throws IOException, SignatureException {
         TransactionDto transactionDto = new TransactionDto();
         transactionDto.setFrom(tx.getHeader().getAddressToString());
         transactionDto.setData(tx.getData());

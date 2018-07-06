@@ -15,17 +15,19 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with the ethereumJ library. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package io.yggdrash.crypto;
 
-import static java.util.Arrays.copyOfRange;
-
 import io.yggdrash.crypto.jce.SpongyCastleProvider;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;
 import java.security.Security;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static java.util.Arrays.copyOfRange;
 
 //import org.ethereum.util.RLP;
 
@@ -48,8 +50,7 @@ public class HashUtil {
     }
 
     /**
-     * @param input
-     *            - data for hashing
+     * @param input - data for hashing
      * @return - sha256 hash of the data
      */
     public static byte[] sha256(byte[] input) {
@@ -79,8 +80,7 @@ public class HashUtil {
      * Calculates RIGTMOST160(SHA3(input)). This is used in address
      * calculations. *
      *
-     * @param input
-     *            - data
+     * @param input - data
      * @return - 20 right bytes of the hash keccak of the data
      */
     public static byte[] sha3omit12(byte[] input) {

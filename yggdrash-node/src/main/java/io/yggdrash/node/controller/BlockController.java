@@ -49,8 +49,9 @@ class BlockController {
     public ResponseEntity get(@PathVariable(name = "id") String id) throws IOException {
         Block foundBlock = nodeManager.getBlockByIndexOrHash(id);
 
-        if (foundBlock == null) return ResponseEntity.notFound().build();
-        else {
+        if (foundBlock == null) {
+            return ResponseEntity.notFound().build();
+        } else {
             return ResponseEntity.ok(BlockDto.createBy(foundBlock));
         }
     }

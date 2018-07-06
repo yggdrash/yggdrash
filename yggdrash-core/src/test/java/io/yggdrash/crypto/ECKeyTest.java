@@ -15,15 +15,8 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with the ethereumJ library. If not, see <http://www.gnu.org/licenses/>.
  */
-package io.yggdrash.crypto;
 
-import static com.google.common.base.Preconditions.checkNotNull;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+package io.yggdrash.crypto;
 
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.Futures;
@@ -35,6 +28,12 @@ import io.yggdrash.core.Account;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.crypto.ECKey.ECDSASignature;
 import io.yggdrash.crypto.jce.SpongyCastleProvider;
+import org.junit.Assert;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
+
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPairGenerator;
@@ -44,11 +43,14 @@ import java.security.Security;
 import java.security.SignatureException;
 import java.util.List;
 import java.util.concurrent.Executors;
-import org.junit.Assert;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
+
+import static com.google.common.base.Preconditions.checkNotNull;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ECKeyTest {
     private static final Logger log = LoggerFactory.getLogger(ECKeyTest.class);
@@ -100,9 +102,9 @@ public class ECKeyTest {
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidPrivateKey() throws Exception {
         new ECKey(
-            Security.getProvider("SunEC"),
-            KeyPairGenerator.getInstance("RSA").generateKeyPair().getPrivate(),
-            ECKey.fromPublicOnly(pubKey).getPubKeyPoint());
+                Security.getProvider("SunEC"),
+                KeyPairGenerator.getInstance("RSA").generateKeyPair().getPrivate(),
+                ECKey.fromPublicOnly(pubKey).getPubKeyPoint());
         fail("Expecting an IllegalArgumentException for using an non EC private key");
     }
 
@@ -236,7 +238,7 @@ public class ECKeyTest {
 
         // create tx data(test)
         JsonObject data = new JsonObject();
-        data.addProperty("balance","10");
+        data.addProperty("balance", "10");
 
         // create tx
         Transaction tx = new Transaction(account, data);
@@ -310,7 +312,7 @@ public class ECKeyTest {
 
         // create tx
         JsonObject data = new JsonObject();
-        data.addProperty("balance","10");
+        data.addProperty("balance", "10");
         Transaction tx = new Transaction(account, data);
 
         // get the sig & key(pub)
@@ -320,13 +322,13 @@ public class ECKeyTest {
         ECKey keyFromSig = ECKey.signatureToKey(messageHash, sig);
 
         // verify
-        assertTrue(keyFromSig.verify(messageHash,sig));
+        assertTrue(keyFromSig.verify(messageHash, sig));
 
         // check signature
         assertArrayEquals(sig.toBinary(), tx.getHeader().getSignature());
 
         // check public key
-        assertArrayEquals(keyFromSig.getPubKey(),pubKey);
+        assertArrayEquals(keyFromSig.getPubKey(), pubKey);
 
     }
 
@@ -339,7 +341,7 @@ public class ECKeyTest {
         List<ListenableFuture<ECKey.ECDSASignature>> sigFutures = Lists.newArrayList();
         final ECKey key = new ECKey();
         for (byte i = 0; i < ITERATIONS; i++) {
-            final byte[] hash = HashUtil.sha3(new byte[]{i});
+            final byte[] hash = HashUtil.sha3(new byte[] {i});
             sigFutures.add(executor.submit(() -> key.doSign(hash)));
         }
         List<ECKey.ECDSASignature> sigs = Futures.allAsList(sigFutures).get();
@@ -478,7 +480,7 @@ public class ECKeyTest {
 
 
     @Test
-    public void decryptAECSIC(){
+    public void decryptAECSIC() {
         ECKey key = ECKey.fromPrivate(Hex.decode("abb51256c1324a1350598653f46aa3ad693ac3cf5d05f36eba3f495a1f51590f"));
         byte[] payload = key.decryptAES(Hex.decode("84a727bc81fa4b13947dc9728b88fd08"));
         System.out.println(Hex.toHexString(payload));

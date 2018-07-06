@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with the ethereumJ library. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package io.yggdrash.crypto.zksnark;
 
 import java.math.BigInteger;
@@ -22,11 +23,11 @@ import java.math.BigInteger;
 /**
  * Arithmetic in F_p2 <br/>
  * <br/>
- *
+ * <p>
  * "p" equals 21888242871839275222246405745257275088696311157297823662689037894645226208583,
  * elements of F_p2 are represented as a polynomials "a * i + b" modulo "i^2 + 1" from the ring F_p[i] <br/>
  * <br/>
- *
+ * <p>
  * Field arithmetic is ported from <a href="https://github.com/scipr-lab/libff/blob/master/libff/algebra/fields/fp2.tcc">libff</a> <br/>
  *
  * @author Mikhail Kalinin
@@ -35,7 +36,7 @@ import java.math.BigInteger;
 class Fp2 implements Field<Fp2> {
 
     static final Fp2 ZERO = new Fp2(Fp.ZERO, Fp.ZERO);
-    static final Fp2 _1  = new Fp2(Fp._1, Fp.ZERO);
+    static final Fp2 _1 = new Fp2(Fp._1, Fp.ZERO);
     static final Fp2 NON_RESIDUE = new Fp2(BigInteger.valueOf(9), BigInteger.ONE);
 
     static final Fp[] FROBENIUS_COEFFS_B = new Fp[] {
@@ -53,6 +54,22 @@ class Fp2 implements Field<Fp2> {
 
     Fp2(BigInteger a, BigInteger b) {
         this(new Fp(a), new Fp(b));
+    }
+
+    static Fp2 create(BigInteger aa, BigInteger bb) {
+
+        Fp a = Fp.create(aa);
+        Fp b = Fp.create(bb);
+
+        return new Fp2(a, b);
+    }
+
+    static Fp2 create(byte[] aa, byte[] bb) {
+
+        Fp a = Fp.create(aa);
+        Fp b = Fp.create(bb);
+
+        return new Fp2(a, b);
     }
 
     @Override
@@ -125,30 +142,20 @@ class Fp2 implements Field<Fp2> {
         return a.isValid() && b.isValid();
     }
 
-    static Fp2 create(BigInteger aa, BigInteger bb) {
-
-        Fp a = Fp.create(aa);
-        Fp b = Fp.create(bb);
-
-        return new Fp2(a, b);
-    }
-
-    static Fp2 create(byte[] aa, byte[] bb) {
-
-        Fp a = Fp.create(aa);
-        Fp b = Fp.create(bb);
-
-        return new Fp2(a, b);
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
 
         Fp2 fp2 = (Fp2) o;
 
-        if (a != null ? !a.equals(fp2.a) : fp2.a != null) return false;
+        if (a != null ? !a.equals(fp2.a) : fp2.a != null) {
+            return false;
+        }
         return !(b != null ? !b.equals(fp2.b) : fp2.b != null);
 
     }

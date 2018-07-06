@@ -42,58 +42,6 @@ public class BlockHeader implements Serializable {
     }
 
     /**
-     * Gets index.
-     *
-     * @return the index
-     */
-    /*
-     * Getter & Setter
-     *
-     * 객체를 최대한 캡슐화 하기 위해서 getter, setter 는 최소한으로 작성. 특히 setter 는 지양
-     */
-    public long getIndex() {
-        return index;
-    }
-
-    /**
-     * Gets timestamp.
-     *
-     * @return the timestamp
-     */
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    /**
-     * Get block hash byte [ ].
-     *
-     * @return the byte [ ]
-     */
-    public byte[] getBlockHash() throws IOException {
-        ByteArrayOutputStream block = new ByteArrayOutputStream();
-
-        block.write(type);
-        block.write(version);
-        if (prevBlockHash != null) block.write(prevBlockHash);
-        if (merkleRoot != null) block.write(merkleRoot);
-        block.write(ByteUtil.longToBytes(timestamp));
-        block.write(ByteUtil.longToBytes(dataSize));
-        block.write(signature);
-        block.write(ByteUtil.longToBytes(index));
-
-        return HashUtil.sha256(block.toByteArray());
-    }
-
-    /**
-     * Get prev block hash byte [ ].
-     *
-     * @return the byte [ ]
-     */
-    public byte[] getPrevBlockHash() {
-        return prevBlockHash;
-    }
-
-    /**
      * Value of block header.
      *
      * @param protoHeader the proto header
@@ -134,6 +82,62 @@ public class BlockHeader implements Serializable {
             builder.setSignature(ByteString.copyFrom(header.signature));
         }
         return builder.build();
+    }
+
+    /**
+     * Gets index.
+     *
+     * @return the index
+     */
+    /*
+     * Getter & Setter
+     *
+     * 객체를 최대한 캡슐화 하기 위해서 getter, setter 는 최소한으로 작성. 특히 setter 는 지양
+     */
+    public long getIndex() {
+        return index;
+    }
+
+    /**
+     * Gets timestamp.
+     *
+     * @return the timestamp
+     */
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    /**
+     * Get block hash byte [ ].
+     *
+     * @return the byte [ ]
+     */
+    public byte[] getBlockHash() throws IOException {
+        ByteArrayOutputStream block = new ByteArrayOutputStream();
+
+        block.write(type);
+        block.write(version);
+        if (prevBlockHash != null) {
+            block.write(prevBlockHash);
+        }
+        if (merkleRoot != null) {
+            block.write(merkleRoot);
+        }
+        block.write(ByteUtil.longToBytes(timestamp));
+        block.write(ByteUtil.longToBytes(dataSize));
+        block.write(signature);
+        block.write(ByteUtil.longToBytes(index));
+
+        return HashUtil.sha256(block.toByteArray());
+    }
+
+    /**
+     * Get prev block hash byte [ ].
+     *
+     * @return the byte [ ]
+     */
+    public byte[] getPrevBlockHash() {
+        return prevBlockHash;
     }
 
     /**

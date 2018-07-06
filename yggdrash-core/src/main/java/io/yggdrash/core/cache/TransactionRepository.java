@@ -1,7 +1,16 @@
 package io.yggdrash.core.cache;
 
-import io.yggdrash.core.TransactionHeader;
-import io.yggdrash.util.ByteUtil;
+import io.yggdrash.core.Transaction;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
+import org.iq80.leveldb.DB;
+import org.iq80.leveldb.Options;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.concurrent.ConcurrentMapCache;
+import org.springframework.stereotype.Repository;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -12,19 +21,6 @@ import java.io.ObjectOutputStream;
 
 import static org.iq80.leveldb.impl.Iq80DBFactory.factory;
 
-import io.yggdrash.core.Transaction;
-import java.util.Arrays;
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
-import org.iq80.leveldb.DB;
-import org.iq80.leveldb.Options;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.Cache.ValueWrapper;
-import org.springframework.cache.concurrent.ConcurrentMapCache;
-import org.springframework.stereotype.Repository;
-
 /**
  * The type Transaction repository.
  */
@@ -32,12 +28,11 @@ import org.springframework.stereotype.Repository;
 public class TransactionRepository {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionRepository.class);
-
+    DB db = null;
     @Value("#{cacheManager.getCache('transactionPool')}")
     private ConcurrentMapCache transactionPool;
-    DB db = null;
 
-    public TransactionRepository(){
+    public TransactionRepository() {
         // make database
         Options options = new Options();
         options.createIfMissing(true);
@@ -59,7 +54,7 @@ public class TransactionRepository {
 
         // check Cache
         Transaction tx = transactionPool.get(hashString, Transaction.class);
-        log.debug("get transaction hash : "+ hashString);
+        log.debug("get transaction hash : " + hashString);
 
         if (tx == null) {
             tx = loadTransactionIfExist(hashString);
@@ -91,7 +86,8 @@ public class TransactionRepository {
 
     /**
      * Save Transaction levelDB
-     * @param transaction
+     *
+     * @param transaction the transaction
      */
     private void saveTransaction(Transaction transaction) {
         ObjectOutput out = null;
@@ -117,6 +113,7 @@ public class TransactionRepository {
 
     /**
      * Load Transaction levelDb
+     *
      * @param hashString transaction Hash
      * @return Transaction or null
      */
@@ -127,8 +124,9 @@ public class TransactionRepository {
         }
         try {
             byte[] transactionBytes = this.db.get(Hex.decodeHex(hashString.toCharArray()));
-            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(transactionBytes));
-            transaction = (Transaction)ois.readObject();
+            ObjectInputStream ois = new ObjectInputStream(
+                    new ByteArrayInputStream(transactionBytes));
+            transaction = (Transaction) ois.readObject();
         } catch (IOException e) {
             e.printStackTrace();
         } catch (ClassNotFoundException e) {

@@ -1,8 +1,5 @@
 package io.yggdrash;
 
-import static junit.framework.TestCase.assertNull;
-import static org.junit.Assert.assertNotNull;
-
 import com.google.gson.JsonObject;
 import io.yggdrash.core.Account;
 import io.yggdrash.core.Transaction;
@@ -17,6 +14,9 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static junit.framework.TestCase.assertNull;
+import static org.junit.Assert.assertNotNull;
 
 public class TrieTests {
     private static final Logger log = LoggerFactory.getLogger(Trie.class);
