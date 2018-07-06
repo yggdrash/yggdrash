@@ -23,5 +23,6 @@ import java.io.IOException;
 import java.util.List;
 
 public interface BlockBuilder {
+    Block build() throws IOException;
     Block build(List<Transaction> txList, Block prevBlock) throws IOException;
 }

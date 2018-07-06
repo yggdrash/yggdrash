@@ -22,6 +22,7 @@ import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.node.mock.NodeManagerMock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping;
 
 @Configuration
 class NodeConfig {
@@ -46,5 +47,10 @@ class NodeConfig {
     @Bean
     NodeSyncServer nodeSyncServer(NodeManager nodeManager) {
         return new NodeSyncServer(nodeManager);
+    }
+
+    @Bean
+    BeanNameUrlHandlerMapping beanNameUrlHandlerMapping() {
+        return new BeanNameUrlHandlerMapping();
     }
 }

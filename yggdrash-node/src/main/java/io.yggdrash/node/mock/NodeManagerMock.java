@@ -48,12 +48,12 @@ public class NodeManagerMock implements NodeManager {
 
     @Override
     public Transaction getTxByHash(String id) {
-        return transactionPool.getTxByHash(id);
+        return (Transaction) transactionPool.getTxByHash(id);
     }
 
     @Override
     public Transaction addTransaction(Transaction tx) throws IOException {
-        Transaction newTx = transactionPool.addTx(tx);
+        Transaction newTx = (Transaction) transactionPool.addTx(tx);
         if (listener != null) {
             listener.newTransaction(tx);
         }
