@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.core;
 
-import io.yggdrash.core.Block;
+public interface NodeEventListener {
+    void newTransaction(Transaction tx);
 
-import java.util.LinkedHashMap;
-
-public interface BlockChain {
-    Block addBlock(Block generatedBlock);
-
-    Block getBlockByIndex(int index);
-
-    Block getBlockByHash(String id);
-
-    LinkedHashMap<byte[], Block> getBlocks();
+    void newBlock(Block block);
 }

@@ -52,7 +52,7 @@ public class TransactionAPITest {
         System.out.println(transaction);
 
         TransactionPoolMock transactionPoolMock = new TransactionPoolMock();
-        transactionPoolMock.addTx(transaction);
+        transactionPoolMock.addTx(transaction.retTxMock());
     }
 
     @Test
@@ -64,11 +64,11 @@ public class TransactionAPITest {
     @Test
     public void blockBuildMockTest() throws IOException {
         BlockBuilderMock blockBuilderMock = new BlockBuilderMock();
-        Block block = blockBuilderMock.build("test");
+        Block block = blockBuilderMock.build();
         log.debug("blockBuilderMock : " + block.toString());
     }
 
-    @Test
+//    @Test
     public void createTransaction() throws Exception {
         String json = "{\"header\":{\"type\":\"0\",\"version\":\"0000\",\"dataHash\":\"d8d998149828f80964f530405cec906db0d355aa6445b087ec7533a48aa8bc8a\",\"timestamp\":\"20395381177213\",\"dataSize\":\"463\",\"signature\":\"1b64813bc1d77f78d6b7b2ddfb10082c27a0fff3889bdcf7f9be6238187fe58b7738bc696805a5cdad89247fcd1ca8f5f9f96ca4fe7d1ddc67693c8e6ff7b72d68\"}}";
         ObjectMapper mapper = new ObjectMapper();

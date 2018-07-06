@@ -105,7 +105,7 @@ public class TransactionAPIImpl implements TransactionAPI {
 
         mapper.enable(DeserializationFeature.UNWRAP_ROOT_VALUE);
 
-        TransactionMock transaction = mapper.reader()
+        Transaction transaction = mapper.reader()
                 .forType(TransactionMock.class).readValue(tx);
 
         System.out.println(transaction);

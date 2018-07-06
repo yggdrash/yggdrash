@@ -1,7 +1,10 @@
 package io.yggdrash.core;
 
+import com.google.protobuf.ByteString;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
+import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.TimeUtils;
 import org.apache.commons.codec.binary.Hex;
@@ -25,21 +28,17 @@ public class TransactionHeader implements Serializable {
   private long dataSize;
   private byte[] signature;
 
-
-  public TransactionHeader(byte[] type, byte[] version, byte[] dataHash, long timestamp, long dataSize, byte[] signature) {
-    this.type = type;
-    this.version = version;
+  private TransactionHeader(byte[] dataHash, long dataSize) {
+    this.type = new byte[4];
+    this.version = new byte[4];
     this.dataHash = dataHash;
-    this.timestamp = timestamp;
     this.dataSize = dataSize;
-    this.signature = signature;
   }
 
   /**
    * TransactionHeader Constructor.
    *
    * @param from account for creating tx
-
    * @param dataHash data hash
    * @param dataSize data size
    * @throws IOException IOException
@@ -109,7 +108,7 @@ public class TransactionHeader implements Serializable {
 
     transaction.write(type);
     transaction.write(version);
-    transaction.write(this.dataHash);
+    transaction.write(dataHash);
     transaction.write(ByteUtil.longToBytes(timestamp));
     transaction.write(ByteUtil.longToBytes(dataSize));
 
@@ -150,10 +149,31 @@ public class TransactionHeader implements Serializable {
    * get ECKey(include pubKey) using sig & signData.
    * @return ECKey(include pubKey)
    */
+  @JsonIgnore
   public ECKey getECKey() throws IOException, SignatureException {
     ECKey keyFromSig = ECKey.signatureToKey(getSignDataHash(), signature);
 
     return keyFromSig;
+  }
+
+  public static TransactionHeader valueOf(BlockChainProto.TransactionHeader txHeader) {
+
+    TransactionHeader header = new TransactionHeader(txHeader.getDataHash().toByteArray(),
+            txHeader.getDataSize());
+    header.timestamp = txHeader.getTimestamp();
+    header.signature = txHeader.getSignature().toByteArray();
+    return header;
+  }
+
+  public static BlockChainProto.TransactionHeader of(TransactionHeader header) {
+    return BlockChainProto.TransactionHeader.newBuilder()
+            .setType(toByteString(header.type)).setVersion(toByteString(header.version))
+            .setDataHash(toByteString(header.dataHash)).setTimestamp(header.timestamp)
+            .setDataSize(header.dataSize).setSignature(toByteString(header.signature)).build();
+  }
+
+  private static ByteString toByteString(byte[] bytes) {
+   return ByteString.copyFrom(bytes);
   }
 
   @Override

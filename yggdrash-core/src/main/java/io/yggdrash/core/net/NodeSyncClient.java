@@ -78,7 +78,7 @@ public class NodeSyncClient {
                 asyncStub.broadcastTransaction(new StreamObserver<BlockChainProto.Transaction>() {
                     @Override
                     public void onNext(BlockChainProto.Transaction tx) {
-                        log.info("Got transaction: {}", tx);
+                        log.trace("Got transaction: {}", tx);
                     }
 
                     @Override
@@ -106,7 +106,7 @@ public class NodeSyncClient {
                 asyncStub.broadcastBlock(new StreamObserver<BlockChainProto.Block>() {
                     @Override
                     public void onNext(BlockChainProto.Block block) {
-                        log.info("Got block: {}", block);
+                        log.trace("Got block: {}", block);
                     }
 
                     @Override

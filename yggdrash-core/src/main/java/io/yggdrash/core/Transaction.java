@@ -3,6 +3,7 @@ package io.yggdrash.core;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.format.TransactionFormat;
 import io.yggdrash.crypto.HashUtil;
+import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.util.SerializeUtils;
 
 import java.io.IOException;
@@ -17,6 +18,9 @@ public class Transaction implements Serializable,TransactionFormat {
     // TODO Data Object re modelling
     private String data;
 
+    private Transaction(String data) {
+        this.data = data;
+    }
 
     /**
      * Transaction Constructor
@@ -74,9 +78,20 @@ public class Transaction implements Serializable,TransactionFormat {
     public String toString() {
         StringBuffer buffer = new StringBuffer();
         buffer.append(this.header.toString());
-        buffer.append("transactionData=").append(this.data.toString());
+        buffer.append("transactionData=").append(this.data);
 
         return buffer.toString();
     }
 
+    public static Transaction valueOf(BlockChainProto.Transaction protoTx) {
+        Transaction transaction = new Transaction(protoTx.getData());
+        transaction.header = TransactionHeader.valueOf(protoTx.getHeader());
+        return transaction;
+    }
+
+    public static BlockChainProto.Transaction of(Transaction tx) {
+        TransactionHeader header = tx.getHeader();
+        return BlockChainProto.Transaction.newBuilder().setData(tx.getData())
+                .setHeader(TransactionHeader.of(header)).build();
+    }
 }

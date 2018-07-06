@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,15 +14,26 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.core;
 
-import io.yggdrash.core.Block;
-import io.yggdrash.core.Transaction;
+import io.yggdrash.core.exception.NotValidteException;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Set;
 
-public interface BlockBuilder {
-    Block build() throws IOException;
-    Block build(List<Transaction> txList, Block prevBlock) throws IOException;
+public interface NodeManager {
+
+    void setListener(NodeEventListener listener);
+
+    Transaction addTransaction(Transaction tx) throws IOException;
+
+    Transaction getTxByHash(String id);
+
+    Block generateBlock() throws IOException, NotValidteException;
+
+    Block addBlock(Block block) throws IOException, NotValidteException;
+
+    Set<Block> getBlocks();
+
+    Block getBlockByIndexOrHash(String indexOrHash);
 }

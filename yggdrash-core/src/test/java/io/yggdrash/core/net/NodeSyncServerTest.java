@@ -56,7 +56,8 @@ public class NodeSyncServerTest {
 
         for (int i = 1; i <= 3; i++) {
             BlockChainProto.Transaction request
-                    = BlockChainProto.Transaction.newBuilder().setData("tx" + i).build();
+                    = BlockChainProto.Transaction.newBuilder()
+                    .setData("tx" + i).build();
             requestObserver.onNext(request);
         }
         requestObserver.onCompleted();
@@ -75,7 +76,8 @@ public class NodeSyncServerTest {
 
         for (int i = 1; i <= 3; i++) {
             BlockChainProto.Transaction tx
-                    = BlockChainProto.Transaction.newBuilder().setData("tx").build();
+                    = BlockChainProto.Transaction.newBuilder()
+                    .setData("tx").build();
             BlockChainProto.Block block = BlockChainProto.Block.newBuilder()
                     .setHeader(BlockChainProto.BlockHeader.newBuilder().setAuthor(
                             ByteString.copyFromUtf8("author" + i)))

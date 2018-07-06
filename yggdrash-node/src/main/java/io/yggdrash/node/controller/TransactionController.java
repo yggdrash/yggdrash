@@ -16,12 +16,8 @@
 
 package io.yggdrash.node.controller;
 
+import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionPool;
-import io.yggdrash.core.format.TransactionFormat;
-import io.yggdrash.node.MessageSender;
-import java.security.SignatureException;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,25 +28,23 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.security.SignatureException;
 
 @RestController
 @RequestMapping("txs")
 public class TransactionController {
-    private final TransactionPool txPool;
 
-    @Autowired
-    private MessageSender messageSender;
+    private final NodeManager nodeManager;
 
-    @Autowired
-    public TransactionController(TransactionPool txPool) {
-        this.txPool = txPool;
+    public TransactionController(NodeManager nodeManager) {
+        this.nodeManager = nodeManager;
     }
 
     @PostMapping
     public ResponseEntity add(@RequestBody TransactionDto request) throws SignatureException {
         try {
             Transaction tx = TransactionDto.of(request);
-            TransactionFormat addedTx = txPool.addTx(tx);
+            Transaction addedTx = nodeManager.addTransaction(tx);
             return ResponseEntity.ok(TransactionDto.createBy(addedTx));
         } catch (IOException e) {
             e.printStackTrace();
@@ -61,18 +55,12 @@ public class TransactionController {
 
     @GetMapping("{id}")
     public ResponseEntity get(@PathVariable String id) throws IOException, SignatureException {
-        TransactionFormat tx = txPool.getTxByHash(id);
+        Transaction tx = nodeManager.getTxByHash(id);
 
         if (tx == null) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
 
         return ResponseEntity.ok(TransactionDto.createBy(tx));
-    }
-
-    @GetMapping("test")
-    public ResponseEntity test() {
-        messageSender.broadcastTransaction(null);
-        return ResponseEntity.ok("ok");
     }
 }

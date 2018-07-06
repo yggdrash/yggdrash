@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.HashMap;
 import com.google.gson.JsonObject;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import io.yggdrash.core.exception.NotValidteException;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
@@ -19,7 +21,6 @@ public class BlockChain {
   private Map<Object, Block> blocks; // <blockheader_hash, block>
   private JsonObject packageInfo;
 
-
   public BlockChain() {
     this.packageInfo = new JsonObject();
     this.blocks = new HashMap<>();
@@ -27,7 +28,7 @@ public class BlockChain {
 
   public BlockChain(JsonObject packageInfo) {
     this.packageInfo = packageInfo;
-    this.blocks = new HashMap<>();
+    this.blocks = new ConcurrentHashMap<>();
     // TODO: generate genesisBlock & add into blockchain
   }
 
@@ -54,7 +55,7 @@ public class BlockChain {
    * @param nextBlock the next block
    * @throws NotValidteException the not validte exception
    */
-  public void addBlock(Block nextBlock) throws NotValidteException {
+  public void addBlock(Block nextBlock) throws NotValidteException, IOException {
     if (isGenesisBlock(nextBlock)) {
       this.genesisBlock = nextBlock;
     } else if (!isValidNewBlock(prevBlock, nextBlock)) {
@@ -72,7 +73,7 @@ public class BlockChain {
     return genesisBlock == null && prevBlock == null && newBlock.getIndex() == 0;
   }
 
-  private boolean isValidNewBlock(Block prevBlock, Block nextBlock) {
+  private boolean isValidNewBlock(Block prevBlock, Block nextBlock) throws IOException {
     if (prevBlock == null) {
       return true;
     }

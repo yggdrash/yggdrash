@@ -21,22 +21,21 @@ import io.yggdrash.core.Account;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
+import io.yggdrash.core.Transaction;
 import io.yggdrash.node.BlockBuilder;
 import org.apache.commons.codec.binary.Hex;
-import io.yggdrash.core.Transaction;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class BlockBuilderMock implements BlockBuilder {
     @Override
-    public Block build(String data) throws IOException {
+    public Block build(List<Transaction> txList, Block prevBlock) throws IOException {
         Account account = new Account();
-        BlockBody blockBody = new BlockBody(Arrays.asList());
+        BlockBody blockBody = new BlockBody(txList);
         BlockHeader blockHeader = new BlockHeader.Builder()
-                .prevBlock(null)
+                .prevBlock(prevBlock)
                 .blockBody(blockBody).build(account);
         return new Block(blockHeader, blockBody);
     }
@@ -83,67 +82,3 @@ public class BlockBuilderMock implements BlockBuilder {
         return new Block(blockHeader, blockBody);
     }
 }
-
-/*
-[Result]
-
-Block{
-        header=io.yggdrash.core.BlockHeader@85e6769,
-        data=transactionList=>TransactionHeader{
-                                                    type=00000000,
-                                                    version=00000000,
-                                                    dataHash=d8d998149828f80964f530405cec906db0d355aa6445b087ec7533a48aa8bc8a,
-                                                    timestamp=23822120472473,
-                                                    dataSize=553,
-                                                    signature=1b64813bc1d77f78d6b7b2ddfb10082c27a0fff3889bdcf7f9be6238187fe58b7738bc696805a5cdad89247fcd1ca8f5f9f96ca4fe7d1ddc67693c8e6ff7b72d68
-                                                }
-                               transactionData={
-                                                    "version":"0",
-                                                    "type":"00000000000000",
-                                                    "timestamp":"155810745733540",
-                                                    "from":"04a0cb0bc45c5889b8136127409de1ae7d3f668e5f29115730362823ed5223aff9b2c22210280af1249e27b08bdeb5c0160af74ec5237292b5ee94bd148c9aabbb",
-                                                    "dataHash":"ba5f3ea40e95f49bce11942f375ebd3882eb837976eda5c0cb78b9b99ca7b485",
-                                                    "dataSize":"13",
-                                                    "signature":"b86e02880e12c575e56c5d15e1f491595219295076721a5bfb6042463d6a2d768331691db0b8de852390305c0f2b218e596e4a59bf54029cf6a8b9afdbb274104",
-                                                    "transactionHash":"c6b5e583ec18891e9de0e29c3f0358a5c99c474bc3ee78e90c618db72193c0",
-                                                    "transactionData":"{}"
-                                                }
-                               TransactionHeader{
-                                                    type=00000000,
-                                                    version=00000000,
-                                                    dataHash=d8d998149828f80964f530405cec906db0d355aa6445b087ec7533a48aa8bc8a,
-                                                    timestamp=23822151264255,
-                                                    dataSize=553,
-                                                    signature=1ce07da999d0496d41069e550f31f6e2a4f84a07afaac8275e94f576a01d9f2dbe299828ba34be2f05222e3901dd7e2afc168dcb9cf8d9968d6b392134a0222683
-                                                }
-                               transactionData={
-                                                    "version":"0",
-                                                    "type":"00000000000000",
-                                                    "timestamp":"155810745733540",
-                                                    "from":"04a0cb0bc45c5889b8136127409de1ae7d3f668e5f29115730362823ed5223aff9b2c22210280af1249e27b08bdeb5c0160af74ec5237292b5ee94bd148c9aabbb",
-                                                    "dataHash":"ba5f3ea40e95f49bce11942f375ebd3882eb837976eda5c0cb78b9b99ca7b485",
-                                                    "dataSize":"13",
-                                                    "signature":"b86e02880e12c575e56c5d15e1f491595219295076721a5bfb6042463d6a2d768331691db0b8de852390305c0f2b218e596e4a59bf54029cf6a8b9afdbb274104",
-                                                    "transactionHash":"c6b5e583ec18891e9de0e29c3f0358a5c99c474bc3ee78e90c618db72193c0","transactionData":"{}"
-                                               }
-                               TransactionHeader{
-                                                    type=00000000,
-                                                    version=00000000,
-                                                    dataHash=d8d998149828f80964f530405cec906db0d355aa6445b087ec7533a48aa8bc8a,
-                                                    timestamp=23822151264255,
-                                                    dataSize=553,
-                                                    signature=1ce07da999d0496d41069e550f31f6e2a4f84a07afaac8275e94f576a01d9f2dbe299828ba34be2f05222e3901dd7e2afc168dcb9cf8d9968d6b392134a0222683
-                                                }
-                               transactionData={
-                                                    "version":"0",
-                                                    "type":"00000000000000",
-                                                    "timestamp":"155810745733540",
-                                                    "from":"04a0cb0bc45c5889b8136127409de1ae7d3f668e5f29115730362823ed5223aff9b2c22210280af1249e27b08bdeb5c0160af74ec5237292b5ee94bd148c9aabbb",
-                                                    "dataHash":"ba5f3ea40e95f49bce11942f375ebd3882eb837976eda5c0cb78b9b99ca7b485",
-                                                    "dataSize":"13",
-                                                    "signature":"b86e02880e12c575e56c5d15e1f491595219295076721a5bfb6042463d6a2d768331691db0b8de852390305c0f2b218e596e4a59bf54029cf6a8b9afdbb274104",
-                                                    "transactionHash":"c6b5e583ec18891e9de0e29c3f0358a5c99c474bc3ee78e90c618db72193c0","transactionData":"{}"
-                                               }
-        }
-
- */

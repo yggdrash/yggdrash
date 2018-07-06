@@ -63,20 +63,20 @@ public class TransactionControllerTest {
         req.setFrom(FROM);
         req.setData("transaction data");
 
-        MockHttpServletResponse response = mockMvc.perform(post("/txs")
+        MockHttpServletResponse postResponse = mockMvc.perform(post("/txs")
                 .contentType(MediaType.APPLICATION_JSON).content(json.write(req).getJson()))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andReturn().getResponse();
 
-        String txHash = json.parseObject(response.getContentAsString()).getTxHash();
+        String postTxHash = json.parseObject(postResponse.getContentAsString()).getTxHash();
 
-        MockHttpServletResponse findRes = mockMvc.perform(get("/txs/" + txHash))
+        MockHttpServletResponse getResponse = mockMvc.perform(get("/txs/" + postTxHash))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andReturn().getResponse();
 
-        log.debug(findRes.getContentAsString());
+        assertThat(postResponse.getContentAsString()).isEqualTo(getResponse.getContentAsString());
     }
 
     @Test
