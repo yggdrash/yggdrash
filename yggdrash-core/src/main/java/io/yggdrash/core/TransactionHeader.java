@@ -1,20 +1,18 @@
 package io.yggdrash.core;
 
-import static org.junit.Assert.assertArrayEquals;
-
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.TimeUtils;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.Serializable;
-import java.security.SignatureException;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@JsonRootName(valu="headr")
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.Serializable;
+import java.security.SignatureException;
+
 public class TransactionHeader implements Serializable {
 
   private static final Logger log = LoggerFactory.getLogger(TransactionHeader.class);

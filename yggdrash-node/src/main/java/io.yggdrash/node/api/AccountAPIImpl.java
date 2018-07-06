@@ -44,10 +44,3 @@ public class AccountAPIImpl implements AccountAPI {
         return balance;
     }
 }
-
-/*
-curl -H "Content-Type:application/json" -d '{"id":"1","jsonrpc":"2.0","method":"createAccount","params":{}}' http://localhost:8080/account
-curl -H "Content-Type:application/json" -d '{"id":"1","jsonrpc":"2.0","method":"accounts","params":{}}' http://localhost:8080/account
-curl -H "Content-Type:application/json" -d '{"id":"1","jsonrpc":"2.0","method":"getBalance","params":{"address":"0xA6cf59D72cB6c253b3CFe10d498aC8615453689B", "blockNumber":"1"}}' http://localhost:8080/account
-curl -H "Content-Type:application/json" -d '{"id":"1","jsonrpc":"2.0","method":"getBalance","params":{"address":"0xA6cf59D72cB6c253b3CFe10d498aC8615453689B", "tag":"latest"}}' http://localhost:8080/account
- */

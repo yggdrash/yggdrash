@@ -35,13 +35,5 @@ public class BlockAPIImpl implements BlockAPI {
     }
 }
 
-/*
-curl -H "Content-Type:application/json" -d '{"id":"1","jsonrpc":"2.0","method":"blockNumber","params":{}}' http://localhost:8080/block
-curl -H "Content-Type:application/json" -d '{"id":"1","jsonrpc":"2.0","method":"getBlockByHash","params":{"address":"0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf", "tag":"latest"}}' http://localhost:8080/block
-curl -H "Content-Type:application/json" -d '{"id":"1","jsonrpc":"2.0","method":"getBlockByNumber","params":{"hashOfBlock":"0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf", "bool":true}}' http://localhost:8080/block
-curl -H "Content-Type:application/json" -d '{"id":"1","jsonrpc":"2.0","method":"newBlockFilter","params":{}}' http://localhost:8080/block
-
-curl -H "Content-Type:application/json" -d '{"id":"1","jsonrpc":"2.0","method":"test","params":{"address":"0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf"}}' http://localhost:8080/block
- */
 
 

@@ -16,9 +16,8 @@
 
 package io.yggdrash.node.mock;
 
-import io.yggdrash.core.Transaction;
-import io.yggdrash.core.format.TransactionFormat;
 import io.yggdrash.core.TransactionPool;
+import io.yggdrash.core.format.TransactionFormat;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -34,7 +33,6 @@ public class TransactionPoolMock implements TransactionPool {
 
     @Override
     public TransactionFormat addTx(TransactionFormat tx) throws IOException {
-        System.out.println("TransactionPoolMock :: addTx : " + tx);
         txs.put(tx.getHashString(), tx);
         return tx;
     }

@@ -1,7 +1,6 @@
 package io.yggdrash.node.mock;
 
 import io.yggdrash.core.Block;
-import io.yggdrash.node.mock.BlockBuilderMock;
 
 import java.io.IOException;
 

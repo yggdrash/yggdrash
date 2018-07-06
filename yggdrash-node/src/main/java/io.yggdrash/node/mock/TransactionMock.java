@@ -12,6 +12,69 @@ import java.io.IOException;
 import java.math.BigInteger;
 
 public class TransactionMock implements TransactionFormat {
+
+    public int version;
+    public int type;
+    public String timestamp;
+    public String from;
+    public String dataHash;
+    public int dataSize;
+    public String signature;
+    public String transactionHash;
+    public String transactionData;
+
+    public TransactionMock() {
+        super();
+    }
+
+    public TransactionMock(int version, int type, String timestamp, String from, String dataHash, int dataSize, String signature, String transactionHash, String transactionData) {
+        this.version = version;
+        this.type = type;
+        this.timestamp = timestamp;
+        this.from = from;
+        this.dataHash = dataHash;
+        this.dataSize = dataSize;
+        this.signature = signature;
+        this.transactionHash = transactionHash;
+        this.transactionData = transactionData;
+    }
+
+    public int getVersion() {
+        return version;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public String getFrom() {
+        return from;
+    }
+
+    public String getDataHash() {
+        return dataHash;
+    }
+
+    public int getDataSize() {
+        return dataSize;
+    }
+
+    public String getSignature() {
+        return signature;
+    }
+
+    public String getTransactionHash() {
+        return transactionHash;
+    }
+
+    public String getTransactionData() {
+        return transactionData;
+    }
+
     @Override
     public String getHashString() throws IOException {
         return null;
@@ -32,55 +95,6 @@ public class TransactionMock implements TransactionFormat {
         return null;
     }
 
-    public int type;
-    public int version;
-    public String dataHash;
-    public String timestamp;
-    public int dataSize;
-    public String signature;
-    public String transactionData;
-
-    public TransactionMock() {
-        super();
-    }
-
-    public TransactionMock(int type, int version, String dataHash, String timestamp, int dataSize, String signature, String transactionData) {
-        this.type = type;
-        this.version = version;
-        this.dataHash = dataHash;
-        this.timestamp = timestamp;
-        this.dataSize = dataSize;
-        this.signature = signature;
-        this.transactionData = transactionData;
-    }
-
-    public int getType() {
-        return type;
-    }
-
-    public int getVersion() {
-        return version;
-    }
-
-    public String getDataHash() {
-        return dataHash;
-    }
-
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    public int getDataSize() {
-        return dataSize;
-    }
-
-    public String getSignature() {
-        return signature;
-    }
-
-    public String getTransactionData() {
-        return transactionData;
-    }
 
     public Transaction retTxMock() throws IOException {
 
@@ -113,12 +127,14 @@ public class TransactionMock implements TransactionFormat {
     @Override
     public String toString() {
         return "TransactionMock{" +
-                "type=" + type +
-                ", version=" + version +
-                ", dataHash='" + dataHash + '\'' +
+                "version=" + version +
+                ", type=" + type +
                 ", timestamp='" + timestamp + '\'' +
+                ", from='" + from + '\'' +
+                ", dataHash='" + dataHash + '\'' +
                 ", dataSize=" + dataSize +
                 ", signature='" + signature + '\'' +
+                ", transactionHash='" + transactionHash + '\'' +
                 ", transactionData='" + transactionData + '\'' +
                 '}';
     }
