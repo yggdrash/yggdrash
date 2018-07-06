@@ -41,11 +41,13 @@ public class NodeSyncClientTest {
 
     private final PingPongGrpc.PingPongImplBase pingPongService =
             mock(PingPongGrpc.PingPongImplBase.class, delegatesTo(
-                    new NodeSyncServer.PingPongImpl() {}));
+                    new NodeSyncServer.PingPongImpl() {
+                    }));
 
     private final BlockChainGrpc.BlockChainImplBase blockChainService =
             mock(BlockChainGrpc.BlockChainImplBase.class, delegatesTo(
-                    new NodeSyncServer.BlockChainImpl() {}));
+                    new NodeSyncServer.BlockChainImpl() {
+                    }));
 
     private NodeSyncClient client;
 

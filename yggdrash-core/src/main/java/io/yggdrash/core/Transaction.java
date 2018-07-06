@@ -9,7 +9,7 @@ import io.yggdrash.util.SerializeUtils;
 import java.io.IOException;
 import java.io.Serializable;
 
-public class Transaction implements Serializable,TransactionFormat {
+public class Transaction implements Serializable, TransactionFormat {
 
     // Header
     private TransactionHeader header;
@@ -35,6 +35,18 @@ public class Transaction implements Serializable,TransactionFormat {
         // 2. make header
         byte[] bin = SerializeUtils.serialize(data);
         this.header = new TransactionHeader(from, HashUtil.sha256(bin), bin.length);
+    }
+
+    public static Transaction valueOf(BlockChainProto.Transaction protoTx) {
+        Transaction transaction = new Transaction(protoTx.getData());
+        transaction.header = TransactionHeader.valueOf(protoTx.getHeader());
+        return transaction;
+    }
+
+    public static BlockChainProto.Transaction of(Transaction tx) {
+        TransactionHeader header = tx.getHeader();
+        return BlockChainProto.Transaction.newBuilder().setData(tx.getData())
+                .setHeader(TransactionHeader.of(header)).build();
     }
 
     /**
@@ -66,6 +78,7 @@ public class Transaction implements Serializable,TransactionFormat {
 
     /**
      * get Transaction Header
+     *
      * @return
      */
     public TransactionHeader getHeader() {
@@ -81,17 +94,5 @@ public class Transaction implements Serializable,TransactionFormat {
         buffer.append("transactionData=").append(this.data);
 
         return buffer.toString();
-    }
-
-    public static Transaction valueOf(BlockChainProto.Transaction protoTx) {
-        Transaction transaction = new Transaction(protoTx.getData());
-        transaction.header = TransactionHeader.valueOf(protoTx.getHeader());
-        return transaction;
-    }
-
-    public static BlockChainProto.Transaction of(Transaction tx) {
-        TransactionHeader header = tx.getHeader();
-        return BlockChainProto.Transaction.newBuilder().setData(tx.getData())
-                .setHeader(TransactionHeader.of(header)).build();
     }
 }

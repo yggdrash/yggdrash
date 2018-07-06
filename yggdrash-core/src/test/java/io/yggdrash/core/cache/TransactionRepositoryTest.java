@@ -4,14 +4,12 @@ package io.yggdrash.core.cache;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.Account;
 import io.yggdrash.core.Transaction;
-import java.io.ByteArrayInputStream;
 import org.apache.commons.codec.DecoderException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -43,12 +41,12 @@ public class TransactionRepositoryTest {
     @Test
     public void testTransactionPool() throws IOException {
         Transaction tx = newTransaction();
-        log.debug("tx="+tx.toString());
+        log.debug("tx=" + tx.toString());
         String hashString = tx.getHashString();
 
         ConcurrentMapCache transactionPool = new ConcurrentMapCache("test4");
 
-        transactionPool.putIfAbsent(hashString,tx);
+        transactionPool.putIfAbsent(hashString, tx);
 
         for (int i = 0; i < 100; i++) {
             Transaction tmpTx = newTransaction();
@@ -65,6 +63,7 @@ public class TransactionRepositoryTest {
 
     /**
      * Test
+     *
      * @throws IOException
      */
     @Test

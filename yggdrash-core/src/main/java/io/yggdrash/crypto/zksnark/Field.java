@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with the ethereumJ library. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package io.yggdrash.crypto.zksnark;
 
 /**
@@ -26,12 +27,20 @@ package io.yggdrash.crypto.zksnark;
 interface Field<T> {
 
     T add(T o);
+
     T mul(T o);
+
     T sub(T o);
+
     T squared();
+
     T dbl();
+
     T inverse();
+
     T negate();
+
     boolean isZero();
+
     boolean isValid();
 }

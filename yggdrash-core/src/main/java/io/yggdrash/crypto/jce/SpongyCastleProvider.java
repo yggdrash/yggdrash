@@ -15,6 +15,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with the ethereumJ library. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package io.yggdrash.crypto.jce;
 
 import org.spongycastle.jce.provider.BouncyCastleProvider;
@@ -24,19 +25,20 @@ import java.security.Security;
 
 public final class SpongyCastleProvider {
 
-  private static class Holder {
-    private static final Provider INSTANCE;
-    static{
-        Provider p = Security.getProvider("SC");
-        
-        INSTANCE = (p != null) ? p : new BouncyCastleProvider();
-            
-        INSTANCE.put("MessageDigest.ETH-KECCAK-256", "io.yggdrash.crypto.cryptohash.Keccak256");
-        INSTANCE.put("MessageDigest.ETH-KECCAK-512", "io.yggdrash.crypto.cryptohash.Keccak512");
+    public static Provider getInstance() {
+        return Holder.INSTANCE;
     }
-  }
 
-  public static Provider getInstance() {
-    return Holder.INSTANCE;
-  }
+    private static class Holder {
+        private static final Provider INSTANCE;
+
+        static {
+            Provider p = Security.getProvider("SC");
+
+            INSTANCE = (p != null) ? p : new BouncyCastleProvider();
+
+            INSTANCE.put("MessageDigest.ETH-KECCAK-256", "io.yggdrash.crypto.cryptohash.Keccak256");
+            INSTANCE.put("MessageDigest.ETH-KECCAK-512", "io.yggdrash.crypto.cryptohash.Keccak512");
+        }
+    }
 }

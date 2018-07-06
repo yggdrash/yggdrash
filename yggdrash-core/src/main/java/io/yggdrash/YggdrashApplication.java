@@ -19,5 +19,4 @@ public class YggdrashApplication implements CommandLineRunner {
     }
 
 
-
 }

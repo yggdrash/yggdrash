@@ -15,10 +15,10 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with the ethereumJ library. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package io.yggdrash.crypto;
 
 import com.google.common.base.Throwables;
-//import io.yggdrash.crypto.ConcatKDFBytesGenerator;
 import org.spongycastle.crypto.AsymmetricCipherKeyPair;
 import org.spongycastle.crypto.BufferedBlockCipher;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -31,7 +31,12 @@ import org.spongycastle.crypto.generators.ECKeyPairGenerator;
 import org.spongycastle.crypto.generators.EphemeralKeyPairGenerator;
 import org.spongycastle.crypto.macs.HMac;
 import org.spongycastle.crypto.modes.SICBlockCipher;
-import org.spongycastle.crypto.params.*;
+import org.spongycastle.crypto.params.ECKeyGenerationParameters;
+import org.spongycastle.crypto.params.ECPrivateKeyParameters;
+import org.spongycastle.crypto.params.ECPublicKeyParameters;
+import org.spongycastle.crypto.params.IESParameters;
+import org.spongycastle.crypto.params.IESWithCipherParameters;
+import org.spongycastle.crypto.params.ParametersWithIV;
 import org.spongycastle.crypto.parsers.ECIESPublicKeyParser;
 import org.spongycastle.math.ec.ECPoint;
 
@@ -42,6 +47,8 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 
 import static io.yggdrash.crypto.ECKey.CURVE;
+
+//import io.yggdrash.crypto.ConcatKDFBytesGenerator;
 
 public class ECIESCoder {
 
@@ -57,11 +64,11 @@ public class ECIESCoder {
         byte[] plaintext;
 
         ByteArrayInputStream is = new ByteArrayInputStream(cipher);
-        byte[] ephemBytes = new byte[2*((CURVE.getCurve().getFieldSize()+7)/8) + 1];
+        byte[] ephemBytes = new byte[2 * ((CURVE.getCurve().getFieldSize() + 7) / 8) + 1];
 
         is.read(ephemBytes);
         ECPoint ephem = CURVE.getCurve().decodePoint(ephemBytes);
-        byte[] IV = new byte[KEY_SIZE /8];
+        byte[] IV = new byte[KEY_SIZE / 8];
         is.read(IV);
         byte[] cipherBody = new byte[is.available()];
         is.read(cipherBody);
@@ -82,8 +89,8 @@ public class ECIESCoder {
                 new BufferedBlockCipher(new SICBlockCipher(aesFastEngine)));
 
 
-        byte[]         d = new byte[] {};
-        byte[]         e = new byte[] {};
+        byte[] d = new byte[] {};
+        byte[] e = new byte[] {};
 
         IESParameters p = new IESWithCipherParameters(d, e, KEY_SIZE, KEY_SIZE);
         ParametersWithIV parametersWithIV =
@@ -95,15 +102,15 @@ public class ECIESCoder {
     }
 
     /**
-     *  Encryption equivalent to the Crypto++ default ECIES<ECP> settings:
-     *
-     *  DL_KeyAgreementAlgorithm:        DL_KeyAgreementAlgorithm_DH<struct ECPPoint,struct EnumToType<enum CofactorMultiplicationOption,0> >
-     *  DL_KeyDerivationAlgorithm:       DL_KeyDerivationAlgorithm_P1363<struct ECPPoint,0,class P1363_KDF2<class SHA1> >
-     *  DL_SymmetricEncryptionAlgorithm: DL_EncryptionAlgorithm_Xor<class HMAC<class SHA1>,0>
-     *  DL_PrivateKey:                   DL_Key<ECPPoint>
-     *  DL_PrivateKey_EC<class ECP>
-     *
-     *  Used for Whisper V3
+     * Encryption equivalent to the Crypto++ default ECIES<ECP> settings:
+     * <p>
+     * DL_KeyAgreementAlgorithm:        DL_KeyAgreementAlgorithm_DH<struct ECPPoint,struct EnumToType<enum CofactorMultiplicationOption,0> >
+     * DL_KeyDerivationAlgorithm:       DL_KeyDerivationAlgorithm_P1363<struct ECPPoint,0,class P1363_KDF2<class SHA1> >
+     * DL_SymmetricEncryptionAlgorithm: DL_EncryptionAlgorithm_Xor<class HMAC<class SHA1>,0>
+     * DL_PrivateKey:                   DL_Key<ECPPoint>
+     * DL_PrivateKey_EC<class ECP>
+     * <p>
+     * Used for Whisper V3
      */
     public static byte[] decryptSimple(BigInteger privKey, byte[] cipher) throws IOException, InvalidCipherTextException {
         EthereumIESEngine iesEngine = new EthereumIESEngine(
@@ -136,12 +143,12 @@ public class ECIESCoder {
 
         eGen.init(gParam);
 
-        byte[] IV = new byte[KEY_SIZE/8];
+        byte[] IV = new byte[KEY_SIZE / 8];
         new SecureRandom().nextBytes(IV);
 
         AsymmetricCipherKeyPair ephemPair = eGen.generateKeyPair();
-        BigInteger prv = ((ECPrivateKeyParameters)ephemPair.getPrivate()).getD();
-        ECPoint pub = ((ECPublicKeyParameters)ephemPair.getPublic()).getQ();
+        BigInteger prv = ((ECPrivateKeyParameters) ephemPair.getPrivate()).getD();
+        ECPoint pub = ((ECPublicKeyParameters) ephemPair.getPublic()).getQ();
         EthereumIESEngine iesEngine = makeIESEngine(true, toPub, prv, IV);
 
 
@@ -168,15 +175,15 @@ public class ECIESCoder {
     }
 
     /**
-     *  Encryption equivalent to the Crypto++ default ECIES<ECP> settings:
-     *
-     *  DL_KeyAgreementAlgorithm:        DL_KeyAgreementAlgorithm_DH<struct ECPPoint,struct EnumToType<enum CofactorMultiplicationOption,0> >
-     *  DL_KeyDerivationAlgorithm:       DL_KeyDerivationAlgorithm_P1363<struct ECPPoint,0,class P1363_KDF2<class SHA1> >
-     *  DL_SymmetricEncryptionAlgorithm: DL_EncryptionAlgorithm_Xor<class HMAC<class SHA1>,0>
-     *  DL_PrivateKey:                   DL_Key<ECPPoint>
-     *  DL_PrivateKey_EC<class ECP>
-     *
-     *  Used for Whisper V3
+     * Encryption equivalent to the Crypto++ default ECIES<ECP> settings:
+     * <p>
+     * DL_KeyAgreementAlgorithm:        DL_KeyAgreementAlgorithm_DH<struct ECPPoint,struct EnumToType<enum CofactorMultiplicationOption,0> >
+     * DL_KeyDerivationAlgorithm:       DL_KeyDerivationAlgorithm_P1363<struct ECPPoint,0,class P1363_KDF2<class SHA1> >
+     * DL_SymmetricEncryptionAlgorithm: DL_EncryptionAlgorithm_Xor<class HMAC<class SHA1>,0>
+     * DL_PrivateKey:                   DL_Key<ECPPoint>
+     * DL_PrivateKey_EC<class ECP>
+     * <p>
+     * Used for Whisper V3
      */
     public static byte[] encryptSimple(ECPoint pub, byte[] plaintext) throws IOException, InvalidCipherTextException {
         EthereumIESEngine iesEngine = new EthereumIESEngine(
@@ -230,8 +237,8 @@ public class ECIESCoder {
                 new BufferedBlockCipher(new SICBlockCipher(aesFastEngine)));
 
 
-        byte[]         d = new byte[] {};
-        byte[]         e = new byte[] {};
+        byte[] d = new byte[] {};
+        byte[] e = new byte[] {};
 
         IESParameters p = new IESWithCipherParameters(d, e, KEY_SIZE, KEY_SIZE);
         ParametersWithIV parametersWithIV = new ParametersWithIV(p, IV);
@@ -242,6 +249,6 @@ public class ECIESCoder {
 
     public static int getOverhead() {
         // 256 bit EC public key, IV, 256 bit MAC
-        return 65 + KEY_SIZE/8 + 32;
+        return 65 + KEY_SIZE / 8 + 32;
     }
 }

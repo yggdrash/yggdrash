@@ -15,13 +15,9 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with the ethereumJ library. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package io.yggdrash.crypto;
 
-import static io.yggdrash.crypto.HashUtil.sha3;
-import static org.junit.Assert.assertEquals;
-
-import java.math.BigInteger;
-import java.security.SecureRandom;
 import io.yggdrash.util.Utils;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -49,6 +45,12 @@ import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.crypto.params.ParametersWithIV;
 import org.spongycastle.crypto.parsers.ECIESPublicKeyParser;
 import org.spongycastle.util.encoders.Hex;
+
+import java.math.BigInteger;
+import java.security.SecureRandom;
+
+import static io.yggdrash.crypto.HashUtil.sha3;
+import static org.junit.Assert.assertEquals;
 
 public class CryptoTest {
 
@@ -213,7 +215,7 @@ public class CryptoTest {
 
         byte[] keyBytes = Hex.decode("a4627abc2a3c25315bff732cb22bc128f203912dd2a840f31e66efb27a47d2b1");
         byte[] ivBytes = new byte[16];
-        byte[] payload    = Hex.decode("0109efc76519b683d543db9d0991bcde99cc9a3d14b1d0ecb8e9f1f66f31558593d746eaa112891b04ef7126e1dce17c9ac92ebf39e010f0028b8ec699f56f5d0c0d00");
+        byte[] payload = Hex.decode("0109efc76519b683d543db9d0991bcde99cc9a3d14b1d0ecb8e9f1f66f31558593d746eaa112891b04ef7126e1dce17c9ac92ebf39e010f0028b8ec699f56f5d0c0d00");
         byte[] cipherText = Hex.decode("f9fab4e9dd9fc3e5d0d0d16da254a2ac24df81c076e3214e2c57da80a46e6ae4752f4b547889fa692b0997d74f36bb7c047100ba71045cb72cfafcc7f9a251762cdf8f");
 
         KeyParameter key = new KeyParameter(keyBytes);
@@ -226,15 +228,16 @@ public class CryptoTest {
 
         int i = 0;
 
-        while(i < in.length){
+        while (i < in.length) {
             ctrEngine.processBlock(in, i, out, i);
             i += engine.getBlockSize();
-            if (in.length - i  < engine.getBlockSize())
+            if (in.length - i < engine.getBlockSize()) {
                 break;
+            }
         }
 
         // process left bytes
-        if (in.length - i > 0){
+        if (in.length - i > 0) {
             byte[] tmpBlock = new byte[16];
             System.arraycopy(in, i, tmpBlock, 0, in.length - i);
             ctrEngine.processBlock(tmpBlock, 0, tmpBlock, 0);
@@ -257,7 +260,7 @@ public class CryptoTest {
         ECKey key = ECKey.fromPrivate(Hex.decode("a4627abc2a3c25315bff732cb22bc128f203912dd2a840f31e66efb27a47d2b1"));
 
         String address = Hex.toHexString(key.getAddress());
-        String pubkey  = Hex.toHexString(key.getPubKeyPoint().getEncoded(/* uncompressed form */ false));
+        String pubkey = Hex.toHexString(key.getPubKeyPoint().getEncoded(/* uncompressed form */ false));
 
         log.info("address: " + address);
         log.info("pubkey: " + pubkey);
@@ -267,9 +270,8 @@ public class CryptoTest {
     }
 
 
-
     @Test  // ECIES_AES128_SHA256 + No Ephemeral Key + IV(all zeroes)
-    public void test14() throws Throwable{
+    public void test14() throws Throwable {
 
         AESEngine aesFastEngine = new AESEngine();
 
@@ -280,8 +282,8 @@ public class CryptoTest {
                 new BufferedBlockCipher(new SICBlockCipher(aesFastEngine)));
 
 
-        byte[]         d = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
-        byte[]         e = new byte[] { 8, 7, 6, 5, 4, 3, 2, 1 };
+        byte[] d = new byte[] {1, 2, 3, 4, 5, 6, 7, 8};
+        byte[] e = new byte[] {8, 7, 6, 5, 4, 3, 2, 1};
 
         IESParameters p = new IESWithCipherParameters(d, e, 64, 128);
         ParametersWithIV parametersWithIV = new ParametersWithIV(p, new byte[16]);
@@ -315,7 +317,7 @@ public class CryptoTest {
 
         IESEngine decryptorIES_Engine = new IESEngine(
                 new ECDHBasicAgreement(),
-                new KDF2BytesGenerator (new SHA256Digest()),
+                new KDF2BytesGenerator(new SHA256Digest()),
                 new HMac(new SHA256Digest()),
                 new BufferedBlockCipher(new SICBlockCipher(aesFastEngine)));
 
@@ -328,7 +330,7 @@ public class CryptoTest {
 
 
     @Test  // ECIES_AES128_SHA256 + Ephemeral Key + IV(all zeroes)
-    public void test15() throws Throwable{
+    public void test15() throws Throwable {
 
 
         byte[] privKey = Hex.decode("a4627abc2a3c25315bff732cb22bc128f203912dd2a840f31e66efb27a47d2b1");
@@ -336,7 +338,7 @@ public class CryptoTest {
         ECKey ecKey = ECKey.fromPrivate(privKey);
 
         ECPrivateKeyParameters ecPrivKey = new ECPrivateKeyParameters(ecKey.getPrivKey(), ECKey.CURVE);
-        ECPublicKeyParameters  ecPubKey  = new ECPublicKeyParameters(ecKey.getPubKeyPoint(), ECKey.CURVE);
+        ECPublicKeyParameters ecPubKey = new ECPublicKeyParameters(ecKey.getPubKeyPoint(), ECKey.CURVE);
 
         AsymmetricCipherKeyPair myKey = new AsymmetricCipherKeyPair(ecPubKey, ecPrivKey);
 
@@ -350,8 +352,8 @@ public class CryptoTest {
                 new BufferedBlockCipher(new SICBlockCipher(aesFastEngine)));
 
 
-        byte[]         d = new byte[] { 1, 2, 3, 4, 5, 6, 7, 8 };
-        byte[]         e = new byte[] { 8, 7, 6, 5, 4, 3, 2, 1 };
+        byte[] d = new byte[] {1, 2, 3, 4, 5, 6, 7, 8};
+        byte[] e = new byte[] {8, 7, 6, 5, 4, 3, 2, 1};
 
         IESParameters p = new IESWithCipherParameters(d, e, 64, 128);
         ParametersWithIV parametersWithIV = new ParametersWithIV(p, new byte[16]);
@@ -365,11 +367,9 @@ public class CryptoTest {
         ECKeyPairGenerator generator = new ECKeyPairGenerator();
         generator.init(keygenParams);
 
-        EphemeralKeyPairGenerator kGen = new EphemeralKeyPairGenerator(generator, new KeyEncoder()
-        {
-            public byte[] getEncoded(AsymmetricKeyParameter keyParameter)
-            {
-                return ((ECPublicKeyParameters)keyParameter).getQ().getEncoded();
+        EphemeralKeyPairGenerator kGen = new EphemeralKeyPairGenerator(generator, new KeyEncoder() {
+            public byte[] getEncoded(AsymmetricKeyParameter keyParameter) {
+                return ((ECPublicKeyParameters) keyParameter).getQ().getEncoded();
             }
         });
 
@@ -389,7 +389,7 @@ public class CryptoTest {
 
         IESEngine decryptorIES_Engine = new IESEngine(
                 new ECDHBasicAgreement(),
-                new KDF2BytesGenerator (new SHA256Digest()),
+                new KDF2BytesGenerator(new SHA256Digest()),
                 new HMac(new SHA256Digest()),
                 new BufferedBlockCipher(new SICBlockCipher(aesFastEngine)));
 
