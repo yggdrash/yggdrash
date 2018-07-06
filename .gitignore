@@ -2,7 +2,8 @@
 build/
 out/
 !gradle/wrapper/gradle-wrapper.jar
-yggdrash-core/resources/db
+**/resources/db
+
 .coveralls.yml
 
 ### STS ###
