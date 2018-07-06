@@ -13,10 +13,10 @@ import java.io.IOException;
 
 @Service
 @AutoJsonRpcServiceImpl
-public class TransactionAPIImpl implements TransactionAPI {
+public class TransactionApiImpl implements TransactionApi {
 
-    String txHash = "0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf";
-    String zeroHash = "0x0000000000000000000000000000000000000000";
+    private String txHash = "0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf";
+    private String zeroHash = "0x0000000000000000000000000000000000000000";
 
     /* get */
     @Override
@@ -52,21 +52,24 @@ public class TransactionAPIImpl implements TransactionAPI {
     }
 
     @Override
-    public String getTransactionByBlockHashAndIndex(String hashOfBlock, int txIndexPosition)  throws IOException {
+    public String getTransactionByBlockHashAndIndex(
+            String hashOfBlock, int txIndexPosition) throws IOException {
         TransactionMock txMock = new TransactionMock();
         Transaction tx = txMock.retTxMock();
         return tx.toString();
     }
 
     @Override
-    public String getTransactionByBlockNumberAndIndex(int blockNumber, int txIndexPosition) throws IOException {
+    public String getTransactionByBlockNumberAndIndex(
+            int blockNumber, int txIndexPosition) throws IOException {
         TransactionMock txMock = new TransactionMock();
         Transaction tx = txMock.retTxMock();
         return tx.toString();
     }
 
     @Override
-    public String getTransactionByBlockNumberAndIndex(String tag, int txIndexPosition)  throws IOException {
+    public String getTransactionByBlockNumberAndIndex(
+            String tag, int txIndexPosition) throws IOException {
         TransactionMock txMock = new TransactionMock();
         Transaction tx = txMock.retTxMock();
         return tx.toString();
@@ -75,8 +78,7 @@ public class TransactionAPIImpl implements TransactionAPI {
     @Override
     public String getTransactionReceipt(String hashOfTx) {
         TransactionReceiptMock txReceiptMock = new TransactionReceiptMock();
-        String txReceiptObj = txReceiptMock.retTxReceiptMock();
-        return txReceiptObj;
+        return txReceiptMock.retTxReceiptMock();
     }
 
     /* send */
@@ -95,7 +97,7 @@ public class TransactionAPIImpl implements TransactionAPI {
     /* filter */
     @Override
     public int newPendingTransactionFilter() {
-         return 6;
+        return 6;
     }
 
     /* test */

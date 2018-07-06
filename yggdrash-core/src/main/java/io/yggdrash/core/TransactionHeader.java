@@ -178,7 +178,7 @@ public class TransactionHeader implements Serializable {
      * @return ECKey(include pubKey)
      */
     @JsonIgnore
-    public ECKey getECKey() throws IOException, SignatureException {
+    public ECKey getEcKey() throws IOException, SignatureException {
         ECKey keyFromSig = ECKey.signatureToKey(getSignDataHash(), signature);
 
         return keyFromSig;

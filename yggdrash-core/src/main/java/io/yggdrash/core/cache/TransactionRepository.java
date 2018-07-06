@@ -87,7 +87,7 @@ public class TransactionRepository {
     /**
      * Save Transaction levelDB
      *
-     * @param transaction
+     * @param transaction the transaction
      */
     private void saveTransaction(Transaction transaction) {
         ObjectOutput out = null;
@@ -124,7 +124,8 @@ public class TransactionRepository {
         }
         try {
             byte[] transactionBytes = this.db.get(Hex.decodeHex(hashString.toCharArray()));
-            ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(transactionBytes));
+            ObjectInputStream ois = new ObjectInputStream(
+                    new ByteArrayInputStream(transactionBytes));
             transaction = (Transaction) ois.readObject();
         } catch (IOException e) {
             e.printStackTrace();

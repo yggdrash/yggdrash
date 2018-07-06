@@ -2,7 +2,7 @@ package io.yggdrash.node.mock;
 
 import com.fasterxml.jackson.annotation.JsonRootName;
 
-@JsonRootName(value="header")
+@JsonRootName(value = "header")
 public class TransactionHeaderMock {
     public int type;
     public int version;
@@ -11,7 +11,8 @@ public class TransactionHeaderMock {
     public int dataSize;
     public String signature;
 
-    public TransactionHeaderMock(int type, int version, String dataHash, String timestamp, int dataSize, String signature) {
+    public TransactionHeaderMock(int type, int version, String dataHash, String timestamp,
+                                 int dataSize, String signature) {
         this.type = type;
         this.version = version;
         this.dataHash = dataHash;

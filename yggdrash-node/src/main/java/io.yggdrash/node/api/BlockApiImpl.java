@@ -8,25 +8,23 @@ import java.io.IOException;
 
 @Service
 @AutoJsonRpcServiceImpl
-public class BlockAPIImpl implements BlockAPI {
+public class BlockApiImpl implements BlockApi {
 
     @Override
-    public int blockNumber () {
+    public int blockNumber() {
         return 0;
     }
 
     @Override
-    public String getBlockByHash(String address, String tag) throws IOException{
+    public String getBlockByHash(String address, String tag) throws IOException {
         BlockMock blockMock = new BlockMock();
-        String block = blockMock.retBlockMock();
-        return block;
+        return blockMock.retBlockMock();
     }
 
     @Override
-    public String getBlockByNumber(String hashOfBlock, Boolean bool) throws IOException{
+    public String getBlockByNumber(String hashOfBlock, Boolean bool) throws IOException {
         BlockMock blockMock = new BlockMock();
-        String block = blockMock.retBlockMock();
-        return block;
+        return blockMock.retBlockMock();
     }
 
     @Override

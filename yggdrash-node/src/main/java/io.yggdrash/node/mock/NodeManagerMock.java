@@ -62,11 +62,7 @@ public class NodeManagerMock implements NodeManager {
 
     @Override
     public Set<Block> getBlocks() {
-        Set<Block> blockSet = new HashSet<>();
-        for (Block block : blockChain.getBlocks().values()) {
-            blockSet.add(block);
-        }
-        return blockSet;
+        return new HashSet<>(blockChain.getBlocks().values());
     }
 
     @Override
@@ -89,8 +85,7 @@ public class NodeManagerMock implements NodeManager {
         if (blockChain.isGenesisBlockChain() && block.getIndex() == 0) {
             blockChain.addBlock(block);
             newBlock = block;
-        }
-        else if (blockChain.getPrevBlock().nextIndex() == block.getIndex()) {
+        } else if (blockChain.getPrevBlock().nextIndex() == block.getIndex()) {
             blockChain.addBlock(block);
             newBlock = block;
         }
