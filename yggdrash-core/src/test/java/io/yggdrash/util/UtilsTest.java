@@ -68,7 +68,7 @@ public class UtilsTest {
 
     @Test
     public void getHashListShort() {
-        List<byte[]> hashList = java.util.Arrays.asList(new byte[][] {"a".getBytes(), "b".getBytes()});
+        List<byte[]> hashList = java.util.Arrays.asList("a".getBytes(), "b".getBytes());
         assert Utils.getHashListShort(hashList).equals(" 61...62");
     }
 
