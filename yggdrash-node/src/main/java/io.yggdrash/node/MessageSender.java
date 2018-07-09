@@ -17,8 +17,11 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.Block;
+import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.NodeEventListener;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.mapper.BlockMapper;
+import io.yggdrash.core.mapper.TransactionMapper;
 import io.yggdrash.core.net.NodeSyncClient;
 import io.yggdrash.proto.BlockChainProto;
 import org.slf4j.Logger;
@@ -57,12 +60,17 @@ public class MessageSender implements DisposableBean, NodeEventListener {
     @Override
     public void newTransaction(Transaction tx) {
         log.debug("New transaction={}", tx);
-        nodeSyncClient.broadcastTransaction(new BlockChainProto.Transaction[] {Transaction.of(tx)});
+        BlockChainProto.Transaction protoTx
+                = TransactionMapper.transactionToProtoTransaction(tx);
+        BlockChainProto.Transaction[] txns = new BlockChainProto.Transaction[] {protoTx};
+        nodeSyncClient.broadcastTransaction(txns);
     }
 
     @Override
     public void newBlock(Block block) {
         log.debug("New block={}", block);
-        nodeSyncClient.broadcastBlock(new BlockChainProto.Block[] {Block.of(block)});
+        BlockChainProto.Block[] blocks
+                = new BlockChainProto.Block[] {BlockMapper.blockToProtoBlock(block)};
+        nodeSyncClient.broadcastBlock(blocks);
     }
 }

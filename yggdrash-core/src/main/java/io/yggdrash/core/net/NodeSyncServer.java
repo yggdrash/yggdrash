@@ -22,6 +22,8 @@ import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.mapper.BlockMapper;
+import io.yggdrash.core.mapper.TransactionMapper;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.proto.Ping;
@@ -111,7 +113,9 @@ public class NodeSyncServer {
                     Transaction newTransaction = null;
                     if (nodeManager != null) {
                         try {
-                            newTransaction = nodeManager.addTransaction(Transaction.valueOf(tx));
+                            Transaction transaction
+                                    = TransactionMapper.protoTransactionToTransaction(tx);
+                            newTransaction = nodeManager.addTransaction(transaction);
                         } catch (IOException e) {
                             log.error(e.getMessage());
                         }
@@ -154,7 +158,7 @@ public class NodeSyncServer {
                     Block newBlock = null;
                     if (nodeManager != null) {
                         try {
-                            newBlock = nodeManager.addBlock(Block.valueOf(block));
+                            newBlock = nodeManager.addBlock(BlockMapper.protoBlockToBlock(block));
                         } catch (Exception e) {
                             log.error(e.getMessage());
                         }
