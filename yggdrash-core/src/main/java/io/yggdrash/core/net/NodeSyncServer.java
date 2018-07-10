@@ -38,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class NodeSyncServer {
     private static final Logger log = LoggerFactory.getLogger(NodeSyncServer.class);
-    private static NodeManager nodeManager;
+    private NodeManager nodeManager;
     private Server server;
     private int port;
 
@@ -56,7 +56,7 @@ public class NodeSyncServer {
     public void start() throws IOException {
         server = ServerBuilder.forPort(port)
                 .addService(new PingPongImpl())
-                .addService(new BlockChainImpl())
+                .addService(new BlockChainImpl(nodeManager))
                 .build()
                 .start();
         log.info("GRPC Server started, listening on " + port);
@@ -93,12 +93,47 @@ public class NodeSyncServer {
         }
     }
 
+    /**
+     * The block chain rpc server implementation.
+     */
     static class BlockChainImpl extends BlockChainGrpc.BlockChainImplBase {
+        private NodeManager nodeManager;
+
+        BlockChainImpl(NodeManager nodeManager) {
+            this.nodeManager = nodeManager;
+        }
+
         private static Set<StreamObserver<BlockChainProto.Transaction>> txObservers =
                 ConcurrentHashMap.newKeySet();
 
         private static Set<StreamObserver<BlockChainProto.Block>> blockObservers =
                 ConcurrentHashMap.newKeySet();
+
+        /**
+         * Sync block response
+         *
+         * @param syncLimit the start block index and limit to sync
+         * @param responseObserver the observer response to the block list
+         */
+        @Override
+        public void syncBlock(BlockChainProto.SyncLimit syncLimit,
+                              StreamObserver<BlockChainProto.BlockList> responseObserver) {
+            log.debug("Synchronize request offset={}, limit={}",
+                    syncLimit.getOffset(), syncLimit.getLimit());
+            long offset = syncLimit.getOffset();
+            long limit = syncLimit.getLimit();
+            BlockChainProto.BlockList.Builder builder = BlockChainProto.BlockList.newBuilder();
+            for (Block block : nodeManager.getBlocks()) {
+                if (block.getIndex() >= offset) {
+                    builder.addBlocks(BlockMapper.blockToProtoBlock(block));
+                }
+                if (limit > 0 && builder.getBlocksCount() > limit) {
+                    break;
+                }
+            }
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
 
         @Override
         public StreamObserver<BlockChainProto.Transaction> broadcastTransaction(

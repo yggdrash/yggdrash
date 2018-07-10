@@ -24,7 +24,10 @@ import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionPool;
 import io.yggdrash.core.exception.NotValidteException;
 import io.yggdrash.node.BlockBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,6 +35,7 @@ import java.util.List;
 import java.util.Set;
 
 public class NodeManagerMock implements NodeManager {
+    private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
 
     private final BlockBuilder blockBuilder = new BlockBuilderMock();
 
@@ -40,6 +44,22 @@ public class NodeManagerMock implements NodeManager {
     private final TransactionPool transactionPool = new TransactionPoolMock();
 
     private NodeEventListener listener;
+
+    @PostConstruct
+    private void init() {
+        if (listener == null) {
+            return;
+        }
+
+        try {
+            List<Block> blockList = listener.syncBlock(blockChain.getLastIndex());
+            for (Block block : blockList) {
+                blockChain.addBlock(block);
+            }
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+        }
+    }
 
     @Override
     public void setListener(NodeEventListener listener) {

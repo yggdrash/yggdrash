@@ -17,7 +17,6 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.Block;
-import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.NodeEventListener;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.mapper.BlockMapper;
@@ -31,6 +30,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Service
 public class MessageSender implements DisposableBean, NodeEventListener {
@@ -72,5 +75,26 @@ public class MessageSender implements DisposableBean, NodeEventListener {
         BlockChainProto.Block[] blocks
                 = new BlockChainProto.Block[] {BlockMapper.blockToProtoBlock(block)};
         nodeSyncClient.broadcastBlock(blocks);
+    }
+
+    /**
+     * Sync block list.
+     *
+     * @param offset the offset
+     * @return the block list
+     */
+    @Override
+    public List<Block> syncBlock(long offset) throws IOException {
+        List<BlockChainProto.Block> blockList = nodeSyncClient.syncBlock(offset);
+        log.debug("Synchronize block offset=" + offset);
+        if (blockList == null || blockList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        log.debug("Synchronize block received=" + blockList.size());
+        List<Block> syncList = new ArrayList<>(blockList.size());
+        for (BlockChainProto.Block block : blockList) {
+            syncList.add(BlockMapper.protoBlockToBlock(block));
+        }
+        return syncList;
     }
 }
