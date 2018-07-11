@@ -97,4 +97,15 @@ public class MessageSender implements DisposableBean, NodeEventListener {
         }
         return syncList;
     }
+
+    @Override
+    public List<Transaction> syncTransaction() throws IOException {
+        List<BlockChainProto.Transaction> txList = nodeSyncClient.syncTransaction();
+        log.debug("Synchronize transaction received=" + txList.size());
+        List<Transaction> syncList = new ArrayList<>(txList.size());
+        for (BlockChainProto.Transaction tx : txList) {
+            syncList.add(TransactionMapper.protoTransactionToTransaction(tx));
+        }
+        return syncList;
+    }
 }

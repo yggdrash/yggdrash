@@ -25,4 +25,6 @@ public interface NodeEventListener {
     void newBlock(Block block);
 
     List<Block> syncBlock(long offset) throws IOException;
+
+    List<Transaction> syncTransaction() throws IOException;
 }

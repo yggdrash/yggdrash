@@ -22,6 +22,7 @@ import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.BlockChainProto;
+import io.yggdrash.proto.BlockChainProto.Empty;
 import io.yggdrash.proto.BlockChainProto.SyncLimit;
 import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
@@ -73,6 +74,16 @@ public class NodeSyncClient {
     public List<BlockChainProto.Block> syncBlock(long offset) {
         SyncLimit syncLimit = SyncLimit.newBuilder().setOffset(offset).build();
         return BlockChainGrpc.newBlockingStub(channel).syncBlock(syncLimit).getBlocksList();
+    }
+
+    /**
+     * Sync transaction request
+     *
+     * @return the transaction list
+     */
+    public List<BlockChainProto.Transaction> syncTransaction() {
+        Empty empty = Empty.newBuilder().build();
+        return BlockChainGrpc.newBlockingStub(channel).syncTransaction(empty).getTransactionsList();
     }
 
     public void ping(String message) {

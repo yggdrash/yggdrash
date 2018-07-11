@@ -56,6 +56,10 @@ public class NodeManagerMock implements NodeManager {
             for (Block block : blockList) {
                 blockChain.addBlock(block);
             }
+            List<Transaction> txList = listener.syncTransaction();
+            for (Transaction tx : txList) {
+                transactionPool.addTx(tx);
+            }
         } catch (Exception e) {
             log.warn(e.getMessage());
         }
@@ -78,6 +82,11 @@ public class NodeManagerMock implements NodeManager {
             listener.newTransaction(tx);
         }
         return newTx;
+    }
+
+    @Override
+    public List<Transaction> getTransactionList() {
+        return transactionPool.getTxList();
     }
 
     @Override

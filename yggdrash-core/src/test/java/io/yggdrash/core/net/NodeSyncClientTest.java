@@ -54,6 +54,9 @@ public class NodeSyncClientTest {
     @Captor
     private ArgumentCaptor<BlockChainProto.SyncLimit> syncLimitRequestCaptor;
 
+    @Captor
+    private ArgumentCaptor<BlockChainProto.Empty> emptyCaptor;
+
     private NodeSyncClient client;
 
     @Before
@@ -90,6 +93,22 @@ public class NodeSyncClientTest {
         verify(blockChainService).syncBlock(syncLimitRequestCaptor.capture(), any());
 
         assertEquals(offset, syncLimitRequestCaptor.getValue().getOffset());
+    }
+
+    @Test
+    public void syncTransaction() {
+        doAnswer((invocationOnMock) -> {
+            StreamObserver<BlockChainProto.Transaction> argument = invocationOnMock.getArgument(1);
+            argument.onNext(null);
+            argument.onCompleted();
+            return null;
+        }).when(blockChainService).syncTransaction(emptyCaptor.capture(), any());
+
+        client.syncTransaction();
+
+        verify(blockChainService).syncTransaction(emptyCaptor.capture(), any());
+
+        assertEquals("", emptyCaptor.getValue().toString());
     }
 
     @Test

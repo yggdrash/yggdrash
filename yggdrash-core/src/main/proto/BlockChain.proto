@@ -7,7 +7,7 @@ service BlockChain {
     // Client to server messaging RPC
     rpc syncBlock(SyncLimit) returns (BlockList) {
     }
-    rpc syncTransaction(SyncLimit) returns (TransactionList) {
+    rpc syncTransaction(Empty) returns (TransactionList) {
     }
 
     // Bidirectional streaming RPC
@@ -15,6 +15,9 @@ service BlockChain {
     }
     rpc broadcastTransaction (stream Transaction) returns (stream Transaction) {
     }
+}
+
+message Empty {
 }
 
 message SyncLimit {

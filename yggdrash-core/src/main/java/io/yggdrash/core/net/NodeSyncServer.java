@@ -118,10 +118,10 @@ public class NodeSyncServer {
         @Override
         public void syncBlock(BlockChainProto.SyncLimit syncLimit,
                               StreamObserver<BlockChainProto.BlockList> responseObserver) {
-            log.debug("Synchronize request offset={}, limit={}",
-                    syncLimit.getOffset(), syncLimit.getLimit());
             long offset = syncLimit.getOffset();
             long limit = syncLimit.getLimit();
+            log.debug("Synchronize block request offset={}, limit={}", offset, limit);
+
             BlockChainProto.BlockList.Builder builder = BlockChainProto.BlockList.newBuilder();
             for (Block block : nodeManager.getBlocks()) {
                 if (block.getIndex() >= offset) {
@@ -130,6 +130,25 @@ public class NodeSyncServer {
                 if (limit > 0 && builder.getBlocksCount() > limit) {
                     break;
                 }
+            }
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
+
+        /**
+         * Sync block response
+         *
+         * @param empty the empty message
+         * @param responseObserver the observer response to the transaction list
+         */
+        @Override
+        public void syncTransaction(BlockChainProto.Empty empty,
+                              StreamObserver<BlockChainProto.TransactionList> responseObserver) {
+            log.debug("Synchronize tx request");
+            BlockChainProto.TransactionList.Builder builder
+                    = BlockChainProto.TransactionList.newBuilder();
+            for (Transaction tx : nodeManager.getTransactionList()) {
+                builder.addTransactions(TransactionMapper.transactionToProtoTransaction(tx));
             }
             responseObserver.onNext(builder.build());
             responseObserver.onCompleted();

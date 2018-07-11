@@ -82,10 +82,6 @@ public class NodeSyncServerTest {
                 .build(account);
         this.block = new Block(header, body);
         when(nodeManagerMock.addBlock(any())).thenReturn(block);
-
-        Set<Block> blocks = new HashSet<>();
-        blocks.add(block);
-        when(nodeManagerMock.getBlocks()).thenReturn(blocks);
     }
 
     @Test
@@ -99,12 +95,27 @@ public class NodeSyncServerTest {
 
     @Test
     public void syncBlock() {
+        Set<Block> blocks = new HashSet<>();
+        blocks.add(block);
+        when(nodeManagerMock.getBlocks()).thenReturn(blocks);
+
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
         BlockChainProto.SyncLimit syncLimit
                 = BlockChainProto.SyncLimit.newBuilder().setOffset(0).build();
         BlockChainProto.BlockList list = blockingStub.syncBlock(syncLimit);
         assertTrue(list.getBlocksList().size() == 1);
+    }
+
+    @Test
+    public void syncTransaction() {
+        when(nodeManagerMock.getTransactionList()).thenReturn(Arrays.asList(tx));
+
+        BlockChainGrpc.BlockChainBlockingStub blockingStub
+                = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
+        BlockChainProto.Empty empty = BlockChainProto.Empty.newBuilder().build();
+        BlockChainProto.TransactionList list = blockingStub.syncTransaction(empty);
+        assertTrue(list.getTransactionsList().size() == 1);
     }
 
     @Test
