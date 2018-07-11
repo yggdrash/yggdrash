@@ -34,10 +34,10 @@ public class TransactionMapper {
      * @param protoTx the proto transaction
      * @return the transaction
      */
-    public static Transaction protoTransactionToTransaction(BlockChainProto.Transaction protoTx) throws IOException {
+    public static Transaction protoTransactionToTransaction(
+            BlockChainProto.Transaction protoTx) throws IOException {
         TransactionHeader header = protoHeaderToHeader(protoTx.getHeader());
-        Transaction transaction = new Transaction(header, protoTx.getData());
-        return transaction;
+        return new Transaction(header, protoTx.getData());
     }
 
     /**
@@ -52,7 +52,8 @@ public class TransactionMapper {
                 .setHeader(headerToProtoHeader(header)).build();
     }
 
-    private static TransactionHeader protoHeaderToHeader(BlockChainProto.TransactionHeader protoHeader) throws IOException {
+    private static TransactionHeader protoHeaderToHeader(
+            BlockChainProto.TransactionHeader protoHeader) throws IOException {
         TransactionHeader header = new TransactionHeader(protoHeader.getDataHash().toByteArray(),
                 protoHeader.getDataSize());
         header.setTimestamp(protoHeader.getTimestamp());
@@ -62,9 +63,12 @@ public class TransactionMapper {
 
     private static BlockChainProto.TransactionHeader headerToProtoHeader(TransactionHeader header) {
         return BlockChainProto.TransactionHeader.newBuilder()
-                .setType(toByteString(header.getType())).setVersion(toByteString(header.getVersion()))
-                .setDataHash(toByteString(header.getDataHash())).setTimestamp(header.getTimestamp())
-                .setDataSize(header.getDataSize()).setSignature(toByteString(header.getSignature()))
+                .setType(toByteString(header.getType()))
+                .setVersion(toByteString(header.getVersion()))
+                .setDataHash(toByteString(header.getDataHash()))
+                .setTimestamp(header.getTimestamp())
+                .setDataSize(header.getDataSize())
+                .setSignature(toByteString(header.getSignature()))
                 .build();
     }
 
