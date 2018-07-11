@@ -22,6 +22,11 @@ public class Transaction implements Serializable, TransactionFormat {
         this.data = data;
     }
 
+    public Transaction (TransactionHeader header, String data) {
+        this.header = header;
+        this.data = data;
+    }
+
     /**
      * Transaction Constructor
      *

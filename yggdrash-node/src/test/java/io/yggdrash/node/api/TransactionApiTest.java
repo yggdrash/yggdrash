@@ -1,15 +1,23 @@
 package io.yggdrash.node.api;
 
+import com.fasterxml.jackson.annotation.JsonRootName;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import io.yggdrash.core.Account;
 import io.yggdrash.core.Block;
+import io.yggdrash.core.Transaction;
+import io.yggdrash.core.TransactionHeader;
 import io.yggdrash.node.mock.TransactionHeaderMock;
 import io.yggdrash.node.mock.TransactionMock;
 import io.yggdrash.node.mock.BlockMock;
 import io.yggdrash.node.mock.BlockBuilderMock;
 import io.yggdrash.node.mock.TransactionPoolMock;
 import io.yggdrash.node.mock.TransactionReceiptMock;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -23,8 +31,55 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @Import(ApplicationConfig.class)
-public class TransactionAPITest {
+public class TransactionApiTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
+
+    @Test
+    public void transactionJsonFormat() throws IOException {
+        Account from = new Account();
+        JsonObject data = new JsonObject();
+        Transaction tx = new Transaction(from, data);
+        ObjectMapper objectMapper = new ObjectMapper();
+        log.debug("Transaction Format : " + objectMapper.writeValueAsString(tx));
+    }
+
+    @Test
+    public void createTxFromJsonString() throws ParseException,IOException {
+        // 1. Get Transaction Json String as Param
+        String jsonStr = "{\"header\":{\"type\":\"0000\",\"version\":\"0000\",\"dataHash\":\"ba5f3ea40e95f49bce11942f375ebd3882eb837976eda5c0cb78b9b99ca7b485\",\"timestamp\":\"155810745733540\",\"dataSize\":\"10\",\"signature\":\"b86e02880e12c575e56c5d15e1f491595219295076721a5bfb6042463d6a2d768331691db0b8de852390305c0f2b218e596e4a59bf54029cf6a8b9afdbb274104\"},\"data\":{\"id\":\"0\",\"name\":\"Rachael\",\"age\":\"27\"}}";
+
+        JSONParser parser = new JSONParser();
+        JSONObject tx = (JSONObject) parser.parse(jsonStr);
+        JSONObject header = (JSONObject) tx.get("header");
+        JSONObject data = (JSONObject) tx.get("data");
+
+        // 2. Ready to build a TransactionHeader
+        byte[] version = header.get("version").toString().getBytes();
+        byte[] type = header.get("type").toString().getBytes();
+        byte[] dataHash = header.get("dataHash").toString().getBytes();
+        long timestamp = Long.parseLong(header.get("timestamp").toString());
+        long dataSize = Long.parseLong(header.get("dataSize").toString());;
+        byte[] signature = header.get("signature").toString().getBytes();
+        String dataStr = data.toString();
+
+        String res = "\n\nversion=" + version + "\n"
+                    + "type=" + type + "\n"
+                    + "dataHash=" + dataHash + "\n"
+                    + "timestamp=" + timestamp + "\n"
+                    + "dataSize=" + dataSize + "\n"
+                    + "signature=" + signature + "\n"
+                    + "data=" + data + "\n";
+
+        log.debug(res);
+
+        // ** Validation **
+
+        // 3. Create a TransactionHeader
+        TransactionHeader txHeader = new TransactionHeader(type, version, dataHash, timestamp, dataSize, signature);
+
+        // 4. Create a Transaction
+        Transaction transaction = new Transaction(txHeader, dataStr);
+    }
 
     @Test
     public void createTransactionReceiptMock() throws IOException {
@@ -52,30 +107,6 @@ public class TransactionAPITest {
 
         TransactionPoolMock transactionPoolMock = new TransactionPoolMock();
         transactionPoolMock.addTx(transaction.retTxMock());
-    }
-
-    @Test
-    public void createBlockMock() throws IOException {
-        BlockMock blockMock = new BlockMock();
-        log.debug("blockMock" + blockMock.retBlockMock());
-    }
-
-    @Test
-    public void blockBuildMockTest() throws IOException {
-        BlockBuilderMock blockBuilderMock = new BlockBuilderMock();
-        Block block = blockBuilderMock.build();
-        log.debug("blockBuilderMock : " + block.toString());
-    }
-
-//    @Test
-    public void createTransaction() throws Exception {
-        String json = "{\"header\":{\"type\":\"0\",\"version\":\"0000\",\"dataHash\":\"d8d998149828f80964f530405cec906db0d355aa6445b087ec7533a48aa8bc8a\",\"timestamp\":\"20395381177213\",\"dataSize\":\"463\",\"signature\":\"1b64813bc1d77f78d6b7b2ddfb10082c27a0fff3889bdcf7f9be6238187fe58b7738bc696805a5cdad89247fcd1ca8f5f9f96ca4fe7d1ddc67693c8e6ff7b72d68\"}}";
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.enable(DeserializationFeature.UNWRAP_ROOT_VALUE);
-
-        TransactionHeaderMock txHeaderMock = mapper.reader()
-                .forType(TransactionHeaderMock.class)
-                .readValue(json);
     }
 
     @Test
@@ -109,12 +140,6 @@ public class TransactionAPITest {
         test.addProperty("transactionHash", "c6b5e583ec18891e9de0e29c3f0358a5c99c474bc3ee78e90c618db72193c0");
     }
 
-    @Test
-    public void accountAPIImplTest() throws Exception {
-        AccountApiImpl accapi = new AccountApiImpl();
-        String account = accapi.createAccount();
-        assertThat(account).isNotEmpty();
-    }
 }
 
 
