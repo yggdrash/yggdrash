@@ -1,5 +1,6 @@
 package io.yggdrash.core;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.format.TransactionFormat;
 import io.yggdrash.crypto.HashUtil;
@@ -48,6 +49,7 @@ public class Transaction implements Serializable, TransactionFormat {
      *
      * @return transaction hash
      */
+    @JsonIgnore
     public String getHashString() throws IOException {
         return this.header.getHashString();
     }
@@ -57,6 +59,7 @@ public class Transaction implements Serializable, TransactionFormat {
      *
      * @return transaction hash
      */
+    @JsonIgnore
     public byte[] getHash() throws IOException {
         return this.header.getHash();
     }

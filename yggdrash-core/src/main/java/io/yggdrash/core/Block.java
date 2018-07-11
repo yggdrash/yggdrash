@@ -1,5 +1,6 @@
 package io.yggdrash.core;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,19 +36,23 @@ public class Block implements Cloneable, Serializable {
         this.data = blockBody;
     }
 
+    @JsonIgnore
     public String getBlockHash() throws IOException {
         return Hex.encodeHexString(header.getBlockHash());
     }
 
+    @JsonIgnore
     public String getPrevBlockHash() {
         return header.getPrevBlockHash() == null ? "" :
                 Hex.encodeHexString(header.getPrevBlockHash());
     }
 
-    byte[] getBlockByteHash() throws IOException {
+    @JsonIgnore
+    public byte[] getBlockByteHash() throws IOException {
         return header.getBlockHash();
     }
 
+    @JsonIgnore
     public long getIndex() {
         return header.getIndex();
     }
@@ -56,6 +61,7 @@ public class Block implements Cloneable, Serializable {
         return header.getIndex() + 1;
     }
 
+    @JsonIgnore
     public long getTimestamp() {
         return header.getTimestamp();
     }
