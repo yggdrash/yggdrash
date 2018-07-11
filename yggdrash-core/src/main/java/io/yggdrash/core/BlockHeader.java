@@ -4,8 +4,6 @@ import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.SerializeUtils;
 import io.yggdrash.util.TimeUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -15,7 +13,6 @@ import java.io.Serializable;
  * The type Block header.
  */
 public class BlockHeader implements Serializable {
-    private static final Logger log = LoggerFactory.getLogger(BlockHeader.class);
 
     private final byte[] type;
     private final byte[] version;
@@ -184,9 +181,9 @@ public class BlockHeader implements Serializable {
          *
          * @return the block header
          */
-        public BlockHeader build(long index, byte[] prevBlockHash, long timestamp, byte[] signature) {
+        public BlockHeader build(long index, byte[] prev, long timestamp, byte[] signature) {
             this.index = index;
-            this.prevBlockHash = prevBlockHash;
+            this.prevBlockHash = prev;
             this.timestamp = timestamp;
             this.signature = signature;
 
