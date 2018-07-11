@@ -14,17 +14,27 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core;
+package io.yggdrash.crypto.jce;
 
-import java.io.IOException;
-import java.util.List;
+import org.junit.Test;
+import sun.security.provider.Sun;
 
-public interface NodeEventListener {
-    void newTransaction(Transaction tx);
+import java.security.NoSuchProviderException;
 
-    void newBlock(Block block);
+public class ECKeyAgreementTest {
 
-    List<Block> syncBlock(long offset) throws IOException;
+    @Test
+    public void getInstance() {
+        assert ECKeyAgreement.getInstance() != null;
+    }
 
-    List<Transaction> syncTransaction() throws IOException;
+    @Test(expected = AssertionError.class)
+    public void getInstanceByProvider() {
+        ECKeyAgreement.getInstance(new Sun());
+    }
+
+    @Test(expected = NoSuchProviderException.class)
+    public void getInstanceByProviderName() throws NoSuchProviderException {
+        ECKeyAgreement.getInstance("test");
+    }
 }

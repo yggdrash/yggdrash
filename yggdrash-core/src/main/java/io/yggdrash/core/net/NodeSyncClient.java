@@ -22,12 +22,15 @@ import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.BlockChainProto;
+import io.yggdrash.proto.BlockChainProto.Empty;
+import io.yggdrash.proto.BlockChainProto.SyncLimit;
 import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class NodeSyncClient {
@@ -60,6 +63,27 @@ public class NodeSyncClient {
         if (channel != null) {
             channel.awaitTermination(5, TimeUnit.MINUTES);
         }
+    }
+
+    /**
+     * Sync block request
+     *
+     * @param offset the start block index to sync
+     * @return the block list
+     */
+    public List<BlockChainProto.Block> syncBlock(long offset) {
+        SyncLimit syncLimit = SyncLimit.newBuilder().setOffset(offset).build();
+        return BlockChainGrpc.newBlockingStub(channel).syncBlock(syncLimit).getBlocksList();
+    }
+
+    /**
+     * Sync transaction request
+     *
+     * @return the transaction list
+     */
+    public List<BlockChainProto.Transaction> syncTransaction() {
+        Empty empty = Empty.newBuilder().build();
+        return BlockChainGrpc.newBlockingStub(channel).syncTransaction(empty).getTransactionsList();
     }
 
     public void ping(String message) {

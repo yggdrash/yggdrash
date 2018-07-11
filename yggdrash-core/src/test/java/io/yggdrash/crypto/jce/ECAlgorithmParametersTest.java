@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core;
+package io.yggdrash.crypto.jce;
 
-import java.io.IOException;
-import java.util.List;
+import org.junit.Test;
 
-public interface NodeEventListener {
-    void newTransaction(Transaction tx);
+public class ECAlgorithmParametersTest {
 
-    void newBlock(Block block);
+    @Test
+    public void getParameterSpec() {
+        assert ECAlgorithmParameters.getParameterSpec() != null;
+    }
 
-    List<Block> syncBlock(long offset) throws IOException;
-
-    List<Transaction> syncTransaction() throws IOException;
+    @Test
+    public void getASN1Encoding() {
+        assert ECAlgorithmParameters.getASN1Encoding() != null;
+    }
 }

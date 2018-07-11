@@ -50,6 +50,18 @@ public class BlockChain {
     }
 
     /**
+     * Gets last block index.
+     *
+     * @return the last block index
+     */
+    public long getLastIndex() {
+        if (isGenesisBlockChain()) {
+            return 0;
+        }
+        return prevBlock.nextIndex();
+    }
+
+    /**
      * Add block.
      *
      * @param nextBlock the next block

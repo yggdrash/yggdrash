@@ -2,6 +2,7 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.core.mapper.TransactionMapper;
 import io.yggdrash.proto.BlockChainProto;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,8 +42,8 @@ public class TransactionTest {
 
     @Test
     public void deserializeTransactionFromProtoTest() throws IOException {
-        BlockChainProto.Transaction protoTx = Transaction.of(tx);
-        Transaction deserializeTx = Transaction.valueOf(protoTx);
+        BlockChainProto.Transaction protoTx = TransactionMapper.transactionToProtoTransaction(tx);
+        Transaction deserializeTx = TransactionMapper.protoTransactionToTransaction(protoTx);
         assert tx.getHashString().equals(deserializeTx.getHashString());
     }
 }
