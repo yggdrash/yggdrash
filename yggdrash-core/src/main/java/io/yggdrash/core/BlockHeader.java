@@ -1,8 +1,6 @@
 package io.yggdrash.core;
 
-import com.google.protobuf.ByteString;
 import io.yggdrash.crypto.HashUtil;
-import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.SerializeUtils;
 import io.yggdrash.util.TimeUtils;
@@ -42,49 +40,6 @@ public class BlockHeader implements Serializable {
     }
 
     /**
-     * Value of block header.
-     *
-     * @param protoHeader the proto header
-     * @return the block header
-     */
-    public static BlockHeader valueOf(BlockChainProto.BlockHeader protoHeader) {
-        Builder builder = new Builder();
-        builder.index = protoHeader.getIndex();
-        builder.prevBlockHash = protoHeader.getPrevBlockHash().toByteArray();
-        builder.merkleRoot = protoHeader.getMerkleRoot().toByteArray();
-        builder.timestamp = protoHeader.getTimestamp();
-        builder.dataSize = protoHeader.getDataSize();
-        builder.signature = protoHeader.getSignature().toByteArray();
-        return new BlockHeader(builder);
-    }
-
-    /**
-     * Of block chain proto . block header.
-     *
-     * @param header the header
-     * @return the block chain proto . block header
-     */
-    public static BlockChainProto.BlockHeader of(BlockHeader header) {
-        BlockChainProto.BlockHeader.Builder builder = BlockChainProto.BlockHeader.newBuilder()
-                .setType(ByteString.copyFrom(header.type))
-                .setVersion(ByteString.copyFrom(header.version))
-                .setIndex(header.index)
-                .setTimestamp(header.timestamp)
-                .setDataSize(header.dataSize);
-
-        if (header.prevBlockHash != null) {
-            builder.setPrevBlockHash(ByteString.copyFrom(header.prevBlockHash));
-        }
-        if (header.merkleRoot != null) {
-            builder.setMerkleRoot(ByteString.copyFrom(header.merkleRoot));
-        }
-        if (header.signature != null) {
-            builder.setSignature(ByteString.copyFrom(header.signature));
-        }
-        return builder.build();
-    }
-
-    /**
      * Gets index.
      *
      * @return the index
@@ -105,6 +60,26 @@ public class BlockHeader implements Serializable {
      */
     public long getTimestamp() {
         return timestamp;
+    }
+
+    public byte[] getType() {
+        return type;
+    }
+
+    public byte[] getVersion() {
+        return version;
+    }
+
+    public byte[] getMerkleRoot() {
+        return merkleRoot;
+    }
+
+    public long getDataSize() {
+        return dataSize;
+    }
+
+    public byte[] getSignature() {
+        return signature;
     }
 
     /**
@@ -201,6 +176,20 @@ public class BlockHeader implements Serializable {
             timestamp = TimeUtils.getCurrenttime();
             this.signature = from.getKey().sign(
                     HashUtil.sha256(SerializeUtils.serialize(this))).toByteArray();
+            return new BlockHeader(this);
+        }
+
+        /**
+         * Build block header.
+         *
+         * @return the block header
+         */
+        public BlockHeader build(long index, byte[] prevBlockHash, long timestamp, byte[] signature) {
+            this.index = index;
+            this.prevBlockHash = prevBlockHash;
+            this.timestamp = timestamp;
+            this.signature = signature;
+
             return new BlockHeader(this);
         }
     }
