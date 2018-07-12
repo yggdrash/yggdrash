@@ -16,6 +16,7 @@
 
 package io.yggdrash.node.mock;
 
+import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.NodeEventListener;
@@ -44,6 +45,8 @@ public class NodeManagerMock implements NodeManager {
     private final TransactionPool transactionPool = new TransactionPoolMock();
 
     private NodeEventListener listener;
+
+    private final DefaultConfig defaultConfig = new DefaultConfig();
 
     @PostConstruct
     private void init() {
@@ -156,5 +159,9 @@ public class NodeManagerMock implements NodeManager {
         }
 
         return true;
+    }
+
+    public DefaultConfig getDefaultConfig() {
+        return defaultConfig;
     }
 }
