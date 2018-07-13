@@ -1,31 +1,24 @@
 package io.yggdrash.node.api;
 
-import com.fasterxml.jackson.annotation.JsonRootName;
-import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
+import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.Account;
-import io.yggdrash.core.Block;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionHeader;
-import io.yggdrash.node.mock.TransactionHeaderMock;
 import io.yggdrash.node.mock.TransactionMock;
-import io.yggdrash.node.mock.BlockMock;
-import io.yggdrash.node.mock.BlockBuilderMock;
-import io.yggdrash.node.mock.TransactionPoolMock;
 import io.yggdrash.node.mock.TransactionReceiptMock;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Base64;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,50 +28,82 @@ public class TransactionApiTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
 
     @Test
-    public void transactionJsonFormat() throws IOException {
+    public void checkTransactionJsonFormat() throws IOException {
         Account from = new Account();
         JsonObject data = new JsonObject();
         Transaction tx = new Transaction(from, data);
         ObjectMapper objectMapper = new ObjectMapper();
-        log.debug("Transaction Format : " + objectMapper.writeValueAsString(tx));
+        log.debug("\n\nTransaction Format : " + objectMapper.writeValueAsString(tx));
     }
 
     @Test
-    public void createTxFromJsonString() throws ParseException,IOException {
-        // 1. Get Transaction Json String as Param
-        String jsonStr = "{\"header\":{\"type\":\"0000\",\"version\":\"0000\",\"dataHash\":\"ba5f3ea40e95f49bce11942f375ebd3882eb837976eda5c0cb78b9b99ca7b485\",\"timestamp\":\"155810745733540\",\"dataSize\":\"10\",\"signature\":\"b86e02880e12c575e56c5d15e1f491595219295076721a5bfb6042463d6a2d768331691db0b8de852390305c0f2b218e596e4a59bf54029cf6a8b9afdbb274104\"},\"data\":{\"id\":\"0\",\"name\":\"Rachael\",\"age\":\"27\"}}";
+    public void jsonStringToTxTest() throws ParseException,IOException {
+        // Get Transaction of JsonString as Param
+        String jsonStr = "{\"header\":{\"type\":\"0000\",\"version\":\"0000\",\"dataHash\":\"de7e5e6375a46028a23357fa4a51404bc88cec132642ded5372554dc87b5091c\",\"timestamp\":\"155810745733540\",\"dataSize\":\"10\",\"signature\":\"1c05560a9fdc9c25edfefe5a348db182ed9b283e734b39afb827785a7f7922232d75304b93d5c4774ab2d889df06789adb0fd1fa2409bc42eeb4d5e724022377e8\"},\"data\":{\"id\":\"0\",\"name\":\"Rachael\",\"age\":\"27\"}}";
 
-        JSONParser parser = new JSONParser();
-        JSONObject tx = (JSONObject) parser.parse(jsonStr);
-        JSONObject header = (JSONObject) tx.get("header");
-        JSONObject data = (JSONObject) tx.get("data");
+        // Create Transaction by transactionDto
+        TransactionDto transactionDto = new TransactionDto();
+        Transaction transaction = transactionDto.jsonStringToTx(jsonStr);
 
-        // 2. Ready to build a TransactionHeader
-        byte[] version = header.get("version").toString().getBytes();
-        byte[] type = header.get("type").toString().getBytes();
-        byte[] dataHash = header.get("dataHash").toString().getBytes();
-        long timestamp = Long.parseLong(header.get("timestamp").toString());
-        long dataSize = Long.parseLong(header.get("dataSize").toString());;
-        byte[] signature = header.get("signature").toString().getBytes();
-        String dataStr = data.toString();
+        // Create Transaction JsonObject
+        ObjectMapper objectMapper = new ObjectMapper();
+        log.debug("\n\nTransaction : " + objectMapper.writeValueAsString(transaction) + "\n");
+    }
 
-        String res = "\n\nversion=" + version + "\n"
-                    + "type=" + type + "\n"
-                    + "dataHash=" + dataHash + "\n"
-                    + "timestamp=" + timestamp + "\n"
-                    + "dataSize=" + dataSize + "\n"
-                    + "signature=" + signature + "\n"
-                    + "data=" + data + "\n";
+    @Test
+    public void jsonByteArrToTxTest() throws ParseException,JsonProcessingException {
+        // Get Transaction of JsonString which contains byteArray as param.
+        String jsonByteArr = " {\"header\":{\"type\":\"AAAAAA==\",\"version\":\"AAAAAA==\",\"dataHash\":\"RBNvo1WzZ4oRRq0W9+hknpT7T8If536DEMBg9hyq/4o=\",\"timestamp\":76623948013441,\"dataSize\":2,\"signature\":\"GyKLQPLLuzKBFmzQHtyc6nIUJmi/kV99/Al+XYcLiKw5GM/5wnMAb43x9joVdGyRhS1lfxzZqody5LKEcaBau9w=\"},\"data\":{\"id\":\"0\",\"name\":\"Rachael\",\"age\":\"27\"}}";
 
-        log.debug(res);
+        // Create Transaction by transactionDto
+        TransactionDto transactionDto = new TransactionDto();
+        Transaction transaction = transactionDto.jsonByteArrToTx(jsonByteArr);
 
-        // ** Validation **
+        // Create Transaction JsonObject
+        ObjectMapper objectMapper = new ObjectMapper();
+        log.debug("\n\nTransaction : " + objectMapper.writeValueAsString(transaction) + "\n");
+    }
 
-        // 3. Create a TransactionHeader
-        TransactionHeader txHeader = new TransactionHeader(type, version, dataHash, timestamp, dataSize, signature);
+    @Test
+    public void byteArrToTxTest() throws IOException {
+        // Create an input parameter
+        byte[] type = new byte[4];
+        byte[] version = new byte[4];
+        byte[] dataHash = new byte[32];
+        byte[] timestamp;
+        byte[] dataSize;
+        byte[] signature = new byte[65];
+        byte[] data;
 
-        // 4. Create a Transaction
-        Transaction transaction = new Transaction(txHeader, dataStr);
+        type = "0000".getBytes();
+        version= "0000".getBytes();
+        dataHash = Base64.decode("3n5eY3WkYCiiM1f6SlFAS8iM7BMmQt7VNyVU3Ie1CRw=");
+        timestamp = Longs.toByteArray(Long.parseLong("155810745733540"));
+        dataSize = Longs.toByteArray((long) 2);
+        signature = Base64.decode("HAVWCp/cnCXt/v5aNI2xgu2bKD5zSzmvuCd4Wn95IiMtdTBLk9XEd0qy2InfBnia2w/R+iQJvELutNXnJAIjd+g=");
+        data = "{\"id\":\"0\",\"name\":\"Rachael\",\"age\":\"27\"}".getBytes();
+
+        int totalLength = type.length + version.length + dataHash.length + timestamp.length
+                        + dataSize.length + signature.length + data.length;
+
+        ByteBuffer bb = ByteBuffer.allocate(totalLength);
+        bb.put(type);
+        bb.put(version);
+        bb.put(dataHash);
+        bb.put(timestamp);
+        bb.put(dataSize);
+        bb.put(signature);
+        bb.put(data);
+
+        byte[] input = bb.array();
+
+        // Create Transaction by transactionDto
+        TransactionDto transactionDto = new TransactionDto();
+        Transaction tx = transactionDto.byteArrToTx(input);
+
+        // Create Transaction JsonObject
+        ObjectMapper objectMapper = new ObjectMapper();
+        log.debug("\n\nTransaction : " + objectMapper.writeValueAsString(tx) + "\n");
     }
 
     @Test
@@ -91,22 +116,6 @@ public class TransactionApiTest {
     public void createTransactionMock() throws IOException {
         TransactionMock txMock = new TransactionMock();
         log.debug("txMock : " + txMock.retTxMock());
-    }
-
-    @Test
-    public void mappingTrnasactionMock() throws IOException {
-
-        String tx = "{\"version\":\"0\",\"type\":\"00000000000000\",\"timestamp\":\"155810745733540\",\"from\":\"04a0cb0bc45c5889b8136127409de1ae7d3f668e5f29115730362823ed5223aff9b2c22210280af1249e27b08bdeb5c0160af74ec5237292b5ee94bd148c9aabbb\",\"dataHash\":\"ba5f3ea40e95f49bce11942f375ebd3882eb837976eda5c0cb78b9b99ca7b485\",\"dataSize\":\"13\",\"signature\":\"b86e02880e12c575e56c5d15e1f491595219295076721a5bfb6042463d6a2d768331691db0b8de852390305c0f2b218e596e4a59bf54029cf6a8b9afdbb274104\",\"transactionHash\":\"c6b5e583ec18891e9de0e29c3f0358a5c99c474bc3ee78e90c618db72193c0\",\"transactionData\":\"{}\"}";
-
-        ObjectMapper mapper = new ObjectMapper();
-
-        TransactionMock transaction = mapper.reader()
-                .forType(TransactionMock.class).readValue(tx);
-
-        System.out.println(transaction);
-
-        TransactionPoolMock transactionPoolMock = new TransactionPoolMock();
-        transactionPoolMock.addTx(transaction.retTxMock());
     }
 
     @Test

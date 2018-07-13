@@ -25,7 +25,8 @@ public interface BlockApi {
      *  Returns information about a block by block number.
      *
      * @param hashOfBlock hash of block
-     * @param bool        If true, it returns the full transaction objects, if false only the hashes of the transactions.
+     * @param bool        If true, it returns the full transaction objects,
+     *                    if false only the hashes of the transactions.
      */
     String getBlockByNumber(@JsonRpcParam(value = "hashOfBlock") String hashOfBlock,
                             @JsonRpcParam(value = "bool") Boolean bool) throws IOException;

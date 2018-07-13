@@ -3,6 +3,7 @@ package io.yggdrash.node.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
+import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
 
@@ -104,12 +105,13 @@ public interface TransactionApi {
     /* send */
 
     /**
-     *  Creates new message call transaction or a contract creation, if the data field contains code.
+     *  Creates new message call transaction or a contract creation,
+     *  if the data field contains code.
      *
      * @param tx          The transaction object
      */
-    String sendTransaction(
-            @JsonRpcParam(value = "tx") String tx);
+    String sendTransaction (
+            @JsonRpcParam(value = "tx") String tx) throws ParseException,JsonProcessingException;
 
     /**
      *  Creates new message call transaction or a contract creation for signed transactions.
@@ -117,14 +119,18 @@ public interface TransactionApi {
      * @param rawTx     The signed transaction data.
      */
     String sendRawTransaction(
-            @JsonRpcParam(value = "rawTx") String rawTx);
+            @JsonRpcParam(value = "rawTx") String rawTx) throws ParseException,JsonProcessingException;
+
+    /**
+     *  Creates new message call transaction or a contract creation for signed transactions.
+     *
+     * @param rawTx     The signed transaction data.
+     */
+    String sendRawTransaction(
+            @JsonRpcParam(value = "rawTx") byte[] rawTx) throws JsonProcessingException;
 
     /**
      *  Creates a filter in the node, to notify when new pending transactions arrive.
      */
     int newPendingTransactionFilter();
-
-    // Test
-    String getJsonObj(
-            @JsonRpcParam(value = "tx") String tx) throws IOException, JsonProcessingException;
 }
