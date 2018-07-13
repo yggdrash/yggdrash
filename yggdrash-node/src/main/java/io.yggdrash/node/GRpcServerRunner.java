@@ -29,6 +29,9 @@ import org.springframework.stereotype.Component;
 public class GRpcServerRunner implements CommandLineRunner, DisposableBean {
     private static final Logger log = LoggerFactory.getLogger(GRpcServerRunner.class);
 
+    @Value("${grpc.host:localhost}")
+    private String grpcHost;
+
     @Value("${grpc.port}")
     private int grpcPort;
 
@@ -41,7 +44,9 @@ public class GRpcServerRunner implements CommandLineRunner, DisposableBean {
 
     @Override
     public void run(String... args) throws Exception {
-        nodeSyncServer.setPort(this.grpcPort);
+        nodeSyncServer.setHost(grpcHost);
+        nodeSyncServer.setPort(grpcPort);
+        nodeSyncServer.initPeer();
         nodeSyncServer.start();
         startDaemonAwaitThread();
     }

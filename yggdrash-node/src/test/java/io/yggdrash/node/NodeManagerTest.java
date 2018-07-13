@@ -24,12 +24,15 @@ import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.exception.NotValidteException;
+import io.yggdrash.core.net.Peer;
 import io.yggdrash.node.mock.NodeManagerMock;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
 import java.util.Arrays;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class NodeManagerTest {
 
@@ -88,4 +91,19 @@ public class NodeManagerTest {
         assert chainedBlock.getData().getSize() == 1;
         assert nodeManager.getTxByHash(tx.getHashString()) == null;
     }
+
+    @Test
+    public void peerTest() {
+        assert nodeManager.getNodeId() == null;
+        Peer peer = new Peer("ynode://0462b608@localhost:9090");
+        nodeManager.addPeer(peer);
+        assertThat(nodeManager.getNodeId()).isEqualTo("0462b608");
+        assertThat(nodeManager.getPeerIdList()).contains("0462b608");
+
+        Peer newPeer = new Peer("ynode://04cdade0@localhost:9091");
+        nodeManager.addPeer(newPeer);
+        assertThat(nodeManager.getPeerIdList().size()).isEqualTo(2);
+        assertThat(nodeManager.getPeerIdList()).containsExactlyInAnyOrder("0462b608", "04cdade0");
+    }
+
 }

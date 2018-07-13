@@ -23,6 +23,8 @@ import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionPool;
 import io.yggdrash.core.exception.NotValidteException;
+import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.node.BlockBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +35,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class NodeManagerMock implements NodeManager {
     private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
@@ -42,6 +45,10 @@ public class NodeManagerMock implements NodeManager {
     private final BlockChain blockChain = new BlockChain();
 
     private final TransactionPool transactionPool = new TransactionPoolMock();
+
+    private final PeerGroup peerGroup = new PeerGroup();
+
+    private String nodeId;
 
     private NodeEventListener listener;
 
@@ -134,6 +141,24 @@ public class NodeManagerMock implements NodeManager {
         } else {
             return blockChain.getBlockByHash(indexOrHash);
         }
+    }
+
+    @Override
+    public String getNodeId() {
+        return nodeId;
+    }
+
+    @Override
+    public void addPeer(Peer peer) {
+        if (nodeId == null) {
+            this.nodeId = peer.getId();
+        }
+        peerGroup.addPeer(peer);
+    }
+
+    @Override
+    public List<String> getPeerIdList() {
+        return peerGroup.getPeers().stream().map(Peer::getId).collect(Collectors.toList());
     }
 
     private void removeTxByBlock(Block block) throws IOException {

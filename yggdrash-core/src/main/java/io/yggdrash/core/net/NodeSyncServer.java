@@ -19,6 +19,7 @@ package io.yggdrash.core.net;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.core.Account;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
@@ -31,6 +32,7 @@ import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 import java.util.Set;
@@ -38,8 +40,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class NodeSyncServer {
     private static final Logger log = LoggerFactory.getLogger(NodeSyncServer.class);
+    private static final String PEER_FORMAT = "%s://%s@%s:%d";
     private NodeManager nodeManager;
     private Server server;
+    private String host;
     private int port;
 
     public NodeSyncServer() {
@@ -47,6 +51,10 @@ public class NodeSyncServer {
 
     public NodeSyncServer(NodeManager nodeManager) {
         this.nodeManager = nodeManager;
+    }
+
+    public void setHost(String host) {
+        this.host = host;
     }
 
     public void setPort(int port) {
@@ -66,6 +74,21 @@ public class NodeSyncServer {
             NodeSyncServer.this.stop();
             System.err.println("*** server shut down");
         }));
+    }
+
+    /**
+     * Init peer.
+     */
+    public void initPeer() {
+        // my peer
+        String pubKey = Hex.toHexString(new Account().getKey().getPubKey());
+        Peer peer = new Peer(String.format(PEER_FORMAT, Peer.YEED_PEER_SCHEMA, pubKey, host, port));
+        nodeManager.addPeer(peer);
+        // TODO add a static temporary peer
+        String otherKey = Hex.toHexString(new Account().getKey().getPubKey());
+        Peer otherPeer = new Peer(String.format(PEER_FORMAT, Peer.YEED_PEER_SCHEMA, otherKey, host,
+                port));
+        nodeManager.addPeer(otherPeer);
     }
 
     /**
@@ -186,7 +209,7 @@ public class NodeSyncServer {
 
                 @Override
                 public void onError(Throwable t) {
-                    log.warn("Broadcasting transaction failed: {}", t);
+                    log.warn("Broadcasting transaction failed: {}", t.getMessage());
                     txObservers.remove(responseObserver);
                     responseObserver.onError(t);
                 }
@@ -207,12 +230,14 @@ public class NodeSyncServer {
 
             return new StreamObserver<BlockChainProto.Block>() {
                 @Override
-                public void onNext(BlockChainProto.Block block) {
-                    log.debug("Received block: {}", block);
+                public void onNext(BlockChainProto.Block protoBlock) {
+                    log.debug("Received block id=[{}]", protoBlock.getHeader().getIndex());
                     Block newBlock = null;
                     if (nodeManager != null) {
                         try {
-                            newBlock = nodeManager.addBlock(BlockMapper.protoBlockToBlock(block));
+                            Block block = BlockMapper.protoBlockToBlock(protoBlock);
+                            log.debug("Received block hash=" + block.getBlockHash());
+                            newBlock = nodeManager.addBlock(block);
                         } catch (Exception e) {
                             log.error(e.getMessage());
                         }
@@ -223,13 +248,13 @@ public class NodeSyncServer {
                     }
 
                     for (StreamObserver<BlockChainProto.Block> observer : blockObservers) {
-                        observer.onNext(block);
+                        observer.onNext(protoBlock);
                     }
                 }
 
                 @Override
                 public void onError(Throwable t) {
-                    log.warn("Broadcasting block failed: {}", t);
+                    log.warn("Broadcasting block failed: {}", t.getMessage());
                     blockObservers.remove(responseObserver);
                     responseObserver.onError(t);
                 }

@@ -16,17 +16,50 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.exception.NotValidteException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.io.IOException;
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
+
 @Component
 class NodeScheduler {
+    private static final Logger log = LoggerFactory.getLogger(NodeScheduler.class);
+
+    private static final int BLOCK_MINE_SEC = 10;
+
+    private Queue<String> nodeQueue = new LinkedBlockingQueue<>();
+
     @Autowired
     MessageSender messageSender;
+
+    @Autowired
+    NodeManager nodeManager;
 
     @Scheduled(fixedRate = 1000 * 60 * 5)
     public void ping() {
         messageSender.ping();
     }
+
+    //@Scheduled(cron = "*/" + BLOCK_MINE_SEC + " * * * * *")
+    @Scheduled(initialDelay = 1000 * 5, fixedRate = 1000 * BLOCK_MINE_SEC)
+    public void generateBlock() throws IOException, NotValidteException {
+        if (nodeQueue.isEmpty()) {
+            nodeQueue.addAll(nodeManager.getPeerIdList());
+        }
+        String peerId = nodeQueue.poll();
+        if (peerId.equals(nodeManager.getNodeId())) {
+            nodeManager.generateBlock();
+        }
+        else {
+            log.debug("ignored peerId=" + peerId);
+        }
+    }
+
 }

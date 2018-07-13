@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -22,11 +21,10 @@ public class BlockChain {
     private JsonObject packageInfo;
 
     public BlockChain() {
-        this.packageInfo = new JsonObject();
-        this.blocks = new HashMap<>();
+        this(new JsonObject());
     }
 
-    public BlockChain(JsonObject packageInfo) {
+    private BlockChain(JsonObject packageInfo) {
         this.packageInfo = packageInfo;
         this.blocks = new ConcurrentHashMap<>();
         // TODO: generate genesisBlock & add into blockchain
@@ -37,7 +35,7 @@ public class BlockChain {
     }
 
     // <Get_Set Method>
-    public Block getGenesisBlock() {
+    Block getGenesisBlock() {
         return this.genesisBlock;
     }
 
@@ -73,7 +71,9 @@ public class BlockChain {
         } else if (!isValidNewBlock(prevBlock, nextBlock)) {
             throw new NotValidteException();
         }
-        log.debug("blockHash : " + nextBlock.getBlockHash());
+        log.debug("Added block index=[{}], blockHash={}", nextBlock.getIndex(),
+                nextBlock.getBlockHash());
+
         // ADD List hash
         // TODO CHANGE DATABASE
         this.blocks.put(nextBlock.getBlockHash(), nextBlock);
@@ -89,8 +89,8 @@ public class BlockChain {
         if (prevBlock == null) {
             return true;
         }
-        log.debug(" prev : " + prevBlock.getBlockHash());
-        log.debug(" new : " + nextBlock.getBlockHash());
+        log.trace(" prev : " + prevBlock.getBlockHash());
+        log.trace(" new : " + nextBlock.getBlockHash());
 
         if (prevBlock.getIndex() + 1 != nextBlock.getIndex()) {
             log.warn("invalid index: prev:{} / new:{}", prevBlock.getIndex(), nextBlock.getIndex());

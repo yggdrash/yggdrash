@@ -16,28 +16,53 @@
 
 package io.yggdrash.core.net;
 
+import io.yggdrash.util.Utils;
+import org.spongycastle.util.encoders.Hex;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+
 public class Peer {
+    public static final String YEED_PEER_SCHEMA = "ynode";
+
+    private byte[] id;
     String host;
     int port;
 
     public Peer(String host, int port) {
+        this.id = "node".getBytes();
         this.host = host;
         this.port = port;
+    }
+
+    public Peer(String enodeURL) {
+        try {
+            URI uri = new URI(enodeURL);
+            if (!uri.getScheme().equals(YEED_PEER_SCHEMA)) {
+                throw new RuntimeException("expecting URL in the format ynode://PUBKEY@HOST:PORT");
+            }
+            this.id = Hex.decode(uri.getUserInfo());
+            this.host = uri.getHost();
+            this.port = uri.getPort();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("expecting URL in the format ynode://PUBKEY@HOST:PORT", e);
+        }
+    }
+
+    public String getId() {
+        return Utils.getNodeIdShort(getHexId());
+    }
+
+    public String getHexId() {
+        return Hex.toHexString(id);
     }
 
     public String getHost() {
         return host;
     }
 
-    public void setHost(String host) {
-        this.host = host;
-    }
-
     public int getPort() {
         return port;
     }
 
-    public void setPort(int port) {
-        this.port = port;
-    }
 }
