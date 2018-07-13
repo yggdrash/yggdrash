@@ -106,9 +106,6 @@ public class NodeManagerTest {
         assertThat(defaultConfig.getConfig().getString("network.port"), containsString("31212"));
         System.out.println("DefaultConfig network.port: " + defaultConfig.getConfig().getString("network.port"));
 
-
-        System.out.println("DefaultConfig application.config: " + defaultConfig.getConfig().getString("application.config"));
-
     }
 
 }
