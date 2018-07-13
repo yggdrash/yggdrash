@@ -2,6 +2,7 @@ package io.yggdrash.core;
 
 import io.yggdrash.crypto.AESEncrypt;
 import io.yggdrash.crypto.ECKey;
+import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.crypto.Password;
 import io.yggdrash.util.FileUtil;
 import org.slf4j.Logger;
@@ -16,7 +17,7 @@ import java.io.IOException;
  */
 public class Wallet {
 
-    // todo: check method, security
+    // todo: check security
 
     private static final Logger logger = LoggerFactory.getLogger(Wallet.class);
 
@@ -119,7 +120,6 @@ public class Wallet {
         return this.address;
     }
 
-
     /**
      * Sign the data.
      *
@@ -127,7 +127,21 @@ public class Wallet {
      * @return signature as byte[65]
      */
     public byte[] sign(byte[] data) {
-        return key.sign(data).toBinary();
+        return key.sign(HashUtil.sha3(data)).toBinary();
+    }
+
+    /**
+     * Verify the sign data with data & signature.
+     *
+     * @param data data for signed
+     * @param signature signature
+     * @return verification result
+     */
+    public boolean verify(byte[] data, byte[] signature) {
+
+        ECKey.ECDSASignature sig = new ECKey.ECDSASignature(signature);
+
+        return key.verify(HashUtil.sha3(data), sig);
     }
 
     @Override

@@ -21,8 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
 
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.*;
 
 /**
  * This is the test class for managing the node's wallet(key).
@@ -230,7 +229,70 @@ public class WalletTest {
         }
     }
 
+    @Test
+    public void testSignAndVerify() {
 
+        DefaultConfig defaultConfig = new DefaultConfig();
+        String keyfilePath= defaultConfig.getConfig().getString("key.path");
+        String password = defaultConfig.getConfig().getString("key.password"); //todo: change as cli interface
+
+        Wallet wallet = null;
+
+        try {
+
+            if (keyfilePath == null || keyfilePath.equals("") || password == null || password.equals("")) {
+                System.out.println("Check yggdrash.conf(key.path & key.password)");
+                assert(false);
+            } else {
+                System.out.println("Private key: " + keyfilePath);
+                System.out.println("Password : "+ password); // for debug
+
+                // check password validation
+                boolean validPassword = Password.passwordValid(password);
+                if (!validPassword) {
+                    assert(false);
+                    System.out.println("Password is not valid");
+                }
+
+                System.out.println("Password is valid");
+
+                // check whether the key file exists
+                Path path = Paths.get(keyfilePath);
+                String keyPath = path.getParent().toString();
+                String keyName = path.getFileName().toString();
+
+                try {
+                    wallet = new Wallet(keyPath, keyName, password);
+                } catch (Exception e) {
+                    System.out.println("Key file is not exist");
+
+                    try {
+                        wallet = new Wallet(null, keyPath, keyName, password);
+                    } catch (Exception ex) {
+                        assert(false);
+                        ex.printStackTrace();
+                    }
+                }
+
+                System.out.println("wallet= " + wallet.toString());
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            assert(false);
+        }
+
+        byte[] plain = "test data 1111".getBytes();
+        System.out.println("Plain data: " + new String(plain));
+
+        byte[] signature = wallet.sign(plain);
+        System.out.println("Signature: " + Hex.toHexString(signature));
+
+        boolean resultVerify = wallet.verify(plain, signature);
+        System.out.println("Verify Result: " + resultVerify);
+
+        assertTrue(resultVerify);
+    }
 
 
 
