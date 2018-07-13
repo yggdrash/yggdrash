@@ -10,7 +10,12 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Hex;
 
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermission;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * Wallet Class.
@@ -58,8 +63,19 @@ public class Wallet {
         byte[] kdfPass = Password.generateKeyDerivation(password.getBytes(), 32);
         byte[] encData = AESEncrypt.encrypt(key.getPrivKeyBytes(), kdfPass);
 
-        FileUtil.writeFile(this.keyPath, this.keyName, encData);
+        File file = new File(this.keyPath, this.keyName);
+        Set<PosixFilePermission> perms = new HashSet<>();
 
+        if (file.exists()) {
+            perms.add(PosixFilePermission.OWNER_WRITE);
+            Files.setPosixFilePermissions(file.toPath(), perms);
+        }
+
+        FileUtil.writeFile(file, encData);
+
+        perms = new HashSet<>();
+        perms.add(PosixFilePermission.OWNER_READ);
+        Files.setPosixFilePermissions(file.toPath(), perms);
     }
 
     /**

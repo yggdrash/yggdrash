@@ -173,7 +173,7 @@ public class WalletTest {
 
 
     /**
-     * Wallet generation with configfile.
+     * This is a test method for checking the generation of wallets with configfile or not.
      */
     @Test
     public void testWalletGeneration() {
@@ -196,8 +196,8 @@ public class WalletTest {
                 // check password validation
                 boolean validPassword = Password.passwordValid(password);
                 if (!validPassword) {
-                    assert(false);
                     System.out.println("Password is not valid");
+                    assert(false);
                 }
 
                 System.out.println("Password is valid");
@@ -215,8 +215,8 @@ public class WalletTest {
                     try {
                         wallet = new Wallet(null, keyPath, keyName, password);
                     } catch (Exception ex) {
-                        assert(false);
                         ex.printStackTrace();
+                        assert(false);
                     }
                 }
 
@@ -229,54 +229,16 @@ public class WalletTest {
         }
     }
 
+    /**
+     * This is a test method for checking sign & verify method in Wallet class.
+     */
     @Test
-    public void testSignAndVerify() {
-
-        DefaultConfig defaultConfig = new DefaultConfig();
-        String keyfilePath= defaultConfig.getConfig().getString("key.path");
-        String password = defaultConfig.getConfig().getString("key.password"); //todo: change as cli interface
+    public void testWalletSignAndVerify() {
 
         Wallet wallet = null;
 
         try {
-
-            if (keyfilePath == null || keyfilePath.equals("") || password == null || password.equals("")) {
-                System.out.println("Check yggdrash.conf(key.path & key.password)");
-                assert(false);
-            } else {
-                System.out.println("Private key: " + keyfilePath);
-                System.out.println("Password : "+ password); // for debug
-
-                // check password validation
-                boolean validPassword = Password.passwordValid(password);
-                if (!validPassword) {
-                    assert(false);
-                    System.out.println("Password is not valid");
-                }
-
-                System.out.println("Password is valid");
-
-                // check whether the key file exists
-                Path path = Paths.get(keyfilePath);
-                String keyPath = path.getParent().toString();
-                String keyName = path.getFileName().toString();
-
-                try {
-                    wallet = new Wallet(keyPath, keyName, password);
-                } catch (Exception e) {
-                    System.out.println("Key file is not exist");
-
-                    try {
-                        wallet = new Wallet(null, keyPath, keyName, password);
-                    } catch (Exception ex) {
-                        assert(false);
-                        ex.printStackTrace();
-                    }
-                }
-
-                System.out.println("wallet= " + wallet.toString());
-            }
-
+            wallet = new Wallet(null, "temp", "temp.key", "Aa1234567890!");
         } catch (Exception e) {
             e.printStackTrace();
             assert(false);
@@ -293,7 +255,5 @@ public class WalletTest {
 
         assertTrue(resultVerify);
     }
-
-
 
 }

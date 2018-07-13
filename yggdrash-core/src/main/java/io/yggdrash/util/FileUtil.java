@@ -31,6 +31,17 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
     }
 
     /**
+     * write file as byte[].
+     *
+     * @param file file
+     * @param data data
+     * @throws IOException IOException
+     */
+    public static void writeFile(File file, byte[] data) throws IOException {
+        FileUtils.writeByteArrayToFile(file, data);
+    }
+
+    /**
      * read file as byte[].
      *
      * @param filePath file path
@@ -40,7 +51,7 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
      */
     public static byte[] readFile(String filePath, String fileName) throws IOException {
 
-        File file = FileUtils.getFile(filePath + fileName);
+        File file = FileUtils.getFile(filePath + "/" + fileName);
 
         return FileUtils.readFileToByteArray(file);
     }
