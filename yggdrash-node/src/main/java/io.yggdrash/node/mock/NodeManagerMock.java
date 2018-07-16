@@ -17,16 +17,12 @@
 package io.yggdrash.node.mock;
 
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.Block;
-import io.yggdrash.core.BlockChain;
-import io.yggdrash.core.NodeEventListener;
-import io.yggdrash.core.NodeManager;
-import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionPool;
+import io.yggdrash.core.*;
 import io.yggdrash.core.exception.NotValidteException;
 import io.yggdrash.node.BlockBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.InvalidCipherTextException;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -47,6 +43,23 @@ public class NodeManagerMock implements NodeManager {
     private NodeEventListener listener;
 
     private final DefaultConfig defaultConfig = new DefaultConfig();
+
+    private final Wallet wallet = readWallet();
+
+    private Wallet readWallet() {
+        Wallet wallet = null;
+
+        try {
+            wallet = new Wallet(this.defaultConfig);
+            log.debug("NodeManagerMock wallet = " + wallet.toString());
+        } catch (IOException e) {
+            log.error("Error IOException");
+        } catch (InvalidCipherTextException ice) {
+            log.error("Error InvalidCipherTextException");
+        }
+
+        return wallet;
+    }
 
     @PostConstruct
     private void init() {
@@ -163,5 +176,9 @@ public class NodeManagerMock implements NodeManager {
 
     public DefaultConfig getDefaultConfig() {
         return defaultConfig;
+    }
+
+    public Wallet getWallet() {
+        return wallet;
     }
 }

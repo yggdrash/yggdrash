@@ -250,10 +250,32 @@ public class WalletTest {
         byte[] signature = wallet.sign(plain);
         System.out.println("Signature: " + Hex.toHexString(signature));
 
-        boolean resultVerify = wallet.verify(plain, signature);
-        System.out.println("Verify Result: " + resultVerify);
+        boolean verifyResult = wallet.verify(plain, signature);
+        System.out.println("Verify Result: " + verifyResult);
 
-        assertTrue(resultVerify);
+        assertTrue(verifyResult);
     }
+
+    /**
+     * This is a test method for generating Wallet constructor.
+     * @throws IOException
+     * @throws InvalidCipherTextException
+     */
+    @Test
+    public void testWalletConstructor() throws IOException, InvalidCipherTextException {
+        DefaultConfig config = new DefaultConfig();
+
+        Wallet wallet = new Wallet(config);
+
+        System.out.println(wallet.toString());
+        assertNotNull(wallet);
+
+        byte[] data = "sign data".getBytes();
+        byte[] signature = wallet.sign(data);
+        boolean verifyResult = wallet.verify(data, signature);
+
+        assertTrue(verifyResult);
+    }
+
 
 }

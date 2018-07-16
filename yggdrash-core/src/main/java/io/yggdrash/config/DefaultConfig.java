@@ -3,8 +3,11 @@ package io.yggdrash.config;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 
+import com.typesafe.config.ConfigValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Map;
 
 /**
  * Default Configuration Class.
@@ -46,4 +49,22 @@ public class DefaultConfig {
     public Config getConfig() {
         return config;
     }
+
+    public String toString() {
+
+        String config = null;
+        for (Map.Entry<String, ConfigValue> entry : this.config.entrySet()) {
+            if(config == null ) {
+                config = "{" + entry.getKey() + ":" + entry.getValue() + "}" + "\n,";
+
+            }
+            config = config + "{" + entry.getKey() + ":" + entry.getValue() + "}" + "\n,";
+        }
+
+        return "DefaultConfig{"
+                + config.substring(0, config.length()-1)
+                + "}";
+    }
+
+
 }

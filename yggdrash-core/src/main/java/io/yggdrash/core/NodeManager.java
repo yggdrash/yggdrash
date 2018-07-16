@@ -43,4 +43,6 @@ public interface NodeManager {
 
     DefaultConfig getDefaultConfig();
 
+    Wallet getWallet();
+
 }

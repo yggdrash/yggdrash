@@ -22,7 +22,9 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
     public static void writeFile(String filePath, String fileName, byte[] data)
             throws IOException {
 
-        //todo: check exception, return boolean, check file permission
+        if (filePath == null || fileName == null || filePath == "" || fileName == "") {
+           throw new IOException("Invalid filepath or filename");
+        }
 
         File file = new File(filePath, fileName);
 
@@ -31,7 +33,7 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
     }
 
     /**
-     * write file as byte[].
+     * Write file as byte[].
      *
      * @param file file
      * @param data data
@@ -42,7 +44,7 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
     }
 
     /**
-     * read file as byte[].
+     * Read file as byte[].
      *
      * @param filePath file path
      * @param fileName file name
@@ -56,5 +58,42 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
         return FileUtils.readFileToByteArray(file);
     }
 
+    /**
+     * Get file name.
+     * @param filePathName file path + name
+     * @return file name
+     */
+    public static String getFileName (String filePathName) {
+
+        String[] splitName = filePathName.split(File.separator);
+
+        if (splitName.length > 0) {
+            return splitName[splitName.length -1];
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Get file path.
+     * @param filePathName file path + name
+     * @return file path
+     */
+    public static String getFilePath (String filePathName) {
+
+        String[] splitName = filePathName.split(File.separator);
+
+        String result = "";
+        if (splitName.length > 0) {
+
+            for (int i=0; i< splitName.length-1; i++) {
+                result += splitName[i] + File.separator;
+            }
+
+            return result;
+        } else {
+            return null;
+        }
+    }
 
 }

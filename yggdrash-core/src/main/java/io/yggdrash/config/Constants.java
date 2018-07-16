@@ -42,6 +42,10 @@ public class Constants {
 
     private static final BigInteger SECP256K1N = new BigInteger("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16);
 
+    public static final String PROPERTY_KEYPATH = "key.path";
+    public static final String PROPERTY_KEYPASSWORD = "key.password"; // todo: change to CLI
+
+
 //    public int getDURATION_LIMIT() {
 //        return 8;
 //    }
