@@ -8,7 +8,7 @@ import io.yggdrash.util.SerializeUtils;
 import java.io.IOException;
 import java.io.Serializable;
 
-public class Transaction implements Serializable, io.yggdrash.core.format.Transaction {
+public class Transaction implements Serializable {
 
     // Header
     private TransactionHeader header;

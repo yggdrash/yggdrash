@@ -55,7 +55,7 @@ public class TransactionManager {
 
     public void batch() {
         Map<byte[], byte[]> map = txPool.getList(unconfirmedTxSet);
-        for(byte[] key : map.keySet()) {
+        for (byte[] key : map.keySet()) {
             db.put(key, map.get(key));
         }
         this.flush();

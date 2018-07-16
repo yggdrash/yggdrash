@@ -2,102 +2,16 @@ package io.yggdrash.node.mock;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.core.Account;
-import io.yggdrash.core.TransactionHeader;
-import io.yggdrash.core.format.Transaction;
+import io.yggdrash.core.Transaction;
 import io.yggdrash.crypto.ECKey;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 import java.math.BigInteger;
 
-public class TransactionMock implements Transaction {
+public class TransactionMock {
 
-    public int version;
-    public int type;
-    public String timestamp;
-    public String from;
-    public String dataHash;
-    public int dataSize;
-    public String signature;
-    public String transactionHash;
-    public String transactionData;
-
-    public TransactionMock() {
-        super();
-    }
-
-    public TransactionMock(int version, int type, String timestamp, String from,
-                           String dataHash, int dataSize, String signature,
-                           String transactionHash, String transactionData) {
-        this.version = version;
-        this.type = type;
-        this.timestamp = timestamp;
-        this.from = from;
-        this.dataHash = dataHash;
-        this.dataSize = dataSize;
-        this.signature = signature;
-        this.transactionHash = transactionHash;
-        this.transactionData = transactionData;
-    }
-
-    public int getVersion() {
-        return version;
-    }
-
-    public int getType() {
-        return type;
-    }
-
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    public String getFrom() {
-        return from;
-    }
-
-    public String getDataHash() {
-        return dataHash;
-    }
-
-    public int getDataSize() {
-        return dataSize;
-    }
-
-    public String getSignature() {
-        return signature;
-    }
-
-    public String getTransactionHash() {
-        return transactionHash;
-    }
-
-    public String getTransactionData() {
-        return transactionData;
-    }
-
-    @Override
-    public String getHashString() throws IOException {
-        return null;
-    }
-
-    @Override
-    public byte[] getHash() throws IOException {
-        return new byte[0];
-    }
-
-    @Override
-    public String getData() {
-        return null;
-    }
-
-    @Override
-    public TransactionHeader getHeader() {
-        return null;
-    }
-
-
-    public io.yggdrash.core.Transaction retTxMock() throws IOException {
+    public Transaction retTxMock() throws IOException {
 
         String privString = "8373419eea00d202d1752813c588109cb9560e7c8dccdc05c8b8fc5b74949438";
         BigInteger privateKey = new BigInteger(privString, 16);
@@ -124,23 +38,8 @@ public class TransactionMock implements Transaction {
                 "c6b5e583ec18891e9de0e29c3f0358a5c99c474bc3ee78e90c618db72193c0");
         txObj.addProperty("transactionData", txData.toString());
 
-        io.yggdrash.core.Transaction tx = new io.yggdrash.core.Transaction(from, txObj);
+        Transaction tx = new Transaction(from, txObj);
 
         return tx;
-    }
-
-    @Override
-    public String toString() {
-        return "TransactionMock{"
-                + "version=" + version
-                + ", type=" + type
-                + ", timestamp='" + timestamp + '\''
-                + ", from='" + from + '\''
-                + ", dataHash='" + dataHash + '\''
-                + ", dataSize=" + dataSize
-                + ", signature='" + signature + '\''
-                + ", transactionHash='" + transactionHash + '\''
-                + ", transactionData='" + transactionData + '\''
-                + '}';
     }
 }
