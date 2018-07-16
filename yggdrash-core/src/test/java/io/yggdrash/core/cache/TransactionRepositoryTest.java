@@ -16,6 +16,8 @@ import org.springframework.test.context.junit4.SpringRunner;
 import javax.annotation.Resource;
 import java.io.IOException;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class TransactionRepositoryTest {
@@ -27,15 +29,9 @@ public class TransactionRepositoryTest {
     @Test
     public void addNewTransaction() throws IOException, DecoderException {
         Transaction tx = newTransaction();
-        for (int i = 0; i < 100; i++) {
-            Transaction tmpTx = newTransaction();
-            log.debug(tmpTx.getHashString());
-            txr.addTransaction(newTransaction(), false);
-        }
         txr.addTransaction(tx, false);
         Transaction getTx = txr.getTransaction(tx.getHashString());
-        assert getTx == tx;
-
+        assertThat(getTx).isEqualTo(tx);
     }
 
     @Test
@@ -81,9 +77,8 @@ public class TransactionRepositoryTest {
         Transaction tx = newTransaction();
         txr.addTransaction(tx, false);
         txr.flushPool();
-        Transaction tx2 = txr.getTransaction(tx.getHashString());
-
-        assert tx2 == null;
+        Transaction foundTx = txr.getTransaction(tx.getHashString());
+        assertThat(foundTx).isNull();
     }
 
 

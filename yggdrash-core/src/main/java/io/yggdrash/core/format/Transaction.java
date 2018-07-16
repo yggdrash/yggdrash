@@ -4,7 +4,7 @@ import io.yggdrash.core.TransactionHeader;
 
 import java.io.IOException;
 
-public interface TransactionFormat {
+public interface Transaction {
     public String getHashString() throws IOException;
 
     public byte[] getHash() throws IOException;

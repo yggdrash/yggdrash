@@ -2,16 +2,15 @@ package io.yggdrash.node.mock;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.core.Account;
-import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHeader;
-import io.yggdrash.core.format.TransactionFormat;
+import io.yggdrash.core.format.Transaction;
 import io.yggdrash.crypto.ECKey;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 import java.math.BigInteger;
 
-public class TransactionMock implements TransactionFormat {
+public class TransactionMock implements Transaction {
 
     public int version;
     public int type;
@@ -98,7 +97,7 @@ public class TransactionMock implements TransactionFormat {
     }
 
 
-    public Transaction retTxMock() throws IOException {
+    public io.yggdrash.core.Transaction retTxMock() throws IOException {
 
         String privString = "8373419eea00d202d1752813c588109cb9560e7c8dccdc05c8b8fc5b74949438";
         BigInteger privateKey = new BigInteger(privString, 16);
@@ -125,7 +124,7 @@ public class TransactionMock implements TransactionFormat {
                 "c6b5e583ec18891e9de0e29c3f0358a5c99c474bc3ee78e90c618db72193c0");
         txObj.addProperty("transactionData", txData.toString());
 
-        Transaction tx = new Transaction(from, txObj);
+        io.yggdrash.core.Transaction tx = new io.yggdrash.core.Transaction(from, txObj);
 
         return tx;
     }

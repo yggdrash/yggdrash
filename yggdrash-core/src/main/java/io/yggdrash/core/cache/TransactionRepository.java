@@ -1,5 +1,6 @@
 package io.yggdrash.core.cache;
 
+import io.yggdrash.core.SimpleTransactionPool;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.datasource.LevelDbDataSource;
 import org.apache.commons.codec.DecoderException;
@@ -7,8 +8,6 @@ import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.concurrent.ConcurrentMapCache;
 import org.springframework.stereotype.Repository;
 
 import java.io.ByteArrayInputStream;
@@ -25,16 +24,15 @@ import java.util.Objects;
 @Repository("yggdrash.transaction")
 public class TransactionRepository {
     private final LevelDbDataSource db;
+    private final SimpleTransactionPool transactionPool;
 
     private static final Logger log = LoggerFactory.getLogger(TransactionRepository.class);
 
-    @Value("#{cacheManager.getCache('transactionPool')}")
-    private ConcurrentMapCache transactionPool;
-
     @Autowired
-    public TransactionRepository(LevelDbDataSource db) {
+    public TransactionRepository(LevelDbDataSource db, SimpleTransactionPool transactionPool) {
         this.db = db;
         this.db.init();
+        this.transactionPool = transactionPool;
     }
 
     /**

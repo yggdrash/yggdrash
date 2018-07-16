@@ -2,14 +2,13 @@ package io.yggdrash.core;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.JsonObject;
-import io.yggdrash.core.format.TransactionFormat;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.util.SerializeUtils;
 
 import java.io.IOException;
 import java.io.Serializable;
 
-public class Transaction implements Serializable, TransactionFormat {
+public class Transaction implements Serializable, io.yggdrash.core.format.Transaction {
 
     // Header
     private TransactionHeader header;

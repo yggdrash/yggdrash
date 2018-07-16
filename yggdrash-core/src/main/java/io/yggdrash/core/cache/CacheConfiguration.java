@@ -1,5 +1,6 @@
 package io.yggdrash.core.cache;
 
+import io.yggdrash.core.SimpleTransactionPool;
 import io.yggdrash.core.datasource.LevelDbDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,5 +20,10 @@ public class CacheConfiguration {
     @Bean
     LevelDbDataSource levelDbDataSource() {
         return new LevelDbDataSource("tx");
+    }
+
+    @Bean
+    SimpleTransactionPool transactionPool() {
+        return new SimpleTransactionPool();
     }
 }
