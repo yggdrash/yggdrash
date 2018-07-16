@@ -19,13 +19,19 @@ package io.yggdrash.node;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.net.NodeSyncServer;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.node.mock.NodeManagerMock;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping;
 
 @Configuration
-class NodeConfig {
+public class NodeConfig {
+
+    @Bean
+    NodeProperties nodeProperties() {
+        return new NodeProperties();
+    }
 
     @Bean
     PeerGroup peerGroup() {
@@ -33,13 +39,13 @@ class NodeConfig {
     }
 
     @Bean
-    MessageSender messageSender() {
-        return new MessageSender();
+    MessageSender messageSender(PeerGroup peerGroup, NodeProperties nodeProperties) {
+        return new MessageSender(peerGroup, nodeProperties);
     }
 
     @Bean
-    NodeManager nodeManager(MessageSender messageSender) {
-        NodeManager manager = new NodeManagerMock();
+    NodeManager nodeManager(MessageSender messageSender, NodeProperties nodeProperties) {
+        NodeManager manager = new NodeManagerMock(nodeProperties);
         manager.setListener(messageSender);
         return manager;
     }

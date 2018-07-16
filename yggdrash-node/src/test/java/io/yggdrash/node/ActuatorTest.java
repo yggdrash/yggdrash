@@ -16,12 +16,12 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.node.config.NodeProperties;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -29,14 +29,14 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-                value={"grpc.port=39999"})
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 public class ActuatorTest {
-    @Autowired
-    private TestRestTemplate restTemplate;
 
-    @LocalServerPort
-    int randomServerPort;
+    @Autowired
+    TestRestTemplate restTemplate;
+
+    @Autowired
+    NodeProperties properties;
 
     @Test
     public void shouldCheckHealthOfNode() {
@@ -44,5 +44,16 @@ public class ActuatorTest {
                 "/actuator/health", String.class);
         assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.OK);
         assertThat(entity.getBody()).contains("\"status\":\"UP\"");
+    }
+
+    @Test
+    public void getGrpc() {
+        assert properties.getGrpc().getHost().equals("localhost");
+        assert properties.getGrpc().getPort() == 9090;
+    }
+
+    @Test
+    public void getPeer() {
+        assert properties.getSeedPeerList().size() > 0;
     }
 }

@@ -51,13 +51,12 @@ class NodeScheduler {
     @Scheduled(initialDelay = 1000 * 5, fixedRate = 1000 * BLOCK_MINE_SEC)
     public void generateBlock() throws IOException, NotValidteException {
         if (nodeQueue.isEmpty()) {
-            nodeQueue.addAll(nodeManager.getPeerIdList());
+            nodeQueue.addAll(messageSender.getPeerIdList());
         }
         String peerId = nodeQueue.poll();
-        if (peerId.equals(nodeManager.getNodeId())) {
+        if (peerId != null && peerId.equals(nodeManager.getNodeId())) {
             nodeManager.generateBlock();
-        }
-        else {
+        } else {
             log.debug("ignored peerId=" + peerId);
         }
     }

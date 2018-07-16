@@ -115,6 +115,7 @@ project(':yggdrash-node') {
         compile("com.github.briandilley.jsonrpc4j:jsonrpc4j:1.3.2")
         compile("org.springframework.boot:spring-boot-starter-web")
         compile("org.springframework.boot:spring-boot-starter-actuator")
+        annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
     }
 }
 

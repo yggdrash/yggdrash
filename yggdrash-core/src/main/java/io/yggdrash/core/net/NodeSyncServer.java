@@ -16,10 +16,10 @@
 
 package io.yggdrash.core.net;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
-import io.yggdrash.core.Account;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
@@ -32,7 +32,6 @@ import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 import java.util.Set;
@@ -40,12 +39,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class NodeSyncServer {
     private static final Logger log = LoggerFactory.getLogger(NodeSyncServer.class);
-    private static final String PEER_FORMAT = "%s://%s@%s:%d";
     private NodeManager nodeManager;
     private Server server;
-    private String host;
-    private int port;
 
+    @VisibleForTesting
     public NodeSyncServer() {
     }
 
@@ -53,15 +50,7 @@ public class NodeSyncServer {
         this.nodeManager = nodeManager;
     }
 
-    public void setHost(String host) {
-        this.host = host;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public void start() throws IOException {
+    public void start(int port) throws IOException {
         server = ServerBuilder.forPort(port)
                 .addService(new PingPongImpl())
                 .addService(new BlockChainImpl(nodeManager))
@@ -74,21 +63,6 @@ public class NodeSyncServer {
             NodeSyncServer.this.stop();
             System.err.println("*** server shut down");
         }));
-    }
-
-    /**
-     * Init peer.
-     */
-    public void initPeer() {
-        // my peer
-        String pubKey = Hex.toHexString(new Account().getKey().getPubKey());
-        Peer peer = new Peer(String.format(PEER_FORMAT, Peer.YEED_PEER_SCHEMA, pubKey, host, port));
-        nodeManager.addPeer(peer);
-        // TODO add a static temporary peer
-        String otherKey = Hex.toHexString(new Account().getKey().getPubKey());
-        Peer otherPeer = new Peer(String.format(PEER_FORMAT, Peer.YEED_PEER_SCHEMA, otherKey, host,
-                port));
-        nodeManager.addPeer(otherPeer);
     }
 
     /**

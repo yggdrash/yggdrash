@@ -17,11 +17,11 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.net.NodeSyncServer;
+import io.yggdrash.node.config.NodeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -29,25 +29,18 @@ import org.springframework.stereotype.Component;
 public class GRpcServerRunner implements CommandLineRunner, DisposableBean {
     private static final Logger log = LoggerFactory.getLogger(GRpcServerRunner.class);
 
-    @Value("${grpc.host:localhost}")
-    private String grpcHost;
-
-    @Value("${grpc.port}")
-    private int grpcPort;
-
+    private final NodeProperties nodeProperties;
     private final NodeSyncServer nodeSyncServer;
 
     @Autowired
-    public GRpcServerRunner(NodeSyncServer nodeSyncServer) {
+    public GRpcServerRunner(NodeProperties nodeProperties, NodeSyncServer nodeSyncServer) {
+        this.nodeProperties = nodeProperties;
         this.nodeSyncServer = nodeSyncServer;
     }
 
     @Override
     public void run(String... args) throws Exception {
-        nodeSyncServer.setHost(grpcHost);
-        nodeSyncServer.setPort(grpcPort);
-        nodeSyncServer.initPeer();
-        nodeSyncServer.start();
+        nodeSyncServer.start(nodeProperties.getGrpc().getPort());
         startDaemonAwaitThread();
     }
 

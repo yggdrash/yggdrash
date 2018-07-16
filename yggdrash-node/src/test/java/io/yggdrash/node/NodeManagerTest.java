@@ -25,6 +25,7 @@ import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.exception.NotValidteException;
 import io.yggdrash.core.net.Peer;
+import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.node.mock.NodeManagerMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,7 +44,12 @@ public class NodeManagerTest {
 
     @Before
     public void setUp() throws Exception {
-        nodeManager = new NodeManagerMock();
+        NodeProperties properties = new NodeProperties();
+        properties.getGrpc().setHost("localhost");
+        properties.getGrpc().setPort(9090);
+        nodeManager = new NodeManagerMock(properties);
+        assert nodeManager.getNodeId() != null;
+
         Account author = new Account();
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
@@ -91,19 +97,4 @@ public class NodeManagerTest {
         assert chainedBlock.getData().getSize() == 1;
         assert nodeManager.getTxByHash(tx.getHashString()) == null;
     }
-
-    @Test
-    public void peerTest() {
-        assert nodeManager.getNodeId() == null;
-        Peer peer = new Peer("ynode://0462b608@localhost:9090");
-        nodeManager.addPeer(peer);
-        assertThat(nodeManager.getNodeId()).isEqualTo("0462b608");
-        assertThat(nodeManager.getPeerIdList()).contains("0462b608");
-
-        Peer newPeer = new Peer("ynode://04cdade0@localhost:9091");
-        nodeManager.addPeer(newPeer);
-        assertThat(nodeManager.getPeerIdList().size()).isEqualTo(2);
-        assertThat(nodeManager.getPeerIdList()).containsExactlyInAnyOrder("0462b608", "04cdade0");
-    }
-
 }

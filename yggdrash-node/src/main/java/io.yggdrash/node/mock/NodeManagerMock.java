@@ -24,8 +24,8 @@ import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionPool;
 import io.yggdrash.core.exception.NotValidteException;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.node.BlockBuilder;
+import io.yggdrash.node.config.NodeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,7 +35,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class NodeManagerMock implements NodeManager {
     private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
@@ -46,18 +45,24 @@ public class NodeManagerMock implements NodeManager {
 
     private final TransactionPool transactionPool = new TransactionPoolMock();
 
-    private final PeerGroup peerGroup = new PeerGroup();
-
-    private String nodeId;
+    private Peer peer;
 
     private NodeEventListener listener;
+
+    public NodeProperties properties;
+
+    public NodeManagerMock(NodeProperties nodeProperties) {
+        this.properties = nodeProperties;
+        String host = properties.getGrpc().getHost();
+        int port = properties.getGrpc().getPort();
+        this.peer = Peer.valueOf(host, port);
+    }
 
     @PostConstruct
     private void init() {
         if (listener == null) {
             return;
         }
-
         try {
             List<Block> blockList = listener.syncBlock(blockChain.getLastIndex());
             for (Block block : blockList) {
@@ -145,20 +150,10 @@ public class NodeManagerMock implements NodeManager {
 
     @Override
     public String getNodeId() {
-        return nodeId;
-    }
-
-    @Override
-    public void addPeer(Peer peer) {
-        if (nodeId == null) {
-            this.nodeId = peer.getId();
+        if (peer == null) {
+            return null;
         }
-        peerGroup.addPeer(peer);
-    }
-
-    @Override
-    public List<String> getPeerIdList() {
-        return peerGroup.getPeers().stream().map(Peer::getId).collect(Collectors.toList());
+        return peer.getIdShort();
     }
 
     private void removeTxByBlock(Block block) throws IOException {

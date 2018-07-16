@@ -16,6 +16,8 @@
 
 package io.yggdrash.core.net;
 
+import com.google.common.annotations.VisibleForTesting;
+import io.yggdrash.core.Account;
 import io.yggdrash.util.Utils;
 import org.spongycastle.util.encoders.Hex;
 
@@ -23,22 +25,25 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class Peer {
-    public static final String YEED_PEER_SCHEMA = "ynode";
+    private static final String PEER_URI_FORMAT = "%s://%s@%s";
+
+    public static final String YGGDRASH_NODE_SCHEMA = "ynode";
 
     private byte[] id;
-    String host;
-    int port;
+    private String host;
+    private int port;
 
+    @VisibleForTesting
     public Peer(String host, int port) {
         this.id = "node".getBytes();
         this.host = host;
         this.port = port;
     }
 
-    public Peer(String enodeURL) {
+    private Peer(String ynode) {
         try {
-            URI uri = new URI(enodeURL);
-            if (!uri.getScheme().equals(YEED_PEER_SCHEMA)) {
+            URI uri = new URI(ynode);
+            if (!uri.getScheme().equals(YGGDRASH_NODE_SCHEMA)) {
                 throw new RuntimeException("expecting URL in the format ynode://PUBKEY@HOST:PORT");
             }
             this.id = Hex.decode(uri.getUserInfo());
@@ -49,7 +54,7 @@ public class Peer {
         }
     }
 
-    public String getId() {
+    public String getIdShort() {
         return Utils.getNodeIdShort(getHexId());
     }
 
@@ -65,4 +70,21 @@ public class Peer {
         return port;
     }
 
+    public static Peer valueOf(String host, int port) {
+        return valueOf(host + ":" + port);
+    }
+
+    public static Peer valueOf(String addressOrYnode) {
+        try {
+            URI uri = new URI(addressOrYnode);
+            if (uri.getScheme().equals(YGGDRASH_NODE_SCHEMA)) {
+                return new Peer(addressOrYnode);
+            }
+        } catch (URISyntaxException e) {
+            // continue
+        }
+        final String generatedNodeId = Hex.toHexString(new Account().getKey().getNodeId());
+        return new Peer(String.format(PEER_URI_FORMAT, YGGDRASH_NODE_SCHEMA,
+                generatedNodeId, addressOrYnode));
+    }
 }
