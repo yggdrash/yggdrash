@@ -125,9 +125,7 @@ public class TransactionApiTest {
         String address = "0x407d73d8a49eeb85d32cf465507dd71d507100c1";
         String tag = "latest";
         String hashOfBlock = "0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf";
-        String hashOfTx = "0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf";
         int blockNumber = 1;
-        int txIndexPosition = 1;
 
         assertThat(1).isEqualTo(txapi.getTransactionCount(address, tag));
         assertThat(2).isEqualTo(txapi.getTransactionCount(address, blockNumber));
@@ -135,18 +133,6 @@ public class TransactionApiTest {
         assertThat(4).isEqualTo(txapi.getBlockTransactionCountByNumber(blockNumber));
         assertThat(5).isEqualTo(txapi.getBlockTransactionCountByNumber(tag));
         assertThat(6).isEqualTo(txapi.newPendingTransactionFilter());
-
-
-        JsonObject test = new JsonObject();
-
-        test.addProperty("version", "0");
-        test.addProperty("type", "00000000000000");
-        test.addProperty("timestamp", "155810745733540");
-        test.addProperty("from", "hello");
-        test.addProperty("dataHash", "ba5f3ea40e95f49bce11942f375ebd3882eb837976eda5c0cb78b9b99ca7b485");
-        test.addProperty("dataSize", "13");
-        test.addProperty("signature", "b86e02880e12c575e56c5d15e1f491595219295076721a5bfb6042463d6a2d768331691db0b8de852390305c0f2b218e596e4a59bf54029cf6a8b9afdbb274104");
-        test.addProperty("transactionHash", "c6b5e583ec18891e9de0e29c3f0358a5c99c474bc3ee78e90c618db72193c0");
     }
 
 }

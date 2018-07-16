@@ -88,11 +88,12 @@ public class TransactionApiImpl implements TransactionApi {
     }
 
     @Override
-    public String sendRawTransaction(String jsonByteArr) throws ParseException,JsonProcessingException {
+    public String sendRawTransaction(String jsonByteArr)
+            throws ParseException,JsonProcessingException {
         TransactionDto transactionDto = new TransactionDto();
         Transaction tx = transactionDto.jsonByteArrToTx(jsonByteArr);
         ObjectMapper objectMapper = new ObjectMapper();
-       return "sendRawTransaction [success] " + objectMapper.writeValueAsString(tx);
+        return "sendRawTransaction [success] " + objectMapper.writeValueAsString(tx);
     }
 
     @Override

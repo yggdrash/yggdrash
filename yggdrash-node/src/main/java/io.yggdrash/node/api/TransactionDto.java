@@ -77,17 +77,14 @@ public class TransactionDto {
         txHeaderLength = typeLength + versionLength + dataHashLength + timestampLength
                         + dataHashLength + dataSizeLength + signatureLength;
 
-        type = Arrays.copyOfRange(bytes, 0, typeLength);
-        version = Arrays.copyOfRange(bytes, typeLength, typeLength + versionLength);
-        dataHash = Arrays.copyOfRange(bytes, typeLength + versionLength,
-                                               typeLength + versionLength + dataHashLength);
-        timestamp = Arrays.copyOfRange(bytes, typeLength + versionLength + dataHashLength,
-                                                typeLength + versionLength + dataHashLength + timestampLength);
-        dataSize = Arrays.copyOfRange(bytes, typeLength + versionLength + dataHashLength + timestampLength,
-                                               typeLength + versionLength + dataHashLength + timestampLength + dataSizeLength);
-        signature = Arrays.copyOfRange(bytes, typeLength + versionLength + dataHashLength + timestampLength + dataSizeLength,
-                                                typeLength + versionLength + dataHashLength + timestampLength + dataSizeLength + signatureLength);
-        byte[] data = Arrays.copyOfRange(bytes, typeLength + versionLength + dataHashLength + timestampLength + dataSizeLength, txHeaderLength);
+        int sum = 0;
+        type = Arrays.copyOfRange(bytes, sum, sum += typeLength);
+        version = Arrays.copyOfRange(bytes, sum, sum += versionLength);
+        dataHash = Arrays.copyOfRange(bytes, sum, sum += dataHashLength);
+        timestamp = Arrays.copyOfRange(bytes, sum, sum += timestampLength);
+        dataSize = Arrays.copyOfRange(bytes, sum, sum += dataSizeLength);
+        signature = Arrays.copyOfRange(bytes, sum, sum += signatureLength);
+        byte[] data = Arrays.copyOfRange(bytes, sum, txHeaderLength);
 
         Long timestampStr = Longs.fromByteArray(timestamp);
         Long dataSizeStr = Longs.fromByteArray(dataSize);
@@ -96,7 +93,8 @@ public class TransactionDto {
         // ** Validation **
 
         TransactionHeader txHeader;
-        txHeader = new TransactionHeader(type, version, dataHash, timestampStr, dataSizeStr, signature);
+        txHeader = new TransactionHeader(
+                type, version, dataHash, timestampStr, dataSizeStr, signature);
 
         return new Transaction(txHeader, dataStr);
     }

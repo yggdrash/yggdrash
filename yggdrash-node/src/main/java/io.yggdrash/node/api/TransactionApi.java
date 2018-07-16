@@ -110,7 +110,7 @@ public interface TransactionApi {
      *
      * @param tx          The transaction object
      */
-    String sendTransaction (
+    String sendTransaction(
             @JsonRpcParam(value = "tx") String tx) throws ParseException,JsonProcessingException;
 
     /**
@@ -118,8 +118,8 @@ public interface TransactionApi {
      *
      * @param rawTx     The signed transaction data.
      */
-    String sendRawTransaction(
-            @JsonRpcParam(value = "rawTx") String rawTx) throws ParseException,JsonProcessingException;
+    String sendRawTransaction(@JsonRpcParam(value = "rawTx") String rawTx)
+            throws ParseException,JsonProcessingException;
 
     /**
      *  Creates new message call transaction or a contract creation for signed transactions.
