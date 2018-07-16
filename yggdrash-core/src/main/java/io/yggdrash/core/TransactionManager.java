@@ -16,8 +16,8 @@
 
 package io.yggdrash.core;
 
-import io.yggdrash.core.cache.SimpleTransactionPool;
-import io.yggdrash.core.datasource.LevelDbDataSource;
+import io.yggdrash.core.store.SimpleTransactionPool;
+import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 

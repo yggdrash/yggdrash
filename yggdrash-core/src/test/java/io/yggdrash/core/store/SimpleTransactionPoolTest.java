@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.cache;
+package io.yggdrash.core.store;
 
 import io.yggdrash.TestUtils;
 import org.junit.Ignore;
@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Ignore
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = CacheConfiguration.class)
+@SpringBootTest(classes = StoreConfiguration.class)
 public class SimpleTransactionPoolTest {
     @Autowired
     SimpleTransactionPool stp;

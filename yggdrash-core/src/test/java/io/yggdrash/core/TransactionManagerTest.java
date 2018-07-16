@@ -18,7 +18,7 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.cache.CacheConfiguration;
+import io.yggdrash.core.store.StoreConfiguration;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,7 +30,7 @@ import java.io.IOException;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {CacheConfiguration.class})
+@SpringBootTest(classes = {StoreConfiguration.class})
 public class TransactionManagerTest {
     @Autowired
     TransactionManager tm;

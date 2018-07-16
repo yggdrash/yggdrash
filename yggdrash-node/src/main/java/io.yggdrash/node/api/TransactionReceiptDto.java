@@ -1,6 +1,6 @@
 package io.yggdrash.node.api;
 
-import io.yggdrash.core.cache.TransactionPool;
+import io.yggdrash.core.store.TransactionPool;
 
 public class TransactionReceiptDto {
 

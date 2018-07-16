@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.cache;
+package io.yggdrash.core.store;
 
 import io.yggdrash.core.Transaction;
 

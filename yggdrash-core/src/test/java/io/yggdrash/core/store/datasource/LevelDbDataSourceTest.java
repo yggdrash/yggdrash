@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.datasource;
+package io.yggdrash.core.store.datasource;
 
 import org.junit.Test;
 
