@@ -19,6 +19,8 @@ package io.yggdrash.node;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.NodeEventListener;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.mapper.BlockMapper;
+import io.yggdrash.core.mapper.TransactionMapper;
 import io.yggdrash.core.net.NodeSyncClient;
 import io.yggdrash.proto.BlockChainProto;
 import org.slf4j.Logger;
@@ -28,6 +30,10 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 @Service
 public class MessageSender implements DisposableBean, NodeEventListener {
@@ -57,12 +63,49 @@ public class MessageSender implements DisposableBean, NodeEventListener {
     @Override
     public void newTransaction(Transaction tx) {
         log.debug("New transaction={}", tx);
-        nodeSyncClient.broadcastTransaction(new BlockChainProto.Transaction[] {Transaction.of(tx)});
+        BlockChainProto.Transaction protoTx
+                = TransactionMapper.transactionToProtoTransaction(tx);
+        BlockChainProto.Transaction[] txns = new BlockChainProto.Transaction[] {protoTx};
+        nodeSyncClient.broadcastTransaction(txns);
     }
 
     @Override
     public void newBlock(Block block) {
         log.debug("New block={}", block);
-        nodeSyncClient.broadcastBlock(new BlockChainProto.Block[] {Block.of(block)});
+        BlockChainProto.Block[] blocks
+                = new BlockChainProto.Block[] {BlockMapper.blockToProtoBlock(block)};
+        nodeSyncClient.broadcastBlock(blocks);
+    }
+
+    /**
+     * Sync block list.
+     *
+     * @param offset the offset
+     * @return the block list
+     */
+    @Override
+    public List<Block> syncBlock(long offset) throws IOException {
+        List<BlockChainProto.Block> blockList = nodeSyncClient.syncBlock(offset);
+        log.debug("Synchronize block offset=" + offset);
+        if (blockList == null || blockList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        log.debug("Synchronize block received=" + blockList.size());
+        List<Block> syncList = new ArrayList<>(blockList.size());
+        for (BlockChainProto.Block block : blockList) {
+            syncList.add(BlockMapper.protoBlockToBlock(block));
+        }
+        return syncList;
+    }
+
+    @Override
+    public List<Transaction> syncTransaction() throws IOException {
+        List<BlockChainProto.Transaction> txList = nodeSyncClient.syncTransaction();
+        log.debug("Synchronize transaction received=" + txList.size());
+        List<Transaction> syncList = new ArrayList<>(txList.size());
+        for (BlockChainProto.Transaction tx : txList) {
+            syncList.add(TransactionMapper.protoTransactionToTransaction(tx));
+        }
+        return syncList;
     }
 }

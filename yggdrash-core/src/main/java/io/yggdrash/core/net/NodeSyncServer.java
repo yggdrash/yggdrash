@@ -22,6 +22,8 @@ import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.mapper.BlockMapper;
+import io.yggdrash.core.mapper.TransactionMapper;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.proto.Ping;
@@ -36,7 +38,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class NodeSyncServer {
     private static final Logger log = LoggerFactory.getLogger(NodeSyncServer.class);
-    private static NodeManager nodeManager;
+    private NodeManager nodeManager;
     private Server server;
     private int port;
 
@@ -54,7 +56,7 @@ public class NodeSyncServer {
     public void start() throws IOException {
         server = ServerBuilder.forPort(port)
                 .addService(new PingPongImpl())
-                .addService(new BlockChainImpl())
+                .addService(new BlockChainImpl(nodeManager))
                 .build()
                 .start();
         log.info("GRPC Server started, listening on " + port);
@@ -91,12 +93,66 @@ public class NodeSyncServer {
         }
     }
 
+    /**
+     * The block chain rpc server implementation.
+     */
     static class BlockChainImpl extends BlockChainGrpc.BlockChainImplBase {
+        private NodeManager nodeManager;
+
+        BlockChainImpl(NodeManager nodeManager) {
+            this.nodeManager = nodeManager;
+        }
+
         private static Set<StreamObserver<BlockChainProto.Transaction>> txObservers =
                 ConcurrentHashMap.newKeySet();
 
         private static Set<StreamObserver<BlockChainProto.Block>> blockObservers =
                 ConcurrentHashMap.newKeySet();
+
+        /**
+         * Sync block response
+         *
+         * @param syncLimit the start block index and limit to sync
+         * @param responseObserver the observer response to the block list
+         */
+        @Override
+        public void syncBlock(BlockChainProto.SyncLimit syncLimit,
+                              StreamObserver<BlockChainProto.BlockList> responseObserver) {
+            long offset = syncLimit.getOffset();
+            long limit = syncLimit.getLimit();
+            log.debug("Synchronize block request offset={}, limit={}", offset, limit);
+
+            BlockChainProto.BlockList.Builder builder = BlockChainProto.BlockList.newBuilder();
+            for (Block block : nodeManager.getBlocks()) {
+                if (block.getIndex() >= offset) {
+                    builder.addBlocks(BlockMapper.blockToProtoBlock(block));
+                }
+                if (limit > 0 && builder.getBlocksCount() > limit) {
+                    break;
+                }
+            }
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
+
+        /**
+         * Sync block response
+         *
+         * @param empty the empty message
+         * @param responseObserver the observer response to the transaction list
+         */
+        @Override
+        public void syncTransaction(BlockChainProto.Empty empty,
+                              StreamObserver<BlockChainProto.TransactionList> responseObserver) {
+            log.debug("Synchronize tx request");
+            BlockChainProto.TransactionList.Builder builder
+                    = BlockChainProto.TransactionList.newBuilder();
+            for (Transaction tx : nodeManager.getTransactionList()) {
+                builder.addTransactions(TransactionMapper.transactionToProtoTransaction(tx));
+            }
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        }
 
         @Override
         public StreamObserver<BlockChainProto.Transaction> broadcastTransaction(
@@ -111,7 +167,9 @@ public class NodeSyncServer {
                     Transaction newTransaction = null;
                     if (nodeManager != null) {
                         try {
-                            newTransaction = nodeManager.addTransaction(Transaction.valueOf(tx));
+                            Transaction transaction
+                                    = TransactionMapper.protoTransactionToTransaction(tx);
+                            newTransaction = nodeManager.addTransaction(transaction);
                         } catch (IOException e) {
                             log.error(e.getMessage());
                         }
@@ -154,7 +212,7 @@ public class NodeSyncServer {
                     Block newBlock = null;
                     if (nodeManager != null) {
                         try {
-                            newBlock = nodeManager.addBlock(Block.valueOf(block));
+                            newBlock = nodeManager.addBlock(BlockMapper.protoBlockToBlock(block));
                         } catch (Exception e) {
                             log.error(e.getMessage());
                         }
