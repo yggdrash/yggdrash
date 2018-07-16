@@ -14,17 +14,23 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core;
+package io.yggdrash.core.cache;
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cache.concurrent.ConcurrentMapCache;
+import io.yggdrash.core.Transaction;
+import org.ehcache.Cache;
+import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class SimpleTransactionPool implements TransactionPool {
-    @Value("#{cacheManager.getCache('transactionPool')}")
-    private ConcurrentMapCache transactionPool;
+    private final Cache<byte[], byte[]> cache;
+
+    @Autowired
+    public SimpleTransactionPool(Cache<byte[], byte[]> cache) {
+        this.cache = cache;
+    }
 
     @Override
     public Transaction getTxByHash(String id) {
@@ -32,7 +38,7 @@ public class SimpleTransactionPool implements TransactionPool {
     }
 
     @Override
-    public Transaction addTx(Transaction tx) throws IOException {
+    public Transaction addTx(Transaction tx) {
         return null;
     }
 
@@ -46,15 +52,23 @@ public class SimpleTransactionPool implements TransactionPool {
 
     }
 
-    public Transaction get(String hashString, Class<Transaction> transactionClass) {
-        return transactionPool.get(hashString, transactionClass);
-    }
-
-    public void putIfAbsent(String hashString, Transaction tx) {
-        transactionPool.putIfAbsent(hashString, tx);
+    public void put(byte[] key, byte[] value) {
+        cache.put(key, value);
     }
 
     public void clear() {
-        transactionPool.clear();
+        cache.clear();
+    }
+
+    public byte[] get(byte[] key) {
+        return cache.get(key);
+    }
+
+    public Map<byte[], byte[]> getList(Set<byte[]> keys) {
+        return cache.getAll(keys);
+    }
+
+    public void remove(Set<byte[]> keys) {
+        cache.removeAll(keys);
     }
 }

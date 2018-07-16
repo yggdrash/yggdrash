@@ -4,6 +4,7 @@ package io.yggdrash.core.cache;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.Account;
 import io.yggdrash.core.Transaction;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -25,6 +26,7 @@ import java.util.concurrent.ConcurrentMap;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
+@Ignore
 public class CacheConfigurationTest {
 
     private static final Logger log = LoggerFactory.getLogger(CacheConfigurationTest.class);

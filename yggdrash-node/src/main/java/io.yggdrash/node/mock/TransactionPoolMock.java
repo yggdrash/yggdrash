@@ -16,7 +16,7 @@
 
 package io.yggdrash.node.mock;
 
-import io.yggdrash.core.TransactionPool;
+import io.yggdrash.core.cache.TransactionPool;
 
 import java.io.IOException;
 import java.util.ArrayList;

@@ -23,6 +23,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static org.iq80.leveldb.impl.Iq80DBFactory.factory;
 
@@ -30,6 +32,8 @@ public class LevelDbDataSource {
 
     private static final Logger log = LoggerFactory.getLogger(LevelDbDataSource.class);
     private static final String DB_PATH = "resources/db/";
+
+    private ReadWriteLock resetDbLock = new ReentrantReadWriteLock();
 
     private String name;
     private DB db;
@@ -39,22 +43,36 @@ public class LevelDbDataSource {
     }
 
     public void init() {
-        log.debug("Initialize {} db", name);
+        resetDbLock.writeLock().lock();
         try {
+            log.debug("Initialize {} db", name);
             // TODO resource path set by profile or setting file
             Options options = new Options();
             options.createIfMissing(true);
             this.db = factory.open(new File(DB_PATH + name), options);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            resetDbLock.writeLock().unlock();
         }
     }
 
     public void put(byte[] key, byte[] value) {
-        db.put(key, value);
+        resetDbLock.writeLock().lock();
+
+        try {
+            db.put(key, value);
+        } finally {
+            resetDbLock.writeLock().unlock();
+        }
     }
 
     public byte[] get(byte[] key) {
-        return db.get(key);
+        resetDbLock.writeLock().lock();
+        try {
+            return db.get(key);
+        } finally {
+            resetDbLock.writeLock().unlock();
+        }
     }
 }
