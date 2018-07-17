@@ -14,19 +14,14 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import java.util.Random;
 
-@Component
-class NodeScheduler {
-    @Autowired
-    MessageSender messageSender;
-
-    @Scheduled(fixedRate = 1000 * 5)
-    public void ping() {
-        messageSender.ping();
+public class TestUtils {
+    public static byte[] randomBytes(int length) {
+        byte[] result = new byte[length];
+        new Random().nextBytes(result);
+        return result;
     }
 }

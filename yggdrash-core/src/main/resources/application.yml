@@ -1,7 +1,3 @@
 logging:
   level:
    io.yggdrash: debug
-spring:
-  cache:
-    ehcache:
-      config: classpath:ehcache.xml

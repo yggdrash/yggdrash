@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.core.store;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.stereotype.Component;
+import io.yggdrash.core.Transaction;
 
-@Component
-class NodeScheduler {
-    @Autowired
-    MessageSender messageSender;
+import java.io.IOException;
+import java.util.List;
 
-    @Scheduled(fixedRate = 1000 * 5)
-    public void ping() {
-        messageSender.ping();
-    }
+public interface TransactionPool {
+    Transaction getTxByHash(String id);
+
+    Transaction addTx(Transaction tx) throws IOException;
+
+    List getTxList();
+
+    void removeTx(List<String> hashList);
 }

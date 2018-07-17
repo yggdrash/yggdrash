@@ -1241,6 +1241,11 @@ public class ECKey implements Serializable {
             return new String(Base64.encode(sigData), Charset.forName("UTF-8"));
         }
 
+        /**
+         * Get the signature as byte array.
+         *
+         * @return signature as byte[65]
+         */
         public byte[] toBinary() {
             byte[] sigData = new byte[65];  // 1 header + 32 bytes for R + 32 bytes for S
             sigData[0] = v;

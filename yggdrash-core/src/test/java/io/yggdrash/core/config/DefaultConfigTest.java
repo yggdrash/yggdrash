@@ -57,7 +57,7 @@ public class DefaultConfigTest {
     }
 
     /**
-     * This is the new config file yggdrash_sample.conf.
+     * This is the test for new config file yggdrash_sample.conf.
      * get system config, spring config, yggdrash.conf & yggdrash_sample.conf config.
      */
     @Test
@@ -70,5 +70,15 @@ public class DefaultConfigTest {
 
         System.out.println("newConfigFile key.path: " + defaultConfig.getConfig().getString("key.path"));
 
+    }
+
+    /**
+     * This is the test for printing Class.
+     */
+    @Test
+    public void testToString() {
+        DefaultConfig defaultConfig = new DefaultConfig();
+
+        System.out.println(defaultConfig.toString());
     }
 }
