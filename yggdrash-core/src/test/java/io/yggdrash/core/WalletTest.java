@@ -230,6 +230,63 @@ public class WalletTest {
     }
 
     /**
+     * This is a test method for checking the generation of wallets with configfile or not.
+     */
+    @Test
+    public void testWalletGenerationWithFilePath() {
+
+        DefaultConfig defaultConfig = new DefaultConfig();
+        String keyFilePath= defaultConfig.getConfig().getString("key.path");
+        String password = defaultConfig.getConfig().getString("key.password"); //todo: change as cli interface
+
+        Wallet wallet = null;
+
+        try {
+
+            if (keyFilePath == null || keyFilePath.equals("") || password == null || password.equals("")) {
+                System.out.println("Check yggdrash.conf(key.path & key.password)");
+                assert(false);
+            } else {
+                System.out.println("Private key: " + keyFilePath);
+                System.out.println("Password : "+ password); // for debug
+
+                // check password validation
+                boolean validPassword = Password.passwordValid(password);
+                if (!validPassword) {
+                    System.out.println("Password is not valid");
+                    assert(false);
+                }
+
+                System.out.println("Password is valid");
+
+                // check whether the key file exists
+                Path path = Paths.get(keyFilePath);
+                String keyPath = path.getParent().toString();
+                String keyName = path.getFileName().toString();
+
+                try {
+                    wallet = new Wallet(keyFilePath, password);
+                } catch (Exception e) {
+                    System.out.println("Key file is not exist");
+
+                    try {
+                        wallet = new Wallet(null, keyPath, keyName, password);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        assert(false);
+                    }
+                }
+
+                System.out.println("wallet= " + wallet.toString());
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            assert(false);
+        }
+    }
+
+    /**
      * This is a test method for checking sign & verify method in Wallet class.
      */
     @Test
@@ -276,6 +333,5 @@ public class WalletTest {
 
         assertTrue(verifyResult);
     }
-
 
 }

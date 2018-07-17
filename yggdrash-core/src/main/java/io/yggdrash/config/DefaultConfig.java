@@ -54,7 +54,7 @@ public class DefaultConfig {
 
         String config = null;
         for (Map.Entry<String, ConfigValue> entry : this.config.entrySet()) {
-            if(config == null ) {
+            if (config == null) {
                 config = "{" + entry.getKey() + ":" + entry.getValue() + "}" + "\n,";
 
             }
@@ -62,7 +62,7 @@ public class DefaultConfig {
         }
 
         return "DefaultConfig{"
-                + config.substring(0, config.length()-1)
+                + config.substring(0, config.length() - 1)
                 + "}";
     }
 

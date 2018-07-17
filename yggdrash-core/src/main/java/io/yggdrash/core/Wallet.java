@@ -1,13 +1,11 @@
 package io.yggdrash.core;
 
-import io.yggdrash.config.Constants;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.crypto.AESEncrypt;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.crypto.Password;
 import io.yggdrash.util.FileUtil;
-import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -114,22 +112,22 @@ public class Wallet {
      * Wallet constructor.
      *
      * @param keyPathName key file path + name
-     * @param password password
-     * @throws IOException IOException
+     * @param password    password
+     * @throws IOException                IOException
      * @throws InvalidCipherTextException InvalidCipherTextException
      */
-    public Wallet(String keyPathName, String password) throws IOException, InvalidCipherTextException {
+    public Wallet(String keyPathName, String password)
+            throws IOException, InvalidCipherTextException {
 
         this(FileUtil.getFilePath(keyPathName), FileUtil.getFileName(keyPathName), password);
     }
 
-
     /**
-     * Wallet constructor.
+     * Wallet constructor with DefaultConfig.
      *
-     * @param config
-     * @throws IOException
-     * @throws InvalidCipherTextException
+     * @param config DefaultConfig
+     * @throws IOException                IOException
+     * @throws InvalidCipherTextException InvalidCipherTextException
      */
     public Wallet(DefaultConfig config) throws IOException, InvalidCipherTextException {
         //todo: change password logic to CLI for security
@@ -145,7 +143,7 @@ public class Wallet {
             // check password validation
             if (!Password.passwordValid(keyPassword)) {
                 logger.error("Invalid keyPassword format"
-                    + "(length:12-32, 1 more lower/upper/digit/special");
+                        + "(length:12-32, 1 more lower/upper/digit/special");
                 throw new IOException("Invalid keyPassword format");
             }
 
@@ -222,6 +220,7 @@ public class Wallet {
 
     /**
      * Get public key
+     *
      * @return public key
      */
     public byte[] getPubicKey() {
@@ -230,6 +229,7 @@ public class Wallet {
 
     /**
      * Get address as byte[20]
+     *
      * @return address as byte[20]
      */
     public byte[] getAddress() {
@@ -249,7 +249,7 @@ public class Wallet {
     /**
      * Verify the sign data with data & signature.
      *
-     * @param data data for signed
+     * @param data      data for signed
      * @param signature signature
      * @return verification result
      */
