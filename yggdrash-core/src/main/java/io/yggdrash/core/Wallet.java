@@ -260,6 +260,15 @@ public class Wallet {
         return key.verify(HashUtil.sha3(data), sig);
     }
 
+    /**
+     * Gets node id.
+     *
+     * @return the node id string
+     */
+    public String getNodeId() {
+        return Hex.toHexString(key.getNodeId());
+    }
+
     @Override
     public String toString() {
         return "Wallet{"

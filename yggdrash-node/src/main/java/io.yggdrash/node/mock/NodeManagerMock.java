@@ -23,11 +23,9 @@ import io.yggdrash.core.NodeEventListener;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.store.TransactionPool;
 import io.yggdrash.core.exception.NotValidteException;
-import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.store.TransactionPool;
 import io.yggdrash.node.BlockBuilder;
-import io.yggdrash.node.config.NodeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -52,18 +50,7 @@ public class NodeManagerMock implements NodeManager {
 
     private final Wallet wallet = readWallet();
 
-    private final Peer peer;
-
     private NodeEventListener listener;
-
-    public NodeProperties properties;
-
-    public NodeManagerMock(NodeProperties nodeProperties) {
-        this.properties = nodeProperties;
-        String host = properties.getGrpc().getHost();
-        int port = properties.getGrpc().getPort();
-        this.peer = Peer.valueOf(host, port);
-    }
 
     private Wallet readWallet() {
         Wallet wallet = null;
@@ -106,12 +93,12 @@ public class NodeManagerMock implements NodeManager {
 
     @Override
     public Transaction getTxByHash(String id) {
-        return (Transaction) transactionPool.getTxByHash(id);
+        return transactionPool.getTxByHash(id);
     }
 
     @Override
     public Transaction addTransaction(Transaction tx) throws IOException {
-        Transaction newTx = (Transaction) transactionPool.addTx(tx);
+        Transaction newTx = transactionPool.addTx(tx);
         if (listener != null) {
             listener.newTransaction(tx);
         }
@@ -172,10 +159,7 @@ public class NodeManagerMock implements NodeManager {
 
     @Override
     public String getNodeId() {
-        if (peer == null) {
-            return null;
-        }
-        return peer.getIdShort();
+        return wallet.getNodeId();
     }
 
     private void removeTxByBlock(Block block) throws IOException {

@@ -18,10 +18,14 @@ package io.yggdrash.node;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.*;
+import io.yggdrash.core.Account;
+import io.yggdrash.core.Block;
+import io.yggdrash.core.BlockBody;
+import io.yggdrash.core.BlockHeader;
+import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.Transaction;
+import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.NotValidteException;
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.node.mock.NodeManagerMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,8 +34,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 import static io.yggdrash.config.Constants.PROPERTY_KEYPATH;
 import static org.hamcrest.Matchers.containsString;
@@ -48,10 +50,7 @@ public class NodeManagerTest {
 
     @Before
     public void setUp() throws Exception {
-        NodeProperties properties = new NodeProperties();
-        properties.getGrpc().setHost("localhost");
-        properties.getGrpc().setPort(9090);
-        nodeManager = new NodeManagerMock(properties);
+        nodeManager = new NodeManagerMock();
         assert nodeManager.getNodeId() != null;
 
         Account author = new Account();
