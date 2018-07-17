@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.net;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
@@ -40,8 +41,8 @@ public class NodeSyncServer {
     private static final Logger log = LoggerFactory.getLogger(NodeSyncServer.class);
     private NodeManager nodeManager;
     private Server server;
-    private int port;
 
+    @VisibleForTesting
     public NodeSyncServer() {
     }
 
@@ -49,11 +50,7 @@ public class NodeSyncServer {
         this.nodeManager = nodeManager;
     }
 
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public void start() throws IOException {
+    public void start(int port) throws IOException {
         server = ServerBuilder.forPort(port)
                 .addService(new PingPongImpl())
                 .addService(new BlockChainImpl(nodeManager))
@@ -186,7 +183,7 @@ public class NodeSyncServer {
 
                 @Override
                 public void onError(Throwable t) {
-                    log.warn("Broadcasting transaction failed: {}", t);
+                    log.warn("Broadcasting transaction failed: {}", t.getMessage());
                     txObservers.remove(responseObserver);
                     responseObserver.onError(t);
                 }
@@ -207,12 +204,14 @@ public class NodeSyncServer {
 
             return new StreamObserver<BlockChainProto.Block>() {
                 @Override
-                public void onNext(BlockChainProto.Block block) {
-                    log.debug("Received block: {}", block);
+                public void onNext(BlockChainProto.Block protoBlock) {
+                    log.debug("Received block id=[{}]", protoBlock.getHeader().getIndex());
                     Block newBlock = null;
                     if (nodeManager != null) {
                         try {
-                            newBlock = nodeManager.addBlock(BlockMapper.protoBlockToBlock(block));
+                            Block block = BlockMapper.protoBlockToBlock(protoBlock);
+                            log.debug("Received block hash=" + block.getBlockHash());
+                            newBlock = nodeManager.addBlock(block);
                         } catch (Exception e) {
                             log.error(e.getMessage());
                         }
@@ -223,13 +222,13 @@ public class NodeSyncServer {
                     }
 
                     for (StreamObserver<BlockChainProto.Block> observer : blockObservers) {
-                        observer.onNext(block);
+                        observer.onNext(protoBlock);
                     }
                 }
 
                 @Override
                 public void onError(Throwable t) {
-                    log.warn("Broadcasting block failed: {}", t);
+                    log.warn("Broadcasting block failed: {}", t.getMessage());
                     blockObservers.remove(responseObserver);
                     responseObserver.onError(t);
                 }
