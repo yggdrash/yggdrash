@@ -238,7 +238,7 @@ public class WalletTest {
         Wallet wallet = null;
 
         try {
-            wallet = new Wallet(null, "temp", "temp.key", "Aa1234567890!");
+            wallet = new Wallet(null, "tmp/temp", "temp.key", "Aa1234567890!");
         } catch (Exception e) {
             e.printStackTrace();
             assert(false);

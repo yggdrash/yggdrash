@@ -13,7 +13,7 @@ public class FileUtilTest {
 
     @Test
     public void writeFileTest01() throws IOException {
-        String filePath = "tmp";
+        String filePath = "tmp/tmp";
         String fileName = "tmp.txt";
         byte[] data = "test data".getBytes();
         FileUtil.writeFile(filePath, fileName, data);
@@ -23,7 +23,7 @@ public class FileUtilTest {
 
     @Test
     public void writeFileTest02() throws IOException {
-        String filePath = "tmp02";
+        String filePath = "tmp/tmp02";
         String fileName = "tmp02.txt";
         byte[] data = "test data".getBytes();
 
