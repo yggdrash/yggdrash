@@ -68,6 +68,13 @@ public class NodeSyncClientTest {
 
     @Test
     public void play() {
+        doAnswer((invocationOnMock) -> {
+            StreamObserver<BlockChainProto.BlockList> argument = invocationOnMock.getArgument(1);
+            argument.onNext(null);
+            argument.onCompleted();
+            return null;
+        }).when(pingPongService).play(pingRequestCaptor.capture(), any());
+
         String ping = "Ping";
 
         client.ping(ping);
