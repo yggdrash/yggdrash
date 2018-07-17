@@ -44,9 +44,6 @@ subprojects {
 
     dependencies {
         compile('org.springframework.boot:spring-boot-starter')
-        compile('org.springframework.boot:spring-boot-starter-cache')
-        compile "org.iq80.leveldb:leveldb:${leveldbVersion}"
-
         runtime('org.springframework.boot:spring-boot-devtools')
         testCompile('org.springframework.boot:spring-boot-starter-test')
     }
@@ -67,6 +64,7 @@ project(':yggdrash-core') {
         compile "io.grpc:grpc-stub:${grpcVersion}"
         compile "io.grpc:grpc-netty-shaded:${grpcVersion}"
         compile "commons-codec:commons-codec:${commonsCodec}"
+        compile "org.iq80.leveldb:leveldb:${leveldbVersion}"
         compile group: 'org.ehcache', name: 'ehcache', version: '3.5.2'
         testCompile "io.grpc:grpc-testing:${grpcVersion}"
         compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
