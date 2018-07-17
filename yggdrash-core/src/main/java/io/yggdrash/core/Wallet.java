@@ -1,5 +1,6 @@
 package io.yggdrash.core;
 
+import com.google.common.base.Strings;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.crypto.AESEncrypt;
 import io.yggdrash.crypto.ECKey;
@@ -135,8 +136,7 @@ public class Wallet {
         String keyFilePathName = config.getConfig().getString(PROPERTY_KEYPATH);
         String keyPassword = config.getConfig().getString(PROPERTY_KEYPASSWORD);
 
-        if (keyFilePathName == null || keyFilePathName.equals("")
-                || keyPassword == null || keyPassword.equals("")) {
+        if (Strings.isNullOrEmpty(keyFilePathName) || Strings.isNullOrEmpty(keyPassword)) {
             logger.error("Invalid keyPath or keyPassword");
             throw new IOException("Invalid keyPath or keyPassword");
         } else {

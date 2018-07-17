@@ -1,5 +1,6 @@
 package io.yggdrash.util;
 
+import com.google.common.base.Strings;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -22,7 +23,7 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
     public static void writeFile(String filePath, String fileName, byte[] data)
             throws IOException {
 
-        if (filePath == null || fileName == null || filePath.equals("") || fileName.equals("")) {
+        if (Strings.isNullOrEmpty(filePath) || Strings.isNullOrEmpty(fileName)) {
             throw new IOException("Invalid filepath or filename");
         }
 
