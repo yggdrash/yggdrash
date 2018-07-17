@@ -1242,15 +1242,29 @@ public class ECKey implements Serializable {
         }
 
         /**
-         * Get the signature as byte array.
+         * Get the signature as byte array [v + r + s].
          *
          * @return signature as byte[65]
          */
         public byte[] toBinary() {
-            byte[] sigData = new byte[65];  // 1 header + 32 bytes for R + 32 bytes for S
+            byte[] sigData = new byte[65];  // 1 byte for V + 32 bytes for R + 32 bytes for S
             sigData[0] = v;
             System.arraycopy(bigIntegerToBytes(this.r, 32), 0, sigData, 1, 32);
             System.arraycopy(bigIntegerToBytes(this.s, 32), 0, sigData, 33, 32);
+            return sigData;
+        }
+
+        /**
+         * Get the signature as byte array [r + s + v].
+         *
+         * @return signature as byte[65]
+         */
+        public byte[] toBinaryBack() {
+            byte[] sigData = new byte[65];  // 32 bytes for R + 32 bytes for S + 1 byte for V
+            System.arraycopy(bigIntegerToBytes(this.r, 32), 0, sigData, 0, 32);
+            System.arraycopy(bigIntegerToBytes(this.s, 32), 0, sigData, 32, 32);
+            sigData[64] = v;
+
             return sigData;
         }
 

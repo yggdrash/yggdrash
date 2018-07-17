@@ -1,6 +1,7 @@
 package io.yggdrash.core;
 
 import io.yggdrash.crypto.ECKey;
+import org.spongycastle.util.encoders.Hex;
 
 /**
  * Account Class.
@@ -49,5 +50,12 @@ public class Account {
         return address;
     }
 
+    @Override
+    public String toString() {
+        return "Account{"
+                + "publicKey=" + Hex.toHexString(key.getPubKey())
+                + ",address=" + Hex.toHexString(address)
+                + '}';
+    }
 
 }
