@@ -3,6 +3,7 @@ build/
 out/
 !gradle/wrapper/gradle-wrapper.jar
 **/resources/db
+tmp/
 
 .coveralls.yml
 

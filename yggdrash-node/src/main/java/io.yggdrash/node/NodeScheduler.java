@@ -25,7 +25,7 @@ class NodeScheduler {
     @Autowired
     MessageSender messageSender;
 
-    @Scheduled(fixedRate = 1000 * 60 * 5)
+    @Scheduled(fixedRate = 1000 * 5)
     public void ping() {
         messageSender.ping();
     }
