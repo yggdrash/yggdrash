@@ -1,61 +1,21 @@
 package io.yggdrash.node.api;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Longs;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHeader;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.spongycastle.util.Arrays;
-import org.spongycastle.util.encoders.Base64;
-import org.spongycastle.util.encoders.Hex;
+
+import java.io.IOException;
 
 public class TransactionDto {
 
-    public Transaction jsonStringToTx(String jsonStr) throws ParseException {
-
-        JSONParser parser = new JSONParser();
-        JSONObject tx = (JSONObject) parser.parse(jsonStr);
-        JSONObject header = (JSONObject) tx.get("header");
-        JSONObject data = (JSONObject) tx.get("data");
-
-        byte[] type = Hex.decode(header.get("type").toString().getBytes());
-        byte[] version = Hex.decode((header.get("version").toString().getBytes()));
-        byte[] dataHash = Hex.decode(header.get("dataHash").toString());
-        long timestamp = Long.parseLong(header.get("timestamp").toString());
-        long dataSize = Long.parseLong(header.get("dataSize").toString());
-        byte[] signature = Hex.decode(header.get("signature").toString());
-        String dataStr = data.toString();
-
-        // ** Validation **
-
-        TransactionHeader txHeader;
-        txHeader = new TransactionHeader(type, version, dataHash, timestamp, dataSize, signature);
-
-        return new Transaction(txHeader, dataStr);
-    }
-
-    public Transaction jsonByteArrToTx(String jsonByteArr) throws ParseException {
-
-        JSONParser parser = new JSONParser();
-        JSONObject tx = (JSONObject) parser.parse(jsonByteArr);
-        JSONObject header = (JSONObject) tx.get("header");
-
-        byte[] type = Base64.decode(header.get("type").toString());
-        byte[] version = Base64.decode(header.get("version").toString());
-        byte[] dataHash = Base64.decode(header.get("dataHash").toString());
-        long timestamp = (long) header.get("timestamp");
-        long dataSize = (long) header.get("dataSize");
-        byte[] signature = Base64.decode(header.get("signature").toString());
-        JSONObject data = (JSONObject) tx.get("data");
-        String dataStr = data.toString();
-
-        // ** Validation **
-
-        TransactionHeader txHeader;
-        txHeader = new TransactionHeader(type, version, dataHash, timestamp, dataSize, signature);
-
-        return new Transaction(txHeader, dataStr);
+    public Transaction jsonStringToTx(String jsonStr) throws IOException {
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        Transaction tx = mapper.readValue(jsonStr, Transaction.class);
+        return tx;
     }
 
     public Transaction byteArrToTx(byte[] bytes) {

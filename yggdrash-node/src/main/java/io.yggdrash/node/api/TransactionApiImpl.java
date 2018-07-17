@@ -2,10 +2,16 @@ package io.yggdrash.node.api;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.node.mock.TransactionMock;
 import io.yggdrash.node.mock.TransactionReceiptMock;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.stereotype.Service;
 
@@ -80,28 +86,17 @@ public class TransactionApiImpl implements TransactionApi {
 
     /* send */
     @Override
-    public String sendTransaction(String jsonStr) throws ParseException,JsonProcessingException {
+    public Transaction sendTransaction(String jsonStr) throws IOException {
         TransactionDto transactionDto = new TransactionDto();
         Transaction tx = transactionDto.jsonStringToTx(jsonStr);
-        ObjectMapper objectMapper = new ObjectMapper();
-        return "sendTransaction [success] " + objectMapper.writeValueAsString(tx);
+        return tx;
     }
 
     @Override
-    public String sendRawTransaction(String jsonByteArr)
-            throws ParseException,JsonProcessingException {
-        TransactionDto transactionDto = new TransactionDto();
-        Transaction tx = transactionDto.jsonByteArrToTx(jsonByteArr);
-        ObjectMapper objectMapper = new ObjectMapper();
-        return "sendRawTransaction [success] " + objectMapper.writeValueAsString(tx);
-    }
-
-    @Override
-    public String sendRawTransaction(byte[] bytes) throws JsonProcessingException {
+    public Transaction sendRawTransaction(byte[] bytes) throws JsonProcessingException {
         TransactionDto transactionDto = new TransactionDto();
         Transaction tx = transactionDto.byteArrToTx(bytes);
-        ObjectMapper objectMapper = new ObjectMapper();
-        return "sendRawTransaction [success] " + objectMapper.writeValueAsString(tx);
+        return tx;
     }
 
     /* filter */

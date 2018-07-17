@@ -3,6 +3,7 @@ package io.yggdrash.node.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
+import io.yggdrash.core.Transaction;
 import org.json.simple.parser.ParseException;
 
 import java.io.IOException;
@@ -110,23 +111,15 @@ public interface TransactionApi {
      *
      * @param tx          The transaction object
      */
-    String sendTransaction(
-            @JsonRpcParam(value = "tx") String tx) throws ParseException,JsonProcessingException;
+    Transaction sendTransaction(
+            @JsonRpcParam(value = "tx") String tx) throws IOException;
 
     /**
      *  Creates new message call transaction or a contract creation for signed transactions.
      *
      * @param rawTx     The signed transaction data.
      */
-    String sendRawTransaction(@JsonRpcParam(value = "rawTx") String rawTx)
-            throws ParseException,JsonProcessingException;
-
-    /**
-     *  Creates new message call transaction or a contract creation for signed transactions.
-     *
-     * @param rawTx     The signed transaction data.
-     */
-    String sendRawTransaction(
+    Transaction sendRawTransaction(
             @JsonRpcParam(value = "rawTx") byte[] rawTx) throws JsonProcessingException;
 
     /**
@@ -134,3 +127,5 @@ public interface TransactionApi {
      */
     int newPendingTransactionFilter();
 }
+
+

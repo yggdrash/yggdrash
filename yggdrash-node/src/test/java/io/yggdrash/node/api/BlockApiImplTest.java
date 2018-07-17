@@ -14,7 +14,7 @@ import java.io.IOException;
 
 @RunWith(SpringRunner.class)
 @Import(ApplicationConfig.class)
-public class BlockApiTest {
+public class BlockApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
 
     @Test

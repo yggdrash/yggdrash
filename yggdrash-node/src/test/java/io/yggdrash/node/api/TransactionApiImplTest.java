@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
+import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
+import com.googlecode.jsonrpc4j.ProxyUtil;
 import io.yggdrash.core.Account;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.node.mock.TransactionMock;
@@ -14,6 +16,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -24,8 +27,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @Import(ApplicationConfig.class)
-public class TransactionApiTest {
+public class TransactionApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
+
+    @Autowired
+    JsonRpcHttpClient jsonRpcHttpClient;
+
+    @Test
+    public void setJsonRpcHttpClient() {
+        TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(), TransactionApi.class, jsonRpcHttpClient);
+        assertThat(api).isNotNull();
+    }
 
     @Test
     public void checkTransactionJsonFormat() throws IOException {
@@ -39,29 +51,25 @@ public class TransactionApiTest {
     @Test
     public void jsonStringToTxTest() throws ParseException,IOException {
         // Get Transaction of JsonString as Param
-        String jsonStr = "{\"header\":{\"type\":\"0000\",\"version\":\"0000\",\"dataHash\":\"de7e5e6375a46028a23357fa4a51404bc88cec132642ded5372554dc87b5091c\",\"timestamp\":\"155810745733540\",\"dataSize\":\"10\",\"signature\":\"1c05560a9fdc9c25edfefe5a348db182ed9b283e734b39afb827785a7f7922232d75304b93d5c4774ab2d889df06789adb0fd1fa2409bc42eeb4d5e724022377e8\"},\"data\":{\"id\":\"0\",\"name\":\"Rachael\",\"age\":\"27\"}}";
+        ObjectMapper objectMapper = new ObjectMapper();
+        Account from = new Account();
+        JsonObject json = new JsonObject();
+        json.addProperty("id", "0");
+        json.addProperty("name", "Rachael");
+        json.addProperty("age", "27");
+        Transaction transaction = new Transaction(from, json);
+        String jsonStr = objectMapper.writeValueAsString(transaction);
 
         // Create Transaction by transactionDto
         TransactionDto transactionDto = new TransactionDto();
-        Transaction transaction = transactionDto.jsonStringToTx(jsonStr);
+        Transaction tx = transactionDto.jsonStringToTx(jsonStr);
 
-        // Create Transaction JsonObject
-        ObjectMapper objectMapper = new ObjectMapper();
-        log.debug("\n\nTransaction : " + objectMapper.writeValueAsString(transaction) + "\n");
-    }
+        // Request Transaction with jsonStr
+        TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(), TransactionApi.class, jsonRpcHttpClient);
+        assertThat(api).isNotNull();
+        Transaction tx2 = api.sendTransaction(jsonStr);
 
-    @Test
-    public void jsonByteArrToTxTest() throws ParseException,JsonProcessingException {
-        // Get Transaction of JsonString which contains byteArray as param.
-        String jsonByteArr = " {\"header\":{\"type\":\"AAAAAA==\",\"version\":\"AAAAAA==\",\"dataHash\":\"RBNvo1WzZ4oRRq0W9+hknpT7T8If536DEMBg9hyq/4o=\",\"timestamp\":76623948013441,\"dataSize\":2,\"signature\":\"GyKLQPLLuzKBFmzQHtyc6nIUJmi/kV99/Al+XYcLiKw5GM/5wnMAb43x9joVdGyRhS1lfxzZqody5LKEcaBau9w=\"},\"data\":{\"id\":\"0\",\"name\":\"Rachael\",\"age\":\"27\"}}";
-
-        // Create Transaction by transactionDto
-        TransactionDto transactionDto = new TransactionDto();
-        Transaction transaction = transactionDto.jsonByteArrToTx(jsonByteArr);
-
-        // Create Transaction JsonObject
-        ObjectMapper objectMapper = new ObjectMapper();
-        log.debug("\n\nTransaction : " + objectMapper.writeValueAsString(transaction) + "\n");
+        assertThat(objectMapper.writeValueAsString(tx).equals(objectMapper.writeValueAsString(tx2)));
     }
 
     @Test
@@ -101,9 +109,14 @@ public class TransactionApiTest {
         TransactionDto transactionDto = new TransactionDto();
         Transaction tx = transactionDto.byteArrToTx(input);
 
+        // Request Transaction with byteArr
+        TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(), TransactionApi.class, jsonRpcHttpClient);
+        assertThat(api).isNotNull();
+        Transaction tx2 = api.sendRawTransaction(input);
+
         // Create Transaction JsonObject
         ObjectMapper objectMapper = new ObjectMapper();
-        log.debug("\n\nTransaction : " + objectMapper.writeValueAsString(tx) + "\n");
+        assertThat(objectMapper.writeValueAsString(tx).equals(objectMapper.writeValueAsString(tx2)));
     }
 
     @Test
