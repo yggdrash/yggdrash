@@ -14,14 +14,19 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.core.store;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import io.yggdrash.core.Transaction;
 
-@SpringBootApplication
-public class YggdrashNode {
-    public static void main(String[] args) {
-        SpringApplication.run(YggdrashNode.class, args);
-    }
+import java.io.IOException;
+import java.util.List;
+
+public interface TransactionPool {
+    Transaction getTxByHash(String id);
+
+    Transaction addTx(Transaction tx) throws IOException;
+
+    List getTxList();
+
+    void removeTx(List<String> hashList);
 }

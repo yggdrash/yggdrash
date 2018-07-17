@@ -1,6 +1,9 @@
-package io.yggdrash.crypto;
+package io.yggdrash.core;
 
-import io.yggdrash.core.Wallet;
+import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.crypto.AESEncrypt;
+import io.yggdrash.crypto.ECKey;
+import io.yggdrash.crypto.Password;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.FileUtil;
 import org.junit.Test;
@@ -13,10 +16,12 @@ import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.crypto.params.ParametersWithIV;
 import org.spongycastle.util.encoders.Hex;
 
-import java.io.IOException;
+import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.SecureRandom;
 
-import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.*;
 
 /**
  * This is the test class for managing the node's wallet(key).
@@ -152,20 +157,124 @@ public class WalletTest {
     public void testKeySave() throws IOException, InvalidCipherTextException {
 
         // generate key & save a file
-        Wallet wt = new Wallet("/tmp/", "Password1234!");
+        Wallet wt = new Wallet(null, "/tmp/", "nodePri.key", "Password1234!");
 
-        byte[] encData = FileUtil.readFile(wt.getPath(), wt.getKeyName());
-        System.out.println("path:" + wt.getPath() + wt.getKeyName());
+        byte[] encData = FileUtil.readFile(wt.getKeyPath(), wt.getKeyName());
+        System.out.println("path:" + wt.getKeyPath() + wt.getKeyName());
         System.out.println("encData:" + Hex.toHexString(encData));
-        System.out.println("pubKey:" + Hex.toHexString(wt.getKey().getPubKey()));
-        System.out.println("priKey:" + Hex.toHexString(wt.getKey().getPrivKeyBytes()));
+        System.out.println("pubKey:" + Hex.toHexString(wt.getPubicKey()));
 
         // load key
         Wallet wt2 = new Wallet("/tmp/", wt.getKeyName(), "Password1234!");
-        System.out.println("pubKey2:" + Hex.toHexString(wt2.getKey().getPubKey()));
-        System.out.println("priKey2:" + Hex.toHexString(wt2.getKey().getPrivKeyBytes()));
+        System.out.println("pubKey2:" + Hex.toHexString(wt2.getPubicKey()));
 
-        assertArrayEquals(wt.getKey().getPrivKeyBytes(), wt2.getKey().getPrivKeyBytes());
+        assertArrayEquals(wt.getPubicKey(), wt2.getPubicKey());
+    }
+
+
+    /**
+     * This is a test method for checking the generation of wallets with configfile or not.
+     */
+    @Test
+    public void testWalletGeneration() {
+
+        DefaultConfig defaultConfig = new DefaultConfig();
+        String keyfilePath= defaultConfig.getConfig().getString("key.path");
+        String password = defaultConfig.getConfig().getString("key.password"); //todo: change as cli interface
+
+        Wallet wallet = null;
+
+        try {
+
+            if (keyfilePath == null || keyfilePath.equals("") || password == null || password.equals("")) {
+                System.out.println("Check yggdrash.conf(key.path & key.password)");
+                assert(false);
+            } else {
+                System.out.println("Private key: " + keyfilePath);
+                System.out.println("Password : "+ password); // for debug
+
+                // check password validation
+                boolean validPassword = Password.passwordValid(password);
+                if (!validPassword) {
+                    System.out.println("Password is not valid");
+                    assert(false);
+                }
+
+                System.out.println("Password is valid");
+
+                // check whether the key file exists
+                Path path = Paths.get(keyfilePath);
+                String keyPath = path.getParent().toString();
+                String keyName = path.getFileName().toString();
+
+                try {
+                    wallet = new Wallet(keyPath, keyName, password);
+                } catch (Exception e) {
+                    System.out.println("Key file is not exist");
+
+                    try {
+                        wallet = new Wallet(null, keyPath, keyName, password);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                        assert(false);
+                    }
+                }
+
+                System.out.println("wallet= " + wallet.toString());
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            assert(false);
+        }
+    }
+
+    /**
+     * This is a test method for checking sign & verify method in Wallet class.
+     */
+    @Test
+    public void testWalletSignAndVerify() {
+
+        Wallet wallet = null;
+
+        try {
+            wallet = new Wallet(null, "tmp/temp", "temp.key", "Aa1234567890!");
+        } catch (Exception e) {
+            e.printStackTrace();
+            assert(false);
+        }
+
+        byte[] plain = "test data 1111".getBytes();
+        System.out.println("Plain data: " + new String(plain));
+
+        byte[] signature = wallet.sign(plain);
+        System.out.println("Signature: " + Hex.toHexString(signature));
+
+        boolean verifyResult = wallet.verify(plain, signature);
+        System.out.println("Verify Result: " + verifyResult);
+
+        assertTrue(verifyResult);
+    }
+
+    /**
+     * This is a test method for generating Wallet constructor.
+     * @throws IOException
+     * @throws InvalidCipherTextException
+     */
+    @Test
+    public void testWalletConstructor() throws IOException, InvalidCipherTextException {
+        DefaultConfig config = new DefaultConfig();
+
+        Wallet wallet = new Wallet(config);
+
+        System.out.println(wallet.toString());
+        assertNotNull(wallet);
+
+        byte[] data = "sign data".getBytes();
+        byte[] signature = wallet.sign(data);
+        boolean verifyResult = wallet.verify(data, signature);
+
+        assertTrue(verifyResult);
     }
 
 

@@ -16,6 +16,7 @@
 
 package io.yggdrash.core;
 
+import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.exception.NotValidteException;
 
 import java.io.IOException;
@@ -38,7 +39,11 @@ public interface NodeManager {
 
     Set<Block> getBlocks();
 
+    String getNodeId();
+
     Block getBlockByIndexOrHash(String indexOrHash);
 
-    String getNodeId();
+    DefaultConfig getDefaultConfig();
+
+    Wallet getWallet();
 }

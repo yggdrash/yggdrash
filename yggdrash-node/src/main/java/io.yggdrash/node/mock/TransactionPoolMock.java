@@ -17,8 +17,7 @@
 package io.yggdrash.node.mock;
 
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionPool;
-import io.yggdrash.core.format.TransactionFormat;
+import io.yggdrash.core.store.TransactionPool;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,7 +29,7 @@ public class TransactionPoolMock implements TransactionPool {
     private final Map<String, Transaction> txs = new ConcurrentHashMap<>();
 
     @Override
-    public TransactionFormat getTxByHash(String id) {
+    public Transaction getTxByHash(String id) {
         return txs.get(id);
     }
 

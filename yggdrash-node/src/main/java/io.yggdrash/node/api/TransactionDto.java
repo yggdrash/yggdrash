@@ -1,53 +1,101 @@
 package io.yggdrash.node.api;
 
-import com.google.gson.JsonObject;
-import io.yggdrash.core.Account;
+import com.google.common.primitives.Longs;
 import io.yggdrash.core.Transaction;
-
-import java.io.IOException;
+import io.yggdrash.core.TransactionHeader;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+import org.spongycastle.util.Arrays;
+import org.spongycastle.util.encoders.Base64;
+import org.spongycastle.util.encoders.Hex;
 
 public class TransactionDto {
-    private String from;
-    private String txHash;
-    private String data;
 
-    public static Transaction of(TransactionDto transactionDto) throws IOException {
-        // TODO Account from 에서 가져와서 실제 Account로 변환합니다.
-        Account account = new Account();
-        JsonObject jsonData = new JsonObject();
-        jsonData.addProperty("data", transactionDto.getData());
-        return new Transaction(account, jsonData);
+    public Transaction jsonStringToTx(String jsonStr) throws ParseException {
+
+        JSONParser parser = new JSONParser();
+        JSONObject tx = (JSONObject) parser.parse(jsonStr);
+        JSONObject header = (JSONObject) tx.get("header");
+        JSONObject data = (JSONObject) tx.get("data");
+
+        byte[] type = Hex.decode(header.get("type").toString().getBytes());
+        byte[] version = Hex.decode((header.get("version").toString().getBytes()));
+        byte[] dataHash = Hex.decode(header.get("dataHash").toString());
+        long timestamp = Long.parseLong(header.get("timestamp").toString());
+        long dataSize = Long.parseLong(header.get("dataSize").toString());
+        byte[] signature = Hex.decode(header.get("signature").toString());
+        String dataStr = data.toString();
+
+        // ** Validation **
+
+        TransactionHeader txHeader;
+        txHeader = new TransactionHeader(type, version, dataHash, timestamp, dataSize, signature);
+
+        return new Transaction(txHeader, dataStr);
     }
 
-    public static TransactionDto createBy(Transaction tx) {
-        TransactionDto transactionDto = new TransactionDto();
-        //transactionDto.setFrom(tx.getFrom());
-        transactionDto.setData(tx.getData());
-        //transactionDto.setTxHash(tx.getHashString());
-        return transactionDto;
+    public Transaction jsonByteArrToTx(String jsonByteArr) throws ParseException {
+
+        JSONParser parser = new JSONParser();
+        JSONObject tx = (JSONObject) parser.parse(jsonByteArr);
+        JSONObject header = (JSONObject) tx.get("header");
+
+        byte[] type = Base64.decode(header.get("type").toString());
+        byte[] version = Base64.decode(header.get("version").toString());
+        byte[] dataHash = Base64.decode(header.get("dataHash").toString());
+        long timestamp = (long) header.get("timestamp");
+        long dataSize = (long) header.get("dataSize");
+        byte[] signature = Base64.decode(header.get("signature").toString());
+        JSONObject data = (JSONObject) tx.get("data");
+        String dataStr = data.toString();
+
+        // ** Validation **
+
+        TransactionHeader txHeader;
+        txHeader = new TransactionHeader(type, version, dataHash, timestamp, dataSize, signature);
+
+        return new Transaction(txHeader, dataStr);
     }
 
-    public String getData() {
-        return data;
-    }
+    public Transaction byteArrToTx(byte[] bytes) {
 
-    public void setData(String data) {
-        this.data = data;
-    }
+        byte[] type = new byte[4];
+        byte[] version = new byte[4];
+        byte[] dataHash = new byte[32];
+        byte[] timestamp = new byte[8];
+        byte[] dataSize = new byte[8];
+        byte[] signature = new byte[65];
 
-    public String getFrom() {
-        return from;
-    }
+        int typeLength = type.length;
+        int versionLength = version.length;
+        int dataHashLength = dataHash.length;
+        int timestampLength = timestamp.length;
+        int dataSizeLength = dataSize.length;
+        int signatureLength = signature.length;
+        int txHeaderLength;
+        txHeaderLength = typeLength + versionLength + dataHashLength + timestampLength
+                        + dataHashLength + dataSizeLength + signatureLength;
 
-    public void setFrom(String from) {
-        this.from = from;
-    }
+        int sum = 0;
+        type = Arrays.copyOfRange(bytes, sum, sum += typeLength);
+        version = Arrays.copyOfRange(bytes, sum, sum += versionLength);
+        dataHash = Arrays.copyOfRange(bytes, sum, sum += dataHashLength);
+        timestamp = Arrays.copyOfRange(bytes, sum, sum += timestampLength);
+        dataSize = Arrays.copyOfRange(bytes, sum, sum += dataSizeLength);
+        signature = Arrays.copyOfRange(bytes, sum, sum += signatureLength);
+        byte[] data = Arrays.copyOfRange(bytes, sum, txHeaderLength);
 
-    public String getTxHash() {
-        return txHash;
-    }
+        Long timestampStr = Longs.fromByteArray(timestamp);
+        Long dataSizeStr = Longs.fromByteArray(dataSize);
+        String dataStr = new String(data);
 
-    public void setTxHash(String txHash) {
-        this.txHash = txHash;
+        // ** Validation **
+
+        TransactionHeader txHeader;
+        txHeader = new TransactionHeader(
+                type, version, dataHash, timestampStr, dataSizeStr, signature);
+
+        return new Transaction(txHeader, dataStr);
     }
 }

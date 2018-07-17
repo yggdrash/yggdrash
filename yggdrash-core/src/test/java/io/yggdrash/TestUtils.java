@@ -14,14 +14,14 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import java.util.Random;
 
-@SpringBootApplication
-public class YggdrashNode {
-    public static void main(String[] args) {
-        SpringApplication.run(YggdrashNode.class, args);
+public class TestUtils {
+    public static byte[] randomBytes(int length) {
+        byte[] result = new byte[length];
+        new Random().nextBytes(result);
+        return result;
     }
 }
