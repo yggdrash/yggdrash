@@ -1,5 +1,6 @@
 package io.yggdrash.core;
 
+import com.google.common.base.Strings;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.crypto.AESEncrypt;
 import io.yggdrash.crypto.ECKey;
@@ -16,12 +17,16 @@ import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.crypto.params.ParametersWithIV;
 import org.spongycastle.util.encoders.Hex;
 
-import java.io.*;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
 
-import static org.junit.Assert.*;
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+
 
 /**
  * This is the test class for managing the node's wallet(key).
@@ -33,7 +38,7 @@ public class WalletTest {
     @Test
     public void testKeyEncryption2() {
 
-        final int AES_KEYLENGTH = 128;
+        final int AES_KEY_LENGTH = 128;
 
         // key generation
         ECKey ecKey = new ECKey();
@@ -45,12 +50,12 @@ public class WalletTest {
         byte[] keyBytes = ByteUtil.parseBytes(kdf, 0, 32);
 
         // generate iv
-        byte[] ivBytes = new byte[AES_KEYLENGTH / 8];
+        byte[] ivBytes = new byte[AES_KEY_LENGTH / 8];
         SecureRandom prng = new SecureRandom();
         prng.nextBytes(ivBytes);
 
         byte[] plainBytes = "01234567890123456789".getBytes();
-        log.info("plain: {}", Hex.toHexString(plainBytes));
+        log.debug("plain: {}", Hex.toHexString(plainBytes));
 
         KeyParameter key = new KeyParameter(keyBytes);
         ParametersWithIV params = new ParametersWithIV(key, ivBytes);
@@ -63,13 +68,13 @@ public class WalletTest {
         // encrypt
         byte[] cipher = new byte[plainBytes.length];
         ctrEngine.processBytes(plainBytes, 0, plainBytes.length, cipher, 0);
-        log.info("cipher: {}", Hex.toHexString(cipher));
+        log.debug("cipher: {}", Hex.toHexString(cipher));
 
         // decrypt
         byte[] output = new byte[cipher.length];
         ctrEngine.init(false, params);
         ctrEngine.processBytes(cipher, 0, cipher.length, output, 0);
-        log.info("plain: {}", Hex.toHexString(output));
+        log.debug("plain: {}", Hex.toHexString(output));
 
         assertArrayEquals(plainBytes, output);
     }
@@ -78,7 +83,7 @@ public class WalletTest {
     @Test
     public void testKeyEncryption3() {
 
-        final int AES_KEYLENGTH = 128;
+        final int AES_KEY_LENGTH = 128;
 
         // key generation
         ECKey ecKey = new ECKey();
@@ -90,12 +95,12 @@ public class WalletTest {
         byte[] keyBytes = ByteUtil.parseBytes(kdf, 0, 32);
 
         // generate iv
-        byte[] ivBytes = new byte[AES_KEYLENGTH / 8];
+        byte[] ivBytes = new byte[AES_KEY_LENGTH / 8];
         SecureRandom prng = new SecureRandom();
         prng.nextBytes(ivBytes);
 
         byte[] plainBytes = "01234567890123456789".getBytes();
-        log.info("plain: {}", Hex.toHexString(plainBytes));
+        log.debug("plain: {}", Hex.toHexString(plainBytes));
 
         KeyParameter key = new KeyParameter(keyBytes);
         ParametersWithIV params = new ParametersWithIV(key, ivBytes);
@@ -108,7 +113,7 @@ public class WalletTest {
         // encrypt
         byte[] cipher = new byte[plainBytes.length];
         ctrEngine.processBytes(plainBytes, 0, plainBytes.length, cipher, 0);
-        log.info("cipher: {}", Hex.toHexString(cipher));
+        log.debug("cipher: {}", Hex.toHexString(cipher));
 
         // final encrypt data : iv+encData
         byte[] finalData = new byte[ivBytes.length + cipher.length];
@@ -116,7 +121,7 @@ public class WalletTest {
         System.arraycopy(cipher, 0, finalData, ivBytes.length, cipher.length);
 
         // decrypt
-        byte[] ivNew = new byte[AES_KEYLENGTH / 8];
+        byte[] ivNew = new byte[AES_KEY_LENGTH / 8];
         System.arraycopy(finalData, 0, ivNew, 0, ivNew.length);
         byte[] encData = new byte[finalData.length - ivNew.length];
         System.arraycopy(finalData, ivNew.length, encData, 0, encData.length);
@@ -128,7 +133,7 @@ public class WalletTest {
         byte[] output = new byte[encData.length];
         ctrEngine2.init(false, params2);
         ctrEngine2.processBytes(encData, 0, encData.length, output, 0);
-        log.info("plain: {}", Hex.toHexString(output));
+        log.debug("plain: {}", Hex.toHexString(output));
 
         assertArrayEquals(plainBytes, output);
     }
@@ -142,13 +147,13 @@ public class WalletTest {
         byte[] kdf = Password.generateKeyDerivation(password.getBytes(), 32);
 
         byte[] plainBytes = "01234567890123450123456789012345345".getBytes();
-        log.info("plain: {}", Hex.toHexString(plainBytes));
+        log.debug("plain: {}", Hex.toHexString(plainBytes));
 
         byte[] encData = AESEncrypt.encrypt(plainBytes, kdf);
-        log.info("encrypt: {}", Hex.toHexString(encData));
+        log.debug("encrypt: {}", Hex.toHexString(encData));
 
         byte[] plainData = AESEncrypt.decrypt(encData, kdf);
-        log.info("decrypt: {}", Hex.toHexString(plainData));
+        log.debug("decrypt: {}", Hex.toHexString(plainData));
 
     }
 
@@ -160,13 +165,13 @@ public class WalletTest {
         Wallet wt = new Wallet(null, "/tmp/", "nodePri.key", "Password1234!");
 
         byte[] encData = FileUtil.readFile(wt.getKeyPath(), wt.getKeyName());
-        System.out.println("path:" + wt.getKeyPath() + wt.getKeyName());
-        System.out.println("encData:" + Hex.toHexString(encData));
-        System.out.println("pubKey:" + Hex.toHexString(wt.getPubicKey()));
+        log.debug("path:" + wt.getKeyPath() + wt.getKeyName());
+        log.debug("encData:" + Hex.toHexString(encData));
+        log.debug("pubKey:" + Hex.toHexString(wt.getPubicKey()));
 
         // load key
         Wallet wt2 = new Wallet("/tmp/", wt.getKeyName(), "Password1234!");
-        System.out.println("pubKey2:" + Hex.toHexString(wt2.getPubicKey()));
+        log.debug("pubKey2:" + Hex.toHexString(wt2.getPubicKey()));
 
         assertArrayEquals(wt.getPubicKey(), wt2.getPubicKey());
     }
@@ -179,53 +184,98 @@ public class WalletTest {
     public void testWalletGeneration() {
 
         DefaultConfig defaultConfig = new DefaultConfig();
-        String keyfilePath= defaultConfig.getConfig().getString("key.path");
-        String password = defaultConfig.getConfig().getString("key.password"); //todo: change as cli interface
+        String keyfilePath = defaultConfig.getConfig().getString("key.path");
+        // TODO: change as cli interface
+        String password = defaultConfig.getConfig().getString("key.password");
 
         Wallet wallet = null;
 
         try {
+            assertFalse("Check yggdrash.conf(key.path & key.password)",
+                    Strings.isNullOrEmpty(keyfilePath) || Strings.isNullOrEmpty(password));
+            log.debug("Private key: " + keyfilePath);
+            log.debug("Password : " + password); // for debug
 
-            if (keyfilePath == null || keyfilePath.equals("") || password == null || password.equals("")) {
-                System.out.println("Check yggdrash.conf(key.path & key.password)");
-                assert(false);
-            } else {
-                System.out.println("Private key: " + keyfilePath);
-                System.out.println("Password : "+ password); // for debug
+            // check password validation
+            boolean validPassword = Password.passwordValid(password);
+            assertTrue("Password is not valid", validPassword);
 
-                // check password validation
-                boolean validPassword = Password.passwordValid(password);
-                if (!validPassword) {
-                    System.out.println("Password is not valid");
-                    assert(false);
-                }
+            log.debug("Password is valid");
 
-                System.out.println("Password is valid");
+            // check whether the key file exists
+            Path path = Paths.get(keyfilePath);
+            String keyPath = path.getParent().toString();
+            String keyName = path.getFileName().toString();
 
-                // check whether the key file exists
-                Path path = Paths.get(keyfilePath);
-                String keyPath = path.getParent().toString();
-                String keyName = path.getFileName().toString();
+            try {
+                wallet = new Wallet(keyPath, keyName, password);
+            } catch (Exception e) {
+                log.error("Key file is not exist");
 
                 try {
-                    wallet = new Wallet(keyPath, keyName, password);
-                } catch (Exception e) {
-                    System.out.println("Key file is not exist");
-
-                    try {
-                        wallet = new Wallet(null, keyPath, keyName, password);
-                    } catch (Exception ex) {
-                        ex.printStackTrace();
-                        assert(false);
-                    }
+                    wallet = new Wallet(null, keyPath, keyName, password);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    assertTrue("Wallet Exception", false);
                 }
-
-                System.out.println("wallet= " + wallet.toString());
             }
+
+            log.debug("wallet= " + wallet.toString());
 
         } catch (Exception e) {
             e.printStackTrace();
-            assert(false);
+            assertTrue(false);
+        }
+    }
+
+    /**
+     * This is a test method for checking the generation of wallets with configfile or not.
+     */
+    @Test
+    public void testWalletGenerationWithFilePath() {
+
+        DefaultConfig defaultConfig = new DefaultConfig();
+        String keyFilePath = defaultConfig.getConfig().getString("key.path");
+        //TODO change as cli interface
+        String password = defaultConfig.getConfig().getString("key.password");
+
+        Wallet wallet = null;
+
+        try {
+            assertFalse("Check yggdrash.conf(key.path & key.password)",
+                    Strings.isNullOrEmpty(keyFilePath) || Strings.isNullOrEmpty(password));
+            log.debug("Private key: " + keyFilePath);
+            log.debug("Password : " + password); // for debug
+
+            // check password validation
+            boolean validPassword = Password.passwordValid(password);
+            assertTrue("Password is not valid", validPassword);
+
+            log.debug("Password is valid");
+
+            // check whether the key file exists
+            Path path = Paths.get(keyFilePath);
+            String keyPath = path.getParent().toString();
+            String keyName = path.getFileName().toString();
+
+            try {
+                wallet = new Wallet(keyFilePath, password);
+            } catch (Exception e) {
+                log.debug("Key file is not exist");
+
+                try {
+                    wallet = new Wallet(null, keyPath, keyName, password);
+                } catch (Exception ex) {
+                    ex.printStackTrace();
+                    assertTrue(false);
+                }
+            }
+
+            log.debug("wallet= " + wallet.toString());
+
+        } catch (Exception e) {
+            e.printStackTrace();
+            assertTrue(false);
         }
     }
 
@@ -241,25 +291,23 @@ public class WalletTest {
             wallet = new Wallet(null, "tmp/temp", "temp.key", "Aa1234567890!");
         } catch (Exception e) {
             e.printStackTrace();
-            assert(false);
+            assertTrue(false);
         }
 
         byte[] plain = "test data 1111".getBytes();
-        System.out.println("Plain data: " + new String(plain));
+        log.debug("Plain data: " + new String(plain));
 
         byte[] signature = wallet.sign(plain);
-        System.out.println("Signature: " + Hex.toHexString(signature));
+        log.debug("Signature: " + Hex.toHexString(signature));
 
         boolean verifyResult = wallet.verify(plain, signature);
-        System.out.println("Verify Result: " + verifyResult);
+        log.debug("Verify Result: " + verifyResult);
 
         assertTrue(verifyResult);
     }
 
     /**
      * This is a test method for generating Wallet constructor.
-     * @throws IOException
-     * @throws InvalidCipherTextException
      */
     @Test
     public void testWalletConstructor() throws IOException, InvalidCipherTextException {
@@ -267,7 +315,7 @@ public class WalletTest {
 
         Wallet wallet = new Wallet(config);
 
-        System.out.println(wallet.toString());
+        log.debug(wallet.toString());
         assertNotNull(wallet);
 
         byte[] data = "sign data".getBytes();
@@ -276,6 +324,5 @@ public class WalletTest {
 
         assertTrue(verifyResult);
     }
-
 
 }

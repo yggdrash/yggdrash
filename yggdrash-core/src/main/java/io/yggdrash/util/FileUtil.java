@@ -1,5 +1,6 @@
 package io.yggdrash.util;
 
+import com.google.common.base.Strings;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -22,8 +23,8 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
     public static void writeFile(String filePath, String fileName, byte[] data)
             throws IOException {
 
-        if (filePath == null || fileName == null || filePath == "" || fileName == "") {
-           throw new IOException("Invalid filepath or filename");
+        if (Strings.isNullOrEmpty(filePath) || Strings.isNullOrEmpty(fileName)) {
+            throw new IOException("Invalid filepath or filename");
         }
 
         File file = new File(filePath, fileName);
@@ -60,15 +61,16 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
 
     /**
      * Get file name.
+     *
      * @param filePathName file path + name
      * @return file name
      */
-    public static String getFileName (String filePathName) {
+    public static String getFileName(String filePathName) {
 
         String[] splitName = filePathName.split(File.separator);
 
         if (splitName.length > 0) {
-            return splitName[splitName.length -1];
+            return splitName[splitName.length - 1];
         } else {
             return null;
         }
@@ -76,17 +78,18 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
 
     /**
      * Get file path.
+     *
      * @param filePathName file path + name
      * @return file path
      */
-    public static String getFilePath (String filePathName) {
+    public static String getFilePath(String filePathName) {
 
         String[] splitName = filePathName.split(File.separator);
 
         String result = "";
         if (splitName.length > 0) {
 
-            for (int i=0; i< splitName.length-1; i++) {
+            for (int i = 0; i < splitName.length - 1; i++) {
                 result += splitName[i] + File.separator;
             }
 
