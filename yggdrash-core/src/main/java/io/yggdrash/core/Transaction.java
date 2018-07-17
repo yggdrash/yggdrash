@@ -17,6 +17,10 @@ public class Transaction implements Serializable {
     // TODO Data Object re modelling
     private String data;
 
+    public Transaction() {
+
+    }
+
     /**
      * Transaction Constructor
      *

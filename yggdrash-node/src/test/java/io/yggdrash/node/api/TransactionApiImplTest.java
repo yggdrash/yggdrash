@@ -1,0 +1,154 @@
+package io.yggdrash.node.api;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.primitives.Longs;
+import com.google.gson.JsonObject;
+import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
+import com.googlecode.jsonrpc4j.ProxyUtil;
+import io.yggdrash.core.Account;
+import io.yggdrash.core.Transaction;
+import io.yggdrash.node.mock.TransactionMock;
+import io.yggdrash.node.mock.TransactionReceiptMock;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Import;
+import org.springframework.test.context.junit4.SpringRunner;
+
+import java.io.IOException;
+import java.nio.ByteBuffer;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@RunWith(SpringRunner.class)
+@Import(JsonRpcConfig.class)
+public class TransactionApiImplTest {
+    private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
+
+    @Autowired
+    JsonRpcHttpClient jsonRpcHttpClient;
+    TransactionApiImpl txApiImpl = new TransactionApiImpl();
+
+    @Test
+    public void setJsonRpcHttpClient() {
+        TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
+                TransactionApi.class, jsonRpcHttpClient);
+        assertThat(api).isNotNull();
+    }
+
+    @Test
+    public void checkTransactionJsonFormat() throws IOException {
+        Account from = new Account();
+        JsonObject data = new JsonObject();
+        Transaction tx = new Transaction(from, data);
+        ObjectMapper objectMapper = new ObjectMapper();
+        log.debug("\n\nTransaction Format : " + objectMapper.writeValueAsString(tx));
+    }
+
+    @Test
+    public void jsonStringToTxTest() throws IOException {
+        // Get Transaction of JsonString as Param
+        ObjectMapper objectMapper = new ObjectMapper();
+        Account from = new Account();
+        JsonObject json = new JsonObject();
+        json.addProperty("id", "0");
+        json.addProperty("name", "Rachael");
+        json.addProperty("age", "27");
+        Transaction transaction = new Transaction(from, json);
+        String jsonStr = objectMapper.writeValueAsString(transaction);
+
+        // Convert string to Transaction
+        String txHash = txApiImpl.sendTransaction(jsonStr);
+
+        // Request Transaction with jsonStr
+        try {
+            TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
+                    TransactionApi.class, jsonRpcHttpClient);
+            assertThat(api).isNotNull();
+            String resTxHash = api.sendTransaction(jsonStr);
+            assertThat(txHash.equals(resTxHash));
+        } catch (Exception exception) {
+            log.debug("\n\njsonStringToTxTest :: exception => " + exception);
+        }
+    }
+
+    @Test
+    public void byteArrToTxTest() throws IOException {
+        // Create an input parameter
+        byte[] type = new byte[4];
+        byte[] version = new byte[4];
+        byte[] dataHash = new byte[32];
+        byte[] signature = new byte[65];
+        type = "0000".getBytes();
+        version = "0000".getBytes();
+        dataHash = Base64.decode("3n5eY3WkYCiiM1f6SlFAS8iM7BMmQt7VNyVU3Ie1CRw=");
+        byte[] timestamp = Longs.toByteArray(Long.parseLong("155810745733540"));
+        byte[] dataSize = Longs.toByteArray((long) 2);
+        signature = Base64.decode("HAVWCp/cnCXt/v5aNI2xgu2bKD5zSzmvuCd4Wn95IiMtdTB"
+                + "Lk9XEd0qy2InfBnia2w/R+iQJvELutNXnJAIjd+g=");
+        byte[] data = "{\"id\":\"0\",\"name\":\"Rachael\",\"age\":\"27\"}".getBytes();
+
+        int totalLength = type.length + version.length + dataHash.length + timestamp.length
+                        + dataSize.length + signature.length + data.length;
+
+        ByteBuffer bb = ByteBuffer.allocate(totalLength);
+        bb.put(type);
+        bb.put(version);
+        bb.put(dataHash);
+        bb.put(timestamp);
+        bb.put(dataSize);
+        bb.put(signature);
+        bb.put(data);
+
+        byte[] input = bb.array();
+
+        // Convert byteArray to Transaction
+        byte[] txHash = txApiImpl.sendRawTransaction(input);
+
+        // Request Transaction with byteArr
+        try {
+            TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
+                                                             TransactionApi.class,
+                                                             jsonRpcHttpClient);
+            assertThat(api).isNotNull();
+            byte[] resTxHash = api.sendRawTransaction(input);
+            assertThat(txHash.equals(resTxHash));
+        } catch (Exception exception) {
+            log.debug("\n\nbyteArrToTxTest :: exception => " + exception);
+        }
+    }
+
+    @Test
+    public void createTransactionReceiptMock() throws IOException {
+        TransactionReceiptMock txReceiptMock = new TransactionReceiptMock();
+        log.debug("txReceiptMock : " + txReceiptMock.retTxReceiptMock());
+    }
+
+    @Test
+    public void createTransactionMock() throws IOException {
+        TransactionMock txMock = new TransactionMock();
+        log.debug("txMock : " + txMock.retTxMock());
+    }
+
+    @Test
+    public void transactionApiImplTest() throws Exception {
+        String address = "0x407d73d8a49eeb85d32cf465507dd71d507100c1";
+        String tag = "latest";
+        String hashOfBlock = "0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf";
+        int blockNumber = 1;
+
+        assertThat(1).isEqualTo(txApiImpl.getTransactionCount(address, tag));
+        assertThat(2).isEqualTo(txApiImpl.getTransactionCount(address, blockNumber));
+        assertThat(3).isEqualTo(txApiImpl.getBlockTransactionCountByHash(hashOfBlock));
+        assertThat(4).isEqualTo(txApiImpl.getBlockTransactionCountByNumber(blockNumber));
+        assertThat(5).isEqualTo(txApiImpl.getBlockTransactionCountByNumber(tag));
+        assertThat(6).isEqualTo(txApiImpl.newPendingTransactionFilter());
+    }
+
+}
+
+
+

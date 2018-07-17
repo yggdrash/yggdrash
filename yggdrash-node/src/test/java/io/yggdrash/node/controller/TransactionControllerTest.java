@@ -48,7 +48,7 @@ public class TransactionControllerTest {
     private MockMvc mockMvc;
 
     private JacksonTester<TransactionDto> json;
-    private final String FROM = "fb6b782a7f40de97e50181ee31cba6ed352e2a4e";
+    private static final String FROM = "fb6b782a7f40de97e50181ee31cba6ed352e2a4e";
 
     @Before
     public void setUp() {

@@ -60,7 +60,8 @@ public class BlockChainTest {
             log.debug("" + block.getIndex());
 
             if (blockchain.getPrevBlock() != null) {
-                log.debug("chain prev block hash : " + blockchain.getPrevBlock().getPrevBlockHash());
+                log.debug("chain prev block hash : "
+                        + blockchain.getPrevBlock().getPrevBlockHash());
             }
             assert block.getIndex() == i + 3;
             // add next block in blockchain

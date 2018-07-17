@@ -16,7 +16,6 @@
 
 package io.yggdrash.node.controller;
 
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.node.TestConfig;
 import org.junit.Before;
@@ -33,21 +32,21 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-//@RunWith(SpringRunner.class)
-//@WebMvcTest(AccountController.class)
-//@Import(TestConfig.class)
+@RunWith(SpringRunner.class)
+@WebMvcTest(AccountController.class)
+@Import(TestConfig.class)
 public class AccountControllerTest {
-//    @Autowired
+    @Autowired
     private MockMvc mockMvc;
 
     private JacksonTester<AccountDto> json;
 
-//    @Before
+    @Before
     public void setUp() {
         JacksonTester.initFields(this, new ObjectMapper());
     }
 
-//    @Test
+    @Test
     // TODO Account resful api check
     public void shouldCreateAccount() throws Exception {
         String jsonResponse = mockMvc
