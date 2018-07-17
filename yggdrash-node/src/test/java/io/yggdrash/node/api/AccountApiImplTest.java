@@ -15,7 +15,7 @@ public class AccountApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
 
     @Test
-    public void accountAPIImplTest() throws Exception {
+    public void accountApiImplTest() throws Exception {
         AccountApiImpl accapi = new AccountApiImpl();
         String account = accapi.createAccount();
         assertThat(account).isNotEmpty();

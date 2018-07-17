@@ -34,7 +34,8 @@ public class TransactionApiImplTest {
 
     @Test
     public void setJsonRpcHttpClient() {
-        TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(), TransactionApi.class, jsonRpcHttpClient);
+        TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
+                TransactionApi.class, jsonRpcHttpClient);
         assertThat(api).isNotNull();
     }
 
@@ -64,11 +65,12 @@ public class TransactionApiImplTest {
 
         // Request Transaction with jsonStr
         try {
-            TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(), TransactionApi.class, jsonRpcHttpClient);
+            TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
+                    TransactionApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
             String resTxHash = api.sendTransaction(jsonStr);
             assertThat(txHash.equals(resTxHash));
-        } catch(Exception exception) {
+        } catch (Exception exception) {
             log.debug("\n\njsonStringToTxTest :: exception => " + exception);
         }
     }
@@ -79,18 +81,15 @@ public class TransactionApiImplTest {
         byte[] type = new byte[4];
         byte[] version = new byte[4];
         byte[] dataHash = new byte[32];
-        byte[] timestamp;
-        byte[] dataSize;
         byte[] signature = new byte[65];
-        byte[] data;
-
         type = "0000".getBytes();
-        version= "0000".getBytes();
+        version = "0000".getBytes();
         dataHash = Base64.decode("3n5eY3WkYCiiM1f6SlFAS8iM7BMmQt7VNyVU3Ie1CRw=");
-        timestamp = Longs.toByteArray(Long.parseLong("155810745733540"));
-        dataSize = Longs.toByteArray((long) 2);
-        signature = Base64.decode("HAVWCp/cnCXt/v5aNI2xgu2bKD5zSzmvuCd4Wn95IiMtdTBLk9XEd0qy2InfBnia2w/R+iQJvELutNXnJAIjd+g=");
-        data = "{\"id\":\"0\",\"name\":\"Rachael\",\"age\":\"27\"}".getBytes();
+        byte[] timestamp = Longs.toByteArray(Long.parseLong("155810745733540"));
+        byte[] dataSize = Longs.toByteArray((long) 2);
+        signature = Base64.decode("HAVWCp/cnCXt/v5aNI2xgu2bKD5zSzmvuCd4Wn95IiMtdTB"
+                + "Lk9XEd0qy2InfBnia2w/R+iQJvELutNXnJAIjd+g=");
+        byte[] data = "{\"id\":\"0\",\"name\":\"Rachael\",\"age\":\"27\"}".getBytes();
 
         int totalLength = type.length + version.length + dataHash.length + timestamp.length
                         + dataSize.length + signature.length + data.length;
@@ -111,7 +110,9 @@ public class TransactionApiImplTest {
 
         // Request Transaction with byteArr
         try {
-            TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(), TransactionApi.class, jsonRpcHttpClient);
+            TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
+                                                             TransactionApi.class,
+                                                             jsonRpcHttpClient);
             assertThat(api).isNotNull();
             byte[] resTxHash = api.sendRawTransaction(input);
             assertThat(txHash.equals(resTxHash));
@@ -133,7 +134,7 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    public void transactionAPIImplTest() throws Exception {
+    public void transactionApiImplTest() throws Exception {
         String address = "0x407d73d8a49eeb85d32cf465507dd71d507100c1";
         String tag = "latest";
         String hashOfBlock = "0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf";

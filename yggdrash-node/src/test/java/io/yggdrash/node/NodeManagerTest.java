@@ -106,13 +106,16 @@ public class NodeManagerTest {
         DefaultConfig defaultConfig = nodeManager.getDefaultConfig();
 
         assertThat(defaultConfig.getConfig().getString("java.version"), containsString("1.8"));
-        System.out.println("DefaultConfig java.version: " + defaultConfig.getConfig().getString("java.version"));
+        System.out.println("DefaultConfig java.version: "
+                + defaultConfig.getConfig().getString("java.version"));
 
         assertThat(defaultConfig.getConfig().getString("node.name"), containsString("yggdrash"));
-        System.out.println("DefaultConfig node.name: " + defaultConfig.getConfig().getString("node.name"));
+        System.out.println("DefaultConfig node.name: "
+                + defaultConfig.getConfig().getString("node.name"));
 
         assertThat(defaultConfig.getConfig().getString("network.port"), containsString("31212"));
-        System.out.println("DefaultConfig network.port: " + defaultConfig.getConfig().getString("network.port"));
+        System.out.println("DefaultConfig network.port: "
+                + defaultConfig.getConfig().getString("network.port"));
     }
 
     @Test

@@ -1,6 +1,5 @@
 package io.yggdrash.util;
 
-
 import org.junit.Test;
 
 import java.io.File;
