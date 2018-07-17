@@ -111,7 +111,7 @@ public interface TransactionApi {
      *
      * @param tx          The transaction object
      */
-    Transaction sendTransaction(
+    String sendTransaction(
             @JsonRpcParam(value = "tx") String tx) throws IOException;
 
     /**
@@ -119,8 +119,8 @@ public interface TransactionApi {
      *
      * @param rawTx     The signed transaction data.
      */
-    Transaction sendRawTransaction(
-            @JsonRpcParam(value = "rawTx") byte[] rawTx) throws JsonProcessingException;
+    byte[] sendRawTransaction(
+            @JsonRpcParam(value = "rawTx") byte[] rawTx) throws IOException;
 
     /**
      *  Creates a filter in the node, to notify when new pending transactions arrive.

@@ -86,17 +86,17 @@ public class TransactionApiImpl implements TransactionApi {
 
     /* send */
     @Override
-    public Transaction sendTransaction(String jsonStr) throws IOException {
+    public String sendTransaction(String jsonStr) throws IOException {
         TransactionDto transactionDto = new TransactionDto();
         Transaction tx = transactionDto.jsonStringToTx(jsonStr);
-        return tx;
+        return tx.getHashString();
     }
 
     @Override
-    public Transaction sendRawTransaction(byte[] bytes) throws JsonProcessingException {
+    public byte[] sendRawTransaction(byte[] bytes) throws IOException {
         TransactionDto transactionDto = new TransactionDto();
         Transaction tx = transactionDto.byteArrToTx(bytes);
-        return tx;
+        return tx.getHash();
     }
 
     /* filter */
