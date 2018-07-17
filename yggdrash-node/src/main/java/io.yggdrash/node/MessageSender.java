@@ -73,7 +73,7 @@ public class MessageSender implements DisposableBean, NodeEventListener {
                     continue;
                 }
                 addPeer(client.getPeerList());
-            } catch(Exception e) {
+            } catch (Exception e) {
                 log.warn("ynode={}, error={}", ynode, e.getMessage());
             }
         }
@@ -92,7 +92,7 @@ public class MessageSender implements DisposableBean, NodeEventListener {
             try {
                 Peer peer = Peer.valueOf(ynode);
                 peerGroup.addPeer(peer);
-            } catch(Exception e) {
+            } catch (Exception e) {
                 log.warn("ynode={}, error={}", ynode, e.getMessage());
             }
         }
