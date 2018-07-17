@@ -1,6 +1,5 @@
 package io.yggdrash.node.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
@@ -10,13 +9,11 @@ import io.yggdrash.core.Account;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.node.mock.TransactionMock;
 import io.yggdrash.node.mock.TransactionReceiptMock;
-import org.json.simple.parser.ParseException;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Base64;
-import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -33,6 +30,7 @@ public class TransactionApiImplTest {
 
     @Autowired
     JsonRpcHttpClient jsonRpcHttpClient;
+    TransactionApiImpl txApiImpl = new TransactionApiImpl();
 
     @Test
     public void setJsonRpcHttpClient() {
@@ -61,9 +59,8 @@ public class TransactionApiImplTest {
         Transaction transaction = new Transaction(from, json);
         String jsonStr = objectMapper.writeValueAsString(transaction);
 
-        // Create Transaction by transactionDto
-        TransactionDto transactionDto = new TransactionDto();
-        Transaction tx = transactionDto.jsonStringToTx(jsonStr);
+        // Convert string to Transaction
+        Transaction tx = txApiImpl.converter(jsonStr);
         String txHash = tx.getHashString();
 
         // Request Transaction with jsonStr
@@ -72,7 +69,6 @@ public class TransactionApiImplTest {
             assertThat(api).isNotNull();
             String resTxHash = api.sendTransaction(jsonStr);
             assertThat(txHash.equals(resTxHash));
-            log.debug("\n\nresTxHash :: " + resTxHash);
         } catch(Exception exception) {
             log.debug("\n\njsonStringToTxTest :: exception => " + exception);
         }
@@ -111,9 +107,8 @@ public class TransactionApiImplTest {
 
         byte[] input = bb.array();
 
-        // Create Transaction by transactionDto
-        TransactionDto transactionDto = new TransactionDto();
-        Transaction tx = transactionDto.byteArrToTx(input);
+        // Convert byteArray to Transaction
+        Transaction tx = txApiImpl.converter(input);
         byte[] txHash = tx.getHash();
 
         // Request Transaction with byteArr
@@ -122,7 +117,6 @@ public class TransactionApiImplTest {
             assertThat(api).isNotNull();
             byte[] resTxHash = api.sendRawTransaction(input);
             assertThat(txHash.equals(resTxHash));
-            log.debug("\n\nresTxHash :: " + Hex.toHexString(resTxHash));
         } catch (Exception exception) {
             log.debug("\n\nbyteArrToTxTest :: exception => " + exception);
         }
@@ -142,19 +136,17 @@ public class TransactionApiImplTest {
 
     @Test
     public void transactionAPIImplTest() throws Exception {
-        TransactionApiImpl txapi = new TransactionApiImpl();
-
         String address = "0x407d73d8a49eeb85d32cf465507dd71d507100c1";
         String tag = "latest";
         String hashOfBlock = "0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf";
         int blockNumber = 1;
 
-        assertThat(1).isEqualTo(txapi.getTransactionCount(address, tag));
-        assertThat(2).isEqualTo(txapi.getTransactionCount(address, blockNumber));
-        assertThat(3).isEqualTo(txapi.getBlockTransactionCountByHash(hashOfBlock));
-        assertThat(4).isEqualTo(txapi.getBlockTransactionCountByNumber(blockNumber));
-        assertThat(5).isEqualTo(txapi.getBlockTransactionCountByNumber(tag));
-        assertThat(6).isEqualTo(txapi.newPendingTransactionFilter());
+        assertThat(1).isEqualTo(txApiImpl.getTransactionCount(address, tag));
+        assertThat(2).isEqualTo(txApiImpl.getTransactionCount(address, blockNumber));
+        assertThat(3).isEqualTo(txApiImpl.getBlockTransactionCountByHash(hashOfBlock));
+        assertThat(4).isEqualTo(txApiImpl.getBlockTransactionCountByNumber(blockNumber));
+        assertThat(5).isEqualTo(txApiImpl.getBlockTransactionCountByNumber(tag));
+        assertThat(6).isEqualTo(txApiImpl.newPendingTransactionFilter());
     }
 
 }
