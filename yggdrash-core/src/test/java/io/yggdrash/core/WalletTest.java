@@ -17,12 +17,16 @@ import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.crypto.params.ParametersWithIV;
 import org.spongycastle.util.encoders.Hex;
 
-import java.io.*;
+import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
 
-import static org.junit.Assert.*;
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotNull;
+
 
 /**
  * This is the test class for managing the node's wallet(key).
@@ -34,7 +38,7 @@ public class WalletTest {
     @Test
     public void testKeyEncryption2() {
 
-        final int AES_KEYLENGTH = 128;
+        final int AES_KEY_LENGTH = 128;
 
         // key generation
         ECKey ecKey = new ECKey();
@@ -46,7 +50,7 @@ public class WalletTest {
         byte[] keyBytes = ByteUtil.parseBytes(kdf, 0, 32);
 
         // generate iv
-        byte[] ivBytes = new byte[AES_KEYLENGTH / 8];
+        byte[] ivBytes = new byte[AES_KEY_LENGTH / 8];
         SecureRandom prng = new SecureRandom();
         prng.nextBytes(ivBytes);
 
@@ -79,7 +83,7 @@ public class WalletTest {
     @Test
     public void testKeyEncryption3() {
 
-        final int AES_KEYLENGTH = 128;
+        final int AES_KEY_LENGTH = 128;
 
         // key generation
         ECKey ecKey = new ECKey();
@@ -91,7 +95,7 @@ public class WalletTest {
         byte[] keyBytes = ByteUtil.parseBytes(kdf, 0, 32);
 
         // generate iv
-        byte[] ivBytes = new byte[AES_KEYLENGTH / 8];
+        byte[] ivBytes = new byte[AES_KEY_LENGTH / 8];
         SecureRandom prng = new SecureRandom();
         prng.nextBytes(ivBytes);
 
@@ -117,7 +121,7 @@ public class WalletTest {
         System.arraycopy(cipher, 0, finalData, ivBytes.length, cipher.length);
 
         // decrypt
-        byte[] ivNew = new byte[AES_KEYLENGTH / 8];
+        byte[] ivNew = new byte[AES_KEY_LENGTH / 8];
         System.arraycopy(finalData, 0, ivNew, 0, ivNew.length);
         byte[] encData = new byte[finalData.length - ivNew.length];
         System.arraycopy(finalData, ivNew.length, encData, 0, encData.length);
@@ -180,8 +184,9 @@ public class WalletTest {
     public void testWalletGeneration() {
 
         DefaultConfig defaultConfig = new DefaultConfig();
-        String keyfilePath= defaultConfig.getConfig().getString("key.path");
-        String password = defaultConfig.getConfig().getString("key.password"); //todo: change as cli interface
+        String keyfilePath = defaultConfig.getConfig().getString("key.path");
+        // TODO: change as cli interface
+        String password = defaultConfig.getConfig().getString("key.password");
 
         Wallet wallet = null;
 
@@ -189,7 +194,7 @@ public class WalletTest {
             assertFalse("Check yggdrash.conf(key.path & key.password)",
                     Strings.isNullOrEmpty(keyfilePath) || Strings.isNullOrEmpty(password));
             log.debug("Private key: " + keyfilePath);
-            log.debug("Password : "+ password); // for debug
+            log.debug("Password : " + password); // for debug
 
             // check password validation
             boolean validPassword = Password.passwordValid(password);
@@ -211,7 +216,7 @@ public class WalletTest {
                     wallet = new Wallet(null, keyPath, keyName, password);
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                    assert(false);
+                    assertTrue("Wallet Exception", false);
                 }
             }
 
@@ -219,7 +224,7 @@ public class WalletTest {
 
         } catch (Exception e) {
             e.printStackTrace();
-            assert(false);
+            assertTrue(false);
         }
     }
 
@@ -230,8 +235,9 @@ public class WalletTest {
     public void testWalletGenerationWithFilePath() {
 
         DefaultConfig defaultConfig = new DefaultConfig();
-        String keyFilePath= defaultConfig.getConfig().getString("key.path");
-        String password = defaultConfig.getConfig().getString("key.password"); //todo: change as cli interface
+        String keyFilePath = defaultConfig.getConfig().getString("key.path");
+        //TODO change as cli interface
+        String password = defaultConfig.getConfig().getString("key.password");
 
         Wallet wallet = null;
 
@@ -239,7 +245,7 @@ public class WalletTest {
             assertFalse("Check yggdrash.conf(key.path & key.password)",
                     Strings.isNullOrEmpty(keyFilePath) || Strings.isNullOrEmpty(password));
             log.debug("Private key: " + keyFilePath);
-            log.debug("Password : "+ password); // for debug
+            log.debug("Password : " + password); // for debug
 
             // check password validation
             boolean validPassword = Password.passwordValid(password);
@@ -261,7 +267,7 @@ public class WalletTest {
                     wallet = new Wallet(null, keyPath, keyName, password);
                 } catch (Exception ex) {
                     ex.printStackTrace();
-                    assert(false);
+                    assertTrue(false);
                 }
             }
 
@@ -269,7 +275,7 @@ public class WalletTest {
 
         } catch (Exception e) {
             e.printStackTrace();
-            assert(false);
+            assertTrue(false);
         }
     }
 
@@ -285,7 +291,7 @@ public class WalletTest {
             wallet = new Wallet(null, "tmp/temp", "temp.key", "Aa1234567890!");
         } catch (Exception e) {
             e.printStackTrace();
-            assert(false);
+            assertTrue(false);
         }
 
         byte[] plain = "test data 1111".getBytes();
@@ -302,8 +308,6 @@ public class WalletTest {
 
     /**
      * This is a test method for generating Wallet constructor.
-     * @throws IOException
-     * @throws InvalidCipherTextException
      */
     @Test
     public void testWalletConstructor() throws IOException, InvalidCipherTextException {
