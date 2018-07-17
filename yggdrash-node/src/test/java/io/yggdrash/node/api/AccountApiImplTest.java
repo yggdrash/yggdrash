@@ -10,7 +10,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@Import(ApplicationConfig.class)
+@Import(JsonRpcConfig.class)
 public class AccountApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
 

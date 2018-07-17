@@ -24,7 +24,7 @@ import java.nio.ByteBuffer;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@Import(ApplicationConfig.class)
+@Import(JsonRpcConfig.class)
 public class TransactionApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
 
@@ -60,8 +60,7 @@ public class TransactionApiImplTest {
         String jsonStr = objectMapper.writeValueAsString(transaction);
 
         // Convert string to Transaction
-        Transaction tx = txApiImpl.converter(jsonStr);
-        String txHash = tx.getHashString();
+        String txHash = txApiImpl.sendTransaction(jsonStr);
 
         // Request Transaction with jsonStr
         try {
@@ -108,8 +107,7 @@ public class TransactionApiImplTest {
         byte[] input = bb.array();
 
         // Convert byteArray to Transaction
-        Transaction tx = txApiImpl.converter(input);
-        byte[] txHash = tx.getHash();
+        byte[] txHash = txApiImpl.sendRawTransaction(input);
 
         // Request Transaction with byteArr
         try {

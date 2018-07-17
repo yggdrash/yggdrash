@@ -91,13 +91,13 @@ public class TransactionApiImpl implements TransactionApi {
     /* send */
     @Override
     public String sendTransaction(String jsonStr) throws IOException {
-        Transaction tx = converter(jsonStr);
+        Transaction tx = convert(jsonStr);
         return tx.getHashString();
     }
 
     @Override
     public byte[] sendRawTransaction(byte[] bytes) throws IOException {
-        Transaction tx = converter(bytes);
+        Transaction tx = convert(bytes);
         return tx.getHash();
     }
 
@@ -107,7 +107,7 @@ public class TransactionApiImpl implements TransactionApi {
         return 6;
     }
 
-    public Transaction converter(String jsonStr) throws IOException {
+    private Transaction convert(String jsonStr) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         Transaction tx = mapper.readValue(jsonStr, Transaction.class);
@@ -115,7 +115,7 @@ public class TransactionApiImpl implements TransactionApi {
         return tx;
     }
 
-    public Transaction converter(byte[] bytes) {
+    private Transaction convert(byte[] bytes) {
         byte[] type = new byte[4];
         byte[] version = new byte[4];
         byte[] dataHash = new byte[32];
