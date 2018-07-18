@@ -22,10 +22,11 @@ import io.yggdrash.core.Account;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
-import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.NotValidteException;
+import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.node.mock.NodeManagerMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,16 +44,21 @@ import static org.junit.Assert.assertThat;
 
 public class NodeManagerTest {
 
-    private NodeManager nodeManager;
+    private NodeManagerMock nodeManager;
     private Transaction tx;
     private Block genesisBlock;
     private Block block;
+    private PeerGroup peerGroup;
 
     @Before
     public void setUp() throws Exception {
-        nodeManager = new NodeManagerMock();
-        assert nodeManager.getNodeId() != null;
-
+        peerGroup = new PeerGroup();
+        NodeProperties.Grpc grpc = new NodeProperties.Grpc();
+        grpc.setHost("localhost");
+        grpc.setPort(9090);
+        nodeManager = new NodeManagerMock(peerGroup, grpc);
+        assert nodeManager.getNodeUri() != null;
+        nodeManager.init();
         Account author = new Account();
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");

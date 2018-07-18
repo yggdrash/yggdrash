@@ -16,44 +16,26 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.node.config.NodeProperties;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Arrays;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import java.io.IOException;
 
 @RunWith(MockitoJUnitRunner.class)
 public class MessageSenderTest {
 
     MessageSender messageSender;
 
-    PeerGroup peerGroup;
-
-    @Mock
-    NodeProperties nodeProperties;
-
     @Before
     public void setUp() {
-        when(nodeProperties.getSeedPeerList())
-                .thenReturn(Arrays.asList("ynode://0462b608@localhost:9090"));
-        this.peerGroup = new PeerGroup();
-        this.messageSender = new MessageSender(peerGroup, nodeProperties);
-        messageSender.init();
+        this.messageSender = new MessageSender();
     }
 
     @Test
-    public void getPeerIdList() {
-        peerGroup.addPeer(Peer.valueOf("ynode://0462b608@localhost:9090"));
-        messageSender.getPeerIdList();
-        assertThat(messageSender.getPeerIdList()).contains("0462b608");
+    public void getPeerIdList() throws IOException {
+        assert messageSender.syncBlock(0).isEmpty();
     }
 
 }

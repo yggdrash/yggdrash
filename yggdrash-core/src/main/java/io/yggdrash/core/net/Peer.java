@@ -18,7 +18,6 @@ package io.yggdrash.core.net;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.yggdrash.core.Account;
-import io.yggdrash.util.Utils;
 import org.spongycastle.util.encoders.Hex;
 
 import java.net.URI;
@@ -32,6 +31,7 @@ public class Peer {
     private byte[] id;
     private String host;
     private int port;
+    private String ynodeUri;
 
     @VisibleForTesting
     public Peer(String host, int port) {
@@ -40,26 +40,23 @@ public class Peer {
         this.port = port;
     }
 
-    private Peer(String ynode) {
+    private Peer(String ynodeUri) {
         try {
-            URI uri = new URI(ynode);
+            URI uri = new URI(ynodeUri);
             if (!uri.getScheme().equals(YGGDRASH_NODE_SCHEMA)) {
                 throw new RuntimeException("expecting URL in the format ynode://PUBKEY@HOST:PORT");
             }
             this.id = Hex.decode(uri.getUserInfo());
             this.host = uri.getHost();
             this.port = uri.getPort();
+            this.ynodeUri = ynodeUri;
         } catch (URISyntaxException e) {
             throw new RuntimeException("expecting URL in the format ynode://PUBKEY@HOST:PORT", e);
         }
     }
 
-    public String getIdShort() {
-        return Utils.getNodeIdShort(getHexId());
-    }
-
-    public String getHexId() {
-        return Hex.toHexString(id);
+    public String getYnodeUri() {
+        return ynodeUri;
     }
 
     public String getHost() {
@@ -70,8 +67,9 @@ public class Peer {
         return port;
     }
 
-    public static Peer valueOf(String host, int port) {
-        return valueOf(host + ":" + port);
+    public static Peer valueOf(String nodeId, String host, int port) {
+        return new Peer(String.format(PEER_URI_FORMAT, YGGDRASH_NODE_SCHEMA,
+                nodeId, host + ":" + port));
     }
 
     public static Peer valueOf(String addressOrYnode) {

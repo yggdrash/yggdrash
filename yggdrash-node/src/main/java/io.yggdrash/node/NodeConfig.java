@@ -34,18 +34,21 @@ public class NodeConfig {
     }
 
     @Bean
-    PeerGroup peerGroup() {
-        return new PeerGroup();
+    PeerGroup peerGroup(NodeProperties nodeProperties) {
+        PeerGroup peerGroup = new PeerGroup();
+        peerGroup.setSeedPeerList(nodeProperties.getSeedPeerList());
+        return peerGroup;
     }
 
     @Bean
-    MessageSender messageSender(PeerGroup peerGroup, NodeProperties nodeProperties) {
-        return new MessageSender(peerGroup, nodeProperties);
+    MessageSender messageSender() {
+        return new MessageSender();
     }
 
     @Bean
-    NodeManager nodeManager(MessageSender messageSender) {
-        NodeManager manager = new NodeManagerMock();
+    NodeManager nodeManager(MessageSender messageSender, PeerGroup peerGroup,
+                            NodeProperties nodeProperties) {
+        NodeManager manager = new NodeManagerMock(peerGroup, nodeProperties.getGrpc());
         manager.setListener(messageSender);
         return manager;
     }

@@ -30,7 +30,6 @@ import io.yggdrash.proto.Pong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -86,6 +85,12 @@ public class NodeSyncClient {
     public List<BlockChainProto.Transaction> syncTransaction() {
         Empty empty = Empty.newBuilder().build();
         return BlockChainGrpc.newBlockingStub(channel).syncTransaction(empty).getTransactionsList();
+    }
+
+    public List<String> requestPeerList(String ynode, int limit) {
+        BlockChainProto.PeerRequest request = BlockChainProto.PeerRequest.newBuilder()
+                .setFrom(ynode).setLimit(limit).build();
+        return BlockChainGrpc.newBlockingStub(channel).requestPeerList(request).getPeersList();
     }
 
     public Pong ping(String message) {
@@ -148,9 +153,5 @@ public class NodeSyncClient {
         }
 
         requestObserver.onCompleted();
-    }
-
-    public List<String> getPeerList() {
-        return Arrays.asList("ynode://dfdkjfdkjfs@localhost:9090");
     }
 }

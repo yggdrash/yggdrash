@@ -21,7 +21,10 @@ import java.util.Collections;
 import java.util.List;
 
 public class PeerGroup {
+
     private List<Peer> peers = Collections.synchronizedList(new ArrayList<>());
+
+    private List<String> seedPeerList;
 
     public void addPeer(Peer peer) {
         if (!peers.contains(peer)) {
@@ -35,5 +38,13 @@ public class PeerGroup {
 
     public void clear() {
         this.peers.clear();
+    }
+
+    public List<String> getSeedPeerList() {
+        return seedPeerList;
+    }
+
+    public void setSeedPeerList(List<String> seedPeerList) {
+        this.seedPeerList = seedPeerList;
     }
 }
