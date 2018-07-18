@@ -16,7 +16,7 @@
 
 package io.yggdrash.core;
 
-import io.yggdrash.core.net.NodeSyncClient;
+import io.yggdrash.core.net.Peer;
 
 import java.io.IOException;
 import java.util.List;
@@ -26,7 +26,9 @@ public interface NodeEventListener {
 
     void newBlock(Block block);
 
-    void newActivePeer(NodeSyncClient client);
+    void newPeer(Peer peer);
+
+    List<String> broadcastPeer(String ynodeUri);
 
     List<Block> syncBlock(long offset) throws IOException;
 

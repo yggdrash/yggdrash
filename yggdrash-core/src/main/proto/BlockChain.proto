@@ -5,7 +5,9 @@ option java_outer_classname = "BlockChainProto";
 
 service BlockChain {
     // Client to server messaging RPC
-    rpc requestPeerList(PeerRequest) returns (PeerResponse) {
+    rpc requestPeerList(PeerRequest) returns (PeerList) {
+    }
+    rpc broadcastPeer(PeerList) returns (Empty) {
     }
     rpc syncBlock(SyncLimit) returns (BlockList) {
     }
@@ -27,7 +29,7 @@ message PeerRequest {
     uint32 limit = 2;
 }
 
-message PeerResponse {
+message PeerList {
     repeated string peers = 1;
 }
 

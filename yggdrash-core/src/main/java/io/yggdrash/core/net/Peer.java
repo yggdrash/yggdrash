@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.net;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.yggdrash.core.Account;
 import org.spongycastle.util.encoders.Hex;
 
@@ -32,13 +31,6 @@ public class Peer {
     private String host;
     private int port;
     private String ynodeUri;
-
-    @VisibleForTesting
-    public Peer(String host, int port) {
-        this.id = "node".getBytes();
-        this.host = host;
-        this.port = port;
-    }
 
     private Peer(String ynodeUri) {
         try {

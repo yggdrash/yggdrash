@@ -22,7 +22,9 @@ import io.yggdrash.core.Transaction;
 import io.yggdrash.core.mapper.BlockMapper;
 import io.yggdrash.core.mapper.TransactionMapper;
 import io.yggdrash.core.net.NodeSyncClient;
+import io.yggdrash.core.net.Peer;
 import io.yggdrash.proto.BlockChainProto;
+import io.yggdrash.proto.Pong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -33,6 +35,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class MessageSender implements DisposableBean, NodeEventListener {
@@ -74,8 +77,54 @@ public class MessageSender implements DisposableBean, NodeEventListener {
     }
 
     @Override
-    public void newActivePeer(NodeSyncClient client) {
-        activePeerList.add(client);
+    public void newPeer(Peer peer) {
+        if (contains(peer)) {
+            return;
+        }
+        try {
+            NodeSyncClient client = new NodeSyncClient(peer);
+            log.info("Connecting... peer {}:{}", peer.getHost(), peer.getPort());
+            Pong pong = client.ping("Ping");
+            // TODO validation peer
+            if (pong.getPong().equals("Pong")) {
+                activePeerList.add(client);
+            }
+        } catch (Exception e) {
+            log.warn("Fail to add to the activePeerList err=" + e.getMessage());
+        }
+    }
+
+    public List<String> getActivePeerList() {
+        return activePeerList.stream().map(NodeSyncClient::getPeerYnodeUri)
+                .collect(Collectors.toList());
+    }
+
+    private boolean contains(Peer peer) {
+        for (NodeSyncClient client : activePeerList) {
+            if (client.getPeerYnodeUri().equals(peer.getYnodeUri())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Broadcast peer uri
+     *
+     * @param ynodeUri the peer uri to broadcast
+     * @return the block list
+     */
+    @Override
+    public List<String> broadcastPeer(String ynodeUri) {
+        if (activePeerList.isEmpty()) {
+            log.warn("Active peer is empty.");
+            return Collections.emptyList();
+        }
+        List<String> peerList = new ArrayList<>();
+        for (NodeSyncClient client : activePeerList) {
+            peerList.addAll(client.requestPeerList(ynodeUri, 0));
+        }
+        return peerList;
     }
 
     /**

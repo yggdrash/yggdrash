@@ -102,7 +102,7 @@ public class NodeSyncServerTest {
         String ynodeUri = "ynode://75bff16c@localhost:9090";
         BlockChainProto.PeerRequest.Builder builder
                 = BlockChainProto.PeerRequest.newBuilder().setFrom(ynodeUri);
-        BlockChainProto.PeerResponse response = blockingStub.requestPeerList(builder.build());
+        BlockChainProto.PeerList response = blockingStub.requestPeerList(builder.build());
         assertTrue(response.getPeersCount() == 3);
         // limit test
         response = blockingStub.requestPeerList(builder.setLimit(2).build());

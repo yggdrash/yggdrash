@@ -70,6 +70,12 @@ public class NodeSyncClientTest {
     }
 
     @Test
+    public void getPeerYnodeUriTest() {
+        NodeSyncClient client = new NodeSyncClient(Peer.valueOf("ynode://75bff16c@localhost:9090"));
+        assertEquals("ynode://75bff16c@localhost:9090", client.getPeerYnodeUri());
+    }
+
+    @Test
     public void play() {
         doAnswer((invocationOnMock) -> {
             StreamObserver<BlockChainProto.BlockList> argument = invocationOnMock.getArgument(1);

@@ -161,10 +161,9 @@ public class NodeSyncServer {
          */
         @Override
         public void requestPeerList(BlockChainProto.PeerRequest peerRequest,
-                                    StreamObserver<BlockChainProto.PeerResponse> responseObserver) {
+                                    StreamObserver<BlockChainProto.PeerList> responseObserver) {
             log.debug("Synchronize peer request");
-            BlockChainProto.PeerResponse.Builder builder =
-                    BlockChainProto.PeerResponse.newBuilder();
+            BlockChainProto.PeerList.Builder builder = BlockChainProto.PeerList.newBuilder();
 
             List<String> peerUriList = nodeManager.getPeerUriList();
 
@@ -176,6 +175,7 @@ public class NodeSyncServer {
             }
             responseObserver.onNext(builder.build());
             responseObserver.onCompleted();
+            nodeManager.addPeer(peerRequest.getFrom());
         }
 
         @Override

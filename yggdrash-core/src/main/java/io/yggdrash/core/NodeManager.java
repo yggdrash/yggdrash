@@ -43,6 +43,8 @@ public interface NodeManager {
 
     String getNodeUri();
 
+    void addPeer(String peer);
+
     List<String> getPeerUriList();
 
     DefaultConfig getDefaultConfig();

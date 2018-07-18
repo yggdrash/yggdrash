@@ -31,7 +31,6 @@ import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.TransactionPool;
 import io.yggdrash.node.BlockBuilder;
 import io.yggdrash.node.config.NodeProperties;
-import io.yggdrash.proto.Pong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -39,7 +38,6 @@ import org.spongycastle.crypto.InvalidCipherTextException;
 import javax.annotation.PostConstruct;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -89,7 +87,7 @@ public class NodeManagerMock implements NodeManager {
     @VisibleForTesting
     public void init() {
         requestPeerList();
-        addActivePeer();
+        activatePeers();
         peerGroup.addPeer(peer); // add me
         syncBlockAndTransaction();
     }
@@ -97,76 +95,6 @@ public class NodeManagerMock implements NodeManager {
     @Override
     public void setListener(NodeEventListener listener) {
         this.listener = listener;
-    }
-
-    private void requestPeerList() {
-        List<String> seedPeerList = peerGroup.getSeedPeerList();
-        if (seedPeerList == null || seedPeerList.isEmpty()) {
-            return;
-        }
-        for (String ynodeUri : seedPeerList) {
-            try {
-                Peer peer = Peer.valueOf(ynodeUri);
-                log.info("Trying to connecting SEED peer at {}", ynodeUri);
-                NodeSyncClient client = new NodeSyncClient(peer.getHost(), peer.getPort());
-                // TODO validation peer(encrypting msg by privateKey and signing by publicKey ...)
-                List<String> peerList = client.requestPeerList(getNodeUri(), 0);
-                addPeer(peerList);
-            } catch (Exception e) {
-                log.warn("ynode={}, error={}", ynodeUri, e.getMessage());
-            }
-        }
-    }
-
-    private void addPeer(List<String> peerList) {
-        for (String ynode : peerList) {
-            try {
-                Peer peer = Peer.valueOf(ynode);
-                peerGroup.addPeer(peer);
-            } catch (Exception e) {
-                log.warn("ynode={}, error={}", ynode, e.getMessage());
-            }
-        }
-    }
-
-    private void addActivePeer() {
-        if (listener == null) {
-            return;
-        }
-
-        for (Peer peer : peerGroup.getPeers()) {
-            log.info("Trying to connecting peer at {}:{}", peer.getHost(), peer.getPort());
-            NodeSyncClient client = new NodeSyncClient(peer.getHost(), peer.getPort());
-            Pong pong = client.ping("Ping");
-            // TODO validation peer
-            if (!pong.getPong().equals("Pong")) {
-                continue;
-            }
-            listener.newActivePeer(client);
-        }
-    }
-
-    private void syncBlockAndTransaction() {
-        if (listener == null) {
-            return;
-        }
-        try {
-            List<Block> blockList = listener.syncBlock(blockChain.getLastIndex());
-            for (Block block : blockList) {
-                blockChain.addBlock(block);
-            }
-            List<Transaction> txList = listener.syncTransaction();
-            for (Transaction tx : txList) {
-                transactionPool.addTx(tx);
-            }
-        } catch (Exception e) {
-            log.warn(e.getMessage());
-        }
-    }
-
-    @Override
-    public List<String> getPeerUriList() {
-        return peerGroup.getPeers().stream().map(Peer::getYnodeUri).collect(Collectors.toList());
     }
 
     @Override
@@ -238,6 +166,92 @@ public class NodeManagerMock implements NodeManager {
     @Override
     public String getNodeUri() {
         return peer.getYnodeUri();
+    }
+
+    @Override
+    public void addPeer(String ynodeUri) {
+        if (peerGroup.contains(ynodeUri)) {
+            log.debug("Yggdrash node is exist. uri={}", ynodeUri);
+            return;
+        }
+        addPeerByYnodeUri(ynodeUri);
+        if (listener != null) {
+            List<String> peerList = listener.broadcastPeer(ynodeUri);
+            addPeerByYnodeUri(peerList);
+        }
+    }
+
+    @Override
+    public List<String> getPeerUriList() {
+        return peerGroup.getPeers().stream().map(Peer::getYnodeUri).collect(Collectors.toList());
+    }
+
+    private void addPeerByYnodeUri(List<String> peerList) {
+        for (String ynodeUri : peerList) {
+            addPeerByYnodeUri(ynodeUri);
+        }
+    }
+
+    private void addPeerByYnodeUri(String ynodeUri) {
+        try {
+            Peer peer = Peer.valueOf(ynodeUri);
+            peerGroup.addPeer(peer);
+        } catch (Exception e) {
+            log.warn("ynode={}, error={}", ynodeUri, e.getMessage());
+        }
+    }
+
+    private void activatePeers() {
+        for (Peer peer : peerGroup.getPeers()) {
+            addActivePeer(peer);
+        }
+    }
+
+    private void addActivePeer(Peer peer) {
+        if (listener == null || peer == null) {
+            return;
+        }
+        if (this.peer.getYnodeUri().equals(peer.getYnodeUri())) {
+            return;
+        }
+        listener.newPeer(peer);
+    }
+
+    private void requestPeerList() {
+        List<String> seedPeerList = peerGroup.getSeedPeerList();
+        if (seedPeerList == null || seedPeerList.isEmpty()) {
+            return;
+        }
+        for (String ynodeUri : seedPeerList) {
+            try {
+                Peer peer = Peer.valueOf(ynodeUri);
+                log.info("Trying to connecting SEED peer at {}", ynodeUri);
+                NodeSyncClient client = new NodeSyncClient(peer);
+                // TODO validation peer(encrypting msg by privateKey and signing by publicKey ...)
+                List<String> peerList = client.requestPeerList(getNodeUri(), 0);
+                addPeerByYnodeUri(peerList);
+            } catch (Exception e) {
+                log.warn("ynode={}, error={}", ynodeUri, e.getMessage());
+            }
+        }
+    }
+
+    private void syncBlockAndTransaction() {
+        if (listener == null) {
+            return;
+        }
+        try {
+            List<Block> blockList = listener.syncBlock(blockChain.getLastIndex());
+            for (Block block : blockList) {
+                blockChain.addBlock(block);
+            }
+            List<Transaction> txList = listener.syncTransaction();
+            for (Transaction tx : txList) {
+                transactionPool.addTx(tx);
+            }
+        } catch (Exception e) {
+            log.warn(e.getMessage());
+        }
     }
 
     private void removeTxByBlock(Block block) throws IOException {

@@ -16,14 +16,14 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.core.net.Peer;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.junit.MockitoJUnitRunner;
 
 import java.io.IOException;
 
-@RunWith(MockitoJUnitRunner.class)
+import static org.junit.Assert.assertEquals;
+
 public class MessageSenderTest {
 
     MessageSender messageSender;
@@ -34,8 +34,13 @@ public class MessageSenderTest {
     }
 
     @Test
-    public void getPeerIdList() throws IOException {
+    public void syncBlock() throws IOException {
         assert messageSender.syncBlock(0).isEmpty();
     }
 
+    @Test
+    public void addActivePeerTest() {
+        messageSender.newPeer(Peer.valueOf("ynode://75bff16c@localhost:9999"));
+        assertEquals(0, messageSender.getActivePeerList().size());
+    }
 }
