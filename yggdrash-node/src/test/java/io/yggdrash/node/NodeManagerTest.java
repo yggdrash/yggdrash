@@ -50,6 +50,7 @@ public class NodeManagerTest {
     private Block genesisBlock;
     private Block block;
     private PeerGroup peerGroup;
+    private MessageSender sender;
 
     @Before
     public void setUp() throws Exception {
@@ -57,7 +58,8 @@ public class NodeManagerTest {
         NodeProperties.Grpc grpc = new NodeProperties.Grpc();
         grpc.setHost("localhost");
         grpc.setPort(9090);
-        nodeManager = new NodeManagerMock(peerGroup, grpc);
+        sender = new MessageSender();
+        nodeManager = new NodeManagerMock(sender, peerGroup, grpc);
         assert nodeManager.getNodeUri() != null;
         nodeManager.init();
         Account author = new Account();

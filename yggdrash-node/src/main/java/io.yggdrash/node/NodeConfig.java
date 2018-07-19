@@ -48,9 +48,7 @@ public class NodeConfig {
     @Bean
     NodeManager nodeManager(MessageSender messageSender, PeerGroup peerGroup,
                             NodeProperties nodeProperties) {
-        NodeManager manager = new NodeManagerMock(peerGroup, nodeProperties.getGrpc());
-        manager.setListener(messageSender);
-        return manager;
+        return new NodeManagerMock(messageSender, peerGroup, nodeProperties.getGrpc());
     }
 
     @Bean

@@ -64,7 +64,8 @@ public class NodeSyncClientTest {
 
     @Before
     public void setUp() {
-        client = new NodeSyncClient(grpcServerRule.getChannel());
+        Peer peer = Peer.valueOf("ynode://75bff16c@localhost:9999");
+        client = new NodeSyncClient(grpcServerRule.getChannel(), peer);
         grpcServerRule.getServiceRegistry().addService(pingPongService);
         grpcServerRule.getServiceRegistry().addService(blockChainService);
     }
@@ -158,5 +159,21 @@ public class NodeSyncClientTest {
 
         assertEquals("ynode://75bff16c@localhost:9090", peerRequestCaptor.getValue().getFrom());
         assertEquals(10, peerRequestCaptor.getValue().getLimit());
+    }
+
+    @Test
+    public void disconnectPeer() {
+        doAnswer((invocationOnMock) -> {
+            StreamObserver<BlockChainProto.PeerRequest> argument = invocationOnMock.getArgument(1);
+            argument.onNext(null);
+            argument.onCompleted();
+            return null;
+        }).when(blockChainService).disconnectPeer(peerRequestCaptor.capture(), any());
+
+        client.disconnectPeer("ynode://75bff16c@localhost:9091");
+
+        verify(blockChainService).disconnectPeer(peerRequestCaptor.capture(), any());
+
+        assertEquals("ynode://75bff16c@localhost:9091", peerRequestCaptor.getValue().getFrom());
     }
 }

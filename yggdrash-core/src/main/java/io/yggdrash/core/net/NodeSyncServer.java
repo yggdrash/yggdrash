@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.net;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
@@ -41,12 +40,8 @@ import java.util.stream.Collectors;
 
 public class NodeSyncServer {
     private static final Logger log = LoggerFactory.getLogger(NodeSyncServer.class);
-    private NodeManager nodeManager;
+    private final NodeManager nodeManager;
     private Server server;
-
-    @VisibleForTesting
-    public NodeSyncServer() {
-    }
 
     public NodeSyncServer(NodeManager nodeManager) {
         this.nodeManager = nodeManager;
@@ -86,7 +81,7 @@ public class NodeSyncServer {
     static class PingPongImpl extends PingPongGrpc.PingPongImplBase {
         @Override
         public void play(Ping request, StreamObserver<Pong> responseObserver) {
-            log.debug(request.getPing());
+            log.debug("request=" + request.getPing());
             Pong pong = Pong.newBuilder().setPong("Pong").build();
             responseObserver.onNext(pong);
             responseObserver.onCompleted();
@@ -97,7 +92,7 @@ public class NodeSyncServer {
      * The block chain rpc server implementation.
      */
     static class BlockChainImpl extends BlockChainGrpc.BlockChainImplBase {
-        private NodeManager nodeManager;
+        private final NodeManager nodeManager;
 
         BlockChainImpl(NodeManager nodeManager) {
             this.nodeManager = nodeManager;
@@ -136,7 +131,7 @@ public class NodeSyncServer {
         }
 
         /**
-         * Sync block response
+         * Sync transaction response
          *
          * @param empty the empty message
          * @param responseObserver the observer response to the transaction list
@@ -155,7 +150,7 @@ public class NodeSyncServer {
         }
 
         /**
-         * Request for peer list
+         * Peer list response
          *
          * @param peerRequest the request with limit of peer and peer uri
          * @param responseObserver the observer response to the peer list
@@ -163,7 +158,7 @@ public class NodeSyncServer {
         @Override
         public void requestPeerList(BlockChainProto.PeerRequest peerRequest,
                                     StreamObserver<BlockChainProto.PeerList> responseObserver) {
-            log.debug("Synchronize peer request");
+            log.debug("Synchronize peer request from=" + peerRequest.getFrom());
             BlockChainProto.PeerList.Builder builder = BlockChainProto.PeerList.newBuilder();
 
             List<String> peerUriList = nodeManager.getPeerUriList();
@@ -179,6 +174,21 @@ public class NodeSyncServer {
             nodeManager.addPeer(peerRequest.getFrom());
         }
 
+        /**
+         * Broadcast a disconnected peer
+         *
+         * @param peerRequest the request with disconnected peer uri
+         * @param responseObserver the empty response
+         */
+        @Override
+        public void disconnectPeer(BlockChainProto.PeerRequest peerRequest,
+                                    StreamObserver<BlockChainProto.Empty> responseObserver) {
+            log.debug("Received disconnect for=" + peerRequest.getFrom());
+            responseObserver.onNext(BlockChainProto.Empty.newBuilder().build());
+            responseObserver.onCompleted();
+            nodeManager.removePeer(peerRequest.getFrom());
+        }
+
         @Override
         public StreamObserver<BlockChainProto.Transaction> broadcastTransaction(
                 StreamObserver<BlockChainProto.Transaction> responseObserver) {
@@ -190,18 +200,16 @@ public class NodeSyncServer {
                 public void onNext(BlockChainProto.Transaction tx) {
                     log.debug("Received transaction: {}", tx);
                     Transaction newTransaction = null;
-                    if (nodeManager != null) {
-                        try {
-                            Transaction transaction
-                                    = TransactionMapper.protoTransactionToTransaction(tx);
-                            newTransaction = nodeManager.addTransaction(transaction);
-                        } catch (IOException e) {
-                            log.error(e.getMessage());
-                        }
-                        // ignore broadcast by other node's broadcast
-                        if (newTransaction == null) {
-                            return;
-                        }
+                    try {
+                        Transaction transaction
+                                = TransactionMapper.protoTransactionToTransaction(tx);
+                        newTransaction = nodeManager.addTransaction(transaction);
+                    } catch (IOException e) {
+                        log.error(e.getMessage(), e);
+                    }
+                    // ignore broadcast by other node's broadcast
+                    if (newTransaction == null) {
+                        return;
                     }
 
                     for (StreamObserver<BlockChainProto.Transaction> observer : txObservers) {
@@ -235,18 +243,16 @@ public class NodeSyncServer {
                 public void onNext(BlockChainProto.Block protoBlock) {
                     log.debug("Received block id=[{}]", protoBlock.getHeader().getIndex());
                     Block newBlock = null;
-                    if (nodeManager != null) {
-                        try {
-                            Block block = BlockMapper.protoBlockToBlock(protoBlock);
-                            log.debug("Received block hash=" + block.getBlockHash());
-                            newBlock = nodeManager.addBlock(block);
-                        } catch (Exception e) {
-                            log.error(e.getMessage());
-                        }
-                        // ignore broadcast by other node's broadcast
-                        if (newBlock == null) {
-                            return;
-                        }
+                    try {
+                        Block block = BlockMapper.protoBlockToBlock(protoBlock);
+                        log.debug("Received block hash=" + block.getBlockHash());
+                        newBlock = nodeManager.addBlock(block);
+                    } catch (Exception e) {
+                        log.error(e.getMessage(), e);
+                    }
+                    // ignore broadcast by other node's broadcast
+                    if (newBlock == null) {
+                        return;
                     }
 
                     for (StreamObserver<BlockChainProto.Block> observer : blockObservers) {

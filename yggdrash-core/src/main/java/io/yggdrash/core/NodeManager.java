@@ -27,8 +27,6 @@ public interface NodeManager {
 
     void init();
 
-    void setListener(NodeEventListener listener);
-
     Transaction addTransaction(Transaction tx) throws IOException;
 
     List<Transaction> getTransactionList();
@@ -46,6 +44,8 @@ public interface NodeManager {
     String getNodeUri();
 
     void addPeer(String peer);
+
+    void removePeer(String peer);
 
     List<String> getPeerUriList();
 

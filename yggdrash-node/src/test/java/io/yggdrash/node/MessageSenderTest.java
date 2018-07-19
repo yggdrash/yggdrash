@@ -27,7 +27,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 
 public class MessageSenderTest {
@@ -66,13 +65,18 @@ public class MessageSenderTest {
     }
 
     @Test
-    public void addActivePeerTest() {
-        messageSender.newPeer(Peer.valueOf("ynode://75bff16c@localhost:9999"));
+    public void addActivePeer() {
+        messageSender.newPeerChannel(Peer.valueOf("ynode://75bff16c@localhost:9999"));
         assert messageSender.getActivePeerList().isEmpty();
     }
 
     @Test
-    public void broadcastPeerTest() {
-        assert messageSender.broadcastPeer("ynode://75bff16c@localhost:9999").isEmpty();
+    public void broadcastPeerConnect() {
+        assert messageSender.broadcastPeerConnect("ynode://75bff16c@localhost:9999").isEmpty();
+    }
+
+    @Test
+    public void broadcastPeerDisconnect() {
+        messageSender.broadcastPeerDisconnect("ynode://75bff16c@localhost:9999");
     }
 }

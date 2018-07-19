@@ -31,6 +31,7 @@ import io.yggdrash.proto.Pong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -45,26 +46,31 @@ public class NodeSyncClient {
 
     public NodeSyncClient(Peer peer) {
         this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
-                .build());
-        this.peer = peer;
+                .build(), peer);
     }
 
     @VisibleForTesting
-    NodeSyncClient(ManagedChannel channel) {
+    NodeSyncClient(ManagedChannel channel, Peer peer) {
         this.channel = channel;
+        this.peer = peer;
         blockingStub = PingPongGrpc.newBlockingStub(channel);
         asyncStub = BlockChainGrpc.newStub(channel);
     }
 
-    public String getPeerYnodeUri() {
+    String getPeerYnodeUri() {
         return peer.getYnodeUri();
     }
 
     public void stop() {
+        log.debug("stop for peer=" + peer.getYnodeUri());
         if (channel != null) {
-            // TODO send peer disconnected message
             channel.shutdown();
         }
+    }
+
+    public void stop(String ynodeUri) {
+        disconnectPeer(ynodeUri);
+        stop();
     }
 
     void blockUtilShutdown() throws InterruptedException {
@@ -156,10 +162,24 @@ public class NodeSyncClient {
         requestObserver.onCompleted();
     }
 
-    public List<String> requestPeerList(String ynode, int limit) {
+    public List<String> requestPeerList(String ynodeUri, int limit) {
+        if (ynodeUri.equals(peer.getYnodeUri())) {
+            log.debug("ignore from me");
+            return Collections.emptyList();
+        }
         BlockChainProto.PeerRequest request = BlockChainProto.PeerRequest.newBuilder()
-                .setFrom(ynode).setLimit(limit).build();
+                .setFrom(ynodeUri).setLimit(limit).build();
         return BlockChainGrpc.newBlockingStub(channel).requestPeerList(request).getPeersList();
     }
 
+    public void disconnectPeer(String ynodeUri) {
+        if (ynodeUri.equals(peer.getYnodeUri())) {
+            log.debug("ignore from me");
+            return;
+        }
+        log.info("Disconnect request peer=" + ynodeUri);
+        BlockChainProto.PeerRequest request = BlockChainProto.PeerRequest.newBuilder()
+                .setFrom(ynodeUri).build();
+        BlockChainGrpc.newBlockingStub(channel).disconnectPeer(request);
+    }
 }

@@ -7,6 +7,8 @@ service BlockChain {
     // Client to server messaging RPC
     rpc requestPeerList(PeerRequest) returns (PeerList) {
     }
+    rpc disconnectPeer(PeerRequest) returns (Empty) {
+    }
     rpc syncBlock(SyncLimit) returns (BlockList) {
     }
     rpc syncTransaction(Empty) returns (TransactionList) {

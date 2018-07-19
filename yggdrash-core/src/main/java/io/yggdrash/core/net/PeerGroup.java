@@ -35,12 +35,20 @@ public class PeerGroup {
         return peer;
     }
 
+    public Peer removePeer(String peer) {
+        return peers.remove(peer);
+    }
+
     public Collection<Peer> getPeers() {
         return peers.values();
     }
 
     public boolean contains(String ynodeUri) {
         return peers.containsKey(ynodeUri);
+    }
+
+    public boolean isEmpty() {
+        return peers.isEmpty();
     }
 
     public void clear() {
