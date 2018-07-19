@@ -1,21 +1,17 @@
 package io.yggdrash.node.api;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Longs;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHeader;
+import io.yggdrash.node.exception.FailedOperationException;
+import io.yggdrash.node.exception.NonExistObjectException;
+import io.yggdrash.node.exception.RejectedAccessException;
+import io.yggdrash.node.exception.WrongStructuredException;
 import io.yggdrash.node.mock.TransactionMock;
 import io.yggdrash.node.mock.TransactionReceiptMock;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 import org.spongycastle.util.Arrays;
 import org.springframework.stereotype.Service;
 
@@ -132,6 +128,10 @@ public class TransactionApiImpl implements TransactionApi {
         int txHeaderLength;
         txHeaderLength = typeLength + versionLength + dataHashLength + timestampLength
                 + dataHashLength + dataSizeLength + signatureLength;
+
+        if (bytes.length > txHeaderLength) {
+            throw new WrongStructuredException();
+        }
 
         int sum = 0;
         type = Arrays.copyOfRange(bytes, sum, sum += typeLength);

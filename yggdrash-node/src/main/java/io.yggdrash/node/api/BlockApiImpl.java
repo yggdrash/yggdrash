@@ -1,6 +1,8 @@
 package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
+import io.yggdrash.node.exception.InternalErrorException;
+import io.yggdrash.node.exception.NonExistObjectException;
 import io.yggdrash.node.mock.BlockMock;
 import org.springframework.stereotype.Service;
 
@@ -12,24 +14,40 @@ public class BlockApiImpl implements BlockApi {
 
     @Override
     public int blockNumber() {
-        return 0;
+        try {
+            return 0;
+        } catch (Exception exception) {
+            throw new InternalErrorException();
+        }
     }
 
     @Override
-    public String getBlockByHash(String address, String tag) throws IOException {
-        BlockMock blockMock = new BlockMock();
-        return blockMock.retBlockMock();
+    public String getBlockByHash(String address, String tag) {
+        try {
+            BlockMock blockMock = new BlockMock();
+            return blockMock.retBlockMock();
+        } catch (Exception exception) {
+            throw new NonExistObjectException("block");
+        }
     }
 
     @Override
-    public String getBlockByNumber(String hashOfBlock, Boolean bool) throws IOException {
-        BlockMock blockMock = new BlockMock();
-        return blockMock.retBlockMock();
+    public String getBlockByNumber(String hashOfBlock, Boolean bool) {
+        try {
+            BlockMock blockMock = new BlockMock();
+            return blockMock.retBlockMock();
+        } catch (Exception exception) {
+            throw new NonExistObjectException("block");
+        }
     }
 
     @Override
     public int newBlockFilter() {
-        return 0;
+        try {
+            return 0;
+        } catch (Exception exception) {
+            throw new InternalErrorException();
+        }
     }
 }
 

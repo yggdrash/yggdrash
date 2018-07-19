@@ -7,8 +7,6 @@ import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.googlecode.jsonrpc4j.ProxyUtil;
 import io.yggdrash.core.Account;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.node.mock.TransactionMock;
-import io.yggdrash.node.mock.TransactionReceiptMock;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -30,13 +28,104 @@ public class TransactionApiImplTest {
 
     @Autowired
     JsonRpcHttpClient jsonRpcHttpClient;
-    TransactionApiImpl txApiImpl = new TransactionApiImpl();
+
+    private TransactionApiImpl txApiImpl = new TransactionApiImpl();
+    private String address = "0x407d73d8a49eeb85d32cf465507dd71d507100c1";
+    private String tag = "latest";
+    private String hashOfTx = "0xbd729cb4ecbcbd3fc66bedb43dbb856f5e71ebefff95fc9503b92921b8466bab";
+    private String hashOfBlock = "0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf";
+    private int blockNumber = 1;
+    private int txIndexPosition = 1;
 
     @Test
     public void setJsonRpcHttpClient() {
         TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
                 TransactionApi.class, jsonRpcHttpClient);
         assertThat(api).isNotNull();
+    }
+
+    @Test
+    public void getTransactionCountTest() {
+        try {
+            TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
+                    TransactionApi.class, jsonRpcHttpClient);
+            assertThat(api).isNotNull();
+            assertThat(api.getTransactionCount(address, tag)).isNotZero();
+        } catch (Exception exception) {
+            log.debug("\n\ngetTransactionCountTest :: exception => " + exception);
+        }
+    }
+
+    @Test
+    public void getBlockTransactionCountByHashTest() {
+        try {
+            TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
+                    TransactionApi.class, jsonRpcHttpClient);
+            assertThat(api).isNotNull();
+            assertThat(api.getBlockTransactionCountByHash(hashOfTx)).isNotZero();
+        } catch (Exception exception) {
+            log.debug("\n\ngetBlockTransactionCountByHashTest :: exception => " + exception);
+        }
+    }
+
+    @Test
+    public void getBlockTransactionCountByNumberTest() {
+        try {
+            TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
+                    TransactionApi.class, jsonRpcHttpClient);
+            assertThat(api).isNotNull();
+            assertThat(api.getBlockTransactionCountByNumber(blockNumber)).isNotZero();
+        } catch (Exception exception) {
+            log.debug("\n\ngetBlockTransactionCountByNumberTest :: exception => " + exception);
+        }
+    }
+
+    @Test
+    public void getTransactionByHashTest() {
+        try {
+            TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
+                    TransactionApi.class, jsonRpcHttpClient);
+            assertThat(api).isNotNull();
+            assertThat(api.getTransactionByHash(hashOfBlock)).isNotEmpty();
+        } catch (Exception exception) {
+            log.debug("\n\ngetTransactionByHashTest :: exception => " + exception);
+        }
+    }
+
+    @Test
+    public void getTransactionByBlockHashAndIndexTest() {
+        try {
+            TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
+                    TransactionApi.class, jsonRpcHttpClient);
+            assertThat(api).isNotNull();
+            assertThat(api.getTransactionByBlockHashAndIndex(hashOfBlock, txIndexPosition)).isNotEmpty();
+        } catch (Exception exception) {
+            log.debug("\n\ngetTransactionByBlockHashAndIndexTest :: exception => " + exception);
+        }
+    }
+
+    @Test
+    public void getTransactionByBlockNumberAndIndexTest() {
+        try {
+            TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
+                    TransactionApi.class, jsonRpcHttpClient);
+            assertThat(api).isNotNull();
+            assertThat(api.getTransactionByBlockNumberAndIndex(blockNumber, txIndexPosition)).isNotEmpty();
+        } catch (Exception exception) {
+            log.debug("\n\ngetTransactionByBlockNumberAndIndexTest :: exception => " + exception);
+        }
+    }
+
+    @Test
+    public void getTransactionReceiptTest() {
+        try {
+            TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
+                    TransactionApi.class, jsonRpcHttpClient);
+            assertThat(api).isNotNull();
+            assertThat(api.getTransactionReceipt(hashOfTx)).isNotEmpty();
+        } catch (Exception exception) {
+            log.debug("\n\ngetTransactionReceiptTest :: exception => " + exception);
+        }
     }
 
     @Test
@@ -49,7 +138,7 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    public void jsonStringToTxTest() throws IOException {
+    public void sendTransactionTest() throws IOException {
         // Get Transaction of JsonString as Param
         ObjectMapper objectMapper = new ObjectMapper();
         Account from = new Account();
@@ -60,11 +149,11 @@ public class TransactionApiImplTest {
         Transaction transaction = new Transaction(from, json);
         String jsonStr = objectMapper.writeValueAsString(transaction);
 
-        // Convert string to Transaction
-        String txHash = txApiImpl.sendTransaction(jsonStr);
-
         // Request Transaction with jsonStr
         try {
+            // Convert string to Transaction
+            String txHash = txApiImpl.sendTransaction(jsonStr);
+
             TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     TransactionApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
@@ -76,7 +165,7 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    public void byteArrToTxTest() throws IOException {
+    public void sendRawTransactionTest() throws IOException {
         // Create an input parameter
         byte[] type = new byte[4];
         byte[] version = new byte[4];
@@ -105,11 +194,11 @@ public class TransactionApiImplTest {
 
         byte[] input = bb.array();
 
-        // Convert byteArray to Transaction
-        byte[] txHash = txApiImpl.sendRawTransaction(input);
-
         // Request Transaction with byteArr
         try {
+            // Convert byteArray to Transaction
+            byte[] txHash = txApiImpl.sendRawTransaction(input);
+
             TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
                                                              TransactionApi.class,
                                                              jsonRpcHttpClient);
@@ -122,30 +211,29 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    public void createTransactionReceiptMock() throws IOException {
-        TransactionReceiptMock txReceiptMock = new TransactionReceiptMock();
-        log.debug("txReceiptMock : " + txReceiptMock.retTxReceiptMock());
+    public void newPendingTransactionFilterTest() {
+        try {
+            TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
+                    TransactionApi.class, jsonRpcHttpClient);
+            assertThat(api).isNotNull();
+            assertThat(api.newPendingTransactionFilter()).isNotZero();
+        } catch (Exception exception) {
+            log.debug("\n\njsonStringToTxTest :: exception => " + exception);
+        }
     }
 
     @Test
-    public void createTransactionMock() throws IOException {
-        TransactionMock txMock = new TransactionMock();
-        log.debug("txMock : " + txMock.retTxMock());
-    }
-
-    @Test
-    public void transactionApiImplTest() throws Exception {
-        String address = "0x407d73d8a49eeb85d32cf465507dd71d507100c1";
-        String tag = "latest";
-        String hashOfBlock = "0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf";
-        int blockNumber = 1;
-
-        assertThat(1).isEqualTo(txApiImpl.getTransactionCount(address, tag));
-        assertThat(2).isEqualTo(txApiImpl.getTransactionCount(address, blockNumber));
-        assertThat(3).isEqualTo(txApiImpl.getBlockTransactionCountByHash(hashOfBlock));
-        assertThat(4).isEqualTo(txApiImpl.getBlockTransactionCountByNumber(blockNumber));
-        assertThat(5).isEqualTo(txApiImpl.getBlockTransactionCountByNumber(tag));
-        assertThat(6).isEqualTo(txApiImpl.newPendingTransactionFilter());
+    public void transactionApiImplTest() {
+        try {
+            assertThat(1).isEqualTo(txApiImpl.getTransactionCount(address, tag));
+            assertThat(2).isEqualTo(txApiImpl.getTransactionCount(address, blockNumber));
+            assertThat(3).isEqualTo(txApiImpl.getBlockTransactionCountByHash(hashOfBlock));
+            assertThat(4).isEqualTo(txApiImpl.getBlockTransactionCountByNumber(blockNumber));
+            assertThat(5).isEqualTo(txApiImpl.getBlockTransactionCountByNumber(tag));
+            assertThat(6).isEqualTo(txApiImpl.newPendingTransactionFilter());
+        } catch (Exception exception) {
+            log.debug("\n\ntransactionApiImplTest :: exception => " + exception);
+        }
     }
 
 }
