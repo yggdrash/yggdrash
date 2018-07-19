@@ -124,6 +124,16 @@ public class Wallet {
     }
 
     /**
+     * Wallet constructor.
+     *
+     * @throws IOException IOException
+     * @throws InvalidCipherTextException InvalidCipherTextException
+     */
+    public Wallet() throws IOException, InvalidCipherTextException {
+        this(new DefaultConfig());
+    }
+    
+    /**
      * Wallet constructor with DefaultConfig.
      *
      * @param config DefaultConfig

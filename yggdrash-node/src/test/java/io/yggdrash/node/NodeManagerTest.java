@@ -18,7 +18,13 @@ package io.yggdrash.node;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.*;
+import io.yggdrash.core.Account;
+import io.yggdrash.core.Block;
+import io.yggdrash.core.BlockBody;
+import io.yggdrash.core.BlockHeader;
+import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.Transaction;
+import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.NotValidteException;
 import io.yggdrash.node.mock.NodeManagerMock;
 import org.junit.Before;
@@ -45,22 +51,22 @@ public class NodeManagerTest {
     @Before
     public void setUp() throws Exception {
         nodeManager = new NodeManagerMock();
-        Account author = new Account();
+        Wallet wallet = nodeManager.getWallet();
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
-        this.tx = new Transaction(author, json);
+        this.tx = new Transaction(wallet, json);
         BlockBody sampleBody = new BlockBody(Arrays.asList(new Transaction[] {tx}));
 
         BlockHeader genesisBlockHeader = new BlockHeader.Builder()
                 .blockBody(sampleBody)
                 .prevBlock(null)
-                .build(author);
+                .build(wallet);
         this.genesisBlock = new Block(genesisBlockHeader, sampleBody);
 
         BlockHeader blockHeader = new BlockHeader.Builder()
                 .blockBody(sampleBody)
                 .prevBlock(genesisBlock) // genesis block
-                .build(author);
+                .build(wallet);
 
         this.block = new Block(blockHeader, sampleBody);
     }
@@ -98,13 +104,16 @@ public class NodeManagerTest {
         DefaultConfig defaultConfig = nodeManager.getDefaultConfig();
 
         assertThat(defaultConfig.getConfig().getString("java.version"), containsString("1.8"));
-        System.out.println("DefaultConfig java.version: " + defaultConfig.getConfig().getString("java.version"));
+        System.out.println("DefaultConfig java.version: "
+                + defaultConfig.getConfig().getString("java.version"));
 
         assertThat(defaultConfig.getConfig().getString("node.name"), containsString("yggdrash"));
-        System.out.println("DefaultConfig node.name: " + defaultConfig.getConfig().getString("node.name"));
+        System.out.println("DefaultConfig node.name: "
+                + defaultConfig.getConfig().getString("node.name"));
 
         assertThat(defaultConfig.getConfig().getString("network.port"), containsString("31212"));
-        System.out.println("DefaultConfig network.port: " + defaultConfig.getConfig().getString("network.port"));
+        System.out.println("DefaultConfig network.port: "
+                + defaultConfig.getConfig().getString("network.port"));
     }
 
     @Test

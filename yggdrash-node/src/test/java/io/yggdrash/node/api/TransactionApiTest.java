@@ -4,8 +4,12 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
+import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Account;
+import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.Wallet;
+import io.yggdrash.node.mock.NodeManagerMock;
 import io.yggdrash.node.mock.TransactionMock;
 import io.yggdrash.node.mock.TransactionReceiptMock;
 import org.json.simple.parser.ParseException;
@@ -13,6 +17,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Base64;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -27,11 +32,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TransactionApiTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
 
+    private final NodeManager nodeManager = new NodeManagerMock();
+
     @Test
-    public void checkTransactionJsonFormat() throws IOException {
+    public void checkTransactionJsonFormat() throws IOException, InvalidCipherTextException {
         Account from = new Account();
+        Wallet wallet = new Wallet(new DefaultConfig());
         JsonObject data = new JsonObject();
-        Transaction tx = new Transaction(from, data);
+        Transaction tx = new Transaction(wallet, data);
         ObjectMapper objectMapper = new ObjectMapper();
         log.debug("\n\nTransaction Format : " + objectMapper.writeValueAsString(tx));
     }
@@ -39,7 +47,12 @@ public class TransactionApiTest {
     @Test
     public void jsonStringToTxTest() throws ParseException,IOException {
         // Get Transaction of JsonString as Param
-        String jsonStr = "{\"header\":{\"type\":\"0000\",\"version\":\"0000\",\"dataHash\":\"de7e5e6375a46028a23357fa4a51404bc88cec132642ded5372554dc87b5091c\",\"timestamp\":\"155810745733540\",\"dataSize\":\"10\",\"signature\":\"1c05560a9fdc9c25edfefe5a348db182ed9b283e734b39afb827785a7f7922232d75304b93d5c4774ab2d889df06789adb0fd1fa2409bc42eeb4d5e724022377e8\"},\"data\":{\"id\":\"0\",\"name\":\"Rachael\",\"age\":\"27\"}}";
+        String jsonStr =
+                "{\"header\":{\"type\":\"0000\",\"version\":\"0000\","
+                + "\"dataHash\":\"de7e5e6375a46028a23357fa4a51404bc88cec132642ded5372554dc87b5091c\","
+                + "\"timestamp\":\"155810745733540\",\"dataSize\":\"10\","
+                + "\"signature\":\"1c05560a9fdc9c25edfefe5a348db182ed9b283e734b39afb827785a7f7922232d75304b93d5c4774ab2d889df06789adb0fd1fa2409bc42eeb4d5e724022377e8\"},"
+                + "\"data\":{\"id\":\"0\",\"name\":\"Rachael\",\"age\":\"27\"}}";
 
         // Create Transaction by transactionDto
         TransactionDto transactionDto = new TransactionDto();
@@ -70,9 +83,11 @@ public class TransactionApiTest {
         byte[] type = new byte[4];
         byte[] version = new byte[4];
         byte[] dataHash = new byte[32];
+
         byte[] timestamp;
         byte[] dataSize;
         byte[] signature = new byte[65];
+
         byte[] data;
 
         type = "0000".getBytes();
@@ -114,13 +129,13 @@ public class TransactionApiTest {
 
     @Test
     public void createTransactionMock() throws IOException {
-        TransactionMock txMock = new TransactionMock();
+        TransactionMock txMock = new TransactionMock(this.nodeManager);
         log.debug("txMock : " + txMock.retTxMock());
     }
 
     @Test
     public void transactionAPIImplTest() throws Exception {
-        TransactionApiImpl txapi = new TransactionApiImpl();
+        TransactionApiImpl txapi = new TransactionApiImpl(this.nodeManager);
 
         String address = "0x407d73d8a49eeb85d32cf465507dd71d507100c1";
         String tag = "latest";

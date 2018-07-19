@@ -3,6 +3,7 @@ package io.yggdrash.node.api;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
+import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.node.mock.TransactionMock;
 import io.yggdrash.node.mock.TransactionReceiptMock;
@@ -14,6 +15,13 @@ import java.io.IOException;
 @Service
 @AutoJsonRpcServiceImpl
 public class TransactionApiImpl implements TransactionApi {
+
+    private final NodeManager nodeManager;
+
+    public TransactionApiImpl(NodeManager nodeManager) {
+        this.nodeManager = nodeManager;
+    }
+
 
     /* get */
     @Override
@@ -43,7 +51,7 @@ public class TransactionApiImpl implements TransactionApi {
 
     @Override
     public String getTransactionByHash(String hashOfTx) throws IOException {
-        TransactionMock txMock = new TransactionMock();
+        TransactionMock txMock = new TransactionMock(this.nodeManager);
         Transaction tx = txMock.retTxMock();
         return tx.toString();
     }
@@ -51,7 +59,7 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public String getTransactionByBlockHashAndIndex(
             String hashOfBlock, int txIndexPosition) throws IOException {
-        TransactionMock txMock = new TransactionMock();
+        TransactionMock txMock = new TransactionMock(this.nodeManager);
         Transaction tx = txMock.retTxMock();
         return tx.toString();
     }
@@ -59,7 +67,7 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public String getTransactionByBlockNumberAndIndex(
             int blockNumber, int txIndexPosition) throws IOException {
-        TransactionMock txMock = new TransactionMock();
+        TransactionMock txMock = new TransactionMock(this.nodeManager);
         Transaction tx = txMock.retTxMock();
         return tx.toString();
     }
@@ -67,7 +75,7 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public String getTransactionByBlockNumberAndIndex(
             String tag, int txIndexPosition) throws IOException {
-        TransactionMock txMock = new TransactionMock();
+        TransactionMock txMock = new TransactionMock(this.nodeManager);
         Transaction tx = txMock.retTxMock();
         return tx.toString();
     }

@@ -73,13 +73,13 @@ public class TransactionTest {
     }
 
     @Test
-    public void testGetAddressWithAccount() throws IOException, SignatureException {
-        Account account = new Account();
+    public void testGetAddressWithAccount() throws IOException, SignatureException, InvalidCipherTextException {
+        Wallet wallet = new Wallet(new DefaultConfig());
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
 
-        Transaction tx1 = new Transaction(account, json);
-        Transaction tx2 = new Transaction(account, json);
+        Transaction tx1 = new Transaction(wallet, json);
+        Transaction tx2 = new Transaction(wallet, json);
 
         System.out.println("Test Transaction1: " + tx1.toString());
         System.out.println("Test Transaction1 Address: " + tx1.getHeader().getAddressToString());
