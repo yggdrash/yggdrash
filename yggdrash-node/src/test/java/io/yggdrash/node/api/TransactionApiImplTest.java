@@ -32,8 +32,10 @@ public class TransactionApiImplTest {
     private TransactionApiImpl txApiImpl = new TransactionApiImpl();
     private String address = "0x407d73d8a49eeb85d32cf465507dd71d507100c1";
     private String tag = "latest";
-    private String hashOfTx = "0xbd729cb4ecbcbd3fc66bedb43dbb856f5e71ebefff95fc9503b92921b8466bab";
-    private String hashOfBlock = "0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf";
+    private String hashOfTx =
+            "0xbd729cb4ecbcbd3fc66bedb43dbb856f5e71ebefff95fc9503b92921b8466bab";
+    private String hashOfBlock =
+            "0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf";
     private int blockNumber = 1;
     private int txIndexPosition = 1;
 
