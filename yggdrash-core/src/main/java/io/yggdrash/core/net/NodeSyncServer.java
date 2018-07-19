@@ -65,6 +65,7 @@ public class NodeSyncServer {
             NodeSyncServer.this.stop();
             System.err.println("*** server shut down");
         }));
+        nodeManager.init();
     }
 
     /**

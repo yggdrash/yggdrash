@@ -25,6 +25,8 @@ import java.util.Set;
 
 public interface NodeManager {
 
+    void init();
+
     void setListener(NodeEventListener listener);
 
     Transaction addTransaction(Transaction tx) throws IOException;

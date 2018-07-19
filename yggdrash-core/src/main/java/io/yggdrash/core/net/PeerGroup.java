@@ -27,10 +27,12 @@ public class PeerGroup {
 
     private List<String> seedPeerList;
 
-    public void addPeer(Peer peer) {
-        if (!peers.containsKey(peer.getYnodeUri())) {
-            peers.put(peer.getYnodeUri(), peer);
+    public Peer addPeer(Peer peer) {
+        if (peers.containsKey(peer.getYnodeUri())) {
+            return null;
         }
+        peers.put(peer.getYnodeUri(), peer);
+        return peer;
     }
 
     public Collection<Peer> getPeers() {
