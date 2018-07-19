@@ -41,26 +41,25 @@ public class SimpleTransactionPoolTest {
     @Test
     public void shouldClearPool() throws IOException {
         Transaction dummyTx = TestUtils.createDummyTx();
-        txPool.put(dummyTx.getHash(), dummyTx);
+        txPool.put(dummyTx);
         txPool.clear();
-        Transaction foundValue = txPool.get(dummyTx.getHash());
+        Transaction foundValue = txPool.get(dummyTx.getHashString());
         assertThat(foundValue).isNull();
     }
 
     @Test
     public void shouldGetObject() throws IOException {
         Transaction dummyTx = TestUtils.createDummyTx();
-        byte[] key = dummyTx.getHash();
-        txPool.put(key, dummyTx);
+        txPool.put(dummyTx);
 
-        Transaction foundValue = txPool.get(key);
+        Transaction foundValue = txPool.get(dummyTx.getHashString());
         assertThat(foundValue).isEqualTo(dummyTx);
     }
 
     @Test
     public void shouldPutTx() throws IOException {
         Transaction dummyTx = TestUtils.createDummyTx();
-        txPool.put(dummyTx.getHash(), dummyTx);
+        txPool.put(dummyTx);
     }
 
     @Test

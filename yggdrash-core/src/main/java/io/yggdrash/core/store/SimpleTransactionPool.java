@@ -21,36 +21,37 @@ import org.ehcache.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
 public class SimpleTransactionPool implements TransactionPool {
     private static final Logger log = LoggerFactory.getLogger(SimpleTransactionPool.class);
 
-    private final Cache<byte[], Transaction> cache;
+    private final Cache<String, Transaction> cache;
 
-    SimpleTransactionPool(Cache<byte[], Transaction> cache) {
+    SimpleTransactionPool(Cache<String, Transaction> cache) {
         this.cache = cache;
     }
 
     @Override
-    public Transaction get(byte[] key) {
+    public Transaction get(String key) {
         return cache.get(key);
     }
 
     @Override
-    public Transaction put(byte[] key, Transaction tx) {
-        cache.put(key, tx);
+    public Transaction put(Transaction tx) throws IOException {
+        cache.put(tx.getHashString(), tx);
         return tx;
     }
 
     @Override
-    public Map<byte[], Transaction> getAll(Set<byte[]> keys) {
+    public Map<String, Transaction> getAll(Set<String> keys) {
         return cache.getAll(keys);
     }
 
     @Override
-    public void remove(Set<byte[]> keys) {
+    public void remove(Set<String> keys) {
         cache.removeAll(keys);
     }
 

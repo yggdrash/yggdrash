@@ -43,11 +43,10 @@ public class TransactionManagerTest {
     @Test
     public void shouldGetFromDb() throws IOException {
         Transaction dummyTx = TestUtils.createDummyTx();
-        byte[] key = dummyTx.getHash();
-        tm.put(key, dummyTx);
+        tm.put(dummyTx);
         tm.batchAll();
         assertThat(tm.count()).isZero();
-        Transaction foundValue = tm.get(key);
+        Transaction foundValue = tm.get(dummyTx.getHashString());
         assertThat(foundValue).isNotNull();
     }
 
@@ -62,15 +61,15 @@ public class TransactionManagerTest {
     public void shouldGetFromPool() throws IOException {
         Transaction dummyTx = TestUtils.createDummyTx();
         byte[] key = dummyTx.getHash().clone();
-        tm.put(key, dummyTx);
-        Transaction foundValue = tm.get(key);
+        tm.put(dummyTx);
+        Transaction foundValue = tm.get(dummyTx.getHashString());
         assertThat(foundValue).isNotNull();
     }
 
     @Test
     public void shouldPutByTxObject() throws IOException {
         Transaction dummyTx = TestUtils.createDummyTx();
-        tm.put(dummyTx.getHash(), dummyTx);
+        tm.put(dummyTx);
     }
 
     @Test

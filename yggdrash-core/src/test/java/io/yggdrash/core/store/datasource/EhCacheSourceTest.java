@@ -38,22 +38,20 @@ public class EhCacheSourceTest {
     private static final Logger log = LoggerFactory.getLogger(EhCacheSourceTest.class);
 
     @Autowired
-    Cache<byte[], Transaction> cache;
+    Cache<String, Transaction> cache;
 
     @Test
     public void shouldGetTx() throws IOException {
         Transaction dummyTx = TestUtils.createDummyTx();
-        byte[] key = dummyTx.getHash();
-        cache.put(key, dummyTx);
-        Transaction foundTx = cache.get(key);
+        cache.put(dummyTx.getHashString(), dummyTx);
+        Transaction foundTx = cache.get(dummyTx.getHashString());
         assertThat(foundTx).isEqualTo(dummyTx);
     }
 
     @Test
     public void shouldPutTx() throws IOException {
         Transaction dummyTx = TestUtils.createDummyTx();
-        byte[] key = dummyTx.getHash();
-        cache.put(key, dummyTx);
+        cache.put(dummyTx.getHashString(), dummyTx);
     }
 
     @Test

@@ -26,31 +26,31 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class TransactionPoolMock implements TransactionPool {
-    private final Map<byte[], Transaction> txs = new ConcurrentHashMap<>();
+    private final Map<String, Transaction> txs = new ConcurrentHashMap<>();
 
     @Override
-    public Transaction get(byte[] key) {
+    public Transaction get(String key) {
         return txs.get(key);
     }
 
     @Override
-    public Transaction put(byte[] key, Transaction tx) throws IOException {
-        txs.put(tx.getHash(), tx);
+    public Transaction put(Transaction tx) throws IOException {
+        txs.put(tx.getHashString(), tx);
         return tx;
     }
 
     @Override
-    public Map<byte[], Transaction> getAll(Set<byte[]> keys) {
-        Map<byte[], Transaction> result = new HashMap<>();
-        for (byte[] key : keys) {
+    public Map<String, Transaction> getAll(Set<String> keys) {
+        Map<String, Transaction> result = new HashMap<>();
+        for (String key : keys) {
             result.put(key, txs.get(key));
         }
         return result;
     }
 
     @Override
-    public void remove(Set<byte[]> keys) {
-        for (byte[] key : keys) {
+    public void remove(Set<String> keys) {
+        for (String key : keys) {
             txs.remove(key);
         }
     }

@@ -82,8 +82,7 @@ public class NodeManagerMock implements NodeManager {
             }
             List<Transaction> txList = listener.syncTransaction();
             for (Transaction tx : txList) {
-                byte[] key = tx.getHash();
-                txManager.put(key, tx);
+                txManager.put(tx);
             }
         } catch (Exception e) {
             log.warn(e.getMessage());
@@ -97,13 +96,12 @@ public class NodeManagerMock implements NodeManager {
 
     @Override
     public Transaction getTxByHash(String id) {
-        return txManager.get(id.getBytes());
+        return txManager.get(id);
     }
 
     @Override
-    public Transaction addTransaction(Transaction tx) throws IOException {
-        byte[] key = tx.getHash();
-        Transaction newTx = txManager.put(key, tx);
+    public Transaction addTransaction(Transaction tx) {
+        Transaction newTx = txManager.put(tx);
         if (listener != null) {
             listener.newTransaction(tx);
         }
@@ -174,10 +172,10 @@ public class NodeManagerMock implements NodeManager {
         if (block == null || block.getData().getTransactionList() == null) {
             return;
         }
-        Set<byte[]> keys = new HashSet<>();
+        Set<String> keys = new HashSet<>();
 
         for (Transaction tx : block.getData().getTransactionList()) {
-            keys.add(tx.getHash());
+            keys.add(tx.getHashString());
         }
         this.txManager.batch(keys);
     }

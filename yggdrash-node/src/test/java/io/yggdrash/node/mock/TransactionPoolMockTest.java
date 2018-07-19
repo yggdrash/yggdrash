@@ -14,22 +14,23 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.store;
+package io.yggdrash.node.mock;
 
 import io.yggdrash.core.Transaction;
+import io.yggdrash.node.TestUtils;
+import org.junit.Test;
 
 import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
 
-public interface TransactionPool {
-    Transaction get(String key);
+import static org.assertj.core.api.Assertions.assertThat;
 
-    Transaction put(Transaction tx) throws IOException;
-
-    Map<String, Transaction> getAll(Set<String> keys);
-
-    void remove(Set<String> keys);
-
-    void clear();
+public class TransactionPoolMockTest {
+    @Test
+    public void name() throws IOException {
+        TransactionPoolMock transactionPoolMock = new TransactionPoolMock();
+        Transaction dummyTx = TestUtils.createDummyTx();
+        transactionPoolMock.put(dummyTx);
+        Transaction transaction = transactionPoolMock.get(dummyTx.getHashString());
+        assertThat(transaction).isNotNull();
+    }
 }

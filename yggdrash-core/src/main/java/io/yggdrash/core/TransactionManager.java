@@ -21,6 +21,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.core.store.TransactionPool;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.proto.BlockChainProto;
+import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,7 +35,7 @@ import java.util.Set;
 public class TransactionManager {
     private final DbSource db;
     private final TransactionPool txPool;
-    private final Set<byte[]> unconfirmedTxSet = new HashSet<>();
+    private final Set<String> unconfirmedTxSet = new HashSet<>();
 
     @Autowired
     public TransactionManager(DbSource db, TransactionPool transactionPool) {
@@ -43,10 +44,10 @@ public class TransactionManager {
         this.txPool = transactionPool;
     }
 
-    public Transaction put(byte[] key, Transaction tx) {
+    public Transaction put(Transaction tx) {
         try {
-            txPool.put(key, tx);
-            unconfirmedTxSet.add(key);
+            txPool.put(tx);
+            unconfirmedTxSet.add(tx.getHashString());
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -54,28 +55,28 @@ public class TransactionManager {
         return tx;
     }
 
-    public Transaction get(byte[] key) {
+    public Transaction get(String key) {
         Transaction foundTx = txPool.get(key);
-        return foundTx != null ? foundTx : deserialize(db.get(key));
+        return foundTx != null ? foundTx : deserialize(db.get(key.getBytes()));
     }
 
     public void batchAll() {
         this.batch(unconfirmedTxSet);
     }
 
-    public void batch(Set<byte[]> keys) {
+    public void batch(Set<String> keys) {
         if(keys.size() > 0) {
-            Map<byte[], Transaction> map = txPool.getAll(keys);
+            Map<String, Transaction> map = txPool.getAll(keys);
             System.out.println(map);
-            for (byte[] key : map.keySet()) {
-                db.put(key, serialize(map.get(key)));
+            for (String key : map.keySet()) {
+                db.put(key.getBytes(), serialize(map.get(key)));
             }
             this.flush();
         }
     }
 
     public Collection<Transaction> getUnconfirmedTxs () {
-        Map<byte[], Transaction> unconfirmedTxs = txPool.getAll(unconfirmedTxSet);
+        Map<String, Transaction> unconfirmedTxs = txPool.getAll(unconfirmedTxSet);
         return unconfirmedTxs.values();
     }
 
