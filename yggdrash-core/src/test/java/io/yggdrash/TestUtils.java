@@ -16,6 +16,9 @@
 
 package io.yggdrash;
 
+import io.yggdrash.core.Transaction;
+import io.yggdrash.core.TransactionHeader;
+
 import java.util.Random;
 
 public class TestUtils {
@@ -23,5 +26,16 @@ public class TestUtils {
         byte[] result = new byte[length];
         new Random().nextBytes(result);
         return result;
+    }
+
+    public static Transaction createDummyTx() {
+        TransactionHeader transactionHeader = new TransactionHeader(
+                TestUtils.randomBytes(4),
+                TestUtils.randomBytes(4),
+                TestUtils.randomBytes(32),
+                8L,
+                8L,
+                TestUtils.randomBytes(65));
+        return new Transaction(transactionHeader, "dummy");
     }
 }

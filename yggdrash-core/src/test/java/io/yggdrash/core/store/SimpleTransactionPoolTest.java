@@ -17,45 +17,54 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.TestUtils;
-import org.junit.Ignore;
+import io.yggdrash.core.Transaction;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.io.IOException;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = StoreConfiguration.class)
 public class SimpleTransactionPoolTest {
+    public static final Logger log = LoggerFactory.getLogger(SimpleTransactionPoolTest.class);
+
     @Autowired
-    SimpleTransactionPool stp;
+    TransactionPool txPool;
 
     @Test
-    public void shouldClearPool() {
-        byte[] key = TestUtils.randomBytes(32);
-        byte[] value = TestUtils.randomBytes(32);
-        stp.put(key, value);
-        stp.clear();
-        byte[] foundValue = stp.get(key);
+    public void shouldClearPool() throws IOException {
+        Transaction dummyTx = TestUtils.createDummyTx();
+        txPool.put(dummyTx.getHash(), dummyTx);
+        txPool.clear();
+        Transaction foundValue = txPool.get(dummyTx.getHash());
         assertThat(foundValue).isNull();
     }
 
     @Test
-    public void shouldGetObject() {
-        byte[] key = TestUtils.randomBytes(32);
-        byte[] value = TestUtils.randomBytes(32);
-        stp.put(key, value);
-        byte[] foundValue = stp.get(key);
-        assertThat(foundValue).isEqualTo(value);
+    public void shouldGetObject() throws IOException {
+        Transaction dummyTx = TestUtils.createDummyTx();
+        byte[] key = dummyTx.getHash();
+        txPool.put(key, dummyTx);
+
+        Transaction foundValue = txPool.get(key);
+        assertThat(foundValue).isEqualTo(dummyTx);
     }
 
     @Test
-    public void shouldPutObject() {
-        byte[] key = TestUtils.randomBytes(32);
-        byte[] value = TestUtils.randomBytes(32);
-        stp.put(key, value);
+    public void shouldPutTx() throws IOException {
+        Transaction dummyTx = TestUtils.createDummyTx();
+        txPool.put(dummyTx.getHash(), dummyTx);
+    }
+
+    @Test
+    public void shouldBeLoad() {
+        assertThat(txPool).isNotNull();
     }
 }

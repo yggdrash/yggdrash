@@ -19,14 +19,17 @@ package io.yggdrash.core.store;
 import io.yggdrash.core.Transaction;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public interface TransactionPool {
-    Transaction getTxByHash(String id);
+    Transaction get(byte[] key);
 
-    Transaction addTx(Transaction tx) throws IOException;
+    Transaction put(byte[] key, Transaction tx) throws IOException;
 
-    List getTxList();
+    Map<byte[], Transaction> getAll(Set<byte[]> keys);
 
-    void removeTx(List<String> hashList);
+    void remove(Set<byte[]> keys);
+
+    void clear();
 }
