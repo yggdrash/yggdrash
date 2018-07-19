@@ -25,7 +25,7 @@ import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionManager;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.NotValidteException;
-import io.yggdrash.core.store.datasource.LevelDbDataSource;
+import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.node.BlockBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,8 +46,8 @@ public class NodeManagerMock implements NodeManager {
     private final BlockChain blockChain = new BlockChain();
 
 //    private final TransactionPool transactionPool = new TransactionPoolMock();
-    private final TransactionManager txManager = new TransactionManager(new LevelDbDataSource
-            ("nm-mock"), new TransactionPoolMock());
+    private final TransactionManager txManager = new TransactionManager(new HashMapDbSource(), new
+        TransactionPoolMock());
 
     private final DefaultConfig defaultConfig = new DefaultConfig();
 

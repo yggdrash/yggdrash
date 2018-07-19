@@ -19,7 +19,7 @@ package io.yggdrash.core;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.core.store.TransactionPool;
-import io.yggdrash.core.store.datasource.LevelDbDataSource;
+import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.proto.BlockChainProto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -32,12 +32,12 @@ import java.util.Set;
 
 @Component
 public class TransactionManager {
-    private final LevelDbDataSource db;
+    private final DbSource db;
     private final TransactionPool txPool;
     private final Set<byte[]> unconfirmedTxSet = new HashSet<>();
 
     @Autowired
-    public TransactionManager(LevelDbDataSource db, TransactionPool transactionPool) {
+    public TransactionManager(DbSource db, TransactionPool transactionPool) {
         this.db = db;
         this.db.init();
         this.txPool = transactionPool;

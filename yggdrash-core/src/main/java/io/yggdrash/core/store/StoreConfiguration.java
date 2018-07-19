@@ -18,6 +18,7 @@ package io.yggdrash.core.store;
 
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionManager;
+import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
@@ -35,7 +36,7 @@ public class StoreConfiguration {
     private static final Logger log = LoggerFactory.getLogger(StoreConfiguration.class);
 
     @Bean
-    LevelDbDataSource levelDbDataSource() {
+    DbSource levelDbDataSource() {
         return new LevelDbDataSource("tx");
     }
 
