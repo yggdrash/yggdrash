@@ -16,31 +16,63 @@
 
 package io.yggdrash.node;
 
+import com.google.gson.JsonObject;
+import io.yggdrash.core.Account;
+import io.yggdrash.core.Block;
+import io.yggdrash.core.BlockBody;
+import io.yggdrash.core.BlockHeader;
+import io.yggdrash.core.Transaction;
 import io.yggdrash.core.net.Peer;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.IOException;
-
-import static org.junit.Assert.assertEquals;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class MessageSenderTest {
 
-    MessageSender messageSender;
+    private MessageSender messageSender;
+    private Transaction tx;
+    private Block block;
 
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
+        Account author = new Account();
+        JsonObject json = new JsonObject();
+        json.addProperty("data", "TEST");
+        this.tx = new Transaction(author, json);
+        BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
+
+        BlockHeader genesisBlockHeader = new BlockHeader.Builder()
+                .blockBody(sampleBody)
+                .prevBlock(null)
+                .build(author);
+        this.block = new Block(genesisBlockHeader, sampleBody);
         this.messageSender = new MessageSender();
+
     }
 
     @Test
     public void syncBlock() throws IOException {
+        messageSender.newBlock(block);
         assert messageSender.syncBlock(0).isEmpty();
+    }
+
+    @Test
+    public void syncTransaction() throws IOException {
+        messageSender.newTransaction(tx);
+        assert messageSender.syncTransaction().isEmpty();
     }
 
     @Test
     public void addActivePeerTest() {
         messageSender.newPeer(Peer.valueOf("ynode://75bff16c@localhost:9999"));
-        assertEquals(0, messageSender.getActivePeerList().size());
+        assert messageSender.getActivePeerList().isEmpty();
+    }
+
+    @Test
+    public void broadcastPeerTest() {
+        assert messageSender.broadcastPeer("ynode://75bff16c@localhost:9999").isEmpty();
     }
 }

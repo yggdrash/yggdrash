@@ -35,6 +35,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static io.yggdrash.config.Constants.PROPERTY_KEYPATH;
 import static org.hamcrest.Matchers.containsString;
@@ -63,7 +64,7 @@ public class NodeManagerTest {
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
         this.tx = new Transaction(author, json);
-        BlockBody sampleBody = new BlockBody(Arrays.asList(new Transaction[] {tx}));
+        BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
 
         BlockHeader genesisBlockHeader = new BlockHeader.Builder()
                 .blockBody(sampleBody)
