@@ -44,7 +44,7 @@ public class TransactionPoolMock implements TransactionPool {
         Map<String, Transaction> result = new HashMap<>();
         for (String key : keys) {
             Transaction foundTx = txs.get(key);
-            if(foundTx != null) {
+            if (foundTx != null) {
                 result.put(key, foundTx);
             }
         }

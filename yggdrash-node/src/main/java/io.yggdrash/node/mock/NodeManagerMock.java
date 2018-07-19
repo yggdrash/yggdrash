@@ -45,9 +45,8 @@ public class NodeManagerMock implements NodeManager {
 
     private final BlockChain blockChain = new BlockChain();
 
-//    private final TransactionPool transactionPool = new TransactionPoolMock();
-    private final TransactionManager txManager = new TransactionManager(new HashMapDbSource(), new
-        TransactionPoolMock());
+    private final TransactionManager txManager = new TransactionManager(
+            new HashMapDbSource(), new TransactionPoolMock());
 
     private final DefaultConfig defaultConfig = new DefaultConfig();
 

@@ -68,11 +68,11 @@ public class TransactionManager {
     }
 
     public void batch(Set<String> keys) {
-        if(keys.size() > 0) {
+        if (keys.size() > 0) {
             Map<String, Transaction> map = txPool.getAll(keys);
             for (String key : map.keySet()) {
                 Transaction foundTx = map.get(key);
-                if(foundTx != null) {
+                if (foundTx != null) {
                     db.put(key.getBytes(), serialize(foundTx));
                 }
             }
@@ -80,7 +80,7 @@ public class TransactionManager {
         }
     }
 
-    public Collection<Transaction> getUnconfirmedTxs () {
+    public Collection<Transaction> getUnconfirmedTxs() {
         Map<String, Transaction> unconfirmedTxs = txPool.getAll(unconfirmedTxSet);
         return unconfirmedTxs.values();
     }
@@ -127,7 +127,7 @@ public class TransactionManager {
             e.printStackTrace();
         }
 
-        if(txProto == null) {
+        if (txProto == null) {
             return null;
         }
 
