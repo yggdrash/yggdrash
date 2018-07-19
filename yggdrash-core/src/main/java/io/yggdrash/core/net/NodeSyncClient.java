@@ -50,7 +50,7 @@ public class NodeSyncClient {
     }
 
     @VisibleForTesting
-    public NodeSyncClient(ManagedChannel channel) {
+    NodeSyncClient(ManagedChannel channel) {
         this.channel = channel;
         blockingStub = PingPongGrpc.newBlockingStub(channel);
         asyncStub = BlockChainGrpc.newStub(channel);
@@ -162,9 +162,4 @@ public class NodeSyncClient {
         return BlockChainGrpc.newBlockingStub(channel).requestPeerList(request).getPeersList();
     }
 
-    public void broadcastPeer(String ynode) {
-        BlockChainProto.PeerList request = BlockChainProto.PeerList.newBuilder()
-                .addPeers(ynode).build();
-        BlockChainGrpc.newBlockingStub(channel).broadcastPeer(request);
-    }
 }
