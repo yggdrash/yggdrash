@@ -96,7 +96,8 @@ public class NodeManagerMock implements NodeManager {
 
     @Override
     public Transaction getTxByHash(String id) {
-        return txManager.get(id);
+        Transaction transaction = txManager.get(id);
+        return transaction;
     }
 
     @Override

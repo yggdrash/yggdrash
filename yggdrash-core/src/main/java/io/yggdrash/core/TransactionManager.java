@@ -21,7 +21,8 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.core.store.TransactionPool;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.proto.BlockChainProto;
-import org.apache.commons.codec.binary.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,6 +34,8 @@ import java.util.Set;
 
 @Component
 public class TransactionManager {
+    private static final Logger log = LoggerFactory.getLogger(TransactionManager.class);
+
     private final DbSource db;
     private final TransactionPool txPool;
     private final Set<String> unconfirmedTxSet = new HashSet<>();
@@ -67,9 +70,11 @@ public class TransactionManager {
     public void batch(Set<String> keys) {
         if(keys.size() > 0) {
             Map<String, Transaction> map = txPool.getAll(keys);
-            System.out.println(map);
             for (String key : map.keySet()) {
-                db.put(key.getBytes(), serialize(map.get(key)));
+                Transaction foundTx = map.get(key);
+                if(foundTx != null) {
+                    db.put(key.getBytes(), serialize(foundTx));
+                }
             }
             this.flush();
         }

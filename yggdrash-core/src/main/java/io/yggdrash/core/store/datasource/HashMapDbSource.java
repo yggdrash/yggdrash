@@ -16,19 +16,25 @@
 
 package io.yggdrash.core.store.datasource;
 
+import org.apache.commons.codec.binary.Hex;
+
+import java.util.HashMap;
+
 public class HashMapDbSource implements DbSource {
+    HashMap<String, byte[]> db;
+
     @Override
     public void init() {
-
+        db = new HashMap<>();
     }
 
     @Override
     public byte[] get(byte[] key) {
-        return new byte[0];
+        return db.get(Hex.encodeHexString(key));
     }
 
     @Override
     public void put(byte[] key, byte[] value) {
-
+        db.put(Hex.encodeHexString(key), value);
     }
 }
