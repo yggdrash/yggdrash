@@ -38,7 +38,7 @@ public class WalletTest {
     @Test
     public void testKeyEncryption2() {
 
-        final int AES_KEY_LENGTH = 128;
+        static final int AES_KEY_LENGTH = 128;
 
         // key generation
         ECKey ecKey = new ECKey();
@@ -83,7 +83,7 @@ public class WalletTest {
     @Test
     public void testKeyEncryption3() {
 
-        final int AES_KEY_LENGTH = 128;
+        static final int AES_KEY_LENGTH = 128;
 
         // key generation
         ECKey ecKey = new ECKey();
@@ -140,7 +140,7 @@ public class WalletTest {
 
     // encrypt test
     @Test
-    public void testAESEncryption() throws InvalidCipherTextException {
+    public void testAesEncryption() throws InvalidCipherTextException {
 
         // password generation using KDF
         String password = "Aa1234567890#";

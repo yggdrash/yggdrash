@@ -54,8 +54,6 @@ public class TrieTests {
     @Test
     public void MerkleRootTest() throws IOException {
 
-        byte[] merkleRoot;
-
         // 1. test merkle root with tx 7
         // create transactions
         List<Transaction> txsList;
@@ -68,6 +66,7 @@ public class TrieTests {
         txsList.add(this.tx2);
         txsList.add(this.tx2);
 
+        byte[] merkleRoot;
         merkleRoot = Trie.getMerkleRoot(txsList);
         assertNotNull(merkleRoot);
 

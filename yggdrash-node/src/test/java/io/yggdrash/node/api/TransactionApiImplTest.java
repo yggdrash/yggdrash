@@ -6,7 +6,9 @@ import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.googlecode.jsonrpc4j.ProxyUtil;
 import io.yggdrash.core.Account;
+import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.node.mock.NodeManagerMock;
 import io.yggdrash.node.mock.TransactionMock;
 import io.yggdrash.node.mock.TransactionReceiptMock;
 import org.junit.Test;
@@ -28,9 +30,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TransactionApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
 
+    private final NodeManager nodeManager = new NodeManagerMock();
+
     @Autowired
     JsonRpcHttpClient jsonRpcHttpClient;
-    TransactionApiImpl txApiImpl = new TransactionApiImpl();
+    TransactionApiImpl txApiImpl = new TransactionApiImpl(nodeManager);
 
     @Test
     public void setJsonRpcHttpClient() {
@@ -41,9 +45,8 @@ public class TransactionApiImplTest {
 
     @Test
     public void checkTransactionJsonFormat() throws IOException {
-        Account from = new Account();
         JsonObject data = new JsonObject();
-        Transaction tx = new Transaction(from, data);
+        Transaction tx = new Transaction(this.nodeManager.getWallet(), data);
         ObjectMapper objectMapper = new ObjectMapper();
         log.debug("\n\nTransaction Format : " + objectMapper.writeValueAsString(tx));
     }
@@ -52,12 +55,11 @@ public class TransactionApiImplTest {
     public void jsonStringToTxTest() throws IOException {
         // Get Transaction of JsonString as Param
         ObjectMapper objectMapper = new ObjectMapper();
-        Account from = new Account();
         JsonObject json = new JsonObject();
         json.addProperty("id", "0");
         json.addProperty("name", "Rachael");
         json.addProperty("age", "27");
-        Transaction transaction = new Transaction(from, json);
+        Transaction transaction = new Transaction(this.nodeManager.getWallet(), json);
         String jsonStr = objectMapper.writeValueAsString(transaction);
 
         // Convert string to Transaction
@@ -81,12 +83,13 @@ public class TransactionApiImplTest {
         byte[] type = new byte[4];
         byte[] version = new byte[4];
         byte[] dataHash = new byte[32];
-        byte[] signature = new byte[65];
         type = "0000".getBytes();
         version = "0000".getBytes();
         dataHash = Base64.decode("3n5eY3WkYCiiM1f6SlFAS8iM7BMmQt7VNyVU3Ie1CRw=");
         byte[] timestamp = Longs.toByteArray(Long.parseLong("155810745733540"));
         byte[] dataSize = Longs.toByteArray((long) 2);
+
+        byte[] signature = new byte[65];
         signature = Base64.decode("HAVWCp/cnCXt/v5aNI2xgu2bKD5zSzmvuCd4Wn95IiMtdTB"
                 + "Lk9XEd0qy2InfBnia2w/R+iQJvELutNXnJAIjd+g=");
         byte[] data = "{\"id\":\"0\",\"name\":\"Rachael\",\"age\":\"27\"}".getBytes();
@@ -129,7 +132,7 @@ public class TransactionApiImplTest {
 
     @Test
     public void createTransactionMock() throws IOException {
-        TransactionMock txMock = new TransactionMock();
+        TransactionMock txMock = new TransactionMock(this.nodeManager);
         log.debug("txMock : " + txMock.retTxMock());
     }
 

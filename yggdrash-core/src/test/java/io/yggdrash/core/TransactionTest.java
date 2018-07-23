@@ -73,7 +73,8 @@ public class TransactionTest {
     }
 
     @Test
-    public void testGetAddressWithAccount() throws IOException, SignatureException, InvalidCipherTextException {
+    public void testGetAddressWithAccount()
+            throws IOException, SignatureException, InvalidCipherTextException {
         Wallet wallet = new Wallet(new DefaultConfig());
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
@@ -91,7 +92,8 @@ public class TransactionTest {
     }
 
     @Test
-    public void testGetAddressWithWallet() throws IOException, SignatureException, InvalidCipherTextException {
+    public void testGetAddressWithWallet()
+            throws IOException, SignatureException, InvalidCipherTextException {
         Wallet wallet = new Wallet(new DefaultConfig());
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
@@ -117,7 +119,8 @@ public class TransactionTest {
     }
 
     @Test
-    public void testGetAddressWithWalletAccount() throws IOException, SignatureException, InvalidCipherTextException {
+    public void testGetAddressWithWalletAccount()
+            throws IOException, SignatureException, InvalidCipherTextException {
         Account account = new Account();
         System.out.println("Account: " + account.toString());
 
