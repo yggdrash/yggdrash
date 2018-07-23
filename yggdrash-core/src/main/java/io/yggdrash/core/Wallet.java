@@ -132,7 +132,7 @@ public class Wallet {
     public Wallet() throws IOException, InvalidCipherTextException {
         this(new DefaultConfig());
     }
-    
+
     /**
      * Wallet constructor with DefaultConfig.
      *
@@ -292,6 +292,15 @@ public class Wallet {
         ECKey.ECDSASignature sig = new ECKey.ECDSASignature(signature);
 
         return key.verify(hashedData, sig);
+    }
+
+    /**
+     * Gets node id.
+     *
+     * @return the node id string
+     */
+    public String getNodeId() {
+        return Hex.toHexString(key.getNodeId());
     }
 
     @Override

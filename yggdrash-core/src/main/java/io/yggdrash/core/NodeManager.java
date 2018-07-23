@@ -39,10 +39,11 @@ public interface NodeManager {
 
     Set<Block> getBlocks();
 
+    String getNodeId();
+
     Block getBlockByIndexOrHash(String indexOrHash);
 
     DefaultConfig getDefaultConfig();
 
     Wallet getWallet();
-
 }

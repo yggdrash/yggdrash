@@ -127,13 +127,13 @@ public class ByteUtilTest {
         byte[] test1 = null;
         byte[] test2 = new byte[]{};
         byte[] test3 = new byte[]{0x00};
-        final byte[] test4 = new byte[]{0x00, 0x01};
-        final byte[] test5 = new byte[]{0x00, 0x00, 0x01};
+        byte[] test4 = new byte[]{0x00, 0x01};
+        byte[] test5 = new byte[]{0x00, 0x00, 0x01};
         byte[] expected1 = null;
         byte[] expected2 = new byte[]{0};
         byte[] expected3 = new byte[]{0};
-        final byte[] expected4 = new byte[]{0x01};
-        final byte[] expected5 = new byte[]{0x01};
+        byte[] expected4 = new byte[]{0x01};
+        byte[] expected5 = new byte[]{0x01};
         assertArrayEquals(expected1, ByteUtil.stripLeadingZeroes(test1));
         assertArrayEquals(expected2, ByteUtil.stripLeadingZeroes(test2));
         assertArrayEquals(expected3, ByteUtil.stripLeadingZeroes(test3));
@@ -239,8 +239,8 @@ public class ByteUtilTest {
     @Test
     public void firstNonZeroByte_3() {
 
-        byte[] data =
-                Hex.decode("2211009988776655443322110099887766554433221100998877665544332211");
+        byte[] data = Hex.decode(
+                "2211009988776655443322110099887766554433221100998877665544332211");
         int result = ByteUtil.firstNonZeroByte(data);
 
         assertEquals(0, result);
@@ -309,16 +309,16 @@ public class ByteUtilTest {
                 } else {
                     found.add(i);
                 }
-            } else if (i == 24 || i == 25 || i == 2) {
-                assertTrue(false);
+            } else {
+                if (i == 24 || i == 25 || i == 2) {
+                    assertTrue(false);
+                }
             }
-
         }
 
         if (found.size() != 3) {
             assertTrue(false);
         }
-
         assertTrue(found.get(0) == 2);
         assertTrue(found.get(1) == 24);
         assertTrue(found.get(2) == 25);
@@ -376,19 +376,19 @@ public class ByteUtilTest {
         {
             String str = "0000";
             byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = new byte[]{0, 0};
+            byte[] expected = new byte[] {0, 0};
             assertArrayEquals(expected, actuals);
         }
         {
             String str = "0x0000";
             byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = new byte[]{0, 0};
+            byte[] expected = new byte[] {0, 0};
             assertArrayEquals(expected, actuals);
         }
         {
             String str = "0x45a6";
             byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = new byte[]{69, -90};
+            byte[] expected = new byte[] {69, -90};
             assertArrayEquals(expected, actuals);
         }
         {
@@ -400,31 +400,31 @@ public class ByteUtilTest {
         {
             String str = "0x"; // Empty
             byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = new byte[]{};
+            byte[] expected = new byte[] {};
             assertArrayEquals(expected, actuals);
         }
         {
             String str = "0"; // Same as 0x00
             byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = new byte[]{0};
+            byte[] expected = new byte[] {0};
             assertArrayEquals(expected, actuals);
         }
         {
             String str = "0x00"; // This case shouldn't be empty array
             byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = new byte[]{0};
+            byte[] expected = new byte[] {0};
             assertArrayEquals(expected, actuals);
         }
         {
             String str = "0xd"; // Should work with odd length, adding leading 0
             byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = new byte[]{13};
+            byte[] expected = new byte[] {13};
             assertArrayEquals(expected, actuals);
         }
         {
             String str = "0xd0d"; // Should work with odd length, adding leading 0
             byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = new byte[]{13, 13};
+            byte[] expected = new byte[] {13, 13};
             assertArrayEquals(expected, actuals);
         }
     }

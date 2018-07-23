@@ -51,6 +51,9 @@ public class NodeManagerTest {
     @Before
     public void setUp() throws Exception {
         nodeManager = new NodeManagerMock();
+        assert nodeManager.getNodeId() != null;
+
+        Account author = new Account();
         Wallet wallet = nodeManager.getWallet();
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");

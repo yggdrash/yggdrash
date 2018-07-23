@@ -17,13 +17,16 @@
 package io.yggdrash.core.net;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class PeerGroup {
-    List<Peer> peers = new ArrayList<>();
+    private List<Peer> peers = Collections.synchronizedList(new ArrayList<>());
 
     public void addPeer(Peer peer) {
-        peers.add(peer);
+        if (!peers.contains(peer)) {
+            peers.add(peer);
+        }
     }
 
     public List<Peer> getPeers() {
