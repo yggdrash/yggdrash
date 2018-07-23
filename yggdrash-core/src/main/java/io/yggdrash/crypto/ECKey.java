@@ -858,16 +858,6 @@ public class ECKey implements Serializable {
         }
     }
 
-//    /**
-//     * Returns whether this key is using the compressed form or not. Compressed pubkeys are only 33 bytes, not 64.
-//     *
-//     *
-//     * @return  -
-//     */
-//    public boolean isCompressed() {
-//        return pub.isCompressed();
-//    }
-
     public String toString() {
         StringBuilder b = new StringBuilder();
         b.append("pub:").append(Hex.toHexString(pub.getEncoded(false)));
