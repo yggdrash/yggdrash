@@ -7,8 +7,6 @@ import com.googlecode.jsonrpc4j.JsonRpcService;
 import io.yggdrash.node.exception.InternalErrorException;
 import io.yggdrash.node.exception.NonExistObjectException;
 
-import java.io.IOException;
-
 @JsonRpcService("/api/block")
 public interface BlockApi {
     /**
@@ -29,7 +27,7 @@ public interface BlockApi {
             @JsonRpcError(exception = NonExistObjectException.class,
                           code = NonExistObjectException.code)})
     String getBlockByHash(@JsonRpcParam(value = "address") String address,
-                          @JsonRpcParam(value = "tag") String tag) throws IOException;
+                          @JsonRpcParam(value = "tag") String tag);
 
     /**
      *  Returns information about a block by block number.
@@ -42,7 +40,7 @@ public interface BlockApi {
             @JsonRpcError(exception = NonExistObjectException.class,
                           code = NonExistObjectException.code)})
     String getBlockByNumber(@JsonRpcParam(value = "hashOfBlock") String hashOfBlock,
-                            @JsonRpcParam(value = "bool") Boolean bool) throws IOException;
+                            @JsonRpcParam(value = "bool") Boolean bool);
 
     /**
      * Creates a filter in the node, to notify when a new block arrives.

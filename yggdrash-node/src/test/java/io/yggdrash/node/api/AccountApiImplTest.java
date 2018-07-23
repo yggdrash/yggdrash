@@ -12,6 +12,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+
 @RunWith(SpringRunner.class)
 @Import(JsonRpcConfig.class)
 public class AccountApiImplTest {
@@ -27,8 +28,7 @@ public class AccountApiImplTest {
             AccountApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     AccountApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
-
-            assertThat(api.createAccount().isEmpty());
+            assertThat(api.createAccount()).isNotEmpty();
         } catch (Exception exception) {
             log.debug("\n\ncreateAccountTest :: exception : " + exception);
         }
@@ -40,8 +40,7 @@ public class AccountApiImplTest {
             AccountApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     AccountApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
-
-            assertThat(api.accounts().isEmpty());
+            assertThat(api.accounts()).isNotEmpty();
         } catch (Exception exception) {
             log.debug("accountsTest :: exception : " + exception);
         }

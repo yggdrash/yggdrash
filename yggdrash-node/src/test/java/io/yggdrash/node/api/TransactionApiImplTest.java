@@ -12,6 +12,7 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Base64;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -25,17 +26,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TransactionApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
 
+    @Autowired
     JsonRpcHttpClient jsonRpcHttpClient;
 
-    private TransactionApiImpl txApiImpl = new TransactionApiImpl();
-    private String address = "0x407d73d8a49eeb85d32cf465507dd71d507100c1";
-    private String tag = "latest";
-    private String hashOfTx =
+    private final TransactionApiImpl txApiImpl = new TransactionApiImpl();
+    private final String address = "0x407d73d8a49eeb85d32cf465507dd71d507100c1";
+    private final String tag = "latest";
+    private final String hashOfTx =
             "0xbd729cb4ecbcbd3fc66bedb43dbb856f5e71ebefff95fc9503b92921b8466bab";
-    private String hashOfBlock =
+    private final String hashOfBlock =
             "0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf";
-    private int blockNumber = 1;
-    private int txIndexPosition = 1;
+    private final int blockNumber = 1;
+    private final int txIndexPosition = 1;
 
     @Test
     public void setJsonRpcHttpClient() {
@@ -98,7 +100,8 @@ public class TransactionApiImplTest {
             TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     TransactionApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
-            assertThat(api.getTransactionByBlockHashAndIndex(hashOfBlock, txIndexPosition)).isNotEmpty();
+            assertThat(api.getTransactionByBlockHashAndIndex(hashOfBlock, txIndexPosition))
+                    .isNotEmpty();
         } catch (Exception exception) {
             log.debug("\n\ngetTransactionByBlockHashAndIndexTest :: exception => " + exception);
         }
@@ -110,7 +113,8 @@ public class TransactionApiImplTest {
             TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     TransactionApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
-            assertThat(api.getTransactionByBlockNumberAndIndex(blockNumber, txIndexPosition)).isNotEmpty();
+            assertThat(api.getTransactionByBlockNumberAndIndex(blockNumber, txIndexPosition))
+                    .isNotEmpty();
         } catch (Exception exception) {
             log.debug("\n\ngetTransactionByBlockNumberAndIndexTest :: exception => " + exception);
         }
@@ -158,14 +162,14 @@ public class TransactionApiImplTest {
                     TransactionApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
             String resTxHash = api.sendTransaction(jsonStr);
-            assertThat(txHash.equals(resTxHash));
+            assertThat(txHash).isEqualTo(resTxHash);
         } catch (Exception exception) {
             log.debug("\n\njsonStringToTxTest :: exception => " + exception);
         }
     }
 
     @Test
-    public void sendRawTransactionTest() throws IOException {
+    public void sendRawTransactionTest() {
         // Create an input parameter
         byte[] type = new byte[4];
         byte[] version = new byte[4];
@@ -204,7 +208,7 @@ public class TransactionApiImplTest {
                                                              jsonRpcHttpClient);
             assertThat(api).isNotNull();
             byte[] resTxHash = api.sendRawTransaction(input);
-            assertThat(txHash.equals(resTxHash));
+            assertThat(txHash).isEqualTo(resTxHash);
         } catch (Exception exception) {
             log.debug("\n\nbyteArrToTxTest :: exception => " + exception);
         }

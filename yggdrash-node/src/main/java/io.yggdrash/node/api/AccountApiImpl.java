@@ -3,7 +3,6 @@ package io.yggdrash.node.api;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.Account;
 import io.yggdrash.node.exception.NonExistObjectException;
-import io.yggdrash.node.exception.RejectedAccessException;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

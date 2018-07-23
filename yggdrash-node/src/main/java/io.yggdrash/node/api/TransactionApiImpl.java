@@ -125,13 +125,7 @@ public class TransactionApiImpl implements TransactionApi {
         int timestampLength = timestamp.length;
         int dataSizeLength = dataSize.length;
         int signatureLength = signature.length;
-        int txHeaderLength;
-        txHeaderLength = typeLength + versionLength + dataHashLength + timestampLength
-                + dataHashLength + dataSizeLength + signatureLength;
-
-        if (bytes.length > txHeaderLength) {
-            throw new WrongStructuredException();
-        }
+        int totalLength = bytes.length;
 
         int sum = 0;
         type = Arrays.copyOfRange(bytes, sum, sum += typeLength);
@@ -140,7 +134,8 @@ public class TransactionApiImpl implements TransactionApi {
         timestamp = Arrays.copyOfRange(bytes, sum, sum += timestampLength);
         dataSize = Arrays.copyOfRange(bytes, sum, sum += dataSizeLength);
         signature = Arrays.copyOfRange(bytes, sum, sum += signatureLength);
-        byte[] data = Arrays.copyOfRange(bytes, sum, txHeaderLength);
+        byte[] data = Arrays.copyOfRange(bytes, sum, totalLength);
+
 
         Long timestampStr = Longs.fromByteArray(timestamp);
         Long dataSizeStr = Longs.fromByteArray(dataSize);
