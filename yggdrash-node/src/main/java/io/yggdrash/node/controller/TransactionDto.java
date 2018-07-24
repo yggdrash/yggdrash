@@ -18,7 +18,10 @@ package io.yggdrash.node.controller;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.core.Account;
+import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.Wallet;
+import io.yggdrash.node.mock.NodeManagerMock;
 
 import java.io.IOException;
 import java.security.SignatureException;
@@ -28,12 +31,13 @@ public class TransactionDto {
     private String txHash;
     private String data;
 
+    private static final NodeManager nodeManager = new NodeManagerMock();
+
     public static Transaction of(TransactionDto transactionDto) throws IOException {
-        // TODO Account from 에서 가져와서 실제 Account로 변환합니다.
-        Account account = new Account();
+        Wallet wallet = nodeManager.getWallet();
         JsonObject jsonData = new JsonObject();
         jsonData.addProperty("data", transactionDto.getData());
-        return new Transaction(account, jsonData);
+        return new Transaction(wallet, jsonData);
     }
 
     public static TransactionDto createBy(Transaction tx)

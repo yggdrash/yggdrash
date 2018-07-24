@@ -100,7 +100,7 @@ public class BlockHeader implements Serializable {
         block.write(signature);
         block.write(ByteUtil.longToBytes(index));
 
-        return HashUtil.sha256(block.toByteArray());
+        return HashUtil.sha3(block.toByteArray());
     }
 
     /**
@@ -169,10 +169,22 @@ public class BlockHeader implements Serializable {
          *
          * @return the block header
          */
+        @Deprecated
         public BlockHeader build(Account from) {
             timestamp = TimeUtils.getCurrenttime();
             this.signature = from.getKey().sign(
-                    HashUtil.sha256(SerializeUtils.serialize(this))).toByteArray();
+                    HashUtil.sha3(SerializeUtils.serialize(this))).toByteArray();
+            return new BlockHeader(this);
+        }
+
+        /**
+         * Build block header with wallet.
+         *
+         * @return the block header
+         */
+        public BlockHeader build(Wallet wallet) {
+            timestamp = TimeUtils.getCurrenttime();
+            this.signature = wallet.sign(SerializeUtils.serialize(this));
             return new BlockHeader(this);
         }
 

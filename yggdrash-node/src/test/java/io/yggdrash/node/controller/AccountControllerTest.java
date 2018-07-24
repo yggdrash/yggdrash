@@ -24,21 +24,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-//@RunWith(SpringRunner.class)
-//@WebMvcTest(AccountController.class)
-//@Import(TestConfig.class)
 public class AccountControllerTest {
-    //@Autowired
     private MockMvc mockMvc;
 
     private JacksonTester<AccountDto> json;
 
-    //@Before
     public void setUp() {
         JacksonTester.initFields(this, new ObjectMapper());
     }
 
-    //@Test
     // TODO Account resful api check
     public void shouldCreateAccount() throws Exception {
         String jsonResponse = mockMvc

@@ -55,21 +55,22 @@ public class NodeManagerTest {
         assert nodeManager.getNodeId() != null;
 
         Account author = new Account();
+        Wallet wallet = nodeManager.getWallet();
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
-        this.tx = new Transaction(author, json);
+        this.tx = new Transaction(wallet, json);
         BlockBody sampleBody = new BlockBody(Arrays.asList(new Transaction[] {tx}));
 
         BlockHeader genesisBlockHeader = new BlockHeader.Builder()
                 .blockBody(sampleBody)
                 .prevBlock(null)
-                .build(author);
+                .build(wallet);
         this.genesisBlock = new Block(genesisBlockHeader, sampleBody);
 
         BlockHeader blockHeader = new BlockHeader.Builder()
                 .blockBody(sampleBody)
                 .prevBlock(genesisBlock) // genesis block
-                .build(author);
+                .build(wallet);
 
         this.block = new Block(blockHeader, sampleBody);
     }

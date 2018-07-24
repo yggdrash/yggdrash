@@ -41,7 +41,7 @@ import java.util.Set;
 public class NodeManagerMock implements NodeManager {
     private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
 
-    private final BlockBuilder blockBuilder = new BlockBuilderMock();
+    private final BlockBuilder blockBuilder = new BlockBuilderMock(this);
 
     private final BlockChain blockChain = new BlockChain();
 
@@ -122,6 +122,7 @@ public class NodeManagerMock implements NodeManager {
     public Block generateBlock() throws IOException, NotValidteException {
         Block block =
                 blockBuilder.build(
+                        this.wallet,
                         new ArrayList<>(txManager.getUnconfirmedTxs()),
                         blockChain.getPrevBlock()
                 );

@@ -16,11 +16,14 @@
 
 package io.yggdrash.core;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
+import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.store.StoreConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -67,9 +70,8 @@ public class TransactionManagerTest {
     }
 
     @Test
-    public void shouldPutByTxObject() throws IOException {
-        Transaction dummyTx = TestUtils.createDummyTx();
-        tm.put(dummyTx);
+    public void shouldPutByTxObject() throws IOException, InvalidCipherTextException {
+        tm.put(new Transaction(new Wallet(new DefaultConfig()), new JsonObject()));
     }
 
     @Test

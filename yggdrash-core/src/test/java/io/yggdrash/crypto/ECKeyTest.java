@@ -333,6 +333,53 @@ public class ECKeyTest {
     }
 
     @Test
+    public void testGetAddressFromSignature() throws SignatureException, IOException {
+        // create account with privateKey
+        Account account = new Account(ECKey.fromPrivate(privateKey));
+        System.out.println("Account: " + account.toString());
+
+        ECKey key = account.getKey();
+        System.out.println("Key: " + key.toString());
+
+        // check public & private key with key
+        assertArrayEquals(pubKey, key.getPubKey());
+        assertEquals(privateKey, key.getPrivKey());
+
+
+
+        // create tx
+        JsonObject data = new JsonObject();
+        data.addProperty("balance", "10");
+
+        Transaction tx = new Transaction(account, data);
+        System.out.println("tx: " + tx.toString());
+
+        assertArrayEquals(key.getAddress(), tx.getHeader().getAddress());
+
+
+        // get the sig & key(pub)
+        byte[] messageHash = tx.getHeader().getSignDataHash();
+        byte[] signature = tx.getHeader().getSignature();
+        ECDSASignature sig = new ECDSASignature(signature);
+
+        ECKey keyFromSig = ECKey.signatureToKey(messageHash, sig);
+        System.out.println("keyFromSig: " + keyFromSig.toString());
+
+        assertArrayEquals(key.getAddress(), keyFromSig.getAddress());
+
+
+        // verify
+        assertTrue(keyFromSig.verify(messageHash, sig));
+
+        // check signature
+        assertArrayEquals(sig.toBinary(), tx.getHeader().getSignature());
+
+        // check public key
+        assertArrayEquals(keyFromSig.getPubKey(), pubKey);
+
+    }
+
+    @Test
     public void testSValue() throws Exception {
         // Check that we never generate an S value that is larger than half the curve order. This avoids a malleability
         // issue that can allow someone to change a transaction [hash] without invalidating the signature.

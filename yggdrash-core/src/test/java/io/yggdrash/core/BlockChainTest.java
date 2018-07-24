@@ -1,10 +1,12 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.exception.NotValidteException;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -15,7 +17,7 @@ public class BlockChainTest {
     private static final Logger log = LoggerFactory.getLogger(BlockChainTest.class);
 
     @Test
-    public void shouldBeGetBlockByHash() throws IOException {
+    public void shouldBeGetBlockByHash() throws IOException, InvalidCipherTextException {
         BlockChain blockChain = instantBlockchain();
         Block b0 = blockChain.getGenesisBlock();
         String blockHash = b0.getBlockHash();
@@ -26,7 +28,7 @@ public class BlockChainTest {
     }
 
     @Test
-    public void shouldBeGetBlockByIndex() throws IOException {
+    public void shouldBeGetBlockByIndex() throws IOException, InvalidCipherTextException {
         BlockChain blockChain = instantBlockchain();
         Block prevBlock = blockChain.getPrevBlock();
         String hash = prevBlock.getPrevBlockHash();
@@ -36,26 +38,28 @@ public class BlockChainTest {
     }
 
     @Test
-    public void shouldBeVerifiedBlockChain() throws IOException {
+    public void shouldBeVerifiedBlockChain() throws IOException, InvalidCipherTextException {
         BlockChain blockChain = instantBlockchain();
         assertThat(blockChain.isValidChain()).isEqualTo(true);
     }
 
     @Test
-    public void TransactionGenTest() throws NotValidteException, IOException {
+    public void TransactionGenTest() throws NotValidteException, IOException,
+            InvalidCipherTextException {
         // 모든 테스트는 독립적으로 동작 해야 합니다
         BlockChain blockchain = instantBlockchain();
         int testBlock = 100;
-        Account author = new Account();
+        Wallet wallet = new Wallet(new DefaultConfig());
+
         // create blockchain with genesis block
-        Transaction tx = new Transaction(author, new JsonObject());
+        Transaction tx = new Transaction(wallet, new JsonObject());
         BlockBody sampleBody = new BlockBody(Arrays.asList(new Transaction[] {tx}));
         BlockHeader.Builder builder = new BlockHeader.Builder()
                 .blockBody(sampleBody);
         BlockHeader blockHeader;
         for (int i = 0; i < testBlock; i++) {
             // create next block
-            blockHeader = builder.prevBlock(blockchain.getPrevBlock()).build(author);
+            blockHeader = builder.prevBlock(blockchain.getPrevBlock()).build(wallet);
             Block block = new Block(blockHeader, sampleBody);
             log.debug("" + block.getIndex());
 
@@ -72,16 +76,16 @@ public class BlockChainTest {
 
     }
 
-    private BlockChain instantBlockchain() throws IOException {
-        Account author = new Account();
+    private BlockChain instantBlockchain() throws IOException, InvalidCipherTextException {
+        Wallet wallet = new Wallet(new DefaultConfig());
         BlockChain blockChain = new BlockChain();
-        Transaction tx = new Transaction(author, new JsonObject());
+        Transaction tx = new Transaction(wallet, new JsonObject());
         BlockBody sampleBody = new BlockBody(Arrays.asList(new Transaction[] {tx}));
 
         BlockHeader blockHeader = new BlockHeader.Builder()
                 .blockBody(sampleBody)
                 .prevBlock(null)
-                .build(author);
+                .build(wallet);
 
         Block b0 = new Block(blockHeader, sampleBody);
 
@@ -90,11 +94,11 @@ public class BlockChainTest {
             blockChain.addBlock(
                     new Block(new BlockHeader.Builder()
                             .prevBlock(blockChain.getPrevBlock())
-                            .blockBody(sampleBody).build(author), sampleBody));
+                            .blockBody(sampleBody).build(wallet), sampleBody));
             blockChain.addBlock(
                     new Block(new BlockHeader.Builder()
                             .prevBlock(blockChain.getPrevBlock())
-                            .blockBody(sampleBody).build(author), sampleBody));
+                            .blockBody(sampleBody).build(wallet), sampleBody));
         } catch (NotValidteException e) {
             e.printStackTrace();
             log.warn("invalid block....");
