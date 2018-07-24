@@ -23,6 +23,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -32,9 +34,8 @@ public class LevelDbDataSource implements DbSource {
 
     private static final Logger log = LoggerFactory.getLogger(LevelDbDataSource.class);
     private static final String DEFAULT_DB_PATH = "resources/db/";
-
+    boolean alive;
     private ReadWriteLock resetDbLock = new ReentrantReadWriteLock();
-
     private String name;
     private String dbPath;
     private DB db;
@@ -53,15 +54,46 @@ public class LevelDbDataSource implements DbSource {
         resetDbLock.writeLock().lock();
         try {
             log.debug("Initialize {} db", name);
+
+            if (alive) {
+                return;
+            }
+
+            if (name == null) {
+                throw new NullPointerException("no name set to the dbStore");
+            }
+
             // TODO resource path set by profile or setting file
             Options options = new Options();
             options.createIfMissing(true);
-            this.db = factory.open(new File(dbPath + "/" + name), options);
+            openDb(options);
+            alive = true;
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Can't initialize db");
         } finally {
             resetDbLock.writeLock().unlock();
         }
+    }
+
+    private void openDb(Options options) throws IOException {
+        try {
+            db = factory.open(getDbFile(), options);
+        } catch (IOException e) {
+            if (e.getMessage().contains("Corruption:")) {
+                factory.repair(getDbFile(), options);
+                db = factory.open(getDbFile(), options);
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    private File getDbFile() {
+        return getDbPath().toFile();
+    }
+
+    private Path getDbPath() {
+        return Paths.get(dbPath, name);
     }
 
     public void put(byte[] key, byte[] value) {
