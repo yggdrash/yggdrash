@@ -174,12 +174,12 @@ public class TransactionApiImplTest {
         byte[] type = new byte[4];
         byte[] version = new byte[4];
         byte[] dataHash = new byte[32];
-        byte[] signature = new byte[65];
         type = "0000".getBytes();
         version = "0000".getBytes();
         dataHash = Base64.decode("3n5eY3WkYCiiM1f6SlFAS8iM7BMmQt7VNyVU3Ie1CRw=");
         byte[] timestamp = Longs.toByteArray(Long.parseLong("155810745733540"));
         byte[] dataSize = Longs.toByteArray((long) 2);
+        byte[] signature = new byte[65];
         signature = Base64.decode("HAVWCp/cnCXt/v5aNI2xgu2bKD5zSzmvuCd4Wn95IiMtdTB"
                 + "Lk9XEd0qy2InfBnia2w/R+iQJvELutNXnJAIjd+g=");
         byte[] data = "{\"id\":\"0\",\"name\":\"Rachael\",\"age\":\"27\"}".getBytes();

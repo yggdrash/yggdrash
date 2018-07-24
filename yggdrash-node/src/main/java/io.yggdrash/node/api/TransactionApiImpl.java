@@ -112,29 +112,21 @@ public class TransactionApiImpl implements TransactionApi {
     }
 
     private Transaction convert(byte[] bytes) {
-        byte[] type = new byte[4];
-        byte[] version = new byte[4];
-        byte[] dataHash = new byte[32];
-        byte[] timestamp = new byte[8];
-        byte[] dataSize = new byte[8];
-        byte[] signature = new byte[65];
-
-        int typeLength = type.length;
-        int versionLength = version.length;
-        int dataHashLength = dataHash.length;
-        int timestampLength = timestamp.length;
-        int dataSizeLength = dataSize.length;
-        int signatureLength = signature.length;
-        int totalLength = bytes.length;
 
         int sum = 0;
-        type = Arrays.copyOfRange(bytes, sum, sum += typeLength);
-        version = Arrays.copyOfRange(bytes, sum, sum += versionLength);
-        dataHash = Arrays.copyOfRange(bytes, sum, sum += dataHashLength);
-        timestamp = Arrays.copyOfRange(bytes, sum, sum += timestampLength);
-        dataSize = Arrays.copyOfRange(bytes, sum, sum += dataSizeLength);
-        signature = Arrays.copyOfRange(bytes, sum, sum += signatureLength);
-        byte[] data = Arrays.copyOfRange(bytes, sum, totalLength);
+        byte[] type = new byte[4];
+        type = Arrays.copyOfRange(bytes, sum, sum += type.length);
+        byte[] version = new byte[4];
+        version = Arrays.copyOfRange(bytes, sum, sum += version.length);
+        byte[] dataHash = new byte[32];
+        dataHash = Arrays.copyOfRange(bytes, sum, sum += dataHash.length);
+        byte[] timestamp = new byte[8];
+        timestamp = Arrays.copyOfRange(bytes, sum, sum += timestamp.length);
+        byte[] dataSize = new byte[8];
+        dataSize = Arrays.copyOfRange(bytes, sum, sum += dataSize.length);
+        byte[] signature = new byte[65];
+        signature = Arrays.copyOfRange(bytes, sum, sum += signature.length);
+        byte[] data = Arrays.copyOfRange(bytes, sum, bytes.length);
 
 
         Long timestampStr = Longs.fromByteArray(timestamp);
