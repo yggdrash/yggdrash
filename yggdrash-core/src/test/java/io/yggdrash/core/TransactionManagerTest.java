@@ -72,11 +72,6 @@ public class TransactionManagerTest {
     @Test
     public void shouldPutByTxObject() throws IOException, InvalidCipherTextException {
         tm.put(new Transaction(new Wallet(new DefaultConfig()), new JsonObject()));
-//=======
-//    public void shouldPutByTxObject() throws IOException {
-//        Transaction dummyTx = TestUtils.createDummyTx();
-//        tm.put(dummyTx);
-//>>>>>>> develop
     }
 
     @Test
