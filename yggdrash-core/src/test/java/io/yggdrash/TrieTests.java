@@ -2,10 +2,8 @@ package io.yggdrash;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.Account;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.exception.NotValidteException;
 import io.yggdrash.trie.Trie;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Before;
