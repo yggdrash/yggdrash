@@ -20,12 +20,14 @@ import com.google.gson.JsonObject;
 import io.grpc.internal.testing.StreamRecorder;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
+import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Account;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.Wallet;
 import io.yggdrash.core.mapper.BlockMapper;
 import io.yggdrash.core.mapper.TransactionMapper;
 import io.yggdrash.core.net.NodeSyncServer.BlockChainImpl;
@@ -69,10 +71,10 @@ public class NodeSyncServerTest {
         grpcServerRule.getServiceRegistry().addService(new PingPongImpl());
         grpcServerRule.getServiceRegistry().addService(new BlockChainImpl(nodeManagerMock));
 
-        Account account = new Account();
+        Wallet wallet = new Wallet(new DefaultConfig());
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
-        this.tx = new Transaction(account, json);
+        this.tx = new Transaction(wallet, json);
         when(nodeManagerMock.addTransaction(any())).thenReturn(tx);
 
         BlockBody body = new BlockBody(Collections.singletonList(tx));
@@ -80,15 +82,15 @@ public class NodeSyncServerTest {
         BlockHeader header = new BlockHeader.Builder()
                 .blockBody(body)
                 .prevBlock(null)
-                .build(account);
+                .build(wallet);
         this.block = new Block(header, body);
         when(nodeManagerMock.addBlock(any())).thenReturn(block);
     }
 
     @Test
     public void play() {
-        PingPongGrpc.PingPongBlockingStub blockingStub = PingPongGrpc.newBlockingStub
-                (grpcServerRule.getChannel());
+        PingPongGrpc.PingPongBlockingStub blockingStub = PingPongGrpc.newBlockingStub(
+                grpcServerRule.getChannel());
 
         Pong pong = blockingStub.play(Ping.newBuilder().setPing("Ping").build());
         assertEquals("Pong", pong.getPong());

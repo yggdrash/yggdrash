@@ -14,25 +14,23 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.node.mock;
 
-import io.yggdrash.core.Block;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.Wallet;
+import io.yggdrash.node.TestUtils;
+import org.junit.Test;
 
 import java.io.IOException;
-import java.util.List;
 
-public interface BlockBuilder {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    @Deprecated
-    Block build() throws IOException;
-
-    Block build(Wallet wallet) throws IOException;
-
-    @Deprecated
-    Block build(List<Transaction> txList, Block prevBlock) throws IOException;
-
-    Block build(Wallet wallet, List<Transaction> txList, Block prevBlock) throws IOException;
-
+public class TransactionPoolMockTest {
+    @Test
+    public void name() throws IOException {
+        TransactionPoolMock transactionPoolMock = new TransactionPoolMock();
+        Transaction dummyTx = TestUtils.createDummyTx();
+        transactionPoolMock.put(dummyTx);
+        Transaction transaction = transactionPoolMock.get(dummyTx.getHashString());
+        assertThat(transaction).isNotNull();
+    }
 }

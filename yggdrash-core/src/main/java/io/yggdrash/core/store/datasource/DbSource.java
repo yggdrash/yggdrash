@@ -14,25 +14,12 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.core.store.datasource;
 
-import io.yggdrash.core.Block;
-import io.yggdrash.core.Transaction;
-import io.yggdrash.core.Wallet;
+public interface DbSource {
+    void init();
 
-import java.io.IOException;
-import java.util.List;
+    byte[] get(byte[] key);
 
-public interface BlockBuilder {
-
-    @Deprecated
-    Block build() throws IOException;
-
-    Block build(Wallet wallet) throws IOException;
-
-    @Deprecated
-    Block build(List<Transaction> txList, Block prevBlock) throws IOException;
-
-    Block build(Wallet wallet, List<Transaction> txList, Block prevBlock) throws IOException;
-
+    void put(byte[] key, byte[] value);
 }

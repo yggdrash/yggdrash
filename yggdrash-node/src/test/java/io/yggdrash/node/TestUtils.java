@@ -16,23 +16,26 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.Block;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.Wallet;
+import io.yggdrash.core.TransactionHeader;
 
-import java.io.IOException;
-import java.util.List;
+import java.util.Random;
 
-public interface BlockBuilder {
+public class TestUtils {
+    public static byte[] randomBytes(int length) {
+        byte[] result = new byte[length];
+        new Random().nextBytes(result);
+        return result;
+    }
 
-    @Deprecated
-    Block build() throws IOException;
-
-    Block build(Wallet wallet) throws IOException;
-
-    @Deprecated
-    Block build(List<Transaction> txList, Block prevBlock) throws IOException;
-
-    Block build(Wallet wallet, List<Transaction> txList, Block prevBlock) throws IOException;
-
+    public static Transaction createDummyTx() {
+        TransactionHeader transactionHeader = new TransactionHeader(
+                TestUtils.randomBytes(4),
+                TestUtils.randomBytes(4),
+                TestUtils.randomBytes(32),
+                8L,
+                8L,
+                TestUtils.randomBytes(65));
+        return new Transaction(transactionHeader, "dummy");
+    }
 }

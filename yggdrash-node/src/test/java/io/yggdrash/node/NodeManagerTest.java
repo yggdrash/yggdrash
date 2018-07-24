@@ -34,11 +34,11 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.Collections;
 
 import static io.yggdrash.config.Constants.PROPERTY_KEYPATH;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -63,21 +63,22 @@ public class NodeManagerTest {
         assert nodeManager.getNodeUri() != null;
         nodeManager.init();
         Account author = new Account();
+        Wallet wallet = nodeManager.getWallet();
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
-        this.tx = new Transaction(author, json);
+        this.tx = new Transaction(wallet, json);
         BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
 
         BlockHeader genesisBlockHeader = new BlockHeader.Builder()
                 .blockBody(sampleBody)
                 .prevBlock(null)
-                .build(author);
+                .build(wallet);
         this.genesisBlock = new Block(genesisBlockHeader, sampleBody);
 
         BlockHeader blockHeader = new BlockHeader.Builder()
                 .blockBody(sampleBody)
                 .prevBlock(genesisBlock) // genesis block
-                .build(author);
+                .build(wallet);
 
         this.block = new Block(blockHeader, sampleBody);
     }
@@ -96,7 +97,8 @@ public class NodeManagerTest {
         nodeManager.addBlock(block);
         assert nodeManager.getBlocks().size() == 2;
         assert nodeManager.getBlockByIndexOrHash("1").getBlockHash().equals(block.getBlockHash());
-        assert nodeManager.getTxByHash(tx.getHashString()) == null;
+        Transaction foundTx = nodeManager.getTxByHash(tx.getHashString());
+        assert foundTx.getHashString().equals(tx.getHashString());
     }
 
     @Test
@@ -107,7 +109,8 @@ public class NodeManagerTest {
         Block chainedBlock =  nodeManager.getBlockByIndexOrHash(newBlock.getBlockHash());
         assert chainedBlock.getBlockHash().equals(newBlock.getBlockHash());
         assert chainedBlock.getData().getSize() == 1;
-        assert nodeManager.getTxByHash(tx.getHashString()) == null;
+        assertThat(nodeManager.getTxByHash(tx.getHashString()).getHashString(),
+                is(tx.getHashString()));
     }
 
     @Test
@@ -115,13 +118,16 @@ public class NodeManagerTest {
         DefaultConfig defaultConfig = nodeManager.getDefaultConfig();
 
         assertThat(defaultConfig.getConfig().getString("java.version"), containsString("1.8"));
-        System.out.println("DefaultConfig java.version: " + defaultConfig.getConfig().getString("java.version"));
+        System.out.println("DefaultConfig java.version: "
+                + defaultConfig.getConfig().getString("java.version"));
 
         assertThat(defaultConfig.getConfig().getString("node.name"), containsString("yggdrash"));
-        System.out.println("DefaultConfig node.name: " + defaultConfig.getConfig().getString("node.name"));
+        System.out.println("DefaultConfig node.name: "
+                + defaultConfig.getConfig().getString("node.name"));
 
         assertThat(defaultConfig.getConfig().getString("network.port"), containsString("31212"));
-        System.out.println("DefaultConfig network.port: " + defaultConfig.getConfig().getString("network.port"));
+        System.out.println("DefaultConfig network.port: "
+                + defaultConfig.getConfig().getString("network.port"));
     }
 
     @Test

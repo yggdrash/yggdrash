@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package io.yggdrash.util;
 
 import org.junit.Assert;
@@ -106,22 +107,6 @@ public class ByteUtilTest {
     public void testByteArrayToInt() {
         assertEquals(0, ByteUtil.byteArrayToInt(null));
         assertEquals(0, ByteUtil.byteArrayToInt(new byte[0]));
-
-//      byte[] x = new byte[] { 5,1,7,0,8 };
-//      long start = System.currentTimeMillis();
-//      for (int i = 0; i < 100000000; i++) {
-//           ByteArray.read32bit(x, 0);
-//      }
-//      long end = System.currentTimeMillis();
-//      System.out.println(end - start + "ms");
-//
-//      long start1 = System.currentTimeMillis();
-//      for (int i = 0; i < 100000000; i++) {
-//          new BigInteger(1, x).intValue();
-//      }
-//      long end1 = System.currentTimeMillis();
-//      System.out.println(end1 - start1 + "ms");
-
     }
 
     @Test
@@ -140,19 +125,19 @@ public class ByteUtilTest {
     @Test
     public void testStripLeadingZeroes() {
         byte[] test1 = null;
-        byte[] test2 = new byte[]{};
-        byte[] test3 = new byte[]{0x00};
-        byte[] test4 = new byte[]{0x00, 0x01};
-        byte[] test5 = new byte[]{0x00, 0x00, 0x01};
         byte[] expected1 = null;
-        byte[] expected2 = new byte[]{0};
-        byte[] expected3 = new byte[]{0};
-        byte[] expected4 = new byte[]{0x01};
-        byte[] expected5 = new byte[]{0x01};
         assertArrayEquals(expected1, ByteUtil.stripLeadingZeroes(test1));
+        byte[] test2 = new byte[]{};
+        byte[] expected2 = new byte[]{0};
         assertArrayEquals(expected2, ByteUtil.stripLeadingZeroes(test2));
+        byte[] test3 = new byte[]{0x00};
+        byte[] expected3 = new byte[]{0};
         assertArrayEquals(expected3, ByteUtil.stripLeadingZeroes(test3));
+        byte[] test4 = new byte[]{0x00, 0x01};
+        byte[] expected4 = new byte[]{0x01};
         assertArrayEquals(expected4, ByteUtil.stripLeadingZeroes(test4));
+        byte[] test5 = new byte[]{0x00, 0x00, 0x01};
+        byte[] expected5 = new byte[]{0x01};
         assertArrayEquals(expected5, ByteUtil.stripLeadingZeroes(test5));
     }
 
@@ -234,7 +219,8 @@ public class ByteUtilTest {
     @Test
     public void firstNonZeroByte_1() {
 
-        byte[] data = Hex.decode("0000000000000000000000000000000000000000000000000000000000000000");
+        byte[] data = Hex.decode(
+                "0000000000000000000000000000000000000000000000000000000000000000");
         int result = ByteUtil.firstNonZeroByte(data);
 
         assertEquals(-1, result);
@@ -243,7 +229,8 @@ public class ByteUtilTest {
     @Test
     public void firstNonZeroByte_2() {
 
-        byte[] data = Hex.decode("0000000000000000000000000000000000000000000000000000000000332211");
+        byte[] data = Hex.decode(
+                "0000000000000000000000000000000000000000000000000000000000332211");
         int result = ByteUtil.firstNonZeroByte(data);
 
         assertEquals(29, result);
@@ -252,7 +239,8 @@ public class ByteUtilTest {
     @Test
     public void firstNonZeroByte_3() {
 
-        byte[] data = Hex.decode("2211009988776655443322110099887766554433221100998877665544332211");
+        byte[] data = Hex.decode(
+                "2211009988776655443322110099887766554433221100998877665544332211");
         int result = ByteUtil.firstNonZeroByte(data);
 
         assertEquals(0, result);
@@ -315,19 +303,22 @@ public class ByteUtilTest {
         List<Integer> found = new ArrayList<>();
         for (int i = 0; i < (data.length * 8); i++) {
             int res = ByteUtil.getBit(data, i);
-            if (res == 1)
-                if (i != 24 && i != 25 && i != 2)
+            if (res == 1) {
+                if (i != 24 && i != 25 && i != 2) {
                     assertTrue(false);
-                else
+                } else {
                     found.add(i);
-            else {
-                if (i == 24 || i == 25 || i == 2)
+                }
+            } else {
+                if (i == 24 || i == 25 || i == 2) {
                     assertTrue(false);
+                }
             }
         }
 
-        if (found.size() != 3)
+        if (found.size() != 3) {
             assertTrue(false);
+        }
         assertTrue(found.get(0) == 2);
         assertTrue(found.get(1) == 24);
         assertTrue(found.get(2) == 25);

@@ -14,25 +14,27 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.core.store.datasource;
 
-import io.yggdrash.core.Block;
-import io.yggdrash.core.Transaction;
-import io.yggdrash.core.Wallet;
+import org.apache.commons.codec.binary.Hex;
 
-import java.io.IOException;
-import java.util.List;
+import java.util.HashMap;
 
-public interface BlockBuilder {
+public class HashMapDbSource implements DbSource {
+    HashMap<String, byte[]> db;
 
-    @Deprecated
-    Block build() throws IOException;
+    @Override
+    public void init() {
+        db = new HashMap<>();
+    }
 
-    Block build(Wallet wallet) throws IOException;
+    @Override
+    public byte[] get(byte[] key) {
+        return db.get(Hex.encodeHexString(key));
+    }
 
-    @Deprecated
-    Block build(List<Transaction> txList, Block prevBlock) throws IOException;
-
-    Block build(Wallet wallet, List<Transaction> txList, Block prevBlock) throws IOException;
-
+    @Override
+    public void put(byte[] key, byte[] value) {
+        db.put(Hex.encodeHexString(key), value);
+    }
 }
