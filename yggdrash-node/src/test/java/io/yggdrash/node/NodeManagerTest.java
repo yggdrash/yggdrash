@@ -37,6 +37,7 @@ import java.util.Arrays;
 
 import static io.yggdrash.config.Constants.PROPERTY_KEYPATH;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
@@ -88,7 +89,8 @@ public class NodeManagerTest {
         nodeManager.addBlock(block);
         assert nodeManager.getBlocks().size() == 2;
         assert nodeManager.getBlockByIndexOrHash("1").getBlockHash().equals(block.getBlockHash());
-        assert nodeManager.getTxByHash(tx.getHashString()) == null;
+        Transaction foundTx = nodeManager.getTxByHash(tx.getHashString());
+        assert foundTx.getHashString().equals(tx.getHashString());
     }
 
     @Test
@@ -99,7 +101,8 @@ public class NodeManagerTest {
         Block chainedBlock =  nodeManager.getBlockByIndexOrHash(newBlock.getBlockHash());
         assert chainedBlock.getBlockHash().equals(newBlock.getBlockHash());
         assert chainedBlock.getData().getSize() == 1;
-        assert nodeManager.getTxByHash(tx.getHashString()) == null;
+        assertThat(nodeManager.getTxByHash(tx.getHashString()).getHashString(),
+                is(tx.getHashString()));
     }
 
     @Test

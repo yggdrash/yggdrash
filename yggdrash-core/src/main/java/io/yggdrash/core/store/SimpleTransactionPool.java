@@ -18,57 +18,45 @@ package io.yggdrash.core.store;
 
 import io.yggdrash.core.Transaction;
 import org.ehcache.Cache;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.List;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
 public class SimpleTransactionPool implements TransactionPool {
-    private final Cache<byte[], byte[]> cache;
+    private static final Logger log = LoggerFactory.getLogger(SimpleTransactionPool.class);
 
-    @Autowired
-    public SimpleTransactionPool(Cache<byte[], byte[]> cache) {
+    private final Cache<String, Transaction> cache;
+
+    SimpleTransactionPool(Cache<String, Transaction> cache) {
         this.cache = cache;
     }
 
     @Override
-    public Transaction getTxByHash(String id) {
-        return null;
-    }
-
-    @Override
-    public Transaction addTx(Transaction tx) {
-        return null;
-    }
-
-    @Override
-    public List getTxList() {
-        return null;
-    }
-
-    @Override
-    public void removeTx(List<String> hashList) {
-
-    }
-
-    public void put(byte[] key, byte[] value) {
-        cache.put(key, value);
-    }
-
-    public void clear() {
-        cache.clear();
-    }
-
-    public byte[] get(byte[] key) {
+    public Transaction get(String key) {
         return cache.get(key);
     }
 
-    public Map<byte[], byte[]> getList(Set<byte[]> keys) {
+    @Override
+    public Transaction put(Transaction tx) throws IOException {
+        cache.put(tx.getHashString(), tx);
+        return tx;
+    }
+
+    @Override
+    public Map<String, Transaction> getAll(Set<String> keys) {
         return cache.getAll(keys);
     }
 
-    public void remove(Set<byte[]> keys) {
+    @Override
+    public void remove(Set<String> keys) {
         cache.removeAll(keys);
+    }
+
+    @Override
+    public void clear() {
+        cache.clear();
     }
 }

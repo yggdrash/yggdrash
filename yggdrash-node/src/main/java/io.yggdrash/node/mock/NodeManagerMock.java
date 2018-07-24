@@ -22,9 +22,10 @@ import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.NodeEventListener;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.TransactionManager;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.NotValidteException;
-import io.yggdrash.core.store.TransactionPool;
+import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.node.BlockBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +45,8 @@ public class NodeManagerMock implements NodeManager {
 
     private final BlockChain blockChain = new BlockChain();
 
-    private final TransactionPool transactionPool = new TransactionPoolMock();
+    private final TransactionManager txManager = new TransactionManager(
+            new HashMapDbSource(), new TransactionPoolMock());
 
     private final DefaultConfig defaultConfig = new DefaultConfig();
 
@@ -79,7 +81,7 @@ public class NodeManagerMock implements NodeManager {
             }
             List<Transaction> txList = listener.syncTransaction();
             for (Transaction tx : txList) {
-                transactionPool.addTx(tx);
+                txManager.put(tx);
             }
         } catch (Exception e) {
             log.warn(e.getMessage());
@@ -93,12 +95,13 @@ public class NodeManagerMock implements NodeManager {
 
     @Override
     public Transaction getTxByHash(String id) {
-        return transactionPool.getTxByHash(id);
+        Transaction transaction = txManager.get(id);
+        return transaction;
     }
 
     @Override
-    public Transaction addTransaction(Transaction tx) throws IOException {
-        Transaction newTx = transactionPool.addTx(tx);
+    public Transaction addTransaction(Transaction tx) {
+        Transaction newTx = txManager.put(tx);
         if (listener != null) {
             listener.newTransaction(tx);
         }
@@ -107,7 +110,7 @@ public class NodeManagerMock implements NodeManager {
 
     @Override
     public List<Transaction> getTransactionList() {
-        return transactionPool.getTxList();
+        return (List<Transaction>) txManager.getUnconfirmedTxs();
     }
 
     @Override
@@ -120,8 +123,9 @@ public class NodeManagerMock implements NodeManager {
         Block block =
                 blockBuilder.build(
                         this.wallet,
-                        transactionPool.getTxList(),
-                        blockChain.getPrevBlock());
+                        new ArrayList<>(txManager.getUnconfirmedTxs()),
+                        blockChain.getPrevBlock()
+                );
 
         blockChain.addBlock(block);
 
@@ -169,12 +173,12 @@ public class NodeManagerMock implements NodeManager {
         if (block == null || block.getData().getTransactionList() == null) {
             return;
         }
-        List<String> idList = new ArrayList<>();
+        Set<String> keys = new HashSet<>();
 
         for (Transaction tx : block.getData().getTransactionList()) {
-            idList.add(tx.getHashString());
+            keys.add(tx.getHashString());
         }
-        this.transactionPool.removeTx(idList);
+        this.txManager.batch(keys);
     }
 
     private boolean isNumeric(String str) {

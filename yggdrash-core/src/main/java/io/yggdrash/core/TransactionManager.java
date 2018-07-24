@@ -16,57 +16,131 @@
 
 package io.yggdrash.core;
 
-import io.yggdrash.core.store.SimpleTransactionPool;
-import io.yggdrash.core.store.datasource.LevelDbDataSource;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
+import io.yggdrash.core.store.TransactionPool;
+import io.yggdrash.core.store.datasource.DbSource;
+import io.yggdrash.proto.BlockChainProto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 @Component
 public class TransactionManager {
-    private final LevelDbDataSource db;
-    private final SimpleTransactionPool txPool;
-    private final Set<byte[]> unconfirmedTxSet = new HashSet<>();
+    private static final Logger log = LoggerFactory.getLogger(TransactionManager.class);
+
+    private final DbSource db;
+    private final TransactionPool txPool;
+    private final Set<String> unconfirmedTxSet = new HashSet<>();
 
     @Autowired
-    public TransactionManager(LevelDbDataSource db, SimpleTransactionPool simpleTransactionPool) {
+    public TransactionManager(DbSource db, TransactionPool transactionPool) {
         this.db = db;
         this.db.init();
-        this.txPool = simpleTransactionPool;
+        this.txPool = transactionPool;
     }
 
-    public void put(Transaction tx) throws IOException {
-        this.put(tx.getHash(), tx.getData().getBytes());
-    }
-
-    public void put(byte[] key, byte[] value) {
-        txPool.put(key, value);
-        unconfirmedTxSet.add(key);
-    }
-
-    public byte[] get(byte[] key) {
-        byte[] foundTx = txPool.get(key);
-        return foundTx != null ? foundTx : db.get(key);
-    }
-
-    public void batch() {
-        Map<byte[], byte[]> map = txPool.getList(unconfirmedTxSet);
-        for (byte[] key : map.keySet()) {
-            db.put(key, map.get(key));
+    public Transaction put(Transaction tx) {
+        try {
+            txPool.put(tx);
+            unconfirmedTxSet.add(tx.getHashString());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        this.flush();
+
+        return tx;
+    }
+
+    public Transaction get(String key) {
+        Transaction foundTx = txPool.get(key);
+        return foundTx != null ? foundTx : deserialize(db.get(key.getBytes()));
+    }
+
+    public void batchAll() {
+        this.batch(unconfirmedTxSet);
+    }
+
+    public void batch(Set<String> keys) {
+        if (keys.size() > 0) {
+            Map<String, Transaction> map = txPool.getAll(keys);
+            for (String key : map.keySet()) {
+                Transaction foundTx = map.get(key);
+                if (foundTx != null) {
+                    db.put(key.getBytes(), serialize(foundTx));
+                }
+            }
+            this.flush();
+        }
+    }
+
+    public Collection<Transaction> getUnconfirmedTxs() {
+        Map<String, Transaction> unconfirmedTxs = txPool.getAll(unconfirmedTxSet);
+        return unconfirmedTxs.values();
     }
 
     public int count() {
         return unconfirmedTxSet.size();
     }
 
-    private void flush() {
+    public void flush() {
         txPool.remove(unconfirmedTxSet);
         unconfirmedTxSet.clear();
+    }
+
+    private byte[] serialize(Transaction transaction) {
+        return convertToProto(transaction).toByteArray();
+    }
+
+    private Transaction deserialize(byte[] stream) {
+        return convertToObject(stream);
+    }
+
+    private BlockChainProto.Transaction convertToProto(Transaction tx) {
+        TransactionHeader txHeader = tx.getHeader();
+        BlockChainProto.TransactionHeader header =
+                BlockChainProto.TransactionHeader.newBuilder()
+                        .setType(ByteString.copyFrom(txHeader.getType()))
+                        .setVersion(ByteString.copyFrom(txHeader.getVersion()))
+                        .setDataHash(ByteString.copyFrom(txHeader.getDataHash()))
+                        .setTimestamp(txHeader.getTimestamp())
+                        .setDataSize(txHeader.getDataSize())
+                        .setSignature(ByteString.copyFrom(txHeader.getSignature()))
+                        .build();
+        return BlockChainProto.Transaction.newBuilder()
+                .setHeader(header)
+                .setData(tx.getData())
+                .build();
+    }
+
+    private Transaction convertToObject(byte[] stream) {
+        BlockChainProto.Transaction txProto = null;
+        try {
+            txProto = BlockChainProto.Transaction.parseFrom(stream);
+        } catch (InvalidProtocolBufferException e) {
+            e.printStackTrace();
+        }
+
+        if (txProto == null) {
+            return null;
+        }
+
+        BlockChainProto.TransactionHeader txHeaderProto = txProto.getHeader();
+        TransactionHeader txHeader = new TransactionHeader(
+                txHeaderProto.getType().toByteArray(),
+                txHeaderProto.getVersion().toByteArray(),
+                txHeaderProto.getDataHash().toByteArray(),
+                txHeaderProto.getTimestamp(),
+                txHeaderProto.getDataSize(),
+                txHeaderProto.getSignature().toByteArray()
+        );
+
+        return new Transaction(txHeader, txProto.getData());
     }
 }

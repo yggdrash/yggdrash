@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.store;
+package io.yggdrash.core.store.datasource;
 
-import io.yggdrash.core.Transaction;
+public interface DbSource {
+    void init();
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
+    byte[] get(byte[] key);
 
-public interface TransactionPool {
-    Transaction get(String key);
-
-    Transaction put(Transaction tx) throws IOException;
-
-    Map<String, Transaction> getAll(Set<String> keys);
-
-    void remove(Set<String> keys);
-
-    void clear();
+    void put(byte[] key, byte[] value);
 }

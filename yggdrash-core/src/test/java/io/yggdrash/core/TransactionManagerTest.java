@@ -20,6 +20,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.store.StoreConfiguration;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -37,47 +38,45 @@ public class TransactionManagerTest {
     @Autowired
     TransactionManager tm;
 
+    @Before
+    public void setUp() throws Exception {
+        tm.flush();
+    }
+
     @Test
-    public void shouldGetFromDb() {
-        byte[] key = putDummyTx();
-        tm.batch();
+    public void shouldGetFromDb() throws IOException {
+        Transaction dummyTx = TestUtils.createDummyTx();
+        tm.put(dummyTx);
+        tm.batchAll();
         assertThat(tm.count()).isZero();
-        byte[] foundValue = tm.get(key);
+        Transaction foundValue = tm.get(dummyTx.getHashString());
         assertThat(foundValue).isNotNull();
     }
 
     @Test
-    public void shouldBatch() {
-        putDummyTx();
-        tm.batch();
+    public void shouldBatch() throws IOException {
+        byte[] key = TestUtils.createDummyTx().getHash();
+        tm.batchAll();
         assertThat(tm.count()).isZero();
     }
 
-    private byte[] putDummyTx() {
-        byte[] key = TestUtils.randomBytes(32);
-        byte[] value = TestUtils.randomBytes(32);
-        tm.put(key, value);
-        return key;
-    }
-
     @Test
-    public void shouldGetFromPool() {
-        byte[] key = putDummyTx();
-        byte[] foundValue = tm.get(key);
+    public void shouldGetFromPool() throws IOException {
+        Transaction dummyTx = TestUtils.createDummyTx();
+        byte[] key = dummyTx.getHash().clone();
+        tm.put(dummyTx);
+        Transaction foundValue = tm.get(dummyTx.getHashString());
         assertThat(foundValue).isNotNull();
-    }
-
-    @Test
-    public void shouldPutByBytes() {
-        byte[] key = TestUtils.randomBytes(32);
-        byte[] value = TestUtils.randomBytes(32);
-        tm.put(key, value);
-        assertThat(tm.count()).isEqualTo(1);
     }
 
     @Test
     public void shouldPutByTxObject() throws IOException, InvalidCipherTextException {
         tm.put(new Transaction(new Wallet(new DefaultConfig()), new JsonObject()));
+//=======
+//    public void shouldPutByTxObject() throws IOException {
+//        Transaction dummyTx = TestUtils.createDummyTx();
+//        tm.put(dummyTx);
+//>>>>>>> develop
     }
 
     @Test

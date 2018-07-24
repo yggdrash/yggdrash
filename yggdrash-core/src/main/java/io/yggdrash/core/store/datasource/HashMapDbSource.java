@@ -14,22 +14,27 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.store;
+package io.yggdrash.core.store.datasource;
 
-import io.yggdrash.core.Transaction;
+import org.apache.commons.codec.binary.Hex;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
+import java.util.HashMap;
 
-public interface TransactionPool {
-    Transaction get(String key);
+public class HashMapDbSource implements DbSource {
+    HashMap<String, byte[]> db;
 
-    Transaction put(Transaction tx) throws IOException;
+    @Override
+    public void init() {
+        db = new HashMap<>();
+    }
 
-    Map<String, Transaction> getAll(Set<String> keys);
+    @Override
+    public byte[] get(byte[] key) {
+        return db.get(Hex.encodeHexString(key));
+    }
 
-    void remove(Set<String> keys);
-
-    void clear();
+    @Override
+    public void put(byte[] key, byte[] value) {
+        db.put(Hex.encodeHexString(key), value);
+    }
 }
