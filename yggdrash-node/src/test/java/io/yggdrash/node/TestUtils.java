@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash;
+package io.yggdrash.node;
 
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHeader;

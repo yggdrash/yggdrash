@@ -14,10 +14,12 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.store;
+package io.yggdrash.core.store.datasource;
 
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.store.StoreConfiguration;
+import org.ehcache.Cache;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -31,39 +33,29 @@ import java.io.IOException;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = StoreConfiguration.class)
-public class SimpleTransactionPoolTest {
-    public static final Logger log = LoggerFactory.getLogger(SimpleTransactionPoolTest.class);
+@SpringBootTest(classes = {StoreConfiguration.class})
+public class EhCacheSourceTest {
+    private static final Logger log = LoggerFactory.getLogger(EhCacheSourceTest.class);
 
     @Autowired
-    TransactionPool txPool;
+    Cache<String, Transaction> cache;
 
     @Test
-    public void shouldClearPool() throws IOException {
+    public void shouldGetTx() throws IOException {
         Transaction dummyTx = TestUtils.createDummyTx();
-        txPool.put(dummyTx);
-        txPool.clear();
-        Transaction foundValue = txPool.get(dummyTx.getHashString());
-        assertThat(foundValue).isNull();
-    }
-
-    @Test
-    public void shouldGetObject() throws IOException {
-        Transaction dummyTx = TestUtils.createDummyTx();
-        txPool.put(dummyTx);
-
-        Transaction foundValue = txPool.get(dummyTx.getHashString());
-        assertThat(foundValue).isEqualTo(dummyTx);
+        cache.put(dummyTx.getHashString(), dummyTx);
+        Transaction foundTx = cache.get(dummyTx.getHashString());
+        assertThat(foundTx).isEqualTo(dummyTx);
     }
 
     @Test
     public void shouldPutTx() throws IOException {
         Transaction dummyTx = TestUtils.createDummyTx();
-        txPool.put(dummyTx);
+        cache.put(dummyTx.getHashString(), dummyTx);
     }
 
     @Test
-    public void shouldBeLoad() {
-        assertThat(txPool).isNotNull();
+    public void shouldBeLoadedBean() {
+        assertThat(cache).isNotNull();
     }
 }

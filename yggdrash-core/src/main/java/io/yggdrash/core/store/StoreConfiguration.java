@@ -16,7 +16,9 @@
 
 package io.yggdrash.core.store;
 
+import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionManager;
+import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
@@ -34,12 +36,12 @@ public class StoreConfiguration {
     private static final Logger log = LoggerFactory.getLogger(StoreConfiguration.class);
 
     @Bean
-    LevelDbDataSource levelDbDataSource() {
+    DbSource levelDbDataSource() {
         return new LevelDbDataSource("tx");
     }
 
     @Bean
-    SimpleTransactionPool simpleTransactionPool() {
+    TransactionPool transactionPool() {
         return new SimpleTransactionPool(txCache());
     }
 
@@ -48,7 +50,7 @@ public class StoreConfiguration {
         log.debug("=== Create cache for transaction");
         return cacheManager().createCache("txCache",
                 CacheConfigurationBuilder
-                        .newCacheConfigurationBuilder(byte[].class, byte[].class,
+                        .newCacheConfigurationBuilder(String.class, Transaction.class,
                                 ResourcePoolsBuilder.heap(10)));
     }
 
@@ -59,6 +61,6 @@ public class StoreConfiguration {
 
     @Bean
     TransactionManager transactionManager() {
-        return new TransactionManager(levelDbDataSource(), simpleTransactionPool());
+        return new TransactionManager(levelDbDataSource(), transactionPool());
     }
 }
