@@ -31,14 +31,21 @@ import static org.iq80.leveldb.impl.Iq80DBFactory.factory;
 public class LevelDbDataSource implements DbSource {
 
     private static final Logger log = LoggerFactory.getLogger(LevelDbDataSource.class);
-    private static final String DB_PATH = "resources/db/";
+    private static final String DEFAULT_DB_PATH = "resources/db/";
 
     private ReadWriteLock resetDbLock = new ReentrantReadWriteLock();
 
     private String name;
+    private String dbPath;
     private DB db;
 
     public LevelDbDataSource(String name) {
+        this.dbPath = DEFAULT_DB_PATH;
+        this.name = name;
+    }
+
+    public LevelDbDataSource(String dbPath, String name) {
+        this.dbPath = dbPath;
         this.name = name;
     }
 
@@ -49,7 +56,7 @@ public class LevelDbDataSource implements DbSource {
             // TODO resource path set by profile or setting file
             Options options = new Options();
             options.createIfMissing(true);
-            this.db = factory.open(new File(DB_PATH + name), options);
+            this.db = factory.open(new File(dbPath + "/" + name), options);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
