@@ -38,13 +38,30 @@ public class Transaction implements Serializable {
      * @param from account for creating transaction
      * @param data transaction data(Json)
      */
+    @Deprecated
     public Transaction(Account from, JsonObject data) throws IOException {
         // 1. make data
         this.data = data.toString();
 
         // 2. make header
         byte[] bin = SerializeUtils.serialize(data);
-        this.header = new TransactionHeader(from, HashUtil.sha256(bin), bin.length);
+        this.header = new TransactionHeader(from, HashUtil.sha3(bin), bin.length);
+    }
+
+    /**
+     * Transaction Constructor
+     *
+     * @param wallet wallet for creating transaction
+     * @param data transaction data(Json)
+     */
+    public Transaction(Wallet wallet, JsonObject data) throws IOException {
+
+        // 1. make data
+        this.data = data.toString();
+
+        // 2. make header
+        byte[] bin = SerializeUtils.serialize(data);
+        this.header = new TransactionHeader(wallet, HashUtil.sha3(bin), bin.length);
     }
 
     /**

@@ -66,13 +66,15 @@ public class TransactionHeader implements Serializable {
     }
 
     /**
+     * @deprecated
      * TransactionHeader Constructor.
-     *
+     *  - do not use Account parameter for generating TransactionHeader.
      * @param from     account for creating tx
      * @param dataHash data hash
      * @param dataSize data size
      * @throws IOException IOException
      */
+    @Deprecated
     public TransactionHeader(Account from, byte[] dataHash, long dataSize) throws IOException {
         this(dataHash, dataSize);
 
@@ -83,6 +85,26 @@ public class TransactionHeader implements Serializable {
         this.timestamp = TimeUtils.time();
         this.signature = from.getKey().sign(getSignDataHash()).toBinary();
     }
+
+    /**
+     * TransactionHeader Constructor.
+     *
+     * @param wallet   node wallet class
+     * @param dataHash data hash
+     * @param dataSize data size
+     * @throws IOException IOException
+     */
+    public TransactionHeader(Wallet wallet, byte[] dataHash, long dataSize) throws IOException {
+        this(dataHash, dataSize);
+
+        if (wallet == null || wallet.getAddress() == null) {
+            throw new IOException("Wallet is not valid");
+        }
+
+        this.timestamp = TimeUtils.time();
+        this.signature = wallet.signHashedData(getSignDataHash());
+    }
+
 
     public byte[] getType() {
         return type;

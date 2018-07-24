@@ -27,11 +27,28 @@ public class Block implements Cloneable, Serializable {
      * @param prevBlock the prev block
      * @param blockBody the block body
      */
+    @Deprecated
     public Block(Account author, Block prevBlock, BlockBody blockBody) throws IOException {
         this.header = new BlockHeader.Builder()
                 .prevBlock(prevBlock)
                 .blockBody(blockBody)
                 .build(author);
+
+        this.data = blockBody;
+    }
+
+    /**
+     * Instantiates a new Block.
+     *
+     * @param wallet    the wallet
+     * @param prevBlock the prev block
+     * @param blockBody the block body
+     */
+    public Block(Wallet wallet, Block prevBlock, BlockBody blockBody) throws IOException {
+        this.header = new BlockHeader.Builder()
+                .prevBlock(prevBlock)
+                .blockBody(blockBody)
+                .build(wallet);
 
         this.data = blockBody;
     }
