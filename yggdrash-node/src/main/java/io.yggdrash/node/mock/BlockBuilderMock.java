@@ -61,6 +61,7 @@ public class BlockBuilderMock implements BlockBuilder {
     @Deprecated
     @Override
     public Block build() throws IOException {
+        //todo: change logic for building the real block.
 
         // Create transactions
         JsonObject txObj1 = new JsonObject();
@@ -102,6 +103,7 @@ public class BlockBuilderMock implements BlockBuilder {
     }
 
     public Block build(Wallet wallet) throws IOException {
+        //todo: change logic for building the real block.
 
         // Create transactions
         JsonObject txObj1 = new JsonObject();
