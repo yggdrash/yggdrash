@@ -19,6 +19,7 @@ package io.yggdrash.core.store.datasource;
 import io.yggdrash.util.FileUtil;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
+import org.iq80.leveldb.WriteBatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
@@ -57,13 +59,9 @@ public class LevelDbDataSource implements DbSource {
         try {
             log.debug("Initialize db: {}", name);
 
-            if (alive) {
-                return;
-            }
+            if (isAlive()) return;
 
-            if (name == null) {
-                throw new NullPointerException("no name set to the dbStore");
-            }
+            if (name == null) throw new NullPointerException("no name set to the dbStore");
 
             // TODO resource path set by profile or setting file
             Options options = new Options();
@@ -99,21 +97,37 @@ public class LevelDbDataSource implements DbSource {
     }
 
     public void put(byte[] key, byte[] value) {
-        resetDbLock.writeLock().lock();
-
+        resetDbLock.readLock().lock();
         try {
             db.put(key, value);
         } finally {
-            resetDbLock.writeLock().unlock();
+            resetDbLock.readLock().unlock();
         }
     }
 
     public byte[] get(byte[] key) {
-        resetDbLock.writeLock().lock();
+        resetDbLock.readLock().lock();
         try {
             return db.get(key);
         } finally {
-            resetDbLock.writeLock().unlock();
+            resetDbLock.readLock().unlock();
+        }
+    }
+
+    public void updateByBatch(Map<byte[], byte[]> rows) {
+        resetDbLock.readLock().lock();
+        try {
+            WriteBatch batch = db.createWriteBatch();
+            rows.forEach((key, value) -> {
+                if (value == null) {
+                    batch.delete(key);
+                } else {
+                    batch.put(key, value);
+                }
+            });
+            db.write(batch);
+        } finally {
+            resetDbLock.readLock().unlock();
         }
     }
 

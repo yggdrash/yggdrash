@@ -21,6 +21,8 @@ import org.junit.AfterClass;
 import org.junit.Test;
 
 import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 import static io.yggdrash.TestUtils.randomBytes;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,6 +33,24 @@ public class LevelDbDataSourceTest {
     @AfterClass
     public static void destroy() {
         FileUtil.recursiveDelete(Paths.get(dbPath));
+    }
+
+    @Test
+    public void shouldBeUpdateByBatch() {
+        LevelDbDataSource ds = new LevelDbDataSource(dbPath, "batch-test");
+        ds.init();
+
+        Map<byte[], byte[]> rows = new HashMap<>();
+        byte[] key = randomBytes(32);
+        byte[] value = randomBytes(32);
+        rows.put(key, value);
+        rows.put(randomBytes(32), randomBytes(32));
+        rows.put(randomBytes(32), randomBytes(32));
+        rows.put(randomBytes(32), randomBytes(32));
+
+        ds.updateByBatch(rows);
+        byte[] foundValue = ds.get(key);
+        assertThat(foundValue).isEqualTo(value);
     }
 
     @Test
