@@ -23,10 +23,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class Peer {
-    private static final String PEER_URI_FORMAT = "%s://%s@%s";
-
     public static final String YGGDRASH_NODE_SCHEMA = "ynode";
-
+    private static final String PEER_URI_FORMAT = "%s://%s@%s";
     private byte[] id;
     private String host;
     private int port;
@@ -47,18 +45,6 @@ public class Peer {
         }
     }
 
-    public String getYnodeUri() {
-        return ynodeUri;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
     public static Peer valueOf(String nodeId, String host, int port) {
         return new Peer(String.format(PEER_URI_FORMAT, YGGDRASH_NODE_SCHEMA,
                 nodeId, host + ":" + port));
@@ -76,5 +62,17 @@ public class Peer {
         final String generatedNodeId = Hex.toHexString(new Account().getKey().getNodeId());
         return new Peer(String.format(PEER_URI_FORMAT, YGGDRASH_NODE_SCHEMA,
                 generatedNodeId, addressOrYnode));
+    }
+
+    public String getYnodeUri() {
+        return ynodeUri;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public int getPort() {
+        return port;
     }
 }

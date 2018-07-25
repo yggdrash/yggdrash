@@ -86,14 +86,14 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
 
         String[] splitName = filePathName.split(File.separator);
 
-        String result = "";
+        StringBuilder result = new StringBuilder();
         if (splitName.length > 0) {
 
             for (int i = 0; i < splitName.length - 1; i++) {
-                result += splitName[i] + File.separator;
+                result.append(splitName[i]).append(File.separator);
             }
 
-            return result;
+            return result.toString();
         } else {
             return null;
         }

@@ -26,7 +26,7 @@ public class FileUtilTest {
         String fileName = "tmp02.txt";
         byte[] data = "test data".getBytes();
 
-        File file =  new File(filePath, fileName);
+        File file = new File(filePath, fileName);
 
         FileUtil.writeFile(file, data);
 

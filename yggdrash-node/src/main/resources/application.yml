@@ -1,6 +1,6 @@
 logging:
   level:
-   io.yggdrash: debug
+    io.yggdrash: debug
 
 yggdrash.node:
   grpc.host: "localhost"

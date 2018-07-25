@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class PeerGroup {
 
-    private Map<String, Peer> peers = new ConcurrentHashMap<>();
+    private final Map<String, Peer> peers = new ConcurrentHashMap<>();
 
     private List<String> seedPeerList;
 

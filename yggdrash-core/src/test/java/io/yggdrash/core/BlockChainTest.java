@@ -2,14 +2,13 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.exception.NotValidteException;
+import io.yggdrash.core.exception.NotValidateException;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -45,7 +44,7 @@ public class BlockChainTest {
     }
 
     @Test
-    public void TransactionGenTest() throws NotValidteException, IOException,
+    public void TransactionGenTest() throws NotValidateException, IOException,
             InvalidCipherTextException {
         // 모든 테스트는 독립적으로 동작 해야 합니다
         BlockChain blockchain = instantBlockchain();
@@ -100,7 +99,7 @@ public class BlockChainTest {
                     new Block(new BlockHeader.Builder()
                             .prevBlock(blockChain.getPrevBlock())
                             .blockBody(sampleBody).build(wallet), sampleBody));
-        } catch (NotValidteException e) {
+        } catch (NotValidateException e) {
             e.printStackTrace();
             log.warn("invalid block....");
         }

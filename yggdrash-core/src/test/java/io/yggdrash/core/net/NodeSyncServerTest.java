@@ -21,7 +21,6 @@ import io.grpc.internal.testing.StreamRecorder;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.Account;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
@@ -50,19 +49,16 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class NodeSyncServerTest {
 
-    @Mock
-    private NodeManager nodeManagerMock;
-
     @Rule
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
-
+    @Mock
+    private NodeManager nodeManagerMock;
     private Transaction tx;
     private Block block;
 

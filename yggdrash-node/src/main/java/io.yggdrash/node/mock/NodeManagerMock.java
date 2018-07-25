@@ -23,7 +23,7 @@ import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionManager;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.exception.NotValidteException;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.net.NodeSyncClient;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
@@ -108,7 +108,7 @@ public class NodeManagerMock implements NodeManager {
     }
 
     @Override
-    public Transaction addTransaction(Transaction tx) throws IOException {
+    public Transaction addTransaction(Transaction tx) {
         Transaction newTx = txManager.put(tx);
         messageSender.newTransaction(tx);
         return newTx;
@@ -125,7 +125,7 @@ public class NodeManagerMock implements NodeManager {
     }
 
     @Override
-    public Block generateBlock() throws IOException, NotValidteException {
+    public Block generateBlock() throws IOException, NotValidateException {
         Block block =
                 blockBuilder.build(
                         this.wallet,
@@ -140,7 +140,7 @@ public class NodeManagerMock implements NodeManager {
     }
 
     @Override
-    public Block addBlock(Block block) throws IOException, NotValidteException {
+    public Block addBlock(Block block) throws IOException, NotValidateException {
         Block newBlock = null;
         if (blockChain.isGenesisBlockChain() && block.getIndex() == 0) {
             blockChain.addBlock(block);

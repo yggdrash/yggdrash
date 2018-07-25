@@ -33,9 +33,9 @@ public class LevelDbDataSource implements DbSource {
     private static final Logger log = LoggerFactory.getLogger(LevelDbDataSource.class);
     private static final String DB_PATH = "resources/db/";
 
-    private ReadWriteLock resetDbLock = new ReentrantReadWriteLock();
+    private final ReadWriteLock resetDbLock = new ReentrantReadWriteLock();
 
-    private String name;
+    private final String name;
     private DB db;
 
     public LevelDbDataSource(String name) {

@@ -27,12 +27,11 @@ import java.io.IOException;
 import java.security.SignatureException;
 
 public class TransactionDto {
+    private static final NodeManager nodeManager = new NodeManagerMock(null, null,
+            new NodeProperties.Grpc());
     private String from;
     private String txHash;
     private String data;
-
-    private static final NodeManager nodeManager = new NodeManagerMock(null, null,
-            new NodeProperties.Grpc());
 
     public static Transaction of(TransactionDto transactionDto) throws IOException {
         Wallet wallet = nodeManager.getWallet();

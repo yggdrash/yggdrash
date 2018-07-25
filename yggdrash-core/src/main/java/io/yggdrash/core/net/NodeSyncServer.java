@@ -92,22 +92,20 @@ public class NodeSyncServer {
      * The block chain rpc server implementation.
      */
     static class BlockChainImpl extends BlockChainGrpc.BlockChainImplBase {
+        private static final Set<StreamObserver<BlockChainProto.Transaction>> txObservers =
+                ConcurrentHashMap.newKeySet();
+        private static final Set<StreamObserver<BlockChainProto.Block>> blockObservers =
+                ConcurrentHashMap.newKeySet();
         private final NodeManager nodeManager;
 
         BlockChainImpl(NodeManager nodeManager) {
             this.nodeManager = nodeManager;
         }
 
-        private static Set<StreamObserver<BlockChainProto.Transaction>> txObservers =
-                ConcurrentHashMap.newKeySet();
-
-        private static Set<StreamObserver<BlockChainProto.Block>> blockObservers =
-                ConcurrentHashMap.newKeySet();
-
         /**
          * Sync block response
          *
-         * @param syncLimit the start block index and limit to sync
+         * @param syncLimit        the start block index and limit to sync
          * @param responseObserver the observer response to the block list
          */
         @Override
@@ -133,12 +131,12 @@ public class NodeSyncServer {
         /**
          * Sync transaction response
          *
-         * @param empty the empty message
+         * @param empty            the empty message
          * @param responseObserver the observer response to the transaction list
          */
         @Override
         public void syncTransaction(BlockChainProto.Empty empty,
-                              StreamObserver<BlockChainProto.TransactionList> responseObserver) {
+                StreamObserver<BlockChainProto.TransactionList> responseObserver) {
             log.debug("Synchronize tx request");
             BlockChainProto.TransactionList.Builder builder
                     = BlockChainProto.TransactionList.newBuilder();
@@ -152,7 +150,7 @@ public class NodeSyncServer {
         /**
          * Peer list response
          *
-         * @param peerRequest the request with limit of peer and peer uri
+         * @param peerRequest      the request with limit of peer and peer uri
          * @param responseObserver the observer response to the peer list
          */
         @Override
@@ -177,12 +175,12 @@ public class NodeSyncServer {
         /**
          * Broadcast a disconnected peer
          *
-         * @param peerRequest the request with disconnected peer uri
+         * @param peerRequest      the request with disconnected peer uri
          * @param responseObserver the empty response
          */
         @Override
         public void disconnectPeer(BlockChainProto.PeerRequest peerRequest,
-                                    StreamObserver<BlockChainProto.Empty> responseObserver) {
+                                   StreamObserver<BlockChainProto.Empty> responseObserver) {
             log.debug("Received disconnect for=" + peerRequest.getFrom());
             responseObserver.onNext(BlockChainProto.Empty.newBuilder().build());
             responseObserver.onCompleted();

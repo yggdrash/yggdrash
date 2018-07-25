@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Locale;
 
 public class UtilsTest {
-    private static String VALID_ADDR = "6c386a4b26f73c802f34673f7248bb118f97424a";
+    private static final String VALID_ADDR = "6c386a4b26f73c802f34673f7248bb118f97424a";
 
     @Before
     public void setUp() {
@@ -92,7 +92,7 @@ public class UtilsTest {
 
     @Test
     public void mergeArrays() {
-        assert Utils.mergeArrays(new String[] {"a","b"}).length == 2;
+        assert Utils.mergeArrays(new String[] {"a", "b"}).length == 2;
     }
 
     @Test

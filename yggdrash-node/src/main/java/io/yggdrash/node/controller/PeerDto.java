@@ -21,7 +21,8 @@ import io.yggdrash.core.net.Peer;
 class PeerDto {
     private String id;
 
-    PeerDto() {}
+    PeerDto() {
+    }
 
     PeerDto(String id) {
         this.id = id;

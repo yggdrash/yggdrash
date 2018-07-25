@@ -23,15 +23,11 @@ import io.yggdrash.core.mapper.BlockMapper;
 import io.yggdrash.proto.BlockChainProto;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.SerializationUtils;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 
-@RunWith(SpringRunner.class)
 public class BlockTest {
 
     private Block block;

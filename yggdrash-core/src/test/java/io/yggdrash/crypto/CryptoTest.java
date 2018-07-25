@@ -24,26 +24,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.AsymmetricCipherKeyPair;
 import org.spongycastle.crypto.BufferedBlockCipher;
-import org.spongycastle.crypto.KeyEncoder;
 import org.spongycastle.crypto.KeyGenerationParameters;
 import org.spongycastle.crypto.agreement.ECDHBasicAgreement;
 import org.spongycastle.crypto.digests.SHA256Digest;
 import org.spongycastle.crypto.engines.AESEngine;
 import org.spongycastle.crypto.engines.IESEngine;
 import org.spongycastle.crypto.generators.ECKeyPairGenerator;
-import org.spongycastle.crypto.generators.EphemeralKeyPairGenerator;
 import org.spongycastle.crypto.generators.KDF2BytesGenerator;
 import org.spongycastle.crypto.macs.HMac;
 import org.spongycastle.crypto.modes.SICBlockCipher;
-import org.spongycastle.crypto.params.AsymmetricKeyParameter;
 import org.spongycastle.crypto.params.ECKeyGenerationParameters;
-import org.spongycastle.crypto.params.ECPrivateKeyParameters;
-import org.spongycastle.crypto.params.ECPublicKeyParameters;
 import org.spongycastle.crypto.params.IESParameters;
 import org.spongycastle.crypto.params.IESWithCipherParameters;
 import org.spongycastle.crypto.params.KeyParameter;
 import org.spongycastle.crypto.params.ParametersWithIV;
-import org.spongycastle.crypto.parsers.ECIESPublicKeyParser;
 import org.spongycastle.util.encoders.Hex;
 
 import java.math.BigInteger;
@@ -147,7 +141,7 @@ public class CryptoTest {
 
 
     @Test  // basic encryption/decryption
-    public void test11() throws Throwable {
+    public void test11() {
 
         byte[] keyBytes = sha3("...".getBytes());
         log.info("key: {}", Hex.toHexString(keyBytes));
@@ -208,7 +202,7 @@ public class CryptoTest {
 //    }
 
     @Test  // big packet encryption
-    public void test12() throws Throwable {
+    public void test12() {
 
         AESEngine engine = new AESEngine();
         SICBlockCipher ctrEngine = new SICBlockCipher(engine);
@@ -223,25 +217,24 @@ public class CryptoTest {
 
         ctrEngine.init(true, params);
 
-        byte[] in = payload;
-        byte[] out = new byte[in.length];
+        byte[] out = new byte[payload.length];
 
         int i = 0;
 
-        while (i < in.length) {
-            ctrEngine.processBlock(in, i, out, i);
+        while (i < payload.length) {
+            ctrEngine.processBlock(payload, i, out, i);
             i += engine.getBlockSize();
-            if (in.length - i < engine.getBlockSize()) {
+            if (payload.length - i < engine.getBlockSize()) {
                 break;
             }
         }
 
         // process left bytes
-        if (in.length - i > 0) {
+        if (payload.length - i > 0) {
             byte[] tmpBlock = new byte[16];
-            System.arraycopy(in, i, tmpBlock, 0, in.length - i);
+            System.arraycopy(payload, i, tmpBlock, 0, payload.length - i);
             ctrEngine.processBlock(tmpBlock, 0, tmpBlock, 0);
-            System.arraycopy(tmpBlock, 0, out, i, in.length - i);
+            System.arraycopy(tmpBlock, 0, out, i, payload.length - i);
         }
 
         log.info("cipher: {}", Hex.toHexString(out));
@@ -250,7 +243,7 @@ public class CryptoTest {
     }
 
     @Test  // cpp keys demystified
-    public void test13() throws Throwable {
+    public void test13() {
 
 //        us.secret() a4627abc2a3c25315bff732cb22bc128f203912dd2a840f31e66efb27a47d2b1
 //        us.public() caa3d5086b31529bb00207eabf244a0a6c54d807d2ac0ec1f3b1bdde0dbf8130c115b1eaf62ce0f8062bcf70c0fefbc97cec79e7faffcc844a149a17fcd7bada
@@ -329,76 +322,76 @@ public class CryptoTest {
     }
 
     /**
-    @Test  // ECIES_AES128_SHA256 + Ephemeral Key + IV(all zeroes)
-    public void test15() throws Throwable {
+     @Test  // ECIES_AES128_SHA256 + Ephemeral Key + IV(all zeroes)
+     public void test15() throws Throwable {
 
 
-        byte[] privKey = Hex.decode("a4627abc2a3c25315bff732cb22bc128f203912dd2a840f31e66efb27a47d2b1");
+     byte[] privKey = Hex.decode("a4627abc2a3c25315bff732cb22bc128f203912dd2a840f31e66efb27a47d2b1");
 
-        ECKey ecKey = ECKey.fromPrivate(privKey);
+     ECKey ecKey = ECKey.fromPrivate(privKey);
 
-        ECPrivateKeyParameters ecPrivKey = new ECPrivateKeyParameters(ecKey.getPrivKey(), ECKey.CURVE);
-        ECPublicKeyParameters ecPubKey = new ECPublicKeyParameters(ecKey.getPubKeyPoint(), ECKey.CURVE);
+     ECPrivateKeyParameters ecPrivKey = new ECPrivateKeyParameters(ecKey.getPrivKey(), ECKey.CURVE);
+     ECPublicKeyParameters ecPubKey = new ECPublicKeyParameters(ecKey.getPubKeyPoint(), ECKey.CURVE);
 
-        AsymmetricCipherKeyPair myKey = new AsymmetricCipherKeyPair(ecPubKey, ecPrivKey);
-
-
-        AESEngine aesFastEngine = new AESEngine();
-
-        IESEngine iesEngine = new IESEngine(
-                new ECDHBasicAgreement(),
-                new KDF2BytesGenerator(new SHA256Digest()),
-                new HMac(new SHA256Digest()),
-                new BufferedBlockCipher(new SICBlockCipher(aesFastEngine)));
+     AsymmetricCipherKeyPair myKey = new AsymmetricCipherKeyPair(ecPubKey, ecPrivKey);
 
 
-        byte[] d = new byte[] {1, 2, 3, 4, 5, 6, 7, 8};
-        byte[] e = new byte[] {8, 7, 6, 5, 4, 3, 2, 1};
+     AESEngine aesFastEngine = new AESEngine();
 
-        IESParameters p = new IESWithCipherParameters(d, e, 64, 128);
-        ParametersWithIV parametersWithIV = new ParametersWithIV(p, new byte[16]);
-
-        ECKeyPairGenerator eGen = new ECKeyPairGenerator();
-        KeyGenerationParameters gParam = new ECKeyGenerationParameters(ECKey.CURVE, new SecureRandom());
-
-        eGen.init(gParam);
-
-        ECKeyGenerationParameters keygenParams = new ECKeyGenerationParameters(ECKey.CURVE, new SecureRandom());
-        ECKeyPairGenerator generator = new ECKeyPairGenerator();
-        generator.init(keygenParams);
-
-        EphemeralKeyPairGenerator kGen = new EphemeralKeyPairGenerator(generator, new KeyEncoder() {
-            public byte[] getEncoded(AsymmetricKeyParameter keyParameter) {
-                return ((ECPublicKeyParameters) keyParameter).getQ().getEncoded();
-            }
-        });
+     IESEngine iesEngine = new IESEngine(
+     new ECDHBasicAgreement(),
+     new KDF2BytesGenerator(new SHA256Digest()),
+     new HMac(new SHA256Digest()),
+     new BufferedBlockCipher(new SICBlockCipher(aesFastEngine)));
 
 
-        ECKeyPairGenerator gen = new ECKeyPairGenerator();
-        gen.init(new ECKeyGenerationParameters(ECKey.CURVE, new SecureRandom()));
+     byte[] d = new byte[] {1, 2, 3, 4, 5, 6, 7, 8};
+     byte[] e = new byte[] {8, 7, 6, 5, 4, 3, 2, 1};
 
-        iesEngine.init(myKey.getPublic(), parametersWithIV, kGen);
+     IESParameters p = new IESWithCipherParameters(d, e, 64, 128);
+     ParametersWithIV parametersWithIV = new ParametersWithIV(p, new byte[16]);
 
-        byte[] message = Hex.decode("010101");
-        log.info("payload: {}", Hex.toHexString(message));
+     ECKeyPairGenerator eGen = new ECKeyPairGenerator();
+     KeyGenerationParameters gParam = new ECKeyGenerationParameters(ECKey.CURVE, new SecureRandom());
+
+     eGen.init(gParam);
+
+     ECKeyGenerationParameters keygenParams = new ECKeyGenerationParameters(ECKey.CURVE, new SecureRandom());
+     ECKeyPairGenerator generator = new ECKeyPairGenerator();
+     generator.init(keygenParams);
+
+     EphemeralKeyPairGenerator kGen = new EphemeralKeyPairGenerator(generator, new KeyEncoder() {
+     public byte[] getEncoded(AsymmetricKeyParameter keyParameter) {
+     return ((ECPublicKeyParameters) keyParameter).getQ().getEncoded();
+     }
+     });
 
 
-        byte[] cipher = iesEngine.processBlock(message, 0, message.length);
-        log.info("cipher: {}", Hex.toHexString(cipher));
+     ECKeyPairGenerator gen = new ECKeyPairGenerator();
+     gen.init(new ECKeyGenerationParameters(ECKey.CURVE, new SecureRandom()));
+
+     iesEngine.init(myKey.getPublic(), parametersWithIV, kGen);
+
+     byte[] message = Hex.decode("010101");
+     log.info("payload: {}", Hex.toHexString(message));
 
 
-        IESEngine decryptorIES_Engine = new IESEngine(
-                new ECDHBasicAgreement(),
-                new KDF2BytesGenerator(new SHA256Digest()),
-                new HMac(new SHA256Digest()),
-                new BufferedBlockCipher(new SICBlockCipher(aesFastEngine)));
+     byte[] cipher = iesEngine.processBlock(message, 0, message.length);
+     log.info("cipher: {}", Hex.toHexString(cipher));
 
-        decryptorIES_Engine.init(myKey.getPrivate(), parametersWithIV, new ECIESPublicKeyParser(ECKey.CURVE));
 
-        byte[] orig = decryptorIES_Engine.processBlock(cipher, 0, cipher.length);
+     IESEngine decryptorIES_Engine = new IESEngine(
+     new ECDHBasicAgreement(),
+     new KDF2BytesGenerator(new SHA256Digest()),
+     new HMac(new SHA256Digest()),
+     new BufferedBlockCipher(new SICBlockCipher(aesFastEngine)));
 
-        log.info("orig: " + Hex.toHexString(orig));
-    }
+     decryptorIES_Engine.init(myKey.getPrivate(), parametersWithIV, new ECIESPublicKeyParser(ECKey.CURVE));
 
-    */
+     byte[] orig = decryptorIES_Engine.processBlock(cipher, 0, cipher.length);
+
+     log.info("orig: " + Hex.toHexString(orig));
+     }
+
+     */
 }

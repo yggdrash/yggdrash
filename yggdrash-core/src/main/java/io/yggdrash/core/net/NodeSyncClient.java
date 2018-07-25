@@ -42,7 +42,7 @@ public class NodeSyncClient {
     private final ManagedChannel channel;
     private final PingPongGrpc.PingPongBlockingStub blockingStub;
     private final BlockChainGrpc.BlockChainStub asyncStub;
-    private Peer peer;
+    private final Peer peer;
 
     public NodeSyncClient(Peer peer) {
         this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()

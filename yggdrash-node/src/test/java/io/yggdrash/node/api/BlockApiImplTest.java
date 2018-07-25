@@ -9,26 +9,19 @@ import io.yggdrash.node.mock.BlockBuilderMock;
 import io.yggdrash.node.mock.BlockMock;
 import io.yggdrash.node.mock.NodeManagerMock;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
-@Import(JsonRpcConfig.class)
 public class BlockApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
 
     private final NodeManager nodeManager = new NodeManagerMock(null, null, new NodeProperties.Grpc());
 
-    @Autowired
-    private JsonRpcHttpClient jsonRpcHttpClient;
+    private final JsonRpcHttpClient jsonRpcHttpClient = new JsonRpcConfig().jsonRpcHttpClient();
 
     @Test
     public void blockNumberTest() {

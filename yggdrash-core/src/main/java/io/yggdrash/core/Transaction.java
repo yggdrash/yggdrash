@@ -25,7 +25,7 @@ public class Transaction implements Serializable {
      * Transaction Constructor
      *
      * @param header transaction header
-     * @param data transaction data
+     * @param data   transaction data
      */
     public Transaction(TransactionHeader header, String data) {
         this.data = data;
@@ -52,7 +52,7 @@ public class Transaction implements Serializable {
      * Transaction Constructor
      *
      * @param wallet wallet for creating transaction
-     * @param data transaction data(Json)
+     * @param data   transaction data(Json)
      */
     public Transaction(Wallet wallet, JsonObject data) throws IOException {
 
@@ -96,7 +96,7 @@ public class Transaction implements Serializable {
     /**
      * get Transaction Header
      *
-     * @return
+     * @return tx header
      */
     public TransactionHeader getHeader() {
         return header;
@@ -106,7 +106,7 @@ public class Transaction implements Serializable {
      * print transaction
      */
     public String toString() {
-        StringBuffer buffer = new StringBuffer();
+        StringBuilder buffer = new StringBuilder();
         buffer.append(this.header.toString());
         buffer.append("transactionData=").append(this.data);
 

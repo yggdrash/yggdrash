@@ -39,7 +39,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MessageSender {
     private static final Logger log = LoggerFactory.getLogger(MessageSender.class);
 
-    private Map<String, NodeSyncClient> peerChannel = new ConcurrentHashMap<>();
+    private final Map<String, NodeSyncClient> peerChannel = new ConcurrentHashMap<>();
 
     public void destroy(String ynodeUri) {
         peerChannel.values().forEach(client -> client.stop(ynodeUri));

@@ -117,8 +117,8 @@ public class BlockHeader implements Serializable {
      */
     public static class Builder {
 
-        private byte[] type;
-        private byte[] version;
+        private final byte[] type;
+        private final byte[] version;
         private byte[] prevBlockHash;
         private byte[] merkleRoot;
         private long timestamp;
