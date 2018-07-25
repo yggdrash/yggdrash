@@ -15,6 +15,6 @@
 6. APIService를 실행합니다. Block 및 Transaction을 수신하고 조회합니다.
 
 ## Component
-
+![nodeComponent](images/nodeComponent.png)
 
 
