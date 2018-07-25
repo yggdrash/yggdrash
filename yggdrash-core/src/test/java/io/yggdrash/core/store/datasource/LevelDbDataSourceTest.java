@@ -39,8 +39,7 @@ public class LevelDbDataSourceTest {
         ds.init();
 
         byte[] key = randomBytes(32);
-        byte[] value = randomBytes(32);
-        ds.put(key, value);
+        byte[] value = putDummyRow(ds, key);
         byte[] foundValue = ds.get(key);
         assertThat(foundValue).isEqualTo(value);
 
@@ -56,11 +55,16 @@ public class LevelDbDataSourceTest {
         ds.init();
 
         byte[] key = randomBytes(32);
+        byte[] value = putDummyRow(ds, key);
+        byte[] foundValue = ds.get(key);
+        assertThat(foundValue).isEqualTo(value);
+    }
+
+    private byte[] putDummyRow(LevelDbDataSource ds, byte[] key) {
         byte[] value = randomBytes(32);
         ds.put(key, value);
 
-        byte[] foundValue = ds.get(key);
-        assertThat(foundValue).isEqualTo(value);
+        return value;
     }
 
     @Test
