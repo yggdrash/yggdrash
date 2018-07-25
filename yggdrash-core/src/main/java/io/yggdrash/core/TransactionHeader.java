@@ -178,6 +178,19 @@ public class TransactionHeader implements Serializable {
      * @throws IOException IOException
      */
     public byte[] getDataHashForSigning() throws IOException {
+
+        if (type == null) {
+            throw new IOException("getDataHashForSigning(): type is null");
+        }
+
+        if (version == null) {
+            throw new IOException("getDataHashForSigning(): version is null");
+        }
+
+        if (dataHash == null) {
+            throw new IOException("getDataHashForSigning(): dataHash is null");
+        }
+
         ByteArrayOutputStream transaction = new ByteArrayOutputStream();
 
         transaction.write(type);

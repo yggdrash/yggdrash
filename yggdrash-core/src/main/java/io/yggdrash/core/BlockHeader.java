@@ -203,12 +203,30 @@ public class BlockHeader implements Serializable {
          * @throws IOException IOException
          */
         private byte[] getDataHashForSigning() throws IOException {
+
+            if (type == null) {
+                throw new IOException("getDataHashForSigning(): type is null");
+            }
+
+            if (version == null) {
+                throw new IOException("getDataHashForSigning(): version is null");
+            }
+
             ByteArrayOutputStream block = new ByteArrayOutputStream();
 
             block.write(type);
             block.write(version);
+
+            if (prevBlockHash == null) {
+                prevBlockHash = new byte[32];
+            }
             block.write(prevBlockHash);
+
+            if (merkleRoot == null) {
+                merkleRoot = new byte[32];
+            }
             block.write(merkleRoot);
+
             block.write(ByteUtil.longToBytes(timestamp));
             block.write(ByteUtil.longToBytes(dataSize));
 
