@@ -115,8 +115,8 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
 
     public static boolean recursiveDelete(Path path) {
         File file = path.toFile();
-        if(file.exists()) {
-            if(file.isDirectory()) {
+        if (file.exists()) {
+            if (file.isDirectory()) {
                 Arrays.stream(Objects.requireNonNull(file.list()))
                         .map(path::resolve)
                         .forEachOrdered(FileUtil::recursiveDelete);

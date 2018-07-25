@@ -59,9 +59,13 @@ public class LevelDbDataSource implements DbSource {
         try {
             log.debug("Initialize db: {}", name);
 
-            if (isAlive()) return;
+            if (isAlive()) {
+                return;
+            }
 
-            if (name == null) throw new NullPointerException("no name set to the dbStore");
+            if (name == null) {
+                throw new NullPointerException("no name set to the dbStore");
+            }
 
             // TODO resource path set by profile or setting file
             Options options = new Options();
