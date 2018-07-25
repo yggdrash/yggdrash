@@ -16,28 +16,84 @@
 
 package io.yggdrash.core.store.datasource;
 
+import io.yggdrash.util.FileUtil;
+import org.junit.AfterClass;
 import org.junit.Test;
+
+import java.nio.file.Paths;
+import java.util.HashMap;
+import java.util.Map;
 
 import static io.yggdrash.TestUtils.randomBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LevelDbDataSourceTest {
+    private static final String dbPath = "testOutput";
+
+    @AfterClass
+    public static void destroy() {
+        FileUtil.recursiveDelete(Paths.get(dbPath));
+    }
+
     @Test
-    public void shouldPutSomeThing() {
-        LevelDbDataSource ds = new LevelDbDataSource("test");
+    public void shouldBeUpdateByBatch() {
+        LevelDbDataSource ds = new LevelDbDataSource(dbPath, "batch-test");
         ds.init();
 
+        Map<byte[], byte[]> rows = new HashMap<>();
         byte[] key = randomBytes(32);
         byte[] value = randomBytes(32);
-        ds.put(key, value);
+        rows.put(key, value);
+        rows.put(randomBytes(32), randomBytes(32));
+        rows.put(randomBytes(32), randomBytes(32));
+        rows.put(randomBytes(32), randomBytes(32));
 
+        ds.updateByBatch(rows);
         byte[] foundValue = ds.get(key);
         assertThat(foundValue).isEqualTo(value);
     }
 
     @Test
-    public void shouldInitializeLevelDb() {
-        LevelDbDataSource ds = new LevelDbDataSource("test");
+    public void shouldBeReset() {
+        LevelDbDataSource ds = new LevelDbDataSource(dbPath, "reset-test");
+        ds.init();
+
+        byte[] key = randomBytes(32);
+        byte[] value = putDummyRow(ds, key);
+        byte[] foundValue = ds.get(key);
+        assertThat(foundValue).isEqualTo(value);
+
+        ds.reset();
+
+        foundValue = ds.get(key);
+        assertThat(foundValue).isNull();
+    }
+
+    @Test
+    public void shouldPutSomeThing() {
+        LevelDbDataSource ds = new LevelDbDataSource(dbPath, "put-test");
+        ds.init();
+
+        byte[] key = randomBytes(32);
+        byte[] value = putDummyRow(ds, key);
+        byte[] foundValue = ds.get(key);
+        assertThat(foundValue).isEqualTo(value);
+    }
+
+    private byte[] putDummyRow(LevelDbDataSource ds, byte[] key) {
+        byte[] value = randomBytes(32);
+        ds.put(key, value);
+
+        return value;
+    }
+
+    @Test
+    public void shouldInitialize() {
+        String dbName = "initial-test";
+        LevelDbDataSource ds = new LevelDbDataSource(dbPath, dbName);
+        ds.init();
+
         assertThat(ds).isNotNull();
+        assertThat(FileUtil.isExists(Paths.get(dbPath, dbName))).isTrue();
     }
 }
