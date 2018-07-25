@@ -4,9 +4,11 @@ import com.googlecode.jsonrpc4j.JsonRpcError;
 import com.googlecode.jsonrpc4j.JsonRpcErrors;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
+import io.yggdrash.core.Transaction;
 import io.yggdrash.node.exception.FailedOperationException;
 import io.yggdrash.node.exception.NonExistObjectException;
 import io.yggdrash.node.exception.RejectedAccessException;
+import io.yggdrash.node.mock.TransactionReceiptMock;
 
 import java.io.IOException;
 
@@ -82,7 +84,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                           code = NonExistObjectException.code)})
-    String getTransactionByHash(
+    Transaction getTransactionByHash(
             @JsonRpcParam(value = "hashOfTx") String hashOfTx) throws IOException;
 
     /**
@@ -94,7 +96,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                           code = NonExistObjectException.code)})
-    String getTransactionByBlockHashAndIndex(
+    Transaction getTransactionByBlockHashAndIndex(
             @JsonRpcParam(value = "hashOfBlock") String hashOfBlock,
             @JsonRpcParam(value = "txIndexPosition") int txIndexPosition) throws IOException;
 
@@ -107,7 +109,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                           code = NonExistObjectException.code)})
-    String getTransactionByBlockNumberAndIndex(
+    Transaction getTransactionByBlockNumberAndIndex(
             @JsonRpcParam(value = "blockNumber") int blockNumber,
             @JsonRpcParam(value = "txIndexPosition") int txIndexPosition) throws IOException;
 
@@ -120,7 +122,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                           code = NonExistObjectException.code)})
-    String getTransactionByBlockNumberAndIndex(
+    Transaction getTransactionByBlockNumberAndIndex(
             @JsonRpcParam(value = "tag") String tag,
             @JsonRpcParam(value = "txIndexPosition") int txIndexPosition) throws IOException;
 
@@ -132,7 +134,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = FailedOperationException.class,
                           code = FailedOperationException.code)})
-    String getTransactionReceipt(
+    TransactionReceiptMock getTransactionReceipt(
             @JsonRpcParam(value = "hashOfTx") String hashOfTx);
 
     /* send */

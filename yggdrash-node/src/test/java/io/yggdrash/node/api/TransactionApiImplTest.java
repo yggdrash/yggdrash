@@ -94,7 +94,7 @@ public class TransactionApiImplTest {
             TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     TransactionApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
-            assertThat(api.getTransactionByHash(hashOfBlock)).isNotEmpty();
+            assertThat(api.getTransactionByHash(hashOfBlock)).isNotNull();
         } catch (Exception exception) {
             log.debug("\n\ngetTransactionByHashTest :: exception => " + exception);
         }
@@ -107,7 +107,7 @@ public class TransactionApiImplTest {
                     TransactionApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
             assertThat(api.getTransactionByBlockHashAndIndex(hashOfBlock, txIndexPosition))
-                    .isNotEmpty();
+                    .isNotNull();
         } catch (Exception exception) {
             log.debug("\n\ngetTransactionByBlockHashAndIndexTest :: exception => " + exception);
         }
@@ -120,7 +120,7 @@ public class TransactionApiImplTest {
                     TransactionApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
             assertThat(api.getTransactionByBlockNumberAndIndex(blockNumber, txIndexPosition))
-                    .isNotEmpty();
+                    .isNotNull();
         } catch (Exception exception) {
             log.debug("\n\ngetTransactionByBlockNumberAndIndexTest :: exception => " + exception);
         }
@@ -132,7 +132,7 @@ public class TransactionApiImplTest {
             TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     TransactionApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
-            assertThat(api.getTransactionReceipt(hashOfTx)).isNotEmpty();
+            assertThat(api.getTransactionReceipt(hashOfTx)).isNotNull();
         } catch (Exception exception) {
             log.debug("\n\ngetTransactionReceiptTest :: exception => " + exception);
         }

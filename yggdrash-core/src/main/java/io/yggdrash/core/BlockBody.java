@@ -10,6 +10,9 @@ public class BlockBody implements Serializable {
 
     private List<Transaction> transactionList;
 
+    public BlockBody() {
+    }
+
     /**
      * Instantiates a new Block body.
      *
