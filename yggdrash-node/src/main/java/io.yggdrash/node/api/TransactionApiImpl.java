@@ -7,12 +7,15 @@ import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHeader;
+import io.yggdrash.core.TransactionValidator;
+import io.yggdrash.node.exception.FailedOperationException;
 import io.yggdrash.node.mock.TransactionMock;
 import io.yggdrash.node.mock.TransactionReceiptMock;
 import org.spongycastle.util.Arrays;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.security.SignatureException;
 
 @Service
 @AutoJsonRpcServiceImpl
@@ -85,15 +88,23 @@ public class TransactionApiImpl implements TransactionApi {
 
     /* send */
     @Override
-    public String sendTransaction(String jsonStr) throws IOException {
+    public String sendTransaction(String jsonStr) throws IOException,SignatureException {
         Transaction tx = convert(jsonStr);
-        return tx.getHashString();
+        if (valiate(tx)) {
+            return tx.getHashString();
+        } else {
+            throw new FailedOperationException("Transaction");
+        }
     }
 
     @Override
-    public byte[] sendRawTransaction(byte[] bytes) throws IOException {
+    public byte[] sendRawTransaction(byte[] bytes) throws IOException,SignatureException {
         Transaction tx = convert(bytes);
-        return tx.getHash();
+        if (valiate(tx)) {
+            return tx.getHash();
+        } else {
+            throw new FailedOperationException("Transaction");
+        }
     }
 
     /* filter */
@@ -137,5 +148,11 @@ public class TransactionApiImpl implements TransactionApi {
                 type, version, dataHash, timestampStr, dataSizeStr, signature);
 
         return new Transaction(txHeader, dataStr);
+    }
+
+    private Boolean valiate(Transaction tx) throws IOException,SignatureException {
+        TransactionValidator txValidator = new TransactionValidator();
+        return txValidator.txSigValidate(tx.getHeader().getSignDataHash(),
+                                         tx.getHeader().getSignature());
     }
 }

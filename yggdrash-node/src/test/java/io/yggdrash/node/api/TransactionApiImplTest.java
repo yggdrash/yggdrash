@@ -1,16 +1,16 @@
 package io.yggdrash.node.api;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.googlecode.jsonrpc4j.ProxyUtil;
-import io.yggdrash.core.Account;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.TransactionValidator;
 import io.yggdrash.node.mock.NodeManagerMock;
 import io.yggdrash.node.mock.TransactionMock;
-import io.yggdrash.node.mock.TransactionReceiptMock;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -22,8 +22,10 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.security.SignatureException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
 @Import(JsonRpcConfig.class)
@@ -251,6 +253,28 @@ public class TransactionApiImplTest {
         }
     }
 
+    @Test
+    public void txSigValidateTest() throws IOException,SignatureException {
+        // Create Transaction
+        JsonObject json = new JsonObject();
+        json.addProperty("id", "0");
+        json.addProperty("name", "Rachael");
+        json.addProperty("age", "27");
+        Transaction tx = new Transaction(this.nodeManager.getWallet(), json);
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        String jsonStr = mapper.writeValueAsString(tx);
+
+        // Receive Transaction
+        Transaction resTx = mapper.readValue(jsonStr, Transaction.class);
+        byte[] resSignature = resTx.getHeader().getSignature();
+        byte[] resSignDataHash = resTx.getHeader().getSignDataHash();
+
+        // Signature Validation
+        TransactionValidator txValidator = new TransactionValidator();
+        assertTrue(txValidator.txSigValidate(resSignDataHash, resSignature));
+    }
 }
 
 

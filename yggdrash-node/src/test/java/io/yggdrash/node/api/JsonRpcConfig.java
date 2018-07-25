@@ -12,7 +12,7 @@ import java.util.Map;
 
 @Configuration
 public class JsonRpcConfig {
-    private static final String endpoint = "http://localhost:8080/api/block";
+    private static final String endpoint = "http://localhost:8080/api/transaction";
 
     @Bean
     public JsonRpcHttpClient jsonRpcHttpClient() {
