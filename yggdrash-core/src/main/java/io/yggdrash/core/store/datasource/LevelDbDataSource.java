@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.store.datasource;
 
+import io.yggdrash.util.FileUtil;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.Options;
 import org.slf4j.Logger;
@@ -34,7 +35,8 @@ public class LevelDbDataSource implements DbSource {
 
     private static final Logger log = LoggerFactory.getLogger(LevelDbDataSource.class);
     private static final String DEFAULT_DB_PATH = "resources/db/";
-    boolean alive;
+
+    private boolean alive;
     private ReadWriteLock resetDbLock = new ReentrantReadWriteLock();
     private String name;
     private String dbPath;
@@ -53,7 +55,7 @@ public class LevelDbDataSource implements DbSource {
     public void init() {
         resetDbLock.writeLock().lock();
         try {
-            log.debug("Initialize {} db", name);
+            log.debug("Initialize db: {}", name);
 
             if (alive) {
                 return;
@@ -113,5 +115,29 @@ public class LevelDbDataSource implements DbSource {
         } finally {
             resetDbLock.writeLock().unlock();
         }
+    }
+
+    public void reset() {
+        close();
+        FileUtil.recursiveDelete(getDbPath());
+        init();
+    }
+
+    public synchronized void close() {
+        if (!isAlive()) {
+            return;
+        }
+
+        try {
+            log.debug("Close db: {}", name);
+            db.close();
+            alive = false;
+        } catch (IOException e) {
+            log.error("Failed to find the db file on the close: {}", name);
+        }
+    }
+
+    public boolean isAlive() {
+        return alive;
     }
 }

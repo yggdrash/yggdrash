@@ -34,6 +34,23 @@ public class LevelDbDataSourceTest {
     }
 
     @Test
+    public void shouldBeReset() {
+        LevelDbDataSource ds = new LevelDbDataSource(dbPath, "reset-test");
+        ds.init();
+
+        byte[] key = randomBytes(32);
+        byte[] value = randomBytes(32);
+        ds.put(key, value);
+        byte[] foundValue = ds.get(key);
+        assertThat(foundValue).isEqualTo(value);
+
+        ds.reset();
+
+        foundValue = ds.get(key);
+        assertThat(foundValue).isNull();
+    }
+
+    @Test
     public void shouldPutSomeThing() {
         LevelDbDataSource ds = new LevelDbDataSource(dbPath, "put-test");
         ds.init();
