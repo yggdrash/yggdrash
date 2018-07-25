@@ -3,14 +3,14 @@ package io.yggdrash.node.api;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 
-@Configuration
+@TestConfiguration
 public class JsonRpcConfig {
     private static final String endpoint = "http://localhost:8080/api/transaction";
 

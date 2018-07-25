@@ -108,64 +108,60 @@ class Fp12 implements Field<Fp12> {
         Fp2 z4 = b.b;
         Fp2 z5 = b.c;
 
-        Fp2 x0 = ell0;
-        Fp2 x2 = ellVV;
-        Fp2 x4 = ellVW;
-
         Fp2 t0, t1, t2, s0, t3, t4, d0, d2, d4, s1;
 
-        d0 = z0.mul(x0);
-        d2 = z2.mul(x2);
-        d4 = z4.mul(x4);
+        d0 = z0.mul(ell0);
+        d2 = z2.mul(ellVV);
+        d4 = z4.mul(ellVW);
         t2 = z0.add(z4);
         t1 = z0.add(z2);
         s0 = z1.add(z3).add(z5);
 
         // For z.a_.a_ = z0.
-        s1 = z1.mul(x2);
+        s1 = z1.mul(ellVV);
         t3 = s1.add(d4);
         t4 = Fp6.NON_RESIDUE.mul(t3).add(d0);
         z0 = t4;
 
         // For z.a_.b_ = z1
-        t3 = z5.mul(x4);
+        t3 = z5.mul(ellVW);
         s1 = s1.add(t3);
         t3 = t3.add(d2);
         t4 = Fp6.NON_RESIDUE.mul(t3);
-        t3 = z1.mul(x0);
+        t3 = z1.mul(ell0);
         s1 = s1.add(t3);
         t4 = t4.add(t3);
         z1 = t4;
 
         // For z.a_.c_ = z2
-        t0 = x0.add(x2);
+        t0 = ell0.add(ellVV);
         t3 = t1.mul(t0).sub(d0).sub(d2);
-        t4 = z3.mul(x4);
+        t4 = z3.mul(ellVW);
         s1 = s1.add(t4);
         t3 = t3.add(t4);
 
         // For z.b_.a_ = z3 (z3 needs z2)
         t0 = z2.add(z4);
         z2 = t3;
-        t1 = x2.add(x4);
+        t1 = ellVV.add(ellVW);
         t3 = t0.mul(t1).sub(d2).sub(d4);
         t4 = Fp6.NON_RESIDUE.mul(t3);
-        t3 = z3.mul(x0);
+        t3 = z3.mul(ell0);
         s1 = s1.add(t3);
         t4 = t4.add(t3);
         z3 = t4;
 
         // For z.b_.b_ = z4
-        t3 = z5.mul(x2);
+        t3 = z5.mul(ellVV);
         s1 = s1.add(t3);
         t4 = Fp6.NON_RESIDUE.mul(t3);
-        t0 = x0.add(x4);
+        t0 = ell0.add(ellVW);
         t3 = t2.mul(t0).sub(d0).sub(d4);
         t4 = t4.add(t3);
         z4 = t4;
 
         // For z.b_.c_ = z5.
-        t0 = x0.add(x2).add(x4);
+        t0 = ell0.add(ellVV).add(ellVW);
         t3 = s0.mul(t0).sub(s1);
         z5 = t3;
 

@@ -9,11 +9,10 @@ public class JsonRpcConfig {
 
     @Bean
     public static AutoJsonRpcServiceImplExporter autoJsonRpcServiceImplExporter() {
-        AutoJsonRpcServiceImplExporter exp = new AutoJsonRpcServiceImplExporter();
         //in here you can provide custom HTTP status code providers etc. eg:
         //exp.setHttpStatusCodeProvider();
         //exp.setErrorResolver();
-        return exp;
+        return new AutoJsonRpcServiceImplExporter();
     }
 }
 

@@ -42,8 +42,8 @@ public class Utils {
 //    private static final DataWord DIVISOR = new DataWord(64);
 
     public static double JAVA_VERSION = getJavaVersion();
-    static BigInteger _1000_ = new BigInteger("1000");
-    private static SecureRandom random = new SecureRandom();
+    static final BigInteger _1000_ = new BigInteger("1000");
+    private static final SecureRandom random = new SecureRandom();
 
     /**
      * @param number should be in form '0x34fabd34....'
@@ -103,8 +103,7 @@ public class Utils {
 
     public static ImageIcon getImageIcon(String resource) {
         URL imageURL = ClassLoader.getSystemResource(resource);
-        ImageIcon image = new ImageIcon(imageURL);
-        return image;
+        return new ImageIcon(imageURL);
     }
 
     public static String getValueShortString(BigInteger number) {
@@ -153,11 +152,7 @@ public class Utils {
 
         String addrShort = Hex.toHexString(addr, 0, 3);
 
-        StringBuffer sb = new StringBuffer();
-        sb.append(addrShort);
-        sb.append("...");
-
-        return sb.toString();
+        return addrShort + "...";
     }
 
     public static SecureRandom getRandom() {
@@ -171,7 +166,7 @@ public class Utils {
         if (version.equals("0")) {
             return 0;
         }
-        if (version.indexOf(".") == -1) {
+        if (!version.contains(".")) {
             return Double.parseDouble(version);
         }
         int pos = 0, count = 0;
@@ -211,6 +206,7 @@ public class Utils {
         for (T[] ts : arr) {
             size += ts.length;
         }
+        @SuppressWarnings("unchecked")
         T[] ret = (T[]) Array.newInstance(arr[0].getClass().getComponentType(), size);
         int off = 0;
         for (T[] ts : arr) {
@@ -271,12 +267,12 @@ public class Utils {
         final String ANSI_RESET = "\u001B[0m";
 
         System.err.println(ANSI_RED);
-        System.err.println("");
+        System.err.println();
         System.err.println("        " + message);
         for (String msg : messages) {
             System.err.println("        " + msg);
         }
-        System.err.println("");
+        System.err.println();
         System.err.println(ANSI_RESET);
 
         throw new RuntimeException(message);
@@ -291,12 +287,12 @@ public class Utils {
         final String ANSI_RESET = "\u001B[0m";
 
         System.err.println(ANSI_RED);
-        System.err.println("");
+        System.err.println();
         System.err.println("        " + message);
         for (String msg : messages) {
             System.err.println("        " + msg);
         }
-        System.err.println("");
+        System.err.println();
         System.err.println(ANSI_RESET);
     }
 

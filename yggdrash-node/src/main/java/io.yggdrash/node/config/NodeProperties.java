@@ -24,8 +24,8 @@ import java.util.List;
 @Component
 @ConfigurationProperties(prefix = "yggdrash.node", ignoreUnknownFields = false)
 public class NodeProperties {
-    private Grpc grpc = new Grpc();
-    List<String> seedPeerList;
+    private final Grpc grpc = new Grpc();
+    private List<String> seedPeerList;
 
     public Grpc getGrpc() {
         return grpc;

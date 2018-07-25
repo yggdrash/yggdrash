@@ -14,23 +14,23 @@ public interface BlockApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = InternalErrorException.class,
-                          code = InternalErrorException.code)})
+                    code = InternalErrorException.code)})
     int blockNumber();
 
     /**
-     *  Returns information about a block by hash.
+     * Returns information about a block by hash.
      *
-     * @param address     account address
-     * @param tag         "latest","earlest","pending"
+     * @param address account address
+     * @param tag     "latest","earlest","pending"
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                          code = NonExistObjectException.code)})
+                    code = NonExistObjectException.code)})
     String getBlockByHash(@JsonRpcParam(value = "address") String address,
                           @JsonRpcParam(value = "tag") String tag);
 
     /**
-     *  Returns information about a block by block number.
+     * Returns information about a block by block number.
      *
      * @param hashOfBlock hash of block
      * @param bool        If true, it returns the full transaction objects,
@@ -38,7 +38,7 @@ public interface BlockApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                          code = NonExistObjectException.code)})
+                    code = NonExistObjectException.code)})
     String getBlockByNumber(@JsonRpcParam(value = "hashOfBlock") String hashOfBlock,
                             @JsonRpcParam(value = "bool") Boolean bool);
 
@@ -47,6 +47,6 @@ public interface BlockApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = InternalErrorException.class,
-                          code = InternalErrorException.code)})
+                    code = InternalErrorException.code)})
     int newBlockFilter();
 }
