@@ -48,6 +48,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -172,7 +173,7 @@ public class ECKeyTest {
     }
 
     @Test
-    public void testEthereumSign() throws IOException {
+    public void testEthereumSign() {
         ECKey key = ECKey.fromPrivate(privateKey);
         System.out.println("Secret\t: " + Hex.toHexString(key.getPrivKeyBytes()));
         System.out.println("Pubkey\t: " + Hex.toHexString(key.getPubKey()));
@@ -180,7 +181,7 @@ public class ECKeyTest {
         byte[] messageHash = HashUtil.sha3(exampleMessage.getBytes());
         ECDSASignature signature = key.sign(messageHash);
         String output = signature.toBase64();
-        System.out.println("Signtr\t: " + output + " (Base64, length: " + output.length() + ")");
+        System.out.println("Sign\t: " + output + " (Base64, length: " + output.length() + ")");
         assertEquals(sigBase64, output);
     }
 
@@ -244,7 +245,7 @@ public class ECKeyTest {
         Transaction tx = new Transaction(account, data);
 
         // get the sig & key(pub)
-        byte[] messageHash = tx.getHeader().getSignDataHash();
+        byte[] messageHash = tx.getHeader().getDataHashForSigning();
         byte[] signature = tx.getHeader().getSignature();
         ECDSASignature sig = new ECDSASignature(signature);
         ECKey key = ECKey.signatureToKey(messageHash, sig);
@@ -316,7 +317,7 @@ public class ECKeyTest {
         Transaction tx = new Transaction(account, data);
 
         // get the sig & key(pub)
-        byte[] messageHash = tx.getHeader().getSignDataHash();
+        byte[] messageHash = tx.getHeader().getDataHashForSigning();
         byte[] signature = tx.getHeader().getSignature();
         ECDSASignature sig = new ECDSASignature(signature);
         ECKey keyFromSig = ECKey.signatureToKey(messageHash, sig);
@@ -358,7 +359,7 @@ public class ECKeyTest {
 
 
         // get the sig & key(pub)
-        byte[] messageHash = tx.getHeader().getSignDataHash();
+        byte[] messageHash = tx.getHeader().getDataHashForSigning();
         byte[] signature = tx.getHeader().getSignature();
         ECDSASignature sig = new ECDSASignature(signature);
 
@@ -410,7 +411,7 @@ public class ECKeyTest {
         assertTrue(key.verify(input, sig));
     }
 
-    private void testProviderRoundTrip(Provider provider) throws Exception {
+    private void testProviderRoundTrip(Provider provider) {
         ECKey key = new ECKey(provider, secureRandom);
         String message = "The quick brown fox jumps over the lazy dog.";
         byte[] input = HashUtil.sha3(message.getBytes());
@@ -481,7 +482,7 @@ public class ECKeyTest {
     }
 
     @Test
-    public void keyRecovery() throws Exception {
+    public void keyRecovery() {
         ECKey key = new ECKey();
         String message = "Hello World!";
         byte[] hash = HashUtil.sha256(message.getBytes());
@@ -520,9 +521,9 @@ public class ECKeyTest {
         ECKey key1 = ECKey.fromPrivate(privateKey);
         ECKey key2 = ECKey.fromPrivate(privateKey);
 
-        assertFalse(key0.equals(key1));
-        assertTrue(key1.equals(key1));
-        assertTrue(key1.equals(key2));
+        assertNotEquals(key0, key1);
+        assertEquals(key1, key1);
+        assertEquals(key1, key2);
     }
 
     /*

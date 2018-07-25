@@ -83,7 +83,7 @@ public class TransactionHeader implements Serializable {
         }
 
         this.timestamp = TimeUtils.time();
-        this.signature = from.getKey().sign(getSignDataHash()).toBinary();
+        this.signature = from.getKey().sign(getDataHashForSigning()).toBinary();
     }
 
     /**
@@ -102,7 +102,7 @@ public class TransactionHeader implements Serializable {
         }
 
         this.timestamp = TimeUtils.time();
-        this.signature = wallet.signHashedData(getSignDataHash());
+        this.signature = wallet.signHashedData(getDataHashForSigning());
     }
 
 
@@ -131,7 +131,7 @@ public class TransactionHeader implements Serializable {
     }
 
     /**
-     * get transaction hash.
+     * Get the transaction hash.
      *
      * @return transaction hash
      * @throws IOException IOException
@@ -150,7 +150,7 @@ public class TransactionHeader implements Serializable {
     }
 
     /**
-     * get transaction hash as hex string.
+     * Get the transaction hash as hex string.
      *
      * @return transaction hash as hex string
      */
@@ -163,7 +163,7 @@ public class TransactionHeader implements Serializable {
     }
 
     /**
-     * get transaction signature.
+     * Get transaction signature.
      *
      * @return transaction signature
      */
@@ -172,12 +172,12 @@ public class TransactionHeader implements Serializable {
     }
 
     /**
-     * get sign data hash.
+     * Get the data hash for signing.
      *
      * @return hash of sign data
      * @throws IOException IOException
      */
-    public byte[] getSignDataHash() throws IOException {
+    public byte[] getDataHashForSigning() throws IOException {
         ByteArrayOutputStream transaction = new ByteArrayOutputStream();
 
         transaction.write(type);
@@ -190,19 +190,18 @@ public class TransactionHeader implements Serializable {
     }
 
     /**
-     * get address.
+     * Get the address.
      *
      * @return address
      */
     public byte[] getAddress() throws IOException, SignatureException {
-        ECKey keyFromSig = ECKey.signatureToKey(getSignDataHash(), signature);
-        byte[] addressFromSig = keyFromSig.getAddress();
+        ECKey keyFromSig = ECKey.signatureToKey(getDataHashForSigning(), signature);
 
-        return addressFromSig;
+        return keyFromSig.getAddress();
     }
 
     /**
-     * get address.
+     * Get the address.
      *
      * @return address
      */
@@ -211,27 +210,25 @@ public class TransactionHeader implements Serializable {
     }
 
     /**
-     * get public key.
+     * Get the public key.
      *
      * @return public key
      */
     public byte[] getPubKey() throws IOException, SignatureException {
-        ECKey keyFromSig = ECKey.signatureToKey(getSignDataHash(), signature);
-        byte[] pubKeyFromSig = keyFromSig.getPubKey();
+        ECKey keyFromSig = ECKey.signatureToKey(getDataHashForSigning(), signature);
 
-        return pubKeyFromSig;
+        return keyFromSig.getPubKey();
     }
 
     /**
-     * get ECKey(include pubKey) using sig & signData.
+     * Get ECKey(include pubKey) using sig & signData.
      *
      * @return ECKey(include pubKey)
      */
     @JsonIgnore
     public ECKey getEcKey() throws IOException, SignatureException {
-        ECKey keyFromSig = ECKey.signatureToKey(getSignDataHash(), signature);
 
-        return keyFromSig;
+        return ECKey.signatureToKey(getDataHashForSigning(), signature);
     }
 
     @Override
