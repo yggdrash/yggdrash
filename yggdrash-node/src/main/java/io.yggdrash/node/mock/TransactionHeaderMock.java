@@ -4,12 +4,12 @@ import com.fasterxml.jackson.annotation.JsonRootName;
 
 @JsonRootName(value = "header")
 public class TransactionHeaderMock {
-    public int type;
-    public int version;
-    public String dataHash;
-    public String timestamp;
-    public int dataSize;
-    public String signature;
+    public final int type;
+    public final int version;
+    public final String dataHash;
+    public final String timestamp;
+    public final int dataSize;
+    public final String signature;
 
     public TransactionHeaderMock(int type, int version, String dataHash, String timestamp,
                                  int dataSize, String signature) {

@@ -33,7 +33,7 @@ public class AccountControllerTest {
         JacksonTester.initFields(this, new ObjectMapper());
     }
 
-    // TODO Account resful api check
+    // TODO Account restful api check
     public void shouldCreateAccount() throws Exception {
         String jsonResponse = mockMvc
                 .perform(

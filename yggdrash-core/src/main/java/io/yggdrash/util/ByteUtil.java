@@ -182,15 +182,15 @@ public class ByteUtil {
             return EMPTY_BYTE_ARRAY;
         }
 
-        int lenght = 0;
+        int length = 0;
 
         int tmpVal = val;
         while (tmpVal != 0) {
             tmpVal = tmpVal >>> 8;
-            ++lenght;
+            ++length;
         }
 
-        byte[] result = new byte[lenght];
+        byte[] result = new byte[length];
 
         int index = result.length - 1;
         while (val != 0) {
@@ -699,8 +699,7 @@ public class ByteUtil {
         sb.append(".");
         sb.append(bytesIp[3] & 0xFF);
 
-        String ip = sb.toString();
-        return ip;
+        return sb.toString();
     }
 
     /**

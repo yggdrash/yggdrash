@@ -17,21 +17,21 @@
 package io.yggdrash.node.controller;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.core.Account;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.Wallet;
+import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.node.mock.NodeManagerMock;
 
 import java.io.IOException;
 import java.security.SignatureException;
 
 public class TransactionDto {
+    private static final NodeManager nodeManager = new NodeManagerMock(null, null,
+            new NodeProperties.Grpc());
     private String from;
     private String txHash;
     private String data;
-
-    private static final NodeManager nodeManager = new NodeManagerMock();
 
     public static Transaction of(TransactionDto transactionDto) throws IOException {
         Wallet wallet = nodeManager.getWallet();

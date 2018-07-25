@@ -23,6 +23,7 @@ import java.nio.file.Paths;
 import java.security.SecureRandom;
 
 import static junit.framework.TestCase.assertTrue;
+import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -34,7 +35,7 @@ import static org.junit.Assert.assertNotNull;
 public class WalletTest {
     private static final Logger log = LoggerFactory.getLogger(WalletTest.class);
 
-    private static int AES_KEY_LENGTH = 128;
+    private static final int AES_KEY_LENGTH = 128;
 
     // key encryption with random iv
     @Test
@@ -186,44 +187,37 @@ public class WalletTest {
         // TODO: change as cli interface
         String password = defaultConfig.getConfig().getString("key.password");
 
+        assertFalse("Check yggdrash.conf(key.path & key.password)",
+                Strings.isNullOrEmpty(keyfilePath) || Strings.isNullOrEmpty(password));
+        log.debug("Private key: " + keyfilePath);
+        log.debug("Password : " + password); // for debug
+
+        // check password validation
+        boolean validPassword = Password.passwordValid(password);
+        assertTrue("Password is not valid", validPassword);
+
+        log.debug("Password is valid");
+
+        // check whether the key file exists
+        Path path = Paths.get(keyfilePath);
+        String keyPath = path.getParent().toString();
+        String keyName = path.getFileName().toString();
+
         Wallet wallet = null;
-
         try {
-            assertFalse("Check yggdrash.conf(key.path & key.password)",
-                    Strings.isNullOrEmpty(keyfilePath) || Strings.isNullOrEmpty(password));
-            log.debug("Private key: " + keyfilePath);
-            log.debug("Password : " + password); // for debug
-
-            // check password validation
-            boolean validPassword = Password.passwordValid(password);
-            assertTrue("Password is not valid", validPassword);
-
-            log.debug("Password is valid");
-
-            // check whether the key file exists
-            Path path = Paths.get(keyfilePath);
-            String keyPath = path.getParent().toString();
-            String keyName = path.getFileName().toString();
+            wallet = new Wallet(keyPath, keyName, password);
+        } catch (Exception e) {
+            log.error("Key file is not exist");
 
             try {
-                wallet = new Wallet(keyPath, keyName, password);
-            } catch (Exception e) {
-                log.error("Key file is not exist");
-
-                try {
-                    wallet = new Wallet(null, keyPath, keyName, password);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    assertTrue("Wallet Exception", false);
-                }
+                wallet = new Wallet(null, keyPath, keyName, password);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                fail("Wallet Exception");
             }
-
-            log.debug("wallet= " + wallet.toString());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            assertTrue(false);
         }
+
+        log.debug("wallet= " + wallet.toString());
     }
 
     /**
@@ -237,60 +231,46 @@ public class WalletTest {
         //TODO change as cli interface
         String password = defaultConfig.getConfig().getString("key.password");
 
+        assertFalse("Check yggdrash.conf(key.path & key.password)",
+                Strings.isNullOrEmpty(keyFilePath) || Strings.isNullOrEmpty(password));
+        log.debug("Private key: " + keyFilePath);
+        log.debug("Password : " + password); // for debug
+
+        // check password validation
+        boolean validPassword = Password.passwordValid(password);
+        assertTrue("Password is not valid", validPassword);
+
+        log.debug("Password is valid");
+
+        // check whether the key file exists
+        Path path = Paths.get(keyFilePath);
+        String keyPath = path.getParent().toString();
+        String keyName = path.getFileName().toString();
+
         Wallet wallet = null;
-
         try {
-            assertFalse("Check yggdrash.conf(key.path & key.password)",
-                    Strings.isNullOrEmpty(keyFilePath) || Strings.isNullOrEmpty(password));
-            log.debug("Private key: " + keyFilePath);
-            log.debug("Password : " + password); // for debug
-
-            // check password validation
-            boolean validPassword = Password.passwordValid(password);
-            assertTrue("Password is not valid", validPassword);
-
-            log.debug("Password is valid");
-
-            // check whether the key file exists
-            Path path = Paths.get(keyFilePath);
-            String keyPath = path.getParent().toString();
-            String keyName = path.getFileName().toString();
+            wallet = new Wallet(keyFilePath, password);
+        } catch (Exception e) {
+            log.debug("Key file is not exist");
 
             try {
-                wallet = new Wallet(keyFilePath, password);
-            } catch (Exception e) {
-                log.debug("Key file is not exist");
-
-                try {
-                    wallet = new Wallet(null, keyPath, keyName, password);
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                    assertTrue(false);
-                }
+                wallet = new Wallet(null, keyPath, keyName, password);
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                fail();
             }
-
-            log.debug("wallet= " + wallet.toString());
-
-        } catch (Exception e) {
-            e.printStackTrace();
-            assertTrue(false);
         }
+
+        log.debug("wallet= " + wallet.toString());
     }
 
     /**
      * This is a test method for checking sign & verify method in Wallet class.
      */
     @Test
-    public void testWalletSignAndVerify() {
+    public void testWalletSignAndVerify() throws IOException, InvalidCipherTextException {
 
-        Wallet wallet = null;
-
-        try {
-            wallet = new Wallet(null, "tmp/temp", "temp.key", "Aa1234567890!");
-        } catch (Exception e) {
-            e.printStackTrace();
-            assertTrue(false);
-        }
+        Wallet wallet = new Wallet(null, "tmp/temp", "temp.key", "Aa1234567890!");
 
         byte[] plain = "test data 1111".getBytes();
         log.debug("Plain data: " + new String(plain));

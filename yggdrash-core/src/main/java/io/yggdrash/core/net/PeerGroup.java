@@ -16,24 +16,50 @@
 
 package io.yggdrash.core.net;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PeerGroup {
-    private List<Peer> peers = Collections.synchronizedList(new ArrayList<>());
 
-    public void addPeer(Peer peer) {
-        if (!peers.contains(peer)) {
-            peers.add(peer);
+    private final Map<String, Peer> peers = new ConcurrentHashMap<>();
+
+    private List<String> seedPeerList;
+
+    public Peer addPeer(Peer peer) {
+        if (peers.containsKey(peer.getYnodeUri())) {
+            return null;
         }
+        peers.put(peer.getYnodeUri(), peer);
+        return peer;
     }
 
-    public List<Peer> getPeers() {
-        return peers;
+    public Peer removePeer(String peer) {
+        return peers.remove(peer);
+    }
+
+    public Collection<Peer> getPeers() {
+        return peers.values();
+    }
+
+    public boolean contains(String ynodeUri) {
+        return peers.containsKey(ynodeUri);
+    }
+
+    public boolean isEmpty() {
+        return peers.isEmpty();
     }
 
     public void clear() {
         this.peers.clear();
+    }
+
+    public List<String> getSeedPeerList() {
+        return seedPeerList;
+    }
+
+    public void setSeedPeerList(List<String> seedPeerList) {
+        this.seedPeerList = seedPeerList;
     }
 }

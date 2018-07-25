@@ -63,6 +63,18 @@ subprojects {
         maxWarnings = 0
         configFile = rootProject.file('config/checkstyle/checkstyle.xml')
     }
+
+    test {
+        systemProperty("spring.profiles.active", project.properties.get("springProfiles"))
+        testLogging {
+            afterSuite { desc, result ->
+                if (!desc.parent) { // will match the outermost suite
+                    print "TEST:${result.resultType} (TOTAL:${result.testCount}, PASS:${result.successfulTestCount},"
+                    println " FAIL:${result.failedTestCount}, SKIP:${result.skippedTestCount})"
+                }
+            }
+        }
+    }
 }
 
 project(':yggdrash-core') {

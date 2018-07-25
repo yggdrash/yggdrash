@@ -26,6 +26,8 @@ import java.math.BigInteger;
  * Created by Anton Nashatyrev on 25.02.2016.
  */
 public class Constants {
+    public static final String PROPERTY_KEYPATH = "key.path";
+    public static final String PROPERTY_KEYPASSWORD = "key.password"; // todo: change to CLI
     //    private static final int MAXIMUM_EXTRA_DATA_SIZE = 32;
 //    private static final int MIN_GAS_LIMIT = 125000;
 //    private static final int GAS_LIMIT_BOUND_DIVISOR = 1024;
@@ -39,12 +41,7 @@ public class Constants {
 //    private static final int BEST_NUMBER_DIFF_LIMIT = 100;
 //
     private static final BigInteger BLOCK_REWARD = new BigInteger("1500000000000000000");
-
     private static final BigInteger SECP256K1N = new BigInteger("fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141", 16);
-
-    public static final String PROPERTY_KEYPATH = "key.path";
-    public static final String PROPERTY_KEYPASSWORD = "key.password"; // todo: change to CLI
-
 
 //    public int getDURATION_LIMIT() {
 //        return 8;
