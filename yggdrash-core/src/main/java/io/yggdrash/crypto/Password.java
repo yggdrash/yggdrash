@@ -9,7 +9,7 @@ public class Password {
      * Password validation check.
      *
      * @param password password
-     * @return
+     * @return validation
      */
     public static boolean passwordValid(String password) {
         //todo: considering password check lib or NIST regulation
@@ -17,6 +17,12 @@ public class Password {
 
         // password length check
         if (password.length() > 32 || password.length() < 12) {
+            //todo: change from static password length to config properties
+            return false;
+        }
+
+        // check valid character
+        if (!password.matches("[A-Za-z0-9\\x21-\\x2F\\x3A-\\x40\\x5B-\\x60\\x7B-\\x7E]+")) {
             return false;
         }
 
@@ -35,8 +41,8 @@ public class Password {
             return false;
         }
 
-        // 1 more special symbol
-        return password.matches("(.*[,~,!,@,#,$,%,^,&,*,(,),-,_,=,+,[,{,],},|,;,:,<,>,/,?].*$)");
+        // 1 more special symbol(ASCII character)
+        return password.matches("(.*[\\x21-\\x2F\\x3A-\\x40\\x5B-\\x60\\x7B-\\x7E].*$)");
     }
 
 
@@ -45,7 +51,7 @@ public class Password {
      *
      * @param input     input data
      * @param outLength output length
-     * @return kdf bytes
+     * @return the derivation key by the password
      */
     public static byte[] generateKeyDerivation(byte[] input, int outLength) {
         //todo: checking safety ( IV & ...)

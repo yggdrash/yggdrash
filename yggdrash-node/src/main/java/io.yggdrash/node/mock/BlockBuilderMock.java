@@ -61,23 +61,24 @@ public class BlockBuilderMock implements BlockBuilder {
     @Deprecated
     @Override
     public Block build() throws IOException {
+        //todo: change logic for building the real block.
 
         // Create transactions
         JsonObject txObj1 = new JsonObject();
-        JsonObject txObj2 = new JsonObject();
-        JsonObject txObj3 = new JsonObject();
 
         txObj1.addProperty("operator", "transfer");
         txObj1.addProperty("to", "0x9843DC167956A0e5e01b3239a0CE2725c0631392");
         txObj1.addProperty("value", 30);
 
-        txObj1.addProperty("operator", "transfer");
-        txObj1.addProperty("to", "0xdB44902E6cE92fa71Bbf06312630Cb39c5bE756C");
-        txObj1.addProperty("value", 40);
+        JsonObject txObj2 = new JsonObject();
+        txObj2.addProperty("operator", "transfer");
+        txObj2.addProperty("to", "0xdB44902E6cE92fa71Bbf06312630Cb39c5bE756C");
+        txObj2.addProperty("value", 40);
 
-        txObj1.addProperty("operator", "transfer");
-        txObj1.addProperty("to", "0xA0A2fceBF3f3cc182eCfcbB65042Af0fB43dd864");
-        txObj1.addProperty("value", 50);
+        JsonObject txObj3 = new JsonObject();
+        txObj3.addProperty("operator", "transfer");
+        txObj3.addProperty("to", "0xA0A2fceBF3f3cc182eCfcbB65042Af0fB43dd864");
+        txObj3.addProperty("value", 50);
 
         Transaction tx1 = new Transaction(this.nodeManager.getWallet(), txObj1);
         Transaction tx2 = new Transaction(this.nodeManager.getWallet(), txObj2);
@@ -102,23 +103,24 @@ public class BlockBuilderMock implements BlockBuilder {
     }
 
     public Block build(Wallet wallet) throws IOException {
+        //todo: change logic for building the real block.
 
         // Create transactions
         JsonObject txObj1 = new JsonObject();
-        JsonObject txObj2 = new JsonObject();
-        JsonObject txObj3 = new JsonObject();
 
         txObj1.addProperty("operator", "transfer");
         txObj1.addProperty("to", "0x9843DC167956A0e5e01b3239a0CE2725c0631392");
         txObj1.addProperty("value", 30);
 
-        txObj1.addProperty("operator", "transfer");
-        txObj1.addProperty("to", "0xdB44902E6cE92fa71Bbf06312630Cb39c5bE756C");
-        txObj1.addProperty("value", 40);
+        JsonObject txObj2 = new JsonObject();
+        txObj2.addProperty("operator", "transfer");
+        txObj2.addProperty("to", "0xdB44902E6cE92fa71Bbf06312630Cb39c5bE756C");
+        txObj2.addProperty("value", 40);
 
-        txObj1.addProperty("operator", "transfer");
-        txObj1.addProperty("to", "0xA0A2fceBF3f3cc182eCfcbB65042Af0fB43dd864");
-        txObj1.addProperty("value", 50);
+        JsonObject txObj3 = new JsonObject();
+        txObj3.addProperty("operator", "transfer");
+        txObj3.addProperty("to", "0xA0A2fceBF3f3cc182eCfcbB65042Af0fB43dd864");
+        txObj3.addProperty("value", 50);
 
         Transaction tx1 = new Transaction(wallet, txObj1);
         Transaction tx2 = new Transaction(wallet, txObj2);
