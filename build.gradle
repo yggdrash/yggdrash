@@ -1,15 +1,22 @@
 buildscript {
     ext {
-        springBootVersion = '2.0.1.RELEASE'
+        springBootVersion      = '2.0.1.RELEASE'
+        protobufPluginVersion  = '0.8.3'
+        dockerPluginVersion    = '0.20.1'
+        coverallsPluginVersion = '2.8.2'
     }
     repositories {
         mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
         jcenter()
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-        classpath 'com.google.protobuf:protobuf-gradle-plugin:0.8.3'
-        classpath 'org.kt3k.gradle.plugin:coveralls-gradle-plugin:2.8.2'
+        classpath("com.google.protobuf:protobuf-gradle-plugin:${protobufPluginVersion}")
+        classpath("gradle.plugin.com.palantir.gradle.docker:gradle-docker:${dockerPluginVersion}")
+        classpath("org.kt3k.gradle.plugin:coveralls-gradle-plugin:${coverallsPluginVersion}")
     }
 }
 
@@ -21,10 +28,17 @@ version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 
 ext {
-    grpcVersion = '1.12.0'
-    leveldbVersion = '0.10'
-    commonsCodec = '1.10'
-    scastleVersion = '1.58.0.0'
+    grpcVersion         = '1.12.0'
+    levelDBVersion      = '0.10'
+    commonsCodecVersion = '1.10'
+    commonsIOVersion    = '2.4'
+    ehcacheVersion      = '3.5.2'
+    scastleVersion      = '1.58.0.0'
+    jsonrpc4jVersion    = '1.3.2'
+    jsonSimpleVersion   = '1.1'
+    jacksonVersion      = '2.9.5'
+    typesafeVersion     = '1.3.3'
+    protobufVersion     = '3.5.1-1'
 }
 
 allprojects {
@@ -67,7 +81,7 @@ subprojects {
     test {
         systemProperty("spring.profiles.active", project.properties.get("springProfiles"))
         testLogging {
-            afterSuite { desc, result ->
+            afterSuite {desc, result ->
                 if (!desc.parent) { // will match the outermost suite
                     print "TEST:${result.resultType} (TOTAL:${result.testCount}, PASS:${result.successfulTestCount},"
                     println " FAIL:${result.failedTestCount}, SKIP:${result.skippedTestCount})"
@@ -81,21 +95,19 @@ project(':yggdrash-core') {
     apply plugin: 'com.google.protobuf'
 
     dependencies {
-        compile "io.grpc:grpc-protobuf:${grpcVersion}"
-        compile "io.grpc:grpc-stub:${grpcVersion}"
-        compile "io.grpc:grpc-netty-shaded:${grpcVersion}"
-        compile "commons-codec:commons-codec:${commonsCodec}"
-        compile "org.iq80.leveldb:leveldb:${leveldbVersion}"
-        compile group: 'org.ehcache', name: 'ehcache', version: '3.5.2'
-        testCompile "io.grpc:grpc-testing:${grpcVersion}"
-        compile group: 'com.googlecode.json-simple', name: 'json-simple', version: '1.1'
-        compile "com.madgag.spongycastle:core:${scastleVersion}" // for SHA3 and SECP256K1
-        compile "com.madgag.spongycastle:prov:${scastleVersion}" // for SHA3 and SECP256K1
-        compile group: 'commons-io', name: 'commons-io', version: '2.4'
-        compile group: 'org.iq80.leveldb', name: 'leveldb', version: '0.10'
-        compile group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: '2.9.5'
-        compile group: 'com.typesafe', name: 'config', version: '1.3.3'
-
+        compile("io.grpc:grpc-protobuf:${grpcVersion}")
+        compile("io.grpc:grpc-stub:${grpcVersion}")
+        compile("io.grpc:grpc-netty-shaded:${grpcVersion}")
+        compile("org.iq80.leveldb:leveldb:${levelDBVersion}")
+        compile("org.ehcache:ehcache:${ehcacheVersion}")
+        compile("com.madgag.spongycastle:core:${scastleVersion}") // for SHA3 and SECP256K1
+        compile("com.madgag.spongycastle:prov:${scastleVersion}") // for SHA3 and SECP256K1
+        compile("commons-codec:commons-codec:${commonsCodecVersion}")
+        compile("commons-io:commons-io:${commonsIOVersion}")
+        compile("com.googlecode.json-simple:json-simple:${jsonSimpleVersion}")
+        compile("com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}")
+        compile("com.typesafe:config:${typesafeVersion}")
+        testCompile("io.grpc:grpc-testing:${grpcVersion}")
     }
 
     jar {
@@ -104,11 +116,11 @@ project(':yggdrash-core') {
 
     protobuf {
         protoc {
-            artifact = "com.google.protobuf:protoc:3.5.1-1"
+            artifact = "com.google.protobuf:protoc:${protobufVersion}"
         }
         plugins {
             grpc {
-                artifact = 'io.grpc:protoc-gen-grpc-java:1.11.0'
+                artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}"
             }
         }
         generateProtoTasks {
@@ -129,12 +141,22 @@ project(':yggdrash-core') {
 }
 
 project(':yggdrash-node') {
+    apply plugin: 'com.palantir.docker'
+
     dependencies {
-        compile project(':yggdrash-core')
-        compile("com.github.briandilley.jsonrpc4j:jsonrpc4j:1.3.2")
+        compile project(":yggdrash-core")
+        compile("com.github.briandilley.jsonrpc4j:jsonrpc4j:${jsonrpc4jVersion}")
         compile("org.springframework.boot:spring-boot-starter-web")
         compile("org.springframework.boot:spring-boot-starter-actuator")
-        annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+        annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+    }
+
+    docker {
+        dependsOn build
+        dockerfile rootProject.file('docker/Dockerfile')
+        name "yggdrash/${bootJar.baseName}"
+        files bootJar.archivePath
+        buildArgs(['JAR_FILE': "${bootJar.archiveName}"])
     }
 }
 
