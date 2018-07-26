@@ -88,8 +88,7 @@ public class TransactionApiImpl implements TransactionApi {
 
     /* send */
     @Override
-    public String sendTransaction(String jsonStr) throws IOException,SignatureException {
-        Transaction tx = convert(jsonStr);
+    public String sendTransaction(Transaction tx) throws IOException,SignatureException {
         if (valiate(tx)) {
             Transaction addedTx = nodeManager.addTransaction(tx);
             return addedTx.getHashString();
@@ -113,12 +112,6 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public int newPendingTransactionFilter() {
         return 6;
-    }
-
-    private Transaction convert(String jsonStr) throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        return mapper.readValue(jsonStr, Transaction.class);
     }
 
     private Transaction convert(byte[] bytes) {

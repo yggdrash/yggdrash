@@ -158,7 +158,6 @@ public class TransactionApiImplTest {
         json.addProperty("name", "Rachael");
         json.addProperty("age", "27");
         Transaction transaction = new Transaction(this.nodeManager.getWallet(), json);
-        String jsonStr = objectMapper.writeValueAsString(transaction);
 
         // Request Transaction with jsonStr
         try {
@@ -166,7 +165,7 @@ public class TransactionApiImplTest {
             TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     TransactionApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
-            assertThat(api.sendTransaction(jsonStr)).isNotEmpty();
+            assertThat(api.sendTransaction(transaction)).isNotEmpty();
         } catch (Exception exception) {
             log.debug("\n\njsonStringToTxTest :: exception => " + exception);
         }
@@ -271,6 +270,3 @@ public class TransactionApiImplTest {
         assertTrue(txValidator.txSigValidate(resSignDataHash, resSignature));
     }
 }
-
-
-

@@ -150,7 +150,7 @@ public interface TransactionApi {
             @JsonRpcError(exception = FailedOperationException.class,
                           code = FailedOperationException.code)})
     String sendTransaction(
-            @JsonRpcParam(value = "tx") String tx) throws IOException,SignatureException;
+            @JsonRpcParam(value = "tx") Transaction tx) throws IOException,SignatureException;
 
     /**
      * Creates new message call transaction or a contract creation for signed transactions.
@@ -171,5 +171,3 @@ public interface TransactionApi {
                           code = RejectedAccessException.code)})
     int newPendingTransactionFilter();
 }
-
-
