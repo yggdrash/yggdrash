@@ -1,13 +1,14 @@
 package io.yggdrash.core;
 
+import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.util.ByteUtil;
-import io.yggdrash.util.SerializeUtils;
 import io.yggdrash.util.TimeUtils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.security.SignatureException;
 
 /**
  * The type Block header.
@@ -96,6 +97,36 @@ public class BlockHeader implements Serializable {
         block.write(ByteUtil.longToBytes(index));
 
         return HashUtil.sha3(block.toByteArray());
+    }
+
+    public byte[] getAddress() throws IOException, SignatureException {
+
+        if (type == null) {
+            throw new IOException("getDataHashForSigning(): type is null");
+        }
+
+        if (version == null) {
+            throw new IOException("getDataHashForSigning(): version is null");
+        }
+
+        ByteArrayOutputStream block = new ByteArrayOutputStream();
+
+        block.write(type);
+        block.write(version);
+
+        if (prevBlockHash != null) {
+            block.write(prevBlockHash);
+        }
+
+        block.write(merkleRoot);
+
+        block.write(ByteUtil.longToBytes(timestamp));
+        block.write(ByteUtil.longToBytes(dataSize));
+
+        byte[] dataHash = HashUtil.sha3(block.toByteArray());
+        ECKey keyFromSig = ECKey.signatureToKey(dataHash, signature);
+
+        return keyFromSig.getAddress();
     }
 
     /**
@@ -217,10 +248,9 @@ public class BlockHeader implements Serializable {
             block.write(type);
             block.write(version);
 
-            if (prevBlockHash == null) {
-                prevBlockHash = new byte[32];
+            if (prevBlockHash != null) {
+                block.write(prevBlockHash);
             }
-            block.write(prevBlockHash);
 
             if (merkleRoot == null) {
                 merkleRoot = new byte[32];
