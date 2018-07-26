@@ -192,7 +192,7 @@ public class ECKeyTest {
         byte[] messageHash = HashUtil.sha3(exampleMessage.getBytes());
         ECDSASignature signature = key.sign(messageHash);
         String output = signature.toBase64();
-        System.out.println("Signtr\t: " + output + " (Base64, length: " + output.length() + ")");
+        System.out.println("Sign\t: " + output + " (Base64, length: " + output.length() + ")");
         assertEquals(sigBase64, output);
     }
 
@@ -254,7 +254,7 @@ public class ECKeyTest {
         Transaction tx = new Transaction(wallet, data);
 
         // get the sig & key(pub)
-        byte[] messageHash = tx.getHeader().getSignDataHash();
+        byte[] messageHash = tx.getHeader().getDataHashForSigning();
         byte[] signature = tx.getHeader().getSignature();
         ECDSASignature sig = new ECDSASignature(signature);
         ECKey key = ECKey.signatureToKey(messageHash, sig);
@@ -319,7 +319,7 @@ public class ECKeyTest {
         Transaction tx = new Transaction(wallet, data);
 
         // get the sig & key(pub)
-        byte[] messageHash = tx.getHeader().getSignDataHash();
+        byte[] messageHash = tx.getHeader().getDataHashForSigning();
         byte[] signature = tx.getHeader().getSignature();
         ECDSASignature sig = new ECDSASignature(signature);
         ECKey keyFromSig = ECKey.signatureToKey(messageHash, sig);
@@ -358,7 +358,7 @@ public class ECKeyTest {
 
 
         // get the sig & key(pub)
-        byte[] messageHash = tx.getHeader().getSignDataHash();
+        byte[] messageHash = tx.getHeader().getDataHashForSigning();
         byte[] signature = tx.getHeader().getSignature();
         ECDSASignature sig = new ECDSASignature(signature);
 
