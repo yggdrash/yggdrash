@@ -262,11 +262,9 @@ public class TransactionApiImplTest {
 
         // Receive Transaction
         Transaction resTx = mapper.readValue(jsonStr, Transaction.class);
-        byte[] resSignature = resTx.getHeader().getSignature();
-        byte[] resSignDataHash = resTx.getHeader().getSignDataHash();
 
         // Signature Validation
         TransactionValidator txValidator = new TransactionValidator();
-        assertTrue(txValidator.txSigValidate(resSignDataHash, resSignature));
+        assertTrue(txValidator.txSigValidate(resTx));
     }
 }

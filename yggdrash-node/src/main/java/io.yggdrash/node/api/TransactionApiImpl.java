@@ -145,7 +145,6 @@ public class TransactionApiImpl implements TransactionApi {
 
     private Boolean valiate(Transaction tx) throws IOException,SignatureException {
         TransactionValidator txValidator = new TransactionValidator();
-        return txValidator.txSigValidate(tx.getHeader().getSignDataHash(),
-                                         tx.getHeader().getSignature());
+        return txValidator.txSigValidate(tx);
     }
 }

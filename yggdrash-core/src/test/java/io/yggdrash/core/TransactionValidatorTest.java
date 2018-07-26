@@ -23,10 +23,7 @@ public class TransactionValidatorTest {
         json.addProperty("method", "run");
         Transaction tx = new Transaction(wallet, json);
 
-        byte[] signature = tx.getHeader().getSignature();
-        byte[] signDataHash = tx.getHeader().getSignDataHash();
-
         TransactionValidator txValidator = new TransactionValidator();
-        assertTrue(txValidator.txSigValidate(signDataHash, signature));
+        assertTrue(txValidator.txSigValidate(tx));
     }
 }
