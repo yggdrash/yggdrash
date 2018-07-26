@@ -1,6 +1,10 @@
 # Docker
 
-> Note: To ensure everything worked, run:
+> Note: Docker install on macOS
+> https://store.docker.com/editions/community/docker-ce-desktop-mac
+
+To ensure everything worked, run:
+
 ```shell
 > java -jar yggdrash-node/build/libs/*.jar
 ```
