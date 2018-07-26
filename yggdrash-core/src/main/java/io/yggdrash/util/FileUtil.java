@@ -5,6 +5,9 @@ import org.apache.commons.io.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * File Utility
@@ -86,17 +89,42 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
 
         String[] splitName = filePathName.split(File.separator);
 
-        String result = "";
+        StringBuilder result = new StringBuilder();
         if (splitName.length > 0) {
 
             for (int i = 0; i < splitName.length - 1; i++) {
-                result += splitName[i] + File.separator;
+                result.append(splitName[i]).append(File.separator);
             }
 
-            return result;
+            return result.toString();
         } else {
             return null;
         }
     }
 
+    /**
+     * Is exists boolean.
+     *
+     * @param path the file or dir path
+     * @return the boolean
+     */
+    public static boolean isExists(Path path) {
+        File file = path.toFile();
+        return file.exists();
+    }
+
+    public static boolean recursiveDelete(Path path) {
+        File file = path.toFile();
+        if (file.exists()) {
+            if (file.isDirectory()) {
+                Arrays.stream(Objects.requireNonNull(file.list()))
+                        .map(path::resolve)
+                        .forEachOrdered(FileUtil::recursiveDelete);
+            }
+
+            file.setWritable(true);
+            return file.delete();
+        }
+        return false;
+    }
 }

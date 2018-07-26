@@ -11,8 +11,8 @@ import java.util.ArrayList;
 @AutoJsonRpcServiceImpl
 public class AccountApiImpl implements AccountApi {
 
-    private ArrayList<String> addresses = new ArrayList<>();
-    private int balance = 100000;
+    private final ArrayList<String> addresses = new ArrayList<>();
+    private final int balance = 100000;
 
     @Override
     public String createAccount() {

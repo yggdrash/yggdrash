@@ -9,8 +9,8 @@ import org.spongycastle.util.encoders.Hex;
 public class Account {
 
     // <Variable>
-    private ECKey key;
-    private byte[] address;
+    private final ECKey key;
+    private final byte[] address;
 
 
     /**
@@ -35,7 +35,7 @@ public class Account {
     /**
      * get Account Key.
      *
-     * @return
+     * @return key
      */
     public ECKey getKey() {
         return key;

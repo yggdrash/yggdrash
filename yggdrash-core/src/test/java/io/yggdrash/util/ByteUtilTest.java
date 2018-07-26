@@ -27,7 +27,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class ByteUtilTest {
 
@@ -40,7 +40,7 @@ public class ByteUtilTest {
 
     @Test
     public void testBigIntegerToBytes() {
-        byte[] expecteds = new byte[]{(byte) 0xff, (byte) 0xec, 0x78};
+        byte[] expecteds = new byte[] {(byte) 0xff, (byte) 0xec, 0x78};
         BigInteger b = BigInteger.valueOf(16772216);
         byte[] actuals = ByteUtil.bigIntegerToBytes(b);
         assertArrayEquals(expecteds, actuals);
@@ -77,7 +77,7 @@ public class ByteUtilTest {
 
     @Test
     public void testBigIntegerToBytesNegative() {
-        byte[] expecteds = new byte[]{(byte) 0xff, 0x0, 0x13, (byte) 0x88};
+        byte[] expecteds = new byte[] {(byte) 0xff, 0x0, 0x13, (byte) 0x88};
         BigInteger b = BigInteger.valueOf(-16772216);
         byte[] actuals = ByteUtil.bigIntegerToBytes(b);
         assertArrayEquals(expecteds, actuals);
@@ -85,7 +85,7 @@ public class ByteUtilTest {
 
     @Test
     public void testBigIntegerToBytesZero() {
-        byte[] expecteds = new byte[]{0x00};
+        byte[] expecteds = new byte[] {0x00};
         BigInteger b = BigInteger.ZERO;
         byte[] actuals = ByteUtil.bigIntegerToBytes(b);
         assertArrayEquals(expecteds, actuals);
@@ -98,8 +98,8 @@ public class ByteUtilTest {
 
     @Test
     public void testCalcPacketLength() {
-        byte[] test = new byte[]{0x0f, 0x10, 0x43};
-        byte[] expected = new byte[]{0x00, 0x00, 0x00, 0x03};
+        byte[] test = new byte[] {0x0f, 0x10, 0x43};
+        byte[] expected = new byte[] {0x00, 0x00, 0x00, 0x03};
         assertArrayEquals(expected, ByteUtil.calcPacketLength(test));
     }
 
@@ -127,25 +127,25 @@ public class ByteUtilTest {
         byte[] test1 = null;
         byte[] expected1 = null;
         assertArrayEquals(expected1, ByteUtil.stripLeadingZeroes(test1));
-        byte[] test2 = new byte[]{};
-        byte[] expected2 = new byte[]{0};
+        byte[] test2 = new byte[] {};
+        byte[] expected2 = new byte[] {0};
         assertArrayEquals(expected2, ByteUtil.stripLeadingZeroes(test2));
-        byte[] test3 = new byte[]{0x00};
-        byte[] expected3 = new byte[]{0};
+        byte[] test3 = new byte[] {0x00};
+        byte[] expected3 = new byte[] {0};
         assertArrayEquals(expected3, ByteUtil.stripLeadingZeroes(test3));
-        byte[] test4 = new byte[]{0x00, 0x01};
-        byte[] expected4 = new byte[]{0x01};
+        byte[] test4 = new byte[] {0x00, 0x01};
+        byte[] expected4 = new byte[] {0x01};
         assertArrayEquals(expected4, ByteUtil.stripLeadingZeroes(test4));
-        byte[] test5 = new byte[]{0x00, 0x00, 0x01};
-        byte[] expected5 = new byte[]{0x01};
+        byte[] test5 = new byte[] {0x00, 0x00, 0x01};
+        byte[] expected5 = new byte[] {0x01};
         assertArrayEquals(expected5, ByteUtil.stripLeadingZeroes(test5));
     }
 
     @Test
     public void testMatchingNibbleLength1() {
         // a larger than b
-        byte[] a = new byte[]{0x00, 0x01};
-        byte[] b = new byte[]{0x00};
+        byte[] a = new byte[] {0x00, 0x01};
+        byte[] b = new byte[] {0x00};
         int result = ByteUtil.matchingNibbleLength(a, b);
         assertEquals(1, result);
     }
@@ -153,8 +153,8 @@ public class ByteUtilTest {
     @Test
     public void testMatchingNibbleLength2() {
         // b larger than a
-        byte[] a = new byte[]{0x00};
-        byte[] b = new byte[]{0x00, 0x01};
+        byte[] a = new byte[] {0x00};
+        byte[] b = new byte[] {0x00, 0x01};
         int result = ByteUtil.matchingNibbleLength(a, b);
         assertEquals(1, result);
     }
@@ -162,8 +162,8 @@ public class ByteUtilTest {
     @Test
     public void testMatchingNibbleLength3() {
         // a and b the same length equal
-        byte[] a = new byte[]{0x00};
-        byte[] b = new byte[]{0x00};
+        byte[] a = new byte[] {0x00};
+        byte[] b = new byte[] {0x00};
         int result = ByteUtil.matchingNibbleLength(a, b);
         assertEquals(1, result);
     }
@@ -171,8 +171,8 @@ public class ByteUtilTest {
     @Test
     public void testMatchingNibbleLength4() {
         // a and b the same length not equal
-        byte[] a = new byte[]{0x01};
-        byte[] b = new byte[]{0x00};
+        byte[] a = new byte[] {0x01};
+        byte[] b = new byte[] {0x00};
         int result = ByteUtil.matchingNibbleLength(a, b);
         assertEquals(0, result);
     }
@@ -195,14 +195,14 @@ public class ByteUtilTest {
     public void testMatchingNibbleLength5() {
         // a == null
         byte[] a = null;
-        byte[] b = new byte[]{0x00};
+        byte[] b = new byte[] {0x00};
         ByteUtil.matchingNibbleLength(a, b);
     }
 
     @Test(expected = NullPointerException.class)
     public void testMatchingNibbleLength6() {
         // b == null
-        byte[] a = new byte[]{0x00};
+        byte[] a = new byte[] {0x00};
         byte[] b = null;
         ByteUtil.matchingNibbleLength(a, b);
     }
@@ -211,7 +211,7 @@ public class ByteUtilTest {
     public void testMatchingNibbleLength7() {
         // a or b is empty
         byte[] a = new byte[0];
-        byte[] b = new byte[]{0x00};
+        byte[] b = new byte[] {0x00};
         int result = ByteUtil.matchingNibbleLength(a, b);
         assertEquals(0, result);
     }
@@ -254,22 +254,22 @@ public class ByteUtilTest {
         byte[] data = ByteBuffer.allocate(4).putInt(0).array();
         int posBit = 24;
         int expected = 16777216;
-        int result = -1;
+        int result;
         byte[] ret = ByteUtil.setBit(data, posBit, 1);
         result = ByteUtil.byteArrayToInt(ret);
-        assertTrue(expected == result);
+        assertEquals(expected, result);
 
         posBit = 25;
         expected = 50331648;
         ret = ByteUtil.setBit(data, posBit, 1);
         result = ByteUtil.byteArrayToInt(ret);
-        assertTrue(expected == result);
+        assertEquals(expected, result);
 
         posBit = 2;
         expected = 50331652;
         ret = ByteUtil.setBit(data, posBit, 1);
         result = ByteUtil.byteArrayToInt(ret);
-        assertTrue(expected == result);
+        assertEquals(expected, result);
 
         /*
             Set off
@@ -278,19 +278,19 @@ public class ByteUtilTest {
         expected = 33554436;
         ret = ByteUtil.setBit(data, posBit, 0);
         result = ByteUtil.byteArrayToInt(ret);
-        assertTrue(expected == result);
+        assertEquals(expected, result);
 
         posBit = 25;
         expected = 4;
         ret = ByteUtil.setBit(data, posBit, 0);
         result = ByteUtil.byteArrayToInt(ret);
-        assertTrue(expected == result);
+        assertEquals(expected, result);
 
         posBit = 2;
         expected = 0;
         ret = ByteUtil.setBit(data, posBit, 0);
         result = ByteUtil.byteArrayToInt(ret);
-        assertTrue(expected == result);
+        assertEquals(expected, result);
     }
 
     @Test
@@ -305,23 +305,23 @@ public class ByteUtilTest {
             int res = ByteUtil.getBit(data, i);
             if (res == 1) {
                 if (i != 24 && i != 25 && i != 2) {
-                    assertTrue(false);
+                    fail();
                 } else {
                     found.add(i);
                 }
             } else {
                 if (i == 24 || i == 25 || i == 2) {
-                    assertTrue(false);
+                    fail();
                 }
             }
         }
 
         if (found.size() != 3) {
-            assertTrue(false);
+            fail();
         }
-        assertTrue(found.get(0) == 2);
-        assertTrue(found.get(1) == 24);
-        assertTrue(found.get(2) == 25);
+        assertEquals(2, (int) found.get(0));
+        assertEquals(24, (int) found.get(1));
+        assertEquals(25, (int) found.get(2));
     }
 
     @Test

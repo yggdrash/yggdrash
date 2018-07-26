@@ -19,7 +19,7 @@ public interface BlockApi {
     int blockNumber();
 
     /**
-     *  Returns information about a block by hash.
+     * Returns information about a block by hash.
      *
      * @param address     account address
      * @param bool        If true, it returns the full transaction objects,
@@ -32,7 +32,7 @@ public interface BlockApi {
                          @JsonRpcParam(value = "bool") Boolean bool);
 
     /**
-     *  Returns information about a block by block number.
+     * Returns information about a block by block number.
      *
      * @param hashOfBlock hash of block
      * @param bool        If true, it returns the full transaction objects,

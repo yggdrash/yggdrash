@@ -16,44 +16,68 @@
 
 package io.yggdrash.node;
 
+import com.google.gson.JsonObject;
+import io.yggdrash.core.Block;
+import io.yggdrash.core.BlockBody;
+import io.yggdrash.core.BlockHeader;
+import io.yggdrash.core.Transaction;
+import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.node.config.NodeProperties;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.spongycastle.crypto.InvalidCipherTextException;
 
-import java.util.Arrays;
+import java.io.IOException;
+import java.util.Collections;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
-
-@RunWith(MockitoJUnitRunner.class)
 public class MessageSenderTest {
 
-    MessageSender messageSender;
-
-    PeerGroup peerGroup;
-
-    @Mock
-    NodeProperties nodeProperties;
+    private MessageSender messageSender;
+    private Transaction tx;
+    private Block block;
 
     @Before
-    public void setUp() {
-        when(nodeProperties.getSeedPeerList())
-                .thenReturn(Arrays.asList("ynode://0462b608@localhost:9090"));
-        this.peerGroup = new PeerGroup();
-        this.messageSender = new MessageSender(peerGroup, nodeProperties);
-        messageSender.init();
+    public void setUp() throws IOException, InvalidCipherTextException {
+        Wallet wallet = new Wallet();
+        JsonObject json = new JsonObject();
+        json.addProperty("data", "TEST");
+        this.tx = new Transaction(wallet, json);
+        BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
+
+        BlockHeader genesisBlockHeader = new BlockHeader.Builder()
+                .blockBody(sampleBody)
+                .prevBlock(null)
+                .build(wallet);
+        this.block = new Block(genesisBlockHeader, sampleBody);
+        this.messageSender = new MessageSender();
+
     }
 
     @Test
-    public void getPeerIdList() {
-        peerGroup.addPeer(Peer.valueOf("ynode://0462b608@localhost:9090"));
-        messageSender.getPeerIdList();
-        assertThat(messageSender.getPeerIdList()).contains("0462b608");
+    public void syncBlock() throws IOException {
+        messageSender.newBlock(block);
+        assert messageSender.syncBlock(0).isEmpty();
     }
 
+    @Test
+    public void syncTransaction() throws IOException {
+        messageSender.newTransaction(tx);
+        assert messageSender.syncTransaction().isEmpty();
+    }
+
+    @Test
+    public void addActivePeer() {
+        messageSender.newPeerChannel(Peer.valueOf("ynode://75bff16c@localhost:9999"));
+        assert messageSender.getActivePeerList().isEmpty();
+    }
+
+    @Test
+    public void broadcastPeerConnect() {
+        assert messageSender.broadcastPeerConnect("ynode://75bff16c@localhost:9999").isEmpty();
+    }
+
+    @Test
+    public void broadcastPeerDisconnect() {
+        messageSender.broadcastPeerDisconnect("ynode://75bff16c@localhost:9999");
+    }
 }

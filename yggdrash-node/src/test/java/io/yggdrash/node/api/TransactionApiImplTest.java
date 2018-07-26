@@ -8,6 +8,7 @@ import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.googlecode.jsonrpc4j.ProxyUtil;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.core.TransactionValidator;
 import io.yggdrash.node.mock.NodeManagerMock;
 import io.yggdrash.node.mock.TransactionMock;
@@ -32,7 +33,7 @@ import static org.junit.Assert.assertTrue;
 public class TransactionApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
 
-    private final NodeManager nodeManager = new NodeManagerMock();
+    private final NodeManager nodeManager = new NodeManagerMock(null, null, new NodeProperties.Grpc());
 
     @Autowired
     JsonRpcHttpClient jsonRpcHttpClient;
@@ -96,7 +97,7 @@ public class TransactionApiImplTest {
             TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     TransactionApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
-            assertThat(api.getTransactionByHash(hashOfBlock)).isNotNull();
+            assertThat(api.getTransactionByHash(hashOfBlock)).isNotEmpty();
         } catch (Exception exception) {
             log.debug("\n\ngetTransactionByHashTest :: exception => " + exception);
         }
@@ -211,8 +212,8 @@ public class TransactionApiImplTest {
             byte[] txHash = txApiImpl.sendRawTransaction(input);
 
             TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
-                                                             TransactionApi.class,
-                                                             jsonRpcHttpClient);
+                    TransactionApi.class,
+                    jsonRpcHttpClient);
             assertThat(api).isNotNull();
             byte[] resTxHash = api.sendRawTransaction(input);
             assertThat(txHash).isEqualTo(resTxHash);

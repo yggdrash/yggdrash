@@ -116,9 +116,7 @@ public class TransactionApiImpl implements TransactionApi {
     private Transaction convert(String jsonStr) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        Transaction tx = mapper.readValue(jsonStr, Transaction.class);
-
-        return tx;
+        return mapper.readValue(jsonStr, Transaction.class);
     }
 
     private Transaction convert(byte[] bytes) {
@@ -139,8 +137,8 @@ public class TransactionApiImpl implements TransactionApi {
         byte[] data = Arrays.copyOfRange(bytes, sum, bytes.length);
 
 
-        Long timestampStr = Longs.fromByteArray(timestamp);
-        Long dataSizeStr = Longs.fromByteArray(dataSize);
+        long timestampStr = Longs.fromByteArray(timestamp);
+        long dataSizeStr = Longs.fromByteArray(dataSize);
         String dataStr = new String(data);
 
         TransactionHeader txHeader;

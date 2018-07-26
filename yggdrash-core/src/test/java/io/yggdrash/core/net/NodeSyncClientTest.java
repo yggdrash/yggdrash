@@ -57,13 +57,23 @@ public class NodeSyncClientTest {
     @Captor
     private ArgumentCaptor<BlockChainProto.Empty> emptyCaptor;
 
+    @Captor
+    private ArgumentCaptor<BlockChainProto.PeerRequest> peerRequestCaptor;
+
     private NodeSyncClient client;
 
     @Before
     public void setUp() {
-        client = new NodeSyncClient(grpcServerRule.getChannel());
+        Peer peer = Peer.valueOf("ynode://75bff16c@localhost:9999");
+        client = new NodeSyncClient(grpcServerRule.getChannel(), peer);
         grpcServerRule.getServiceRegistry().addService(pingPongService);
         grpcServerRule.getServiceRegistry().addService(blockChainService);
+    }
+
+    @Test
+    public void getPeerYnodeUriTest() {
+        NodeSyncClient client = new NodeSyncClient(Peer.valueOf("ynode://75bff16c@localhost:9090"));
+        assertEquals("ynode://75bff16c@localhost:9090", client.getPeerYnodeUri());
     }
 
     @Test
@@ -134,4 +144,36 @@ public class NodeSyncClientTest {
         verify(blockChainService).broadcastBlock(any());
     }
 
+    @Test
+    public void requestPeerList() {
+        doAnswer((invocationOnMock) -> {
+            StreamObserver<BlockChainProto.PeerRequest> argument = invocationOnMock.getArgument(1);
+            argument.onNext(null);
+            argument.onCompleted();
+            return null;
+        }).when(blockChainService).requestPeerList(peerRequestCaptor.capture(), any());
+
+        client.requestPeerList("ynode://75bff16c@localhost:9090", 10);
+
+        verify(blockChainService).requestPeerList(peerRequestCaptor.capture(), any());
+
+        assertEquals("ynode://75bff16c@localhost:9090", peerRequestCaptor.getValue().getFrom());
+        assertEquals(10, peerRequestCaptor.getValue().getLimit());
+    }
+
+    @Test
+    public void disconnectPeer() {
+        doAnswer((invocationOnMock) -> {
+            StreamObserver<BlockChainProto.PeerRequest> argument = invocationOnMock.getArgument(1);
+            argument.onNext(null);
+            argument.onCompleted();
+            return null;
+        }).when(blockChainService).disconnectPeer(peerRequestCaptor.capture(), any());
+
+        client.disconnectPeer("ynode://75bff16c@localhost:9091");
+
+        verify(blockChainService).disconnectPeer(peerRequestCaptor.capture(), any());
+
+        assertEquals("ynode://75bff16c@localhost:9091", peerRequestCaptor.getValue().getFrom());
+    }
 }

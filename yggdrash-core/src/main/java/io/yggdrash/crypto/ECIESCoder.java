@@ -18,7 +18,6 @@
 
 package io.yggdrash.crypto;
 
-import com.google.common.base.Throwables;
 import org.spongycastle.crypto.AsymmetricCipherKeyPair;
 import org.spongycastle.crypto.BufferedBlockCipher;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -47,8 +46,6 @@ import java.math.BigInteger;
 import java.security.SecureRandom;
 
 import static io.yggdrash.crypto.ECKey.CURVE;
-
-//import io.yggdrash.crypto.ConcatKDFBytesGenerator;
 
 public class ECIESCoder {
 
@@ -112,7 +109,7 @@ public class ECIESCoder {
      * <p>
      * Used for Whisper V3
      */
-    public static byte[] decryptSimple(BigInteger privKey, byte[] cipher) throws IOException, InvalidCipherTextException {
+    public static byte[] decryptSimple(BigInteger privKey, byte[] cipher) throws InvalidCipherTextException {
         EthereumIESEngine iesEngine = new EthereumIESEngine(
                 new ECDHBasicAgreement(),
                 new MGF1BytesGeneratorExt(new SHA1Digest(), 1),
@@ -167,10 +164,8 @@ public class ECIESCoder {
             bos.write(IV);
             bos.write(cipher);
             return bos.toByteArray();
-        } catch (InvalidCipherTextException e) {
-            throw Throwables.propagate(e);
-        } catch (IOException e) {
-            throw Throwables.propagate(e);
+        } catch (InvalidCipherTextException | IOException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -185,7 +180,7 @@ public class ECIESCoder {
      * <p>
      * Used for Whisper V3
      */
-    public static byte[] encryptSimple(ECPoint pub, byte[] plaintext) throws IOException, InvalidCipherTextException {
+    public static byte[] encryptSimple(ECPoint pub, byte[] plaintext) throws InvalidCipherTextException {
         EthereumIESEngine iesEngine = new EthereumIESEngine(
                 new ECDHBasicAgreement(),
                 new MGF1BytesGeneratorExt(new SHA1Digest(), 1),
