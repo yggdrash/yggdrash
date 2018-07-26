@@ -28,6 +28,7 @@ import java.math.BigInteger;
 public class Constants {
     public static final String PROPERTY_KEYPATH = "key.path";
     public static final String PROPERTY_KEYPASSWORD = "key.password"; // todo: change to CLI
+    public static final String DATABASE_PATH = "database.path";
     //    private static final int MAXIMUM_EXTRA_DATA_SIZE = 32;
 //    private static final int MIN_GAS_LIMIT = 125000;
 //    private static final int GAS_LIMIT_BOUND_DIVISOR = 1024;
