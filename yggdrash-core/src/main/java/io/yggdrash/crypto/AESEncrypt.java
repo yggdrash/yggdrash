@@ -18,7 +18,7 @@ public class AESEncrypt {
 
     //todo: security check
 
-    private static int AES_KEYLENGTH = 128;
+    private static final int AES_KEYLENGTH = 128;
 
     /**
      * encrypt data as AES.

@@ -58,7 +58,7 @@ public class MGF1BytesGeneratorExt implements DerivationFunction {
         sp[0] = (byte) (i >>> 24);
         sp[1] = (byte) (i >>> 16);
         sp[2] = (byte) (i >>> 8);
-        sp[3] = (byte) (i >>> 0);
+        sp[3] = (byte) (i);
     }
 
     public int generateBytes(byte[] out, int outOff, int len) throws DataLengthException, IllegalArgumentException {

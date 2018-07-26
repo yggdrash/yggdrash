@@ -26,7 +26,7 @@ public class NodeSyncDemoClient {
      * @param args the input arguments
      */
     public static void main(String[] args) throws InterruptedException {
-        NodeSyncClient client = new NodeSyncClient("127.0.0.1", 9090);
+        NodeSyncClient client = new NodeSyncClient(Peer.valueOf("ynode://75bff16c@127.0.0.1:9090"));
         client.ping("Ping");
         client.broadcastTransaction(NodeTestData.transactions());
         client.blockUtilShutdown();

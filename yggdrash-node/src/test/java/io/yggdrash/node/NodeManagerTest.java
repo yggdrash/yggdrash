@@ -22,10 +22,11 @@ import io.yggdrash.core.Account;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
-import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.exception.NotValidteException;
+import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.node.mock.NodeManagerMock;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +34,7 @@ import org.junit.Test;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
+import java.util.Collections;
 
 import static io.yggdrash.config.Constants.PROPERTY_KEYPATH;
 import static org.hamcrest.Matchers.containsString;
@@ -44,22 +45,29 @@ import static org.junit.Assert.assertThat;
 
 public class NodeManagerTest {
 
-    private NodeManager nodeManager;
+    private NodeManagerMock nodeManager;
     private Transaction tx;
     private Block genesisBlock;
     private Block block;
+    private PeerGroup peerGroup;
+    private MessageSender sender;
 
     @Before
     public void setUp() throws Exception {
-        nodeManager = new NodeManagerMock();
-        assert nodeManager.getNodeId() != null;
-
+        peerGroup = new PeerGroup();
+        NodeProperties.Grpc grpc = new NodeProperties.Grpc();
+        grpc.setHost("localhost");
+        grpc.setPort(9090);
+        sender = new MessageSender();
+        nodeManager = new NodeManagerMock(sender, peerGroup, grpc);
+        assert nodeManager.getNodeUri() != null;
+        nodeManager.init();
         Account author = new Account();
         Wallet wallet = nodeManager.getWallet();
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
         this.tx = new Transaction(wallet, json);
-        BlockBody sampleBody = new BlockBody(Arrays.asList(new Transaction[] {tx}));
+        BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
 
         BlockHeader genesisBlockHeader = new BlockHeader.Builder()
                 .blockBody(sampleBody)
@@ -83,7 +91,7 @@ public class NodeManagerTest {
     }
 
     @Test
-    public void addBlockTest() throws IOException, NotValidteException {
+    public void addBlockTest() throws IOException, NotValidateException {
         nodeManager.addTransaction(tx);
         nodeManager.addBlock(genesisBlock);
         nodeManager.addBlock(block);
@@ -94,11 +102,11 @@ public class NodeManagerTest {
     }
 
     @Test
-    public void generateBlockTest() throws IOException, NotValidteException {
+    public void generateBlockTest() throws IOException, NotValidateException {
         nodeManager.addTransaction(tx);
         Block newBlock = nodeManager.generateBlock();
         assert nodeManager.getBlocks().size() == 1;
-        Block chainedBlock =  nodeManager.getBlockByIndexOrHash(newBlock.getBlockHash());
+        Block chainedBlock = nodeManager.getBlockByIndexOrHash(newBlock.getBlockHash());
         assert chainedBlock.getBlockHash().equals(newBlock.getBlockHash());
         assert chainedBlock.getData().getSize() == 1;
         assertThat(nodeManager.getTxByHash(tx.getHashString()).getHashString(),

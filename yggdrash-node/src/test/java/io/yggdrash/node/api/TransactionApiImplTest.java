@@ -5,35 +5,27 @@ import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.googlecode.jsonrpc4j.ProxyUtil;
-import io.yggdrash.core.Account;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.node.mock.NodeManagerMock;
 import io.yggdrash.node.mock.TransactionMock;
-import io.yggdrash.node.mock.TransactionReceiptMock;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Base64;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
-@Import(JsonRpcConfig.class)
 public class TransactionApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
 
-    private final NodeManager nodeManager = new NodeManagerMock();
+    private final NodeManager nodeManager = new NodeManagerMock(null, null, new NodeProperties.Grpc());
 
-    @Autowired
-    JsonRpcHttpClient jsonRpcHttpClient;
+    private final JsonRpcHttpClient jsonRpcHttpClient = new JsonRpcConfig().jsonRpcHttpClient();
 
     private final TransactionApiImpl txApiImpl = new TransactionApiImpl(nodeManager);
     private final String address = "0x407d73d8a49eeb85d32cf465507dd71d507100c1";
@@ -190,7 +182,7 @@ public class TransactionApiImplTest {
         byte[] data = "{\"id\":\"0\",\"name\":\"Rachael\",\"age\":\"27\"}".getBytes();
 
         int totalLength = type.length + version.length + dataHash.length + timestamp.length
-                        + dataSize.length + signature.length + data.length;
+                + dataSize.length + signature.length + data.length;
 
         ByteBuffer bb = ByteBuffer.allocate(totalLength);
         bb.put(type);
@@ -209,8 +201,8 @@ public class TransactionApiImplTest {
             byte[] txHash = txApiImpl.sendRawTransaction(input);
 
             TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
-                                                             TransactionApi.class,
-                                                             jsonRpcHttpClient);
+                    TransactionApi.class,
+                    jsonRpcHttpClient);
             assertThat(api).isNotNull();
             byte[] resTxHash = api.sendRawTransaction(input);
             assertThat(txHash).isEqualTo(resTxHash);

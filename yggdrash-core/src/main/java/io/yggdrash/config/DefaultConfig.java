@@ -2,7 +2,6 @@ package io.yggdrash.config;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-
 import com.typesafe.config.ConfigValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,9 +13,7 @@ import java.util.Map;
  */
 public class DefaultConfig {
 
-    private static Logger logger = LoggerFactory.getLogger("general");
-
-    private final ClassLoader classLoader;
+    private static final Logger logger = LoggerFactory.getLogger("general");
 
     private Config config;
 
@@ -25,14 +22,7 @@ public class DefaultConfig {
     }
 
     public DefaultConfig(Config apiConfig) {
-        this(apiConfig, DefaultConfig.class.getClassLoader());
-    }
-
-
-    public DefaultConfig(Config apiConfig, ClassLoader classLoader) {
         try {
-            this.classLoader = classLoader;
-
             Config javaSystemProperties = ConfigFactory.load("no-such-resource-only-system-props");
             Config referenceConfig = ConfigFactory.parseResources("yggdrash.conf");
 
@@ -43,7 +33,6 @@ public class DefaultConfig {
             logger.error("Can't read config.");
             throw new RuntimeException(e);
         }
-
     }
 
     public Config getConfig() {
@@ -52,18 +41,18 @@ public class DefaultConfig {
 
     public String toString() {
 
-        String config = null;
+        StringBuilder config = null;
         for (Map.Entry<String, ConfigValue> entry : this.config.entrySet()) {
             if (config == null) {
-                config = "{" + entry.getKey() + ":" + entry.getValue() + "}" + "\n,";
+                config = new StringBuilder("{" + entry.getKey() + ":" + entry.getValue() + "}"
+                        + "\n,");
 
             }
-            config = config + "{" + entry.getKey() + ":" + entry.getValue() + "}" + "\n,";
+            config.append("{").append(entry.getKey()).append(":").append(entry.getValue())
+                    .append("}").append("\n,");
         }
 
-        return "DefaultConfig{"
-                + config.substring(0, config.length() - 1)
-                + "}";
+        return "DefaultConfig{" + config.substring(0, config.length() - 1) + "}";
     }
 
 

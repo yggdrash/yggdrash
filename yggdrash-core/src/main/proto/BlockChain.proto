@@ -5,9 +5,13 @@ option java_outer_classname = "BlockChainProto";
 
 service BlockChain {
     // Client to server messaging RPC
-    rpc syncBlock(SyncLimit) returns (BlockList) {
+    rpc requestPeerList (PeerRequest) returns (PeerList) {
     }
-    rpc syncTransaction(Empty) returns (TransactionList) {
+    rpc disconnectPeer (PeerRequest) returns (Empty) {
+    }
+    rpc syncBlock (SyncLimit) returns (BlockList) {
+    }
+    rpc syncTransaction (Empty) returns (TransactionList) {
     }
 
     // Bidirectional streaming RPC
@@ -20,9 +24,18 @@ service BlockChain {
 message Empty {
 }
 
+message PeerRequest {
+    string from = 1;
+    uint32 limit = 2;
+}
+
+message PeerList {
+    repeated string peers = 1;
+}
+
 message SyncLimit {
     uint64 offset = 1;
-    uint64 limit = 2;
+    uint32 limit = 2;
 }
 
 message BlockList {

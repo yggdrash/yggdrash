@@ -30,7 +30,7 @@ public class NodeSyncDemoServer {
      * @throws InterruptedException the interrupted exception
      */
     public static void main(String[] args) throws IOException, InterruptedException {
-        NodeSyncServer server = new NodeSyncServer();
+        NodeSyncServer server = new NodeSyncServer(null);
         server.start(9090);
         server.blockUntilShutdown();
     }

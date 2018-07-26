@@ -40,7 +40,7 @@ public class Wallet {
     private byte[] publicKey;
 
     /**
-     * Wallet Consturctor(generate key file).
+     * Wallet Constructor(generate key file).
      *
      * @param key      ECKey
      * @param keyPath  keyPath(directory)
@@ -126,7 +126,7 @@ public class Wallet {
     /**
      * Wallet constructor.
      *
-     * @throws IOException IOException
+     * @throws IOException                IOException
      * @throws InvalidCipherTextException InvalidCipherTextException
      */
     public Wallet() throws IOException, InvalidCipherTextException {
@@ -283,8 +283,8 @@ public class Wallet {
     /**
      * Verify the signature with hashed data.
      *
-     * @param hashedData      hashed Data
-     * @param signature signature
+     * @param hashedData hashed Data
+     * @param signature  signature
      * @return verification result
      */
     public boolean verifyHashedData(byte[] hashedData, byte[] signature) {
@@ -309,7 +309,7 @@ public class Wallet {
                 + "keyPath=" + keyPath
                 + ", keyName=" + keyName
                 + ", address=" + Hex.toHexString(address)
-                + ", publidKey=" + Hex.toHexString(publicKey)
+                + ", publicKey=" + Hex.toHexString(publicKey)
                 + '}';
     }
 

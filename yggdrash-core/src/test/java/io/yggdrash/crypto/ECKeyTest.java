@@ -24,14 +24,18 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.gson.JsonObject;
+import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Account;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.Wallet;
 import io.yggdrash.crypto.ECKey.ECDSASignature;
 import io.yggdrash.crypto.jce.SpongyCastleProvider;
 import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
@@ -58,18 +62,25 @@ public class ECKeyTest {
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
-    private String privString = "c85ef7d79691fe79573b1a7064c19c1a9819ebdbd1faaab1a8ec92344438aaf4";
-    private BigInteger privateKey = new BigInteger(privString, 16);
+    private final String privString = "c85ef7d79691fe79573b1a7064c19c1a9819ebdbd1faaab1a8ec92344438aaf4";
+    private final BigInteger privateKey = new BigInteger(privString, 16);
 
-    private String pubString = "040947751e3022ecf3016be03ec77ab0ce3c2662b4843898cb068d74f698ccc8ad75aa17564ae80a20bb044ee7a6d903e8e8df624b089c95d66a0570f051e5a05b";
-    private String compressedPubString = "030947751e3022ecf3016be03ec77ab0ce3c2662b4843898cb068d74f698ccc8ad";
-    private byte[] pubKey = Hex.decode(pubString);
-    private byte[] compressedPubKey = Hex.decode(compressedPubString);
+    private final String pubString = "040947751e3022ecf3016be03ec77ab0ce3c2662b4843898cb068d74f698ccc8ad75aa17564ae80a20bb044ee7a6d903e8e8df624b089c95d66a0570f051e5a05b";
+    private final String compressedPubString = "030947751e3022ecf3016be03ec77ab0ce3c2662b4843898cb068d74f698ccc8ad";
+    private final byte[] pubKey = Hex.decode(pubString);
+    private final byte[] compressedPubKey = Hex.decode(compressedPubString);
     private String address = "cd2a3d9f938e13cd947ec05abc7fe734df8dd826";
 
-    private String exampleMessage = "This is an example of a signed message.";
-    private String sigBase64 = "HNLOSI9Nop5o8iywXKwbGbdd8XChK0rRvdRTG46RFcb7dcH+UKlejM/8u1SCoeQvu91jJBMd/nXDs7f5p8ch7Ms=";
+    private final String exampleMessage = "This is an example of a signed message.";
+    private final String sigBase64 = "HNLOSI9Nop5o8iywXKwbGbdd8XChK0rRvdRTG46RFcb7dcH+UKlejM/8u1SCoeQvu91jJBMd/nXDs7f5p8ch7Ms=";
     private String signatureHex = "d2ce488f4da29e68f22cb05cac1b19b75df170a12b4ad1bdd4531b8e9115c6fb75c1fe50a95e8ccffcbb5482a1e42fbbdd6324131dfe75c3b3b7f9a7c721eccb01";
+    private Wallet wallet;
+
+    @Before
+    public void setUp() throws IOException, InvalidCipherTextException {
+        final DefaultConfig defaultConfig = new DefaultConfig();
+        wallet = new Wallet(defaultConfig);
+    }
 
     @Test
     public void testHashCode() {
@@ -235,14 +246,12 @@ public class ECKeyTest {
     public void testVerifySignature3() throws SignatureException, IOException {
 
         // create account with set privateKey
-        Account account = new Account(ECKey.fromPrivate(privateKey));
-
         // create tx data(test)
         JsonObject data = new JsonObject();
         data.addProperty("balance", "10");
 
         // create tx
-        Transaction tx = new Transaction(account, data);
+        Transaction tx = new Transaction(wallet, data);
 
         // get the sig & key(pub)
         byte[] messageHash = tx.getHeader().getDataHashForSigning();
@@ -303,18 +312,11 @@ public class ECKeyTest {
 
     @Test
     public void testVerifySignature7() throws SignatureException, IOException {
-        // create account with privateKey
-        Account account = new Account(ECKey.fromPrivate(privateKey));
-        ECKey key = account.getKey();
-
-        // check public & private key with key
-        assertArrayEquals(pubKey, key.getPubKey());
-        assertEquals(privateKey, key.getPrivKey());
 
         // create tx
         JsonObject data = new JsonObject();
         data.addProperty("balance", "10");
-        Transaction tx = new Transaction(account, data);
+        Transaction tx = new Transaction(wallet, data);
 
         // get the sig & key(pub)
         byte[] messageHash = tx.getHeader().getDataHashForSigning();
@@ -329,7 +331,7 @@ public class ECKeyTest {
         assertArrayEquals(sig.toBinary(), tx.getHeader().getSignature());
 
         // check public key
-        assertArrayEquals(keyFromSig.getPubKey(), pubKey);
+        assertArrayEquals(keyFromSig.getPubKey(), wallet.getPubicKey());
 
     }
 
@@ -339,20 +341,17 @@ public class ECKeyTest {
         Account account = new Account(ECKey.fromPrivate(privateKey));
         System.out.println("Account: " + account.toString());
 
-        ECKey key = account.getKey();
+        ECKey key = ECKey.fromPublicOnly(wallet.getPubicKey());
         System.out.println("Key: " + key.toString());
 
         // check public & private key with key
-        assertArrayEquals(pubKey, key.getPubKey());
-        assertEquals(privateKey, key.getPrivKey());
-
-
+        assertArrayEquals(wallet.getPubicKey(), key.getPubKey());
 
         // create tx
         JsonObject data = new JsonObject();
         data.addProperty("balance", "10");
 
-        Transaction tx = new Transaction(account, data);
+        Transaction tx = new Transaction(wallet, data);
         System.out.println("tx: " + tx.toString());
 
         assertArrayEquals(key.getAddress(), tx.getHeader().getAddress());
@@ -368,7 +367,6 @@ public class ECKeyTest {
 
         assertArrayEquals(key.getAddress(), keyFromSig.getAddress());
 
-
         // verify
         assertTrue(keyFromSig.verify(messageHash, sig));
 
@@ -376,7 +374,7 @@ public class ECKeyTest {
         assertArrayEquals(sig.toBinary(), tx.getHeader().getSignature());
 
         // check public key
-        assertArrayEquals(keyFromSig.getPubKey(), pubKey);
+        assertArrayEquals(keyFromSig.getPubKey(), wallet.getPubicKey());
 
     }
 
@@ -421,7 +419,7 @@ public class ECKeyTest {
     }
 
     @Test
-    public void testSunECRoundTrip() throws Exception {
+    public void testSunECRoundTrip() {
         Provider provider = Security.getProvider("SunEC");
         if (provider != null) {
             testProviderRoundTrip(provider);
@@ -432,7 +430,7 @@ public class ECKeyTest {
     }
 
     @Test
-    public void testSpongyCastleRoundTrip() throws Exception {
+    public void testSpongyCastleRoundTrip() {
         testProviderRoundTrip(SpongyCastleProvider.getInstance());
     }
 

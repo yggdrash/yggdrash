@@ -17,7 +17,7 @@
 package io.yggdrash.core;
 
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.exception.NotValidteException;
+import io.yggdrash.core.exception.NotValidateException;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,23 +25,29 @@ import java.util.Set;
 
 public interface NodeManager {
 
-    void setListener(NodeEventListener listener);
+    void init();
 
-    Transaction addTransaction(Transaction tx) throws IOException;
+    Transaction addTransaction(Transaction tx);
 
     List<Transaction> getTransactionList();
 
     Transaction getTxByHash(String id);
 
-    Block generateBlock() throws IOException, NotValidteException;
+    Block generateBlock() throws IOException, NotValidateException;
 
-    Block addBlock(Block block) throws IOException, NotValidteException;
+    Block addBlock(Block block) throws IOException, NotValidateException;
 
     Set<Block> getBlocks();
 
-    String getNodeId();
-
     Block getBlockByIndexOrHash(String indexOrHash);
+
+    String getNodeUri();
+
+    void addPeer(String peer);
+
+    void removePeer(String peer);
+
+    List<String> getPeerUriList();
 
     DefaultConfig getDefaultConfig();
 

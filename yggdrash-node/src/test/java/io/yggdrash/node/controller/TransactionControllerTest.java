@@ -29,6 +29,7 @@ import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpServletResponse;
+import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -41,14 +42,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(TransactionController.class)
 @Import(TestConfig.class)
+@IfProfileValue(name = "spring.profiles.active", value = "ci")
 public class TransactionControllerTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionControllerTest.class);
-
+    private static final String FROM = "fb6b782a7f40de97e50181ee31cba6ed352e2a4e";
     @Autowired
     private MockMvc mockMvc;
-
     private JacksonTester<TransactionDto> json;
-    private static final String FROM = "fb6b782a7f40de97e50181ee31cba6ed352e2a4e";
 
     @Before
     public void setUp() {

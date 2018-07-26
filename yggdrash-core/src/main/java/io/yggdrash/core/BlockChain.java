@@ -1,7 +1,7 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.core.exception.NotValidteException;
+import io.yggdrash.core.exception.NotValidateException;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +18,7 @@ public class BlockChain {
     private Block genesisBlock;
     private Block prevBlock;
     private Map<Object, Block> blocks; // <blockheader_hash, block>
-    private JsonObject packageInfo;
+    private final JsonObject packageInfo;
 
     public BlockChain() {
         this(new JsonObject());
@@ -63,13 +63,13 @@ public class BlockChain {
      * Add block.
      *
      * @param nextBlock the next block
-     * @throws NotValidteException the not validte exception
+     * @throws NotValidateException the not validate exception
      */
-    public void addBlock(Block nextBlock) throws NotValidteException, IOException {
+    public void addBlock(Block nextBlock) throws NotValidateException, IOException {
         if (isGenesisBlock(nextBlock)) {
             this.genesisBlock = nextBlock;
         } else if (!isValidNewBlock(prevBlock, nextBlock)) {
-            throw new NotValidteException();
+            throw new NotValidateException();
         }
         log.debug("Added block index=[{}], blockHash={}", nextBlock.getIndex(),
                 nextBlock.getBlockHash());
@@ -111,9 +111,8 @@ public class BlockChain {
      * Is valid chain boolean.
      *
      * @return the boolean
-     * @throws IOException the io exception
      */
-    public boolean isValidChain() throws IOException {
+    public boolean isValidChain() {
         return isValidChain(this);
     }
 
@@ -122,9 +121,8 @@ public class BlockChain {
      *
      * @param blockChain the block chain
      * @return the boolean
-     * @throws IOException the io exception
      */
-    public boolean isValidChain(BlockChain blockChain) throws IOException {
+    public boolean isValidChain(BlockChain blockChain) {
         if (blockChain.getPrevBlock() != null) {
             Block block = blockChain.getPrevBlock(); // Get Last Block
             while (block.getIndex() != 0L) {
@@ -136,7 +134,7 @@ public class BlockChain {
     }
 
     public Block getBlockByIndex(long index) {
-        return blocks.get(new Long(index));
+        return blocks.get(index);
     }
 
     /**
@@ -164,9 +162,8 @@ public class BlockChain {
      * Replace chain.
      *
      * @param otherChain the other chain
-     * @throws IOException the io exception
      */
-    public void replaceChain(BlockChain otherChain) throws IOException {
+    public void replaceChain(BlockChain otherChain) {
         if (isValidChain(otherChain) && otherChain.size() > this.size()) {
             log.info("Received blockchain is valid. Replacing current blockchain with received "
                     + "blockchain");

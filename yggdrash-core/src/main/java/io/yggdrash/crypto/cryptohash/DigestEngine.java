@@ -173,7 +173,7 @@ public abstract class DigestEngine extends MessageDigest implements Digest {
      * @see org.ethereum.crypto.cryptohash.Digest
      */
     public void update(byte input) {
-        inputBuf[inputLen++] = (byte) input;
+        inputBuf[inputLen++] = input;
         if (inputLen == blockLen) {
             processBlock(inputBuf);
             blockCount++;
