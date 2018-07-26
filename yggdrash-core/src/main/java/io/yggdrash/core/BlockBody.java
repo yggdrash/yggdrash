@@ -8,7 +8,7 @@ import java.util.List;
 
 public class BlockBody implements Serializable {
 
-    private final List<Transaction> transactionList;
+    private List<Transaction> transactionList;
 
     public BlockBody() {
     }

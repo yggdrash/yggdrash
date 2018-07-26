@@ -91,7 +91,8 @@ public class TransactionApiImpl implements TransactionApi {
     public String sendTransaction(String jsonStr) throws IOException,SignatureException {
         Transaction tx = convert(jsonStr);
         if (valiate(tx)) {
-            return tx.getHashString();
+            Transaction addedTx = nodeManager.addTransaction(tx);
+            return addedTx.getHashString();
         } else {
             throw new FailedOperationException("Transaction");
         }
@@ -101,7 +102,8 @@ public class TransactionApiImpl implements TransactionApi {
     public byte[] sendRawTransaction(byte[] bytes) throws IOException,SignatureException {
         Transaction tx = convert(bytes);
         if (valiate(tx)) {
-            return tx.getHash();
+            Transaction addedTx = nodeManager.addTransaction(tx);
+            return addedTx.getHash();
         } else {
             throw new FailedOperationException("Transaction");
         }

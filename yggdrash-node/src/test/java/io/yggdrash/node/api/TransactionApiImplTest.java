@@ -97,7 +97,7 @@ public class TransactionApiImplTest {
             TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     TransactionApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
-            assertThat(api.getTransactionByHash(hashOfBlock)).isNotEmpty();
+            assertThat(api.getTransactionByHash(hashOfBlock)).isNotNull();
         } catch (Exception exception) {
             log.debug("\n\ngetTransactionByHashTest :: exception => " + exception);
         }
@@ -163,13 +163,10 @@ public class TransactionApiImplTest {
         // Request Transaction with jsonStr
         try {
             // Convert string to Transaction
-            String txHash = txApiImpl.sendTransaction(jsonStr);
-
             TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     TransactionApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
-            String resTxHash = api.sendTransaction(jsonStr);
-            assertThat(txHash).isEqualTo(resTxHash);
+            assertThat(api.sendTransaction(jsonStr)).isNotEmpty();
         } catch (Exception exception) {
             log.debug("\n\njsonStringToTxTest :: exception => " + exception);
         }
@@ -209,14 +206,11 @@ public class TransactionApiImplTest {
         // Request Transaction with byteArr
         try {
             // Convert byteArray to Transaction
-            byte[] txHash = txApiImpl.sendRawTransaction(input);
-
             TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     TransactionApi.class,
                     jsonRpcHttpClient);
             assertThat(api).isNotNull();
-            byte[] resTxHash = api.sendRawTransaction(input);
-            assertThat(txHash).isEqualTo(resTxHash);
+            assertThat(api.sendRawTransaction(input)).isNotEmpty();
         } catch (Exception exception) {
             log.debug("\n\nbyteArrToTxTest :: exception => " + exception);
         }
