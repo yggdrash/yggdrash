@@ -28,7 +28,7 @@ public class TransactionValidator {
         byte[] tmpSignDataHash = HashUtil.sha3(tmpTx.toByteArray());
 
         ECKey.ECDSASignature sig = new ECKey.ECDSASignature(tx.getHeader().getSignature());
-        ECKey keyFromSig = ECKey.signatureToKey(tx.getHeader().getSignDataHash(), sig);
+        ECKey keyFromSig = ECKey.signatureToKey(tx.getHeader().getDataHashForSigning(), sig);
 
         return keyFromSig.verify(tmpSignDataHash, sig);
     }

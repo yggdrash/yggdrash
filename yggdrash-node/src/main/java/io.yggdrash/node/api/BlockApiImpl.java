@@ -34,11 +34,7 @@ public class BlockApiImpl implements BlockApi {
         try {
             //todo: getBlockByNumber
             BlockMock blockMock = new BlockMock(nodeManager);
-            Block block = blockMock.retBlockMock();
-            ObjectMapper mapper = new ObjectMapper();
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            String jsonStr = mapper.writeValueAsString(block);
-            return mapper.readValue(jsonStr, Block.class);
+            return blockMock.retBlockMock();
         } catch (Exception exception) {
             System.out.println("\n\nException :: getBlockHashImp");
             exception.printStackTrace();
