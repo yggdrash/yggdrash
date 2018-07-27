@@ -4,11 +4,12 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.lang.NonNull;
 
 import java.io.IOException;
 import java.io.Serializable;
 
-public class Block implements Cloneable, Serializable {
+public class Block implements Cloneable, Serializable, Comparable<Block> {
 
     private static final Logger log = LoggerFactory.getLogger(Block.class);
 
@@ -103,5 +104,10 @@ public class Block implements Cloneable, Serializable {
                 + "header=" + header
                 + ", data=" + data
                 + '}';
+    }
+
+    @Override
+    public int compareTo(@NonNull Block o) {
+        return Long.compare(header.getIndex(), o.header.getIndex());
     }
 }

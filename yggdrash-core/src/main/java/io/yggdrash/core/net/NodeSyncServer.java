@@ -239,11 +239,11 @@ public class NodeSyncServer {
             return new StreamObserver<BlockChainProto.Block>() {
                 @Override
                 public void onNext(BlockChainProto.Block protoBlock) {
-                    log.debug("Received block id=[{}]", protoBlock.getHeader().getIndex());
+                    long id = protoBlock.getHeader().getIndex();
                     Block newBlock = null;
                     try {
                         Block block = BlockMapper.protoBlockToBlock(protoBlock);
-                        log.debug("Received block hash=" + block.getBlockHash());
+                        log.debug("Received block id=[{}], hash={}", id, block.getBlockHash());
                         newBlock = nodeManager.addBlock(block);
                     } catch (Exception e) {
                         log.error(e.getMessage(), e);
