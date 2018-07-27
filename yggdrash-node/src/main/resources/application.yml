@@ -1,6 +1,7 @@
 logging:
   level:
     io.yggdrash: debug
+    io.grpc.netty: error
 
 yggdrash.node:
   grpc.host: "localhost"

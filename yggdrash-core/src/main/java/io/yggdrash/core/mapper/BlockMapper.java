@@ -68,28 +68,24 @@ public class BlockMapper {
                                                    BlockBody body) throws IOException {
         BlockHeader.Builder builder = new BlockHeader.Builder();
         builder.blockBody(body);
-        return builder.build(protoHeader.getIndex(), protoHeader.getPrevBlockHash().toByteArray(),
-                protoHeader.getTimestamp(), protoHeader.getSignature().toByteArray());
+        return builder.build(protoHeader.getPrevBlockHash().toByteArray(),
+                protoHeader.getMerkleRoot().toByteArray(),
+                protoHeader.getTimestamp(),
+                protoHeader.getDataSize(),
+                protoHeader.getSignature().toByteArray(),
+                protoHeader.getIndex());
     }
 
     private static BlockChainProto.BlockHeader headerToProtoHeader(BlockHeader header) {
-        BlockChainProto.BlockHeader.Builder builder = BlockChainProto.BlockHeader.newBuilder()
+        return BlockChainProto.BlockHeader.newBuilder()
                 .setType(ByteString.copyFrom(header.getType()))
                 .setVersion(ByteString.copyFrom(header.getVersion()))
                 .setIndex(header.getIndex())
                 .setTimestamp(header.getTimestamp())
-                .setDataSize(header.getDataSize());
-
-        if (header.getPrevBlockHash() != null) {
-            builder.setPrevBlockHash(ByteString.copyFrom(header.getPrevBlockHash()));
-        }
-        if (header.getMerkleRoot() != null) {
-            builder.setMerkleRoot(ByteString.copyFrom(header.getMerkleRoot()));
-        }
-        if (header.getSignature() != null) {
-            builder.setSignature(ByteString.copyFrom(header.getSignature()));
-        }
-        return builder.build();
+                .setDataSize(header.getDataSize())
+                .setPrevBlockHash(ByteString.copyFrom(header.getPrevBlockHash()))
+                .setMerkleRoot(ByteString.copyFrom(header.getMerkleRoot()))
+                .setSignature(ByteString.copyFrom(header.getSignature())).build();
     }
 
     private static BlockBody protoBodyToBody(BlockChainProto.BlockBody data) throws IOException {
