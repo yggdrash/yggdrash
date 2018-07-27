@@ -19,7 +19,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class BlockApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
 
-    private final NodeManager nodeManager = new NodeManagerMock(null, null, new NodeProperties.Grpc());
+    private final NodeManager nodeManager
+            = new NodeManagerMock(null, null, new NodeProperties.Grpc());
 
     private final JsonRpcHttpClient jsonRpcHttpClient = new JsonRpcConfig().jsonRpcHttpClient();
 
@@ -42,7 +43,7 @@ public class BlockApiImplTest {
                     BlockApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
             assertThat(api.getBlockByHash("0x2Aa4BCaC31F7F67B9a15681D5e4De2FBc778066A",
-                    "latest")).isNotEmpty();
+                    true)).isNotNull();
         } catch (Exception exception) {
             log.debug("getBlockByHashTest :: exception : " + exception);
         }
@@ -55,7 +56,7 @@ public class BlockApiImplTest {
                     BlockApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
             assertThat(api.getBlockByNumber("0xbbF5029Fd710d227630c8b7d338051B8E76d50B3",
-                    true)).isNotEmpty();
+                    true)).isNotNull();
         } catch (Exception exception) {
             log.debug("getBlockByNumberTest :: exception : " + exception);
         }

@@ -1,6 +1,9 @@
 package io.yggdrash.node.api;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
+import io.yggdrash.core.Block;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.node.exception.InternalErrorException;
 import io.yggdrash.node.exception.NonExistObjectException;
@@ -27,18 +30,20 @@ public class BlockApiImpl implements BlockApi {
     }
 
     @Override
-    public String getBlockByHash(String address, String tag) {
+    public Block getBlockByHash(String address, Boolean bool) {
         try {
             //todo: getBlockByNumber
             BlockMock blockMock = new BlockMock(nodeManager);
             return blockMock.retBlockMock();
         } catch (Exception exception) {
+            System.out.println("\n\nException :: getBlockHashImp");
+            exception.printStackTrace();
             throw new NonExistObjectException("block");
         }
     }
 
     @Override
-    public String getBlockByNumber(String hashOfBlock, Boolean bool) {
+    public Block getBlockByNumber(String hashOfBlock, Boolean bool) {
         try {
             //todo: getBlockByNumber
             BlockMock blockMock = new BlockMock(nodeManager);

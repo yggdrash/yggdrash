@@ -15,15 +15,17 @@ import java.security.SignatureException;
  */
 public class BlockHeader implements Serializable {
 
-    private final byte[] type;
-    private final byte[] version;
-    private final byte[] prevBlockHash;
-    private final byte[] merkleRoot;
-    private final long timestamp;
-    private final long dataSize;
-    private final byte[] signature;
+    private byte[] type;
+    private byte[] version;
+    private byte[] prevBlockHash;
+    private byte[] merkleRoot;
+    private long timestamp;
+    private long dataSize;
+    private byte[] signature;
+    private long index;
 
-    private final long index;
+    public BlockHeader() {
+    }
 
     private BlockHeader(Builder builder) {
         this.type = builder.type;
