@@ -44,6 +44,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class NodeManagerMock implements NodeManager {
@@ -124,12 +125,12 @@ public class NodeManagerMock implements NodeManager {
 
     @Override
     public List<Transaction> getTransactionList() {
-        return (List<Transaction>) txManager.getUnconfirmedTxs();
+        return new ArrayList<>(txManager.getUnconfirmedTxs());
     }
 
     @Override
     public Set<Block> getBlocks() {
-        return new HashSet<>(blockChain.getBlocks().values());
+        return new TreeSet<>(blockChain.getBlocks().values());
     }
 
     @Override

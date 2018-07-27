@@ -220,12 +220,14 @@ public class BlockHeader implements Serializable {
          *
          * @return the block header
          */
-        public BlockHeader build(long index, byte[] prev, long timestamp, byte[] signature) {
-            this.index = index;
+        public BlockHeader build(byte[] prev, byte[] merkle, long timestamp, long size, byte[] sig,
+                                 long index) {
             this.prevBlockHash = prev;
+            this.merkleRoot = merkle;
             this.timestamp = timestamp;
-            this.signature = signature;
-
+            this.dataSize = size;
+            this.signature = sig;
+            this.index = index;
             return new BlockHeader(this);
         }
 
@@ -250,9 +252,10 @@ public class BlockHeader implements Serializable {
             block.write(type);
             block.write(version);
 
-            if (prevBlockHash != null) {
-                block.write(prevBlockHash);
+            if (prevBlockHash == null) {
+                prevBlockHash = new byte[32];
             }
+            block.write(prevBlockHash);
 
             if (merkleRoot == null) {
                 merkleRoot = new byte[32];
