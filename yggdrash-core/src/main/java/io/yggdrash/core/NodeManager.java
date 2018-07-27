@@ -20,6 +20,7 @@ import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.exception.NotValidateException;
 
 import java.io.IOException;
+import java.security.SignatureException;
 import java.util.List;
 import java.util.Set;
 
@@ -27,7 +28,7 @@ public interface NodeManager {
 
     void init();
 
-    Transaction addTransaction(Transaction tx);
+    Transaction addTransaction(Transaction tx) throws IOException,SignatureException;
 
     List<Transaction> getTransactionList();
 

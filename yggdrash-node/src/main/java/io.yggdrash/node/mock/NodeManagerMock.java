@@ -22,6 +22,7 @@ import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionManager;
+import io.yggdrash.core.TransactionValidator;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.net.NodeSyncClient;
@@ -31,12 +32,14 @@ import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.node.BlockBuilder;
 import io.yggdrash.node.MessageSender;
 import io.yggdrash.node.config.NodeProperties;
+import io.yggdrash.node.exception.FailedOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -108,10 +111,15 @@ public class NodeManagerMock implements NodeManager {
     }
 
     @Override
-    public Transaction addTransaction(Transaction tx) {
-        Transaction newTx = txManager.put(tx);
-        messageSender.newTransaction(tx);
-        return newTx;
+    public Transaction addTransaction(Transaction tx) throws IOException,SignatureException {
+        TransactionValidator txValidator = new TransactionValidator();
+
+        if (txValidator.txSigValidate(tx)) {
+            Transaction newTx = txManager.put(tx);
+            messageSender.newTransaction(tx);
+            return newTx;
+        }
+        throw new FailedOperationException("Transaction");
     }
 
     @Override
