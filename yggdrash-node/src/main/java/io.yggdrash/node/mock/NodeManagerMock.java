@@ -57,6 +57,8 @@ public class NodeManagerMock implements NodeManager {
     private final TransactionManager txManager = new TransactionManager(
             new HashMapDbSource(), new TransactionPoolMock());
 
+    private final TransactionValidator txValidator = new TransactionValidator();
+
     private final DefaultConfig defaultConfig = new DefaultConfig();
 
     private final Wallet wallet = readWallet();
@@ -113,7 +115,6 @@ public class NodeManagerMock implements NodeManager {
 
     @Override
     public Transaction addTransaction(Transaction tx) throws IOException,SignatureException {
-        TransactionValidator txValidator = new TransactionValidator();
 
         if (txValidator.txSigValidate(tx)) {
             Transaction newTx = txManager.put(tx);
