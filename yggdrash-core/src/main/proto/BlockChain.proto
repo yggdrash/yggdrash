@@ -14,10 +14,10 @@ service BlockChain {
     rpc syncTransaction (Empty) returns (TransactionList) {
     }
 
-    // Bidirectional streaming RPC
-    rpc broadcastBlock (stream Block) returns (stream Block) {
+    // Client to server streaming RPC
+    rpc broadcastBlock (stream Block) returns (Empty) {
     }
-    rpc broadcastTransaction (stream Transaction) returns (stream Transaction) {
+    rpc broadcastTransaction (stream Transaction) returns (Empty) {
     }
 }
 

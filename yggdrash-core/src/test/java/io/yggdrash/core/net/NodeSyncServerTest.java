@@ -49,6 +49,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -128,7 +129,7 @@ public class NodeSyncServerTest {
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        BlockChainProto.Empty empty = BlockChainProto.Empty.newBuilder().build();
+        BlockChainProto.Empty empty = BlockChainProto.Empty.getDefaultInstance();
         BlockChainProto.TransactionList list = blockingStub.syncTransaction(empty);
         assertEquals(1, list.getTransactionsCount());
     }
@@ -136,30 +137,27 @@ public class NodeSyncServerTest {
     @Test
     public void broadcastTransaction() throws Exception {
         BlockChainGrpc.BlockChainStub stub = BlockChainGrpc.newStub(grpcServerRule.getChannel());
-        StreamRecorder<BlockChainProto.Transaction> responseObserver = StreamRecorder.create();
+        StreamRecorder<BlockChainProto.Empty> responseObserver = StreamRecorder.create();
         StreamObserver<BlockChainProto.Transaction> requestObserver
                 = stub.broadcastTransaction(responseObserver);
 
         BlockChainProto.Transaction request = TransactionMapper.transactionToProtoTransaction(tx);
         requestObserver.onNext(request);
         requestObserver.onCompleted();
-
-        BlockChainProto.Transaction firstTxResponse = responseObserver.firstValue().get();
-        assertEquals("{\"data\":\"TEST\"}", firstTxResponse.getData());
+        assertNotNull(responseObserver.firstValue().get());
     }
 
     @Test
     public void broadcastBlock() throws Exception {
         BlockChainGrpc.BlockChainStub stub = BlockChainGrpc.newStub(grpcServerRule.getChannel());
-        StreamRecorder<BlockChainProto.Block> responseObserver = StreamRecorder.create();
+        StreamRecorder<BlockChainProto.Empty> responseObserver = StreamRecorder.create();
         StreamObserver<BlockChainProto.Block> requestObserver
                 = stub.broadcastBlock(responseObserver);
 
         requestObserver.onNext(BlockMapper.blockToProtoBlock(block));
         requestObserver.onCompleted();
 
-        BlockChainProto.Block firstResponse = responseObserver.firstValue().get();
-        assertEquals(block.getHeader().getTimestamp(), firstResponse.getHeader().getTimestamp());
-        assertEquals("{\"data\":\"TEST\"}", firstResponse.getData().getTrasactions(0).getData());
+        BlockChainProto.Empty firstResponse = responseObserver.firstValue().get();
+        assertNotNull(responseObserver.firstValue().get());
     }
 }
