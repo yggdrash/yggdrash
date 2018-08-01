@@ -20,6 +20,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.Wallet;
+import io.yggdrash.node.MessageSender;
 import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.node.mock.NodeManagerMock;
 
@@ -27,7 +28,7 @@ import java.io.IOException;
 import java.security.SignatureException;
 
 public class TransactionDto {
-    private static final NodeManager nodeManager = new NodeManagerMock(null, null,
+    private static final NodeManager nodeManager = new NodeManagerMock(new MessageSender(), null,
             new NodeProperties.Grpc());
     private String from;
     private String txHash;
