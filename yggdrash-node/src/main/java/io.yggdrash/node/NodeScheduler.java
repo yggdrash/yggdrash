@@ -21,6 +21,7 @@ import io.yggdrash.core.exception.NotValidateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -29,6 +30,7 @@ import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 @Component
+@EnableScheduling
 class NodeScheduler {
     private static final Logger log = LoggerFactory.getLogger(NodeScheduler.class);
 
@@ -46,7 +48,7 @@ class NodeScheduler {
         this.nodeManager = nodeManager;
     }
 
-    @Scheduled(fixedRate = 1000 * 60 * 5)
+    @Scheduled(fixedRate = 1000 * 10)
     public void ping() {
         messageSender.ping();
     }
@@ -57,11 +59,11 @@ class NodeScheduler {
             nodeQueue.addAll(nodeManager.getPeerUriList());
         }
         String peerId = nodeQueue.poll();
-        if (peerId != null && peerId.equals(nodeManager.getNodeUri())) {
+        assert peerId != null;
+        if (peerId.equals(nodeManager.getNodeUri())) {
             nodeManager.generateBlock();
         } else {
-            assert peerId != null;
-            log.debug("ignored peer=" + peerId.substring(peerId.lastIndexOf(":")));
+            log.debug("Skip generation by another " + peerId.substring(peerId.lastIndexOf("@")));
         }
     }
 

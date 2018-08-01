@@ -59,12 +59,12 @@ public class NodeSyncClient {
         asyncBlockChainStub = BlockChainGrpc.newStub(channel);
     }
 
-    String getPeerYnodeUri() {
-        return peer.getYnodeUri();
+    public Peer getPeer() {
+        return peer;
     }
 
     public void stop() {
-        log.debug("stop for peer=" + peer.getYnodeUri());
+        log.debug("Stop for peer=" + peer.getYnodeUri());
         if (channel != null) {
             channel.shutdown();
         }

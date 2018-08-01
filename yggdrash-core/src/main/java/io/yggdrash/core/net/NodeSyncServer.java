@@ -82,7 +82,7 @@ public class NodeSyncServer {
     static class PingPongImpl extends PingPongGrpc.PingPongImplBase {
         @Override
         public void play(Ping request, StreamObserver<Pong> responseObserver) {
-            log.debug("request=" + request.getPing());
+            log.debug("Received " + request.getPing());
             Pong pong = Pong.newBuilder().setPong("Pong").build();
             responseObserver.onNext(pong);
             responseObserver.onCompleted();

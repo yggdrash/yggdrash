@@ -18,6 +18,7 @@ package io.yggdrash.node;
 
 import io.yggdrash.core.Block;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.event.PeerEventListener;
 import io.yggdrash.core.mapper.BlockMapper;
 import io.yggdrash.core.mapper.TransactionMapper;
 import io.yggdrash.core.net.NodeSyncClient;
@@ -41,12 +42,31 @@ public class MessageSender {
 
     private final Map<String, NodeSyncClient> peerChannel = new ConcurrentHashMap<>();
 
+    private PeerEventListener listener;
+
+    public void setListener(PeerEventListener listener) {
+        this.listener = listener;
+    }
+
     public void destroy(String ynodeUri) {
         peerChannel.values().forEach(client -> client.stop(ynodeUri));
     }
 
     void ping() {
-        peerChannel.values().forEach(client -> client.ping("Ping"));
+        List<NodeSyncClient> peerChannelList = new ArrayList<>(peerChannel.values());
+        for (NodeSyncClient client : peerChannelList) {
+            try {
+                Pong pong = client.ping("Ping");
+                if (pong.getPong().equals("Pong")) {
+                    continue;
+                }
+            } catch (Exception e) {
+                log.warn("Health check fail. peer=" + client.getPeer().getYnodeUri());
+            }
+            peerChannel.remove(client.getPeer().getYnodeUri());
+            client.stop();
+            listener.disconnected(client.getPeer());
+        }
     }
 
     public void newTransaction(Transaction tx) {

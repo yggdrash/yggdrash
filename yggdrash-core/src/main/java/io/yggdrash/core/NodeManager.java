@@ -17,13 +17,14 @@
 package io.yggdrash.core;
 
 import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.core.event.PeerEventListener;
 import io.yggdrash.core.exception.NotValidateException;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
-public interface NodeManager {
+public interface NodeManager extends PeerEventListener {
 
     void init();
 

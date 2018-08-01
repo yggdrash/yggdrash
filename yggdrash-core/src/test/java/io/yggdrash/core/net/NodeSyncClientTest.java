@@ -73,7 +73,7 @@ public class NodeSyncClientTest {
     @Test
     public void getPeerYnodeUriTest() {
         NodeSyncClient client = new NodeSyncClient(Peer.valueOf("ynode://75bff16c@localhost:9090"));
-        assertEquals("ynode://75bff16c@localhost:9090", client.getPeerYnodeUri());
+        assertEquals("ynode://75bff16c@localhost:9090", client.getPeer().getYnodeUri());
     }
 
     @Test

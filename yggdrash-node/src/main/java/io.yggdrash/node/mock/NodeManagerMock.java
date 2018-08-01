@@ -68,6 +68,7 @@ public class NodeManagerMock implements NodeManager {
                            NodeProperties.Grpc grpc) {
         this.peerGroup = peerGroup;
         this.messageSender = messageSender;
+        messageSender.setListener(this);
         peer = Peer.valueOf(wallet.getNodeId(), grpc.getHost(), grpc.getPort());
         log.info("ynode uri=" + peer.getYnodeUri());
     }
@@ -289,5 +290,10 @@ public class NodeManagerMock implements NodeManager {
 
     public Wallet getWallet() {
         return wallet;
+    }
+
+    @Override
+    public void disconnected(Peer peer) {
+        removePeer(peer.getYnodeUri());
     }
 }
