@@ -48,6 +48,4 @@ public interface NodeManager extends PeerEventListener {
     List<String> getPeerUriList();
 
     Wallet getWallet();
-
-    Transaction signByNode(Transaction tx);
 }

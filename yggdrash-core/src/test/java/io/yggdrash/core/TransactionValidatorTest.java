@@ -2,21 +2,20 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.InvalidCipherTextException;
+
+import java.io.IOException;
 
 import static org.junit.Assert.assertTrue;
 
 public class TransactionValidatorTest {
-    private static final Logger log = LoggerFactory.getLogger(TransactionValidatorTest.class);
 
     @Test
-    public void txSigValidateTest() {
+    public void txSigValidateTest() throws IOException, InvalidCipherTextException {
         JsonObject json = new JsonObject();
         json.addProperty("id", "1234");
         json.addProperty("method", "run");
-        Transaction tx = new Transaction(json);
-        WalletMock.sign(tx);
+        Transaction tx = new Transaction(new Wallet(), json);
 
         TransactionValidator txValidator = new TransactionValidator();
         assertTrue(txValidator.txSigValidate(tx));

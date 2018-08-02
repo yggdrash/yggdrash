@@ -18,13 +18,15 @@ import static org.junit.Assert.assertEquals;
 public class TransactionTest {
 
     private Transaction tx;
+    private Wallet wallet;
 
     @Before
-    public void setUp() {
+    public void setUp() throws IOException, InvalidCipherTextException {
+        wallet = new Wallet();
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
-        this.tx = new Transaction(json);
-        WalletMock.sign(tx);
+        this.tx = new Transaction(wallet, json);
+
         System.out.println("Before Transaction: " + tx.toString());
         System.out.println("Before Transaction address: " + tx.getHeader().getAddressToString());
         System.out.println("\n");
@@ -57,8 +59,7 @@ public class TransactionTest {
     public void testMakeTransaction() {
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
-        Transaction tx = new Transaction(json);
-        WalletMock.sign(tx);
+        Transaction tx = new Transaction(wallet, json);
 
         System.out.println("Transaction 2: " + tx.toString());
         System.out.println("Transaction 2 address: " + tx.getHeader().getAddressToString());
@@ -72,10 +73,8 @@ public class TransactionTest {
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
 
-        Transaction tx1 = new Transaction(json);
-        WalletMock.sign(tx1);
-        Transaction tx2 = new Transaction(json);
-        WalletMock.sign(tx2);
+        Transaction tx1 = new Transaction(wallet, json);
+        Transaction tx2 = new Transaction(wallet, json);
 
         System.out.println("Test Transaction1: " + tx1.toString());
         System.out.println("Test Transaction1 Address: " + tx1.getHeader().getAddressToString());
@@ -87,17 +86,13 @@ public class TransactionTest {
     }
 
     @Test
-    public void testGetAddressWithWallet()
-            throws IOException, InvalidCipherTextException {
+    public void testGetAddressWithWallet() throws IOException, InvalidCipherTextException {
         Wallet wallet = new Wallet(new DefaultConfig());
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
 
-        Transaction tx1 = new Transaction(json);
-        WalletMock.sign(tx1);
-        Transaction tx2 = new Transaction(json);
-        WalletMock.sign(tx2);
-
+        Transaction tx1 = new Transaction(wallet, json);
+        Transaction tx2 = new Transaction(wallet, json);
 
         System.out.println("Test Transaction1: " + tx1.toString());
         System.out.println("Test Transaction1 Address: " + tx1.getHeader().getAddressToString());
@@ -117,8 +112,7 @@ public class TransactionTest {
     }
 
     @Test
-    public void testGetAddressWithWalletAccount()
-            throws IOException, InvalidCipherTextException {
+    public void testGetAddressWithWalletAccount() throws IOException, InvalidCipherTextException {
         Account account = new Account();
         System.out.println("Account: " + account.toString());
 
@@ -127,10 +121,8 @@ public class TransactionTest {
 
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
-        Transaction tx1 = new Transaction(json);
-        WalletMock.sign(tx1, wallet);
-        Transaction tx2 = new Transaction(json);
-        WalletMock.sign(tx2, wallet);
+        Transaction tx1 = new Transaction(wallet, json);
+        Transaction tx2 = new Transaction(wallet, json);
 
         System.out.println("Test Transaction1: " + tx1.toString());
         System.out.println("Test Transaction1 Address: " + tx1.getHeader().getAddressToString());
