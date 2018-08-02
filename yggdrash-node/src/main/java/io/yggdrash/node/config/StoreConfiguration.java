@@ -65,9 +65,9 @@ public class StoreConfiguration {
     }
 
     @Bean
-    Cache<String, Transaction> txCache() {
+    Cache<String, Transaction> txCache(CacheManager cacheManager) {
         log.debug("=== Create cache for transaction");
-        return cacheManager().createCache("txCache",
+        return cacheManager.createCache("txCache",
                 CacheConfigurationBuilder
                         .newCacheConfigurationBuilder(String.class, Transaction.class,
                                 ResourcePoolsBuilder.heap(10)));

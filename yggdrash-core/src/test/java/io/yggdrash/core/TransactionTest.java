@@ -5,10 +5,10 @@ import com.google.protobuf.ByteString;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.mapper.TransactionMapper;
 import io.yggdrash.proto.BlockChainProto;
+import io.yggdrash.util.SerializeUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.spongycastle.crypto.InvalidCipherTextException;
-import org.springframework.util.SerializationUtils;
 
 import java.io.IOException;
 
@@ -36,12 +36,13 @@ public class TransactionTest {
     }
 
     @Test
-    public void deserializeTransactionFromSerializerTest() {
-        byte[] bytes = SerializationUtils.serialize(tx);
+    public void deserializeTransactionFromSerializerTest() throws IOException,
+            ClassNotFoundException {
+        byte[] bytes = SerializeUtils.convertToBytes(tx);
         ByteString byteString = ByteString.copyFrom(bytes);
         byte[] byteStringBytes = byteString.toByteArray();
         assert bytes.length == byteStringBytes.length;
-        Transaction deserializeTx = (Transaction) SerializationUtils.deserialize(byteStringBytes);
+        Transaction deserializeTx = (Transaction) SerializeUtils.convertFromBytes(byteStringBytes);
         assert tx.getHashString().equals(deserializeTx.getHashString());
     }
 

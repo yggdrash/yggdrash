@@ -21,10 +21,11 @@ import com.google.protobuf.ByteString;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.mapper.BlockMapper;
 import io.yggdrash.proto.BlockChainProto;
+import io.yggdrash.util.SerializeUtils;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.util.SerializationUtils;
 
+import java.io.IOException;
 import java.util.Collections;
 
 public class BlockTest {
@@ -60,13 +61,13 @@ public class BlockTest {
     }
 
     @Test
-    public void deserializeBlockFromSerializerTest() {
-        byte[] bytes = SerializationUtils.serialize(block);
+    public void deserializeBlockFromSerializerTest() throws IOException, ClassNotFoundException {
+        byte[] bytes = SerializeUtils.convertToBytes(block);
         assert bytes != null;
         ByteString byteString = ByteString.copyFrom(bytes);
         byte[] byteStringBytes = byteString.toByteArray();
         assert bytes.length == byteStringBytes.length;
-        Block deserializeBlock = (Block) SerializationUtils.deserialize(byteStringBytes);
+        Block deserializeBlock = (Block) SerializeUtils.convertFromBytes(byteStringBytes);
         assert deserializeBlock != null;
         assert block.getBlockHash().equals(deserializeBlock.getBlockHash());
     }
@@ -77,5 +78,4 @@ public class BlockTest {
         Block deserializeBlock = BlockMapper.protoBlockToBlock(protoBlock);
         assert block.getBlockHash().equals(deserializeBlock.getBlockHash());
     }
-
 }
