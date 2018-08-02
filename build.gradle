@@ -27,6 +27,8 @@ group = 'io.yggdrash'
 version = '0.0.1-SNAPSHOT'
 sourceCompatibility = 1.8
 
+defaultTasks ':yggdrash-node:bootRun'
+
 ext {
     grpcVersion         = '1.12.0'
     levelDBVersion      = '0.10'
@@ -157,6 +159,9 @@ project(':yggdrash-node') {
         name "yggdrash/${bootJar.baseName}"
         files bootJar.archivePath
         buildArgs(['JAR_FILE': "${bootJar.archiveName}"])
+    }
+    bootJar {
+        launchScript()
     }
 }
 
