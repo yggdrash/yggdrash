@@ -1,5 +1,6 @@
 package io.yggdrash.core;
 
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.trie.Trie;
 
 import java.io.IOException;
@@ -26,8 +27,12 @@ public class BlockBody implements Serializable {
         return transactionList;
     }
 
-    public byte[] getMerkleRoot() throws IOException {
-        return Trie.getMerkleRoot(this.transactionList);
+    public byte[] getMerkleRoot() {
+        try {
+            return Trie.getMerkleRoot(this.transactionList);
+        } catch (IOException e) {
+            throw new NotValidateException(e);
+        }
     }
 
     public long getSize() {

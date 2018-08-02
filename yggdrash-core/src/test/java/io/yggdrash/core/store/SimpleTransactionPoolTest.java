@@ -18,25 +18,35 @@ package io.yggdrash.core.store;
 
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.Transaction;
+import org.ehcache.Cache;
+import org.ehcache.CacheManager;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = StoreConfiguration.class)
 public class SimpleTransactionPoolTest {
     public static final Logger log = LoggerFactory.getLogger(SimpleTransactionPoolTest.class);
 
-    @Autowired
-    TransactionPool txPool;
+    private TransactionPool txPool;
+
+    @Before
+    public void setUp() {
+
+        CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder().build(true);
+        Cache<String, Transaction> cache = cacheManager.createCache("txCache",
+                CacheConfigurationBuilder
+                        .newCacheConfigurationBuilder(String.class, Transaction.class,
+                                ResourcePoolsBuilder.heap(10)));
+        txPool = new SimpleTransactionPool(cache);
+    }
 
     @Test
     public void shouldClearPool() throws IOException {

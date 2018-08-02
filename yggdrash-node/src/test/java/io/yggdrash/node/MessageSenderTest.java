@@ -23,6 +23,7 @@ import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.Peer;
+import io.yggdrash.node.mock.WalletMock;
 import org.junit.Before;
 import org.junit.Test;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -41,7 +42,8 @@ public class MessageSenderTest {
         Wallet wallet = new Wallet();
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
-        this.tx = new Transaction(wallet, json);
+        this.tx = new Transaction(json);
+        WalletMock.sign(tx);
         BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
 
         BlockHeader genesisBlockHeader = new BlockHeader.Builder()
@@ -54,13 +56,13 @@ public class MessageSenderTest {
     }
 
     @Test
-    public void syncBlock() throws IOException {
+    public void syncBlock() {
         messageSender.newBlock(block);
         assert messageSender.syncBlock(0).isEmpty();
     }
 
     @Test
-    public void syncTransaction() throws IOException {
+    public void syncTransaction() {
         messageSender.newTransaction(tx);
         assert messageSender.syncTransaction().isEmpty();
     }

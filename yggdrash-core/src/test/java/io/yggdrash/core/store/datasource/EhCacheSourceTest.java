@@ -18,30 +18,35 @@ package io.yggdrash.core.store.datasource;
 
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.store.StoreConfiguration;
 import org.ehcache.Cache;
+import org.ehcache.CacheManager;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
-
-import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(SpringRunner.class)
-@SpringBootTest(classes = {StoreConfiguration.class})
 public class EhCacheSourceTest {
     private static final Logger log = LoggerFactory.getLogger(EhCacheSourceTest.class);
 
-    @Autowired
     Cache<String, Transaction> cache;
 
+    @Before
+    public void setUp() {
+
+        CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder().build(true);
+        this.cache = cacheManager.createCache("txCache",
+                CacheConfigurationBuilder
+                        .newCacheConfigurationBuilder(String.class, Transaction.class,
+                                ResourcePoolsBuilder.heap(10)));
+    }
+
     @Test
-    public void shouldGetTx() throws IOException {
+    public void shouldGetTx() {
         Transaction dummyTx = TestUtils.createDummyTx();
         cache.put(dummyTx.getHashString(), dummyTx);
         Transaction foundTx = cache.get(dummyTx.getHashString());
@@ -49,7 +54,7 @@ public class EhCacheSourceTest {
     }
 
     @Test
-    public void shouldPutTx() throws IOException {
+    public void shouldPutTx() {
         Transaction dummyTx = TestUtils.createDummyTx();
         cache.put(dummyTx.getHashString(), dummyTx);
     }

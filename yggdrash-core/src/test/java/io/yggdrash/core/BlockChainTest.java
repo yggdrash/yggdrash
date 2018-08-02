@@ -52,7 +52,8 @@ public class BlockChainTest {
         Wallet wallet = new Wallet(new DefaultConfig());
 
         // create blockchain with genesis block
-        Transaction tx = new Transaction(wallet, new JsonObject());
+        Transaction tx = new Transaction(new JsonObject());
+        WalletMock.sign(tx);
         BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
         BlockHeader.Builder builder = new BlockHeader.Builder()
                 .blockBody(sampleBody);
@@ -79,7 +80,8 @@ public class BlockChainTest {
     private BlockChain instantBlockchain() throws IOException, InvalidCipherTextException {
         Wallet wallet = new Wallet(new DefaultConfig());
         BlockChain blockChain = new BlockChain();
-        Transaction tx = new Transaction(wallet, new JsonObject());
+        Transaction tx = new Transaction(new JsonObject());
+        WalletMock.sign(tx);
         BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
 
         BlockHeader blockHeader = new BlockHeader.Builder()

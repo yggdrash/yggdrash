@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.mock;
+package io.yggdrash.core.store;
 
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.store.TransactionPool;
 
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class TransactionPoolMock implements TransactionPool {
+public class HashMapTransactionPool implements TransactionPool {
     private final Map<String, Transaction> txs = new ConcurrentHashMap<>();
 
     @Override
@@ -34,7 +32,7 @@ public class TransactionPoolMock implements TransactionPool {
     }
 
     @Override
-    public Transaction put(Transaction tx) throws IOException {
+    public Transaction put(Transaction tx) {
         txs.put(tx.getHashString(), tx);
         return tx;
     }

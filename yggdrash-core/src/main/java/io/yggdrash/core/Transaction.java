@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.util.SerializeUtils;
 
-import java.io.IOException;
 import java.io.Serializable;
 
 public class Transaction implements Serializable {
@@ -35,33 +34,16 @@ public class Transaction implements Serializable {
     /**
      * Transaction Constructor
      *
-     * @param from account for creating transaction
-     * @param data transaction data(Json)
-     */
-    @Deprecated
-    public Transaction(Account from, JsonObject data) throws IOException {
-        // 1. make data
-        this.data = data.toString();
-
-        // 2. make header
-        byte[] bin = SerializeUtils.serialize(data);
-        this.header = new TransactionHeader(from, HashUtil.sha3(bin), bin.length);
-    }
-
-    /**
-     * Transaction Constructor
-     *
-     * @param wallet wallet for creating transaction
      * @param data   transaction data(Json)
      */
-    public Transaction(Wallet wallet, JsonObject data) throws IOException {
+    public Transaction(JsonObject data) {
 
         // 1. make data
         this.data = data.toString();
 
         // 2. make header
         byte[] bin = SerializeUtils.serialize(data);
-        this.header = new TransactionHeader(wallet, HashUtil.sha3(bin), bin.length);
+        this.header = new TransactionHeader(HashUtil.sha3(bin), bin.length);
     }
 
     /**
@@ -70,7 +52,7 @@ public class Transaction implements Serializable {
      * @return transaction hash
      */
     @JsonIgnore
-    public String getHashString() throws IOException {
+    public String getHashString() {
         return this.header.getHashString();
     }
 
@@ -80,7 +62,7 @@ public class Transaction implements Serializable {
      * @return transaction hash
      */
     @JsonIgnore
-    public byte[] getHash() throws IOException {
+    public byte[] getHash() {
         return this.header.getHash();
     }
 
@@ -106,10 +88,7 @@ public class Transaction implements Serializable {
      * print transaction
      */
     public String toString() {
-        StringBuilder buffer = new StringBuilder();
-        buffer.append(this.header.toString());
-        buffer.append("transactionData=").append(this.data);
 
-        return buffer.toString();
+        return header.toString() + "transactionData=" + data;
     }
 }

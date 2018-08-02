@@ -17,7 +17,6 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.NodeManager;
-import io.yggdrash.core.exception.NotValidateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +24,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -54,7 +52,7 @@ class NodeScheduler {
     }
 
     @Scheduled(initialDelay = 1000 * 5, fixedRate = 1000 * BLOCK_MINE_SEC)
-    public void generateBlock() throws IOException, NotValidateException {
+    public void generateBlock() {
         if (nodeQueue.isEmpty()) {
             nodeQueue.addAll(nodeManager.getPeerUriList());
         }

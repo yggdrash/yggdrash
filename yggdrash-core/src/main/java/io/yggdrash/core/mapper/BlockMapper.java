@@ -23,7 +23,6 @@ import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.proto.BlockChainProto;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -38,7 +37,7 @@ public class BlockMapper {
      * @param protoBlock the proto block
      * @return the block
      */
-    public static Block protoBlockToBlock(BlockChainProto.Block protoBlock) throws IOException {
+    public static Block protoBlockToBlock(BlockChainProto.Block protoBlock) {
         BlockBody data = protoBodyToBody(protoBlock.getData());
         BlockHeader header = protoHeaderToHeader(protoBlock.getHeader(), data);
         return new Block(header, data);
@@ -65,7 +64,7 @@ public class BlockMapper {
     }
 
     private static BlockHeader protoHeaderToHeader(BlockChainProto.BlockHeader protoHeader,
-                                                   BlockBody body) throws IOException {
+                                                   BlockBody body) {
         BlockHeader.Builder builder = new BlockHeader.Builder();
         builder.blockBody(body);
         return builder.build(protoHeader.getPrevBlockHash().toByteArray(),
@@ -88,7 +87,7 @@ public class BlockMapper {
                 .setSignature(ByteString.copyFrom(header.getSignature())).build();
     }
 
-    private static BlockBody protoBodyToBody(BlockChainProto.BlockBody data) throws IOException {
+    private static BlockBody protoBodyToBody(BlockChainProto.BlockBody data) {
         List<Transaction> transactionList = new ArrayList<>();
         for (BlockChainProto.Transaction tx : data.getTrasactionsList()) {
             transactionList.add(TransactionMapper.protoTransactionToTransaction(tx));

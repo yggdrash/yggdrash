@@ -21,8 +21,6 @@ import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHeader;
 import io.yggdrash.proto.BlockChainProto;
 
-import java.io.IOException;
-
 /**
  * The Mapper for the transaction and proto transaction.
  */
@@ -35,7 +33,7 @@ public class TransactionMapper {
      * @return the transaction
      */
     public static Transaction protoTransactionToTransaction(
-            BlockChainProto.Transaction protoTx) throws IOException {
+            BlockChainProto.Transaction protoTx) {
         TransactionHeader header = protoHeaderToHeader(protoTx.getHeader());
         return new Transaction(header, protoTx.getData());
     }
@@ -53,7 +51,7 @@ public class TransactionMapper {
     }
 
     private static TransactionHeader protoHeaderToHeader(
-            BlockChainProto.TransactionHeader protoHeader) throws IOException {
+            BlockChainProto.TransactionHeader protoHeader) {
         TransactionHeader header = new TransactionHeader(protoHeader.getDataHash().toByteArray(),
                 protoHeader.getDataSize());
         header.setTimestamp(protoHeader.getTimestamp());

@@ -21,7 +21,6 @@ import org.ehcache.Cache;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
@@ -30,7 +29,7 @@ public class SimpleTransactionPool implements TransactionPool {
 
     private final Cache<String, Transaction> cache;
 
-    SimpleTransactionPool(Cache<String, Transaction> cache) {
+    public SimpleTransactionPool(Cache<String, Transaction> cache) {
         this.cache = cache;
     }
 
@@ -40,7 +39,7 @@ public class SimpleTransactionPool implements TransactionPool {
     }
 
     @Override
-    public Transaction put(Transaction tx) throws IOException {
+    public Transaction put(Transaction tx) {
         cache.put(tx.getHashString(), tx);
         return tx;
     }
