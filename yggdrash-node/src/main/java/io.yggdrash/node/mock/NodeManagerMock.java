@@ -73,6 +73,7 @@ public class NodeManagerMock implements NodeManager {
                            NodeProperties.Grpc grpc) {
         this.peerGroup = peerGroup;
         this.messageSender = messageSender;
+        messageSender.setListener(this);
         peer = Peer.valueOf(wallet.getNodeId(), grpc.getHost(), grpc.getPort());
         log.info("ynode uri=" + peer.getYnodeUri());
     }
@@ -159,7 +160,6 @@ public class NodeManagerMock implements NodeManager {
             blockChain.addBlock(block);
             newBlock = block;
         }
-        messageSender.newBlock(block);
         removeTxByBlock(block);
         return newBlock;
     }
@@ -187,9 +187,9 @@ public class NodeManagerMock implements NodeManager {
             return;
         }
         Peer peer = addPeerByYnodeUri(ynodeUri);
-        addActivePeer(peer);
         List<String> peerList = messageSender.broadcastPeerConnect(ynodeUri);
         addPeerByYnodeUri(peerList);
+        addActivePeer(peer);
     }
 
     @Override
@@ -248,6 +248,7 @@ public class NodeManagerMock implements NodeManager {
                 NodeSyncClient client = new NodeSyncClient(peer);
                 // TODO validation peer(encrypting msg by privateKey and signing by publicKey ...)
                 List<String> peerList = client.requestPeerList(getNodeUri(), 0);
+                client.stop();
                 addPeerByYnodeUri(peerList);
             } catch (Exception e) {
                 log.warn("ynode={}, error={}", ynodeUri, e.getMessage());
@@ -298,5 +299,10 @@ public class NodeManagerMock implements NodeManager {
 
     public Wallet getWallet() {
         return wallet;
+    }
+
+    @Override
+    public void disconnected(Peer peer) {
+        removePeer(peer.getYnodeUri());
     }
 }

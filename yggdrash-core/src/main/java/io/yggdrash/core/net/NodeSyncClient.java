@@ -40,8 +40,9 @@ public class NodeSyncClient {
     public static final Logger log = LoggerFactory.getLogger(NodeSyncClient.class);
 
     private final ManagedChannel channel;
-    private final PingPongGrpc.PingPongBlockingStub blockingStub;
-    private final BlockChainGrpc.BlockChainStub asyncStub;
+    private final PingPongGrpc.PingPongBlockingStub blockingPingPongStub;
+    private final BlockChainGrpc.BlockChainBlockingStub blockingBlockChainStub;
+    private final BlockChainGrpc.BlockChainStub asyncBlockChainStub;
     private final Peer peer;
 
     public NodeSyncClient(Peer peer) {
@@ -53,16 +54,17 @@ public class NodeSyncClient {
     NodeSyncClient(ManagedChannel channel, Peer peer) {
         this.channel = channel;
         this.peer = peer;
-        blockingStub = PingPongGrpc.newBlockingStub(channel);
-        asyncStub = BlockChainGrpc.newStub(channel);
+        blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);
+        blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
+        asyncBlockChainStub = BlockChainGrpc.newStub(channel);
     }
 
-    String getPeerYnodeUri() {
-        return peer.getYnodeUri();
+    public Peer getPeer() {
+        return peer;
     }
 
     public void stop() {
-        log.debug("stop for peer=" + peer.getYnodeUri());
+        log.debug("Stop for peer=" + peer.getYnodeUri());
         if (channel != null) {
             channel.shutdown();
         }
@@ -81,7 +83,7 @@ public class NodeSyncClient {
 
     public Pong ping(String message) {
         Ping request = Ping.newBuilder().setPing(message).build();
-        return blockingStub.play(request);
+        return blockingPingPongStub.play(request);
     }
 
     /**
@@ -92,7 +94,7 @@ public class NodeSyncClient {
      */
     public List<BlockChainProto.Block> syncBlock(long offset) {
         SyncLimit syncLimit = SyncLimit.newBuilder().setOffset(offset).build();
-        return BlockChainGrpc.newBlockingStub(channel).syncBlock(syncLimit).getBlocksList();
+        return blockingBlockChainStub.syncBlock(syncLimit).getBlocksList();
     }
 
     /**
@@ -101,17 +103,17 @@ public class NodeSyncClient {
      * @return the transaction list
      */
     public List<BlockChainProto.Transaction> syncTransaction() {
-        Empty empty = Empty.newBuilder().build();
-        return BlockChainGrpc.newBlockingStub(channel).syncTransaction(empty).getTransactionsList();
+        Empty empty = Empty.getDefaultInstance();
+        return blockingBlockChainStub.syncTransaction(empty).getTransactionsList();
     }
 
     public void broadcastTransaction(BlockChainProto.Transaction[] txs) {
         log.info("*** Broadcasting tx...");
         StreamObserver<BlockChainProto.Transaction> requestObserver =
-                asyncStub.broadcastTransaction(new StreamObserver<BlockChainProto.Transaction>() {
+                asyncBlockChainStub.broadcastTransaction(new StreamObserver<Empty>() {
                     @Override
-                    public void onNext(BlockChainProto.Transaction tx) {
-                        log.trace("Got transaction: {}", tx);
+                    public void onNext(BlockChainProto.Empty empty) {
+                        log.trace("Got response");
                     }
 
                     @Override
@@ -122,7 +124,7 @@ public class NodeSyncClient {
 
                     @Override
                     public void onCompleted() {
-                        log.info("Finished broadcasting");
+                        log.trace("Finished broadcasting");
                     }
                 });
 
@@ -137,10 +139,10 @@ public class NodeSyncClient {
     public void broadcastBlock(BlockChainProto.Block[] blocks) {
         log.info("*** Broadcasting blocks...");
         StreamObserver<BlockChainProto.Block> requestObserver =
-                asyncStub.broadcastBlock(new StreamObserver<BlockChainProto.Block>() {
+                asyncBlockChainStub.broadcastBlock(new StreamObserver<BlockChainProto.Empty>() {
                     @Override
-                    public void onNext(BlockChainProto.Block block) {
-                        log.trace("Got block: {}", block);
+                    public void onNext(BlockChainProto.Empty empty) {
+                        log.trace("Got response");
                     }
 
                     @Override
@@ -150,7 +152,7 @@ public class NodeSyncClient {
 
                     @Override
                     public void onCompleted() {
-                        log.info("Finished broadcasting");
+                        log.trace("Finished broadcasting");
                     }
                 });
 
@@ -169,7 +171,7 @@ public class NodeSyncClient {
         }
         BlockChainProto.PeerRequest request = BlockChainProto.PeerRequest.newBuilder()
                 .setFrom(ynodeUri).setLimit(limit).build();
-        return BlockChainGrpc.newBlockingStub(channel).requestPeerList(request).getPeersList();
+        return blockingBlockChainStub.requestPeerList(request).getPeersList();
     }
 
     public void disconnectPeer(String ynodeUri) {
@@ -180,6 +182,6 @@ public class NodeSyncClient {
         log.info("Disconnect request peer=" + ynodeUri);
         BlockChainProto.PeerRequest request = BlockChainProto.PeerRequest.newBuilder()
                 .setFrom(ynodeUri).build();
-        BlockChainGrpc.newBlockingStub(channel).disconnectPeer(request);
+        blockingBlockChainStub.disconnectPeer(request);
     }
 }
