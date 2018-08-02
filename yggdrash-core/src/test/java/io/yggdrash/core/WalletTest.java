@@ -22,9 +22,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
 
+import static io.yggdrash.config.Constants.PROPERTY_KEYPATH;
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
@@ -303,4 +305,23 @@ public class WalletTest {
         assertTrue(verifyResult);
     }
 
+    @Test
+    public void testWalletAndConfig() throws IOException, InvalidCipherTextException {
+        DefaultConfig config = new DefaultConfig();
+
+        Wallet wallet = new Wallet(config);
+
+        Path path = Paths.get(config.getConfig().getString(PROPERTY_KEYPATH));
+        String keyPath = path.getParent().toString();
+        String keyName = path.getFileName().toString();
+
+        System.out.println("walletKeyPath: " + wallet.getKeyPath());
+        System.out.println("walletKeyName: " + wallet.getKeyName());
+
+        System.out.println("configKeyPath: " + keyPath);
+        System.out.println("configKeyName: " + keyName);
+
+        assertEquals(wallet.getKeyPath(), keyPath);
+        assertEquals(wallet.getKeyName(), keyName);
+    }
 }

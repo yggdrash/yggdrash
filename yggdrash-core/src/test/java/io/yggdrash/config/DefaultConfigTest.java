@@ -28,6 +28,14 @@ public class DefaultConfigTest {
         System.out.println("DefaultConfig java.version: "
                 + defaultConfig.getConfig().getString("java.version"));
 
+        assertThat(defaultConfig.getConfig().getString("node.name"), containsString("yggdrash"));
+        System.out.println("DefaultConfig node.name: "
+                + defaultConfig.getConfig().getString("node.name"));
+
+        assertThat(defaultConfig.getConfig().getString("network.port"), containsString("31212"));
+        System.out.println("DefaultConfig network.port: "
+                + defaultConfig.getConfig().getString("network.port"));
+
     }
 
     /**

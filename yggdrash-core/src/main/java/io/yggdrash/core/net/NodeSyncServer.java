@@ -33,7 +33,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.security.SignatureException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,8 +40,9 @@ import java.util.stream.Collectors;
 
 public class NodeSyncServer {
     private static final Logger log = LoggerFactory.getLogger(NodeSyncServer.class);
-    private final NodeManager nodeManager;
+    private static final BlockChainProto.Empty EMPTY = BlockChainProto.Empty.getDefaultInstance();
     private Server server;
+    private final NodeManager nodeManager;
 
     public NodeSyncServer(NodeManager nodeManager) {
         this.nodeManager = nodeManager;
@@ -82,7 +82,7 @@ public class NodeSyncServer {
     static class PingPongImpl extends PingPongGrpc.PingPongImplBase {
         @Override
         public void play(Ping request, StreamObserver<Pong> responseObserver) {
-            log.debug("request=" + request.getPing());
+            log.debug("Received " + request.getPing());
             Pong pong = Pong.newBuilder().setPong("Pong").build();
             responseObserver.onNext(pong);
             responseObserver.onCompleted();
@@ -93,9 +93,9 @@ public class NodeSyncServer {
      * The block chain rpc server implementation.
      */
     static class BlockChainImpl extends BlockChainGrpc.BlockChainImplBase {
-        private static final Set<StreamObserver<BlockChainProto.Transaction>> txObservers =
+        private static final Set<StreamObserver<BlockChainProto.Empty>> txObservers =
                 ConcurrentHashMap.newKeySet();
-        private static final Set<StreamObserver<BlockChainProto.Block>> blockObservers =
+        private static final Set<StreamObserver<BlockChainProto.Empty>> blockObservers =
                 ConcurrentHashMap.newKeySet();
         private final NodeManager nodeManager;
 
@@ -183,36 +183,30 @@ public class NodeSyncServer {
         public void disconnectPeer(BlockChainProto.PeerRequest peerRequest,
                                    StreamObserver<BlockChainProto.Empty> responseObserver) {
             log.debug("Received disconnect for=" + peerRequest.getFrom());
-            responseObserver.onNext(BlockChainProto.Empty.newBuilder().build());
+            responseObserver.onNext(EMPTY);
             responseObserver.onCompleted();
             nodeManager.removePeer(peerRequest.getFrom());
         }
 
         @Override
         public StreamObserver<BlockChainProto.Transaction> broadcastTransaction(
-                StreamObserver<BlockChainProto.Transaction> responseObserver) {
+                StreamObserver<BlockChainProto.Empty> responseObserver) {
 
             txObservers.add(responseObserver);
 
             return new StreamObserver<BlockChainProto.Transaction>() {
                 @Override
-                public void onNext(BlockChainProto.Transaction tx) {
-                    log.debug("Received transaction: {}", tx);
-                    Transaction newTransaction = null;
-                    try {
-                        Transaction transaction
-                                = TransactionMapper.protoTransactionToTransaction(tx);
-                        newTransaction = nodeManager.addTransaction(transaction);
-                    } catch (SignatureException | IOException e) {
-                        log.error(e.getMessage(), e);
-                    }
+                public void onNext(BlockChainProto.Transaction protoTx) {
+                    log.debug("Received transaction: {}", protoTx);
+                    Transaction tx = TransactionMapper.protoTransactionToTransaction(protoTx);
+                    Transaction newTx = nodeManager.addTransaction(tx);
                     // ignore broadcast by other node's broadcast
-                    if (newTransaction == null) {
+                    if (newTx == null) {
                         return;
                     }
 
-                    for (StreamObserver<BlockChainProto.Transaction> observer : txObservers) {
-                        observer.onNext(tx);
+                    for (StreamObserver<BlockChainProto.Empty> observer : txObservers) {
+                        observer.onNext(EMPTY);
                     }
                 }
 
@@ -233,7 +227,7 @@ public class NodeSyncServer {
 
         @Override
         public StreamObserver<BlockChainProto.Block> broadcastBlock(
-                StreamObserver<BlockChainProto.Block> responseObserver) {
+                StreamObserver<BlockChainProto.Empty> responseObserver) {
 
             blockObservers.add(responseObserver);
 
@@ -241,21 +235,16 @@ public class NodeSyncServer {
                 @Override
                 public void onNext(BlockChainProto.Block protoBlock) {
                     long id = protoBlock.getHeader().getIndex();
-                    Block newBlock = null;
-                    try {
-                        Block block = BlockMapper.protoBlockToBlock(protoBlock);
-                        log.debug("Received block id=[{}], hash={}", id, block.getBlockHash());
-                        newBlock = nodeManager.addBlock(block);
-                    } catch (Exception e) {
-                        log.error(e.getMessage(), e);
-                    }
+                    Block block = BlockMapper.protoBlockToBlock(protoBlock);
+                    log.debug("Received block id=[{}], hash={}", id, block.getBlockHash());
+                    Block newBlock = nodeManager.addBlock(block);
                     // ignore broadcast by other node's broadcast
                     if (newBlock == null) {
                         return;
                     }
 
-                    for (StreamObserver<BlockChainProto.Block> observer : blockObservers) {
-                        observer.onNext(protoBlock);
+                    for (StreamObserver<BlockChainProto.Empty> observer : blockObservers) {
+                        observer.onNext(EMPTY);
                     }
                 }
 

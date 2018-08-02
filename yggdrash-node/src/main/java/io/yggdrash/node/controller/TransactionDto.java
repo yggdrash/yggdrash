@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -17,31 +17,21 @@
 package io.yggdrash.node.controller;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.Wallet;
-import io.yggdrash.node.config.NodeProperties;
-import io.yggdrash.node.mock.NodeManagerMock;
-
-import java.io.IOException;
-import java.security.SignatureException;
 
 public class TransactionDto {
-    private static final NodeManager nodeManager = new NodeManagerMock(null, null,
-            new NodeProperties.Grpc());
+
     private String from;
     private String txHash;
     private String data;
 
-    public static Transaction of(TransactionDto transactionDto) throws IOException {
-        Wallet wallet = nodeManager.getWallet();
+    public static Transaction of(TransactionDto transactionDto) {
         JsonObject jsonData = new JsonObject();
         jsonData.addProperty("data", transactionDto.getData());
-        return new Transaction(wallet, jsonData);
+        return new Transaction(jsonData);
     }
 
-    public static TransactionDto createBy(Transaction tx)
-            throws IOException, SignatureException {
+    public static TransactionDto createBy(Transaction tx) {
         TransactionDto transactionDto = new TransactionDto();
         transactionDto.setFrom(tx.getHeader().getAddressToString());
         transactionDto.setData(tx.getData());

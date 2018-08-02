@@ -14,32 +14,27 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.mock;
+package io.yggdrash.node;
 
-import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Block;
+import io.yggdrash.core.BlockBuilder;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionManager;
 import io.yggdrash.core.TransactionValidator;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.net.NodeSyncClient;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
-import io.yggdrash.node.BlockBuilder;
-import io.yggdrash.node.MessageSender;
 import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.node.exception.FailedOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.InvalidCipherTextException;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
-import java.io.IOException;
-import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -47,49 +42,66 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-public class NodeManagerMock implements NodeManager {
+@Service
+public class NodeManagerImpl implements NodeManager {
     private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
 
-    private final BlockBuilder blockBuilder = new BlockBuilderMock(this);
+    private BlockBuilder blockBuilder;
 
-    private final BlockChain blockChain = new BlockChain();
+    private BlockChain blockChain;
 
-    private final TransactionManager txManager = new TransactionManager(
-            new HashMapDbSource(), new TransactionPoolMock());
+    private TransactionManager txManager;
 
-    private final TransactionValidator txValidator = new TransactionValidator();
+    private TransactionValidator txValidator;
 
-    private final DefaultConfig defaultConfig = new DefaultConfig();
+    private NodeProperties nodeProperties;
 
-    private final Wallet wallet = readWallet();
+    private Wallet wallet;
 
-    private final PeerGroup peerGroup;
+    private PeerGroup peerGroup;
 
-    private final Peer peer;
+    private Peer peer;
 
-    private final MessageSender messageSender;
+    private MessageSender messageSender;
 
-    public NodeManagerMock(MessageSender messageSender, PeerGroup peerGroup,
-                           NodeProperties.Grpc grpc) {
-        this.peerGroup = peerGroup;
-        this.messageSender = messageSender;
-        peer = Peer.valueOf(wallet.getNodeId(), grpc.getHost(), grpc.getPort());
-        log.info("ynode uri=" + peer.getYnodeUri());
+    @Autowired
+    public void setNodeProperties(NodeProperties nodeProperties) {
+        this.nodeProperties = nodeProperties;
     }
 
-    private Wallet readWallet() {
-        Wallet wallet = null;
+    @Autowired
+    public void setBlockBuilder(BlockBuilder blockBuilder) {
+        this.blockBuilder = blockBuilder;
+    }
 
-        try {
-            wallet = new Wallet(this.defaultConfig);
-            log.debug("NodeManagerMock wallet = " + wallet.toString());
-        } catch (IOException e) {
-            log.error("Error IOException");
-        } catch (InvalidCipherTextException ice) {
-            log.error("Error InvalidCipherTextException");
-        }
+    @Autowired
+    public void setBlockChain(BlockChain blockChain) {
+        this.blockChain = blockChain;
+    }
 
-        return wallet;
+    @Autowired
+    public void setTxManager(TransactionManager txManager) {
+        this.txManager = txManager;
+    }
+
+    @Autowired
+    public void setTxValidator(TransactionValidator txValidator) {
+        this.txValidator = txValidator;
+    }
+
+    @Autowired
+    public void setWallet(Wallet wallet) {
+        this.wallet = wallet;
+    }
+
+    @Autowired
+    public void setPeerGroup(PeerGroup peerGroup) {
+        this.peerGroup = peerGroup;
+    }
+
+    @Autowired
+    public void setMessageSender(MessageSender messageSender) {
+        this.messageSender = messageSender;
     }
 
     @PreDestroy
@@ -100,12 +112,16 @@ public class NodeManagerMock implements NodeManager {
 
     @Override
     public void init() {
+        NodeProperties.Grpc grpc = nodeProperties.getGrpc();
+        messageSender.setListener(this);
+        peer = Peer.valueOf(wallet.getNodeId(), grpc.getHost(), grpc.getPort());
         requestPeerList();
         activatePeers();
         if (!peerGroup.isEmpty()) {
             syncBlockAndTransaction();
         }
-        peerGroup.addPeer(peer); // add me
+        peerGroup.addPeer(peer);
+        log.info("Init node=" + peer.getYnodeUri());
     }
 
     @Override
@@ -114,7 +130,7 @@ public class NodeManagerMock implements NodeManager {
     }
 
     @Override
-    public Transaction addTransaction(Transaction tx) throws IOException,SignatureException {
+    public Transaction addTransaction(Transaction tx) {
 
         if (txValidator.txSigValidate(tx)) {
             Transaction newTx = txManager.put(tx);
@@ -135,7 +151,7 @@ public class NodeManagerMock implements NodeManager {
     }
 
     @Override
-    public Block generateBlock() throws IOException, NotValidateException {
+    public Block generateBlock() {
         Block block =
                 blockBuilder.build(
                         this.wallet,
@@ -150,7 +166,7 @@ public class NodeManagerMock implements NodeManager {
     }
 
     @Override
-    public Block addBlock(Block block) throws IOException, NotValidateException {
+    public Block addBlock(Block block) {
         Block newBlock = null;
         if (blockChain.isGenesisBlockChain() && block.getIndex() == 0) {
             blockChain.addBlock(block);
@@ -159,7 +175,6 @@ public class NodeManagerMock implements NodeManager {
             blockChain.addBlock(block);
             newBlock = block;
         }
-        messageSender.newBlock(block);
         removeTxByBlock(block);
         return newBlock;
     }
@@ -187,9 +202,9 @@ public class NodeManagerMock implements NodeManager {
             return;
         }
         Peer peer = addPeerByYnodeUri(ynodeUri);
-        addActivePeer(peer);
         List<String> peerList = messageSender.broadcastPeerConnect(ynodeUri);
         addPeerByYnodeUri(peerList);
+        addActivePeer(peer);
     }
 
     @Override
@@ -248,6 +263,7 @@ public class NodeManagerMock implements NodeManager {
                 NodeSyncClient client = new NodeSyncClient(peer);
                 // TODO validation peer(encrypting msg by privateKey and signing by publicKey ...)
                 List<String> peerList = client.requestPeerList(getNodeUri(), 0);
+                client.stop();
                 addPeerByYnodeUri(peerList);
             } catch (Exception e) {
                 log.warn("ynode={}, error={}", ynodeUri, e.getMessage());
@@ -270,7 +286,7 @@ public class NodeManagerMock implements NodeManager {
         }
     }
 
-    private void removeTxByBlock(Block block) throws IOException {
+    private void removeTxByBlock(Block block) {
         if (block == null || block.getData().getTransactionList() == null) {
             return;
         }
@@ -292,11 +308,20 @@ public class NodeManagerMock implements NodeManager {
         return true;
     }
 
-    public DefaultConfig getDefaultConfig() {
-        return defaultConfig;
-    }
-
     public Wallet getWallet() {
         return wallet;
+    }
+
+    @Override
+    public Transaction signByNode(Transaction tx) {
+        byte[] data = tx.getHeader().getDataHashForSigning();
+        byte[] signed = wallet.signHashedData(data);
+        tx.getHeader().setSignature(signed);
+        return tx;
+    }
+
+    @Override
+    public void disconnected(Peer peer) {
+        removePeer(peer.getYnodeUri());
     }
 }

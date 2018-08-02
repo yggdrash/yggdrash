@@ -17,14 +17,12 @@
 package io.yggdrash.node.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.yggdrash.node.TestConfig;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.IfProfileValue;
@@ -41,7 +39,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(BlockController.class)
-@Import(TestConfig.class)
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
 public class BlockControllerTest {
     @Autowired

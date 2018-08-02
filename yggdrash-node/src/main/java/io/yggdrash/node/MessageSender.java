@@ -18,6 +18,7 @@ package io.yggdrash.node;
 
 import io.yggdrash.core.Block;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.event.PeerEventListener;
 import io.yggdrash.core.mapper.BlockMapper;
 import io.yggdrash.core.mapper.TransactionMapper;
 import io.yggdrash.core.net.NodeSyncClient;
@@ -28,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -41,12 +41,31 @@ public class MessageSender {
 
     private final Map<String, NodeSyncClient> peerChannel = new ConcurrentHashMap<>();
 
+    private PeerEventListener listener;
+
+    public void setListener(PeerEventListener listener) {
+        this.listener = listener;
+    }
+
     public void destroy(String ynodeUri) {
         peerChannel.values().forEach(client -> client.stop(ynodeUri));
     }
 
     void ping() {
-        peerChannel.values().forEach(client -> client.ping("Ping"));
+        List<NodeSyncClient> peerChannelList = new ArrayList<>(peerChannel.values());
+        for (NodeSyncClient client : peerChannelList) {
+            try {
+                Pong pong = client.ping("Ping");
+                if (pong.getPong().equals("Pong")) {
+                    continue;
+                }
+            } catch (Exception e) {
+                log.warn("Health check fail. peer=" + client.getPeer().getYnodeUri());
+            }
+            peerChannel.remove(client.getPeer().getYnodeUri());
+            client.stop();
+            listener.disconnected(client.getPeer());
+        }
     }
 
     public void newTransaction(Transaction tx) {
@@ -122,7 +141,7 @@ public class MessageSender {
      * @param offset the offset
      * @return the block list
      */
-    public List<Block> syncBlock(long offset) throws IOException {
+    public List<Block> syncBlock(long offset) {
         if (peerChannel.isEmpty()) {
             log.warn("Active peer is empty to sync block");
             return Collections.emptyList();
@@ -144,7 +163,7 @@ public class MessageSender {
      *
      * @return the transaction list
      */
-    public List<Transaction> syncTransaction() throws IOException {
+    public List<Transaction> syncTransaction() {
         if (peerChannel.isEmpty()) {
             log.warn("Active peer is empty to sync transaction");
             return Collections.emptyList();

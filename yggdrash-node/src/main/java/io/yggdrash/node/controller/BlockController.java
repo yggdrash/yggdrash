@@ -19,6 +19,7 @@ package io.yggdrash.node.controller;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.exception.NotValidateException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -35,6 +36,7 @@ class BlockController {
 
     private final NodeManager nodeManager;
 
+    @Autowired
     public BlockController(NodeManager nodeManager) {
         this.nodeManager = nodeManager;
     }

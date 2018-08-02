@@ -28,6 +28,7 @@ import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Account;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.Wallet;
+import io.yggdrash.core.WalletMock;
 import io.yggdrash.crypto.ECKey.ECDSASignature;
 import io.yggdrash.crypto.jce.SpongyCastleProvider;
 import org.junit.Assert;
@@ -243,7 +244,7 @@ public class ECKeyTest {
     }
 
     @Test
-    public void testVerifySignature3() throws SignatureException, IOException {
+    public void testVerifySignature3() throws SignatureException {
 
         // create account with set privateKey
         // create tx data(test)
@@ -251,7 +252,8 @@ public class ECKeyTest {
         data.addProperty("balance", "10");
 
         // create tx
-        Transaction tx = new Transaction(wallet, data);
+        Transaction tx = new Transaction(data);
+        WalletMock.sign(tx);
 
         // get the sig & key(pub)
         byte[] messageHash = tx.getHeader().getDataHashForSigning();
@@ -311,12 +313,13 @@ public class ECKeyTest {
 
 
     @Test
-    public void testVerifySignature7() throws SignatureException, IOException {
+    public void testVerifySignature7() throws SignatureException {
 
         // create tx
         JsonObject data = new JsonObject();
         data.addProperty("balance", "10");
-        Transaction tx = new Transaction(wallet, data);
+        Transaction tx = new Transaction(data);
+        WalletMock.sign(tx);
 
         // get the sig & key(pub)
         byte[] messageHash = tx.getHeader().getDataHashForSigning();
@@ -336,7 +339,7 @@ public class ECKeyTest {
     }
 
     @Test
-    public void testGetAddressFromSignature() throws SignatureException, IOException {
+    public void testGetAddressFromSignature() throws SignatureException {
         // create account with privateKey
         Account account = new Account(ECKey.fromPrivate(privateKey));
         System.out.println("Account: " + account.toString());
@@ -351,7 +354,9 @@ public class ECKeyTest {
         JsonObject data = new JsonObject();
         data.addProperty("balance", "10");
 
-        Transaction tx = new Transaction(wallet, data);
+        Transaction tx = new Transaction(data);
+        WalletMock.sign(tx);
+
         System.out.println("tx: " + tx.toString());
 
         assertArrayEquals(key.getAddress(), tx.getHeader().getAddress());
@@ -523,15 +528,6 @@ public class ECKeyTest {
         assertEquals(key1, key1);
         assertEquals(key1, key2);
     }
-
-    /*
-    @Test
-    public void decryptAECSIC() {
-        ECKey key = ECKey.fromPrivate(Hex.decode("abb51256c1324a1350598653f46aa3ad693ac3cf5d05f36eba3f495a1f51590f"));
-        byte[] payload = key.decryptAES(Hex.decode("84a727bc81fa4b13947dc9728b88fd08"));
-        System.out.println(Hex.toHexString(payload));
-    }
-    */
 
     @Test
     public void testNodeId() {

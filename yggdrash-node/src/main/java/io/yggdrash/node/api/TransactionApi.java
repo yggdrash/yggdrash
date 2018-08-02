@@ -5,10 +5,10 @@ import com.googlecode.jsonrpc4j.JsonRpcErrors;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.node.exception.FailedOperationException;
 import io.yggdrash.node.exception.NonExistObjectException;
 import io.yggdrash.node.exception.RejectedAccessException;
-import io.yggdrash.node.mock.TransactionReceiptMock;
 
 import java.io.IOException;
 import java.security.SignatureException;
@@ -26,7 +26,7 @@ public interface TransactionApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                          code = NonExistObjectException.code)})
+                    code = NonExistObjectException.code)})
     int getTransactionCount(
             @JsonRpcParam(value = "address") String address,
             @JsonRpcParam(value = "tag") String tag);
@@ -39,7 +39,7 @@ public interface TransactionApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                          code = NonExistObjectException.code)})
+                    code = NonExistObjectException.code)})
     int getTransactionCount(
             @JsonRpcParam(value = "address") String address,
             @JsonRpcParam(value = "blockNumber") int blockNumber);
@@ -51,7 +51,7 @@ public interface TransactionApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                          code = NonExistObjectException.code)})
+                    code = NonExistObjectException.code)})
     int getBlockTransactionCountByHash(
             @JsonRpcParam(value = "hashOfBlock") String hashOfBlock);
 
@@ -62,7 +62,7 @@ public interface TransactionApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                          code = NonExistObjectException.code)})
+                    code = NonExistObjectException.code)})
     int getBlockTransactionCountByNumber(
             @JsonRpcParam(value = "blockNumber") int blockNumber);
 
@@ -73,7 +73,7 @@ public interface TransactionApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                          code = NonExistObjectException.code)})
+                    code = NonExistObjectException.code)})
     int getBlockTransactionCountByNumber(
             @JsonRpcParam(value = "tag") String tag);
 
@@ -84,7 +84,7 @@ public interface TransactionApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                          code = NonExistObjectException.code)})
+                    code = NonExistObjectException.code)})
     Transaction getTransactionByHash(
             @JsonRpcParam(value = "hashOfTx") String hashOfTx) throws IOException;
 
@@ -96,7 +96,7 @@ public interface TransactionApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                          code = NonExistObjectException.code)})
+                    code = NonExistObjectException.code)})
     Transaction getTransactionByBlockHashAndIndex(
             @JsonRpcParam(value = "hashOfBlock") String hashOfBlock,
             @JsonRpcParam(value = "txIndexPosition") int txIndexPosition) throws IOException;
@@ -109,7 +109,7 @@ public interface TransactionApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                          code = NonExistObjectException.code)})
+                    code = NonExistObjectException.code)})
     Transaction getTransactionByBlockNumberAndIndex(
             @JsonRpcParam(value = "blockNumber") int blockNumber,
             @JsonRpcParam(value = "txIndexPosition") int txIndexPosition) throws IOException;
@@ -122,7 +122,7 @@ public interface TransactionApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                          code = NonExistObjectException.code)})
+                    code = NonExistObjectException.code)})
     Transaction getTransactionByBlockNumberAndIndex(
             @JsonRpcParam(value = "tag") String tag,
             @JsonRpcParam(value = "txIndexPosition") int txIndexPosition) throws IOException;
@@ -134,8 +134,8 @@ public interface TransactionApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = FailedOperationException.class,
-                          code = FailedOperationException.code)})
-    TransactionReceiptMock getTransactionReceipt(
+                    code = FailedOperationException.code)})
+    TransactionReceipt getTransactionReceipt(
             @JsonRpcParam(value = "hashOfTx") String hashOfTx);
 
     /* send */
@@ -148,9 +148,9 @@ public interface TransactionApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = FailedOperationException.class,
-                          code = FailedOperationException.code)})
+                    code = FailedOperationException.code)})
     String sendTransaction(
-            @JsonRpcParam(value = "tx") Transaction tx) throws IOException,SignatureException;
+            @JsonRpcParam(value = "tx") Transaction tx) throws IOException, SignatureException;
 
     /**
      * Creates new message call transaction or a contract creation for signed transactions.
@@ -159,15 +159,15 @@ public interface TransactionApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = FailedOperationException.class,
-                          code = FailedOperationException.code)})
+                    code = FailedOperationException.code)})
     byte[] sendRawTransaction(
-            @JsonRpcParam(value = "rawTx") byte[] rawTx) throws IOException,SignatureException;
+            @JsonRpcParam(value = "rawTx") byte[] rawTx) throws IOException, SignatureException;
 
     /**
      * Creates a filter in the node, to notify when new pending transactions arrive.
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = RejectedAccessException.class,
-                          code = RejectedAccessException.code)})
+                    code = RejectedAccessException.code)})
     int newPendingTransactionFilter();
 }
