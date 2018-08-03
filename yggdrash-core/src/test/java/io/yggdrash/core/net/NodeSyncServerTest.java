@@ -26,7 +26,6 @@ import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.WalletMock;
 import io.yggdrash.core.mapper.BlockMapper;
 import io.yggdrash.core.mapper.TransactionMapper;
 import io.yggdrash.core.net.NodeSyncServer.BlockChainImpl;
@@ -71,8 +70,7 @@ public class NodeSyncServerTest {
         Wallet wallet = new Wallet();
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
-        this.tx = new Transaction(json);
-        WalletMock.sign(tx);
+        this.tx = new Transaction(wallet, json);
         when(nodeManagerMock.addTransaction(any())).thenReturn(tx);
 
         BlockBody body = new BlockBody(Collections.singletonList(tx));

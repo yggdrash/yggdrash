@@ -7,8 +7,10 @@ import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.Wallet;
 import io.yggdrash.node.exception.InternalErrorException;
 import io.yggdrash.node.exception.NonExistObjectException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -20,6 +22,7 @@ public class BlockApiImpl implements BlockApi {
 
     private final NodeManager nodeManager;
 
+    @Autowired
     public BlockApiImpl(NodeManager nodeManager) {
         this.nodeManager = nodeManager;
     }
@@ -82,14 +85,15 @@ public class BlockApiImpl implements BlockApi {
         txObj3.addProperty("to", "0xA0A2fceBF3f3cc182eCfcbB65042Af0fB43dd864");
         txObj3.addProperty("value", 50);
 
-        Transaction tx1 = new Transaction(txObj1);
-        Transaction tx2 = new Transaction(txObj2);
-        Transaction tx3 = new Transaction(txObj3);
+        Wallet wallet = nodeManager.getWallet();
+        Transaction tx1 = new Transaction(wallet, txObj1);
+        Transaction tx2 = new Transaction(wallet, txObj2);
+        Transaction tx3 = new Transaction(wallet, txObj3);
 
         List<Transaction> txList = new ArrayList<>();
-        txList.add(nodeManager.signByNode(tx1));
-        txList.add(nodeManager.signByNode(tx2));
-        txList.add(nodeManager.signByNode(tx3));
+        txList.add(tx1);
+        txList.add(tx2);
+        txList.add(tx3);
 
         // Create a blockBody
         BlockBody blockBody = new BlockBody(txList);

@@ -2,11 +2,12 @@ package io.yggdrash;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.WalletMock;
+import io.yggdrash.core.Wallet;
 import io.yggdrash.trie.Trie;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Before;
 import org.junit.Test;
+import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,10 +20,11 @@ public class TrieTests {
 
     private Transaction tx1;
     private Transaction tx2;
+    private Wallet wallet;
 
     @Before
-    public void setUp() {
-
+    public void setUp() throws IOException, InvalidCipherTextException {
+        wallet = new Wallet();
         // create tx_data1
         JsonObject data1 = new JsonObject();
         data1.addProperty("key", "balance");
@@ -36,11 +38,8 @@ public class TrieTests {
         data2.addProperty("value", 10);
 
         // create sample tx
-        this.tx1 = new Transaction(data1);
-        WalletMock.sign(tx1);
-
-        this.tx2 = new Transaction(data2);
-        WalletMock.sign(tx2);
+        this.tx1 = new Transaction(wallet, data1);
+        this.tx2 = new Transaction(wallet, data2);
     }
 
     @Test

@@ -131,7 +131,6 @@ public class TransactionApiImpl implements TransactionApi {
         txObj.addProperty("to", "0x9843DC167956A0e5e01b3239a0CE2725c0631392");
         txObj.addProperty("value", 100);
 
-        Transaction tx = new Transaction(txObj);
-        return nodeManager.signByNode(tx);
+        return new Transaction(nodeManager.getWallet(), txObj);
     }
 }

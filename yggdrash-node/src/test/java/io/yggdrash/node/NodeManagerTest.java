@@ -64,8 +64,7 @@ public class NodeManagerTest {
         assert nodeManager.getNodeUri() != null;
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
-        this.tx = new Transaction(json);
-        nodeManager.signByNode(tx);
+        this.tx = new Transaction(nodeManager.getWallet(), json);
         BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
 
         BlockHeader genesisBlockHeader = new BlockHeader.Builder()

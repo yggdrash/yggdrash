@@ -8,12 +8,14 @@ import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.googlecode.jsonrpc4j.ProxyUtil;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionValidator;
+import io.yggdrash.core.Wallet;
 import io.yggdrash.node.NodeManagerImpl;
 import io.yggdrash.node.mock.TransactionMock;
-import io.yggdrash.node.mock.WalletMock;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Base64;
 
 import java.io.IOException;
@@ -37,6 +39,12 @@ public class TransactionApiImplTest {
             "0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf";
     private final int blockNumber = 1;
     private final int txIndexPosition = 1;
+    private Wallet wallet;
+
+    @Before
+    public void setUp() throws IOException, InvalidCipherTextException {
+        this.wallet = new Wallet();
+    }
 
     @Test
     public void setJsonRpcHttpClient() {
@@ -134,9 +142,9 @@ public class TransactionApiImplTest {
     @Test
     public void checkTransactionJsonFormat() throws IOException {
         JsonObject data = new JsonObject();
-        Transaction tx = new Transaction(data);
+        Transaction tx = new Transaction(wallet, data);
         ObjectMapper objectMapper = new ObjectMapper();
-        log.debug("\n\nTransaction Format : " + objectMapper.writeValueAsString(WalletMock.sign(tx)));
+        log.debug("\n\nTransaction Format : " + objectMapper.writeValueAsString(tx));
     }
 
     @Test
@@ -147,7 +155,7 @@ public class TransactionApiImplTest {
         json.addProperty("id", "0");
         json.addProperty("name", "Rachael");
         json.addProperty("age", "27");
-        Transaction transaction = new Transaction(json);
+        Transaction transaction = new Transaction(wallet, json);
 
         // Request Transaction with jsonStr
         try {
@@ -155,7 +163,7 @@ public class TransactionApiImplTest {
             TransactionApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     TransactionApi.class, jsonRpcHttpClient);
             assertThat(api).isNotNull();
-            assertThat(api.sendTransaction(WalletMock.sign(transaction))).isNotEmpty();
+            assertThat(api.sendTransaction(transaction)).isNotEmpty();
         } catch (Exception exception) {
             log.debug("\n\njsonStringToTxTest :: exception => " + exception);
         }
@@ -220,7 +228,7 @@ public class TransactionApiImplTest {
     @Test
     public void createTransactionMock() {
         TransactionMock txMock = new TransactionMock();
-        log.debug("txMock : " + txMock.retTxMock());
+        log.debug("txMock : " + txMock.retTxMock(wallet));
     }
 
     @Test
@@ -244,11 +252,11 @@ public class TransactionApiImplTest {
         json.addProperty("id", "0");
         json.addProperty("name", "Rachael");
         json.addProperty("age", "27");
-        Transaction tx = new Transaction(json);
+        Transaction tx = new Transaction(wallet, json);
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String jsonStr = mapper.writeValueAsString(WalletMock.sign(tx));
+        String jsonStr = mapper.writeValueAsString(tx);
 
         // Receive Transaction
         Transaction resTx = mapper.readValue(jsonStr, Transaction.class);

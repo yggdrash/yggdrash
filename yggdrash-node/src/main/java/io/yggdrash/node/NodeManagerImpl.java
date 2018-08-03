@@ -313,14 +313,6 @@ public class NodeManagerImpl implements NodeManager {
     }
 
     @Override
-    public Transaction signByNode(Transaction tx) {
-        byte[] data = tx.getHeader().getDataHashForSigning();
-        byte[] signed = wallet.signHashedData(data);
-        tx.getHeader().setSignature(signed);
-        return tx;
-    }
-
-    @Override
     public void disconnected(Peer peer) {
         removePeer(peer.getYnodeUri());
     }

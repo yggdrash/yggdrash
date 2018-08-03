@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.lang.NonNull;
 
 import java.io.Serializable;
 
@@ -89,7 +88,7 @@ public class Block implements Cloneable, Serializable, Comparable<Block> {
     }
 
     @Override
-    public int compareTo(@NonNull Block o) {
+    public int compareTo(Block o) {
         return Long.compare(header.getIndex(), o.header.getIndex());
     }
 }

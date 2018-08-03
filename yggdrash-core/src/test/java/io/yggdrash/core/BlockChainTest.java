@@ -1,7 +1,6 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.exception.NotValidateException;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -49,11 +48,10 @@ public class BlockChainTest {
         // 모든 테스트는 독립적으로 동작 해야 합니다
         BlockChain blockchain = instantBlockchain();
         int testBlock = 100;
-        Wallet wallet = new Wallet(new DefaultConfig());
+        Wallet wallet = new Wallet();
 
         // create blockchain with genesis block
-        Transaction tx = new Transaction(new JsonObject());
-        WalletMock.sign(tx);
+        Transaction tx = new Transaction(wallet, new JsonObject());
         BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
         BlockHeader.Builder builder = new BlockHeader.Builder()
                 .blockBody(sampleBody);
@@ -78,10 +76,9 @@ public class BlockChainTest {
     }
 
     private BlockChain instantBlockchain() throws IOException, InvalidCipherTextException {
-        Wallet wallet = new Wallet(new DefaultConfig());
+        Wallet wallet = new Wallet();
         BlockChain blockChain = new BlockChain();
-        Transaction tx = new Transaction(new JsonObject());
-        WalletMock.sign(tx);
+        Transaction tx = new Transaction(wallet, new JsonObject());
         BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
 
         BlockHeader blockHeader = new BlockHeader.Builder()

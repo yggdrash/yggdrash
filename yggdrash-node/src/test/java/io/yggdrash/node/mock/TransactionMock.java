@@ -18,10 +18,11 @@ package io.yggdrash.node.mock;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.Wallet;
 
 public class TransactionMock {
 
-    public Transaction retTxMock() {
+    public Transaction retTxMock(Wallet wallet) {
 
         // Create transaction
         JsonObject txObj = new JsonObject();
@@ -30,7 +31,6 @@ public class TransactionMock {
         txObj.addProperty("to", "0x9843DC167956A0e5e01b3239a0CE2725c0631392");
         txObj.addProperty("value", 100);
 
-        Transaction tx = new Transaction(txObj);
-        return WalletMock.sign(tx);
+        return new Transaction(wallet, txObj);
     }
 }
