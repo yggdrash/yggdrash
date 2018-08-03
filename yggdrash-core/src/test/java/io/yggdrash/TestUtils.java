@@ -16,8 +16,10 @@
 
 package io.yggdrash;
 
+import io.yggdrash.core.Address;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHeader;
+import io.yggdrash.crypto.ECKey;
 
 import java.util.Random;
 
@@ -37,5 +39,9 @@ public class TestUtils {
                 8L,
                 TestUtils.randomBytes(65));
         return new Transaction(transactionHeader, "dummy");
+    }
+
+    public static Address getTestAddress() {
+        return new Address(new ECKey().getAddress());
     }
 }

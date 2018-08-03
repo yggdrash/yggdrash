@@ -16,23 +16,42 @@
 
 package io.yggdrash.core.husk;
 
-import io.yggdrash.proto.BlockChainProto;
+import io.yggdrash.core.Wallet;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.InvalidCipherTextException;
 
-import java.math.BigInteger;
+import java.io.IOException;
 
 public class TransactionHuskTest {
-    private final String privString = "c85ef7d79691fe79573b1a7064c19c1a9819ebdbd1faaab1a8ec92344438aaf4";
-    private final BigInteger privateKey = new BigInteger(privString, 16);
+    private static final Logger logger = LoggerFactory.getLogger(TransactionHuskTest.class);
 
     @Test
-    public void name() {
-        BlockChainProto.TransactionHeader transactionHeader =
-                BlockChainProto.TransactionHeader.newBuilder().build();
-        BlockChainProto.Transaction transaction =
-                BlockChainProto.Transaction.newBuilder()
-                        .setHeader(transactionHeader).build();
-        TransactionHusk transactionHusk = new TransactionHusk(transaction);
-        transactionHusk.sign(privateKey.toByteArray());
+    public void shouldBeSignedTransaction() throws IOException, InvalidCipherTextException {
+        TransactionHusk transactionHusk = getTransactionHusk();
+        Wallet wallet = new Wallet();
+    }
+
+    @Test
+    public void shouldBeCreatedNonSingedTransaction() {
+        /* 외부에서 받는 정보
+           - target - 블록체인 ID - String
+           - from - 보내는 주소 - String
+           - body - JSON - String
+         */
+        TransactionHusk transactionHusk = getTransactionHusk();
+        Assertions.assertThat(transactionHusk).isNotNull();
+    }
+
+    private TransactionHusk getTransactionHusk() {
+        String body = "{\n" +
+                "  \"func\":\"transfer\", \n" +
+                "  \"params\":{\n" +
+                "    \"to\":\"0x407d73d8a49eeb85d32cf465507dd71d507100c1\",\n" +
+                "    \"value\":\"1000\"}\n" +
+                "}";
+        return new TransactionHusk(body);
     }
 }
