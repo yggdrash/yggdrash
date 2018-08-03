@@ -1,21 +1,15 @@
 package io.yggdrash.node.api;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Longs;
+import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHeader;
-import io.yggdrash.core.TransactionValidator;
-import io.yggdrash.node.exception.FailedOperationException;
-import io.yggdrash.node.mock.TransactionMock;
-import io.yggdrash.node.mock.TransactionReceiptMock;
+import io.yggdrash.core.TransactionReceipt;
 import org.spongycastle.util.Arrays;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.io.IOException;
-import java.security.SignatureException;
 
 @Service
 @AutoJsonRpcServiceImpl
@@ -23,10 +17,10 @@ public class TransactionApiImpl implements TransactionApi {
 
     private final NodeManager nodeManager;
 
+    @Autowired
     public TransactionApiImpl(NodeManager nodeManager) {
         this.nodeManager = nodeManager;
     }
-
 
     /* get */
     @Override
@@ -55,46 +49,39 @@ public class TransactionApiImpl implements TransactionApi {
     }
 
     @Override
-    public Transaction getTransactionByHash(String hashOfTx) throws IOException {
-        TransactionMock txMock = new TransactionMock(this.nodeManager);
-        return txMock.retTxMock();
+    public Transaction getTransactionByHash(String hashOfTx) {
+        return retTxMock();
     }
 
     @Override
-    public Transaction getTransactionByBlockHashAndIndex(
-            String hashOfBlock, int txIndexPosition) throws IOException {
-        TransactionMock txMock = new TransactionMock(this.nodeManager);
-        return txMock.retTxMock();
+    public Transaction getTransactionByBlockHashAndIndex(String hashOfBlock, int txIndexPosition) {
+        return retTxMock();
     }
 
     @Override
-    public Transaction getTransactionByBlockNumberAndIndex(
-            int blockNumber, int txIndexPosition) throws IOException {
-        TransactionMock txMock = new TransactionMock(this.nodeManager);
-        return txMock.retTxMock();
+    public Transaction getTransactionByBlockNumberAndIndex(int blockNumber, int txIndexPosition) {
+        return retTxMock();
     }
 
     @Override
-    public Transaction getTransactionByBlockNumberAndIndex(
-            String tag, int txIndexPosition) throws IOException {
-        TransactionMock txMock = new TransactionMock(this.nodeManager);
-        return txMock.retTxMock();
+    public Transaction getTransactionByBlockNumberAndIndex(String tag, int txIndexPosition) {
+        return retTxMock();
     }
 
     @Override
-    public TransactionReceiptMock getTransactionReceipt(String hashOfTx) {
-        return new TransactionReceiptMock();
+    public TransactionReceipt getTransactionReceipt(String hashOfTx) {
+        return new TransactionReceipt();
     }
 
     /* send */
     @Override
-    public String sendTransaction(Transaction tx) throws IOException,SignatureException {
+    public String sendTransaction(Transaction tx) {
         Transaction addedTx = nodeManager.addTransaction(tx);
         return addedTx.getHashString();
     }
 
     @Override
-    public byte[] sendRawTransaction(byte[] bytes) throws IOException,SignatureException {
+    public byte[] sendRawTransaction(byte[] bytes) {
         Transaction tx = convert(bytes);
         Transaction addedTx = nodeManager.addTransaction(tx);
         return addedTx.getHash();
@@ -133,5 +120,17 @@ public class TransactionApiImpl implements TransactionApi {
                 type, version, dataHash, timestampStr, dataSizeStr, signature);
 
         return new Transaction(txHeader, dataStr);
+    }
+
+    private Transaction retTxMock() {
+
+        // Create transaction
+        JsonObject txObj = new JsonObject();
+
+        txObj.addProperty("operator", "transfer");
+        txObj.addProperty("to", "0x9843DC167956A0e5e01b3239a0CE2725c0631392");
+        txObj.addProperty("value", 100);
+
+        return new Transaction(nodeManager.getWallet(), txObj);
     }
 }

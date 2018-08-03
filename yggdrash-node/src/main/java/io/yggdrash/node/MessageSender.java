@@ -29,7 +29,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -142,7 +141,7 @@ public class MessageSender {
      * @param offset the offset
      * @return the block list
      */
-    public List<Block> syncBlock(long offset) throws IOException {
+    public List<Block> syncBlock(long offset) {
         if (peerChannel.isEmpty()) {
             log.warn("Active peer is empty to sync block");
             return Collections.emptyList();
@@ -164,7 +163,7 @@ public class MessageSender {
      *
      * @return the transaction list
      */
-    public List<Transaction> syncTransaction() throws IOException {
+    public List<Transaction> syncTransaction() {
         if (peerChannel.isEmpty()) {
             log.warn("Active peer is empty to sync transaction");
             return Collections.emptyList();

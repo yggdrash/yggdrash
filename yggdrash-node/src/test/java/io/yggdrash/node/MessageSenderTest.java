@@ -50,17 +50,16 @@ public class MessageSenderTest {
                 .build(wallet);
         this.block = new Block(genesisBlockHeader, sampleBody);
         this.messageSender = new MessageSender();
-
     }
 
     @Test
-    public void syncBlock() throws IOException {
+    public void syncBlock() {
         messageSender.newBlock(block);
         assert messageSender.syncBlock(0).isEmpty();
     }
 
     @Test
-    public void syncTransaction() throws IOException {
+    public void syncTransaction() {
         messageSender.newTransaction(tx);
         assert messageSender.syncTransaction().isEmpty();
     }

@@ -23,8 +23,6 @@ import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.proto.BlockChainProto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -32,7 +30,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-@Component
 public class TransactionManager {
     private static final Logger log = LoggerFactory.getLogger(TransactionManager.class);
 
@@ -40,7 +37,6 @@ public class TransactionManager {
     private final TransactionPool txPool;
     private final Set<String> unconfirmedTxSet = new HashSet<>();
 
-    @Autowired
     public TransactionManager(DbSource db, TransactionPool transactionPool) {
         this.db = db;
         this.db.init();
@@ -109,8 +105,8 @@ public class TransactionManager {
                         .setType(ByteString.copyFrom(txHeader.getType()))
                         .setVersion(ByteString.copyFrom(txHeader.getVersion()))
                         .setDataHash(ByteString.copyFrom(txHeader.getDataHash()))
-                        .setTimestamp(txHeader.getTimestamp())
                         .setDataSize(txHeader.getDataSize())
+                        .setTimestamp(txHeader.getTimestamp())
                         .setSignature(ByteString.copyFrom(txHeader.getSignature()))
                         .build();
         return BlockChainProto.Transaction.newBuilder()
@@ -136,8 +132,8 @@ public class TransactionManager {
                 txHeaderProto.getType().toByteArray(),
                 txHeaderProto.getVersion().toByteArray(),
                 txHeaderProto.getDataHash().toByteArray(),
-                txHeaderProto.getTimestamp(),
                 txHeaderProto.getDataSize(),
+                txHeaderProto.getTimestamp(),
                 txHeaderProto.getSignature().toByteArray()
         );
 

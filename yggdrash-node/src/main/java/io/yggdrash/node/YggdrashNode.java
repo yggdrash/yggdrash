@@ -16,23 +16,14 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.Block;
-import io.yggdrash.core.Transaction;
-import io.yggdrash.core.Wallet;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
-import java.io.IOException;
-import java.util.List;
-
-public interface BlockBuilder {
-
-    @Deprecated
-    Block build() throws IOException;
-
-    Block build(Wallet wallet) throws IOException;
-
-    @Deprecated
-    Block build(List<Transaction> txList, Block prevBlock) throws IOException;
-
-    Block build(Wallet wallet, List<Transaction> txList, Block prevBlock) throws IOException;
-
+@SpringBootApplication
+@ComponentScan("io.yggdrash")
+public class YggdrashNode {
+    public static void main(String[] args) {
+        SpringApplication.run(YggdrashNode.class, args);
+    }
 }

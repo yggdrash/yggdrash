@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,31 +14,35 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core;
+package io.yggdrash.node;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.TestUtils;
-import io.yggdrash.core.store.HashMapTransactionPool;
-import io.yggdrash.core.store.TransactionPool;
-import io.yggdrash.core.store.datasource.DbSource;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
+import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.Transaction;
+import io.yggdrash.core.TransactionManager;
 import org.junit.Before;
 import org.junit.Test;
-import org.spongycastle.crypto.InvalidCipherTextException;
-
-import java.io.IOException;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@RunWith(SpringRunner.class)
+@SpringBootTest
+@IfProfileValue(name = "spring.profiles.active", value = "ci")
 public class TransactionManagerTest {
 
+    @Autowired
     TransactionManager tm;
+
+    @Autowired
+    NodeManager nodeManager;
 
     @Before
     public void setUp() {
-        DbSource db = new HashMapDbSource();
-        TransactionPool pool = new HashMapTransactionPool();
-        tm = new TransactionManager(db, pool);
         tm.flush();
     }
 
@@ -69,8 +73,8 @@ public class TransactionManagerTest {
     }
 
     @Test
-    public void shouldPutByTxObject() throws IOException, InvalidCipherTextException {
-        Transaction tx = new Transaction(new Wallet(), new JsonObject());
+    public void shouldPutByTxObject() {
+        Transaction tx = new Transaction(nodeManager.getWallet(), new JsonObject());
         tm.put(tx);
     }
 

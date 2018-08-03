@@ -20,7 +20,7 @@ public class JsonRpcConfig {
         //You can add authentication headers etc to this map
         Map<String, String> map = new HashMap<>();
         try {
-            url = new URL(JsonRpcConfig.endpoint);
+            url = new URL(endpoint);
         } catch (Exception e) {
             System.out.println(e.getMessage());
         }

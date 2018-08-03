@@ -15,19 +15,19 @@ public interface BlockApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = InternalErrorException.class,
-                          code = InternalErrorException.code)})
+                    code = InternalErrorException.code)})
     int blockNumber();
 
     /**
      * Returns information about a block by hash.
      *
-     * @param address     account address
-     * @param bool        If true, it returns the full transaction objects,
-     *                    if false only the hashes of the transactions.
+     * @param address account address
+     * @param bool    If true, it returns the full transaction objects,
+     *                if false only the hashes of the transactions.
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                          code = NonExistObjectException.code)})
+                    code = NonExistObjectException.code)})
     Block getBlockByHash(@JsonRpcParam(value = "address") String address,
                          @JsonRpcParam(value = "bool") Boolean bool);
 
@@ -40,7 +40,7 @@ public interface BlockApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                          code = NonExistObjectException.code)})
+                    code = NonExistObjectException.code)})
     Block getBlockByNumber(@JsonRpcParam(value = "hashOfBlock") String hashOfBlock,
                            @JsonRpcParam(value = "bool") Boolean bool);
 
@@ -49,6 +49,6 @@ public interface BlockApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = InternalErrorException.class,
-                          code = InternalErrorException.code)})
+                    code = InternalErrorException.code)})
     int newBlockFilter();
 }

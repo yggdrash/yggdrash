@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,41 +14,35 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.node.config;
 
+import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.NodeSyncServer;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.node.config.NodeProperties;
-import io.yggdrash.node.mock.NodeManagerMock;
+import org.spongycastle.crypto.InvalidCipherTextException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.handler.BeanNameUrlHandlerMapping;
+
+import java.io.IOException;
 
 @Configuration
-public class NodeConfig {
+public class NodeConfiguration {
 
-    @Bean
-    NodeProperties nodeProperties() {
-        return new NodeProperties();
+    private final NodeProperties nodeProperties;
+
+    @Autowired
+    NodeConfiguration(NodeProperties nodeProperties) {
+        this.nodeProperties = nodeProperties;
     }
 
     @Bean
-    PeerGroup peerGroup(NodeProperties nodeProperties) {
+    PeerGroup peerGroup() {
         PeerGroup peerGroup = new PeerGroup();
         peerGroup.setSeedPeerList(nodeProperties.getSeedPeerList());
         return peerGroup;
-    }
-
-    @Bean
-    MessageSender messageSender() {
-        return new MessageSender();
-    }
-
-    @Bean
-    NodeManager nodeManager(MessageSender messageSender, PeerGroup peerGroup,
-                            NodeProperties nodeProperties) {
-        return new NodeManagerMock(messageSender, peerGroup, nodeProperties.getGrpc());
     }
 
     @Bean
@@ -57,7 +51,13 @@ public class NodeConfig {
     }
 
     @Bean
-    BeanNameUrlHandlerMapping beanNameUrlHandlerMapping() {
-        return new BeanNameUrlHandlerMapping();
+    DefaultConfig defaultConfig() {
+        return new DefaultConfig();
     }
+
+    @Bean
+    Wallet wallet(DefaultConfig defaultConfig) throws IOException, InvalidCipherTextException {
+        return new Wallet(defaultConfig);
+    }
+
 }

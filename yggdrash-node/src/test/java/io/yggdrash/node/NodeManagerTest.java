@@ -17,82 +17,79 @@
 package io.yggdrash.node;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.Account;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
+import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.core.TransactionManager;
+import io.yggdrash.core.TransactionValidator;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.store.HashMapTransactionPool;
+import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.node.config.NodeProperties;
-import io.yggdrash.node.mock.NodeManagerMock;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.security.SignatureException;
 import java.util.Collections;
 
-import static io.yggdrash.config.Constants.PROPERTY_KEYPATH;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.is;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
 public class NodeManagerTest {
 
-    private NodeManagerMock nodeManager;
+    private NodeManagerImpl nodeManager;
     private Transaction tx;
     private Block genesisBlock;
     private Block block;
-    private PeerGroup peerGroup;
-    private MessageSender sender;
 
     @Before
     public void setUp() throws Exception {
-        peerGroup = new PeerGroup();
-        NodeProperties.Grpc grpc = new NodeProperties.Grpc();
-        grpc.setHost("localhost");
-        grpc.setPort(9090);
-        sender = new MessageSender();
-        nodeManager = new NodeManagerMock(sender, peerGroup, grpc);
-        assert nodeManager.getNodeUri() != null;
+        NodeProperties nodeProperties = new NodeProperties();
+        nodeProperties.getGrpc().setHost("localhost");
+        nodeProperties.getGrpc().setPort(9090);
+        TransactionManager txManager = new TransactionManager(new HashMapDbSource(),
+                new HashMapTransactionPool());
+        nodeManager = new NodeManagerImpl();
+        nodeManager.setPeerGroup(new PeerGroup());
+        nodeManager.setNodeProperties(nodeProperties);
+        nodeManager.setMessageSender(new MessageSender());
+        nodeManager.setWallet(new Wallet());
+        nodeManager.setTxValidator(new TransactionValidator());
+        nodeManager.setTxManager(txManager);
+        nodeManager.setBlockChain(new BlockChain());
+        nodeManager.setBlockBuilder(new BlockBuilderImpl());
         nodeManager.init();
-        Account author = new Account();
-        Wallet wallet = nodeManager.getWallet();
+        assert nodeManager.getNodeUri() != null;
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
-        this.tx = new Transaction(wallet, json);
+        this.tx = new Transaction(nodeManager.getWallet(), json);
         BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
 
         BlockHeader genesisBlockHeader = new BlockHeader.Builder()
                 .blockBody(sampleBody)
                 .prevBlock(null)
-                .build(wallet);
+                .build(nodeManager.getWallet());
         this.genesisBlock = new Block(genesisBlockHeader, sampleBody);
 
         BlockHeader blockHeader = new BlockHeader.Builder()
                 .blockBody(sampleBody)
                 .prevBlock(genesisBlock) // genesis block
-                .build(wallet);
+                .build(nodeManager.getWallet());
 
         this.block = new Block(blockHeader, sampleBody);
     }
 
     @Test
-    public void addTransactionTest() throws Exception {
+    public void addTransactionTest() {
         nodeManager.addTransaction(tx);
         Transaction pooledTx = nodeManager.getTxByHash(tx.getHashString());
         assert pooledTx.getHashString().equals(tx.getHashString());
     }
 
     @Test
-    public void addBlockTest() throws IOException, NotValidateException, SignatureException {
+    public void addBlockTest() {
         nodeManager.addTransaction(tx);
         nodeManager.addBlock(genesisBlock);
         nodeManager.addBlock(block);
@@ -103,7 +100,7 @@ public class NodeManagerTest {
     }
 
     @Test
-    public void generateBlockTest() throws IOException, NotValidateException, SignatureException {
+    public void generateBlockTest() {
         nodeManager.addTransaction(tx);
         Block newBlock = nodeManager.generateBlock();
         assert nodeManager.getBlocks().size() == 1;
@@ -113,43 +110,4 @@ public class NodeManagerTest {
         assertThat(nodeManager.getTxByHash(tx.getHashString()).getHashString(),
                 is(tx.getHashString()));
     }
-
-    @Test
-    public void defaultConfigTest() {
-        DefaultConfig defaultConfig = nodeManager.getDefaultConfig();
-
-        assertThat(defaultConfig.getConfig().getString("java.version"), containsString("1.8"));
-        System.out.println("DefaultConfig java.version: "
-                + defaultConfig.getConfig().getString("java.version"));
-
-        assertThat(defaultConfig.getConfig().getString("node.name"), containsString("yggdrash"));
-        System.out.println("DefaultConfig node.name: "
-                + defaultConfig.getConfig().getString("node.name"));
-
-        assertThat(defaultConfig.getConfig().getString("network.port"), containsString("31212"));
-        System.out.println("DefaultConfig network.port: "
-                + defaultConfig.getConfig().getString("network.port"));
-    }
-
-    @Test
-    public void defaultWalletTest() {
-        Wallet wallet = nodeManager.getWallet();
-
-        assertNotNull(wallet);
-
-        DefaultConfig config = nodeManager.getDefaultConfig();
-        Path path = Paths.get(config.getConfig().getString(PROPERTY_KEYPATH));
-        String keyPath = path.getParent().toString();
-        String keyName = path.getFileName().toString();
-
-        System.out.println("walletKeyPath: " + wallet.getKeyPath());
-        System.out.println("walletKeyName: " + wallet.getKeyName());
-
-        System.out.println("configKeyPath: " + keyPath);
-        System.out.println("configKeyName: " + keyName);
-
-        assertEquals(wallet.getKeyPath(), keyPath);
-        assertEquals(wallet.getKeyName(), keyName);
-    }
-
 }

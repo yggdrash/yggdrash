@@ -2,28 +2,16 @@ package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.googlecode.jsonrpc4j.ProxyUtil;
-import io.yggdrash.core.Block;
-import io.yggdrash.core.NodeManager;
-import io.yggdrash.node.MessageSender;
-import io.yggdrash.node.config.NodeProperties;
-import io.yggdrash.node.mock.BlockBuilderMock;
-import io.yggdrash.node.mock.BlockMock;
-import io.yggdrash.node.mock.NodeManagerMock;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
 
-    private final NodeManager nodeManager
-            = new NodeManagerMock(new MessageSender(), null, new NodeProperties.Grpc());
-
-    private final JsonRpcHttpClient jsonRpcHttpClient = new JsonRpcConfig().jsonRpcHttpClient();
+    JsonRpcHttpClient jsonRpcHttpClient;
 
     @Test
     public void blockNumberTest() {
@@ -61,19 +49,6 @@ public class BlockApiImplTest {
         } catch (Exception exception) {
             log.debug("getBlockByNumberTest :: exception : " + exception);
         }
-    }
-
-    @Test
-    public void createBlockMock() throws IOException {
-        BlockMock blockMock = new BlockMock(nodeManager);
-        log.debug("blockMock" + blockMock.retBlockMock());
-    }
-
-    @Test
-    public void blockBuildMockTest() throws IOException {
-        BlockBuilderMock blockBuilderMock = new BlockBuilderMock(nodeManager);
-        Block block = blockBuilderMock.build(nodeManager.getWallet());
-        log.debug("blockBuilderMock : " + block.toString());
     }
 
     @Test
