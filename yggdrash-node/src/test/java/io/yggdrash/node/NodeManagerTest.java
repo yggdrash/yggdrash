@@ -22,7 +22,7 @@ import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionManager;
+import io.yggdrash.core.TransactionStore;
 import io.yggdrash.core.TransactionValidator;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.PeerGroup;
@@ -49,7 +49,7 @@ public class NodeManagerTest {
         NodeProperties nodeProperties = new NodeProperties();
         nodeProperties.getGrpc().setHost("localhost");
         nodeProperties.getGrpc().setPort(9090);
-        TransactionManager txManager = new TransactionManager(new HashMapDbSource(),
+        TransactionStore txManager = new TransactionStore(new HashMapDbSource(),
                 new HashMapTransactionPool());
         nodeManager = new NodeManagerImpl();
         nodeManager.setPeerGroup(new PeerGroup());

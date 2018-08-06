@@ -17,6 +17,7 @@
 package io.yggdrash.core.husk;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.proto.BlockChainProto.Transaction;
 import io.yggdrash.proto.BlockChainProto.TransactionHeader;
 
@@ -38,7 +39,6 @@ public class TransactionHusk implements ProtoHusk<Transaction> {
                 .setData(body).build();
     }
 
-
     private TransactionHeader getHeader() {
         return this.transaction.getHeader();
     }
@@ -59,5 +59,9 @@ public class TransactionHusk implements ProtoHusk<Transaction> {
         sb.append("transaction=").append(transaction);
         sb.append('}');
         return sb.toString();
+    }
+
+    public Sha3Hash getHash() {
+        return new Sha3Hash(getHeader().toByteArray());
     }
 }

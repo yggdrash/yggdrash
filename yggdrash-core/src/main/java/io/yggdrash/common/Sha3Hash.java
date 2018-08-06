@@ -14,22 +14,31 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.store;
+package io.yggdrash.common;
 
-import io.yggdrash.core.Transaction;
+import java.util.Arrays;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
+public class Sha3Hash {
+    private byte[] data;
 
-public interface TransactionPool {
-    Transaction get(String key);
+    public Sha3Hash(byte[] data) {
+        this.data = data;
+    }
 
-    Transaction put(Transaction tx) throws IOException;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Sha3Hash sha3Hash = (Sha3Hash) o;
+        return Arrays.equals(data, sha3Hash.data);
+    }
 
-    Map<String, Transaction> getAll(Set<String> keys);
-
-    void remove(Set<String> keys);
-
-    void clear();
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(data);
+    }
 }

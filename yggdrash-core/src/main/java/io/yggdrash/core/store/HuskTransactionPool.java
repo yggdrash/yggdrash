@@ -16,41 +16,41 @@
 
 package io.yggdrash.core.store;
 
-import io.yggdrash.core.Transaction;
+import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.husk.TransactionHusk;
 import org.ehcache.Cache;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
 
 import java.util.Map;
 import java.util.Set;
 
-public class SimpleTransactionPool implements CachePool<String, Transaction> {
-    private static final Logger log = LoggerFactory.getLogger(SimpleTransactionPool.class);
-
-    private final Cache<String, Transaction> cache;
-
-    public SimpleTransactionPool(Cache<String, Transaction> cache) {
-        this.cache = cache;
-    }
+public class HuskTransactionPool implements CachePool<Sha3Hash, TransactionHusk> {
+    private Cache<Sha3Hash, TransactionHusk> cache = CacheManagerBuilder
+            .newCacheManagerBuilder().build(true)
+            .createCache("txCache", CacheConfigurationBuilder
+                    .newCacheConfigurationBuilder(Sha3Hash.class, TransactionHusk.class,
+                            ResourcePoolsBuilder.heap(10)));
 
     @Override
-    public Transaction get(String key) {
+    public TransactionHusk get(Sha3Hash key) {
         return cache.get(key);
     }
 
     @Override
-    public Transaction put(Transaction tx) {
-        cache.put(tx.getHashString(), tx);
+    public TransactionHusk put(TransactionHusk tx) {
+        cache.put(tx.getHash(), tx);
         return tx;
     }
 
     @Override
-    public Map<String, Transaction> getAll(Set<String> keys) {
+    public Map<Sha3Hash, TransactionHusk> getAll(Set<Sha3Hash> keys) {
         return cache.getAll(keys);
     }
 
     @Override
-    public void remove(Set<String> keys) {
+    public void remove(Set<Sha3Hash> keys) {
         cache.removeAll(keys);
     }
 

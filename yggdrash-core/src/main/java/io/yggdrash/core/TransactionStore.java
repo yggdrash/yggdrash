@@ -18,7 +18,9 @@ package io.yggdrash.core;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import io.yggdrash.core.store.TransactionPool;
+import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.husk.TransactionHusk;
+import io.yggdrash.core.store.CachePool;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.proto.BlockChainProto;
 import org.slf4j.Logger;
@@ -30,14 +32,14 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class TransactionManager {
-    private static final Logger log = LoggerFactory.getLogger(TransactionManager.class);
+public class TransactionStore {
+    private static final Logger log = LoggerFactory.getLogger(TransactionStore.class);
 
     private final DbSource db;
-    private final TransactionPool txPool;
+    private final CachePool<String, Transaction> txPool;
     private final Set<String> unconfirmedTxSet = new HashSet<>();
 
-    public TransactionManager(DbSource db, TransactionPool transactionPool) {
+    public TransactionStore(DbSource db, CachePool transactionPool) {
         this.db = db;
         this.db.init();
         this.txPool = transactionPool;

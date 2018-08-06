@@ -19,7 +19,7 @@ package io.yggdrash.node;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionManager;
+import io.yggdrash.core.TransactionStore;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,10 +33,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
-public class TransactionManagerTest {
+public class TransactionStoreTest {
 
     @Autowired
-    TransactionManager tm;
+    TransactionStore tm;
 
     @Autowired
     NodeManager nodeManager;

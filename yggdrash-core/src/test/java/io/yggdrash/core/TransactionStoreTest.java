@@ -19,7 +19,7 @@ package io.yggdrash.core;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.store.HashMapTransactionPool;
-import io.yggdrash.core.store.TransactionPool;
+import io.yggdrash.core.store.CachePool;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Before;
@@ -30,15 +30,15 @@ import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TransactionManagerTest {
+public class TransactionStoreTest {
 
-    TransactionManager tm;
+    TransactionStore tm;
 
     @Before
     public void setUp() {
         DbSource db = new HashMapDbSource();
-        TransactionPool pool = new HashMapTransactionPool();
-        tm = new TransactionManager(db, pool);
+        CachePool pool = new HashMapTransactionPool();
+        tm = new TransactionStore(db, pool);
         tm.flush();
     }
 

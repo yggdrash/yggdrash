@@ -21,7 +21,7 @@ import io.yggdrash.core.BlockBuilder;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionManager;
+import io.yggdrash.core.TransactionStore;
 import io.yggdrash.core.TransactionValidator;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.NodeSyncClient;
@@ -50,7 +50,7 @@ public class NodeManagerImpl implements NodeManager {
 
     private BlockChain blockChain;
 
-    private TransactionManager txManager;
+    private TransactionStore txManager;
 
     private TransactionValidator txValidator;
 
@@ -80,7 +80,7 @@ public class NodeManagerImpl implements NodeManager {
     }
 
     @Autowired
-    public void setTxManager(TransactionManager txManager) {
+    public void setTxManager(TransactionStore txManager) {
         this.txManager = txManager;
     }
 

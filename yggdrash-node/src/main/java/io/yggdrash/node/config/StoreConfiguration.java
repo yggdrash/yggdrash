@@ -19,7 +19,7 @@ package io.yggdrash.node.config;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.store.HashMapTransactionPool;
 import io.yggdrash.core.store.SimpleTransactionPool;
-import io.yggdrash.core.store.TransactionPool;
+import io.yggdrash.core.store.CachePool;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
@@ -50,7 +50,7 @@ public class StoreConfiguration {
     @Bean
     @Profile("prod")
     @Primary
-    TransactionPool simpleTransactionPool(Cache<String, Transaction> cache) {
+    CachePool simpleTransactionPool(Cache<String, Transaction> cache) {
         return new SimpleTransactionPool(cache);
     }
 
@@ -60,7 +60,7 @@ public class StoreConfiguration {
     }
 
     @Bean
-    TransactionPool transactionPool() {
+    CachePool transactionPool() {
         return new HashMapTransactionPool();
     }
 
