@@ -43,9 +43,9 @@ public class MessageSender<T extends PeerClientChannel> {
 
     private final Map<String, T> peerChannel = new ConcurrentHashMap<>();
 
-    private PeerEventListener listener;
+    private final NodeProperties nodeProperties;
 
-    private NodeProperties nodeProperties;
+    private PeerEventListener listener;
 
     public void setListener(PeerEventListener listener) {
         this.listener = listener;
@@ -109,8 +109,7 @@ public class MessageSender<T extends PeerClientChannel> {
         Peer peer = client.getPeer();
         if (peerChannel.containsKey(peer.getYnodeUri())) {
             return;
-        }
-        else if (peerChannel.size() >= nodeProperties.getMaxPeers()){
+        } else if (peerChannel.size() >= nodeProperties.getMaxPeers()) {
             log.info("Ignore to add active peer channel. count={}, peer={}", peerChannel.size(),
                     peer.getYnodeUri());
             return;

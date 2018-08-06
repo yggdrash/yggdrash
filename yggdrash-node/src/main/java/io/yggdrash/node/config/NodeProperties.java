@@ -40,6 +40,10 @@ public class NodeProperties {
         this.seedPeerList = seedPeerList;
     }
 
+    public void setMaxPeers(int maxPeers) {
+        this.maxPeers = maxPeers;
+    }
+
     public int getMaxPeers() {
         return maxPeers;
     }

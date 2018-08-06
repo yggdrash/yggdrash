@@ -23,7 +23,6 @@ import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.event.PeerEventListener;
-import io.yggdrash.core.net.Peer;
 import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.node.mock.ChannelMock;
 import org.junit.Before;
@@ -39,11 +38,7 @@ public class MessageSenderTest {
     private Transaction tx;
     private Block block;
     private NodeProperties nodeProperties;
-    private PeerEventListener listener = new PeerEventListener() {
-        @Override
-        public void disconnected(Peer peer) {
-        }
-    };
+    private PeerEventListener listener;
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
@@ -60,6 +55,8 @@ public class MessageSenderTest {
         this.block = new Block(genesisBlockHeader, sampleBody);
         this.nodeProperties = new NodeProperties();
         this.messageSender = new MessageSender<>(nodeProperties);
+        listener = peer -> {
+        };
         this.messageSender.setListener(listener);
         ChannelMock channel = new ChannelMock("ynode://75bff16c@localhost:9999");
         messageSender.newPeerChannel(channel);

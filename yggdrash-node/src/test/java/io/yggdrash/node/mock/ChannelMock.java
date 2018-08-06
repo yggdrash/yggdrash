@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class ChannelMock implements PeerClientChannel {
-    private Peer peer;
+    private final Peer peer;
 
     public ChannelMock(String ynodeUri) {
         this.peer = Peer.valueOf(ynodeUri);
