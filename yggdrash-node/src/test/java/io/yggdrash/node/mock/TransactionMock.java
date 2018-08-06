@@ -28,7 +28,7 @@ public class TransactionMock {
 
         txObj.addProperty("operator", "transfer");
         txObj.addProperty("to", "0x9843DC167956A0e5e01b3239a0CE2725c0631392");
-        txObj.addProperty("value", 100);
+        txObj.addProperty("amount", 100);
 
         Transaction tx = new Transaction(txObj);
         return WalletMock.sign(tx);

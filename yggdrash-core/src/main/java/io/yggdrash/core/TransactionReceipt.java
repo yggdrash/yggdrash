@@ -16,7 +16,8 @@
 
 package io.yggdrash.core;
 
-import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TransactionReceipt {
     public String transactionHash =
@@ -27,10 +28,23 @@ public class TransactionReceipt {
     public int yeedUsed = 30000;
     public String branchAddress =
             "0xb60e8dd61c5d32be8058bb8eb970870f07233155";
-    public ArrayList<String> txLog = new ArrayList<>();
+    public Map<String,String> txLog = new HashMap<>();
     public int status = 1;
 
     public TransactionReceipt() {
 
+    }
+
+    @Override
+    public String toString() {
+        return "TransactionReceipt{"
+                + "transactionHash='" + transactionHash + '\''
+                + ", transactionIndex=" + transactionIndex
+                + ", blockHash='" + blockHash + '\''
+                + ", yeedUsed=" + yeedUsed
+                + ", branchAddress='" + branchAddress + '\''
+                + ", txLog=" + txLog
+                + ", status=" + status
+                + '}';
     }
 }
