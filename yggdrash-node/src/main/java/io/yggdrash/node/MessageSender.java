@@ -62,7 +62,7 @@ public class MessageSender<T extends PeerClientChannel> {
 
     void healthCheck() {
         if (peerChannel.isEmpty()) {
-            log.warn("Active peer is empty to health check peer");
+            log.trace("Active peer is empty to health check peer");
             return;
         }
         List<T> peerChannelList = new ArrayList<>(peerChannel.values());
@@ -96,7 +96,7 @@ public class MessageSender<T extends PeerClientChannel> {
 
     public void newBlock(Block block) {
         if (peerChannel.isEmpty()) {
-            log.warn("Active peer is empty to broadcast block");
+            log.trace("Active peer is empty to broadcast block");
         }
         BlockChainProto.Block[] blocks
                 = new BlockChainProto.Block[] {BlockMapper.blockToProtoBlock(block)};
