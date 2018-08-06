@@ -1,15 +1,21 @@
 package io.yggdrash.node.api;
 
 import com.google.common.primitives.Longs;
-import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
+import io.yggdrash.core.Block;
+import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHeader;
 import io.yggdrash.core.TransactionReceipt;
+import io.yggdrash.node.exception.NonExistObjectException;
+import org.apache.commons.codec.DecoderException;
+import org.apache.commons.codec.binary.Hex;
 import org.spongycastle.util.Arrays;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.io.IOException;
+import java.security.SignatureException;
 
 @Service
 @AutoJsonRpcServiceImpl
@@ -17,55 +23,102 @@ public class TransactionApiImpl implements TransactionApi {
 
     private final NodeManager nodeManager;
 
-    @Autowired
     public TransactionApiImpl(NodeManager nodeManager) {
         this.nodeManager = nodeManager;
+    }
+
+    public int getCount(String address, BlockBody blockBody) {
+        Integer cnt = 0;
+        for (Transaction tx : blockBody.getTransactionList()) {
+            try {
+                if (Arrays.areEqual(Hex.decodeHex(address), tx.getHeader().getAddress())) {
+                    cnt += 1;
+                }
+            } catch (DecoderException e) {
+                e.printStackTrace();
+            }
+        }
+        return cnt;
     }
 
     /* get */
     @Override
     public int getTransactionCount(String address, String tag) {
-        return 1;
+        Integer blockNumber;
+        if ("latest".equals(tag)) {
+            blockNumber = 0;
+        } else {
+            blockNumber = -1;
+        }
+        Block block = nodeManager.getBlockByIndexOrHash(String.valueOf(blockNumber));
+        return getCount(address, block.getData());
     }
 
     @Override
     public int getTransactionCount(String address, int blockNumber) {
-        return 2;
+        Block block = nodeManager.getBlockByIndexOrHash(String.valueOf(blockNumber));
+        return getCount(address, block.getData());
     }
 
     @Override
     public int getBlockTransactionCountByHash(String hashOfBlock) {
-        return 3;
+        Block block = nodeManager.getBlockByIndexOrHash(hashOfBlock);
+        BlockBody txList = block.getData();
+        return txList.getTransactionList().size();
     }
 
     @Override
     public int getBlockTransactionCountByNumber(int blockNumber) {
-        return 4;
+        Block block = nodeManager.getBlockByIndexOrHash(String.valueOf(blockNumber));
+        BlockBody txList = block.getData();
+        return txList.getTransactionList().size();
     }
 
     @Override
     public int getBlockTransactionCountByNumber(String tag) {
-        return 5;
+        if ("latest".equals(tag)) {
+            Block block = nodeManager.getBlockByIndexOrHash(String.valueOf(0));
+            BlockBody txList = block.getData();
+            return txList.getTransactionList().size();
+        }
+        return 0;
     }
 
     @Override
     public Transaction getTransactionByHash(String hashOfTx) {
-        return retTxMock();
+        Transaction tx = nodeManager.getTxByHash(hashOfTx);
+        if (tx == null) {
+            throw new NonExistObjectException("Transaction");
+        }
+        return tx;
     }
 
     @Override
-    public Transaction getTransactionByBlockHashAndIndex(String hashOfBlock, int txIndexPosition) {
-        return retTxMock();
+    public Transaction getTransactionByBlockHashAndIndex(
+            String hashOfBlock, int txIndexPosition) throws IOException {
+        Block block = nodeManager.getBlockByIndexOrHash(hashOfBlock);
+        BlockBody txList = block.getData();
+        return txList.getTransactionList().get(txIndexPosition);
     }
 
     @Override
-    public Transaction getTransactionByBlockNumberAndIndex(int blockNumber, int txIndexPosition) {
-        return retTxMock();
+    public Transaction getTransactionByBlockNumberAndIndex(
+            int blockNumber, int txIndexPosition) throws IOException {
+        Block block = nodeManager.getBlockByIndexOrHash(String.valueOf(blockNumber));
+        BlockBody txList = block.getData();
+        return txList.getTransactionList().get(txIndexPosition);
     }
 
     @Override
-    public Transaction getTransactionByBlockNumberAndIndex(String tag, int txIndexPosition) {
-        return retTxMock();
+    public Transaction getTransactionByBlockNumberAndIndex(String tag, int txIndexPosition)
+            throws IOException {
+        if ("latest".equals(tag)) {
+            int blockNumber = 0;
+            Block block = nodeManager.getBlockByIndexOrHash(String.valueOf(blockNumber));
+            BlockBody txList = block.getData();
+            return txList.getTransactionList().get(txIndexPosition);
+        }
+        return null;
     }
 
     @Override
@@ -75,13 +128,13 @@ public class TransactionApiImpl implements TransactionApi {
 
     /* send */
     @Override
-    public String sendTransaction(Transaction tx) {
+    public String sendTransaction(Transaction tx) throws IOException,SignatureException {
         Transaction addedTx = nodeManager.addTransaction(tx);
         return addedTx.getHashString();
     }
 
     @Override
-    public byte[] sendRawTransaction(byte[] bytes) {
+    public byte[] sendRawTransaction(byte[] bytes) throws IOException,SignatureException {
         Transaction tx = convert(bytes);
         Transaction addedTx = nodeManager.addTransaction(tx);
         return addedTx.getHash();
@@ -120,18 +173,5 @@ public class TransactionApiImpl implements TransactionApi {
                 type, version, dataHash, timestampStr, dataSizeStr, signature);
 
         return new Transaction(txHeader, dataStr);
-    }
-
-    private Transaction retTxMock() {
-
-        // Create transaction
-        JsonObject txObj = new JsonObject();
-
-        txObj.addProperty("operator", "transfer");
-        txObj.addProperty("to", "0x9843DC167956A0e5e01b3239a0CE2725c0631392");
-        txObj.addProperty("value", 100);
-
-        Transaction tx = new Transaction(txObj);
-        return nodeManager.signByNode(tx);
     }
 }
