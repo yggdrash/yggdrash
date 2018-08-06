@@ -21,12 +21,14 @@ import io.yggdrash.core.Transaction;
 import io.yggdrash.core.event.PeerEventListener;
 import io.yggdrash.core.mapper.BlockMapper;
 import io.yggdrash.core.mapper.TransactionMapper;
-import io.yggdrash.core.net.NodeSyncClient;
 import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.net.PeerClientChannel;
+import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.proto.Pong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -36,24 +38,35 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
-public class MessageSender {
+public class MessageSender<T extends PeerClientChannel> {
     private static final Logger log = LoggerFactory.getLogger(MessageSender.class);
 
-    private final Map<String, NodeSyncClient> peerChannel = new ConcurrentHashMap<>();
+    private final Map<String, T> peerChannel = new ConcurrentHashMap<>();
 
     private PeerEventListener listener;
 
+    private NodeProperties nodeProperties;
+
     public void setListener(PeerEventListener listener) {
         this.listener = listener;
+    }
+
+    @Autowired
+    public MessageSender(NodeProperties nodeProperties) {
+        this.nodeProperties = nodeProperties;
     }
 
     public void destroy(String ynodeUri) {
         peerChannel.values().forEach(client -> client.stop(ynodeUri));
     }
 
-    void ping() {
-        List<NodeSyncClient> peerChannelList = new ArrayList<>(peerChannel.values());
-        for (NodeSyncClient client : peerChannelList) {
+    void healthCheck() {
+        if (peerChannel.isEmpty()) {
+            log.warn("Active peer is empty to health check peer");
+            return;
+        }
+        List<T> peerChannelList = new ArrayList<>(peerChannel.values());
+        for (T client : peerChannelList) {
             try {
                 Pong pong = client.ping("Ping");
                 if (pong.getPong().equals("Pong")) {
@@ -69,29 +82,40 @@ public class MessageSender {
     }
 
     public void newTransaction(Transaction tx) {
+        if (peerChannel.isEmpty()) {
+            log.warn("Active peer is empty to broadcast transaction");
+        }
         BlockChainProto.Transaction protoTx
                 = TransactionMapper.transactionToProtoTransaction(tx);
         BlockChainProto.Transaction[] txns = new BlockChainProto.Transaction[] {protoTx};
 
-        for (NodeSyncClient client : peerChannel.values()) {
+        for (T client : peerChannel.values()) {
             client.broadcastTransaction(txns);
         }
     }
 
     public void newBlock(Block block) {
+        if (peerChannel.isEmpty()) {
+            log.warn("Active peer is empty to broadcast block");
+        }
         BlockChainProto.Block[] blocks
                 = new BlockChainProto.Block[] {BlockMapper.blockToProtoBlock(block)};
-        for (NodeSyncClient client : peerChannel.values()) {
+        for (T client : peerChannel.values()) {
             client.broadcastBlock(blocks);
         }
     }
 
-    public void newPeerChannel(Peer peer) {
+    public void newPeerChannel(T client) {
+        Peer peer = client.getPeer();
         if (peerChannel.containsKey(peer.getYnodeUri())) {
             return;
         }
+        else if (peerChannel.size() >= nodeProperties.getMaxPeers()){
+            log.info("Ignore to add active peer channel. count={}, peer={}", peerChannel.size(),
+                    peer.getYnodeUri());
+            return;
+        }
         try {
-            NodeSyncClient client = new NodeSyncClient(peer);
             log.info("Connecting... peer {}:{}", peer.getHost(), peer.getPort());
             Pong pong = client.ping("Ping");
             // TODO validation peer
@@ -99,7 +123,7 @@ public class MessageSender {
                 peerChannel.put(peer.getYnodeUri(), client);
             }
         } catch (Exception e) {
-            log.warn("Fail to add to the activePeerList err=" + e.getMessage());
+            log.warn("Fail to add to the peer channel err=" + e.getMessage());
         }
     }
 
@@ -119,18 +143,18 @@ public class MessageSender {
             return Collections.emptyList();
         }
         List<String> peerList = new ArrayList<>();
-        for (NodeSyncClient client : peerChannel.values()) {
+        for (T client : peerChannel.values()) {
             peerList.addAll(client.requestPeerList(ynodeUri, 0));
         }
         return peerList;
     }
 
     public void broadcastPeerDisconnect(String ynodeUri) {
-        NodeSyncClient disconnectedPeer = peerChannel.remove(ynodeUri);
+        T disconnectedPeer = peerChannel.remove(ynodeUri);
         if (disconnectedPeer != null) {
             disconnectedPeer.stop();
         }
-        for (NodeSyncClient client : peerChannel.values()) {
+        for (T client : peerChannel.values()) {
             client.disconnectPeer(ynodeUri);
         }
     }
@@ -148,7 +172,7 @@ public class MessageSender {
         }
         // TODO sync peer selection policy
         String key = (String) peerChannel.keySet().toArray()[0];
-        NodeSyncClient client = peerChannel.get(key);
+        T client = peerChannel.get(key);
         List<BlockChainProto.Block> blockList = client.syncBlock(offset);
         log.debug("Synchronize block received=" + blockList.size());
         List<Block> syncList = new ArrayList<>(blockList.size());
@@ -170,7 +194,7 @@ public class MessageSender {
         }
         // TODO sync peer selection policy
         String key = (String) peerChannel.keySet().toArray()[0];
-        NodeSyncClient client = peerChannel.get(key);
+        T client = peerChannel.get(key);
         List<BlockChainProto.Transaction> txList = client.syncTransaction();
         log.debug("Synchronize transaction received=" + txList.size());
         List<Transaction> syncList = new ArrayList<>(txList.size());

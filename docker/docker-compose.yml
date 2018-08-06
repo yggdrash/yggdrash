@@ -9,7 +9,7 @@ services:
     - 9090:9090
     environment:
     - YGGDRASH_NODE_GRPC_HOST=node1
-    - SPRINGg=prod
+    - YGGDRASH_NODE_MAX_PEERS=25
   node2:
     image: yggdrash/yggdrash-node
     container_name: node2

@@ -25,6 +25,7 @@ import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionManager;
 import io.yggdrash.core.TransactionValidator;
 import io.yggdrash.core.Wallet;
+import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.HashMapTransactionPool;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
@@ -40,21 +41,24 @@ import static org.junit.Assert.assertThat;
 public class NodeManagerTest {
 
     private NodeManagerImpl nodeManager;
+    private NodeProperties nodeProperties;
     private Transaction tx;
     private Block genesisBlock;
     private Block block;
 
     @Before
     public void setUp() throws Exception {
-        NodeProperties nodeProperties = new NodeProperties();
+        this.nodeProperties = new NodeProperties();
         nodeProperties.getGrpc().setHost("localhost");
         nodeProperties.getGrpc().setPort(9090);
         TransactionManager txManager = new TransactionManager(new HashMapDbSource(),
                 new HashMapTransactionPool());
-        nodeManager = new NodeManagerImpl();
+        this.nodeManager = new NodeManagerImpl();
         nodeManager.setPeerGroup(new PeerGroup());
         nodeManager.setNodeProperties(nodeProperties);
-        nodeManager.setMessageSender(new MessageSender());
+        MessageSender<PeerClientChannel> messageSender = new MessageSender<>(nodeProperties);
+        messageSender.setListener(nodeManager);
+        nodeManager.setMessageSender(messageSender);
         nodeManager.setWallet(new Wallet());
         nodeManager.setTxValidator(new TransactionValidator());
         nodeManager.setTxManager(txManager);
@@ -109,5 +113,15 @@ public class NodeManagerTest {
         assert chainedBlock.getData().getSize() == 1;
         assertThat(nodeManager.getTxByHash(tx.getHashString()).getHashString(),
                 is(tx.getHashString()));
+    }
+
+    @Test
+    public void addPeerTest() {
+        int testCount = nodeProperties.getMaxPeers() + 5;
+        for (int i = 0; i < testCount; i++) {
+            int port = i + 9000;
+            nodeManager.addPeer("ynode://75bff16c@localhost:" + port);
+        }
+        assert nodeProperties.getMaxPeers() == nodeManager.getPeerUriList().size();
     }
 }
