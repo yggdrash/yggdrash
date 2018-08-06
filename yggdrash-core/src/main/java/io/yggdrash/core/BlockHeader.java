@@ -96,7 +96,6 @@ public class BlockHeader implements Serializable {
         block.write(ByteUtil.longToBytes(timestamp));
         block.write(ByteUtil.longToBytes(dataSize));
         block.write(signature);
-        block.write(ByteUtil.longToBytes(index));
 
         return HashUtil.sha3(block.toByteArray());
     }
