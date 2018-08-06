@@ -1,0 +1,23 @@
+{
+  "type": "",
+  "version": "",
+  "dataHash": "",
+  "timestamp": "",
+  "dataSize": "",
+  "signature": "",
+  "data": {
+    "operator": "genesis",
+    "chainName": "YEED",
+    "frontier": {
+      "5db10750e8caff27f906b41c71b3471057dd2000": { "balance": "1000000000" },
+      "5db10750e8caff27f906b41c71b3471057dd2001": { "balance": "1000000000" },
+      "5db10750e8caff27f906b41c71b3471057dd2002": { "balance": "1000000000" }
+    },
+    "nodeList": {
+      "172.16.10.1:32918",
+      "172.16.10.2:32918",
+      "172.16.10.3:32918",
+      "172.16.10.4:32918"
+    }
+  }
+}
