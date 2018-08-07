@@ -22,7 +22,9 @@ import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.event.PeerEventListener;
+import io.yggdrash.node.config.NodeProperties;
+import io.yggdrash.node.mock.ChannelMock;
 import org.junit.Before;
 import org.junit.Test;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -32,9 +34,11 @@ import java.util.Collections;
 
 public class MessageSenderTest {
 
-    private MessageSender messageSender;
+    private MessageSender<ChannelMock> messageSender;
     private Transaction tx;
     private Block block;
+    private NodeProperties nodeProperties;
+    private PeerEventListener listener;
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
@@ -49,34 +53,54 @@ public class MessageSenderTest {
                 .prevBlock(null)
                 .build(wallet);
         this.block = new Block(genesisBlockHeader, sampleBody);
-        this.messageSender = new MessageSender();
+        this.nodeProperties = new NodeProperties();
+        this.messageSender = new MessageSender<>(nodeProperties);
+        listener = peer -> {
+        };
+        this.messageSender.setListener(listener);
+        ChannelMock channel = new ChannelMock("ynode://75bff16c@localhost:9999");
+        messageSender.newPeerChannel(channel);
+    }
+
+    @Test
+    public void healthCheck() {
+        messageSender.healthCheck();
+        assert !messageSender.getActivePeerList().isEmpty();
     }
 
     @Test
     public void syncBlock() {
         messageSender.newBlock(block);
-        assert messageSender.syncBlock(0).isEmpty();
+        assert !messageSender.syncBlock(0).isEmpty();
     }
 
     @Test
     public void syncTransaction() {
         messageSender.newTransaction(tx);
-        assert messageSender.syncTransaction().isEmpty();
+        assert !messageSender.syncTransaction().isEmpty();
     }
 
     @Test
     public void addActivePeer() {
-        messageSender.newPeerChannel(Peer.valueOf("ynode://75bff16c@localhost:9999"));
-        assert messageSender.getActivePeerList().isEmpty();
+        int testCount = nodeProperties.getMaxPeers() + 5;
+        for(int i = 0; i < testCount; i++) {
+            int port = i + 9000;
+            ChannelMock channel = new ChannelMock("ynode://75bff16c@localhost:" + port);
+            messageSender.newPeerChannel(channel);
+        }
+        assert nodeProperties.getMaxPeers() == messageSender.getActivePeerList().size();
     }
 
     @Test
     public void broadcastPeerConnect() {
-        assert messageSender.broadcastPeerConnect("ynode://75bff16c@localhost:9999").isEmpty();
+        assert !messageSender.broadcastPeerConnect("ynode://75bff16c@localhost:9999").isEmpty();
     }
 
     @Test
     public void broadcastPeerDisconnect() {
+        assert !messageSender.getActivePeerList().isEmpty();
         messageSender.broadcastPeerDisconnect("ynode://75bff16c@localhost:9999");
+        assert messageSender.getActivePeerList().isEmpty();
     }
+
 }

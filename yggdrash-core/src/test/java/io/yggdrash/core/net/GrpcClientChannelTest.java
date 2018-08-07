@@ -37,7 +37,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class NodeSyncClientTest {
+public class GrpcClientChannelTest {
 
     @Rule
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
@@ -60,19 +60,19 @@ public class NodeSyncClientTest {
     @Captor
     private ArgumentCaptor<BlockChainProto.PeerRequest> peerRequestCaptor;
 
-    private NodeSyncClient client;
+    private GrpcClientChannel client;
 
     @Before
     public void setUp() {
         Peer peer = Peer.valueOf("ynode://75bff16c@localhost:9999");
-        client = new NodeSyncClient(grpcServerRule.getChannel(), peer);
+        client = new GrpcClientChannel(grpcServerRule.getChannel(), peer);
         grpcServerRule.getServiceRegistry().addService(pingPongService);
         grpcServerRule.getServiceRegistry().addService(blockChainService);
     }
 
     @Test
     public void getPeerYnodeUriTest() {
-        NodeSyncClient client = new NodeSyncClient(Peer.valueOf("ynode://75bff16c@localhost:9090"));
+        GrpcClientChannel client = new GrpcClientChannel(Peer.valueOf("ynode://75bff16c@localhost:9090"));
         assertEquals("ynode://75bff16c@localhost:9090", client.getPeer().getYnodeUri());
     }
 
