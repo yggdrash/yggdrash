@@ -20,7 +20,7 @@ import org.apache.commons.codec.binary.Hex;
 
 import java.util.HashMap;
 
-public class HashMapDbSource implements DbSource {
+public class HashMapDbSource implements DbSource<byte[], byte[]> {
     HashMap<String, byte[]> db;
 
     @Override

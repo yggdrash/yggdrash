@@ -35,7 +35,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import static org.iq80.leveldb.impl.Iq80DBFactory.factory;
 
-public class LevelDbDataSource implements DbSource {
+public class LevelDbDataSource implements DbSource<byte[], byte[]> {
 
     private static final Logger log = LoggerFactory.getLogger(LevelDbDataSource.class);
 

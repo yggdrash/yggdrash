@@ -35,7 +35,7 @@ import java.util.Set;
 public class TransactionStore {
     private static final Logger log = LoggerFactory.getLogger(TransactionStore.class);
 
-    private final DbSource db;
+    private final DbSource<byte[], byte[]> db;
     private final CachePool<String, Transaction> txPool;
     private final Set<String> unconfirmedTxSet = new HashSet<>();
 
