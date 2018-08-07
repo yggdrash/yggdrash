@@ -21,6 +21,8 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.proto.BlockChainProto.Transaction;
 import io.yggdrash.proto.BlockChainProto.TransactionHeader;
 
+import java.util.Objects;
+
 public class TransactionHusk implements ProtoHusk<Transaction> {
     private Transaction transaction;
 
@@ -48,6 +50,10 @@ public class TransactionHusk implements ProtoHusk<Transaction> {
         return this.transaction.toByteArray();
     }
 
+    public String getBody() {
+        return this.transaction.getData();
+    }
+
     @Override
     public Transaction getInstance() {
         return this.transaction;
@@ -63,5 +69,22 @@ public class TransactionHusk implements ProtoHusk<Transaction> {
 
     public Sha3Hash getHash() {
         return new Sha3Hash(getHeader().toByteArray());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        TransactionHusk that = (TransactionHusk) o;
+        return Objects.equals(transaction, that.transaction);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(transaction);
     }
 }

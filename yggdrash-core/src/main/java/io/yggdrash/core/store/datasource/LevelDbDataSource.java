@@ -20,6 +20,7 @@ import io.yggdrash.config.Constants;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.util.FileUtil;
 import org.iq80.leveldb.DB;
+import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.WriteBatch;
 import org.slf4j.Logger;
@@ -117,6 +118,21 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         } finally {
             resetDbLock.readLock().unlock();
         }
+    }
+
+    @Override
+    public long count() {
+        resetDbLock.readLock().lock();
+        long count = 0;
+        try {
+            DBIterator iterator = db.iterator();
+            for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
+                count++;
+            }
+        } finally {
+            resetDbLock.readLock().unlock();
+        }
+        return count;
     }
 
     public void updateByBatch(Map<byte[], byte[]> rows) {

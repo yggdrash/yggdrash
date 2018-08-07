@@ -37,4 +37,9 @@ public class HashMapDbSource implements DbSource<byte[], byte[]> {
     public void put(byte[] key, byte[] value) {
         db.put(Hex.encodeHexString(key), value);
     }
+
+    @Override
+    public long count() {
+        return db.size();
+    }
 }

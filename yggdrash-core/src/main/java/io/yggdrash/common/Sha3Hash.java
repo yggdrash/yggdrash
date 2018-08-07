@@ -25,6 +25,10 @@ public class Sha3Hash {
         this.data = data;
     }
 
+    public byte[] getBytes() {
+        return this.data;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {

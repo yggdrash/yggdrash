@@ -16,66 +16,74 @@
 
 package io.yggdrash.core;
 
-import com.google.gson.JsonObject;
-import io.yggdrash.TestUtils;
-import io.yggdrash.core.store.HashMapTransactionPool;
+import com.google.protobuf.InvalidProtocolBufferException;
+import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.husk.TransactionHusk;
 import io.yggdrash.core.store.CachePool;
+import io.yggdrash.core.store.HashMapTransactionPool;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Before;
 import org.junit.Test;
-import org.spongycastle.crypto.InvalidCipherTextException;
-
-import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TransactionStoreTest {
 
-    TransactionStore tm;
+    TransactionStore ts;
 
     @Before
     public void setUp() {
         DbSource db = new HashMapDbSource();
         CachePool pool = new HashMapTransactionPool();
-        tm = new TransactionStore(db, pool);
-        tm.flush();
+        ts = new TransactionStore(db, pool);
+        ts.flush();
     }
 
     @Test
-    public void shouldGetFromDb() {
-        Transaction dummyTx = TestUtils.createDummyTx();
-        tm.put(dummyTx);
-        tm.batchAll();
-        assertThat(tm.count()).isZero();
-        Transaction foundValue = tm.get(dummyTx.getHashString());
-        assertThat(foundValue).isNotNull();
+    public void shouldGetFromDb() throws InvalidProtocolBufferException {
+        String body = "1";
+        TransactionHusk tx = new TransactionHusk(body);
+        Sha3Hash key = tx.getHash();
+        ts.put(key, tx);
+
+        ts.batchAll();
+        TransactionHusk transactionHusk = ts.get(key);
+        assertThat(transactionHusk).isEqualTo(tx);
     }
 
     @Test
-    public void shouldBatch() {
-        byte[] key = TestUtils.createDummyTx().getHash();
-        tm.batchAll();
-        assertThat(tm.count()).isZero();
+    public void shouldBeBatched() {
+        String body = "1";
+        TransactionHusk tx = new TransactionHusk(body);
+        Sha3Hash key = tx.getHash();
+        ts.put(key, tx);
+
+        ts.batchAll();
+        assertThat(ts.countFromCache()).isZero();
+        assertThat(ts.countFromDb()).isEqualTo(1L);
     }
 
     @Test
-    public void shouldGetFromPool() {
-        Transaction dummyTx = TestUtils.createDummyTx();
-        byte[] key = dummyTx.getHash().clone();
-        tm.put(dummyTx);
-        Transaction foundValue = tm.get(dummyTx.getHashString());
-        assertThat(foundValue).isNotNull();
+    public void shouldBeGotTxFromCache() throws InvalidProtocolBufferException {
+        String body = "1";
+        TransactionHusk tx = new TransactionHusk(body);
+        Sha3Hash key = tx.getHash();
+        ts.put(key, tx);
+
+        TransactionHusk foundTx = ts.get(key);
+        assertThat(foundTx).isNotNull();
+        assertThat(foundTx.getBody()).isEqualTo(body);
     }
 
     @Test
-    public void shouldPutByTxObject() throws IOException, InvalidCipherTextException {
-        Transaction tx = new Transaction(new Wallet(), new JsonObject());
-        tm.put(tx);
+    public void shouldBePutTx() {
+        TransactionHusk tx = new TransactionHusk("1");
+        ts.put(tx.getHash(), tx);
     }
 
     @Test
     public void shouldLoadTestObject() {
-        assertThat(tm).isNotNull();
+        assertThat(ts).isNotNull();
     }
 }
