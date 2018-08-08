@@ -16,11 +16,15 @@
 
 package io.yggdrash.core.husk;
 
+import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.BlockChainProto.Transaction;
 import io.yggdrash.proto.BlockChainProto.TransactionHeader;
+import io.yggdrash.util.TimeUtils;
 
+import java.nio.ByteBuffer;
 import java.util.Objects;
 
 public class TransactionHusk implements ProtoHusk<Transaction> {
@@ -35,7 +39,14 @@ public class TransactionHusk implements ProtoHusk<Transaction> {
     }
 
     public TransactionHusk(String body) {
-        TransactionHeader txHeaderPrototype = TransactionHeader.getDefaultInstance();
+        TransactionHeader txHeaderPrototype = TransactionHeader.newBuilder()
+                .setType(ByteString.copyFrom(ByteBuffer.allocate(4).putInt(1).array()))
+                .setVersion(ByteString.copyFrom(ByteBuffer.allocate(4).putInt(1).array()))
+                .setDataHash(ByteString.copyFrom(HashUtil.sha3(body.getBytes())))
+                .setTimestamp(TimeUtils.time())
+                .setDataSize(body.getBytes().length)
+//                .setSignature()
+                .build();
         this.transaction = Transaction.newBuilder()
                 .setHeader(txHeaderPrototype)
                 .setData(body).build();
@@ -45,13 +56,17 @@ public class TransactionHusk implements ProtoHusk<Transaction> {
         return this.transaction.getHeader();
     }
 
-    @Override
-    public byte[] getData() {
-        return this.transaction.toByteArray();
+    public Sha3Hash getHash() {
+        return new Sha3Hash(getHeader().toByteArray());
     }
 
     public String getBody() {
         return this.transaction.getData();
+    }
+
+    @Override
+    public byte[] getData() {
+        return this.transaction.toByteArray();
     }
 
     @Override
@@ -65,10 +80,6 @@ public class TransactionHusk implements ProtoHusk<Transaction> {
         sb.append("transaction=").append(transaction);
         sb.append('}');
         return sb.toString();
-    }
-
-    public Sha3Hash getHash() {
-        return new Sha3Hash(getHeader().toByteArray());
     }
 
     @Override

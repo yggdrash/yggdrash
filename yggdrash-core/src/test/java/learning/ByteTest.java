@@ -14,12 +14,20 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.husk;
+package learning;
 
-import java.io.Serializable;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public interface ProtoHusk<T> extends Serializable {
-    byte[] getData();
+import java.nio.ByteBuffer;
 
-    T getInstance();
+public class ByteTest {
+    private static final Logger logger = LoggerFactory.getLogger(ByteTest.class);
+    @Test
+    public void integerToByteArray() {
+        int input = 5000;
+        byte[] array = ByteBuffer.allocate(4).putInt(input).array();
+        logger.debug("Using ByteBuffer: {}", array);
+    }
 }

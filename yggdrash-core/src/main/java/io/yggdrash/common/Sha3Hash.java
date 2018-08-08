@@ -16,9 +16,10 @@
 
 package io.yggdrash.common;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
-public class Sha3Hash {
+public class Sha3Hash implements Serializable {
     private byte[] data;
 
     public Sha3Hash(byte[] data) {
