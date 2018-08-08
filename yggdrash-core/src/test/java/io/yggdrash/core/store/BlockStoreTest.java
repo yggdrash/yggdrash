@@ -20,14 +20,34 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.husk.BlockHusk;
 import io.yggdrash.proto.BlockChainProto;
+import org.assertj.core.api.Assertions;
+import org.junit.Before;
 import org.junit.Test;
 
 public class BlockStoreTest {
+    private BlockStore blockStore;
+
+    @Before
+    public void setUp() throws Exception {
+        this.blockStore = new BlockStore();
+    }
+
     @Test
-    public void name() throws InvalidProtocolBufferException {
-        BlockChainProto.Block blockFixture = TestUtils.getBlockFixture();
-        BlockHusk blockHusk = new BlockHusk(blockFixture);
-        BlockStore blockStore = new BlockStore();
+    public void shouldBeGotBlock() throws InvalidProtocolBufferException {
+        BlockHusk blockHuskFixture = getBlockHuskFixture();
+        blockStore.put(blockHuskFixture.getHash(), blockHuskFixture);
+        BlockHusk foundBlockHusk = blockStore.get(blockHuskFixture.getHash());
+        Assertions.assertThat(foundBlockHusk).isEqualTo(blockHuskFixture);
+    }
+
+    @Test
+    public void shouldBePutBlock() throws InvalidProtocolBufferException {
+        BlockHusk blockHusk = getBlockHuskFixture();
         blockStore.put(blockHusk.getHash(), blockHusk);
+    }
+
+    private BlockHusk getBlockHuskFixture() {
+        BlockChainProto.Block blockFixture = TestUtils.getBlockFixture();
+        return new BlockHusk(blockFixture);
     }
 }

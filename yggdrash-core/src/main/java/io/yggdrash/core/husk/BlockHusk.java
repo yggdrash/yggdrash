@@ -20,6 +20,8 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.proto.BlockChainProto;
 
+import java.util.Objects;
+
 public class BlockHusk implements ProtoHusk<BlockChainProto.Block> {
     private BlockChainProto.Block block;
 
@@ -43,5 +45,22 @@ public class BlockHusk implements ProtoHusk<BlockChainProto.Block> {
 
     public Sha3Hash getHash() {
         return new Sha3Hash(block.getHeader().toByteArray());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        BlockHusk blockHusk = (BlockHusk) o;
+        return Objects.equals(block, blockHusk.block);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(block);
     }
 }
