@@ -35,7 +35,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-public class TransactionStore {
+public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     private final DbSource<byte[], byte[]> db;
     private final CachePool<String, Transaction> txPool;
     private final Cache<Sha3Hash, TransactionHusk> huskTxPool;
@@ -66,6 +66,7 @@ public class TransactionStore {
         return tx;
     }
 
+    @Override
     public void put(Sha3Hash key, TransactionHusk tx) {
         huskTxPool.put(key, tx);
         unconfirmedTxs.add(key);
@@ -77,6 +78,7 @@ public class TransactionStore {
         return foundTx != null ? foundTx : deserialize(db.get(key.getBytes()));
     }
 
+    @Override
     public TransactionHusk get(Sha3Hash key) throws InvalidProtocolBufferException {
         TransactionHusk item = huskTxPool.get(key);
         return item != null ? item : new TransactionHusk(db.get(key.getBytes()));

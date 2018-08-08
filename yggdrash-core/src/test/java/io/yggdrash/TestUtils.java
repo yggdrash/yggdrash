@@ -20,6 +20,7 @@ import io.yggdrash.core.Address;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHeader;
 import io.yggdrash.crypto.ECKey;
+import io.yggdrash.proto.BlockChainProto;
 
 import java.util.Random;
 
@@ -43,5 +44,15 @@ public class TestUtils {
 
     public static Address getTestAddress() {
         return new Address(new ECKey().getAddress());
+    }
+
+    public static BlockChainProto.Block getBlockFixture() {
+        BlockChainProto.BlockHeader defaultHeader =
+                BlockChainProto.BlockHeader.getDefaultInstance();
+        BlockChainProto.BlockBody defaultBody = BlockChainProto.BlockBody.getDefaultInstance();
+        return BlockChainProto.Block.newBuilder()
+                .setHeader(defaultHeader)
+                .setData(defaultBody)
+                .build();
     }
 }
