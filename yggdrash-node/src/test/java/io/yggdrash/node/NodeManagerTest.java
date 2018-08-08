@@ -22,7 +22,7 @@ import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionStore;
+import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.TransactionValidator;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.PeerGroup;
@@ -57,7 +57,7 @@ public class NodeManagerTest {
         nodeManager.setMessageSender(new MessageSender());
         nodeManager.setWallet(new Wallet());
         nodeManager.setTxValidator(new TransactionValidator());
-        nodeManager.setTxManager(txManager);
+        nodeManager.setTransactionStore(txManager);
         nodeManager.setBlockChain(new BlockChain());
         nodeManager.setBlockBuilder(new BlockBuilderImpl());
         nodeManager.init();

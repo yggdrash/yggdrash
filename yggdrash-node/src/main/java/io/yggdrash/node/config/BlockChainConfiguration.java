@@ -18,7 +18,7 @@ package io.yggdrash.node.config;
 
 import io.yggdrash.core.BlockBuilder;
 import io.yggdrash.core.BlockChain;
-import io.yggdrash.core.TransactionStore;
+import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.TransactionValidator;
 import io.yggdrash.core.store.CachePool;
 import io.yggdrash.core.store.datasource.DbSource;

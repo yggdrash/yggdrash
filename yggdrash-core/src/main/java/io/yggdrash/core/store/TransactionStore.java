@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core;
+package io.yggdrash.core.store;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.Transaction;
+import io.yggdrash.core.TransactionHeader;
 import io.yggdrash.core.husk.TransactionHusk;
-import io.yggdrash.core.store.CachePool;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.proto.BlockChainProto;
 import org.ehcache.Cache;
