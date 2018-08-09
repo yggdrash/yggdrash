@@ -24,8 +24,9 @@ public class HashMapDbSource implements DbSource<byte[], byte[]> {
     HashMap<String, byte[]> db;
 
     @Override
-    public void init() {
+    public DbSource init() {
         db = new HashMap<>();
+        return this;
     }
 
     @Override

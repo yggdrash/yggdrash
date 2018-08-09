@@ -56,13 +56,13 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         this.name = name;
     }
 
-    public void init() {
+    public LevelDbDataSource init() {
         resetDbLock.writeLock().lock();
         try {
             log.debug("Initialize db: {}", name);
 
             if (isAlive()) {
-                return;
+                log.info("DbSource is alive.");
             }
 
             if (name == null) {
@@ -79,6 +79,8 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         } finally {
             resetDbLock.writeLock().unlock();
         }
+
+        return this;
     }
 
     private void openDb(Options options) throws IOException {
