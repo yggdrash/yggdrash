@@ -49,7 +49,7 @@ public class TransactionApiImpl implements TransactionApi {
     public int getTransactionCount(String address, String tag) {
         Integer blockNumber;
         if ("latest".equals(tag)) {
-            blockNumber = 0;
+            blockNumber = 1;
         } else {
             blockNumber = -1;
         }

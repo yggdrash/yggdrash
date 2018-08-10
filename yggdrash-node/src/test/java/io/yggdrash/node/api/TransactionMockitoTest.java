@@ -42,13 +42,14 @@ public class TransactionMockitoTest {
     private TransactionApiImpl txApiImpl;
     private String hashOfTx;
     private String hashOfBlock;
-    private static final String address = "cee3d4755e47055b530deeba062c5bd0c17eb00f";
+    private String address;
 
     @Before
     public void setup() throws Exception {
         MockitoAnnotations.initMocks(this);
 
         wallet = new Wallet();
+        address = Hex.encodeHexString(wallet.getAddress());
         txApiImpl = new TransactionApiImpl(nodeManagerMock);
 
         TransactionMock txMock = new TransactionMock();
@@ -77,7 +78,7 @@ public class TransactionMockitoTest {
 
     @Test
     public void getTransactionCountTest() {
-        when(nodeManagerMock.getBlockByIndexOrHash(anyString())).thenReturn(block);
+        when(nodeManagerMock.getBlockByIndexOrHash(any())).thenReturn(block);
         Integer res = txApiImpl.getTransactionCount(address, 1);
         Integer res2 = txApiImpl.getTransactionCount(address, "latest");
         Integer sizeOfTxList = 3;
