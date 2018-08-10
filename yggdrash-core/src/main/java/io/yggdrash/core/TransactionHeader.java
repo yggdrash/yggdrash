@@ -164,7 +164,7 @@ public class TransactionHeader implements Serializable {
      * @return address
      */
     public String getAddressToString() {
-        return Hex.encodeHexString(getAddress());
+        return Hex.toHexString(getAddress());
     }
 
     /**
