@@ -1,4 +1,4 @@
-[![logo](docs/images/ygg-logo-green.png)]
+![logo](docs/images/ygg-logo-green.png)
 
 > We will change the world by blockchain.
 
@@ -55,7 +55,7 @@ To run the cloned repository in the spring default profile, simply run:
 ```
 To run the multiple node on the intellij IDE, edit the run configure:
 
-[![config](docs/images/intellij-run-config.png)]
+![config](docs/images/intellij-run-config.png)
 
 ### Running on Docker
 You can fully dockerize the yggdrash node. For more information refer to [docker](docker).
