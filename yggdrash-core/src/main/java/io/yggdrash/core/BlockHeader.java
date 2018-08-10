@@ -1,6 +1,7 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.util.ByteUtil;
@@ -10,7 +11,6 @@ import org.spongycastle.util.encoders.Hex;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
-import java.security.SignatureException;
 
 /**
  * The type Block header.
@@ -84,52 +84,41 @@ public class BlockHeader implements Serializable {
      *
      * @return the byte [ ]
      */
-    public byte[] getBlockHash() throws IOException {
+    public byte[] getBlockHash() {
         ByteArrayOutputStream block = new ByteArrayOutputStream();
 
-        block.write(type);
-        block.write(version);
-        if (prevBlockHash != null) {
+        try {
+            block.write(type);
+            block.write(version);
             block.write(prevBlockHash);
-        }
-        if (merkleRoot != null) {
             block.write(merkleRoot);
+            block.write(ByteUtil.longToBytes(timestamp));
+            block.write(ByteUtil.longToBytes(dataSize));
+            block.write(signature);
+        } catch (IOException e) {
+            throw new NotValidateException(e);
         }
-        block.write(ByteUtil.longToBytes(timestamp));
-        block.write(ByteUtil.longToBytes(dataSize));
-        block.write(signature);
 
         return HashUtil.sha3(block.toByteArray());
     }
 
-    public byte[] getAddress() throws IOException, SignatureException {
-
-        if (type == null) {
-            throw new IOException("getDataHashForSigning(): type is null");
-        }
-
-        if (version == null) {
-            throw new IOException("getDataHashForSigning(): version is null");
-        }
-
+    public byte[] getAddress() {
         ByteArrayOutputStream block = new ByteArrayOutputStream();
-
-        block.write(type);
-        block.write(version);
-
-        if (prevBlockHash != null) {
+        try {
+            block.write(type);
+            block.write(version);
             block.write(prevBlockHash);
+            block.write(merkleRoot);
+            block.write(ByteUtil.longToBytes(timestamp));
+            block.write(ByteUtil.longToBytes(dataSize));
+
+            byte[] dataHash = HashUtil.sha3(block.toByteArray());
+            ECKey keyFromSig = ECKey.signatureToKey(dataHash, signature);
+
+            return keyFromSig.getAddress();
+        } catch (Exception e) {
+            throw new NotValidateException(e);
         }
-
-        block.write(merkleRoot);
-
-        block.write(ByteUtil.longToBytes(timestamp));
-        block.write(ByteUtil.longToBytes(dataSize));
-
-        byte[] dataHash = HashUtil.sha3(block.toByteArray());
-        ECKey keyFromSig = ECKey.signatureToKey(dataHash, signature);
-
-        return keyFromSig.getAddress();
     }
 
     /**
@@ -170,7 +159,7 @@ public class BlockHeader implements Serializable {
          * @param prevBlock the prev block
          * @return the builder
          */
-        public Builder prevBlock(Block prevBlock) throws IOException {
+        public Builder prevBlock(Block prevBlock) {
             if (prevBlock == null) {
                 this.index = 0;
                 this.prevBlockHash = null;
@@ -187,22 +176,10 @@ public class BlockHeader implements Serializable {
          * @param blockBody the block body
          * @return the builder
          */
-        public Builder blockBody(BlockBody blockBody) throws IOException {
+        public Builder blockBody(BlockBody blockBody) {
             this.merkleRoot = blockBody.getMerkleRoot();
             this.dataSize = blockBody.getSize();
             return this;
-        }
-
-        /**
-         * Build block header.
-         *
-         * @return the block header
-         */
-        @Deprecated
-        public BlockHeader build(Account from) throws IOException {
-            timestamp = TimeUtils.getCurrenttime();
-            this.signature = from.getKey().sign(this.getDataHashForSigning()).toBinary();
-            return new BlockHeader(this);
         }
 
         /**
@@ -210,7 +187,7 @@ public class BlockHeader implements Serializable {
          *
          * @return the block header
          */
-        public BlockHeader build(Wallet wallet) throws IOException {
+        public BlockHeader build(Wallet wallet) {
             timestamp = TimeUtils.getCurrenttime();
             this.signature = wallet.signHashedData(this.getDataHashForSigning());
             return new BlockHeader(this);
@@ -236,37 +213,31 @@ public class BlockHeader implements Serializable {
          * Get data hash for signing.
          *
          * @return hash of sign data
-         * @throws IOException IOException
          */
-        private byte[] getDataHashForSigning() throws IOException {
-
-            if (type == null) {
-                throw new IOException("getDataHashForSigning(): type is null");
-            }
-
-            if (version == null) {
-                throw new IOException("getDataHashForSigning(): version is null");
-            }
-
+        private byte[] getDataHashForSigning() {
             ByteArrayOutputStream block = new ByteArrayOutputStream();
 
-            block.write(type);
-            block.write(version);
+            try {
+                block.write(type);
+                block.write(version);
 
-            if (prevBlockHash == null) {
-                prevBlockHash = new byte[32];
+                if (prevBlockHash == null) {
+                    prevBlockHash = new byte[32];
+                }
+                block.write(prevBlockHash);
+
+                if (merkleRoot == null) {
+                    merkleRoot = new byte[32];
+                }
+                block.write(merkleRoot);
+
+                block.write(ByteUtil.longToBytes(timestamp));
+                block.write(ByteUtil.longToBytes(dataSize));
+
+                return HashUtil.sha3(block.toByteArray());
+            } catch (IOException e) {
+                throw new NotValidateException(e);
             }
-            block.write(prevBlockHash);
-
-            if (merkleRoot == null) {
-                merkleRoot = new byte[32];
-            }
-            block.write(merkleRoot);
-
-            block.write(ByteUtil.longToBytes(timestamp));
-            block.write(ByteUtil.longToBytes(dataSize));
-
-            return HashUtil.sha3(block.toByteArray());
         }
     }
 

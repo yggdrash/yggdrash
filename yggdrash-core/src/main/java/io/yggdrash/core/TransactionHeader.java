@@ -1,5 +1,6 @@
 package io.yggdrash.core;
 
+import io.yggdrash.core.exception.NotValidateException;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.JsonObject;
 import io.yggdrash.crypto.ECKey;
@@ -23,8 +24,8 @@ public class TransactionHeader implements Serializable {
     private byte[] type;
     private byte[] version;
     private byte[] dataHash;
-    private long timestamp;
     private long dataSize;
+    private long timestamp;
     private byte[] signature;
 
     public TransactionHeader() {
@@ -33,14 +34,14 @@ public class TransactionHeader implements Serializable {
     public TransactionHeader(byte[] type,
                              byte[] version,
                              byte[] dataHash,
-                             long timestamp,
                              long dataSize,
+                             long timestamp,
                              byte[] signature) {
         this.type = type;
         this.version = version;
         this.dataHash = dataHash;
-        this.timestamp = timestamp;
         this.dataSize = dataSize;
+        this.timestamp = timestamp;
         this.signature = signature;
     }
 
@@ -49,63 +50,23 @@ public class TransactionHeader implements Serializable {
      *
      * @param dataHash data hash
      * @param dataSize data size
-     * @throws IOException IOException
      */
-    public TransactionHeader(byte[] dataHash, long dataSize) throws IOException {
+    public TransactionHeader(Wallet wallet, byte[] dataHash, long dataSize) {
         if (dataHash == null) {
-            throw new IOException("dataHash is not valid");
+            throw new NotValidateException("dataHash is not valid");
         }
 
         if (dataSize <= 0) {
-            throw new IOException("dataSize is not valid");
+            throw new NotValidateException("dataSize is not valid");
         }
 
         this.type = new byte[4];
         this.version = new byte[4];
         this.dataHash = dataHash;
         this.dataSize = dataSize;
-    }
-
-    /**
-     * @deprecated
-     * TransactionHeader Constructor.
-     *  - do not use Account parameter for generating TransactionHeader.
-     * @param from     account for creating tx
-     * @param dataHash data hash
-     * @param dataSize data size
-     * @throws IOException IOException
-     */
-    @Deprecated
-    public TransactionHeader(Account from, byte[] dataHash, long dataSize) throws IOException {
-        this(dataHash, dataSize);
-
-        if (from == null || from.getKey().getPrivKeyBytes() == null) {
-            throw new IOException("Account from is not valid");
-        }
-
-        this.timestamp = TimeUtils.time();
-        this.signature = from.getKey().sign(getDataHashForSigning()).toBinary();
-    }
-
-    /**
-     * TransactionHeader Constructor.
-     *
-     * @param wallet   node wallet class
-     * @param dataHash data hash
-     * @param dataSize data size
-     * @throws IOException IOException
-     */
-    public TransactionHeader(Wallet wallet, byte[] dataHash, long dataSize) throws IOException {
-        this(dataHash, dataSize);
-
-        if (wallet == null || wallet.getAddress() == null) {
-            throw new IOException("Wallet is not valid");
-        }
-
         this.timestamp = TimeUtils.time();
         this.signature = wallet.signHashedData(getDataHashForSigning());
     }
-
 
     public byte[] getType() {
         return type;
@@ -117,10 +78,6 @@ public class TransactionHeader implements Serializable {
 
     public byte[] getDataHash() {
         return dataHash;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
     }
 
     public long getTimestamp() {
@@ -135,17 +92,20 @@ public class TransactionHeader implements Serializable {
      * Get the transaction hash.
      *
      * @return transaction hash
-     * @throws IOException IOException
      */
-    public byte[] getHash() throws IOException {
+    public byte[] getHash() {
         ByteArrayOutputStream transaction = new ByteArrayOutputStream();
 
-        transaction.write(type);
-        transaction.write(version);
-        transaction.write(this.dataHash);
-        transaction.write(ByteUtil.longToBytes(timestamp));
-        transaction.write(ByteUtil.longToBytes(dataSize));
-        transaction.write(this.signature);
+        try {
+            transaction.write(type);
+            transaction.write(version);
+            transaction.write(dataHash);
+            transaction.write(ByteUtil.longToBytes(dataSize));
+            transaction.write(ByteUtil.longToBytes(timestamp));
+            transaction.write(signature);
+        } catch (IOException e) {
+            throw new NotValidateException(e);
+        }
 
         return HashUtil.sha3(transaction.toByteArray());
     }
@@ -155,12 +115,8 @@ public class TransactionHeader implements Serializable {
      *
      * @return transaction hash as hex string
      */
-    public String getHashString() throws IOException {
+    public String getHashString() {
         return Hex.toHexString(this.getHash());
-    }
-
-    public void setSignature(byte[] signature) {
-        this.signature = signature;
     }
 
     /**
@@ -176,29 +132,19 @@ public class TransactionHeader implements Serializable {
      * Get the data hash for signing.
      *
      * @return hash of sign data
-     * @throws IOException IOException
      */
-    public byte[] getDataHashForSigning() throws IOException {
-
-        if (type == null) {
-            throw new IOException("getDataHashForSigning(): type is null");
-        }
-
-        if (version == null) {
-            throw new IOException("getDataHashForSigning(): version is null");
-        }
-
-        if (dataHash == null) {
-            throw new IOException("getDataHashForSigning(): dataHash is null");
-        }
-
+    public byte[] getDataHashForSigning() {
         ByteArrayOutputStream transaction = new ByteArrayOutputStream();
 
-        transaction.write(type);
-        transaction.write(version);
-        transaction.write(dataHash);
-        transaction.write(ByteUtil.longToBytes(timestamp));
-        transaction.write(ByteUtil.longToBytes(dataSize));
+        try {
+            transaction.write(type);
+            transaction.write(version);
+            transaction.write(dataHash);
+            transaction.write(ByteUtil.longToBytes(dataSize));
+            transaction.write(ByteUtil.longToBytes(timestamp));
+        } catch (IOException e) {
+            throw new NotValidateException(e);
+        }
 
         return HashUtil.sha3(transaction.toByteArray());
     }
@@ -208,10 +154,8 @@ public class TransactionHeader implements Serializable {
      *
      * @return address
      */
-    public byte[] getAddress() throws IOException, SignatureException {
-        ECKey keyFromSig = ECKey.signatureToKey(getDataHashForSigning(), signature);
-
-        return keyFromSig.getAddress();
+    public byte[] getAddress() {
+        return ecKey().getAddress();
     }
 
     /**
@@ -219,8 +163,8 @@ public class TransactionHeader implements Serializable {
      *
      * @return address
      */
-    public String getAddressToString() throws IOException, SignatureException {
-        return Hex.toHexString(getAddress());
+    public String getAddressToString() {
+        return Hex.encodeHexString(getAddress());
     }
 
     /**
@@ -228,10 +172,8 @@ public class TransactionHeader implements Serializable {
      *
      * @return public key
      */
-    public byte[] getPubKey() throws IOException, SignatureException {
-        ECKey keyFromSig = ECKey.signatureToKey(getDataHashForSigning(), signature);
-
-        return keyFromSig.getPubKey();
+    public byte[] getPubKey() {
+        return ecKey().getPubKey();
     }
 
     /**
@@ -239,10 +181,12 @@ public class TransactionHeader implements Serializable {
      *
      * @return ECKey(include pubKey)
      */
-    @JsonIgnore
-    public ECKey getEcKey() throws IOException, SignatureException {
-
-        return ECKey.signatureToKey(getDataHashForSigning(), signature);
+    public ECKey ecKey() {
+        try {
+            return ECKey.signatureToKey(getDataHashForSigning(), signature);
+        } catch (SignatureException e) {
+            throw new NotValidateException(e);
+        }
     }
 
     @Override

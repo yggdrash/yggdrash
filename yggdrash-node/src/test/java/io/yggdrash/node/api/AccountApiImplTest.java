@@ -11,7 +11,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class AccountApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
 
-    private final JsonRpcHttpClient jsonRpcHttpClient = new JsonRpcConfig().jsonRpcHttpClient();
+    JsonRpcHttpClient jsonRpcHttpClient;
 
     @Test
     public void createAccountTest() {

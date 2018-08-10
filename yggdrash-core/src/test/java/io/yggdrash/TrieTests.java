@@ -1,15 +1,13 @@
 package io.yggdrash;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.trie.Trie;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,14 +17,14 @@ import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertNotNull;
 
 public class TrieTests {
-    private static final Logger log = LoggerFactory.getLogger(Trie.class);
 
     private Transaction tx1;
     private Transaction tx2;
+    private Wallet wallet;
 
     @Before
-    public void setUp() throws Exception {
-
+    public void setUp() throws IOException, InvalidCipherTextException {
+        wallet = new Wallet();
         // create tx_data1
         JsonObject data1 = new JsonObject();
         data1.addProperty("key", "balance");
@@ -39,13 +37,9 @@ public class TrieTests {
         data2.addProperty("operator", "transfer");
         data2.addProperty("value", 10);
 
-        // create account
-        Wallet wallet = new Wallet(new DefaultConfig());
-
         // create sample tx
         this.tx1 = new Transaction(wallet, data1);
         this.tx2 = new Transaction(wallet, data2);
-
     }
 
     @Test

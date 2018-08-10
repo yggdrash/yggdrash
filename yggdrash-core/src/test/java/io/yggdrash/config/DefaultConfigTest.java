@@ -7,7 +7,7 @@ import org.junit.Test;
 
 import java.util.Map;
 
-import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertThat;
 
 public class DefaultConfigTest {
@@ -27,6 +27,14 @@ public class DefaultConfigTest {
         assertThat(defaultConfig.getConfig().getString("java.version"), containsString("1.8"));
         System.out.println("DefaultConfig java.version: "
                 + defaultConfig.getConfig().getString("java.version"));
+
+        assertThat(defaultConfig.getConfig().getString("node.name"), containsString("yggdrash"));
+        System.out.println("DefaultConfig node.name: "
+                + defaultConfig.getConfig().getString("node.name"));
+
+        assertThat(defaultConfig.getConfig().getString("network.port"), containsString("31212"));
+        System.out.println("DefaultConfig network.port: "
+                + defaultConfig.getConfig().getString("network.port"));
 
     }
 

@@ -5,9 +5,7 @@ import com.google.gson.JsonObject;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.lang.NonNull;
 
-import java.io.IOException;
 import java.io.Serializable;
 
 public class Block implements Cloneable, Serializable, Comparable<Block> {
@@ -27,28 +25,11 @@ public class Block implements Cloneable, Serializable, Comparable<Block> {
     /**
      * Instantiates a new Block.
      *
-     * @param author    the author
-     * @param prevBlock the prev block
-     * @param blockBody the block body
-     */
-    @Deprecated
-    public Block(Account author, Block prevBlock, BlockBody blockBody) throws IOException {
-        this.header = new BlockHeader.Builder()
-                .prevBlock(prevBlock)
-                .blockBody(blockBody)
-                .build(author);
-
-        this.data = blockBody;
-    }
-
-    /**
-     * Instantiates a new Block.
-     *
      * @param wallet    the wallet
      * @param prevBlock the prev block
      * @param blockBody the block body
      */
-    public Block(Wallet wallet, Block prevBlock, BlockBody blockBody) throws IOException {
+    public Block(Wallet wallet, Block prevBlock, BlockBody blockBody) {
         this.header = new BlockHeader.Builder()
                 .prevBlock(prevBlock)
                 .blockBody(blockBody)
@@ -58,7 +39,7 @@ public class Block implements Cloneable, Serializable, Comparable<Block> {
     }
 
     @JsonIgnore
-    public String getBlockHash() throws IOException {
+    public String getBlockHash() {
         return Hex.encodeHexString(header.getBlockHash());
     }
 
@@ -69,7 +50,7 @@ public class Block implements Cloneable, Serializable, Comparable<Block> {
     }
 
     @JsonIgnore
-    public byte[] getBlockByteHash() throws IOException {
+    public byte[] getBlockByteHash() {
         return header.getBlockHash();
     }
 
@@ -108,7 +89,7 @@ public class Block implements Cloneable, Serializable, Comparable<Block> {
     }
 
     @Override
-    public int compareTo(@NonNull Block o) {
+    public int compareTo(Block o) {
         return Long.compare(header.getIndex(), o.header.getIndex());
     }
 

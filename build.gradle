@@ -56,14 +56,6 @@ allprojects {
 
 subprojects {
     apply plugin: 'java'
-    apply plugin: 'io.spring.dependency-management'
-    apply plugin: 'org.springframework.boot'
-
-    dependencies {
-        compile('org.springframework.boot:spring-boot-starter')
-        runtime('org.springframework.boot:spring-boot-devtools')
-        testCompile('org.springframework.boot:spring-boot-starter-test')
-    }
 
     jacocoTestReport {
         reports {
@@ -78,18 +70,6 @@ subprojects {
         sourceSets = [project.sourceSets.main]
         maxWarnings = 0
         configFile = rootProject.file('config/checkstyle/checkstyle.xml')
-    }
-
-    test {
-        systemProperty("spring.profiles.active", project.properties.get("springProfiles"))
-        testLogging {
-            afterSuite {desc, result ->
-                if (!desc.parent) { // will match the outermost suite
-                    print "TEST:${result.resultType} (TOTAL:${result.testCount}, PASS:${result.successfulTestCount},"
-                    println " FAIL:${result.failedTestCount}, SKIP:${result.skippedTestCount})"
-                }
-            }
-        }
     }
 }
 
@@ -109,7 +89,10 @@ project(':yggdrash-core') {
         compile("com.googlecode.json-simple:json-simple:${jsonSimpleVersion}")
         compile("com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}")
         compile("com.typesafe:config:${typesafeVersion}")
+        compile("ch.qos.logback:logback-classic:1.2.3")
         testCompile("io.grpc:grpc-testing:${grpcVersion}")
+        testCompile("org.assertj:assertj-core:3.9.1")
+        testCompile("org.mockito:mockito-core:2.15.0")
     }
 
     jar {
@@ -144,6 +127,8 @@ project(':yggdrash-core') {
 
 project(':yggdrash-node') {
     apply plugin: 'com.palantir.docker'
+    apply plugin: 'io.spring.dependency-management'
+    apply plugin: 'org.springframework.boot'
 
     dependencies {
         compile project(":yggdrash-core")
@@ -151,6 +136,8 @@ project(':yggdrash-node') {
         compile("org.springframework.boot:spring-boot-starter-web")
         compile("org.springframework.boot:spring-boot-starter-actuator")
         annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+        runtime('org.springframework.boot:spring-boot-devtools')
+        testCompile('org.springframework.boot:spring-boot-starter-test')
     }
 
     docker {
@@ -160,8 +147,21 @@ project(':yggdrash-node') {
         files bootJar.archivePath
         buildArgs(['JAR_FILE': "${bootJar.archiveName}"])
     }
+
     bootJar {
         launchScript()
+    }
+
+    test {
+        systemProperty("spring.profiles.active", project.properties.get("springProfiles"))
+        testLogging {
+            afterSuite {desc, result ->
+                if (!desc.parent) { // will match the outermost suite
+                    print "TEST:${result.resultType} (TOTAL:${result.testCount}, PASS:${result.successfulTestCount},"
+                    println " FAIL:${result.failedTestCount}, SKIP:${result.skippedTestCount})"
+                }
+            }
+        }
     }
 }
 

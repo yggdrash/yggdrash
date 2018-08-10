@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +18,7 @@ package io.yggdrash.node.controller;
 
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Transaction;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,34 +28,26 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
-import java.security.SignatureException;
-
 @RestController
 @RequestMapping("txs")
 public class TransactionController {
 
     private final NodeManager nodeManager;
 
+    @Autowired
     public TransactionController(NodeManager nodeManager) {
         this.nodeManager = nodeManager;
     }
 
     @PostMapping
-    public ResponseEntity add(@RequestBody TransactionDto request) throws SignatureException {
-        try {
-            Transaction tx = TransactionDto.of(request);
-            Transaction addedTx = nodeManager.addTransaction(tx);
-            return ResponseEntity.ok(TransactionDto.createBy(addedTx));
-        } catch (IOException e) {
-            e.printStackTrace();
-            // TODO 에러정의를 다시 해 볼수 있도록 합니다.
-            return ResponseEntity.status(500).build();
-        }
+    public ResponseEntity add(@RequestBody TransactionDto request) {
+        Transaction tx = TransactionDto.of(nodeManager.getWallet(), request);
+        Transaction addedTx = nodeManager.addTransaction(tx);
+        return ResponseEntity.ok(TransactionDto.createBy(addedTx));
     }
 
     @GetMapping("{id}")
-    public ResponseEntity get(@PathVariable String id) throws IOException, SignatureException {
+    public ResponseEntity get(@PathVariable String id) {
         Transaction tx = nodeManager.getTxByHash(id);
 
         if (tx == null) {

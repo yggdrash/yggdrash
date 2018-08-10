@@ -35,6 +35,10 @@ public class PeerGroup {
         return peer;
     }
 
+    public int count() {
+        return peers.size();
+    }
+
     public Peer removePeer(String peer) {
         return peers.remove(peer);
     }
