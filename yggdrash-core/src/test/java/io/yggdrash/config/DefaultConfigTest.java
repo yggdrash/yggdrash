@@ -32,7 +32,7 @@ public class DefaultConfigTest {
         System.out.println("DefaultConfig node.name: "
                 + defaultConfig.getConfig().getString("node.name"));
 
-        assertThat(defaultConfig.getConfig().getString("network.port"), containsString("31212"));
+        assertThat(defaultConfig.getConfig().getString("network.port"), containsString("32918"));
         System.out.println("DefaultConfig network.port: "
                 + defaultConfig.getConfig().getString("network.port"));
 
