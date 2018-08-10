@@ -174,7 +174,6 @@ public class LevelDbDataSource implements DbSource {
                 byte[] value = iterator.peekNext().getValue();
                 String keyStr = Hex.toHexString(key);
                 String valueStr = Base64.encodeBase64String(value);
-                System.out.println("\n{ Key : " + keyStr + " , Value : " + valueStr + " }");
                 keyList.add(key);
             }
         } finally {
