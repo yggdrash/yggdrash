@@ -1,9 +1,11 @@
 package io.yggdrash.core;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.TimeUtils;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -266,5 +268,25 @@ public class BlockHeader implements Serializable {
 
             return HashUtil.sha3(block.toByteArray());
         }
+    }
+
+    /**
+     * Convert from BlockHeader.class to JsonObject.
+     * @return block as JsonObject
+     */
+    public JsonObject toJsonObject() {
+        //todo: change to serialize method
+
+        JsonObject jsonObject = new JsonObject();
+
+        jsonObject.addProperty("type", Hex.toHexString(this.type));
+        jsonObject.addProperty("version", Hex.toHexString(this.version));
+        jsonObject.addProperty("prevBlockHash", Hex.toHexString(this.prevBlockHash));
+        jsonObject.addProperty("merkleRoot", Hex.toHexString(this.merkleRoot));
+        jsonObject.addProperty("timestamp", Hex.toHexString(ByteUtil.longToBytes(this.timestamp)));
+        jsonObject.addProperty("dataSize", Hex.toHexString(ByteUtil.longToBytes(this.dataSize)));
+        jsonObject.addProperty("signature", Hex.toHexString(this.signature));
+
+        return jsonObject;
     }
 }
