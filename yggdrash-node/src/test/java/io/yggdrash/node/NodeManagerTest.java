@@ -37,6 +37,7 @@ import java.util.Collections;
 
 import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
+import static org.mockito.Mockito.mock;
 
 public class NodeManagerTest {
 
@@ -64,6 +65,7 @@ public class NodeManagerTest {
         nodeManager.setTxManager(txManager);
         nodeManager.setBlockChain(new BlockChain());
         nodeManager.setBlockBuilder(new BlockBuilderImpl());
+        nodeManager.setNodeHealthIndicator(mock(NodeHealthIndicator.class));
         nodeManager.init();
         assert nodeManager.getNodeUri() != null;
         JsonObject json = new JsonObject();

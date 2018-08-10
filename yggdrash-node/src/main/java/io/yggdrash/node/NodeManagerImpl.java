@@ -65,6 +65,8 @@ public class NodeManagerImpl implements NodeManager {
 
     private MessageSender<PeerClientChannel> messageSender;
 
+    private NodeHealthIndicator nodeHealthIndicator;
+
     @Autowired
     public void setNodeProperties(NodeProperties nodeProperties) {
         this.nodeProperties = nodeProperties;
@@ -105,6 +107,11 @@ public class NodeManagerImpl implements NodeManager {
         this.messageSender = messageSender;
     }
 
+    @Autowired
+    public void setNodeHealthIndicator(NodeHealthIndicator nodeHealthIndicator) {
+        this.nodeHealthIndicator = nodeHealthIndicator;
+    }
+
     @PreDestroy
     public void destroy() {
         log.info("destroy uri=" + peer.getYnodeUri());
@@ -119,10 +126,12 @@ public class NodeManagerImpl implements NodeManager {
         requestPeerList();
         activatePeers();
         if (!peerGroup.isEmpty()) {
+            nodeHealthIndicator.sync();
             syncBlockAndTransaction();
         }
         peerGroup.addPeer(peer);
         log.info("Init node=" + peer.getYnodeUri());
+        nodeHealthIndicator.up();
     }
 
     @Override
