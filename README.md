@@ -129,12 +129,12 @@ docker-compose -f docker/docker-compose.yml down
 ## Continuous Integration & Continuous Delivery (optional)
 
 Yggdrash should support the following CI systems out of the box:
- - Jenkins: Setting up Jenkins
+- Jenkins: Setting up Jenkins
    - Just use the [docker/jenkins.yml](docker/jenkins.yml) file. So you can test Jenkins locally by running:
 ```
 docker-compose -f docker/jenkins.yml up -d
 ```
- - Travis: refer to the [Travis Documentation](https://docs.travis-ci.com/user/getting-started/)
+- Travis: refer to the [Travis Documentation](https://docs.travis-ci.com/user/getting-started/)
 
 ### To configure CI for Yggdrash project in Jenkins, use the following configuration:
 ```

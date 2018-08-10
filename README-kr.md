@@ -128,13 +128,13 @@ docker-compose -f docker/docker-compose.yml down
 
 환경을 구성하기 위해서 별도의 툴이 설치되거나 설정되어야 합니다.
 
- - Jenkins
+- Jenkins
    - 도커로 필요한 젠킨스 서버를 [docker/jenkins.yml](docker/jenkins.yml) 쉽게 실행 가능합니다.
 
 ```
 docker-compose -f docker/jenkins.yml up -d
 ```
- - Travis: [Travis 설정 문서](https://docs.travis-ci.com/user/getting-started/)
+- Travis: [Travis 설정 문서](https://docs.travis-ci.com/user/getting-started/)
 
 ### 이그드라시 프로젝트를 Jenkins에서 생성하기 위해 필요한 설정입니다.
 ```
@@ -165,10 +165,10 @@ Jenkins 파이프라인을 설정하기 위한 [파일](Jenkinsfile)이 준비�
 
 
 ## 소식보기
- - 페이스북 [@yggdrash](https://www.facebook.com/yggdrash)
- - 트위터 [@YggdrashNews](https://twitter.com/YggdrashNews)
- - [이그드라시 블로그](http://blog.naver.com/yggdrash)
- - [이그드라시 웹사이트](https://yggdrash.io/#team) #팀 멤버
+- 페이스북 [@yggdrash](https://www.facebook.com/yggdrash)
+- 트위터 [@YggdrashNews](https://twitter.com/YggdrashNews)
+- [이그드라시 블로그](http://blog.naver.com/yggdrash)
+- [이그드라시 웹사이트](https://yggdrash.io/#team) #팀 멤버
 
 
 ## 라이센스
