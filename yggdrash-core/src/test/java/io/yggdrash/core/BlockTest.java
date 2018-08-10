@@ -26,7 +26,8 @@ import org.junit.Test;
 import org.springframework.util.SerializationUtils;
 
 import java.io.IOException;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BlockTest {
 
@@ -36,10 +37,23 @@ public class BlockTest {
     public void setUp() throws Exception {
         Wallet wallet = new Wallet(new DefaultConfig());
 
-        JsonObject json = new JsonObject();
-        json.addProperty("data", "TEST");
-        Transaction tx = new Transaction(wallet, json);
-        BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
+        JsonObject jsonObject1 = new JsonObject();
+        jsonObject1.addProperty("operator", "transfer");
+        jsonObject1.addProperty("to", "0x5186a0EF662DFA89Ed44b52a55EC5Cf0B4b59bb7");
+        jsonObject1.addProperty("balance", "100000000");
+        Transaction tx1 = new Transaction(wallet, jsonObject1);
+
+        List<Transaction> txs = new ArrayList<>();
+        txs.add(tx1);
+
+        JsonObject jsonObject2 = new JsonObject();
+        jsonObject2.addProperty("operator", "transfer");
+        jsonObject2.addProperty("to", "0x3386a0EF662DFA89Ed44b52a55EC5Cf0B4b59bb7");
+        jsonObject2.addProperty("balance", "200000000");
+        Transaction tx2 = new Transaction(wallet, jsonObject2);
+        txs.add(tx2);
+
+        BlockBody sampleBody = new BlockBody(txs);
 
         BlockHeader genesisBlockHeader = new BlockHeader.Builder()
                 .blockBody(sampleBody)
@@ -76,6 +90,16 @@ public class BlockTest {
         BlockChainProto.Block protoBlock = BlockMapper.blockToProtoBlock(block);
         Block deserializeBlock = BlockMapper.protoBlockToBlock(protoBlock);
         assert block.getBlockHash().equals(deserializeBlock.getBlockHash());
+    }
+
+    @Test
+    public void testToJsonObject() {
+        //todo: modify to checking jsonObject when the block data format change to JsonObject.
+        try {
+            System.out.println(block.toJsonObject().toString());
+        } catch (Exception e) {
+            assert false;
+        }
     }
 
 }
