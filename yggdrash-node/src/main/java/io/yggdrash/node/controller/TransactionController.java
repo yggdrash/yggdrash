@@ -41,9 +41,8 @@ public class TransactionController {
 
     @PostMapping
     public ResponseEntity add(@RequestBody TransactionDto request) {
-        Transaction tx = TransactionDto.of(request);
-        Transaction signedTx = nodeManager.signByNode(tx);
-        Transaction addedTx = nodeManager.addTransaction(signedTx);
+        Transaction tx = TransactionDto.of(nodeManager.getWallet(), request);
+        Transaction addedTx = nodeManager.addTransaction(tx);
         return ResponseEntity.ok(TransactionDto.createBy(addedTx));
     }
 

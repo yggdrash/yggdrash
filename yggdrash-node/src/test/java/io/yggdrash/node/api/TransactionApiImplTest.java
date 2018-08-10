@@ -6,12 +6,14 @@ import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionValidator;
+import io.yggdrash.core.Wallet;
 import io.yggdrash.node.NodeManagerImpl;
 import io.yggdrash.node.mock.TransactionMock;
-import io.yggdrash.node.mock.WalletMock;
+import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Base64;
 
 import java.io.IOException;
@@ -23,13 +25,8 @@ import static org.junit.Assert.assertTrue;
 
 public class TransactionApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
-
-//    private final NodeManager nodeManager
-//            = new NodeManagerMock(null, null, new NodeProperties.Grpc());
-
     private static final BlockApi blockApi = new JsonRpcConfig().blockApi();
     private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
-
 
     private final TransactionApiImpl txApiImpl = new TransactionApiImpl(new NodeManagerImpl());
     private final String address = "0x407d73d8a49eeb85d32cf465507dd71d507100c1";
@@ -40,6 +37,12 @@ public class TransactionApiImplTest {
             "0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf";
     private final int blockNumber = 1;
     private final int txIndexPosition = 1;
+    private Wallet wallet;
+
+    @Before
+    public void setUp() throws IOException, InvalidCipherTextException {
+        this.wallet = new Wallet();
+    }
 
     @Test
     public void blockApiIsNotNull() {
@@ -82,7 +85,7 @@ public class TransactionApiImplTest {
     public void getTransactionByHashTest() {
         try {
             TransactionMock txMock = new TransactionMock();
-            Transaction tx = txMock.retTxMock();
+            Transaction tx = txMock.retTxMock(wallet);
             String hashOfTx = tx.getHashString();
 
             txApi.sendTransaction(tx);
@@ -99,7 +102,7 @@ public class TransactionApiImplTest {
             json.addProperty("id", "0");
             json.addProperty("name", "Rachael");
             json.addProperty("age", "27");
-            Transaction tx = new Transaction(json);
+            Transaction tx = new Transaction(wallet,json);
             if (txApi.sendTransaction(tx) != null) {
                 Thread.sleep(10000);
                 Integer curBlockSize = blockApi.getAllBlock().size();
@@ -111,7 +114,7 @@ public class TransactionApiImplTest {
                 log.error("Send Transaction Failed!");
             }
         } catch (Exception exception) {
-            log.debug("\n\ngetTransactionByBlockHashAndIndexTest :: exception => " + exception, exception);
+            log.debug("\n\ngetTransactionByBlockHashAndIndexTest :: exception => " + exception);
         }
     }
 
@@ -137,9 +140,9 @@ public class TransactionApiImplTest {
     @Test
     public void checkTransactionJsonFormat() throws IOException {
         JsonObject data = new JsonObject();
-        Transaction tx = new Transaction(data);
+        Transaction tx = new Transaction(wallet, data);
         ObjectMapper objectMapper = new ObjectMapper();
-        log.debug("\n\nTransaction Format : " + objectMapper.writeValueAsString(WalletMock.sign(tx)));
+        log.debug("\n\nTransaction Format : " + objectMapper.writeValueAsString(tx));
     }
 
     @Test
@@ -150,7 +153,7 @@ public class TransactionApiImplTest {
         json.addProperty("id", "0");
         json.addProperty("name", "Rachael");
         json.addProperty("age", "27");
-        Transaction transaction = new Transaction(json);
+        Transaction transaction = new Transaction(wallet, json);
 
         // Request Transaction with jsonStr
         try {
@@ -212,7 +215,7 @@ public class TransactionApiImplTest {
     @Test
     public void createTransactionMock() {
         TransactionMock txMock = new TransactionMock();
-        log.debug("txMock : " + txMock.retTxMock());
+        log.debug("txMock : " + txMock.retTxMock(wallet));
     }
 
     @Test
@@ -236,11 +239,11 @@ public class TransactionApiImplTest {
         json.addProperty("id", "0");
         json.addProperty("name", "Rachael");
         json.addProperty("age", "27");
-        Transaction tx = new Transaction(json);
+        Transaction tx = new Transaction(wallet, json);
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String jsonStr = mapper.writeValueAsString(WalletMock.sign(tx));
+        String jsonStr = mapper.writeValueAsString(tx);
 
         // Receive Transaction
         Transaction resTx = mapper.readValue(jsonStr, Transaction.class);

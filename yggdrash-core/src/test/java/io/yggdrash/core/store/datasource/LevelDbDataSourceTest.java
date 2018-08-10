@@ -20,8 +20,10 @@ import io.yggdrash.util.FileUtil;
 import org.junit.AfterClass;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static io.yggdrash.TestUtils.randomBytes;
@@ -34,6 +36,7 @@ public class LevelDbDataSourceTest {
     public static void destroy() {
         FileUtil.recursiveDelete(Paths.get(dbPath));
     }
+
 
     @Test
     public void shouldBeUpdateByBatch() {
@@ -78,6 +81,23 @@ public class LevelDbDataSourceTest {
         byte[] value = putDummyRow(ds, key);
         byte[] foundValue = ds.get(key);
         assertThat(foundValue).isEqualTo(value);
+    }
+
+    @Test
+    public void getAllKey() throws IOException {
+        LevelDbDataSource ds = new LevelDbDataSource(dbPath, "getAll-test");
+        ds.init();
+
+        byte[] address;
+        byte[] amount;
+
+        for (int i = 0; i < 10; i++) {
+            address = randomBytes(32);
+            amount = String.valueOf(i).getBytes();
+            ds.put(address, amount);
+        }
+        List<byte[]> keyList = ds.getAllKey();
+        assertThat(keyList.size()).isNotZero();
     }
 
     private byte[] putDummyRow(LevelDbDataSource ds, byte[] key) {

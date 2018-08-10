@@ -17,7 +17,6 @@ public class Transaction implements Serializable {
     private String data;
 
     public Transaction() {
-
     }
 
     /**
@@ -36,14 +35,14 @@ public class Transaction implements Serializable {
      *
      * @param data   transaction data(Json)
      */
-    public Transaction(JsonObject data) {
+    public Transaction(Wallet wallet, JsonObject data) {
 
         // 1. make data
         this.data = data.toString();
 
         // 2. make header
         byte[] bin = SerializeUtils.serialize(data);
-        this.header = new TransactionHeader(HashUtil.sha3(bin), bin.length);
+        this.header = new TransactionHeader(wallet, HashUtil.sha3(bin), bin.length);
     }
 
     /**
@@ -88,7 +87,6 @@ public class Transaction implements Serializable {
      * print transaction
      */
     public String toString() {
-
         return header.toString() + "transactionData=" + data;
     }
 }

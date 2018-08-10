@@ -8,6 +8,7 @@ import java.lang.reflect.Method;
 
 
 public class Runtime {
+
     public void execute(CoinContract coinContract, Transaction tx) throws Exception {
         String data = tx.getData();
         JSONParser jsonParser = new JSONParser();

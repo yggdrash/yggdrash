@@ -30,6 +30,16 @@ public class AccountApiImplTest {
     }
 
     @Test
+    public void balanceOfTest() {
+        try {
+            assertThat(accountApi.balanceOf("0x9843DC167956A0e5e01b3239a0CE2725c0631392"))
+                    .isEqualTo(10);
+        } catch (Exception exception) {
+            log.debug("accountsTest :: exception : " + exception);
+        }
+    }
+
+    @Test
     public void getBalanceTest() {
         try {
             assertThat(accountApi.getBalance("0x2Aa4BCaC31F7F67B9a15681D5e4De2FBc778066A",

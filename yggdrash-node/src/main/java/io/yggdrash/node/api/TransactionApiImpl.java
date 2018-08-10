@@ -1,6 +1,7 @@
 package io.yggdrash.node.api;
 
 import com.google.common.primitives.Longs;
+import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
@@ -12,6 +13,7 @@ import io.yggdrash.node.exception.NonExistObjectException;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.spongycastle.util.Arrays;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -23,6 +25,7 @@ public class TransactionApiImpl implements TransactionApi {
 
     private final NodeManager nodeManager;
 
+    @Autowired
     public TransactionApiImpl(NodeManager nodeManager) {
         this.nodeManager = nodeManager;
     }
@@ -128,13 +131,13 @@ public class TransactionApiImpl implements TransactionApi {
 
     /* send */
     @Override
-    public String sendTransaction(Transaction tx) throws IOException,SignatureException {
+    public String sendTransaction(Transaction tx) {
         Transaction addedTx = nodeManager.addTransaction(tx);
         return addedTx.getHashString();
     }
 
     @Override
-    public byte[] sendRawTransaction(byte[] bytes) throws IOException,SignatureException {
+    public byte[] sendRawTransaction(byte[] bytes) {
         Transaction tx = convert(bytes);
         Transaction addedTx = nodeManager.addTransaction(tx);
         return addedTx.getHash();
@@ -173,5 +176,17 @@ public class TransactionApiImpl implements TransactionApi {
                 type, version, dataHash, timestampStr, dataSizeStr, signature);
 
         return new Transaction(txHeader, dataStr);
+    }
+
+    private Transaction retTxMock() {
+
+        // Create transaction
+        JsonObject txObj = new JsonObject();
+
+        txObj.addProperty("operator", "transfer");
+        txObj.addProperty("to", "0x9843DC167956A0e5e01b3239a0CE2725c0631392");
+        txObj.addProperty("value", 100);
+
+        return new Transaction(nodeManager.getWallet(), txObj);
     }
 }

@@ -30,6 +30,16 @@ public interface AccountApi {
     /**
      * Returns the balance of the account of given address.
      *
+     * @param address account address
+     */
+    @JsonRpcErrors({
+            @JsonRpcError(exception = NonExistObjectException.class,
+                    code = NonExistObjectException.code)})
+    Integer balanceOf(@JsonRpcParam(value = "address") String address);
+
+    /**
+     * Returns the balance of the account of given address.
+     *
      * @param address     account address
      * @param blockNumber block number
      */

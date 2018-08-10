@@ -9,10 +9,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class BlockApiImplTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
-
-//    private final NodeManager nodeManager
-//            = new NodeManagerMock(null, null, new NodeProperties.Grpc());
-
     private static final BlockApi blockApi = new JsonRpcConfig().blockApi();
 
     @Test

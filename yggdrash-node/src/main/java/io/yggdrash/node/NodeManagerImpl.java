@@ -16,16 +16,20 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.contract.CoinContract;
+import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBuilder;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.Runtime;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionManager;
 import io.yggdrash.core.TransactionValidator;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.net.NodeSyncClient;
+import io.yggdrash.core.net.GrpcClientChannel;
 import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.node.exception.FailedOperationException;
@@ -35,7 +39,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -62,7 +68,9 @@ public class NodeManagerImpl implements NodeManager {
 
     private Peer peer;
 
-    private MessageSender messageSender;
+    private MessageSender<PeerClientChannel> messageSender;
+
+    private StateStore stateStore;
 
     @Autowired
     public void setNodeProperties(NodeProperties nodeProperties) {
@@ -100,7 +108,7 @@ public class NodeManagerImpl implements NodeManager {
     }
 
     @Autowired
-    public void setMessageSender(MessageSender messageSender) {
+    public void setMessageSender(MessageSender<PeerClientChannel> messageSender) {
         this.messageSender = messageSender;
     }
 
@@ -112,7 +120,16 @@ public class NodeManagerImpl implements NodeManager {
 
     @Override
     public void init() {
+        this.stateStore = new StateStore();
+        System.out.println("\n\n getStateStore : " + getStateStore());
         NodeProperties.Grpc grpc = nodeProperties.getGrpc();
+        try {
+            List<Transaction> txList = txManager.getAllTxs();
+            executeAllTx(txList);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         messageSender.setListener(this);
         peer = Peer.valueOf(wallet.getNodeId(), grpc.getHost(), grpc.getPort());
         requestPeerList();
@@ -122,6 +139,24 @@ public class NodeManagerImpl implements NodeManager {
         }
         peerGroup.addPeer(peer);
         log.info("Init node=" + peer.getYnodeUri());
+    }
+
+    private void executeAllTx(List<Transaction> txList) throws Exception {
+        CoinContract coinContract = new CoinContract(stateStore);
+        Runtime runtime = new Runtime();
+        for (Transaction tx : txList) {
+            runtime.execute(coinContract, tx);
+        }
+    }
+
+    @Override
+    public Integer getBalanceOf(String address) {
+        return stateStore.getState().get(address);
+    }
+
+    @Override
+    public StateStore getStateStore() {
+        return this.stateStore;
     }
 
     @Override
@@ -227,6 +262,10 @@ public class NodeManagerImpl implements NodeManager {
 
     private Peer addPeerByYnodeUri(String ynodeUri) {
         try {
+            if (peerGroup.count() >= nodeProperties.getMaxPeers()) {
+                log.warn("Ignore to add the peer. count={}, peer={}", peerGroup.count(), ynodeUri);
+                return null;
+            }
             Peer peer = Peer.valueOf(ynodeUri);
             return peerGroup.addPeer(peer);
         } catch (Exception e) {
@@ -245,7 +284,7 @@ public class NodeManagerImpl implements NodeManager {
         if (peer == null || this.peer.getYnodeUri().equals(peer.getYnodeUri())) {
             return;
         }
-        messageSender.newPeerChannel(peer);
+        messageSender.newPeerChannel(new GrpcClientChannel(peer));
     }
 
     private void requestPeerList() {
@@ -260,7 +299,7 @@ public class NodeManagerImpl implements NodeManager {
             try {
                 Peer peer = Peer.valueOf(ynodeUri);
                 log.info("Trying to connecting SEED peer at {}", ynodeUri);
-                NodeSyncClient client = new NodeSyncClient(peer);
+                GrpcClientChannel client = new GrpcClientChannel(peer);
                 // TODO validation peer(encrypting msg by privateKey and signing by publicKey ...)
                 List<String> peerList = client.requestPeerList(getNodeUri(), 0);
                 client.stop();
@@ -310,14 +349,6 @@ public class NodeManagerImpl implements NodeManager {
 
     public Wallet getWallet() {
         return wallet;
-    }
-
-    @Override
-    public Transaction signByNode(Transaction tx) {
-        byte[] data = tx.getHeader().getDataHashForSigning();
-        byte[] signed = wallet.signHashedData(data);
-        tx.getHeader().setSignature(signed);
-        return tx;
     }
 
     @Override

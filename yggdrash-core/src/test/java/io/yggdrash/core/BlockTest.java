@@ -18,7 +18,6 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
-import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.mapper.BlockMapper;
 import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.util.SerializeUtils;
@@ -34,12 +33,11 @@ public class BlockTest {
 
     @Before
     public void setUp() throws Exception {
-        Wallet wallet = new Wallet(new DefaultConfig());
+        Wallet wallet = new Wallet();
 
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
-        Transaction tx = new Transaction(json);
-        WalletMock.sign(tx);
+        Transaction tx = new Transaction(wallet, json);
         BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
 
         BlockHeader genesisBlockHeader = new BlockHeader.Builder()

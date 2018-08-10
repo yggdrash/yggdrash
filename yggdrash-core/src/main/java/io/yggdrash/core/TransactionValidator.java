@@ -18,8 +18,8 @@ public class TransactionValidator {
             tmpTx.write(tx.getHeader().getType());
             tmpTx.write(tx.getHeader().getVersion());
             tmpTx.write(HashUtil.sha3(bin));
-            tmpTx.write(ByteUtil.longToBytes(tx.getHeader().getTimestamp()));
             tmpTx.write(ByteUtil.longToBytes(bin.length));
+            tmpTx.write(ByteUtil.longToBytes(tx.getHeader().getTimestamp()));
 
             byte[] tmpSignDataHash = HashUtil.sha3(tmpTx.toByteArray());
 
