@@ -1,13 +1,14 @@
 package io.yggdrash.core;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.gson.JsonObject;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.TimeUtils;
-import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -155,7 +156,7 @@ public class TransactionHeader implements Serializable {
      * @return transaction hash as hex string
      */
     public String getHashString() throws IOException {
-        return Hex.encodeHexString(this.getHash());
+        return Hex.toHexString(this.getHash());
     }
 
     public void setSignature(byte[] signature) {
@@ -219,7 +220,7 @@ public class TransactionHeader implements Serializable {
      * @return address
      */
     public String getAddressToString() throws IOException, SignatureException {
-        return Hex.encodeHexString(getAddress());
+        return Hex.toHexString(getAddress());
     }
 
     /**
@@ -247,14 +248,32 @@ public class TransactionHeader implements Serializable {
     @Override
     public String toString() {
         return "TransactionHeader{"
-                + "type=" + Hex.encodeHexString(type)
-                + ", version=" + Hex.encodeHexString(version)
-                + ", dataHash=" + Hex.encodeHexString(dataHash)
+                + "type=" + Hex.toHexString(type)
+                + ", version=" + Hex.toHexString(version)
+                + ", dataHash=" + Hex.toHexString(dataHash)
                 + ", timestamp=" + timestamp
                 + ", dataSize=" + dataSize
-                + ", signature=" + Hex.encodeHexString(signature)
+                + ", signature=" + Hex.toHexString(signature)
                 + '}';
     }
 
+    /**
+     * Convert from TransactionHeader.class to JsonObject.
+     * @return transaction JsonObject
+     */
+    public JsonObject toJsonObject() {
+        //todo: change to serialize method
+
+        JsonObject jsonObject = new JsonObject();
+
+        jsonObject.addProperty("type", Hex.toHexString(this.type));
+        jsonObject.addProperty("version", Hex.toHexString(this.version));
+        jsonObject.addProperty("dataHash", Hex.toHexString(this.dataHash));
+        jsonObject.addProperty("timestamp", Hex.toHexString(ByteUtil.longToBytes(this.timestamp)));
+        jsonObject.addProperty("dataSize", Hex.toHexString(ByteUtil.longToBytes(this.dataSize)));
+        jsonObject.addProperty("signature", Hex.toHexString(this.signature));
+
+        return jsonObject;
+    }
 
 }
