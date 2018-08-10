@@ -1,6 +1,7 @@
 package io.yggdrash.core;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.gson.JsonObject;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,5 +110,18 @@ public class Block implements Cloneable, Serializable, Comparable<Block> {
     @Override
     public int compareTo(@NonNull Block o) {
         return Long.compare(header.getIndex(), o.header.getIndex());
+    }
+
+    /**
+     * Convert from Block.class to JSON string.
+     * @return block as JsonObject
+     */
+    public JsonObject toJsonObject() {
+        //todo: change to serialize method
+
+        JsonObject jsonObject = this.getHeader().toJsonObject();
+        jsonObject.add("data", this.data.toJsonArray());
+
+        return jsonObject;
     }
 }
