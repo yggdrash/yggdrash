@@ -23,7 +23,7 @@ YGGDRASH is a trust-based multi-dimensional blockchains (branches) built with a 
     * [Running Tests](#running-tests)
 * [APIs](#apis)
 * Using Docker to simplify development (optional)
-* Continuous Integration (optional)
+* Continuous Integration and Continuous Delivery (optional)
 * [Stay in Touch](#stay-in-touch)
 
 
@@ -46,6 +46,7 @@ Clone the yggdrash repo:
 git clone https://github.com/yggdrash/yggdrash.git
 cd yggdrash
 ```
+> If you are unfamiliar with Git, [Download ZIP](https://github.com/yggdrash/yggdrash/archive/master.zip) (source code)
 
 ### Running locally
 
@@ -53,7 +54,7 @@ To run the cloned repository in the spring default profile, simply run:
 ```
 ./gradlew
 ```
-To run the multiple nodes on the intellij IDE, edit the run configuration:
+To run the multiple nodes in IntelliJ IDE, edit the run configuration:
 
 ![config](docs/images/intellij-run-config.png)
 
@@ -76,12 +77,12 @@ The [Dockerfile](Dockerfile) is designed to build automatically the last release
 
 To optimize the yggdrash application for production, run:
 ```
-./gradlew -Pprod clean build
+./gradlew -PspringProfiles=prod clean build
 ```
 
 To ensure everything worked, run:
 ```
-java -jar yggdrash-node/build/libs/*.jar
+yggdrash-node/build/libs/*.jar
 ```
 
 To find out usages of all command line options:
@@ -125,7 +126,7 @@ docker-compose -f docker/docker-compose.yml down
 ```
 
 
-## Continuous Integration (optional)
+## Continuous Integration & Continuous Delivery (optional)
 
 Yggdrash should support the following CI systems out of the box:
  - Jenkins: Setting up Jenkins
@@ -145,7 +146,7 @@ docker-compose -f docker/jenkins.yml up -d
 * Build Triggers
     * Poll SCM / Schedule: `H/5 * * * *`
 * Build
-    * Invoke Gradle script / Use Gradle Wrapper / Tasks: `-Pprod clean build`
+    * Invoke Gradle script / Use Gradle Wrapper / Tasks: `-PspringProfiles=prod clean build`
     * Execute Shell / Command:
         ````
         ./gradlew bootRun &
