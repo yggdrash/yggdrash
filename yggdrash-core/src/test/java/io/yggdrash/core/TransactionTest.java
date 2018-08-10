@@ -148,4 +148,27 @@ public class TransactionTest {
         assertArrayEquals(tx1.getHeader().getAddress(), tx2.getHeader().getAddress());
         assertArrayEquals(wallet.getAddress(), tx2.getHeader().getAddress());
     }
+
+    @Test
+    public void testToJsonObject() {
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("operator", "transfer");
+        jsonObject.addProperty("to", "0x5186a0EF662DFA89Ed44b52a55EC5Cf0B4b59bb7");
+        jsonObject.addProperty("balance", "100000000");
+
+        System.out.println(jsonObject);
+
+        Wallet wallet = null;
+        try {
+            wallet = new Wallet();
+
+            Transaction tx1 = new Transaction(wallet, jsonObject);
+            System.out.println(tx1.toJsonObject().toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+            assert false;
+        }
+    }
+
 }
