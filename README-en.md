@@ -1,4 +1,4 @@
-![logo](docs/images/ygg-logo-green.png)
+# ![logo](docs/images/ygg-logo-green.png) Yggdrash
 
 > We will change the world by blockchain.
 
@@ -36,7 +36,7 @@ This is the implementation written in Java and runs on Linux, OSX and Windows.
 
 ### Requirements
 
-Yggdrash requires `JAVA` 1.8+ compiler to build. To install `Java`, follow this [link](http://www.oracle.com/technetwork/java/javase/overview/index.html). 
+Yggdrash requires `JAVA` 1.8+ compiler to build. To install Java, follow this [link](http://www.oracle.com/technetwork/java/javase/overview/index.html). 
 
 ### Getting the source
 
@@ -53,7 +53,7 @@ To run the cloned repository in the spring default profile, simply run:
 ```
 ./gradlew
 ```
-To run the multiple node on the intellij IDE, edit the run configure:
+To run the multiple nodes on the intellij IDE, edit the run configuration:
 
 ![config](docs/images/intellij-run-config.png)
 
@@ -114,7 +114,7 @@ Once yggdrash node started, the blocks can be shown in your browser. e.g. [http:
 
 You can use docker to improve yggdrash development experience. A number of docker-compose configuration are available in the [docker](docker) folder to launch with third party services.
 
-For example, to start the multiple node in a docker container, run:
+For example, to start the multiple nodes in a docker container, run:
 ```
 docker-compose -f docker/docker-compose.yml up -d
 ```
@@ -157,9 +157,10 @@ docker-compose -f docker/jenkins.yml up -d
     * Publish JUnit test result report / Test Report XMLs: `build/test-results/*.xml`
 ```
 What tasks/integrations in the [Jenkins pipeline file](Jenkinsfile) :
- - Perform the build in a Docker container
- - Analyze code with Sonar
- - Build and publish a Docker image
+
+- Perform the build in a Docker container
+- Analyze code with Sonar
+- Build and publish a Docker image
 
 
 ## Stay in Touch
