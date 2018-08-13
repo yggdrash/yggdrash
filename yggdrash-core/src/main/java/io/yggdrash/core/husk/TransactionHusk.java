@@ -19,40 +19,56 @@ package io.yggdrash.core.husk;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.Wallet;
 import io.yggdrash.crypto.HashUtil;
-import io.yggdrash.proto.BlockChainProto.Transaction;
-import io.yggdrash.proto.BlockChainProto.TransactionHeader;
+import io.yggdrash.proto.Proto;
 import io.yggdrash.util.TimeUtils;
 
 import java.nio.ByteBuffer;
 import java.util.Objects;
 
-public class TransactionHusk implements ProtoHusk<Transaction> {
-    private Transaction transaction;
+public class TransactionHusk implements ProtoHusk<Proto.TransactionV2> {
+    private Proto.TransactionV2 transaction;
 
-    public TransactionHusk(Transaction transaction) {
+    public TransactionHusk(Proto.TransactionV2 transaction) {
         this.transaction = transaction;
     }
 
     public TransactionHusk(byte[] data) throws InvalidProtocolBufferException {
-        this.transaction = Transaction.parseFrom(data);
+        this.transaction = Proto.TransactionV2.parseFrom(data);
     }
 
     public TransactionHusk(String body) {
-        TransactionHeader txHeaderPrototype = TransactionHeader.newBuilder()
-                .setType(ByteString.copyFrom(ByteBuffer.allocate(4).putInt(1).array()))
-                .setVersion(ByteString.copyFrom(ByteBuffer.allocate(4).putInt(1).array()))
-                .setDataHash(ByteString.copyFrom(HashUtil.sha3(body.getBytes())))
-                .setTimestamp(TimeUtils.time())
-                .setDataSize(body.getBytes().length)
-//                .setSignature()
+        Proto.TransactionV2.Header transactionHeader = Proto.TransactionV2.Header.newBuilder()
+                .setRawData(Proto.TransactionV2.Header.Raw.newBuilder()
+                        .setType(ByteString.copyFrom(ByteBuffer.allocate(4).putInt(1).array()))
+                        .setVersion(ByteString.copyFrom(ByteBuffer.allocate(4).putInt(1).array()))
+                        .setDataHash(ByteString.copyFrom(HashUtil.sha3(body.getBytes())))
+                        .setDataSize(body.getBytes().length)
+                        .build())
                 .build();
-        this.transaction = Transaction.newBuilder()
-                .setHeader(txHeaderPrototype)
-                .setData(body).build();
+        this.transaction = Proto.TransactionV2.newBuilder()
+                .setHeader(transactionHeader)
+                .setBody(body)
+                .build();
     }
 
-    private TransactionHeader getHeader() {
+    public TransactionHusk sign(Wallet wallet) {
+        Proto.TransactionV2.Header.Raw updatedRawData = Proto.TransactionV2.Header.Raw
+                .newBuilder(getHeader().getRawData())
+                .setTimestamp(TimeUtils.time()).build();
+        byte[] signature = wallet.sign(updatedRawData.toByteArray());
+        this.transaction = Proto.TransactionV2.newBuilder(transaction)
+                .setHeader(
+                        Proto.TransactionV2.Header.newBuilder()
+                                .setRawData(updatedRawData)
+                                .setSignature(ByteString.copyFrom(signature))
+                                .build())
+                .build();
+        return this;
+    }
+
+    private Proto.TransactionV2.Header getHeader() {
         return this.transaction.getHeader();
     }
 
@@ -61,7 +77,7 @@ public class TransactionHusk implements ProtoHusk<Transaction> {
     }
 
     public String getBody() {
-        return this.transaction.getData();
+        return this.transaction.getBody();
     }
 
     @Override
@@ -70,7 +86,7 @@ public class TransactionHusk implements ProtoHusk<Transaction> {
     }
 
     @Override
-    public Transaction getInstance() {
+    public Proto.TransactionV2 getInstance() {
         return this.transaction;
     }
 
