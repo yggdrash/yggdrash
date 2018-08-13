@@ -16,12 +16,15 @@
 
 package io.yggdrash;
 
+import com.google.protobuf.ByteString;
 import io.yggdrash.core.Address;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHeader;
 import io.yggdrash.crypto.ECKey;
-import io.yggdrash.proto.BlockChainProto;
+import io.yggdrash.crypto.HashUtil;
+import io.yggdrash.proto.Proto;
 
+import java.nio.ByteBuffer;
 import java.util.Random;
 
 public class TestUtils {
@@ -46,13 +49,44 @@ public class TestUtils {
         return new Address(new ECKey().getAddress());
     }
 
-    public static BlockChainProto.Block getBlockFixture() {
-        BlockChainProto.BlockHeader defaultHeader =
-                BlockChainProto.BlockHeader.getDefaultInstance();
-        BlockChainProto.BlockBody defaultBody = BlockChainProto.BlockBody.getDefaultInstance();
-        return BlockChainProto.Block.newBuilder()
-                .setHeader(defaultHeader)
-                .setData(defaultBody)
+    public static Proto.BlockV2 getBlockFixture() {
+        return Proto.BlockV2.newBuilder()
+                .setHeader(
+                        Proto.BlockV2.Header.newBuilder()
+                        .setRawData(Proto.BlockV2.Header.Raw.newBuilder()
+                            .setType(ByteString.copyFrom(
+                                    ByteBuffer.allocate(4).putInt(1).array()))
+                            .setVersion(ByteString.copyFrom(
+                                    ByteBuffer.allocate(4).putInt(1).array()))
+                            .build()
+                        ).build()
+                )
+                .addBody(getTransactionFixture())
+                .addBody(getTransactionFixture())
+                .addBody(getTransactionFixture())
+                .build();
+    }
+
+    public static Proto.TransactionV2 getTransactionFixture() {
+        String body = "{\n" +
+                "\"func\":\"transfer\",\n"+
+                "\"params\":{\n" +
+                "\"to\":\"0x407d73d8a49eeb85d32cf465507dd71d507100c1\",\n" +
+                "\"value\":\"1000\"}\n" +
+                "}";
+        return Proto.TransactionV2.newBuilder()
+                .setHeader(Proto.TransactionV2.Header.newBuilder()
+                        .setRawData(Proto.TransactionV2.Header.Raw.newBuilder()
+                                .setType(ByteString.copyFrom(
+                                        ByteBuffer.allocate(4).putInt(1).array()))
+                                .setVersion(ByteString.copyFrom(
+                                        ByteBuffer.allocate(4).putInt(1).array()))
+                                .setDataHash(ByteString.copyFrom(
+                                        HashUtil.sha3(body.getBytes())))
+                                .setDataSize(body.getBytes().length)
+                        )
+                )
+                .setBody(body)
                 .build();
     }
 }

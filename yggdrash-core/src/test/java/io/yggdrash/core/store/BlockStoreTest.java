@@ -20,7 +20,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.husk.BlockHusk;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
-import io.yggdrash.proto.BlockChainProto;
+import io.yggdrash.proto.Proto;
 import io.yggdrash.util.FileUtil;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
@@ -56,7 +56,7 @@ public class BlockStoreTest {
     }
 
     private BlockHusk getBlockHuskFixture() {
-        BlockChainProto.Block blockFixture = TestUtils.getBlockFixture();
+        Proto.BlockV2 blockFixture = TestUtils.getBlockFixture();
         return new BlockHusk(blockFixture);
     }
 }

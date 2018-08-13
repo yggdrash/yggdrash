@@ -31,6 +31,24 @@ option java_outer_classname = "Proto";
 //message BlockBody {
 //    repeated Transaction trasactions = 1; // A collection of txns
 //}
+message BlockV2 {
+    message Header {
+        message Raw {
+            bytes type = 1;
+            bytes version = 2; // Version indicates message protocol version
+            uint64 index = 3; // The index in the blockchain
+            uint64 timestamp = 4; // google.protobuf.Timestamp timestamp ?
+            bytes prevBlockHash = 5; // The hash of the previous block header
+            bytes author = 6; // The name of the miner
+            bytes merkleRoot = 7; // The hash of the BlockBody, by MerkleTree
+            uint64 dataSize = 8;
+        }
+        Raw rawData = 1;
+        bytes signature = 2;
+    }
+    Header header = 1;
+    repeated TransactionV2 body = 2; // A collection of txns
+}
 
 message TransactionV2 {
     message Header {
