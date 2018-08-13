@@ -2,7 +2,6 @@ package io.yggdrash.node.genesis;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.oracle.javafx.jmx.json.JSONException;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
@@ -43,7 +42,7 @@ public class GenesisBlock {
         genesisBlock = new Block(wallet, null, new BlockBody(txs));
     }
 
-    private JsonObject getJsonObjectFromFile(String fileName) throws JSONException, IOException {
+    private JsonObject getJsonObjectFromFile(String fileName) throws IOException {
         StringBuilder result = new StringBuilder("");
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource(fileName).getFile());
