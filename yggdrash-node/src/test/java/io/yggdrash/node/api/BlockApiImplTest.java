@@ -1,7 +1,5 @@
 package io.yggdrash.node.api;
 
-import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
-import com.googlecode.jsonrpc4j.ProxyUtil;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,30 +7,38 @@ import org.slf4j.LoggerFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockApiImplTest {
-    private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
 
-    JsonRpcHttpClient jsonRpcHttpClient;
+    private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
+    private static final BlockApi blockApi = new JsonRpcConfig().blockApi();
+
+    @Test
+    public void blockApiIsNotNull() {
+        assertThat(blockApi).isNotNull();
+    }
 
     @Test
     public void blockNumberTest() {
         try {
-            BlockApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
-                    BlockApi.class, jsonRpcHttpClient);
-            assertThat(api).isNotNull();
-            assertThat(api.blockNumber()).isZero();
+            assertThat(blockApi.blockNumber()).isNotNull();
         } catch (Exception exception) {
             log.debug("blockNumberTest :: exception : " + exception);
         }
     }
 
     @Test
+    public void getAllBlockTest() {
+        try {
+            assertThat(blockApi.getAllBlock().size()).isNotZero();
+        } catch (Exception exception) {
+            log.debug("getAllBlockTest :: exception : " + exception, exception);
+        }
+    }
+
+    @Test
     public void getBlockByHashTest() {
         try {
-            BlockApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
-                    BlockApi.class, jsonRpcHttpClient);
-            assertThat(api).isNotNull();
-            assertThat(api.getBlockByHash("0x2Aa4BCaC31F7F67B9a15681D5e4De2FBc778066A",
-                    true)).isNotNull();
+            String hashOfBlock = blockApi.getBlockByHash("0", true).getPrevBlockHash();
+            assertThat(blockApi.getBlockByHash(hashOfBlock, true)).isNotNull();
         } catch (Exception exception) {
             log.debug("getBlockByHashTest :: exception : " + exception);
         }
@@ -41,11 +47,7 @@ public class BlockApiImplTest {
     @Test
     public void getBlockByNumberTest() {
         try {
-            BlockApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
-                    BlockApi.class, jsonRpcHttpClient);
-            assertThat(api).isNotNull();
-            assertThat(api.getBlockByNumber("0xbbF5029Fd710d227630c8b7d338051B8E76d50B3",
-                    true)).isNotNull();
+            assertThat(blockApi.getBlockByNumber("0", true)).isNotNull();
         } catch (Exception exception) {
             log.debug("getBlockByNumberTest :: exception : " + exception);
         }
@@ -54,10 +56,7 @@ public class BlockApiImplTest {
     @Test
     public void newBlockFilter() {
         try {
-            BlockApi api = ProxyUtil.createClientProxy(getClass().getClassLoader(),
-                    BlockApi.class, jsonRpcHttpClient);
-            assertThat(api).isNotNull();
-            assertThat(api.newBlockFilter()).isZero();
+            assertThat(blockApi.newBlockFilter()).isZero();
         } catch (Exception exception) {
             log.debug("newBlockFilter :: exception : " + exception);
         }

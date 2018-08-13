@@ -25,10 +25,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 
 public class TransactionManager {
     private static final Logger log = LoggerFactory.getLogger(TransactionManager.class);
@@ -41,6 +44,15 @@ public class TransactionManager {
         this.db = db;
         this.db.init();
         this.txPool = transactionPool;
+    }
+
+    public List<Transaction> getAllTxs() throws IOException {
+        List<Transaction> txList = new ArrayList<>();
+        List<byte[]> keyList = db.getAllKey();
+        for (byte[] key : keyList) {
+            txList.add(deserialize(db.get(key)));
+        }
+        return txList;
     }
 
     public Transaction put(Transaction tx) {

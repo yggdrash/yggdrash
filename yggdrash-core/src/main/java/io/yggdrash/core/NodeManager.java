@@ -16,6 +16,7 @@
 
 package io.yggdrash.core;
 
+import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.event.PeerEventListener;
 
 import java.util.List;
@@ -48,4 +49,8 @@ public interface NodeManager extends PeerEventListener {
     List<String> getPeerUriList();
 
     Wallet getWallet();
+
+    StateStore getStateStore();
+
+    Integer getBalanceOf(String address);
 }
