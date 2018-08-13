@@ -1,8 +1,7 @@
 package io.yggdrash.core;
 
-import io.yggdrash.core.exception.NotValidateException;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.JsonObject;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.util.ByteUtil;
