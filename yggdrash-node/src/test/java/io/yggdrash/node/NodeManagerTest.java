@@ -44,8 +44,8 @@ public class NodeManagerTest {
     private NodeManagerImpl nodeManager;
     private NodeProperties nodeProperties;
     private Transaction tx;
-    private Block genesisBlock;
-    private Block block;
+    private Block firstBlock;
+    private Block secondBlock;
 
     @Before
     public void setUp() throws Exception {
@@ -75,18 +75,18 @@ public class NodeManagerTest {
         this.tx = new Transaction(nodeManager.getWallet(), json);
         BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
 
-        BlockHeader genesisBlockHeader = new BlockHeader.Builder()
+        BlockHeader firstBlockHeader = new BlockHeader.Builder()
                 .blockBody(sampleBody)
-                .prevBlock(null)
+                .prevBlock(nodeManager.getBlockChain().getPrevBlock())
                 .build(nodeManager.getWallet());
-        this.genesisBlock = new Block(genesisBlockHeader, sampleBody);
+        this.firstBlock = new Block(firstBlockHeader, sampleBody);
 
         BlockHeader blockHeader = new BlockHeader.Builder()
                 .blockBody(sampleBody)
-                .prevBlock(genesisBlock) // genesis block
+                .prevBlock(firstBlock) // genesis block
                 .build(nodeManager.getWallet());
 
-        this.block = new Block(blockHeader, sampleBody);
+        this.secondBlock = new Block(blockHeader, sampleBody);
     }
 
     @Test
@@ -99,10 +99,10 @@ public class NodeManagerTest {
     @Test
     public void addBlockTest() {
         nodeManager.addTransaction(tx);
-        nodeManager.addBlock(genesisBlock);
-        nodeManager.addBlock(block);
-        assert nodeManager.getBlocks().size() == 2;
-        assert nodeManager.getBlockByIndexOrHash("1").getBlockHash().equals(block.getBlockHash());
+        nodeManager.addBlock(firstBlock);
+        nodeManager.addBlock(secondBlock);
+        assert nodeManager.getBlocks().size() == 3;
+        assert nodeManager.getBlockByIndexOrHash("2").getBlockHash().equals(secondBlock.getBlockHash());
         Transaction foundTx = nodeManager.getTxByHash(tx.getHashString());
         assert foundTx.getHashString().equals(tx.getHashString());
     }
@@ -111,10 +111,9 @@ public class NodeManagerTest {
     public void generateBlockTest() {
         nodeManager.addTransaction(tx);
         Block newBlock = nodeManager.generateBlock();
-        assert nodeManager.getBlocks().size() == 1;
+        assert nodeManager.getBlocks().size() == 2;
         Block chainedBlock = nodeManager.getBlockByIndexOrHash(newBlock.getBlockHash());
         assert chainedBlock.getBlockHash().equals(newBlock.getBlockHash());
-        assert chainedBlock.getData().getSize() == 1;
         assertThat(nodeManager.getTxByHash(tx.getHashString()).getHashString(),
                 is(tx.getHashString()));
     }

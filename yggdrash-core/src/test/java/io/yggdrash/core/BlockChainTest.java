@@ -29,11 +29,13 @@ public class BlockChainTest {
     @Test
     public void shouldBeGetBlockByIndex() throws IOException, InvalidCipherTextException {
         BlockChain blockChain = instantBlockchain();
+        System.out.println(blockChain.toStringStatus());
+
         Block prevBlock = blockChain.getPrevBlock();
         String hash = prevBlock.getPrevBlockHash();
         assertThat(blockChain.getBlockByIndex(0L)).isEqualTo(blockChain.getGenesisBlock());
-        assertThat(blockChain.getBlockByIndex(2L)).isEqualTo(prevBlock);
-        assertThat(blockChain.getBlockByIndex(1L)).isEqualTo(blockChain.getBlockByHash(hash));
+        assertThat(blockChain.getBlockByIndex(3L)).isEqualTo(prevBlock);
+        assertThat(blockChain.getBlockByIndex(2L)).isEqualTo(blockChain.getBlockByHash(hash));
     }
 
     @Test
@@ -66,12 +68,12 @@ public class BlockChainTest {
                 log.debug("chain prev block hash : "
                         + blockchain.getPrevBlock().getPrevBlockHash());
             }
-            assert block.getIndex() == i + 3;
+            assert block.getIndex() == i + 4;
             // add next block in blockchain
             blockchain.addBlock(block);
         }
 
-        assert blockchain.size() == testBlock + 3;
+        assert blockchain.size() == testBlock + 4;
 
     }
 
@@ -83,7 +85,7 @@ public class BlockChainTest {
 
         BlockHeader blockHeader = new BlockHeader.Builder()
                 .blockBody(sampleBody)
-                .prevBlock(null)
+                .prevBlock(blockChain.getPrevBlock())
                 .build(wallet);
 
         Block b0 = new Block(blockHeader, sampleBody);
@@ -101,6 +103,7 @@ public class BlockChainTest {
         } catch (NotValidateException e) {
             e.printStackTrace();
             log.warn("invalid block....");
+            assert false;
         }
         return blockChain;
     }

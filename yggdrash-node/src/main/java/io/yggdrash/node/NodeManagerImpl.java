@@ -330,4 +330,8 @@ public class NodeManagerImpl implements NodeManager {
     public void disconnected(Peer peer) {
         removePeer(peer.getYnodeUri());
     }
+
+    public BlockChain getBlockChain() {
+        return blockChain;
+    }
 }
