@@ -1,6 +1,7 @@
-package io.yggdrash.node.genesis;
+package io.yggdrash.core.genesis;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Block;
@@ -71,7 +72,9 @@ public class GenesisBlock {
         ClassLoader classLoader = getClass().getClassLoader();
         File genesisFile = new File(classLoader.getResource(
                 defaultConfig.getConfig().getString("genesis.block")).getFile());
-        FileUtil.writeStringToFile(genesisFile, jsonObject.toString());
+
+        FileUtil.writeStringToFile(genesisFile,
+                new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject));
     }
 
 }
