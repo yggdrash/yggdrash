@@ -9,6 +9,7 @@ import io.yggdrash.core.TransactionValidator;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.node.NodeManagerImpl;
 import io.yggdrash.node.mock.TransactionMock;
+import org.apache.commons.codec.binary.Hex;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -29,7 +30,6 @@ public class TransactionApiImplTest {
     private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
 
     private final TransactionApiImpl txApiImpl = new TransactionApiImpl(new NodeManagerImpl());
-    private final String address = "0x407d73d8a49eeb85d32cf465507dd71d507100c1";
     private final String tag = "latest";
     private final String hashOfTx =
             "0xbd729cb4ecbcbd3fc66bedb43dbb856f5e71ebefff95fc9503b92921b8466bab";
@@ -38,10 +38,12 @@ public class TransactionApiImplTest {
     private final int blockNumber = 1;
     private final int txIndexPosition = 1;
     private Wallet wallet;
+    private String address;
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
         this.wallet = new Wallet();
+        address = Hex.encodeHexString(wallet.getAddress());
     }
 
     @Test
