@@ -18,12 +18,16 @@ package io.yggdrash.crypto;
 
 import org.junit.Assert;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.math.ec.ECPoint;
 import org.spongycastle.util.encoders.Hex;
 
 import java.math.BigInteger;
 
 public class ECIESCoderTest {
+
+    private static final Logger log = LoggerFactory.getLogger(ECIESCoderTest.class);
 
     @Test // decrypt cpp data
     public void test1() {
@@ -34,7 +38,7 @@ public class ECIESCoderTest {
         try {
             payload = ECIESCoder.decrypt(privKey, cipher);
         } catch (Throwable e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
         }
 
         Assert.assertEquals("802b052f8b066640bba94a4fc39d63815c377fced6fcb84d27f791c9921ddf3e9bf0108e298f490812847109cbd778fae393e80323fd643209841a3b7f110397f37ec61d84cea03dcc5e8385db93248584e8af4b4d1c832d8c7453c0089687a700",
@@ -55,19 +59,19 @@ public class ECIESCoderTest {
         try {
             cipher = ECIESCoder.encrypt(pubKeyPoint, payload);
         } catch (Throwable e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
         }
 
-        System.out.println(Hex.toHexString(cipher));
+        log.debug(Hex.toHexString(cipher));
 
         byte[] decrypted_payload = new byte[0];
         try {
             decrypted_payload = ECIESCoder.decrypt(privKey, cipher);
         } catch (Throwable e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
         }
 
-        System.out.println(Hex.toHexString(decrypted_payload));
+        log.debug(Hex.toHexString(decrypted_payload));
     }
 
 }

@@ -12,6 +12,8 @@ import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.node.exception.NonExistObjectException;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,6 +24,8 @@ import java.security.SignatureException;
 @Service
 @AutoJsonRpcServiceImpl
 public class TransactionApiImpl implements TransactionApi {
+
+    private static final Logger log = LoggerFactory.getLogger(TransactionApiImpl.class);
 
     private final NodeManager nodeManager;
 
@@ -38,7 +42,7 @@ public class TransactionApiImpl implements TransactionApi {
                     cnt += 1;
                 }
             } catch (DecoderException e) {
-                e.printStackTrace();
+                log.error(e.getMessage());
             }
         }
         return cnt;
