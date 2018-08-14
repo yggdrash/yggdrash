@@ -16,10 +16,13 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.contract.CoinContract;
+import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBuilder;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.Runtime;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionManager;
 import io.yggdrash.core.TransactionValidator;
@@ -36,7 +39,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -64,6 +69,8 @@ public class NodeManagerImpl implements NodeManager {
     private Peer peer;
 
     private MessageSender<PeerClientChannel> messageSender;
+
+    private StateStore stateStore;
 
     private NodeHealthIndicator nodeHealthIndicator;
 
@@ -120,7 +127,16 @@ public class NodeManagerImpl implements NodeManager {
 
     @Override
     public void init() {
+        this.stateStore = new StateStore();
+        System.out.println("\n\n getStateStore : " + getStateStore());
         NodeProperties.Grpc grpc = nodeProperties.getGrpc();
+        try {
+            List<Transaction> txList = txManager.getAllTxs();
+            executeAllTx(txList);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         messageSender.setListener(this);
         peer = Peer.valueOf(wallet.getNodeId(), grpc.getHost(), grpc.getPort());
         requestPeerList();
@@ -132,6 +148,24 @@ public class NodeManagerImpl implements NodeManager {
         peerGroup.addPeer(peer);
         log.info("Init node=" + peer.getYnodeUri());
         nodeHealthIndicator.up();
+    }
+
+    private void executeAllTx(List<Transaction> txList) throws Exception {
+        CoinContract coinContract = new CoinContract(stateStore);
+        Runtime runtime = new Runtime();
+        for (Transaction tx : txList) {
+            runtime.execute(coinContract, tx);
+        }
+    }
+
+    @Override
+    public Integer getBalanceOf(String address) {
+        return stateStore.getState().get(address);
+    }
+
+    @Override
+    public StateStore getStateStore() {
+        return this.stateStore;
     }
 
     @Override

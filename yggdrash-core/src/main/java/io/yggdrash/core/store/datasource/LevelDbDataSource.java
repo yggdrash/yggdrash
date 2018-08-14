@@ -19,16 +19,21 @@ package io.yggdrash.core.store.datasource;
 import io.yggdrash.config.Constants;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.util.FileUtil;
+import org.apache.commons.codec.binary.Base64;
 import org.iq80.leveldb.DB;
+import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.WriteBatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -158,5 +163,22 @@ public class LevelDbDataSource implements DbSource {
 
     public boolean isAlive() {
         return alive;
+    }
+
+    public List<byte[]> getAllKey() throws IOException {
+        DBIterator iterator = db.iterator();
+        List<byte[]> keyList = new ArrayList<>();
+        try {
+            for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
+                byte[] key = iterator.peekNext().getKey();
+                byte[] value = iterator.peekNext().getValue();
+                String keyStr = Hex.toHexString(key);
+                String valueStr = Base64.encodeBase64String(value);
+                keyList.add(key);
+            }
+        } finally {
+            iterator.close();
+        }
+        return keyList;
     }
 }

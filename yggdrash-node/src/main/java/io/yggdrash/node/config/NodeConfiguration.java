@@ -17,6 +17,7 @@
 package io.yggdrash.node.config;
 
 import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.NodeSyncServer;
@@ -60,4 +61,8 @@ public class NodeConfiguration {
         return new Wallet(defaultConfig);
     }
 
+    @Bean
+    StateStore stateStore() {
+        return new StateStore();
+    }
 }
