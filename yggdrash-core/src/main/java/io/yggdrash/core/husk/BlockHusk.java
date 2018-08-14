@@ -20,6 +20,8 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.proto.Proto;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class BlockHusk implements ProtoHusk<Proto.BlockV2> {
@@ -33,6 +35,22 @@ public class BlockHusk implements ProtoHusk<Proto.BlockV2> {
         this.block = block;
     }
 
+    public Sha3Hash getHash() {
+        return new Sha3Hash(block.getHeader().toByteArray());
+    }
+
+    public long getIndex() {
+        return this.block.getHeader().getRawData().getIndex();
+    }
+
+    public List<TransactionHusk> getBody() {
+        List<TransactionHusk> result = new ArrayList<>();
+        for (Proto.TransactionV2 tx : block.getBodyList()) {
+            result.add(new TransactionHusk(tx));
+        }
+        return result;
+    }
+
     @Override
     public byte[] getData() {
         return block.toByteArray();
@@ -41,10 +59,6 @@ public class BlockHusk implements ProtoHusk<Proto.BlockV2> {
     @Override
     public Proto.BlockV2 getInstance() {
         return this.block;
-    }
-
-    public Sha3Hash getHash() {
-        return new Sha3Hash(block.getHeader().toByteArray());
     }
 
     @Override

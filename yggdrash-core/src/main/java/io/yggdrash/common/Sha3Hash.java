@@ -52,4 +52,9 @@ public class Sha3Hash implements Serializable {
     public int hashCode() {
         return Arrays.hashCode(data);
     }
+
+    @Override
+    public String toString() {
+        return Hex.toHexString(data);
+    }
 }
