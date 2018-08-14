@@ -1,0 +1,72 @@
+{
+  "type": "00000000",
+  "version": "00000000",
+  "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "merkleRoot": "9c8d7142f8813addadeb5ab9c05d85c1e7d250a543e745a58b830ca01fe88396",
+  "timestamp": "0000016531dfa31c",
+  "dataSize": "0000000000000001",
+  "signature": "1b18dca59a70431c340d4c463b1364381f47e0b59d10a0a2e536da28fdd128cc6e05fb4814a81ba5487d9183a921f4d85d3b1741ee4d75815071291d2dd967eea5",
+  "data": [
+    {
+      "type": "00000000",
+      "version": "00000000",
+      "dataHash": "b0f48f2ed3789ae1222a39552bf1b9abe56dd90ee8a3b6d551494fa645cb57cd",
+      "timestamp": "00000c8b500be60e",
+      "dataSize": "0000000000000390",
+      "signature": "1c331ecbde7da5994eebb0066d4814dc90b529836a7f06f99a24e65663759f00513e398c9798ef3b2a70e43fa5abac20c2f4c4731aa224bdb88050a96304337d90",
+      "data": {
+        "operator": "GENESIS",
+        "chainName": "YEED",
+        "frontier": {
+          "5db10750e8caff27f906b41c71b3471057dd2000": {
+            "balance": "1000000000"
+          },
+          "5db10750e8caff27f906b41c71b3471057dd2001": {
+            "balance": "1000000000"
+          },
+          "5db10750e8caff27f906b41c71b3471057dd2002": {
+            "balance": "1000000000"
+          },
+          "5db10750e8caff27f906b41c71b3471057dd2003": {
+            "balance": "1000000000"
+          },
+          "5db10750e8caff27f906b41c71b3471057dd2004": {
+            "balance": "1000000000"
+          },
+          "5db10750e8caff27f906b41c71b3471057dd2005": {
+            "balance": "1000000000"
+          },
+          "5db10750e8caff27f906b41c71b3471057dd2006": {
+            "balance": "1000000000"
+          },
+          "5db10750e8caff27f906b41c71b3471057dd2007": {
+            "balance": "1000000000"
+          },
+          "5db10750e8caff27f906b41c71b3471057dd2008": {
+            "balance": "1000000000"
+          },
+          "5db10750e8caff27f906b41c71b3471057dd2009": {
+            "balance": "1000000000"
+          }
+        },
+        "nodeList": {
+          "100.100.100.1": {
+            "port": "32918"
+          },
+          "100.100.100.2": {
+            "port": "32918"
+          },
+          "100.100.100.3": {
+            "port": "32918"
+          },
+          "100.100.100.4": {
+            "port": "32918"
+          },
+          "100.100.100.5": {
+            "port": "32918"
+          }
+        }
+      }
+    }
+  ]
+}
