@@ -1,9 +1,6 @@
 package io.yggdrash.core.genesis;
 
-import com.google.gson.GsonBuilder;
-import com.google.gson.stream.JsonWriter;
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.util.FileUtil;
 import org.junit.Before;
 import org.junit.Test;
