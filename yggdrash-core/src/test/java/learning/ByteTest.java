@@ -24,6 +24,7 @@ import java.nio.ByteBuffer;
 
 public class ByteTest {
     private static final Logger logger = LoggerFactory.getLogger(ByteTest.class);
+
     @Test
     public void integerToByteArray() {
         int input = 5000;

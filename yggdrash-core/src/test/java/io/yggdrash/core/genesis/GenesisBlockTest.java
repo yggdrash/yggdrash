@@ -1,7 +1,6 @@
 package io.yggdrash.core.genesis;
 
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.crypto.ECKeyTest;
 import io.yggdrash.util.FileUtil;
 import org.junit.Before;
 import org.junit.Test;
@@ -33,7 +32,7 @@ public class GenesisBlockTest {
                     new DefaultConfig().getConfig().getString("genesis.block")).getFile());
             String genesisString = FileUtil.readFileToString(genesisFile);
 
-           log.debug(genesisString);
+            log.debug(genesisString);
 
         } catch (Exception e) {
             log.error(e.getMessage());

@@ -25,13 +25,13 @@ import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Runtime;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.TransactionValidator;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.GrpcClientChannel;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.node.exception.FailedOperationException;
 import org.slf4j.Logger;
@@ -40,9 +40,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
-import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -86,11 +84,6 @@ public class NodeManagerImpl implements NodeManager {
     }
 
     @Autowired
-    public void setBlockChain(BlockChain blockChain) {
-        this.blockChain = blockChain;
-    }
-
-    @Autowired
     public void setTransactionStore(TransactionStore transactionStore) {
         this.transactionStore = transactionStore;
     }
@@ -98,11 +91,6 @@ public class NodeManagerImpl implements NodeManager {
     @Autowired
     public void setTxValidator(TransactionValidator txValidator) {
         this.txValidator = txValidator;
-    }
-
-    @Autowired
-    public void setWallet(Wallet wallet) {
-        this.wallet = wallet;
     }
 
     @Autowired
@@ -361,6 +349,11 @@ public class NodeManagerImpl implements NodeManager {
         return wallet;
     }
 
+    @Autowired
+    public void setWallet(Wallet wallet) {
+        this.wallet = wallet;
+    }
+
     @Override
     public void disconnected(Peer peer) {
         removePeer(peer.getYnodeUri());
@@ -368,5 +361,10 @@ public class NodeManagerImpl implements NodeManager {
 
     public BlockChain getBlockChain() {
         return blockChain;
+    }
+
+    @Autowired
+    public void setBlockChain(BlockChain blockChain) {
+        this.blockChain = blockChain;
     }
 }

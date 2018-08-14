@@ -19,7 +19,7 @@ package io.yggdrash.core.store.datasource;
 import java.io.IOException;
 import java.util.List;
 
-public interface DbSource <K, V> {
+public interface DbSource<K, V> {
     DbSource init();
 
     V get(K key);
