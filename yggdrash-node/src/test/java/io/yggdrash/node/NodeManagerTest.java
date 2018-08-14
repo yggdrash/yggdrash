@@ -102,7 +102,8 @@ public class NodeManagerTest {
         nodeManager.addBlock(firstBlock);
         nodeManager.addBlock(secondBlock);
         assert nodeManager.getBlocks().size() == 3;
-        assert nodeManager.getBlockByIndexOrHash("2").getBlockHash().equals(secondBlock.getBlockHash());
+        assert nodeManager.getBlockByIndexOrHash("2").getBlockHash()
+                .equals(secondBlock.getBlockHash());
         Transaction foundTx = nodeManager.getTxByHash(tx.getHashString());
         assert foundTx.getHashString().equals(tx.getHashString());
     }

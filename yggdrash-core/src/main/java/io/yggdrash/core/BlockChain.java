@@ -217,16 +217,18 @@ public class BlockChain {
 
         stringBuffer.append("[BlockChain Status]\n");
         stringBuffer.append("genesisBlock=" + genesisBlock.getBlockHash() + "\n");
-        stringBuffer.append("currentBlock=" + "[" + prevBlock.getIndex() + "]" + currentBlockHash + "\n");
+        stringBuffer.append("currentBlock=" + "[" + prevBlock.getIndex() + "]"
+                + currentBlockHash + "\n");
 
         String prevBlockHash = this.prevBlock.getPrevBlockHash();
 
         do {
-            stringBuffer.append("<-- " + "[" + blocks.get(prevBlockHash).getIndex() + "]" + prevBlockHash + "\n");
+            stringBuffer.append("<-- " + "[" + blocks.get(prevBlockHash).getIndex() + "]"
+                    + prevBlockHash + "\n");
 
             prevBlockHash = blocks.get(prevBlockHash).getPrevBlockHash();
 
-        } while(prevBlockHash != null
+        } while (prevBlockHash != null
                 && !prevBlockHash.equals(
                     "0000000000000000000000000000000000000000000000000000000000000000"));
 
