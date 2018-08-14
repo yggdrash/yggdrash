@@ -6,7 +6,9 @@ import com.typesafe.config.ConfigValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 /**
  * Default Configuration Class.
@@ -55,5 +57,34 @@ public class DefaultConfig {
         return "DefaultConfig{" + config.substring(0, config.length() - 1) + "}";
     }
 
+    public String getNodeName() {
+        return config.getString(Constants.PROPERTY_NODE_NAME);
+    }
+
+    public String getNodeVersion() {
+        return config.getString(Constants.PROPERTY_NODE_VER);
+    }
+
+    public Network getNetwork() {
+        return Network.valueOf(config.getInt(Constants.PROPERTY_NETWORK_ID));
+    }
+
+    public String getNetworkP2PVersion() {
+        return config.getString(Constants.PROPERTY_NETWORK_P2P_VER);
+    }
+
+    enum Network {
+        MAIN_NET(1), TESTNET(3);
+        private int code;
+
+        Network(int code) {
+            this.code = code;
+        }
+
+        public static Network valueOf(int code) {
+            return Arrays.stream(Network.values()).filter(v -> v.code == code).findFirst()
+                    .orElseThrow(NoSuchElementException::new);
+        }
+    }
 
 }

@@ -16,6 +16,9 @@
 
 package io.yggdrash.core.store.datasource;
 
+import java.io.IOException;
+import java.util.List;
+
 public interface DbSource <K, V> {
     DbSource init();
 
@@ -24,4 +27,6 @@ public interface DbSource <K, V> {
     void put(K key, V value);
 
     long count();
+
+    List<K> getAllKey() throws IOException;
 }

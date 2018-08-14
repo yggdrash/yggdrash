@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @AutoJsonRpcServiceImpl
@@ -30,29 +31,30 @@ public class BlockApiImpl implements BlockApi {
     @Override
     public int blockNumber() {
         try {
-            return 0;
+            return nodeManager.getBlocks().size();
         } catch (Exception exception) {
             throw new InternalErrorException();
         }
     }
 
     @Override
-    public Block getBlockByHash(String address, Boolean bool) {
+    public Set<Block> getAllBlock() {
+        return nodeManager.getBlocks();
+    }
+
+    @Override
+    public Block getBlockByHash(String hashOfBlock, Boolean bool) {
         try {
-            //todo: getBlockByNumber
-            return retBlockMock();
+            return nodeManager.getBlockByIndexOrHash(hashOfBlock);
         } catch (Exception exception) {
-            System.out.println("\n\nException :: getBlockHashImp");
-            exception.printStackTrace();
             throw new NonExistObjectException("block");
         }
     }
 
     @Override
-    public Block getBlockByNumber(String hashOfBlock, Boolean bool) {
+    public Block getBlockByNumber(String numOfBlock, Boolean bool) {
         try {
-            //todo: getBlockByNumber
-            return retBlockMock();
+            return nodeManager.getBlockByIndexOrHash(numOfBlock);
         } catch (Exception exception) {
             throw new NonExistObjectException("block");
         }

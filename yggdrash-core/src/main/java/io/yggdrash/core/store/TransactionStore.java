@@ -28,14 +28,20 @@ import org.ehcache.Cache;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
 public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
+    private static final Logger log = LoggerFactory.getLogger(TransactionStore.class);
+
     private final DbSource<byte[], byte[]> db;
     private final CachePool<String, Transaction> txPool;
     private final Cache<Sha3Hash, TransactionHusk> huskTxPool;
@@ -54,13 +60,22 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
                                 ResourcePoolsBuilder.heap(10)));
     }
 
+    public List<Transaction> getAllTxs() throws IOException {
+        List<Transaction> txList = new ArrayList<>();
+        List<byte[]> keyList = db.getAllKey();
+        for (byte[] key : keyList) {
+            txList.add(deserialize(db.get(key)));
+        }
+        return txList;
+    }
+
     @Deprecated
     public Transaction put(Transaction tx) {
         try {
             txPool.put(tx);
             unconfirmedTxSet.add(tx.getHashString());
         } catch (IOException e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
         }
 
         return tx;
@@ -149,7 +164,7 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
         try {
             txProto = BlockChainProto.Transaction.parseFrom(stream);
         } catch (InvalidProtocolBufferException e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
         }
 
         if (txProto == null) {

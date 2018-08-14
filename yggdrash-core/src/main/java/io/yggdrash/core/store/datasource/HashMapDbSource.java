@@ -18,7 +18,10 @@ package io.yggdrash.core.store.datasource;
 
 import org.apache.commons.codec.binary.Hex;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 
 public class HashMapDbSource implements DbSource<byte[], byte[]> {
     HashMap<String, byte[]> db;
@@ -42,5 +45,15 @@ public class HashMapDbSource implements DbSource<byte[], byte[]> {
     @Override
     public long count() {
         return db.size();
+    }
+
+    @Override
+    public List<byte[]> getAllKey() {
+        List<byte[]> keyList = new ArrayList<>();
+        Iterator<String> iterator = db.keySet().iterator();
+        while (iterator.hasNext()) {
+            keyList.add(db.get(iterator.next()));
+        }
+        return keyList;
     }
 }

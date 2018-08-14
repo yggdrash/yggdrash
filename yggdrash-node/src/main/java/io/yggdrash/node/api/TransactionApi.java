@@ -86,7 +86,7 @@ public interface TransactionApi {
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
     Transaction getTransactionByHash(
-            @JsonRpcParam(value = "hashOfTx") String hashOfTx) throws IOException;
+            @JsonRpcParam(value = "hashOfTx") String hashOfTx);
 
     /**
      * Returns information about a transaction by block hash and transaction index position.

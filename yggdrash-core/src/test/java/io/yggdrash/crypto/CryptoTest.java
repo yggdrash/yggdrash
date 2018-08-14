@@ -18,6 +18,7 @@
 
 package io.yggdrash.crypto;
 
+import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.Utils;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -91,16 +92,16 @@ public class CryptoTest {
     public void test6() {
 
         long firstTime = System.currentTimeMillis();
-        System.out.println(firstTime);
+        log.debug(Hex.toHexString(ByteUtil.longToBytes(firstTime)));
         for (int i = 0; i < 1000; ++i) {
 
             byte[] horseBytes = sha3("horse".getBytes());
             byte[] addr = ECKey.fromPrivate(horseBytes).getAddress();
             assertEquals("13978AEE95F38490E9769C39B2773ED763D9CD5F", Hex.toHexString(addr).toUpperCase());
         }
+
         long secondTime = System.currentTimeMillis();
-        System.out.println(secondTime);
-        System.out.println(secondTime - firstTime + " millisec");
+        log.debug(Hex.toHexString(ByteUtil.longToBytes(secondTime - firstTime)) + " millisec");
         // 1) result: ~52 address calculation every second
     }
 
@@ -120,7 +121,7 @@ public class CryptoTest {
 
         byte[] blockHashB = sha3(Hex.decode(blockRaw));
         String blockHash = Hex.toHexString(blockHashB);
-        System.out.println(blockHash);
+        log.debug(blockHash);
     }
 
     @Test
@@ -128,8 +129,8 @@ public class CryptoTest {
         // TODO: https://tools.ietf.org/html/rfc6979#section-2.2
         // TODO: https://github.com/bcgit/bc-java/blob/master/core/src/main/java/org/bouncycastle/crypto/signers/ECDSASigner.java
 
-        System.out.println(new BigInteger(Hex.decode("3913517ebd3c0c65000000")));
-        System.out.println(Utils.getValueShortString(new BigInteger("69000000000000000000000000")));
+        log.debug(new BigInteger(Hex.decode("3913517ebd3c0c65000000")).toString());
+        log.debug(Utils.getValueShortString(new BigInteger("69000000000000000000000000")));
     }
 
     @Test
@@ -169,37 +170,6 @@ public class CryptoTest {
         assertEquals(Hex.toHexString(output), Hex.toHexString(payload));
         log.info("original: {}", Hex.toHexString(payload));
     }
-
-//    @Test  // basic encryption/decryption
-//    public void test11-1() throws Throwable {
-//
-//        String password = "1234567890!Aa";
-//        byte[] keyBytes = Password.generateKeyDerivation(password.getBytes(), 32);
-//        log.info("key: {}", Hex.toHexString(keyBytes));
-//        byte[] ivBytes = new byte[16];
-//        byte[] payload = Hex.decode("22400891000000000000000000000000");
-//
-//        KeyParameter key = new KeyParameter(keyBytes);
-//        ParametersWithIV params = new ParametersWithIV(key, new byte[16]);
-//
-//        AESEngine engine = new AESEngine();
-//        SICBlockCipher ctrEngine = new SICBlockCipher(engine);
-//
-//        ctrEngine.init(true, params);
-//
-//        byte[] cipher = new byte[16];
-//        ctrEngine.processBlock(payload, 0, cipher, 0);
-//
-//        log.info("cipher: {}", Hex.toHexString(cipher));
-//
-//
-//        byte[] output = new byte[cipher.length];
-//        ctrEngine.init(false, params);
-//        ctrEngine.processBlock(cipher, 0, output, 0);
-//
-//        assertEquals(Hex.toHexString(output), Hex.toHexString(payload));
-//        log.info("original: {}", Hex.toHexString(payload));
-//    }
 
     @Test  // big packet encryption
     public void test12() {
@@ -286,10 +256,8 @@ public class CryptoTest {
 
         eGen.init(gParam);
 
-
         AsymmetricCipherKeyPair p1 = eGen.generateKeyPair();
         AsymmetricCipherKeyPair p2 = eGen.generateKeyPair();
-
 
         ECKeyGenerationParameters keygenParams = new ECKeyGenerationParameters(ECKey.CURVE, new SecureRandom());
         ECKeyPairGenerator generator = new ECKeyPairGenerator();
@@ -321,77 +289,4 @@ public class CryptoTest {
         log.info("orig: " + Hex.toHexString(orig));
     }
 
-    /**
-     @Test  // ECIES_AES128_SHA256 + Ephemeral Key + IV(all zeroes)
-     public void test15() throws Throwable {
-
-
-     byte[] privKey = Hex.decode("a4627abc2a3c25315bff732cb22bc128f203912dd2a840f31e66efb27a47d2b1");
-
-     ECKey ecKey = ECKey.fromPrivate(privKey);
-
-     ECPrivateKeyParameters ecPrivKey = new ECPrivateKeyParameters(ecKey.getPrivKey(), ECKey.CURVE);
-     ECPublicKeyParameters ecPubKey = new ECPublicKeyParameters(ecKey.getPubKeyPoint(), ECKey.CURVE);
-
-     AsymmetricCipherKeyPair myKey = new AsymmetricCipherKeyPair(ecPubKey, ecPrivKey);
-
-
-     AESEngine aesFastEngine = new AESEngine();
-
-     IESEngine iesEngine = new IESEngine(
-     new ECDHBasicAgreement(),
-     new KDF2BytesGenerator(new SHA256Digest()),
-     new HMac(new SHA256Digest()),
-     new BufferedBlockCipher(new SICBlockCipher(aesFastEngine)));
-
-
-     byte[] d = new byte[] {1, 2, 3, 4, 5, 6, 7, 8};
-     byte[] e = new byte[] {8, 7, 6, 5, 4, 3, 2, 1};
-
-     IESParameters p = new IESWithCipherParameters(d, e, 64, 128);
-     ParametersWithIV parametersWithIV = new ParametersWithIV(p, new byte[16]);
-
-     ECKeyPairGenerator eGen = new ECKeyPairGenerator();
-     KeyGenerationParameters gParam = new ECKeyGenerationParameters(ECKey.CURVE, new SecureRandom());
-
-     eGen.init(gParam);
-
-     ECKeyGenerationParameters keygenParams = new ECKeyGenerationParameters(ECKey.CURVE, new SecureRandom());
-     ECKeyPairGenerator generator = new ECKeyPairGenerator();
-     generator.init(keygenParams);
-
-     EphemeralKeyPairGenerator kGen = new EphemeralKeyPairGenerator(generator, new KeyEncoder() {
-     public byte[] getEncoded(AsymmetricKeyParameter keyParameter) {
-     return ((ECPublicKeyParameters) keyParameter).getQ().getEncoded();
-     }
-     });
-
-
-     ECKeyPairGenerator gen = new ECKeyPairGenerator();
-     gen.init(new ECKeyGenerationParameters(ECKey.CURVE, new SecureRandom()));
-
-     iesEngine.init(myKey.getPublic(), parametersWithIV, kGen);
-
-     byte[] message = Hex.decode("010101");
-     log.info("payload: {}", Hex.toHexString(message));
-
-
-     byte[] cipher = iesEngine.processBlock(message, 0, message.length);
-     log.info("cipher: {}", Hex.toHexString(cipher));
-
-
-     IESEngine decryptorIES_Engine = new IESEngine(
-     new ECDHBasicAgreement(),
-     new KDF2BytesGenerator(new SHA256Digest()),
-     new HMac(new SHA256Digest()),
-     new BufferedBlockCipher(new SICBlockCipher(aesFastEngine)));
-
-     decryptorIES_Engine.init(myKey.getPrivate(), parametersWithIV, new ECIESPublicKeyParser(ECKey.CURVE));
-
-     byte[] orig = decryptorIES_Engine.processBlock(cipher, 0, cipher.length);
-
-     log.info("orig: " + Hex.toHexString(orig));
-     }
-
-     */
 }
