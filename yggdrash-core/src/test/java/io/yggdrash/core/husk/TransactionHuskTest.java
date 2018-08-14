@@ -31,9 +31,12 @@ public class TransactionHuskTest {
     @Test
     public void shouldBeSignedTransaction() throws IOException, InvalidCipherTextException {
         TransactionHusk transactionHusk = getTransactionHusk();
+        Assertions.assertThat(transactionHusk.isSigned()).isFalse();
+
         Wallet wallet = new Wallet();
-        TransactionHusk signedTx = transactionHusk.sign(wallet);
-        logger.trace("signedTransaction: {} ", signedTx);
+        transactionHusk.sign(wallet);
+
+        Assertions.assertThat(transactionHusk.isSigned()).isTrue();
     }
 
     @Test

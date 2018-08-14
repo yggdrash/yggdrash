@@ -53,7 +53,7 @@ public class TransactionHusk implements ProtoHusk<Proto.TransactionV2> {
                 .build();
     }
 
-    public TransactionHusk sign(Wallet wallet) {
+    public void sign(Wallet wallet) {
         Proto.TransactionV2.Header.Raw updatedRawData = Proto.TransactionV2.Header.Raw
                 .newBuilder(getHeader().getRawData())
                 .setTimestamp(TimeUtils.time()).build();
@@ -65,7 +65,6 @@ public class TransactionHusk implements ProtoHusk<Proto.TransactionV2> {
                                 .setSignature(ByteString.copyFrom(signature))
                                 .build())
                 .build();
-        return this;
     }
 
     private Proto.TransactionV2.Header getHeader() {
@@ -113,5 +112,9 @@ public class TransactionHusk implements ProtoHusk<Proto.TransactionV2> {
     @Override
     public int hashCode() {
         return Objects.hash(transaction);
+    }
+
+    public boolean isSigned() {
+        return !getHeader().getSignature().isEmpty();
     }
 }
