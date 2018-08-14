@@ -23,12 +23,16 @@ import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.util.SerializeUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class BlockTest {
+
+    private static final Logger log = LoggerFactory.getLogger(BlockTest.class);
 
     private Block block;
 
@@ -95,7 +99,7 @@ public class BlockTest {
     public void testToJsonObject() {
         //todo: modify to checking jsonObject when the block data format change to JsonObject.
         try {
-            System.out.println(block.toJsonObject().toString());
+            log.debug(block.toJsonObject().toString());
         } catch (Exception e) {
             assert false;
         }

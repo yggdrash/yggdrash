@@ -17,6 +17,8 @@
 package io.yggdrash.node.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -25,6 +27,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class AccountControllerTest {
+
+    private static final Logger log = LoggerFactory.getLogger(AccountControllerTest.class);
+
     private MockMvc mockMvc;
 
     private JacksonTester<AccountDto> json;
@@ -40,10 +45,10 @@ public class AccountControllerTest {
                         post("/account"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse().getContentAsString();
-        System.out.println(jsonResponse);
+        log.debug(jsonResponse);
         AccountDto response = json.parseObject(jsonResponse);
         assertThat(response.getAddress()).isNotEmpty();
         assertThat(response.getAddress()).hasSize(40);
-        System.out.println(response.getAddress());
+        log.debug(response.getAddress());
     }
 }

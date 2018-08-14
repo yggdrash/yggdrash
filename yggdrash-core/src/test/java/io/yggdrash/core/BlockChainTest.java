@@ -29,7 +29,7 @@ public class BlockChainTest {
     @Test
     public void shouldBeGetBlockByIndex() throws IOException, InvalidCipherTextException {
         BlockChain blockChain = instantBlockchain();
-        System.out.println(blockChain.toStringStatus());
+        log.debug(blockChain.toStringStatus());
 
         Block prevBlock = blockChain.getPrevBlock();
         String hash = prevBlock.getPrevBlockHash();
@@ -101,7 +101,7 @@ public class BlockChainTest {
                             .prevBlock(blockChain.getPrevBlock())
                             .blockBody(sampleBody).build(wallet), sampleBody));
         } catch (NotValidateException e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
             log.warn("invalid block....");
             assert false;
         }

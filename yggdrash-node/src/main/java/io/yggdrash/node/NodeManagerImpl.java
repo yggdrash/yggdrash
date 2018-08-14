@@ -128,13 +128,13 @@ public class NodeManagerImpl implements NodeManager {
     @Override
     public void init() {
         this.stateStore = new StateStore();
-        System.out.println("\n\n getStateStore : " + getStateStore());
+        log.debug("\n\n getStateStore : " + getStateStore());
         NodeProperties.Grpc grpc = nodeProperties.getGrpc();
         try {
             List<Transaction> txList = txManager.getAllTxs();
             executeAllTx(txList);
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
         }
 
         messageSender.setListener(this);

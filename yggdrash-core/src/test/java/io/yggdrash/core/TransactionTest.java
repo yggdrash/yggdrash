@@ -4,10 +4,13 @@ import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.mapper.TransactionMapper;
+import io.yggdrash.crypto.ECKeyTest;
 import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.util.SerializeUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
@@ -16,6 +19,8 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
 public class TransactionTest {
+
+    private static final Logger log = LoggerFactory.getLogger(TransactionTest.class);
 
     private Transaction tx;
     private Wallet wallet;
@@ -27,9 +32,8 @@ public class TransactionTest {
         json.addProperty("data", "TEST");
         this.tx = new Transaction(wallet, json);
 
-        System.out.println("Before Transaction: " + tx.toString());
-        System.out.println("Before Transaction address: " + tx.getHeader().getAddressToString());
-        System.out.println("\n");
+        log.debug("Before Transaction: " + tx.toString());
+        log.debug("Before Transaction address: " + tx.getHeader().getAddressToString() + "\n");
     }
 
     @Test
@@ -61,8 +65,8 @@ public class TransactionTest {
         json.addProperty("data", "TEST");
         Transaction tx = new Transaction(wallet, json);
 
-        System.out.println("Transaction 2: " + tx.toString());
-        System.out.println("Transaction 2 address: " + tx.getHeader().getAddressToString());
+        log.debug("Transaction 2: " + tx.toString());
+        log.debug("Transaction 2 address: " + tx.getHeader().getAddressToString());
 
         assertEquals(this.tx.getHeader().getAddressToString(), tx.getHeader().getAddressToString());
     }
@@ -76,11 +80,11 @@ public class TransactionTest {
         Transaction tx1 = new Transaction(wallet, json);
         Transaction tx2 = new Transaction(wallet, json);
 
-        System.out.println("Test Transaction1: " + tx1.toString());
-        System.out.println("Test Transaction1 Address: " + tx1.getHeader().getAddressToString());
+        log.debug("Test Transaction1: " + tx1.toString());
+        log.debug("Test Transaction1 Address: " + tx1.getHeader().getAddressToString());
 
-        System.out.println("Test Transaction2: " + tx2.toString());
-        System.out.println("Test Transaction2 Address: " + tx2.getHeader().getAddressToString());
+        log.debug("Test Transaction2: " + tx2.toString());
+        log.debug("Test Transaction2 Address: " + tx2.getHeader().getAddressToString());
 
         assertEquals(tx1.getHeader().getAddressToString(), tx2.getHeader().getAddressToString());
     }
@@ -94,17 +98,17 @@ public class TransactionTest {
         Transaction tx1 = new Transaction(wallet, json);
         Transaction tx2 = new Transaction(wallet, json);
 
-        System.out.println("Test Transaction1: " + tx1.toString());
-        System.out.println("Test Transaction1 Address: " + tx1.getHeader().getAddressToString());
+        log.debug("Test Transaction1: " + tx1.toString());
+        log.debug("Test Transaction1 Address: " + tx1.getHeader().getAddressToString());
 
-        System.out.println("Test Transaction2: " + tx2.toString());
-        System.out.println("Test Transaction2 Address: " + tx2.getHeader().getAddressToString());
+        log.debug("Test Transaction2: " + tx2.toString());
+        log.debug("Test Transaction2 Address: " + tx2.getHeader().getAddressToString());
 
-        System.out.println("Test Transaction1: " + tx1.toString());
-        System.out.println("Test Transaction1 Address: " + tx1.getHeader().getAddressToString());
+        log.debug("Test Transaction1: " + tx1.toString());
+        log.debug("Test Transaction1 Address: " + tx1.getHeader().getAddressToString());
 
-        System.out.println("Test Transaction2: " + tx2.toString());
-        System.out.println("Test Transaction2 Address: " + tx2.getHeader().getAddressToString());
+        log.debug("Test Transaction2: " + tx2.toString());
+        log.debug("Test Transaction2 Address: " + tx2.getHeader().getAddressToString());
 
         assertArrayEquals(wallet.getAddress(), tx1.getHeader().getAddress());
         assertArrayEquals(tx1.getHeader().getAddress(), tx2.getHeader().getAddress());
@@ -114,27 +118,27 @@ public class TransactionTest {
     @Test
     public void testGetAddressWithWalletAccount() throws IOException, InvalidCipherTextException {
         Account account = new Account();
-        System.out.println("Account: " + account.toString());
+        log.debug("Account: " + account.toString());
 
         Wallet wallet = new Wallet(account.getKey(), "tmp/path", "nodePri.key", "Aa1234567890!");
-        System.out.println("Wallet: " + wallet.toString());
+        log.debug("Wallet: " + wallet.toString());
 
         JsonObject json = new JsonObject();
         json.addProperty("data", "TEST");
         Transaction tx1 = new Transaction(wallet, json);
         Transaction tx2 = new Transaction(wallet, json);
 
-        System.out.println("Test Transaction1: " + tx1.toString());
-        System.out.println("Test Transaction1 Address: " + tx1.getHeader().getAddressToString());
+        log.debug("Test Transaction1: " + tx1.toString());
+        log.debug("Test Transaction1 Address: " + tx1.getHeader().getAddressToString());
 
-        System.out.println("Test Transaction2: " + tx2.toString());
-        System.out.println("Test Transaction2 Address: " + tx2.getHeader().getAddressToString());
+        log.debug("Test Transaction2: " + tx2.toString());
+        log.debug("Test Transaction2 Address: " + tx2.getHeader().getAddressToString());
 
-        System.out.println("Test Transaction1: " + tx1.toString());
-        System.out.println("Test Transaction1 Address: " + tx1.getHeader().getAddressToString());
+        log.debug("Test Transaction1: " + tx1.toString());
+        log.debug("Test Transaction1 Address: " + tx1.getHeader().getAddressToString());
 
-        System.out.println("Test Transaction2: " + tx2.toString());
-        System.out.println("Test Transaction2 Address: " + tx2.getHeader().getAddressToString());
+        log.debug("Test Transaction2: " + tx2.toString());
+        log.debug("Test Transaction2 Address: " + tx2.getHeader().getAddressToString());
 
         assertArrayEquals(wallet.getAddress(), account.getAddress());
         assertArrayEquals(tx1.getHeader().getAddress(), tx2.getHeader().getAddress());
@@ -149,16 +153,16 @@ public class TransactionTest {
         jsonObject.addProperty("to", "0x5186a0EF662DFA89Ed44b52a55EC5Cf0B4b59bb7");
         jsonObject.addProperty("balance", "100000000");
 
-        System.out.println(jsonObject);
+        log.debug(jsonObject.toString());
 
         Wallet wallet = null;
         try {
             wallet = new Wallet();
 
             Transaction tx1 = new Transaction(wallet, jsonObject);
-            System.out.println(tx1.toJsonObject().toString());
+            log.debug(tx1.toJsonObject().toString());
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error(e.getMessage());
             assert false;
         }
     }

@@ -18,6 +18,7 @@
 
 package io.yggdrash.crypto;
 
+import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.Utils;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -91,16 +92,16 @@ public class CryptoTest {
     public void test6() {
 
         long firstTime = System.currentTimeMillis();
-        System.out.println(firstTime);
+        log.debug(Hex.toHexString(ByteUtil.longToBytes(firstTime)));
         for (int i = 0; i < 1000; ++i) {
 
             byte[] horseBytes = sha3("horse".getBytes());
             byte[] addr = ECKey.fromPrivate(horseBytes).getAddress();
             assertEquals("13978AEE95F38490E9769C39B2773ED763D9CD5F", Hex.toHexString(addr).toUpperCase());
         }
+
         long secondTime = System.currentTimeMillis();
-        System.out.println(secondTime);
-        System.out.println(secondTime - firstTime + " millisec");
+        log.debug(Hex.toHexString(ByteUtil.longToBytes(secondTime - firstTime)) + " millisec");
         // 1) result: ~52 address calculation every second
     }
 
@@ -120,7 +121,7 @@ public class CryptoTest {
 
         byte[] blockHashB = sha3(Hex.decode(blockRaw));
         String blockHash = Hex.toHexString(blockHashB);
-        System.out.println(blockHash);
+        log.debug(blockHash);
     }
 
     @Test
@@ -128,8 +129,8 @@ public class CryptoTest {
         // TODO: https://tools.ietf.org/html/rfc6979#section-2.2
         // TODO: https://github.com/bcgit/bc-java/blob/master/core/src/main/java/org/bouncycastle/crypto/signers/ECDSASigner.java
 
-        System.out.println(new BigInteger(Hex.decode("3913517ebd3c0c65000000")));
-        System.out.println(Utils.getValueShortString(new BigInteger("69000000000000000000000000")));
+        log.debug(new BigInteger(Hex.decode("3913517ebd3c0c65000000")).toString());
+        log.debug(Utils.getValueShortString(new BigInteger("69000000000000000000000000")));
     }
 
     @Test
@@ -169,37 +170,6 @@ public class CryptoTest {
         assertEquals(Hex.toHexString(output), Hex.toHexString(payload));
         log.info("original: {}", Hex.toHexString(payload));
     }
-
-//    @Test  // basic encryption/decryption
-//    public void test11-1() throws Throwable {
-//
-//        String password = "1234567890!Aa";
-//        byte[] keyBytes = Password.generateKeyDerivation(password.getBytes(), 32);
-//        log.info("key: {}", Hex.toHexString(keyBytes));
-//        byte[] ivBytes = new byte[16];
-//        byte[] payload = Hex.decode("22400891000000000000000000000000");
-//
-//        KeyParameter key = new KeyParameter(keyBytes);
-//        ParametersWithIV params = new ParametersWithIV(key, new byte[16]);
-//
-//        AESEngine engine = new AESEngine();
-//        SICBlockCipher ctrEngine = new SICBlockCipher(engine);
-//
-//        ctrEngine.init(true, params);
-//
-//        byte[] cipher = new byte[16];
-//        ctrEngine.processBlock(payload, 0, cipher, 0);
-//
-//        log.info("cipher: {}", Hex.toHexString(cipher));
-//
-//
-//        byte[] output = new byte[cipher.length];
-//        ctrEngine.init(false, params);
-//        ctrEngine.processBlock(cipher, 0, output, 0);
-//
-//        assertEquals(Hex.toHexString(output), Hex.toHexString(payload));
-//        log.info("original: {}", Hex.toHexString(payload));
-//    }
 
     @Test  // big packet encryption
     public void test12() {
@@ -286,10 +256,8 @@ public class CryptoTest {
 
         eGen.init(gParam);
 
-
         AsymmetricCipherKeyPair p1 = eGen.generateKeyPair();
         AsymmetricCipherKeyPair p2 = eGen.generateKeyPair();
-
 
         ECKeyGenerationParameters keygenParams = new ECKeyGenerationParameters(ECKey.CURVE, new SecureRandom());
         ECKeyPairGenerator generator = new ECKeyPairGenerator();
