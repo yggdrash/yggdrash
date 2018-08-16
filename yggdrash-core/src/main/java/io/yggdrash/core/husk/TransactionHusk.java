@@ -121,7 +121,9 @@ public class TransactionHusk implements ProtoHusk<Proto.TransactionV2> {
     }
 
     public boolean verify() throws SignatureException {
-        if (!isSigned()) return false;
+        if (!isSigned()) {
+            return false;
+        }
 
         byte[] hashedRawData = new Sha3Hash(getHeader().getRawData().toByteArray()).getBytes();
         byte[] signatureBin = getHeader().getSignature().toByteArray();

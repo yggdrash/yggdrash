@@ -34,7 +34,6 @@ public class BlockChain {
     @Deprecated
     public BlockChain() {
         this(new JsonObject());
-        this.blocks = new ConcurrentHashMap<>();
     }
 
     public BlockChain(BlockStore blockStore) {
@@ -43,10 +42,12 @@ public class BlockChain {
     }
 
     public BlockChain(String chainId) {
+        this(new JsonObject());
         this.blockStore = new BlockStore(chainId);
     }
 
     private BlockChain(JsonObject packageInfo) {
+        this.blocks = new ConcurrentHashMap<>();
         this.packageInfo = packageInfo;
         try {
             this.genesisBlock = new GenesisBlock().getGenesisBlock();
@@ -166,7 +167,7 @@ public class BlockChain {
     }
 
     public long size() {
-        return blockStore.size();
+        return blocks.size() / 2;
     }
 
     /**
