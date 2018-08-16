@@ -107,8 +107,8 @@ public class NodeManagerTest {
         nodeManager.addTransaction(tx);
         nodeManager.addBlock(firstBlock);
         nodeManager.addBlock(secondBlock);
-        assert nodeManager.getBlocks().size() == 3;
-        assert nodeManager.getBlockByIndexOrHash("2").getBlockHash()
+        assert nodeManager.getBlocks().size() == 2;
+        assert nodeManager.getBlockByIndexOrHash("1").getBlockHash()
                 .equals(secondBlock.getBlockHash());
         Transaction foundTx = nodeManager.getTxByHash(tx.getHashString());
         assert foundTx.getHashString().equals(tx.getHashString());
@@ -118,7 +118,7 @@ public class NodeManagerTest {
     public void generateBlockTest() {
         nodeManager.addTransaction(tx);
         Block newBlock = nodeManager.generateBlock();
-        assert nodeManager.getBlocks().size() == 2;
+        assert nodeManager.getBlocks().size() == 1;
         Block chainedBlock = nodeManager.getBlockByIndexOrHash(newBlock.getBlockHash());
         assert chainedBlock.getBlockHash().equals(newBlock.getBlockHash());
         log.debug(Hex.toHexString(ByteUtil.longToBytes(chainedBlock.getData().getSize())));

@@ -41,7 +41,7 @@ public class NodeHealthIndicatorTest {
         Health health = nodeHealthIndicator.health();
         assert health.getStatus() == Status.DOWN;
         assert health.getDetails().get("name").equals("yggdrash");
-        assert (long) health.getDetails().get("height") == 1;
+        assert (long) health.getDetails().get("height") == 0;
         assert (int) health.getDetails().get("activePeers") == 0;
     }
 
