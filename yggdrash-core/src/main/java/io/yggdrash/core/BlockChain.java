@@ -41,11 +41,6 @@ public class BlockChain {
         this.blockStore = new BlockStore(chainId);
     }
 
-    /**
-     * Branch Information (Load Json File)
-     *
-     * @param branchInfo
-     */
     public BlockChain(JsonObject branchInfo) {
         this.branchInfo = branchInfo;
         this.blocks = new ConcurrentHashMap<>();
@@ -70,16 +65,6 @@ public class BlockChain {
 
 
     private boolean loadGenesis() {
-        // load Genesis By PackageInfo
-//        try {
-//            this.genesisBlock = new GenesisBlock().getGenesisBlock();
-//        } catch (IOException e) {
-//            throw new NotValidateException("IOException");
-//        } catch (InvalidCipherTextException e) {
-//            throw new NotValidateException("InvalidCipherTextException");
-//        }
-//        this.prevBlock = null;
-//        this.addBlock(this.genesisBlock);
         return true;
     }
 
@@ -282,17 +267,7 @@ public class BlockChain {
     }
 
     public String toStringStatus() {
-//        String currentBlockHash = prevBlock.getBlockHash();
         StringBuffer stringBuffer = new StringBuffer();
-//
-//        stringBuffer.append("[BlockChain Status]\n")
-//                .append("currentBlock=[")
-//                .append(prevBlock.getIndex())
-//                .append("]")
-//                .append(currentBlockHash)
-//                .append("\n");
-//
-//        String prevBlockHash = this.prevBlock.getPrevBlockHash();
         String prevBlockHash = prevBlock.getBlockHash();
         do {
             stringBuffer.append("[")
