@@ -87,7 +87,7 @@ project(':yggdrash-core') {
         compile("commons-codec:commons-codec:${commonsCodecVersion}")
         compile("commons-io:commons-io:${commonsIOVersion}")
         compile("com.googlecode.json-simple:json-simple:${jsonSimpleVersion}")
-        compile("com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}")
+        compile("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
         compile("com.typesafe:config:${typesafeVersion}")
         compile("ch.qos.logback:logback-classic:1.2.3")
         testCompile("io.grpc:grpc-testing:${grpcVersion}")
