@@ -14,13 +14,20 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core;
+package io.yggdrash.core.store;
 
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import io.yggdrash.core.store.TransactionPool;
+import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.Transaction;
+import io.yggdrash.core.TransactionHeader;
+import io.yggdrash.core.husk.TransactionHusk;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.proto.BlockChainProto;
+import org.ehcache.Cache;
+import org.ehcache.config.builders.CacheConfigurationBuilder;
+import org.ehcache.config.builders.CacheManagerBuilder;
+import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,18 +39,25 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
+    private static final Logger log = LoggerFactory.getLogger(TransactionStore.class);
 
-public class TransactionManager {
-    private static final Logger log = LoggerFactory.getLogger(TransactionManager.class);
-
-    private final DbSource db;
-    private final TransactionPool txPool;
+    private final DbSource<byte[], byte[]> db;
+    private final CachePool<String, Transaction> txPool;
+    private final Cache<Sha3Hash, TransactionHusk> huskTxPool;
     private final Set<String> unconfirmedTxSet = new HashSet<>();
+    private final Set<Sha3Hash> unconfirmedTxs = new HashSet<>();
 
-    public TransactionManager(DbSource db, TransactionPool transactionPool) {
+
+    public TransactionStore(DbSource db, CachePool transactionPool) {
         this.db = db;
         this.db.init();
         this.txPool = transactionPool;
+        this.huskTxPool = CacheManagerBuilder
+                .newCacheManagerBuilder().build(true)
+                .createCache("txPool", CacheConfigurationBuilder
+                        .newCacheConfigurationBuilder(Sha3Hash.class, TransactionHusk.class,
+                                ResourcePoolsBuilder.heap(10)));
     }
 
     public List<Transaction> getAllTxs() throws IOException {
@@ -55,6 +69,7 @@ public class TransactionManager {
         return txList;
     }
 
+    @Deprecated
     public Transaction put(Transaction tx) {
         try {
             txPool.put(tx);
@@ -66,22 +81,35 @@ public class TransactionManager {
         return tx;
     }
 
+    @Override
+    public void put(Sha3Hash key, TransactionHusk tx) {
+        huskTxPool.put(key, tx);
+        unconfirmedTxs.add(key);
+    }
+
+    @Deprecated
     public Transaction get(String key) {
         Transaction foundTx = txPool.get(key);
         return foundTx != null ? foundTx : deserialize(db.get(key.getBytes()));
     }
 
-    public void batchAll() {
-        this.batch(unconfirmedTxSet);
+    @Override
+    public TransactionHusk get(Sha3Hash key) throws InvalidProtocolBufferException {
+        TransactionHusk item = huskTxPool.get(key);
+        return item != null ? item : new TransactionHusk(db.get(key.getBytes()));
     }
 
-    public void batch(Set<String> keys) {
+    public void batchAll() {
+        this.batch(unconfirmedTxs);
+    }
+
+    public void batch(Set<Sha3Hash> keys) {
         if (keys.size() > 0) {
-            Map<String, Transaction> map = txPool.getAll(keys);
-            for (String key : map.keySet()) {
-                Transaction foundTx = map.get(key);
+            Map<Sha3Hash, TransactionHusk> map = huskTxPool.getAll(keys);
+            for (Sha3Hash key : map.keySet()) {
+                TransactionHusk foundTx = map.get(key);
                 if (foundTx != null) {
-                    db.put(key.getBytes(), serialize(foundTx));
+                    db.put(key.getBytes(), foundTx.getData());
                 }
             }
             this.flush();
@@ -93,13 +121,17 @@ public class TransactionManager {
         return unconfirmedTxs.values();
     }
 
-    public int count() {
-        return unconfirmedTxSet.size();
+    public long countFromCache() {
+        return unconfirmedTxs.size();
+    }
+
+    public long countFromDb() {
+        return this.db.count();
     }
 
     public void flush() {
-        txPool.remove(unconfirmedTxSet);
-        unconfirmedTxSet.clear();
+        huskTxPool.removeAll(unconfirmedTxs);
+        unconfirmedTxs.clear();
     }
 
     private byte[] serialize(Transaction transaction) {

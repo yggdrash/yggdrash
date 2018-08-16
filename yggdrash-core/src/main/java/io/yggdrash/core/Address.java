@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.store.datasource;
+package io.yggdrash.core;
 
-import java.io.IOException;
-import java.util.List;
+import org.spongycastle.util.encoders.Hex;
 
-public interface DbSource<K, V> {
-    DbSource init();
+public class Address {
+    private byte[] data;
 
-    V get(K key);
+    public Address(byte[] data) {
+        this.data = data;
+    }
 
-    void put(K key, V value);
-
-    long count();
-
-    List<K> getAllKey() throws IOException;
-
-    void close();
+    @Override
+    public String toString() {
+        return Hex.toHexString(data);
+    }
 }

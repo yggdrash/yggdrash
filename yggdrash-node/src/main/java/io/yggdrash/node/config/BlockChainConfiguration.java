@@ -18,9 +18,9 @@ package io.yggdrash.node.config;
 
 import io.yggdrash.core.BlockBuilder;
 import io.yggdrash.core.BlockChain;
-import io.yggdrash.core.TransactionManager;
 import io.yggdrash.core.TransactionValidator;
-import io.yggdrash.core.store.TransactionPool;
+import io.yggdrash.core.store.CachePool;
+import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.node.BlockBuilderImpl;
 import org.springframework.context.annotation.Bean;
@@ -45,7 +45,7 @@ public class BlockChainConfiguration {
     }
 
     @Bean
-    TransactionManager transactionManager(DbSource db, TransactionPool txPool) {
-        return new TransactionManager(db, txPool);
+    TransactionStore transactionManager(DbSource db, CachePool txPool) {
+        return new TransactionStore(db, txPool);
     }
 }

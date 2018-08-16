@@ -22,12 +22,12 @@ import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionManager;
 import io.yggdrash.core.TransactionValidator;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.HashMapTransactionPool;
+import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.util.ByteUtil;
@@ -67,10 +67,10 @@ public class NodeManagerTest {
         nodeManager.setWallet(new Wallet());
         nodeManager.setTxValidator(new TransactionValidator());
 
-        TransactionManager txManager = new TransactionManager(new HashMapDbSource(),
+        TransactionStore transactionStore = new TransactionStore(new HashMapDbSource(),
                 new HashMapTransactionPool());
 
-        nodeManager.setTxManager(txManager);
+        nodeManager.setTransactionStore(transactionStore);
         nodeManager.setBlockChain(new BlockChain());
         nodeManager.setBlockBuilder(new BlockBuilderImpl());
         nodeManager.setNodeHealthIndicator(mock(NodeHealthIndicator.class));

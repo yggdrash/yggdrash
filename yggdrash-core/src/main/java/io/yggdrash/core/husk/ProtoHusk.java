@@ -14,22 +14,12 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.store;
+package io.yggdrash.core.husk;
 
-import io.yggdrash.core.Transaction;
+import java.io.Serializable;
 
-import java.io.IOException;
-import java.util.Map;
-import java.util.Set;
+public interface ProtoHusk<T> extends Serializable {
+    byte[] getData();
 
-public interface TransactionPool {
-    Transaction get(String key);
-
-    Transaction put(Transaction tx) throws IOException;
-
-    Map<String, Transaction> getAll(Set<String> keys);
-
-    void remove(Set<String> keys);
-
-    void clear();
+    T getInstance();
 }

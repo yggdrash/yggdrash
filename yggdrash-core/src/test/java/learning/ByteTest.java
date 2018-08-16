@@ -14,21 +14,21 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.store.datasource;
+package learning;
 
-import java.io.IOException;
-import java.util.List;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public interface DbSource<K, V> {
-    DbSource init();
+import java.nio.ByteBuffer;
 
-    V get(K key);
+public class ByteTest {
+    private static final Logger logger = LoggerFactory.getLogger(ByteTest.class);
 
-    void put(K key, V value);
-
-    long count();
-
-    List<K> getAllKey() throws IOException;
-
-    void close();
+    @Test
+    public void integerToByteArray() {
+        int input = 5000;
+        byte[] array = ByteBuffer.allocate(4).putInt(input).array();
+        logger.debug("Using ByteBuffer: {}", array);
+    }
 }

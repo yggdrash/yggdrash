@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.store.datasource;
+package io.yggdrash.core.store;
 
-import java.io.IOException;
-import java.util.List;
+import com.google.protobuf.InvalidProtocolBufferException;
 
-public interface DbSource<K, V> {
-    DbSource init();
-
-    V get(K key);
-
+public interface Store<K, V> {
     void put(K key, V value);
 
-    long count();
-
-    List<K> getAllKey() throws IOException;
-
-    void close();
+    V get(K key) throws InvalidProtocolBufferException;
 }

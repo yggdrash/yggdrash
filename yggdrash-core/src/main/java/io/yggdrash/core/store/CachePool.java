@@ -14,21 +14,20 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.store.datasource;
+package io.yggdrash.core.store;
 
 import java.io.IOException;
-import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-public interface DbSource<K, V> {
-    DbSource init();
+public interface CachePool<K, T> {
+    T get(K key);
 
-    V get(K key);
+    T put(T tx) throws IOException;
 
-    void put(K key, V value);
+    Map<K, T> getAll(Set<K> keys);
 
-    long count();
+    void remove(Set<K> keys);
 
-    List<K> getAllKey() throws IOException;
-
-    void close();
+    void clear();
 }

@@ -1,12 +1,12 @@
 package io.yggdrash.node.api;
 
-import io.yggdrash.core.store.TransactionPool;
+import io.yggdrash.core.store.CachePool;
 
 public class TransactionReceiptDto {
 
-    private final TransactionPool txPool;
+    private final CachePool txPool;
 
-    public TransactionReceiptDto(TransactionPool txPool) {
+    public TransactionReceiptDto(CachePool txPool) {
         this.txPool = txPool;
     }
 

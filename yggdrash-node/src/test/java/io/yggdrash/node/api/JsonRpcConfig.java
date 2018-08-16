@@ -21,22 +21,22 @@ public class JsonRpcConfig {
 
     private static final Logger log = LoggerFactory.getLogger(JsonRpcConfig.class);
 
-//    private static final String endpoint = "http://localhost:8080/api/transaction";
-//
-//    @Bean
-//    public JsonRpcHttpClient jsonRpcHttpClient() {
-//        URL url = null;
-//        //You can add authentication headers etc to this map
-//        Map<String, String> map = new HashMap<>();
-//        try {
-//            url = new URL(JsonRpcConfig.endpoint);
-//        } catch (Exception e) {
-//            log.debug(e.getMessage());
-//        }
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-//        return new JsonRpcHttpClient(objectMapper, url, map);
-//    }
+    //    private static final String endpoint = "http://localhost:8080/api/transaction";
+    //
+    //    @Bean
+    //    public JsonRpcHttpClient jsonRpcHttpClient() {
+    //        URL url = null;
+    //        //You can add authentication headers etc to this map
+    //        Map<String, String> map = new HashMap<>();
+    //        try {
+    //            url = new URL(JsonRpcConfig.endpoint);
+    //        } catch (Exception e) {
+    //            log.debug(e.getMessage());
+    //        }
+    //        ObjectMapper objectMapper = new ObjectMapper();
+    //        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    //        return new JsonRpcHttpClient(objectMapper, url, map);
+    //    }
 
     private JsonRpcHttpClient jsonRpcHttpClient(URL endpoint) {
         URL url = null;

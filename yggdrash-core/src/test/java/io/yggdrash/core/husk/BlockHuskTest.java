@@ -14,21 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.store.datasource;
+package io.yggdrash.core.husk;
 
-import java.io.IOException;
-import java.util.List;
-
-public interface DbSource<K, V> {
-    DbSource init();
-
-    V get(K key);
-
-    void put(K key, V value);
-
-    long count();
-
-    List<K> getAllKey() throws IOException;
-
-    void close();
+public class BlockHuskTest {
 }

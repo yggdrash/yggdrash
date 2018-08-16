@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SimpleTransactionPoolTest {
     public static final Logger log = LoggerFactory.getLogger(SimpleTransactionPoolTest.class);
 
-    private TransactionPool txPool;
+    private CachePool<String, Transaction> txPool;
 
     @Before
     public void setUp() {
