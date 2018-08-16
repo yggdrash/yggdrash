@@ -36,23 +36,23 @@ public class BlockChainTest {
         assertThat(foundBlock.getBlockHash()).isEqualTo(blockHash);
     }
 
-    @Ignore
     @Test
     public void shouldBeGetBlockByIndex() throws IOException, InvalidCipherTextException {
-        // TODO 블록체인에서 모든 블록들을 다 가지고 있는 구조로 구현하면 안됩니다.
         BlockChain blockChain = instantBlockchain();
         log.debug(blockChain.toStringStatus());
         Block prevBlock = blockChain.getPrevBlock(); // goto Genesis
-        Block currentBlock = blockChain.getPrevBlock();
+        Block currentBlock = null;
         do {
             currentBlock = prevBlock;
             prevBlock = blockChain.getBlockByHash(currentBlock.getBlockHash());
         }while (prevBlock == null);
 
-        String hash = currentBlock.getPrevBlockHash();
+        long prevIndex = blockChain.getPrevBlock().getIndex();
+        String hash = currentBlock.getBlockHash();
         assertThat(blockChain.getBlockByIndex(0L)).isEqualTo(blockChain.getBlockByHash(hash));
-//        assertThat(blockChain.getBlockByIndex(3L)).isEqualTo(prevBlock);
-//        assertThat(blockChain.getBlockByIndex(2L)).isEqualTo(blockChain.getBlockByHash(hash));
+        assertThat(blockChain.getBlockByIndex(prevIndex)).isEqualTo(
+                blockChain.getBlockByHash(blockChain.getPrevBlock().getBlockHash())
+        );
     }
 
     @Test
