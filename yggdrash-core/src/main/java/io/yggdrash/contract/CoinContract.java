@@ -3,10 +3,14 @@ package io.yggdrash.contract;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionReceipt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 
 public class CoinContract implements Contract {
+
+    private static final Logger log = LoggerFactory.getLogger(CoinContract.class);
 
     private HashMap<String, Integer> state = new HashMap<>();
 
@@ -21,7 +25,7 @@ public class CoinContract implements Contract {
      */
     public Integer balance(String address) {
         if (state.get(address) != null) {
-            System.out.println("\nstate :: " + this.state);
+            log.debug("\nstate :: " + this.state);
             return state.get(address);
         }
         return 0;

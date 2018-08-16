@@ -4,6 +4,8 @@ import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValue;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
@@ -11,6 +13,8 @@ import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertThat;
 
 public class DefaultConfigTest {
+
+    private static final Logger log = LoggerFactory.getLogger(DefaultConfigTest.class);
 
     /**
      * This is the default config test code.
@@ -20,20 +24,20 @@ public class DefaultConfigTest {
     public void defaultConfigTest() {
         DefaultConfig defaultConfig = new DefaultConfig();
         for (Map.Entry<String, ConfigValue> entry : defaultConfig.getConfig().entrySet()) {
-            System.out.println("Name:  " + entry.getKey());
-            System.out.println(entry);
+            log.debug("Name:  " + entry.getKey());
+            log.debug(entry.toString());
         }
 
         assertThat(defaultConfig.getConfig().getString("java.version"), containsString("1.8"));
-        System.out.println("DefaultConfig java.version: "
+        log.debug("DefaultConfig java.version: "
                 + defaultConfig.getConfig().getString("java.version"));
 
         assertThat(defaultConfig.getConfig().getString("node.name"), containsString("yggdrash"));
-        System.out.println("DefaultConfig node.name: "
+        log.debug("DefaultConfig node.name: "
                 + defaultConfig.getConfig().getString("node.name"));
 
-        assertThat(defaultConfig.getConfig().getString("network.port"), containsString("31212"));
-        System.out.println("DefaultConfig network.port: "
+        assertThat(defaultConfig.getConfig().getString("network.port"), containsString("32918"));
+        log.debug("DefaultConfig network.port: "
                 + defaultConfig.getConfig().getString("network.port"));
 
     }
@@ -47,7 +51,7 @@ public class DefaultConfigTest {
 
         assertThat(defaultConfig.getConfig().getString("java.version"), containsString("1.8"));
 
-        System.out.println("DefaultConfig java.version: "
+        log.debug("DefaultConfig java.version: "
                 + defaultConfig.getConfig().getString("java.version"));
 
     }
@@ -61,7 +65,7 @@ public class DefaultConfigTest {
 
         assertThat(defaultConfig.getConfig().getString("node.name"), containsString("yggdrash"));
 
-        System.out.println("yggdrash.conf node.name: "
+        log.debug("yggdrash.conf node.name: "
                 + defaultConfig.getConfig().getString("node.name"));
 
     }
@@ -78,7 +82,7 @@ public class DefaultConfigTest {
 
         assertThat(defaultConfig.getConfig().getString("key.path"), containsString("nodePri2.key"));
 
-        System.out.println("newConfigFile key.path: "
+        log.debug("newConfigFile key.path: "
                 + defaultConfig.getConfig().getString("key.path"));
 
     }
@@ -90,6 +94,6 @@ public class DefaultConfigTest {
     public void testToString() {
         DefaultConfig defaultConfig = new DefaultConfig();
 
-        System.out.println(defaultConfig.toString());
+        log.debug(defaultConfig.toString());
     }
 }

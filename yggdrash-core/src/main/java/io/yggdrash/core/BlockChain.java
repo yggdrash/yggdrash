@@ -2,10 +2,13 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.genesis.GenesisBlock;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.InvalidCipherTextException;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -26,7 +29,15 @@ public class BlockChain {
     private BlockChain(JsonObject packageInfo) {
         this.packageInfo = packageInfo;
         this.blocks = new ConcurrentHashMap<>();
-        // TODO: generate genesisBlock & add into blockchain
+        try {
+            this.genesisBlock = new GenesisBlock().getGenesisBlock();
+        } catch (IOException e) {
+            throw new NotValidateException("IOException");
+        } catch (InvalidCipherTextException e) {
+            throw new NotValidateException("InvalidCipherTextException");
+        }
+        this.prevBlock = null;
+        this.addBlock(this.genesisBlock);
     }
 
     public JsonObject getPackageInfo() {
@@ -65,9 +76,8 @@ public class BlockChain {
      * @throws NotValidateException the not validate exception
      */
     public void addBlock(Block nextBlock) {
-        if (isGenesisBlock(nextBlock)) {
-            this.genesisBlock = nextBlock;
-        } else if (!isValidNewBlock(prevBlock, nextBlock)) {
+
+        if (!isValidNewBlock(prevBlock, nextBlock)) {
             throw new NotValidateException();
         }
         log.debug("Added block index=[{}], blockHash={}", nextBlock.getIndex(),
@@ -199,5 +209,30 @@ public class BlockChain {
         this.blocks.clear();
         this.prevBlock = null;
         this.genesisBlock = null;
+    }
+
+    public String toStringStatus() {
+        String currentBlockHash = prevBlock.getBlockHash();
+        StringBuffer stringBuffer = new StringBuffer();
+
+        stringBuffer.append("[BlockChain Status]\n");
+        stringBuffer.append("genesisBlock=" + genesisBlock.getBlockHash() + "\n");
+        stringBuffer.append("currentBlock=" + "[" + prevBlock.getIndex() + "]"
+                + currentBlockHash + "\n");
+
+        String prevBlockHash = this.prevBlock.getPrevBlockHash();
+
+        do {
+            stringBuffer.append("<-- " + "[" + blocks.get(prevBlockHash).getIndex() + "]"
+                    + prevBlockHash + "\n");
+
+            prevBlockHash = blocks.get(prevBlockHash).getPrevBlockHash();
+
+        } while (prevBlockHash != null
+                && !prevBlockHash.equals(
+                    "0000000000000000000000000000000000000000000000000000000000000000"));
+
+        return stringBuffer.toString();
+
     }
 }

@@ -83,7 +83,7 @@ public class MessageSenderTest {
     @Test
     public void addActivePeer() {
         int testCount = nodeProperties.getMaxPeers() + 5;
-        for(int i = 0; i < testCount; i++) {
+        for (int i = 0; i < testCount; i++) {
             int port = i + 9000;
             ChannelMock channel = new ChannelMock("ynode://75bff16c@localhost:" + port);
             messageSender.newPeerChannel(channel);
