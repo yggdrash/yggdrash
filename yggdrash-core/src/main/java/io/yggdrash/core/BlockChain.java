@@ -17,36 +17,58 @@ public class BlockChain {
     private static final Logger log = LoggerFactory.getLogger(BlockChain.class);
 
     // <Variable>
-    private Block genesisBlock;
     private Block prevBlock;
+    private Block currentBlock;
     private Map<Object, Block> blocks; // <blockheader_hash, block>
-    private final JsonObject packageInfo;
+    private final JsonObject branchInfo;
 
-    public BlockChain() {
-        this(new JsonObject());
-    }
-
-    private BlockChain(JsonObject packageInfo) {
-        this.packageInfo = packageInfo;
+    /**
+     * Branch Information (Load Json File)
+     * @param branchInfo
+     */
+    public BlockChain(JsonObject branchInfo) {
+        this.branchInfo = branchInfo;
         this.blocks = new ConcurrentHashMap<>();
-        try {
-            this.genesisBlock = new GenesisBlock().getGenesisBlock();
-        } catch (IOException e) {
-            throw new NotValidateException("IOException");
-        } catch (InvalidCipherTextException e) {
-            throw new NotValidateException("InvalidCipherTextException");
-        }
-        this.prevBlock = null;
-        this.addBlock(this.genesisBlock);
+
+        // @TODO loadBlockchain
+        loadBlockChain();
     }
+
+    private void loadBlockChain() {
+        // @TODO check is exist;
+        if(isExist()) { // Load Exist
+
+        }else{ // Generate GenensisBlock
+            loadGenesis();
+        }
+
+    }
+    private boolean isExist() {
+
+        // @TODO Check exist self storage
+        return false;
+    }
+
+
+    private boolean loadGenesis() {
+        // load Genesis By PackageInfo
+//        try {
+//            this.genesisBlock = new GenesisBlock().getGenesisBlock();
+//        } catch (IOException e) {
+//            throw new NotValidateException("IOException");
+//        } catch (InvalidCipherTextException e) {
+//            throw new NotValidateException("InvalidCipherTextException");
+//        }
+//        this.prevBlock = null;
+//        this.addBlock(this.genesisBlock);
+
+        return true;
+    }
+
+
 
     public JsonObject getPackageInfo() {
-        return packageInfo;
-    }
-
-    // <Get_Set Method>
-    Block getGenesisBlock() {
-        return this.genesisBlock;
+        return branchInfo;
     }
 
     public Block getPrevBlock() {
@@ -88,10 +110,6 @@ public class BlockChain {
         this.blocks.put(nextBlock.getBlockHash(), nextBlock);
         this.blocks.put(nextBlock.getIndex(), nextBlock);
         this.prevBlock = nextBlock;
-    }
-
-    private boolean isGenesisBlock(Block newBlock) {
-        return genesisBlock == null && prevBlock == null && newBlock.getIndex() == 0;
     }
 
     private boolean isValidNewBlock(Block prevBlock, Block nextBlock) {
@@ -195,10 +213,9 @@ public class BlockChain {
     @Override
     public String toString() {
         return "BlockChain{"
-                + "genesisBlock=" + genesisBlock
-                + ", prevBlock=" + prevBlock
+                + "prevBlock=" + prevBlock
                 + ", blocks=" + blocks
-                + ", packageInfo=" + packageInfo
+                + ", packageInfo=" + branchInfo
                 + '}';
     }
 
@@ -208,23 +225,27 @@ public class BlockChain {
     public void clear() {
         this.blocks.clear();
         this.prevBlock = null;
-        this.genesisBlock = null;
     }
 
     public String toStringStatus() {
-        String currentBlockHash = prevBlock.getBlockHash();
+//        String currentBlockHash = prevBlock.getBlockHash();
         StringBuffer stringBuffer = new StringBuffer();
-
-        stringBuffer.append("[BlockChain Status]\n");
-        stringBuffer.append("genesisBlock=" + genesisBlock.getBlockHash() + "\n");
-        stringBuffer.append("currentBlock=" + "[" + prevBlock.getIndex() + "]"
-                + currentBlockHash + "\n");
-
-        String prevBlockHash = this.prevBlock.getPrevBlockHash();
-
+//
+//        stringBuffer.append("[BlockChain Status]\n")
+//                .append("currentBlock=[")
+//                .append(prevBlock.getIndex())
+//                .append("]")
+//                .append(currentBlockHash)
+//                .append("\n");
+//
+//        String prevBlockHash = this.prevBlock.getPrevBlockHash();
+        String prevBlockHash = prevBlock.getBlockHash();
         do {
-            stringBuffer.append("<-- " + "[" + blocks.get(prevBlockHash).getIndex() + "]"
-                    + prevBlockHash + "\n");
+            stringBuffer.append("[")
+                    .append(blocks.get(prevBlockHash).getIndex())
+                    .append("]")
+                    .append(prevBlockHash)
+                    .append("\n");
 
             prevBlockHash = blocks.get(prevBlockHash).getPrevBlockHash();
 
