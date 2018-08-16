@@ -29,4 +29,6 @@ public interface DbSource<K, V> {
     long count();
 
     List<K> getAllKey() throws IOException;
+
+    void close();
 }

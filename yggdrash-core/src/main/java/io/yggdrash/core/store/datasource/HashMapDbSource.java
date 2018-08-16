@@ -56,4 +56,9 @@ public class HashMapDbSource implements DbSource<byte[], byte[]> {
         }
         return keyList;
     }
+
+    @Override
+    public void close() {
+        db = null;
+    }
 }

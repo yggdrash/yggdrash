@@ -164,6 +164,7 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         init();
     }
 
+    @Override
     public synchronized void close() {
         if (!isAlive()) {
             return;
