@@ -20,11 +20,13 @@ import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.Wallet;
+import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.TimeUtils;
 
 import java.nio.ByteBuffer;
+import java.security.SignatureException;
 import java.util.Objects;
 
 public class TransactionHusk implements ProtoHusk<Proto.TransactionV2> {
@@ -57,7 +59,7 @@ public class TransactionHusk implements ProtoHusk<Proto.TransactionV2> {
         Proto.TransactionV2.Header.Raw updatedRawData = Proto.TransactionV2.Header.Raw
                 .newBuilder(getHeader().getRawData())
                 .setTimestamp(TimeUtils.time()).build();
-        byte[] signature = wallet.sign(updatedRawData.toByteArray());
+        byte[] signature = wallet.sign(HashUtil.sha3(updatedRawData.toByteArray()));
         this.transaction = Proto.TransactionV2.newBuilder(transaction)
                 .setHeader(
                         Proto.TransactionV2.Header.newBuilder()
@@ -116,5 +118,16 @@ public class TransactionHusk implements ProtoHusk<Proto.TransactionV2> {
 
     public boolean isSigned() {
         return !getHeader().getSignature().isEmpty();
+    }
+
+    public boolean verify() throws SignatureException {
+        if (!isSigned()) return false;
+
+        byte[] hashedRawData = new Sha3Hash(getHeader().getRawData().toByteArray()).getBytes();
+        byte[] signatureBin = getHeader().getSignature().toByteArray();
+
+        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signatureBin);
+        ECKey key = ECKey.signatureToKey(hashedRawData, signatureBin);
+        return key.verify(hashedRawData, ecdsaSignature);
     }
 }

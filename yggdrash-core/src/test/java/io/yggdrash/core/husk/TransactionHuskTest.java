@@ -24,9 +24,21 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
+import java.security.SignatureException;
 
 public class TransactionHuskTest {
     private static final Logger logger = LoggerFactory.getLogger(TransactionHuskTest.class);
+
+    @Test
+    public void shouldBeVerifiedBySignature()
+            throws IOException, InvalidCipherTextException, SignatureException {
+        TransactionHusk transactionHusk = getTransactionHusk();
+        Wallet wallet = new Wallet();
+        Assertions.assertThat(transactionHusk.verify()).isFalse();
+
+        transactionHusk.sign(wallet);
+        Assertions.assertThat(transactionHusk.verify()).isTrue();
+    }
 
     @Test
     public void shouldBeSignedTransaction() throws IOException, InvalidCipherTextException {

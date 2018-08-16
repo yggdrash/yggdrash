@@ -16,6 +16,7 @@
 
 package io.yggdrash.common;
 
+import io.yggdrash.crypto.HashUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.Serializable;
@@ -25,7 +26,7 @@ public class Sha3Hash implements Serializable {
     private byte[] data;
 
     public Sha3Hash(byte[] data) {
-        this.data = data;
+        this.data = HashUtil.sha3(data);
     }
 
     public Sha3Hash(String hash) {
