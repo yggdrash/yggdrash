@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.Set;
 
+@Deprecated
 public interface CachePool<K, T> {
     T get(K key);
 

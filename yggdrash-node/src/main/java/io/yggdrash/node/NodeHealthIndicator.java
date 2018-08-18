@@ -17,7 +17,7 @@
 package io.yggdrash.node;
 
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.BlockChain;
+import io.yggdrash.core.store.BlockStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -32,15 +32,15 @@ public class NodeHealthIndicator implements HealthIndicator {
 
     private final DefaultConfig defaultConfig;
 
-    private final BlockChain blockChain;
+    private final BlockStore blockStore;
 
     private final MessageSender messageSender;
 
     @Autowired
-    public NodeHealthIndicator(DefaultConfig defaultConfig, BlockChain blockChain,
+    public NodeHealthIndicator(DefaultConfig defaultConfig, BlockStore blockStore,
                                MessageSender messageSender) {
         this.defaultConfig = defaultConfig;
-        this.blockChain = blockChain;
+        this.blockStore = blockStore;
         this.messageSender = messageSender;
     }
 
@@ -64,7 +64,7 @@ public class NodeHealthIndicator implements HealthIndicator {
         builder.withDetail("version", defaultConfig.getNodeVersion());
         builder.withDetail("p2pVersion", defaultConfig.getNetworkP2PVersion());
         builder.withDetail("network", defaultConfig.getNetwork());
-        builder.withDetail("height", blockChain.getLastIndex());
+        builder.withDetail("height", blockStore.size());
         builder.withDetail("activePeers", messageSender.getActivePeerList().size());
         health.set(builder.build());
     }

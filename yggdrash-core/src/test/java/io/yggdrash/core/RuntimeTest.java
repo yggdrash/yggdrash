@@ -3,6 +3,7 @@ package io.yggdrash.core;
 import com.google.gson.JsonObject;
 import io.yggdrash.contract.CoinContract;
 import io.yggdrash.contract.StateStore;
+import io.yggdrash.core.husk.TransactionHusk;
 import org.junit.Before;
 import org.junit.Test;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -28,7 +29,7 @@ public class RuntimeTest {
         txObj.addProperty("to", "0x9843DC167956A0e5e01b3239a0CE2725c0631392");
         txObj.addProperty("amount", 100);
 
-        Transaction tx = new Transaction(wallet, txObj);
+        TransactionHusk tx = new TransactionHusk(txObj).sign(wallet);
         CoinContract coinContract = new CoinContract(stateStore);
 
         runtime.execute(coinContract, tx);

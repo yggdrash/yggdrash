@@ -15,6 +15,7 @@ import java.io.Serializable;
 /**
  * The type Block header.
  */
+@Deprecated
 public class BlockHeader implements Serializable {
 
     private byte[] type;
@@ -177,7 +178,7 @@ public class BlockHeader implements Serializable {
          * @return the builder
          */
         public Builder blockBody(BlockBody blockBody) {
-            this.merkleRoot = blockBody.getMerkleRoot();
+            //this.merkleRoot = blockBody.getMerkleRoot();
             this.dataSize = blockBody.getSize();
             return this;
         }

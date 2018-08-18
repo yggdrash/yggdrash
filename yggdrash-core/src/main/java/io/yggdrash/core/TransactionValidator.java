@@ -8,6 +8,7 @@ import io.yggdrash.util.SerializeUtils;
 
 import java.io.ByteArrayOutputStream;
 
+@Deprecated
 public class TransactionValidator {
 
     public Boolean txSigValidate(Transaction tx) {

@@ -16,28 +16,99 @@
 
 package io.yggdrash.node.controller;
 
-import com.google.gson.JsonObject;
-import io.yggdrash.core.Transaction;
-import io.yggdrash.core.Wallet;
+import com.google.protobuf.ByteString;
+import io.yggdrash.core.husk.TransactionHusk;
+import io.yggdrash.proto.Proto;
 
 public class TransactionDto {
 
-    private String from;
-    private String txHash;
+    private byte[] type;
+    private byte[] version;
+    private byte[] dataHash;
+    private long dataSize;
+    private long timestamp;
+    private byte[] signature;
     private String data;
+    private String txHash;
 
-    public static Transaction of(Wallet wallet, TransactionDto transactionDto) {
-        JsonObject jsonData = new JsonObject();
-        jsonData.addProperty("data", transactionDto.getData());
-        return new Transaction(wallet, jsonData);
+    public static TransactionHusk of(TransactionDto dto) {
+        Proto.Transaction.Header header = Proto.Transaction.Header.newBuilder()
+                .setRawData(Proto.Transaction.Header.Raw.newBuilder()
+                        .setType(ByteString.copyFrom(dto.getType()))
+                        .setVersion(ByteString.copyFrom(dto.getType()))
+                        .setDataHash(ByteString.copyFrom(dto.getDataHash()))
+                        .setDataSize(dto.getDataSize())
+                        .setTimestamp(dto.getTimestamp())
+                        .build())
+                .setSignature(ByteString.copyFrom(dto.getSignature()))
+                .build();
+        Proto.Transaction tx = Proto.Transaction.newBuilder()
+                .setHeader(header)
+                .setBody(dto.getData())
+                .build();
+        return new TransactionHusk(tx);
     }
 
-    public static TransactionDto createBy(Transaction tx) {
+    public static TransactionDto createBy(TransactionHusk tx) {
         TransactionDto transactionDto = new TransactionDto();
-        transactionDto.setFrom(tx.getHeader().getAddressToString());
-        transactionDto.setData(tx.getData());
-        transactionDto.setTxHash(tx.getHashString());
+        Proto.Transaction.Header.Raw raw = tx.getInstance().getHeader().getRawData();
+        transactionDto.setType(raw.getType().toByteArray());
+        transactionDto.setVersion(raw.getVersion().toByteArray());
+        transactionDto.setDataHash(raw.getDataHash().toByteArray());
+        transactionDto.setDataSize(raw.getDataSize());
+        transactionDto.setTimestamp(raw.getTimestamp());
+        transactionDto.setSignature(tx.getInstance().getHeader().getSignature().toByteArray());
+        transactionDto.setData(tx.getBody());
+        transactionDto.setTxHash(tx.getHash().toString());
         return transactionDto;
+    }
+
+    public byte[] getType() {
+        return type;
+    }
+
+    public void setType(byte[] type) {
+        this.type = type;
+    }
+
+    public byte[] getVersion() {
+        return version;
+    }
+
+    public void setVersion(byte[] version) {
+        this.version = version;
+    }
+
+    public byte[] getDataHash() {
+        return dataHash;
+    }
+
+    public void setDataHash(byte[] dataHash) {
+        this.dataHash = dataHash;
+    }
+
+    public long getDataSize() {
+        return dataSize;
+    }
+
+    public void setDataSize(long dataSize) {
+        this.dataSize = dataSize;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public byte[] getSignature() {
+        return signature;
+    }
+
+    public void setSignature(byte[] signature) {
+        this.signature = signature;
     }
 
     public String getData() {
@@ -46,14 +117,6 @@ public class TransactionDto {
 
     public void setData(String data) {
         this.data = data;
-    }
-
-    public String getFrom() {
-        return from;
-    }
-
-    public void setFrom(String from) {
-        this.from = from;
     }
 
     public String getTxHash() {

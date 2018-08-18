@@ -16,32 +16,33 @@
 
 package io.yggdrash.core.store;
 
-import io.yggdrash.core.Transaction;
+import io.yggdrash.core.husk.TransactionHusk;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class HashMapTransactionPool implements CachePool<String, Transaction> {
-    private final Map<String, Transaction> txs = new ConcurrentHashMap<>();
+@Deprecated
+public class HashMapTransactionPool implements CachePool<String, TransactionHusk> {
+    private final Map<String, TransactionHusk> txs = new ConcurrentHashMap<>();
 
     @Override
-    public Transaction get(String key) {
+    public TransactionHusk get(String key) {
         return txs.get(key);
     }
 
     @Override
-    public Transaction put(Transaction tx) {
-        txs.put(tx.getHashString(), tx);
+    public TransactionHusk put(TransactionHusk tx) {
+        txs.put(tx.getHash().toString(), tx);
         return tx;
     }
 
     @Override
-    public Map<String, Transaction> getAll(Set<String> keys) {
-        Map<String, Transaction> result = new HashMap<>();
+    public Map<String, TransactionHusk> getAll(Set<String> keys) {
+        Map<String, TransactionHusk> result = new HashMap<>();
         for (String key : keys) {
-            Transaction foundTx = txs.get(key);
+            TransactionHusk foundTx = txs.get(key);
             if (foundTx != null) {
                 result.put(key, foundTx);
             }

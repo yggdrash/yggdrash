@@ -16,8 +16,11 @@
 
 package io.yggdrash.core;
 
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.event.PeerEventListener;
+import io.yggdrash.core.husk.BlockHusk;
+import io.yggdrash.core.husk.TransactionHusk;
 
 import java.util.List;
 import java.util.Set;
@@ -26,19 +29,21 @@ public interface NodeManager extends PeerEventListener {
 
     void init();
 
-    Transaction addTransaction(Transaction tx);
+    TransactionHusk addTransaction(TransactionHusk tx);
 
-    List<Transaction> getTransactionList();
+    List<TransactionHusk> getTransactionList();
 
-    Transaction getTxByHash(String id);
+    TransactionHusk getTxByHash(Sha3Hash hash);
 
-    Block generateBlock();
+    TransactionHusk getTxByHash(String id);
 
-    Block addBlock(Block block);
+    BlockHusk generateBlock();
 
-    Set<Block> getBlocks();
+    BlockHusk addBlock(BlockHusk block);
 
-    Block getBlockByIndexOrHash(String indexOrHash);
+    Set<BlockHusk> getBlocks();
+
+    BlockHusk getBlockByIndexOrHash(String indexOrHash);
 
     String getNodeUri();
 

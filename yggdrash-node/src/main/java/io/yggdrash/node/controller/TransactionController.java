@@ -17,7 +17,7 @@
 package io.yggdrash.node.controller;
 
 import io.yggdrash.core.NodeManager;
-import io.yggdrash.core.Transaction;
+import io.yggdrash.core.husk.TransactionHusk;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -41,14 +41,14 @@ public class TransactionController {
 
     @PostMapping
     public ResponseEntity add(@RequestBody TransactionDto request) {
-        Transaction tx = TransactionDto.of(nodeManager.getWallet(), request);
-        Transaction addedTx = nodeManager.addTransaction(tx);
+        TransactionHusk tx = TransactionDto.of(request);
+        TransactionHusk addedTx = nodeManager.addTransaction(tx);
         return ResponseEntity.ok(TransactionDto.createBy(addedTx));
     }
 
     @GetMapping("{id}")
     public ResponseEntity get(@PathVariable String id) {
-        Transaction tx = nodeManager.getTxByHash(id);
+        TransactionHusk tx = nodeManager.getTxByHash(id);
 
         if (tx == null) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);

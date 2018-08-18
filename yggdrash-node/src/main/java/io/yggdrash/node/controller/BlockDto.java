@@ -16,24 +16,20 @@
 
 package io.yggdrash.node.controller;
 
-import io.yggdrash.core.Block;
-import io.yggdrash.core.BlockBody;
-
-import java.io.IOException;
+import io.yggdrash.core.husk.BlockHusk;
 
 public class BlockDto {
     private long index;
     private String hash;
     private String previousHash;
     private long timestamp;
-    private BlockBody body;
 
-    public static BlockDto createBy(Block block) throws IOException {
+    public static BlockDto createBy(BlockHusk block) {
         BlockDto blockDto = new BlockDto();
         blockDto.setIndex(block.getIndex());
-        blockDto.setHash(block.getBlockHash());
+        blockDto.setHash(block.getHash().toString());
         blockDto.setPreviousHash(block.getPrevBlockHash());
-        blockDto.setTimestamp(block.getTimestamp());
+        blockDto.setTimestamp(block.getInstance().getHeader().getRawData().getTimestamp());
         return blockDto;
     }
 
@@ -67,13 +63,5 @@ public class BlockDto {
 
     public void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
-    }
-
-    public BlockBody getBody() {
-        return body;
-    }
-
-    public void setBody(BlockBody body) {
-        this.body = body;
     }
 }

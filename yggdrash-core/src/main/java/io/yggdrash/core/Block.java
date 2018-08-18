@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 
+@Deprecated
 public class Block implements Cloneable, Serializable, Comparable<Block> {
 
     private static final Logger log = LoggerFactory.getLogger(Block.class);
