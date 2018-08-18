@@ -62,11 +62,8 @@ public class TransactionTest {
 
     @Test
     public void testGetAddressWithWallet() {
-        JsonObject json = new JsonObject();
-        json.addProperty("data", "TEST");
-
-        TransactionHusk tx1 = new TransactionHusk(json).sign(wallet);
-        TransactionHusk tx2 = new TransactionHusk(json).sign(wallet);
+        TransactionHusk tx1 = TestUtils.createTxHusk();
+        TransactionHusk tx2 = TestUtils.createTxHusk();
 
         log.debug("Test Transaction1: " + tx1.toString());
         log.debug("Test Transaction1 Address: " + tx1.getHexAddress());
@@ -93,10 +90,8 @@ public class TransactionTest {
         Wallet wallet = new Wallet(account.getKey(), "tmp/path", "nodePri.key", "Aa1234567890!");
         log.debug("Wallet: " + wallet.toString());
 
-        JsonObject json = new JsonObject();
-        json.addProperty("data", "TEST");
-        TransactionHusk tx1 = new TransactionHusk(json).sign(wallet);
-        TransactionHusk tx2 = new TransactionHusk(json).sign(wallet);
+        TransactionHusk tx1 = TestUtils.createTxHusk(wallet);
+        TransactionHusk tx2 = TestUtils.createTxHusk(wallet);
 
         log.debug("Test Transaction1: " + tx1.toString());
         log.debug("Test Transaction1 Address: " + tx1.getHexAddress());

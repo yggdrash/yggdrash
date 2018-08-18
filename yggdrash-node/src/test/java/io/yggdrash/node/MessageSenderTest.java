@@ -16,18 +16,13 @@
 
 package io.yggdrash.node;
 
-import com.google.gson.JsonObject;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.Wallet;
 import io.yggdrash.core.event.PeerEventListener;
 import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.node.mock.ChannelMock;
 import org.junit.Before;
 import org.junit.Test;
-import org.spongycastle.crypto.InvalidCipherTextException;
-
-import java.io.IOException;
 
 public class MessageSenderTest {
 
@@ -38,12 +33,9 @@ public class MessageSenderTest {
     private PeerEventListener listener;
 
     @Before
-    public void setUp() throws IOException, InvalidCipherTextException {
-        Wallet wallet = new Wallet();
-        JsonObject json = new JsonObject();
-        json.addProperty("data", "TEST");
-        this.tx = new TransactionHusk(json).sign(wallet);
-        this.block = BlockHusk.genesis(wallet, json);
+    public void setUp() {
+        this.tx = TestUtils.createTxHusk();
+        this.block = TestUtils.createGenesisBlockHusk();
         this.nodeProperties = new NodeProperties();
         this.messageSender = new MessageSender<>(nodeProperties);
         listener = peer -> {

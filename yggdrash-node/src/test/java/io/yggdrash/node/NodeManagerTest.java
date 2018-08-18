@@ -16,7 +16,6 @@
 
 package io.yggdrash.node;
 
-import com.google.gson.JsonObject;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.TransactionHusk;
@@ -71,9 +70,7 @@ public class NodeManagerTest {
         nodeManager.setNodeHealthIndicator(mock(NodeHealthIndicator.class));
         nodeManager.init();
         assert nodeManager.getNodeUri() != null;
-        JsonObject json = new JsonObject();
-        json.addProperty("data", "TEST");
-        this.tx = new TransactionHusk(json).sign(nodeManager.getWallet());
+        this.tx = TestUtils.createTxHusk(nodeManager.getWallet());
         this.firstBlock = BlockHusk.build(nodeManager.getWallet(), Collections.singletonList(tx),
                 nodeManager.getBlockByIndexOrHash("0"));
         this.secondBlock = BlockHusk.build(nodeManager.getWallet(), Collections.singletonList(tx),

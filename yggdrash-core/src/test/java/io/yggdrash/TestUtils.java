@@ -44,7 +44,7 @@ public class TestUtils {
         }
     }
 
-    public static Proto.Transaction createSampleTx() {
+    public static Proto.Transaction getTransactionFixture() {
         String body = getTransfer().toString();
         return Proto.Transaction.newBuilder()
                 .setHeader(Proto.Transaction.Header.newBuilder()
@@ -75,9 +75,9 @@ public class TestUtils {
                                         .build()
                                 ).build()
                 )
-                .addBody(createSampleTx())
-                .addBody(createSampleTx())
-                .addBody(createSampleTx())
+                .addBody(getTransactionFixture())
+                .addBody(getTransactionFixture())
+                .addBody(getTransactionFixture())
                 .build();
     }
 
@@ -118,7 +118,7 @@ public class TestUtils {
     }
 
     public static Proto.Transaction[] getTransactionFixtures() {
-        return new Proto.Transaction[] {createSampleTx(), createSampleTx()};
+        return new Proto.Transaction[] {getTransactionFixture(), getTransactionFixture()};
     }
 
     public static Proto.Block[] getBlockFixtures() {

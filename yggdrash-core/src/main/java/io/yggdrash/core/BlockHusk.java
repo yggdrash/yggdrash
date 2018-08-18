@@ -120,7 +120,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     }
 
     /**
-     * Convert from Block.class to JSON string.
+     * Convert from BlockHusk.class to JSON string.
      * @return block as JsonObject
      */
     public JsonObject toJsonObject() {

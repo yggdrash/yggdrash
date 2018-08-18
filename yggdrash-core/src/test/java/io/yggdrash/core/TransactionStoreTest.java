@@ -16,7 +16,6 @@
 
 package io.yggdrash.core;
 
-import com.google.gson.JsonObject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.Sha3Hash;
@@ -62,19 +61,19 @@ public class TransactionStoreTest {
 
     @Test
     public void shouldBeGotTxFromCache() throws InvalidProtocolBufferException {
-        TransactionHusk tx = new TransactionHusk(new JsonObject());
+        TransactionHusk tx = TestUtils.createTxHusk();
 
         Sha3Hash key = tx.getHash();
         ts.put(tx);
 
         TransactionHusk foundTx = ts.get(key);
         assertThat(foundTx).isNotNull();
-        assertThat(foundTx.getBody()).isEqualTo("{}");
+        assertThat(foundTx.getBody()).contains("transfer");
     }
 
     @Test
     public void shouldBePutTx() {
-        TransactionHusk tx = new TransactionHusk(new JsonObject());
+        TransactionHusk tx = TestUtils.createTxHusk();
         ts.put(tx);
     }
 

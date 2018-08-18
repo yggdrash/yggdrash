@@ -97,11 +97,7 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByBlockHashAndIndexTest() {
         try {
-            JsonObject json = new JsonObject();
-            json.addProperty("id", "0");
-            json.addProperty("name", "Rachael");
-            json.addProperty("age", "27");
-            TransactionHusk tx = new TransactionHusk(json).sign(wallet);
+            TransactionHusk tx = new TransactionHusk(getJson()).sign(wallet);
             if (txApi.sendTransaction(tx.getInstance()) != null) {
                 Thread.sleep(10000);
                 String hashOfBlock = blockApi.getBlockByHash("1", true).getHash().toString();
@@ -136,8 +132,7 @@ public class TransactionApiImplTest {
 
     @Test
     public void checkTransactionJsonFormat() throws IOException {
-        JsonObject data = new JsonObject();
-        TransactionHusk tx = new TransactionHusk(data).sign(wallet);
+        TransactionHusk tx = TestUtils.createTxHusk();
         ObjectMapper objectMapper = TestUtils.getMapper();
         log.debug("\n\nTransaction Format : "
                 + objectMapper.writeValueAsString(TransactionDto.createBy(tx)));
@@ -146,11 +141,7 @@ public class TransactionApiImplTest {
     @Test
     public void sendTransactionTest() {
         // Get Transaction of JsonString as Param
-        JsonObject json = new JsonObject();
-        json.addProperty("id", "0");
-        json.addProperty("name", "Rachael");
-        json.addProperty("age", "27");
-        TransactionHusk tx = new TransactionHusk(json).sign(wallet);
+        TransactionHusk tx = new TransactionHusk(getJson()).sign(wallet);
 
         // Request Transaction with jsonStr
         try {
@@ -226,11 +217,7 @@ public class TransactionApiImplTest {
     @Test
     public void txSigValidateTest() throws IOException,SignatureException {
         // Create Transaction
-        JsonObject json = new JsonObject();
-        json.addProperty("id", "0");
-        json.addProperty("name", "Rachael");
-        json.addProperty("age", "27");
-        TransactionHusk tx = new TransactionHusk(json).sign(wallet);
+        TransactionHusk tx = new TransactionHusk(getJson()).sign(wallet);
 
         ObjectMapper mapper = TestUtils.getMapper();
         String jsonStr = mapper.writeValueAsString(TransactionDto.createBy(tx));
@@ -240,5 +227,13 @@ public class TransactionApiImplTest {
 
         // Signature Validation
         assertTrue(TransactionDto.of(resDto).verify());
+    }
+
+    private JsonObject getJson() {
+        JsonObject json = new JsonObject();
+        json.addProperty("id", "0");
+        json.addProperty("name", "Rachael");
+        json.addProperty("age", "27");
+        return json;
     }
 }

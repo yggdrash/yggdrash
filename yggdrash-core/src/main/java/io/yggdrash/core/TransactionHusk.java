@@ -174,7 +174,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction> {
     }
 
     /**
-     * Convert from Transaction.class to JSON string.
+     * Convert from TransactionHusk.class to JSON string.
      * @return transaction as JsonObject
      */
     public JsonObject toJsonObject() {

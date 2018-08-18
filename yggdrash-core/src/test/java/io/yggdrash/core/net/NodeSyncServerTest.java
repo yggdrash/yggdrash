@@ -16,14 +16,13 @@
 
 package io.yggdrash.core.net;
 
-import com.google.gson.JsonObject;
 import io.grpc.internal.testing.StreamRecorder;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
+import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.NodeSyncServer.BlockChainImpl;
 import io.yggdrash.core.net.NodeSyncServer.PingPongImpl;
 import io.yggdrash.proto.BlockChainGrpc;
@@ -60,16 +59,13 @@ public class NodeSyncServerTest {
     private BlockHusk block;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         grpcServerRule.getServiceRegistry().addService(new PingPongImpl());
         grpcServerRule.getServiceRegistry().addService(new BlockChainImpl(nodeManagerMock));
 
-        Wallet wallet = new Wallet();
-        JsonObject json = new JsonObject();
-        json.addProperty("data", "TEST");
-        this.tx = new TransactionHusk(json).sign(wallet);
+        this.tx = TestUtils.createTxHusk();
         when(nodeManagerMock.addTransaction(any())).thenReturn(tx);
-        this.block = BlockHusk.genesis(wallet, json);
+        this.block = TestUtils.createGenesisBlockHusk();
         when(nodeManagerMock.addBlock(any())).thenReturn(block);
     }
 

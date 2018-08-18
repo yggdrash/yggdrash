@@ -23,7 +23,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import com.google.gson.JsonObject;
+import io.yggdrash.TestUtils;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.Account;
 import io.yggdrash.core.TransactionHusk;
@@ -291,13 +291,8 @@ public class ECKeyTest {
     @Test
     public void testVerifySignature7() throws SignatureException {
 
-        // create account with set privateKey
-        // create tx data(test)
-        JsonObject data = new JsonObject();
-        data.addProperty("balance", "10");
-
         // create tx
-        TransactionHusk tx = new TransactionHusk(data).sign(wallet);
+        TransactionHusk tx = TestUtils.createTxHusk(wallet);
 
         // get the sig & key(pub)
         byte[] rawMessage = tx.getInstance().getHeader().getRawData().toByteArray();
@@ -329,11 +324,7 @@ public class ECKeyTest {
         assertArrayEquals(wallet.getPubicKey(), key.getPubKey());
 
         // create tx
-        JsonObject data = new JsonObject();
-        data.addProperty("balance", "10");
-
-        // create tx
-        TransactionHusk tx = new TransactionHusk(data).sign(wallet);
+        TransactionHusk tx = TestUtils.createTxHusk(wallet);
 
         assertArrayEquals(key.getAddress(), tx.getAddress());
 
