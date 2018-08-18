@@ -16,42 +16,28 @@
 
 package io.yggdrash.core.store;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.husk.BlockHusk;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 
-public class BlockStore implements Store<Sha3Hash, BlockHusk> {
+public class MetaStore implements Store<MetaStore.MetaInfo, Sha3Hash> {
     private DbSource<byte[], byte[]> db;
 
-    public BlockStore(DbSource<byte[], byte[]> dbSource) {
-        this.db = dbSource;
-    }
-
-    public BlockStore(String chainId) {
-        this.db = new LevelDbDataSource(chainId + "/block").init();
+    public MetaStore() {
+        db = new LevelDbDataSource("meta").init();
     }
 
     @Override
-    public void put(Sha3Hash key, BlockHusk value) {
-        this.db.put(key.getBytes(), value.getData());
+    public void put(MetaInfo key, Sha3Hash value) {
+        db.put(key.name().getBytes(), value.getBytes());
     }
 
     @Override
-    public BlockHusk get(Sha3Hash key) {
-        try {
-            return new BlockHusk(db.get(key.getBytes()));
-        } catch (InvalidProtocolBufferException e) {
-            throw new IllegalArgumentException(e);
-        }
+    public Sha3Hash get(MetaInfo key) {
+        return new Sha3Hash(db.get(key.name().getBytes()));
     }
 
-    public long size() {
-        return this.db.count();
-    }
-
-    public void close() {
-        this.db.close();
+    public enum MetaInfo {
+        RECENT_BLOCK
     }
 }

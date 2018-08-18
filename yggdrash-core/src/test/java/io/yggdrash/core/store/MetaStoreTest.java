@@ -16,8 +16,18 @@
 
 package io.yggdrash.core.store;
 
-public interface Store<K, V> {
-    void put(K key, V value);
+import io.yggdrash.TestUtils;
+import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.husk.BlockHusk;
+import org.junit.Test;
 
-    V get(K key);
+public class MetaStoreTest {
+    @Test
+    public void name() {
+        MetaStore metaStore = new MetaStore();
+        BlockHusk blockHusk = new BlockHusk(TestUtils.getBlockFixture());
+        metaStore.put(MetaStore.MetaInfo.RECENT_BLOCK, blockHusk.getHash());
+
+        Sha3Hash sha3Hash = metaStore.get(MetaStore.MetaInfo.RECENT_BLOCK);
+    }
 }
