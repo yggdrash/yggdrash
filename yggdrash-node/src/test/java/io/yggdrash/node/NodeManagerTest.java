@@ -20,6 +20,8 @@ import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
+import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.BlockStore;
@@ -82,6 +84,22 @@ public class NodeManagerTest {
         nodeManager.addTransaction(tx);
         TransactionHusk pooledTx = nodeManager.getTxByHash(tx.getHash());
         assert pooledTx.getHash().equals(tx.getHash());
+    }
+
+    @Test
+    public void unsignedTxTest() {
+        assert nodeManager.addTransaction(TestUtils.createUnsignedTxHusk()) == null;
+    }
+
+    @Test(expected = FailedOperationException.class)
+    public void addTransactionExceptionTest() {
+        nodeManager.setMessageSender(null);
+        nodeManager.addTransaction(tx);
+    }
+
+    @Test(expected = InvalidSignatureException.class)
+    public void failedOperationExceptionTest() {
+        nodeManager.addTransaction(TestUtils.createInvalidTxHusk());
     }
 
     @Test

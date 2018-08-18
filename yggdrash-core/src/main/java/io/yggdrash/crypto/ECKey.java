@@ -17,24 +17,8 @@
  */
 
 package io.yggdrash.crypto;
-/**
- * Copyright 2011 Google Inc.
- * <p>
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * <p>
- * http://www.apache.org/licenses/LICENSE-2.0
- * <p>
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 
 import io.yggdrash.config.Constants;
-import io.yggdrash.crypto.jce.ECKeyAgreement;
 import io.yggdrash.crypto.jce.ECKeyFactory;
 import io.yggdrash.crypto.jce.ECKeyPairGenerator;
 import io.yggdrash.crypto.jce.ECSignatureFactory;
@@ -48,7 +32,6 @@ import org.spongycastle.asn1.DLSequence;
 import org.spongycastle.asn1.sec.SECNamedCurves;
 import org.spongycastle.asn1.x9.X9ECParameters;
 import org.spongycastle.asn1.x9.X9IntegerConverter;
-import org.spongycastle.crypto.agreement.ECDHBasicAgreement;
 import org.spongycastle.crypto.digests.SHA256Digest;
 import org.spongycastle.crypto.engines.AESEngine;
 import org.spongycastle.crypto.modes.SICBlockCipher;
@@ -63,7 +46,6 @@ import org.spongycastle.jcajce.provider.asymmetric.ec.BCECPrivateKey;
 import org.spongycastle.jcajce.provider.asymmetric.ec.BCECPublicKey;
 import org.spongycastle.jce.spec.ECParameterSpec;
 import org.spongycastle.jce.spec.ECPrivateKeySpec;
-import org.spongycastle.jce.spec.ECPublicKeySpec;
 import org.spongycastle.math.ec.ECAlgorithms;
 import org.spongycastle.math.ec.ECCurve;
 import org.spongycastle.math.ec.ECPoint;
@@ -72,7 +54,6 @@ import org.spongycastle.util.encoders.Base64;
 import org.spongycastle.util.encoders.Hex;
 
 import javax.annotation.Nullable;
-import javax.crypto.KeyAgreement;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -311,34 +292,6 @@ public class ECKey implements Serializable {
      */
     public static ECKey fromPrivate(byte[] privKeyBytes) {
         return fromPrivate(new BigInteger(1, privKeyBytes));
-    }
-
-    /**
-     * Creates an ECKey that simply trusts the caller to ensure that point is really the result of multiplying the
-     * generator point by the private key. This is used to speed things up when you know you have the right values
-     * already. The compression state of pub will be preserved.
-     *
-     * @param priv -
-     * @param pub  -
-     * @return -
-     */
-    public static ECKey fromPrivateAndPrecalculatedPublic(BigInteger priv, ECPoint pub) {
-        return new ECKey(priv, pub);
-    }
-
-    /**
-     * Creates an ECKey that simply trusts the caller to ensure that point is really the result of multiplying the
-     * generator point by the private key. This is used to speed things up when you know you have the right values
-     * already. The compression state of the point will be preserved.
-     *
-     * @param priv -
-     * @param pub  -
-     * @return -
-     */
-    public static ECKey fromPrivateAndPrecalculatedPublic(byte[] priv, byte[] pub) {
-        check(priv != null, "Private key must not be null");
-        check(pub != null, "Public key must not be null");
-        return new ECKey(new BigInteger(1, priv), CURVE.getCurve().decodePoint(pub));
     }
 
     /**
@@ -845,21 +798,6 @@ public class ECKey implements Serializable {
     }
 
     /**
-     * Produce a string rendering of the ECKey INCLUDING the private key.
-     * Unless you absolutely need the private key it is better for security reasons to just use toString().
-     *
-     * @return -
-     */
-    public String toStringWithPrivate() {
-        StringBuilder b = new StringBuilder();
-        b.append(toString());
-        if (privKey instanceof BCECPrivateKey) {
-            b.append(" priv:").append(Hex.toHexString(((BCECPrivateKey) privKey).getD().toByteArray()));
-        }
-        return b.toString();
-    }
-
-    /**
      * Signs the given hash and returns the R and S components as BigIntegers
      * and put them in ECDSASignature
      *
@@ -917,28 +855,6 @@ public class ECKey implements Serializable {
         }
         sig.v = (byte) (recId + 27);
         return sig;
-    }
-
-    public BigInteger keyAgreement(ECPoint otherParty) {
-        if (privKey == null) {
-            throw new MissingPrivateKeyException();
-        } else if (privKey instanceof BCECPrivateKey) {
-            final ECDHBasicAgreement agreement = new ECDHBasicAgreement();
-            agreement.init(new ECPrivateKeyParameters(((BCECPrivateKey) privKey).getD(), CURVE));
-            return agreement.calculateAgreement(new ECPublicKeyParameters(otherParty, CURVE));
-        } else {
-            try {
-                final KeyAgreement agreement = ECKeyAgreement.getInstance(this.provider);
-                agreement.init(this.privKey);
-                agreement.doPhase(
-                        ECKeyFactory.getInstance(this.provider)
-                                .generatePublic(new ECPublicKeySpec(otherParty, CURVE_SPEC)),
-                        /* lastPhase */ true);
-                return new BigInteger(1, agreement.generateSecret());
-            } catch (IllegalStateException | InvalidKeyException | InvalidKeySpecException ex) {
-                throw new RuntimeException("ECDH key agreement failure", ex);
-            }
-        }
     }
 
     /**
@@ -1093,8 +1009,8 @@ public class ECKey implements Serializable {
         /**
          * t
          *
-         * @param r
-         * @param s
+         * @param r -
+         * @param s -
          * @return -
          */
         private static ECDSASignature fromComponents(byte[] r, byte[] s) {
@@ -1201,20 +1117,6 @@ public class ECKey implements Serializable {
             sigData[0] = v;
             System.arraycopy(bigIntegerToBytes(this.r, 32), 0, sigData, 1, 32);
             System.arraycopy(bigIntegerToBytes(this.s, 32), 0, sigData, 33, 32);
-            return sigData;
-        }
-
-        /**
-         * Get the signature as byte array [r + s + v].
-         *
-         * @return signature as byte[65]
-         */
-        public byte[] toBinaryBack() {
-            byte[] sigData = new byte[65];  // 32 bytes for R + 32 bytes for S + 1 byte for V
-            System.arraycopy(bigIntegerToBytes(this.r, 32), 0, sigData, 0, 32);
-            System.arraycopy(bigIntegerToBytes(this.s, 32), 0, sigData, 32, 32);
-            sigData[64] = v;
-
             return sigData;
         }
 

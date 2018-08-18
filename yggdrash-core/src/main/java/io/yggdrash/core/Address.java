@@ -18,11 +18,34 @@ package io.yggdrash.core;
 
 import org.spongycastle.util.encoders.Hex;
 
+import java.util.Arrays;
+
 public class Address {
     private byte[] data;
 
     public Address(byte[] data) {
         this.data = data;
+    }
+
+    public byte[] getBytes() {
+        return this.data;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Address address = (Address) o;
+        return Arrays.equals(data, address.data);
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(data);
     }
 
     @Override

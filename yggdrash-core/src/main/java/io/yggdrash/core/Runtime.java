@@ -14,7 +14,7 @@ public class Runtime {
         JSONParser jsonParser = new JSONParser();
         JSONObject txBody = (JSONObject) jsonParser.parse(data);
         String operator = txBody.get("operator").toString();
-        String from = tx.getHexAddress();
+        String from = tx.getAddress().toString();
         String to = txBody.get("to").toString();
         String amount = txBody.get("amount").toString();
 

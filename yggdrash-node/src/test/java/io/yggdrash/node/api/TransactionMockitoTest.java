@@ -11,7 +11,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,10 +19,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.ObjectOutput;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -44,8 +43,6 @@ public class TransactionMockitoTest {
 
     @Before
     public void setup() throws Exception {
-        MockitoAnnotations.initMocks(this);
-
         wallet = new Wallet();
         txApiImpl = new TransactionApiImpl(nodeManagerMock);
 
@@ -73,15 +70,11 @@ public class TransactionMockitoTest {
 
     @Test
     public void hexEncodeAndDecodeByteArray() throws Exception {
-        String str = Hex.encodeHexString(tx.getAddress());
-        byte[] arr = Hex.decodeHex(str);
-        byte[] origin = tx.getAddress();
+        byte[] origin = tx.getAddress().getBytes();
+        String encoded = Hex.encodeHexString(origin);
+        byte[] decoded = Hex.decodeHex(encoded);
 
-        if (Arrays.equals(arr, origin)) {
-            log.debug("\n\ntrue");
-        } else {
-            log.debug("\n\nfalse");
-        }
+        assertArrayEquals(decoded, origin);
     }
 
     @Test

@@ -53,9 +53,18 @@ public class TestUtils {
                                 .setDataSize(1)
                                 .setTimestamp(System.currentTimeMillis())
                         )
+                        .setSignature(ByteString.copyFrom(randomBytes(32)))
                 )
                 .setBody(body)
                 .build();
+    }
+
+    public static TransactionHusk createInvalidTxHusk() {
+        return new TransactionHusk(createDummyTx());
+    }
+
+    public static TransactionHusk createUnsignedTxHusk() {
+        return new TransactionHusk(getTransfer());
     }
 
     public static TransactionHusk createTxHusk() {

@@ -18,12 +18,9 @@
 
 package io.yggdrash.util;
 
-//import org.ethereum.core.Repository;
-
 import java.math.BigInteger;
 
 public class BiUtil {
-
 
     /**
      * @param value - not null
@@ -69,7 +66,6 @@ public class BiUtil {
         return valueA.compareTo(valueB) > 0;
     }
 
-
     /**
      * @param valueA - not null
      * @param valueB - not null
@@ -79,15 +75,6 @@ public class BiUtil {
         return valueA.add(valueB);
     }
 
-
-    /**
-     * @param data = not null
-     * @return new positive BigInteger
-     */
-    public static BigInteger toBi(byte[] data) {
-        return new BigInteger(1, data);
-    }
-
     /**
      * @param data = not null
      * @return new positive BigInteger
@@ -95,7 +82,6 @@ public class BiUtil {
     public static BigInteger toBi(long data) {
         return BigInteger.valueOf(data);
     }
-
 
     public static boolean isPositive(BigInteger value) {
         return value.signum() > 0;

@@ -35,7 +35,7 @@ public class TransactionTest {
         this.tx = TestUtils.createTxHusk();
 
         log.debug("Before Transaction: " + tx.toString());
-        log.debug("Before Transaction address: " + tx.getHexAddress() + "\n");
+        log.debug("Before Transaction address: " + tx.getAddress().toString() + "\n");
     }
 
     @Test
@@ -55,9 +55,9 @@ public class TransactionTest {
         TransactionHusk tx2 = TestUtils.createTxHusk();
 
         log.debug("Transaction 2: " + tx2.toString());
-        log.debug("Transaction 2 address: " + tx2.getHexAddress());
+        log.debug("Transaction 2 address: " + tx2.getAddress().toString());
 
-        assertEquals(tx.getHexAddress(), tx2.getHexAddress());
+        assertEquals(tx.getAddress().toString(), tx2.getAddress().toString());
     }
 
     @Test
@@ -66,20 +66,20 @@ public class TransactionTest {
         TransactionHusk tx2 = TestUtils.createTxHusk();
 
         log.debug("Test Transaction1: " + tx1.toString());
-        log.debug("Test Transaction1 Address: " + tx1.getHexAddress());
+        log.debug("Test Transaction1 Address: " + tx1.getAddress());
 
         log.debug("Test Transaction2: " + tx2.toString());
-        log.debug("Test Transaction2 Address: " + tx2.getHexAddress());
+        log.debug("Test Transaction2 Address: " + tx2.getAddress());
 
         log.debug("Test Transaction1: " + tx1.toString());
-        log.debug("Test Transaction1 Address: " + tx1.getHexAddress());
+        log.debug("Test Transaction1 Address: " + tx1.getAddress());
 
         log.debug("Test Transaction2: " + tx2.toString());
-        log.debug("Test Transaction2 Address: " + tx2.getHexAddress());
+        log.debug("Test Transaction2 Address: " + tx2.getAddress());
 
-        assertArrayEquals(wallet.getAddress(), tx1.getAddress());
-        assertArrayEquals(tx1.getAddress(), tx2.getAddress());
-        assertArrayEquals(wallet.getAddress(), tx2.getAddress());
+        assertArrayEquals(wallet.getAddress(), tx1.getAddress().getBytes());
+        assertEquals(tx1.getAddress(), tx2.getAddress());
+        assertArrayEquals(wallet.getAddress(), tx2.getAddress().getBytes());
     }
 
     @Test
@@ -94,20 +94,20 @@ public class TransactionTest {
         TransactionHusk tx2 = TestUtils.createTxHusk(wallet);
 
         log.debug("Test Transaction1: " + tx1.toString());
-        log.debug("Test Transaction1 Address: " + tx1.getHexAddress());
+        log.debug("Test Transaction1 Address: " + tx1.getAddress());
 
         log.debug("Test Transaction2: " + tx2.toString());
-        log.debug("Test Transaction2 Address: " + tx2.getHexAddress());
+        log.debug("Test Transaction2 Address: " + tx2.getAddress());
 
         log.debug("Test Transaction1: " + tx1.toString());
-        log.debug("Test Transaction1 Address: " + tx1.getHexAddress());
+        log.debug("Test Transaction1 Address: " + tx1.getAddress());
 
         log.debug("Test Transaction2: " + tx2.toString());
-        log.debug("Test Transaction2 Address: " + tx2.getHexAddress());
+        log.debug("Test Transaction2 Address: " + tx2.getAddress());
 
         assertArrayEquals(wallet.getAddress(), account.getAddress());
-        assertArrayEquals(tx1.getAddress(), tx2.getAddress());
-        assertArrayEquals(wallet.getAddress(), tx2.getAddress());
+        assertEquals(tx1.getAddress(), tx2.getAddress());
+        assertArrayEquals(wallet.getAddress(), tx2.getAddress().getBytes());
     }
 
     @Test

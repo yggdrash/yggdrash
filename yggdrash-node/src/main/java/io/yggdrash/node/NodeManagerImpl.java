@@ -158,15 +158,14 @@ public class NodeManagerImpl implements NodeManager {
 
     @Override
     public TransactionHusk addTransaction(TransactionHusk tx) {
+        if (transactionStore.contains(tx.getHash()) || !tx.verify()) {
+            return null;
+        }
+
         try {
-            if (transactionStore.contains(tx.getHash())) {
-                return null;
-            } else {
-                tx.verify();
-                transactionStore.put(tx);
-                messageSender.newTransaction(tx);
-                return tx;
-            }
+            transactionStore.put(tx);
+            messageSender.newTransaction(tx);
+            return tx;
         } catch (Exception e) {
             throw new FailedOperationException("Transaction");
         }

@@ -9,8 +9,6 @@ import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.proto.Proto;
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.Arrays;
@@ -33,14 +31,10 @@ public class TransactionApiImpl implements TransactionApi {
     }
 
     public int getCount(String address, List<TransactionHusk> txList) {
-        Integer cnt = 0;
+        int cnt = 0;
         for (TransactionHusk tx : txList) {
-            try {
-                if (Arrays.areEqual(Hex.decodeHex(address), tx.getAddress())) {
-                    cnt += 1;
-                }
-            } catch (DecoderException e) {
-                log.error(e.getMessage());
+            if (address.equals(tx.getAddress().toString())) {
+                cnt += 1;
             }
         }
         return cnt;
@@ -49,7 +43,7 @@ public class TransactionApiImpl implements TransactionApi {
     /* get */
     @Override
     public int getTransactionCount(String address, String tag) {
-        Integer blockNumber;
+        int blockNumber;
         if ("latest".equals(tag)) {
             blockNumber = 1;
         } else {

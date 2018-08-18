@@ -326,7 +326,7 @@ public class ECKeyTest {
         // create tx
         TransactionHusk tx = TestUtils.createTxHusk(wallet);
 
-        assertArrayEquals(key.getAddress(), tx.getAddress());
+        assertArrayEquals(key.getAddress(), tx.getAddress().getBytes());
 
         // get the sig & key(pub)
         byte[] rawMessage = tx.getInstance().getHeader().getRawData().toByteArray();

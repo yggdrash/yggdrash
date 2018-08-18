@@ -22,6 +22,8 @@ import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.exception.InvalidSignatureException;
+import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.trie.Trie;
@@ -30,6 +32,7 @@ import io.yggdrash.util.TimeUtils;
 import org.apache.commons.codec.binary.Hex;
 
 import java.nio.ByteBuffer;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -67,6 +70,10 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         return new Sha3Hash(block.getHeader().toByteArray());
     }
 
+    public Address getAddress() {
+        return new Address(ecKey().getAddress());
+    }
+
     public byte[] getPrevHash() {
         return block.getHeader().getRawData().getPrevBlockHash().toByteArray();
     }
@@ -100,6 +107,21 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     public String getPrevBlockHash() {
         byte[] prevHash = block.getHeader().getRawData().getPrevBlockHash().toByteArray();
         return prevHash == null ? "" : Hex.encodeHexString(prevHash);
+    }
+
+    /**
+     * Get ECKey(include pubKey) using sig & signData.
+     *
+     * @return ECKey(include pubKey)
+     */
+    private ECKey ecKey() {
+        try {
+            byte[] hashedRawData = new Sha3Hash(getHeader().getRawData().toByteArray()).getBytes();
+            byte[] signatureBin = getHeader().getSignature().toByteArray();
+            return ECKey.signatureToKey(hashedRawData, signatureBin);
+        } catch (SignatureException e) {
+            throw new InvalidSignatureException(e);
+        }
     }
 
     @Override
@@ -190,6 +212,10 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         Proto.Block.Header blockHeader = getHeader(wallet.getAddress(),
                     Trie.getMerkleRoot(Collections.singletonList(tx)), 0, EMPTY_BYTE, dataSize);
         return build(wallet, blockHeader, Collections.singletonList(tx));
+    }
+
+    private Proto.Block.Header getHeader() {
+        return this.block.getHeader();
     }
 
     private static Proto.Block.Header getHeader(byte[] address, byte[] merkleRoot, long index,

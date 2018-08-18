@@ -126,17 +126,21 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction> {
         return !getHeader().getSignature().isEmpty();
     }
 
-    public boolean verify() throws SignatureException {
-        if (!isSigned()) {
-            return false;
+    public boolean verify() {
+        try {
+            if (!isSigned()) {
+                return false;
+            }
+
+            byte[] hashedRawData = new Sha3Hash(getHeader().getRawData().toByteArray()).getBytes();
+            byte[] signatureBin = getHeader().getSignature().toByteArray();
+
+            ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signatureBin);
+            ECKey key = ECKey.signatureToKey(hashedRawData, signatureBin);
+            return key.verify(hashedRawData, ecdsaSignature);
+        } catch (SignatureException e) {
+            throw new InvalidSignatureException(e);
         }
-
-        byte[] hashedRawData = new Sha3Hash(getHeader().getRawData().toByteArray()).getBytes();
-        byte[] signatureBin = getHeader().getSignature().toByteArray();
-
-        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signatureBin);
-        ECKey key = ECKey.signatureToKey(hashedRawData, signatureBin);
-        return key.verify(hashedRawData, ecdsaSignature);
     }
 
     /**
@@ -144,18 +148,8 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction> {
      *
      * @return address
      */
-    public String getHexAddress() {
-        return Hex.toHexString(getAddress());
-    }
-
-    /**
-     * Get the address.
-     *
-     * @return address
-     */
-
-    public byte[] getAddress() {
-        return ecKey().getAddress();
+    public Address getAddress() {
+        return new Address(ecKey().getAddress());
     }
 
     /**
@@ -163,7 +157,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction> {
      *
      * @return ECKey(include pubKey)
      */
-    public ECKey ecKey() {
+    private ECKey ecKey() {
         try {
             byte[] hashedRawData = new Sha3Hash(getHeader().getRawData().toByteArray()).getBytes();
             byte[] signatureBin = getHeader().getSignature().toByteArray();
