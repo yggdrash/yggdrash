@@ -20,7 +20,6 @@ import com.google.gson.JsonObject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.husk.TransactionHusk;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.HashMapDbSource;

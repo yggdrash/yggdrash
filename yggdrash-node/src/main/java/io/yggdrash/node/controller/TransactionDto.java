@@ -17,7 +17,7 @@
 package io.yggdrash.node.controller;
 
 import com.google.protobuf.ByteString;
-import io.yggdrash.core.husk.TransactionHusk;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.proto.Proto;
 
 public class TransactionDto {

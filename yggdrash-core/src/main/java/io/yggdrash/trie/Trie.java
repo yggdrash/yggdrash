@@ -1,6 +1,6 @@
 package io.yggdrash.trie;
 
-import io.yggdrash.core.husk.TransactionHusk;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.crypto.HashUtil;
 
 import java.security.MessageDigest;

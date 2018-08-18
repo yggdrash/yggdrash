@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.husk;
+package io.yggdrash.core;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;

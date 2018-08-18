@@ -4,8 +4,6 @@ import com.google.gson.JsonObject;
 import io.yggdrash.config.Constants;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.husk.BlockHusk;
-import io.yggdrash.core.husk.TransactionHusk;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.util.FileUtil;

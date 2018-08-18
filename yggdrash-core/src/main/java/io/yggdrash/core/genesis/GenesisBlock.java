@@ -4,8 +4,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.husk.BlockHusk;
 import io.yggdrash.util.FileUtil;
 import org.spongycastle.crypto.InvalidCipherTextException;
 

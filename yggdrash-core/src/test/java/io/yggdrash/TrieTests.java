@@ -1,6 +1,6 @@
 package io.yggdrash;
 
-import io.yggdrash.core.husk.TransactionHusk;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.trie.Trie;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Before;

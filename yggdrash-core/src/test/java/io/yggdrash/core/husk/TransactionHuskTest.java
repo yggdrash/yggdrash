@@ -17,6 +17,7 @@
 package io.yggdrash.core.husk;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;

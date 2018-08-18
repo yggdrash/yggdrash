@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.husk;
+package io.yggdrash.core;
 
 import java.io.Serializable;
 

@@ -1,7 +1,6 @@
 package io.yggdrash.core;
 
 import io.yggdrash.contract.CoinContract;
-import io.yggdrash.core.husk.TransactionHusk;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 

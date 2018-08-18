@@ -1,7 +1,7 @@
 package io.yggdrash.node.api;
 
+import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.NodeManager;
-import io.yggdrash.core.husk.BlockHusk;
 import io.yggdrash.node.TestUtils;
 import org.junit.Before;
 import org.junit.Test;

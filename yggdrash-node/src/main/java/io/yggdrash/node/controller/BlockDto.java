@@ -16,7 +16,7 @@
 
 package io.yggdrash.node.controller;
 
-import io.yggdrash.core.husk.BlockHusk;
+import io.yggdrash.core.BlockHusk;
 
 public class BlockDto {
     private long index;

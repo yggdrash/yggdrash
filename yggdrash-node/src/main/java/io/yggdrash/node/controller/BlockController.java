@@ -16,8 +16,8 @@
 
 package io.yggdrash.node.controller;
 
+import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.NodeManager;
-import io.yggdrash.core.husk.BlockHusk;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

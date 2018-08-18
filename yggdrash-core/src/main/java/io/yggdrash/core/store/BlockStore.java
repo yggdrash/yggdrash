@@ -18,8 +18,8 @@ package io.yggdrash.core.store;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.husk.BlockHusk;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 

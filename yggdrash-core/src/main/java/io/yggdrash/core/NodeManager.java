@@ -19,8 +19,6 @@ package io.yggdrash.core;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.event.PeerEventListener;
-import io.yggdrash.core.husk.BlockHusk;
-import io.yggdrash.core.husk.TransactionHusk;
 
 import java.util.List;
 import java.util.Set;

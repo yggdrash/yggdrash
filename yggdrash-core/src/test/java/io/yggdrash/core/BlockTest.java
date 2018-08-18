@@ -17,7 +17,6 @@
 package io.yggdrash.core;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.husk.BlockHusk;
 import io.yggdrash.proto.Proto;
 import org.junit.Before;
 import org.junit.Test;

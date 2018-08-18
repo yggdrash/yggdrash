@@ -6,7 +6,6 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.genesis.GenesisBlock;
-import io.yggdrash.core.husk.BlockHusk;
 import io.yggdrash.core.store.BlockStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -199,10 +198,10 @@ public class BlockChain {
     public String toStringStatus() {
         StringBuilder builder = new StringBuilder();
 
-        builder.append("[BlockChain Status]\n");
-        builder.append("genesisBlock=" + genesisBlock.getHash() + "\n");
-        builder.append("currentBlock=" + "[" + prevBlock.getIndex() + "]"
-                + prevBlock.getHash() + "\n");
+        builder.append("[BlockChain Status]\n")
+                .append("genesisBlock=")
+                .append(genesisBlock.getHash()).append("\n").append("currentBlock=" + "[")
+                .append(prevBlock.getIndex()).append("]").append(prevBlock.getHash()).append("\n");
 
         String prevBlockHash = this.prevBlock.getPrevBlockHash();
         if (prevBlockHash == null) {
@@ -211,9 +210,9 @@ public class BlockChain {
 
         try {
             do {
-                builder.append("<-- " + "["
-                        + blockStore.get(new Sha3Hash(prevBlockHash)).getIndex() + "]"
-                        + prevBlockHash + "\n");
+                builder.append("<-- " + "[")
+                        .append(blockStore.get(new Sha3Hash(prevBlockHash)).getIndex())
+                        .append("]").append(prevBlockHash).append("\n");
 
                 prevBlockHash = blockStore.get(new Sha3Hash(prevBlockHash)).getPrevBlockHash();
 

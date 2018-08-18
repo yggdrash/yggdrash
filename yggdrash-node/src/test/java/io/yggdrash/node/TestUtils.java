@@ -20,10 +20,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.InvalidSignatureException;
-import io.yggdrash.core.husk.BlockHusk;
-import io.yggdrash.core.husk.TransactionHusk;
 import io.yggdrash.proto.Proto;
 
 import java.util.List;

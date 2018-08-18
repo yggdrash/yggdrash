@@ -1,10 +1,10 @@
 package io.yggdrash.node.api;
 
+import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.husk.BlockHusk;
-import io.yggdrash.core.husk.TransactionHusk;
 import io.yggdrash.node.TestUtils;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Before;

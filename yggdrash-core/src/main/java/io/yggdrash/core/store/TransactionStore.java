@@ -18,8 +18,8 @@ package io.yggdrash.core.store;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.husk.TransactionHusk;
 import io.yggdrash.core.store.datasource.DbSource;
 import org.ehcache.Cache;
 import org.ehcache.config.builders.CacheConfigurationBuilder;

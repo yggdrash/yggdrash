@@ -18,7 +18,7 @@ package io.yggdrash.core.store;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.husk.BlockHusk;
+import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.FileUtil;

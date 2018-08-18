@@ -18,10 +18,10 @@ package io.yggdrash;
 
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.husk.BlockHusk;
-import io.yggdrash.core.husk.TransactionHusk;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.TimeUtils;

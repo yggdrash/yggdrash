@@ -4,11 +4,11 @@ import com.googlecode.jsonrpc4j.JsonRpcError;
 import com.googlecode.jsonrpc4j.JsonRpcErrors;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.RejectedAccessException;
-import io.yggdrash.core.husk.TransactionHusk;
 import io.yggdrash.proto.Proto;
 
 @JsonRpcService("/api/transaction")

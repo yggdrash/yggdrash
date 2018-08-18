@@ -18,9 +18,9 @@ package io.yggdrash.node;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.core.BlockChain;
+import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.husk.BlockHusk;
-import io.yggdrash.core.husk.TransactionHusk;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.BlockStore;

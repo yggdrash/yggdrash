@@ -16,9 +16,9 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.event.PeerEventListener;
-import io.yggdrash.core.husk.BlockHusk;
-import io.yggdrash.core.husk.TransactionHusk;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.node.config.NodeProperties;

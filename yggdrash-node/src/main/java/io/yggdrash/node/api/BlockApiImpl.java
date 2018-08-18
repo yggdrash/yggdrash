@@ -1,10 +1,10 @@
 package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
+import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
-import io.yggdrash.core.husk.BlockHusk;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

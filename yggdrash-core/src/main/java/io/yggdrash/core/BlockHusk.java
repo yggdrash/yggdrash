@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.husk;
+package io.yggdrash.core;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.JsonArray;
@@ -22,7 +22,6 @@ import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.Wallet;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.trie.Trie;

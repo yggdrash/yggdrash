@@ -3,7 +3,6 @@ package io.yggdrash.core;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.exception.InvalidSignatureException;
-import io.yggdrash.core.husk.TransactionHusk;
 import io.yggdrash.proto.Proto;
 import org.junit.Before;
 import org.junit.Test;
