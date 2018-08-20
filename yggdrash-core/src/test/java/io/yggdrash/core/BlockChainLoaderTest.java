@@ -30,7 +30,7 @@ public class BlockChainLoaderTest {
 
     @Before
     public void setUp() throws Exception {
-        blockChainLoader = new BlockChainLoader();
+//        blockChainLoader = new BlockChainLoader();
     }
 
     @Test

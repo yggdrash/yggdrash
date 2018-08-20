@@ -17,13 +17,41 @@
 package io.yggdrash.core;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.protobuf.ByteString;
+import io.yggdrash.proto.Proto;
 
 import java.io.File;
 import java.io.IOException;
 
 class BlockChainLoader {
+    private final File infoFile;
+
+    public BlockChainLoader(File infoFile) {
+        this.infoFile = infoFile;
+    }
+
+    public BlockHusk getGenesis() throws IOException {
+        return convertJsonToBlock(this.infoFile);
+    }
+
     public BranchInfo loadBranchInfo(File file) throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(file, BranchInfo.class);
+    }
+
+    private BlockHusk convertJsonToBlock(File file) throws IOException {
+        BranchInfo branchInfo = loadBranchInfo(file);
+        //TODO 브랜치 정보 파일 컨버팅
+        return new BlockHusk(Proto.Block.newBuilder()
+                .setHeader(Proto.Block.Header.newBuilder()
+                        .setRawData(Proto.Block.Header.Raw.newBuilder()
+                                .setType(ByteString.copyFrom(branchInfo.type.getBytes()))
+                                .build()
+                        )
+                        .setSignature(ByteString.copyFromUtf8(branchInfo.signature))
+                        .build()
+                )
+                .addBody(Proto.Transaction.getDefaultInstance())
+                .build());
     }
 }

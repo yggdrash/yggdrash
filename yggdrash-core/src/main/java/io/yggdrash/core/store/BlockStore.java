@@ -19,6 +19,7 @@ package io.yggdrash.core.store;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.ChainId;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
@@ -35,6 +36,9 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
         this.db = dbSource.init();
     }
 
+    public BlockStore(ChainId chainId) {
+        this(chainId.toString());
+    }
     public BlockStore(String chainId) {
         this.db = new LevelDbDataSource(chainId + "/blocks").init();
     }

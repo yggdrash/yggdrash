@@ -1,17 +1,14 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.core.store.BlockStore;
-import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.InvalidCipherTextException;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Set;
@@ -19,53 +16,23 @@ import java.util.Set;
 public class BlockChain {
 
     private static final Logger log = LoggerFactory.getLogger(BlockChain.class);
-    private final JsonObject branchInfo;
 
     // <Variable>
-    private BlockHusk genesisBlock;
+    private final BlockHusk genesisBlock;
     private BlockHusk prevBlock;
-    private JsonObject packageInfo;
     private BlockStore blockStore;
 
-    public BlockChain(String chainId) {
-        this(new BlockStore(chainId));
-    }
-
-    public BlockChain(BlockStore blockStore) {
-        this(new JsonObject(), blockStore);
-    }
-
-
-    private BlockChain(JsonObject branchInfo, BlockStore blockStore) {
-        this.branchInfo = branchInfo;
-        this.blockStore = blockStore;
-
-        // @TODO loadBlockchain
-        loadBlockChain();
-    }
-
-    private void loadBlockChain() {
-        // @TODO check is exist;
-        if (isExist()) { // Load Exist
-
-        } else { // Generate GenensisBlock
-            loadGenesis();
+    public BlockChain(File infoFile) {
+        try {
+            this.genesisBlock = new BlockChainLoader(infoFile).getGenesis();
+            this.blockStore = new BlockStore(getChainId());
+        } catch (IOException e) {
+            throw new NotValidateException(e);
         }
     }
 
-    private boolean isExist() {
-        // @TODO Check exist self storage
-        return false;
-    }
-
-
-    private boolean loadGenesis() {
-        return true;
-    }
-
-
-    public JsonObject getPackageInfo() {
-        return packageInfo;
+    public ChainId getChainId() {
+        return new ChainId(genesisBlock.getHash());
     }
 
     public BlockHusk getPrevBlock() {
@@ -153,7 +120,7 @@ public class BlockChain {
     }
 
     public BlockHusk getBlockByIndex(long index) {
-        for (BlockHusk block: this.getBlocks()) {
+        for (BlockHusk block : this.getBlocks()) {
             if (block.getIndex() == index) {
                 return block;
             }
@@ -196,7 +163,6 @@ public class BlockChain {
                 + "genesisBlock=" + genesisBlock
                 + ", prevBlock=" + prevBlock
                 + ", height=" + this.getLastIndex()
-                + ", packageInfo=" + packageInfo
                 + '}';
     }
 
