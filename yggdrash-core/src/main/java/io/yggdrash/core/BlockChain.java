@@ -1,11 +1,18 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
+import com.google.protobuf.InvalidProtocolBufferException;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.genesis.GenesisBlock;
+import io.yggdrash.core.husk.BlockHusk;
+import io.yggdrash.core.store.BlockStore;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.InvalidCipherTextException;
 
+import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -17,16 +24,40 @@ public class BlockChain {
     private Block genesisBlock;
     private Block prevBlock;
     private Map<Object, Block> blocks; // <blockheader_hash, block>
-    private final JsonObject packageInfo;
+    private JsonObject packageInfo;
 
+    // For Husk
+    private BlockHusk genesisBlockHusk;
+    private BlockHusk prevBlockHusk;
+    private BlockStore blockStore;
+
+    @Deprecated
     public BlockChain() {
         this(new JsonObject());
     }
 
+    public BlockChain(BlockStore blockStore) {
+        this(new JsonObject());
+        this.blockStore = blockStore;
+    }
+
+    public BlockChain(String chainId) {
+        this(new JsonObject());
+        this.blockStore = new BlockStore(chainId);
+    }
+
     private BlockChain(JsonObject packageInfo) {
-        this.packageInfo = packageInfo;
         this.blocks = new ConcurrentHashMap<>();
-        // TODO: generate genesisBlock & add into blockchain
+        this.packageInfo = packageInfo;
+        try {
+            this.genesisBlock = new GenesisBlock().getGenesisBlock();
+        } catch (IOException e) {
+            throw new NotValidateException("IOException");
+        } catch (InvalidCipherTextException e) {
+            throw new NotValidateException("InvalidCipherTextException");
+        }
+        this.prevBlock = null;
+        this.addBlock(this.genesisBlock);
     }
 
     public JsonObject getPackageInfo() {
@@ -64,10 +95,10 @@ public class BlockChain {
      * @param nextBlock the next block
      * @throws NotValidateException the not validate exception
      */
+    @Deprecated
     public void addBlock(Block nextBlock) {
-        if (isGenesisBlock(nextBlock)) {
-            this.genesisBlock = nextBlock;
-        } else if (!isValidNewBlock(prevBlock, nextBlock)) {
+
+        if (!isValidNewBlock(prevBlock, nextBlock)) {
             throw new NotValidateException();
         }
         log.debug("Added block index=[{}], blockHash={}", nextBlock.getIndex(),
@@ -80,10 +111,25 @@ public class BlockChain {
         this.prevBlock = nextBlock;
     }
 
+    public void addBlock(BlockHusk nextBlock) {
+        if (!isValidNewBlock(prevBlockHusk, nextBlock)) {
+            throw new NotValidateException();
+        }
+        log.debug("Added block index=[{}], blockHash={}", nextBlock.getIndex(),
+                nextBlock.getHash());
+        this.blockStore.put(nextBlock.getHash(), nextBlock);
+    }
+
+    @Deprecated
     private boolean isGenesisBlock(Block newBlock) {
         return genesisBlock == null && prevBlock == null && newBlock.getIndex() == 0;
     }
 
+    private boolean isGenesisBlockHusk(BlockHusk newBlock) {
+        return genesisBlock == null && prevBlock == null && newBlock.getIndex() == 0;
+    }
+
+    @Deprecated
     private boolean isValidNewBlock(Block prevBlock, Block nextBlock) {
         if (prevBlock == null) {
             return true;
@@ -102,7 +148,25 @@ public class BlockChain {
         return true;
     }
 
-    public int size() {
+    private boolean isValidNewBlock(BlockHusk prevBlock, BlockHusk nextBlock) {
+        if (prevBlock == null) {
+            return true;
+        }
+        log.trace(" prev : " + prevBlock.getHash());
+        log.trace(" new : " + nextBlock.getHash());
+
+        if (prevBlock.getIndex() + 1 != nextBlock.getIndex()) {
+            log.warn("invalid index: prev:{} / new:{}", prevBlock.getIndex(), nextBlock.getIndex());
+            return false;
+        } else if (!prevBlock.equals(nextBlock)) {
+            log.warn("invalid previous hash");
+            return false;
+        }
+
+        return true;
+    }
+
+    public long size() {
         return blocks.size() / 2;
     }
 
@@ -157,6 +221,10 @@ public class BlockChain {
     }
 
 
+    public BlockHusk getBlockByHash(Sha3Hash key) throws InvalidProtocolBufferException {
+        return blockStore.get(key);
+    }
+
     /**
      * Replace chain.
      *
@@ -199,5 +267,34 @@ public class BlockChain {
         this.blocks.clear();
         this.prevBlock = null;
         this.genesisBlock = null;
+    }
+
+    public void close() {
+        this.blockStore.close();
+    }
+
+    public String toStringStatus() {
+        String currentBlockHash = prevBlock.getBlockHash();
+        StringBuffer stringBuffer = new StringBuffer();
+
+        stringBuffer.append("[BlockChain Status]\n");
+        stringBuffer.append("genesisBlock=" + genesisBlock.getBlockHash() + "\n");
+        stringBuffer.append("currentBlock=" + "[" + prevBlock.getIndex() + "]"
+                + currentBlockHash + "\n");
+
+        String prevBlockHash = this.prevBlock.getPrevBlockHash();
+
+        do {
+            stringBuffer.append("<-- " + "[" + blocks.get(prevBlockHash).getIndex() + "]"
+                    + prevBlockHash + "\n");
+
+            prevBlockHash = blocks.get(prevBlockHash).getPrevBlockHash();
+
+        } while (prevBlockHash != null
+                && !prevBlockHash.equals(
+                    "0000000000000000000000000000000000000000000000000000000000000000"));
+
+        return stringBuffer.toString();
+
     }
 }

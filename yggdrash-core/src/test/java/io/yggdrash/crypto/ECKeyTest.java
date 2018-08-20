@@ -184,13 +184,13 @@ public class ECKeyTest {
     @Test
     public void testEthereumSign() {
         ECKey key = ECKey.fromPrivate(privateKey);
-        System.out.println("Secret\t: " + Hex.toHexString(key.getPrivKeyBytes()));
-        System.out.println("Pubkey\t: " + Hex.toHexString(key.getPubKey()));
-        System.out.println("Data\t: " + exampleMessage);
+        log.debug("Secret\t: " + Hex.toHexString(key.getPrivKeyBytes()));
+        log.debug("Pubkey\t: " + Hex.toHexString(key.getPubKey()));
+        log.debug("Data\t: " + exampleMessage);
         byte[] messageHash = HashUtil.sha3(exampleMessage.getBytes());
         ECDSASignature signature = key.sign(messageHash);
         String output = signature.toBase64();
-        System.out.println("Sign\t: " + output + " (Base64, length: " + output.length() + ")");
+        log.debug("Sign\t: " + output + " (Base64, length: " + output.length() + ")");
         assertEquals(sigBase64, output);
     }
 
@@ -203,7 +203,7 @@ public class ECKeyTest {
         byte[] messageHash = HashUtil.sha3(exampleMessage.getBytes());
         ECDSASignature signature = key.sign(messageHash);
         String output = signature.toHex();
-        System.out.println("Signature\t: " + output + " (Hex, length: " + output.length() + ")");
+        log.debug("Signature\t: " + output + " (Hex, length: " + output.length() + ")");
 
         assertEquals(signatureHex, output);
     }
@@ -337,10 +337,10 @@ public class ECKeyTest {
     public void testGetAddressFromSignature() throws SignatureException {
         // create account with privateKey
         Account account = new Account(ECKey.fromPrivate(privateKey));
-        System.out.println("Account: " + account.toString());
+        log.debug("Account: " + account.toString());
 
         ECKey key = ECKey.fromPublicOnly(wallet.getPubicKey());
-        System.out.println("Key: " + key.toString());
+        log.debug("Key: " + key.toString());
 
         // check public & private key with key
         assertArrayEquals(wallet.getPubicKey(), key.getPubKey());
@@ -351,7 +351,7 @@ public class ECKeyTest {
 
         Transaction tx = new Transaction(wallet, data);
 
-        System.out.println("tx: " + tx.toString());
+        log.debug("tx: " + tx.toString());
 
         assertArrayEquals(key.getAddress(), tx.getHeader().getAddress());
 
@@ -362,7 +362,7 @@ public class ECKeyTest {
         ECDSASignature sig = new ECDSASignature(signature);
 
         ECKey keyFromSig = ECKey.signatureToKey(messageHash, sig);
-        System.out.println("keyFromSig: " + keyFromSig.toString());
+        log.debug("keyFromSig: " + keyFromSig.toString());
 
         assertArrayEquals(key.getAddress(), keyFromSig.getAddress());
 
@@ -423,7 +423,7 @@ public class ECKeyTest {
         if (provider != null) {
             testProviderRoundTrip(provider);
         } else {
-            System.out.println("Skip test as provider doesn't exist. " +
+            log.debug("Skip test as provider doesn't exist. " +
                     "Must be OpenJDK which could be shipped without 'SunEC'");
         }
     }

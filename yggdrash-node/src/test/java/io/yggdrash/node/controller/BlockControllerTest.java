@@ -90,7 +90,7 @@ public class BlockControllerTest {
 
         mockMvc.perform(get("/blocks")).andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(3)));
+                .andExpect(jsonPath("$", hasSize(4)));
 
     }
 }

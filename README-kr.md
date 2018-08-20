@@ -8,7 +8,7 @@
 
 ## 이그드라시 프로젝트
 
-신뢰를 기반으로 모든 블록체인을 연결(Trust-based Multidimensional Blockchains)하고 인터넷 상의 모든 서비스를 블록체인(Internet re-designed by blockchains)으로 재구성하는 것을 목표로 하고 있습니다. 
+신뢰를 기반으로 모든 블록체인을 연결(Trust-based Multidimensional Blockchains)하고 인터넷 상의 모든 서비스를 블록체인(Internet re-designed by blockchains)으로 재구성하는 것을 목표로 하고 있습니다.
 
 ## 목차
 
@@ -56,7 +56,7 @@ cd yggdrash
 
 ![config](docs/images/intellij-run-config.png)
 
-### 도커실행 
+### 도커실행
 이그드라시 노드는 도커 이미지로 제작 가능하고 보다 자세한 설명은 [도커 문서](docker)를 참고하세요.
 
 아래는 도커로 쉽고 빠르게 단일노드를 실행하고 컨테이너 종료시 삭제되는 명령입니다.
@@ -83,7 +83,7 @@ docker --rm -p 8080:8080 -p 9090:9090 --name yggdrash-node yggdrash/yggdrash-nod
 yggdrash-node/build/libs/*.jar
 ```
 
-다음과 같은 옵션을 사용해서 노드 jar 를 실행 가능합니다. (예: yggdrash-node.jar --server.port=8081) 
+다음과 같은 옵션을 사용해서 노드 jar 를 실행 가능합니다. (예: yggdrash-node.jar --server.port=8081)
 
 - `--server.address=value` JSON RPC 및 RESTful API 서비스용 호스트 주소
 - `--server.port=value` JSON RPC 및 RESTful API 서비스용 포트

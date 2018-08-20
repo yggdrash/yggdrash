@@ -14,7 +14,7 @@ node {
             sh "chmod +x gradlew"
             sh "./gradlew clean --no-daemon"
         }
-        
+
         stage('backend tests') {
             try {
                 sh "./gradlew test --no-daemon"

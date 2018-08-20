@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Map;
 import java.util.Set;
 
-public class SimpleTransactionPool implements TransactionPool {
+public class SimpleTransactionPool implements CachePool<String, Transaction> {
     private static final Logger log = LoggerFactory.getLogger(SimpleTransactionPool.class);
 
     private final Cache<String, Transaction> cache;

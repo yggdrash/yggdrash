@@ -72,7 +72,8 @@ public class GrpcClientChannelTest {
 
     @Test
     public void getPeerYnodeUriTest() {
-        GrpcClientChannel client = new GrpcClientChannel(Peer.valueOf("ynode://75bff16c@localhost:9090"));
+        GrpcClientChannel client =
+                new GrpcClientChannel(Peer.valueOf("ynode://75bff16c@localhost:9090"));
         assertEquals("ynode://75bff16c@localhost:9090", client.getPeer().getYnodeUri());
     }
 

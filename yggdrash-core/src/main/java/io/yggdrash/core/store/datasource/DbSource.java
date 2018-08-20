@@ -19,12 +19,16 @@ package io.yggdrash.core.store.datasource;
 import java.io.IOException;
 import java.util.List;
 
-public interface DbSource {
-    void init();
+public interface DbSource<K, V> {
+    DbSource init();
 
-    byte[] get(byte[] key);
+    V get(K key);
 
-    void put(byte[] key, byte[] value);
+    void put(K key, V value);
 
-    List<byte[]> getAllKey() throws IOException;
+    long count();
+
+    List<K> getAllKey() throws IOException;
+
+    void close();
 }
