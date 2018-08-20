@@ -29,8 +29,6 @@ import java.security.Security;
 
 import static java.util.Arrays.copyOfRange;
 
-//import org.ethereum.util.RLP;
-
 public class HashUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(HashUtil.class);
@@ -38,7 +36,6 @@ public class HashUtil {
     private static final Provider CRYPTO_PROVIDER;
 
     private static final String HASH_256_ALGORITHM_NAME;
-    private static final String HASH_512_ALGORITHM_NAME;
 
     static {
 
@@ -46,7 +43,6 @@ public class HashUtil {
 
         CRYPTO_PROVIDER = Security.getProvider("SC");
         HASH_256_ALGORITHM_NAME = "ETH-KECCAK-256";
-        HASH_512_ALGORITHM_NAME = "ETH-KECCAK-512";
     }
 
     /**

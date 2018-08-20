@@ -17,10 +17,8 @@
 package io.yggdrash.core;
 
 import com.google.protobuf.InvalidProtocolBufferException;
+import io.yggdrash.TestUtils;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.husk.TransactionHusk;
-import io.yggdrash.core.store.CachePool;
-import io.yggdrash.core.store.HashMapTransactionPool;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
@@ -36,17 +34,15 @@ public class TransactionStoreTest {
     @Before
     public void setUp() {
         DbSource db = new HashMapDbSource();
-        CachePool pool = new HashMapTransactionPool();
-        ts = new TransactionStore(db, pool);
+        ts = new TransactionStore(db);
         ts.flush();
     }
 
     @Test
     public void shouldGetFromDb() throws InvalidProtocolBufferException {
-        String body = "1";
-        TransactionHusk tx = new TransactionHusk(body);
+        TransactionHusk tx = TestUtils.createTxHusk();
         Sha3Hash key = tx.getHash();
-        ts.put(key, tx);
+        ts.put(tx);
 
         ts.batchAll();
         TransactionHusk transactionHusk = ts.get(key);
@@ -55,10 +51,8 @@ public class TransactionStoreTest {
 
     @Test
     public void shouldBeBatched() {
-        String body = "1";
-        TransactionHusk tx = new TransactionHusk(body);
-        Sha3Hash key = tx.getHash();
-        ts.put(key, tx);
+        TransactionHusk tx = TestUtils.createTxHusk();
+        ts.put(tx);
 
         ts.batchAll();
         assertThat(ts.countFromCache()).isZero();
@@ -67,20 +61,20 @@ public class TransactionStoreTest {
 
     @Test
     public void shouldBeGotTxFromCache() throws InvalidProtocolBufferException {
-        String body = "1";
-        TransactionHusk tx = new TransactionHusk(body);
+        TransactionHusk tx = TestUtils.createTxHusk();
+
         Sha3Hash key = tx.getHash();
-        ts.put(key, tx);
+        ts.put(tx);
 
         TransactionHusk foundTx = ts.get(key);
         assertThat(foundTx).isNotNull();
-        assertThat(foundTx.getBody()).isEqualTo(body);
+        assertThat(foundTx.getBody()).contains("transfer");
     }
 
     @Test
     public void shouldBePutTx() {
-        TransactionHusk tx = new TransactionHusk("1");
-        ts.put(tx.getHash(), tx);
+        TransactionHusk tx = TestUtils.createTxHusk();
+        ts.put(tx);
     }
 
     @Test

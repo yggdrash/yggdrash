@@ -1,4 +1,4 @@
-package io.yggdrash.node.exception;
+package io.yggdrash.core.exception;
 
 public class WrongStructuredException extends IllegalArgumentException {
     public static final int code = -10002;

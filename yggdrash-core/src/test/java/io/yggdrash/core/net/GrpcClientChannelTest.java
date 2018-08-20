@@ -18,10 +18,12 @@ package io.yggdrash.core.net;
 
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
+import io.yggdrash.TestUtils;
 import io.yggdrash.proto.BlockChainGrpc;
-import io.yggdrash.proto.BlockChainProto;
+import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
+import io.yggdrash.proto.Proto;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -52,13 +54,13 @@ public class GrpcClientChannelTest {
     private ArgumentCaptor<Ping> pingRequestCaptor;
 
     @Captor
-    private ArgumentCaptor<BlockChainProto.SyncLimit> syncLimitRequestCaptor;
+    private ArgumentCaptor<NetProto.SyncLimit> syncLimitRequestCaptor;
 
     @Captor
-    private ArgumentCaptor<BlockChainProto.Empty> emptyCaptor;
+    private ArgumentCaptor<NetProto.Empty> emptyCaptor;
 
     @Captor
-    private ArgumentCaptor<BlockChainProto.PeerRequest> peerRequestCaptor;
+    private ArgumentCaptor<NetProto.PeerRequest> peerRequestCaptor;
 
     private GrpcClientChannel client;
 
@@ -80,7 +82,7 @@ public class GrpcClientChannelTest {
     @Test
     public void play() {
         doAnswer((invocationOnMock) -> {
-            StreamObserver<BlockChainProto.BlockList> argument = invocationOnMock.getArgument(1);
+            StreamObserver<Proto.BlockList> argument = invocationOnMock.getArgument(1);
             argument.onNext(null);
             argument.onCompleted();
             return null;
@@ -98,7 +100,7 @@ public class GrpcClientChannelTest {
     @Test
     public void syncBlock() {
         doAnswer((invocationOnMock) -> {
-            StreamObserver<BlockChainProto.BlockList> argument = invocationOnMock.getArgument(1);
+            StreamObserver<Proto.BlockList> argument = invocationOnMock.getArgument(1);
             argument.onNext(null);
             argument.onCompleted();
             return null;
@@ -116,7 +118,7 @@ public class GrpcClientChannelTest {
     @Test
     public void syncTransaction() {
         doAnswer((invocationOnMock) -> {
-            StreamObserver<BlockChainProto.Transaction> argument = invocationOnMock.getArgument(1);
+            StreamObserver<Proto.Transaction> argument = invocationOnMock.getArgument(1);
             argument.onNext(null);
             argument.onCompleted();
             return null;
@@ -132,7 +134,7 @@ public class GrpcClientChannelTest {
     @Test
     public void broadcastTransaction() {
 
-        client.broadcastTransaction(NodeTestData.transactions());
+        client.broadcastTransaction(TestUtils.getTransactionFixtures());
 
         verify(blockChainService).broadcastTransaction(any());
     }
@@ -140,7 +142,7 @@ public class GrpcClientChannelTest {
     @Test
     public void broadcastBlock() {
 
-        client.broadcastBlock(NodeTestData.blocks());
+        client.broadcastBlock(TestUtils.getBlockFixtures());
 
         verify(blockChainService).broadcastBlock(any());
     }
@@ -148,7 +150,7 @@ public class GrpcClientChannelTest {
     @Test
     public void requestPeerList() {
         doAnswer((invocationOnMock) -> {
-            StreamObserver<BlockChainProto.PeerRequest> argument = invocationOnMock.getArgument(1);
+            StreamObserver<NetProto.PeerRequest> argument = invocationOnMock.getArgument(1);
             argument.onNext(null);
             argument.onCompleted();
             return null;
@@ -165,7 +167,7 @@ public class GrpcClientChannelTest {
     @Test
     public void disconnectPeer() {
         doAnswer((invocationOnMock) -> {
-            StreamObserver<BlockChainProto.PeerRequest> argument = invocationOnMock.getArgument(1);
+            StreamObserver<NetProto.PeerRequest> argument = invocationOnMock.getArgument(1);
             argument.onNext(null);
             argument.onCompleted();
             return null;

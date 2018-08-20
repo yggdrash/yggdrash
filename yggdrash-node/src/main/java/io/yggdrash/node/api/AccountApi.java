@@ -4,7 +4,7 @@ import com.googlecode.jsonrpc4j.JsonRpcError;
 import com.googlecode.jsonrpc4j.JsonRpcErrors;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
-import io.yggdrash.node.exception.NonExistObjectException;
+import io.yggdrash.core.exception.NonExistObjectException;
 
 import java.util.ArrayList;
 

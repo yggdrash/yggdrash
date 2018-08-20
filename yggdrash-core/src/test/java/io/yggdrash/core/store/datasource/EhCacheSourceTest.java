@@ -17,7 +17,7 @@
 package io.yggdrash.core.store.datasource;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.Transaction;
+import io.yggdrash.core.TransactionHusk;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
@@ -33,7 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class EhCacheSourceTest {
     private static final Logger log = LoggerFactory.getLogger(EhCacheSourceTest.class);
 
-    Cache<String, Transaction> cache;
+    Cache<String, TransactionHusk> cache;
 
     @Before
     public void setUp() {
@@ -41,22 +41,22 @@ public class EhCacheSourceTest {
         CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder().build(true);
         this.cache = cacheManager.createCache("txCache",
                 CacheConfigurationBuilder
-                        .newCacheConfigurationBuilder(String.class, Transaction.class,
+                        .newCacheConfigurationBuilder(String.class, TransactionHusk.class,
                                 ResourcePoolsBuilder.heap(10)));
     }
 
     @Test
     public void shouldGetTx() {
-        Transaction dummyTx = TestUtils.createDummyTx();
-        cache.put(dummyTx.getHashString(), dummyTx);
-        Transaction foundTx = cache.get(dummyTx.getHashString());
+        TransactionHusk dummyTx = TestUtils.createTxHusk();
+        cache.put(dummyTx.getHash().toString(), dummyTx);
+        TransactionHusk foundTx = cache.get(dummyTx.getHash().toString());
         assertThat(foundTx).isEqualTo(dummyTx);
     }
 
     @Test
     public void shouldPutTx() {
-        Transaction dummyTx = TestUtils.createDummyTx();
-        cache.put(dummyTx.getHashString(), dummyTx);
+        TransactionHusk dummyTx = TestUtils.createTxHusk();
+        cache.put(dummyTx.getHash().toString(), dummyTx);
     }
 
     @Test

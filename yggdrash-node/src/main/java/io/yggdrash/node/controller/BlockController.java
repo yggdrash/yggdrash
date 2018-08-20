@@ -16,9 +16,8 @@
 
 package io.yggdrash.node.controller;
 
-import io.yggdrash.core.Block;
+import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.NodeManager;
-import io.yggdrash.core.exception.NotValidateException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -27,8 +26,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
+import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("blocks")
@@ -42,14 +42,14 @@ class BlockController {
     }
 
     @PostMapping
-    public ResponseEntity add() throws IOException, NotValidateException {
-        Block generatedBlock = nodeManager.generateBlock();
+    public ResponseEntity add() {
+        BlockHusk generatedBlock = nodeManager.generateBlock();
         return ResponseEntity.ok(BlockDto.createBy(generatedBlock));
     }
 
     @GetMapping("{id}")
-    public ResponseEntity get(@PathVariable(name = "id") String id) throws IOException {
-        Block foundBlock = nodeManager.getBlockByIndexOrHash(id);
+    public ResponseEntity get(@PathVariable(name = "id") String id) {
+        BlockHusk foundBlock = nodeManager.getBlockByIndexOrHash(id);
 
         if (foundBlock == null) {
             return ResponseEntity.notFound().build();
@@ -60,7 +60,9 @@ class BlockController {
 
     @GetMapping
     public ResponseEntity getAll() {
-        Set<Block> blocks = nodeManager.getBlocks();
-        return ResponseEntity.ok(blocks);
+        Set<BlockHusk> blocks = nodeManager.getBlocks();
+        List<BlockDto> dtoList =
+                blocks.stream().map(BlockDto::createBy).collect(Collectors.toList());
+        return ResponseEntity.ok(dtoList);
     }
 }

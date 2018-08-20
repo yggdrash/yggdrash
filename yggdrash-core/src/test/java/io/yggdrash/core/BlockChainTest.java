@@ -1,40 +1,50 @@
 package io.yggdrash.core;
 
-import com.google.gson.JsonObject;
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.husk.BlockHusk;
+import io.yggdrash.config.Constants;
+import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.core.store.BlockStore;
+import io.yggdrash.core.store.datasource.HashMapDbSource;
+import io.yggdrash.util.FileUtil;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.InvalidCipherTextException;
 
-import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockChainTest {
     private static final Logger log = LoggerFactory.getLogger(BlockChainTest.class);
+    private static Wallet wallet;
+    private static DefaultConfig defaultConfig;
+    private String chainId = "chainId";
 
-    @Test
-    public void shouldBeGetBlockByHash() throws IOException, InvalidCipherTextException {
-        BlockChain blockChain = instantBlockchain();
-        Block b0 = blockChain.getGenesisBlock();
-        String blockHash = b0.getBlockHash();
-        log.debug("Block hashString : " + blockHash);
-        Block foundBlock = blockChain.getBlockByHash(blockHash);
-
-        assertThat(foundBlock.getBlockHash()).isEqualTo(blockHash);
+    @BeforeClass
+    public static void init() throws Exception {
+        defaultConfig = new DefaultConfig();
+        wallet = new Wallet(defaultConfig);
     }
 
     @Test
-    public void shouldBeGetBlockByIndex() throws IOException, InvalidCipherTextException {
+    public void shouldBeGetBlockByHash() {
+        BlockChain blockChain = instantBlockchain();
+        BlockHusk b0 = blockChain.getGenesisBlock();
+        String blockHash = b0.getHash().toString();
+        log.debug("Block hashString : " + blockHash);
+        BlockHusk foundBlock = blockChain.getBlockByHash(blockHash);
+
+        assertThat(foundBlock.getHash()).isEqualTo(b0.getHash());
+    }
+
+    @Test
+    public void shouldBeGetBlockByIndex() {
         BlockChain blockChain = instantBlockchain();
         log.debug(blockChain.toStringStatus());
 
-        Block prevBlock = blockChain.getPrevBlock();
+        BlockHusk prevBlock = blockChain.getPrevBlock();
         String hash = prevBlock.getPrevBlockHash();
         assertThat(blockChain.getBlockByIndex(0L)).isEqualTo(blockChain.getGenesisBlock());
         assertThat(blockChain.getBlockByIndex(3L)).isEqualTo(prevBlock);
@@ -42,35 +52,21 @@ public class BlockChainTest {
     }
 
     @Test
-    public void shouldBeVerifiedBlockChain() throws IOException, InvalidCipherTextException {
+    public void shouldBeVerifiedBlockChain() {
         BlockChain blockChain = instantBlockchain();
         assertThat(blockChain.isValidChain()).isEqualTo(true);
     }
 
     @Test
-    public void TransactionGenTest() throws NotValidateException, IOException,
-            InvalidCipherTextException {
+    public void TransactionGenTest() {
         // 모든 테스트는 독립적으로 동작 해야 합니다
         BlockChain blockchain = instantBlockchain();
         int testBlock = 100;
-        Wallet wallet = new Wallet();
 
-        // create blockchain with genesis block
-        Transaction tx = new Transaction(wallet, new JsonObject());
-        BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
-        BlockHeader.Builder builder = new BlockHeader.Builder()
-                .blockBody(sampleBody);
-        BlockHeader blockHeader;
+        TransactionHusk tx = TestUtils.createTxHusk();
         for (int i = 0; i < testBlock; i++) {
-            // create next block
-            blockHeader = builder.prevBlock(blockchain.getPrevBlock()).build(wallet);
-            Block block = new Block(blockHeader, sampleBody);
-            log.debug("" + block.getIndex());
-
-            if (blockchain.getPrevBlock() != null) {
-                log.debug("chain prev block hash : "
-                        + blockchain.getPrevBlock().getPrevBlockHash());
-            }
+            BlockHusk block = BlockHusk.build(wallet, Collections.singletonList(tx),
+                    blockchain.getPrevBlock());
             assert block.getIndex() == i + 4;
             // add next block in blockchain
             blockchain.addBlock(block);
@@ -80,53 +76,50 @@ public class BlockChainTest {
     }
 
     @Test
-    public void shouldBeLoadedStoredBlocks() throws InvalidProtocolBufferException {
-        String chainId = "chainId";
+    public void shouldBeLoadedStoredBlocks() {
         BlockChain blockChain = new BlockChain(chainId);
-        BlockHusk testBlock = new BlockHusk(TestUtils.getBlockFixture());
+        TransactionHusk tx = TestUtils.createTxHusk();
+
+        BlockHusk testBlock = BlockHusk.build(wallet, Collections.singletonList(tx),
+                blockChain.getPrevBlock());
         blockChain.addBlock(testBlock);
         blockChain.close();
 
         BlockChain otherBlockChain = new BlockChain(chainId);
         BlockHusk foundBlock = otherBlockChain.getBlockByHash(testBlock.getHash());
-        assertThat(otherBlockChain.size()).isEqualTo(1);
+        assertThat(otherBlockChain.size()).isEqualTo(3);
         assertThat(testBlock).isEqualTo(foundBlock);
+        clearTestDb();
     }
 
     @Test
     public void shouldBeCreatedNewBlockChain() {
-        String chainId = "chainId";
         new BlockChain(chainId);
+        clearTestDb();
     }
 
-    private BlockChain instantBlockchain() throws IOException, InvalidCipherTextException {
-        Wallet wallet = new Wallet();
-        BlockChain blockChain = new BlockChain();
-        Transaction tx = new Transaction(wallet, new JsonObject());
-        BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
+    private BlockChain instantBlockchain() {
+        BlockStore blockStore = new BlockStore(new HashMapDbSource());
+        BlockChain blockChain = new BlockChain(blockStore);
+        TransactionHusk tx = TestUtils.createTxHusk();
 
-        BlockHeader blockHeader = new BlockHeader.Builder()
-                .blockBody(sampleBody)
-                .prevBlock(blockChain.getPrevBlock())
-                .build(wallet);
+        BlockHusk block = BlockHusk.build(wallet, Collections.singletonList(tx),
+                blockChain.getPrevBlock());
+        blockChain.addBlock(block);
 
-        Block b0 = new Block(blockHeader, sampleBody);
+        BlockHusk newBlock =
+                BlockHusk.build(wallet, Collections.singletonList(tx), blockChain.getPrevBlock());
+        blockChain.addBlock(newBlock);
 
-        try {
-            blockChain.addBlock(b0);
-            blockChain.addBlock(
-                    new Block(new BlockHeader.Builder()
-                            .prevBlock(blockChain.getPrevBlock())
-                            .blockBody(sampleBody).build(wallet), sampleBody));
-            blockChain.addBlock(
-                    new Block(new BlockHeader.Builder()
-                            .prevBlock(blockChain.getPrevBlock())
-                            .blockBody(sampleBody).build(wallet), sampleBody));
-        } catch (NotValidateException e) {
-            log.error(e.getMessage());
-            log.warn("invalid block....");
-            assert false;
-        }
+        newBlock =
+                BlockHusk.build(wallet, Collections.singletonList(tx), blockChain.getPrevBlock());
+        blockChain.addBlock(newBlock);
+
         return blockChain;
+    }
+
+    private void clearTestDb() {
+        String dbPath = defaultConfig.getConfig().getString(Constants.DATABASE_PATH);
+        FileUtil.recursiveDelete(Paths.get(dbPath, chainId));
     }
 }

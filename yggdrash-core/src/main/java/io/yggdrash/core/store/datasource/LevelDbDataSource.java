@@ -19,14 +19,12 @@ package io.yggdrash.core.store.datasource;
 import io.yggdrash.config.Constants;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.util.FileUtil;
-import org.apache.commons.codec.binary.Base64;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.WriteBatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
 import java.io.IOException;
@@ -184,19 +182,25 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
     }
 
     public List<byte[]> getAllKey() throws IOException {
-        DBIterator iterator = db.iterator();
         List<byte[]> keyList = new ArrayList<>();
-        try {
+        try (DBIterator iterator = db.iterator()) {
             for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
                 byte[] key = iterator.peekNext().getKey();
-                byte[] value = iterator.peekNext().getValue();
-                String keyStr = Hex.toHexString(key);
-                String valueStr = Base64.encodeBase64String(value);
                 keyList.add(key);
             }
-        } finally {
-            iterator.close();
         }
         return keyList;
+    }
+
+
+    public List<byte[]> getAll() throws IOException {
+        List<byte[]> valueList = new ArrayList<>();
+        try (DBIterator iterator = db.iterator()) {
+            for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
+                byte[] value = iterator.peekNext().getValue();
+                valueList.add(value);
+            }
+        }
+        return valueList;
     }
 }

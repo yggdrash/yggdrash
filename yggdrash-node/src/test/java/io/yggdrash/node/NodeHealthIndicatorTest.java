@@ -17,8 +17,9 @@
 package io.yggdrash.node;
 
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.net.PeerClientChannel;
+import io.yggdrash.core.store.BlockStore;
+import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.node.config.NodeProperties;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,14 +27,14 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.Status;
 
 public class NodeHealthIndicatorTest {
-    private final Status SYNC = new Status("SYNC", "Synchronizing..");
+    private static final Status SYNC = new Status("SYNC", "Synchronizing..");
     NodeHealthIndicator nodeHealthIndicator;
 
     @Before
     public void setUp() {
         MessageSender<PeerClientChannel> sender = new MessageSender<>(new NodeProperties());
-        this.nodeHealthIndicator = new NodeHealthIndicator(new DefaultConfig(), new BlockChain(),
-                sender);
+        BlockStore blockStore = new BlockStore(new HashMapDbSource());
+        this.nodeHealthIndicator = new NodeHealthIndicator(new DefaultConfig(), blockStore, sender);
     }
 
     @Test
@@ -41,7 +42,7 @@ public class NodeHealthIndicatorTest {
         Health health = nodeHealthIndicator.health();
         assert health.getStatus() == Status.DOWN;
         assert health.getDetails().get("name").equals("yggdrash");
-        assert (long) health.getDetails().get("height") == 1;
+        assert (long) health.getDetails().get("height") == 0;
         assert (int) health.getDetails().get("activePeers") == 0;
     }
 

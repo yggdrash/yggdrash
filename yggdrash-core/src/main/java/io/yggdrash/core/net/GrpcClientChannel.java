@@ -22,12 +22,13 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.proto.BlockChainGrpc;
-import io.yggdrash.proto.BlockChainProto;
-import io.yggdrash.proto.BlockChainProto.Empty;
-import io.yggdrash.proto.BlockChainProto.SyncLimit;
+import io.yggdrash.proto.NetProto;
+import io.yggdrash.proto.NetProto.Empty;
+import io.yggdrash.proto.NetProto.SyncLimit;
 import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
+import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -97,7 +98,7 @@ public class GrpcClientChannel implements PeerClientChannel {
      * @return the block list
      */
     @Override
-    public List<BlockChainProto.Block> syncBlock(long offset) {
+    public List<Proto.Block> syncBlock(long offset) {
         SyncLimit syncLimit = SyncLimit.newBuilder().setOffset(offset).build();
         return blockingBlockChainStub.syncBlock(syncLimit).getBlocksList();
     }
@@ -108,18 +109,18 @@ public class GrpcClientChannel implements PeerClientChannel {
      * @return the transaction list
      */
     @Override
-    public List<BlockChainProto.Transaction> syncTransaction() {
+    public List<Proto.Transaction> syncTransaction() {
         Empty empty = Empty.getDefaultInstance();
         return blockingBlockChainStub.syncTransaction(empty).getTransactionsList();
     }
 
     @Override
-    public void broadcastTransaction(BlockChainProto.Transaction[] txs) {
+    public void broadcastTransaction(Proto.Transaction[] txs) {
         log.info("*** Broadcasting tx...");
-        StreamObserver<BlockChainProto.Transaction> requestObserver =
+        StreamObserver<Proto.Transaction> requestObserver =
                 asyncBlockChainStub.broadcastTransaction(new StreamObserver<Empty>() {
                     @Override
-                    public void onNext(BlockChainProto.Empty empty) {
+                    public void onNext(NetProto.Empty empty) {
                         log.trace("Got response");
                     }
 
@@ -135,7 +136,7 @@ public class GrpcClientChannel implements PeerClientChannel {
                     }
                 });
 
-        for (BlockChainProto.Transaction tx : txs) {
+        for (Proto.Transaction tx : txs) {
             log.trace("Sending transaction: {}", tx);
             requestObserver.onNext(tx);
         }
@@ -144,12 +145,12 @@ public class GrpcClientChannel implements PeerClientChannel {
     }
 
     @Override
-    public void broadcastBlock(BlockChainProto.Block[] blocks) {
+    public void broadcastBlock(Proto.Block[] blocks) {
         log.info("*** Broadcasting blocks...");
-        StreamObserver<BlockChainProto.Block> requestObserver =
-                asyncBlockChainStub.broadcastBlock(new StreamObserver<BlockChainProto.Empty>() {
+        StreamObserver<Proto.Block> requestObserver =
+                asyncBlockChainStub.broadcastBlock(new StreamObserver<NetProto.Empty>() {
                     @Override
-                    public void onNext(BlockChainProto.Empty empty) {
+                    public void onNext(NetProto.Empty empty) {
                         log.trace("Got response");
                     }
 
@@ -164,7 +165,7 @@ public class GrpcClientChannel implements PeerClientChannel {
                     }
                 });
 
-        for (BlockChainProto.Block block : blocks) {
+        for (Proto.Block block : blocks) {
             log.trace("Sending block: {}", block);
             requestObserver.onNext(block);
         }
@@ -178,7 +179,7 @@ public class GrpcClientChannel implements PeerClientChannel {
             log.debug("ignore from me");
             return Collections.emptyList();
         }
-        BlockChainProto.PeerRequest request = BlockChainProto.PeerRequest.newBuilder()
+        NetProto.PeerRequest request = NetProto.PeerRequest.newBuilder()
                 .setFrom(ynodeUri).setLimit(limit).build();
         return blockingBlockChainStub.requestPeerList(request).getPeersList();
     }
@@ -190,7 +191,7 @@ public class GrpcClientChannel implements PeerClientChannel {
             return;
         }
         log.info("Disconnect request peer=" + ynodeUri);
-        BlockChainProto.PeerRequest request = BlockChainProto.PeerRequest.newBuilder()
+        NetProto.PeerRequest request = NetProto.PeerRequest.newBuilder()
                 .setFrom(ynodeUri).build();
         blockingBlockChainStub.disconnectPeer(request);
     }
