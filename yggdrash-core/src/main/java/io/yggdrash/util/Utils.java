@@ -18,30 +18,19 @@
 
 package io.yggdrash.util;
 
-//import org.ethereum.datasource.DbSource;
-//import org.ethereum.db.ByteArrayWrapper;
-//import org.ethereum.vm.DataWord;
-
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.DecoderException;
 import org.spongycastle.util.encoders.Hex;
 
-import javax.swing.*;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
-import java.net.URL;
 import java.security.SecureRandom;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.regex.Pattern;
 
 public class Utils {
-//    private static final DataWord DIVISOR = new DataWord(64);
 
-    public static double JAVA_VERSION = getJavaVersion();
     static final BigInteger _1000_ = new BigInteger("1000");
     private static final SecureRandom random = new SecureRandom();
 
@@ -60,19 +49,6 @@ public class Utils {
             byte[] numberBytes = Hex.decode(number);
             return (new BigInteger(1, numberBytes));
         }
-    }
-
-    /**
-     * Return formatted Date String: yyyy.MM.dd HH:mm:ss
-     * Based on Unix's time() input in seconds
-     *
-     * @param timestamp seconds since start of Unix-time
-     * @return String formatted as - yyyy.MM.dd HH:mm:ss
-     */
-    public static String longToDateTime(long timestamp) {
-        Date date = new Date(timestamp * 1000);
-        DateFormat formatter = new SimpleDateFormat("yyyy.MM.dd HH:mm:ss");
-        return formatter.format(date);
     }
 
     public static String longToTimePeriod(long msec) {
@@ -99,11 +75,6 @@ public class Utils {
         }
         long day = hour / 24;
         return day + "d" + (day % 24) + "h";
-    }
-
-    public static ImageIcon getImageIcon(String resource) {
-        URL imageURL = ClassLoader.getSystemResource(resource);
-        return new ImageIcon(imageURL);
     }
 
     public static String getValueShortString(BigInteger number) {
@@ -238,25 +209,6 @@ public class Utils {
             return ret.toString();
         }
     }
-
-//    public static List<ByteArrayWrapper> dumpKeys(DbSource<byte[]> ds) {
-//
-//        ArrayList<ByteArrayWrapper> keys = new ArrayList<>();
-//
-//        for (byte[] key : ds.keys()) {
-//            keys.add(ByteUtil.wrap(key));
-//        }
-//        Collections.sort(keys);
-//        return keys;
-//    }
-//
-//    public static DataWord allButOne64th(DataWord dw) {
-//        DataWord ret = dw.clone();
-//        DataWord d = dw.clone();
-//        d.div(DIVISOR);
-//        ret.sub(d);
-//        return ret;
-//    }
 
     /**
      * Show std err messages in red and throw RuntimeException to stop execution.

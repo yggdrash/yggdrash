@@ -2,8 +2,8 @@ package io.yggdrash.node.mock;
 
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
-import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.proto.Pong;
+import io.yggdrash.proto.Proto;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,21 +34,21 @@ public class ChannelMock implements PeerClientChannel {
     }
 
     @Override
-    public List<BlockChainProto.Block> syncBlock(long offset) {
-        return Collections.singletonList(BlockChainProto.Block.getDefaultInstance());
+    public List<Proto.Block> syncBlock(long offset) {
+        return Collections.singletonList(Proto.Block.getDefaultInstance());
     }
 
     @Override
-    public List<BlockChainProto.Transaction> syncTransaction() {
-        return Collections.singletonList(BlockChainProto.Transaction.getDefaultInstance());
+    public List<Proto.Transaction> syncTransaction() {
+        return Collections.singletonList(Proto.Transaction.getDefaultInstance());
     }
 
     @Override
-    public void broadcastTransaction(BlockChainProto.Transaction[] txs) {
+    public void broadcastTransaction(Proto.Transaction[] txs) {
     }
 
     @Override
-    public void broadcastBlock(BlockChainProto.Block[] blocks) {
+    public void broadcastBlock(Proto.Block[] blocks) {
     }
 
     @Override

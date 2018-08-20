@@ -16,14 +16,11 @@
 
 package io.yggdrash.core.store;
 
-import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionHeader;
-import io.yggdrash.core.husk.TransactionHusk;
+import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.datasource.DbSource;
-import io.yggdrash.proto.BlockChainProto;
 import org.ehcache.Cache;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
@@ -32,27 +29,24 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     private static final Logger log = LoggerFactory.getLogger(TransactionStore.class);
 
     private final DbSource<byte[], byte[]> db;
-    private final CachePool<String, Transaction> txPool;
     private final Cache<Sha3Hash, TransactionHusk> huskTxPool;
-    private final Set<String> unconfirmedTxSet = new HashSet<>();
     private final Set<Sha3Hash> unconfirmedTxs = new HashSet<>();
 
 
-    public TransactionStore(DbSource db, CachePool transactionPool) {
+    public TransactionStore(DbSource db) {
         this.db = db;
         this.db.init();
-        this.txPool = transactionPool;
         this.huskTxPool = CacheManagerBuilder
                 .newCacheManagerBuilder().build(true)
                 .createCache("txPool", CacheConfigurationBuilder
@@ -60,37 +54,29 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
                                 ResourcePoolsBuilder.heap(10)));
     }
 
-    public List<Transaction> getAllTxs() throws IOException {
-        List<Transaction> txList = new ArrayList<>();
-        List<byte[]> keyList = db.getAllKey();
-        for (byte[] key : keyList) {
-            txList.add(deserialize(db.get(key)));
-        }
-        return txList;
-    }
-
-    @Deprecated
-    public Transaction put(Transaction tx) {
+    @Override
+    public Set<TransactionHusk> getAll() {
         try {
-            txPool.put(tx);
-            unconfirmedTxSet.add(tx.getHashString());
+            List<byte[]> dataList = db.getAll();
+            TreeSet<TransactionHusk> txSet = new TreeSet<>();
+            for (byte[] data : dataList) {
+                txSet.add(new TransactionHusk(data));
+            }
+            return txSet;
         } catch (IOException e) {
-            log.error(e.getMessage());
+            throw new NotValidateException(e);
         }
-
-        return tx;
     }
 
     @Override
-    public void put(Sha3Hash key, TransactionHusk tx) {
-        huskTxPool.put(key, tx);
-        unconfirmedTxs.add(key);
+    public boolean contains(Sha3Hash key) {
+        return huskTxPool.containsKey(key) || db.get(key.getBytes()) != null;
     }
 
-    @Deprecated
-    public Transaction get(String key) {
-        Transaction foundTx = txPool.get(key);
-        return foundTx != null ? foundTx : deserialize(db.get(key.getBytes()));
+    @Override
+    public void put(TransactionHusk tx) {
+        huskTxPool.put(tx.getHash(), tx);
+        unconfirmedTxs.add(tx.getHash());
     }
 
     @Override
@@ -116,9 +102,8 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
         }
     }
 
-    public Collection<Transaction> getUnconfirmedTxs() {
-        Map<String, Transaction> unconfirmedTxs = txPool.getAll(unconfirmedTxSet);
-        return unconfirmedTxs.values();
+    public Collection<TransactionHusk> getUnconfirmedTxs() {
+        return huskTxPool.getAll(unconfirmedTxs).values();
     }
 
     public long countFromCache() {
@@ -132,55 +117,5 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     public void flush() {
         huskTxPool.removeAll(unconfirmedTxs);
         unconfirmedTxs.clear();
-    }
-
-    private byte[] serialize(Transaction transaction) {
-        return convertToProto(transaction).toByteArray();
-    }
-
-    private Transaction deserialize(byte[] stream) {
-        return convertToObject(stream);
-    }
-
-    private BlockChainProto.Transaction convertToProto(Transaction tx) {
-        TransactionHeader txHeader = tx.getHeader();
-        BlockChainProto.TransactionHeader header =
-                BlockChainProto.TransactionHeader.newBuilder()
-                        .setType(ByteString.copyFrom(txHeader.getType()))
-                        .setVersion(ByteString.copyFrom(txHeader.getVersion()))
-                        .setDataHash(ByteString.copyFrom(txHeader.getDataHash()))
-                        .setDataSize(txHeader.getDataSize())
-                        .setTimestamp(txHeader.getTimestamp())
-                        .setSignature(ByteString.copyFrom(txHeader.getSignature()))
-                        .build();
-        return BlockChainProto.Transaction.newBuilder()
-                .setHeader(header)
-                .setData(tx.getData())
-                .build();
-    }
-
-    private Transaction convertToObject(byte[] stream) {
-        BlockChainProto.Transaction txProto = null;
-        try {
-            txProto = BlockChainProto.Transaction.parseFrom(stream);
-        } catch (InvalidProtocolBufferException e) {
-            log.error(e.getMessage());
-        }
-
-        if (txProto == null) {
-            return null;
-        }
-
-        BlockChainProto.TransactionHeader txHeaderProto = txProto.getHeader();
-        TransactionHeader txHeader = new TransactionHeader(
-                txHeaderProto.getType().toByteArray(),
-                txHeaderProto.getVersion().toByteArray(),
-                txHeaderProto.getDataHash().toByteArray(),
-                txHeaderProto.getDataSize(),
-                txHeaderProto.getTimestamp(),
-                txHeaderProto.getSignature().toByteArray()
-        );
-
-        return new Transaction(txHeader, txProto.getData());
     }
 }

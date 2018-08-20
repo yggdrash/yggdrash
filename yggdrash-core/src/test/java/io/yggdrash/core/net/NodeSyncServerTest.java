@@ -16,25 +16,21 @@
 
 package io.yggdrash.core.net;
 
-import com.google.gson.JsonObject;
 import io.grpc.internal.testing.StreamRecorder;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
-import io.yggdrash.core.Block;
-import io.yggdrash.core.BlockBody;
-import io.yggdrash.core.BlockHeader;
+import io.yggdrash.TestUtils;
+import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.NodeManager;
-import io.yggdrash.core.Transaction;
-import io.yggdrash.core.Wallet;
-import io.yggdrash.core.mapper.BlockMapper;
-import io.yggdrash.core.mapper.TransactionMapper;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.net.NodeSyncServer.BlockChainImpl;
 import io.yggdrash.core.net.NodeSyncServer.PingPongImpl;
 import io.yggdrash.proto.BlockChainGrpc;
-import io.yggdrash.proto.BlockChainProto;
+import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
+import io.yggdrash.proto.Proto;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -59,27 +55,17 @@ public class NodeSyncServerTest {
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
     @Mock
     private NodeManager nodeManagerMock;
-    private Transaction tx;
-    private Block block;
+    private TransactionHusk tx;
+    private BlockHusk block;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         grpcServerRule.getServiceRegistry().addService(new PingPongImpl());
         grpcServerRule.getServiceRegistry().addService(new BlockChainImpl(nodeManagerMock));
 
-        Wallet wallet = new Wallet();
-        JsonObject json = new JsonObject();
-        json.addProperty("data", "TEST");
-        this.tx = new Transaction(wallet, json);
+        this.tx = TestUtils.createTxHusk();
         when(nodeManagerMock.addTransaction(any())).thenReturn(tx);
-
-        BlockBody body = new BlockBody(Collections.singletonList(tx));
-
-        BlockHeader header = new BlockHeader.Builder()
-                .blockBody(body)
-                .prevBlock(null)
-                .build(wallet);
-        this.block = new Block(header, body);
+        this.block = TestUtils.createGenesisBlockHusk();
         when(nodeManagerMock.addBlock(any())).thenReturn(block);
     }
 
@@ -99,9 +85,9 @@ public class NodeSyncServerTest {
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
         String ynodeUri = "ynode://75bff16c@localhost:9090";
-        BlockChainProto.PeerRequest.Builder builder
-                = BlockChainProto.PeerRequest.newBuilder().setFrom(ynodeUri);
-        BlockChainProto.PeerList response = blockingStub.requestPeerList(builder.build());
+        NetProto.PeerRequest.Builder builder
+                = NetProto.PeerRequest.newBuilder().setFrom(ynodeUri);
+        NetProto.PeerList response = blockingStub.requestPeerList(builder.build());
         assertEquals(3, response.getPeersCount());
         // limit test
         response = blockingStub.requestPeerList(builder.setLimit(2).build());
@@ -110,15 +96,15 @@ public class NodeSyncServerTest {
 
     @Test
     public void syncBlock() {
-        Set<Block> blocks = new HashSet<>();
+        Set<BlockHusk> blocks = new HashSet<>();
         blocks.add(block);
         when(nodeManagerMock.getBlocks()).thenReturn(blocks);
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        BlockChainProto.SyncLimit syncLimit
-                = BlockChainProto.SyncLimit.newBuilder().setOffset(0).build();
-        BlockChainProto.BlockList list = blockingStub.syncBlock(syncLimit);
+        NetProto.SyncLimit syncLimit
+                = NetProto.SyncLimit.newBuilder().setOffset(0).build();
+        Proto.BlockList list = blockingStub.syncBlock(syncLimit);
         assertEquals(1, list.getBlocksCount());
     }
 
@@ -128,20 +114,19 @@ public class NodeSyncServerTest {
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        BlockChainProto.Empty empty = BlockChainProto.Empty.getDefaultInstance();
-        BlockChainProto.TransactionList list = blockingStub.syncTransaction(empty);
+        NetProto.Empty empty = NetProto.Empty.getDefaultInstance();
+        Proto.TransactionList list = blockingStub.syncTransaction(empty);
         assertEquals(1, list.getTransactionsCount());
     }
 
     @Test
     public void broadcastTransaction() throws Exception {
         BlockChainGrpc.BlockChainStub stub = BlockChainGrpc.newStub(grpcServerRule.getChannel());
-        StreamRecorder<BlockChainProto.Empty> responseObserver = StreamRecorder.create();
-        StreamObserver<BlockChainProto.Transaction> requestObserver
+        StreamRecorder<NetProto.Empty> responseObserver = StreamRecorder.create();
+        StreamObserver<Proto.Transaction> requestObserver
                 = stub.broadcastTransaction(responseObserver);
 
-        BlockChainProto.Transaction request = TransactionMapper.transactionToProtoTransaction(tx);
-        requestObserver.onNext(request);
+        requestObserver.onNext(tx.getInstance());
         requestObserver.onCompleted();
         assertNotNull(responseObserver.firstValue().get());
     }
@@ -149,14 +134,14 @@ public class NodeSyncServerTest {
     @Test
     public void broadcastBlock() throws Exception {
         BlockChainGrpc.BlockChainStub stub = BlockChainGrpc.newStub(grpcServerRule.getChannel());
-        StreamRecorder<BlockChainProto.Empty> responseObserver = StreamRecorder.create();
-        StreamObserver<BlockChainProto.Block> requestObserver
+        StreamRecorder<NetProto.Empty> responseObserver = StreamRecorder.create();
+        StreamObserver<Proto.Block> requestObserver
                 = stub.broadcastBlock(responseObserver);
 
-        requestObserver.onNext(BlockMapper.blockToProtoBlock(block));
+        requestObserver.onNext(block.getInstance());
         requestObserver.onCompleted();
 
-        BlockChainProto.Empty firstResponse = responseObserver.firstValue().get();
-        assertNotNull(responseObserver.firstValue().get());
+        NetProto.Empty firstResponse = responseObserver.firstValue().get();
+        assertNotNull(firstResponse);
     }
 }

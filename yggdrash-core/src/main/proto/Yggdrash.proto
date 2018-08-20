@@ -3,35 +3,15 @@ syntax = "proto3";
 option java_package = "io.yggdrash.proto";
 option java_outer_classname = "Proto";
 
-//message BlockList {
-//    repeated Block blocks = 1;
-//}
-//
-//message TransactionList {
-//    repeated Transaction transactions = 1;
-//}
-//
-//message Block {
-//    BlockHeader header = 1;
-//    BlockBody data = 2;
-//}
-//
-//message BlockHeader {
-//    bytes type = 1;
-//    bytes version = 2; // Version indicates message protocol version
-//    uint64 index = 3; // The index in the blockchain
-//    uint64 timestamp = 4; // google.protobuf.Timestamp timestamp ?
-//    bytes prevBlockHash = 5; // The hash of the previous block header
-//    bytes author = 6; // The name of the miner
-//    bytes merkleRoot = 7; // The hash of the BlockBody, by MerkleTree
-//    uint64 dataSize = 8;
-//    bytes signature = 9;
-//}
-//
-//message BlockBody {
-//    repeated Transaction trasactions = 1; // A collection of txns
-//}
-message BlockV2 {
+message BlockList {
+    repeated Block blocks = 1;
+}
+
+message TransactionList {
+    repeated Transaction transactions = 1;
+}
+
+message Block {
     message Header {
         message Raw {
             bytes type = 1;
@@ -47,10 +27,10 @@ message BlockV2 {
         bytes signature = 2;
     }
     Header header = 1;
-    repeated TransactionV2 body = 2; // A collection of txns
+    repeated Transaction body = 2; // A collection of txns
 }
 
-message TransactionV2 {
+message Transaction {
     message Header {
         message Raw {
             bytes type = 1;

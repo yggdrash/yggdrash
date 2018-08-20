@@ -30,5 +30,7 @@ public interface DbSource<K, V> {
 
     List<K> getAllKey() throws IOException;
 
+    List<V> getAll() throws IOException;
+
     void close();
 }

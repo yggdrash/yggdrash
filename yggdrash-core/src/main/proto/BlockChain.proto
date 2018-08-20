@@ -1,7 +1,9 @@
 syntax = "proto3";
 
+import "Yggdrash.proto";
+
 option java_package = "io.yggdrash.proto";
-option java_outer_classname = "BlockChainProto";
+option java_outer_classname = "NetProto";
 
 service BlockChain {
     // Client to server messaging RPC
@@ -36,47 +38,4 @@ message PeerList {
 message SyncLimit {
     uint64 offset = 1;
     uint32 limit = 2;
-}
-
-message BlockList {
-    repeated Block blocks = 1;
-}
-
-message TransactionList {
-    repeated Transaction transactions = 1;
-}
-
-message Block {
-    BlockHeader header = 1;
-    BlockBody data = 2;
-}
-
-message BlockHeader {
-    bytes type = 1;
-    bytes version = 2; // Version indicates message protocol version
-    uint64 index = 3; // The index in the blockchain
-    uint64 timestamp = 4; // google.protobuf.Timestamp timestamp ?
-    bytes prevBlockHash = 5; // The hash of the previous block header
-    bytes author = 6; // The name of the miner
-    bytes merkleRoot = 7; // The hash of the BlockBody, by MerkleTree
-    uint64 dataSize = 8;
-    bytes signature = 9;
-}
-
-message BlockBody {
-    repeated Transaction trasactions = 1; // A collection of txns
-}
-
-message Transaction {
-    TransactionHeader header = 1;
-    string data = 2;
-}
-
-message TransactionHeader {
-    bytes type = 1;
-    bytes version = 2;
-    bytes dataHash = 3;
-    uint64 dataSize = 4;
-    uint64 timestamp = 5;
-    bytes signature = 6;
 }

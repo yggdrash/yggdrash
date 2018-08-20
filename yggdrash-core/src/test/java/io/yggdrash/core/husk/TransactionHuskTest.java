@@ -16,18 +16,17 @@
 
 package io.yggdrash.core.husk;
 
+import com.google.gson.JsonObject;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
 import java.security.SignatureException;
 
 public class TransactionHuskTest {
-    private static final Logger logger = LoggerFactory.getLogger(TransactionHuskTest.class);
 
     @Test
     public void shouldBeVerifiedBySignature()
@@ -63,12 +62,12 @@ public class TransactionHuskTest {
     }
 
     private TransactionHusk getTransactionHusk() {
-        String body = "{\n" +
-                "  \"func\":\"transfer\", \n" +
-                "  \"params\":{\n" +
-                "    \"to\":\"0x407d73d8a49eeb85d32cf465507dd71d507100c1\",\n" +
-                "    \"value\":\"1000\"}\n" +
-                "}";
+        JsonObject body = new JsonObject();
+        body.addProperty("func", "transfer");
+        JsonObject params = new JsonObject();
+        params.addProperty("to", "0x407d73d8a49eeb85d32cf465507dd71d507100c1");
+        params.addProperty("value", "1000");
+        body.add("params", params);
         return new TransactionHusk(body);
     }
 }
