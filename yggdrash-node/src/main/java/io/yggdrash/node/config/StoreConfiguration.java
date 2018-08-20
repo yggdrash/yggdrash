@@ -16,20 +16,14 @@
 
 package io.yggdrash.node.config;
 
-import io.yggdrash.core.Transaction;
-import io.yggdrash.core.store.CachePool;
-import io.yggdrash.core.store.HashMapTransactionPool;
-import io.yggdrash.core.store.SimpleTransactionPool;
+import io.yggdrash.core.BlockChain;
+import io.yggdrash.core.store.BlockStore;
+import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
-import org.ehcache.Cache;
-import org.ehcache.CacheManager;
-import org.ehcache.config.builders.CacheConfigurationBuilder;
-import org.ehcache.config.builders.CacheManagerBuilder;
-import org.ehcache.config.builders.ResourcePoolsBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -38,43 +32,49 @@ import org.springframework.context.annotation.Profile;
 @Configuration
 public class StoreConfiguration {
 
-    private static final Logger log = LoggerFactory.getLogger(StoreConfiguration.class);
+    private final NodeProperties nodeProperties;
 
-    @Bean
-    @Profile("prod")
-    @Primary
-    DbSource levelDbDataSource() {
-        return new LevelDbDataSource("tx");
+    @Autowired
+    StoreConfiguration(NodeProperties nodeProperties) {
+        this.nodeProperties = nodeProperties;
     }
 
     @Bean
-    @Profile("prod")
-    @Primary
-    CachePool simpleTransactionPool(Cache<String, Transaction> cache) {
-        return new SimpleTransactionPool(cache);
+    BlockChain blockChain(BlockStore blockStore) {
+        return new BlockChain(blockStore);
     }
 
     @Bean
-    DbSource dbDataSource() {
+    BlockStore blockStore(@Qualifier("blockDbSource") DbSource source) {
+        return new BlockStore(source);
+    }
+
+    @Bean
+    TransactionStore transactionStore(@Qualifier("txDbSource") DbSource source) {
+        return new TransactionStore(source);
+    }
+
+    @Profile("prod")
+    @Primary
+    @Bean(name = "blockDbSource")
+    DbSource blockLevelDbSource() {
+        return new LevelDbDataSource(nodeProperties.getChainId() + "/blocks");
+    }
+
+    @Profile("prod")
+    @Primary
+    @Bean(name = "txDbSource")
+    DbSource txLevelDbSource() {
+        return new LevelDbDataSource(nodeProperties.getChainId() + "/txs");
+    }
+
+    @Bean(name = "blockDbSource")
+    DbSource blockDbSource() {
         return new HashMapDbSource();
     }
 
-    @Bean
-    CachePool transactionPool() {
-        return new HashMapTransactionPool();
-    }
-
-    @Bean
-    Cache<String, Transaction> txCache(CacheManager cacheManager) {
-        log.debug("=== Create cache for transaction");
-        return cacheManager.createCache("txCache",
-                CacheConfigurationBuilder
-                        .newCacheConfigurationBuilder(String.class, Transaction.class,
-                                ResourcePoolsBuilder.heap(10)));
-    }
-
-    @Bean
-    CacheManager cacheManager() {
-        return CacheManagerBuilder.newCacheManagerBuilder().build(true);
+    @Bean(name = "txDbSource")
+    DbSource txDbSource() {
+        return new HashMapDbSource();
     }
 }

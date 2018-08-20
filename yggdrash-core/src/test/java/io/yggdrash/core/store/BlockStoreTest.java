@@ -18,7 +18,7 @@ package io.yggdrash.core.store;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.husk.BlockHusk;
+import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.FileUtil;
@@ -39,7 +39,7 @@ public class BlockStoreTest {
     @Test
     public void shouldBeGotBlock() throws InvalidProtocolBufferException {
         blockStore = new BlockStore(
-                new LevelDbDataSource(getPath(), "get-test").init());
+                new LevelDbDataSource(getPath(), "get-test"));
         BlockHusk blockHuskFixture = getBlockHuskFixture();
         blockStore.put(blockHuskFixture.getHash(), blockHuskFixture);
         BlockHusk foundBlockHusk = blockStore.get(blockHuskFixture.getHash());
@@ -47,15 +47,15 @@ public class BlockStoreTest {
     }
 
     @Test
-    public void shouldBePutBlock() throws InvalidProtocolBufferException {
+    public void shouldBePutBlock() {
         blockStore = new BlockStore(
-                new LevelDbDataSource(getPath(), "put-test").init());
+                new LevelDbDataSource(getPath(), "put-test"));
         BlockHusk blockHusk = getBlockHuskFixture();
         blockStore.put(blockHusk.getHash(), blockHusk);
     }
 
     private BlockHusk getBlockHuskFixture() {
-        Proto.BlockV2 blockFixture = TestUtils.getBlockFixture();
+        Proto.Block blockFixture = TestUtils.getBlockFixture();
         return new BlockHusk(blockFixture);
     }
 

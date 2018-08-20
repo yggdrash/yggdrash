@@ -18,7 +18,7 @@ package io.yggdrash.core.store;
 
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.husk.BlockHusk;
+import io.yggdrash.core.BlockHusk;
 import org.junit.Test;
 
 public class MetaStoreTest {

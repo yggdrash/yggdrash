@@ -18,19 +18,25 @@ package io.yggdrash.core.store;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.husk.BlockHusk;
+import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
 
 public class BlockStore implements Store<Sha3Hash, BlockHusk> {
     private DbSource<byte[], byte[]> db;
 
     public BlockStore(DbSource<byte[], byte[]> dbSource) {
-        this.db = dbSource;
+        this.db = dbSource.init();
     }
 
     public BlockStore(String chainId) {
-        this.db = new LevelDbDataSource(chainId + "/block").init();
+        this.db = new LevelDbDataSource(chainId + "/blocks").init();
     }
 
     @Override
@@ -45,6 +51,25 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
         } catch (InvalidProtocolBufferException e) {
             throw new IllegalArgumentException(e);
         }
+    }
+
+    @Override
+    public Set<BlockHusk> getAll() {
+        try {
+            List<byte[]> dataList = db.getAll();
+            TreeSet<BlockHusk> blockSet = new TreeSet<>();
+            for (byte[] data : dataList) {
+                blockSet.add(new BlockHusk(data));
+            }
+            return blockSet;
+        } catch (IOException e) {
+            throw new NotValidateException(e);
+        }
+    }
+
+    @Override
+    public boolean contains(Sha3Hash key) {
+        return db.get(key.getBytes()) != null;
     }
 
     public long size() {

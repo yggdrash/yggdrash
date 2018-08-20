@@ -1,14 +1,12 @@
 package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
-import io.yggdrash.contract.CoinContract;
 import io.yggdrash.core.Account;
 import io.yggdrash.core.NodeManager;
-import io.yggdrash.node.exception.NonExistObjectException;
+import io.yggdrash.core.exception.NonExistObjectException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.xml.soap.Node;
 import java.util.ArrayList;
 
 @Service

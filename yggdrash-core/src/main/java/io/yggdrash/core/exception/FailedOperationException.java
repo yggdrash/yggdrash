@@ -1,4 +1,4 @@
-package io.yggdrash.node.exception;
+package io.yggdrash.core.exception;
 
 public class FailedOperationException extends IllegalStateException {
     public static final int code = -10004;

@@ -17,6 +17,7 @@
 package io.yggdrash.node.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.yggdrash.node.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,15 +57,15 @@ public class TransactionControllerTest {
     public void shouldGetTransactionByHash() throws Exception {
 
         // 트랜잭션 풀에 있는 트랜잭션을 조회 후 블록 내 트랜잭션 조회 로직 추가 필요.
-        TransactionDto req = new TransactionDto();
-        req.setFrom(FROM);
-        req.setData("transaction data");
+        TransactionDto req = TransactionDto.createBy(TestUtils.createTxHusk());
 
         MockHttpServletResponse postResponse = mockMvc.perform(post("/txs")
                 .contentType(MediaType.APPLICATION_JSON).content(json.write(req).getJson()))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andReturn().getResponse();
+
+        assertThat(postResponse.getContentAsString()).contains("transfer");
 
         String postTxHash = json.parseObject(postResponse.getContentAsString()).getTxHash();
 
@@ -74,20 +75,5 @@ public class TransactionControllerTest {
                 .andReturn().getResponse();
 
         assertThat(postResponse.getContentAsString()).isEqualTo(getResponse.getContentAsString());
-    }
-
-    @Test
-    public void shouldAddTransactionAtTransactionPool() throws Exception {
-        TransactionDto req = new TransactionDto();
-        req.setFrom(FROM);
-        req.setData("Dezang");
-
-        MockHttpServletResponse response = mockMvc.perform(post("/txs")
-                .contentType(MediaType.APPLICATION_JSON).content(json.write(req).getJson()))
-                .andExpect(status().isOk())
-                .andDo(print())
-                .andReturn().getResponse();
-
-        assertThat(response.getContentAsString()).contains("Dezang");
     }
 }

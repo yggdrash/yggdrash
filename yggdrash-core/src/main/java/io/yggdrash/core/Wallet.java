@@ -247,6 +247,15 @@ public class Wallet {
     }
 
     /**
+     * Get hex address
+     *
+     * @return hex address
+     */
+    public String getHexAddress() {
+        return Hex.toHexString(address);
+    }
+
+    /**
      * Sign the plain data.
      *
      * @param data plain data
@@ -308,7 +317,7 @@ public class Wallet {
         return "Wallet{"
                 + "keyPath=" + keyPath
                 + ", keyName=" + keyName
-                + ", address=" + Hex.toHexString(address)
+                + ", address=" + getHexAddress()
                 + ", publicKey=" + Hex.toHexString(publicKey)
                 + '}';
     }

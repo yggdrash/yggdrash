@@ -1,4 +1,4 @@
-package io.yggdrash.node.exception;
+package io.yggdrash.core.exception;
 
 public class InvalidSignatureException extends SecurityException {
     public static final int code = -10001;
@@ -7,4 +7,9 @@ public class InvalidSignatureException extends SecurityException {
     public InvalidSignatureException() {
         super(msg);
     }
+
+    public InvalidSignatureException(Throwable cause) {
+        super(cause);
+    }
+
 }

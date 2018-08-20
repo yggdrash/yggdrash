@@ -1,7 +1,7 @@
 package io.yggdrash.core.net;
 
-import io.yggdrash.proto.BlockChainProto;
 import io.yggdrash.proto.Pong;
+import io.yggdrash.proto.Proto;
 
 import java.util.List;
 
@@ -15,13 +15,13 @@ public interface PeerClientChannel {
 
     Pong ping(String message);
 
-    List<BlockChainProto.Block> syncBlock(long offset);
+    List<Proto.Block> syncBlock(long offset);
 
-    List<BlockChainProto.Transaction> syncTransaction();
+    List<Proto.Transaction> syncTransaction();
 
-    void broadcastTransaction(BlockChainProto.Transaction[] txs);
+    void broadcastTransaction(Proto.Transaction[] txs);
 
-    void broadcastBlock(BlockChainProto.Block[] blocks);
+    void broadcastBlock(Proto.Block[] blocks);
 
     List<String> requestPeerList(String ynodeUri, int limit);
 

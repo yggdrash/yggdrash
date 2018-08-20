@@ -3,47 +3,42 @@ package io.yggdrash.core;
 import com.google.gson.JsonObject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.husk.BlockHusk;
+import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.core.store.BlockStore;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.InvalidCipherTextException;
 
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Set;
 
 public class BlockChain {
 
     private static final Logger log = LoggerFactory.getLogger(BlockChain.class);
     private final JsonObject branchInfo;
+
     // <Variable>
-    private Block prevBlock;
-    private Block currentBlock;
-    private Map<Object, Block> blocks; // <blockheader_hash, block>
-    // For Husk
-    private BlockHusk genesisBlockHusk;
-    private BlockHusk prevBlockHusk;
+    private BlockHusk genesisBlock;
+    private BlockHusk prevBlock;
+    private JsonObject packageInfo;
     private BlockStore blockStore;
 
-    @Deprecated
-    public BlockChain() {
-        this(new JsonObject());
+    public BlockChain(String chainId) {
+        this(new BlockStore(chainId));
     }
 
     public BlockChain(BlockStore blockStore) {
-        this(new JsonObject());
-        this.blockStore = blockStore;
+        this(new JsonObject(), blockStore);
     }
 
-    public BlockChain(String chainId) {
-        this(new JsonObject());
-        this.blockStore = new BlockStore(chainId);
-    }
 
-    public BlockChain(JsonObject branchInfo) {
+    private BlockChain(JsonObject branchInfo, BlockStore blockStore) {
         this.branchInfo = branchInfo;
-        this.blocks = new ConcurrentHashMap<>();
+        this.blockStore = blockStore;
 
         // @TODO loadBlockchain
         loadBlockChain();
@@ -70,15 +65,15 @@ public class BlockChain {
 
 
     public JsonObject getPackageInfo() {
-        return branchInfo;
+        return packageInfo;
     }
 
-    public Block getPrevBlock() {
+    public BlockHusk getPrevBlock() {
         return this.prevBlock;
     }
 
-    public Map<Object, Block> getBlocks() {
-        return blocks;
+    public Set<BlockHusk> getBlocks() {
+        return blockStore.getAll();
     }
 
     /**
@@ -99,48 +94,14 @@ public class BlockChain {
      * @param nextBlock the next block
      * @throws NotValidateException the not validate exception
      */
-    @Deprecated
-    public void addBlock(Block nextBlock) {
-
-        if (!isValidNewBlock(prevBlock, nextBlock)) {
-            throw new NotValidateException();
-        }
-        log.debug("Added block index=[{}], blockHash={}", nextBlock.getIndex(),
-                nextBlock.getBlockHash());
-
-        // ADD List hash
-        // TODO CHANGE DATABASE
-        this.blocks.put(nextBlock.getBlockHash(), nextBlock);
-        this.blocks.put(nextBlock.getIndex(), nextBlock);
-        this.prevBlock = nextBlock;
-    }
-
     public void addBlock(BlockHusk nextBlock) {
-        if (!isValidNewBlock(prevBlockHusk, nextBlock)) {
-            throw new NotValidateException();
+        if (!isValidNewBlock(prevBlock, nextBlock)) {
+            throw new NotValidateException("Invalid to chain");
         }
         log.debug("Added block index=[{}], blockHash={}", nextBlock.getIndex(),
                 nextBlock.getHash());
         this.blockStore.put(nextBlock.getHash(), nextBlock);
-    }
-
-    @Deprecated
-    private boolean isValidNewBlock(Block prevBlock, Block nextBlock) {
-        if (prevBlock == null) {
-            return true;
-        }
-        log.trace(" prev : " + prevBlock.getBlockHash());
-        log.trace(" new : " + nextBlock.getBlockHash());
-
-        if (prevBlock.getIndex() + 1 != nextBlock.getIndex()) {
-            log.warn("invalid index: prev:{} / new:{}", prevBlock.getIndex(), nextBlock.getIndex());
-            return false;
-        } else if (!prevBlock.getBlockHash().equals(nextBlock.getPrevBlockHash())) {
-            log.warn("invalid previous hash");
-            return false;
-        }
-
-        return true;
+        this.prevBlock = nextBlock;
     }
 
     private boolean isValidNewBlock(BlockHusk prevBlock, BlockHusk nextBlock) {
@@ -153,7 +114,7 @@ public class BlockChain {
         if (prevBlock.getIndex() + 1 != nextBlock.getIndex()) {
             log.warn("invalid index: prev:{} / new:{}", prevBlock.getIndex(), nextBlock.getIndex());
             return false;
-        } else if (!prevBlock.equals(nextBlock)) {
+        } else if (!Arrays.equals(prevBlock.getHash().getBytes(), nextBlock.getPrevHash())) {
             log.warn("invalid previous hash");
             return false;
         }
@@ -162,7 +123,7 @@ public class BlockChain {
     }
 
     public long size() {
-        return blocks.size() / 2;
+        return blockStore.size();
     }
 
     /**
@@ -182,7 +143,7 @@ public class BlockChain {
      */
     public boolean isValidChain(BlockChain blockChain) {
         if (blockChain.getPrevBlock() != null) {
-            Block block = blockChain.getPrevBlock(); // Get Last Block
+            BlockHusk block = blockChain.getPrevBlock(); // Get Last Block
             while (block.getIndex() != 0L) {
                 block = blockChain.getBlockByHash(block.getPrevBlockHash());
             }
@@ -191,49 +152,33 @@ public class BlockChain {
         return true;
     }
 
-    public Block getBlockByIndex(long index) {
-        return blocks.get(index);
-    }
-
-    /**
-     * Gets block by hash.
-     *
-     * @param hash the hash
-     * @return the block by hash
-     */
-    public Block getBlockByHash(String hash) {
-        return blocks.get(hash);
-    }
-
-    /**
-     * Gets block by hash.
-     *
-     * @param hash the hash
-     * @return the block by hash
-     */
-    public Block getBlockByHash(byte[] hash) {
-        return blocks.get(Hex.encodeHexString(hash));
-    }
-
-
-    public BlockHusk getBlockByHash(Sha3Hash key) throws InvalidProtocolBufferException {
-        return blockStore.get(key);
-    }
-
-    /**
-     * Replace chain.
-     *
-     * @param otherChain the other chain
-     */
-    public void replaceChain(BlockChain otherChain) {
-        if (isValidChain(otherChain) && otherChain.size() > this.size()) {
-            log.info("Received blockchain is valid. Replacing current blockchain with received "
-                    + "blockchain");
-            this.blocks = otherChain.blocks;
-            //TODO broadcastLatest();
-        } else {
-            log.info("Received blockchain invalid");
+    public BlockHusk getBlockByIndex(long index) {
+        for (BlockHusk block: this.getBlocks()) {
+            if (block.getIndex() == index) {
+                return block;
+            }
         }
+        throw new NonExistObjectException("Block index=" + index);
+    }
+
+    /**
+     * Gets block by hash.
+     *
+     * @param hash the hash
+     * @return the block by hash
+     */
+    public BlockHusk getBlockByHash(String hash) {
+        return getBlockByHash(new Sha3Hash(hash));
+    }
+
+    /**
+     * Gets block by hash.
+     *
+     * @param hash the hash
+     * @return the block by hash
+     */
+    public BlockHusk getBlockByHash(Sha3Hash hash) {
+        return blockStore.get(hash);
     }
 
     /**
@@ -248,18 +193,11 @@ public class BlockChain {
     @Override
     public String toString() {
         return "BlockChain{"
-                + "prevBlock=" + prevBlock
-                + ", blocks=" + blocks
-                + ", packageInfo=" + branchInfo
+                + "genesisBlock=" + genesisBlock
+                + ", prevBlock=" + prevBlock
+                + ", height=" + this.getLastIndex()
+                + ", packageInfo=" + packageInfo
                 + '}';
-    }
-
-    /**
-     * Clear.
-     */
-    public void clear() {
-        this.blocks.clear();
-        this.prevBlock = null;
     }
 
     public void close() {
@@ -267,22 +205,30 @@ public class BlockChain {
     }
 
     public String toStringStatus() {
-        StringBuffer stringBuffer = new StringBuffer();
-        String prevBlockHash = prevBlock.getBlockHash();
-        do {
-            stringBuffer.append("[")
-                    .append(blocks.get(prevBlockHash).getIndex())
-                    .append("]")
-                    .append(prevBlockHash)
-                    .append("\n");
+        StringBuilder builder = new StringBuilder();
 
-            prevBlockHash = blocks.get(prevBlockHash).getPrevBlockHash();
+        builder.append("[BlockChain Status]\n")
+                .append("genesisBlock=")
+                .append(genesisBlock.getHash()).append("\n").append("currentBlock=" + "[")
+                .append(prevBlock.getIndex()).append("]").append(prevBlock.getHash()).append("\n");
+
+        String prevBlockHash = this.prevBlock.getPrevBlockHash();
+        if (prevBlockHash == null) {
+            prevBlockHash = "";
+        }
+
+        do {
+            builder.append("<-- " + "[")
+                    .append(blockStore.get(new Sha3Hash(prevBlockHash)).getIndex())
+                    .append("]").append(prevBlockHash).append("\n");
+
+            prevBlockHash = blockStore.get(new Sha3Hash(prevBlockHash)).getPrevBlockHash();
 
         } while (prevBlockHash != null
                 && !prevBlockHash.equals(
-                "0000000000000000000000000000000000000000000000000000000000000000"));
+                    "0000000000000000000000000000000000000000000000000000000000000000"));
 
-        return stringBuffer.toString();
+        return builder.toString();
 
     }
 }

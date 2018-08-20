@@ -16,43 +16,26 @@
 
 package io.yggdrash.node;
 
-import com.google.gson.JsonObject;
-import io.yggdrash.core.Block;
-import io.yggdrash.core.BlockBody;
-import io.yggdrash.core.BlockHeader;
-import io.yggdrash.core.Transaction;
-import io.yggdrash.core.Wallet;
+import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.event.PeerEventListener;
 import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.node.mock.ChannelMock;
 import org.junit.Before;
 import org.junit.Test;
-import org.spongycastle.crypto.InvalidCipherTextException;
-
-import java.io.IOException;
-import java.util.Collections;
 
 public class MessageSenderTest {
 
     private MessageSender<ChannelMock> messageSender;
-    private Transaction tx;
-    private Block block;
+    private TransactionHusk tx;
+    private BlockHusk block;
     private NodeProperties nodeProperties;
     private PeerEventListener listener;
 
     @Before
-    public void setUp() throws IOException, InvalidCipherTextException {
-        Wallet wallet = new Wallet();
-        JsonObject json = new JsonObject();
-        json.addProperty("data", "TEST");
-        this.tx = new Transaction(wallet, json);
-        BlockBody sampleBody = new BlockBody(Collections.singletonList(tx));
-
-        BlockHeader genesisBlockHeader = new BlockHeader.Builder()
-                .blockBody(sampleBody)
-                .prevBlock(null)
-                .build(wallet);
-        this.block = new Block(genesisBlockHeader, sampleBody);
+    public void setUp() {
+        this.tx = TestUtils.createTxHusk();
+        this.block = TestUtils.createGenesisBlockHusk();
         this.nodeProperties = new NodeProperties();
         this.messageSender = new MessageSender<>(nodeProperties);
         listener = peer -> {

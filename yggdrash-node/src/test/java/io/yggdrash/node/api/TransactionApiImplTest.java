@@ -1,14 +1,14 @@
 package io.yggdrash.node.api;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
-import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionValidator;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.node.NodeManagerImpl;
-import io.yggdrash.node.mock.TransactionMock;
+import io.yggdrash.node.TestUtils;
+import io.yggdrash.node.controller.TransactionDto;
+import io.yggdrash.proto.Proto;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -24,6 +24,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class TransactionApiImplTest {
+
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
     private static final BlockApi blockApi = new JsonRpcConfig().blockApi();
     private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
@@ -84,9 +85,7 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByHashTest() {
         try {
-            TransactionMock txMock = new TransactionMock();
-            Transaction tx = txMock.retTxMock(wallet);
-            String hashOfTx = tx.getHashString();
+            Proto.Transaction tx = TestUtils.createDummyTx();
 
             txApi.sendTransaction(tx);
             assertThat(txApi.getTransactionByHash(hashOfTx)).isNotNull();
@@ -98,16 +97,10 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByBlockHashAndIndexTest() {
         try {
-            JsonObject json = new JsonObject();
-            json.addProperty("id", "0");
-            json.addProperty("name", "Rachael");
-            json.addProperty("age", "27");
-            Transaction tx = new Transaction(wallet,json);
-            if (txApi.sendTransaction(tx) != null) {
+            TransactionHusk tx = new TransactionHusk(getJson()).sign(wallet);
+            if (txApi.sendTransaction(tx.getInstance()) != null) {
                 Thread.sleep(10000);
-                Integer curBlockSize = blockApi.getAllBlock().size();
-
-                String hashOfBlock = blockApi.getBlockByHash("1", true).getBlockHash();
+                String hashOfBlock = blockApi.getBlockByHash("1", true).getHash().toString();
                 assertThat(hashOfBlock).isNotEmpty();
                 assertThat(txApi.getTransactionByBlockHashAndIndex(hashOfBlock, 0)).isNotNull();
             } else {
@@ -139,25 +132,20 @@ public class TransactionApiImplTest {
 
     @Test
     public void checkTransactionJsonFormat() throws IOException {
-        JsonObject data = new JsonObject();
-        Transaction tx = new Transaction(wallet, data);
-        ObjectMapper objectMapper = new ObjectMapper();
-        log.debug("\n\nTransaction Format : " + objectMapper.writeValueAsString(tx));
+        TransactionHusk tx = TestUtils.createTxHusk();
+        ObjectMapper objectMapper = TestUtils.getMapper();
+        log.debug("\n\nTransaction Format : "
+                + objectMapper.writeValueAsString(TransactionDto.createBy(tx)));
     }
 
     @Test
     public void sendTransactionTest() {
         // Get Transaction of JsonString as Param
-        ObjectMapper objectMapper = new ObjectMapper();
-        JsonObject json = new JsonObject();
-        json.addProperty("id", "0");
-        json.addProperty("name", "Rachael");
-        json.addProperty("age", "27");
-        Transaction transaction = new Transaction(wallet, json);
+        TransactionHusk tx = new TransactionHusk(getJson()).sign(wallet);
 
         // Request Transaction with jsonStr
         try {
-            assertThat(txApi.sendTransaction(transaction)).isNotEmpty();
+            assertThat(txApi.sendTransaction(tx.getInstance())).isNotEmpty();
         } catch (Exception exception) {
             log.debug("\n\njsonStringToTxTest :: exception => " + exception);
         }
@@ -213,12 +201,6 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    public void createTransactionMock() {
-        TransactionMock txMock = new TransactionMock();
-        log.debug("txMock : " + txMock.retTxMock(wallet));
-    }
-
-    @Test
     public void transactionApiImplTest() {
         try {
             assertThat(1).isEqualTo(txApiImpl.getTransactionCount(address, tag));
@@ -235,21 +217,23 @@ public class TransactionApiImplTest {
     @Test
     public void txSigValidateTest() throws IOException,SignatureException {
         // Create Transaction
+        TransactionHusk tx = new TransactionHusk(getJson()).sign(wallet);
+
+        ObjectMapper mapper = TestUtils.getMapper();
+        String jsonStr = mapper.writeValueAsString(TransactionDto.createBy(tx));
+
+        // Receive Transaction
+        TransactionDto resDto = mapper.readValue(jsonStr, TransactionDto.class);
+
+        // Signature Validation
+        assertTrue(TransactionDto.of(resDto).verify());
+    }
+
+    private JsonObject getJson() {
         JsonObject json = new JsonObject();
         json.addProperty("id", "0");
         json.addProperty("name", "Rachael");
         json.addProperty("age", "27");
-        Transaction tx = new Transaction(wallet, json);
-
-        ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        String jsonStr = mapper.writeValueAsString(tx);
-
-        // Receive Transaction
-        Transaction resTx = mapper.readValue(jsonStr, Transaction.class);
-
-        // Signature Validation
-        TransactionValidator txValidator = new TransactionValidator();
-        assertTrue(txValidator.txSigValidate(resTx));
+        return json;
     }
 }
