@@ -26,8 +26,17 @@ public class BlockChain {
         try {
             this.genesisBlock = new BlockChainLoader(infoFile).getGenesis();
             this.blockStore = new BlockStore(getChainId());
+            loadBlockChain();
         } catch (IOException e) {
             throw new NotValidateException(e);
+        }
+    }
+
+    private void loadBlockChain() {
+        try {
+            blockStore.get(genesisBlock.getHash());
+        } catch (NonExistObjectException e) {
+            blockStore.put(genesisBlock.getHash(), genesisBlock);
         }
     }
 

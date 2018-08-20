@@ -20,9 +20,13 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.ChainId;
+import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
+import io.yggdrash.proto.Proto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -30,6 +34,8 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class BlockStore implements Store<Sha3Hash, BlockHusk> {
+    private static final Logger logger = LoggerFactory.getLogger(BlockStore.class);
+
     private DbSource<byte[], byte[]> db;
 
     public BlockStore(DbSource<byte[], byte[]> dbSource) {
@@ -50,11 +56,16 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
 
     @Override
     public BlockHusk get(Sha3Hash key) {
+        byte[] foundValue = db.get(key.getBytes());
         try {
-            return new BlockHusk(db.get(key.getBytes()));
+            if (foundValue != null) {
+                return new BlockHusk(foundValue);
+            }
         } catch (InvalidProtocolBufferException e) {
-            throw new IllegalArgumentException(e);
+            logger.warn("InvalidProtocolBufferException: {}", e);
         }
+
+        throw new NonExistObjectException("Not Found [" + key + "]");
     }
 
     @Override
