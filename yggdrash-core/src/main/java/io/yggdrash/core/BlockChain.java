@@ -44,6 +44,10 @@ public class BlockChain {
         return new ChainId(genesisBlock.getHash());
     }
 
+    public BlockHusk getGenesisBlock() {
+        return this.genesisBlock;
+    }
+
     public BlockHusk getPrevBlock() {
         return this.prevBlock;
     }

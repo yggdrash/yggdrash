@@ -3,8 +3,7 @@ package io.yggdrash.core;
 import io.yggdrash.TestUtils;
 import io.yggdrash.config.Constants;
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.store.BlockStore;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.util.FileUtil;
 import org.junit.After;
 import org.junit.Before;
@@ -14,7 +13,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.file.Paths;
-import java.util.Collections;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,51 +39,69 @@ public class BlockChainTest {
 
     @Test
     public void shouldBeGetBlockByHash() {
-        BlockChain blockChain = instantBlockchain();
-        BlockHusk b0 = blockChain.getPrevBlock();
-        blockChain.addBlock(b0);
+        BlockChain blockChain = generateTestBlockChain();
+        BlockHusk prevBlock = blockChain.getPrevBlock(); // goto Genesis
+        long blockIndex = blockChain.size();
+        BlockHusk testBlock = new BlockHusk(
+                TestUtils.getBlockFixture(blockIndex, prevBlock.getHash()));
+        blockChain.addBlock(testBlock);
 
-        String blockHash = b0.getHash().toString();
-        log.debug("Block hashString : " + blockHash);
-        BlockHusk foundBlock = blockChain.getBlockByHash(blockHash);
-
-        assertThat(foundBlock.getHash()).isEqualTo(b0.getHash());
+        assertThat(blockChain.getBlockByHash(testBlock.getHash()))
+                .isEqualTo(testBlock);
     }
 
     @Test
     public void shouldBeGetBlockByIndex() {
-        BlockChain blockChain = instantBlockchain();
-        log.debug(blockChain.toStringStatus());
+        BlockChain blockChain = generateTestBlockChain();
         BlockHusk prevBlock = blockChain.getPrevBlock(); // goto Genesis
-        BlockHusk currentBlock = blockChain.getPrevBlock();
-        do {
-            currentBlock = prevBlock;
-            prevBlock = blockChain.getBlockByHash(currentBlock.getHash());
-        } while (prevBlock == null);
+        long blockIndex = blockChain.size();
+        BlockHusk testBlock = new BlockHusk(
+                TestUtils.getBlockFixture(blockIndex, prevBlock.getHash()));
+        blockChain.addBlock(testBlock);
 
-        String hash = currentBlock.getPrevBlockHash();
-        assertThat(blockChain.getBlockByIndex(0L)).isEqualTo(blockChain.getBlockByHash(hash));
-
+        assertThat(blockChain.getBlockByIndex(blockIndex))
+                .isEqualTo(testBlock);
     }
 
     @Test
     public void shouldBeVerifiedBlockChain() {
-        BlockChain blockChain = instantBlockchain();
+        BlockChain blockChain = generateTestBlockChain();
         assertThat(blockChain.isValidChain()).isEqualTo(true);
+    }
+
+    private BlockChain generateTestBlockChain() {
+        BlockChain blockChain = new BlockChain(sampleBranchInfo);
+        BlockHusk genesisBlock = blockChain.getGenesisBlock();
+        BlockHusk block1 = new BlockHusk(
+                TestUtils.getBlockFixture(1L, genesisBlock.getHash()));
+        blockChain.addBlock(block1);
+        BlockHusk block2 = new BlockHusk(
+                TestUtils.getBlockFixture(2L, block1.getHash()));
+        blockChain.addBlock(block2);
+        return blockChain;
+    }
+
+    @Test(expected = NotValidateException.class)
+    public void shouldBeExceptedNotValidateException() {
+        BlockChain blockChain = new BlockChain(sampleBranchInfo);
+        BlockHusk block1 = new BlockHusk(TestUtils.getBlockFixture(1L));
+        blockChain.addBlock(block1);
+        BlockHusk block2 = new BlockHusk(TestUtils.getBlockFixture(2L));
+        blockChain.addBlock(block2);
+        blockChain.isValidChain();
     }
 
     @Test
     public void shouldBeLoadedStoredBlocks() {
         BlockChain blockChain = new BlockChain(sampleBranchInfo);
-        TransactionHusk tx = TestUtils.createTxHusk();
 
-        BlockHusk testBlock = new BlockHusk(TestUtils.getBlockFixture());
+        BlockHusk testBlock = new BlockHusk(TestUtils.getBlockFixture(1L));
         blockChain.addBlock(testBlock);
         blockChain.close();
 
         BlockChain otherBlockChain = new BlockChain(sampleBranchInfo);
         BlockHusk foundBlock = otherBlockChain.getBlockByHash(testBlock.getHash());
-        assertThat(otherBlockChain.size()).isEqualTo(1);
+        assertThat(otherBlockChain.size()).isEqualTo(2);
         assertThat(testBlock).isEqualTo(foundBlock);
     }
 
@@ -95,28 +111,8 @@ public class BlockChainTest {
         assertThat(blockChain.size()).isEqualTo(1L);
     }
 
-    private BlockChain instantBlockchain() {
-        BlockStore blockStore = new BlockStore(new HashMapDbSource());
-        BlockChain blockChain = new BlockChain(sampleBranchInfo);
-        TransactionHusk tx = TestUtils.createTxHusk();
-
-        BlockHusk block = BlockHusk.build(wallet, Collections.singletonList(tx),
-                blockChain.getPrevBlock());
-        blockChain.addBlock(block);
-
-        BlockHusk newBlock =
-                BlockHusk.build(wallet, Collections.singletonList(tx), blockChain.getPrevBlock());
-        blockChain.addBlock(newBlock);
-
-        newBlock =
-                BlockHusk.build(wallet, Collections.singletonList(tx), blockChain.getPrevBlock());
-        blockChain.addBlock(newBlock);
-
-        return blockChain;
-    }
-
     private void clearTestDb() {
         String dbPath = defaultConfig.getConfig().getString(Constants.DATABASE_PATH);
-        FileUtil.recursiveDelete(Paths.get(dbPath, chainId));
+        FileUtil.recursiveDelete(Paths.get(dbPath));
     }
 }

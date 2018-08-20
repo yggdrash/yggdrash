@@ -29,6 +29,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
 
+import java.io.File;
+
 @Configuration
 public class StoreConfiguration {
 
@@ -41,7 +43,7 @@ public class StoreConfiguration {
 
     @Bean
     BlockChain blockChain(BlockStore blockStore) {
-        return new BlockChain(blockStore);
+        return new BlockChain(new File(""));
     }
 
     @Bean

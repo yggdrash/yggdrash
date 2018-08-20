@@ -31,16 +31,16 @@ class BlockChainLoader {
     }
 
     public BlockHusk getGenesis() throws IOException {
-        return convertJsonToBlock(this.infoFile);
+        return convertJsonToBlock();
     }
 
-    public BranchInfo loadBranchInfo(File file) throws IOException {
+    public BranchInfo loadBranchInfo() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-        return mapper.readValue(file, BranchInfo.class);
+        return mapper.readValue(infoFile, BranchInfo.class);
     }
 
-    private BlockHusk convertJsonToBlock(File file) throws IOException {
-        BranchInfo branchInfo = loadBranchInfo(file);
+    private BlockHusk convertJsonToBlock() throws IOException {
+        BranchInfo branchInfo = loadBranchInfo();
         //TODO 브랜치 정보 파일 컨버팅
         return new BlockHusk(Proto.Block.newBuilder()
                 .setHeader(Proto.Block.Header.newBuilder()

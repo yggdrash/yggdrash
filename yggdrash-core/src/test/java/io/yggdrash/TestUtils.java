@@ -18,6 +18,7 @@ package io.yggdrash;
 
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
@@ -69,6 +70,15 @@ public class TestUtils {
     }
 
     public static Proto.Block getBlockFixture() {
+        return getBlockFixture(999L);
+    }
+
+    public static Proto.Block getBlockFixture(Long index) {
+        return getBlockFixture(index,
+                new Sha3Hash("9358888ca1ccd444ad11fb0ea1b5d03483f87664183c6e91ddab1b577cce2c06"));
+    }
+
+    public static Proto.Block getBlockFixture(Long index, Sha3Hash prevHash) {
         return Proto.Block.newBuilder()
                 .setHeader(
                         Proto.Block.Header.newBuilder()
@@ -77,6 +87,10 @@ public class TestUtils {
                                                 ByteBuffer.allocate(4).putInt(1).array()))
                                         .setVersion(ByteString.copyFrom(
                                                 ByteBuffer.allocate(4).putInt(1).array()))
+                                        .setIndex(index)
+                                        .setPrevBlockHash(ByteString.copyFrom(
+                                                prevHash.getBytes()
+                                        ))
                                         .build()
                                 ).build()
                 )

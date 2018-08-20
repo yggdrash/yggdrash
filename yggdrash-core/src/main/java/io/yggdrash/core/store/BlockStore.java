@@ -24,7 +24,6 @@ import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
-import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +44,7 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
     public BlockStore(ChainId chainId) {
         this(chainId.toString());
     }
+
     public BlockStore(String chainId) {
         this.db = new LevelDbDataSource(chainId + "/blocks").init();
     }

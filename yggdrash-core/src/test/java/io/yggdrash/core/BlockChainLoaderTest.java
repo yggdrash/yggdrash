@@ -30,14 +30,14 @@ public class BlockChainLoaderTest {
 
     @Before
     public void setUp() throws Exception {
-//        blockChainLoader = new BlockChainLoader();
+        blockChainLoader = new BlockChainLoader(
+                new File(Objects.requireNonNull(getClass().getClassLoader()
+                .getResource("branch-sample.json")).getFile()));
     }
 
     @Test
     public void shouldBeLoadedBranchJsonFile() throws IOException {
-        File file = new File(Objects.requireNonNull(getClass().getClassLoader()
-                .getResource("branch-sample.json")).getFile());
-        BranchInfo branchInfo = blockChainLoader.loadBranchInfo(file);
+        BranchInfo branchInfo = blockChainLoader.loadBranchInfo();
         Assertions.assertThat(branchInfo).isNotNull();
         Assertions.assertThat(branchInfo.getChainId()).isNotNull();
     }

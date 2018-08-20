@@ -35,6 +35,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
+import java.io.File;
 import java.util.Collections;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -68,7 +69,7 @@ public class NodeManagerTest {
         BlockStore blockStore = new BlockStore(new HashMapDbSource());
         nodeManager.setTransactionStore(transactionStore);
 
-        nodeManager.setBlockChain(new BlockChain(blockStore));
+        nodeManager.setBlockChain(new BlockChain(new File("")));
         nodeManager.setNodeHealthIndicator(mock(NodeHealthIndicator.class));
         nodeManager.init();
         assert nodeManager.getNodeUri() != null;
