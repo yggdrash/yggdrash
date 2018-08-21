@@ -92,7 +92,7 @@ public class BlockChain {
         if (prevBlock.getIndex() + 1 != nextBlock.getIndex()) {
             log.warn("invalid index: prev:{} / new:{}", prevBlock.getIndex(), nextBlock.getIndex());
             return false;
-        } else if (!prevBlock.equals(nextBlock)) {
+        } else if (!prevBlock.getHash().equals(nextBlock.getPrevHash())) {
             log.warn("invalid previous hash");
             return false;
         }

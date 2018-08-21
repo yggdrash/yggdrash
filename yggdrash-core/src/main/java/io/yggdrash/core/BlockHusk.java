@@ -126,8 +126,8 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        BlockHusk blockHusk = (BlockHusk) o;
-        return Arrays.equals(getHash().getBytes(), blockHusk.getPrevHash().getBytes());
+        BlockHusk other = (BlockHusk) o;
+        return Arrays.equals(getHash().getBytes(), other.getHash().getBytes());
     }
 
     @Override

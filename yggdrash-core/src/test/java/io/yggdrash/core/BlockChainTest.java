@@ -94,8 +94,10 @@ public class BlockChainTest {
     @Test
     public void shouldBeLoadedStoredBlocks() {
         BlockChain blockChain = new BlockChain(sampleBranchInfo);
+        BlockHusk genesisBlock = blockChain.getGenesisBlock();
 
-        BlockHusk testBlock = new BlockHusk(TestUtils.getBlockFixture(1L));
+        BlockHusk testBlock = new BlockHusk(
+                TestUtils.getBlockFixture(1L, genesisBlock.getHash()));
         blockChain.addBlock(testBlock);
         blockChain.close();
 
