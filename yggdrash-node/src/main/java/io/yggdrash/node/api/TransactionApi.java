@@ -11,6 +11,8 @@ import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.RejectedAccessException;
 import io.yggdrash.proto.Proto;
 
+import java.util.HashMap;
+
 @JsonRpcService("/api/transaction")
 public interface TransactionApi {
 
@@ -125,16 +127,6 @@ public interface TransactionApi {
             @JsonRpcParam(value = "tag") String tag,
             @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
 
-    /**
-     * Returns the receipt of a transaction by transaction hash.
-     *
-     * @param hashOfTx hash of a transaction
-     */
-    @JsonRpcErrors({
-            @JsonRpcError(exception = FailedOperationException.class,
-                    code = FailedOperationException.code)})
-    TransactionReceipt getTransactionReceipt(
-            @JsonRpcParam(value = "hashOfTx") String hashOfTx);
 
     /* send */
 
@@ -168,4 +160,23 @@ public interface TransactionApi {
             @JsonRpcError(exception = RejectedAccessException.class,
                     code = RejectedAccessException.code)})
     int newPendingTransactionFilter();
+
+    /**
+     * Returns all TransactionRecipts
+     */
+    @JsonRpcErrors({
+            @JsonRpcError(exception = NonExistObjectException.class,
+                    code = NonExistObjectException.code)})
+    HashMap<String, TransactionReceipt> getAllTransactionReceipt();
+
+    /**
+     * Returns the TransactionRecipt of transaction hash
+     *
+     * @param hashOfTx  hash of transaction
+     */
+    @JsonRpcErrors({
+            @JsonRpcError(exception = NonExistObjectException.class,
+                    code = NonExistObjectException.code)})
+    TransactionReceipt getTransactionReceipt(
+            @JsonRpcParam(value = "hashOfTx") String hashOfTx);
 }

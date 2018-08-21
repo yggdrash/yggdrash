@@ -19,12 +19,14 @@ package io.yggdrash.core.store.datasource;
 import io.yggdrash.config.Constants;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.util.FileUtil;
+import org.apache.commons.codec.binary.Base64;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;
 import org.iq80.leveldb.WriteBatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
 import java.io.IOException;
@@ -186,12 +188,12 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         try (DBIterator iterator = db.iterator()) {
             for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
                 byte[] key = iterator.peekNext().getKey();
+                byte[] value = iterator.peekNext().getValue();
                 keyList.add(key);
             }
         }
         return keyList;
     }
-
 
     public List<byte[]> getAll() throws IOException {
         List<byte[]> valueList = new ArrayList<>();
@@ -203,4 +205,26 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         }
         return valueList;
     }
+
+    /* methods for test (start) */
+    public void removeByKey(String key) {
+        db.delete(Base64.decodeBase64(key));
+    }
+
+    public void removeByKey(byte[] key) {
+        db.delete(key);
+    }
+
+    public void removeAll() throws IOException {
+        DBIterator iterator = db.iterator();
+        try {
+            for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
+                byte[] key = iterator.peekNext().getKey();
+                removeByKey(key);
+            }
+        } finally {
+            iterator.close();
+        }
+    }
+    /* methods for test (end) */
 }

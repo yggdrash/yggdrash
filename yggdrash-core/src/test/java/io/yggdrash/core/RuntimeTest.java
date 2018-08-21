@@ -1,36 +1,60 @@
 package io.yggdrash.core;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.contract.CoinContract;
-import io.yggdrash.contract.StateStore;
+import io.yggdrash.core.store.TransactionReceiptStore;
 import org.junit.Before;
 import org.junit.Test;
 import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class RuntimeTest {
-    private final Runtime runtime = new Runtime();
+    private final TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
+    private final CoinContract coinContract = new CoinContract();
+    private Runtime runtime;
     private Wallet wallet;
-    private StateStore stateStore;
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
+        runtime = new Runtime(txReceiptStore);
         wallet = new Wallet();
-        this.stateStore = new StateStore();
     }
 
     @Test
-    public void executeTest() throws Exception {
+    public void invokeTest() throws Exception {
+        JsonArray params = new JsonArray();
+        JsonObject param1 = new JsonObject();
+        param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        JsonObject param2 = new JsonObject();
+        param2.addProperty("amount", 100);
+        params.add(param1);
+        params.add(param2);
 
         JsonObject txObj = new JsonObject();
-        txObj.addProperty("operator", "transfer");
-        txObj.addProperty("to", "0x9843DC167956A0e5e01b3239a0CE2725c0631392");
-        txObj.addProperty("amount", 100);
+        txObj.addProperty("method", "transfer");
+        txObj.add("params", params);
 
         TransactionHusk tx = new TransactionHusk(txObj).sign(wallet);
-        CoinContract coinContract = new CoinContract(stateStore);
+        runtime.invoke(coinContract, tx);
+    }
 
-        runtime.execute(coinContract, tx);
+    @Test
+    public void queryTest() throws Exception {
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        params.add(param);
+
+        JsonObject query = new JsonObject();
+        query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        query.addProperty("method", "balanceOf");
+        query.add("params", params);
+
+        JsonObject result = runtime.query(coinContract, query);
+        assertThat(result).isNotNull();
     }
 }

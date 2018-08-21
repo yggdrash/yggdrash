@@ -1,8 +1,12 @@
 package io.yggdrash.node.api;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
+import io.yggdrash.contract.CoinContract;
 import io.yggdrash.core.Account;
 import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.Runtime;
 import io.yggdrash.core.exception.NonExistObjectException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -16,10 +20,14 @@ public class AccountApiImpl implements AccountApi {
     private final ArrayList<String> addresses = new ArrayList<>();
     private final int balance = 100000;
     private final NodeManager nodeManager;
+    private final Runtime runtime;
+    private CoinContract coinContract;
 
     @Autowired
-    public AccountApiImpl(NodeManager nodeManager) {
+    public AccountApiImpl(NodeManager nodeManager, Runtime runtime) {
         this.nodeManager = nodeManager;
+        this.runtime = runtime;
+        this.coinContract = new CoinContract();
     }
 
     @Override
@@ -50,8 +58,10 @@ public class AccountApiImpl implements AccountApi {
     }
 
     @Override
-    public Integer balanceOf(String address) {
-        return nodeManager.getBalanceOf(address);
+    public String balanceOf(String data) throws Exception {
+        JsonParser jsonParser = new JsonParser();
+        JsonObject query = (JsonObject) jsonParser.parse(data);
+        return runtime.query(coinContract, query).toString();
     }
 
     @Override

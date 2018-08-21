@@ -19,7 +19,6 @@ package io.yggdrash.node;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.CoinContract;
-import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.NodeManager;
@@ -64,9 +63,9 @@ public class NodeManagerImpl implements NodeManager {
 
     private MessageSender<PeerClientChannel> messageSender;
 
-    private StateStore stateStore;
-
     private NodeHealthIndicator nodeHealthIndicator;
+
+    private Runtime runtime;
 
     @Autowired
     public void setNodeProperties(NodeProperties nodeProperties) {
@@ -93,6 +92,11 @@ public class NodeManagerImpl implements NodeManager {
         this.nodeHealthIndicator = nodeHealthIndicator;
     }
 
+    @Autowired
+    public void setRuntime(Runtime runtime) {
+        this.runtime = runtime;
+    }
+
     @PreDestroy
     public void destroy() {
         log.info("destroy uri=" + peer.getYnodeUri());
@@ -101,14 +105,13 @@ public class NodeManagerImpl implements NodeManager {
 
     @Override
     public void init() {
-        this.stateStore = new StateStore();
-        log.debug("\n\n getStateStore : " + getStateStore());
         NodeProperties.Grpc grpc = nodeProperties.getGrpc();
         try {
+            //transactionStore.putDummyTx("4");
             Set<TransactionHusk> txList = transactionStore.getAll();
             executeAllTx(txList);
         } catch (Exception e) {
-            log.error(e.getMessage());
+            log.error(e.getMessage(), e);
         }
 
         messageSender.setListener(this);
@@ -125,21 +128,12 @@ public class NodeManagerImpl implements NodeManager {
     }
 
     private void executeAllTx(Set<TransactionHusk> txList) throws Exception {
-        CoinContract coinContract = new CoinContract(stateStore);
-        Runtime runtime = new Runtime();
+        CoinContract coinContract = new CoinContract();
         for (TransactionHusk tx : txList) {
-            runtime.execute(coinContract, tx);
+            if (!runtime.invoke(coinContract,tx)) {
+                break;
+            }
         }
-    }
-
-    @Override
-    public Integer getBalanceOf(String address) {
-        return stateStore.getState().get(address);
-    }
-
-    @Override
-    public StateStore getStateStore() {
-        return this.stateStore;
     }
 
     @Override
@@ -185,7 +179,6 @@ public class NodeManagerImpl implements NodeManager {
     public BlockHusk generateBlock() {
         BlockHusk block = BlockHusk.build(wallet,
                 new ArrayList<>(transactionStore.getUnconfirmedTxs()), blockChain.getPrevBlock());
-
         blockChain.addBlock(block);
         messageSender.newBlock(block);
         removeTxByBlock(block);

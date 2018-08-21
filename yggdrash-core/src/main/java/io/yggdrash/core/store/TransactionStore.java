@@ -16,9 +16,13 @@
 
 package io.yggdrash.core.store;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.datasource.DbSource;
 import org.ehcache.Cache;
@@ -27,6 +31,7 @@ import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
 import java.util.Collection;
@@ -53,6 +58,33 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
                         .newCacheConfigurationBuilder(Sha3Hash.class, TransactionHusk.class,
                                 ResourcePoolsBuilder.heap(10)));
     }
+
+    /* method for test (start) */
+    protected Wallet wallet;
+
+    public void putDummyTx(String x) {
+        try {
+            wallet = new Wallet(new DefaultConfig());
+        } catch (IOException | InvalidCipherTextException e) {
+            throw new RuntimeException(e);
+        }
+
+        JsonArray params = new JsonArray();
+        JsonObject param1 = new JsonObject();
+        param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        JsonObject param2 = new JsonObject();
+        param2.addProperty("amount", x);
+        params.add(param1);
+        params.add(param2);
+
+        JsonObject txObj = new JsonObject();
+        txObj.addProperty("method", "transfer");
+        txObj.add("params", params);
+
+        TransactionHusk tx = new TransactionHusk(txObj).sign(wallet);
+        put(tx);
+    }
+    /* method for test (end) */
 
     @Override
     public Set<TransactionHusk> getAll() {

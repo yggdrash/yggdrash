@@ -2,9 +2,11 @@ package io.yggdrash.node.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Longs;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
+import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.node.NodeManagerImpl;
 import io.yggdrash.node.TestUtils;
 import io.yggdrash.node.controller.TransactionDto;
@@ -29,7 +31,8 @@ public class TransactionApiImplTest {
     private static final BlockApi blockApi = new JsonRpcConfig().blockApi();
     private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
 
-    private final TransactionApiImpl txApiImpl = new TransactionApiImpl(new NodeManagerImpl());
+    private final TransactionApiImpl txApiImpl = new TransactionApiImpl(new NodeManagerImpl(),
+            new TransactionReceiptStore());
     private final String address = "0x407d73d8a49eeb85d32cf465507dd71d507100c1";
     private final String tag = "latest";
     private final String hashOfTx =
@@ -122,15 +125,6 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    public void getTransactionReceiptTest() {
-        try {
-            assertThat(txApi.getTransactionReceipt(hashOfTx)).isNotNull();
-        } catch (Exception exception) {
-            log.debug("\n\ngetTransactionReceiptTest :: exception => " + exception);
-        }
-    }
-
-    @Test
     public void checkTransactionJsonFormat() throws IOException {
         TransactionHusk tx = TestUtils.createTxHusk();
         ObjectMapper objectMapper = TestUtils.getMapper();
@@ -201,6 +195,10 @@ public class TransactionApiImplTest {
     }
 
     @Test
+    public void getAllTransactionReceiptTest() {
+    }
+
+    @Test
     public void transactionApiImplTest() {
         try {
             assertThat(1).isEqualTo(txApiImpl.getTransactionCount(address, tag));
@@ -230,10 +228,18 @@ public class TransactionApiImplTest {
     }
 
     private JsonObject getJson() {
-        JsonObject json = new JsonObject();
-        json.addProperty("id", "0");
-        json.addProperty("name", "Rachael");
-        json.addProperty("age", "27");
-        return json;
+        JsonArray params = new JsonArray();
+        JsonObject param1 = new JsonObject();
+        param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        JsonObject param2 = new JsonObject();
+        param2.addProperty("amount", 100);
+        params.add(param1);
+        params.add(param2);
+
+        JsonObject txObj = new JsonObject();
+        txObj.addProperty("method", "transfer");
+        txObj.add("params", params);
+
+        return txObj;
     }
 }

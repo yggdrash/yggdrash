@@ -1,9 +1,13 @@
 package io.yggdrash.contract;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.core.Transaction;
+import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.store.TransactionReceiptStore;
 
 public interface Contract {
-    public boolean invoke(Transaction tx) throws Exception;
+    public void init(StateStore stateStore, TransactionReceiptStore txReciptStore);
+
+    public boolean invoke(TransactionHusk tx) throws Exception;
+
     public JsonObject query(JsonObject qurey) throws Exception;
 }

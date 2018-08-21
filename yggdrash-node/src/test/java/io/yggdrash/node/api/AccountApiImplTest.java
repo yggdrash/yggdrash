@@ -1,5 +1,7 @@
 package io.yggdrash.node.api;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,10 +34,20 @@ public class AccountApiImplTest {
     @Test
     public void balanceOfTest() {
         try {
-            assertThat(accountApi.balanceOf("0x9843DC167956A0e5e01b3239a0CE2725c0631392"))
-                    .isEqualTo(10);
-        } catch (Exception exception) {
-            log.debug("accountsTest :: exception : " + exception);
+            JsonArray params = new JsonArray();
+            JsonObject param = new JsonObject();
+            param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+            params.add(param);
+
+            JsonObject query = new JsonObject();
+            query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+            query.addProperty("method", "balanceOf");
+            query.add("params", params);
+
+            String qryString = query.toString();
+            assertThat(accountApi.balanceOf(qryString)).isNotEmpty();
+        } catch (Exception e) {
+            log.debug("\nbalanceOfTest :: exception : " + e);
         }
     }
 
@@ -46,8 +58,8 @@ public class AccountApiImplTest {
                     "latest")).isNotZero();
             assertThat(accountApi.getBalance("0x2Aa4BCaC31F7F67B9a15681D5e4De2FBc778066A",
                     "1023")).isNotZero();
-        } catch (Exception exception) {
-            log.debug("accountsTest :: exception : " + exception);
+        } catch (Exception e) {
+            log.debug("getBalanceTest :: exception : " + e);
         }
     }
 }

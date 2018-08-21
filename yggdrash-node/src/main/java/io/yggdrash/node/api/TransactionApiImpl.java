@@ -8,6 +8,7 @@ import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import org.spongycastle.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 
 @Service
@@ -24,10 +26,12 @@ public class TransactionApiImpl implements TransactionApi {
     private static final Logger log = LoggerFactory.getLogger(TransactionApiImpl.class);
 
     private final NodeManager nodeManager;
+    private final TransactionReceiptStore txReceiptStore;
 
     @Autowired
-    public TransactionApiImpl(NodeManager nodeManager) {
+    public TransactionApiImpl(NodeManager nodeManager, TransactionReceiptStore txReceiptStore) {
         this.nodeManager = nodeManager;
+        this.txReceiptStore = txReceiptStore;
     }
 
     public int getCount(String address, List<TransactionHusk> txList) {
@@ -111,11 +115,6 @@ public class TransactionApiImpl implements TransactionApi {
         }
     }
 
-    @Override
-    public TransactionReceipt getTransactionReceipt(String hashOfTx) {
-        return new TransactionReceipt();
-    }
-
     /* send */
     @Override
     public String sendTransaction(Proto.Transaction tx) {
@@ -175,5 +174,15 @@ public class TransactionApiImpl implements TransactionApi {
                 .build();
 
         return new TransactionHusk(tx);
+    }
+
+    @Override
+    public HashMap<String, TransactionReceipt> getAllTransactionReceipt() {
+        return txReceiptStore.getTxReciptStore();
+    }
+
+    @Override
+    public TransactionReceipt getTransactionReceipt(String hashOfTx) {
+        return txReceiptStore.get(hashOfTx);
     }
 }
