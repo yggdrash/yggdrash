@@ -13,9 +13,9 @@ public class Runtime {
         String data = tx.getBody();
         JSONParser jsonParser = new JSONParser();
         JSONObject txBody = (JSONObject) jsonParser.parse(data);
-        String operator = txBody.get("operator").toString();
+        String operator = txBody.get("operator").toString().toLowerCase();
         String from = tx.getAddress().toString();
-        String to = txBody.get("to").toString();
+        String to = txBody.get("to").toString().toUpperCase();
         String amount = txBody.get("amount").toString();
 
         Method contractMethod =

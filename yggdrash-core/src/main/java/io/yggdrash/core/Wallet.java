@@ -207,6 +207,7 @@ public class Wallet {
                 }
             }
         }
+        logger.info("wallet address=" + Hex.toHexString(getAddress()));
 
     }
 

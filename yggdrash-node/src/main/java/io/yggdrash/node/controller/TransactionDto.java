@@ -28,6 +28,7 @@ public class TransactionDto {
     private long dataSize;
     private long timestamp;
     private byte[] signature;
+    private String author;
     private String data;
     private String txHash;
 
@@ -91,6 +92,14 @@ public class TransactionDto {
         return txHash;
     }
 
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
     public void setTxHash(String txHash) {
         this.txHash = txHash;
     }
@@ -122,6 +131,7 @@ public class TransactionDto {
         transactionDto.setDataSize(raw.getDataSize());
         transactionDto.setTimestamp(raw.getTimestamp());
         transactionDto.setSignature(tx.getInstance().getHeader().getSignature().toByteArray());
+        transactionDto.setAuthor(tx.getAddress().toString());
         transactionDto.setData(tx.getBody());
         transactionDto.setTxHash(tx.getHash().toString());
         return transactionDto;
