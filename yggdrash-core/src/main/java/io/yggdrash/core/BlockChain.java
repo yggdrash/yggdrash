@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.Set;
 
 public class BlockChain {
@@ -26,7 +25,7 @@ public class BlockChain {
             this.prevBlock = this.genesisBlock;
             this.blockStore = new BlockStore(getChainId());
             loadBlockChain();
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new NotValidateException(e);
         }
     }

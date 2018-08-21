@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.store;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
@@ -37,7 +36,7 @@ public class BlockStoreTest {
     }
 
     @Test
-    public void shouldBeGotBlock() throws InvalidProtocolBufferException {
+    public void shouldBeGotBlock() {
         blockStore = new BlockStore(
                 new LevelDbDataSource(getPath(), "get-test"));
         BlockHusk blockHuskFixture = getBlockHuskFixture();

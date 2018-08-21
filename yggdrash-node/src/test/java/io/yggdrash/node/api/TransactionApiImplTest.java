@@ -7,6 +7,7 @@ import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.node.NodeManagerImpl;
 import io.yggdrash.node.TestUtils;
+import io.yggdrash.node.controller.TransactionDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;

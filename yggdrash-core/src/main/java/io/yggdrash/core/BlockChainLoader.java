@@ -20,6 +20,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import io.yggdrash.proto.Proto;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
 import java.io.IOException;
@@ -63,7 +64,7 @@ class BlockChainLoader {
                                 .setDataSize(Long.parseLong(branchInfo.dataSize))
                                 .build()
                         )
-                        .setSignature(ByteString.copyFromUtf8(branchInfo.signature))
+                        .setSignature(ByteString.copyFrom(Hex.decode(branchInfo.signature)))
                         .build()
                 )
                 .addAllBody(convertTransaction(branchInfo.data))
@@ -82,7 +83,7 @@ class BlockChainLoader {
                                     .setDataSize(Long.parseLong(branchData.dataSize))
                                     .build()
                             )
-                            .setSignature(ByteString.copyFromUtf8(branchData.signature))
+                            .setSignature(ByteString.copyFrom(Hex.decode(branchData.signature)))
                             .build()
                     )
                     .setBody(mapper.writeValueAsString(branchData.data)).build()
