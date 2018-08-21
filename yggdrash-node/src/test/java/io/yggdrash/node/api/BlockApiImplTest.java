@@ -37,7 +37,7 @@ public class BlockApiImplTest {
     @Test
     public void getBlockByHashTest() {
         try {
-            String hashOfBlock = blockApi.getBlockByHash("0", true).getPrevBlockHash();
+            String hashOfBlock = blockApi.getBlockByHash("0", true).getPrevHash().toString();
             assertThat(blockApi.getBlockByHash(hashOfBlock, true)).isNotNull();
         } catch (Exception exception) {
             log.debug("getBlockByHashTest :: exception : " + exception);

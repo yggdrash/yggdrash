@@ -16,6 +16,7 @@
 
 package io.yggdrash.node.config;
 
+import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.TransactionStore;
@@ -43,7 +44,7 @@ public class StoreConfiguration {
 
     @Bean
     BlockChain blockChain(BlockStore blockStore) {
-        return new BlockChain(new File(""));
+        return new BlockChain(new File(getClass().getClassLoader().getResource("branch-sample.json").getFile()));
     }
 
     @Bean
@@ -78,5 +79,10 @@ public class StoreConfiguration {
     @Bean(name = "txDbSource")
     DbSource txDbSource() {
         return new HashMapDbSource();
+    }
+
+    @Bean
+    StateStore stateStore() {
+        return new StateStore();
     }
 }

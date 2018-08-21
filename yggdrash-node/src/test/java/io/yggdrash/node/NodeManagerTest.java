@@ -16,6 +16,7 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.TransactionHusk;
@@ -69,6 +70,7 @@ public class NodeManagerTest {
         BlockStore blockStore = new BlockStore(new HashMapDbSource());
         nodeManager.setTransactionStore(transactionStore);
 
+        nodeManager.setStateStore(new StateStore());
         nodeManager.setBlockChain(new BlockChain(new File("")));
         nodeManager.setNodeHealthIndicator(mock(NodeHealthIndicator.class));
         nodeManager.init();

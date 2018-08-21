@@ -55,5 +55,5 @@ public interface NodeManager extends PeerEventListener {
 
     StateStore getStateStore();
 
-    Integer getBalanceOf(String address);
+    Long getBalanceOf(String address);
 }

@@ -16,8 +16,11 @@
 
 package io.yggdrash.node;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.CoinContract;
+import io.yggdrash.contract.GenesisFrontierParam;
 import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
@@ -26,12 +29,14 @@ import io.yggdrash.core.Runtime;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.net.GrpcClientChannel;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.node.config.NodeProperties;
+import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,8 +46,12 @@ import javax.annotation.PreDestroy;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
+
+import static io.yggdrash.contract.GenesisFrontierParam.Balance;
 
 @Service
 public class NodeManagerImpl implements NodeManager {
@@ -99,17 +108,17 @@ public class NodeManagerImpl implements NodeManager {
 
     @Override
     public void init() {
-        this.stateStore = new StateStore();
         log.debug("\n\n getStateStore : " + getStateStore());
-        NodeProperties.Grpc grpc = nodeProperties.getGrpc();
         try {
+            initFrontiers();
             Set<TransactionHusk> txList = transactionStore.getAll();
             executeAllTx(txList);
         } catch (Exception e) {
-            log.error(e.getMessage());
+            throw new FailedOperationException(e);
         }
 
         messageSender.setListener(this);
+        NodeProperties.Grpc grpc = nodeProperties.getGrpc();
         peer = Peer.valueOf(wallet.getNodeId(), grpc.getHost(), grpc.getPort());
         requestPeerList();
         activatePeers();
@@ -122,16 +131,20 @@ public class NodeManagerImpl implements NodeManager {
         nodeHealthIndicator.up();
     }
 
-    private void executeAllTx(Set<TransactionHusk> txList) throws Exception {
+    private void executeAllTx(Set<TransactionHusk> txList) {
         CoinContract coinContract = new CoinContract(stateStore);
         Runtime runtime = new Runtime();
-        for (TransactionHusk tx : txList) {
-            runtime.execute(coinContract, tx);
+        try {
+            for (TransactionHusk tx : txList) {
+                runtime.execute(coinContract, tx);
+            }
+        } catch (Exception e) {
+            throw new FailedOperationException(e);
         }
     }
 
     @Override
-    public Integer getBalanceOf(String address) {
+    public Long getBalanceOf(String address) {
         return stateStore.getState().get(address);
     }
 
@@ -152,8 +165,11 @@ public class NodeManagerImpl implements NodeManager {
 
     @Override
     public TransactionHusk addTransaction(TransactionHusk tx) {
-        if (transactionStore.contains(tx.getHash()) || !tx.verify()) {
-            return null;
+        if (transactionStore.contains(tx.getHash())) {
+            throw new FailedOperationException("Duplicated " + tx.getHash().toString()
+                    + " Transaction");
+        } else if (!tx.verify()) {
+            throw new InvalidSignatureException();
         }
 
         try {
@@ -181,6 +197,7 @@ public class NodeManagerImpl implements NodeManager {
                 new ArrayList<>(transactionStore.getUnconfirmedTxs()), blockChain.getPrevBlock());
 
         blockChain.addBlock(block);
+        executeAllTx(new TreeSet<>(block.getBody()));
         messageSender.newBlock(block);
         removeTxByBlock(block);
         return block;
@@ -350,5 +367,30 @@ public class NodeManagerImpl implements NodeManager {
     @Autowired
     public void setBlockChain(BlockChain blockChain) {
         this.blockChain = blockChain;
+    }
+
+    @Autowired
+    public void setStateStore(StateStore stateStore) {
+        this.stateStore = stateStore;
+    }
+
+    private void initFrontiers() throws Exception {
+        if (blockChain.getLastIndex() > 1) {
+            log.warn("It's not a genesis blockchain");
+            return;
+        }
+        // TODO temporary execute genesis yeed tx
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+        Proto.Transaction tx = blockChain.getBlockByIndex(0).getInstance().getBodyList().get(0);
+        GenesisFrontierParam param = mapper.readValue(tx.getBody(), GenesisFrontierParam.class);
+        if (!param.isGenesisOp()) {
+            return;
+        }
+        for (Map.Entry<String, Balance> element : param.getFrontier().entrySet()) {
+            String balance = element.getValue().getBalance();
+            stateStore.getState().put(element.getKey(), Long.parseLong(balance));
+        }
     }
 }

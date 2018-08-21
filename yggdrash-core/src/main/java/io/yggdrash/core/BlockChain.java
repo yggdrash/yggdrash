@@ -1,6 +1,5 @@
 package io.yggdrash.core;
 
-import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
@@ -10,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Set;
 
 public class BlockChain {
@@ -25,6 +23,7 @@ public class BlockChain {
     public BlockChain(File infoFile) {
         try {
             this.genesisBlock = new BlockChainLoader(infoFile).getGenesis();
+            this.prevBlock = this.genesisBlock;
             this.blockStore = new BlockStore(getChainId());
             loadBlockChain();
         } catch (IOException e) {
@@ -34,7 +33,7 @@ public class BlockChain {
 
     private void loadBlockChain() {
         try {
-            blockStore.get(genesisBlock.getHash());
+            prevBlock = blockStore.get(genesisBlock.getHash());
         } catch (NonExistObjectException e) {
             blockStore.put(genesisBlock.getHash(), genesisBlock);
         }
@@ -94,7 +93,7 @@ public class BlockChain {
         if (prevBlock.getIndex() + 1 != nextBlock.getIndex()) {
             log.warn("invalid index: prev:{} / new:{}", prevBlock.getIndex(), nextBlock.getIndex());
             return false;
-        } else if (!Arrays.equals(prevBlock.getHash().getBytes(), nextBlock.getPrevHash())) {
+        } else if (!prevBlock.equals(nextBlock)) {
             log.warn("invalid previous hash");
             return false;
         }
@@ -125,7 +124,7 @@ public class BlockChain {
         if (blockChain.getPrevBlock() != null) {
             BlockHusk block = blockChain.getPrevBlock(); // Get Last Block
             while (block.getIndex() != 0L) {
-                block = blockChain.getBlockByHash(block.getPrevBlockHash());
+                block = blockChain.getBlockByHash(block.getPrevHash());
             }
             return block.getIndex() == 0L;
         }
@@ -191,7 +190,7 @@ public class BlockChain {
                 .append(genesisBlock.getHash()).append("\n").append("currentBlock=" + "[")
                 .append(prevBlock.getIndex()).append("]").append(prevBlock.getHash()).append("\n");
 
-        String prevBlockHash = this.prevBlock.getPrevBlockHash();
+        String prevBlockHash = this.prevBlock.getPrevHash().toString();
         if (prevBlockHash == null) {
             prevBlockHash = "";
         }
@@ -201,7 +200,7 @@ public class BlockChain {
                     .append(blockStore.get(new Sha3Hash(prevBlockHash)).getIndex())
                     .append("]").append(prevBlockHash).append("\n");
 
-            prevBlockHash = blockStore.get(new Sha3Hash(prevBlockHash)).getPrevBlockHash();
+            prevBlockHash = blockStore.get(new Sha3Hash(prevBlockHash)).getPrevHash().toString();
 
         } while (prevBlockHash != null
                 && !prevBlockHash.equals(

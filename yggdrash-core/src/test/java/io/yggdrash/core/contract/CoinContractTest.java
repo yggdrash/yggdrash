@@ -20,7 +20,7 @@ public class CoinContractTest {
 
     @Test
     public void balanceTest() {
-        Integer res = coinContract.balance("aaa2aaab0fb041c5cb2a60a12291cbc3097352bb");
+        Long res = coinContract.balance("aaa2aaab0fb041c5cb2a60a12291cbc3097352bb");
         assertThat(res).isEqualTo(10);
     }
 

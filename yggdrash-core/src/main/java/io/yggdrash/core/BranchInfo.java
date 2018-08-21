@@ -16,19 +16,23 @@
 
 package io.yggdrash.core;
 
-import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.contract.GenesisFrontierParam;
+
+import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BranchInfo {
     public String type;
     public String version;
+    public String index;
+    public String timestamp;
     public String prevBlockHash;
     public String merkleRoot;
-    public String timestamp;
     public String dataSize;
     public String signature;
+    public List<BranchData> data;
 
     public BranchInfo() {
     }
@@ -47,6 +51,18 @@ public class BranchInfo {
                 + ", timestamp='" + timestamp + '\''
                 + ", dataSize='" + dataSize + '\''
                 + ", signature='" + signature + '\''
+                + ", data='" + data + '\''
                 + '}';
+    }
+
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class BranchData {
+        public String type;
+        public String version;
+        public String dataHash;
+        public String timestamp;
+        public String dataSize;
+        public String signature;
+        public GenesisFrontierParam data;
     }
 }

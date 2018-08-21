@@ -35,7 +35,7 @@ public interface AccountApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    Integer balanceOf(@JsonRpcParam(value = "address") String address);
+    long balanceOf(@JsonRpcParam(value = "address") String address);
 
     /**
      * Returns the balance of the account of given address.
@@ -46,7 +46,7 @@ public interface AccountApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    int getBalance(@JsonRpcParam(value = "address") String address,
+    long getBalance(@JsonRpcParam(value = "address") String address,
                    @JsonRpcParam(value = "blockNumber") int blockNumber);
 
     /**
@@ -58,6 +58,6 @@ public interface AccountApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    int getBalance(@JsonRpcParam(value = "address") String address,
+    long getBalance(@JsonRpcParam(value = "address") String address,
                    @JsonRpcParam(value = "tag") String tag);
 }

@@ -113,7 +113,7 @@ public class TransactionMockitoTest {
     @Test
     public void sendTransactionTest() {
         when(nodeManagerMock.addTransaction(tx)).thenReturn(tx);
-        String res = txApiImpl.sendTransaction(tx.getInstance());
+        String res = txApiImpl.sendTransaction(TransactionDto.createBy(tx));
         assertEquals(res, hashOfTx);
     }
 

@@ -33,7 +33,7 @@ import java.nio.ByteBuffer;
 import java.security.SignatureException;
 import java.util.Objects;
 
-public class TransactionHusk implements ProtoHusk<Proto.Transaction> {
+public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable<TransactionHusk> {
     private Proto.Transaction transaction;
 
     public TransactionHusk(Proto.Transaction transaction) {
@@ -191,5 +191,11 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction> {
         jsonObject.add("data", new Gson().fromJson(this.getBody(), JsonObject.class));
 
         return jsonObject;
+    }
+
+    @Override
+    public int compareTo(TransactionHusk o) {
+        return Long.compare(transaction.getHeader().getRawData().getTimestamp()
+                ,o.getInstance().getHeader().getRawData().getTimestamp());
     }
 }

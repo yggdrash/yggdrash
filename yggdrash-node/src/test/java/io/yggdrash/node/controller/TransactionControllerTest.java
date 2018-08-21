@@ -21,8 +21,6 @@ import io.yggdrash.node.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
@@ -42,8 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(TransactionController.class)
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
 public class TransactionControllerTest {
-    private static final Logger log = LoggerFactory.getLogger(TransactionControllerTest.class);
-    private static final String FROM = "fb6b782a7f40de97e50181ee31cba6ed352e2a4e";
+
     @Autowired
     private MockMvc mockMvc;
     private JacksonTester<TransactionDto> json;
@@ -66,8 +63,7 @@ public class TransactionControllerTest {
                 .andReturn().getResponse();
 
         assertThat(postResponse.getContentAsString()).contains("transfer");
-
-        String postTxHash = json.parseObject(postResponse.getContentAsString()).getTxHash();
+        String postTxHash = json.parseObject(postResponse.getContentAsString()).getHash();
 
         MockHttpServletResponse getResponse = mockMvc.perform(get("/txs/" + postTxHash))
                 .andExpect(status().isOk())

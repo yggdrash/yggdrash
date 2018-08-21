@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class AccountApiImpl implements AccountApi {
 
     private final ArrayList<String> addresses = new ArrayList<>();
-    private final int balance = 100000;
+    private final long balance = 100000;
     private final NodeManager nodeManager;
 
     @Autowired
@@ -50,12 +50,12 @@ public class AccountApiImpl implements AccountApi {
     }
 
     @Override
-    public Integer balanceOf(String address) {
+    public long balanceOf(String address) {
         return nodeManager.getBalanceOf(address);
     }
 
     @Override
-    public int getBalance(String address, int blockNumber) {
+    public long getBalance(String address, int blockNumber) {
         try {
             return balance;
         } catch (Exception exception) {
@@ -64,7 +64,7 @@ public class AccountApiImpl implements AccountApi {
     }
 
     @Override
-    public int getBalance(String address, String tag) {
+    public long getBalance(String address, String tag) {
         try {
             return balance;
         } catch (Exception exception) {

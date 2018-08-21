@@ -16,14 +16,20 @@
 
 package io.yggdrash.core;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import io.yggdrash.proto.Proto;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import static io.yggdrash.core.BranchInfo.BranchData;
 
 class BlockChainLoader {
+    private ObjectMapper mapper = new ObjectMapper();
     private final File infoFile;
 
     public BlockChainLoader(File infoFile) {
@@ -35,23 +41,54 @@ class BlockChainLoader {
     }
 
     public BranchInfo loadBranchInfo() throws IOException {
-        ObjectMapper mapper = new ObjectMapper();
         return mapper.readValue(infoFile, BranchInfo.class);
     }
 
     private BlockHusk convertJsonToBlock() throws IOException {
         BranchInfo branchInfo = loadBranchInfo();
         //TODO 브랜치 정보 파일 컨버팅
+        return convertBlock(branchInfo);
+    }
+
+    private BlockHusk convertBlock(BranchInfo branchInfo) throws JsonProcessingException {
         return new BlockHusk(Proto.Block.newBuilder()
                 .setHeader(Proto.Block.Header.newBuilder()
                         .setRawData(Proto.Block.Header.Raw.newBuilder()
                                 .setType(ByteString.copyFrom(branchInfo.type.getBytes()))
+                                .setVersion(ByteString.copyFrom(branchInfo.version.getBytes()))
+                                .setIndex(0)
+                                .setTimestamp(Long.parseLong(branchInfo.timestamp))
+                                .setPrevBlockHash(ByteString.copyFrom(branchInfo.prevBlockHash.getBytes()))
+                                .setMerkleRoot(ByteString.copyFrom(branchInfo.merkleRoot.getBytes()))
+                                .setDataSize(Long.parseLong(branchInfo.dataSize))
                                 .build()
                         )
                         .setSignature(ByteString.copyFromUtf8(branchInfo.signature))
                         .build()
                 )
-                .addBody(Proto.Transaction.getDefaultInstance())
+                .addAllBody(convertTransaction(branchInfo.data))
                 .build());
     }
+
+    private List<Proto.Transaction> convertTransaction(List<BranchData> branchDataList) throws JsonProcessingException {
+        List<Proto.Transaction> list = new ArrayList<>();
+        for (BranchData branchData : branchDataList) {
+            list.add(Proto.Transaction.newBuilder()
+                    .setHeader(Proto.Transaction.Header.newBuilder()
+                            .setRawData(Proto.Transaction.Header.Raw.newBuilder()
+                                    .setType(ByteString.copyFrom(branchData.type.getBytes()))
+                                    .setVersion(ByteString.copyFrom(branchData.version.getBytes()))
+                                    .setTimestamp(Long.parseLong(branchData.timestamp))
+                                    .setDataSize(Long.parseLong(branchData.dataSize))
+                                    .build()
+                            )
+                            .setSignature(ByteString.copyFromUtf8(branchData.signature))
+                            .build()
+                    )
+                    .setBody(mapper.writeValueAsString(branchData.data)).build()
+            );
+        }
+        return list;
+    }
+
 }
