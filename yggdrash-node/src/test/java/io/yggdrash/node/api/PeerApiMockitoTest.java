@@ -1,16 +1,20 @@
 package io.yggdrash.node.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.core.net.GrpcClientChannel;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.node.MessageSender;
+import io.yggdrash.node.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -25,18 +29,22 @@ public class PeerApiMockitoTest {
     @Mock
     private MessageSender messageSender;
 
+    private Peer peer1;
+    private Peer peer2;
     private PeerGroup peerGroup;
     private PeerApiImpl peerApi;
     private ArrayList<String> peerList;
     private Map<String, PeerClientChannel> peerChannel = new ConcurrentHashMap<>();
+    private static final PeerApi peerApiRpc = new JsonRpcConfig().peerApi();
+    private static final Logger log = LoggerFactory.getLogger(PeerApiMockitoTest.class);
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         String id1 = "ynode://75bff16c@127.0.0.1:9090";
         String id2 = "ynode://75bff16c@30.30.30.30:9090";
-        Peer peer1 = Peer.valueOf(id1);
-        Peer peer2 = Peer.valueOf(id2);
+        peer1 = Peer.valueOf(id1);
+        peer2 = Peer.valueOf(id2);
         peerGroup = new PeerGroup();
         peerGroup.addPeer(peer1);
         peerGroup.addPeer(peer2);
@@ -64,5 +72,35 @@ public class PeerApiMockitoTest {
     public void getAllActivePeerTest() {
         when(messageSender.getActivePeerList()).thenReturn(peerList);
         assertThat(peerApi.getAllActivePeer().size()).isEqualTo(2);
+    }
+
+    @Test
+    public void addRpcTest() {
+        try {
+            ObjectMapper objectMapper = TestUtils.getMapper();
+            String peerStr = objectMapper.writeValueAsString(peer1);
+            Peer peer = objectMapper.readValue(peerStr, Peer.class);
+            peerApiRpc.add(peer);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void getAllRpcTest() {
+        try {
+            peerApiRpc.getAll();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void getAllActivePeerRpcTest() {
+        try {
+            peerApiRpc.getAllActivePeer();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

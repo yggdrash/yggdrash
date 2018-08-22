@@ -86,8 +86,19 @@
         * [Parameters]()
         * [Returns]()
         * [Example]()
- 
-
+     * [[peer] add](#add)
+        * [Parameters]()
+        * [Returns]()
+        * [Example]()     
+     * [[peer] getAll](#get-all)
+        * [Parameters]()
+        * [Returns]()
+        * [Example]()     
+     * [[peer] getAllActivePeer](#get-all-Active-Peer)
+        * [Parameters]()
+        * [Returns]()
+        * [Example]()     
+     
 
 #JSON RPC API 
 
@@ -139,6 +150,9 @@ The examples also do not include the URL/IP & port combination which must be the
 * [newPendingTransactionFilter](#new-pending-transaction-filter)
 * [getTransactionReceipt](#get-transaction-receipt)
 * [getAllTransactionReceipt](#get-all-transaction-receipt)
+* [[peer] add](#add)
+* [[peer] getAll](#get-all)
+* [[peer] getAllActivePeer](#get-all-Active-Peer)
 
 
 ##JSON RPC API Reference
@@ -946,7 +960,7 @@ none
  
 -----
 
-## getTransactionReceipt
+#### getTransactionReceipt
 
 Returns the TransactionRecipt of transaction hash.
 
@@ -993,7 +1007,7 @@ Returns the TransactionRecipt of transaction hash.
  
 -----
 
-## getTransactionReceipt
+#### getTransactionReceipt
 
 Returns all TransactionReceipts.
 
@@ -1040,7 +1054,114 @@ None
 }
 ```
 
+ 
+------
+ 
+#### [Peer] add
+ 
+Add Peer
+ 
+**Parameter**
+ 
+`Object` - Peer object
+ 
+**Returns**
+ 
+`Object` -  Added peer object
+ 
+**Example**
+ 
+```
+// request
+{
+    "id":"77582810",
+    "jsonrpc":"2.0",
+    "method":"add",
+    "params":{
+                "peer":{
+                        "host":"127.0.0.1",
+                        "port":9090,
+                        "ynodeUri":"ynode://75bff16c@127.0.0.1:9090"
+                        }
+              }
+}
 
+// result
+{
+    "jsonrpc":"2.0",
+    "id":"77582810",
+    "result":{
+                "host":"127.0.0.1",
+                "port":9090,
+                "ynodeUri":"ynode://75bff16c@127.0.0.1:9090"
+             }
+}
+```
+ 
+-----
+ 
+#### [Peer] getAll
+ 
+Returns all peers
+  
+**Parameter**
+  
+None
+  
+**Returns**
+  
+`DATA` - List of all peers
+  
+**Example**
+  
+```
+// request
+{
+    "id":"794299408",
+    "jsonrpc":"2.0",
+    "method":"getAll"
+}
+
+// result
+{
+    "jsonrpc":"2.0",
+    "id":"794299408",
+    "result":[{"host":"localhost","port":9090,"ynodeUri":"ynode://9ea9225f0b7db3c697c0a2e09cdd65046899058d16f73378c1559d61aa3e10cd5dc9337142728f5a02faadafab2b926e2998d5bc2b62c2183fab75ca996de2ce@localhost:9090"},{"host":"127.0.0.1","port":9090,"ynodeUri":"ynode://75bff16c@127.0.0.1:9090"}]
+}
+```
+  
+-----
+ 
+#### [Peer] getAllActivePeer
+ 
+Returns all active peers
+  
+**Parameter**
+  
+None
+  
+**Returns**
+  
+`DATA`- List of all active Peer as string
+  
+**Example**
+  
+```
+// request
+{
+    "id":"624771545",
+    "jsonrpc":"2.0",
+    "method":"getAllActivePeer"
+}
+
+// result
+{
+    "jsonrpc":"2.0",
+    "id":"624771545",
+    "result":[]
+}
+```
+ 
 
 
 

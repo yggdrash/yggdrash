@@ -63,4 +63,15 @@ public class JsonRpcConfig {
             return null;
         }
     }
+
+    public PeerApi peerApi() {
+        try {
+            URL url = new URL("http://localhost:8080/api/peer");
+            return ProxyUtil.createClientProxy(getClass().getClassLoader(),
+                    PeerApi.class, jsonRpcHttpClient(url));
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            return null;
+        }
+    }
 }
