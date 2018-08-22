@@ -379,7 +379,8 @@ public class NodeManagerImpl implements NodeManager {
         if (!param.isGenesisOp()) {
             return;
         }
-        for (Map.Entry<String, GenesisFrontierParam.Balance> element : param.getFrontier().entrySet()) {
+        for (Map.Entry<String, GenesisFrontierParam.Balance> element : param.getFrontier()
+                .entrySet()) {
             String balance = element.getValue().getBalance();
             runtime.getStateStore().getState().put(element.getKey(), Long.parseLong(balance));
         }

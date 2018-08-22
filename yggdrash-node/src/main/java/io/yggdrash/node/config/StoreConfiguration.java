@@ -44,7 +44,8 @@ public class StoreConfiguration {
 
     @Bean
     BlockChain blockChain(BlockStore blockStore) {
-        return new BlockChain(new File(getClass().getClassLoader().getResource("branch-sample.json").getFile()));
+        return new BlockChain(new File(getClass().getClassLoader()
+                .getResource("branch-sample.json").getFile()));
     }
 
     @Bean

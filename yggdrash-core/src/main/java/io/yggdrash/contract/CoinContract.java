@@ -6,11 +6,13 @@ import com.google.gson.JsonParser;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
 public class CoinContract implements Contract {
-
+    private static final Logger log = LoggerFactory.getLogger(CoinContract.class);
     private Map<String, Long> state;
     private TransactionReceiptStore txReceiptStore;
     private String sender;
@@ -74,7 +76,7 @@ public class CoinContract implements Contract {
      * Returns TransactionRecipt (invoke)
      */
     public TransactionReceipt transfer(JsonArray params) {
-        System.out.println("\n transfer :: params => " + params);
+        log.info("\n transfer :: params => " + params);
         String to = params.get(0).getAsJsonObject().get("address").getAsString();
         long amount = params.get(1).getAsJsonObject().get("amount").getAsInt();
 
@@ -88,7 +90,7 @@ public class CoinContract implements Contract {
 
             if (balanceOfFrom - amount < 0) {
                 txRecipt.setStatus(0);
-                System.out.println("\n[ERR] " + sender + " has no enough balance!");
+                log.info("\n[ERR] " + sender + " has no enough balance!");
             } else {
                 balanceOfFrom -= amount;
                 state.replace(sender, balanceOfFrom);
@@ -99,13 +101,13 @@ public class CoinContract implements Contract {
                 } else {
                     state.put(to, amount);
                 }
-                System.out.println(
+                log.info(
                         "\nBalance of From : " + state.get(sender)
                                 + "\nBalance of To   : " + state.get(to));
             }
         } else {
             txRecipt.setStatus(0);
-            System.out.println("\n[ERR] " + sender + " has no balance!");
+            log.info("\n[ERR] " + sender + " has no balance!");
         }
         return txRecipt;
     }

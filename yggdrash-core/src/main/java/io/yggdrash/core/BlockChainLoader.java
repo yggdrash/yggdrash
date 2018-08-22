@@ -59,8 +59,10 @@ class BlockChainLoader {
                                 .setVersion(ByteString.copyFrom(branchInfo.version.getBytes()))
                                 .setIndex(0)
                                 .setTimestamp(Long.parseLong(branchInfo.timestamp))
-                                .setPrevBlockHash(ByteString.copyFrom(branchInfo.prevBlockHash.getBytes()))
-                                .setMerkleRoot(ByteString.copyFrom(branchInfo.merkleRoot.getBytes()))
+                                .setPrevBlockHash(ByteString.copyFrom(branchInfo.prevBlockHash
+                                        .getBytes()))
+                                .setMerkleRoot(ByteString.copyFrom(branchInfo.merkleRoot
+                                        .getBytes()))
                                 .setDataSize(Long.parseLong(branchInfo.dataSize))
                                 .build()
                         )
@@ -71,7 +73,8 @@ class BlockChainLoader {
                 .build());
     }
 
-    private List<Proto.Transaction> convertTransaction(List<BranchData> branchDataList) throws JsonProcessingException {
+    private List<Proto.Transaction> convertTransaction(List<BranchData> branchDataList) throws
+            JsonProcessingException {
         List<Proto.Transaction> list = new ArrayList<>();
         for (BranchData branchData : branchDataList) {
             list.add(Proto.Transaction.newBuilder()
