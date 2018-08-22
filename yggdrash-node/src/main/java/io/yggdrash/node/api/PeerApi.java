@@ -5,7 +5,7 @@ import com.googlecode.jsonrpc4j.JsonRpcErrors;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.node.exception.NonExistObjectException;
+import io.yggdrash.core.exception.NonExistObjectException;
 
 import java.util.Collection;
 import java.util.List;

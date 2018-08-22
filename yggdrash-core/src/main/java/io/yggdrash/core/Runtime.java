@@ -23,4 +23,9 @@ public class Runtime {
         contract.init(stateStore, txReceiptStore);
         return contract.query(query);
     }
+
+    public StateStore getStateStore() {
+        return this.stateStore;
+    }
+
 }

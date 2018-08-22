@@ -7,6 +7,7 @@ import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.node.TestUtils;
+import io.yggdrash.node.controller.TransactionDto;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Before;
 import org.junit.Test;
@@ -128,7 +129,7 @@ public class TransactionMockitoTest {
     @Test
     public void sendTransactionTest() {
         when(nodeManagerMock.addTransaction(tx)).thenReturn(tx);
-        String res = txApiImpl.sendTransaction(tx.getInstance());
+        String res = txApiImpl.sendTransaction(TransactionDto.createBy(tx));
         assertEquals(res, hashOfTx);
     }
 

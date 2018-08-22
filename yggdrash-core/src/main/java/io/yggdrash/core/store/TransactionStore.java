@@ -82,7 +82,7 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
         txObj.add("params", params);
 
         TransactionHusk tx = new TransactionHusk(txObj).sign(wallet);
-        put(tx);
+        put(tx.getHash(), tx);
     }
     /* method for test (end) */
 
@@ -106,15 +106,19 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     }
 
     @Override
-    public void put(TransactionHusk tx) {
-        huskTxPool.put(tx.getHash(), tx);
-        unconfirmedTxs.add(tx.getHash());
+    public void put(Sha3Hash key, TransactionHusk tx) {
+        huskTxPool.put(key, tx);
+        unconfirmedTxs.add(key);
     }
 
     @Override
-    public TransactionHusk get(Sha3Hash key) throws InvalidProtocolBufferException {
+    public TransactionHusk get(Sha3Hash key) {
         TransactionHusk item = huskTxPool.get(key);
-        return item != null ? item : new TransactionHusk(db.get(key.getBytes()));
+        try {
+            return item != null ? item : new TransactionHusk(db.get(key.getBytes()));
+        } catch (InvalidProtocolBufferException e) {
+            throw new IllegalArgumentException(e);
+        }
     }
 
     public void batchAll() {

@@ -18,23 +18,28 @@ package io.yggdrash.node;
 
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.Runtime;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.core.store.BlockStore;
+import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.util.ByteUtil;
+import io.yggdrash.util.FileUtil;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
+import java.io.File;
+import java.nio.file.Paths;
 import java.util.Collections;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -65,10 +70,12 @@ public class NodeManagerTest {
         nodeManager.setWallet(new Wallet());
 
         TransactionStore transactionStore = new TransactionStore(new HashMapDbSource());
-        BlockStore blockStore = new BlockStore(new HashMapDbSource());
         nodeManager.setTransactionStore(transactionStore);
-
-        nodeManager.setBlockChain(new BlockChain(blockStore));
+        Runtime runtime = new Runtime(new TransactionReceiptStore());
+        nodeManager.setRuntime(runtime);
+        nodeManager.setBlockChain(new BlockChain(
+                new File(getClass().getClassLoader()
+                        .getResource("branch-sample.json").getFile())));
         nodeManager.setNodeHealthIndicator(mock(NodeHealthIndicator.class));
         nodeManager.init();
         assert nodeManager.getNodeUri() != null;
@@ -79,6 +86,12 @@ public class NodeManagerTest {
                 firstBlock);
     }
 
+    @After
+    public void tearDown() throws Exception {
+        //TODO 테스트 설정 파일에서 DB 부분 제거
+        FileUtil.recursiveDelete(Paths.get(".yggdrash/db"));
+    }
+
     @Test
     public void addTransactionTest() {
         nodeManager.addTransaction(tx);
@@ -86,9 +99,9 @@ public class NodeManagerTest {
         assert pooledTx.getHash().equals(tx.getHash());
     }
 
-    @Test
+    @Test(expected = InvalidSignatureException.class)
     public void unsignedTxTest() {
-        assert nodeManager.addTransaction(TestUtils.createUnsignedTxHusk()) == null;
+        nodeManager.addTransaction(TestUtils.createUnsignedTxHusk());
     }
 
     @Test(expected = FailedOperationException.class)

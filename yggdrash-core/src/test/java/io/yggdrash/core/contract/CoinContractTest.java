@@ -2,6 +2,7 @@ package io.yggdrash.core.contract;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.TestUtils;
 import io.yggdrash.contract.CoinContract;
 import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.TransactionHusk;
@@ -43,18 +44,8 @@ public class CoinContractTest {
     @Test
     public void transferTest() throws Exception {
         Wallet wallet = new Wallet();
-        JsonArray params = new JsonArray();
-        JsonObject param1 = new JsonObject();
-        param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        JsonObject param2 = new JsonObject();
-        param2.addProperty("amount", 100);
-        params.add(param1);
-        params.add(param2);
-        JsonObject txObj = new JsonObject();
-        txObj.addProperty("method", "transfer");
-        txObj.add("params", params);
 
-        TransactionHusk tx = new TransactionHusk(txObj).sign(wallet);
+        TransactionHusk tx = new TransactionHusk(TestUtils.getTransfer()).sign(wallet);
         boolean result = coinContract.invoke(tx);
         assertThat(result).isTrue();
     }

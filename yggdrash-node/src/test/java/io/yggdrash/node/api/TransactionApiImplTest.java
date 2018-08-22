@@ -10,7 +10,6 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.node.NodeManagerImpl;
 import io.yggdrash.node.TestUtils;
 import io.yggdrash.node.controller.TransactionDto;
-import io.yggdrash.proto.Proto;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -88,9 +87,9 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByHashTest() {
         try {
-            Proto.Transaction tx = TestUtils.createDummyTx();
+            TransactionHusk tx = TestUtils.createTxHusk();
 
-            txApi.sendTransaction(tx);
+            txApi.sendTransaction(TransactionDto.createBy(tx));
             assertThat(txApi.getTransactionByHash(hashOfTx)).isNotNull();
         } catch (Exception exception) {
             log.debug("\n\ngetTransactionByHashTest :: exception => " + exception);
@@ -101,7 +100,7 @@ public class TransactionApiImplTest {
     public void getTransactionByBlockHashAndIndexTest() {
         try {
             TransactionHusk tx = new TransactionHusk(getJson()).sign(wallet);
-            if (txApi.sendTransaction(tx.getInstance()) != null) {
+            if (txApi.sendTransaction(TransactionDto.createBy(tx)) != null) {
                 Thread.sleep(10000);
                 String hashOfBlock = blockApi.getBlockByHash("1", true).getHash().toString();
                 assertThat(hashOfBlock).isNotEmpty();
@@ -135,11 +134,17 @@ public class TransactionApiImplTest {
     @Test
     public void sendTransactionTest() {
         // Get Transaction of JsonString as Param
-        TransactionHusk tx = new TransactionHusk(getJson()).sign(wallet);
+        JsonObject txObj = new JsonObject();
+        // curl -H "Content-Type:application/json" -d '{"id":"417871823","jsonrpc":"2.0","method":"sendTransaction","params":{"tx":{"type":"AAAAAQ==","version":"AAAAAQ==","data":"{\"operator\":\"transfer\",\"to\":\"aaa2aaab0fb041c5cb2a60a12291cbc3097352bb\",\"amount\":\"5000\"}","dataHash":"pSVVRYkZoZ/vwloCiMYOOvVetfjH/v2H72cCQQPxcCQ=","dataSize":87,"timestamp":37359937272746,"signature":"HKFdNaoBNeUEd1sLLBm1/Wy3x/GvJFP1PA86x8OTbxV5FypW/GZ2t4tFwp+giBnU/6BUZni8QTJFyNqRznl7ZmY=","address":"6f19c769c78513a3a60a3618c6a11eb9a886086a","hash":"078ecf76b29485b6cfd4b929e944efc5f290e7428f8179c86a9acf8c22b9907e"}}}' localhost:8080/api/transaction
+        txObj.addProperty("operator", "transfer");
+        txObj.addProperty("to", "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb");
+        txObj.addProperty("amount", "5000");
+
+        TransactionHusk tx = new TransactionHusk(txObj).sign(wallet);
 
         // Request Transaction with jsonStr
         try {
-            assertThat(txApi.sendTransaction(tx.getInstance())).isNotEmpty();
+            assertThat(txApi.sendTransaction(TransactionDto.createBy(tx))).isNotEmpty();
         } catch (Exception exception) {
             log.debug("\n\njsonStringToTxTest :: exception => " + exception);
         }

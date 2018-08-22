@@ -9,7 +9,7 @@ import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.RejectedAccessException;
-import io.yggdrash.proto.Proto;
+import io.yggdrash.node.controller.TransactionDto;
 
 import java.util.HashMap;
 
@@ -140,7 +140,7 @@ public interface TransactionApi {
             @JsonRpcError(exception = FailedOperationException.class,
                     code = FailedOperationException.code)})
     String sendTransaction(
-            @JsonRpcParam(value = "tx") Proto.Transaction tx);
+            @JsonRpcParam(value = "tx") TransactionDto tx);
 
     /**
      * Creates new message call transaction or a contract creation for signed transactions.

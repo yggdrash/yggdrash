@@ -9,6 +9,7 @@ import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.node.controller.TransactionDto;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -117,9 +118,8 @@ public class TransactionApiImpl implements TransactionApi {
 
     /* send */
     @Override
-    public String sendTransaction(Proto.Transaction tx) {
-        TransactionHusk txHusk = new TransactionHusk(tx);
-        TransactionHusk addedTx = nodeManager.addTransaction(txHusk);
+    public String sendTransaction(TransactionDto tx) {
+        TransactionHusk addedTx = nodeManager.addTransaction(TransactionDto.of(tx));
         return addedTx.getHash().toString();
     }
 

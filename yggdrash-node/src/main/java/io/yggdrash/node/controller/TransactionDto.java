@@ -28,40 +28,9 @@ public class TransactionDto {
     private long dataSize;
     private long timestamp;
     private byte[] signature;
+    private String author;
     private String data;
     private String txHash;
-
-    public static TransactionHusk of(TransactionDto dto) {
-        Proto.Transaction.Header header = Proto.Transaction.Header.newBuilder()
-                .setRawData(Proto.Transaction.Header.Raw.newBuilder()
-                        .setType(ByteString.copyFrom(dto.getType()))
-                        .setVersion(ByteString.copyFrom(dto.getType()))
-                        .setDataHash(ByteString.copyFrom(dto.getDataHash()))
-                        .setDataSize(dto.getDataSize())
-                        .setTimestamp(dto.getTimestamp())
-                        .build())
-                .setSignature(ByteString.copyFrom(dto.getSignature()))
-                .build();
-        Proto.Transaction tx = Proto.Transaction.newBuilder()
-                .setHeader(header)
-                .setBody(dto.getData())
-                .build();
-        return new TransactionHusk(tx);
-    }
-
-    public static TransactionDto createBy(TransactionHusk tx) {
-        TransactionDto transactionDto = new TransactionDto();
-        Proto.Transaction.Header.Raw raw = tx.getInstance().getHeader().getRawData();
-        transactionDto.setType(raw.getType().toByteArray());
-        transactionDto.setVersion(raw.getVersion().toByteArray());
-        transactionDto.setDataHash(raw.getDataHash().toByteArray());
-        transactionDto.setDataSize(raw.getDataSize());
-        transactionDto.setTimestamp(raw.getTimestamp());
-        transactionDto.setSignature(tx.getInstance().getHeader().getSignature().toByteArray());
-        transactionDto.setData(tx.getBody());
-        transactionDto.setTxHash(tx.getHash().toString());
-        return transactionDto;
-    }
 
     public byte[] getType() {
         return type;
@@ -123,7 +92,49 @@ public class TransactionDto {
         return txHash;
     }
 
+    public String getAuthor() {
+        return author;
+    }
+
+    public void setAuthor(String author) {
+        this.author = author;
+    }
+
     public void setTxHash(String txHash) {
         this.txHash = txHash;
     }
+
+    public static TransactionHusk of(TransactionDto dto) {
+        Proto.Transaction.Header header = Proto.Transaction.Header.newBuilder()
+                .setRawData(Proto.Transaction.Header.Raw.newBuilder()
+                        .setType(ByteString.copyFrom(dto.getType()))
+                        .setVersion(ByteString.copyFrom(dto.getType()))
+                        .setDataHash(ByteString.copyFrom(dto.getDataHash()))
+                        .setDataSize(dto.getDataSize())
+                        .setTimestamp(dto.getTimestamp())
+                        .build())
+                .setSignature(ByteString.copyFrom(dto.getSignature()))
+                .build();
+        Proto.Transaction tx = Proto.Transaction.newBuilder()
+                .setHeader(header)
+                .setBody(dto.getData())
+                .build();
+        return new TransactionHusk(tx);
+    }
+
+    public static TransactionDto createBy(TransactionHusk tx) {
+        TransactionDto transactionDto = new TransactionDto();
+        Proto.Transaction.Header.Raw raw = tx.getInstance().getHeader().getRawData();
+        transactionDto.setType(raw.getType().toByteArray());
+        transactionDto.setVersion(raw.getVersion().toByteArray());
+        transactionDto.setDataHash(raw.getDataHash().toByteArray());
+        transactionDto.setDataSize(raw.getDataSize());
+        transactionDto.setTimestamp(raw.getTimestamp());
+        transactionDto.setSignature(tx.getInstance().getHeader().getSignature().toByteArray());
+        transactionDto.setAuthor(tx.getAddress().toString());
+        transactionDto.setData(tx.getBody());
+        transactionDto.setTxHash(tx.getHash().toString());
+        return transactionDto;
+    }
+
 }

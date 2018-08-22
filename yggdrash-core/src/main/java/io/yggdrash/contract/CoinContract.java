@@ -7,11 +7,11 @@ import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.store.TransactionReceiptStore;
 
-import java.util.HashMap;
+import java.util.Map;
 
 public class CoinContract implements Contract {
 
-    private HashMap<String, Integer> state;
+    private Map<String, Long> state;
     private TransactionReceiptStore txReceiptStore;
     private String sender;
 
@@ -62,12 +62,12 @@ public class CoinContract implements Contract {
      *
      * @param params   account address
      */
-    public Integer balanceOf(JsonArray params) {
+    public Long balanceOf(JsonArray params) {
         String address = params.get(0).getAsJsonObject().get("address").getAsString();
         if (state.get(address) != null) {
             return state.get(address);
         }
-        return 0;
+        return 0L;
     }
 
     /**
@@ -76,15 +76,15 @@ public class CoinContract implements Contract {
     public TransactionReceipt transfer(JsonArray params) {
         System.out.println("\n transfer :: params => " + params);
         String to = params.get(0).getAsJsonObject().get("address").getAsString();
-        Integer amount = params.get(1).getAsJsonObject().get("amount").getAsInt();
+        long amount = params.get(1).getAsJsonObject().get("amount").getAsInt();
 
         TransactionReceipt txRecipt = new TransactionReceipt();
         txRecipt.txLog.put("from", sender);
         txRecipt.txLog.put("to", to);
-        txRecipt.txLog.put("amount", amount.toString());
+        txRecipt.txLog.put("amount", String.valueOf(amount));
 
         if (state.get(sender) != null) {
-            Integer balanceOfFrom = state.get(sender);
+            long balanceOfFrom = state.get(sender);
 
             if (balanceOfFrom - amount < 0) {
                 txRecipt.setStatus(0);
@@ -93,7 +93,7 @@ public class CoinContract implements Contract {
                 balanceOfFrom -= amount;
                 state.replace(sender, balanceOfFrom);
                 if (state.get(to) != null) {
-                    Integer balanceOfTo = state.get(to);
+                    long balanceOfTo = state.get(to);
                     balanceOfTo += amount;
                     state.replace(to, balanceOfTo);
                 } else {
