@@ -19,7 +19,6 @@ import org.spongycastle.util.encoders.Base64;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.security.SignatureException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -133,12 +132,18 @@ public class TransactionApiImplTest {
 
     @Test
     public void sendTransactionTest() {
+        // curl -H "Content-Type:application/json" -d 'replaceme' localhost:8080/api/transaction
         // Get Transaction of JsonString as Param
+        JsonArray params = new JsonArray();
+        JsonObject param1 = new JsonObject();
+        param1.addProperty("address", "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb");
+        JsonObject param2 = new JsonObject();
+        param2.addProperty("amount", 5000);
+        params.add(param1);
+        params.add(param2);
         JsonObject txObj = new JsonObject();
-        // curl -H "Content-Type:application/json" -d '{"id":"417871823","jsonrpc":"2.0","method":"sendTransaction","params":{"tx":{"type":"AAAAAQ==","version":"AAAAAQ==","data":"{\"operator\":\"transfer\",\"to\":\"aaa2aaab0fb041c5cb2a60a12291cbc3097352bb\",\"amount\":\"5000\"}","dataHash":"pSVVRYkZoZ/vwloCiMYOOvVetfjH/v2H72cCQQPxcCQ=","dataSize":87,"timestamp":37359937272746,"signature":"HKFdNaoBNeUEd1sLLBm1/Wy3x/GvJFP1PA86x8OTbxV5FypW/GZ2t4tFwp+giBnU/6BUZni8QTJFyNqRznl7ZmY=","address":"6f19c769c78513a3a60a3618c6a11eb9a886086a","hash":"078ecf76b29485b6cfd4b929e944efc5f290e7428f8179c86a9acf8c22b9907e"}}}' localhost:8080/api/transaction
-        txObj.addProperty("operator", "transfer");
-        txObj.addProperty("to", "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb");
-        txObj.addProperty("amount", "5000");
+        txObj.addProperty("method", "transfer");
+        txObj.add("params", params);
 
         TransactionHusk tx = new TransactionHusk(txObj).sign(wallet);
 
@@ -218,7 +223,7 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    public void txSigValidateTest() throws IOException,SignatureException {
+    public void txSigValidateTest() throws IOException {
         // Create Transaction
         TransactionHusk tx = new TransactionHusk(getJson()).sign(wallet);
 

@@ -103,7 +103,7 @@ public class TestUtils {
     public static JsonObject getTransfer() {
         JsonArray params = new JsonArray();
         JsonObject param1 = new JsonObject();
-        param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        param1.addProperty("address", "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb");
         JsonObject param2 = new JsonObject();
         param2.addProperty("amount", 100);
         params.add(param1);

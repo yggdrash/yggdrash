@@ -5,7 +5,6 @@ import com.google.gson.JsonParser;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.contract.CoinContract;
 import io.yggdrash.core.Account;
-import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Runtime;
 import io.yggdrash.core.exception.NonExistObjectException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,15 +18,11 @@ public class AccountApiImpl implements AccountApi {
 
     private final ArrayList<String> addresses = new ArrayList<>();
     private final long balance = 100000;
-    private final NodeManager nodeManager;
     private final Runtime runtime;
-    private CoinContract coinContract;
 
     @Autowired
-    public AccountApiImpl(NodeManager nodeManager, Runtime runtime) {
-        this.nodeManager = nodeManager;
+    public AccountApiImpl(Runtime runtime) {
         this.runtime = runtime;
-        this.coinContract = new CoinContract();
     }
 
     @Override
@@ -61,7 +56,7 @@ public class AccountApiImpl implements AccountApi {
     public String balanceOf(String data) throws Exception {
         JsonParser jsonParser = new JsonParser();
         JsonObject query = (JsonObject) jsonParser.parse(data);
-        return runtime.query(coinContract, query).toString();
+        return runtime.query(new CoinContract(), query).toString();
     }
 
     @Override

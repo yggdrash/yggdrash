@@ -7,7 +7,7 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 
 public class Runtime {
 
-    private StateStore stateStore = new StateStore();
+    private final StateStore stateStore = new StateStore();
     private final TransactionReceiptStore txReceiptStore;
 
     public Runtime(TransactionReceiptStore txReceiptStore) {
