@@ -29,7 +29,7 @@ import java.util.List;
 
 import static io.yggdrash.core.BranchInfo.BranchData;
 
-class BlockChainLoader {
+public class BlockChainLoader {
     private ObjectMapper mapper = new ObjectMapper();
     private final File infoFile;
 
