@@ -55,8 +55,8 @@ public class BlockChainLoader {
         return new BlockHusk(Proto.Block.newBuilder()
                 .setHeader(Proto.Block.Header.newBuilder()
                         .setRawData(Proto.Block.Header.Raw.newBuilder()
-                                .setType(ByteString.copyFrom(branchInfo.type.getBytes()))
-                                .setVersion(ByteString.copyFrom(branchInfo.version.getBytes()))
+                                .setType(ByteString.copyFrom(Hex.decode(branchInfo.type)))
+                                .setVersion(ByteString.copyFrom(Hex.decode(branchInfo.version)))
                                 .setIndex(0)
                                 .setTimestamp(Long.parseLong(branchInfo.timestamp))
                                 .setPrevBlockHash(ByteString.copyFrom(branchInfo.prevBlockHash
@@ -77,12 +77,14 @@ public class BlockChainLoader {
             JsonProcessingException {
         List<Proto.Transaction> list = new ArrayList<>();
         for (BranchData branchData : branchDataList) {
+            ByteString byteString = ByteString.copyFrom(Hex.decode(branchData.dataHash));
             list.add(Proto.Transaction.newBuilder()
                     .setHeader(Proto.Transaction.Header.newBuilder()
                             .setRawData(Proto.Transaction.Header.Raw.newBuilder()
-                                    .setType(ByteString.copyFrom(branchData.type.getBytes()))
-                                    .setVersion(ByteString.copyFrom(branchData.version.getBytes()))
+                                    .setType(ByteString.copyFrom(Hex.decode(branchData.type)))
+                                    .setVersion(ByteString.copyFrom(Hex.decode(branchData.version)))
                                     .setTimestamp(Long.parseLong(branchData.timestamp))
+                                    .setDataHash(byteString)
                                     .setDataSize(Long.parseLong(branchData.dataSize))
                                     .build()
                             )

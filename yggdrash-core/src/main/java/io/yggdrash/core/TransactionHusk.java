@@ -20,6 +20,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
+import io.grpc.netty.shaded.io.netty.buffer.ByteBuf;
+import io.grpc.netty.shaded.io.netty.buffer.Unpooled;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.crypto.ECKey;
@@ -64,7 +66,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         Proto.Transaction.Header.Raw updatedRawData = Proto.Transaction.Header.Raw
                 .newBuilder(getHeader().getRawData())
                 .setTimestamp(TimeUtils.time()).build();
-        byte[] signature = wallet.sign(updatedRawData.toByteArray());
+        byte[] signature = wallet.sign(getDataForSigning(updatedRawData));
         this.transaction = Proto.Transaction.newBuilder(transaction)
                 .setHeader(
                         Proto.Transaction.Header.newBuilder()
@@ -131,7 +133,6 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
             if (!isSigned()) {
                 return false;
             }
-
             byte[] hashedRawData = new Sha3Hash(getHeader().getRawData().toByteArray()).getBytes();
             byte[] signatureBin = getHeader().getSignature().toByteArray();
 
@@ -159,12 +160,29 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
      */
     private ECKey ecKey() {
         try {
-            byte[] hashedRawData = new Sha3Hash(getHeader().getRawData().toByteArray()).getBytes();
+            byte[] hashedRawData = new Sha3Hash(getDataForSigning()).getBytes();
+            //byte[] hashedRawData = new Sha3Hash(getHeader().getRawData().toByteArray()).getBytes();
             byte[] signatureBin = getHeader().getSignature().toByteArray();
             return ECKey.signatureToKey(hashedRawData, signatureBin);
         } catch (SignatureException e) {
             throw new InvalidSignatureException(e);
         }
+    }
+
+    public byte[] getDataForSigning() {
+        return getDataForSigning(getHeader().getRawData());
+    }
+
+    private byte[] getDataForSigning(Proto.Transaction.Header.Raw raw) {
+        ByteBuf buf = Unpooled.directBuffer();
+        buf.writeBytes(raw.getType().toByteArray());
+        buf.writeBytes(raw.getVersion().toByteArray());
+        buf.writeBytes(raw.getDataHash().toByteArray());
+        buf.writeLong(raw.getDataSize());
+        buf.writeLong(raw.getTimestamp());
+        byte[] bytes = new byte[buf.readableBytes()];
+        buf.readBytes(bytes);
+        return bytes;
     }
 
     /**
