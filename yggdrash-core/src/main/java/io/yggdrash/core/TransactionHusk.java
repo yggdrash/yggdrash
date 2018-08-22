@@ -20,22 +20,28 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
-import io.grpc.netty.shaded.io.netty.buffer.ByteBuf;
-import io.grpc.netty.shaded.io.netty.buffer.Unpooled;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.exception.InvalidSignatureException;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.TimeUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.security.SignatureException;
 import java.util.Objects;
 
 public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable<TransactionHusk> {
+
+    private static final Logger log = LoggerFactory.getLogger(TransactionHusk.class);
+
     private Proto.Transaction transaction;
 
     public TransactionHusk(Proto.Transaction transaction) {
@@ -66,7 +72,23 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         Proto.Transaction.Header.Raw updatedRawData = Proto.Transaction.Header.Raw
                 .newBuilder(getHeader().getRawData())
                 .setTimestamp(TimeUtils.time()).build();
-        byte[] signature = wallet.sign(getDataForSigning(updatedRawData));
+
+        this.transaction = Proto.Transaction.newBuilder(transaction)
+                .setHeader(
+                        Proto.Transaction.Header.newBuilder()
+                                .setRawData(updatedRawData)
+                                .build())
+                .build();
+
+        log.debug("sign: wallet pubKey=" + Hex.toHexString(wallet.getPubicKey()));
+        log.debug("sign: wallet address=" + Hex.toHexString(wallet.getAddress()));
+
+        byte[] dataForSign = getDataForSigning();
+        log.debug("sign: data for signing=" + Hex.toHexString(dataForSign));
+
+        byte[] signature = wallet.sign(dataForSign);
+        log.debug("sign: signature=" + Hex.toHexString(signature));
+
         this.transaction = Proto.Transaction.newBuilder(transaction)
                 .setHeader(
                         Proto.Transaction.Header.newBuilder()
@@ -82,8 +104,22 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
     }
 
     public Sha3Hash getHash() {
-        return new Sha3Hash(getHeader().toByteArray());
+        ByteArrayOutputStream transaction = new ByteArrayOutputStream();
+
+        try {
+            transaction.write(getHeader().getRawData().getType().toByteArray());
+            transaction.write(getHeader().getRawData().getVersion().toByteArray());
+            transaction.write(getHeader().getRawData().getDataHash().toByteArray());
+            transaction.write(ByteUtil.longToBytes(getHeader().getRawData().getDataSize()));
+            transaction.write(ByteUtil.longToBytes(getHeader().getRawData().getTimestamp()));
+            transaction.write(getHeader().getSignature().toByteArray());
+        } catch (IOException e) {
+            throw new NotValidateException(e);
+        }
+
+        return new Sha3Hash(transaction.toByteArray());
     }
+
 
     public String getBody() {
         return this.transaction.getBody();
@@ -133,12 +169,19 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
             if (!isSigned()) {
                 return false;
             }
-            byte[] hashedRawData = new Sha3Hash(getHeader().getRawData().toByteArray()).getBytes();
+
+            byte[] dataHashForSigning = getDataHashForSigning();
+
             byte[] signatureBin = getHeader().getSignature().toByteArray();
 
             ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signatureBin);
-            ECKey key = ECKey.signatureToKey(hashedRawData, signatureBin);
-            return key.verify(hashedRawData, ecdsaSignature);
+            ECKey key = ECKey.signatureToKey(dataHashForSigning, signatureBin);
+
+            log.debug("verfiy data=" + Hex.toHexString(dataHashForSigning));
+            log.debug("verfiy sig=" + Hex.toHexString(ecdsaSignature.toBinary()));
+            log.debug("verfiy key address=" + Hex.toHexString(key.getAddress()));
+
+            return key.verify(dataHashForSigning, ecdsaSignature);
         } catch (SignatureException e) {
             throw new InvalidSignatureException(e);
         }
@@ -160,29 +203,14 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
      */
     private ECKey ecKey() {
         try {
-            byte[] hashedRawData = new Sha3Hash(getDataForSigning()).getBytes();
-            //byte[] hashedRawData = new Sha3Hash(getHeader().getRawData().toByteArray()).getBytes();
+            byte[] hashedRawData = HashUtil.sha3(getDataForSigning());
             byte[] signatureBin = getHeader().getSignature().toByteArray();
-            return ECKey.signatureToKey(hashedRawData, signatureBin);
+            ECKey.ECDSASignature sig = new ECKey.ECDSASignature(signatureBin);
+
+            return ECKey.signatureToKey(hashedRawData, sig);
         } catch (SignatureException e) {
             throw new InvalidSignatureException(e);
         }
-    }
-
-    public byte[] getDataForSigning() {
-        return getDataForSigning(getHeader().getRawData());
-    }
-
-    private byte[] getDataForSigning(Proto.Transaction.Header.Raw raw) {
-        ByteBuf buf = Unpooled.directBuffer();
-        buf.writeBytes(raw.getType().toByteArray());
-        buf.writeBytes(raw.getVersion().toByteArray());
-        buf.writeBytes(raw.getDataHash().toByteArray());
-        buf.writeLong(raw.getDataSize());
-        buf.writeLong(raw.getTimestamp());
-        byte[] bytes = new byte[buf.readableBytes()];
-        buf.readBytes(bytes);
-        return bytes;
     }
 
     /**
@@ -213,7 +241,39 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
 
     @Override
     public int compareTo(TransactionHusk o) {
-        return Long.compare(transaction.getHeader().getRawData().getTimestamp(),
-                o.getInstance().getHeader().getRawData().getTimestamp());
+        return Long.compare(transaction.getHeader().getRawData().getTimestamp()
+                ,o.getInstance().getHeader().getRawData().getTimestamp());
+    }
+
+    /**
+     * Get the data for signing.
+     *
+     * @return hash of sign data
+     */
+    public byte[] getDataForSigning() {
+        ByteArrayOutputStream transaction = new ByteArrayOutputStream();
+
+        try {
+            transaction.write(getHeader().getRawData().getType().toByteArray());
+            transaction.write(getHeader().getRawData().getVersion().toByteArray());
+            transaction.write(getHeader().getRawData().getDataHash().toByteArray());
+            transaction.write(ByteUtil.longToBytes(getHeader().getRawData().getTimestamp()));
+            transaction.write(ByteUtil.longToBytes(getHeader().getRawData().getDataSize()));
+        } catch (IOException e) {
+            throw new NotValidateException(e);
+        }
+
+        log.debug("tx data for sign=" + Hex.toHexString(transaction.toByteArray()));
+
+        return transaction.toByteArray();
+    }
+
+    /**
+     * Get the data for signing.
+     *
+     * @return hash of sign data
+     */
+    public byte[] getDataHashForSigning() {
+        return HashUtil.sha3(getDataForSigning());
     }
 }
