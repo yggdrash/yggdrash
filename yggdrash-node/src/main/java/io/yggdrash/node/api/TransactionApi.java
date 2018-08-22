@@ -162,7 +162,7 @@ public interface TransactionApi {
     int newPendingTransactionFilter();
 
     /**
-     * Returns all TransactionRecipts
+     * Returns all TransactionReceipts
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
@@ -170,7 +170,7 @@ public interface TransactionApi {
     HashMap<String, TransactionReceipt> getAllTransactionReceipt();
 
     /**
-     * Returns the TransactionRecipt of transaction hash
+     * Returns the TransactionReceipt of transaction hash
      *
      * @param hashOfTx  hash of transaction
      */
