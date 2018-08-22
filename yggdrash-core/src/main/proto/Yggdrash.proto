@@ -36,8 +36,8 @@ message Transaction {
             bytes type = 1;
             bytes version = 2;
             bytes dataHash = 3;
-            uint64 dataSize = 4;
-            uint64 timestamp = 5;
+            uint64 timestamp = 4;
+            uint64 dataSize = 5;
         }
         Raw rawData = 1;
         bytes signature = 2;

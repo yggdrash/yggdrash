@@ -70,4 +70,17 @@ public class TransactionHuskTest {
         body.add("params", params);
         return new TransactionHusk(body);
     }
+
+    @Test
+    public void testForSerializing() throws IOException, InvalidCipherTextException {
+        TransactionHusk transactionHusk = getTransactionHusk();
+
+        Wallet wallet = new Wallet();
+        transactionHusk.sign(wallet);
+
+        JsonObject jsonObject = transactionHusk.toJsonObject();
+
+
+        Assertions.assertThat(transactionHusk.isSigned()).isTrue();
+    }
 }

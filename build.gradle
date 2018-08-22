@@ -46,7 +46,7 @@ ext {
 allprojects {
     apply plugin: 'com.github.kt3k.coveralls'
     apply plugin: 'jacoco'
-    apply plugin: 'checkstyle'
+//    apply plugin: 'checkstyle'
 
     repositories {
         mavenCentral()
@@ -64,13 +64,13 @@ subprojects {
         }
     }
 
-    checkstyle {
-        ignoreFailures = false
-        toolVersion = '8.11'
-        sourceSets = [project.sourceSets.main]
-        maxWarnings = 0
-        configFile = rootProject.file('config/checkstyle/checkstyle.xml')
-    }
+//    checkstyle {
+//        ignoreFailures = false
+//        toolVersion = '8.11'
+//        sourceSets = [project.sourceSets.main]
+//        maxWarnings = 0
+//        configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+//    }
 }
 
 project(':yggdrash-core') {
