@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.CoinContract;
 import io.yggdrash.contract.GenesisFrontierParam;
-import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.NodeManager;
@@ -51,8 +50,6 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 
-import static io.yggdrash.contract.GenesisFrontierParam.Balance;
-
 @Service
 public class NodeManagerImpl implements NodeManager {
     private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
@@ -71,9 +68,9 @@ public class NodeManagerImpl implements NodeManager {
 
     private MessageSender<PeerClientChannel> messageSender;
 
-    private StateStore stateStore;
-
     private NodeHealthIndicator nodeHealthIndicator;
+
+    private Runtime runtime;
 
     @Autowired
     public void setNodeProperties(NodeProperties nodeProperties) {
@@ -100,6 +97,11 @@ public class NodeManagerImpl implements NodeManager {
         this.nodeHealthIndicator = nodeHealthIndicator;
     }
 
+    @Autowired
+    public void setRuntime(Runtime runtime) {
+        this.runtime = runtime;
+    }
+
     @PreDestroy
     public void destroy() {
         log.info("destroy uri=" + peer.getYnodeUri());
@@ -108,17 +110,18 @@ public class NodeManagerImpl implements NodeManager {
 
     @Override
     public void init() {
-        log.debug("\n\n getStateStore : " + getStateStore());
+        NodeProperties.Grpc grpc = nodeProperties.getGrpc();
         try {
+            //transactionStore.putDummyTx("4");
             initFrontiers();
             Set<TransactionHusk> txList = transactionStore.getAll();
             executeAllTx(txList);
         } catch (Exception e) {
+            log.error(e.getMessage(), e);
             throw new FailedOperationException(e);
         }
 
         messageSender.setListener(this);
-        NodeProperties.Grpc grpc = nodeProperties.getGrpc();
         peer = Peer.valueOf(wallet.getNodeId(), grpc.getHost(), grpc.getPort());
         requestPeerList();
         activatePeers();
@@ -132,25 +135,17 @@ public class NodeManagerImpl implements NodeManager {
     }
 
     private void executeAllTx(Set<TransactionHusk> txList) {
-        CoinContract coinContract = new CoinContract(stateStore);
-        Runtime runtime = new Runtime();
+        CoinContract coinContract = new CoinContract();
         try {
             for (TransactionHusk tx : txList) {
-                runtime.execute(coinContract, tx);
+                if (!runtime.invoke(coinContract,tx)) {
+                    break;
+                }
+
             }
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
-    }
-
-    @Override
-    public Long getBalanceOf(String address) {
-        return stateStore.getState().get(address);
-    }
-
-    @Override
-    public StateStore getStateStore() {
-        return this.stateStore;
     }
 
     @Override
@@ -195,7 +190,6 @@ public class NodeManagerImpl implements NodeManager {
     public BlockHusk generateBlock() {
         BlockHusk block = BlockHusk.build(wallet,
                 new ArrayList<>(transactionStore.getUnconfirmedTxs()), blockChain.getPrevBlock());
-
         blockChain.addBlock(block);
         executeAllTx(new TreeSet<>(block.getBody()));
         messageSender.newBlock(block);
@@ -369,11 +363,6 @@ public class NodeManagerImpl implements NodeManager {
         this.blockChain = blockChain;
     }
 
-    @Autowired
-    public void setStateStore(StateStore stateStore) {
-        this.stateStore = stateStore;
-    }
-
     private void initFrontiers() throws Exception {
         if (blockChain.getLastIndex() > 1) {
             log.warn("It's not a genesis blockchain");
@@ -388,9 +377,10 @@ public class NodeManagerImpl implements NodeManager {
         if (!param.isGenesisOp()) {
             return;
         }
-        for (Map.Entry<String, Balance> element : param.getFrontier().entrySet()) {
+        for (Map.Entry<String, GenesisFrontierParam.Balance> element : param.getFrontier()
+                .entrySet()) {
             String balance = element.getValue().getBalance();
-            stateStore.getState().put(element.getKey(), Long.parseLong(balance));
+            runtime.getStateStore().getState().put(element.getKey(), Long.parseLong(balance));
         }
     }
 }

@@ -16,16 +16,16 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.Runtime;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.core.store.BlockStore;
+import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.node.config.NodeProperties;
@@ -70,10 +70,9 @@ public class NodeManagerTest {
         nodeManager.setWallet(new Wallet());
 
         TransactionStore transactionStore = new TransactionStore(new HashMapDbSource());
-        BlockStore blockStore = new BlockStore(new HashMapDbSource());
         nodeManager.setTransactionStore(transactionStore);
-
-        nodeManager.setStateStore(new StateStore());
+        Runtime runtime = new Runtime(new TransactionReceiptStore());
+        nodeManager.setRuntime(runtime);
         nodeManager.setBlockChain(new BlockChain(
                 new File(getClass().getClassLoader()
                         .getResource("branch-sample.json").getFile())));

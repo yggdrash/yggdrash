@@ -6,7 +6,7 @@
   * [Curl Examples Explained]()
   * [JSON-RPC methods]()
   * [JSON RPC API Reference]()
-     * [createAccount](#createAccount)
+     * [createAccount](#create-account)
         * [Parameters]()
         * [Returns]()
         * [Example]()
@@ -14,66 +14,91 @@
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [getBalance](#getBalance)
+     * [balanceOf](#balance-of)
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [blockNumber](#blockNumber)
+     * [getBalance](#get-balance)
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [getBlockByHash](#getBlockByHash)
+     * [blockNumber](#block-number)
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [getBlockByNumber](#getBlockByNumber)
+     * [getBlockByHash](#get-block-by-hash)
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [newBlockFilter](#newBlockFilter)
+     * [getBlockByNumber](#get-block-by-number)
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [getTransactionCount](#getTransactionCount)
+     * [newBlockFilter](#new-block-filter)
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [getBlockTransactionCountByHash](#getBlockTransactionCountByHash)
+     * [getTransactionCount](#get-transaction-count)
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [getBlockTransactionCountByNumber](#getBlockTransactionCountByNumber)
+     * [getBlockTransactionCountByHash](#get-block-transaction-count-by-hash)
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [getTransactionByHash](#getTransactionByHash)
+     * [getBlockTransactionCountByNumber](#get-block-transaction-count-by-number)
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [getTransactionByBlockHashAndIndex](#getTransactionByBlockHashAndIndex)
+     * [getTransactionByHash](#get-transaction-by-hash)
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [getTransactionByBlockNumberAndIndex](#getTransactionByBlockNumberAndIndex)
+     * [getTransactionByBlockHashAndIndex](#get-transaction-by-block-hash-and-index)
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [getTransactionReceipt](#getTransactionReceipt)
+     * [getTransactionByBlockNumberAndIndex](#get-transaction-by-block-number-and-index)
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [sendTransaction](#sendTransaction)
+     * [getTransactionReceipt](#get-transaction-receipt)
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [sendRawTransaction](#sendRawTransaction)
+     * [sendTransaction](#send-transaction)
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [newPendingTransactionFilter](#newPendingTransactionFilter)
+     * [sendRawTransaction](#send-raw-transaction)
         * [Parameters]()
         * [Returns]()
         * [Example]()
+     * [newPendingTransactionFilter](#new-pending-transaction-filter)
+        * [Parameters]()
+        * [Returns]()
+        * [Example]()
+     * [getTransactionReceipt](#get-transaction-receipt)
+        * [Parameters]()
+        * [Returns]()
+        * [Example]()
+     * [getAllTransactionReceipt](#get-all-transaction-receipt)
+        * [Parameters]()
+        * [Returns]()
+        * [Example]()
+     * [[peer] add](#add)
+        * [Parameters]()
+        * [Returns]()
+        * [Example]()     
+     * [[peer] getAll](#get-all)
+        * [Parameters]()
+        * [Returns]()
+        * [Example]()     
+     * [[peer] getAllActivePeer](#get-all-Active-Peer)
+        * [Parameters]()
+        * [Returns]()
+        * [Example]()     
+     
 
 #JSON RPC API 
 
@@ -105,23 +130,29 @@ The examples also do not include the URL/IP & port combination which must be the
 
 ##JSON-RPC methods
 
-* [createAccount](#createAccount)
+* [createAccount](#create-account)
 * [accounts](#accounts)
-* [getBalance](#getBalance)
-* [blockNumber](#blockNumber)
-* [getBlockByHash](#getBlockByHash)
-* [getBlockByNumber](#getBlockByNumber)
-* [newBlockFilter](#newBlockFilter)
-* [getTransactionCount](#getTransactionCount)
-* [getBlockTransactionCountByHash](#getBlockTransactionCountByHash)
-* [getBlockTransactionCountByNumber](#getBlockTransactionCountByNumber)
-* [getTransactionByHash](#getTransactionByHash)
-* [getTransactionByBlockHashAndIndex](#getTransactionByBlockHashAndIndex)
-* [getTransactionByBlockNumberAndIndex](#getTransactionByBlockNumberAndIndex)
-* [getTransactionReceipt](#getTransactionReceipt)
-* [sendTransaction](#sendTransaction)
-* [sendRawTransaction](#sendRawTransaction)
-* [newPendingTransactionFilter](#newPendingTransactionFilter)
+* [balanceOF](#balance-of)
+* [getBalance](#get-balance)
+* [blockNumber](#block-number)
+* [getBlockByHash](#get-block-by-hash)
+* [getBlockByNumber](#get-block-by-number)
+* [newBlockFilter](#new-block-filter)
+* [getTransactionCount](#get-transaction-count)
+* [getBlockTransactionCountByHash](#get-block-transaction-count-by-hash)
+* [getBlockTransactionCountByNumber](#get-block-transaction-count-by-number)
+* [getTransactionByHash](#get-transaction-by-hash)
+* [getTransactionByBlockHashAndIndex](#get-transaction-by-block-hash-and-index)
+* [getTransactionByBlockNumberAndIndex](#get-transaction-by-block-number-and-index)
+* [getTransactionReceipt](#get-transaction-receipt)
+* [sendTransaction](#send-transaction)
+* [sendRawTransaction](#send-raw-transaction)
+* [newPendingTransactionFilter](#new-pending-transaction-filter)
+* [getTransactionReceipt](#get-transaction-receipt)
+* [getAllTransactionReceipt](#get-all-transaction-receipt)
+* [[peer] add](#add)
+* [[peer] getAll](#get-all)
+* [[peer] getAllActivePeer](#get-all-Active-Peer)
 
 
 ##JSON RPC API Reference
@@ -158,7 +189,7 @@ none
   
 ------
 
-**accounts**
+#### accounts
 
 Returns a list of addresses owned by client.
 
@@ -188,6 +219,48 @@ none
 }
 ```  
   
+------
+
+#### balanceOf
+
+Returns a balance of address
+
+**Parameter**
+
+`String of DATA` - query
+
+```
+{
+	"address":"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76",
+	"method":"balanceOf",
+	"params":[{"address":"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76"}]
+}
+```
+
+**Returns**
+
+`String of DATA` - balance of address
+
+**Example**
+
+```
+// Request
+{
+    "id":"1890315358",
+    "jsonrpc":"2.0",
+    "method":"balanceOf",
+    "params":{"data":"{\"address\":\"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76\",\"method\":\"balanceOf\",\"params\":[{\"address\":\"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76\"}]}"}
+}
+
+// Response
+{
+    "jsonrpc":"2.0",
+    "id":"1890315358",
+    "result":"{\"result\":\"8\"}"
+}
+```
+
+ 
 ------
 
 #### getBalance
@@ -412,7 +485,7 @@ none
     "result":0
 }
 ```
-
+ 
 -----
 
 #### getTransactionCount
@@ -454,7 +527,7 @@ params: [
     "result":1
 }
 ```
-
+ 
 -----
 
 #### getBlockTransactionCountByHash
@@ -489,7 +562,7 @@ Returns the number of transactions in a block from a block matching the given bl
     "result":3
 }
 ```
-
+ 
 -----
 
 #### getBlockTransactionCountByNumber
@@ -530,7 +603,7 @@ params: [
     "result":4
 }
 ```
-
+ 
 -----
 
 #### getTransactionByHash
@@ -655,7 +728,7 @@ See [getTransactionByHash]()
              }
 }
 ```
-
+ 
 -----
 
 #### getTransactionByBlockNumberAndIndex
@@ -719,7 +792,7 @@ See [getTransactionByHash]()
              }
 }
 ```
-
+ 
 -----
 
 #### getTransactionReceipt
@@ -768,7 +841,7 @@ params: [
               }
 }
 ```
-
+ 
 -----
 
 #### sendTransaction
@@ -788,36 +861,27 @@ Creates new message call transaction or a contract creation, if the data field c
 ```
 // Request
 {
-    "id":"128747266",
-    "jsonrpc":"2.0",
-    "method":
-    "sendTransaction",
-    "params":{
-                "tx":"{
-                        "header":{
-                                    "type":"AAAAAA==",
-                                    "version":"AAAAAA==",
-                                    "dataHash":"bQ4ti+Xk4rGhhFrfNDuMmt+KMw0yVRL0rsfAAUEXASM=",
-                                    "timestamp":157456422699506,
-                                    "dataSize":38,
-                                    "signature":"GxadLy4Hu2rMsn4VNcOjwdhK4UUjnVGCnnI2tQrt6H1uVp80ZerYUl8KUH71fWZxuZHEsWjZybyZC9nG2G0Tj60=",
-                                    "address":"zuPUdV5HBVtTDe66Bixb0MF+sA8=",
-                                    "hash":"DnjyDQ/rBLdhNhgIbgh1poxKB51Hgu0/EMcprX38xBg=",
-                                    "hashString":"0e78f20d0feb04b7613618086e0875a68c4a079d4782ed3f10c729ad7dfcc418",
-                                    "signDataHash":"dME1ERS6A4fRBlLow8Po2Ij33SWsks/eBGkOaZfQP7k=",
-                                    "addressToString":"cee3d4755e47055b530deeba062c5bd0c17eb00f",
-                                    "pubKey":"BOl7q0u0cY9bpb7HFrxJ9ahhxa6e5B0Bp3VD7Ov+Jn1XvQ00R/3MYqWqs4uxfdUpdpVDf3OKn8tAEuz7fW1v8FE="
-                                 },
-                        "data":"{}"
-                      }"
-             }
+  "id": "401735777",
+  "jsonrpc": "2.0",
+  "method": "sendTransaction",
+  "params": {
+    "tx": {     
+      "type": "AAAAAQ==",
+      "version": "AAAAAQ==",
+      "dataHash": "xIg9gIny5ZGj8bgGfqlkpJGPq6/tCcLpaPZ6xncgLMg=",
+      "dataSize": 103,
+      "timestamp": 95282891139918,      
+      "signature": "G7HymgvvgSCWiTEl2uyxzOvuglUNLzPN+ismFLYg+D4+I4S8IJDC5FFdlE76SH0WKnosL96BlhHL7agNlxRKtmk=",
+      "data": "{\"method\":\"transfer\",\"params\":[{\"address\":\"aaa2aaab0fb041c5cb2a60a12291cbc3097352bb\"},{\"amount\":5000}]}",
+    }
+  }
 }
 
 // Result
 {
-    "jsonrpc":"2.0",
-    "id":"128747266",
-    "result":"0e78f20d0feb04b7613618086e0875a68c4a079d4782ed3f10c729ad7dfcc418"
+  "jsonrpc": "2.0",
+  "id": "401735777",
+  "result": "2da7c6e0bbb35365a1b57c7cdb9b5a434a41c43b6374018d9303b87576c157a9"
 }
 ```
   
@@ -861,7 +925,7 @@ params: [
     "result":"3PAOrAaNlZYixCxMzeR25bYLsnJ2bykSxd5ZyDVzcgE="
 }
 ```
-
+ 
 -----
 
 #### newPendingTransactionFilter
@@ -893,9 +957,211 @@ none
     "result":6
 }
 ```
-
+ 
 -----
 
+#### getTransactionReceipt
+
+Returns the TransactionRecipt of transaction hash.
+
+**Parameter**
+
+`DATA`, 32 Bytes - the transaction hash
+
+**Returns**
+
+`Object` - A TransactionReceipt object, or null when no TransactionReceipt was found:
+
+**Example**
+
+```
+// Request
+{
+  "id": "1890315358",
+  "jsonrpc": "2.0",
+  "method": "getTransactionReceipt",
+  "params": {
+    "hashOfTx": "2da7c6e0bbb35365a1b57c7cdb9b5a434a41c43b6374018d9303b87576c157a9"
+  }
+}
+
+// Result
+{
+  "jsonrpc": "2.0",
+  "id": "1890315358",
+  "result": {
+    "transactionHash": "2da7c6e0bbb35365a1b57c7cdb9b5a434a41c43b6374018d9303b87576c157a9",
+    "transactionIndex": 1,
+    "blockHash": "0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b",
+    "yeedUsed": 30000,
+    "branchAddress": "0xb60e8dd61c5d32be8058bb8eb970870f07233155",
+    "txLog": {
+      "amount": "5000",
+      "from": "6f19c769c78513a3a60a3618c6a11eb9a886086a",
+      "to": "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb"
+    },
+    "status": 1
+  }
+}
+```
+ 
+-----
+
+#### getTransactionReceipt
+
+Returns all TransactionReceipts.
+
+**Parameter**
+
+None
+
+**Returns**
+
+`HashMap of DATA`, List of all TransactionReceipts
+
+**Example**
+
+```
+// Request
+{
+  "id": "1890315358",
+  "jsonrpc": "2.0",
+  "method": "getAllTransactionReceipt",
+  "params": {
+     
+  }
+}
+
+// Result
+{
+  "jsonrpc": "2.0",
+  "id": "1890315358",
+  "result": {
+    "2da7c6e0bbb35365a1b57c7cdb9b5a434a41c43b6374018d9303b87576c157a9": {
+      "transactionHash": "2da7c6e0bbb35365a1b57c7cdb9b5a434a41c43b6374018d9303b87576c157a9",
+      "transactionIndex": 1,
+      "blockHash": "0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b",
+      "yeedUsed": 30000,
+      "branchAddress": "0xb60e8dd61c5d32be8058bb8eb970870f07233155",
+      "txLog": {
+        "amount": "5000",
+        "from": "6f19c769c78513a3a60a3618c6a11eb9a886086a",
+        "to": "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb"
+      },
+      "status": 1
+    }
+  }
+}
+```
+
+ 
+------
+ 
+#### [Peer] add
+ 
+Add Peer
+ 
+**Parameter**
+ 
+`Object` - Peer object
+ 
+**Returns**
+ 
+`Object` -  Added peer object
+ 
+**Example**
+ 
+```
+// request
+{
+    "id":"77582810",
+    "jsonrpc":"2.0",
+    "method":"add",
+    "params":{
+                "peer":{
+                        "host":"127.0.0.1",
+                        "port":9090,
+                        "ynodeUri":"ynode://75bff16c@127.0.0.1:9090"
+                        }
+              }
+}
+
+// result
+{
+    "jsonrpc":"2.0",
+    "id":"77582810",
+    "result":{
+                "host":"127.0.0.1",
+                "port":9090,
+                "ynodeUri":"ynode://75bff16c@127.0.0.1:9090"
+             }
+}
+```
+ 
+-----
+ 
+#### [Peer] getAll
+ 
+Returns all peers
+  
+**Parameter**
+  
+None
+  
+**Returns**
+  
+`DATA` - List of all peers
+  
+**Example**
+  
+```
+// request
+{
+    "id":"794299408",
+    "jsonrpc":"2.0",
+    "method":"getAll"
+}
+
+// result
+{
+    "jsonrpc":"2.0",
+    "id":"794299408",
+    "result":[{"host":"localhost","port":9090,"ynodeUri":"ynode://9ea9225f0b7db3c697c0a2e09cdd65046899058d16f73378c1559d61aa3e10cd5dc9337142728f5a02faadafab2b926e2998d5bc2b62c2183fab75ca996de2ce@localhost:9090"},{"host":"127.0.0.1","port":9090,"ynodeUri":"ynode://75bff16c@127.0.0.1:9090"}]
+}
+```
+  
+-----
+ 
+#### [Peer] getAllActivePeer
+ 
+Returns all active peers
+  
+**Parameter**
+  
+None
+  
+**Returns**
+  
+`DATA`- List of all active Peer as string
+  
+**Example**
+  
+```
+// request
+{
+    "id":"624771545",
+    "jsonrpc":"2.0",
+    "method":"getAllActivePeer"
+}
+
+// result
+{
+    "jsonrpc":"2.0",
+    "id":"624771545",
+    "result":[]
+}
+```
+ 
 
 
 

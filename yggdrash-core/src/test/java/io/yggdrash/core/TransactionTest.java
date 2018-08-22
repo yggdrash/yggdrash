@@ -166,7 +166,7 @@ public class TransactionTest {
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("operator", "transfer");
-        jsonObject.addProperty("to", "0x5186a0EF662DFA89Ed44b52a55EC5Cf0B4b59bb7");
+        jsonObject.addProperty("to", "056a8143fdc7416a9b8d59cb4196930588731e9b");
         jsonObject.addProperty("balance", "100000000");
 
         log.debug(jsonObject.toString());
