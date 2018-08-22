@@ -295,7 +295,7 @@ public class ECKeyTest {
         TransactionHusk tx = TestUtils.createTxHusk(wallet);
 
         // get the sig & key(pub)
-        byte[] rawMessage = tx.getInstance().getHeader().getRawData().toByteArray();
+        byte[] rawMessage = tx.getDataForSigning();
         byte[] messageHash = new Sha3Hash(rawMessage).getBytes();
         byte[] signature = tx.getInstance().getHeader().getSignature().toByteArray();
         ECDSASignature sig = new ECDSASignature(signature);
@@ -329,7 +329,7 @@ public class ECKeyTest {
         assertArrayEquals(key.getAddress(), tx.getAddress().getBytes());
 
         // get the sig & key(pub)
-        byte[] rawMessage = tx.getInstance().getHeader().getRawData().toByteArray();
+        byte[] rawMessage = tx.getDataForSigning();
         byte[] messageHash = new Sha3Hash(rawMessage).getBytes();
         byte[] signature = tx.getInstance().getHeader().getSignature().toByteArray();
         ECDSASignature sig = new ECDSASignature(signature);
