@@ -28,7 +28,7 @@ public class CoinContract implements Contract {
         String data = txHusk.getBody();
         JsonParser jsonParser = new JsonParser();
         JsonObject txBody = (JsonObject) jsonParser.parse(data);
-        String method = txBody.get("method").getAsString();
+        String method = txBody.get("method").getAsString().toLowerCase();
         this.sender = txHusk.getAddress().toString();
         JsonArray params = txBody.get("params").getAsJsonArray();
 
@@ -46,7 +46,7 @@ public class CoinContract implements Contract {
     @Override
     public JsonObject query(JsonObject query) throws Exception {
         this.sender = query.get("address").getAsString();
-        String method = query.get("method").getAsString();
+        String method = query.get("method").getAsString().toLowerCase();
         JsonArray params = query.get("params").getAsJsonArray();
 
         JsonObject result = new JsonObject();
@@ -64,8 +64,8 @@ public class CoinContract implements Contract {
      *
      * @param params   account address
      */
-    public Long balanceOf(JsonArray params) {
-        String address = params.get(0).getAsJsonObject().get("address").getAsString();
+    public Long balanceof(JsonArray params) {
+        String address = params.get(0).getAsJsonObject().get("address").getAsString().toLowerCase();
         if (state.get(address) != null) {
             return state.get(address);
         }
@@ -77,7 +77,7 @@ public class CoinContract implements Contract {
      */
     public TransactionReceipt transfer(JsonArray params) {
         log.info("\n transfer :: params => " + params);
-        String to = params.get(0).getAsJsonObject().get("address").getAsString();
+        String to = params.get(0).getAsJsonObject().get("address").getAsString().toLowerCase();
         long amount = params.get(1).getAsJsonObject().get("amount").getAsInt();
 
         TransactionReceipt txRecipt = new TransactionReceipt();

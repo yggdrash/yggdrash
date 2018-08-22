@@ -19,7 +19,6 @@ import org.spongycastle.util.encoders.Base64;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.security.SignatureException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -211,7 +210,7 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    public void txSigValidateTest() throws IOException,SignatureException {
+    public void txSigValidateTest() throws IOException {
         // Create Transaction
         TransactionHusk tx = new TransactionHusk(getJson()).sign(wallet);
 

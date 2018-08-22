@@ -36,11 +36,11 @@ public class AccountApiImplTest {
         try {
             JsonArray params = new JsonArray();
             JsonObject param = new JsonObject();
-            param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+            param.addProperty("address", "e1980adeafbb9ac6c9be60955484ab1547ab0b76");
             params.add(param);
 
             JsonObject query = new JsonObject();
-            query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+            query.addProperty("address", "e1980adeafbb9ac6c9be60955484ab1547ab0b76");
             query.addProperty("method", "balanceOf");
             query.add("params", params);
 
@@ -54,9 +54,9 @@ public class AccountApiImplTest {
     @Test
     public void getBalanceTest() {
         try {
-            assertThat(accountApi.getBalance("0x2Aa4BCaC31F7F67B9a15681D5e4De2FBc778066A",
+            assertThat(accountApi.getBalance("e1980adeafbb9ac6c9be60955484ab1547ab0b76",
                     "latest")).isNotZero();
-            assertThat(accountApi.getBalance("0x2Aa4BCaC31F7F67B9a15681D5e4De2FBc778066A",
+            assertThat(accountApi.getBalance("e1980adeafbb9ac6c9be60955484ab1547ab0b76",
                     "1023")).isNotZero();
         } catch (Exception e) {
             log.debug("getBalanceTest :: exception : " + e);

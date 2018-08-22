@@ -16,8 +16,8 @@
 
 package io.yggdrash.node.controller;
 
-import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.Account;
+import io.yggdrash.core.Runtime;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,8 +28,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("accounts")
 public class AccountController {
+
     @Autowired
-    StateStore stateStore;
+    Runtime runtime;
 
     @PostMapping
     public ResponseEntity create() {
@@ -40,6 +41,6 @@ public class AccountController {
 
     @GetMapping
     public ResponseEntity getAll() {
-        return ResponseEntity.ok(stateStore.getState());
+        return ResponseEntity.ok(runtime.getStateStore().getState());
     }
 }
