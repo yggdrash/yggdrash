@@ -1,16 +1,16 @@
 package io.yggdrash.contract;
 
-import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class StateStore {
-    private HashMap<String, Integer> state = new HashMap<>();
+    private Map<String, Long> state = new ConcurrentHashMap<>();
 
     public StateStore() {
-        //TODO get address and value from Genesis Block
-        state.put("aaa2aaab0fb041c5cb2a60a12291cbc3097352bb", 10);
+        state.put("aaa2aaab0fb041c5cb2a60a12291cbc3097352bb", 10000L);
     }
 
-    public HashMap<String, Integer> getState() {
+    public Map<String, Long> getState() {
         return this.state;
     }
 }

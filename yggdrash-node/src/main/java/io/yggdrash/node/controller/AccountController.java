@@ -17,18 +17,30 @@
 package io.yggdrash.node.controller;
 
 import io.yggdrash.core.Account;
+import io.yggdrash.core.Runtime;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("address")
+@RequestMapping("accounts")
 public class AccountController {
+
+    @Autowired
+    Runtime runtime;
+
     @PostMapping
     public ResponseEntity create() {
         Account account = new Account();
         AccountDto response = AccountDto.createBy(account);
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping
+    public ResponseEntity getAll() {
+        return ResponseEntity.ok(runtime.getStateStore().getState());
     }
 }

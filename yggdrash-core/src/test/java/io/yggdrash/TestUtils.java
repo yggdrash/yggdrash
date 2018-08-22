@@ -16,8 +16,10 @@
 
 package io.yggdrash;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
@@ -25,16 +27,17 @@ import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.TimeUtils;
+import io.yggdrash.util.FileUtil;
 
 import java.nio.ByteBuffer;
 import java.util.List;
+import java.nio.file.Paths;
 import java.util.Random;
 
 public class TestUtils {
     private static Wallet wallet;
-
-    private TestUtils() {
-    }
+    public static final String YGG_HOME = "testOutput";
+    private TestUtils() {}
 
     static {
         try {
@@ -42,6 +45,10 @@ public class TestUtils {
         } catch (Exception e) {
             throw new NotValidateException(e);
         }
+    }
+
+    public static void clearOutput() {
+        FileUtil.recursiveDelete(Paths.get(YGG_HOME));
     }
 
     public static Proto.Transaction getTransactionFixture() {
@@ -64,6 +71,15 @@ public class TestUtils {
     }
 
     public static Proto.Block getBlockFixture() {
+        return getBlockFixture(999L);
+    }
+
+    public static Proto.Block getBlockFixture(Long index) {
+        return getBlockFixture(index,
+                new Sha3Hash("9358888ca1ccd444ad11fb0ea1b5d03483f87664183c6e91ddab1b577cce2c06"));
+    }
+
+    public static Proto.Block getBlockFixture(Long index, Sha3Hash prevHash) {
         return Proto.Block.newBuilder()
                 .setHeader(
                         Proto.Block.Header.newBuilder()
@@ -72,6 +88,10 @@ public class TestUtils {
                                                 ByteBuffer.allocate(4).putInt(1).array()))
                                         .setVersion(ByteString.copyFrom(
                                                 ByteBuffer.allocate(4).putInt(1).array()))
+                                        .setIndex(index)
+                                        .setPrevBlockHash(ByteString.copyFrom(
+                                                prevHash.getBytes()
+                                        ))
                                         .build()
                                 ).build()
                 )
@@ -107,16 +127,20 @@ public class TestUtils {
         return result;
     }
 
-    private static JsonObject getTransfer() {
+    public static JsonObject getTransfer() {
+        JsonArray params = new JsonArray();
+        JsonObject param1 = new JsonObject();
+        param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        JsonObject param2 = new JsonObject();
+        param2.addProperty("amount", 100);
+        params.add(param1);
+        params.add(param2);
         JsonObject txObj = new JsonObject();
-
-        txObj.addProperty("operator", "transfer");
-        txObj.addProperty("to", "0x9843DC167956A0e5e01b3239a0CE2725c0631392");
-        txObj.addProperty("amount", 100);
+        txObj.addProperty("method", "transfer");
+        txObj.add("params", params);
 
         return txObj;
     }
-
     public static Proto.Transaction[] getTransactionFixtures() {
         return new Proto.Transaction[] {getTransactionFixture(), getTransactionFixture()};
     }

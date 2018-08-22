@@ -42,7 +42,7 @@ public class TransactionStoreTest {
     public void shouldGetFromDb() throws InvalidProtocolBufferException {
         TransactionHusk tx = TestUtils.createTxHusk();
         Sha3Hash key = tx.getHash();
-        ts.put(tx);
+        ts.put(tx.getHash(), tx);
 
         ts.batchAll();
         TransactionHusk transactionHusk = ts.get(key);
@@ -52,7 +52,7 @@ public class TransactionStoreTest {
     @Test
     public void shouldBeBatched() {
         TransactionHusk tx = TestUtils.createTxHusk();
-        ts.put(tx);
+        ts.put(tx.getHash(), tx);
 
         ts.batchAll();
         assertThat(ts.countFromCache()).isZero();
@@ -64,7 +64,7 @@ public class TransactionStoreTest {
         TransactionHusk tx = TestUtils.createTxHusk();
 
         Sha3Hash key = tx.getHash();
-        ts.put(tx);
+        ts.put(tx.getHash(), tx);
 
         TransactionHusk foundTx = ts.get(key);
         assertThat(foundTx).isNotNull();
@@ -74,7 +74,7 @@ public class TransactionStoreTest {
     @Test
     public void shouldBePutTx() {
         TransactionHusk tx = TestUtils.createTxHusk();
-        ts.put(tx);
+        ts.put(tx.getHash(), tx);
     }
 
     @Test

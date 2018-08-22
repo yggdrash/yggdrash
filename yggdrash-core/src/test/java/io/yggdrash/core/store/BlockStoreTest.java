@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.store;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
@@ -30,19 +29,18 @@ import java.nio.file.Paths;
 
 public class BlockStoreTest {
     private BlockStore blockStore;
-    private static final String dbPath = "testOutput";
 
     @AfterClass
     public static void destroy() {
-        FileUtil.recursiveDelete(Paths.get(dbPath));
+        FileUtil.recursiveDelete(Paths.get(TestUtils.YGG_HOME));
     }
 
     @Test
-    public void shouldBeGotBlock() throws InvalidProtocolBufferException {
+    public void shouldBeGotBlock() {
         blockStore = new BlockStore(
-                new LevelDbDataSource(dbPath, "get-test"));
+                new LevelDbDataSource(getPath(), "get-test"));
         BlockHusk blockHuskFixture = getBlockHuskFixture();
-        blockStore.put(blockHuskFixture);
+        blockStore.put(blockHuskFixture.getHash(), blockHuskFixture);
         BlockHusk foundBlockHusk = blockStore.get(blockHuskFixture.getHash());
         Assertions.assertThat(foundBlockHusk).isEqualTo(blockHuskFixture);
     }
@@ -50,13 +48,17 @@ public class BlockStoreTest {
     @Test
     public void shouldBePutBlock() {
         blockStore = new BlockStore(
-                new LevelDbDataSource(dbPath, "put-test"));
+                new LevelDbDataSource(getPath(), "put-test"));
         BlockHusk blockHusk = getBlockHuskFixture();
-        blockStore.put(blockHusk);
+        blockStore.put(blockHusk.getHash(), blockHusk);
     }
 
     private BlockHusk getBlockHuskFixture() {
         Proto.Block blockFixture = TestUtils.getBlockFixture();
         return new BlockHusk(blockFixture);
+    }
+
+    private String getPath() {
+        return Paths.get(TestUtils.YGG_HOME, "store").toString();
     }
 }

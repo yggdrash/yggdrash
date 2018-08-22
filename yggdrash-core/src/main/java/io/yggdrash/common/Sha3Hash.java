@@ -25,6 +25,14 @@ import java.util.Arrays;
 public class Sha3Hash implements Serializable {
     private byte[] data;
 
+    private Sha3Hash(byte[] data, boolean hashed) {
+        if (hashed) {
+            this.data = data;
+        } else {
+            this.data = HashUtil.sha3(data);
+        }
+    }
+
     public Sha3Hash(byte[] data) {
         this.data = HashUtil.sha3(data);
     }
@@ -57,5 +65,9 @@ public class Sha3Hash implements Serializable {
     @Override
     public String toString() {
         return Hex.toHexString(data);
+    }
+
+    public static Sha3Hash createByHashed(byte[] hashedData) {
+        return new Sha3Hash(hashedData, true);
     }
 }

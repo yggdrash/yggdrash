@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.store;
+package io.yggdrash.core;
 
-import com.google.protobuf.InvalidProtocolBufferException;
+import io.yggdrash.common.Sha3Hash;
 
-import java.util.Set;
+public class ChainId {
 
-public interface Store<K, V> {
-    void put(K key, V value);
+    private final Sha3Hash id;
 
-    V get(K key) throws InvalidProtocolBufferException;
+    public ChainId(Sha3Hash hash) {
+        this.id = hash;
+    }
 
-    Set<V> getAll();
-
-    boolean contains(K key);
+    @Override
+    public String toString() {
+        return id.toString();
+    }
 }

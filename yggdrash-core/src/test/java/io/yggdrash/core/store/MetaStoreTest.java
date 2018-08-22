@@ -16,16 +16,18 @@
 
 package io.yggdrash.core.store;
 
-import com.google.protobuf.InvalidProtocolBufferException;
+import io.yggdrash.TestUtils;
+import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.BlockHusk;
+import org.junit.Test;
 
-import java.util.Set;
+public class MetaStoreTest {
+    @Test
+    public void name() {
+        MetaStore metaStore = new MetaStore();
+        BlockHusk blockHusk = new BlockHusk(TestUtils.getBlockFixture());
+        metaStore.put(MetaStore.MetaInfo.RECENT_BLOCK, blockHusk.getHash());
 
-public interface Store<K, V> {
-    void put(K key, V value);
-
-    V get(K key) throws InvalidProtocolBufferException;
-
-    Set<V> getAll();
-
-    boolean contains(K key);
+        Sha3Hash sha3Hash = metaStore.get(MetaStore.MetaInfo.RECENT_BLOCK);
+    }
 }
