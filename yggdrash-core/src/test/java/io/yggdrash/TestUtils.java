@@ -26,17 +26,18 @@ import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.util.TimeUtils;
 import io.yggdrash.util.FileUtil;
+import io.yggdrash.util.TimeUtils;
 
 import java.nio.ByteBuffer;
-import java.util.List;
 import java.nio.file.Paths;
+import java.util.List;
 import java.util.Random;
 
 public class TestUtils {
     private static Wallet wallet;
     public static final String YGG_HOME = "testOutput";
+
     private TestUtils() {}
 
     static {
@@ -141,6 +142,7 @@ public class TestUtils {
 
         return txObj;
     }
+
     public static Proto.Transaction[] getTransactionFixtures() {
         return new Proto.Transaction[] {getTransactionFixture(), getTransactionFixture()};
     }

@@ -76,8 +76,8 @@ public class TransactionMockitoTest {
         Integer res = txApiImpl.getTransactionCount(wallet.getHexAddress(), 1);
         Integer res2 = txApiImpl.getTransactionCount(wallet.getHexAddress(), "latest");
         Integer sizeOfTxList = 3;
-//        assertThat(res).isEqualTo(sizeOfTxList);
-//        assertThat(res2).isEqualTo(res);
+        assertThat(res).isEqualTo(sizeOfTxList);
+        assertThat(res2).isEqualTo(res);
     }
 
     @Test
