@@ -80,14 +80,9 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
                                 .build())
                 .build();
 
-        log.debug("sign: wallet pubKey=" + Hex.toHexString(wallet.getPubicKey()));
-        log.debug("sign: wallet address=" + Hex.toHexString(wallet.getAddress()));
-
         byte[] dataForSign = getDataForSigning();
-        log.debug("sign: data for signing=" + Hex.toHexString(dataForSign));
 
         byte[] signature = wallet.sign(dataForSign);
-        log.debug("sign: signature=" + Hex.toHexString(signature));
 
         this.transaction = Proto.Transaction.newBuilder(transaction)
                 .setHeader(
@@ -110,8 +105,8 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
             transaction.write(getHeader().getRawData().getType().toByteArray());
             transaction.write(getHeader().getRawData().getVersion().toByteArray());
             transaction.write(getHeader().getRawData().getDataHash().toByteArray());
-            transaction.write(ByteUtil.longToBytes(getHeader().getRawData().getDataSize()));
             transaction.write(ByteUtil.longToBytes(getHeader().getRawData().getTimestamp()));
+            transaction.write(ByteUtil.longToBytes(getHeader().getRawData().getDataSize()));
             transaction.write(getHeader().getSignature().toByteArray());
         } catch (IOException e) {
             throw new NotValidateException(e);
@@ -119,7 +114,6 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
 
         return new Sha3Hash(transaction.toByteArray());
     }
-
 
     public String getBody() {
         return this.transaction.getBody();
@@ -171,18 +165,19 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
             }
 
             byte[] dataHashForSigning = getDataHashForSigning();
-
             byte[] signatureBin = getHeader().getSignature().toByteArray();
 
             ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signatureBin);
-            ECKey key = ECKey.signatureToKey(dataHashForSigning, signatureBin);
+            ECKey key = ECKey.signatureToKey(dataHashForSigning, ecdsaSignature);
 
-            log.debug("verfiy data=" + Hex.toHexString(dataHashForSigning));
-            log.debug("verfiy sig=" + Hex.toHexString(ecdsaSignature.toBinary()));
-            log.debug("verfiy key address=" + Hex.toHexString(key.getAddress()));
+            log.debug("verfiy data= " + Hex.toHexString(getDataForSigning()));
+            log.debug("verfiy dataHash= " + Hex.toHexString(dataHashForSigning));
+            log.debug("verfiy sig= " + Hex.toHexString(ecdsaSignature.toBinary()));
+            log.debug("verfiy keyAddress= " + Hex.toHexString(key.getAddress()));
 
             return key.verify(dataHashForSigning, ecdsaSignature);
         } catch (SignatureException e) {
+            log.debug("verfiy() SignatureException");
             throw new InvalidSignatureException(e);
         }
     }
@@ -241,14 +236,14 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
 
     @Override
     public int compareTo(TransactionHusk o) {
-        return Long.compare(transaction.getHeader().getRawData().getTimestamp()
-                ,o.getInstance().getHeader().getRawData().getTimestamp());
+        return Long.compare(transaction.getHeader().getRawData().getTimestamp(),
+                o.getInstance().getHeader().getRawData().getTimestamp());
     }
 
     /**
      * Get the data for signing.
      *
-     * @return hash of sign data
+     * @return data of sign data
      */
     public byte[] getDataForSigning() {
         ByteArrayOutputStream transaction = new ByteArrayOutputStream();
@@ -263,15 +258,13 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
             throw new NotValidateException(e);
         }
 
-        log.debug("tx data for sign=" + Hex.toHexString(transaction.toByteArray()));
-
         return transaction.toByteArray();
     }
 
     /**
-     * Get the data for signing.
+     * Get the dataHash(sha3) for signing.
      *
-     * @return hash of sign data
+     * @return dataHash(sha3, 32Bytes) of sign data
      */
     public byte[] getDataHashForSigning() {
         return HashUtil.sha3(getDataForSigning());
