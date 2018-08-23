@@ -48,6 +48,7 @@ public class TransactionHuskTest {
         transactionHusk.sign(wallet);
 
         Assertions.assertThat(transactionHusk.isSigned()).isTrue();
+        Assertions.assertThat(transactionHusk.verify());
     }
 
     @Test
@@ -71,16 +72,4 @@ public class TransactionHuskTest {
         return new TransactionHusk(body);
     }
 
-    @Test
-    public void testForSerializing() throws IOException, InvalidCipherTextException {
-        TransactionHusk transactionHusk = getTransactionHusk();
-
-        Wallet wallet = new Wallet();
-        transactionHusk.sign(wallet);
-
-        JsonObject jsonObject = transactionHusk.toJsonObject();
-
-
-        Assertions.assertThat(transactionHusk.isSigned()).isTrue();
-    }
 }
