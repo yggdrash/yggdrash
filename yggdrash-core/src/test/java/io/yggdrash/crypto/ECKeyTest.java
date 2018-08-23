@@ -68,9 +68,6 @@ public class ECKeyTest {
     private final String privString2 = "35919d465e7704bcd97379f436fa38293151ebf728d23ddf7b6acf26dac13702";
     private final BigInteger privateKey2 = new BigInteger(privString2, 16);
 
-    private final String privString3 = "7d76a2fa2735a7906b61b5cbbde2b5e22ade0514cd4189f97316ca7fdd4e94af";
-    private final BigInteger privateKey3 = new BigInteger(privString3, 16);
-
     private final String pubString = "040947751e3022ecf3016be03ec77ab0ce3c2662b4843898cb068d74f698ccc8ad75aa17564ae80a20bb044ee7a6d903e8e8df624b089c95d66a0570f051e5a05b";
     private final String compressedPubString = "030947751e3022ecf3016be03ec77ab0ce3c2662b4843898cb068d74f698ccc8ad";
     private final byte[] pubKey = Hex.decode(pubString);
@@ -295,7 +292,7 @@ public class ECKeyTest {
     }
 
     @Test
-    public void testVerifySignature61() throws SignatureException {
+    public void testVerifySignature_Static() throws SignatureException {
 
         byte[] messageHash = Hex.decode("92e0d4290bba01aa0abbb4705360c751af13fdb1131b8f6f1e632c4621adac75");
         byte[] signature = Hex.decode("1cca588a8eb84d5bf6741bc6e0ccfbe1fdb05b6c624b5fe72199fa1f2e501f876c5b5f11863323a998b79a0d27714fcc8825cf357903e863396f2e2e281220de31");
@@ -306,8 +303,9 @@ public class ECKeyTest {
         log.debug("address=" + Hex.toHexString(keyFromSig.getAddress()));
 
         byte[] pubKeyFromSig = keyFromSig.getPubKey();
+        log.debug("pubKey=" + Hex.toHexString(pubKeyFromSig));
 
-        assertArrayEquals(keyFromSig.getPubKey(), Hex.decode("0493fe448d38c77c212cce10c07ed37984c59bedac51219b70847429153063cfae0d2f42ba394ffe9d5d2d11b0c0f400ac04997c584c0ef6f2041cf20f8c2c446b"));
+        assertArrayEquals(pubKeyFromSig, Hex.decode("0493fe448d38c77c212cce10c07ed37984c59bedac51219b70847429153063cfae0d2f42ba394ffe9d5d2d11b0c0f400ac04997c584c0ef6f2041cf20f8c2c446b"));
 
         // verify the sign message
         assertTrue(keyFromSig.verify(messageHash, sig));
@@ -401,8 +399,7 @@ public class ECKeyTest {
 
         // create tx
         TransactionHusk tx = TestUtils.createTxHusk(wallet);
-
-//        assertArrayEquals(key.getAddress(), tx.getAddress().getBytes());
+        assertArrayEquals(key.getAddress(), tx.getAddress().getBytes());
 
         // get the sig & key(pub)
         byte[] rawMessage = tx.getDataForSigning();
