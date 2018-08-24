@@ -19,11 +19,15 @@ package io.yggdrash.core;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
+import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,10 +35,18 @@ import static io.yggdrash.core.BranchInfo.BranchData;
 
 public class BlockChainLoader {
     private ObjectMapper mapper = new ObjectMapper();
-    private final File infoFile;
+    private InputStream branchInfoStream;
+
+    public BlockChainLoader(InputStream branchInfoStream) {
+        this.branchInfoStream = branchInfoStream;
+    }
 
     public BlockChainLoader(File infoFile) {
-        this.infoFile = infoFile;
+        try {
+            this.branchInfoStream = new FileInputStream(infoFile);
+        } catch (FileNotFoundException e) {
+            throw new FailedOperationException(e);
+        }
     }
 
     public BlockHusk getGenesis() throws IOException {
@@ -42,7 +54,7 @@ public class BlockChainLoader {
     }
 
     public BranchInfo loadBranchInfo() throws IOException {
-        return mapper.readValue(infoFile, BranchInfo.class);
+        return mapper.readValue(branchInfoStream, BranchInfo.class);
     }
 
     private BlockHusk convertJsonToBlock() throws IOException {

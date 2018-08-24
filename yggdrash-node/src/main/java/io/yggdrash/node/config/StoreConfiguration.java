@@ -26,16 +26,20 @@ import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Profile;
+import org.springframework.core.io.Resource;
 
-import java.io.File;
 import java.io.IOException;
 
 @Configuration
 public class StoreConfiguration {
+
+    @Value("classpath:/branch-sample.json")
+    Resource resource;
 
     @Bean
     BlockChain blockChain(@Qualifier("genesis")BlockHusk genesisBlock, BlockStore blockStore) {
@@ -54,8 +58,7 @@ public class StoreConfiguration {
 
     @Bean(name = "genesis")
     BlockHusk genesisBlock() throws IOException {
-        return new BlockChainLoader(new File(getClass().getClassLoader()
-                .getResource("branch-sample.json").getFile())).getGenesis();
+        return new BlockChainLoader(resource.getInputStream()).getGenesis();
     }
 
     @Profile("prod")

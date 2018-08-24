@@ -207,6 +207,7 @@ public class NodeManagerImpl implements NodeManager {
             blockChain.addBlock(block);
             newBlock = block;
         }
+        executeAllTx(new TreeSet<>(block.getBody()));
         removeTxByBlock(block);
         return newBlock;
     }
