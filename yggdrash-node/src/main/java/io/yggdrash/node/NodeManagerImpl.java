@@ -110,7 +110,6 @@ public class NodeManagerImpl implements NodeManager {
 
     @Override
     public void init() {
-        NodeProperties.Grpc grpc = nodeProperties.getGrpc();
         try {
             //transactionStore.putDummyTx("4");
             initFrontiers();
@@ -122,6 +121,7 @@ public class NodeManagerImpl implements NodeManager {
         }
 
         messageSender.setListener(this);
+        NodeProperties.Grpc grpc = nodeProperties.getGrpc();
         peer = Peer.valueOf(wallet.getNodeId(), grpc.getHost(), grpc.getPort());
         requestPeerList();
         activatePeers();

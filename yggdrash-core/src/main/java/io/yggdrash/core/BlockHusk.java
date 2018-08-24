@@ -240,6 +240,6 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
 
     @Override
     public int compareTo(BlockHusk o) {
-        return Long.compare(o.getIndex(), getIndex());
+        return Long.compare(getIndex(), o.getIndex());
     }
 }
