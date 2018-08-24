@@ -6,7 +6,7 @@
 To ensure everything worked, run:
 
 ```shell
-> java -jar yggdrash-node/build/libs/*.jar
+> yggdrash-node/build/libs/*.jar
 ```
 
 first build a docker image of the yggdrash node by running:
