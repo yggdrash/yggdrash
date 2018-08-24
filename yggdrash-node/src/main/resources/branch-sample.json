@@ -18,35 +18,11 @@
         "operator": "GENESIS",
         "chainName": "YEED",
         "frontier": {
-          "5db10750e8caff27f906b41c71b3471057dd2000": {
+          "f1988f13fb5006c9e02a72133ce18a269f442eb4": {
             "balance": "1000000000"
           },
-          "5db10750e8caff27f906b41c71b3471057dd2001": {
-            "balance": "1000000000"
-          },
-          "5db10750e8caff27f906b41c71b3471057dd2002": {
-            "balance": "1000000000"
-          },
-          "5db10750e8caff27f906b41c71b3471057dd2003": {
-            "balance": "1000000000"
-          },
-          "5db10750e8caff27f906b41c71b3471057dd2004": {
-            "balance": "1000000000"
-          },
-          "5db10750e8caff27f906b41c71b3471057dd2005": {
-            "balance": "1000000000"
-          },
-          "5db10750e8caff27f906b41c71b3471057dd2006": {
-            "balance": "1000000000"
-          },
-          "5db10750e8caff27f906b41c71b3471057dd2007": {
-            "balance": "1000000000"
-          },
-          "5db10750e8caff27f906b41c71b3471057dd2008": {
-            "balance": "1000000000"
-          },
-          "6f19c769c78513a3a60a3618c6a11eb9a886086a": {
-            "balance": "1000000000"
+          "1389397cfbdb31a2c7d9640ad293e099ba585c9b": {
+            "balance": "0"
           }
         }
       }

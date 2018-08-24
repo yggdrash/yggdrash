@@ -170,10 +170,10 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
             ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signatureBin);
             ECKey key = ECKey.signatureToKey(dataHashForSigning, ecdsaSignature);
 
-            log.debug("verfiy data= " + Hex.toHexString(getDataForSigning()));
-            log.debug("verfiy dataHash= " + Hex.toHexString(dataHashForSigning));
-            log.debug("verfiy sig= " + Hex.toHexString(ecdsaSignature.toBinary()));
-            log.debug("verfiy keyAddress= " + Hex.toHexString(key.getAddress()));
+            log.trace("verfiy data= " + Hex.toHexString(getDataForSigning()));
+            log.trace("verfiy dataHash= " + Hex.toHexString(dataHashForSigning));
+            log.trace("verfiy sig= " + Hex.toHexString(ecdsaSignature.toBinary()));
+            log.trace("verfiy keyAddress= " + Hex.toHexString(key.getAddress()));
 
             return key.verify(dataHashForSigning, ecdsaSignature);
         } catch (SignatureException e) {

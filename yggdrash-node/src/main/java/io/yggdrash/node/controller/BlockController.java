@@ -26,6 +26,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -61,8 +62,8 @@ class BlockController {
     @GetMapping
     public ResponseEntity getAll() {
         Set<BlockHusk> blocks = nodeManager.getBlocks();
-        List<BlockDto> dtoList =
-                blocks.stream().map(BlockDto::createBy).collect(Collectors.toList());
+        List<BlockDto> dtoList = blocks.stream().sorted(Comparator.reverseOrder())
+                .map(BlockDto::createBy).collect(Collectors.toList());
         return ResponseEntity.ok(dtoList);
     }
 }

@@ -18,6 +18,7 @@ package io.yggdrash.node.controller;
 
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.proto.Proto;
+import org.spongycastle.util.encoders.Hex;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -33,22 +34,30 @@ public class BlockDto {
     private long dataSize;
     private byte[] signature;
     private List<TransactionDto> body;
-    private String hash;
+    private byte[] hash;
 
-    public byte[] getType() {
-        return type;
+    public String getType() {
+        return Hex.toHexString(type);
     }
 
     public void setType(byte[] type) {
         this.type = type;
     }
 
-    public byte[] getVersion() {
-        return version;
+    public void setType(String type) {
+        this.type = Hex.decode(type);
+    }
+
+    public String getVersion() {
+        return Hex.toHexString(version);
     }
 
     public void setVersion(byte[] version) {
         this.version = version;
+    }
+
+    public void setVersion(String version) {
+        this.version = Hex.decode(version);
     }
 
     public long getIndex() {
@@ -67,12 +76,16 @@ public class BlockDto {
         this.timestamp = timestamp;
     }
 
-    public byte[] getPrevBlockHash() {
-        return prevBlockHash;
+    public String getPrevBlockHash() {
+        return Hex.toHexString(prevBlockHash);
     }
 
     public void setPrevBlockHash(byte[] prevBlockHash) {
         this.prevBlockHash = prevBlockHash;
+    }
+
+    public void setPrevBlockHash(String prevBlockHash) {
+        this.prevBlockHash = Hex.decode(prevBlockHash);
     }
 
     public String getAuthor() {
@@ -83,12 +96,16 @@ public class BlockDto {
         this.author = author;
     }
 
-    public byte[] getMerkleRoot() {
-        return merkleRoot;
+    public String getMerkleRoot() {
+        return Hex.toHexString(merkleRoot);
     }
 
     public void setMerkleRoot(byte[] merkleRoot) {
         this.merkleRoot = merkleRoot;
+    }
+
+    public void setMerkleRoot(String merkleRoot) {
+        this.merkleRoot = Hex.decode(merkleRoot);
     }
 
     public long getDataSize() {
@@ -99,12 +116,16 @@ public class BlockDto {
         this.dataSize = dataSize;
     }
 
-    public byte[] getSignature() {
-        return signature;
+    public String getSignature() {
+        return Hex.toHexString(signature);
     }
 
     public void setSignature(byte[] signature) {
         this.signature = signature;
+    }
+
+    public void setSignature(String signature) {
+        this.signature = Hex.decode(signature);
     }
 
     public List<TransactionDto> getBody() {
@@ -116,11 +137,15 @@ public class BlockDto {
     }
 
     public String getHash() {
-        return hash;
+        return Hex.toHexString(hash);
+    }
+
+    public void setHash(byte[] hash) {
+        this.hash = hash;
     }
 
     public void setHash(String hash) {
-        this.hash = hash;
+        this.hash = Hex.decode(hash);
     }
 
     public static BlockDto createBy(BlockHusk block) {
@@ -137,7 +162,7 @@ public class BlockDto {
         blockDto.setSignature(block.getInstance().getHeader().getSignature().toByteArray());
         blockDto.setBody(block.getBody().stream().map(TransactionDto::createBy)
                 .collect(Collectors.toList()));
-        blockDto.setHash(block.getHash().toString());
+        blockDto.setHash(block.getHash().getBytes());
         return blockDto;
     }
 

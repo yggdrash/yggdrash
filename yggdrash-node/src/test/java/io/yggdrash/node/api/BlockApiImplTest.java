@@ -1,10 +1,18 @@
 package io.yggdrash.node.api;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.yggdrash.core.BlockHusk;
+import io.yggdrash.node.TestUtils;
+import io.yggdrash.node.controller.BlockDto;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
+
+import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
 public class BlockApiImplTest {
 
@@ -60,6 +68,22 @@ public class BlockApiImplTest {
         } catch (Exception exception) {
             log.debug("newBlockFilter :: exception : " + exception);
         }
+    }
+
+
+    @Test
+    public void BlockDtoTest() throws IOException {
+        // Create Transaction
+        BlockHusk block = TestUtils.createGenesisBlockHusk();
+
+        ObjectMapper mapper = TestUtils.getMapper();
+        String jsonStr = mapper.writeValueAsString(BlockDto.createBy(block));
+
+        // Receive Transaction
+        BlockDto resDto = mapper.readValue(jsonStr, BlockDto.class);
+
+        assertEquals(Hex.toHexString(block.getInstance().getHeader().getSignature().toByteArray()),
+                resDto.getSignature());
     }
 
 }
