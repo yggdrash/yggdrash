@@ -33,7 +33,7 @@ public class TransactionDto {
     private String data;
     private String txHash;
 
-    public String getType() {
+    public String getTypeHex() {
         return Hex.toHexString(type);
     }
 
@@ -41,11 +41,11 @@ public class TransactionDto {
         this.type = type;
     }
 
-    public void setType(String type) {
+    public void setTypeHex(String type) {
         this.type = Hex.decode(type);
     }
 
-    public String getVersion() {
+    public String getVersionHex() {
         return Hex.toHexString(version);
     }
 
@@ -53,11 +53,11 @@ public class TransactionDto {
         this.version = version;
     }
 
-    public void setVersion(String version) {
+    public void setVersionHex(String version) {
         this.version = Hex.decode(version);
     }
 
-    public String getDataHash() {
+    public String getDataHashHex() {
         return Hex.toHexString(dataHash);
     }
 
@@ -65,7 +65,7 @@ public class TransactionDto {
         this.dataHash = dataHash;
     }
 
-    public void setDataHash(String dataHash) {
+    public void setDataHashHex(String dataHash) {
         this.dataHash = Hex.decode(dataHash);
     }
 
@@ -85,7 +85,7 @@ public class TransactionDto {
         this.timestamp = timestamp;
     }
 
-    public String getSignature() {
+    public String getSignatureHex() {
         return Hex.toHexString(signature);
     }
 
@@ -93,7 +93,7 @@ public class TransactionDto {
         this.signature = signature;
     }
 
-    public void setSignature(String signature) {
+    public void setSignatureHex(String signature) {
         this.signature = Hex.decode(signature);
     }
 
@@ -124,13 +124,13 @@ public class TransactionDto {
     public static TransactionHusk of(TransactionDto dto) {
         Proto.Transaction.Header header = Proto.Transaction.Header.newBuilder()
                 .setRawData(Proto.Transaction.Header.Raw.newBuilder()
-                        .setType(ByteString.copyFrom(Hex.decode(dto.getType())))
-                        .setVersion(ByteString.copyFrom(Hex.decode(dto.getType())))
-                        .setDataHash(ByteString.copyFrom(Hex.decode(dto.getDataHash())))
+                        .setType(ByteString.copyFrom(Hex.decode(dto.getTypeHex())))
+                        .setVersion(ByteString.copyFrom(Hex.decode(dto.getTypeHex())))
+                        .setDataHash(ByteString.copyFrom(Hex.decode(dto.getDataHashHex())))
                         .setDataSize(dto.getDataSize())
                         .setTimestamp(dto.getTimestamp())
                         .build())
-                .setSignature(ByteString.copyFrom(Hex.decode(dto.getSignature())))
+                .setSignature(ByteString.copyFrom(Hex.decode(dto.getSignatureHex())))
                 .build();
         Proto.Transaction tx = Proto.Transaction.newBuilder()
                 .setHeader(header)
