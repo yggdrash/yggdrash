@@ -75,7 +75,7 @@ public class NodeManagerTest {
         nodeManager.setRuntime(runtime);
         nodeManager.setBlockChain(new BlockChain(
                 new File(getClass().getClassLoader()
-                        .getResource("branch-sample.json").getFile())));
+                        .getResource("branch-yeed.json").getFile())));
         nodeManager.setNodeHealthIndicator(mock(NodeHealthIndicator.class));
         nodeManager.init();
         assert nodeManager.getNodeUri() != null;
@@ -87,7 +87,7 @@ public class NodeManagerTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         //TODO 테스트 설정 파일에서 DB 부분 제거
         FileUtil.recursiveDelete(Paths.get(".yggdrash/db"));
     }

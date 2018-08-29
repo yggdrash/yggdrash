@@ -14,18 +14,7 @@
       "timestamp": "0000000000000001",
       "dataSize": "0000000000000001",
       "signature": "1b99a8d4e7b6c20def587d2cc342361cb6b5b0af825e0ecbefb91a1cd30e2c77c117a0fdecd0da4d1cd406bac961e217e99f2c9a6d798ba363c9dc3cc2f8b51aac",
-      "data": {
-        "operator": "GENESIS",
-        "chainName": "YEED",
-        "frontier": {
-          "f1988f13fb5006c9e02a72133ce18a269f442eb4": {
-            "balance": "1000000000"
-          },
-          "1389397cfbdb31a2c7d9640ad293e099ba585c9b": {
-            "balance": "0"
-          }
-        }
-      }
+      "data": "{\"method\":\"GENESIS\",\"chainId\":\"1234\",\"chainName\":\"YEED\",\"params\": [{\"frontier\":\"f1988f13fb5006c9e02a72133ce18a269f442eb4\",\"balance\":1000000000},{\"frontier\":\"1389397cfbdb31a2c7d9640ad293e099ba585c9b\",\"balance\":0}]}"
     }
   ]
 }
