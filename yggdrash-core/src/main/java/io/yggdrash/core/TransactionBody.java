@@ -1,33 +1,35 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonArray;
+import io.yggdrash.crypto.HashUtil;
 import org.spongycastle.util.encoders.Hex;
 
 public class TransactionBody {
 
     private JsonArray body;
-    private long length;
 
     public TransactionBody(JsonArray body) {
         this.body = body;
-        this.length = body.toString().length();
     }
 
-
     public long length() {
-        return this.length;
+        return this.body.toString().length();
     }
 
     public String getHexString() {
-        return Hex.toHexString(body.toString().getBytes());
+        return Hex.toHexString(this.body.toString().getBytes());
     }
 
     public byte[] getBinary() {
-        return body.toString().getBytes();
+        return this.body.toString().getBytes();
     }
 
     public JsonArray getBody() {
-        return body;
+        return this.body;
+    }
+
+    public byte[] getBodyHash() {
+        return HashUtil.sha3(this.getBinary());
     }
 
 }

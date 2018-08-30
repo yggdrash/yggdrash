@@ -11,9 +11,6 @@ public class Transaction {
     private TransactionSignature signature;
     private TransactionBody body;
 
-    public Transaction() {
-    }
-
     /**
      * Transaction Constructor
      *
@@ -25,40 +22,40 @@ public class Transaction {
         this.body = body;
     }
 
-    /**
-     * Transaction Constructor
-     *
-     * @param data   transaction data(Json)
-     */
-    public Transaction(Wallet wallet, TransactionBody body) {
+//    /**
+//     * Transaction Constructor
+//     *
+//     * @param data   transaction data(Json)
+//     */
+//    public Transaction(Wallet wallet, TransactionBody body) {
+//
+//        // 1. make data
+//        this.body = body;
+//
+//        // 2. make header
+//        byte[] bin = null; // for test ; SerializeUtils.serialize(data);
+//        this.header = new TransactionHeader(wallet, HashUtil.sha3(bin), bin.length);
+//    }
 
-        // 1. make data
-        this.body = body;
+//    /**
+//     * get transaction hash
+//     *
+//     * @return transaction hash
+//     */
+//    @JsonIgnore
+//    public String getHashString() {
+//        return this.header.getHashString();
+//    }
 
-        // 2. make header
-        byte[] bin = null; // for test ; SerializeUtils.serialize(data);
-        this.header = new TransactionHeader(wallet, HashUtil.sha3(bin), bin.length);
-    }
-
-    /**
-     * get transaction hash
-     *
-     * @return transaction hash
-     */
-    @JsonIgnore
-    public String getHashString() {
-        return this.header.getHashString();
-    }
-
-    /**
-     * get transaction hash
-     *
-     * @return transaction hash
-     */
-    @JsonIgnore
-    public byte[] getHash() {
-        return this.header.getHash();
-    }
+//    /**
+//     * get transaction hash
+//     *
+//     * @return transaction hash
+//     */
+//    @JsonIgnore
+//    public byte[] getHash() {
+//        return this.header.getHash();
+//    }
 
     /**
      * get transaction data
@@ -98,5 +95,48 @@ public class Transaction {
 
         return jsonObject;
     }
+
+
+
+
+//    /**
+//     * Get the address.
+//     *
+//     * @return address
+//     */
+//    public byte[] getAddress() {
+//        return ecKey().getAddress();
+//    }
+
+//    /**
+//     * Get the address.
+//     *
+//     * @return address
+//     */
+//    public String getAddressToString() {
+//        return Hex.toHexString(getAddress());
+//    }
+
+//    /**
+//     * Get the public key.
+//     *
+//     * @return public key
+//     */
+//    public byte[] getPubKey() {
+//        return ecKey().getPubKey();
+//    }
+//
+//    /**
+//     * Get ECKey(include pubKey) using sig & signData.
+//     *
+//     * @return ECKey(include pubKey)
+//     */
+//    public ECKey ecKey() {
+//        try {
+//            return ECKey.signatureToKey(getDataHashForSigning(), signature);
+//        } catch (SignatureException e) {
+//            throw new NotValidateException(e);
+//        }
+//    }
 
 }
