@@ -1,142 +1,183 @@
 package io.yggdrash.core;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
+import io.yggdrash.util.TimeUtils;
+import org.spongycastle.util.encoders.Hex;
 
-public class Transaction {
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.SignatureException;
 
+public class Transaction implements Cloneable {
+
+    // Transaction Data Format v0.0.3
     private TransactionHeader header;
     private TransactionSignature signature;
     private TransactionBody body;
 
     /**
-     * Transaction Constructor
+     * Transaction Constructor.
      *
      * @param header transaction header
+     * @param signature transaction signature
      * @param body   transaction body
      */
-    public Transaction(TransactionHeader header, TransactionBody body) {
+    public Transaction(TransactionHeader header, TransactionSignature signature, TransactionBody body) {
         this.header = header;
+        this.signature = signature;
         this.body = body;
     }
 
-//    /**
-//     * Transaction Constructor
-//     *
-//     * @param data   transaction data(Json)
-//     */
-//    public Transaction(Wallet wallet, TransactionBody body) {
-//
-//        // 1. make data
-//        this.body = body;
-//
-//        // 2. make header
-//        byte[] bin = null; // for test ; SerializeUtils.serialize(data);
-//        this.header = new TransactionHeader(wallet, HashUtil.sha3(bin), bin.length);
-//    }
-
-//    /**
-//     * get transaction hash
-//     *
-//     * @return transaction hash
-//     */
-//    @JsonIgnore
-//    public String getHashString() {
-//        return this.header.getHashString();
-//    }
-
-//    /**
-//     * get transaction hash
-//     *
-//     * @return transaction hash
-//     */
-//    @JsonIgnore
-//    public byte[] getHash() {
-//        return this.header.getHash();
-//    }
-
     /**
-     * get transaction data
+     * Transaction Constructor.
      *
-     * @return tx data
+     * @param header transaction header
+     * @param wallet wallet for signning
+     * @param body   transaction body
      */
-    public String getBody() {
-//        return this.body;
-        return null;
+    public Transaction(TransactionHeader header, Wallet wallet, TransactionBody body) throws SignatureException, IOException {
+
+        this.body = body;
+        this.header = header;
+        this.header.setTimestamp(TimeUtils.time());
+        this.signature = new TransactionSignature(wallet, this.header.getHeaderHashForSigning());
     }
 
     /**
-     * get Transaction Header
+     * Get TransactionHeader.
      *
-     * @return tx header
+     * @return transaction header class
      */
     public TransactionHeader getHeader() {
-        return header;
+        return this.header;
     }
 
     /**
-     * print transaction
+     * Get TransactionBody.
+     *
+     * @return transaction body class
      */
-    public String toString() {
-        return header.toString() + "transactionBody=" + body;
+    public TransactionBody getBody() {
+        return this.body;
     }
 
     /**
-     * Convert from Transaction.class to JSON string.
+     * Get TransactionSignature.
+     *
+     * @return transaction signature class
+     */
+    public TransactionSignature getSignature() {
+        return signature;
+    }
+
+    /**
+     * Convert from Transaction.class to JsonObject.
+     *
      * @return transaction as JsonObject
      */
     public JsonObject toJsonObject() {
-        //todo: change to serialize method
 
-        JsonObject jsonObject = this.getHeader().toJsonObject();
-//        jsonObject.add("data", new Gson().fromJson(this.body, JsonObject.class)); // for test
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.add("header", this.header.toJsonObject());
+        jsonObject.addProperty("signature", this.signature.getSignatureHexString());
+        jsonObject.add("body", this.body.getBody());
 
         return jsonObject;
     }
 
+    /**
+     * Get transaction hash.
+     *
+     * @return transaction hash
+     */
+    public byte[] getHash() throws IOException {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
+        bao.write(this.header.toBinary());
+        bao.write(this.signature.getSignature());
 
+        return HashUtil.sha3(bao.toByteArray());
+    }
 
-//    /**
-//     * Get the address.
-//     *
-//     * @return address
-//     */
-//    public byte[] getAddress() {
-//        return ecKey().getAddress();
-//    }
+    /**
+     * Get transaction hash(HexString).
+     *
+     * @return transaction hash(HexString)
+     */
+    public String getHashString() throws IOException {
+        return Hex.toHexString(this.getHash());
+    }
 
-//    /**
-//     * Get the address.
-//     *
-//     * @return address
-//     */
-//    public String getAddressToString() {
-//        return Hex.toHexString(getAddress());
-//    }
+    /**
+     * Print transaction.
+     */
+    public String toString() {
+        return this.toJsonObject().toString();
+    }
 
-//    /**
-//     * Get the public key.
-//     *
-//     * @return public key
-//     */
-//    public byte[] getPubKey() {
-//        return ecKey().getPubKey();
-//    }
-//
-//    /**
-//     * Get ECKey(include pubKey) using sig & signData.
-//     *
-//     * @return ECKey(include pubKey)
-//     */
-//    public ECKey ecKey() {
-//        try {
-//            return ECKey.signatureToKey(getDataHashForSigning(), signature);
-//        } catch (SignatureException e) {
-//            throw new NotValidateException(e);
-//        }
-//    }
+    /**
+     * Print transaction to pretty JsonObject.
+     */
+    public String toStringPretty() {
+        return new GsonBuilder().setPrettyPrinting().create().toJson(this.toJsonObject());
+    }
+
+    /**
+     * Get ECKey (include pubKey).
+     *
+     * @return ECKey(include pubKey)
+     */
+    public ECKey getEcKey() {
+        return this.signature.getEcKeyPub();
+    }
+
+    /**
+     * Get the public key.
+     *
+     * @return public key
+     */
+    public byte[] getPubKey() {
+        return this.getEcKey().getPubKey();
+    }
+
+    /**
+     * Get the public key as HexString.
+     *
+     * @return the public key as HexString
+     */
+    public String getPubKeyHexString() {
+        return Hex.toHexString(this.getEcKey().getPubKey());
+    }
+
+    /**
+     * Get the address as binary.
+     *
+     * @return address
+     */
+    public byte[] getAddress() {
+        return this.getEcKey().getAddress();
+    }
+
+    /**
+     * Get the address as HexString.
+     *
+     * @return address as HexString
+     */
+    public String getAddressToString() {
+        return Hex.toHexString(getAddress());
+    }
+
+    @Override
+    public Transaction clone() throws CloneNotSupportedException {
+        Transaction tx = (Transaction) super.clone();
+        tx.header = this.header.clone();
+        tx.signature = this.signature.clone();
+        tx.body = this.body.clone();
+
+        return tx;
+    }
 
 }

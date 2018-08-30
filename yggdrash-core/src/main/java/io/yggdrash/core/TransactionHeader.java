@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.security.SignatureException;
 
-public class TransactionHeader implements Serializable {
+public class TransactionHeader implements Cloneable {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHeader.class);
 
@@ -78,6 +78,9 @@ public class TransactionHeader implements Serializable {
         return this.bodyLength;
     }
 
+    protected void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
 
     /**
      * Get the headerHash for signning.
@@ -85,6 +88,15 @@ public class TransactionHeader implements Serializable {
      * @return hash of header
      */
     public byte[] getHeaderHashForSigning() throws IOException {
+        return HashUtil.sha3(this.toBinary());
+    }
+
+    /**
+     * Get the binary data of TransactionHeader (84Byte)
+     *
+     * @return the binary data of TransactionHeader (84 byte)
+     */
+    public byte[] toBinary() throws IOException {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
         bao.write(this.chain);
@@ -94,24 +106,13 @@ public class TransactionHeader implements Serializable {
         bao.write(this.bodyHash);
         bao.write(ByteUtil.longToBytes(this.bodyLength));
 
-        return HashUtil.sha3(bao.toByteArray());
-    }
-
-    @Override
-    public String toString() {
-        return "TransactionHeader={"
-                + "chain=" + Hex.toHexString(chain)
-                + ",version=" + Hex.toHexString(version)
-                + ",type=" + Hex.toHexString(type)
-                + ",timestamp=" + Hex.toHexString(ByteUtil.longToBytes(timestamp))
-                + ",bodyHash=" + Hex.toHexString(bodyHash)
-                + ",bodyLength=" + Hex.toHexString(ByteUtil.longToBytes(bodyLength))
-                + "}";
+        return bao.toByteArray();
     }
 
     /**
-     * Convert from TransactionHeader.class to JsonObject.
-     * @return transaction JsonObject
+     * Convert from TransactionHeader to JsonObject.
+     *
+     * @return jsonObject of transaction header
      */
     public JsonObject toJsonObject() {
 
@@ -125,6 +126,17 @@ public class TransactionHeader implements Serializable {
         jsonObject.addProperty("bodyLength", Hex.toHexString(ByteUtil.longToBytes(this.bodyLength)));
 
         return jsonObject;
+    }
+
+    public String toString() {
+        return this.toJsonObject().toString();
+    }
+
+
+
+    @Override
+    public TransactionHeader clone() throws CloneNotSupportedException {
+        return (TransactionHeader) super.clone();
     }
 
 }

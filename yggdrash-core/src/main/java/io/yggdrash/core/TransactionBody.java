@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import io.yggdrash.crypto.HashUtil;
 import org.spongycastle.util.encoders.Hex;
 
-public class TransactionBody {
+public class TransactionBody implements Cloneable {
 
     private JsonArray body;
 
@@ -32,4 +32,8 @@ public class TransactionBody {
         return HashUtil.sha3(this.getBinary());
     }
 
+    @Override
+    public TransactionBody clone() throws CloneNotSupportedException {
+        return (TransactionBody) super.clone();
+    }
 }
