@@ -186,7 +186,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     }
 
     public static BlockHusk build(Wallet wallet, List<TransactionHusk> body, BlockHusk prevBlock) {
-        byte[] merkleRoot = Trie.getMerkleRoot(body);
+        byte[] merkleRoot = Trie.getMerkleRootHusk(body);
         if (merkleRoot == null) {
             merkleRoot = EMPTY_BYTE;
         }
@@ -201,7 +201,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         TransactionHusk tx = new TransactionHusk(jsonObject).sign(wallet);
         long dataSize = jsonObject.toString().getBytes().length;
         Proto.Block.Header blockHeader = getHeader(wallet.getAddress(),
-                    Trie.getMerkleRoot(Collections.singletonList(tx)), 0, EMPTY_BYTE, dataSize);
+                    Trie.getMerkleRootHusk(Collections.singletonList(tx)), 0, EMPTY_BYTE, dataSize);
         return build(wallet, blockHeader, Collections.singletonList(tx));
     }
 

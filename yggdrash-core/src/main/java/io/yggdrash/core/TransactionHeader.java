@@ -48,12 +48,7 @@ public class TransactionHeader implements Cloneable {
             byte[] type,
             long timestamp,
             TransactionBody txBody) {
-        this.chain = chain;
-        this.version = version;
-        this.type = type;
-        this.timestamp = timestamp;
-        this.bodyHash = txBody.getBodyHash();
-        this.bodyLength = txBody.length();
+        this(chain, version, type, timestamp, txBody.getBodyHash(), txBody.length());
     }
 
     public long length() throws IOException {
@@ -91,7 +86,7 @@ public class TransactionHeader implements Cloneable {
      *
      * @return hash of header
      */
-    public byte[] getHeaderHashForSigning() throws IOException {
+    public byte[] getHashForSignning() throws IOException {
         return HashUtil.sha3(this.toBinary());
     }
 

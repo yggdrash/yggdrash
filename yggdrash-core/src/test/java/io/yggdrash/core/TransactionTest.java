@@ -61,7 +61,7 @@ public class TransactionTest {
 
             txHeader.setTimestamp(TimeUtils.time());
 
-            txSig = new TransactionSignature(wallet, txHeader.getHeaderHashForSigning());
+            txSig = new TransactionSignature(wallet, txHeader.getHashForSignning());
         } catch (Exception e) {
             log.debug(e.getMessage());
             assert false;
@@ -69,20 +69,15 @@ public class TransactionTest {
     }
 
     @Test
-    public void testTransactionConstructor1() {
-
-        Transaction tx1 = new Transaction(txHeader, txSig, txBody);
-
-        log.debug("tx1=" + tx1.toJsonObject());
-        log.debug("tx1=" + tx1.toString());
-        log.debug("tx1=" + tx1.toStringPretty());
-
-    }
-
-    @Test
-    public void testTransactionConstructor2() {
+    public void testTransactionConstructor() {
 
         try {
+            Transaction tx0 = new Transaction(txHeader, txSig, txBody);
+
+            log.debug("tx0=" + tx0.toJsonObject());
+            log.debug("tx0=" + tx0.toString());
+            log.debug("tx0=" + tx0.toStringPretty());
+
             txHeader.setTimestamp(TimeUtils.time());
             Transaction tx1 = new Transaction(txHeader, wallet, txBody);
             log.debug("tx1=" + tx1.toJsonObject());

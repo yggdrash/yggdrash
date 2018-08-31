@@ -4,11 +4,12 @@ import com.google.gson.JsonArray;
 import io.yggdrash.trie.Trie;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class BlockBody implements Cloneable {
 
-    private List<Transaction> transactionList;
+    private List<Transaction> body;
 
     /**
      * Constructor for BlockBody class.
@@ -16,15 +17,16 @@ public class BlockBody implements Cloneable {
      * @param transactionList the transaction list
      */
     public BlockBody(List<Transaction> transactionList) {
-        this.transactionList = transactionList;
+
+        this.body = transactionList;
     }
 
-    public List<Transaction> getTransactionList() {
-        return transactionList;
+    public List<Transaction> getBody() {
+        return this.body;
     }
 
-    public byte[] getMerkleRoot() throws IOException {
-            return Trie.getMerkleRoot(this.transactionList);
+    public long getBodyCount() {
+        return this.body.size();
     }
 
     /**
@@ -32,39 +34,38 @@ public class BlockBody implements Cloneable {
      *
      * @return the BlockBody length.
      */
-    public long length() {
+    public long length() throws IOException {
 
         long length = 0;
 
-        for (Transaction tx : this.transactionList) {
+        for (Transaction tx : this.body) {
             length += tx.length();
         }
 
         return length;
     }
 
-    @Override
-    public String toString() {
-        StringBuilder buffer = new StringBuilder();
-        buffer.append("transactionList=>");
-        for (Transaction tx : this.transactionList) {
-            buffer.append(tx.toString());
-        }
-        return buffer.toString();
+    public byte[] getMerkleRoot() throws IOException {
+        return Trie.getMerkleRoot(this.body);
     }
 
     /**
      * Covert BlockBody.class to JsonArray
+     *
      * @return blockbody as JsonArray
      */
     public JsonArray toJsonArray() {
         JsonArray jsonArray = new JsonArray();
 
-        for (Transaction tx : this.transactionList) {
+        for (Transaction tx : this.body) {
             jsonArray.add(tx.toJsonObject());
         }
 
         return jsonArray;
+    }
+
+    public String toString() {
+        return this.toJsonArray().toString();
     }
 
     @Override
@@ -72,9 +73,13 @@ public class BlockBody implements Cloneable {
 
         BlockBody bb = (BlockBody) super.clone();
 
-        for(Transaction tx : this.transactionList) {
-            bb.transactionList.add(tx.clone());
+        List<Transaction> txs = new ArrayList<>();
+
+        for(Transaction tx : this.body) {
+            txs.add(tx.clone());
         }
+
+        bb.body = txs;
 
         return bb;
     }

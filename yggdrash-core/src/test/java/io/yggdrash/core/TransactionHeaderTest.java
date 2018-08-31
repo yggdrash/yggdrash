@@ -11,8 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
-import java.io.IOException;
-
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -86,7 +84,7 @@ public class TransactionHeaderTest {
 
             assertEquals(txHeader1.toJsonObject(), txHeader2.toJsonObject());
 
-            assertArrayEquals(txHeader1.getHeaderHashForSigning(), txHeader2.getHeaderHashForSigning());
+            assertArrayEquals(txHeader1.getHashForSignning(), txHeader2.getHashForSignning());
 
             TransactionHeader txHeader3 = txHeader1.clone();
             log.debug("txHeader1=" + txHeader1.toJsonObject());

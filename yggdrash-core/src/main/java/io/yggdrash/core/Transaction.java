@@ -38,12 +38,13 @@ public class Transaction implements Cloneable {
      * @param wallet wallet for signning
      * @param body   transaction body
      */
-    public Transaction(TransactionHeader header, Wallet wallet, TransactionBody body) throws SignatureException, IOException {
+    public Transaction(TransactionHeader header, Wallet wallet, TransactionBody body)
+            throws SignatureException, IOException {
 
         this.body = body;
         this.header = header;
         this.header.setTimestamp(TimeUtils.time());
-        this.signature = new TransactionSignature(wallet, this.header.getHeaderHashForSigning());
+        this.signature = new TransactionSignature(wallet, this.header.getHashForSignning());
     }
 
     /**
@@ -130,7 +131,7 @@ public class Transaction implements Cloneable {
      *
      * @return ECKey(include pubKey)
      */
-    public ECKey getEcKey() {
+    public ECKey getEcKeyPub() {
         return this.signature.getEcKeyPub();
     }
 
@@ -140,7 +141,7 @@ public class Transaction implements Cloneable {
      * @return public key
      */
     public byte[] getPubKey() {
-        return this.getEcKey().getPubKey();
+        return this.getEcKeyPub().getPubKey();
     }
 
     /**
@@ -149,7 +150,7 @@ public class Transaction implements Cloneable {
      * @return the public key as HexString
      */
     public String getPubKeyHexString() {
-        return Hex.toHexString(this.getEcKey().getPubKey());
+        return Hex.toHexString(this.getEcKeyPub().getPubKey());
     }
 
     /**
@@ -158,7 +159,7 @@ public class Transaction implements Cloneable {
      * @return address
      */
     public byte[] getAddress() {
-        return this.getEcKey().getAddress();
+        return this.getEcKeyPub().getAddress();
     }
 
     /**
@@ -175,10 +176,9 @@ public class Transaction implements Cloneable {
      *
      * @return tx length
      */
-    public long length() {
+    public long length() throws IOException {
         return this.header.length() + this.signature.length() + this.body.length();
     }
-
 
     @Override
     public Transaction clone() throws CloneNotSupportedException {

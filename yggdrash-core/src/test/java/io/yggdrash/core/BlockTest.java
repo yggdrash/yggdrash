@@ -1,56 +1,253 @@
-/*
- * Copyright 2018 Akashic Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *    http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
 package io.yggdrash.core;
 
-import io.yggdrash.TestUtils;
-import io.yggdrash.proto.Proto;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import io.yggdrash.util.TimeUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
 public class BlockTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockTest.class);
 
-    private BlockHusk block;
+    private byte[] chain = new byte[20];
+    private byte[] version = new byte[8];
+    private byte[] type = new byte[8];
+    private byte[] prevBlockHash = new byte[32];
+    private long index = 0;
+    private long timestamp = TimeUtils.time();
+
+    private BlockBody blockBody1;
+
+    private BlockHeader blockHeader1;
+    private BlockHeader blockHeader2;
+
+    private Wallet wallet;
+
+    private BlockSignature blockSig1;
+    private BlockSignature blockSig2;
+
+    private Block block1;
+    private Block block2;
 
     @Before
-    public void setUp() {
-        this.block = TestUtils.createGenesisBlockHusk();
+    public void init() {
+
+        TransactionBody txBody;
+        TransactionHeader txHeader;
+        TransactionSignature txSig;
+        Transaction tx1;
+        Transaction tx2;
+
+        try {
+
+            JsonObject jsonParams1 = new JsonObject();
+            jsonParams1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
+            jsonParams1.addProperty("amount", "10000000");
+
+            JsonObject jsonObject1 = new JsonObject();
+            jsonObject1.addProperty("method", "transfer");
+            jsonObject1.add("params", jsonParams1);
+
+            JsonObject jsonParams2 = new JsonObject();
+            jsonParams2.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2001");
+            jsonParams2.addProperty("amount", "5000000");
+
+            JsonObject jsonObject2 = new JsonObject();
+            jsonObject2.addProperty("method", "transfer");
+            jsonObject2.add("params", jsonParams2);
+
+            JsonArray jsonArray = new JsonArray();
+            jsonArray.add(jsonObject1);
+            jsonArray.add(jsonObject2);
+
+            txBody = new TransactionBody(jsonArray);
+
+            txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
+
+            wallet = new Wallet();
+
+            txHeader.setTimestamp(TimeUtils.time());
+
+            txSig = new TransactionSignature(wallet, txHeader.getHashForSignning());
+
+            tx1 = new Transaction(txHeader, txSig, txBody);
+
+            tx2 = tx1.clone();
+
+            List<Transaction> txs1 = new ArrayList<>();
+            txs1.add(tx1);
+            txs1.add(tx2);
+
+            log.debug("txs=" + txs1.toString());
+
+            blockBody1 = new BlockBody(txs1);
+
+            timestamp = TimeUtils.time();
+            blockHeader1 = new BlockHeader(
+                    chain, version, type, prevBlockHash, index, timestamp,
+                    blockBody1.getMerkleRoot(), blockBody1.length());
+
+            log.debug(blockHeader1.toString());
+
+            blockHeader2 = blockHeader1.clone();
+
+            blockSig1 = new BlockSignature(wallet, blockHeader1.getHashForSignning());
+            blockSig2 = new BlockSignature(wallet, blockHeader2.getHashForSignning());
+
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            assert false;
+        }
+
     }
 
     @Test
-    public void blockTest() {
-        assert block.getInstance() != null;
-        assert block.getIndex() == 0;
+    public void testBlockConstructor() {
+
+        try {
+            Block block0 = new Block(blockHeader1, blockSig1, blockBody1);
+
+            log.debug("block0=" + block0.toJsonObject());
+            log.debug("block0=" + block0.toString());
+            log.debug("block0=" + block0.toStringPretty());
+
+            blockHeader1.setTimestamp(TimeUtils.time());
+            block1 = new Block(blockHeader1, wallet, blockBody1);
+            log.debug("block1=" + block1.toJsonObject());
+            log.debug("block1=" + block1.toString());
+            log.debug("block1=" + block1.toStringPretty());
+
+            block2 = new Block(
+                    blockHeader1.clone(), block1.getSignature().clone(), blockBody1.clone());
+
+            log.debug("block2=" + block2.toJsonObject());
+            log.debug("block2=" + block2.toString());
+            log.debug("block2=" + block2.toStringPretty());
+
+            assertEquals(block1.toJsonObject(), block2.toJsonObject());
+
+            block1.getHeader().setTimestamp(TimeUtils.time());
+
+            assertNotEquals(block1.toJsonObject().toString(), block2.toJsonObject().toString());
+            log.debug("block1=" + block1.toJsonObject());
+            log.debug("block2=" + block2.toJsonObject());
+
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            assert false;
+        }
     }
 
     @Test
-    public void deserializeTransactionFromProtoTest() {
-        Proto.Block protoBlock = block.getInstance();
-        BlockHusk deserializeBlock = new BlockHusk(protoBlock);
-        assert block.getHash().equals(deserializeBlock.getHash());
+    public void testBlockClone() {
+        try {
+            Block block1 = new Block(blockHeader1, blockSig1, blockBody1);
+            log.debug("block1=" + block1.toJsonObject());
+
+            Block block2 = block1.clone();
+            log.debug("block2=" + block2.toJsonObject());
+
+            assertEquals(block1.toJsonObject().toString(), block2.toJsonObject().toString());
+
+            block2.getHeader().setTimestamp(TimeUtils.time());
+            log.debug("block1=" + block1.toJsonObject());
+            log.debug("block2=" + block2.toJsonObject());
+
+            assertNotEquals(block1.toJsonObject().toString(), block2.toJsonObject().toString());
+
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            assert false;
+        }
+
     }
 
     @Test
-    public void testToJsonObject() {
-        //todo: modify to checking jsonObject when the block data format change to JsonObject.
-        log.debug(block.toJsonObject().toString());
+    public void testBlockField() {
+        try {
+            Block block1 = new Block(blockHeader1, blockSig1, blockBody1);
+            log.debug("block1=" + block1.toJsonObject());
+
+            Block block2 = block1.clone();
+            log.debug("block2=" + block2.toJsonObject());
+
+            assertEquals(block1.toJsonObject().toString(), block2.toJsonObject().toString());
+            assertEquals(block1.getSignature().getSignatureHexString(),
+                    block2.getSignature().getSignatureHexString());
+
+            block2.getHeader().setTimestamp(TimeUtils.time());
+            log.debug("block1=" + block1.toJsonObject());
+            log.debug("block2=" + block2.toJsonObject());
+
+            assertNotEquals(block1.toJsonObject().toString(), block2.toJsonObject().toString());
+
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            assert false;
+        }
+
     }
+
+    @Test
+    public void testBlockGetHash() {
+        try {
+            Block block1 = new Block(blockHeader1, blockSig1, blockBody1);
+            log.debug("block1=" + block1.toJsonObject());
+
+            Block block2 = block1.clone();
+            log.debug("block2=" + block2.toJsonObject());
+
+            assertEquals(block1.getHashString(), block2.getHashString());
+
+            block2.getHeader().setTimestamp(TimeUtils.time());
+            log.debug("block1=" + block1.toJsonObject());
+            log.debug("block2=" + block2.toJsonObject());
+
+            assertNotEquals(block1.getHashString(), block2.getHashString());
+
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            assert false;
+        }
+
+    }
+
+    @Test
+    public void testBlockKey() {
+        try {
+            Block block1 = new Block(blockHeader1, blockSig1, blockBody1);
+            log.debug("block1 pubKey=" + block1.getPubKeyHexString());
+
+            Block block2 = block1.clone();
+            log.debug("block2 pubKey=" + block2.getPubKeyHexString());
+
+            assertEquals(block1.getPubKeyHexString(), block2.getPubKeyHexString());
+            assertArrayEquals(block1.getPubKey(), block2.getPubKey());
+            assertArrayEquals(block1.getPubKey(), wallet.getPubicKey());
+
+            log.debug("block1 author address=" + block1.getAddressToString());
+            log.debug("block2 author address=" + block2.getAddressToString());
+            log.debug("wallet address=" + wallet.getHexAddress());
+            assertEquals(block1.getAddressToString(), block2.getAddressToString());
+            assertEquals(block1.getAddressToString(), wallet.getHexAddress());
+
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            assert false;
+        }
+
+    }
+
+
 
 }

@@ -1,106 +1,112 @@
 package io.yggdrash.core;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import org.apache.commons.codec.binary.Hex;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.yggdrash.crypto.ECKey;
+import io.yggdrash.crypto.HashUtil;
+import io.yggdrash.util.TimeUtils;
+import org.spongycastle.util.encoders.Hex;
 
-import java.io.Serializable;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.SignatureException;
 
-public class Block implements Cloneable, Serializable, Comparable<Block> {
-
-    private static final Logger log = LoggerFactory.getLogger(Block.class);
+public class Block implements Cloneable {
 
     private BlockHeader header;
-    private BlockBody data;
+    private BlockSignature signature;
+    private BlockBody body;
 
-    public Block(BlockHeader header, BlockBody data) {
+    public Block(BlockHeader header, BlockSignature signature, BlockBody body) {
         this.header = header;
-        this.data = data;
+        this.signature = signature;
+        this.body = body;
     }
 
-    /**
-     * Instantiates a new Block.
-     *
-     * @param wallet    the wallet
-     * @param prevBlock the prev block
-     * @param blockBody the block body
-     */
-    public Block(Wallet wallet, Block prevBlock, BlockBody blockBody) {
-        this.header = new BlockHeader.Builder()
-                .prevBlock(prevBlock)
-                .blockBody(blockBody)
-                .build(wallet);
-
-        this.data = blockBody;
-    }
-
-    @JsonIgnore
-    public String getBlockHash() {
-        return Hex.encodeHexString(header.getBlockHash());
-    }
-
-    @JsonIgnore
-    public String getPrevBlockHash() {
-        return header.getPrevBlockHash() == null ? "" :
-                Hex.encodeHexString(header.getPrevBlockHash());
-    }
-
-    @JsonIgnore
-    public byte[] getBlockByteHash() {
-        return header.getBlockHash();
-    }
-
-    @JsonIgnore
-    public long getIndex() {
-        return header.getIndex();
-    }
-
-    public long nextIndex() {
-        return header.getIndex() + 1;
-    }
-
-    @JsonIgnore
-    public long getTimestamp() {
-        return header.getTimestamp();
+    public Block(BlockHeader header, Wallet wallet, BlockBody body)
+            throws IOException, SignatureException {
+        this.header = header;
+        this.body = body;
+        this.header.setTimestamp(TimeUtils.time());
+        this.signature = new BlockSignature(wallet, this.header.getHashForSignning());
     }
 
     public BlockHeader getHeader() {
         return header;
     }
 
-    public BlockBody getData() {
-        return data;
+    public BlockSignature getSignature() {
+        return signature;
     }
 
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
+    public BlockBody getBody() {
+        return body;
     }
 
-    @Override
-    public String toString() {
-        return "Block{"
-                + "header=" + header
-                + ", data=" + data
-                + '}';
-    }
-
-    @Override
-    public int compareTo(Block o) {
-        return Long.compare(header.getIndex(), o.header.getIndex());
-    }
-
-    /**
-     * Convert from Block.class to JSON string.
-     * @return block as JsonObject
-     */
     public JsonObject toJsonObject() {
-        //todo: change to serialize method
 
-        JsonObject jsonObject = this.getHeader().toJsonObject();
-        jsonObject.add("data", this.data.toJsonArray());
+        JsonObject jsonObject = new JsonObject();
+
+        jsonObject.add("header", this.header.toJsonObject());
+        jsonObject.addProperty("signature", this.signature.getSignatureHexString());
+        jsonObject.add("body", this.body.toJsonArray());
 
         return jsonObject;
     }
+
+    public byte[] getHash() throws IOException {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+
+        bao.write(this.header.toBinary());
+        bao.write(this.signature.getSignature());
+
+        return HashUtil.sha3(bao.toByteArray());
+    }
+
+    public String getHashString() throws IOException {
+        return org.spongycastle.util.encoders.Hex.toHexString(this.getHash());
+    }
+
+    public String toString() {
+        return this.toJsonObject().toString();
+    }
+
+    public String toStringPretty() {
+        return new GsonBuilder().setPrettyPrinting().create().toJson(this.toJsonObject());
+    }
+
+    public ECKey getEcKeyPub() {
+        return this.signature.getEcKeyPub();
+    }
+
+    public byte[] getPubKey() {
+        return this.getEcKeyPub().getPubKey();
+    }
+
+    public String getPubKeyHexString() {
+        return Hex.toHexString(this.getEcKeyPub().getPubKey());
+    }
+
+    public byte[] getAddress() {
+        return this.getEcKeyPub().getAddress();
+    }
+
+    public String getAddressToString() {
+        return Hex.toHexString(getAddress());
+    }
+
+    public long length() throws IOException {
+        return this.header.length() + this.signature.length() + this.body.length();
+    }
+
+    @Override
+    public Block clone() throws CloneNotSupportedException {
+        Block block = (Block) super.clone();
+        block.header = this.header.clone();
+        block.signature = this.signature.clone();
+        block.body = this.body.clone();
+
+        return block;
+    }
+
 }

@@ -3,32 +3,27 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.crypto.ECKey;
 import io.yggdrash.util.TimeUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Hex;
 
-import java.io.IOException;
-import java.security.SignatureException;
-
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 
 
 public class TransactionSignatureTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionSignatureTest.class);
 
-    TransactionBody txBody;
-    TransactionHeader txHeader;
-    Wallet wallet;
+    private Wallet wallet;
+    private TransactionHeader txHeader;
 
     @Before
-    public void init() throws IOException, InvalidCipherTextException {
+    public void init() {
+
+        TransactionBody txBody;
 
         try {
             byte[] chain = new byte[20];
@@ -62,8 +57,8 @@ public class TransactionSignatureTest {
     public void testTransactionSignature() {
 
         try {
-            TransactionSignature txSig1 = new TransactionSignature(wallet, txHeader.getHeaderHashForSigning());
-            assertArrayEquals(txSig1.getBodyHash(), txHeader.getHeaderHashForSigning());
+            TransactionSignature txSig1 = new TransactionSignature(wallet, txHeader.getHashForSignning());
+            assertArrayEquals(txSig1.getBodyHash(), txHeader.getHashForSignning());
 
             log.debug("txSig1.signature=" + Hex.toHexString(txSig1.getSignature()));
             log.debug("txSig1.data=" + Hex.toHexString(txSig1.getBodyHash()));
@@ -86,8 +81,9 @@ public class TransactionSignatureTest {
 
     @Test
     public void testTransactionSignatureClone() {
+
         try {
-            TransactionSignature txSig1 = new TransactionSignature(wallet, txHeader.getHeaderHashForSigning());
+            TransactionSignature txSig1 = new TransactionSignature(wallet, txHeader.getHashForSignning());
             TransactionSignature txSig2 = txSig1.clone();
             log.debug("txSig1=" + txSig1.getSignatureHexString());
             log.debug("txSig2=" + txSig2.getSignatureHexString());
@@ -99,9 +95,6 @@ public class TransactionSignatureTest {
             assert false;
         }
     }
-
-
-
 
 
 }

@@ -28,7 +28,7 @@ public class TransactionBodyTest {
     }
 
     @Test
-    public void testGetJsonArray() {
+    public void testTransactionBody() {
 
         try {
             JsonObject jsonObject1 = new JsonObject();
@@ -67,6 +67,12 @@ public class TransactionBodyTest {
             log.debug("txBody Binary=" + Hex.toHexString(txBody.getBinary()));
 
             assertArrayEquals(jsonArray.toString().getBytes(), txBody.getBinary());
+
+            log.debug("txBody count=" + txBody.getBodyCount());
+
+            assertEquals(txBody.getBodyCount(), 2);
+
+
         } catch (Exception e) {
             log.debug(e.getMessage());
             assert false;
