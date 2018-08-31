@@ -56,6 +56,10 @@ public class TransactionHeader implements Cloneable {
         this.bodyLength = txBody.length();
     }
 
+    public long length() throws IOException {
+        return this.toBinary().length;
+    }
+
     public byte[] getChain() { return this.chain; }
 
     public byte[] getVersion() {
@@ -131,8 +135,6 @@ public class TransactionHeader implements Cloneable {
     public String toString() {
         return this.toJsonObject().toString();
     }
-
-
 
     @Override
     public TransactionHeader clone() throws CloneNotSupportedException {

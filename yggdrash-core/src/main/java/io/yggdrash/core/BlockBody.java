@@ -1,19 +1,17 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonArray;
+import io.yggdrash.trie.Trie;
 
-import java.io.Serializable;
+import java.io.IOException;
 import java.util.List;
 
-public class BlockBody implements Serializable {
+public class BlockBody implements Cloneable {
 
     private List<Transaction> transactionList;
 
-    public BlockBody() {
-    }
-
     /**
-     * Instantiates a new Block body.
+     * Constructor for BlockBody class.
      *
      * @param transactionList the transaction list
      */
@@ -25,18 +23,24 @@ public class BlockBody implements Serializable {
         return transactionList;
     }
 
-    public byte[] getMerkleRoot() {
-//        try {
-//            return Trie.getMerkleRoot(this.transactionList);
-//            return null; // for test
-//        } catch (IOException e) {
-//            throw new NotValidateException(e);
-//        }
-        return null;
+    public byte[] getMerkleRoot() throws IOException {
+            return Trie.getMerkleRoot(this.transactionList);
     }
 
-    public long getSize() {
-        return this.transactionList.size(); // check byte
+    /**
+     * Get the length of BlockBody.
+     *
+     * @return the BlockBody length.
+     */
+    public long length() {
+
+        long length = 0;
+
+        for (Transaction tx : this.transactionList) {
+            length += tx.length();
+        }
+
+        return length;
     }
 
     @Override
@@ -63,6 +67,17 @@ public class BlockBody implements Serializable {
         return jsonArray;
     }
 
+    @Override
+    public BlockBody clone() throws CloneNotSupportedException {
+
+        BlockBody bb = (BlockBody) super.clone();
+
+        for(Transaction tx : this.transactionList) {
+            bb.transactionList.add(tx.clone());
+        }
+
+        return bb;
+    }
 }
 
 

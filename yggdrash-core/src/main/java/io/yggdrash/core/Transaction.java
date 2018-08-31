@@ -89,7 +89,7 @@ public class Transaction implements Cloneable {
     }
 
     /**
-     * Get transaction hash.
+     * Get transaction hash. SHA3(header | signature)
      *
      * @return transaction hash
      */
@@ -170,6 +170,16 @@ public class Transaction implements Cloneable {
         return Hex.toHexString(getAddress());
     }
 
+    /**
+     * Get the Transaction length (Header + Signature + Body).
+     *
+     * @return tx length
+     */
+    public long length() {
+        return this.header.length() + this.signature.length() + this.body.length();
+    }
+
+
     @Override
     public Transaction clone() throws CloneNotSupportedException {
         Transaction tx = (Transaction) super.clone();
@@ -179,5 +189,7 @@ public class Transaction implements Cloneable {
 
         return tx;
     }
+
+
 
 }

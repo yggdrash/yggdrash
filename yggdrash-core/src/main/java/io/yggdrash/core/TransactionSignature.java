@@ -34,6 +34,10 @@ public class TransactionSignature implements Cloneable {
         }
     }
 
+    public long length() {
+        return this.getSignature().length;
+    }
+
     public byte[] getSignature() {
         return this.signature;
     }
