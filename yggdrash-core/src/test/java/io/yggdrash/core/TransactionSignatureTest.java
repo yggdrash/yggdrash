@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 
 public class TransactionSignatureTest {
@@ -76,6 +77,15 @@ public class TransactionSignatureTest {
                     txSig2.getEcdsaSignature().toBinary());
 
             assertArrayEquals(txSig1.getEcKeyPub().getPubKey(), txSig2.getEcKeyPub().getPubKey());
+
+            TransactionSignature txSig3 = new TransactionSignature(txSig1.toJsonObject());
+            log.debug("txSig1=" + txSig1.toString());
+            log.debug("txSig3=" + txSig3.toString());
+
+            assertEquals(txSig1.toString(), txSig3.toString());
+
+            assertEquals(Hex.toHexString(txSig1.getBodyHash()), txSig3.getBodyHashHexString());
+
         } catch (Exception e) {
             log.debug(e.getMessage());
             assert false;

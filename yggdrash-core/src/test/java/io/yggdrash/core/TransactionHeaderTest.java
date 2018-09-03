@@ -103,6 +103,13 @@ public class TransactionHeaderTest {
             log.debug("txHeader1=" + txHeader1.toJsonObject());
             log.debug("txHeader3=" + txHeader3.toJsonObject());
             assertNotEquals(txHeader1.toJsonObject(), txHeader3.toJsonObject());
+
+            TransactionHeader txHeader4 = new TransactionHeader(txHeader1.toJsonObject());
+            log.debug("txHeader4=" + txHeader4.toJsonObject());
+
+            assertEquals(txHeader1.toJsonObject(), txHeader4.toJsonObject());
+
+
         } catch (Exception e) {
             log.debug(e.getMessage());
             assert false;

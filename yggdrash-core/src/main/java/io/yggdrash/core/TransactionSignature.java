@@ -1,6 +1,8 @@
 package io.yggdrash.core;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.crypto.ECKey;
+import io.yggdrash.util.ByteUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.security.SignatureException;
@@ -34,6 +36,18 @@ public class TransactionSignature implements Cloneable {
         }
     }
 
+    public TransactionSignature(JsonObject jsonObject) throws SignatureException {
+        this.signature = Hex.decode(jsonObject.get("signature").getAsString());
+        this.bodyHash = Hex.decode(jsonObject.get("bodyHash").getAsString());
+
+        this.ecdsaSignature = new ECKey.ECDSASignature(this.signature);
+        this.ecKeyPub = ECKey.signatureToKey(this.bodyHash, this.ecdsaSignature);
+
+        if (!this.ecKeyPub.verify(this.bodyHash, this.ecdsaSignature)) {
+            throw new SignatureException();
+        }
+    }
+
     public long length() {
         return this.getSignature().length;
     }
@@ -60,6 +74,20 @@ public class TransactionSignature implements Cloneable {
 
     public ECKey getEcKeyPub() {
         return this.ecKeyPub;
+    }
+
+
+    public JsonObject toJsonObject() {
+        JsonObject jsonObject = new JsonObject();
+
+        jsonObject.addProperty("signature", Hex.toHexString(this.signature));
+        jsonObject.addProperty("bodyHash", Hex.toHexString(this.bodyHash));
+
+        return jsonObject;
+    }
+
+    public String toString() {
+        return this.toJsonObject().toString();
     }
 
     @Override

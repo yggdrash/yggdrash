@@ -233,18 +233,18 @@ public class NodeSyncServer {
             return new StreamObserver<Proto.Block>() {
                 @Override
                 public void onNext(Proto.Block protoBlock) {
-                    long id = protoBlock.getHeader().getRawData().getIndex();
-                    BlockHusk block = new BlockHusk(protoBlock);
-                    log.debug("Received block id=[{}], hash={}", id, block.getHash());
-                    BlockHusk newBlock = nodeManager.addBlock(block);
-                    // ignore broadcast by other node's broadcast
-                    if (newBlock == null) {
-                        return;
-                    }
-
-                    for (StreamObserver<NetProto.Empty> observer : blockObservers) {
-                        observer.onNext(EMPTY);
-                    }
+//                    long id = protoBlock.getHeader().getRawData().getIndex();
+//                    BlockHusk block = new BlockHusk(protoBlock);
+//                    log.debug("Received block id=[{}], hash={}", id, block.getHash());
+//                    BlockHusk newBlock = nodeManager.addBlock(block);
+//                    // ignore broadcast by other node's broadcast
+//                    if (newBlock == null) {
+//                        return;
+//                    }
+//
+//                    for (StreamObserver<NetProto.Empty> observer : blockObservers) {
+//                        observer.onNext(EMPTY);
+//                    }
                 }
 
                 @Override

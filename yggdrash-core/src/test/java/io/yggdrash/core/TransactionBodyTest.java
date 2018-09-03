@@ -72,6 +72,12 @@ public class TransactionBodyTest {
 
             assertEquals(txBody.getBodyCount(), 2);
 
+            TransactionBody txBody2 =  new TransactionBody(jsonArray.toString());
+
+            assertEquals(txBody.toString(), txBody2.toString());
+
+
+
 
         } catch (Exception e) {
             log.debug(e.getMessage());

@@ -2,8 +2,11 @@ package io.yggdrash.core;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.protobuf.ByteString;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
+import io.yggdrash.proto.Proto;
+import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.TimeUtils;
 import org.spongycastle.util.encoders.Hex;
 
@@ -48,6 +51,14 @@ public class Transaction implements Cloneable {
         this.signature = new TransactionSignature(wallet, this.header.getHashForSignning());
     }
 
+    public Transaction(JsonObject jsonObject) throws SignatureException {
+
+        this.header = new TransactionHeader(jsonObject.get("header").getAsJsonObject());
+        this.signature = new TransactionSignature(jsonObject.get("signature").getAsJsonObject());
+        this.body = new TransactionBody(jsonObject.getAsJsonArray("body"));
+
+    }
+
     /**
      * Get TransactionHeader.
      *
@@ -84,7 +95,7 @@ public class Transaction implements Cloneable {
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.add("header", this.header.toJsonObject());
-        jsonObject.addProperty("signature", this.signature.getSignatureHexString());
+        jsonObject.add("signature", this.signature.toJsonObject());
         jsonObject.add("body", this.body.getBody());
 
         return jsonObject;
@@ -118,6 +129,17 @@ public class Transaction implements Cloneable {
      */
     public String toString() {
         return this.toJsonObject().toString();
+    }
+
+    public byte[] toBinary() throws IOException {
+
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+
+        bao.write(this.header.toBinary());
+        bao.write(this.signature.getSignature());
+        bao.write(this.body.getBinary());
+
+        return bao.toByteArray();
     }
 
     /**
@@ -191,6 +213,51 @@ public class Transaction implements Cloneable {
         return tx;
     }
 
+    public Proto.Transaction toProtoTransaction() {
+        return this.toProtoTransaction(this);
+    }
 
+    public static Proto.Transaction toProtoTransaction(Transaction tx) {
+        Proto.Transaction.Header protoHeader = Proto.Transaction.Header.newBuilder()
+                .setChain(ByteString.copyFrom(tx.getHeader().getChain()))
+                .setVersion(ByteString.copyFrom(tx.getHeader().getVersion()))
+                .setType(ByteString.copyFrom(tx.getHeader().getType()))
+                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(tx.getHeader().getTimestamp())))
+                .setBodyHash(ByteString.copyFrom(tx.getHeader().getBodyHash()))
+                .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(tx.getHeader().getBodyLength())))
+                .build();
+
+        Proto.Transaction protoTransaction = Proto.Transaction.newBuilder()
+                .setHeader(protoHeader)
+                .setSignature(ByteString.copyFrom(tx.getSignature().getSignature()))
+                .setBody(ByteString.copyFrom(tx.getBody().getBinary()))
+                .build();
+
+        return protoTransaction;
+    }
+
+    public static Transaction toTransaction(Proto.Transaction protoTransaction) throws SignatureException {
+
+        TransactionHeader txHeader = new TransactionHeader(
+                protoTransaction.getHeader().getChain().toByteArray(),
+                protoTransaction.getHeader().getVersion().toByteArray(),
+                protoTransaction.getHeader().getType().toByteArray(),
+                ByteUtil.byteArrayToLong(protoTransaction.getHeader().getTimestamp().toByteArray()),
+                protoTransaction.getHeader().getBodyHash().toByteArray(),
+                ByteUtil.byteArrayToLong(protoTransaction.getHeader().getBodyLength().toByteArray())
+                );
+
+        TransactionSignature txSignature =  new TransactionSignature(
+                protoTransaction.getSignature().toByteArray(),
+                protoTransaction.getHeader().getBodyHash().toByteArray()
+        );
+
+        TransactionBody txBody = new TransactionBody(
+                protoTransaction.getBody().toStringUtf8()
+        );
+
+        return new Transaction(txHeader, txSignature, txBody);
+
+    }
 
 }

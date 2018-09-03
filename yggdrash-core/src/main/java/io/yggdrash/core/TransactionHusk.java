@@ -42,99 +42,99 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHusk.class);
 
-    private Proto.Transaction transaction;
+    private Proto.Transaction protoTransaction;
+    private Transaction coreTransaction;
 
     public TransactionHusk(Proto.Transaction transaction) {
-        this.transaction = transaction;
+        this.protoTransaction = transaction;
+        try {
+            this.coreTransaction = Transaction.toTransaction(transaction);
+        } catch (SignatureException e) {
+            throw new NotValidateException();
+        }
     }
 
-    public TransactionHusk(byte[] data) throws InvalidProtocolBufferException {
-        this.transaction = Proto.Transaction.parseFrom(data);
+    public TransactionHusk(Transaction transaction) {
+        this.coreTransaction = transaction;
+        try {
+            this.protoTransaction = Transaction.toProtoTransaction(transaction);
+        } catch (Exception e) {
+            throw new NotValidateException();
+        }
+    }
+
+    public TransactionHusk(byte[] data){
+        try {
+            this.protoTransaction = Proto.Transaction.parseFrom(data);
+            this.coreTransaction = Transaction.toTransaction(protoTransaction);
+        } catch (Exception e) {
+            throw new NotValidateException();
+        }
     }
 
     public TransactionHusk(JsonObject jsonObject) {
-        String body = jsonObject.toString();
-        Proto.Transaction.Header transactionHeader = Proto.Transaction.Header.newBuilder()
-                .setRawData(Proto.Transaction.Header.Raw.newBuilder()
-                        .setType(ByteString.copyFrom(ByteBuffer.allocate(4).putInt(1).array()))
-                        .setVersion(ByteString.copyFrom(ByteBuffer.allocate(4).putInt(1).array()))
-                        .setDataHash(ByteString.copyFrom(HashUtil.sha3(body.getBytes())))
-                        .setDataSize(body.getBytes().length)
-                        .build())
-                .build();
-        this.transaction = Proto.Transaction.newBuilder()
-                .setHeader(transactionHeader)
-                .setBody(body)
-                .build();
-    }
-
-    public TransactionHusk sign(Wallet wallet) {
-        Proto.Transaction.Header.Raw updatedRawData = Proto.Transaction.Header.Raw
-                .newBuilder(getHeader().getRawData())
-                .setTimestamp(TimeUtils.time()).build();
-
-        this.transaction = Proto.Transaction.newBuilder(transaction)
-                .setHeader(
-                        Proto.Transaction.Header.newBuilder()
-                                .setRawData(updatedRawData)
-                                .build())
-                .build();
-
-        byte[] dataForSign = getDataForSigning();
-
-        byte[] signature = wallet.sign(dataForSign);
-
-        this.transaction = Proto.Transaction.newBuilder(transaction)
-                .setHeader(
-                        Proto.Transaction.Header.newBuilder()
-                                .setRawData(updatedRawData)
-                                .setSignature(ByteString.copyFrom(signature))
-                                .build())
-                .build();
-        return this;
-    }
-
-    private Proto.Transaction.Header getHeader() {
-        return this.transaction.getHeader();
-    }
-
-    public Sha3Hash getHash() {
-        ByteArrayOutputStream transaction = new ByteArrayOutputStream();
-
         try {
-            transaction.write(getHeader().getRawData().getType().toByteArray());
-            transaction.write(getHeader().getRawData().getVersion().toByteArray());
-            transaction.write(getHeader().getRawData().getDataHash().toByteArray());
-            transaction.write(ByteUtil.longToBytes(getHeader().getRawData().getTimestamp()));
-            transaction.write(ByteUtil.longToBytes(getHeader().getRawData().getDataSize()));
-            transaction.write(getHeader().getSignature().toByteArray());
-        } catch (IOException e) {
-            throw new NotValidateException(e);
+            this.coreTransaction = new Transaction(jsonObject);
+            this.protoTransaction = this.coreTransaction.toProtoTransaction();
+        } catch (SignatureException e) {
+            throw new NotValidateException();
         }
+    }
 
-        return new Sha3Hash(transaction.toByteArray());
+//    private Proto.Transaction.Header getHeader() {
+//        return this.protoTransaction.getHeader();
+//    }
+
+    public Proto.Transaction getProtoTransaction() {
+        return protoTransaction;
+    }
+
+    public Transaction getCoreTransaction() {
+        return coreTransaction;
+    }
+
+    public byte[] getSignature() {
+        return this.protoTransaction.getSignature().toByteArray();
     }
 
     public String getBody() {
-        return this.transaction.getBody();
+        return this.protoTransaction.getBody().toString();
+    }
+
+    public TransactionHusk sign(Wallet wallet) {
+
+        try {
+            this.coreTransaction =
+                    new Transaction(this.coreTransaction.getHeader(), wallet, this.coreTransaction.getBody());
+            this.protoTransaction = this.coreTransaction.toProtoTransaction();
+        } catch (Exception e) {
+            throw new NotValidateException();
+        }
+
+        return this;
+    }
+
+    public Sha3Hash getHash() {
+        try {
+            return new Sha3Hash(this.coreTransaction.getHash(), true);
+        } catch (IOException e) {
+            throw new NotValidateException();
+        }
     }
 
     @Override
     public byte[] getData() {
-        return this.transaction.toByteArray();
+        return this.protoTransaction.toByteArray();
     }
 
     @Override
     public Proto.Transaction getInstance() {
-        return this.transaction;
+        return this.protoTransaction;
     }
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("TransactionHusk{");
-        sb.append("transaction=").append(transaction);
-        sb.append('}');
-        return sb.toString();
+        return this.coreTransaction.toString();
     }
 
     @Override
@@ -146,41 +146,42 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
             return false;
         }
         TransactionHusk that = (TransactionHusk) o;
-        return Objects.equals(transaction, that.transaction);
+        return Objects.equals(protoTransaction, that.protoTransaction);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(transaction);
+        return Objects.hash(protoTransaction);
     }
 
     public boolean isSigned() {
-        return !getHeader().getSignature().isEmpty();
+        return !this.protoTransaction.getSignature().isEmpty();
     }
 
-    public boolean verify() {
-        try {
-            if (!isSigned()) {
-                return false;
-            }
-
-            byte[] dataHashForSigning = getDataHashForSigning();
-            byte[] signatureBin = getHeader().getSignature().toByteArray();
-
-            ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signatureBin);
-            ECKey key = ECKey.signatureToKey(dataHashForSigning, ecdsaSignature);
-
-            log.trace("verfiy data= " + Hex.toHexString(getDataForSigning()));
-            log.trace("verfiy dataHash= " + Hex.toHexString(dataHashForSigning));
-            log.trace("verfiy sig= " + Hex.toHexString(ecdsaSignature.toBinary()));
-            log.trace("verfiy keyAddress= " + Hex.toHexString(key.getAddress()));
-
-            return key.verify(dataHashForSigning, ecdsaSignature);
-        } catch (SignatureException e) {
-            log.debug("verfiy() SignatureException");
-            throw new InvalidSignatureException(e);
-        }
-    }
+//    public boolean verify() {
+//        try {
+//            if (!isSigned()) {
+//                return false;
+//            }
+//
+//            byte[] dataHashForSigning = getDataHashForSigning();
+//            byte[] signatureBin = getHeader().getSignature().toByteArray();
+//
+//            ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signatureBin);
+//            ECKey key = ECKey.signatureToKey(dataHashForSigning, ecdsaSignature);
+//
+//            log.trace("verfiy data= " + Hex.toHexString(getDataForSigning()));
+//            log.trace("verfiy dataHash= " + Hex.toHexString(dataHashForSigning));
+//            log.trace("verfiy sig= " + Hex.toHexString(ecdsaSignature.toBinary()));
+//            log.trace("verfiy keyAddress= " + Hex.toHexString(key.getAddress()));
+//
+//            return key.verify(dataHashForSigning, ecdsaSignature);
+//        } catch (SignatureException e) {
+//            log.debug("verfiy() SignatureException");
+//            throw new InvalidSignatureException(e);
+//        }
+//        return true;
+//    }
 
     /**
      * Get the address.
@@ -188,7 +189,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
      * @return address
      */
     public Address getAddress() {
-        return new Address(ecKey().getAddress());
+        return new Address(this.coreTransaction.getAddress());
     }
 
     /**
@@ -197,76 +198,18 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
      * @return ECKey(include pubKey)
      */
     private ECKey ecKey() {
-        try {
-            byte[] hashedRawData = HashUtil.sha3(getDataForSigning());
-            byte[] signatureBin = getHeader().getSignature().toByteArray();
-            ECKey.ECDSASignature sig = new ECKey.ECDSASignature(signatureBin);
-
-            return ECKey.signatureToKey(hashedRawData, sig);
-        } catch (SignatureException e) {
-            throw new InvalidSignatureException(e);
-        }
+        return this.coreTransaction.getSignature().getEcKeyPub();
     }
 
-    /**
-     * Convert from TransactionHusk.class to JSON string.
-     * @return transaction as JsonObject
-     */
     public JsonObject toJsonObject() {
-        //todo: change to serialize method
-
-        Proto.Transaction.Header.Raw raw = this.transaction.getHeader().getRawData();
-        JsonObject jsonObject = new JsonObject();
-
-        jsonObject.addProperty("type", Hex.toHexString(raw.getType().toByteArray()));
-        jsonObject.addProperty("version", Hex.toHexString(raw.getVersion().toByteArray()));
-        jsonObject.addProperty("dataHash",
-                Hex.toHexString(raw.getDataHash().toByteArray()));
-        jsonObject.addProperty("timestamp",
-                Hex.toHexString(ByteUtil.longToBytes(raw.getTimestamp())));
-        jsonObject.addProperty("dataSize",
-                Hex.toHexString(ByteUtil.longToBytes(raw.getDataSize())));
-        jsonObject.addProperty("signature",
-                Hex.toHexString(this.transaction.getHeader().getSignature().toByteArray()));
-
-        jsonObject.add("data", new Gson().fromJson(this.getBody(), JsonObject.class));
-
-        return jsonObject;
+        return this.coreTransaction.toJsonObject();
     }
 
     @Override
     public int compareTo(TransactionHusk o) {
-        return Long.compare(transaction.getHeader().getRawData().getTimestamp(),
-                o.getInstance().getHeader().getRawData().getTimestamp());
+        return Long.compare(ByteUtil.byteArrayToLong(protoTransaction.getHeader().getTimestamp().toByteArray()),
+                ByteUtil.byteArrayToLong(o.getInstance().getHeader().getTimestamp().toByteArray()));
     }
 
-    /**
-     * Get the data for signing.
-     *
-     * @return data of sign data
-     */
-    public byte[] getDataForSigning() {
-        ByteArrayOutputStream transaction = new ByteArrayOutputStream();
 
-        try {
-            transaction.write(getHeader().getRawData().getType().toByteArray());
-            transaction.write(getHeader().getRawData().getVersion().toByteArray());
-            transaction.write(getHeader().getRawData().getDataHash().toByteArray());
-            transaction.write(ByteUtil.longToBytes(getHeader().getRawData().getTimestamp()));
-            transaction.write(ByteUtil.longToBytes(getHeader().getRawData().getDataSize()));
-        } catch (IOException e) {
-            throw new NotValidateException(e);
-        }
-
-        return transaction.toByteArray();
-    }
-
-    /**
-     * Get the dataHash(sha3) for signing.
-     *
-     * @return dataHash(sha3, 32Bytes) of sign data
-     */
-    public byte[] getDataHashForSigning() {
-        return HashUtil.sha3(getDataForSigning());
-    }
 }

@@ -64,49 +64,51 @@ public class BlockChainLoader {
     }
 
     private BlockHusk convertBlock(BranchInfo branchInfo) throws JsonProcessingException {
-        return new BlockHusk(Proto.Block.newBuilder()
-                .setHeader(Proto.Block.Header.newBuilder()
-                        .setRawData(Proto.Block.Header.Raw.newBuilder()
-                                .setType(ByteString.copyFrom(Hex.decode(branchInfo.type)))
-                                .setVersion(ByteString.copyFrom(Hex.decode(branchInfo.version)))
-                                .setIndex(0)
-                                .setTimestamp(Long.parseLong(branchInfo.timestamp))
-                                .setPrevBlockHash(ByteString.copyFrom(branchInfo.prevBlockHash
-                                        .getBytes()))
-                                .setMerkleRoot(ByteString.copyFrom(branchInfo.merkleRoot
-                                        .getBytes()))
-                                .setDataSize(Long.parseLong(branchInfo.dataSize))
-                                .build()
-                        )
-                        .setSignature(ByteString.copyFrom(Hex.decode(branchInfo.signature)))
-                        .build()
-                )
-                .addAllBody(convertTransaction(branchInfo.data))
-                .build());
+//        return new BlockHusk(Proto.Block.newBuilder()
+//                .setHeader(Proto.Block.Header.newBuilder()
+//                        .setRawData(Proto.Block.Header.Raw.newBuilder()
+//                                .setType(ByteString.copyFrom(Hex.decode(branchInfo.type)))
+//                                .setVersion(ByteString.copyFrom(Hex.decode(branchInfo.version)))
+//                                .setIndex(0)
+//                                .setTimestamp(Long.parseLong(branchInfo.timestamp))
+//                                .setPrevBlockHash(ByteString.copyFrom(branchInfo.prevBlockHash
+//                                        .getBytes()))
+//                                .setMerkleRoot(ByteString.copyFrom(branchInfo.merkleRoot
+//                                        .getBytes()))
+//                                .setDataSize(Long.parseLong(branchInfo.dataSize))
+//                                .build()
+//                        )
+//                        .setSignature(ByteString.copyFrom(Hex.decode(branchInfo.signature)))
+//                        .build()
+//                )
+//                .addAllBody(convertTransaction(branchInfo.data))
+//                .build());
+        return null;
     }
 
     private List<Proto.Transaction> convertTransaction(List<BranchData> branchDataList) throws
             JsonProcessingException {
-        List<Proto.Transaction> list = new ArrayList<>();
-        for (BranchData branchData : branchDataList) {
-            ByteString byteString = ByteString.copyFrom(Hex.decode(branchData.dataHash));
-            list.add(Proto.Transaction.newBuilder()
-                    .setHeader(Proto.Transaction.Header.newBuilder()
-                            .setRawData(Proto.Transaction.Header.Raw.newBuilder()
-                                    .setType(ByteString.copyFrom(Hex.decode(branchData.type)))
-                                    .setVersion(ByteString.copyFrom(Hex.decode(branchData.version)))
-                                    .setTimestamp(Long.parseLong(branchData.timestamp))
-                                    .setDataHash(byteString)
-                                    .setDataSize(Long.parseLong(branchData.dataSize))
-                                    .build()
-                            )
-                            .setSignature(ByteString.copyFrom(Hex.decode(branchData.signature)))
-                            .build()
-                    )
-                    .setBody(mapper.writeValueAsString(branchData.data)).build()
-            );
-        }
-        return list;
+//        List<Proto.Transaction> list = new ArrayList<>();
+//        for (BranchData branchData : branchDataList) {
+//            ByteString byteString = ByteString.copyFrom(Hex.decode(branchData.dataHash));
+//            list.add(Proto.Transaction.newBuilder()
+//                    .setHeader(Proto.Transaction.Header.newBuilder()
+//                            .setRawData(Proto.Transaction.Header.Raw.newBuilder()
+//                                    .setType(ByteString.copyFrom(Hex.decode(branchData.type)))
+//                                    .setVersion(ByteString.copyFrom(Hex.decode(branchData.version)))
+//                                    .setTimestamp(Long.parseLong(branchData.timestamp))
+//                                    .setDataHash(byteString)
+//                                    .setDataSize(Long.parseLong(branchData.dataSize))
+//                                    .build()
+//                            )
+//                            .setSignature(ByteString.copyFrom(Hex.decode(branchData.signature)))
+//                            .build()
+//                    )
+//                    .setBody(mapper.writeValueAsString(branchData.data)).build()
+//            );
+//        }
+//        return list;
+        return null;
     }
 
 }

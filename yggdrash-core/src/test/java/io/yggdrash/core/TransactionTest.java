@@ -2,6 +2,7 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.proto.Proto;
 import io.yggdrash.util.TimeUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -97,6 +98,11 @@ public class TransactionTest {
             assertNotEquals(tx1.toJsonObject().toString(), tx2.toJsonObject().toString());
             log.debug("tx1=" + tx1.toJsonObject());
             log.debug("tx2=" + tx2.toJsonObject());
+
+            Transaction tx3 = new Transaction(tx1.toJsonObject());
+            log.debug("tx1=" + tx1.toString());
+            log.debug("tx3=" + tx3.toString());
+            assertEquals(tx1.toJsonObject(), tx3.toJsonObject());
 
         } catch (Exception e) {
             log.debug(e.getMessage());
@@ -204,6 +210,49 @@ public class TransactionTest {
         }
 
     }
+
+    @Test
+    public void testTransactionToProto() {
+        try {
+            Transaction tx1 = new Transaction(txHeader, txSig, txBody);
+            log.debug("tx1 pubKey=" + tx1.getPubKeyHexString());
+
+            Transaction tx2 = tx1.clone();
+            log.debug("tx2 pubKey=" + tx2.getPubKeyHexString());
+
+            assertEquals(tx1.getPubKeyHexString(), tx2.getPubKeyHexString());
+            assertArrayEquals(tx1.getPubKey(), tx2.getPubKey());
+            assertArrayEquals(tx1.getPubKey(), wallet.getPubicKey());
+
+            log.debug("tx1 address=" + tx1.getAddressToString());
+            log.debug("tx2 address=" + tx2.getAddressToString());
+            log.debug("wallet address=" + wallet.getHexAddress());
+            assertArrayEquals(tx1.getAddress(), tx2.getAddress());
+            assertArrayEquals(tx1.getAddress(), wallet.getAddress());
+
+            Proto.Transaction protoTx1 = tx1.toProtoTransaction();
+            Proto.Transaction protoTx2 = tx2.toProtoTransaction();
+            log.debug("tx1 proto=" + Hex.toHexString(protoTx1.toByteArray()));
+            log.debug("tx2 proto=" + Hex.toHexString(protoTx2.toByteArray()));
+
+            assertArrayEquals(protoTx1.toByteArray(), protoTx2.toByteArray());
+
+            Transaction tx3 = Transaction.toTransaction(protoTx1);
+            log.debug("tx1=" + tx1.toString());
+            log.debug("tx3=" + tx3.toString());
+
+            assertEquals(tx1.toString(), tx3.toString());
+
+
+
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            assert false;
+        }
+
+    }
+
+
 
 
 }

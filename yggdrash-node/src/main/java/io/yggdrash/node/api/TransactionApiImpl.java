@@ -5,6 +5,7 @@ import com.google.protobuf.ByteString;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.exception.NonExistObjectException;
@@ -121,13 +122,6 @@ public class TransactionApiImpl implements TransactionApi {
     public String sendTransaction(TransactionDto tx) {
         TransactionHusk addedTx = nodeManager.addTransaction(TransactionDto.of(tx));
         return addedTx.getHash().toString();
-    }
-
-    @Override
-    public byte[] sendRawTransaction(byte[] bytes) {
-        TransactionHusk tx = convert(bytes);
-        TransactionHusk addedTx = nodeManager.addTransaction(tx);
-        return addedTx.getHash().getBytes();
     }
 
     /* filter */

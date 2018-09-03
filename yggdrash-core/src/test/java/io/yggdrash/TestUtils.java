@@ -53,22 +53,23 @@ public class TestUtils {
     }
 
     public static Proto.Transaction getTransactionFixture() {
-        String body = getTransfer().toString();
-        return Proto.Transaction.newBuilder()
-                .setHeader(Proto.Transaction.Header.newBuilder()
-                        .setRawData(Proto.Transaction.Header.Raw.newBuilder()
-                                .setType(ByteString.copyFrom(
-                                        ByteBuffer.allocate(4).putInt(1).array()))
-                                .setVersion(ByteString.copyFrom(
-                                        ByteBuffer.allocate(4).putInt(1).array()))
-                                .setDataHash(ByteString.copyFrom(
-                                        HashUtil.sha3(body.getBytes())))
-                                .setDataSize(body.getBytes().length)
-                                .setTimestamp(TimeUtils.time())
-                        )
-                )
-                .setBody(body)
-                .build();
+//        String body = getTransfer().toString();
+//        return Proto.Transaction.newBuilder()
+//                .setHeader(Proto.Transaction.Header.newBuilder()
+//                        .setRawData(Proto.Transaction.Header.Raw.newBuilder()
+//                                .setType(ByteString.copyFrom(
+//                                        ByteBuffer.allocate(4).putInt(1).array()))
+//                                .setVersion(ByteString.copyFrom(
+//                                        ByteBuffer.allocate(4).putInt(1).array()))
+//                                .setDataHash(ByteString.copyFrom(
+//                                        HashUtil.sha3(body.getBytes())))
+//                                .setDataSize(body.getBytes().length)
+//                                .setTimestamp(TimeUtils.time())
+//                        )
+//                )
+//                .setBody(body)
+//                .build();
+        return null;
     }
 
     public static Proto.Block getBlockFixture() {
@@ -81,25 +82,26 @@ public class TestUtils {
     }
 
     public static Proto.Block getBlockFixture(Long index, Sha3Hash prevHash) {
-        return Proto.Block.newBuilder()
-                .setHeader(
-                        Proto.Block.Header.newBuilder()
-                                .setRawData(Proto.Block.Header.Raw.newBuilder()
-                                        .setType(ByteString.copyFrom(
-                                                ByteBuffer.allocate(4).putInt(1).array()))
-                                        .setVersion(ByteString.copyFrom(
-                                                ByteBuffer.allocate(4).putInt(1).array()))
-                                        .setIndex(index)
-                                        .setPrevBlockHash(ByteString.copyFrom(
-                                                prevHash.getBytes()
-                                        ))
-                                        .build()
-                                ).build()
-                )
-                .addBody(getTransactionFixture())
-                .addBody(getTransactionFixture())
-                .addBody(getTransactionFixture())
-                .build();
+//        return Proto.Block.newBuilder()
+//                .setHeader(
+//                        Proto.Block.Header.newBuilder()
+//                                .setRawData(Proto.Block.Header.Raw.newBuilder()
+//                                        .setType(ByteString.copyFrom(
+//                                                ByteBuffer.allocate(4).putInt(1).array()))
+//                                        .setVersion(ByteString.copyFrom(
+//                                                ByteBuffer.allocate(4).putInt(1).array()))
+//                                        .setIndex(index)
+//                                        .setPrevBlockHash(ByteString.copyFrom(
+//                                                prevHash.getBytes()
+//                                        ))
+//                                        .build()
+//                                ).build()
+//                )
+//                .addBody(getTransactionFixture())
+//                .addBody(getTransactionFixture())
+//                .addBody(getTransactionFixture())
+//                .build();
+        return null;
     }
 
     public static TransactionHusk createTxHusk() {
