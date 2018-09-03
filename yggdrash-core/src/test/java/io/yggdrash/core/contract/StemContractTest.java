@@ -11,13 +11,17 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
 public class StemContractTest {
 
     private static final Logger log = LoggerFactory.getLogger(StemContractTest.class);
 
     private StemContract stemContract;
-    private Wallet wallet;
     private JsonObject referenceBranch;
+    private Wallet wallet;
 
     @Before
     public void setUp() throws Exception {
@@ -60,10 +64,10 @@ public class StemContractTest {
         String description = "ETH TO YEED";
         String version = "0xb5790adeafbb9ac6c9be60955484ab1547ab0b76";
         String referenceAddress =
-                "ce51eb47741d9e782ffa8b28743a1bb4d8af5d149cd1acd9bbbcbb6764b9c1e9";
+                "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523";
         String reserveAddress = "0x1F8f8A219550f89f9D372ab2eE0D1f023EC665a3";
-        stemContract.create(createBranch(name, symbol, property, type, description,
-                version, referenceAddress, reserveAddress));
+        assertThat(stemContract.create(createBranch(name, symbol, property, type, description,
+                version, referenceAddress, reserveAddress))).isNotNull();
     }
 
     @Test
@@ -72,50 +76,54 @@ public class StemContractTest {
         String description = "Hello World!";
         String updatedVersion = "0xf4312kjise099qw0nene76555484ab1547av8b9e";
         JsonObject updatedBranch = updateBranch(description, updatedVersion, referenceBranch, 0);
-        stemContract.update(branchId, updatedBranch);
+        String res = stemContract.update(branchId, updatedBranch);
+        assertEquals(res, branchId);
         updatedBranch = updateBranch(description, updatedVersion, referenceBranch, 1);
-        stemContract.update(branchId, updatedBranch);
+        res = stemContract.update(branchId, updatedBranch);
+        assertNotEquals(res, branchId);
     }
 
     @Test
     public void searchTest() {
         String key = "type";
         String element = "immunity";
-        stemContract.search(key, element);
+        assertThat(stemContract.search(key, element).size()).isNotZero();
 
         key = "name";
         element = "TEST2";
-        stemContract.search(key, element);
+        assertThat(stemContract.search(key, element).size()).isNotZero();
 
         key = "property";
         element = "dex";
-        stemContract.search(key, element);
+        assertThat(stemContract.search(key, element).size()).isNotZero();
 
         key = "owner";
         element = "9e187f5264037ab77c87fcffcecd943702cd72c3";
-        stemContract.search(key, element);
+        assertThat(stemContract.search(key, element).size()).isNotZero();
 
         key = "symbol";
         element = "TEST2";
-        stemContract.search(key, element);
+        assertThat(stemContract.search(key, element).size()).isNotZero();
     }
 
     @Test
     public void viewTest() {
         String branchId = "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523";
-        stemContract.view(branchId);
+        assertThat(stemContract.view(branchId)).isNotEmpty();
     }
 
     @Test
     public void getCurrentVersionTest() {
         String branchId = "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523";
         log.debug(stemContract.getCurrentVersion(branchId));
+        assertThat(stemContract.getCurrentVersion(branchId)).isNotEmpty();
     }
 
     @Test
     public void getVersionHistoryTest() {
         String branchId = "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523";
         log.debug(stemContract.getVersionHistory(branchId).getAsString());
+        assertThat(stemContract.getVersionHistory(branchId).size()).isNotZero();
     }
 
     private JsonObject createBranch(String name,
@@ -130,7 +138,8 @@ public class StemContractTest {
         versionHistory.add(version);
         JsonObject branch = new JsonObject();
         branch.addProperty("name", name);
-        branch.addProperty("owner", wallet.getHexAddress());
+        //branch.addProperty("owner", wallet.getHexAddress());
+        branch.addProperty("owner", "9e187f5264037ab77c87fcffcecd943702cd72c3");
         branch.addProperty("from", "f4a3760644d064b3f7d82bb8e43ccb090a2dac8b55cc2894bf618c551b0bc2a8");
         branch.addProperty("to", "83d2834d74afcba266fb3305bd2ff4a3cf35fe9c455e288975ea39b68e255156");
         branch.addProperty("symbol", symbol);

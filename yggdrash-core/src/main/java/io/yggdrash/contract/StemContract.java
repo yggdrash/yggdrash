@@ -57,6 +57,8 @@ public class StemContract extends BaseContract<JsonObject> {
     public String update(String branchId, JsonObject branch) {
         if (isBranchHonest(branchId, branch)) {
             if (isVersionHistoryUpdated(branchId, branch)) {
+                log.info("[StemContract | update] branchId => " + branchId
+                + "\nbranch => " + branch);
                 state.put(branchId, branch);
                 return branchId;
             }
@@ -100,6 +102,7 @@ public class StemContract extends BaseContract<JsonObject> {
 
     private boolean isRefAddressValid(String key) {
         if (!key.isEmpty() && state.get(key) == null) {
+            log.warn("[Validation] reference_address is not valid");
             return false;
         }
         return true;
@@ -107,6 +110,7 @@ public class StemContract extends BaseContract<JsonObject> {
 
     private boolean isTypeValid(String key) {
         if (!types.contains(key)) {
+            log.warn("[Validation] type is not valid");
             return false;
         }
         return true;
@@ -117,7 +121,7 @@ public class StemContract extends BaseContract<JsonObject> {
             log.info("[Validation] branchId is valid");
             return true;
         }
-        log.info("[Validation] branchId is not valid");
+        log.warn("[Validation] branchId is not valid");
         return false;
     }
 
