@@ -3,6 +3,7 @@ package io.yggdrash.core.store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -36,7 +37,11 @@ public class StateStore<V> implements Store<String, V> {
 
     @Override
     public Set<V> getAll() {
-        return null;
+        Set<V> res = new HashSet<>();
+        for (String key : state.keySet()) {
+            res.add(state.get(key));
+        }
+        return res;
     }
 
     @Override

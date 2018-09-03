@@ -6,12 +6,9 @@ import com.google.gson.JsonParser;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Map;
 
 public abstract class BaseContract<V> implements Contract<V> {
     protected static final Logger log = LoggerFactory.getLogger(BaseContract.class);
