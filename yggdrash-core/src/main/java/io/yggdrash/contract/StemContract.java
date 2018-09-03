@@ -57,8 +57,8 @@ public class StemContract extends BaseContract<JsonObject> {
     public String update(String branchId, JsonObject branch) {
         if (isBranchHonest(branchId, branch)) {
             if (isVersionHistoryUpdated(branchId, branch)) {
-                log.info("[StemContract | update] branchId => " + branchId
-                + "\nbranch => " + branch);
+                log.info("[StemContract | update] branchId => "
+                        + branchId + "\nbranch => " + branch);
                 state.put(branchId, branch);
                 return branchId;
             }
