@@ -93,6 +93,17 @@ public class StemContract extends BaseContract<JsonObject> {
         return branch.toString();
     }
 
+    public String getCurrentVersion(String branchId) {
+        JsonArray versionHistory = state.get(branchId).get("versionHistory").getAsJsonArray();
+        Integer index = versionHistory.size() - 1;
+
+        return versionHistory.get(index).getAsString();
+    }
+
+    public JsonArray getVersionHistory(String branchId) {
+        return state.get(branchId).get("versionHistory").getAsJsonArray();
+    }
+
     private boolean verify(String refAddress, String type) {
         if (isRefAddressValid(refAddress) && isTypeValid(type)) {
             return true;
@@ -159,17 +170,5 @@ public class StemContract extends BaseContract<JsonObject> {
             e.printStackTrace();
         }
         return branchStream.toByteArray();
-    }
-
-
-    public String getCurrentVersion(String branchId) {
-        JsonArray versionHistory = state.get(branchId).get("versionHistory").getAsJsonArray();
-        Integer index = versionHistory.size() - 1;
-
-        return versionHistory.get(index).getAsString();
-    }
-
-    public JsonArray getVersionHistory(String branchId) {
-        return state.get(branchId).get("versionHistory").getAsJsonArray();
     }
 }
