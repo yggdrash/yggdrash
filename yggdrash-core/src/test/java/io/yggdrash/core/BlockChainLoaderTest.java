@@ -29,10 +29,10 @@ public class BlockChainLoaderTest {
     private BlockChainLoader blockChainLoader;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         blockChainLoader = new BlockChainLoader(
                 new File(Objects.requireNonNull(getClass().getClassLoader()
-                .getResource("branch-sample.json")).getFile()));
+                .getResource("branch-yeed.json")).getFile()));
     }
 
     @Test

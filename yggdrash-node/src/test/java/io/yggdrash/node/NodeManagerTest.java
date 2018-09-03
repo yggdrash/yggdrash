@@ -26,8 +26,6 @@ import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.FileUtil;
@@ -69,13 +67,11 @@ public class NodeManagerTest {
         nodeManager.setMessageSender(messageSender);
         nodeManager.setWallet(new Wallet());
 
-        TransactionStore transactionStore = new TransactionStore(new HashMapDbSource());
-        nodeManager.setTransactionStore(transactionStore);
         Runtime runtime = new Runtime(new TransactionReceiptStore());
         nodeManager.setRuntime(runtime);
         nodeManager.setBlockChain(new BlockChain(
                 new File(getClass().getClassLoader()
-                        .getResource("branch-sample.json").getFile())));
+                        .getResource("branch-yeed.json").getFile())));
         nodeManager.setNodeHealthIndicator(mock(NodeHealthIndicator.class));
         nodeManager.init();
         assert nodeManager.getNodeUri() != null;
@@ -87,7 +83,7 @@ public class NodeManagerTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         //TODO 테스트 설정 파일에서 DB 부분 제거
         FileUtil.recursiveDelete(Paths.get(".yggdrash/db"));
     }

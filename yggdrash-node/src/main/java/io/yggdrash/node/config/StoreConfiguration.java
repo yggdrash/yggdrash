@@ -38,12 +38,13 @@ import java.io.IOException;
 @Configuration
 public class StoreConfiguration {
 
-    @Value("classpath:/branch-sample.json")
+    @Value("classpath:/branch-yeed.json")
     Resource resource;
 
     @Bean
-    BlockChain blockChain(@Qualifier("genesis")BlockHusk genesisBlock, BlockStore blockStore) {
-        return new BlockChain(genesisBlock, blockStore);
+    BlockChain blockChain(@Qualifier("genesis")BlockHusk genesisBlock, BlockStore blockStore,
+                          TransactionStore transactionStore) {
+        return new BlockChain(genesisBlock, blockStore, transactionStore);
     }
 
     @Bean

@@ -17,8 +17,8 @@ import org.spongycastle.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @AutoJsonRpcServiceImpl
@@ -177,8 +177,8 @@ public class TransactionApiImpl implements TransactionApi {
     }
 
     @Override
-    public HashMap<String, TransactionReceipt> getAllTransactionReceipt() {
-        return txReceiptStore.getTxReciptStore();
+    public Map<String, TransactionReceipt> getAllTransactionReceipt() {
+        return txReceiptStore.getTxReceiptStore();
     }
 
     @Override

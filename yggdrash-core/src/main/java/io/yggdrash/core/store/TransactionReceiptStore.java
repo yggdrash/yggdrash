@@ -2,21 +2,22 @@ package io.yggdrash.core.store;
 
 import io.yggdrash.core.TransactionReceipt;
 
-import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TransactionReceiptStore {
 
-    private final HashMap<String, TransactionReceipt> txReciptStore = new HashMap<>();
+    private final Map<String, TransactionReceipt> txReceiptStore = new ConcurrentHashMap<>();
 
-    public void put(String txHash, TransactionReceipt txRecipt) {
-        txReciptStore.put(txHash, txRecipt);
+    public void put(String txHash, TransactionReceipt txReceipt) {
+        txReceiptStore.put(txHash, txReceipt);
     }
 
     public TransactionReceipt get(String txHash) {
-        return txReciptStore.get(txHash);
+        return txReceiptStore.get(txHash);
     }
 
-    public HashMap<String, TransactionReceipt> getTxReciptStore() {
-        return txReciptStore;
+    public Map<String, TransactionReceipt> getTxReceiptStore() {
+        return txReceiptStore;
     }
 }
