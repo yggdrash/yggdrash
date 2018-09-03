@@ -25,7 +25,8 @@ public class Transaction implements Cloneable {
      * @param signature transaction signature
      * @param body   transaction body
      */
-    public Transaction(TransactionHeader header, TransactionSignature signature, TransactionBody body) {
+    public Transaction(TransactionHeader header,
+                       TransactionSignature signature, TransactionBody body) {
         this.header = header;
         this.signature = signature;
         this.body = body;

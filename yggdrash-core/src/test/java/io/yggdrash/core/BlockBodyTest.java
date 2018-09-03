@@ -21,22 +21,18 @@ public class BlockBodyTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockBodyTest.class);
 
-    TransactionBody txBody;
-    TransactionHeader txHeader;
-    Wallet wallet;
-    TransactionSignature txSig;
-    Transaction tx1;
-    Transaction tx2;
+    private Transaction tx1;
+    private Transaction tx2;
 
     @Before
     public void init() {
 
-        try {
-            byte[] chain = new byte[20];
-            byte[] version = new byte[8];
-            byte[] type = new byte[8];
-            long timestamp = TimeUtils.time();
+        Wallet wallet;
+        TransactionBody txBody;
+        TransactionHeader txHeader;
+        TransactionSignature txSig;
 
+        try {
             JsonObject jsonParams1 = new JsonObject();
             jsonParams1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
             jsonParams1.addProperty("amount", "10000000");
@@ -58,6 +54,11 @@ public class BlockBodyTest {
             jsonArray.add(jsonObject2);
 
             txBody = new TransactionBody(jsonArray);
+
+            byte[] chain = new byte[20];
+            byte[] version = new byte[8];
+            byte[] type = new byte[8];
+            long timestamp = TimeUtils.time();
 
             txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
@@ -102,7 +103,7 @@ public class BlockBodyTest {
             log.debug("bb1=" + bb1.toString());
             log.debug("bb2=" + bb2.toString());
 
-            assertEquals (bb1.toString(), bb2.toString());
+            assertEquals(bb1.toString(), bb2.toString());
 
             log.debug("bb1.length=" + bb1.length());
             log.debug("bb2.length=" + bb2.length());

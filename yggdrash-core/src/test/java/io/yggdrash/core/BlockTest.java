@@ -136,7 +136,7 @@ public class BlockTest {
 
             assertEquals(block1.toJsonObject(), block2.toJsonObject());
 
-            block1.getHeader().setTimestamp(TimeUtils.time());
+            block1.getHeader().setTimestamp(TimeUtils.time() + 1);
 
             assertNotEquals(block1.toJsonObject().toString(), block2.toJsonObject().toString());
             log.debug("block1=" + block1.toJsonObject());

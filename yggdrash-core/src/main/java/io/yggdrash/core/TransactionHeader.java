@@ -55,7 +55,9 @@ public class TransactionHeader implements Cloneable {
         return this.toBinary().length;
     }
 
-    public byte[] getChain() { return this.chain; }
+    public byte[] getChain() {
+        return this.chain;
+    }
 
     public byte[] getVersion() {
         return this.version;
@@ -122,7 +124,8 @@ public class TransactionHeader implements Cloneable {
         jsonObject.addProperty("type", Hex.toHexString(this.type));
         jsonObject.addProperty("timestamp", Hex.toHexString(ByteUtil.longToBytes(this.timestamp)));
         jsonObject.addProperty("bodyHash", Hex.toHexString(this.bodyHash));
-        jsonObject.addProperty("bodyLength", Hex.toHexString(ByteUtil.longToBytes(this.bodyLength)));
+        jsonObject.addProperty("bodyLength",
+                Hex.toHexString(ByteUtil.longToBytes(this.bodyLength)));
 
         return jsonObject;
     }

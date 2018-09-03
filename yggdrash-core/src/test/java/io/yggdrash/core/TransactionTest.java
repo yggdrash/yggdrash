@@ -27,11 +27,6 @@ public class TransactionTest {
     public void init() {
 
         try {
-            byte[] chain = new byte[20];
-            byte[] version = new byte[8];
-            byte[] type = new byte[8];
-            long timestamp = TimeUtils.time();
-
             JsonObject jsonParams1 = new JsonObject();
             jsonParams1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
             jsonParams1.addProperty("amount", "10000000");
@@ -53,6 +48,11 @@ public class TransactionTest {
             jsonArray.add(jsonObject2);
 
             txBody = new TransactionBody(jsonArray);
+
+            byte[] chain = new byte[20];
+            byte[] version = new byte[8];
+            byte[] type = new byte[8];
+            long timestamp = TimeUtils.time();
 
             txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
@@ -84,7 +84,8 @@ public class TransactionTest {
             log.debug("tx1=" + tx1.toString());
             log.debug("tx1=" + tx1.toStringPretty());
 
-            Transaction tx2 = new Transaction(txHeader.clone(), tx1.getSignature().clone(), txBody.clone());
+            Transaction tx2
+                    = new Transaction(txHeader.clone(), tx1.getSignature().clone(), txBody.clone());
             log.debug("tx2=" + tx2.toJsonObject());
             log.debug("tx2=" + tx2.toString());
             log.debug("tx2=" + tx2.toStringPretty());
@@ -136,7 +137,8 @@ public class TransactionTest {
             Transaction tx2 = tx1.clone();
             log.debug("tx2=" + tx2.toJsonObject());
 
-            assertEquals(txHeader.toJsonObject().toString(), tx2.getHeader().toJsonObject().toString());
+            assertEquals(txHeader.toJsonObject().toString(),
+                    tx2.getHeader().toJsonObject().toString());
             assertArrayEquals(txSig.getSignature(), txSig.getSignature());
             assertEquals(txBody.getHexString(), tx2.getBody().getHexString());
 

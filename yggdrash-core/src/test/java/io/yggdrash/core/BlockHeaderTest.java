@@ -117,7 +117,7 @@ public class BlockHeaderTest {
 
             assertArrayEquals(blockHeader1.getHashForSignning(), blockHeader2.getHashForSignning());
 
-            this.blockHeader1.setTimestamp(TimeUtils.time());
+            this.blockHeader1.setTimestamp(TimeUtils.time() + 1);
             assertNotEquals(blockHeader1.toString(), blockHeader2.toString());
 
         } catch (Exception e) {
@@ -140,7 +140,7 @@ public class BlockHeaderTest {
             log.debug("blockHeader2=" + blockHeader2.toJsonObject());
             assertEquals(blockHeader1.toJsonObject(), blockHeader2.toJsonObject());
 
-            blockHeader2.setTimestamp(TimeUtils.time());
+            blockHeader2.setTimestamp(TimeUtils.time() + 1);
             log.debug("blockHeader1=" + blockHeader1.toJsonObject());
             log.debug("blockHeader2=" + blockHeader2.toJsonObject());
             assertNotEquals(blockHeader1.toJsonObject(), blockHeader2.toJsonObject());

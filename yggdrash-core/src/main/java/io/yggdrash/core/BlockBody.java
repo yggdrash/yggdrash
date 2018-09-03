@@ -75,7 +75,7 @@ public class BlockBody implements Cloneable {
 
         List<Transaction> txs = new ArrayList<>();
 
-        for(Transaction tx : this.body) {
+        for (Transaction tx : this.body) {
             txs.add(tx.clone());
         }
 
