@@ -25,7 +25,7 @@ public interface BranchApi {
     /**
      * Update a branch
      * @param branchId branch id to update
-     * @param branch
+     * @param branch branch.json
      * @return branch id
      */
     @JsonRpcErrors({
