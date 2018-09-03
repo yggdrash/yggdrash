@@ -4,6 +4,8 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.BlockStore;
+import io.yggdrash.core.store.TransactionStore;
+import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,20 +20,24 @@ public class BlockChain {
     private final BlockHusk genesisBlock;
     private BlockHusk prevBlock;
     private BlockStore blockStore;
+    private TransactionStore transactionStore;
 
     public BlockChain(File infoFile) {
         try {
             this.genesisBlock = new BlockChainLoader(infoFile).getGenesis();
             this.blockStore = new BlockStore(getChainId());
+            this.transactionStore = new TransactionStore(new HashMapDbSource());
             loadBlockChain();
         } catch (Exception e) {
             throw new NotValidateException(e);
         }
     }
 
-    public BlockChain(BlockHusk genesisBlock, BlockStore blockStore) {
+    public BlockChain(BlockHusk genesisBlock, BlockStore blockStore,
+                      TransactionStore transactionStore) {
         this.genesisBlock = genesisBlock;
         this.blockStore = blockStore;
+        this.transactionStore = transactionStore;
         loadBlockChain();
     }
 
@@ -57,6 +63,10 @@ public class BlockChain {
 
     public Set<BlockHusk> getBlocks() {
         return blockStore.getAll();
+    }
+
+    public TransactionStore getTransactionStore() {
+        return transactionStore;
     }
 
     /**

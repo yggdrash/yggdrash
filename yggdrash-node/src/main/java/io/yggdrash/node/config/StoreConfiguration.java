@@ -42,8 +42,9 @@ public class StoreConfiguration {
     Resource resource;
 
     @Bean
-    BlockChain blockChain(@Qualifier("genesis")BlockHusk genesisBlock, BlockStore blockStore) {
-        return new BlockChain(genesisBlock, blockStore);
+    BlockChain blockChain(@Qualifier("genesis")BlockHusk genesisBlock, BlockStore blockStore,
+                          TransactionStore transactionStore) {
+        return new BlockChain(genesisBlock, blockStore, transactionStore);
     }
 
     @Bean

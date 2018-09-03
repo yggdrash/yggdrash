@@ -26,8 +26,6 @@ import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.FileUtil;
@@ -69,8 +67,6 @@ public class NodeManagerTest {
         nodeManager.setMessageSender(messageSender);
         nodeManager.setWallet(new Wallet());
 
-        TransactionStore transactionStore = new TransactionStore(new HashMapDbSource());
-        nodeManager.setTransactionStore(transactionStore);
         Runtime runtime = new Runtime(new TransactionReceiptStore());
         nodeManager.setRuntime(runtime);
         nodeManager.setBlockChain(new BlockChain(
