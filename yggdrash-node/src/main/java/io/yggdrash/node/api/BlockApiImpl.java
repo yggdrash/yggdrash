@@ -5,10 +5,13 @@ import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.node.controller.BlockDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Comparator;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @AutoJsonRpcServiceImpl
@@ -60,5 +63,11 @@ public class BlockApiImpl implements BlockApi {
         } catch (Exception exception) {
             throw new InternalErrorException();
         }
+    }
+
+    @Override
+    public BlockHusk getLastBlock() {
+        return nodeManager.getBlocks().stream().sorted(Comparator.reverseOrder())
+                .collect(Collectors.toList()).get(0);
     }
 }

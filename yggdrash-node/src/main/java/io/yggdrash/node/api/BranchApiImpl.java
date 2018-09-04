@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.node.controller.TransactionDto;
 
 import java.util.List;
+import java.util.Map;
 
 public class BranchApiImpl implements BranchApi {
     @Override
@@ -24,6 +25,11 @@ public class BranchApiImpl implements BranchApi {
 
     @Override
     public String viewBranch(String branchId) {
+        return null;
+    }
+
+    @Override
+    public Map<String, String> getAllBranchName() {
         return null;
     }
 

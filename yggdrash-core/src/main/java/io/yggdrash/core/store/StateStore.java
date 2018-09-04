@@ -3,7 +3,9 @@ package io.yggdrash.core.store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -42,6 +44,14 @@ public class StateStore<V> implements Store<String, V> {
             res.add(state.get(key));
         }
         return res;
+    }
+
+    public List<String> getAllKey() {
+        List<String> branchIdList = new ArrayList<>();
+        for (String key : state.keySet()) {
+            branchIdList.add(key);
+        }
+        return branchIdList;
     }
 
     @Override
