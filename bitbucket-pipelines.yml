@@ -14,7 +14,10 @@ pipelines:
       - step:
           name: Deploy to AWS
           deployment: staging
+        caches:
+            - gradle
           script:
-            - scp $BUILD_DIR/$BUILD_JAR $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH
+            - bash ./gradlew build -PspringProfiles=ci
+            - scp $BUILD_JAR $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH
             - ssh $DEPLOY_USER@$DEPLOY_HOST
             - ./deploy.sh
