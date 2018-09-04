@@ -11,10 +11,8 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class StemContract extends BaseContract<JsonObject> {
 
@@ -130,12 +128,19 @@ public class StemContract extends BaseContract<JsonObject> {
      * Returns a map consisting of branch id and branch name.
      * @return branch id and name
      */
-    public Map<String, String> getallbranchname() {
+    public Map<String, String> getallbranchname(JsonArray params) {
+        System.out.println("StemContract :: getallbranchname : params => " + params);
         Map<String, String> branchNameList = new HashMap<>();
         List<String> branchIdList = state.getAllKey();
+        System.out.println("branchIdList :: " + branchIdList);
+        System.out.println("state.getAll().size() :: " + state.getAll().size());
 
-        for (String key : branchIdList) {
-            branchNameList.put(key, state.get(key).get("name").getAsString());
+        if (state.getAll().size() > 0) {
+            for (String key : branchIdList) {
+                System.out.println("key :: " + key );
+                System.out.println(state.get(key));
+                branchNameList.put(key, state.get(key).get("name").getAsString());
+            }
         }
         return branchNameList;
     }

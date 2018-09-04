@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.JsonRpcError;
 import com.googlecode.jsonrpc4j.JsonRpcErrors;
+import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.WrongStructuredException;
@@ -64,7 +65,7 @@ public interface BranchApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    Map<String, String> getAllBranchName();
+    String getAllBranchName(@JsonRpcParam(value = "data") String data) throws Exception;
 
     /**
      * Get the current contract address of the branch by branchId
