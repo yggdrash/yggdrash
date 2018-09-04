@@ -104,6 +104,10 @@ public class StemContractTest {
         key = "symbol";
         element = "TEST2";
         assertThat(stemContract.search(key, element).size()).isNotZero();
+
+        key = "tag";
+        element = "0.1";
+        assertThat(stemContract.search(key, element).size()).isNotZero();
     }
 
     @Test
@@ -140,14 +144,12 @@ public class StemContractTest {
         branch.addProperty("name", name);
         //branch.addProperty("owner", wallet.getHexAddress());
         branch.addProperty("owner", "9e187f5264037ab77c87fcffcecd943702cd72c3");
-        branch.addProperty("from", "f4a3760644d064b3f7d82bb8e43ccb090a2dac8b55cc2894bf618c551b0bc2a8");
-        branch.addProperty("to", "83d2834d74afcba266fb3305bd2ff4a3cf35fe9c455e288975ea39b68e255156");
         branch.addProperty("symbol", symbol);
         branch.addProperty("property", property);
         branch.addProperty("type", type);
         branch.addProperty("timestamp", "0000016531dfa31c");
         branch.addProperty("description", description);
-        branch.addProperty("ratio", 0.1);
+        branch.addProperty("tag", 0.1);
         branch.addProperty("version", version);
         branch.add("versionHistory", versionHistory);
         branch.addProperty("reference_address", referenceAddress);
@@ -160,14 +162,12 @@ public class StemContractTest {
         JsonObject updatedBranch = new JsonObject();
         updatedBranch.addProperty("name", checkSum == 0 ? branch.get("name").getAsString() : "HELLO");
         updatedBranch.addProperty("owner", branch.get("owner").getAsString());
-        updatedBranch.addProperty("from", branch.get("from").getAsString());
-        updatedBranch.addProperty("to", branch.get("to").getAsString());
         updatedBranch.addProperty("symbol", branch.get("symbol").getAsString());
         updatedBranch.addProperty("property", branch.get("property").getAsString());
         updatedBranch.addProperty("type", branch.get("type").getAsString());
         updatedBranch.addProperty("timestamp", branch.get("timestamp").getAsString());
         updatedBranch.addProperty("description", description);
-        updatedBranch.addProperty("ration", branch.get("ratio").getAsFloat());
+        updatedBranch.addProperty("tag", branch.get("tag").getAsFloat());
         updatedBranch.addProperty("version", version);
         updatedBranch.add("versionHistory", branch.get("versionHistory").getAsJsonArray());
         updatedBranch.addProperty("reference_address", branch.get("reference_address").getAsString());
