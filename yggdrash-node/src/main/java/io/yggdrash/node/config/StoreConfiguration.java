@@ -20,7 +20,10 @@ import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockChainLoader;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.Runtime;
 import io.yggdrash.core.store.BlockStore;
+import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
@@ -40,6 +43,23 @@ public class StoreConfiguration {
 
     @Value("classpath:/branch-yeed.json")
     Resource resource;
+
+    @Bean
+    BranchGroup branchGroup(Runtime runtime, BlockChain blockChain) {
+        BranchGroup branchGroup = new BranchGroup(runtime);
+        branchGroup.addBranch(blockChain.getBranchId(), blockChain);
+        return branchGroup;
+    }
+
+    @Bean
+    TransactionReceiptStore transactionReceiptStore() {
+        return new TransactionReceiptStore();
+    }
+
+    @Bean
+    Runtime runTime(TransactionReceiptStore transactionReceiptStore) {
+        return new Runtime(transactionReceiptStore);
+    }
 
     @Bean
     BlockChain blockChain(@Qualifier("genesis")BlockHusk genesisBlock, BlockStore blockStore,
