@@ -5,21 +5,20 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
+import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
-
-public class ContractAdaptor implements Contract {
-    protected static final Logger log = LoggerFactory.getLogger(ContractAdaptor.class);
-    protected Map<String, Long> state;
+public abstract class BaseContract<V> implements Contract<V> {
+    protected static final Logger log = LoggerFactory.getLogger(BaseContract.class);
+    protected StateStore<V> state;
     protected TransactionReceiptStore txReceiptStore;
     protected String sender;
 
     @Override
-    public void init(StateStore stateStore, TransactionReceiptStore txReceiptStore) {
-        this.state = stateStore.getState();
+    public void init(StateStore<V> store, TransactionReceiptStore txReceiptStore) {
+        this.state = store;
         this.txReceiptStore = txReceiptStore;
     }
 
