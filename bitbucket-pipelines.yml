@@ -15,5 +15,6 @@ pipelines:
           name: Deploy to AWS
           deployment: staging
           script:
+            - scp $BUILD_JAR $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH
             - ssh $DEPLOY_USER@$DEPLOY_HOST
-            - touch DEPLOYtest
+            - ./deploy.sh
