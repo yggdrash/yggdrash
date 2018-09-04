@@ -14,7 +14,7 @@ pipelines:
       - step:
           name: Deploy to AWS
           deployment: staging
-        caches:
+          caches:
             - gradle
           script:
             - bash ./gradlew build -PspringProfiles=ci
