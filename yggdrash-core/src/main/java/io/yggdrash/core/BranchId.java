@@ -18,11 +18,11 @@ package io.yggdrash.core;
 
 import io.yggdrash.common.Sha3Hash;
 
-public class ChainId {
+public class BranchId {
 
     private final Sha3Hash id;
 
-    public ChainId(Sha3Hash hash) {
+    public BranchId(Sha3Hash hash) {
         this.id = hash;
     }
 
