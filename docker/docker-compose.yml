@@ -3,6 +3,10 @@ version: '3'
 services:
   node1:
     image: yggdrash/yggdrash-node
+    build:
+      context: ./
+      args:
+        JAR_FILE: yggdrash-node.jar
     container_name: yggdrash-node1
     ports:
     - 8080:8080
