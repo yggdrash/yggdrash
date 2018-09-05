@@ -63,9 +63,11 @@ public class BlockHeader implements Cloneable {
         this.type = Hex.decode(jsonObject.get("type").getAsString());
         this.prevBlockHash = Hex.decode(jsonObject.get("prevBlockHash").getAsString());
         this.index = ByteUtil.byteArrayToLong(Hex.decode(jsonObject.get("index").getAsString()));
-        this.timestamp = ByteUtil.byteArrayToLong(Hex.decode(jsonObject.get("timestamp").getAsString()));
+        this.timestamp = ByteUtil.byteArrayToLong(
+                Hex.decode(jsonObject.get("timestamp").getAsString()));
         this.merkleRoot = Hex.decode(jsonObject.get("merkleRoot").getAsString());
-        this.bodyLength = ByteUtil.byteArrayToLong(Hex.decode(jsonObject.get("bodyLength").getAsString()));
+        this.bodyLength = ByteUtil.byteArrayToLong(
+                Hex.decode(jsonObject.get("bodyLength").getAsString()));
     }
 
     public byte[] getChain() {
@@ -138,9 +140,11 @@ public class BlockHeader implements Cloneable {
         jsonObject.addProperty("type", Hex.toHexString(this.type));
         jsonObject.addProperty("prevBlockHash", Hex.toHexString(this.prevBlockHash));
         jsonObject.addProperty("index", Hex.toHexString(ByteUtil.longToBytes(this.index)));
-        jsonObject.addProperty("timestamp", Hex.toHexString(ByteUtil.longToBytes(this.timestamp)));
+        jsonObject.addProperty("timestamp",
+                Hex.toHexString(ByteUtil.longToBytes(this.timestamp)));
         jsonObject.addProperty("merkleRoot", Hex.toHexString(this.merkleRoot));
-        jsonObject.addProperty("bodyLength", Hex.toHexString(ByteUtil.longToBytes(this.bodyLength)));
+        jsonObject.addProperty("bodyLength",
+                Hex.toHexString(ByteUtil.longToBytes(this.bodyLength)));
 
         return jsonObject;
     }
@@ -165,9 +169,11 @@ public class BlockHeader implements Cloneable {
                 .setType(ByteString.copyFrom(blockHeader.getType()))
                 .setPrevBlockHash(ByteString.copyFrom(blockHeader.getPrevBlockHash()))
                 .setIndex(ByteString.copyFrom(ByteUtil.longToBytes(blockHeader.getIndex())))
-                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(blockHeader.getTimestamp())))
+                .setTimestamp(ByteString.copyFrom(
+                        ByteUtil.longToBytes(blockHeader.getTimestamp())))
                 .setMerkleRoot(ByteString.copyFrom(blockHeader.getMerkleRoot()))
-                .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(blockHeader.getBodyLength())))
+                .setBodyLength(ByteString.copyFrom(
+                        ByteUtil.longToBytes(blockHeader.getBodyLength())))
                 .build();
 
         return protoHeader;

@@ -84,7 +84,7 @@ public class TestUtils {
             BlockHeader tmpBlockHeader = tmpBlock.getHeader();
             BlockBody tmpBlockBody = tmpBlock.getBody();
 
-            BlockHeader newBlockHeader =new BlockHeader(
+            BlockHeader newBlockHeader = new BlockHeader(
                     tmpBlockHeader.getChain(),
                     tmpBlockHeader.getVersion(),
                     tmpBlockHeader.getType(),
@@ -144,13 +144,11 @@ public class TestUtils {
 
     public static JsonObject sampleTxObject(Wallet newWallet) {
 
-        TransactionBody txBody;
-        TransactionHeader txHeader;
         Wallet nodeWallet;
         TransactionSignature txSig;
         Transaction tx;
 
-        if(newWallet == null) {
+        if (newWallet == null) {
             nodeWallet = wallet;
         } else {
             nodeWallet = newWallet;
@@ -171,6 +169,7 @@ public class TestUtils {
         JsonArray jsonArray = new JsonArray();
         jsonArray.add(txObj);
 
+        TransactionBody txBody;
         txBody = new TransactionBody(jsonArray);
 
         byte[] chain = new byte[20];
@@ -178,7 +177,9 @@ public class TestUtils {
         byte[] type = new byte[8];
         long timestamp = TimeUtils.time();
 
+        TransactionHeader txHeader;
         txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
+
         try {
             txSig = new TransactionSignature(nodeWallet, txHeader.getHashForSignning());
             tx = new Transaction(txHeader, txSig, txBody);

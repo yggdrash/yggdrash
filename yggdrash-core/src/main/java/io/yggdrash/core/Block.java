@@ -137,16 +137,19 @@ public class Block implements Cloneable {
     }
 
     public static Proto.Block toProtoBlock(Block block) {
-        Proto.Block.Header protoHeader = Proto.Block.Header.newBuilder()
-                .setChain(ByteString.copyFrom(block.getHeader().getChain()))
-                .setVersion(ByteString.copyFrom(block.getHeader().getVersion()))
-                .setType(ByteString.copyFrom(block.getHeader().getType()))
-                .setPrevBlockHash(ByteString.copyFrom(block.getHeader().getPrevBlockHash()))
-                .setIndex(ByteString.copyFrom(ByteUtil.longToBytes(block.getHeader().getIndex())))
-                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(block.getHeader().getTimestamp())))
-                .setMerkleRoot(ByteString.copyFrom(block.getHeader().getMerkleRoot()))
-                .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(block.getHeader().getBodyLength())))
-                .build();
+        Proto.Block.Header protoHeader;
+        protoHeader = Proto.Block.Header.newBuilder()
+            .setChain(ByteString.copyFrom(block.getHeader().getChain()))
+            .setVersion(ByteString.copyFrom(block.getHeader().getVersion()))
+            .setType(ByteString.copyFrom(block.getHeader().getType()))
+            .setPrevBlockHash(ByteString.copyFrom(block.getHeader().getPrevBlockHash()))
+            .setIndex(ByteString.copyFrom(ByteUtil.longToBytes(block.getHeader().getIndex())))
+            .setTimestamp(
+                    ByteString.copyFrom(ByteUtil.longToBytes(block.getHeader().getTimestamp())))
+            .setMerkleRoot(ByteString.copyFrom(block.getHeader().getMerkleRoot()))
+            .setBodyLength(
+                    ByteString.copyFrom(ByteUtil.longToBytes(block.getHeader().getBodyLength())))
+            .build();
 
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
         for (Transaction tx : block.getBody().getBody()) {

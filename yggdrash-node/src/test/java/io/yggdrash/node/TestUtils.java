@@ -63,14 +63,15 @@ public class TestUtils {
         String body = "[\"dummy\"]";
         return Proto.Transaction.newBuilder()
                 .setHeader(Proto.Transaction.Header.newBuilder()
-                                .setChain(ByteString.copyFrom(randomBytes(20)))
-                                .setVersion(ByteString.copyFrom(randomBytes(8)))
-                                .setType(ByteString.copyFrom(randomBytes(8)))
-                                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(TimeUtils.time())))
-                                .setBodyHash(ByteString.copyFrom(HashUtil.sha3(body.getBytes())))
-                                .setBodyLength(ByteString.copyFrom(randomBytes(8)))
+                    .setChain(ByteString.copyFrom(randomBytes(20)))
+                    .setVersion(ByteString.copyFrom(randomBytes(8)))
+                    .setType(ByteString.copyFrom(randomBytes(8)))
+                    .setTimestamp(ByteString.copyFrom(
+                            ByteUtil.longToBytes(TimeUtils.time())))
+                    .setBodyHash(ByteString.copyFrom(HashUtil.sha3(body.getBytes())))
+                    .setBodyLength(ByteString.copyFrom(randomBytes(8)))
                 )
-                .setSignature(ByteString.copyFrom(wallet.sign(body.getBytes())))
+                .setSignature(ByteString.copyFrom(new byte[65]))
                 .setBody(ByteString.copyFrom(body.getBytes()))
                 .build();
     }
@@ -80,7 +81,7 @@ public class TestUtils {
     }
 
     public static TransactionHusk createUnsignedTxHusk() {
-        return new TransactionHusk(TestUtils.sampleTx());
+        return new TransactionHusk(createDummyTx());
     }
 
     public static TransactionHusk createTxHusk() {
@@ -117,13 +118,11 @@ public class TestUtils {
 
     public static JsonObject sampleTxObject(Wallet newWallet) {
 
-        TransactionBody txBody;
-        TransactionHeader txHeader;
         Wallet nodeWallet;
         TransactionSignature txSig;
         Transaction tx;
 
-        if(newWallet == null) {
+        if (newWallet == null) {
             nodeWallet = wallet;
         } else {
             nodeWallet = newWallet;
@@ -144,6 +143,7 @@ public class TestUtils {
         JsonArray jsonArray = new JsonArray();
         jsonArray.add(txObj);
 
+        TransactionBody txBody;
         txBody = new TransactionBody(jsonArray);
 
         byte[] chain = new byte[20];
@@ -151,6 +151,7 @@ public class TestUtils {
         byte[] type = new byte[8];
         long timestamp = TimeUtils.time();
 
+        TransactionHeader txHeader;
         txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
         try {
             txSig = new TransactionSignature(nodeWallet, txHeader.getHashForSignning());

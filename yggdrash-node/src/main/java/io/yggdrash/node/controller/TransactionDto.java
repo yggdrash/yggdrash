@@ -35,7 +35,10 @@ public class TransactionDto {
     private String author;
     private String txHash;
 
-    public String getChainHex() { return Hex.toHexString(chain); }
+
+    public String getChainHex() {
+        return Hex.toHexString(chain);
+    }
 
     public void setChain(byte[] chain) {
         this.chain = chain;
@@ -158,9 +161,11 @@ public class TransactionDto {
         transactionDto.setChain(header.getChain().toByteArray());
         transactionDto.setVersion(header.getVersion().toByteArray());
         transactionDto.setType(header.getType().toByteArray());
-        transactionDto.setTimestamp(ByteUtil.byteArrayToLong(header.getTimestamp().toByteArray()));
+        transactionDto.setTimestamp(
+                ByteUtil.byteArrayToLong(header.getTimestamp().toByteArray()));
         transactionDto.setBodyHash(header.getBodyHash().toByteArray());
-        transactionDto.setBodyLength(ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray()));
+        transactionDto.setBodyLength(
+                ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray()));
         transactionDto.setSignature(tx.getInstance().getSignature().toByteArray());
         transactionDto.setBody(tx.getBody());
         transactionDto.setAuthor(tx.getAddress().toString());

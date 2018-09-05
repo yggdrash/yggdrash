@@ -31,7 +31,7 @@ public class CoinContract implements Contract {
         JsonArray txBodyArray = (JsonArray) jsonParser.parse(data);
         JsonObject txBody = null;
 
-        for (int i=0; i < txBodyArray.size(); i++) {
+        for (int i = 0; i < txBodyArray.size(); i++) {
             //todo: modify for 1 more tx_body
             txBody = txBodyArray.get(i).getAsJsonObject();
         }

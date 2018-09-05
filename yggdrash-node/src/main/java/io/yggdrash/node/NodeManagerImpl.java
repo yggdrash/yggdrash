@@ -373,8 +373,10 @@ public class NodeManagerImpl implements NodeManager {
         ObjectMapper mapper = new ObjectMapper();
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
-        Proto.Transaction tx = blockChain.getBlockByIndex(0).getInstance().getBody().getTransactions(0);
-        GenesisFrontierParam[] param = mapper.readValue(tx.getBody().toByteArray(), GenesisFrontierParam[].class);
+        Proto.Transaction tx = blockChain.getBlockByIndex(0)
+                .getInstance().getBody().getTransactions(0);
+        GenesisFrontierParam[] param =
+                mapper.readValue(tx.getBody().toByteArray(), GenesisFrontierParam[].class);
         if (!param[0].isGenesisOp()) {
             return;
         }

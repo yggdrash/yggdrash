@@ -18,6 +18,7 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.proto.Proto;
@@ -41,7 +42,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         try {
             this.coreTransaction = Transaction.toTransaction(transaction);
         } catch (Exception e) {
-            throw new NotValidateException();
+            throw new InvalidSignatureException();
         }
     }
 
@@ -54,7 +55,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         }
     }
 
-    public TransactionHusk(byte[] data){
+    public TransactionHusk(byte[] data) {
         try {
             this.protoTransaction = Proto.Transaction.parseFrom(data);
             this.coreTransaction = Transaction.toTransaction(protoTransaction);
@@ -92,7 +93,10 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
 
         try {
             this.coreTransaction =
-                    new Transaction(this.coreTransaction.getHeader(), wallet, this.coreTransaction.getBody());
+                    new Transaction(
+                            this.coreTransaction.getHeader(),
+                            wallet,
+                            this.coreTransaction.getBody());
             this.protoTransaction = this.coreTransaction.toProtoTransaction();
         } catch (Exception e) {
             throw new NotValidateException();
@@ -189,8 +193,11 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
 
     @Override
     public int compareTo(TransactionHusk o) {
-        return Long.compare(ByteUtil.byteArrayToLong(protoTransaction.getHeader().getTimestamp().toByteArray()),
-                ByteUtil.byteArrayToLong(o.getInstance().getHeader().getTimestamp().toByteArray()));
+        return Long.compare(
+                ByteUtil.byteArrayToLong(
+                        protoTransaction.getHeader().getTimestamp().toByteArray()),
+                ByteUtil.byteArrayToLong(
+                        o.getInstance().getHeader().getTimestamp().toByteArray()));
     }
 
 

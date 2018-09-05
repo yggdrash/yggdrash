@@ -55,9 +55,11 @@ public class TransactionHeader implements Cloneable {
         this.chain = Hex.decode(jsonObject.get("chain").getAsString());
         this.version = Hex.decode(jsonObject.get("version").getAsString());
         this.type = Hex.decode(jsonObject.get("type").getAsString());
-        this.timestamp = ByteUtil.byteArrayToLong(Hex.decode(jsonObject.get("timestamp").getAsString()));
+        this.timestamp = ByteUtil.byteArrayToLong(
+                Hex.decode(jsonObject.get("timestamp").getAsString()));
         this.bodyHash = Hex.decode(jsonObject.get("bodyHash").getAsString());
-        this.bodyLength = ByteUtil.byteArrayToLong(Hex.decode(jsonObject.get("bodyLength").getAsString()));
+        this.bodyLength = ByteUtil.byteArrayToLong(
+                Hex.decode(jsonObject.get("bodyLength").getAsString()));
     }
 
     public long length() throws IOException {

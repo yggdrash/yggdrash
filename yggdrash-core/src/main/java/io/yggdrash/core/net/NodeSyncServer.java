@@ -234,7 +234,8 @@ public class NodeSyncServer {
             return new StreamObserver<Proto.Block>() {
                 @Override
                 public void onNext(Proto.Block protoBlock) {
-                    long id = ByteUtil.byteArrayToLong(protoBlock.getHeader().getIndex().toByteArray());
+                    long id = ByteUtil.byteArrayToLong(
+                            protoBlock.getHeader().getIndex().toByteArray());
                     BlockHusk block = new BlockHusk(protoBlock);
                     log.debug("Received block id=[{}], hash={}", id, block.getHash());
                     BlockHusk newBlock = nodeManager.addBlock(block);

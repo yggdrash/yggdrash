@@ -218,14 +218,18 @@ public class Transaction implements Cloneable {
     }
 
     public static Proto.Transaction toProtoTransaction(Transaction tx) {
-        Proto.Transaction.Header protoHeader = Proto.Transaction.Header.newBuilder()
-                .setChain(ByteString.copyFrom(tx.getHeader().getChain()))
-                .setVersion(ByteString.copyFrom(tx.getHeader().getVersion()))
-                .setType(ByteString.copyFrom(tx.getHeader().getType()))
-                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(tx.getHeader().getTimestamp())))
-                .setBodyHash(ByteString.copyFrom(tx.getHeader().getBodyHash()))
-                .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(tx.getHeader().getBodyLength())))
-                .build();
+
+        Proto.Transaction.Header protoHeader;
+        protoHeader = Proto.Transaction.Header.newBuilder()
+            .setChain(ByteString.copyFrom(tx.getHeader().getChain()))
+            .setVersion(ByteString.copyFrom(tx.getHeader().getVersion()))
+            .setType(ByteString.copyFrom(tx.getHeader().getType()))
+            .setTimestamp(ByteString.copyFrom(
+                    ByteUtil.longToBytes(tx.getHeader().getTimestamp())))
+            .setBodyHash(ByteString.copyFrom(tx.getHeader().getBodyHash()))
+            .setBodyLength(ByteString.copyFrom(
+                    ByteUtil.longToBytes(tx.getHeader().getBodyLength())))
+            .build();
 
         Proto.Transaction protoTransaction = Proto.Transaction.newBuilder()
                 .setHeader(protoHeader)
@@ -236,15 +240,18 @@ public class Transaction implements Cloneable {
         return protoTransaction;
     }
 
-    public static Transaction toTransaction(Proto.Transaction protoTransaction) throws SignatureException, IOException {
+    public static Transaction toTransaction(Proto.Transaction protoTransaction)
+            throws SignatureException, IOException {
 
         TransactionHeader txHeader = new TransactionHeader(
                 protoTransaction.getHeader().getChain().toByteArray(),
                 protoTransaction.getHeader().getVersion().toByteArray(),
                 protoTransaction.getHeader().getType().toByteArray(),
-                ByteUtil.byteArrayToLong(protoTransaction.getHeader().getTimestamp().toByteArray()),
+                ByteUtil.byteArrayToLong(
+                        protoTransaction.getHeader().getTimestamp().toByteArray()),
                 protoTransaction.getHeader().getBodyHash().toByteArray(),
-                ByteUtil.byteArrayToLong(protoTransaction.getHeader().getBodyLength().toByteArray())
+                ByteUtil.byteArrayToLong(
+                        protoTransaction.getHeader().getBodyLength().toByteArray())
                 );
 
         TransactionSignature txSignature =  new TransactionSignature(

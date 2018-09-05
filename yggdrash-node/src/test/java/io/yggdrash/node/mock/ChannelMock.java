@@ -42,7 +42,8 @@ public class ChannelMock implements PeerClientChannel {
 
     @Override
     public List<Proto.Transaction> syncTransaction() {
-        return Collections.singletonList(Objects.requireNonNull(TestUtils.sampleTx()).toProtoTransaction());
+        return Collections.singletonList(
+                Objects.requireNonNull(TestUtils.sampleTx()).toProtoTransaction());
     }
 
     @Override
