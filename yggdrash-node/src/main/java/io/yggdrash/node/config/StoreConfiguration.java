@@ -16,7 +16,6 @@
 
 package io.yggdrash.node.config;
 
-import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.Runtime;
 import io.yggdrash.core.store.BlockStore;
@@ -28,25 +27,29 @@ import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 
 @Configuration
 public class StoreConfiguration {
 
     @Bean
-    BranchGroup branchGroup(Runtime runtime, @Qualifier("yeedBranch")BlockChain blockChain) {
-        BranchGroup branchGroup = new BranchGroup(runtime);
-        branchGroup.addBranch(blockChain.getBranchId(), blockChain);
-        return branchGroup;
+    BranchGroup branchGroup(Runtime runtime) {
+        return new BranchGroup(runtime);
+    }
+
+    @Bean
+    Runtime runTime(StateStore stateStore, TransactionReceiptStore transactionReceiptStore) {
+        return new Runtime(stateStore, transactionReceiptStore);
+    }
+
+    @Bean
+    StateStore stateStore() {
+        return new StateStore();
     }
 
     @Bean
     TransactionReceiptStore transactionReceiptStore() {
         return new TransactionReceiptStore();
-    }
-
-    @Bean
-    Runtime runTime(TransactionReceiptStore transactionReceiptStore) {
-        return new Runtime(transactionReceiptStore);
     }
 
     @Bean
@@ -59,18 +62,15 @@ public class StoreConfiguration {
         return new TransactionStore(source);
     }
 
+    @Profile({"default", "ci"})
     @Bean(name = "blockDbSource")
     DbSource blockDbSource() {
         return new HashMapDbSource();
     }
 
+    @Profile({"default", "ci"})
     @Bean(name = "txDbSource")
     DbSource txDbSource() {
         return new HashMapDbSource();
-    }
-
-    @Bean
-    StateStore stateStore() {
-        return new StateStore();
     }
 }

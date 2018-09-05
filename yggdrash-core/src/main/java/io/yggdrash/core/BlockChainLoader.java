@@ -62,7 +62,7 @@ public class BlockChainLoader {
     private BlockHusk convertBlock(BranchInfo branchInfo) {
         ByteString prevBlockHash = ByteString.copyFrom(Hex.decode(branchInfo.prevBlockHash
                 .getBytes()));
-        return new BlockHusk(Proto.Block.newBuilder()
+        Proto.Block.Builder builder = Proto.Block.newBuilder()
                 .setHeader(Proto.Block.Header.newBuilder()
                         .setRawData(Proto.Block.Header.Raw.newBuilder()
                                 .setType(ByteString.copyFrom(Hex.decode(branchInfo.type)))
@@ -78,10 +78,11 @@ public class BlockChainLoader {
                                 .build()
                         )
                         .setSignature(ByteString.copyFrom(Hex.decode(branchInfo.signature)))
-                        .build()
-                )
-                .addAllBody(convertTransaction(branchInfo.data))
-                .build());
+                        .build());
+        if (branchInfo.data != null && !branchInfo.data.isEmpty()) {
+            builder.addAllBody(convertTransaction(branchInfo.data));
+        }
+        return new BlockHusk(builder.build());
     }
 
     private List<Proto.Transaction> convertTransaction(List<BranchData> branchDataList) {

@@ -25,6 +25,7 @@ import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.util.ByteUtil;
@@ -67,7 +68,7 @@ public class NodeManagerTest {
         nodeManager.setMessageSender(messageSender);
         nodeManager.setWallet(new Wallet());
 
-        Runtime runtime = new Runtime(new TransactionReceiptStore());
+        Runtime runtime = new Runtime(new StateStore(), new TransactionReceiptStore());
         BlockChain blockChain = new BlockChain(
                 new File(getClass().getClassLoader()
                         .getResource("branch-yeed.json").getFile()));

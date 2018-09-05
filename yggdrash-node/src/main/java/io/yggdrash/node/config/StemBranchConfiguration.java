@@ -36,29 +36,28 @@ import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 
-@Profile("yeed")
 @Configuration
-public class YeedBranchConfiguration {
+public class StemBranchConfiguration {
 
-    @Value("classpath:/branch-yeed.json")
+    @Value("classpath:/branch-stem.json")
     Resource resource;
 
     @Bean
     BlockChain blockChain(BranchGroup branchGroup, BlockStore blockStore,
                           TransactionStore transactionStore,
-                          @Qualifier("yeedGenesis") BlockHusk genesisBlock,
-                          @Qualifier("yeedContract") Contract contract) {
+                          @Qualifier("stemGenesis") BlockHusk genesisBlock,
+                          @Qualifier("stemContract") Contract contract) {
         BlockChain branch = new BlockChain(genesisBlock, blockStore, transactionStore, contract);
         branchGroup.addBranch(branch.getBranchId(), branch);
         return branch;
     }
 
-    @Bean(name = "yeedGenesis")
+    @Bean(name = "stemGenesis")
     BlockHusk genesisBlock() throws IOException {
         return new BlockChainLoader(resource.getInputStream()).getGenesis();
     }
 
-    @Bean(name = "yeedContract")
+    @Bean(name = "stemContract")
     Contract yeedContract() {
         return new CoinContract();
     }
@@ -66,14 +65,14 @@ public class YeedBranchConfiguration {
     @Primary
     @Profile("prod")
     @Bean(name = "blockDbSource")
-    DbSource blockLevelDbSource(@Qualifier("yeedGenesis") BlockHusk genesisBlock) {
+    DbSource blockLevelDbSource(@Qualifier("stemGenesis") BlockHusk genesisBlock) {
         return new LevelDbDataSource(genesisBlock.getHash() + "/blocks");
     }
 
     @Primary
     @Profile("prod")
     @Bean(name = "txDbSource")
-    DbSource txLevelDbSource(@Qualifier("yeedGenesis") BlockHusk genesisBlock) {
+    DbSource txLevelDbSource(@Qualifier("stemGenesis") BlockHusk genesisBlock) {
         return new LevelDbDataSource(genesisBlock.getHash() + "/txs");
     }
 
