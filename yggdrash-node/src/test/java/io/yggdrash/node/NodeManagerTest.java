@@ -18,6 +18,7 @@ package io.yggdrash.node;
 
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.BlockHuskBuilder;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.Runtime;
 import io.yggdrash.core.TransactionHusk;
@@ -80,10 +81,10 @@ public class NodeManagerTest {
         nodeManager.init();
         assert nodeManager.getNodeUri() != null;
         this.tx = TestUtils.createTxHusk(nodeManager.getWallet());
-        this.firstBlock = BlockHusk.build(nodeManager.getWallet(), Collections.singletonList(tx),
-                nodeManager.getBlockByIndexOrHash("0"));
-        this.secondBlock = BlockHusk.build(nodeManager.getWallet(), Collections.singletonList(tx),
-                firstBlock);
+        this.firstBlock = BlockHuskBuilder.buildUnSigned(nodeManager.getWallet(),
+                Collections.singletonList(tx), nodeManager.getBlockByIndexOrHash("0"));
+        this.secondBlock = BlockHuskBuilder.buildSigned(nodeManager.getWallet(),
+                Collections.singletonList(tx), firstBlock);
     }
 
     @After
@@ -101,12 +102,7 @@ public class NodeManagerTest {
 
     @Test(expected = InvalidSignatureException.class)
     public void unsignedTxTest() {
-        nodeManager.addTransaction(TestUtils.createUnsignedTxHusk());
-    }
-
-    @Test(expected = InvalidSignatureException.class)
-    public void failedOperationExceptionTest() {
-        nodeManager.addTransaction(TestUtils.createInvalidTxHusk());
+        nodeManager.addTransaction(new TransactionHusk(TestUtils.getTransactionFixture()));
     }
 
     @Test
