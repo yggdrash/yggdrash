@@ -26,6 +26,7 @@ import io.yggdrash.crypto.ECKey;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.TimeUtils;
+import org.spongycastle.util.encoders.Hex;
 
 import java.security.SignatureException;
 import java.util.ArrayList;
@@ -138,29 +139,23 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         //todo: change to serialize method
 
         JsonObject jsonObject = new JsonObject();
-        Proto.Block.Header.Raw raw = this.block.getHeader().getRawData();
-        jsonObject.addProperty("type",
-                org.spongycastle.util.encoders.Hex.toHexString(raw.getType().toByteArray()));
-        jsonObject.addProperty("version",
-                org.spongycastle.util.encoders.Hex.toHexString(raw.getVersion().toByteArray()));
+        Proto.Block.Header.Raw raw = getHeader().getRawData();
+        jsonObject.addProperty("type", Hex.toHexString(raw.getType().toByteArray()));
+        jsonObject.addProperty("version", Hex.toHexString(raw.getVersion().toByteArray()));
         jsonObject.addProperty("prevBlockHash",
-                org.spongycastle.util.encoders.Hex.toHexString(
-                        raw.getPrevBlockHash().toByteArray()));
+                Hex.toHexString(raw.getPrevBlockHash().toByteArray()));
         jsonObject.addProperty("merkleRoot",
-                org.spongycastle.util.encoders.Hex.toHexString(raw.getMerkleRoot().toByteArray()));
+                Hex.toHexString(raw.getMerkleRoot().toByteArray()));
         jsonObject.addProperty("timestamp",
-                org.spongycastle.util.encoders.Hex.toHexString(
-                    ByteUtil.longToBytes(raw.getTimestamp())));
+                Hex.toHexString(ByteUtil.longToBytes(raw.getTimestamp())));
         jsonObject.addProperty("dataSize",
-                org.spongycastle.util.encoders.Hex.toHexString(
-                        ByteUtil.longToBytes(raw.getDataSize())));
+                Hex.toHexString(ByteUtil.longToBytes(raw.getDataSize())));
         jsonObject.addProperty("signature",
-                org.spongycastle.util.encoders.Hex.toHexString(
-                        this.block.getHeader().getSignature().toByteArray()));
+                Hex.toHexString(getHeader().getSignature().toByteArray()));
 
         JsonArray jsonArray = new JsonArray();
 
-        for (TransactionHusk tx : this.getBody()) {
+        for (TransactionHusk tx : getBody()) {
             jsonArray.add(tx.toJsonObject());
         }
 
@@ -170,7 +165,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     }
 
     private Proto.Block.Header getHeader() {
-        return this.block.getHeader();
+        return block.getHeader();
     }
 
     @Override
