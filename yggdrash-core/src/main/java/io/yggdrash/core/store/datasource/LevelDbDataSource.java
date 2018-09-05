@@ -26,7 +26,6 @@ import org.iq80.leveldb.Options;
 import org.iq80.leveldb.WriteBatch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
 import java.io.IOException;
@@ -63,10 +62,10 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
     public LevelDbDataSource init() {
         resetDbLock.writeLock().lock();
         try {
-            log.debug("Initialize db: {}", name);
+            log.info("Initialize db: {}", name);
 
             if (isAlive()) {
-                log.info("DbSource is alive.");
+                log.warn("DbSource is alive.");
             }
 
             if (name == null) {
@@ -216,14 +215,11 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
     }
 
     public void removeAll() throws IOException {
-        DBIterator iterator = db.iterator();
-        try {
+        try (DBIterator iterator = db.iterator()) {
             for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
                 byte[] key = iterator.peekNext().getKey();
                 removeByKey(key);
             }
-        } finally {
-            iterator.close();
         }
     }
     /* methods for test (end) */

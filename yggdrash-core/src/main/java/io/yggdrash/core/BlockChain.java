@@ -2,8 +2,8 @@ package io.yggdrash.core;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.contract.CoinContract;
 import io.yggdrash.contract.Contract;
+import io.yggdrash.contract.NoneContract;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NonExistObjectException;
@@ -30,12 +30,14 @@ public class BlockChain {
     private BlockHusk prevBlock;
     private BlockStore blockStore;
     private TransactionStore transactionStore;
+    private Contract contract;
 
     public BlockChain(File infoFile) {
         try {
             this.genesisBlock = new BlockChainLoader(infoFile).getGenesis();
             this.blockStore = new BlockStore(getBranchId());
             this.transactionStore = new TransactionStore(new HashMapDbSource());
+            this.contract = new NoneContract();
             loadBlockChain();
         } catch (Exception e) {
             throw new NotValidateException(e);
@@ -43,10 +45,11 @@ public class BlockChain {
     }
 
     public BlockChain(BlockHusk genesisBlock, BlockStore blockStore,
-                      TransactionStore transactionStore) {
+                      TransactionStore transactionStore, Contract contract) {
         this.genesisBlock = genesisBlock;
         this.blockStore = blockStore;
         this.transactionStore = transactionStore;
+        this.contract = contract;
         loadBlockChain();
     }
 
@@ -255,7 +258,6 @@ public class BlockChain {
 
 
     private void executeAllTx(Set<TransactionHusk> txList, Runtime runtime) {
-        Contract contract = new CoinContract();
         try {
             for (TransactionHusk tx : txList) {
                 if (!runtime.invoke(contract, tx)) {
