@@ -64,7 +64,7 @@ public class BlockChain {
     }
 
     public BlockHusk generateBlock(Wallet wallet, Runtime runtime) {
-        BlockHusk block = BlockHusk.build(wallet,
+        BlockHusk block = BlockHuskBuilder.buildSigned(wallet,
                 new ArrayList<>(transactionStore.getUnconfirmedTxs()), getPrevBlock());
         return addBlock(block, runtime);
     }
@@ -72,7 +72,6 @@ public class BlockChain {
     public List<TransactionHusk> getTransactionList() {
         return new ArrayList<>(transactionStore.getUnconfirmedTxs());
     }
-
 
     public BranchId getBranchId() {
         return new BranchId(genesisBlock.getHash());
