@@ -5,7 +5,6 @@ import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
-import io.yggdrash.node.controller.BlockDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -67,7 +66,7 @@ public class BlockApiImpl implements BlockApi {
 
     @Override
     public BlockHusk getLastBlock() {
-        return nodeManager.getBlocks().stream().sorted(Comparator.reverseOrder())
+        return branchGroup.getBlocks().stream().sorted(Comparator.reverseOrder())
                 .collect(Collectors.toList()).get(0);
     }
 }
