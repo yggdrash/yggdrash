@@ -67,6 +67,5 @@ public class BranchApiImpl implements BranchApi {
         JsonParser jsonParser = new JsonParser();
         JsonObject query = (JsonObject) jsonParser.parse(data);
         return runtime.query(new StemContract(), query).toString();
-        //return query;
     }
 }

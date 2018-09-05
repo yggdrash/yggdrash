@@ -138,7 +138,11 @@ public class StemContractTest {
     @Test
     public void getAllBranchNameTest() {
         String branchId = "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523";
-        assertThat(stemContract.getallbranchname()).containsKey(branchId);
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        param.addProperty("branchId", branchId);
+        params.add(param);
+        assertThat(stemContract.getallbranchname(params)).containsKey(branchId);
     }
 
     @Test

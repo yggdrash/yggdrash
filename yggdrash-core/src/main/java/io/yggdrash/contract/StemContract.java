@@ -129,16 +129,13 @@ public class StemContract extends BaseContract<JsonObject> {
      * @return branch id and name
      */
     public Map<String, String> getallbranchname(JsonArray params) {
-        System.out.println("StemContract :: getallbranchname : params => " + params);
+        log.debug("StemContract :: getallbranchname : params => " + params);
         Map<String, String> branchNameList = new HashMap<>();
         List<String> branchIdList = state.getAllKey();
-        System.out.println("branchIdList :: " + branchIdList);
-        System.out.println("state.getAll().size() :: " + state.getAll().size());
+        log.debug("branchIdList :: " + branchIdList);
 
         if (state.getAll().size() > 0) {
             for (String key : branchIdList) {
-                System.out.println("key :: " + key );
-                System.out.println(state.get(key));
                 branchNameList.put(key, state.get(key).get("name").getAsString());
             }
         }
