@@ -4,7 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.TransactionReceipt;
 
-public class CoinContract extends ContractAdaptor {
+public class CoinContract extends BaseContract<Long> {
 
     /**
      * Returns the balance of the account (query)

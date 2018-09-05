@@ -16,11 +16,11 @@
 
 package io.yggdrash.node.config;
 
-import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockChainLoader;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.store.BlockStore;
+import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
