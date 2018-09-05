@@ -59,7 +59,7 @@ public class YeedBranchConfiguration {
     }
 
     @Bean(name = "yeedContract")
-    Contract yeedContract() {
+    Contract contract() {
         return new CoinContract();
     }
 

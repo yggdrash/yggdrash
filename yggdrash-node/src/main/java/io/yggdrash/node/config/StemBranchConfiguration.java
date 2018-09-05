@@ -16,8 +16,8 @@
 
 package io.yggdrash.node.config;
 
-import io.yggdrash.contract.CoinContract;
 import io.yggdrash.contract.Contract;
+import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockChainLoader;
 import io.yggdrash.core.BlockHusk;
@@ -58,8 +58,8 @@ public class StemBranchConfiguration {
     }
 
     @Bean(name = "stemContract")
-    Contract yeedContract() {
-        return new CoinContract();
+    Contract contract() {
+        return new StemContract();
     }
 
     @Primary
