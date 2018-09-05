@@ -3,6 +3,7 @@ package io.yggdrash.core;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.contract.CoinContract;
+import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.junit.Before;
