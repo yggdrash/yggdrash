@@ -125,24 +125,6 @@ public class StemContract extends BaseContract<JsonObject> {
     }
 
     /**
-     * Returns a map consisting of branch id and branch name.
-     * @return branch id and name
-     */
-    public Map<String, String> getallbranchname(JsonArray params) {
-        log.debug("StemContract :: getallbranchname : params => " + params);
-        Map<String, String> branchNameList = new HashMap<>();
-        List<String> branchIdList = state.getAllKey();
-        log.debug("branchIdList :: " + branchIdList);
-
-        if (state.getAll().size() > 0) {
-            for (String key : branchIdList) {
-                branchNameList.put(key, state.get(key).get("name").getAsString());
-            }
-        }
-        return branchNameList;
-    }
-
-    /**
      * Returns current version of branch
      *
      * @param params   branchId

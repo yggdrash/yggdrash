@@ -2,8 +2,8 @@ package io.yggdrash.core.contract;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.TestUtils;
 import io.yggdrash.contract.StemContract;
-import io.yggdrash.core.Wallet;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.junit.Before;
@@ -21,58 +21,31 @@ public class StemContractTest {
 
     private StemContract stemContract;
     private JsonObject referenceBranch;
-    private Wallet wallet;
+    private String referenceBranchAddress;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
         StateStore<JsonObject> stateStore = new StateStore<JsonObject>();
         TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
-        wallet = new Wallet();
+
         stemContract = new StemContract();
         stemContract.init(stateStore, txReceiptStore);
-        String name = "TEST";
-        String symbol = "TEST";
-        String property = "dex";
-        String type = "immunity";
-        String description = "TEST";
-        String version = "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76";
-        String referenceAddress = "";
-        String reserveAddress = "0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3";
-        referenceBranch = createBranch(name, symbol, property, type, description,
-                version, referenceAddress, reserveAddress);
-        stemContract.create(referenceBranch);
 
-        name = "TEST2";
-        symbol = "TEST2";
-        property = "exchange";
-        type = "mutable";
-        description = "TEST2";
-        version = "0xe4452ervbo091qw4f5n2s8799232abr213er2c90";
-        referenceAddress = "";
-        reserveAddress = "0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3";
-        JsonObject referenceBranch2 = createBranch(name, symbol, property, type, description,
-                version, referenceAddress, reserveAddress);
+        referenceBranch = TestUtils.getSampleBranch1();
+        referenceBranchAddress = stemContract.create(referenceBranch);
+
+        JsonObject referenceBranch2 = TestUtils.getSampleBranch2();
         stemContract.create(referenceBranch2);
     }
 
     @Test
     public void createTest() {
-        String name = "Ethereum TO YEED";
-        String symbol = "ETH TO YEED";
-        String property = "exchange";
-        String type = "immunity";
-        String description = "ETH TO YEED";
-        String version = "0xb5790adeafbb9ac6c9be60955484ab1547ab0b76";
-        String referenceAddress =
-                "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523";
-        String reserveAddress = "0x1F8f8A219550f89f9D372ab2eE0D1f023EC665a3";
-        assertThat(stemContract.create(createBranch(name, symbol, property, type, description,
-                version, referenceAddress, reserveAddress))).isNotNull();
+        assertThat(stemContract.create(TestUtils.getSampleBranch3(referenceBranchAddress))).isNotNull();
     }
 
     @Test
     public void updateTest() {
-        String branchId = "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523";
+        String branchId = referenceBranchAddress;
         String description = "Hello World!";
         String updatedVersion = "0xf4312kjise099qw0nene76555484ab1547av8b9e";
         JsonObject updatedBranch = updateBranch(description, updatedVersion, referenceBranch, 0);
@@ -128,7 +101,7 @@ public class StemContractTest {
     public void viewTest() {
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.addProperty("branchId", "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523");
+        param.addProperty("branchId", referenceBranchAddress);
         params.add(param);
 
         log.debug(stemContract.getcurrentversion(params));
@@ -136,16 +109,10 @@ public class StemContractTest {
     }
 
     @Test
-    public void getAllBranchNameTest() {
-        String branchId = "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523";
-        assertThat(stemContract.getallbranchname(new JsonArray())).containsKey(branchId);
-    }
-
-    @Test
     public void getCurrentVersionTest() {
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.addProperty("branchId", "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523");
+        param.addProperty("branchId", referenceBranchAddress);
         params.add(param);
 
         log.debug(stemContract.getcurrentversion(params));
@@ -156,39 +123,11 @@ public class StemContractTest {
     public void getVersionHistoryTest() {
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.addProperty("branchId", "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523");
+        param.addProperty("branchId", referenceBranchAddress);
         params.add(param);
 
         log.debug(stemContract.getversionhistory(params).getAsString());
         assertThat(stemContract.getversionhistory(params).size()).isNotZero();
-    }
-
-    private JsonObject createBranch(String name,
-                                    String symbol,
-                                    String property,
-                                    String type,
-                                    String description,
-                                    String version,
-                                    String referenceAddress,
-                                    String reserveAddress) {
-        JsonArray versionHistory = new JsonArray();
-        versionHistory.add(version);
-        JsonObject branch = new JsonObject();
-        branch.addProperty("name", name);
-        //branch.addProperty("owner", wallet.getHexAddress());
-        branch.addProperty("owner", "9e187f5264037ab77c87fcffcecd943702cd72c3");
-        branch.addProperty("symbol", symbol);
-        branch.addProperty("property", property);
-        branch.addProperty("type", type);
-        branch.addProperty("timestamp", "0000016531dfa31c");
-        branch.addProperty("description", description);
-        branch.addProperty("tag", 0.1);
-        branch.addProperty("version", version);
-        branch.add("versionHistory", versionHistory);
-        branch.addProperty("reference_address", referenceAddress);
-        branch.addProperty("reserve_address", reserveAddress);
-
-        return branch;
     }
 
     private JsonObject updateBranch(String description, String version, JsonObject branch, Integer checkSum) {

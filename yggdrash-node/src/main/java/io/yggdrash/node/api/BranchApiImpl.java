@@ -47,12 +47,6 @@ public class BranchApiImpl implements BranchApi {
     }
 
     @Override
-    public String getAllBranchName(String data) throws Exception {
-        return queryOf(data);
-        //return "getAllBranchName!";
-    }
-
-    @Override
     public String getCurrentVersionOfBranch(String branchId) {
         return null;
     }

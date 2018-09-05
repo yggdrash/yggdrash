@@ -59,15 +59,6 @@ public interface BranchApi {
     String viewBranch(String branchId);
 
     /**
-     * Get all branch id and name
-     * @return list of branch id and name
-     */
-    @JsonRpcErrors({
-            @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
-    String getAllBranchName(@JsonRpcParam(value = "data") String data) throws Exception;
-
-    /**
      * Get the current contract address of the branch by branchId
      * @param branchId branch id
      * @return current version

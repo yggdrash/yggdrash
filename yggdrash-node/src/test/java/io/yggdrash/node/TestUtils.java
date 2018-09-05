@@ -114,4 +114,71 @@ public class TestUtils {
 
         return txObj;
     }
+
+    public static JsonObject getSampleBranch1() {
+        String name = "TEST1";
+        String symbol = "TEST1";
+        String property = "dex";
+        String type = "immunity";
+        String description = "TEST1";
+        String version = "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76";
+        String referenceAddress = "";
+        String reserveAddress = "0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3";
+        return createBranch(name, symbol, property, type, description,
+                version, referenceAddress, reserveAddress);
+    }
+
+    public static JsonObject getSampleBranch2() {
+        String name = "TEST2";
+        String symbol = "TEST2";
+        String property = "exchange";
+        String type = "mutable";
+        String description = "TEST2";
+        String version = "0xe4452ervbo091qw4f5n2s8799232abr213er2c90";
+        String referenceAddress = "";
+        String reserveAddress = "0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3";
+        return createBranch(name, symbol, property, type, description,
+                version, referenceAddress, reserveAddress);
+    }
+
+    public static JsonObject getSampleBranch3(String branchId) {
+        String name = "Ethereum TO YEED";
+        String symbol = "ETH TO YEED";
+        String property = "exchange";
+        String type = "immunity";
+        String description = "ETH TO YEED";
+        String version = "0xb5790adeafbb9ac6c9be60955484ab1547ab0b76";
+        String referenceAddress = branchId;
+        String reserveAddress = "0x1F8f8A219550f89f9D372ab2eE0D1f023EC665a3";
+        return createBranch(name, symbol, property, type, description,
+                version, referenceAddress, reserveAddress);
+    }
+
+    private static JsonObject createBranch(String name,
+                                    String symbol,
+                                    String property,
+                                    String type,
+                                    String description,
+                                    String version,
+                                    String referenceAddress,
+                                    String reserveAddress) {
+        JsonArray versionHistory = new JsonArray();
+        versionHistory.add(version);
+        JsonObject branch = new JsonObject();
+        branch.addProperty("name", name);
+        //branch.addProperty("owner", wallet.getHexAddress());
+        branch.addProperty("owner", "9e187f5264037ab77c87fcffcecd943702cd72c3");
+        branch.addProperty("symbol", symbol);
+        branch.addProperty("property", property);
+        branch.addProperty("type", type);
+        branch.addProperty("timestamp", "0000016531dfa31c");
+        branch.addProperty("description", description);
+        branch.addProperty("tag", 0.1);
+        branch.addProperty("version", version);
+        branch.add("versionHistory", versionHistory);
+        branch.addProperty("reference_address", referenceAddress);
+        branch.addProperty("reserve_address", reserveAddress);
+
+        return branch;
+    }
 }
