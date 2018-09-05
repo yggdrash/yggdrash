@@ -34,7 +34,6 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.security.SignatureException;
 import java.util.Objects;
 
@@ -50,22 +49,6 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
 
     public TransactionHusk(byte[] data) throws InvalidProtocolBufferException {
         this.transaction = Proto.Transaction.parseFrom(data);
-    }
-
-    public TransactionHusk(JsonObject jsonObject) {
-        String body = jsonObject.toString();
-        Proto.Transaction.Header transactionHeader = Proto.Transaction.Header.newBuilder()
-                .setRawData(Proto.Transaction.Header.Raw.newBuilder()
-                        .setType(ByteString.copyFrom(ByteBuffer.allocate(4).putInt(1).array()))
-                        .setVersion(ByteString.copyFrom(ByteBuffer.allocate(4).putInt(1).array()))
-                        .setDataHash(ByteString.copyFrom(HashUtil.sha3(body.getBytes())))
-                        .setDataSize(body.getBytes().length)
-                        .build())
-                .build();
-        this.transaction = Proto.Transaction.newBuilder()
-                .setHeader(transactionHeader)
-                .setBody(body)
-                .build();
     }
 
     public TransactionHusk sign(Wallet wallet) {

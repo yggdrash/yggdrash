@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.contract.CoinContract;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.Wallet;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.junit.Before;
@@ -19,7 +18,7 @@ public class CoinContractTest {
 
     @Before
     public void setUp() {
-        StateStore<Long> stateStore = new StateStore<Long>();
+        StateStore<Long> stateStore = new StateStore<>();
         TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
         coinContract = new CoinContract();
         coinContract.init(stateStore, txReceiptStore);
@@ -43,20 +42,16 @@ public class CoinContractTest {
 
     @Test
     public void transferTest() throws Exception {
-        Wallet wallet = new Wallet();
-
-        TransactionHusk tx = new TransactionHusk(TestUtils.getTransfer()).sign(wallet);
+        TransactionHusk tx = TestUtils.createTxHusk();
         boolean result = coinContract.invoke(tx);
         assertThat(result).isTrue();
     }
 
     private JsonObject query(JsonObject query) throws Exception {
-        JsonObject res = coinContract.query(query);
-        return res;
+        return coinContract.query(query);
     }
 
     private Boolean invoke(TransactionHusk tx) throws Exception {
-        Boolean res = coinContract.invoke(tx);
-        return res;
+        return coinContract.invoke(tx);
     }
 }

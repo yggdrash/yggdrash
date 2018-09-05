@@ -2,6 +2,7 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.TestUtils;
 import io.yggdrash.contract.CoinContract;
 import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.store.StateStore;
@@ -41,7 +42,7 @@ public class RuntimeTest {
         txObj.addProperty("method", "transfer");
         txObj.add("params", params);
 
-        TransactionHusk tx = new TransactionHusk(txObj).sign(wallet);
+        TransactionHusk tx = TestUtils.createTxHuskByJson(txObj).sign(wallet);
         runtime.invoke(coinContract, tx);
     }
 

@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 
 public class GenesisBlockTest {
 
@@ -21,23 +22,16 @@ public class GenesisBlockTest {
 
     }
 
-    @Test
-    public void generateGenesisBlock() {
+    @Test(expected = NullPointerException.class)
+    public void generateGenesisBlock() throws IOException {
+        this.genesisBlock.generateGenesisBlockFile();
 
-        try {
-            this.genesisBlock.generateGenesisBlockFile();
+        ClassLoader classLoader = getClass().getClassLoader();
+        File genesisFile = new File(classLoader.getResource(
+                new DefaultConfig().getConfig().getString("genesis.block")).getFile());
+        String genesisString = FileUtil.readFileToString(genesisFile);
 
-            ClassLoader classLoader = getClass().getClassLoader();
-            File genesisFile = new File(classLoader.getResource(
-                    new DefaultConfig().getConfig().getString("genesis.block")).getFile());
-            String genesisString = FileUtil.readFileToString(genesisFile);
-
-            log.debug(genesisString);
-
-        } catch (Exception e) {
-            log.error(e.getMessage());
-            assert false;
-        }
+        log.debug(genesisString);
     }
 
 }
