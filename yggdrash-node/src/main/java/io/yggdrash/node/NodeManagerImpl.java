@@ -17,16 +17,11 @@
 package io.yggdrash.node;
 
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.contract.CoinContract;
-import io.yggdrash.contract.Contract;
-import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.NodeManager;
-import io.yggdrash.core.Runtime;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.exception.FailedOperationException;
-import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.net.GrpcClientChannel;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
@@ -38,18 +33,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 @Service
 public class NodeManagerImpl implements NodeManager {
     private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
 
-    private BlockChain blockChain;
+    private BranchGroup branchGroup;
 
     private NodeProperties nodeProperties;
 
@@ -62,8 +54,6 @@ public class NodeManagerImpl implements NodeManager {
     private MessageSender<PeerClientChannel> messageSender;
 
     private NodeHealthIndicator nodeHealthIndicator;
-
-    private Runtime runtime;
 
     @Autowired
     public void setNodeProperties(NodeProperties nodeProperties) {
@@ -85,11 +75,6 @@ public class NodeManagerImpl implements NodeManager {
         this.nodeHealthIndicator = nodeHealthIndicator;
     }
 
-    @Autowired
-    public void setRuntime(Runtime runtime) {
-        this.runtime = runtime;
-    }
-
     @PreDestroy
     public void destroy() {
         log.info("destroy uri=" + peer.getYnodeUri());
@@ -98,7 +83,6 @@ public class NodeManagerImpl implements NodeManager {
 
     @Override
     public void init() {
-        executeAllTx(new TreeSet<>(blockChain.getGenesisBlock().getBody()));
         messageSender.setListener(this);
         NodeProperties.Grpc grpc = nodeProperties.getGrpc();
         peer = Peer.valueOf(wallet.getNodeId(), grpc.getHost(), grpc.getPort());
@@ -113,20 +97,6 @@ public class NodeManagerImpl implements NodeManager {
         nodeHealthIndicator.up();
     }
 
-    private void executeAllTx(Set<TransactionHusk> txList) {
-        Contract contract = new CoinContract();
-        try {
-            for (TransactionHusk tx : txList) {
-                if (!runtime.invoke(contract, tx)) {
-                    break;
-                }
-
-            }
-        } catch (Exception e) {
-            throw new FailedOperationException(e);
-        }
-    }
-
     @Override
     public TransactionHusk getTxByHash(String id) {
         return getTxByHash(new Sha3Hash(id));
@@ -134,73 +104,41 @@ public class NodeManagerImpl implements NodeManager {
 
     @Override
     public TransactionHusk getTxByHash(Sha3Hash hash) {
-        return blockChain.getTransactionStore().get(hash);
+        return branchGroup.getTxByHash(hash);
     }
 
     @Override
     public TransactionHusk addTransaction(TransactionHusk tx) {
-        if (blockChain.getTransactionStore().contains(tx.getHash())) {
-            throw new FailedOperationException("Duplicated " + tx.getHash().toString()
-                    + " Transaction");
-        } else if (!tx.verify()) {
-            throw new InvalidSignatureException();
-        }
-
-        try {
-            blockChain.getTransactionStore().put(tx.getHash(), tx);
-            messageSender.newTransaction(tx);
-            return tx;
-        } catch (Exception e) {
-            throw new FailedOperationException("Transaction");
-        }
+        branchGroup.addTransaction(tx);
+        messageSender.newTransaction(tx);
+        return tx;
     }
 
     @Override
     public List<TransactionHusk> getTransactionList() {
-        return new ArrayList<>(blockChain.getTransactionStore().getUnconfirmedTxs());
+        return branchGroup.getTransactionList();
     }
 
     @Override
     public Set<BlockHusk> getBlocks() {
-        return blockChain.getBlocks();
+        return branchGroup.getBlocks();
     }
 
     @Override
     public BlockHusk generateBlock() {
-        BlockHusk block = BlockHusk.build(wallet,
-                new ArrayList<>(blockChain.getTransactionStore().getUnconfirmedTxs()),
-                blockChain.getPrevBlock());
-        blockChain.addBlock(block);
-        executeAllTx(new TreeSet<>(block.getBody()));
+        BlockHusk block = branchGroup.generateBlock(wallet);
         messageSender.newBlock(block);
-        removeTxByBlock(block);
         return block;
     }
 
     @Override
     public BlockHusk addBlock(BlockHusk block) {
-        BlockHusk newBlock = null;
-        if (blockChain.isGenesisBlockChain() && block.getIndex() == 0) {
-            blockChain.addBlock(block);
-            newBlock = block;
-        } else if (blockChain.getPrevBlock().nextIndex() == block.getIndex()) {
-            blockChain.addBlock(block);
-            newBlock = block;
-        }
-        executeAllTx(new TreeSet<>(block.getBody()));
-        removeTxByBlock(block);
-        return newBlock;
+        return branchGroup.addBlock(block);
     }
 
     @Override
     public BlockHusk getBlockByIndexOrHash(String indexOrHash) {
-
-        if (isNumeric(indexOrHash)) {
-            int index = Integer.parseInt(indexOrHash);
-            return blockChain.getBlockByIndex(index);
-        } else {
-            return blockChain.getBlockByHash(indexOrHash);
-        }
+        return branchGroup.getBlockByIndexOrHash(indexOrHash);
     }
 
     @Override
@@ -290,39 +228,17 @@ public class NodeManagerImpl implements NodeManager {
 
     private void syncBlockAndTransaction() {
         try {
-            List<BlockHusk> blockList = messageSender.syncBlock(blockChain.getLastIndex());
+            List<BlockHusk> blockList = messageSender.syncBlock(branchGroup.getLastIndex());
             for (BlockHusk block : blockList) {
-                blockChain.addBlock(block);
+                branchGroup.addBlock(block);
             }
             List<TransactionHusk> txList = messageSender.syncTransaction();
             for (TransactionHusk tx : txList) {
-                blockChain.getTransactionStore().put(tx.getHash(), tx);
+                branchGroup.addTransaction(tx);
             }
         } catch (Exception e) {
             log.warn(e.getMessage(), e);
         }
-    }
-
-    private void removeTxByBlock(BlockHusk block) {
-        if (block == null || block.getBody() == null) {
-            return;
-        }
-        Set<Sha3Hash> keys = new HashSet<>();
-
-        for (TransactionHusk tx : block.getBody()) {
-            keys.add(tx.getHash());
-        }
-        blockChain.getTransactionStore().batch(keys);
-    }
-
-    private boolean isNumeric(String str) {
-        try {
-            Integer.parseInt(str);
-        } catch (NumberFormatException e) {
-            return false;
-        }
-
-        return true;
     }
 
     public Wallet getWallet() {
@@ -340,7 +256,7 @@ public class NodeManagerImpl implements NodeManager {
     }
 
     @Autowired
-    public void setBlockChain(BlockChain blockChain) {
-        this.blockChain = blockChain;
+    public void setBranchGroup(BranchGroup branchGroup) {
+        this.branchGroup = branchGroup;
     }
 }

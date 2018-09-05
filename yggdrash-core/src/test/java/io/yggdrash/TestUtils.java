@@ -21,6 +21,7 @@ import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.BlockHuskBuilder;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.NotValidateException;
@@ -37,6 +38,10 @@ import java.util.Random;
 public class TestUtils {
     private static Wallet wallet;
     public static final String YGG_HOME = "testOutput";
+    private static byte[] type =
+            ByteBuffer.allocate(4).putInt(BlockHuskBuilder.DEFAULT_TYPE).array();
+    private static byte[] version =
+            ByteBuffer.allocate(4).putInt(BlockHuskBuilder.DEFAULT_VERSION).array();
 
     private TestUtils() {}
 
@@ -216,5 +221,22 @@ public class TestUtils {
         branch.addProperty("reserve_address", reserveAddress);
 
         return branch;
+    }
+
+    public static TransactionHusk createTxHuskByJson(JsonObject jsonObject) {
+        String body = jsonObject.toString();
+        Proto.Transaction.Header transactionHeader = Proto.Transaction.Header.newBuilder()
+                .setRawData(Proto.Transaction.Header.Raw.newBuilder()
+                        .setType(ByteString.copyFrom(type))
+                        .setVersion(ByteString.copyFrom(version))
+                        .setDataHash(ByteString.copyFrom(HashUtil.sha3(body.getBytes())))
+                        .setDataSize(body.getBytes().length)
+                        .build())
+                .build();
+        Proto.Transaction tx = Proto.Transaction.newBuilder()
+                .setHeader(transactionHeader)
+                .setBody(body)
+                .build();
+        return new TransactionHusk(tx);
     }
 }

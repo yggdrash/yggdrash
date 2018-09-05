@@ -18,11 +18,9 @@ package io.yggdrash.node.config;
 
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.NodeManager;
-import io.yggdrash.core.Runtime;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.NodeSyncServer;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.core.store.TransactionReceiptStore;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -60,15 +58,5 @@ public class NodeConfiguration {
     @Bean
     Wallet wallet(DefaultConfig defaultConfig) throws IOException, InvalidCipherTextException {
         return new Wallet(defaultConfig);
-    }
-
-    @Bean
-    TransactionReceiptStore transactionReceiptStore() {
-        return new TransactionReceiptStore();
-    }
-
-    @Bean
-    Runtime runTime(TransactionReceiptStore transactionReceiptStore) {
-        return new Runtime(transactionReceiptStore);
     }
 }

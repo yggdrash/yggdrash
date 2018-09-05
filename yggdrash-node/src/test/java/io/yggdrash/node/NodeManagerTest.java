@@ -18,13 +18,14 @@ package io.yggdrash.node;
 
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.Runtime;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.util.ByteUtil;
@@ -67,11 +68,14 @@ public class NodeManagerTest {
         nodeManager.setMessageSender(messageSender);
         nodeManager.setWallet(new Wallet());
 
-        Runtime runtime = new Runtime(new TransactionReceiptStore());
-        nodeManager.setRuntime(runtime);
-        nodeManager.setBlockChain(new BlockChain(
+        Runtime runtime = new Runtime(new StateStore(), new TransactionReceiptStore());
+        BlockChain blockChain = new BlockChain(
                 new File(getClass().getClassLoader()
-                        .getResource("branch-yeed.json").getFile())));
+                        .getResource("branch-yeed.json").getFile()));
+
+        BranchGroup branchGroup = new BranchGroup(runtime);
+        branchGroup.addBranch(blockChain.getBranchId(), blockChain);
+        nodeManager.setBranchGroup(branchGroup);
         nodeManager.setNodeHealthIndicator(mock(NodeHealthIndicator.class));
         nodeManager.init();
         assert nodeManager.getNodeUri() != null;
@@ -98,12 +102,6 @@ public class NodeManagerTest {
     @Test(expected = InvalidSignatureException.class)
     public void unsignedTxTest() {
         nodeManager.addTransaction(TestUtils.createUnsignedTxHusk());
-    }
-
-    @Test(expected = FailedOperationException.class)
-    public void addTransactionExceptionTest() {
-        nodeManager.setMessageSender(null);
-        nodeManager.addTransaction(tx);
     }
 
     @Test(expected = InvalidSignatureException.class)

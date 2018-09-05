@@ -39,6 +39,6 @@ public class BlockChainLoaderTest {
     public void shouldBeLoadedBranchJsonFile() throws IOException {
         BranchInfo branchInfo = blockChainLoader.loadBranchInfo();
         Assertions.assertThat(branchInfo).isNotNull();
-        Assertions.assertThat(branchInfo.getChainId()).isNotNull();
+        Assertions.assertThat(branchInfo.getBranchId()).isNotNull();
     }
 }
