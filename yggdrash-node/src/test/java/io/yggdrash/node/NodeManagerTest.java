@@ -18,6 +18,8 @@ package io.yggdrash.node;
 
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.BlockHuskBuilder;
+import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.Runtime;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
@@ -25,6 +27,7 @@ import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
@@ -69,13 +72,14 @@ public class NodeManagerTest {
         nodeManager.setMessageSender(messageSender);
         nodeManager.setWallet(new Wallet());
 
-        TransactionStore transactionStore = new TransactionStore(new HashMapDbSource());
-        nodeManager.setTransactionStore(transactionStore);
-        Runtime runtime = new Runtime(new TransactionReceiptStore());
-        nodeManager.setRuntime(runtime);
-        nodeManager.setBlockChain(new BlockChain(
+        Runtime runtime = new Runtime(new StateStore(), new TransactionReceiptStore());
+        BlockChain blockChain = new BlockChain(
                 new File(getClass().getClassLoader()
-                        .getResource("branch-sample.json").getFile())));
+                        .getResource("branch-yeed.json").getFile()));
+
+        BranchGroup branchGroup = new BranchGroup(runtime);
+        branchGroup.addBranch(blockChain.getBranchId(), blockChain);
+        nodeManager.setBranchGroup(branchGroup);
         nodeManager.setNodeHealthIndicator(mock(NodeHealthIndicator.class));
         nodeManager.init();
         assert nodeManager.getNodeUri() != null;
@@ -84,10 +88,14 @@ public class NodeManagerTest {
                 nodeManager.getBlockByIndexOrHash("0"));
         this.secondBlock = new BlockHusk(nodeManager.getWallet(), Collections.singletonList(tx),
                 firstBlock);
+        this.firstBlock = BlockHuskBuilder.buildUnSigned(nodeManager.getWallet(),
+                Collections.singletonList(tx), nodeManager.getBlockByIndexOrHash("0"));
+        this.secondBlock = BlockHuskBuilder.buildSigned(nodeManager.getWallet(),
+                Collections.singletonList(tx), firstBlock);
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void tearDown() {
         //TODO 테스트 설정 파일에서 DB 부분 제거
         FileUtil.recursiveDelete(Paths.get(".yggdrash/db"));
     }
@@ -101,18 +109,7 @@ public class NodeManagerTest {
 
     @Test(expected = InvalidSignatureException.class)
     public void unsignedTxTest() {
-        nodeManager.addTransaction(TestUtils.createUnsignedTxHusk());
-    }
-
-    @Test(expected = FailedOperationException.class)
-    public void addTransactionExceptionTest() {
-        nodeManager.setMessageSender(null);
-        nodeManager.addTransaction(tx);
-    }
-
-    @Test(expected = InvalidSignatureException.class)
-    public void failedOperationExceptionTest() {
-        nodeManager.addTransaction(TestUtils.createInvalidTxHusk());
+        nodeManager.addTransaction(new TransactionHusk(TestUtils.getTransactionFixture()));
     }
 
     @Test

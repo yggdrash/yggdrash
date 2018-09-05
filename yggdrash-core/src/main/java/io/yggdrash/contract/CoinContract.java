@@ -85,15 +85,34 @@ public class CoinContract implements Contract {
     /**
      * Returns TransactionRecipt (invoke)
      */
+    public TransactionReceipt genesis(JsonArray params) {
+        log.info("\n genesis :: params => " + params);
+        TransactionReceipt txRecipt = new TransactionReceipt();
+        for (int i = 0; i < params.size(); i++) {
+            JsonObject jsonObject = params.get(i).getAsJsonObject();
+            String frontier = jsonObject.get("frontier").getAsString();
+            long balance = jsonObject.get("balance").getAsLong();
+            txRecipt.put(String.format("frontier[%d]", i), frontier);
+            txRecipt.put(String.format("balance[%d]", i), balance);
+            state.put(frontier, balance);
+            log.info("\nAddress of Frontier : " + frontier
+                    + "\nBalance of Frontier : " + balance);
+        }
+        return txRecipt;
+    }
+
+    /**
+     * Returns TransactionRecipt (invoke)
+     */
     public TransactionReceipt transfer(JsonArray params) {
         log.info("\n transfer :: params => " + params);
         String to = params.get(0).getAsJsonObject().get("address").getAsString().toLowerCase();
         long amount = params.get(1).getAsJsonObject().get("amount").getAsInt();
 
         TransactionReceipt txRecipt = new TransactionReceipt();
-        txRecipt.txLog.put("from", sender);
-        txRecipt.txLog.put("to", to);
-        txRecipt.txLog.put("amount", String.valueOf(amount));
+        txRecipt.put("from", sender);
+        txRecipt.put("to", to);
+        txRecipt.put("amount", String.valueOf(amount));
 
         if (state.get(sender) != null) {
             long balanceOfFrom = state.get(sender);

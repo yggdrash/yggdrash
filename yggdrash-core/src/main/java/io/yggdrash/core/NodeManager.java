@@ -17,7 +17,6 @@
 package io.yggdrash.core;
 
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.event.PeerEventListener;
 
 import java.util.List;

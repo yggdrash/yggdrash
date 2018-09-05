@@ -33,7 +33,7 @@ public class GenesisBlock {
         JsonObject nodeListObject = getJsonObjectFromFile(nodeListFileName);
         genesisObject.add("nodeList", nodeListObject.get("nodeList"));
 
-        genesisBlock = BlockHusk.genesis(wallet, genesisObject);
+        //genesisBlock = BlockHusk.genesis(wallet, genesisObject);
     }
 
     private JsonObject getJsonObjectFromFile(String fileName) throws IOException {

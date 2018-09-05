@@ -19,7 +19,7 @@ public class CoinContractTest {
 
     @Before
     public void setUp() {
-        StateStore stateStore = new StateStore();
+        StateStore<Long> stateStore = new StateStore<>();
         TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
         coinContract = new CoinContract();
         coinContract.init(stateStore, txReceiptStore);
@@ -51,12 +51,10 @@ public class CoinContractTest {
     }
 
     private JsonObject query(JsonObject query) throws Exception {
-        JsonObject res = coinContract.query(query);
-        return res;
+        return coinContract.query(query);
     }
 
     private Boolean invoke(TransactionHusk tx) throws Exception {
-        Boolean res = coinContract.invoke(tx);
-        return res;
+        return coinContract.invoke(tx);
     }
 }

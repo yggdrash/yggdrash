@@ -2,15 +2,16 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.contract.Contract;
-import io.yggdrash.contract.StateStore;
+import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 
 public class Runtime {
 
-    private final StateStore stateStore = new StateStore();
+    private final StateStore stateStore;
     private final TransactionReceiptStore txReceiptStore;
 
-    public Runtime(TransactionReceiptStore txReceiptStore) {
+    public Runtime(StateStore stateStore, TransactionReceiptStore txReceiptStore) {
+        this.stateStore = stateStore;
         this.txReceiptStore = txReceiptStore;
     }
 

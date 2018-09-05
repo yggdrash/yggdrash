@@ -1,0 +1,20 @@
+{
+  "type": "00000001",
+  "version": "00000001",
+  "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "merkleRoot": "aea201d084e8014208b04905a81c7747b996d562c342d2921f54293a9230dd13",
+  "timestamp": "000033cef73e4fdd",
+  "dataSize": "0000000000000159",
+  "signature": "1c351a06015be2bbf2498fc0f696176ad84b74ddb203caeea20b5fb47d3fbdfd6476438b33a97f5acbdad9c669fc50d08820162ae908e67418fa353907d3d432b1",
+  "data": [
+    {
+      "type": "00000001",
+      "version": "00000001",
+      "dataHash": "f17303449c5902f1ca715bda27cdde52d4e3770b5e27a36524c97c3b64dca673",
+      "timestamp": "000033cef5bbfba1",
+      "dataSize": "00000000000000d6",
+      "signature": "1b4a6457b8fdc28504b1c588ec41e4c267af75f16bb90216a24f6ff8097d67a0f47f00f164b00211b5fb72d0ef672ed221ab9f594e14d52733dbc9d2e5033c5127",
+      "data": "{\"method\":\"GENESIS\",\"branchId\":\"1234\",\"branchName\":\"YEED\",\"params\":[{\"frontier\":\"f1988f13fb5006c9e02a72133ce18a269f442eb4\",\"balance\":1000000000},{\"frontier\":\"1389397cfbdb31a2c7d9640ad293e099ba585c9b\",\"balance\":1}]}"
+    }
+  ]
+}
