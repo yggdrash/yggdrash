@@ -10,14 +10,14 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public abstract class BaseContract<V> implements Contract<V> {
+public abstract class BaseContract<T> implements Contract<T> {
     protected static final Logger log = LoggerFactory.getLogger(BaseContract.class);
-    protected StateStore<V> state;
+    protected StateStore<T> state;
     protected TransactionReceiptStore txReceiptStore;
     protected String sender;
 
     @Override
-    public void init(StateStore<V> store, TransactionReceiptStore txReceiptStore) {
+    public void init(StateStore<T> store, TransactionReceiptStore txReceiptStore) {
         this.state = store;
         this.txReceiptStore = txReceiptStore;
     }

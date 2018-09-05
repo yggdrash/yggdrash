@@ -4,34 +4,38 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.JsonRpcError;
 import com.googlecode.jsonrpc4j.JsonRpcErrors;
+import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.WrongStructuredException;
+import io.yggdrash.node.controller.TransactionDto;
 
 import java.util.List;
+import java.util.Map;
 
 @JsonRpcService("/api/branch")
 public interface BranchApi {
     /**
      * Create a new branch
-     * @param branch branch.json
+     *
+     * @param tx branch creation transaction
      * @return branch id
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = WrongStructuredException.class,
                     code = WrongStructuredException.code)})
-    String createBranch(JsonObject branch);
+    String createBranch(TransactionDto tx);
 
     /**
      * Update a branch
-     * @param branchId branch id to update
-     * @param branch branch.json
+     *
+     * @param tx branch update transaction
      * @return branch id
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = WrongStructuredException.class,
                     code = WrongStructuredException.code)})
-    String updateBranch(String branchId, JsonObject branch);
+    String updateBranch(TransactionDto tx);
 
     /**
      * Search for branches by key (attribute)
@@ -53,6 +57,15 @@ public interface BranchApi {
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
     String viewBranch(String branchId);
+
+    /**
+     * Get all branch id and name
+     * @return list of branch id and name
+     */
+    @JsonRpcErrors({
+            @JsonRpcError(exception = NonExistObjectException.class,
+                    code = NonExistObjectException.code)})
+    String getAllBranchName(@JsonRpcParam(value = "data") String data) throws Exception;
 
     /**
      * Get the current contract address of the branch by branchId
