@@ -17,7 +17,8 @@
 package io.yggdrash.node.controller;
 
 import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.Wallet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,22 +36,24 @@ import java.util.stream.Collectors;
 @RequestMapping("blocks")
 class BlockController {
 
-    private final NodeManager nodeManager;
+    private final Wallet wallet;
+    private final BranchGroup branchGroup;
 
     @Autowired
-    public BlockController(NodeManager nodeManager) {
-        this.nodeManager = nodeManager;
+    public BlockController(Wallet wallet, BranchGroup branchGroup) {
+        this.wallet = wallet;
+        this.branchGroup = branchGroup;
     }
 
     @PostMapping
     public ResponseEntity add() {
-        BlockHusk generatedBlock = nodeManager.generateBlock();
+        BlockHusk generatedBlock = branchGroup.generateBlock(wallet);
         return ResponseEntity.ok(BlockDto.createBy(generatedBlock));
     }
 
     @GetMapping("{id}")
     public ResponseEntity get(@PathVariable(name = "id") String id) {
-        BlockHusk foundBlock = nodeManager.getBlockByIndexOrHash(id);
+        BlockHusk foundBlock = branchGroup.getBlockByIndexOrHash(id);
 
         if (foundBlock == null) {
             return ResponseEntity.notFound().build();
@@ -61,7 +64,7 @@ class BlockController {
 
     @GetMapping
     public ResponseEntity getAll() {
-        Set<BlockHusk> blocks = nodeManager.getBlocks();
+        Set<BlockHusk> blocks = branchGroup.getBlocks();
         List<BlockDto> dtoList = blocks.stream().sorted(Comparator.reverseOrder())
                 .map(BlockDto::createBy).collect(Collectors.toList());
         return ResponseEntity.ok(dtoList);

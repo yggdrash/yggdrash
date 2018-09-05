@@ -59,7 +59,7 @@ class NodeScheduler {
         String peerId = nodeQueue.poll();
         assert peerId != null;
         if (peerId.equals(nodeManager.getNodeUri())) {
-            nodeManager.generateBlock();
+            nodeManager.getBranchGroup().generateBlock(nodeManager.getWallet());
         } else {
             log.debug("Skip generation by another " + peerId.substring(peerId.lastIndexOf("@")));
         }

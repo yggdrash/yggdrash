@@ -21,6 +21,7 @@ import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.net.NodeSyncServer.BlockChainImpl;
@@ -55,6 +56,9 @@ public class NodeSyncServerTest {
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
     @Mock
     private NodeManager nodeManagerMock;
+    @Mock
+    private BranchGroup branchGroupMock;
+
     private TransactionHusk tx;
     private BlockHusk block;
 
@@ -62,11 +66,12 @@ public class NodeSyncServerTest {
     public void setUp() {
         grpcServerRule.getServiceRegistry().addService(new PingPongImpl());
         grpcServerRule.getServiceRegistry().addService(new BlockChainImpl(nodeManagerMock));
+        when(nodeManagerMock.getBranchGroup()).thenReturn(branchGroupMock);
 
         this.tx = TestUtils.createTxHusk();
-        when(nodeManagerMock.addTransaction(any())).thenReturn(tx);
+        when(branchGroupMock.addTransaction(any())).thenReturn(tx);
         this.block = TestUtils.createGenesisBlockHusk();
-        when(nodeManagerMock.addBlock(any())).thenReturn(block);
+        when(branchGroupMock.addBlock(any())).thenReturn(block);
     }
 
     @Test
@@ -98,7 +103,7 @@ public class NodeSyncServerTest {
     public void syncBlock() {
         Set<BlockHusk> blocks = new HashSet<>();
         blocks.add(block);
-        when(nodeManagerMock.getBlocks()).thenReturn(blocks);
+        when(branchGroupMock.getBlocks()).thenReturn(blocks);
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
@@ -110,7 +115,7 @@ public class NodeSyncServerTest {
 
     @Test
     public void syncTransaction() {
-        when(nodeManagerMock.getTransactionList()).thenReturn(Collections.singletonList(tx));
+        when(branchGroupMock.getTransactionList()).thenReturn(Collections.singletonList(tx));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());

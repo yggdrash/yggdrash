@@ -116,7 +116,7 @@ public class NodeSyncServer {
             log.debug("Synchronize block request offset={}, limit={}", offset, limit);
 
             Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
-            for (BlockHusk husk : nodeManager.getBlocks()) {
+            for (BlockHusk husk : nodeManager.getBranchGroup().getBlocks()) {
                 if (husk.getIndex() >= offset) {
                     builder.addBlocks(husk.getInstance());
                 }
@@ -140,7 +140,7 @@ public class NodeSyncServer {
             log.debug("Synchronize tx request");
             Proto.TransactionList.Builder builder
                     = Proto.TransactionList.newBuilder();
-            for (TransactionHusk husk : nodeManager.getTransactionList()) {
+            for (TransactionHusk husk : nodeManager.getBranchGroup().getTransactionList()) {
                 builder.addTransactions(husk.getInstance());
             }
             responseObserver.onNext(builder.build());
@@ -198,7 +198,7 @@ public class NodeSyncServer {
                 public void onNext(Proto.Transaction protoTx) {
                     log.debug("Received transaction: {}", protoTx);
                     TransactionHusk tx = new TransactionHusk(protoTx);
-                    TransactionHusk newTx = nodeManager.addTransaction(tx);
+                    TransactionHusk newTx = nodeManager.getBranchGroup().addTransaction(tx);
                     // ignore broadcast by other node's broadcast
                     if (newTx == null) {
                         return;
@@ -236,7 +236,7 @@ public class NodeSyncServer {
                     long id = protoBlock.getHeader().getRawData().getIndex();
                     BlockHusk block = new BlockHusk(protoBlock);
                     log.debug("Received block id=[{}], hash={}", id, block.getHash());
-                    BlockHusk newBlock = nodeManager.addBlock(block);
+                    BlockHusk newBlock = nodeManager.getBranchGroup().addBlock(block);
                     // ignore broadcast by other node's broadcast
                     if (newBlock == null) {
                         return;

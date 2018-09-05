@@ -1,7 +1,7 @@
 package io.yggdrash.node.api;
 
 import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.Wallet;
@@ -36,7 +36,7 @@ import static org.mockito.Mockito.when;
 public class TransactionMockitoTest {
 
     @Mock
-    private NodeManager nodeManagerMock;
+    private BranchGroup branchGroupMock;
     @Mock
     private TransactionReceiptStore txReceiptStoreMock;
     private TransactionHusk tx;
@@ -54,7 +54,7 @@ public class TransactionMockitoTest {
     public void setup() throws Exception {
         txReceiptStore = new HashMap<>();
         wallet = new Wallet();
-        txApiImpl = new TransactionApiImpl(nodeManagerMock, txReceiptStoreMock);
+        txApiImpl = new TransactionApiImpl(branchGroupMock, txReceiptStoreMock);
 
         tx = TestUtils.createTxHusk(wallet);
         hashOfTx = tx.getHash().toString();
@@ -73,7 +73,7 @@ public class TransactionMockitoTest {
 
     @Test
     public void getTransactionCountTest() {
-        when(nodeManagerMock.getBlockByIndexOrHash(any())).thenReturn(block);
+        when(branchGroupMock.getBlockByIndexOrHash(any())).thenReturn(block);
         Integer res = txApiImpl.getTransactionCount(wallet.getHexAddress(), 1);
         Integer res2 = txApiImpl.getTransactionCount(wallet.getHexAddress(), "latest");
         Integer sizeOfTxList = 3;
@@ -92,7 +92,7 @@ public class TransactionMockitoTest {
 
     @Test
     public void getTransactionByHash() {
-        when(nodeManagerMock.getTxByHash(hashOfTx)).thenReturn(tx);
+        when(branchGroupMock.getTxByHash(hashOfTx)).thenReturn(tx);
         TransactionHusk res = txApiImpl.getTransactionByHash(hashOfTx);
         assertThat(res).isNotNull();
         assertEquals(res.getHash().toString(), hashOfTx);
@@ -100,14 +100,14 @@ public class TransactionMockitoTest {
 
     @Test
     public void getTransactionByBlockHashAndIndexTest() {
-        when(nodeManagerMock.getBlockByIndexOrHash(hashOfBlock)).thenReturn(block);
+        when(branchGroupMock.getBlockByIndexOrHash(hashOfBlock)).thenReturn(block);
         TransactionHusk res = txApiImpl.getTransactionByBlockHashAndIndex(hashOfBlock, 0);
         assertEquals(res.getHash().toString(), hashOfTx);
     }
 
     @Test
     public void getTransactionByBlockNumberAndIndexTest() {
-        when(nodeManagerMock.getBlockByIndexOrHash(anyString())).thenReturn(block);
+        when(branchGroupMock.getBlockByIndexOrHash(anyString())).thenReturn(block);
         TransactionHusk res = txApiImpl.getTransactionByBlockNumberAndIndex(0, 0);
         TransactionHusk res2 = txApiImpl.getTransactionByBlockNumberAndIndex("latest", 0);
         assertEquals(res.getHash(), res2.getHash());
@@ -129,14 +129,14 @@ public class TransactionMockitoTest {
 
     @Test
     public void sendTransactionTest() {
-        when(nodeManagerMock.addTransaction(tx)).thenReturn(tx);
+        when(branchGroupMock.addTransaction(tx)).thenReturn(tx);
         String res = txApiImpl.sendTransaction(TransactionDto.createBy(tx));
         assertEquals(res, hashOfTx);
     }
 
     @Test
     public void sendRawTransaction() throws Exception {
-        when(nodeManagerMock.addTransaction(any(TransactionHusk.class))).thenReturn(tx);
+        when(branchGroupMock.addTransaction(any(TransactionHusk.class))).thenReturn(tx);
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutput out = new ObjectOutputStream(bos);
         out.writeObject(tx);

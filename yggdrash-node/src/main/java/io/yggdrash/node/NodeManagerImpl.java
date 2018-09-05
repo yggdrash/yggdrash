@@ -16,7 +16,6 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.NodeManager;
@@ -34,7 +33,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -75,6 +73,26 @@ public class NodeManagerImpl implements NodeManager {
         this.nodeHealthIndicator = nodeHealthIndicator;
     }
 
+    public Wallet getWallet() {
+        return wallet;
+    }
+
+    @Autowired
+    public void setWallet(Wallet wallet) {
+        this.wallet = wallet;
+    }
+
+    @Override
+    public BranchGroup getBranchGroup() {
+        return branchGroup;
+    }
+
+    @Autowired
+    public void setBranchGroup(BranchGroup branchGroup) {
+        this.branchGroup = branchGroup;
+        branchGroup.setListener(this);
+    }
+
     @PreDestroy
     public void destroy() {
         log.info("destroy uri=" + peer.getYnodeUri());
@@ -98,47 +116,8 @@ public class NodeManagerImpl implements NodeManager {
     }
 
     @Override
-    public TransactionHusk getTxByHash(String id) {
-        return getTxByHash(new Sha3Hash(id));
-    }
-
-    @Override
-    public TransactionHusk getTxByHash(Sha3Hash hash) {
-        return branchGroup.getTxByHash(hash);
-    }
-
-    @Override
-    public TransactionHusk addTransaction(TransactionHusk tx) {
-        branchGroup.addTransaction(tx);
-        messageSender.newTransaction(tx);
-        return tx;
-    }
-
-    @Override
-    public List<TransactionHusk> getTransactionList() {
-        return branchGroup.getTransactionList();
-    }
-
-    @Override
-    public Set<BlockHusk> getBlocks() {
-        return branchGroup.getBlocks();
-    }
-
-    @Override
-    public BlockHusk generateBlock() {
-        BlockHusk block = branchGroup.generateBlock(wallet);
+    public void chainedBlock(BlockHusk block) {
         messageSender.newBlock(block);
-        return block;
-    }
-
-    @Override
-    public BlockHusk addBlock(BlockHusk block) {
-        return branchGroup.addBlock(block);
-    }
-
-    @Override
-    public BlockHusk getBlockByIndexOrHash(String indexOrHash) {
-        return branchGroup.getBlockByIndexOrHash(indexOrHash);
     }
 
     @Override
@@ -168,6 +147,11 @@ public class NodeManagerImpl implements NodeManager {
     @Override
     public List<String> getPeerUriList() {
         return peerGroup.getPeers().stream().map(Peer::getYnodeUri).collect(Collectors.toList());
+    }
+
+    @Override
+    public void disconnected(Peer peer) {
+        removePeer(peer.getYnodeUri());
     }
 
     private void addPeerByYnodeUri(List<String> peerList) {
@@ -241,22 +225,4 @@ public class NodeManagerImpl implements NodeManager {
         }
     }
 
-    public Wallet getWallet() {
-        return wallet;
-    }
-
-    @Autowired
-    public void setWallet(Wallet wallet) {
-        this.wallet = wallet;
-    }
-
-    @Override
-    public void disconnected(Peer peer) {
-        removePeer(peer.getYnodeUri());
-    }
-
-    @Autowired
-    public void setBranchGroup(BranchGroup branchGroup) {
-        this.branchGroup = branchGroup;
-    }
 }
