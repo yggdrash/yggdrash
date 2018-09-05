@@ -1,6 +1,11 @@
 package io.yggdrash.core;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.contract.CoinContract;
+import io.yggdrash.contract.Contract;
+import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.BlockStore;
@@ -10,7 +15,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 
 public class BlockChain {
 
@@ -25,7 +34,7 @@ public class BlockChain {
     public BlockChain(File infoFile) {
         try {
             this.genesisBlock = new BlockChainLoader(infoFile).getGenesis();
-            this.blockStore = new BlockStore(getChainId());
+            this.blockStore = new BlockStore(getBranchId());
             this.transactionStore = new TransactionStore(new HashMapDbSource());
             loadBlockChain();
         } catch (Exception e) {
@@ -43,14 +52,29 @@ public class BlockChain {
 
     private void loadBlockChain() {
         try {
-            this.prevBlock = blockStore.get(genesisBlock.getHash());
+            prevBlock = blockStore.get(genesisBlock.getHash());
         } catch (NonExistObjectException e) {
-            addBlock(genesisBlock);
+            prevBlock = genesisBlock;
+            blockStore.put(genesisBlock.getHash(), genesisBlock);
         }
     }
 
-    public ChainId getChainId() {
-        return new ChainId(genesisBlock.getHash());
+    public void init(Runtime runtime) {
+        executeAllTx(new TreeSet<>(genesisBlock.getBody()), runtime);
+    }
+
+    public BlockHusk generateBlock(Wallet wallet, Runtime runtime) {
+        BlockHusk block = BlockHuskBuilder.buildSigned(wallet,
+                new ArrayList<>(transactionStore.getUnconfirmedTxs()), getPrevBlock());
+        return addBlock(block, runtime);
+    }
+
+    public List<TransactionHusk> getTransactionList() {
+        return new ArrayList<>(transactionStore.getUnconfirmedTxs());
+    }
+
+    public BranchId getBranchId() {
+        return new BranchId(genesisBlock.getHash());
     }
 
     public BlockHusk getGenesisBlock() {
@@ -65,10 +89,6 @@ public class BlockChain {
         return blockStore.getAll();
     }
 
-    public TransactionStore getTransactionStore() {
-        return transactionStore;
-    }
-
     /**
      * Gets last block index.
      *
@@ -81,20 +101,34 @@ public class BlockChain {
         return prevBlock.nextIndex();
     }
 
+    @VisibleForTesting
+    // TODO remove this
+    public BlockHusk addBlock(BlockHusk nextBlock) {
+        return addBlock(nextBlock, null);
+    }
+
     /**
      * Add block.
      *
      * @param nextBlock the next block
      * @throws NotValidateException the not validate exception
      */
-    public void addBlock(BlockHusk nextBlock) {
+    public BlockHusk addBlock(BlockHusk nextBlock, Runtime runtime) {
+        if (blockStore.contains(nextBlock.getHash())) {
+            return null;
+        }
         if (!isValidNewBlock(prevBlock, nextBlock)) {
             throw new NotValidateException("Invalid to chain");
+        }
+        if (runtime != null) { // TODO remove this
+            executeAllTx(new TreeSet<>(nextBlock.getBody()), runtime);
         }
         log.debug("Added block index=[{}], blockHash={}", nextBlock.getIndex(),
                 nextBlock.getHash());
         this.blockStore.put(nextBlock.getHash(), nextBlock);
         this.prevBlock = nextBlock;
+        removeTxByBlock(nextBlock);
+        return nextBlock;
     }
 
     private boolean isValidNewBlock(BlockHusk prevBlock, BlockHusk nextBlock) {
@@ -113,6 +147,22 @@ public class BlockChain {
         }
 
         return true;
+    }
+
+    public TransactionHusk addTransaction(TransactionHusk tx) {
+        if (transactionStore.contains(tx.getHash())) {
+            throw new FailedOperationException("Duplicated " + tx.getHash().toString()
+                    + " Transaction");
+        } else if (!tx.verify()) {
+            throw new InvalidSignatureException();
+        }
+
+        try {
+            transactionStore.put(tx.getHash(), tx);
+            return tx;
+        } catch (Exception e) {
+            throw new FailedOperationException("Transaction");
+        }
     }
 
     public long size() {
@@ -175,12 +225,58 @@ public class BlockChain {
     }
 
     /**
+     * Gets transaction by hash.
+     *
+     * @param hash the hash
+     * @return the transaction by hash
+     */
+    public TransactionHusk getTxByHash(String hash) {
+        return getTxByHash(new Sha3Hash(hash));
+    }
+
+    /**
+     * Gets transaction by hash.
+     *
+     * @param hash the hash
+     * @return the transaction by hash
+     */
+    public TransactionHusk getTxByHash(Sha3Hash hash) {
+        return transactionStore.get(hash);
+    }
+
+    /**
      * Is genesis block chain boolean.
      *
      * @return the boolean
      */
     public boolean isGenesisBlockChain() {
         return (this.prevBlock == null);
+    }
+
+
+    private void executeAllTx(Set<TransactionHusk> txList, Runtime runtime) {
+        Contract contract = new CoinContract();
+        try {
+            for (TransactionHusk tx : txList) {
+                if (!runtime.invoke(contract, tx)) {
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            throw new FailedOperationException(e);
+        }
+    }
+
+    private void removeTxByBlock(BlockHusk block) {
+        if (block == null || block.getBody() == null) {
+            return;
+        }
+        Set<Sha3Hash> keys = new HashSet<>();
+
+        for (TransactionHusk tx : block.getBody()) {
+            keys.add(tx.getHash());
+        }
+        transactionStore.batch(keys);
     }
 
     @Override

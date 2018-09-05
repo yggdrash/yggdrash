@@ -32,8 +32,8 @@ public class BranchInfo {
     public String signature;
     public List<BranchData> data;
 
-    public ChainId getChainId() {
-        return new ChainId(new Sha3Hash(toString().getBytes()));
+    public BranchId getBranchId() {
+        return new BranchId(new Sha3Hash(toString().getBytes()));
     }
 
     @Override
