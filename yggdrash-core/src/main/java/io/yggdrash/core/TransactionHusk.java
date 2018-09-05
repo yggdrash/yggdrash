@@ -72,10 +72,6 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         }
     }
 
-//    private Proto.Transaction.Header getHeader() {
-//        return this.protoTransaction.getHeader();
-//    }
-
     public Proto.Transaction getProtoTransaction() {
         return protoTransaction;
     }
@@ -89,7 +85,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
     }
 
     public String getBody() {
-        return this.protoTransaction.getBody().toString();
+        return this.protoTransaction.getBody().toStringUtf8();
     }
 
     public TransactionHusk sign(Wallet wallet) {
@@ -113,6 +109,14 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         }
     }
 
+    public Sha3Hash getHashForSignning() {
+        try {
+            return new Sha3Hash(this.coreTransaction.getHeader().getHashForSignning(), true);
+        } catch (IOException e) {
+            throw new NotValidateException();
+        }
+    }
+
     @Override
     public byte[] getData() {
         return this.protoTransaction.toByteArray();
@@ -126,6 +130,14 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
     @Override
     public String toString() {
         return this.coreTransaction.toString();
+    }
+
+    public byte[] toBinary() {
+        try {
+            return this.coreTransaction.toBinary();
+        } catch (IOException e) {
+            throw new NotValidateException();
+        }
     }
 
     @Override

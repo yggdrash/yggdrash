@@ -16,8 +16,6 @@
 
 package io.yggdrash.node.controller;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
 import com.google.protobuf.ByteString;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.proto.Proto;
@@ -37,12 +35,14 @@ public class TransactionDto {
     private String author;
     private String txHash;
 
-    public String getChainHex() {
-        return Hex.toHexString(chain);
-    }
+    public String getChainHex() { return Hex.toHexString(chain); }
 
     public void setChain(byte[] chain) {
         this.chain = chain;
+    }
+
+    public void setChainHex(String chain) {
+        this.chain = Hex.decode(chain);
     }
 
     public String getTypeHex() {

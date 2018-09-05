@@ -25,9 +25,17 @@ public class CoinContract implements Contract {
 
     @Override
     public boolean invoke(TransactionHusk txHusk) throws Exception {
+
         String data = txHusk.getBody();
         JsonParser jsonParser = new JsonParser();
-        JsonObject txBody = (JsonObject) jsonParser.parse(data);
+        JsonArray txBodyArray = (JsonArray) jsonParser.parse(data);
+        JsonObject txBody = null;
+
+        for (int i=0; i < txBodyArray.size(); i++) {
+            //todo: modify for 1 more tx_body
+            txBody = txBodyArray.get(i).getAsJsonObject();
+        }
+
         String method = txBody.get("method").getAsString().toLowerCase();
         this.sender = txHusk.getAddress().toString();
         JsonArray params = txBody.get("params").getAsJsonArray();
@@ -40,7 +48,9 @@ public class CoinContract implements Contract {
             txReceiptStore.put(txHusk.getHash().toString(), txReciept);
             return true;
         }
+
         return false;
+
     }
 
     @Override

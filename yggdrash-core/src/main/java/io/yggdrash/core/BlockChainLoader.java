@@ -30,8 +30,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.security.SignatureException;
-import java.util.ArrayList;
 import java.util.List;
 
 import static io.yggdrash.core.BranchInfo.BranchData;
@@ -91,22 +89,24 @@ public class BlockChainLoader {
     private Proto.TransactionList convertTransaction(List<BranchData> branchDataList) throws
             JsonProcessingException {
 
-        Proto.TransactionList txList = Proto.TransactionList.newBuilder().build();
-        List<Proto.Transaction> list = txList.getTransactionsList();
+        Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
 
         for (BranchData branchData : branchDataList) {
-            list.add(Proto.Transaction.newBuilder()
+            builder.addTransactions(Proto.Transaction.newBuilder()
                     .setHeader(Proto.Transaction.Header.newBuilder()
-                        .setType(ByteString.copyFrom(Hex.decode(branchData.type)))
-                        .setVersion(ByteString.copyFrom(Hex.decode(branchData.version)))
-                        .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(Long.parseLong(branchData.timestamp))))
-                        .setBodyHash(ByteString.copyFrom(Hex.decode(branchData.bodyHash)))
-                        .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(Long.parseLong(branchData.bodyLength))))
-                        .build())
+                            .setChain(ByteString.copyFrom(Hex.decode(branchData.chain)))
+                            .setVersion(ByteString.copyFrom(Hex.decode(branchData.version)))
+                            .setType(ByteString.copyFrom(Hex.decode(branchData.type)))
+                            .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(Long.parseLong(branchData.timestamp))))
+                            .setBodyHash(ByteString.copyFrom(Hex.decode(branchData.bodyHash)))
+                            .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(Long.parseLong(branchData.bodyLength))))
+                            .build())
                     .setSignature(ByteString.copyFrom(Hex.decode(branchData.signature)))
-                    .setBody(ByteString.copyFrom(mapper.writeValueAsString(branchData.body).getBytes())).build()
+                    .setBody(ByteString.copyFrom(("[" + mapper.writeValueAsString(branchData.body) + "]").getBytes())).build() // todo: modify
             );
         }
-        return txList;
+
+        return builder.build();
+
     }
 }

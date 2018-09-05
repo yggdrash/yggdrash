@@ -80,9 +80,9 @@ public class NodeManagerTest {
         nodeManager.init();
         assert nodeManager.getNodeUri() != null;
         this.tx = TestUtils.createTxHusk(nodeManager.getWallet());
-        this.firstBlock = BlockHusk.build(nodeManager.getWallet(), Collections.singletonList(tx),
+        this.firstBlock = new BlockHusk(nodeManager.getWallet(), Collections.singletonList(tx),
                 nodeManager.getBlockByIndexOrHash("0"));
-        this.secondBlock = BlockHusk.build(nodeManager.getWallet(), Collections.singletonList(tx),
+        this.secondBlock = new BlockHusk(nodeManager.getWallet(), Collections.singletonList(tx),
                 firstBlock);
     }
 

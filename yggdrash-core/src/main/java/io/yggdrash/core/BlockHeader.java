@@ -1,12 +1,17 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
+import com.google.protobuf.ByteString;
 import io.yggdrash.crypto.HashUtil;
+import io.yggdrash.proto.Proto;
 import io.yggdrash.util.ByteUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.SignatureException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 public class BlockHeader implements Cloneable {
@@ -149,4 +154,38 @@ public class BlockHeader implements Cloneable {
         return (BlockHeader) super.clone();
     }
 
+    public Proto.Block.Header toProtoBlockHeader() {
+        return this.toProtoBlockHeader(this);
+    }
+
+    public static Proto.Block.Header toProtoBlockHeader(BlockHeader blockHeader) {
+        Proto.Block.Header protoHeader = Proto.Block.Header.newBuilder()
+                .setChain(ByteString.copyFrom(blockHeader.getChain()))
+                .setVersion(ByteString.copyFrom(blockHeader.getVersion()))
+                .setType(ByteString.copyFrom(blockHeader.getType()))
+                .setPrevBlockHash(ByteString.copyFrom(blockHeader.getPrevBlockHash()))
+                .setIndex(ByteString.copyFrom(ByteUtil.longToBytes(blockHeader.getIndex())))
+                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(blockHeader.getTimestamp())))
+                .setMerkleRoot(ByteString.copyFrom(blockHeader.getMerkleRoot()))
+                .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(blockHeader.getBodyLength())))
+                .build();
+
+        return protoHeader;
+    }
+
+    public static BlockHeader toBlockHeader(Proto.Block.Header protoBlockHeader) {
+
+        BlockHeader blockHeader = new BlockHeader(
+                protoBlockHeader.getChain().toByteArray(),
+                protoBlockHeader.getVersion().toByteArray(),
+                protoBlockHeader.getType().toByteArray(),
+                protoBlockHeader.getPrevBlockHash().toByteArray(),
+                ByteUtil.byteArrayToLong(protoBlockHeader.getIndex().toByteArray()),
+                ByteUtil.byteArrayToLong(protoBlockHeader.getTimestamp().toByteArray()),
+                protoBlockHeader.getMerkleRoot().toByteArray(),
+                ByteUtil.byteArrayToLong(protoBlockHeader.getBodyLength().toByteArray())
+        );
+
+        return blockHeader;
+    }
 }

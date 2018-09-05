@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 public class BlockSignatureTest {
 
@@ -128,6 +129,10 @@ public class BlockSignatureTest {
 
             assertArrayEquals(blockSig1.getEcKeyPub().getPubKey(),
                     blockSig2.getEcKeyPub().getPubKey());
+
+            BlockSignature blockSig3 = new BlockSignature(blockSig1.toJsonObject());
+            assertEquals(blockSig1.toJsonObject().toString(), blockSig3.toJsonObject().toString());
+
         } catch (Exception e) {
             log.debug(e.getMessage());
             assert false;

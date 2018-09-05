@@ -45,7 +45,7 @@ public class CoinContractTest {
     public void transferTest() throws Exception {
         Wallet wallet = new Wallet();
 
-        TransactionHusk tx = new TransactionHusk(TestUtils.getTransfer()).sign(wallet);
+        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTxObject(wallet));
         boolean result = coinContract.invoke(tx);
         assertThat(result).isTrue();
     }

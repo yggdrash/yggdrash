@@ -75,6 +75,15 @@ public class BlockSignature implements Cloneable {
         return this.ecKeyPub;
     }
 
+    public JsonObject toJsonObject() {
+        JsonObject jsonObject = new JsonObject();
+
+        jsonObject.addProperty("signature", Hex.toHexString(this.signature));
+        jsonObject.addProperty("headerHash", Hex.toHexString(this.headerHash));
+
+        return jsonObject;
+    }
+
     @Override
     public BlockSignature clone() throws CloneNotSupportedException {
         return (BlockSignature) super.clone();

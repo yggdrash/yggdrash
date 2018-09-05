@@ -2,6 +2,7 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.TestUtils;
 import io.yggdrash.contract.CoinContract;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.junit.Before;
@@ -26,20 +27,7 @@ public class RuntimeTest {
 
     @Test
     public void invokeTest() throws Exception {
-        JsonArray params = new JsonArray();
-        JsonObject param1 = new JsonObject();
-        param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        JsonObject param2 = new JsonObject();
-        param2.addProperty("amount", 100);
-        params.add(param1);
-        params.add(param2);
-
-        JsonObject txObj = new JsonObject();
-        txObj.addProperty("method", "transfer");
-        txObj.add("params", params);
-
-        TransactionHusk tx = new TransactionHusk(txObj).sign(wallet);
-        runtime.invoke(coinContract, tx);
+        runtime.invoke(coinContract, new TransactionHusk(TestUtils.sampleTx()));
     }
 
     @Test

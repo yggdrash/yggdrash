@@ -142,6 +142,9 @@ public class BlockTest {
             log.debug("block1=" + block1.toJsonObject());
             log.debug("block2=" + block2.toJsonObject());
 
+            Block block3 = new Block(block0.toJsonObject());
+            assertEquals(block0.toJsonObject().toString(), block3.toJsonObject().toString());
+
         } catch (Exception e) {
             log.debug(e.getMessage());
             assert false;

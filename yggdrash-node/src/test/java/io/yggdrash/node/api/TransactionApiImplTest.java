@@ -98,7 +98,7 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByBlockHashAndIndexTest() {
         try {
-            TransactionHusk tx = new TransactionHusk(getJson()).sign(wallet);
+            TransactionHusk tx = new TransactionHusk(TestUtils.sampleTx(wallet));
             if (txApi.sendTransaction(TransactionDto.createBy(tx)) != null) {
                 Thread.sleep(10000);
                 String hashOfBlock = blockApi.getBlockByHash("1", true).getHash().toString();
@@ -132,7 +132,7 @@ public class TransactionApiImplTest {
 
     @Test
     public void sendTransactionTest() {
-        TransactionHusk tx = new TransactionHusk(TestUtils.getTransfer()).sign(wallet);
+        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTx());
 
         // Request Transaction with jsonStr
         try {
@@ -212,7 +212,7 @@ public class TransactionApiImplTest {
     @Test
     public void txSigValidateTest() throws IOException {
         // Create Transaction
-        TransactionHusk tx = new TransactionHusk(getJson()).sign(wallet);
+        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTx(wallet));
 
         ObjectMapper mapper = TestUtils.getMapper();
         String jsonStr = mapper.writeValueAsString(TransactionDto.createBy(tx));
@@ -224,19 +224,4 @@ public class TransactionApiImplTest {
         assertTrue(TransactionDto.of(resDto).verify());
     }
 
-    private JsonObject getJson() {
-        JsonArray params = new JsonArray();
-        JsonObject param1 = new JsonObject();
-        param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        JsonObject param2 = new JsonObject();
-        param2.addProperty("amount", 100);
-        params.add(param1);
-        params.add(param2);
-
-        JsonObject txObj = new JsonObject();
-        txObj.addProperty("method", "transfer");
-        txObj.add("params", params);
-
-        return txObj;
-    }
 }

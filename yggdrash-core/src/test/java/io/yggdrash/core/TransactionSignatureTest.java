@@ -91,6 +91,10 @@ public class TransactionSignatureTest {
             assertTrue(txSig2.verify());
             assertTrue(txSig3.verify());
 
+            TransactionSignature txSig4 = new TransactionSignature(txSig1.toJsonObject());
+            assertEquals(txSig1.toJsonObject().toString(), txSig4.toJsonObject().toString());
+
+
         } catch (Exception e) {
             log.debug(e.getMessage());
             assert false;

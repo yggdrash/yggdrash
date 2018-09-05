@@ -188,7 +188,7 @@ public class NodeManagerImpl implements NodeManager {
 
     @Override
     public BlockHusk generateBlock() {
-        BlockHusk block = BlockHusk.build(wallet,
+        BlockHusk block = new BlockHusk(wallet,
                 new ArrayList<>(transactionStore.getUnconfirmedTxs()), blockChain.getPrevBlock());
         blockChain.addBlock(block);
         executeAllTx(new TreeSet<>(block.getBody()));
@@ -374,11 +374,11 @@ public class NodeManagerImpl implements NodeManager {
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
         Proto.Transaction tx = blockChain.getBlockByIndex(0).getInstance().getBody().getTransactions(0);
-        GenesisFrontierParam param = mapper.readValue(tx.getBody().toByteArray(), GenesisFrontierParam.class);
-        if (!param.isGenesisOp()) {
+        GenesisFrontierParam[] param = mapper.readValue(tx.getBody().toByteArray(), GenesisFrontierParam[].class);
+        if (!param[0].isGenesisOp()) {
             return;
         }
-        for (Map.Entry<String, GenesisFrontierParam.Balance> element : param.getFrontier()
+        for (Map.Entry<String, GenesisFrontierParam.Balance> element : param[0].getFrontier()
                 .entrySet()) {
             String balance = element.getValue().getBalance();
             runtime.getStateStore().getState().put(element.getKey(), Long.parseLong(balance));

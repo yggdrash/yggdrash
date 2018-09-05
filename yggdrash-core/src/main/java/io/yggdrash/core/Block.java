@@ -97,7 +97,7 @@ public class Block implements Cloneable {
         JsonObject jsonObject = new JsonObject();
 
         jsonObject.add("header", this.header.toJsonObject());
-        jsonObject.addProperty("signature", this.signature.getSignatureHexString());
+        jsonObject.add("signature", this.signature.toJsonObject());
         jsonObject.add("body", this.body.toJsonArray());
 
         return jsonObject;

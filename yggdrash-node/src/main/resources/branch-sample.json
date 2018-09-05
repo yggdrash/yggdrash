@@ -1,28 +1,56 @@
 {
-  "type": "00000001",
-  "version": "00000001",
+  "chain": "0000000000000000000000000000000000000000",
+  "version": "0000000000000000",
+  "type": "0000000000000000",
   "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
+  "index": "0000000000000000",
+  "timestamp": "0000000000000000",
   "merkleRoot": "9c8d7142f8813addadeb5ab9c05d85c1e7d250a543e745a58b830ca01fe88396",
-  "timestamp": "0000000000000001",
-  "dataSize": "0000000000000001",
+  "bodyLength": "0000000000000000",
   "signature": "1ce26ba49760c94f36eaeb97a34b09075dbd7519163dda0f0420a0492431578a060360ca1500cc84f77d352c2a503976a5f49fc31078c70e177fcb63813e4c8e10",
-  "data": [
+  "body":
+  [
     {
-      "type": "00000001",
+      "chain": "0000000000000000000000000000000000000000",
       "version": "00000001",
-      "dataHash": "b0f48f2ed3789ae1222a39552bf1b9abe56dd90ee8a3b6d551494fa645cb57cd",
+      "type": "00000001",
       "timestamp": "0000000000000001",
-      "dataSize": "0000000000000001",
+      "bodyHash": "b0f48f2ed3789ae1222a39552bf1b9abe56dd90ee8a3b6d551494fa645cb57cd",
+      "bodyLength": "0000000000000001",
       "signature": "1b99a8d4e7b6c20def587d2cc342361cb6b5b0af825e0ecbefb91a1cd30e2c77c117a0fdecd0da4d1cd406bac961e217e99f2c9a6d798ba363c9dc3cc2f8b51aac",
-      "data": {
+      "body": {
         "operator": "GENESIS",
         "chainName": "YEED",
         "frontier": {
-          "f1988f13fb5006c9e02a72133ce18a269f442eb4": {
+          "5db10750e8caff27f906b41c71b3471057dd2000": {
             "balance": "1000000000"
           },
-          "1389397cfbdb31a2c7d9640ad293e099ba585c9b": {
-            "balance": "0"
+          "5db10750e8caff27f906b41c71b3471057dd2001": {
+            "balance": "1000000000"
+          },
+          "5db10750e8caff27f906b41c71b3471057dd2002": {
+            "balance": "1000000000"
+          },
+          "5db10750e8caff27f906b41c71b3471057dd2003": {
+            "balance": "1000000000"
+          },
+          "5db10750e8caff27f906b41c71b3471057dd2004": {
+            "balance": "1000000000"
+          },
+          "5db10750e8caff27f906b41c71b3471057dd2005": {
+            "balance": "1000000000"
+          },
+          "5db10750e8caff27f906b41c71b3471057dd2006": {
+            "balance": "1000000000"
+          },
+          "5db10750e8caff27f906b41c71b3471057dd2007": {
+            "balance": "1000000000"
+          },
+          "5db10750e8caff27f906b41c71b3471057dd2008": {
+            "balance": "1000000000"
+          },
+          "6f19c769c78513a3a60a3618c6a11eb9a886086a": {
+            "balance": "1000000000"
           }
         }
       }

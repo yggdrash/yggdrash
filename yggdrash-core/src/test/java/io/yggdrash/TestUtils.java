@@ -18,21 +18,26 @@ package io.yggdrash;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.protobuf.ByteString;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.Block;
+import io.yggdrash.core.BlockBody;
+import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.BlockSignature;
+import io.yggdrash.core.Transaction;
+import io.yggdrash.core.TransactionBody;
+import io.yggdrash.core.TransactionHeader;
 import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.TransactionSignature;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.FileUtil;
 import io.yggdrash.util.TimeUtils;
 
-import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.security.SignatureException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -55,24 +60,12 @@ public class TestUtils {
     }
 
     public static Proto.Transaction getTransactionFixture() {
-        String body = getTransfer().toString();
 
-        Proto.Transaction.Header protoHeader = Proto.Transaction.Header.newBuilder()
-                .setChain(ByteString.copyFrom(new byte[20]))
-                .setVersion(ByteString.copyFrom(new byte[8]))
-                .setType(ByteString.copyFrom(new byte[8]))
-                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(TimeUtils.time())))
-                .setBodyHash(ByteString.copyFrom(HashUtil.sha3(body.getBytes())))
-                .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(body.length())))
-                .build();
-
-        Proto.Transaction protoTransaction = Proto.Transaction.newBuilder()
-                .setHeader(protoHeader)
-                .setSignature(ByteString.copyFrom(wallet.sign(protoHeader.toByteArray())))
-                .setBody(ByteString.copyFrom(body.getBytes()))
-                .build();
-
-        return protoTransaction;
+        try {
+            return new Transaction(sampleTxObject(null)).toProtoTransaction();
+        } catch (SignatureException e) {
+            throw new NotValidateException();
+        }
     }
 
     public static Proto.Block getBlockFixture() {
@@ -86,26 +79,26 @@ public class TestUtils {
 
     public static Proto.Block getBlockFixture(Long index, Sha3Hash prevHash) {
 
-        Proto.Block.Header protoHeader = Proto.Block.Header.newBuilder()
-                .setChain(ByteString.copyFrom(new byte[20]))
-                .setVersion(ByteString.copyFrom(new byte[8]))
-                .setType(ByteString.copyFrom(new byte[8]))
-                .setPrevBlockHash(ByteString.copyFrom(prevHash.getBytes()))
-                .setIndex(ByteString.copyFrom(ByteUtil.longToBytes(index)))
-                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(TimeUtils.time())))
-                .setMerkleRoot(ByteString.copyFrom(new byte[32]))
-                .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(100L)))
-                .build();
+        try {
+            Block tmpBlock = sampleBlock();
+            BlockHeader tmpBlockHeader = tmpBlock.getHeader();
+            BlockBody tmpBlockBody = tmpBlock.getBody();
 
-        Proto.TransactionList txList = Proto.TransactionList.newBuilder().build();
-        List<Proto.Transaction> list = txList.getTransactionsList();
-        list.add(getTransactionFixture());
+            BlockHeader newBlockHeader =new BlockHeader(
+                    tmpBlockHeader.getChain(),
+                    tmpBlockHeader.getVersion(),
+                    tmpBlockHeader.getType(),
+                    prevHash.getBytes(),
+                    index,
+                    TimeUtils.time(),
+                    tmpBlockBody);
 
-        return Proto.Block.newBuilder()
-                .setHeader(protoHeader)
-                .setSignature(ByteString.copyFrom(wallet.sign(protoHeader.toByteArray())))
-                .setBody(txList)
-                .build();
+            return new Block(newBlockHeader, wallet, tmpBlockBody).toProtoBlock();
+        } catch (Exception e) {
+            throw new NotValidateException();
+        }
+
+
     }
 
     public static TransactionHusk createTxHusk() {
@@ -113,7 +106,7 @@ public class TestUtils {
     }
 
     public static TransactionHusk createTxHusk(Wallet wallet) {
-        return new TransactionHusk(getTransfer()).sign(wallet);
+        return new TransactionHusk(sampleTx(wallet));
     }
 
     public static BlockHusk createGenesisBlockHusk() {
@@ -121,11 +114,11 @@ public class TestUtils {
     }
 
     public static BlockHusk createGenesisBlockHusk(Wallet wallet) {
-        return BlockHusk.genesis(wallet, getTransfer());
+        return BlockHusk.genesis(wallet, sampleTxObject(null));
     }
 
     public static BlockHusk createBlockHuskByTxList(Wallet wallet, List<TransactionHusk> txList) {
-        return BlockHusk.build(wallet, txList, createGenesisBlockHusk());
+        return new BlockHusk(wallet, txList, createGenesisBlockHusk());
     }
 
     public static byte[] randomBytes(int length) {
@@ -147,6 +140,108 @@ public class TestUtils {
         txObj.add("params", params);
 
         return txObj;
+    }
+
+    public static JsonObject sampleTxObject(Wallet newWallet) {
+
+        TransactionBody txBody;
+        TransactionHeader txHeader;
+        Wallet nodeWallet;
+        TransactionSignature txSig;
+        Transaction tx;
+
+        if(newWallet == null) {
+            nodeWallet = wallet;
+        } else {
+            nodeWallet = newWallet;
+        }
+
+        JsonArray params = new JsonArray();
+        JsonObject param1 = new JsonObject();
+        param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        JsonObject param2 = new JsonObject();
+        param2.addProperty("amount", 100);
+        params.add(param1);
+        params.add(param2);
+
+        JsonObject txObj = new JsonObject();
+        txObj.addProperty("method", "transfer");
+        txObj.add("params", params);
+
+        JsonArray jsonArray = new JsonArray();
+        jsonArray.add(txObj);
+
+        txBody = new TransactionBody(jsonArray);
+
+        byte[] chain = new byte[20];
+        byte[] version = new byte[8];
+        byte[] type = new byte[8];
+        long timestamp = TimeUtils.time();
+
+        txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
+        try {
+            txSig = new TransactionSignature(nodeWallet, txHeader.getHashForSignning());
+            tx = new Transaction(txHeader, txSig, txBody);
+
+            return tx.toJsonObject();
+
+        } catch (Exception e) {
+            return null;
+        }
+
+    }
+
+    public static Transaction sampleTx() {
+        try {
+            return new Transaction(sampleTxObject(null));
+        } catch (SignatureException e) {
+            return null;
+        }
+    }
+
+    public static Transaction sampleTx(Wallet wallet) {
+        try {
+            return new Transaction(sampleTxObject(wallet));
+        } catch (SignatureException e) {
+            return null;
+        }
+    }
+
+    public static JsonObject sampleBlockObject() {
+
+        List<Transaction> txs1 = new ArrayList<>();
+        txs1.add(sampleTx());
+
+        BlockBody blockBody = new BlockBody(txs1);
+
+        long index = 0;
+        long timestamp = TimeUtils.time();
+        BlockHeader blockHeader = null;
+        try {
+            blockHeader = new BlockHeader(
+                    new byte[20], new byte[8], new byte[8], new byte[32], index, timestamp,
+                    blockBody.getMerkleRoot(), blockBody.length());
+
+            BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSignning());
+
+            Block block = new Block(blockHeader, blockSig, blockBody);
+
+            return block.toJsonObject();
+        } catch (Exception e) {
+            throw new NotValidateException();
+        }
+    }
+
+    public static Block sampleBlock() {
+        try {
+            return new Block(sampleBlockObject());
+        } catch (SignatureException e) {
+            throw new NotValidateException();
+        }
+    }
+
+    public static Proto.Transaction sampleProtoTx() {
+        return sampleTx().toProtoTransaction();
     }
 
     public static Proto.Transaction[] getTransactionFixtures() {
