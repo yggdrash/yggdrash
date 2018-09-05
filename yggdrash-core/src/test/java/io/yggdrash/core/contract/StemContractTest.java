@@ -32,15 +32,19 @@ public class StemContractTest {
         stemContract.init(stateStore, txReceiptStore);
 
         referenceBranch = TestUtils.getSampleBranch1();
-        referenceBranchAddress = stemContract.create(referenceBranch);
+        String referenceBranchId = TestUtils.getBranchId(referenceBranch);
+        referenceBranchAddress = stemContract.create(referenceBranchId, referenceBranch);
 
         JsonObject referenceBranch2 = TestUtils.getSampleBranch2();
-        stemContract.create(referenceBranch2);
+        String referenceBranch2Id = TestUtils.getBranchId(referenceBranch2);
+        stemContract.create(referenceBranch2Id, referenceBranch2);
     }
 
     @Test
     public void createTest() {
-        assertThat(stemContract.create(TestUtils.getSampleBranch3(referenceBranchAddress))).isNotNull();
+        JsonObject newBranch = TestUtils.getSampleBranch3(referenceBranchAddress);
+        String newBranchId = TestUtils.getBranchId(newBranch);
+        assertThat(stemContract.create(newBranchId, newBranch)).isNotNull();
     }
 
     @Test
