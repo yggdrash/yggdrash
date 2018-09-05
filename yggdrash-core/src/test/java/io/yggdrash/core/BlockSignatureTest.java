@@ -109,17 +109,17 @@ public class BlockSignatureTest {
 
         try {
             blockSig1 = new BlockSignature(wallet, blockHeader1.getHashForSignning());
-            assertArrayEquals(blockSig1.getBodyHash(), blockHeader1.getHashForSignning());
+            assertArrayEquals(blockSig1.getHeaderHash(), blockHeader1.getHashForSignning());
 
             log.debug("blockSig1.signature=" + Hex.toHexString(blockSig1.getSignature()));
-            log.debug("blockSig1.bodyHash=" + Hex.toHexString(blockSig1.getBodyHash()));
+            log.debug("blockSig1.headerHash=" + Hex.toHexString(blockSig1.getHeaderHash()));
             log.debug("blockSig1.ecKeyPub="
                     + Hex.toHexString(blockSig1.getEcKeyPub().getPubKey()));
 
-            blockSig2 = new BlockSignature(blockSig1.getSignature(), blockSig1.getBodyHash());
+            blockSig2 = new BlockSignature(blockSig1.getSignature(), blockSig1.getHeaderHash());
 
             log.debug("blockSig2.signature=" + Hex.toHexString(blockSig2.getSignature()));
-            log.debug("blockSig2.bodyHash=" + Hex.toHexString(blockSig2.getBodyHash()));
+            log.debug("blockSig2.headerHash=" + Hex.toHexString(blockSig2.getHeaderHash()));
             log.debug("blockSig2.ecKeyPub="
                     + Hex.toHexString(blockSig2.getEcKeyPub().getPubKey()));
 
@@ -141,14 +141,14 @@ public class BlockSignatureTest {
             blockSig1 = new BlockSignature(wallet, blockHeader1.getHashForSignning());
 
             log.debug("blockSig1.signature=" + Hex.toHexString(blockSig1.getSignature()));
-            log.debug("blockSig1.bodyHash=" + Hex.toHexString(blockSig1.getBodyHash()));
+            log.debug("blockSig1.headerHash=" + Hex.toHexString(blockSig1.getHeaderHash()));
             log.debug("blockSig1.ecKeyPub="
                     + Hex.toHexString(blockSig1.getEcKeyPub().getPubKey()));
 
             blockSig2 = blockSig1.clone();
 
             log.debug("blockSig2.signature=" + Hex.toHexString(blockSig2.getSignature()));
-            log.debug("blockSig2.bodyHash=" + Hex.toHexString(blockSig2.getBodyHash()));
+            log.debug("blockSig2.headerHash=" + Hex.toHexString(blockSig2.getHeaderHash()));
             log.debug("blockSig2.ecKeyPub="
                     + Hex.toHexString(blockSig2.getEcKeyPub().getPubKey()));
 

@@ -1,9 +1,12 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import io.yggdrash.trie.Trie;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,6 +22,15 @@ public class BlockBody implements Cloneable {
     public BlockBody(List<Transaction> transactionList) {
 
         this.body = transactionList;
+    }
+
+    public BlockBody(JsonArray jsonArray) throws SignatureException {
+
+        this.body = new ArrayList<>();
+
+        for (int i = 0;  i < jsonArray.size(); i++) {
+            this.body.add(new Transaction(jsonArray.get(i).getAsJsonObject()));
+        }
     }
 
     public List<Transaction> getBody() {
@@ -66,6 +78,16 @@ public class BlockBody implements Cloneable {
 
     public String toString() {
         return this.toJsonArray().toString();
+    }
+
+    public byte[] toBinary() throws IOException {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+
+        for (Transaction tx : this.body) {
+            bao.write(tx.toBinary());
+        }
+
+        return bao.toByteArray();
     }
 
     @Override

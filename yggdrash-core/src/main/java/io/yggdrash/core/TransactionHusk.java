@@ -16,25 +16,16 @@
 
 package io.yggdrash.core;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonObject;
-import com.google.protobuf.ByteString;
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.ECKey;
-import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.ByteUtil;
-import io.yggdrash.util.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.ByteBuffer;
 import java.security.SignatureException;
 import java.util.Objects;
 
@@ -49,7 +40,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         this.protoTransaction = transaction;
         try {
             this.coreTransaction = Transaction.toTransaction(transaction);
-        } catch (SignatureException e) {
+        } catch (Exception e) {
             throw new NotValidateException();
         }
     }
@@ -158,30 +149,9 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         return !this.protoTransaction.getSignature().isEmpty();
     }
 
-//    public boolean verify() {
-//        try {
-//            if (!isSigned()) {
-//                return false;
-//            }
-//
-//            byte[] dataHashForSigning = getDataHashForSigning();
-//            byte[] signatureBin = getHeader().getSignature().toByteArray();
-//
-//            ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signatureBin);
-//            ECKey key = ECKey.signatureToKey(dataHashForSigning, ecdsaSignature);
-//
-//            log.trace("verfiy data= " + Hex.toHexString(getDataForSigning()));
-//            log.trace("verfiy dataHash= " + Hex.toHexString(dataHashForSigning));
-//            log.trace("verfiy sig= " + Hex.toHexString(ecdsaSignature.toBinary()));
-//            log.trace("verfiy keyAddress= " + Hex.toHexString(key.getAddress()));
-//
-//            return key.verify(dataHashForSigning, ecdsaSignature);
-//        } catch (SignatureException e) {
-//            log.debug("verfiy() SignatureException");
-//            throw new InvalidSignatureException(e);
-//        }
-//        return true;
-//    }
+    public boolean verify() {
+        return this.coreTransaction.getSignature().verify();
+    }
 
     /**
      * Get the address.

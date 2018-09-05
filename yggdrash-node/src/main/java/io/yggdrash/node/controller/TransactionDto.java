@@ -33,9 +33,9 @@ public class TransactionDto {
     private byte[] bodyHash;
     private long bodyLength;
     private byte[] signature;
-//    private String author;
     private String body;
-//    private String txHash;
+    private String author;
+    private String txHash;
 
     public String getChainHex() {
         return Hex.toHexString(chain);
@@ -117,21 +117,21 @@ public class TransactionDto {
         this.body = body;
     }
 
-//    public String getTxHash() {
-//        return txHash;
-//    }
+    public String getTxHash() {
+        return txHash;
+    }
 
-//    public String getAuthor() {
-//        return author;
-//    }
+    public String getAuthor() {
+        return author;
+    }
 
-//    public void setAuthor(String author) {
-//        this.author = author;
-//    }
+    public void setAuthor(String author) {
+        this.author = author;
+    }
 
-//    public void setTxHash(String txHash) {
-//        this.txHash = txHash;
-//    }
+    public void setTxHash(String txHash) {
+        this.txHash = txHash;
+    }
 
     public static TransactionHusk of(TransactionDto dto) {
         Proto.Transaction.Header header = Proto.Transaction.Header.newBuilder()
@@ -163,7 +163,8 @@ public class TransactionDto {
         transactionDto.setBodyLength(ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray()));
         transactionDto.setSignature(tx.getInstance().getSignature().toByteArray());
         transactionDto.setBody(tx.getBody());
-//        transactionDto.setTxHash(tx.getHash().toString());
+        transactionDto.setAuthor(tx.getAddress().toString());
+        transactionDto.setTxHash(tx.getHash().toString());
         return transactionDto;
     }
 

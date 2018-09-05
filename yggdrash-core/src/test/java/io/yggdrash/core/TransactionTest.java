@@ -146,7 +146,7 @@ public class TransactionTest {
             assertEquals(txHeader.toJsonObject().toString(),
                     tx2.getHeader().toJsonObject().toString());
             assertArrayEquals(txSig.getSignature(), txSig.getSignature());
-            assertEquals(txBody.getHexString(), tx2.getBody().getHexString());
+            assertEquals(txBody.toHexString(), tx2.getBody().toHexString());
 
             tx2.getHeader().setTimestamp(TimeUtils.time());
             log.debug("tx1=" + tx1.toJsonObject());
@@ -242,6 +242,9 @@ public class TransactionTest {
             log.debug("tx3=" + tx3.toString());
 
             assertEquals(tx1.toString(), tx3.toString());
+
+            Proto.Transaction protoTx3 = Transaction.toProtoTransaction(tx1);
+            assertArrayEquals(protoTx1.toByteArray(), protoTx3.toByteArray());
 
 
 

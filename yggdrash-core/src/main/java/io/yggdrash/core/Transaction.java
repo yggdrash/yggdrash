@@ -87,21 +87,6 @@ public class Transaction implements Cloneable {
     }
 
     /**
-     * Convert from Transaction.class to JsonObject.
-     *
-     * @return transaction as JsonObject
-     */
-    public JsonObject toJsonObject() {
-
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.add("header", this.header.toJsonObject());
-        jsonObject.add("signature", this.signature.toJsonObject());
-        jsonObject.add("body", this.body.getBody());
-
-        return jsonObject;
-    }
-
-    /**
      * Get transaction hash. SHA3(header | signature)
      *
      * @return transaction hash
@@ -122,31 +107,6 @@ public class Transaction implements Cloneable {
      */
     public String getHashString() throws IOException {
         return Hex.toHexString(this.getHash());
-    }
-
-    /**
-     * Print transaction.
-     */
-    public String toString() {
-        return this.toJsonObject().toString();
-    }
-
-    public byte[] toBinary() throws IOException {
-
-        ByteArrayOutputStream bao = new ByteArrayOutputStream();
-
-        bao.write(this.header.toBinary());
-        bao.write(this.signature.getSignature());
-        bao.write(this.body.getBinary());
-
-        return bao.toByteArray();
-    }
-
-    /**
-     * Print transaction to pretty JsonObject.
-     */
-    public String toStringPretty() {
-        return new GsonBuilder().setPrettyPrinting().create().toJson(this.toJsonObject());
     }
 
     /**
@@ -203,6 +163,46 @@ public class Transaction implements Cloneable {
         return this.header.length() + this.signature.length() + this.body.length();
     }
 
+    /**
+     * Convert from Transaction.class to JsonObject.
+     *
+     * @return transaction as JsonObject
+     */
+    public JsonObject toJsonObject() {
+
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.add("header", this.header.toJsonObject());
+        jsonObject.add("signature", this.signature.toJsonObject());
+        jsonObject.add("body", this.body.getBody());
+
+        return jsonObject;
+    }
+
+    /**
+     * Print transaction.
+     */
+    public String toString() {
+        return this.toJsonObject().toString();
+    }
+
+    /**
+     * Print transaction to pretty JsonObject.
+     */
+    public String toStringPretty() {
+        return new GsonBuilder().setPrettyPrinting().create().toJson(this.toJsonObject());
+    }
+
+    public byte[] toBinary() throws IOException {
+
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+
+        bao.write(this.header.toBinary());
+        bao.write(this.signature.getSignature());
+        bao.write(this.body.toBinary());
+
+        return bao.toByteArray();
+    }
+
     @Override
     public Transaction clone() throws CloneNotSupportedException {
         Transaction tx = (Transaction) super.clone();
@@ -230,13 +230,13 @@ public class Transaction implements Cloneable {
         Proto.Transaction protoTransaction = Proto.Transaction.newBuilder()
                 .setHeader(protoHeader)
                 .setSignature(ByteString.copyFrom(tx.getSignature().getSignature()))
-                .setBody(ByteString.copyFrom(tx.getBody().getBinary()))
+                .setBody(ByteString.copyFrom(tx.getBody().toBinary()))
                 .build();
 
         return protoTransaction;
     }
 
-    public static Transaction toTransaction(Proto.Transaction protoTransaction) throws SignatureException {
+    public static Transaction toTransaction(Proto.Transaction protoTransaction) throws SignatureException, IOException {
 
         TransactionHeader txHeader = new TransactionHeader(
                 protoTransaction.getHeader().getChain().toByteArray(),
@@ -249,7 +249,7 @@ public class Transaction implements Cloneable {
 
         TransactionSignature txSignature =  new TransactionSignature(
                 protoTransaction.getSignature().toByteArray(),
-                protoTransaction.getHeader().getBodyHash().toByteArray()
+                txHeader.getHashForSignning()
         );
 
         TransactionBody txBody = new TransactionBody(

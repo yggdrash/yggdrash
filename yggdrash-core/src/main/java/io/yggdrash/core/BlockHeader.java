@@ -52,6 +52,17 @@ public class BlockHeader implements Cloneable {
                 blockBody.getMerkleRoot(), blockBody.length());
     }
 
+    public BlockHeader(JsonObject jsonObject) {
+        this.chain = Hex.decode(jsonObject.get("chain").getAsString());
+        this.version = Hex.decode(jsonObject.get("version").getAsString());
+        this.type = Hex.decode(jsonObject.get("type").getAsString());
+        this.prevBlockHash = Hex.decode(jsonObject.get("prevBlockHash").getAsString());
+        this.index = ByteUtil.byteArrayToLong(Hex.decode(jsonObject.get("index").getAsString()));
+        this.timestamp = ByteUtil.byteArrayToLong(Hex.decode(jsonObject.get("timestamp").getAsString()));
+        this.merkleRoot = Hex.decode(jsonObject.get("merkleRoot").getAsString());
+        this.bodyLength = ByteUtil.byteArrayToLong(Hex.decode(jsonObject.get("bodyLength").getAsString()));
+    }
+
     public byte[] getChain() {
         return chain;
     }
@@ -124,7 +135,7 @@ public class BlockHeader implements Cloneable {
         jsonObject.addProperty("index", Hex.toHexString(ByteUtil.longToBytes(this.index)));
         jsonObject.addProperty("timestamp", Hex.toHexString(ByteUtil.longToBytes(this.timestamp)));
         jsonObject.addProperty("merkleRoot", Hex.toHexString(this.merkleRoot));
-        jsonObject.addProperty("dataSize", Hex.toHexString(ByteUtil.longToBytes(this.bodyLength)));
+        jsonObject.addProperty("bodyLength", Hex.toHexString(ByteUtil.longToBytes(this.bodyLength)));
 
         return jsonObject;
     }

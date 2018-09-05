@@ -57,12 +57,8 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
     @Override
     public BlockHusk get(Sha3Hash key) {
         byte[] foundValue = db.get(key.getBytes());
-        try {
-            if (foundValue != null) {
-                return new BlockHusk(foundValue);
-            }
-        } catch (InvalidProtocolBufferException e) {
-            logger.warn("InvalidProtocolBufferException: {}", e);
+        if (foundValue != null) {
+            return new BlockHusk(foundValue);
         }
 
         throw new NonExistObjectException("Not Found [" + key + "]");
@@ -77,7 +73,7 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
                 blockSet.add(new BlockHusk(data));
             }
             return blockSet;
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new NotValidateException(e);
         }
     }

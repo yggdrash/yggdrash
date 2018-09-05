@@ -2,14 +2,19 @@ package io.yggdrash.core;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
+import com.google.protobuf.ByteString;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
+import io.yggdrash.proto.Proto;
+import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.TimeUtils;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.SignatureException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Block implements Cloneable {
 
@@ -31,6 +36,13 @@ public class Block implements Cloneable {
         this.signature = new BlockSignature(wallet, this.header.getHashForSignning());
     }
 
+    public Block(JsonObject jsonObject)
+            throws SignatureException {
+        this.header = new BlockHeader(jsonObject.get("header").getAsJsonObject());
+        this.signature = new BlockSignature(jsonObject.get("signature").getAsJsonObject());
+        this.body = new BlockBody(jsonObject.getAsJsonArray("body"));
+    }
+
     public BlockHeader getHeader() {
         return header;
     }
@@ -41,17 +53,6 @@ public class Block implements Cloneable {
 
     public BlockBody getBody() {
         return body;
-    }
-
-    public JsonObject toJsonObject() {
-
-        JsonObject jsonObject = new JsonObject();
-
-        jsonObject.add("header", this.header.toJsonObject());
-        jsonObject.addProperty("signature", this.signature.getSignatureHexString());
-        jsonObject.add("body", this.body.toJsonArray());
-
-        return jsonObject;
     }
 
     public byte[] getHash() throws IOException {
@@ -65,14 +66,6 @@ public class Block implements Cloneable {
 
     public String getHashString() throws IOException {
         return org.spongycastle.util.encoders.Hex.toHexString(this.getHash());
-    }
-
-    public String toString() {
-        return this.toJsonObject().toString();
-    }
-
-    public String toStringPretty() {
-        return new GsonBuilder().setPrettyPrinting().create().toJson(this.toJsonObject());
     }
 
     public ECKey getEcKeyPub() {
@@ -99,6 +92,36 @@ public class Block implements Cloneable {
         return this.header.length() + this.signature.length() + this.body.length();
     }
 
+    public JsonObject toJsonObject() {
+
+        JsonObject jsonObject = new JsonObject();
+
+        jsonObject.add("header", this.header.toJsonObject());
+        jsonObject.addProperty("signature", this.signature.getSignatureHexString());
+        jsonObject.add("body", this.body.toJsonArray());
+
+        return jsonObject;
+    }
+
+    public String toString() {
+        return this.toJsonObject().toString();
+    }
+
+    public String toStringPretty() {
+        return new GsonBuilder().setPrettyPrinting().create().toJson(this.toJsonObject());
+    }
+
+    public byte[] toBinary() throws IOException {
+
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+
+        bao.write(this.header.toBinary());
+        bao.write(this.signature.getSignature());
+        bao.write(this.body.toBinary());
+
+        return bao.toByteArray();
+    }
+
     @Override
     public Block clone() throws CloneNotSupportedException {
         Block block = (Block) super.clone();
@@ -107,6 +130,66 @@ public class Block implements Cloneable {
         block.body = this.body.clone();
 
         return block;
+    }
+
+    public Proto.Block toProtoBlock() {
+        return this.toProtoBlock(this);
+    }
+
+    public static Proto.Block toProtoBlock(Block block) {
+        Proto.Block.Header protoHeader = Proto.Block.Header.newBuilder()
+                .setChain(ByteString.copyFrom(block.getHeader().getChain()))
+                .setVersion(ByteString.copyFrom(block.getHeader().getVersion()))
+                .setType(ByteString.copyFrom(block.getHeader().getType()))
+                .setPrevBlockHash(ByteString.copyFrom(block.getHeader().getPrevBlockHash()))
+                .setIndex(ByteString.copyFrom(ByteUtil.longToBytes(block.getHeader().getIndex())))
+                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(block.getHeader().getTimestamp())))
+                .setMerkleRoot(ByteString.copyFrom(block.getHeader().getMerkleRoot()))
+                .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(block.getHeader().getBodyLength())))
+                .build();
+
+        Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
+        for (Transaction tx : block.getBody().getBody()) {
+            builder.addTransactions(Transaction.toProtoTransaction(tx));
+        }
+
+        Proto.Block protoBlock = Proto.Block.newBuilder()
+                .setHeader(protoHeader)
+                .setSignature(ByteString.copyFrom(block.getSignature().getSignature()))
+                .setBody(builder.build())
+                .build();
+
+        return protoBlock;
+    }
+
+    public static Block toBlock(Proto.Block protoBlock) throws SignatureException, IOException {
+
+        BlockHeader blockHeader = new BlockHeader(
+                protoBlock.getHeader().getChain().toByteArray(),
+                protoBlock.getHeader().getVersion().toByteArray(),
+                protoBlock.getHeader().getType().toByteArray(),
+                protoBlock.getHeader().getPrevBlockHash().toByteArray(),
+                ByteUtil.byteArrayToLong(protoBlock.getHeader().getIndex().toByteArray()),
+                ByteUtil.byteArrayToLong(protoBlock.getHeader().getTimestamp().toByteArray()),
+                protoBlock.getHeader().getMerkleRoot().toByteArray(),
+                ByteUtil.byteArrayToLong(protoBlock.getHeader().getBodyLength().toByteArray())
+        );
+
+        BlockSignature blockSignature =  new BlockSignature(
+                protoBlock.getSignature().toByteArray(),
+                HashUtil.sha3(protoBlock.getHeader().toByteArray())
+        );
+
+        List<Transaction> txList = new ArrayList<>();
+
+        for (Proto.Transaction tx : protoBlock.getBody().getTransactionsList()) {
+            txList.add(Transaction.toTransaction(tx));
+        }
+
+        BlockBody txBody = new BlockBody(txList);
+
+        return new Block(blockHeader, blockSignature, txBody);
+
     }
 
 }

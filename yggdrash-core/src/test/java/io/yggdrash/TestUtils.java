@@ -26,11 +26,13 @@ import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.FileUtil;
 import io.yggdrash.util.TimeUtils;
 
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
+import java.security.SignatureException;
 import java.util.List;
 import java.util.Random;
 
@@ -53,23 +55,24 @@ public class TestUtils {
     }
 
     public static Proto.Transaction getTransactionFixture() {
-//        String body = getTransfer().toString();
-//        return Proto.Transaction.newBuilder()
-//                .setHeader(Proto.Transaction.Header.newBuilder()
-//                        .setRawData(Proto.Transaction.Header.Raw.newBuilder()
-//                                .setType(ByteString.copyFrom(
-//                                        ByteBuffer.allocate(4).putInt(1).array()))
-//                                .setVersion(ByteString.copyFrom(
-//                                        ByteBuffer.allocate(4).putInt(1).array()))
-//                                .setDataHash(ByteString.copyFrom(
-//                                        HashUtil.sha3(body.getBytes())))
-//                                .setDataSize(body.getBytes().length)
-//                                .setTimestamp(TimeUtils.time())
-//                        )
-//                )
-//                .setBody(body)
-//                .build();
-        return null;
+        String body = getTransfer().toString();
+
+        Proto.Transaction.Header protoHeader = Proto.Transaction.Header.newBuilder()
+                .setChain(ByteString.copyFrom(new byte[20]))
+                .setVersion(ByteString.copyFrom(new byte[8]))
+                .setType(ByteString.copyFrom(new byte[8]))
+                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(TimeUtils.time())))
+                .setBodyHash(ByteString.copyFrom(HashUtil.sha3(body.getBytes())))
+                .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(body.length())))
+                .build();
+
+        Proto.Transaction protoTransaction = Proto.Transaction.newBuilder()
+                .setHeader(protoHeader)
+                .setSignature(ByteString.copyFrom(wallet.sign(protoHeader.toByteArray())))
+                .setBody(ByteString.copyFrom(body.getBytes()))
+                .build();
+
+        return protoTransaction;
     }
 
     public static Proto.Block getBlockFixture() {
@@ -82,26 +85,27 @@ public class TestUtils {
     }
 
     public static Proto.Block getBlockFixture(Long index, Sha3Hash prevHash) {
-//        return Proto.Block.newBuilder()
-//                .setHeader(
-//                        Proto.Block.Header.newBuilder()
-//                                .setRawData(Proto.Block.Header.Raw.newBuilder()
-//                                        .setType(ByteString.copyFrom(
-//                                                ByteBuffer.allocate(4).putInt(1).array()))
-//                                        .setVersion(ByteString.copyFrom(
-//                                                ByteBuffer.allocate(4).putInt(1).array()))
-//                                        .setIndex(index)
-//                                        .setPrevBlockHash(ByteString.copyFrom(
-//                                                prevHash.getBytes()
-//                                        ))
-//                                        .build()
-//                                ).build()
-//                )
-//                .addBody(getTransactionFixture())
-//                .addBody(getTransactionFixture())
-//                .addBody(getTransactionFixture())
-//                .build();
-        return null;
+
+        Proto.Block.Header protoHeader = Proto.Block.Header.newBuilder()
+                .setChain(ByteString.copyFrom(new byte[20]))
+                .setVersion(ByteString.copyFrom(new byte[8]))
+                .setType(ByteString.copyFrom(new byte[8]))
+                .setPrevBlockHash(ByteString.copyFrom(prevHash.getBytes()))
+                .setIndex(ByteString.copyFrom(ByteUtil.longToBytes(index)))
+                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(TimeUtils.time())))
+                .setMerkleRoot(ByteString.copyFrom(new byte[32]))
+                .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(100L)))
+                .build();
+
+        Proto.TransactionList txList = Proto.TransactionList.newBuilder().build();
+        List<Proto.Transaction> list = txList.getTransactionsList();
+        list.add(getTransactionFixture());
+
+        return Proto.Block.newBuilder()
+                .setHeader(protoHeader)
+                .setSignature(ByteString.copyFrom(wallet.sign(protoHeader.toByteArray())))
+                .setBody(txList)
+                .build();
     }
 
     public static TransactionHusk createTxHusk() {

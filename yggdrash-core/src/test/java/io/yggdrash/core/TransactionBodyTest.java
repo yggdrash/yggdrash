@@ -58,15 +58,15 @@ public class TransactionBodyTest {
             log.debug("txBody=" + txBody.getBody().toString());
             assertEquals(jsonArray.toString(), txBody.getBody().toString());
 
-            log.debug("txBody Hex String=" + txBody.getHexString());
-            assertEquals(Hex.toHexString(jsonArray.toString().getBytes()), txBody.getHexString());
+            log.debug("txBody Hex String=" + txBody.toHexString());
+            assertEquals(Hex.toHexString(jsonArray.toString().getBytes()), txBody.toHexString());
 
             log.debug("txBody length=" + txBody.length());
             assertEquals(jsonArray.toString().length(), txBody.length());
 
-            log.debug("txBody Binary=" + Hex.toHexString(txBody.getBinary()));
+            log.debug("txBody Binary=" + Hex.toHexString(txBody.toBinary()));
 
-            assertArrayEquals(jsonArray.toString().getBytes(), txBody.getBinary());
+            assertArrayEquals(jsonArray.toString().getBytes(), txBody.toBinary());
 
             log.debug("txBody count=" + txBody.getBodyCount());
 
@@ -75,9 +75,6 @@ public class TransactionBodyTest {
             TransactionBody txBody2 =  new TransactionBody(jsonArray.toString());
 
             assertEquals(txBody.toString(), txBody2.toString());
-
-
-
 
         } catch (Exception e) {
             log.debug(e.getMessage());

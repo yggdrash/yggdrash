@@ -12,6 +12,7 @@ import org.spongycastle.util.encoders.Hex;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 public class TransactionSignatureTest {
@@ -60,17 +61,17 @@ public class TransactionSignatureTest {
         try {
             TransactionSignature txSig1
                     = new TransactionSignature(wallet, txHeader.getHashForSignning());
-            assertArrayEquals(txSig1.getBodyHash(), txHeader.getHashForSignning());
+            assertArrayEquals(txSig1.getHeaderHash(), txHeader.getHashForSignning());
 
             log.debug("txSig1.signature=" + Hex.toHexString(txSig1.getSignature()));
-            log.debug("txSig1.data=" + Hex.toHexString(txSig1.getBodyHash()));
+            log.debug("txSig1.data=" + Hex.toHexString(txSig1.getHeaderHash()));
             log.debug("txSig1.ecKeyPub=" + Hex.toHexString(txSig1.getEcKeyPub().getPubKey()));
 
             TransactionSignature txSig2
-                    = new TransactionSignature(txSig1.getSignature(), txSig1.getBodyHash());
+                    = new TransactionSignature(txSig1.getSignature(), txSig1.getHeaderHash());
 
             log.debug("txSig2.signature=" + Hex.toHexString(txSig2.getSignature()));
-            log.debug("txSig2.data=" + Hex.toHexString(txSig2.getBodyHash()));
+            log.debug("txSig2.data=" + Hex.toHexString(txSig2.getHeaderHash()));
             log.debug("txSig2.ecKeyPub=" + Hex.toHexString(txSig2.getEcKeyPub().getPubKey()));
 
             assertArrayEquals(txSig1.getEcdsaSignature().toBinary(),
@@ -84,7 +85,11 @@ public class TransactionSignatureTest {
 
             assertEquals(txSig1.toString(), txSig3.toString());
 
-            assertEquals(Hex.toHexString(txSig1.getBodyHash()), txSig3.getBodyHashHexString());
+            assertEquals(Hex.toHexString(txSig1.getHeaderHash()), txSig3.getHeaderHashHexString());
+
+            assertTrue(txSig1.verify());
+            assertTrue(txSig2.verify());
+            assertTrue(txSig3.verify());
 
         } catch (Exception e) {
             log.debug(e.getMessage());

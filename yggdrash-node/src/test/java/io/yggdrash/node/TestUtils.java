@@ -25,8 +25,12 @@ import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.InvalidSignatureException;
+import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.util.ByteUtil;
+import io.yggdrash.util.TimeUtils;
 
+import java.sql.Time;
 import java.util.List;
 import java.util.Random;
 
@@ -44,19 +48,18 @@ public class TestUtils {
     }
 
     public static Proto.Transaction createDummyTx() {
-        String body = "dummy";
+        String body = "[\"dummy\"]";
         return Proto.Transaction.newBuilder()
                 .setHeader(Proto.Transaction.Header.newBuilder()
-                        .setRawData(Proto.Transaction.Header.Raw.newBuilder()
-                                .setType(ByteString.copyFrom(randomBytes(4)))
-                                .setVersion(ByteString.copyFrom(randomBytes(4)))
-                                .setDataHash(ByteString.copyFrom(randomBytes(32)))
-                                .setDataSize(1)
-                                .setTimestamp(System.currentTimeMillis())
-                        )
-                        .setSignature(ByteString.copyFrom(randomBytes(32)))
+                                .setChain(ByteString.copyFrom(randomBytes(20)))
+                                .setVersion(ByteString.copyFrom(randomBytes(8)))
+                                .setType(ByteString.copyFrom(randomBytes(8)))
+                                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(TimeUtils.time())))
+                                .setBodyHash(ByteString.copyFrom(HashUtil.sha3(body.getBytes())))
+                                .setBodyLength(ByteString.copyFrom(randomBytes(8)))
                 )
-                .setBody(body)
+                .setSignature(ByteString.copyFrom(wallet.sign(body.getBytes())))
+                .setBody(ByteString.copyFrom(body.getBytes()))
                 .build();
     }
 

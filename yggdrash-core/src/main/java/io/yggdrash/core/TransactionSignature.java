@@ -2,7 +2,6 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.crypto.ECKey;
-import io.yggdrash.util.ByteUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.security.SignatureException;
@@ -11,25 +10,25 @@ import java.util.Arrays;
 public class TransactionSignature implements Cloneable {
 
     private byte[] signature;
-    private byte[] bodyHash;
+    private byte[] headerHash;
 
     private ECKey.ECDSASignature ecdsaSignature;
     private ECKey ecKeyPub;
 
-    public TransactionSignature(byte[] signature, byte[] bodyHash) throws SignatureException {
+    public TransactionSignature(byte[] signature, byte[] headerHash) throws SignatureException {
         this.signature = signature;
-        this.bodyHash = bodyHash;
+        this.headerHash = headerHash;
 
         this.ecdsaSignature = new ECKey.ECDSASignature(this.signature);
-        this.ecKeyPub = ECKey.signatureToKey(this.bodyHash, this.ecdsaSignature);
+        this.ecKeyPub = ECKey.signatureToKey(this.headerHash, this.ecdsaSignature);
 
-        if (!this.ecKeyPub.verify(this.bodyHash, this.ecdsaSignature)) {
+        if (!this.ecKeyPub.verify(this.headerHash, this.ecdsaSignature)) {
             throw new SignatureException();
         }
     }
 
-    public TransactionSignature(Wallet wallet, byte[] bodyHash) throws SignatureException {
-        this(wallet.signHashedData(bodyHash), bodyHash);
+    public TransactionSignature(Wallet wallet, byte[] headerHash) throws SignatureException {
+        this(wallet.signHashedData(headerHash), headerHash);
 
         if (!Arrays.equals(this.ecKeyPub.getPubKey(), wallet.getPubicKey())) {
             throw new SignatureException();
@@ -38,12 +37,12 @@ public class TransactionSignature implements Cloneable {
 
     public TransactionSignature(JsonObject jsonObject) throws SignatureException {
         this.signature = Hex.decode(jsonObject.get("signature").getAsString());
-        this.bodyHash = Hex.decode(jsonObject.get("bodyHash").getAsString());
+        this.headerHash = Hex.decode(jsonObject.get("headerHash").getAsString());
 
         this.ecdsaSignature = new ECKey.ECDSASignature(this.signature);
-        this.ecKeyPub = ECKey.signatureToKey(this.bodyHash, this.ecdsaSignature);
+        this.ecKeyPub = ECKey.signatureToKey(this.headerHash, this.ecdsaSignature);
 
-        if (!this.ecKeyPub.verify(this.bodyHash, this.ecdsaSignature)) {
+        if (!this.ecKeyPub.verify(this.headerHash, this.ecdsaSignature)) {
             throw new SignatureException();
         }
     }
@@ -60,12 +59,12 @@ public class TransactionSignature implements Cloneable {
         return Hex.toHexString(this.signature);
     }
 
-    public byte[] getBodyHash() {
-        return this.bodyHash;
+    public byte[] getHeaderHash() {
+        return this.headerHash;
     }
 
-    public String getBodyHashHexString() {
-        return Hex.toHexString(this.bodyHash);
+    public String getHeaderHashHexString() {
+        return Hex.toHexString(this.headerHash);
     }
 
     public ECKey.ECDSASignature getEcdsaSignature() {
@@ -76,12 +75,15 @@ public class TransactionSignature implements Cloneable {
         return this.ecKeyPub;
     }
 
+    public boolean verify() {
+        return this.getEcKeyPub().verify(this.headerHash, this.ecdsaSignature);
+    }
 
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
 
         jsonObject.addProperty("signature", Hex.toHexString(this.signature));
-        jsonObject.addProperty("bodyHash", Hex.toHexString(this.bodyHash));
+        jsonObject.addProperty("headerHash", Hex.toHexString(this.headerHash));
 
         return jsonObject;
     }

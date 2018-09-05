@@ -22,14 +22,6 @@ public class TransactionBody implements Cloneable {
         return this.body;
     }
 
-    public byte[] getBinary() {
-        return this.body.toString().getBytes();
-    }
-
-    public String getHexString() {
-        return Hex.toHexString(this.body.toString().getBytes());
-    }
-
     public long getBodyCount() {
         return this.body.size();
     }
@@ -39,11 +31,19 @@ public class TransactionBody implements Cloneable {
     }
 
     public byte[] getBodyHash() {
-        return HashUtil.sha3(this.getBinary());
+        return HashUtil.sha3(this.toBinary());
     }
 
     public String toString() {
         return this.body.toString();
+    }
+
+    public String toHexString() {
+        return Hex.toHexString(this.body.toString().getBytes());
+    }
+
+    public byte[] toBinary() {
+        return this.body.toString().getBytes();
     }
 
     @Override
