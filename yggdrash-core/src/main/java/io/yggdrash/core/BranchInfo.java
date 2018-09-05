@@ -32,7 +32,7 @@ public class BranchInfo {
     public String signature;
     public List<BranchData> data;
 
-    public BranchId getChainId() {
+    public BranchId getBranchId() {
         return new BranchId(new Sha3Hash(toString().getBytes()));
     }
 

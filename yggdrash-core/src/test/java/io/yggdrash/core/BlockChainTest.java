@@ -30,6 +30,13 @@ public class BlockChainTest {
     }
 
     @Test
+    public void shouldBeValidBlock() {
+        BlockChain blockChain = generateTestBlockChain();
+        assertThat(blockChain.getGenesisBlock().getAddress().toString())
+                .isEqualTo("8e32477412a619ff24e6386fa19bc53ad5f4d025");
+    }
+
+    @Test
     public void shouldBeGetBlockByHash() {
         BlockChain blockChain = generateTestBlockChain();
         BlockHusk prevBlock = blockChain.getPrevBlock(); // goto Genesis

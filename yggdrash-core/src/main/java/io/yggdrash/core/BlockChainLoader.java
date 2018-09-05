@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.util.ByteUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
@@ -67,11 +68,13 @@ public class BlockChainLoader {
                                 .setType(ByteString.copyFrom(Hex.decode(branchInfo.type)))
                                 .setVersion(ByteString.copyFrom(Hex.decode(branchInfo.version)))
                                 .setIndex(0)
-                                .setTimestamp(Long.parseLong(branchInfo.timestamp))
+                                .setTimestamp(ByteUtil.byteArrayToLong(
+                                        Hex.decode(branchInfo.timestamp)))
                                 .setPrevBlockHash(prevBlockHash)
                                 .setMerkleRoot(ByteString.copyFrom(branchInfo.merkleRoot
                                         .getBytes()))
-                                .setDataSize(Long.parseLong(branchInfo.dataSize))
+                                .setDataSize(ByteUtil.byteArrayToLong(
+                                        Hex.decode(branchInfo.dataSize)))
                                 .build()
                         )
                         .setSignature(ByteString.copyFrom(Hex.decode(branchInfo.signature)))
@@ -90,9 +93,11 @@ public class BlockChainLoader {
                             .setRawData(Proto.Transaction.Header.Raw.newBuilder()
                                     .setType(ByteString.copyFrom(Hex.decode(branchData.type)))
                                     .setVersion(ByteString.copyFrom(Hex.decode(branchData.version)))
-                                    .setTimestamp(Long.parseLong(branchData.timestamp))
+                                    .setTimestamp(ByteUtil.byteArrayToLong(
+                                            Hex.decode(branchData.timestamp)))
                                     .setDataHash(byteString)
-                                    .setDataSize(Long.parseLong(branchData.dataSize))
+                                    .setDataSize(ByteUtil.byteArrayToLong(
+                                            Hex.decode(branchData.dataSize)))
                                     .build()
                             )
                             .setSignature(ByteString.copyFrom(Hex.decode(branchData.signature)))
