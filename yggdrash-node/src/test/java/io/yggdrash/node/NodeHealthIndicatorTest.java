@@ -17,10 +17,9 @@
 package io.yggdrash.node;
 
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.net.PeerClientChannel;
+import io.yggdrash.core.net.PeerChannelGroup;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
-import io.yggdrash.node.config.NodeProperties;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.actuate.health.Health;
@@ -32,9 +31,10 @@ public class NodeHealthIndicatorTest {
 
     @Before
     public void setUp() {
-        MessageSender<PeerClientChannel> sender = new MessageSender<>(new NodeProperties());
+        PeerChannelGroup peerChannelGroup = new PeerChannelGroup(1);
         BlockStore blockStore = new BlockStore(new HashMapDbSource());
-        this.nodeHealthIndicator = new NodeHealthIndicator(new DefaultConfig(), blockStore, sender);
+        this.nodeHealthIndicator = new NodeHealthIndicator(new DefaultConfig(), blockStore,
+                peerChannelGroup);
     }
 
     @Test

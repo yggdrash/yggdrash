@@ -1,33 +1,13 @@
-/*
- * Copyright 2018 Akashic Foundation
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-package io.yggdrash.node;
+package io.yggdrash.core.net;
 
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.event.BranchEventListener;
 import io.yggdrash.core.event.PeerEventListener;
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerClientChannel;
-import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -35,36 +15,35 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Service
-public class MessageSender<T extends PeerClientChannel> {
-    private static final Logger log = LoggerFactory.getLogger(MessageSender.class);
+public class PeerChannelGroup implements BranchEventListener {
 
-    private final Map<String, T> peerChannel = new ConcurrentHashMap<>();
+    private static final Logger log = LoggerFactory.getLogger(PeerChannelGroup.class);
 
-    private final NodeProperties nodeProperties;
+    private final Map<String, PeerClientChannel> peerChannel = new ConcurrentHashMap<>();
+
+    private final int maxPeers;
 
     private PeerEventListener listener;
 
-    public void setListener(PeerEventListener listener) {
-        this.listener = listener;
+    public PeerChannelGroup(int maxPeers) {
+        this.maxPeers = maxPeers;
     }
 
-    @Autowired
-    public MessageSender(NodeProperties nodeProperties) {
-        this.nodeProperties = nodeProperties;
+    public void setListener(PeerEventListener listener) {
+        this.listener = listener;
     }
 
     public void destroy(String ynodeUri) {
         peerChannel.values().forEach(client -> client.stop(ynodeUri));
     }
 
-    void healthCheck() {
+    public void healthCheck() {
         if (peerChannel.isEmpty()) {
             log.trace("Active peer is empty to health check peer");
             return;
         }
-        List<T> peerChannelList = new ArrayList<>(peerChannel.values());
-        for (T client : peerChannelList) {
+        List<PeerClientChannel> peerChannelList = new ArrayList<>(peerChannel.values());
+        for (PeerClientChannel client : peerChannelList) {
             try {
                 Pong pong = client.ping("Ping");
                 if (pong.getPong().equals("Pong")) {
@@ -85,27 +64,28 @@ public class MessageSender<T extends PeerClientChannel> {
         }
         Proto.Transaction[] txns = new Proto.Transaction[] {tx.getInstance()};
 
-        for (T client : peerChannel.values()) {
+        for (PeerClientChannel client : peerChannel.values()) {
             client.broadcastTransaction(txns);
         }
     }
 
-    public void newBlock(BlockHusk block) {
+    @Override
+    public void chainedBlock(BlockHusk block) {
         if (peerChannel.isEmpty()) {
             log.trace("Active peer is empty to broadcast block");
         }
         Proto.Block[] blocks
                 = new Proto.Block[] {block.getInstance()};
-        for (T client : peerChannel.values()) {
+        for (PeerClientChannel client : peerChannel.values()) {
             client.broadcastBlock(blocks);
         }
     }
 
-    public void newPeerChannel(T client) {
+    public void newPeerChannel(PeerClientChannel client) {
         Peer peer = client.getPeer();
         if (peerChannel.containsKey(peer.getYnodeUri())) {
             return;
-        } else if (peerChannel.size() >= nodeProperties.getMaxPeers()) {
+        } else if (peerChannel.size() >= maxPeers) {
             log.info("Ignore to add active peer channel. count={}, peer={}", peerChannel.size(),
                     peer.getYnodeUri());
             return;
@@ -138,18 +118,18 @@ public class MessageSender<T extends PeerClientChannel> {
             return Collections.emptyList();
         }
         List<String> peerList = new ArrayList<>();
-        for (T client : peerChannel.values()) {
+        for (PeerClientChannel client : peerChannel.values()) {
             peerList.addAll(client.requestPeerList(ynodeUri, 0));
         }
         return peerList;
     }
 
     public void broadcastPeerDisconnect(String ynodeUri) {
-        T disconnectedPeer = peerChannel.remove(ynodeUri);
+        PeerClientChannel disconnectedPeer = peerChannel.remove(ynodeUri);
         if (disconnectedPeer != null) {
             disconnectedPeer.stop();
         }
-        for (T client : peerChannel.values()) {
+        for (PeerClientChannel client : peerChannel.values()) {
             client.disconnectPeer(ynodeUri);
         }
     }
@@ -167,7 +147,7 @@ public class MessageSender<T extends PeerClientChannel> {
         }
         // TODO sync peer selection policy
         String key = (String) peerChannel.keySet().toArray()[0];
-        T client = peerChannel.get(key);
+        PeerClientChannel client = peerChannel.get(key);
         List<Proto.Block> blockList = client.syncBlock(offset);
         log.debug("Synchronize block received=" + blockList.size());
         List<BlockHusk> syncList = new ArrayList<>(blockList.size());
@@ -189,7 +169,7 @@ public class MessageSender<T extends PeerClientChannel> {
         }
         // TODO sync peer selection policy
         String key = (String) peerChannel.keySet().toArray()[0];
-        T client = peerChannel.get(key);
+        PeerClientChannel client = peerChannel.get(key);
         List<Proto.Transaction> txList = client.syncTransaction();
         log.debug("Synchronize transaction received=" + txList.size());
         List<TransactionHusk> syncList = new ArrayList<>(txList.size());
@@ -198,4 +178,5 @@ public class MessageSender<T extends PeerClientChannel> {
         }
         return syncList;
     }
+
 }
