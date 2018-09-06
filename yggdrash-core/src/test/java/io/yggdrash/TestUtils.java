@@ -18,31 +18,27 @@ package io.yggdrash;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.protobuf.ByteString;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.BlockHuskBuilder;
 import io.yggdrash.core.BlockSignature;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionBody;
 import io.yggdrash.core.TransactionHeader;
-import io.yggdrash.core.BlockHuskBuilder;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionSignature;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.util.FileUtil;
 import io.yggdrash.util.TimeUtils;
 
 import java.nio.ByteBuffer;
 import java.security.SignatureException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
@@ -77,31 +73,6 @@ public class TestUtils {
     public static Proto.Transaction[] getTransactionFixtures() {
         return new Proto.Transaction[] {getTransactionFixture(), getTransactionFixture()};
     }
-
-//    public static TransactionHusk createTxHusk() {
-//        return createTxHusk(wallet);
-//    }
-
-//    public static TransactionHusk createTxHusk(Wallet wallet) {
-//        return createTxHuskByJson(getTransfer()).sign(wallet);
-//    }
-
-//    public static TransactionHusk createTxHuskByJson(JsonObject jsonObject) {
-//        String body = jsonObject.toString();
-//        Proto.Transaction.Header transactionHeader = Proto.Transaction.Header.newBuilder()
-//                .setRawData(Proto.Transaction.Header.Raw.newBuilder()
-//                        .setType(ByteString.copyFrom(type))
-//                        .setVersion(ByteString.copyFrom(version))
-//                        .setDataHash(ByteString.copyFrom(HashUtil.sha3(body.getBytes())))
-//                        .setDataSize(body.getBytes().length)
-//                        .build())
-//                .build();
-//        Proto.Transaction tx = Proto.Transaction.newBuilder()
-//                .setHeader(transactionHeader)
-//                .setBody(body)
-//                .build();
-//        return new TransactionHusk(tx);
-//    }
 
     public static Proto.Block getBlockFixture() {
         return getBlockFixture(999L);
@@ -278,10 +249,6 @@ public class TestUtils {
     public static Proto.Transaction sampleProtoTx() {
         return sampleTx().toProtoTransaction();
     }
-
-//    public static Proto.Transaction[] getTransactionFixtures() {
-//        return new Proto.Transaction[] {getTransactionFixture(), getTransactionFixture()};
-//    }
 
     public static Proto.Block[] getBlockFixtures() {
         return new Proto.Block[] {getBlockFixture(), getBlockFixture(), getBlockFixture()};

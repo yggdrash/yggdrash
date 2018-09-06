@@ -8,8 +8,10 @@ import io.yggdrash.util.FileUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Objects;
 
@@ -34,7 +36,7 @@ public class BlockChainTest {
         BlockChain blockChain = generateTestBlockChain();
 
         assertThat(blockChain.getGenesisBlock().getAddress().toString())
-                .isEqualTo("8e32477412a619ff24e6386fa19bc53ad5f4d025");
+                .isEqualTo("817f6ff6c973e0cdb0592bd5f1e04e4cb7147b51");
     }
 
     @Test
