@@ -24,7 +24,6 @@ import io.yggdrash.core.Runtime;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.InvalidSignatureException;
-import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -61,11 +60,8 @@ public class NodeManagerTest {
     @Before
     public void setUp() throws Exception {
         this.nodeManager = new GRpcNodeServer();
-        this.peerGroup = new PeerGroup();
         this.nodeProperties = new NodeProperties();
-
-        MessageSender<PeerClientChannel> messageSender = new MessageSender<>(nodeProperties);
-        messageSender.setListener(nodeManager);
+        this.peerGroup = new PeerGroup(nodeProperties.getMaxPeers());
         Runtime runtime = new Runtime(new StateStore(), new TransactionReceiptStore());
         this.branchGroup = new BranchGroup(runtime);
         BlockChain blockChain = new BlockChain(
@@ -73,12 +69,10 @@ public class NodeManagerTest {
                         .getResource("branch-yeed.json").getFile()));
         branchGroup.addBranch(blockChain.getBranchId(), blockChain);
 
-        nodeManager.setMessageSender(messageSender);
         nodeManager.setWallet(new Wallet());
         nodeManager.setPeerGroup(peerGroup);
         nodeManager.setBranchGroup(branchGroup);
         nodeManager.setNodeHealthIndicator(mock(NodeHealthIndicator.class));
-        nodeManager.setMaxPeers(nodeProperties.getMaxPeers());
 
         nodeManager.start("localhost", 0);
         assert nodeManager.getNodeUri() != null;
@@ -130,16 +124,5 @@ public class NodeManagerTest {
         log.debug(Hex.toHexString(ByteUtil.longToBytes(chainedBlock.getBody().size())));
         assert chainedBlock.getBody().size() != 0;
         assertThat(branchGroup.getTxByHash(tx.getHash()).getHash(), equalTo(tx.getHash()));
-    }
-
-    @Test
-    public void addPeerTest() {
-        int testCount = nodeProperties.getMaxPeers() + 5;
-        for (int i = 0; i < testCount; i++) {
-            int port = i + 9000;
-            nodeManager.addPeer("ynode://75bff16c@localhost:" + port);
-        }
-        assert nodeProperties.getMaxPeers() == peerGroup.getPeers().size();
-        assert nodeProperties.getMaxPeers() == peerGroup.getPeerUriList().size();
     }
 }

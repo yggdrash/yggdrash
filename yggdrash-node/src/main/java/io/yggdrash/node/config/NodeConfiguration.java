@@ -18,9 +18,7 @@ package io.yggdrash.node.config;
 
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.net.NodeServer;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.node.GRpcNodeServer;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -40,14 +38,9 @@ public class NodeConfiguration {
 
     @Bean
     PeerGroup peerGroup() {
-        PeerGroup peerGroup = new PeerGroup();
+        PeerGroup peerGroup = new PeerGroup(nodeProperties.getMaxPeers());
         peerGroup.setSeedPeerList(nodeProperties.getSeedPeerList());
         return peerGroup;
-    }
-
-    @Bean
-    NodeServer nodeServer() {
-        return new GRpcNodeServer();
     }
 
     @Bean
