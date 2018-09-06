@@ -52,7 +52,7 @@ public class GrpcClientChannel implements PeerClientChannel {
     }
 
     @VisibleForTesting
-    GrpcClientChannel(ManagedChannel channel, Peer peer) {
+    public GrpcClientChannel(ManagedChannel channel, Peer peer) {
         this.channel = channel;
         this.peer = peer;
         blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);
@@ -79,7 +79,7 @@ public class GrpcClientChannel implements PeerClientChannel {
         stop();
     }
 
-    void blockUtilShutdown() throws InterruptedException {
+    public void blockUtilShutdown() throws InterruptedException {
         if (channel != null) {
             channel.awaitTermination(5, TimeUnit.MINUTES);
         }

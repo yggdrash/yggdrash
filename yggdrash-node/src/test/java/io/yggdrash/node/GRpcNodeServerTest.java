@@ -14,18 +14,16 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.net;
+package io.yggdrash.node;
 
 import io.grpc.internal.testing.StreamRecorder;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
-import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.net.NodeSyncServer.BlockChainImpl;
-import io.yggdrash.core.net.NodeSyncServer.PingPongImpl;
+import io.yggdrash.core.net.NodeManager;
+import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.Ping;
@@ -50,12 +48,14 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class NodeSyncServerTest {
+public class GRpcNodeServerTest {
 
     @Rule
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
     @Mock
     private NodeManager nodeManagerMock;
+    @Mock
+    private PeerGroup peerGroupMock;
     @Mock
     private BranchGroup branchGroupMock;
 
@@ -64,9 +64,9 @@ public class NodeSyncServerTest {
 
     @Before
     public void setUp() {
-        grpcServerRule.getServiceRegistry().addService(new PingPongImpl());
-        grpcServerRule.getServiceRegistry().addService(new BlockChainImpl(nodeManagerMock));
-        when(nodeManagerMock.getBranchGroup()).thenReturn(branchGroupMock);
+        grpcServerRule.getServiceRegistry().addService(new GRpcNodeServer.PingPongImpl());
+        grpcServerRule.getServiceRegistry().addService(
+                new GRpcNodeServer.BlockChainImpl(nodeManagerMock, peerGroupMock, branchGroupMock));
 
         this.tx = TestUtils.createTxHusk();
         when(branchGroupMock.addTransaction(any())).thenReturn(tx);
@@ -85,7 +85,7 @@ public class NodeSyncServerTest {
 
     @Test
     public void requestPeerList() {
-        when(nodeManagerMock.getPeerUriList()).thenReturn(Arrays.asList("a", "b", "c"));
+        when(peerGroupMock.getPeerUriList()).thenReturn(Arrays.asList("a", "b", "c"));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());

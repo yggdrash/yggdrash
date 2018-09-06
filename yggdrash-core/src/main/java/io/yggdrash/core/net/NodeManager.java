@@ -14,26 +14,23 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core;
+package io.yggdrash.core.net;
 
+import io.yggdrash.core.Wallet;
 import io.yggdrash.core.event.BranchEventListener;
 import io.yggdrash.core.event.PeerEventListener;
 
-import java.util.List;
-
 public interface NodeManager extends PeerEventListener, BranchEventListener {
 
-    void init();
-
     String getNodeUri();
+
+    void setMaxPeers(int maxPeers);
 
     void addPeer(String peer);
 
     void removePeer(String peer);
 
-    List<String> getPeerUriList();
-
     Wallet getWallet();
 
-    BranchGroup getBranchGroup();
+    void generateBlock();
 }

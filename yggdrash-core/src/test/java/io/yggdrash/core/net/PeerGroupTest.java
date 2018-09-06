@@ -38,4 +38,11 @@ public class PeerGroupTest {
         group.setSeedPeerList(Collections.singletonList("ynode://75bff16c@127.0.0.1:9090"));
         assert !group.getSeedPeerList().isEmpty();
     }
+
+    @Test
+    public void getPeerUriListTest() {
+        assert group.getPeerUriList().isEmpty();
+        group.addPeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:9090"));
+        assert group.getPeerUriList().contains("ynode://75bff16c@127.0.0.1:9090");
+    }
 }

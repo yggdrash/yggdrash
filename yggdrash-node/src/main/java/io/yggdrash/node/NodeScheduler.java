@@ -16,7 +16,8 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.net.NodeManager;
+import io.yggdrash.core.net.PeerGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,9 +41,13 @@ class NodeScheduler {
 
     private final NodeManager nodeManager;
 
+    private final PeerGroup peerGroup;
+
     @Autowired
-    public NodeScheduler(MessageSender messageSender, NodeManager nodeManager) {
+    public NodeScheduler(MessageSender messageSender, PeerGroup peerGroup,
+                         NodeManager nodeManager) {
         this.messageSender = messageSender;
+        this.peerGroup = peerGroup;
         this.nodeManager = nodeManager;
     }
 
@@ -54,12 +59,12 @@ class NodeScheduler {
     @Scheduled(initialDelay = 1000 * 5, fixedRate = 1000 * BLOCK_MINE_SEC)
     public void generateBlock() {
         if (nodeQueue.isEmpty()) {
-            nodeQueue.addAll(nodeManager.getPeerUriList());
+            nodeQueue.addAll(peerGroup.getPeerUriList());
         }
         String peerId = nodeQueue.poll();
         assert peerId != null;
         if (peerId.equals(nodeManager.getNodeUri())) {
-            nodeManager.getBranchGroup().generateBlock(nodeManager.getWallet());
+            nodeManager.generateBlock();
         } else {
             log.debug("Skip generation by another " + peerId.substring(peerId.lastIndexOf("@")));
         }

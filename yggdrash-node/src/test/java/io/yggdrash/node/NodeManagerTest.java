@@ -50,37 +50,39 @@ public class NodeManagerTest {
 
     private static final Logger log = LoggerFactory.getLogger(NodeManagerTest.class);
 
-    private NodeManagerImpl nodeManager;
+    private GRpcNodeServer nodeManager;
     private BranchGroup branchGroup;
     private NodeProperties nodeProperties;
     private TransactionHusk tx;
     private BlockHusk firstBlock;
     private BlockHusk secondBlock;
+    private PeerGroup peerGroup;
 
     @Before
     public void setUp() throws Exception {
+        this.nodeManager = new GRpcNodeServer();
+        this.peerGroup = new PeerGroup();
         this.nodeProperties = new NodeProperties();
-        nodeProperties.getGrpc().setHost("localhost");
-        nodeProperties.getGrpc().setPort(9090);
-        this.nodeManager = new NodeManagerImpl();
-        nodeManager.setPeerGroup(new PeerGroup());
-        nodeManager.setNodeProperties(nodeProperties);
+
         MessageSender<PeerClientChannel> messageSender = new MessageSender<>(nodeProperties);
         messageSender.setListener(nodeManager);
-        nodeManager.setMessageSender(messageSender);
-        nodeManager.setWallet(new Wallet());
-
         Runtime runtime = new Runtime(new StateStore(), new TransactionReceiptStore());
+        this.branchGroup = new BranchGroup(runtime);
         BlockChain blockChain = new BlockChain(
                 new File(getClass().getClassLoader()
                         .getResource("branch-yeed.json").getFile()));
-
-        this.branchGroup = new BranchGroup(runtime);
         branchGroup.addBranch(blockChain.getBranchId(), blockChain);
+
+        nodeManager.setMessageSender(messageSender);
+        nodeManager.setWallet(new Wallet());
+        nodeManager.setPeerGroup(peerGroup);
         nodeManager.setBranchGroup(branchGroup);
         nodeManager.setNodeHealthIndicator(mock(NodeHealthIndicator.class));
-        nodeManager.init();
+        nodeManager.setMaxPeers(nodeProperties.getMaxPeers());
+
+        nodeManager.start("localhost", 0);
         assert nodeManager.getNodeUri() != null;
+
         this.tx = TestUtils.createTxHusk(nodeManager.getWallet());
         this.firstBlock = BlockHuskBuilder.buildUnSigned(nodeManager.getWallet(),
                 Collections.singletonList(tx), branchGroup.getBlockByIndexOrHash("0"));
@@ -137,6 +139,7 @@ public class NodeManagerTest {
             int port = i + 9000;
             nodeManager.addPeer("ynode://75bff16c@localhost:" + port);
         }
-        assert nodeProperties.getMaxPeers() == nodeManager.getPeerUriList().size();
+        assert nodeProperties.getMaxPeers() == peerGroup.getPeers().size();
+        assert nodeProperties.getMaxPeers() == peerGroup.getPeerUriList().size();
     }
 }
