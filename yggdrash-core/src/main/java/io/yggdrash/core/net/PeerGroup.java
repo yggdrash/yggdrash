@@ -20,6 +20,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class PeerGroup {
 
@@ -65,5 +66,9 @@ public class PeerGroup {
 
     public void setSeedPeerList(List<String> seedPeerList) {
         this.seedPeerList = seedPeerList;
+    }
+
+    public List<String> getPeerUriList() {
+        return peers.values().stream().map(Peer::getYnodeUri).collect(Collectors.toList());
     }
 }

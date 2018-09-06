@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BlockHuskBuilder;
 import io.yggdrash.core.TransactionHusk;
@@ -68,6 +69,10 @@ public class TestUtils {
                 .build();
     }
 
+    public static Proto.Transaction[] getTransactionFixtures() {
+        return new Proto.Transaction[] {getTransactionFixture(), getTransactionFixture()};
+    }
+
     public static TransactionHusk createTxHusk() {
         return createTxHusk(wallet);
     }
@@ -91,6 +96,41 @@ public class TestUtils {
                 .setBody(body)
                 .build();
         return new TransactionHusk(tx);
+    }
+
+    public static Proto.Block getBlockFixture() {
+        return getBlockFixture(999L);
+    }
+
+    public static Proto.Block getBlockFixture(Long index) {
+        return getBlockFixture(index,
+                new Sha3Hash("9358888ca1ccd444ad11fb0ea1b5d03483f87664183c6e91ddab1b577cce2c06"));
+    }
+
+    public static Proto.Block getBlockFixture(Long index, Sha3Hash prevHash) {
+        return Proto.Block.newBuilder()
+                .setHeader(
+                        Proto.Block.Header.newBuilder()
+                                .setRawData(Proto.Block.Header.Raw.newBuilder()
+                                        .setType(ByteString.copyFrom(
+                                                ByteBuffer.allocate(4).putInt(1).array()))
+                                        .setVersion(ByteString.copyFrom(
+                                                ByteBuffer.allocate(4).putInt(1).array()))
+                                        .setIndex(index)
+                                        .setPrevBlockHash(ByteString.copyFrom(
+                                                prevHash.getBytes()
+                                        ))
+                                        .build()
+                                ).build()
+                )
+                .addBody(getTransactionFixture())
+                .addBody(getTransactionFixture())
+                .addBody(getTransactionFixture())
+                .build();
+    }
+
+    public static Proto.Block[] getBlockFixtures() {
+        return new Proto.Block[] {getBlockFixture(), getBlockFixture(), getBlockFixture()};
     }
 
     public static BlockHusk createGenesisBlockHusk() {

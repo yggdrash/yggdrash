@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.net;
+package io.yggdrash.node;
 
-import io.yggdrash.TestUtils;
+import io.yggdrash.core.net.GrpcClientChannel;
+import io.yggdrash.core.net.Peer;
 
 /**
  * The type Node sync demo client.

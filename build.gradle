@@ -90,7 +90,6 @@ project(':yggdrash-core') {
         compile("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
         compile("com.typesafe:config:${typesafeVersion}")
         compile("ch.qos.logback:logback-classic:1.2.3")
-        testCompile("io.grpc:grpc-testing:${grpcVersion}")
         testCompile("org.assertj:assertj-core:3.9.1")
         testCompile("org.mockito:mockito-core:2.15.0")
     }
@@ -138,6 +137,7 @@ project(':yggdrash-node') {
         annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
         runtime('org.springframework.boot:spring-boot-devtools')
         testCompile('org.springframework.boot:spring-boot-starter-test')
+        testCompile("io.grpc:grpc-testing:${grpcVersion}")
     }
 
     docker {
