@@ -18,7 +18,6 @@ package io.yggdrash.core;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.contract.GenesisFrontierParam;
 
 import java.util.List;
 
@@ -38,8 +37,8 @@ public class BranchInfo {
     public BranchInfo() {
     }
 
-    public ChainId getChainId() {
-        return new ChainId(new Sha3Hash(toString().getBytes()));
+    public BranchId getBranchId() {
+        return new BranchId(new Sha3Hash(toString().getBytes()));
     }
 
     @Override
@@ -67,6 +66,6 @@ public class BranchInfo {
         public String bodyHash;
         public String bodyLength;
         public String signature;
-        public GenesisFrontierParam body;
+        public String body;
     }
 }

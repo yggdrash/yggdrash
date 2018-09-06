@@ -31,6 +31,26 @@ public class RuntimeTest {
     @Test
     public void invokeTest() throws Exception {
         runtime.invoke(coinContract, new TransactionHusk(TestUtils.sampleTx()));
+    }
+
+    @Test
+    public void queryTest() throws Exception {
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        params.add(param);
+
+        JsonObject query = new JsonObject();
+        query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        query.addProperty("method", "balanceOf");
+        query.add("params", params);
+
+        JsonObject result = runtime.query(coinContract, query);
+        assertThat(result).isNotNull();
+    }
+
+
+    @Test
     public void invokeToYeedTest() throws Exception {
         JsonArray params = new JsonArray();
         JsonObject param1 = new JsonObject();
@@ -44,7 +64,7 @@ public class RuntimeTest {
         txObj.addProperty("method", "transfer");
         txObj.add("params", params);
 
-        TransactionHusk tx = TestUtils.createTxHuskByJson(txObj).sign(wallet);
+        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTxObject(null, txObj));
         runtime.invoke(coinContract, tx);
     }
 

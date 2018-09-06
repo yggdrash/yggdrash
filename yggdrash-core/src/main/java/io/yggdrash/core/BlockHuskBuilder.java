@@ -30,51 +30,51 @@ public class BlockHuskBuilder {
     public static final int DEFAULT_VERSION = 1;
 
 
-    public static BlockHusk buildSigned(Wallet wallet, List<TransactionHusk> body,
-                                          BlockHusk prevBlock) {
-        return buildUnSigned(wallet, body, prevBlock).sign(wallet);
-    }
-
-    public static BlockHusk buildUnSigned(Wallet wallet, List<TransactionHusk> body,
-                                          BlockHusk prevBlock) {
-
-        byte[] type = ByteBuffer.allocate(4).putInt(DEFAULT_TYPE).array();
-        byte[] version = ByteBuffer.allocate(4).putInt(DEFAULT_VERSION).array();
-
-        Proto.Block.Header.Raw raw = Proto.Block.Header.Raw.newBuilder()
-                .setType(ByteString.copyFrom(type))
-                .setVersion(ByteString.copyFrom(version))
-                .setPrevBlockHash(ByteString.copyFrom(prevBlock.getHash().getBytes()))
-                .setIndex(prevBlock.nextIndex())
-                .setAuthor(ByteString.copyFrom(wallet.getAddress()))
-                .build();
-
-        return buildUnSigned(wallet, raw, body);
-    }
-
-    public static BlockHusk buildUnSigned(Wallet wallet, Proto.Block.Header.Raw raw,
-                                          List<TransactionHusk> body) {
-
-        Proto.Block.Builder builder = Proto.Block.newBuilder();
-
-        long dataSize = 0;
-        for (TransactionHusk tx : body) {
-            builder.addBody(tx.getInstance());
-            dataSize += tx.getData().length;
-        }
-
-        byte[] merkleRoot = Trie.getMerkleRoot(body);
-        if (merkleRoot == null) {
-            merkleRoot = EMPTY_BYTE;
-        }
-
-        Proto.Block.Header.Raw updatedRaw = Proto.Block.Header.Raw.newBuilder(raw)
-                .setDataSize(dataSize)
-                .setMerkleRoot(ByteString.copyFrom(merkleRoot))
-                .setAuthor(ByteString.copyFrom(wallet.getAddress()))
-                .build();
-
-        builder.setHeader(Proto.Block.Header.newBuilder().setRawData(updatedRaw).build());
-        return new BlockHusk(builder.build()).sign(wallet);
-    }
+//    public static BlockHusk buildSigned(Wallet wallet, List<TransactionHusk> body,
+//                                          BlockHusk prevBlock) {
+//        return buildUnSigned(wallet, body, prevBlock).sign(wallet);
+//    }
+//
+//    public static BlockHusk buildUnSigned(Wallet wallet, List<TransactionHusk> body,
+//                                          BlockHusk prevBlock) {
+//
+//        byte[] type = ByteBuffer.allocate(4).putInt(DEFAULT_TYPE).array();
+//        byte[] version = ByteBuffer.allocate(4).putInt(DEFAULT_VERSION).array();
+//
+//        Proto.Block.Header.Raw raw = Proto.Block.Header.Raw.newBuilder()
+//                .setType(ByteString.copyFrom(type))
+//                .setVersion(ByteString.copyFrom(version))
+//                .setPrevBlockHash(ByteString.copyFrom(prevBlock.getHash().getBytes()))
+//                .setIndex(prevBlock.nextIndex())
+//                .setAuthor(ByteString.copyFrom(wallet.getAddress()))
+//                .build();
+//
+//        return buildUnSigned(wallet, raw, body);
+//    }
+//
+//    public static BlockHusk buildUnSigned(Wallet wallet, Proto.Block.Header.Raw raw,
+//                                          List<TransactionHusk> body) {
+//
+//        Proto.Block.Builder builder = Proto.Block.newBuilder();
+//
+//        long dataSize = 0;
+//        for (TransactionHusk tx : body) {
+//            builder.addBody(tx.getInstance());
+//            dataSize += tx.getData().length;
+//        }
+//
+//        byte[] merkleRoot = Trie.getMerkleRoot(body);
+//        if (merkleRoot == null) {
+//            merkleRoot = EMPTY_BYTE;
+//        }
+//
+//        Proto.Block.Header.Raw updatedRaw = Proto.Block.Header.Raw.newBuilder(raw)
+//                .setDataSize(dataSize)
+//                .setMerkleRoot(ByteString.copyFrom(merkleRoot))
+//                .setAuthor(ByteString.copyFrom(wallet.getAddress()))
+//                .build();
+//
+//        builder.setHeader(Proto.Block.Header.newBuilder().setRawData(updatedRaw).build());
+//        return new BlockHusk(builder.build()).sign(wallet);
+//    }
 }

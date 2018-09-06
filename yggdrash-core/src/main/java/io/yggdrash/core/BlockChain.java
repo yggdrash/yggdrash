@@ -67,8 +67,12 @@ public class BlockChain {
     }
 
     public BlockHusk generateBlock(Wallet wallet, Runtime runtime) {
-        BlockHusk block = BlockHuskBuilder.buildSigned(wallet,
+//        BlockHusk block = BlockHuskBuilder.buildSigned(wallet,
+//                new ArrayList<>(transactionStore.getUnconfirmedTxs()), getPrevBlock());
+
+        BlockHusk block = new BlockHusk(wallet,
                 new ArrayList<>(transactionStore.getUnconfirmedTxs()), getPrevBlock());
+
         return addBlock(block, runtime);
     }
 

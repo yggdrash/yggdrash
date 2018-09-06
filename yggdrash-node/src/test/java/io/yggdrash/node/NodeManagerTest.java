@@ -18,19 +18,15 @@ package io.yggdrash.node;
 
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.BlockHuskBuilder;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.Runtime;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.FileUtil;
@@ -84,14 +80,14 @@ public class NodeManagerTest {
         nodeManager.init();
         assert nodeManager.getNodeUri() != null;
         this.tx = TestUtils.createTxHusk(nodeManager.getWallet());
-        this.firstBlock = new BlockHusk(nodeManager.getWallet(), Collections.singletonList(tx),
+        this.firstBlock = new BlockHusk(
+                nodeManager.getWallet(),
+                Collections.singletonList(tx),
                 nodeManager.getBlockByIndexOrHash("0"));
-        this.secondBlock = new BlockHusk(nodeManager.getWallet(), Collections.singletonList(tx),
+        this.secondBlock = new BlockHusk(
+                nodeManager.getWallet(),
+                Collections.singletonList(tx),
                 firstBlock);
-        this.firstBlock = BlockHuskBuilder.buildUnSigned(nodeManager.getWallet(),
-                Collections.singletonList(tx), nodeManager.getBlockByIndexOrHash("0"));
-        this.secondBlock = BlockHuskBuilder.buildSigned(nodeManager.getWallet(),
-                Collections.singletonList(tx), firstBlock);
     }
 
     @After
@@ -109,7 +105,7 @@ public class NodeManagerTest {
 
     @Test(expected = InvalidSignatureException.class)
     public void unsignedTxTest() {
-        nodeManager.addTransaction(new TransactionHusk(TestUtils.getTransactionFixture()));
+        nodeManager.addTransaction(TestUtils.createInvalidTxHusk());
     }
 
     @Test

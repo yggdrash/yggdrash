@@ -4,9 +4,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.contract.CoinContract;
-import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
+import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,4 +57,5 @@ public class CoinContractTest {
     private Boolean invoke(TransactionHusk tx) throws Exception {
         return coinContract.invoke(tx);
     }
+
 }
