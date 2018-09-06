@@ -37,23 +37,19 @@ class NodeScheduler {
 
     private final Queue<String> nodeQueue = new LinkedBlockingQueue<>();
 
-    private final MessageSender messageSender;
-
     private final NodeManager nodeManager;
 
     private final PeerGroup peerGroup;
 
     @Autowired
-    public NodeScheduler(MessageSender messageSender, PeerGroup peerGroup,
-                         NodeManager nodeManager) {
-        this.messageSender = messageSender;
+    public NodeScheduler(PeerGroup peerGroup, NodeManager nodeManager) {
         this.peerGroup = peerGroup;
         this.nodeManager = nodeManager;
     }
 
     @Scheduled(fixedRate = 1000 * 10)
     public void healthCheck() {
-        messageSender.healthCheck();
+        peerGroup.healthCheck();
     }
 
     @Scheduled(initialDelay = 1000 * 5, fixedRate = 1000 * BLOCK_MINE_SEC)

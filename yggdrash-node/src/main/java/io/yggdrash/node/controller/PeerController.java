@@ -18,7 +18,6 @@ package io.yggdrash.node.controller;
 
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.node.MessageSender;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -32,12 +31,10 @@ import org.springframework.web.bind.annotation.RestController;
 class PeerController {
 
     private final PeerGroup peerGroup;
-    private final MessageSender messageSender;
 
     @Autowired
-    public PeerController(PeerGroup peerGroup, MessageSender messageSender) {
+    public PeerController(PeerGroup peerGroup) {
         this.peerGroup = peerGroup;
-        this.messageSender = messageSender;
     }
 
     @PostMapping
@@ -54,6 +51,6 @@ class PeerController {
 
     @GetMapping("/active")
     public ResponseEntity getAllActivePeer() {
-        return ResponseEntity.ok(messageSender.getActivePeerList());
+        return ResponseEntity.ok(peerGroup.getActivePeerList());
     }
 }
