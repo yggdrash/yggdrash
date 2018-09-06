@@ -73,10 +73,6 @@ public class TestUtils {
                 .build();
     }
 
-    public static Proto.Transaction[] getTransactionFixtures() {
-        return new Proto.Transaction[] {getTransactionFixture(), getTransactionFixture()};
-    }
-
     public static TransactionHusk createTxHusk() {
         return createTxHusk(wallet);
     }
@@ -131,10 +127,6 @@ public class TestUtils {
                 .addBody(getTransactionFixture())
                 .addBody(getTransactionFixture())
                 .build();
-    }
-
-    public static Proto.Block[] getBlockFixtures() {
-        return new Proto.Block[] {getBlockFixture(), getBlockFixture(), getBlockFixture()};
     }
 
     public static BlockHusk createGenesisBlockHusk() {

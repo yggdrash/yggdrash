@@ -17,6 +17,7 @@
 package io.yggdrash.core;
 
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.event.BranchEventListener;
 
 import java.util.List;
 import java.util.Map;
@@ -29,6 +30,7 @@ public class BranchGroup {
     private static BlockChain chain;
 
     private Runtime runtime;
+    private BranchEventListener listener;
 
     public BranchGroup(Runtime runtime) {
         this.runtime = runtime;
@@ -43,6 +45,10 @@ public class BranchGroup {
         blockChain.init(runtime);
     }
 
+    public void setListener(BranchEventListener listener) {
+        this.listener = listener;
+    }
+
     public TransactionHusk addTransaction(TransactionHusk tx) {
         return chain.addTransaction(tx);
     }
@@ -55,12 +61,20 @@ public class BranchGroup {
         return chain.getTransactionList();
     }
 
+    public TransactionHusk getTxByHash(String id) {
+        return getTxByHash(new Sha3Hash(id));
+    }
+
     public TransactionHusk getTxByHash(Sha3Hash hash) {
         return chain.getTxByHash(hash);
     }
 
     public BlockHusk generateBlock(Wallet wallet) {
-        return chain.generateBlock(wallet, runtime);
+        BlockHusk newBlock = chain.generateBlock(wallet, runtime);
+        if (listener != null && newBlock != null) {
+            listener.chainedBlock(newBlock);
+        }
+        return newBlock;
     }
 
     public BlockHusk addBlock(BlockHusk block) {

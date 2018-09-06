@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.net;
+package io.yggdrash.node;
 
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
-import io.yggdrash.TestUtils;
+import io.yggdrash.core.net.GrpcClientChannel;
+import io.yggdrash.core.net.Peer;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.Ping;

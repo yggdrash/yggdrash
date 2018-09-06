@@ -2,10 +2,9 @@ package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
-import io.yggdrash.node.controller.BlockDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -17,17 +16,17 @@ import java.util.stream.Collectors;
 @AutoJsonRpcServiceImpl
 public class BlockApiImpl implements BlockApi {
 
-    private final NodeManager nodeManager;
+    private final BranchGroup branchGroup;
 
     @Autowired
-    public BlockApiImpl(NodeManager nodeManager) {
-        this.nodeManager = nodeManager;
+    public BlockApiImpl(BranchGroup branchGroup) {
+        this.branchGroup = branchGroup;
     }
 
     @Override
     public int blockNumber() {
         try {
-            return nodeManager.getBlocks().size();
+            return branchGroup.getBlocks().size();
         } catch (Exception exception) {
             throw new InternalErrorException();
         }
@@ -35,13 +34,13 @@ public class BlockApiImpl implements BlockApi {
 
     @Override
     public Set<BlockHusk> getAllBlock() {
-        return nodeManager.getBlocks();
+        return branchGroup.getBlocks();
     }
 
     @Override
     public BlockHusk getBlockByHash(String hashOfBlock, Boolean bool) {
         try {
-            return nodeManager.getBlockByIndexOrHash(hashOfBlock);
+            return branchGroup.getBlockByIndexOrHash(hashOfBlock);
         } catch (Exception exception) {
             throw new NonExistObjectException("block");
         }
@@ -50,7 +49,7 @@ public class BlockApiImpl implements BlockApi {
     @Override
     public BlockHusk getBlockByNumber(String numOfBlock, Boolean bool) {
         try {
-            return nodeManager.getBlockByIndexOrHash(numOfBlock);
+            return branchGroup.getBlockByIndexOrHash(numOfBlock);
         } catch (Exception exception) {
             throw new NonExistObjectException("block");
         }
@@ -67,7 +66,7 @@ public class BlockApiImpl implements BlockApi {
 
     @Override
     public BlockHusk getLastBlock() {
-        return nodeManager.getBlocks().stream().sorted(Comparator.reverseOrder())
+        return branchGroup.getBlocks().stream().sorted(Comparator.reverseOrder())
                 .collect(Collectors.toList()).get(0);
     }
 }
