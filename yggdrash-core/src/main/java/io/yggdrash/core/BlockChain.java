@@ -32,6 +32,7 @@ public class BlockChain {
     private TransactionStore transactionStore;
     private Contract contract;
 
+    @VisibleForTesting
     public BlockChain(File infoFile) {
         try {
             this.genesisBlock = new BlockChainLoader(infoFile).getGenesis();

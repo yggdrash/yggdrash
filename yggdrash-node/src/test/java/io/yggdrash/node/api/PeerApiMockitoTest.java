@@ -1,11 +1,11 @@
 package io.yggdrash.node.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.yggdrash.core.net.GrpcClientChannel;
 import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.net.PeerChannelGroup;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.node.MessageSender;
+import io.yggdrash.node.GRpcClientChannel;
 import io.yggdrash.node.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +27,7 @@ import static org.mockito.Mockito.when;
 public class PeerApiMockitoTest {
 
     @Mock
-    private MessageSender messageSender;
+    private PeerChannelGroup peerChannelGroup;
 
     private Peer peer1;
     private Peer peer2;
@@ -48,11 +48,11 @@ public class PeerApiMockitoTest {
         peerGroup = new PeerGroup();
         peerGroup.addPeer(peer1);
         peerGroup.addPeer(peer2);
-        PeerClientChannel client1 = new GrpcClientChannel(peer1);
-        PeerClientChannel client2 = new GrpcClientChannel(peer2);
+        PeerClientChannel client1 = new GRpcClientChannel(peer1);
+        PeerClientChannel client2 = new GRpcClientChannel(peer2);
         peerChannel.put(client1.getPeer().getYnodeUri(), client1);
         peerChannel.put(client2.getPeer().getYnodeUri(), client2);
-        peerApi = new PeerApiImpl(peerGroup, messageSender);
+        peerApi = new PeerApiImpl(peerGroup, peerChannelGroup);
         peerList = new ArrayList<>(peerChannel.keySet());
     }
 
@@ -70,7 +70,7 @@ public class PeerApiMockitoTest {
 
     @Test
     public void getAllActivePeerTest() {
-        when(messageSender.getActivePeerList()).thenReturn(peerList);
+        when(peerChannelGroup.getActivePeerList()).thenReturn(peerList);
         assertThat(peerApi.getAllActivePeer().size()).isEqualTo(2);
     }
 

@@ -1,4 +1,4 @@
-package io.yggdrash.node.mock;
+package io.yggdrash.mock;
 
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;

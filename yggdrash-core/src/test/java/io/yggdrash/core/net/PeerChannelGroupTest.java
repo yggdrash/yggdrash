@@ -14,76 +14,75 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.core.net;
 
+import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.event.PeerEventListener;
-import io.yggdrash.node.config.NodeProperties;
-import io.yggdrash.node.mock.ChannelMock;
+import io.yggdrash.core.store.BlockStore;
+import io.yggdrash.mock.ChannelMock;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class MessageSenderTest {
+public class PeerChannelGroupTest {
+    private static final Logger logger = LoggerFactory.getLogger(BlockStore.class);
 
-    private MessageSender<ChannelMock> messageSender;
+    private static final int MAX_PEERS = 25;
+
+    private PeerChannelGroup peerChannelGroup;
     private TransactionHusk tx;
     private BlockHusk block;
-    private NodeProperties nodeProperties;
-    private PeerEventListener listener;
 
     @Before
     public void setUp() {
         this.tx = TestUtils.createTxHusk();
         this.block = TestUtils.createGenesisBlockHusk();
-        this.nodeProperties = new NodeProperties();
-        this.messageSender = new MessageSender<>(nodeProperties);
-        listener = peer -> {
-        };
-        this.messageSender.setListener(listener);
+        this.peerChannelGroup = new PeerChannelGroup(MAX_PEERS);
+        peerChannelGroup.setListener(peer -> logger.debug(peer.getYnodeUri() + " disconnected"));
         ChannelMock channel = new ChannelMock("ynode://75bff16c@localhost:9999");
-        messageSender.newPeerChannel(channel);
+        peerChannelGroup.newPeerChannel(channel);
     }
 
     @Test
     public void healthCheck() {
-        messageSender.healthCheck();
-        assert !messageSender.getActivePeerList().isEmpty();
+        peerChannelGroup.healthCheck();
+        assert !peerChannelGroup.getActivePeerList().isEmpty();
     }
 
     @Test
     public void syncBlock() {
-        messageSender.newBlock(block);
-        assert !messageSender.syncBlock(0).isEmpty();
+        peerChannelGroup.chainedBlock(block);
+        assert !peerChannelGroup.syncBlock(0).isEmpty();
     }
 
     @Test
     public void syncTransaction() {
-        messageSender.newTransaction(tx);
-        assert !messageSender.syncTransaction().isEmpty();
+        peerChannelGroup.newTransaction(tx);
+        assert !peerChannelGroup.syncTransaction().isEmpty();
     }
 
     @Test
     public void addActivePeer() {
-        int testCount = nodeProperties.getMaxPeers() + 5;
+        int testCount = MAX_PEERS + 5;
         for (int i = 0; i < testCount; i++) {
             int port = i + 9000;
             ChannelMock channel = new ChannelMock("ynode://75bff16c@localhost:" + port);
-            messageSender.newPeerChannel(channel);
+            peerChannelGroup.newPeerChannel(channel);
         }
-        assert nodeProperties.getMaxPeers() == messageSender.getActivePeerList().size();
+        assert MAX_PEERS == peerChannelGroup.getActivePeerList().size();
     }
 
     @Test
     public void broadcastPeerConnect() {
-        assert !messageSender.broadcastPeerConnect("ynode://75bff16c@localhost:9999").isEmpty();
+        assert !peerChannelGroup.broadcastPeerConnect("ynode://75bff16c@localhost:9999").isEmpty();
     }
 
     @Test
     public void broadcastPeerDisconnect() {
-        assert !messageSender.getActivePeerList().isEmpty();
-        messageSender.broadcastPeerDisconnect("ynode://75bff16c@localhost:9999");
-        assert messageSender.getActivePeerList().isEmpty();
+        assert !peerChannelGroup.getActivePeerList().isEmpty();
+        peerChannelGroup.broadcastPeerDisconnect("ynode://75bff16c@localhost:9999");
+        assert peerChannelGroup.getActivePeerList().isEmpty();
     }
-
 }

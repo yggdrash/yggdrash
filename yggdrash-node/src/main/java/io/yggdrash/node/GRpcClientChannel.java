@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.net;
+package io.yggdrash.node;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.NetProto.Empty;
@@ -36,9 +38,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class GrpcClientChannel implements PeerClientChannel {
+public class GRpcClientChannel implements PeerClientChannel {
 
-    public static final Logger log = LoggerFactory.getLogger(GrpcClientChannel.class);
+    public static final Logger log = LoggerFactory.getLogger(GRpcClientChannel.class);
 
     private final ManagedChannel channel;
     private final PingPongGrpc.PingPongBlockingStub blockingPingPongStub;
@@ -46,13 +48,13 @@ public class GrpcClientChannel implements PeerClientChannel {
     private final BlockChainGrpc.BlockChainStub asyncBlockChainStub;
     private final Peer peer;
 
-    public GrpcClientChannel(Peer peer) {
+    public GRpcClientChannel(Peer peer) {
         this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
                 .build(), peer);
     }
 
     @VisibleForTesting
-    GrpcClientChannel(ManagedChannel channel, Peer peer) {
+    public GRpcClientChannel(ManagedChannel channel, Peer peer) {
         this.channel = channel;
         this.peer = peer;
         blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);
@@ -79,7 +81,7 @@ public class GrpcClientChannel implements PeerClientChannel {
         stop();
     }
 
-    void blockUtilShutdown() throws InterruptedException {
+    public void blockUtilShutdown() throws InterruptedException {
         if (channel != null) {
             channel.awaitTermination(5, TimeUnit.MINUTES);
         }

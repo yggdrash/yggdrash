@@ -17,9 +17,8 @@
 package io.yggdrash.node.config;
 
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.NodeManager;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.net.NodeSyncServer;
+import io.yggdrash.core.net.PeerChannelGroup;
 import io.yggdrash.core.net.PeerGroup;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,8 +45,8 @@ public class NodeConfiguration {
     }
 
     @Bean
-    NodeSyncServer nodeSyncServer(NodeManager nodeManager) {
-        return new NodeSyncServer(nodeManager);
+    PeerChannelGroup peerChannelGroup() {
+        return new PeerChannelGroup(nodeProperties.getMaxPeers());
     }
 
     @Bean

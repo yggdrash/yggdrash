@@ -18,12 +18,13 @@ package io.yggdrash.node;
 
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.BlockHuskBuilder;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.Runtime;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.InvalidSignatureException;
-import io.yggdrash.core.net.PeerClientChannel;
+import io.yggdrash.core.net.PeerChannelGroup;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -49,45 +50,44 @@ public class NodeManagerTest {
 
     private static final Logger log = LoggerFactory.getLogger(NodeManagerTest.class);
 
-    private NodeManagerImpl nodeManager;
+    private GRpcNodeServer nodeManager;
+    private BranchGroup branchGroup;
     private NodeProperties nodeProperties;
     private TransactionHusk tx;
     private BlockHusk firstBlock;
     private BlockHusk secondBlock;
+    private PeerGroup peerGroup;
 
     @Before
     public void setUp() throws Exception {
+        this.nodeManager = new GRpcNodeServer();
+        this.peerGroup = new PeerGroup();
         this.nodeProperties = new NodeProperties();
-        nodeProperties.getGrpc().setHost("localhost");
-        nodeProperties.getGrpc().setPort(9090);
-        this.nodeManager = new NodeManagerImpl();
-        nodeManager.setPeerGroup(new PeerGroup());
-        nodeManager.setNodeProperties(nodeProperties);
-        MessageSender<PeerClientChannel> messageSender = new MessageSender<>(nodeProperties);
-        messageSender.setListener(nodeManager);
-        nodeManager.setMessageSender(messageSender);
-        nodeManager.setWallet(new Wallet());
 
+        PeerChannelGroup peerChannelGroup = new PeerChannelGroup(nodeProperties.getMaxPeers());
+        peerChannelGroup.setListener(nodeManager);
         Runtime runtime = new Runtime(new StateStore(), new TransactionReceiptStore());
+        this.branchGroup = new BranchGroup(runtime);
         BlockChain blockChain = new BlockChain(
                 new File(getClass().getClassLoader()
                         .getResource("branch-yeed.json").getFile()));
-
-        BranchGroup branchGroup = new BranchGroup(runtime);
         branchGroup.addBranch(blockChain.getBranchId(), blockChain);
+
+        nodeManager.setPeerChannelGroup(peerChannelGroup);
+        nodeManager.setWallet(new Wallet());
+        nodeManager.setPeerGroup(peerGroup);
         nodeManager.setBranchGroup(branchGroup);
         nodeManager.setNodeHealthIndicator(mock(NodeHealthIndicator.class));
-        nodeManager.init();
+        nodeManager.setMaxPeers(nodeProperties.getMaxPeers());
+
+        nodeManager.start("localhost", 0);
         assert nodeManager.getNodeUri() != null;
+
         this.tx = TestUtils.createTxHusk(nodeManager.getWallet());
-        this.firstBlock = new BlockHusk(
-                nodeManager.getWallet(),
-                Collections.singletonList(tx),
-                nodeManager.getBlockByIndexOrHash("0"));
-        this.secondBlock = new BlockHusk(
-                nodeManager.getWallet(),
-                Collections.singletonList(tx),
-                firstBlock);
+        this.firstBlock = BlockHuskBuilder.buildUnSigned(nodeManager.getWallet(),
+                Collections.singletonList(tx), branchGroup.getBlockByIndexOrHash("0"));
+        this.secondBlock = BlockHuskBuilder.buildSigned(nodeManager.getWallet(),
+                Collections.singletonList(tx), firstBlock);
     }
 
     @After
@@ -98,38 +98,38 @@ public class NodeManagerTest {
 
     @Test
     public void addTransactionTest() {
-        nodeManager.addTransaction(tx);
-        TransactionHusk pooledTx = nodeManager.getTxByHash(tx.getHash());
+        branchGroup.addTransaction(tx);
+        TransactionHusk pooledTx = branchGroup.getTxByHash(tx.getHash());
         assert pooledTx.getHash().equals(tx.getHash());
     }
 
     @Test(expected = InvalidSignatureException.class)
     public void unsignedTxTest() {
-        nodeManager.addTransaction(TestUtils.createInvalidTxHusk());
+        branchGroup.addTransaction(new TransactionHusk(TestUtils.getTransactionFixture()));
     }
 
     @Test
     public void addBlockTest() {
-        nodeManager.addTransaction(tx);
-        nodeManager.addBlock(firstBlock);
-        nodeManager.addBlock(secondBlock);
-        assert nodeManager.getBlocks().size() == 3;
-        assert nodeManager.getBlockByIndexOrHash("2").getHash()
+        branchGroup.addTransaction(tx);
+        branchGroup.addBlock(firstBlock);
+        branchGroup.addBlock(secondBlock);
+        assert branchGroup.getBlocks().size() == 3;
+        assert branchGroup.getBlockByIndexOrHash("2").getHash()
                 .equals(secondBlock.getHash());
-        TransactionHusk foundTx = nodeManager.getTxByHash(tx.getHash());
+        TransactionHusk foundTx = branchGroup.getTxByHash(tx.getHash());
         assert foundTx.getHash().equals(tx.getHash());
     }
 
     @Test
     public void generateBlockTest() {
-        nodeManager.addTransaction(tx);
-        BlockHusk newBlock = nodeManager.generateBlock();
-        assert nodeManager.getBlocks().size() == 2;
-        BlockHusk chainedBlock = nodeManager.getBlockByIndexOrHash(newBlock.getHash().toString());
+        branchGroup.addTransaction(tx);
+        BlockHusk newBlock = branchGroup.generateBlock(nodeManager.getWallet());
+        assert branchGroup.getBlocks().size() == 2;
+        BlockHusk chainedBlock = branchGroup.getBlockByIndexOrHash(newBlock.getHash().toString());
         assert chainedBlock.getHash().equals(newBlock.getHash());
         log.debug(Hex.toHexString(ByteUtil.longToBytes(chainedBlock.getBody().size())));
         assert chainedBlock.getBody().size() != 0;
-        assertThat(nodeManager.getTxByHash(tx.getHash()).getHash(), equalTo(tx.getHash()));
+        assertThat(branchGroup.getTxByHash(tx.getHash()).getHash(), equalTo(tx.getHash()));
     }
 
     @Test
@@ -139,6 +139,7 @@ public class NodeManagerTest {
             int port = i + 9000;
             nodeManager.addPeer("ynode://75bff16c@localhost:" + port);
         }
-        assert nodeProperties.getMaxPeers() == nodeManager.getPeerUriList().size();
+        assert nodeProperties.getMaxPeers() == peerGroup.getPeers().size();
+        assert nodeProperties.getMaxPeers() == peerGroup.getPeerUriList().size();
     }
 }
