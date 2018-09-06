@@ -17,7 +17,7 @@
 package io.yggdrash.node;
 
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.net.PeerChannelGroup;
+import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Before;
@@ -31,10 +31,10 @@ public class NodeHealthIndicatorTest {
 
     @Before
     public void setUp() {
-        PeerChannelGroup peerChannelGroup = new PeerChannelGroup(1);
+        PeerGroup peerGroup = new PeerGroup(1);
         BlockStore blockStore = new BlockStore(new HashMapDbSource());
         this.nodeHealthIndicator = new NodeHealthIndicator(new DefaultConfig(), blockStore,
-                peerChannelGroup);
+                peerGroup);
     }
 
     @Test

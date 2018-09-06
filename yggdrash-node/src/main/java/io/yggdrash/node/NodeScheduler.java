@@ -17,7 +17,6 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.net.NodeManager;
-import io.yggdrash.core.net.PeerChannelGroup;
 import io.yggdrash.core.net.PeerGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,23 +37,19 @@ class NodeScheduler {
 
     private final Queue<String> nodeQueue = new LinkedBlockingQueue<>();
 
-    private final PeerChannelGroup peerChannelGroup;
-
     private final NodeManager nodeManager;
 
     private final PeerGroup peerGroup;
 
     @Autowired
-    public NodeScheduler(PeerChannelGroup peerChannelGroup, PeerGroup peerGroup,
-                         NodeManager nodeManager) {
-        this.peerChannelGroup = peerChannelGroup;
+    public NodeScheduler(PeerGroup peerGroup, NodeManager nodeManager) {
         this.peerGroup = peerGroup;
         this.nodeManager = nodeManager;
     }
 
     @Scheduled(fixedRate = 1000 * 10)
     public void healthCheck() {
-        peerChannelGroup.healthCheck();
+        peerGroup.healthCheck();
     }
 
     @Scheduled(initialDelay = 1000 * 5, fixedRate = 1000 * BLOCK_MINE_SEC)
