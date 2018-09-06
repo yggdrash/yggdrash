@@ -30,7 +30,9 @@ import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.TimeUtils;
+import org.apache.commons.codec.binary.Hex;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.util.Collections;
 import java.util.List;
@@ -258,4 +260,37 @@ public class TestUtils {
         return branch;
     }
 
+    public static String getBranchId(JsonObject branch) {
+        return Hex.encodeHexString(getBranchHash(branch));
+    }
+
+    private static byte[] getBranchHash(JsonObject branch) {
+        return HashUtil.sha3(getRawBranch(branch));
+    }
+
+    private static byte[] getRawBranch(JsonObject branch) {
+        ByteArrayOutputStream branchStream = new ByteArrayOutputStream();
+        try {
+            branchStream.write(branch.get("name").getAsString().getBytes());
+            branchStream.write(branch.get("property").getAsString().getBytes());
+            branchStream.write(branch.get("type").getAsString().getBytes());
+            branchStream.write(branch.get("timestamp").getAsString().getBytes());
+            //branchStream.write(branch.get("version").getAsString().getBytes());
+            branchStream.write(branch.get("versionHistory").getAsJsonArray().get(0)
+                    .getAsString().getBytes());
+            branchStream.write(branch.get("reference_address").getAsString().getBytes());
+            branchStream.write(branch.get("reserve_address").getAsString().getBytes());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return branchStream.toByteArray();
+    }
+
+    public static JsonObject createQuery(String method, JsonArray params) {
+        JsonObject query = new JsonObject();
+        query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        query.addProperty("method", method);
+        query.add("params", params);
+        return query;
+    }
 }

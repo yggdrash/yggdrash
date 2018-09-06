@@ -56,7 +56,7 @@ public interface BranchApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    String viewBranch(String branchId);
+    String viewBranch(String branchId) throws Exception;
 
     /**
      * Get the current contract address of the branch by branchId
@@ -66,7 +66,7 @@ public interface BranchApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    String getCurrentVersionOfBranch(String branchId);
+    String getCurrentVersionOfBranch(String branchId) throws Exception;
 
     /**
      * Get the versionHistory of the branch by branchId
@@ -76,5 +76,7 @@ public interface BranchApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    JsonArray getVersionHistoryOfBranch(String branchId);
+    String getVersionHistoryOfBranch(String branchId) throws Exception;
+
+    //TODO getAllBranchID
 }

@@ -3,6 +3,7 @@ package io.yggdrash.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.crypto.HashUtil;
 import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
@@ -29,11 +30,18 @@ public class StemContract extends BaseContract<JsonObject> {
     /**
      * Returns the id of a registered branch
      *
-     * @param branchId The Id of the branch to create
-     * @param branch   The branch.json to register on the stem
+     * @param params branchId : The Id of the branch to create
+     *               branch   : The branch.json to register on the stem
      */
-    public String create(String branchId, JsonObject branch) {
-        log.info("[StemContract | create] branch => " + branch);
+    public TransactionReceipt create(JsonArray params) {
+        String branchId = params.get(0).getAsJsonObject().get("branchId").getAsString();
+        JsonObject branch = params.get(0).getAsJsonObject().get("branch").getAsJsonObject();
+
+        TransactionReceipt txReceipt = new TransactionReceipt();
+        txReceipt.put("branchId", branchId);
+        txReceipt.put("branch", branch);
+
+        log.info("[StemContract | create] (param) branch => " + branch);
         // 1. The type of the branch must be one of types.
         // 2. The reference_address of the branch must be contained to branchStore.
         //    (In case of the branch has the reference_address)
@@ -45,11 +53,13 @@ public class StemContract extends BaseContract<JsonObject> {
             if (isBranchIdValid(branchId, branch)) {
                 state.put(branchId, branch);
                 setSubState(branchId, branch);
-                log.info("[StemContract | create] branchId => " + branchId);
-                return branchId;
+                log.info("[StemContract | create] SUCCESS! branchId => " + branchId);
+                txReceipt.setStatus(1);
+                //return branchId;
             }
         }
-        return null;
+        //return null;
+        return txReceipt;
     }
 
     /**
@@ -200,7 +210,7 @@ public class StemContract extends BaseContract<JsonObject> {
     }
 
     private boolean isBranchIdValid(String branchId, JsonObject branch) {
-        if (branchId.equals(getBranchId(getBranchHash(branch)))) {
+        if (branchId.equals(getBranchId(branch))) {
             log.info("[Validation] branchId is valid");
             return true;
         }
@@ -222,8 +232,8 @@ public class StemContract extends BaseContract<JsonObject> {
         return state.get(branchId);
     }
 
-    private String getBranchId(byte[] rawBranchHash) {
-        return Hex.encodeHexString(rawBranchHash);
+    public String getBranchId(JsonObject branch) {
+        return Hex.encodeHexString(getBranchHash(branch));
     }
 
     private byte[] getBranchHash(JsonObject branch) {
@@ -278,5 +288,75 @@ public class StemContract extends BaseContract<JsonObject> {
                 + state.getSubState("symbol").toString());
         log.info("[StemContract | printSubState] tagState => "
                 + state.getSubState("tag").toString());
+    }
+    /*
+    These methods are only for the test!
+     */
+
+    public static JsonObject getSampleBranch1() {
+        String name = "TEST1";
+        String symbol = "TEST1";
+        String property = "dex";
+        String type = "immunity";
+        String description = "TEST1";
+        String version = "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76";
+        String referenceAddress = "";
+        String reserveAddress = "0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3";
+        return createBranch(name, symbol, property, type, description,
+                version, referenceAddress, reserveAddress);
+    }
+
+    public static JsonObject getSampleBranch2() {
+        String name = "TEST2";
+        String symbol = "TEST2";
+        String property = "exchange";
+        String type = "mutable";
+        String description = "TEST2";
+        String version = "0xe4452ervbo091qw4f5n2s8799232abr213er2c90";
+        String referenceAddress = "";
+        String reserveAddress = "0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3";
+        return createBranch(name, symbol, property, type, description,
+                version, referenceAddress, reserveAddress);
+    }
+
+    public static JsonObject getSampleBranch3(String branchId) {
+        String name = "Ethereum TO YEED";
+        String symbol = "ETH TO YEED";
+        String property = "exchange";
+        String type = "immunity";
+        String description = "ETH TO YEED";
+        String version = "0xb5790adeafbb9ac6c9be60955484ab1547ab0b76";
+        String referenceAddress = branchId;
+        String reserveAddress = "0x1F8f8A219550f89f9D372ab2eE0D1f023EC665a3";
+        return createBranch(name, symbol, property, type, description,
+                version, referenceAddress, reserveAddress);
+    }
+
+    private static JsonObject createBranch(String name,
+                                           String symbol,
+                                           String property,
+                                           String type,
+                                           String description,
+                                           String version,
+                                           String referenceAddress,
+                                           String reserveAddress) {
+        JsonArray versionHistory = new JsonArray();
+        versionHistory.add(version);
+        JsonObject branch = new JsonObject();
+        branch.addProperty("name", name);
+        //branch.addProperty("owner", wallet.getHexAddress());
+        branch.addProperty("owner", "9e187f5264037ab77c87fcffcecd943702cd72c3");
+        branch.addProperty("symbol", symbol);
+        branch.addProperty("property", property);
+        branch.addProperty("type", type);
+        branch.addProperty("timestamp", "0000016531dfa31c");
+        branch.addProperty("description", description);
+        branch.addProperty("tag", 0.1);
+        branch.addProperty("version", version);
+        branch.add("versionHistory", versionHistory);
+        branch.addProperty("reference_address", referenceAddress);
+        branch.addProperty("reserve_address", reserveAddress);
+
+        return branch;
     }
 }

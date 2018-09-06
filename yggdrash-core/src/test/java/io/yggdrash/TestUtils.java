@@ -269,4 +269,12 @@ public class TestUtils {
         }
         return branchStream.toByteArray();
     }
+
+    public static JsonObject createQuery(String method, JsonArray params) {
+        JsonObject query = new JsonObject();
+        query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        query.addProperty("method", method);
+        query.add("params", params);
+        return query;
+    }
 }

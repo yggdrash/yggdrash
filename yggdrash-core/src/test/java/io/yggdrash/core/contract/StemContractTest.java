@@ -33,18 +33,32 @@ public class StemContractTest {
 
         referenceBranch = TestUtils.getSampleBranch1();
         String referenceBranchId = TestUtils.getBranchId(referenceBranch);
-        referenceBranchAddress = stemContract.create(referenceBranchId, referenceBranch);
+        referenceBranchAddress = referenceBranchId;
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        param.addProperty("branchId", referenceBranchId);
+        param.add("branch", referenceBranch);
+        params.add(param);
+        stemContract.create(params);
 
         JsonObject referenceBranch2 = TestUtils.getSampleBranch2();
         String referenceBranch2Id = TestUtils.getBranchId(referenceBranch2);
-        stemContract.create(referenceBranch2Id, referenceBranch2);
+
+        param.addProperty("branchId", referenceBranch2Id);
+        param.add("branch", referenceBranch);
+        stemContract.create(params);
     }
 
     @Test
     public void createTest() {
         JsonObject newBranch = TestUtils.getSampleBranch3(referenceBranchAddress);
         String newBranchId = TestUtils.getBranchId(newBranch);
-        assertThat(stemContract.create(newBranchId, newBranch)).isNotNull();
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        param.addProperty("branchId", newBranchId);
+        param.add("branch", newBranch);
+        params.add(param);
+        assertThat(stemContract.create(params)).isNotNull();
     }
 
     @Test
@@ -71,27 +85,37 @@ public class StemContractTest {
         assertThat(stemContract.search(params).size()).isNotZero();
 
         param.addProperty("key", "name");
-        param.addProperty("value", "TEST2");
+        param.addProperty("value", "TEST1");
+        params.remove(0);
+        params.add(param);
 
         assertThat(stemContract.search(params).size()).isNotZero();
 
         param.addProperty("key", "property");
         param.addProperty("value", "dex");
+        params.remove(0);
+        params.add(param);
 
         assertThat(stemContract.search(params).size()).isNotZero();
 
         param.addProperty("key", "owner");
         param.addProperty("value", "9e187f5264037ab77c87fcffcecd943702cd72c3");
+        params.remove(0);
+        params.add(param);
 
         assertThat(stemContract.search(params).size()).isNotZero();
 
         param.addProperty("key", "symbol");
-        param.addProperty("value", "TEST2");
+        param.addProperty("value", "TEST1");
+        params.remove(0);
+        params.add(param);
 
         assertThat(stemContract.search(params).size()).isNotZero();
 
         param.addProperty("key", "tag");
         param.addProperty("value", "0.1");
+        params.remove(0);
+        params.add(param);
 
         assertThat(stemContract.search(params).size()).isNotZero();
     }
@@ -103,7 +127,7 @@ public class StemContractTest {
         param.addProperty("branchId", referenceBranchAddress);
         params.add(param);
 
-        log.debug(stemContract.getcurrentversion(params));
+        log.debug(stemContract.view(params));
         assertThat(stemContract.view(params)).isNotEmpty();
     }
 
