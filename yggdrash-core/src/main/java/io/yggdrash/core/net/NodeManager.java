@@ -17,18 +17,15 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.event.BranchEventListener;
 import io.yggdrash.core.event.PeerEventListener;
 
-public interface NodeManager extends PeerEventListener, BranchEventListener {
+public interface NodeManager extends PeerEventListener {
 
     String getNodeUri();
 
     void setMaxPeers(int maxPeers);
 
     void addPeer(String peer);
-
-    void removePeer(String peer);
 
     Wallet getWallet();
 

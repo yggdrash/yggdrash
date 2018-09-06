@@ -24,7 +24,7 @@ import io.yggdrash.core.Runtime;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.InvalidSignatureException;
-import io.yggdrash.core.net.PeerClientChannel;
+import io.yggdrash.core.net.PeerChannelGroup;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -64,8 +64,8 @@ public class NodeManagerTest {
         this.peerGroup = new PeerGroup();
         this.nodeProperties = new NodeProperties();
 
-        MessageSender<PeerClientChannel> messageSender = new MessageSender<>(nodeProperties);
-        messageSender.setListener(nodeManager);
+        PeerChannelGroup peerChannelGroup = new PeerChannelGroup(nodeProperties.getMaxPeers());
+        peerChannelGroup.setListener(nodeManager);
         Runtime runtime = new Runtime(new StateStore(), new TransactionReceiptStore());
         this.branchGroup = new BranchGroup(runtime);
         BlockChain blockChain = new BlockChain(
@@ -73,7 +73,7 @@ public class NodeManagerTest {
                         .getResource("branch-yeed.json").getFile()));
         branchGroup.addBranch(blockChain.getBranchId(), blockChain);
 
-        nodeManager.setMessageSender(messageSender);
+        nodeManager.setPeerChannelGroup(peerChannelGroup);
         nodeManager.setWallet(new Wallet());
         nodeManager.setPeerGroup(peerGroup);
         nodeManager.setBranchGroup(branchGroup);

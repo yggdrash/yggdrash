@@ -16,7 +16,6 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.net.GrpcClientChannel;
 import io.yggdrash.core.net.Peer;
 
 /**
@@ -29,8 +28,8 @@ public class NodeSyncDemoClient {
      * @param args the input arguments
      */
     public static void main(String[] args) throws InterruptedException {
-        GrpcClientChannel client =
-                new GrpcClientChannel(Peer.valueOf("ynode://75bff16c@127.0.0.1:9090"));
+        GRpcClientChannel client =
+                new GRpcClientChannel(Peer.valueOf("ynode://75bff16c@127.0.0.1:9090"));
         client.ping("Ping");
         client.broadcastTransaction(TestUtils.getTransactionFixtures());
         client.blockUtilShutdown();
