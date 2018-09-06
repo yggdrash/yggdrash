@@ -1,8 +1,8 @@
 package io.yggdrash.mock;
 
+import io.yggdrash.TestUtils;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
-import io.yggdrash.node.TestUtils;
 import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
 

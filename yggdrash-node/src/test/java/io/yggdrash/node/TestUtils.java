@@ -179,6 +179,12 @@ public class TestUtils {
         }
     }
 
+    public static Proto.Transaction[] sampleTxs() {
+        return new Proto.Transaction[] {sampleTx().toProtoTransaction(),
+                sampleTx().toProtoTransaction(),
+                sampleTx().toProtoTransaction()};
+    }
+
     public static JsonObject sampleBlockObject() {
 
         List<Transaction> txs1 = new ArrayList<>();
@@ -210,6 +216,12 @@ public class TestUtils {
         } catch (SignatureException e) {
             throw new NotValidateException();
         }
+    }
+
+    public static Proto.Block[] sampleBlocks() {
+        return new Proto.Block[] {sampleBlock().toProtoBlock(),
+                sampleBlock().toProtoBlock(),
+                sampleBlock().toProtoBlock()};
     }
 
 }
