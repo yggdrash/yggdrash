@@ -64,40 +64,35 @@ public class StemContractTest {
     public void searchTest() {
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.addProperty("type", "immunity");
+        param.addProperty("key", "type");
+        param.addProperty("value", "immunity");
         params.add(param);
 
-        log.debug(stemContract.search(params).toString());
         assertThat(stemContract.search(params).size()).isNotZero();
 
-        param.remove("type");
-        param.addProperty("name", "TEST2");
+        param.addProperty("key", "name");
+        param.addProperty("value", "TEST2");
 
-        log.debug(stemContract.search(params).toString());
         assertThat(stemContract.search(params).size()).isNotZero();
 
-        param.remove("name");
-        param.addProperty("property", "dex");
+        param.addProperty("key", "property");
+        param.addProperty("value", "dex");
 
-        log.debug(stemContract.search(params).toString());
         assertThat(stemContract.search(params).size()).isNotZero();
 
-        param.remove("property");
-        param.addProperty("owner", "9e187f5264037ab77c87fcffcecd943702cd72c3");
+        param.addProperty("key", "owner");
+        param.addProperty("value", "9e187f5264037ab77c87fcffcecd943702cd72c3");
 
-        log.debug(stemContract.search(params).toString());
         assertThat(stemContract.search(params).size()).isNotZero();
 
-        param.remove("owner");
-        param.addProperty("symbol", "TEST2");
+        param.addProperty("key", "symbol");
+        param.addProperty("value", "TEST2");
 
-        log.debug(stemContract.search(params).toString());
         assertThat(stemContract.search(params).size()).isNotZero();
 
-        param.remove("symbol");
-        param.addProperty("tag", "0.1");
+        param.addProperty("key", "tag");
+        param.addProperty("value", "0.1");
 
-        log.debug(stemContract.search(params).toString());
         assertThat(stemContract.search(params).size()).isNotZero();
     }
 

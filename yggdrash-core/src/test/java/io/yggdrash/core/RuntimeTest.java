@@ -24,6 +24,7 @@ public class RuntimeTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
+        //StateStore<JsonObject> stateStore = new StateStore<JsonObject>();
         runtime = new Runtime(new StateStore(), txReceiptStore);
         wallet = new Wallet();
     }
@@ -74,13 +75,13 @@ public class RuntimeTest {
         result = runtime.query(stemContract, createQuery("getVersionHistory", params));
         assertThat(result).isNotNull();
 
-        param.remove("branchId");
-        param.addProperty("type", "immutable");
-        params.remove(0);
-        params.add(param);
-
-        result = runtime.query(stemContract, createQuery("search", params));
-        assertThat(result).isNotNull();
+        //param.remove("branchId");
+        //param.addProperty("key", "type");
+        //param.addProperty("value", "immunity");
+        //params.remove(0);
+        //params.add(param);
+        //result = runtime.query(stemContract, createQuery("search", params));
+        //assertThat(result).isNotNull();
     }
 
     private JsonObject createQuery(String method, JsonArray params) {
@@ -88,7 +89,6 @@ public class RuntimeTest {
         query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
         query.addProperty("method", method);
         query.add("params", params);
-        System.out.println("createQuery :: query => " + query);
         return query;
     }
 }

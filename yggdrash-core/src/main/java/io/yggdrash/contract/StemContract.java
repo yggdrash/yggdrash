@@ -10,8 +10,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.Set;
 
 public class StemContract extends BaseContract<JsonObject> {
 
@@ -86,12 +85,7 @@ public class StemContract extends BaseContract<JsonObject> {
     }
     */
 
-    /**
-     * Returns a list of branch.json (query)
-     *
-     * param key       type, name, property, owner, tag or symbol
-     * param element   content of the key
-     */
+    /*
     public List<JsonObject> search(JsonArray params) {
         List<JsonObject> branchList = new ArrayList<>();
         JsonObject param = params.get(0).getAsJsonObject();
@@ -111,6 +105,19 @@ public class StemContract extends BaseContract<JsonObject> {
             }
         }
         return branchList;
+    }
+    */
+
+    /**
+     * Returns a list of branch.json (query)
+     *
+     * param key       type, name, property, owner, tag or symbol
+     * param element   content of the key
+     */
+    public Set<Object> search(JsonArray params) {
+        String subStateKey = params.get(0).getAsJsonObject().get("key").getAsString();
+        String key = params.get(0).getAsJsonObject().get("value").getAsString();
+        return state.getSubState(subStateKey).get(key);
     }
 
     /**
