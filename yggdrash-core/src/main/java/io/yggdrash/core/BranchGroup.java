@@ -17,7 +17,9 @@
 package io.yggdrash.core;
 
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.contract.Contract;
 import io.yggdrash.core.event.BranchEventListener;
+import io.yggdrash.core.store.StateStore;
 
 import java.util.List;
 import java.util.Map;
@@ -86,6 +88,14 @@ public class BranchGroup {
         } else {
             return chain.getBlockByHash(indexOrHash);
         }
+    }
+
+    public StateStore<?> getStateStore() {
+        return chain.getRuntime().getStateStore();
+    }
+
+    public Contract getContract() {
+        return chain.getContract();
     }
 
     private boolean isNumeric(String str) {
