@@ -25,12 +25,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Comparator;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("blocks")
@@ -63,11 +62,21 @@ class BlockController {
     }
 
     @GetMapping
-    public ResponseEntity getAll() {
-        Set<BlockHusk> blocks = branchGroup.getBlocks();
-        List<BlockDto> dtoList = blocks.stream().sorted(Comparator.reverseOrder())
-                .map(BlockDto::createBy).collect(Collectors.toList());
-        return ResponseEntity.ok(dtoList);
+    public ResponseEntity getAll(@RequestParam(value = "offset", defaultValue = "25") long offset,
+                                 @RequestParam(value = "limit", defaultValue = "25") int limit) {
+        List<BlockDto> blocks = new ArrayList<>();
+        long lastIdx = branchGroup.getLastIndex();
+        if (offset > lastIdx) {
+            offset = lastIdx;
+        }
+        for (int i = 0; i < limit && offset >= 0; i++) {
+            BlockHusk block = branchGroup.getBlockByIndexOrHash(String.valueOf(offset--));
+            if (block == null) {
+                break;
+            }
+            blocks.add(BlockDto.createBy(block));
+        }
+        return ResponseEntity.ok(blocks);
     }
 
     @GetMapping("latest")
