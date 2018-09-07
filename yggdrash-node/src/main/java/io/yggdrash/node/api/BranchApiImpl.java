@@ -1,6 +1,5 @@
 package io.yggdrash.node.api;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
@@ -8,15 +7,11 @@ import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.Runtime;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.node.controller.TransactionDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.logging.Level;
 
 @Service
 @AutoJsonRpcServiceImpl

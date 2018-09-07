@@ -81,11 +81,7 @@ public class StateStore<T> implements Store<String, T> {
     }
 
     public List<String> getAllKey() {
-        List<String> branchIdList = new ArrayList<>();
-        for (String key : state.keySet()) {
-            branchIdList.add(key);
-        }
-        return branchIdList;
+        return new ArrayList<>(state.keySet());
     }
 
     @Override
