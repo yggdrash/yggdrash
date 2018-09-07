@@ -187,7 +187,6 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         try (DBIterator iterator = db.iterator()) {
             for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
                 byte[] key = iterator.peekNext().getKey();
-                byte[] value = iterator.peekNext().getValue();
                 keyList.add(key);
             }
         }

@@ -222,17 +222,20 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         public void syncBlock(NetProto.SyncLimit syncLimit,
                               StreamObserver<Proto.BlockList> responseObserver) {
             long offset = syncLimit.getOffset();
+            long lastIdx = branchGroup.getLastIndex();
+            if (offset < 0 || offset > lastIdx) {
+                offset = 0;
+            }
             long limit = syncLimit.getLimit();
             log.debug("Synchronize block request offset={}, limit={}", offset, limit);
 
             Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
-            for (BlockHusk husk : branchGroup.getBlocks()) {
-                if (husk.getIndex() >= offset) {
-                    builder.addBlocks(husk.getInstance());
-                }
-                if (limit > 0 && builder.getBlocksCount() > limit) {
+            for (int i = 0; i < limit || limit == 0; i++) {
+                BlockHusk block = branchGroup.getBlockByIndexOrHash(String.valueOf(offset++));
+                if (block == null) {
                     break;
                 }
+                builder.addBlocks(block.getInstance());
             }
             responseObserver.onNext(builder.build());
             responseObserver.onCompleted();

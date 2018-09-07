@@ -102,7 +102,7 @@ public class NodeManagerTest {
         branchGroup.addTransaction(tx);
         branchGroup.addBlock(firstBlock);
         branchGroup.addBlock(secondBlock);
-        assert branchGroup.getBlocks().size() == 3;
+        assert branchGroup.getLastIndex() == 2;
         assert branchGroup.getBlockByIndexOrHash("2").getHash()
                 .equals(secondBlock.getHash());
         TransactionHusk foundTx = branchGroup.getTxByHash(tx.getHash());
@@ -113,7 +113,7 @@ public class NodeManagerTest {
     public void generateBlockTest() {
         branchGroup.addTransaction(tx);
         BlockHusk newBlock = branchGroup.generateBlock(nodeManager.getWallet());
-        assert branchGroup.getBlocks().size() == 2;
+        assert branchGroup.getLastIndex() == 1;
         BlockHusk chainedBlock = branchGroup.getBlockByIndexOrHash(newBlock.getHash().toString());
         assert chainedBlock.getHash().equals(newBlock.getHash());
         log.debug(Hex.toHexString(ByteUtil.longToBytes(chainedBlock.getBody().size())));

@@ -25,7 +25,6 @@ import io.yggdrash.core.store.StateStore;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BranchGroup {
@@ -77,10 +76,6 @@ public class BranchGroup {
 
     public BlockHusk addBlock(BlockHusk block) {
         return chain.addBlock(block);
-    }
-
-    public Set<BlockHusk> getBlocks() {
-        return chain.getBlocks();
     }
 
     public BlockHusk getBlockByIndexOrHash(String indexOrHash) {

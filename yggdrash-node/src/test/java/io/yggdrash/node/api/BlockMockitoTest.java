@@ -11,8 +11,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -27,7 +27,7 @@ public class BlockMockitoTest {
     private BlockApiImpl blockApiImpl;
     private String hashOfBlock;
     private String numOfblock;
-    private Set<BlockHusk> blockList = new HashSet<>();
+    private List<BlockHusk> blockList = new ArrayList<>();
 
     @Before
     public void setUp() {
@@ -40,21 +40,14 @@ public class BlockMockitoTest {
 
     @Test
     public void blockNumberTest() {
-        when(branchGroupMock.getBlocks()).thenReturn(blockList);
+        when(branchGroupMock.getLastIndex()).thenReturn(0L);
         assertThat(blockApiImpl.blockNumber()).isEqualTo(blockList.size());
     }
 
     @Test(expected = InternalErrorException.class)
     public void blockNumberExceptionTest() {
-        when(branchGroupMock.getBlocks()).thenThrow(new RuntimeException());
-        assertThat(blockApiImpl.blockNumber()).isEqualTo(blockList.size());
-    }
-
-    @Test
-    public void getAllBlockTest() {
-        when(branchGroupMock.getBlocks()).thenReturn(blockList);
-        assertThat(blockApiImpl.getAllBlock()).isNotEmpty();
-        assertThat(blockApiImpl.getAllBlock().size()).isEqualTo(1);
+        when(branchGroupMock.getLastIndex()).thenThrow(new RuntimeException());
+        blockApiImpl.blockNumber();
     }
 
     @Test

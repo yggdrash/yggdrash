@@ -71,7 +71,6 @@ public class StateStore<T> implements Store<String, T> {
         return state.get(key);
     }
 
-    @Override
     public Set<T> getAll() {
         Set<T> res = new HashSet<>();
         for (String key : state.keySet()) {
