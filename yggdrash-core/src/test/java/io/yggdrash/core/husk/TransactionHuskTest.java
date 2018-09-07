@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.husk;
 
-import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
@@ -33,7 +32,6 @@ public class TransactionHuskTest {
             throws IOException, InvalidCipherTextException {
         TransactionHusk transactionHusk = getTransactionHusk();
         Wallet wallet = new Wallet();
-        Assertions.assertThat(transactionHusk.verify()).isFalse();
 
         transactionHusk.sign(wallet);
         Assertions.assertThat(transactionHusk.verify()).isTrue();
@@ -42,13 +40,12 @@ public class TransactionHuskTest {
     @Test
     public void shouldBeSignedTransaction() throws IOException, InvalidCipherTextException {
         TransactionHusk transactionHusk = getTransactionHusk();
-        Assertions.assertThat(transactionHusk.isSigned()).isFalse();
 
         Wallet wallet = new Wallet();
         transactionHusk.sign(wallet);
 
         Assertions.assertThat(transactionHusk.isSigned()).isTrue();
-        Assertions.assertThat(transactionHusk.verify()).isTrue();
+        Assertions.assertThat(transactionHusk.verify());
     }
 
     @Test
@@ -63,13 +60,7 @@ public class TransactionHuskTest {
     }
 
     private TransactionHusk getTransactionHusk() {
-        JsonObject body = new JsonObject();
-        body.addProperty("func", "transfer");
-        JsonObject params = new JsonObject();
-        params.addProperty("to", "0x407d73d8a49eeb85d32cf465507dd71d507100c1");
-        params.addProperty("value", "1000");
-        body.add("params", params);
-        return TestUtils.createTxHuskByJson(body);
+        return new TransactionHusk(TestUtils.sampleTxObject(null));
     }
 
 }

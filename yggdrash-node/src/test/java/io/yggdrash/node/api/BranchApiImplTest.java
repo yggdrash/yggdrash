@@ -9,7 +9,7 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.node.TestUtils;
 import io.yggdrash.node.controller.TransactionDto;
-import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,9 +29,10 @@ public class BranchApiImplTest {
     private static JsonObject branch;
     private static String branchId;
 
-    @Before
-    public void setUp() throws Exception {
-        this.wallet = new Wallet();
+    @BeforeClass
+    public static void beforeTest() throws Exception {
+        wallet = new Wallet();
+        create();
     }
 
     @Test
@@ -39,8 +40,7 @@ public class BranchApiImplTest {
         assertThat(branchApi).isNotNull();
     }
 
-    @Test
-    public void create() {
+    private static void create() {
         try {
             branch = TestUtils.getSampleBranch1();
             branchId = TestUtils.getBranchId(branch);
@@ -54,8 +54,10 @@ public class BranchApiImplTest {
             txObj.addProperty("method", "create");
             txObj.add("params", params);
 
-            TransactionHusk tx = TestUtils.createTxHuskByJson(txObj).sign(wallet);
+            TransactionHusk tx = new TransactionHusk(TestUtils.sampleTxObject(wallet, txObj));
+            System.out.println("tx : " + tx);
             branchApi.createBranch(TransactionDto.createBy(tx));
+            Thread.sleep(10000);
         } catch (Exception e) {
              e.printStackTrace();
         }
@@ -64,7 +66,6 @@ public class BranchApiImplTest {
     @Test
     public void update() {
         try {
-            create();
             String description = "hello world!";
             String updatedVersion = "0xf4312kjise099qw0nene76555484ab1547av8b9e";
             JsonObject updatedBranch = TestUtils.updateBranch(description, updatedVersion,
@@ -80,7 +81,7 @@ public class BranchApiImplTest {
             txObj.addProperty("method", "update");
             txObj.add("params", params);
 
-            TransactionHusk tx = TestUtils.createTxHuskByJson(txObj).sign(wallet);
+            TransactionHusk tx =  new TransactionHusk(TestUtils.sampleTxObject(wallet, txObj));
             branchApi.updateBranch(TransactionDto.createBy(tx));
         } catch (Exception e) {
             e.printStackTrace();
@@ -90,7 +91,6 @@ public class BranchApiImplTest {
     @Test
     public void search() {
         try {
-            create();
             JsonArray params = new JsonArray();
             JsonObject param = new JsonObject();
             param.addProperty("key", "type");
@@ -98,6 +98,14 @@ public class BranchApiImplTest {
             params.add(param);
 
             JsonObject queryObj = TestUtils.createQuery("search", params);
+            branchApi.searchBranch(queryObj.toString());
+
+            params.remove(0);
+            param.addProperty("key", "name");
+            param.addProperty("value", "TEST1");
+            params.add(param);
+
+            queryObj = TestUtils.createQuery("search", params);
             branchApi.searchBranch(queryObj.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -107,7 +115,6 @@ public class BranchApiImplTest {
     @Test
     public void view() {
         try {
-            create();
             JsonArray params = new JsonArray();
             JsonObject param = new JsonObject();
             param.addProperty("branchId", branchId);
@@ -123,7 +130,6 @@ public class BranchApiImplTest {
     @Test
     public void getCurrentVersion() {
         try {
-            create();
             JsonArray params = new JsonArray();
             JsonObject param = new JsonObject();
             param.addProperty("branchId", branchId);
@@ -139,7 +145,6 @@ public class BranchApiImplTest {
     @Test
     public void getVersionHistory() {
         try {
-            create();
             JsonArray params = new JsonArray();
             JsonObject param = new JsonObject();
             param.addProperty("branchId", branchId);

@@ -139,38 +139,36 @@ public class TransactionApiImpl implements TransactionApi {
     private TransactionHusk convert(byte[] bytes) {
 
         int sum = 0;
-        byte[] type = new byte[4];
-        type = Arrays.copyOfRange(bytes, sum, sum += type.length);
-        byte[] version = new byte[4];
+
+        byte[] chain = new byte[20];
+        chain = Arrays.copyOfRange(bytes, sum, sum += chain.length);
+        byte[] version = new byte[8];
         version = Arrays.copyOfRange(bytes, sum, sum += version.length);
-        byte[] dataHash = new byte[32];
-        dataHash = Arrays.copyOfRange(bytes, sum, sum += dataHash.length);
-        byte[] timestampByte = new byte[8];
-        timestampByte = Arrays.copyOfRange(bytes, sum, sum += timestampByte.length);
-        byte[] dataSizeByte = new byte[8];
-        dataSizeByte = Arrays.copyOfRange(bytes, sum, sum += dataSizeByte.length);
+        byte[] type = new byte[8];
+        type = Arrays.copyOfRange(bytes, sum, sum += type.length);
+        byte[] timestamp = new byte[8];
+        timestamp = Arrays.copyOfRange(bytes, sum, sum += timestamp.length);
+        byte[] bodyHash = new byte[32];
+        bodyHash = Arrays.copyOfRange(bytes, sum, sum += bodyHash.length);
+        byte[] bodyLength = new byte[8];
+        bodyLength = Arrays.copyOfRange(bytes, sum, sum += bodyLength.length);
         byte[] signature = new byte[65];
         signature = Arrays.copyOfRange(bytes, sum, sum += signature.length);
-        byte[] dataByte = Arrays.copyOfRange(bytes, sum, bytes.length);
-
-        long timestamp = Longs.fromByteArray(timestampByte);
-        long dataSize = Longs.fromByteArray(dataSizeByte);
-        String data = new String(dataByte);
+        byte[] body = Arrays.copyOfRange(bytes, sum, bytes.length);
 
         Proto.Transaction.Header transactionHeader = Proto.Transaction.Header.newBuilder()
-                .setRawData(Proto.Transaction.Header.Raw.newBuilder()
-                        .setType(ByteString.copyFrom(type))
-                        .setVersion(ByteString.copyFrom(version))
-                        .setDataHash(ByteString.copyFrom(dataHash))
-                        .setDataSize(dataSize)
-                        .setTimestamp(timestamp)
-                        .build())
-                .setSignature(ByteString.copyFrom(signature))
+                .setChain(ByteString.copyFrom(chain))
+                .setVersion(ByteString.copyFrom(version))
+                .setType(ByteString.copyFrom(type))
+                .setTimestamp(ByteString.copyFrom(timestamp))
+                .setBodyHash(ByteString.copyFrom(bodyHash))
+                .setBodyLength(ByteString.copyFrom(bodyLength))
                 .build();
 
         Proto.Transaction tx = Proto.Transaction.newBuilder()
                 .setHeader(transactionHeader)
-                .setBody(data)
+                .setSignature(ByteString.copyFrom(signature))
+                .setBody(ByteString.copyFrom(body))
                 .build();
 
         return new TransactionHusk(tx);

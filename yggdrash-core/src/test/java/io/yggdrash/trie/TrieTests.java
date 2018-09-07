@@ -44,7 +44,7 @@ public class TrieTests {
         txsList.add(this.tx2);
 
         byte[] merkleRoot;
-        merkleRoot = Trie.getMerkleRoot(txsList);
+        merkleRoot = Trie.getMerkleRootHusk(txsList);
         assertNotNull(merkleRoot);
 
         log.debug("MerkelRoot with tx 7=" + Hex.encodeHexString(merkleRoot));
@@ -52,20 +52,20 @@ public class TrieTests {
         // 2. test with tx 1
         txsList = new ArrayList<>();
         txsList.add(this.tx1);
-        merkleRoot = Trie.getMerkleRoot(txsList);
+        merkleRoot = Trie.getMerkleRootHusk(txsList);
         assertNotNull(merkleRoot);
 
         log.debug("MerkelRoot with tx 1=" + Hex.encodeHexString(merkleRoot));
 
         // 3. test with tx 0
         txsList = new ArrayList<>();
-        merkleRoot = Trie.getMerkleRoot(txsList);
+        merkleRoot = Trie.getMerkleRootHusk(txsList);
         assertNull(merkleRoot);
 
         log.debug("MerkleRoot with tx 0 = null");
 
         // 4. test with tx null
-        merkleRoot = Trie.getMerkleRoot(null);
+        merkleRoot = Trie.getMerkleRootHusk(null);
         assertNull(merkleRoot);
 
         log.debug("MerkleRoot with tx null = null");

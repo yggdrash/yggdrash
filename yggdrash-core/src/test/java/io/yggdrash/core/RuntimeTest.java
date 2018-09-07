@@ -46,7 +46,7 @@ public class RuntimeTest {
         txObj.addProperty("method", "transfer");
         txObj.add("params", params);
 
-        TransactionHusk tx = TestUtils.createTxHuskByJson(txObj).sign(wallet);
+        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTxObject(wallet, txObj));
         runtime.invoke(coinContract, tx);
     }
 
@@ -66,7 +66,7 @@ public class RuntimeTest {
         txObj.addProperty("method", "create");
         txObj.add("params", params);
 
-        TransactionHusk tx = TestUtils.createTxHuskByJson(txObj).sign(wallet);
+        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTxObject(null, txObj));
         runtime.invoke(stemContract, tx);
 
         String description = "hello world!";
@@ -81,7 +81,7 @@ public class RuntimeTest {
         txObj.addProperty("method", "update");
         txObj.add("params", params);
 
-        tx = TestUtils.createTxHuskByJson(txObj).sign(wallet);
+        tx = new TransactionHusk(TestUtils.sampleTxObject(null, txObj));
         runtime.invoke(stemContract, tx);
     }
 

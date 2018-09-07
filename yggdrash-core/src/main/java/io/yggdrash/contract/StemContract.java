@@ -97,18 +97,15 @@ public class StemContract extends BaseContract<JsonObject> {
      * param key       type, name, property, owner, tag or symbol
      * param element   content of the key
      */
-    public TransactionReceipt search(JsonArray params) {
+    public Set<Object> search(JsonArray params) {
         String subStateKey = params.get(0).getAsJsonObject().get("key").getAsString();
         String key = params.get(0).getAsJsonObject().get("value").getAsString();
+        List<String> branchList = new ArrayList<>();
 
-        TransactionReceipt txReceipt = new TransactionReceipt();
-        txReceipt.put("key", subStateKey);
-        txReceipt.put("value", key);
         if (state.getSubState(subStateKey).get(key) != null) {
-            txReceipt.put("result", state.getSubState(subStateKey).get(key));
-            txReceipt.setStatus(1);
+            return state.getSubState(subStateKey).get(key);
         }
-        return txReceipt;
+        return null;
     }
 
     /**
