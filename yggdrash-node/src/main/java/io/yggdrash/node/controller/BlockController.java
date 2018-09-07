@@ -69,4 +69,10 @@ class BlockController {
                 .map(BlockDto::createBy).collect(Collectors.toList());
         return ResponseEntity.ok(dtoList);
     }
+
+    @GetMapping("latest")
+    public ResponseEntity latest() {
+        String latest = String.valueOf(branchGroup.getLastIndex());
+        return ResponseEntity.ok(BlockDto.createBy(branchGroup.getBlockByIndexOrHash(latest)));
+    }
 }
