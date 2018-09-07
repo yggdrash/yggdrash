@@ -260,6 +260,24 @@ public class TestUtils {
         return branch;
     }
 
+    public static JsonObject updateBranch(String description, String version, JsonObject branch, Integer checkSum) {
+        JsonObject updatedBranch = new JsonObject();
+        updatedBranch.addProperty("name", checkSum == 0 ? branch.get("name").getAsString() : "HELLO");
+        updatedBranch.addProperty("owner", branch.get("owner").getAsString());
+        updatedBranch.addProperty("symbol", branch.get("symbol").getAsString());
+        updatedBranch.addProperty("property", branch.get("property").getAsString());
+        updatedBranch.addProperty("type", branch.get("type").getAsString());
+        updatedBranch.addProperty("timestamp", branch.get("timestamp").getAsString());
+        updatedBranch.addProperty("description", description);
+        updatedBranch.addProperty("tag", branch.get("tag").getAsFloat());
+        updatedBranch.addProperty("version", version);
+        updatedBranch.add("versionHistory", branch.get("versionHistory").getAsJsonArray());
+        updatedBranch.addProperty("reference_address", branch.get("reference_address").getAsString());
+        updatedBranch.addProperty("reserve_address", branch.get("reserve_address").getAsString());
+
+        return updatedBranch;
+    }
+
     public static String getBranchId(JsonObject branch) {
         return Hex.encodeHexString(getBranchHash(branch));
     }

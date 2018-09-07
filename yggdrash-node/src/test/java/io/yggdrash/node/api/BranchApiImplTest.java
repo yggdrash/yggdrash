@@ -26,6 +26,7 @@ public class BranchApiImplTest {
             new Runtime(new StateStore(), new TransactionReceiptStore());
     private static final Map<String, JsonObject> branchStoreMock = new HashMap<>();
     private static Wallet wallet;
+    private static JsonObject branch;
     private static String branchId;
 
     @Before
@@ -41,7 +42,7 @@ public class BranchApiImplTest {
     @Test
     public void create() {
         try {
-            JsonObject branch = TestUtils.getSampleBranch1();
+            branch = TestUtils.getSampleBranch1();
             branchId = TestUtils.getBranchId(branch);
             JsonArray params = new JsonArray();
             JsonObject param = new JsonObject();
@@ -62,14 +63,49 @@ public class BranchApiImplTest {
 
     @Test
     public void update() {
+        try {
+            create();
+            String description = "hello world!";
+            String updatedVersion = "0xf4312kjise099qw0nene76555484ab1547av8b9e";
+            JsonObject updatedBranch = TestUtils.updateBranch(description, updatedVersion,
+                    branch, 0);
+
+            JsonArray params = new JsonArray();
+            JsonObject param = new JsonObject();
+            param.addProperty("branchId", branchId);
+            param.add("branch", updatedBranch);
+            params.add(param);
+
+            JsonObject txObj = new JsonObject();
+            txObj.addProperty("method", "update");
+            txObj.add("params", params);
+
+            TransactionHusk tx = TestUtils.createTxHuskByJson(txObj).sign(wallet);
+            branchApi.updateBranch(TransactionDto.createBy(tx));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
     public void search() {
+        try {
+            create();
+            JsonArray params = new JsonArray();
+            JsonObject param = new JsonObject();
+            param.addProperty("key", "type");
+            param.addProperty("value", "immunity");
+            params.add(param);
+
+            JsonObject queryObj = TestUtils.createQuery("search", params);
+            branchApi.searchBranch(queryObj.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
-    public void view() throws Exception {
+    public void view() {
         try {
             create();
             JsonArray params = new JsonArray();

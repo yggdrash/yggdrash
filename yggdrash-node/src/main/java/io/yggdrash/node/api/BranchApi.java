@@ -39,14 +39,14 @@ public interface BranchApi {
 
     /**
      * Search for branches by key (attribute)
-     * @param key   attribute
-     * @param value value of attribute
+     * @param data key   attribute
+     *             value value of attribute
      * @return list of branch
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    List<JsonObject> searchBranch(String key, String value);
+    String searchBranch(String data) throws Exception;
 
     /**
      * View a branch in detail with branchId

@@ -66,20 +66,29 @@ public class StemContract extends BaseContract<JsonObject> {
     /**
      * Returns the id of a updated branch
      *
-     * @param branchId The Id of the branch to update
-     * @param branch   The branch.json to update on the stem
+     * @param params branchId The Id of the branch to update
+     *               branch   The branch.json to update on the stem
      */
-    public String update(String branchId, JsonObject branch) {
+    public TransactionReceipt update(JsonArray params) {
+        String branchId = params.get(0).getAsJsonObject().get("branchId").getAsString();
+        JsonObject branch = params.get(0).getAsJsonObject().get("branch").getAsJsonObject();
+
+        TransactionReceipt txReceipt = new TransactionReceipt();
+        txReceipt.put("branchId", branchId);
+        txReceipt.put("branch", branch);
+
         if (isBranchIdValid(branchId, branch)) {
             if (isVersionHistoryUpdated(branchId, branch)) {
                 log.info("[StemContract | update] branchId => " + branchId);
                 log.info("[StemContract | update] branch => " + branch);
                 state.replace(branchId, branch);
-                return branchId;
+                txReceipt.setStatus(1);
+                //return branchId;
             }
             state.replace(branchId, branch);
         }
-        return null;
+        //return null;
+        return txReceipt;
     }
 
     /**
@@ -88,10 +97,18 @@ public class StemContract extends BaseContract<JsonObject> {
      * param key       type, name, property, owner, tag or symbol
      * param element   content of the key
      */
-    public Set<Object> search(JsonArray params) {
+    public TransactionReceipt search(JsonArray params) {
         String subStateKey = params.get(0).getAsJsonObject().get("key").getAsString();
         String key = params.get(0).getAsJsonObject().get("value").getAsString();
-        return state.getSubState(subStateKey).get(key);
+
+        TransactionReceipt txReceipt = new TransactionReceipt();
+        txReceipt.put("key", subStateKey);
+        txReceipt.put("value", key);
+        if (state.getSubState(subStateKey).get(key) != null) {
+            txReceipt.put("result", state.getSubState(subStateKey).get(key));
+            txReceipt.setStatus(1);
+        }
+        return txReceipt;
     }
 
     /**

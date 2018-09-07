@@ -66,12 +66,24 @@ public class StemContractTest {
         String branchId = referenceBranchAddress;
         String description = "Hello World!";
         String updatedVersion = "0xf4312kjise099qw0nene76555484ab1547av8b9e";
-        JsonObject updatedBranch = updateBranch(description, updatedVersion, referenceBranch, 0);
-        String res = stemContract.update(branchId, updatedBranch);
-        assertEquals(res, branchId);
-        updatedBranch = updateBranch(description, updatedVersion, referenceBranch, 1);
-        res = stemContract.update(branchId, updatedBranch);
-        assertNotEquals(res, branchId);
+        JsonObject updatedBranch = TestUtils.updateBranch(description, updatedVersion,
+                referenceBranch, 0);
+
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        param.addProperty("branchId", branchId);
+        param.add("branch", updatedBranch);
+        params.add(param);
+
+        assertThat(stemContract.update(params)).isNotNull();
+
+        updatedBranch = TestUtils.updateBranch(description, updatedVersion,
+                referenceBranch, 1);
+        params.remove(0);
+        param.add("branch", updatedBranch);
+        params.add(param);
+
+        assertThat(stemContract.update(params)).isNotNull();
     }
 
     @Test
@@ -82,42 +94,49 @@ public class StemContractTest {
         param.addProperty("value", "immunity");
         params.add(param);
 
-        assertThat(stemContract.search(params).size()).isNotZero();
+        log.debug("Search [type | immunity] res => " + stemContract.search(params));
+        assertThat(stemContract.search(params)).isNotNull();
 
         param.addProperty("key", "name");
         param.addProperty("value", "TEST1");
         params.remove(0);
         params.add(param);
 
-        assertThat(stemContract.search(params).size()).isNotZero();
+        log.debug("Search [name | TEST1] res => " + stemContract.search(params));
+        assertThat(stemContract.search(params)).isNotNull();
 
         param.addProperty("key", "property");
         param.addProperty("value", "dex");
         params.remove(0);
         params.add(param);
 
-        assertThat(stemContract.search(params).size()).isNotZero();
+        log.debug("Search [property | dex] res => " + stemContract.search(params));
+        assertThat(stemContract.search(params)).isNotNull();
 
         param.addProperty("key", "owner");
         param.addProperty("value", "9e187f5264037ab77c87fcffcecd943702cd72c3");
         params.remove(0);
         params.add(param);
 
-        assertThat(stemContract.search(params).size()).isNotZero();
+        log.debug("Search [owner | 9e187f5264037ab77c87fcffcecd943702cd72c3] res => "
+                + stemContract.search(params));
+        assertThat(stemContract.search(params)).isNotNull();
 
         param.addProperty("key", "symbol");
         param.addProperty("value", "TEST1");
         params.remove(0);
         params.add(param);
 
-        assertThat(stemContract.search(params).size()).isNotZero();
+        log.debug("Search [symbol | TEST1] res => " + stemContract.search(params));
+        assertThat(stemContract.search(params)).isNotNull();
 
         param.addProperty("key", "tag");
         param.addProperty("value", "0.1");
         params.remove(0);
         params.add(param);
 
-        assertThat(stemContract.search(params).size()).isNotZero();
+        log.debug("Search [tag | 0.1] res => " + stemContract.search(params));
+        assertThat(stemContract.search(params)).isNotNull();
     }
 
     @Test
@@ -156,23 +175,5 @@ public class StemContractTest {
     @Test
     public void getAllBranchIdTest() {
         assertThat(stemContract.getallbranchid(new JsonArray())).isNotNull();
-    }
-
-    private JsonObject updateBranch(String description, String version, JsonObject branch, Integer checkSum) {
-        JsonObject updatedBranch = new JsonObject();
-        updatedBranch.addProperty("name", checkSum == 0 ? branch.get("name").getAsString() : "HELLO");
-        updatedBranch.addProperty("owner", branch.get("owner").getAsString());
-        updatedBranch.addProperty("symbol", branch.get("symbol").getAsString());
-        updatedBranch.addProperty("property", branch.get("property").getAsString());
-        updatedBranch.addProperty("type", branch.get("type").getAsString());
-        updatedBranch.addProperty("timestamp", branch.get("timestamp").getAsString());
-        updatedBranch.addProperty("description", description);
-        updatedBranch.addProperty("tag", branch.get("tag").getAsFloat());
-        updatedBranch.addProperty("version", version);
-        updatedBranch.add("versionHistory", branch.get("versionHistory").getAsJsonArray());
-        updatedBranch.addProperty("reference_address", branch.get("reference_address").getAsString());
-        updatedBranch.addProperty("reserve_address", branch.get("reserve_address").getAsString());
-
-        return updatedBranch;
     }
 }
