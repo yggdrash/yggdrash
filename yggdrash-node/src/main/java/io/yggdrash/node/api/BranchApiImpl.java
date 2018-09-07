@@ -62,6 +62,11 @@ public class BranchApiImpl implements BranchApi {
         return queryOf(data);
     }
 
+    @Override
+    public String getAllBranchId(String data) throws Exception {
+        return queryOf(data);
+    }
+
     private String queryOf(String data) throws Exception {
         log.debug("BranchAPI :: queryOf => " + data);
         JsonParser jsonParser = new JsonParser();

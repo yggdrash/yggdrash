@@ -71,8 +71,8 @@ public class RuntimeTest {
         param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
         params.add(param);
 
-        JsonObject result = runtime.query(coinContract, TestUtils.createQuery("balanceOf", params));
-        assertThat(result).isNotNull();
+        assertThat(runtime.query(coinContract,
+                TestUtils.createQuery("balanceOf", params))).isNotNull();
     }
 
     @Test
@@ -83,14 +83,17 @@ public class RuntimeTest {
                 "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523");
         params.add(param);
 
-        JsonObject result = runtime.query(stemContract, TestUtils.createQuery("view", params));
-        assertThat(result).isNotNull();
+        assertThat(runtime.query(stemContract,
+                TestUtils.createQuery("getCurrentVersion", params))).isNotNull();
 
-        result = runtime.query(stemContract, TestUtils.createQuery("getCurrentVersion", params));
-        assertThat(result).isNotNull();
+        assertThat(runtime.query(stemContract,
+                TestUtils.createQuery("getCurrentVersion", params))).isNotNull();
 
-        result = runtime.query(stemContract, TestUtils.createQuery("getVersionHistory", params));
-        assertThat(result).isNotNull();
+        assertThat(runtime.query(stemContract,
+                TestUtils.createQuery("getVersionHistory", params))).isNotNull();
+
+        assertThat(runtime.query(stemContract,
+                TestUtils.createQuery("getAllBranchId", new JsonArray()))).isNotNull();
 
         //param.remove("branchId");
         //param.addProperty("key", "type");

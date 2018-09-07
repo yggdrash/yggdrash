@@ -45,7 +45,7 @@ public class StemContractTest {
         String referenceBranch2Id = TestUtils.getBranchId(referenceBranch2);
 
         param.addProperty("branchId", referenceBranch2Id);
-        param.add("branch", referenceBranch);
+        param.add("branch", referenceBranch2);
         stemContract.create(params);
     }
 
@@ -151,6 +151,11 @@ public class StemContractTest {
 
         log.debug(stemContract.getversionhistory(params).getAsString());
         assertThat(stemContract.getversionhistory(params).size()).isNotZero();
+    }
+
+    @Test
+    public void getAllBranchIdTest() {
+        assertThat(stemContract.getallbranchid(new JsonArray())).isNotNull();
     }
 
     private JsonObject updateBranch(String description, String version, JsonObject branch, Integer checkSum) {
