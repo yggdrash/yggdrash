@@ -22,7 +22,10 @@ import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockChainLoader;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.Runtime;
 import io.yggdrash.core.store.BlockStore;
+import io.yggdrash.core.store.StateStore;
+import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
@@ -47,8 +50,10 @@ public class YeedBranchConfiguration {
     BlockChain blockChain(BranchGroup branchGroup, BlockStore blockStore,
                           TransactionStore transactionStore,
                           @Qualifier("yeedGenesis") BlockHusk genesisBlock,
-                          @Qualifier("yeedContract") Contract contract) {
-        BlockChain branch = new BlockChain(genesisBlock, blockStore, transactionStore, contract);
+                          @Qualifier("yeedContract") Contract<Long> contract,
+                          @Qualifier("yeedRuntime") Runtime<Long> runtime) {
+        BlockChain branch = new BlockChain(genesisBlock, blockStore, transactionStore, contract,
+                runtime);
         branchGroup.addBranch(branch.getBranchId(), branch);
         return branch;
     }
@@ -59,8 +64,19 @@ public class YeedBranchConfiguration {
     }
 
     @Bean(name = "yeedContract")
-    Contract contract() {
+    Contract<Long> contract() {
         return new CoinContract();
+    }
+
+    @Bean(name = "yeedRuntime")
+    Runtime<Long> runTime(@Qualifier("yeedTxReceiptStore")
+                                        TransactionReceiptStore transactionReceiptStore) {
+        return new Runtime<>(new StateStore<>(), transactionReceiptStore);
+    }
+
+    @Bean("yeedTxReceiptStore")
+    TransactionReceiptStore transactionReceiptStore() {
+        return new TransactionReceiptStore();
     }
 
     @Primary

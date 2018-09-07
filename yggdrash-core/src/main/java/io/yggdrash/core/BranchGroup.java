@@ -29,12 +29,7 @@ public class BranchGroup {
     private Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
     private static BlockChain chain;
 
-    private Runtime runtime;
     private BranchEventListener listener;
-
-    public BranchGroup(Runtime runtime) {
-        this.runtime = runtime;
-    }
 
     public void addBranch(BranchId branchId, BlockChain blockChain) {
         if (branches.containsKey(branchId)) {
@@ -42,7 +37,6 @@ public class BranchGroup {
         }
         chain = blockChain; // TODO remove
         branches.put(branchId, blockChain);
-        blockChain.init(runtime);
     }
 
     public void setListener(BranchEventListener listener) {
@@ -70,7 +64,7 @@ public class BranchGroup {
     }
 
     public BlockHusk generateBlock(Wallet wallet) {
-        BlockHusk newBlock = chain.generateBlock(wallet, runtime);
+        BlockHusk newBlock = chain.generateBlock(wallet);
         if (listener != null && newBlock != null) {
             listener.chainedBlock(newBlock);
         }
@@ -78,7 +72,7 @@ public class BranchGroup {
     }
 
     public BlockHusk addBlock(BlockHusk block) {
-        return chain.addBlock(block, runtime);
+        return chain.addBlock(block);
     }
 
     public Set<BlockHusk> getBlocks() {
