@@ -16,8 +16,12 @@
 
 package io.yggdrash.core;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.contract.Contract;
 import io.yggdrash.core.event.BranchEventListener;
+import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.core.store.StateStore;
 
 import java.util.List;
 import java.util.Map;
@@ -85,6 +89,22 @@ public class BranchGroup {
             return chain.getBlockByIndex(index);
         } else {
             return chain.getBlockByHash(indexOrHash);
+        }
+    }
+
+    public StateStore<?> getStateStore() {
+        return chain.getRuntime().getStateStore();
+    }
+
+    public Contract getContract() {
+        return chain.getContract();
+    }
+
+    public JsonObject query(JsonObject query) {
+        try {
+            return chain.getRuntime().query(chain.getContract(), query);
+        } catch (Exception e) {
+            throw new FailedOperationException(e);
         }
     }
 

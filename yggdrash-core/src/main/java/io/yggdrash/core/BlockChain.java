@@ -67,6 +67,14 @@ public class BlockChain {
         }
     }
 
+    public Contract getContract() {
+        return contract;
+    }
+
+    public Runtime<?> getRuntime() {
+        return runtime;
+    }
+
     public BlockHusk generateBlock(Wallet wallet) {
         BlockHusk block = new BlockHusk(wallet,
                 new ArrayList<>(transactionStore.getUnconfirmedTxs()), getPrevBlock());
@@ -74,7 +82,9 @@ public class BlockChain {
     }
 
     public List<TransactionHusk> getTransactionList() {
-        return new ArrayList<>(transactionStore.getUnconfirmedTxs());
+        List<TransactionHusk> list = new ArrayList<>(transactionStore.getUnconfirmedTxs());
+        list.addAll(transactionStore.getAll());
+        return list;
     }
 
     public BranchId getBranchId() {
@@ -102,7 +112,7 @@ public class BlockChain {
         if (isGenesisBlockChain()) {
             return 0;
         }
-        return prevBlock.nextIndex();
+        return prevBlock.getIndex();
     }
 
     /**

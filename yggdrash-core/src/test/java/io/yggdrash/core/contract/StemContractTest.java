@@ -12,8 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
 public class StemContractTest {
 
@@ -25,7 +23,7 @@ public class StemContractTest {
 
     @Before
     public void setUp() {
-        StateStore<JsonObject> stateStore = new StateStore<JsonObject>();
+        StateStore<JsonObject> stateStore = new StateStore<>();
         TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
 
         stemContract = new StemContract();
