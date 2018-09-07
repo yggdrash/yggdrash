@@ -70,6 +70,37 @@ public class BlockHeader implements Cloneable {
                 Hex.decode(jsonObject.get("bodyLength").getAsString()));
     }
 
+    public BlockHeader(byte[] blockHeaderBytes) {
+        int pos = 0;
+
+        this.chain = new byte[20];
+        System.arraycopy(blockHeaderBytes, pos, this.chain, 0, pos =+ this.chain.length);
+
+        this.version = new byte[8];
+        System.arraycopy(blockHeaderBytes, pos, this.version, 0, pos =+ this.version.length);
+
+        this.type = new byte[8];
+        System.arraycopy(blockHeaderBytes, pos, this.type, 0, pos =+ this.type.length);
+
+        this.prevBlockHash = new byte[32];
+        System.arraycopy(blockHeaderBytes, pos, this.prevBlockHash, 0, pos =+ this.prevBlockHash.length);
+
+        byte[] indexBytes = new byte[8];
+        System.arraycopy(blockHeaderBytes, pos, indexBytes, 0, pos =+ indexBytes.length);
+        this.index = ByteUtil.byteArrayToLong(indexBytes);
+
+        byte[] timestampBytes = new byte[8];
+        System.arraycopy(blockHeaderBytes, pos, timestampBytes, 0, pos =+ timestampBytes.length);
+        this.timestamp = ByteUtil.byteArrayToLong(timestampBytes);
+
+        this.merkleRoot = new byte[32];
+        System.arraycopy(blockHeaderBytes, pos, this.merkleRoot, 0, pos =+ this.merkleRoot.length);
+
+        byte[] bodyLengthBytes = new byte[8];
+        System.arraycopy(blockHeaderBytes, pos, bodyLengthBytes, 0, pos =+ bodyLengthBytes.length);
+        this.bodyLength = ByteUtil.byteArrayToLong(bodyLengthBytes);
+    }
+
     public byte[] getChain() {
         return chain;
     }
@@ -102,11 +133,9 @@ public class BlockHeader implements Cloneable {
         return bodyLength;
     }
 
-
     protected void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
     }
-
 
     public byte[] toBinary() throws IOException {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();

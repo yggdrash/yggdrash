@@ -22,7 +22,7 @@ public class GenesisBlockTest {
 
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void generateGenesisBlock() throws IOException {
         this.genesisBlock.generateGenesisBlockFile();
 

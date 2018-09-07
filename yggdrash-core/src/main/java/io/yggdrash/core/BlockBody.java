@@ -1,11 +1,13 @@
 package io.yggdrash.core;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.trie.Trie;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
@@ -24,13 +26,40 @@ public class BlockBody implements Cloneable {
         this.body = transactionList;
     }
 
-    public BlockBody(JsonArray jsonArray) throws SignatureException {
+    public BlockBody(JsonArray jsonArray) {
 
         this.body = new ArrayList<>();
 
         for (int i = 0;  i < jsonArray.size(); i++) {
             this.body.add(new Transaction(jsonArray.get(i).getAsJsonObject()));
         }
+    }
+
+    public BlockBody(byte[] bodyBytes) throws UnsupportedEncodingException {
+        int pos = 0;
+        byte[] txHeaderBytes = new byte[84];
+        byte[] txSigBytes = new byte[65];
+        byte[] txBodyBytes;
+
+        TransactionHeader txHeader;
+        TransactionBody txBody;
+        List<Transaction> txList = new ArrayList<>();
+
+        do {
+            System.arraycopy(bodyBytes, pos, txHeaderBytes, 0, pos += txHeaderBytes.length);
+            txHeader = new TransactionHeader(txHeaderBytes);
+
+            System.arraycopy(bodyBytes, pos, txSigBytes, 0, pos += txSigBytes.length);
+
+            //todo: change from int to long for body size.
+            txBodyBytes = new byte[(int)txHeader.getBodyLength()];
+            System.arraycopy(bodyBytes, pos, txBodyBytes, 0, pos += txBodyBytes.length);
+            txBody = new TransactionBody(txBodyBytes);
+
+            txList.add(new Transaction(txHeader, txSigBytes, txBody));
+        } while(pos >= bodyBytes.length);
+
+        this.body = txList;
     }
 
     public List<Transaction> getBody() {

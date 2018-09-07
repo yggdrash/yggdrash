@@ -30,10 +30,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 
-import static io.yggdrash.core.BranchInfo.BranchData;
+import static io.yggdrash.core.BranchInfo.BranchBody;
 
 public class BlockChainLoader {
     private ObjectMapper mapper = new ObjectMapper();
@@ -90,14 +89,14 @@ public class BlockChainLoader {
             .build());
     }
 
-    private Proto.TransactionList convertTransaction(List<BranchData> branchDataList) throws
+    private Proto.TransactionList convertTransaction(List<BranchBody> branchDataList) throws
             JsonProcessingException {
 
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
         Proto.Transaction.Builder txBuilder = Proto.Transaction.newBuilder();
         Proto.Transaction.Header.Builder txHeaderBuilder = Proto.Transaction.Header.newBuilder();
 
-        for (BranchData branchData : branchDataList) {
+        for (BranchBody branchData : branchDataList) {
             builder.addTransactions(txBuilder
                     .setHeader(txHeaderBuilder
                             .setChain(ByteString.copyFrom(Hex.decode(branchData.chain)))

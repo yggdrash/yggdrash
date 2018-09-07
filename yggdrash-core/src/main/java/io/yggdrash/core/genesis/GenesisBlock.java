@@ -36,9 +36,9 @@ public class GenesisBlock {
         String transactionFileName = defaultConfig.getConfig().getString("genesis.config");
         JsonObject genesisObject = getJsonObjectFromFile(transactionFileName);
 
-        String frontierFileName = defaultConfig.getConfig().getString("genesis.frontier");
-        JsonObject frontierObject = getJsonObjectFromFile(frontierFileName);
-        genesisObject.add("frontier", frontierObject.get("frontier"));
+//        String frontierFileName = defaultConfig.getConfig().getString("genesis.frontier");
+//        JsonObject frontierObject = getJsonObjectFromFile(frontierFileName);
+//        genesisObject.add("frontier", frontierObject.get("frontier"));
 
 //        String nodeListFileName = defaultConfig.getConfig().getString("genesis.nodeList");
 //        JsonObject nodeListObject = getJsonObjectFromFile(nodeListFileName);

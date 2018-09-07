@@ -150,10 +150,10 @@ public class TestUtils {
         long timestamp = TimeUtils.time();
 
         TransactionHeader txHeader;
-        txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
         try {
+            txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
             txSig = new TransactionSignature(nodeWallet, txHeader.getHashForSignning());
-            tx = new Transaction(txHeader, txSig, txBody);
+            tx = new Transaction(txHeader, txSig.getSignature(), txBody);
 
             return tx.toJsonObject();
 
@@ -164,19 +164,11 @@ public class TestUtils {
     }
 
     public static Transaction sampleTx() {
-        try {
-            return new Transaction(sampleTxObject(null));
-        } catch (SignatureException e) {
-            return null;
-        }
+        return new Transaction(sampleTxObject(null));
     }
 
     public static Transaction sampleTx(Wallet wallet) {
-        try {
-            return new Transaction(sampleTxObject(wallet));
-        } catch (SignatureException e) {
-            return null;
-        }
+        return new Transaction(sampleTxObject(wallet));
     }
 
     public static Proto.Transaction[] sampleTxs() {
@@ -202,7 +194,7 @@ public class TestUtils {
 
             BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSignning());
 
-            Block block = new Block(blockHeader, blockSig, blockBody);
+            Block block = new Block(blockHeader, blockSig.getSignature(), blockBody);
 
             return block.toJsonObject();
         } catch (Exception e) {
@@ -211,11 +203,7 @@ public class TestUtils {
     }
 
     public static Block sampleBlock() {
-        try {
-            return new Block(sampleBlockObject());
-        } catch (SignatureException e) {
-            throw new NotValidateException();
-        }
+        return new Block(sampleBlockObject());
     }
 
     public static Proto.Block[] sampleBlocks() {

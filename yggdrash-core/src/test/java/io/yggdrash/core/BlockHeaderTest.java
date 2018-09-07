@@ -71,21 +71,21 @@ public class BlockHeaderTest {
 
             wallet = new Wallet();
 
-            txHeader.setTimestamp(TimeUtils.time());
-
-            txSig = new TransactionSignature(wallet, txHeader.getHashForSignning());
-
-            tx1 = new Transaction(txHeader, txSig, txBody);
-
-            tx2 = tx1.clone();
-
-            List<Transaction> txs1 = new ArrayList<>();
-            txs1.add(tx1);
-            txs1.add(tx2);
-
-            log.debug("txs=" + txs1.toString());
-
-            blockBody1 = new BlockBody(txs1);
+//            txHeader.setTimestamp(TimeUtils.time());
+//
+//            txSig = new TransactionSignature(wallet, txHeader.getHashForSignning());
+//
+//            tx1 = new Transaction(txHeader, txSig, txBody);
+//
+//            tx2 = tx1.clone();
+//
+//            List<Transaction> txs1 = new ArrayList<>();
+//            txs1.add(tx1);
+//            txs1.add(tx2);
+//
+//            log.debug("txs=" + txs1.toString());
+//
+//            blockBody1 = new BlockBody(txs1);
 
         } catch (Exception e) {
             log.debug(e.getMessage());

@@ -9,6 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
+import java.nio.charset.StandardCharsets;
+
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
@@ -16,16 +18,6 @@ import static org.junit.Assert.assertEquals;
 public class TransactionBodyTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionBodyTest.class);
-
-    @Before
-    public void init() {
-
-    }
-
-    @After
-    public void exit() {
-
-    }
 
     @Test
     public void testTransactionBody() {
@@ -73,8 +65,20 @@ public class TransactionBodyTest {
             assertEquals(txBody.getBodyCount(), 2);
 
             TransactionBody txBody2 =  new TransactionBody(jsonArray.toString());
+            log.debug("txBody1 Hex String=" + txBody.toHexString());
+            log.debug("txBody2 Hex String=" + txBody2.toHexString());
 
             assertEquals(txBody.toString(), txBody2.toString());
+
+            TransactionBody txBody3 =  new TransactionBody(jsonArray.toString().getBytes());
+            log.debug("txBody1 Hex String=" + txBody.toString());
+            log.debug("txBody3 Hex String=" + txBody3.toString());
+            assertEquals(txBody.toString(), txBody3.toString());
+
+            TransactionBody txBody4 =  new TransactionBody(jsonArray.toString().getBytes(StandardCharsets.UTF_8));
+            log.debug("txBody1 Hex String=" + txBody.toString());
+            log.debug("txBody4 Hex String=" + txBody3.toString());
+            assertEquals(txBody.toString(), txBody4.toString());
 
         } catch (Exception e) {
             log.debug(e.getMessage());

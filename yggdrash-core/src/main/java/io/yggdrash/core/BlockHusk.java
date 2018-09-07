@@ -25,6 +25,7 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.ECKey;
+import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.trie.Trie;
 import io.yggdrash.util.ByteUtil;
@@ -231,12 +232,12 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
 
             BlockBody blockBody = new BlockBody(txList);
             BlockHeader blockHeader = new BlockHeader(
-                    new byte[20],
+                    HashUtil.sha3omit12(txBody.getBodyHash()),
                     new byte[8],
                     new byte[8],
                     new byte[32],
                     0L,
-                    TimeUtils.time(),
+                    0L,
                     blockBody.getMerkleRoot(),
                     blockBody.length());
 

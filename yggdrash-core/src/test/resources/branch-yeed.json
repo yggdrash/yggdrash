@@ -1,24 +1,33 @@
 {
-  "chain": "0000000000000000000000000000000000000000",
-  "version": "0000000000000000",
-  "type": "0000000000000000",
-  "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
-  "index": "0000000000000000",
-  "timestamp": "0000000000000000",
-  "merkleRoot": "9c8d7142f8813addadeb5ab9c05d85c1e7d250a543e745a58b830ca01fe88396",
-  "bodyLength": "0000000000000000",
-  "signature": "1ce26ba49760c94f36eaeb97a34b09075dbd7519163dda0f0420a0492431578a060360ca1500cc84f77d352c2a503976a5f49fc31078c70e177fcb63813e4c8e10",
-  "body":
-  [
+  "header": {
+    "chain": "b3d2f9c78616e92769171f0b1a783aab983f93ce",
+    "version": "0000000000000000",
+    "type": "0000000000000000",
+    "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "index": "0000000000000000",
+    "timestamp": "00000165b207b87d",
+    "merkleRoot": "3622b4231e057156d33e91b51a8e4cf774cafc04595cb94ca2a74a46465e58c6",
+    "bodyLength": "0000000000000375"
+  },
+  "signature": {
+    "signature": "1c34803af4a08c245c67186bfc030903bacab067f7c950beadd887fc438b71ac8556cf207be46666a9d435a7725ec090a951ac96f8e1821b8bee09014d685ce3c5",
+    "headerHash": "f8f4fbafd098fbb6043866f776a7549ac43df41c8a67232b24c0033707fbf319"
+  },
+  "body": [
     {
-      "chain": "0000000000000000000000000000000000000000",
-      "version": "00000001",
-      "type": "00000001",
-      "timestamp": "0000000000000001",
-      "bodyHash": "b0f48f2ed3789ae1222a39552bf1b9abe56dd90ee8a3b6d551494fa645cb57cd",
-      "bodyLength": "0000000000000001",
-      "signature": "1b99a8d4e7b6c20def587d2cc342361cb6b5b0af825e0ecbefb91a1cd30e2c77c117a0fdecd0da4d1cd406bac961e217e99f2c9a6d798ba363c9dc3cc2f8b51aac",
-      "body":
+      "header": {
+        "chain": "b3d2f9c78616e92769171f0b1a783aab983f93ce",
+        "version": "0000000000000000",
+        "type": "0000000000000000",
+        "timestamp": "00000165b207b87d",
+        "bodyHash": "59aa9ea9274034aa23384876853b264d4a1b80114e3c3409f37a7d42c958519c",
+        "bodyLength": "00000000000002e0"
+      },
+      "signature": {
+        "signature": "1ba249ed3dee64d69e98dccd433f7806becb8c95ad2020e3a707e49aeab64f18926f8c70e2e2635c1b5d8f9bbc904dc536a5bd8b48a636842325ec853070d69831",
+        "headerHash": "2f927e3b86766f0babfb6661601193c119c53ee92f9e981d451228041e250f36"
+      },
+      "body": [
         {
           "operator": "GENESIS",
           "chainName": "YEED",
@@ -50,11 +59,12 @@
             "5db10750e8caff27f906b41c71b3471057dd2008": {
               "balance": "1000000000"
             },
-            "6f19c769c78513a3a60a3618c6a11eb9a886086a": {
+            "5db10750e8caff27f906b41c71b3471057dd2009": {
               "balance": "1000000000"
             }
           }
         }
+      ]
     }
   ]
 }

@@ -13,6 +13,7 @@ import org.spongycastle.util.encoders.Hex;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
 import java.security.SignatureException;
 
 public class TransactionHeader implements Cloneable {
@@ -62,6 +63,30 @@ public class TransactionHeader implements Cloneable {
                 Hex.decode(jsonObject.get("bodyLength").getAsString()));
     }
 
+    public TransactionHeader(byte[] txHeaderBytes) {
+        int pos = 0;
+
+        this.chain = new byte[20];
+        System.arraycopy(txHeaderBytes, pos, this.chain, 0, pos =+ this.chain.length);
+
+        this.version = new byte[8];
+        System.arraycopy(txHeaderBytes, pos, this.version, 0, pos =+ this.version.length);
+
+        this.type = new byte[8];
+        System.arraycopy(txHeaderBytes, pos, this.type, 0, pos =+ this.type.length);
+
+        byte[] timestampBytes = new byte[8];
+        System.arraycopy(txHeaderBytes, pos, timestampBytes, 0, pos =+ timestampBytes.length);
+        this.timestamp = ByteUtil.byteArrayToLong(timestampBytes);
+
+        this.bodyHash = new byte[32];
+        System.arraycopy(txHeaderBytes, pos, this.bodyHash, 0, pos =+ this.bodyHash.length);
+
+        byte[] bodyLengthBytes = new byte[8];
+        System.arraycopy(txHeaderBytes, pos, bodyLengthBytes, 0, pos =+ bodyLengthBytes.length);
+        this.bodyLength = ByteUtil.byteArrayToLong(bodyLengthBytes);
+    }
+
     public long length() throws IOException {
         return this.toBinary().length;
     }
@@ -90,9 +115,9 @@ public class TransactionHeader implements Cloneable {
         return this.bodyLength;
     }
 
-    protected void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
+//    protected void setTimestamp(long timestamp) {
+//        this.timestamp = timestamp;
+//    }
 
     /**
      * Get the headerHash for signning.
