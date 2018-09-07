@@ -82,7 +82,9 @@ public class BlockChain {
     }
 
     public List<TransactionHusk> getTransactionList() {
-        return new ArrayList<>(transactionStore.getUnconfirmedTxs());
+        List<TransactionHusk> list = new ArrayList<>(transactionStore.getUnconfirmedTxs());
+        list.addAll(transactionStore.getAll());
+        return list;
     }
 
     public BranchId getBranchId() {
