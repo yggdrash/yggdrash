@@ -39,51 +39,52 @@ public interface BranchApi {
 
     /**
      * Search for branches by key (attribute)
-     * @param key   attribute
-     * @param value value of attribute
+     * @param data key   attribute
+     *             value value of attribute
      * @return list of branch
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    List<JsonObject> searchBranch(String key, String value);
+    String searchBranch(String data) throws Exception;
 
     /**
      * View a branch in detail with branchId
-     * @param branchId branch id
+     * @param data query with branch id
      * @return branch
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    String viewBranch(String branchId);
-
-    /**
-     * Get all branch id and name
-     * @return list of branch id and name
-     */
-    @JsonRpcErrors({
-            @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
-    String getAllBranchName(@JsonRpcParam(value = "data") String data) throws Exception;
+    String viewBranch(String data) throws Exception;
 
     /**
      * Get the current contract address of the branch by branchId
-     * @param branchId branch id
+     * @param data query with branch id
      * @return current version
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    String getCurrentVersionOfBranch(String branchId);
+    String getCurrentVersionOfBranch(String data) throws Exception;
 
     /**
      * Get the versionHistory of the branch by branchId
-     * @param branchId branch id
+     * @param data query with branch id
      * @return versionHistory
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    JsonArray getVersionHistoryOfBranch(String branchId);
+    String getVersionHistoryOfBranch(String data) throws Exception;
+
+    /**
+     * Get all branch id
+     * @param data query
+     * @return list of all branch id
+     */
+    @JsonRpcErrors({
+            @JsonRpcError(exception = NonExistObjectException.class,
+                    code = NonExistObjectException.code)})
+    String getAllBranchId(String data) throws Exception;
 }
