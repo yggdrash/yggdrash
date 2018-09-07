@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.store;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchId;
@@ -27,7 +26,6 @@ import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;

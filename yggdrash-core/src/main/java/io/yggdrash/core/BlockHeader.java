@@ -9,9 +9,6 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.security.SignatureException;
-import java.util.ArrayList;
-import java.util.List;
 
 
 public class BlockHeader implements Cloneable {
@@ -159,7 +156,7 @@ public class BlockHeader implements Cloneable {
     }
 
     public Proto.Block.Header toProtoBlockHeader() {
-        return this.toProtoBlockHeader(this);
+        return toProtoBlockHeader(this);
     }
 
     public static Proto.Block.Header toProtoBlockHeader(BlockHeader blockHeader) {

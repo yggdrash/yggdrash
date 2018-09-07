@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class GRpcNodeServer implements NodeServer, NodeManager {
-    private static final Logger log = LoggerFactory.getLogger(NodeManager.class);
+    private static final Logger log = LoggerFactory.getLogger(GRpcNodeServer.class);
     private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
 
     private BranchGroup branchGroup;

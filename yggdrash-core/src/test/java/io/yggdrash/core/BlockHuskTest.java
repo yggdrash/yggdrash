@@ -23,8 +23,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.security.SignatureException;
-
 public class BlockHuskTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockHuskTest.class);
@@ -43,7 +41,7 @@ public class BlockHuskTest {
     }
 
     @Test
-    public void deserializeTransactionFromProtoTest() throws SignatureException {
+    public void deserializeTransactionFromProtoTest() {
         Proto.Block protoBlock = block.getInstance();
         BlockHusk deserializeBlock = new BlockHusk(protoBlock);
         assert block.getHash().equals(deserializeBlock.getHash());

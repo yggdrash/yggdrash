@@ -17,6 +17,7 @@
 package io.yggdrash.node.config;
 
 import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.PeerGroup;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -34,6 +35,11 @@ public class NodeConfiguration {
     @Autowired
     NodeConfiguration(NodeProperties nodeProperties) {
         this.nodeProperties = nodeProperties;
+    }
+
+    @Bean
+    BranchGroup branchGroup() {
+        return new BranchGroup();
     }
 
     @Bean

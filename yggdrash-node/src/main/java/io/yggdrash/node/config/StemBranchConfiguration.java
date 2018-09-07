@@ -16,13 +16,17 @@
 
 package io.yggdrash.node.config;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.contract.Contract;
 import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockChainLoader;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.Runtime;
 import io.yggdrash.core.store.BlockStore;
+import io.yggdrash.core.store.StateStore;
+import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
@@ -46,8 +50,10 @@ public class StemBranchConfiguration {
     BlockChain blockChain(BranchGroup branchGroup, BlockStore blockStore,
                           TransactionStore transactionStore,
                           @Qualifier("stemGenesis") BlockHusk genesisBlock,
-                          @Qualifier("stemContract") Contract contract) {
-        BlockChain branch = new BlockChain(genesisBlock, blockStore, transactionStore, contract);
+                          @Qualifier("stemContract") Contract<JsonObject> contract,
+                          @Qualifier("stemRuntime") Runtime<JsonObject> runtime) {
+        BlockChain branch = new BlockChain(genesisBlock, blockStore, transactionStore, contract,
+                runtime);
         branchGroup.addBranch(branch.getBranchId(), branch);
         return branch;
     }
@@ -58,8 +64,19 @@ public class StemBranchConfiguration {
     }
 
     @Bean(name = "stemContract")
-    Contract contract() {
+    Contract<JsonObject> contract() {
         return new StemContract();
+    }
+
+    @Bean(name = "stemRuntime")
+    Runtime<JsonObject> runTime(@Qualifier("stemTxReceiptStore")
+                            TransactionReceiptStore transactionReceiptStore) {
+        return new Runtime<>(new StateStore<>(), transactionReceiptStore);
+    }
+
+    @Bean("stemTxReceiptStore")
+    TransactionReceiptStore transactionReceiptStore() {
+        return new TransactionReceiptStore();
     }
 
     @Primary

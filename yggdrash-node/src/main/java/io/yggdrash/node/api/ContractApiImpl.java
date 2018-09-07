@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.contract.Contract;
-import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.Runtime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

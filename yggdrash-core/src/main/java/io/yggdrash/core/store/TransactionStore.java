@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.store;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.exception.NotValidateException;
@@ -28,7 +27,6 @@ import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;

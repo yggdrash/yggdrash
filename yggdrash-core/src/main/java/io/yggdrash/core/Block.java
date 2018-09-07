@@ -133,7 +133,7 @@ public class Block implements Cloneable {
     }
 
     public Proto.Block toProtoBlock() {
-        return this.toProtoBlock(this);
+        return toProtoBlock(this);
     }
 
     public static Proto.Block toProtoBlock(Block block) {
