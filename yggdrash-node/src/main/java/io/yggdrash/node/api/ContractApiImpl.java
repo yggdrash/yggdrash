@@ -3,6 +3,7 @@ package io.yggdrash.node.api;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
+import io.yggdrash.contract.Contract;
 import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.Runtime;
 import org.slf4j.Logger;
@@ -16,10 +17,12 @@ public class ContractApiImpl implements ContractApi {
 
     private static final Logger log = LoggerFactory.getLogger(ContractApiImpl.class);
     private final Runtime runtime;
+    private final Contract contract;
 
     @Autowired
-    public ContractApiImpl(Runtime runtime) {
+    public ContractApiImpl(Runtime runtime, Contract contract) {
         this.runtime = runtime;
+        this.contract = contract;
     }
 
     @Override
@@ -27,6 +30,6 @@ public class ContractApiImpl implements ContractApi {
         log.debug("[ContractAPI | data]" + data);
         JsonParser jsonParser = new JsonParser();
         JsonObject query = (JsonObject) jsonParser.parse(data);
-        return runtime.query(new StemContract(), query).toString();
+        return runtime.query(contract, query).toString();
     }
 }
