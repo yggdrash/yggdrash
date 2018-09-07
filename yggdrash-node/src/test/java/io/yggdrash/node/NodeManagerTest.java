@@ -18,15 +18,11 @@ package io.yggdrash.node;
 
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.BlockHuskBuilder;
 import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.Runtime;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.FileUtil;
@@ -62,8 +58,7 @@ public class NodeManagerTest {
         this.nodeManager = new GRpcNodeServer();
         this.nodeProperties = new NodeProperties();
         this.peerGroup = new PeerGroup(nodeProperties.getMaxPeers());
-        Runtime runtime = new Runtime(new StateStore(), new TransactionReceiptStore());
-        this.branchGroup = new BranchGroup(runtime);
+        this.branchGroup = new BranchGroup();
         BlockChain blockChain = new BlockChain(
                 new File(getClass().getClassLoader()
                         .getResource("branch-yeed.json").getFile()));

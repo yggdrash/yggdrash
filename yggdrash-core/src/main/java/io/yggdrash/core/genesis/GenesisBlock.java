@@ -11,7 +11,6 @@ import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.SignatureException;
 import java.util.Scanner;
 
 public class GenesisBlock {

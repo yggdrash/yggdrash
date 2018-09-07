@@ -1,6 +1,5 @@
 package io.yggdrash.node.api;
 
-import com.google.common.primitives.Longs;
 import com.google.protobuf.ByteString;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.BlockHusk;

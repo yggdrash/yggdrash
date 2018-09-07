@@ -25,7 +25,7 @@ public class StemContractTest {
 
     @Before
     public void setUp() throws Exception {
-        StateStore<JsonObject> stateStore = new StateStore<JsonObject>();
+        StateStore<JsonObject> stateStore = new StateStore<>();
         TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
         wallet = new Wallet();
         stemContract = new StemContract();

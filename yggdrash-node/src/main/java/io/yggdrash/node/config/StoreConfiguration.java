@@ -16,11 +16,7 @@
 
 package io.yggdrash.node.config;
 
-import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.Runtime;
 import io.yggdrash.core.store.BlockStore;
-import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
@@ -31,26 +27,6 @@ import org.springframework.context.annotation.Profile;
 
 @Configuration
 public class StoreConfiguration {
-
-    @Bean
-    BranchGroup branchGroup(Runtime runtime) {
-        return new BranchGroup(runtime);
-    }
-
-    @Bean
-    Runtime runTime(StateStore stateStore, TransactionReceiptStore transactionReceiptStore) {
-        return new Runtime(stateStore, transactionReceiptStore);
-    }
-
-    @Bean
-    StateStore stateStore() {
-        return new StateStore();
-    }
-
-    @Bean
-    TransactionReceiptStore transactionReceiptStore() {
-        return new TransactionReceiptStore();
-    }
 
     @Bean
     BlockStore blockStore(@Qualifier("blockDbSource") DbSource source) {

@@ -45,7 +45,7 @@ public class TransactionHuskTest {
         transactionHusk.sign(wallet);
 
         Assertions.assertThat(transactionHusk.isSigned()).isTrue();
-        Assertions.assertThat(transactionHusk.verify());
+        Assertions.assertThat(transactionHusk.verify()).isTrue();
     }
 
     @Test
