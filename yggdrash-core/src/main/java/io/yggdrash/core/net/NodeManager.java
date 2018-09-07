@@ -23,10 +23,6 @@ public interface NodeManager extends PeerEventListener {
 
     String getNodeUri();
 
-    void setMaxPeers(int maxPeers);
-
-    void addPeer(String peer);
-
     Wallet getWallet();
 
     void generateBlock();

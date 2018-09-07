@@ -67,7 +67,7 @@ public class PeerControllerTest {
     @Test
     public void shouldGetPeers() throws Exception {
         requestPeerPost(new PeerDto("ynode://75bff16c@127.0.0.1:9090"));
-        requestPeerPost(new PeerDto("ynode://75bff16c@30.30.30.30:9090"));
+        requestPeerPost(new PeerDto("ynode://65bff16c@127.0.0.1:9090"));
 
         mockMvc
                 .perform(

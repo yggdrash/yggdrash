@@ -22,7 +22,6 @@ import io.grpc.testing.GrpcServerRule;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.net.NodeManager;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
@@ -53,8 +52,6 @@ public class GRpcNodeServerTest {
     @Rule
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
     @Mock
-    private NodeManager nodeManagerMock;
-    @Mock
     private PeerGroup peerGroupMock;
     @Mock
     private BranchGroup branchGroupMock;
@@ -66,7 +63,7 @@ public class GRpcNodeServerTest {
     public void setUp() {
         grpcServerRule.getServiceRegistry().addService(new GRpcNodeServer.PingPongImpl());
         grpcServerRule.getServiceRegistry().addService(
-                new GRpcNodeServer.BlockChainImpl(nodeManagerMock, peerGroupMock, branchGroupMock));
+                new GRpcNodeServer.BlockChainImpl(peerGroupMock, branchGroupMock));
 
         this.tx = TestUtils.createTxHusk();
         when(branchGroupMock.addTransaction(any())).thenReturn(tx);
