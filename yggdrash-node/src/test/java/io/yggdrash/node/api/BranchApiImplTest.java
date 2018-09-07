@@ -2,11 +2,8 @@ package io.yggdrash.node.api;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.core.Runtime;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.node.TestUtils;
 import io.yggdrash.node.controller.TransactionDto;
 import org.junit.BeforeClass;
@@ -14,17 +11,12 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BranchApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(BranchApiImplTest.class);
-    private static final BranchApi branchApi = new JsonRpcConfig().branchApi();
-    private static final Runtime runtime =
-            new Runtime(new StateStore(), new TransactionReceiptStore());
-    private static final Map<String, JsonObject> branchStoreMock = new HashMap<>();
+    private static final ContractApi contractApi = new JsonRpcConfig().contractApi();
+    private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
     private static Wallet wallet;
     private static JsonObject branch;
     private static String branchId;
@@ -36,8 +28,13 @@ public class BranchApiImplTest {
     }
 
     @Test
-    public void branchApiIsNotNull() {
-        assertThat(branchApi).isNotNull();
+    public void contractApiIsNotNull() {
+        assertThat(contractApi).isNotNull();
+    }
+
+    @Test
+    public void TransactionApiIsNotNull() {
+        assertThat(txApi).isNotNull();
     }
 
     private static void create() {
@@ -55,8 +52,7 @@ public class BranchApiImplTest {
             txObj.add("params", params);
 
             TransactionHusk tx = new TransactionHusk(TestUtils.sampleTxObject(wallet, txObj));
-            System.out.println("tx : " + tx);
-            branchApi.createBranch(TransactionDto.createBy(tx));
+            txApi.sendTransaction(TransactionDto.createBy(tx));
             Thread.sleep(10000);
         } catch (Exception e) {
              e.printStackTrace();
@@ -82,7 +78,7 @@ public class BranchApiImplTest {
             txObj.add("params", params);
 
             TransactionHusk tx =  new TransactionHusk(TestUtils.sampleTxObject(wallet, txObj));
-            branchApi.updateBranch(TransactionDto.createBy(tx));
+            txApi.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -98,7 +94,7 @@ public class BranchApiImplTest {
             params.add(param);
 
             JsonObject queryObj = TestUtils.createQuery("search", params);
-            branchApi.searchBranch(queryObj.toString());
+            contractApi.query(queryObj.toString());
 
             params.remove(0);
             param.addProperty("key", "name");
@@ -106,7 +102,7 @@ public class BranchApiImplTest {
             params.add(param);
 
             queryObj = TestUtils.createQuery("search", params);
-            branchApi.searchBranch(queryObj.toString());
+            contractApi.query(queryObj.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -121,7 +117,7 @@ public class BranchApiImplTest {
             params.add(param);
 
             JsonObject queryObj = TestUtils.createQuery("view", params);
-            branchApi.viewBranch(queryObj.toString());
+            contractApi.query(queryObj.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -136,7 +132,7 @@ public class BranchApiImplTest {
             params.add(param);
 
             JsonObject queryObj = TestUtils.createQuery("getcurrentversion", params);
-            branchApi.getCurrentVersionOfBranch(queryObj.toString());
+            contractApi.query(queryObj.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -151,7 +147,7 @@ public class BranchApiImplTest {
             params.add(param);
 
             JsonObject queryObj = TestUtils.createQuery("getversionhistory", params);
-            branchApi.getVersionHistoryOfBranch(queryObj.toString());
+            contractApi.query(queryObj.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
