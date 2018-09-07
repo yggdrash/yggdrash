@@ -18,19 +18,25 @@ package io.yggdrash.core;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.contract.GenesisFrontierParam;
 
 import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BranchInfo {
-    public String type;
+    public String chain;
     public String version;
-    public String timestamp;
+    public String type;
     public String prevBlockHash;
+    public String index;
+    public String timestamp;
     public String merkleRoot;
-    public String dataSize;
+    public String bodyLength;
     public String signature;
-    public List<BranchData> data;
+    public List<BranchData> body;
+
+    public BranchInfo() {
+    }
 
     public BranchId getBranchId() {
         return new BranchId(new Sha3Hash(toString().getBytes()));
@@ -39,24 +45,28 @@ public class BranchInfo {
     @Override
     public String toString() {
         return "BranchInfo{"
-                + "type='" + type + '\''
+                + "chain='" + chain + '\''
                 + ", version='" + version + '\''
+                + ", type='" + type + '\''
                 + ", prevBlockHash='" + prevBlockHash + '\''
-                + ", merkleRoot='" + merkleRoot + '\''
+                + ", index='" + index + '\''
                 + ", timestamp='" + timestamp + '\''
-                + ", dataSize='" + dataSize + '\''
+                + ", merkleRoot='" + merkleRoot + '\''
+                + ", bodyLength='" + bodyLength + '\''
                 + ", signature='" + signature + '\''
-                + ", data='" + data + '\''
+                + ", body='" + body + '\''
                 + '}';
     }
 
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class BranchData {
-        public String type;
+        public String chain;
         public String version;
-        public String dataHash;
+        public String type;
         public String timestamp;
-        public String dataSize;
+        public String bodyHash;
+        public String bodyLength;
         public String signature;
-        public String data;
+        public GenesisFrontierParam body;
     }
 }

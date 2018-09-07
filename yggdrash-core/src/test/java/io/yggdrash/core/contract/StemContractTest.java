@@ -128,7 +128,8 @@ public class StemContractTest {
     public void viewTest() {
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.addProperty("branchId", "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523");
+        param.addProperty("branchId",
+                "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523");
         params.add(param);
 
         log.debug(stemContract.getcurrentversion(params));
@@ -149,7 +150,8 @@ public class StemContractTest {
     public void getCurrentVersionTest() {
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.addProperty("branchId", "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523");
+        param.addProperty("branchId",
+                "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523");
         params.add(param);
 
         log.debug(stemContract.getcurrentversion(params));
@@ -160,7 +162,8 @@ public class StemContractTest {
     public void getVersionHistoryTest() {
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.addProperty("branchId", "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523");
+        param.addProperty("branchId",
+                "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523");
         params.add(param);
 
         log.debug(stemContract.getversionhistory(params).getAsString());
@@ -195,9 +198,11 @@ public class StemContractTest {
         return branch;
     }
 
-    private JsonObject updateBranch(String description, String version, JsonObject branch, Integer checkSum) {
+    private JsonObject updateBranch(
+            String description, String version, JsonObject branch, Integer checkSum) {
         JsonObject updatedBranch = new JsonObject();
-        updatedBranch.addProperty("name", checkSum == 0 ? branch.get("name").getAsString() : "HELLO");
+        updatedBranch.addProperty(
+                "name", checkSum == 0 ? branch.get("name").getAsString() : "HELLO");
         updatedBranch.addProperty("owner", branch.get("owner").getAsString());
         updatedBranch.addProperty("symbol", branch.get("symbol").getAsString());
         updatedBranch.addProperty("property", branch.get("property").getAsString());
@@ -207,7 +212,8 @@ public class StemContractTest {
         updatedBranch.addProperty("tag", branch.get("tag").getAsFloat());
         updatedBranch.addProperty("version", version);
         updatedBranch.add("versionHistory", branch.get("versionHistory").getAsJsonArray());
-        updatedBranch.addProperty("reference_address", branch.get("reference_address").getAsString());
+        updatedBranch.addProperty(
+                "reference_address", branch.get("reference_address").getAsString());
         updatedBranch.addProperty("reserve_address", branch.get("reserve_address").getAsString());
 
         return updatedBranch;

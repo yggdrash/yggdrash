@@ -1,8 +1,10 @@
 package io.yggdrash.trie;
 
+import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.crypto.HashUtil;
 
+import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
@@ -21,7 +23,7 @@ public class Trie {
      * @return byte[32] - merkle root value <br>
      * null - if txs is null or txs.size is smaller than 1
      */
-    public static byte[] getMerkleRoot(List<TransactionHusk> txs) {
+    public static byte[] getMerkleRootHusk(List<TransactionHusk> txs) {
 
         if (txs == null || txs.size() < 1) {
             return null;
@@ -44,7 +46,40 @@ public class Trie {
             levelOffset += levelSize;
         }
 
-        return HashUtil.sha256(tree.get(tree.size() - 1));
+        return HashUtil.sha3(tree.get(tree.size() - 1));
+    }
+
+    /**
+     * Get merkle root vaule.
+     *
+     * @param txs Transaction list
+     * @return merkle root value (byte[32]) <br>
+     * null - if txs is null or txs.size is smaller than 1
+     */
+    public static byte[] getMerkleRoot(List<Transaction> txs) throws IOException {
+
+        if (txs == null || txs.size() < 1) {
+            return null;
+        }
+
+        ArrayList<byte[]> tree = new ArrayList<>();
+        for (Transaction tx : txs) {
+            tree.add(tx.getHash());
+        }
+
+        int levelOffset = 0;
+        for (int levelSize = txs.size(); levelSize > 1; levelSize = (levelSize + 1) / 2) {
+
+            for (int left = 0; left < levelSize; left += 2) {
+                int right = Math.min(left + 1, levelSize - 1);
+                byte[] leftBytes = reverseBytes(tree.get(levelOffset + left));
+                byte[] rightBytes = reverseBytes(tree.get(levelOffset + right));
+                tree.add(reverseBytes(hashTwice(leftBytes, 0, 32, rightBytes, 0, 32)));
+            }
+            levelOffset += levelSize;
+        }
+
+        return HashUtil.sha3(tree.get(tree.size() - 1));
     }
 
     private static byte[] reverseBytes(byte[] bytes) {

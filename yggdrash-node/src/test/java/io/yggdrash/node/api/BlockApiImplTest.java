@@ -82,7 +82,7 @@ public class BlockApiImplTest {
         // Receive Transaction
         BlockDto resDto = mapper.readValue(jsonStr, BlockDto.class);
 
-        assertEquals(Hex.toHexString(block.getInstance().getHeader().getSignature().toByteArray()),
+        assertEquals(Hex.toHexString(block.getInstance().getSignature().toByteArray()),
                 resDto.getSignature());
     }
 

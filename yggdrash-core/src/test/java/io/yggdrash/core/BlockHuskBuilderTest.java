@@ -24,6 +24,7 @@ public class BlockHuskBuilderTest {
     byte[] type = ByteBuffer.allocate(4).putInt(BlockHuskBuilder.DEFAULT_TYPE).array();
     byte[] version = ByteBuffer.allocate(4).putInt(BlockHuskBuilder.DEFAULT_VERSION).array();
 
+    /*
     @Before
     public void setUp() throws Exception {
         this.wallet = new Wallet();
@@ -42,7 +43,8 @@ public class BlockHuskBuilderTest {
                 BlockHuskBuilder.buildUnSigned(wallet, Collections.singletonList(newTx), genesis);
 
         assertArrayEquals(genesis.getHash().getBytes(), block1.getPrevHash().getBytes());
-        BlockHusk block2 = BlockHuskBuilder.buildSigned(wallet, Collections.singletonList(newTx), block1);
+        BlockHusk block2 = BlockHuskBuilder.buildSigned(
+                wallet, Collections.singletonList(newTx), block1);
 
         assertArrayEquals(block2.getAddress().getBytes(), wallet.getAddress());
     }
@@ -103,4 +105,5 @@ public class BlockHuskBuilderTest {
         data.add("params", params);
         return TestUtils.createTxHuskByJson(data);
     }
+    */
 }

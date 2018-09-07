@@ -26,7 +26,8 @@ public abstract class BaseContract<T> implements Contract<T> {
     public boolean invoke(TransactionHusk txHusk) throws Exception {
         String data = txHusk.getBody();
         JsonParser jsonParser = new JsonParser();
-        JsonObject txBody = (JsonObject) jsonParser.parse(data);
+        JsonArray txBodyArray = (JsonArray) jsonParser.parse(data);
+        JsonObject txBody = txBodyArray.get(0).getAsJsonObject();
         String method = txBody.get("method").getAsString().toLowerCase();
         this.sender = txHusk.getAddress().toString();
         JsonArray params = txBody.get("params").getAsJsonArray();
