@@ -1,19 +1,14 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.util.ByteUtil;
-import io.yggdrash.util.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.Serializable;
-import java.security.SignatureException;
 
 public class TransactionHeader implements Cloneable {
 

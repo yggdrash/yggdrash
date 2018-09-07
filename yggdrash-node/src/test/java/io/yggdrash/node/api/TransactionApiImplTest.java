@@ -2,8 +2,6 @@ package io.yggdrash.node.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Longs;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.node.TestUtils;

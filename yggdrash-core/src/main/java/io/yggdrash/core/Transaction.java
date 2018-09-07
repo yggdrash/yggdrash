@@ -214,7 +214,7 @@ public class Transaction implements Cloneable {
     }
 
     public Proto.Transaction toProtoTransaction() {
-        return this.toProtoTransaction(this);
+        return toProtoTransaction(this);
     }
 
     public static Proto.Transaction toProtoTransaction(Transaction tx) {

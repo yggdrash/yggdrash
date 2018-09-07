@@ -18,7 +18,6 @@ package io.yggdrash.node;
 
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.BlockHuskBuilder;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
