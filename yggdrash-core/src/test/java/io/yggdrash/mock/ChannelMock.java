@@ -1,5 +1,6 @@
 package io.yggdrash.mock;
 
+import io.yggdrash.TestUtils;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.proto.Pong;
@@ -7,6 +8,7 @@ import io.yggdrash.proto.Proto;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class ChannelMock implements PeerClientChannel {
     private final Peer peer;
@@ -35,12 +37,13 @@ public class ChannelMock implements PeerClientChannel {
 
     @Override
     public List<Proto.Block> syncBlock(long offset) {
-        return Collections.singletonList(Proto.Block.getDefaultInstance());
+        return Collections.singletonList(TestUtils.sampleBlock().toProtoBlock());
     }
 
     @Override
     public List<Proto.Transaction> syncTransaction() {
-        return Collections.singletonList(Proto.Transaction.getDefaultInstance());
+        return Collections.singletonList(
+                Objects.requireNonNull(TestUtils.sampleTx()).toProtoTransaction());
     }
 
     @Override

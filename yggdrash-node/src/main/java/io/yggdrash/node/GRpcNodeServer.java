@@ -33,6 +33,7 @@ import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.util.ByteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -342,7 +343,8 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             return new StreamObserver<Proto.Block>() {
                 @Override
                 public void onNext(Proto.Block protoBlock) {
-                    long id = protoBlock.getHeader().getRawData().getIndex();
+                    long id = ByteUtil.byteArrayToLong(
+                            protoBlock.getHeader().getIndex().toByteArray());
                     BlockHusk block = new BlockHusk(protoBlock);
                     log.debug("Received block id=[{}], hash={}", id, block.getHash());
                     BlockHusk newBlock = branchGroup.addBlock(block);

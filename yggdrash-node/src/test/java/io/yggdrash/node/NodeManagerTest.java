@@ -78,9 +78,9 @@ public class NodeManagerTest {
         assert nodeManager.getNodeUri() != null;
 
         this.tx = TestUtils.createTxHusk(nodeManager.getWallet());
-        this.firstBlock = BlockHuskBuilder.buildUnSigned(nodeManager.getWallet(),
+        this.firstBlock = new BlockHusk(nodeManager.getWallet(),
                 Collections.singletonList(tx), branchGroup.getBlockByIndexOrHash("0"));
-        this.secondBlock = BlockHuskBuilder.buildSigned(nodeManager.getWallet(),
+        this.secondBlock = new BlockHusk(nodeManager.getWallet(),
                 Collections.singletonList(tx), firstBlock);
     }
 
@@ -99,7 +99,7 @@ public class NodeManagerTest {
 
     @Test(expected = InvalidSignatureException.class)
     public void unsignedTxTest() {
-        branchGroup.addTransaction(new TransactionHusk(TestUtils.getTransactionFixture()));
+        branchGroup.addTransaction(TestUtils.createUnsignedTxHusk());
     }
 
     @Test

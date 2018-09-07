@@ -29,12 +29,13 @@ public class BlockHuskBuilder {
     public static final int DEFAULT_TYPE = 1;
     public static final int DEFAULT_VERSION = 1;
 
-
+/*
     public static BlockHusk buildSigned(Wallet wallet, List<TransactionHusk> body,
                                           BlockHusk prevBlock) {
         return buildUnSigned(wallet, body, prevBlock).sign(wallet);
     }
-
+*/
+/*
     public static BlockHusk buildUnSigned(Wallet wallet, List<TransactionHusk> body,
                                           BlockHusk prevBlock) {
 
@@ -51,7 +52,8 @@ public class BlockHuskBuilder {
 
         return buildUnSigned(wallet, raw, body);
     }
-
+*/
+/*
     public static BlockHusk buildUnSigned(Wallet wallet, Proto.Block.Header.Raw raw,
                                           List<TransactionHusk> body) {
 
@@ -77,4 +79,5 @@ public class BlockHuskBuilder {
         builder.setHeader(Proto.Block.Header.newBuilder().setRawData(updatedRaw).build());
         return new BlockHusk(builder.build()).sign(wallet);
     }
+*/
 }

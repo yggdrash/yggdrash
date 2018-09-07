@@ -31,7 +31,7 @@ public class NodeSyncDemoClient {
         GRpcClientChannel client =
                 new GRpcClientChannel(Peer.valueOf("ynode://75bff16c@127.0.0.1:9090"));
         client.ping("Ping");
-        client.broadcastTransaction(TestUtils.getTransactionFixtures());
+        client.broadcastTransaction(TestUtils.sampleTxs());
         client.blockUtilShutdown();
     }
 }

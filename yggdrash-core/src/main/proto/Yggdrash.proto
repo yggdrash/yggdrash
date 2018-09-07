@@ -13,35 +13,31 @@ message TransactionList {
 
 message Block {
     message Header {
-        message Raw {
-            bytes type = 1;
-            bytes version = 2; // Version indicates message protocol version
-            uint64 index = 3; // The index in the blockchain
-            uint64 timestamp = 4; // google.protobuf.Timestamp timestamp ?
-            bytes prevBlockHash = 5; // The hash of the previous block header
-            bytes author = 6; // The name of the miner
-            bytes merkleRoot = 7; // The hash of the BlockBody, by MerkleTree
-            uint64 dataSize = 8;
-        }
-        Raw rawData = 1;
-        bytes signature = 2;
+        bytes chain = 1;
+        bytes version = 2;          // Version indicates message protocol version
+        bytes type = 3;
+        bytes prevBlockHash = 4;    // The hash of the previous block header
+        bytes index = 5;            // The index in the blockchain
+        bytes timestamp = 6;        // google.protobuf.Timestamp timestamp ?
+        bytes merkleRoot = 7;       // The hash of the BlockBody, by MerkleTree
+        bytes bodyLength = 8;
     }
+
     Header header = 1;
-    repeated Transaction body = 2; // A collection of txns
+    bytes signature = 2;
+    TransactionList body = 3;
 }
 
 message Transaction {
     message Header {
-        message Raw {
-            bytes type = 1;
-            bytes version = 2;
-            bytes dataHash = 3;
-            uint64 timestamp = 4;
-            uint64 dataSize = 5;
-        }
-        Raw rawData = 1;
-        bytes signature = 2;
+        bytes chain = 1;
+        bytes version = 2;
+        bytes type = 3;
+        bytes timestamp = 4;
+        bytes bodyHash = 5;
+        bytes bodyLength = 6;
     }
     Header header = 1;
-    string body = 2;
+    bytes signature = 2;
+    bytes body = 3;
 }

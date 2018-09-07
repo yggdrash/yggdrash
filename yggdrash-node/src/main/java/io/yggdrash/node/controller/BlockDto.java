@@ -18,23 +18,34 @@ package io.yggdrash.node.controller;
 
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.util.ByteUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class BlockDto {
-    private byte[] type;
+
+    private byte[] chain;
     private byte[] version;
+    private byte[] type;
+    private byte[] prevBlockHash;
     private long index;
     private long timestamp;
-    private byte[] prevBlockHash;
-    private String author;
     private byte[] merkleRoot;
-    private long dataSize;
+    private long bodyLength;
     private byte[] signature;
     private List<TransactionDto> body;
+    private String author;
     private byte[] hash;
+
+    public String getChain() {
+        return Hex.toHexString(chain);
+    }
+
+    public void setChain(byte[] chain) {
+        this.chain = chain;
+    }
 
     public String getType() {
         return Hex.toHexString(type);
@@ -108,12 +119,12 @@ public class BlockDto {
         this.merkleRoot = Hex.decode(merkleRoot);
     }
 
-    public long getDataSize() {
-        return dataSize;
+    public long getBodyLength() {
+        return bodyLength;
     }
 
-    public void setDataSize(long dataSize) {
-        this.dataSize = dataSize;
+    public void setbodyLength(long bodyLength) {
+        this.bodyLength = bodyLength;
     }
 
     public String getSignature() {
@@ -150,18 +161,19 @@ public class BlockDto {
 
     public static BlockDto createBy(BlockHusk block) {
         BlockDto blockDto = new BlockDto();
-        Proto.Block.Header.Raw raw = block.getInstance().getHeader().getRawData();
-        blockDto.setType(raw.getType().toByteArray());
-        blockDto.setVersion(raw.getVersion().toByteArray());
-        blockDto.setIndex(block.getIndex());
-        blockDto.setTimestamp(raw.getTimestamp());
+        Proto.Block.Header header = block.getInstance().getHeader();
+        blockDto.setChain(header.getChain().toByteArray());
+        blockDto.setVersion(header.getVersion().toByteArray());
+        blockDto.setType(header.getType().toByteArray());
         blockDto.setPrevBlockHash(block.getPrevHash().getBytes());
-        blockDto.setAuthor(block.getAddress().toString());
-        blockDto.setMerkleRoot(raw.getMerkleRoot().toByteArray());
-        blockDto.setDataSize(raw.getDataSize());
-        blockDto.setSignature(block.getInstance().getHeader().getSignature().toByteArray());
+        blockDto.setIndex(block.getIndex());
+        blockDto.setTimestamp(ByteUtil.byteArrayToLong(header.getTimestamp().toByteArray()));
+        blockDto.setMerkleRoot(header.getMerkleRoot().toByteArray());
+        blockDto.setbodyLength(ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray()));
+        blockDto.setSignature(block.getInstance().getSignature().toByteArray());
         blockDto.setBody(block.getBody().stream().map(TransactionDto::createBy)
                 .collect(Collectors.toList()));
+        blockDto.setAuthor(block.getAddress().toString());
         blockDto.setHash(block.getHash().getBytes());
         return blockDto;
     }
