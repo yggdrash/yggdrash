@@ -29,4 +29,7 @@ public class Runtime<T> {
         return this.stateStore;
     }
 
+    public TransactionReceiptStore getTransactionReceiptStore() {
+        return this.txReceiptStore;
+    }
 }
