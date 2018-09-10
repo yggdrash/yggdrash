@@ -88,6 +88,10 @@ public class BranchGroup {
         }
     }
 
+    public int getBranchSize() {
+        return branches.size();
+    }
+
     public StateStore<?> getStateStore() {
         return chain.getRuntime().getStateStore();
     }

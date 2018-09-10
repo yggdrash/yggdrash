@@ -25,7 +25,6 @@ import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.node.config.NodeProperties;
 import io.yggdrash.util.ByteUtil;
-import io.yggdrash.util.FileUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -34,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.Collections;
 
 import static org.hamcrest.Matchers.equalTo;
@@ -81,8 +79,7 @@ public class NodeManagerTest {
 
     @After
     public void tearDown() {
-        //TODO 테스트 설정 파일에서 DB 부분 제거
-        FileUtil.recursiveDelete(Paths.get(".yggdrash/db"));
+        TestUtils.clearTestDb();
     }
 
     @Test

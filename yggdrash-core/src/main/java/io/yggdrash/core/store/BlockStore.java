@@ -47,6 +47,7 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
 
     public BlockStore(String branchId) {
         this.db = new LevelDbDataSource(branchId + "/blocks").init();
+        indexing();
     }
 
     private void indexing() {
