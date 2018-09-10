@@ -36,13 +36,17 @@ public class GenesisBlock {
         String transactionFileName = defaultConfig.getConfig().getString("genesis.config");
         JsonObject genesisObject = getJsonObjectFromFile(transactionFileName);
 
-//        String frontierFileName = defaultConfig.getConfig().getString("genesis.frontier");
-//        JsonObject frontierObject = getJsonObjectFromFile(frontierFileName);
-//        genesisObject.add("frontier", frontierObject.get("frontier"));
+        String frontierFileName = defaultConfig.getConfig().getString("genesis.frontier");
+        JsonObject frontierObject = getJsonObjectFromFile(frontierFileName);
+        genesisObject.add("frontier", frontierObject.get("frontier"));
 
-//        String nodeListFileName = defaultConfig.getConfig().getString("genesis.nodeList");
-//        JsonObject nodeListObject = getJsonObjectFromFile(nodeListFileName);
-//        genesisObject.add("nodeList", nodeListObject.get("nodeList"));
+        String delegatorListFileName = defaultConfig.getConfig().getString("genesis.delegator");
+        JsonObject delegatorListObject = getJsonObjectFromFile(delegatorListFileName);
+        genesisObject.add("delegator", delegatorListObject.get("delegator"));
+
+        String nodeListFileName = defaultConfig.getConfig().getString("genesis.node");
+        JsonObject nodeListObject = getJsonObjectFromFile(nodeListFileName);
+        genesisObject.add("node", nodeListObject.get("node"));
 
         JsonArray jsonArrayTxBody = new JsonArray();
         jsonArrayTxBody.add(genesisObject);
