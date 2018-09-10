@@ -34,7 +34,7 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
     private static final Logger logger = LoggerFactory.getLogger(BlockStore.class);
 
     private DbSource<byte[], byte[]> db;
-    private Map<Long, byte[]> index = new HashMap<>();
+    private Map<Long, Sha3Hash> index = new HashMap<>();
 
     public BlockStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
@@ -55,7 +55,7 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
             List<byte[]> dataList = db.getAll();
             for (byte[] data : dataList) {
                 BlockHusk block = new BlockHusk(data);
-                index.put(block.getIndex(), data);
+                index.put(block.getIndex(), block.getHash());
             }
         } catch (Exception e) {
             throw new NotValidateException(e);
@@ -65,7 +65,7 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
     @Override
     public void put(Sha3Hash key, BlockHusk value) {
         db.put(key.getBytes(), value.getData());
-        index.put(value.getIndex(), key.getBytes());
+        index.put(value.getIndex(), key);
     }
 
     @Override
@@ -82,13 +82,7 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
         if (!index.containsKey(idx)) {
             return null;
         }
-        byte[] foundValue = db.get(index.get(idx));
-
-        if (foundValue != null) {
-            return new BlockHusk(foundValue);
-        }
-
-        throw new NonExistObjectException("Not Found [" + idx + "]");
+        return get(index.get(idx));
     }
 
     @Override
@@ -97,7 +91,7 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
     }
 
     public long size() {
-        return this.db.count();
+        return index.size();
     }
 
     public void close() {
