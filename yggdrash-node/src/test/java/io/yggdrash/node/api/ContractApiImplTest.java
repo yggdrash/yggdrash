@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class BranchApiImplTest {
-    private static final Logger log = LoggerFactory.getLogger(BranchApiImplTest.class);
+public class ContractApiImplTest {
+    private static final Logger log = LoggerFactory.getLogger(ContractApiImplTest.class);
     private static final ContractApi contractApi = new JsonRpcConfig().contractApi();
     private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
     private static Wallet wallet;

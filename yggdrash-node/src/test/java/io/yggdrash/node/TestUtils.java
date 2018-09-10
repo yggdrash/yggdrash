@@ -316,7 +316,7 @@ public class TestUtils {
         JsonObject branch = new JsonObject();
         branch.addProperty("name", name);
         //branch.addProperty("owner", wallet.getHexAddress());
-        branch.addProperty("owner", "9e187f5264037ab77c87fcffcecd943702cd72c3");
+        branch.addProperty("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
         branch.addProperty("symbol", symbol);
         branch.addProperty("property", property);
         branch.addProperty("type", type);

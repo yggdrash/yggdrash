@@ -41,6 +41,7 @@ public class StemContract extends BaseContract<JsonObject> {
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.put("branchId", branchId);
         txReceipt.put("branch", branch);
+        txReceipt.setStatus(0);
 
         log.info("[StemContract | create] (param) branch => " + branch);
         // 1. The type of the branch must be one of types.
@@ -49,14 +50,16 @@ public class StemContract extends BaseContract<JsonObject> {
 
         String refAddress = branch.get("reference_address").getAsString();
         String type = branch.get("type").getAsString();
-
-        if (verify(refAddress, type)) {
-            if (isBranchIdValid(branchId, branch)) {
-                state.put(branchId, branch);
-                setSubState(branchId, branch);
-                log.info("[StemContract | create] SUCCESS! branchId => " + branchId);
-                txReceipt.setStatus(1);
-                //return branchId;
+        String owner = branch.get("owner").getAsString();
+        if (isOwnerValid(owner)) {
+            if (verify(refAddress, type)) {
+                if (isBranchIdValid(branchId, branch)) {
+                    state.put(branchId, branch);
+                    setSubState(branchId, branch);
+                    log.info("[StemContract | create] SUCCESS! branchId => " + branchId);
+                    txReceipt.setStatus(1);
+                    //return branchId;
+                }
             }
         }
         //return null;
@@ -76,16 +79,20 @@ public class StemContract extends BaseContract<JsonObject> {
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.put("branchId", branchId);
         txReceipt.put("branch", branch);
-
-        if (isBranchIdValid(branchId, branch)) {
-            if (isVersionHistoryUpdated(branchId, branch)) {
-                log.info("[StemContract | update] branchId => " + branchId);
-                log.info("[StemContract | update] branch => " + branch);
+        txReceipt.setStatus(0);
+        
+        String owner = branch.get("owner").getAsString();
+        if (isOwnerValid(owner)) {
+            if (isBranchIdValid(branchId, branch)) {
+                if (isVersionHistoryUpdated(branchId, branch)) {
+                    log.info("[StemContract | update] branchId => " + branchId);
+                    log.info("[StemContract | update] branch => " + branch);
+                    state.replace(branchId, branch);
+                    txReceipt.setStatus(1);
+                    //return branchId;
+                }
                 state.replace(branchId, branch);
-                txReceipt.setStatus(1);
-                //return branchId;
             }
-            state.replace(branchId, branch);
         }
         //return null;
         return txReceipt;
@@ -100,7 +107,6 @@ public class StemContract extends BaseContract<JsonObject> {
     public Set<Object> search(JsonArray params) {
         String subStateKey = params.get(0).getAsJsonObject().get("key").getAsString();
         String key = params.get(0).getAsJsonObject().get("value").getAsString();
-        List<String> branchList = new ArrayList<>();
 
         if (state.getSubState(subStateKey).get(key) != null) {
             return state.getSubState(subStateKey).get(key);
@@ -172,7 +178,7 @@ public class StemContract extends BaseContract<JsonObject> {
     }
 
     private boolean isOwnerValid(String owner) {
-        return false;
+        return this.sender.equals(owner);
     }
 
     private boolean isRefAddressValid(String key) {
