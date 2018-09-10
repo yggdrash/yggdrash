@@ -94,33 +94,33 @@ public class BlockChainLoader {
 //                .build());
 //    }
 
-    private Proto.TransactionList convertTransaction(List<ChainInfo.ChainBody> chainBodyList) throws
-            JsonProcessingException {
-
-        Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
-        Proto.Transaction.Builder txBuilder = Proto.Transaction.newBuilder();
-        Proto.Transaction.Header.Builder txHeaderBuilder = Proto.Transaction.Header.newBuilder();
-
-        for (ChainInfo.ChainBody chainBody : chainBodyList) {
-            builder.addTransactions(txBuilder
-                    .setHeader(txHeaderBuilder
-                            .setChain(ByteString.copyFrom(Hex.decode(chainBody.chain)))
-                            .setVersion(ByteString.copyFrom(Hex.decode(chainBody.version)))
-                            .setType(ByteString.copyFrom(Hex.decode(chainBody.type)))
-                            .setTimestamp(ByteString.copyFrom(
-                                    ByteUtil.longToBytes(Long.parseLong(chainBody.timestamp))))
-                            .setBodyHash(ByteString.copyFrom(Hex.decode(chainBody.bodyHash)))
-                            .setBodyLength(ByteString.copyFrom(
-                                    ByteUtil.longToBytes(Long.parseLong(chainBody.bodyLength))))
-                            .build())
-                    .setSignature(ByteString.copyFrom(Hex.decode(chainBody.signature)))
-                    .setBody(ByteString.copyFrom(
-                            ("[" + mapper.writeValueAsString(chainBody.body) + "]")
-                                    .getBytes())).build() // todo: modify
-            );
-        }
-
-        return builder.build();
-
-    }
+//    private Proto.TransactionList convertTransaction(List<ChainInfo.ChainBody> chainBodyList) throws
+//            JsonProcessingException {
+//
+//        Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
+//        Proto.Transaction.Builder txBuilder = Proto.Transaction.newBuilder();
+//        Proto.Transaction.Header.Builder txHeaderBuilder = Proto.Transaction.Header.newBuilder();
+//
+//        for (ChainInfo.ChainBody chainBody : chainBodyList) {
+//            builder.addTransactions(txBuilder
+//                    .setHeader(txHeaderBuilder
+//                            .setChain(ByteString.copyFrom(Hex.decode(chainBody.chain)))
+//                            .setVersion(ByteString.copyFrom(Hex.decode(chainBody.version)))
+//                            .setType(ByteString.copyFrom(Hex.decode(chainBody.type)))
+//                            .setTimestamp(ByteString.copyFrom(
+//                                    ByteUtil.longToBytes(Long.parseLong(chainBody.timestamp))))
+//                            .setBodyHash(ByteString.copyFrom(Hex.decode(chainBody.bodyHash)))
+//                            .setBodyLength(ByteString.copyFrom(
+//                                    ByteUtil.longToBytes(Long.parseLong(chainBody.bodyLength))))
+//                            .build())
+//                    .setSignature(ByteString.copyFrom(Hex.decode(chainBody.signature)))
+//                    .setBody(ByteString.copyFrom(
+//                            ("[" + mapper.writeValueAsString(chainBody.body) + "]")
+//                                    .getBytes())).build() // todo: modify
+//            );
+//        }
+//
+//        return builder.build();
+//
+//    }
 }
