@@ -4,6 +4,8 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.genesis.BlockInfo;
+import io.yggdrash.core.genesis.TransactionInfo;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.ByteUtil;
@@ -188,6 +190,29 @@ public class Block implements Cloneable {
 
         return new Block(blockHeader, blockSignature.getSignature(), txBody);
 
+    }
+
+    public static Block fromBlockInfo(BlockInfo blockinfo) {
+        BlockHeader blockHeader = new BlockHeader(
+                Hex.decode(blockinfo.header.chain),
+                Hex.decode(blockinfo.header.version),
+                Hex.decode(blockinfo.header.type),
+                Hex.decode(blockinfo.header.prevBlockHash),
+                ByteUtil.byteArrayToLong(Hex.decode(blockinfo.header.index)),
+                ByteUtil.byteArrayToLong(Hex.decode(blockinfo.header.timestamp)),
+                Hex.decode(blockinfo.header.merkleRoot),
+                ByteUtil.byteArrayToLong(Hex.decode(blockinfo.header.bodyLength))
+        );
+
+        List<Transaction> txList = new ArrayList<>();
+
+        for (TransactionInfo txi : blockinfo.body) {
+            txList.add(Transaction.fromTransactionInfo(txi));
+        }
+
+        BlockBody txBody = new BlockBody(txList);
+
+        return new Block(blockHeader, Hex.decode(blockinfo.signature), txBody);
     }
 
 }
