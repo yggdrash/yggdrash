@@ -22,10 +22,10 @@ import io.yggdrash.contract.Contract;
 import io.yggdrash.core.event.BranchEventListener;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;
+import io.yggdrash.core.store.TransactionReceiptStore;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BranchGroup {
@@ -79,10 +79,6 @@ public class BranchGroup {
         return chain.addBlock(block);
     }
 
-    public Set<BlockHusk> getBlocks() {
-        return chain.getBlocks();
-    }
-
     public BlockHusk getBlockByIndexOrHash(String indexOrHash) {
         if (isNumeric(indexOrHash)) {
             int index = Integer.parseInt(indexOrHash);
@@ -94,6 +90,10 @@ public class BranchGroup {
 
     public StateStore<?> getStateStore() {
         return chain.getRuntime().getStateStore();
+    }
+
+    public TransactionReceiptStore getTransactionReceiptStore() {
+        return chain.getRuntime().getTransactionReceiptStore();
     }
 
     public Contract getContract() {

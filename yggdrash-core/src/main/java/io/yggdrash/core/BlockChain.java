@@ -99,10 +99,6 @@ public class BlockChain {
         return this.prevBlock;
     }
 
-    public Set<BlockHusk> getBlocks() {
-        return blockStore.getAll();
-    }
-
     /**
      * Gets last block index.
      *
@@ -201,13 +197,8 @@ public class BlockChain {
         return true;
     }
 
-    public BlockHusk getBlockByIndex(long index) {
-        for (BlockHusk block : this.getBlocks()) {
-            if (block.getIndex() == index) {
-                return block;
-            }
-        }
-        throw new NonExistObjectException("Block index=" + index);
+    public BlockHusk getBlockByIndex(long idx) {
+        return blockStore.get(idx);
     }
 
     /**

@@ -8,8 +8,6 @@ import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
 
-import java.util.Set;
-
 @JsonRpcService("/api/block")
 public interface BlockApi {
     /**
@@ -18,15 +16,7 @@ public interface BlockApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = InternalErrorException.class,
                     code = InternalErrorException.code)})
-    int blockNumber();
-
-    /**
-     * Returns all blocks.
-     */
-    @JsonRpcErrors({
-            @JsonRpcError(exception = InternalErrorException.class,
-                          code = InternalErrorException.code)})
-    Set<BlockHusk> getAllBlock();
+    long blockNumber();
 
     /**
      * Returns information about a block by hash.
