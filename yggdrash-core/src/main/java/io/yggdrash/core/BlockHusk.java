@@ -138,6 +138,8 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         return new Sha3Hash(protoBlock.getHeader().toByteArray());
     }
 
+    public Sha3Hash getChainId() { return new Sha3Hash((coreBlock.getHeader().getChain())); }
+
     public Address getAddress() {
         return new Address(ecKey().getAddress());
     }
