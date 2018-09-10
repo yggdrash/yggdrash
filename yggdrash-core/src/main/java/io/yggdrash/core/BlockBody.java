@@ -46,14 +46,18 @@ public class BlockBody implements Cloneable {
         List<Transaction> txList = new ArrayList<>();
 
         do {
-            System.arraycopy(bodyBytes, pos, txHeaderBytes, 0, pos += txHeaderBytes.length);
+            System.arraycopy(bodyBytes, pos, txHeaderBytes, 0, txHeaderBytes.length);
+            pos += txHeaderBytes.length;
             txHeader = new TransactionHeader(txHeaderBytes);
 
-            System.arraycopy(bodyBytes, pos, txSigBytes, 0, pos += txSigBytes.length);
+            System.arraycopy(bodyBytes, pos, txSigBytes, 0, txSigBytes.length);
+            pos += txSigBytes.length;
 
             //todo: change from int to long for body size.
             txBodyBytes = new byte[(int)txHeader.getBodyLength()];
-            System.arraycopy(bodyBytes, pos, txBodyBytes, 0, pos += txBodyBytes.length);
+            System.arraycopy(bodyBytes, pos, txBodyBytes, 0, txBodyBytes.length);
+            pos += txBodyBytes.length;
+
             txBody = new TransactionBody(txBodyBytes);
 
             txList.add(new Transaction(txHeader, txSigBytes, txBody));
