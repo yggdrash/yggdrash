@@ -1,32 +1,26 @@
 {
   "header": {
-    "chain": "b3d2f9c78616e92769171f0b1a783aab983f93ce",
+    "chain": "801c48d1648b008ae1f089cae2b7db3a40b224bf",
     "version": "0000000000000000",
     "type": "0000000000000000",
     "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
     "index": "0000000000000000",
-    "timestamp": "00000165b207b87d",
-    "merkleRoot": "3622b4231e057156d33e91b51a8e4cf774cafc04595cb94ca2a74a46465e58c6",
-    "bodyLength": "0000000000000375"
+    "timestamp": "00000165c25dcb66",
+    "merkleRoot": "d9cfba02c1682d1c8ef2ad526f91a4752166aaa7b870448c2597c97eef103e40",
+    "bodyLength": "00000000000006b7"
   },
-  "signature": {
-    "signature": "1c34803af4a08c245c67186bfc030903bacab067f7c950beadd887fc438b71ac8556cf207be46666a9d435a7725ec090a951ac96f8e1821b8bee09014d685ce3c5",
-    "headerHash": "f8f4fbafd098fbb6043866f776a7549ac43df41c8a67232b24c0033707fbf319"
-  },
+  "signature": "1ca388a0f3a6a301f6e0ecfb7c0840884e22b43233289fc7fa8a9d19d8abc9cd670095f296692514e99804314f63d7b3a542929525b8e0be2a2c9a94ccaca22684",
   "body": [
     {
       "header": {
-        "chain": "b3d2f9c78616e92769171f0b1a783aab983f93ce",
+        "chain": "801c48d1648b008ae1f089cae2b7db3a40b224bf",
         "version": "0000000000000000",
         "type": "0000000000000000",
-        "timestamp": "00000165b207b87d",
-        "bodyHash": "59aa9ea9274034aa23384876853b264d4a1b80114e3c3409f37a7d42c958519c",
-        "bodyLength": "00000000000002e0"
+        "timestamp": "00000165c25dcb66",
+        "bodyHash": "6a5567e073a92650eb64d6d2323f5d7449343d07bec9c3e1bf216c973572a6a9",
+        "bodyLength": "0000000000000622"
       },
-      "signature": {
-        "signature": "1ba249ed3dee64d69e98dccd433f7806becb8c95ad2020e3a707e49aeab64f18926f8c70e2e2635c1b5d8f9bbc904dc536a5bd8b48a636842325ec853070d69831",
-        "headerHash": "2f927e3b86766f0babfb6661601193c119c53ee92f9e981d451228041e250f36"
-      },
+      "signature": "1b832c2447528521b5caabb522de88d2e02fe6dfd94835b3d9adb5e7cc831bb3fa57470e00705d6c8066c6288da38a586da680209bc1ecbcfa54de64327d6392c7",
       "body": [
         {
           "operator": "GENESIS",
@@ -61,6 +55,50 @@
             },
             "5db10750e8caff27f906b41c71b3471057dd2009": {
               "balance": "1000000000"
+            }
+          },
+          "delegator": {
+            "5db10750e8caff27f906b41c71b3471057dd2000": {
+              "ip": "100.100.100.1",
+              "port": "32918"
+            },
+            "5db10750e8caff27f906b41c71b3471057dd2001": {
+              "ip": "100.100.100.2",
+              "port": "32918"
+            },
+            "5db10750e8caff27f906b41c71b3471057dd2002": {
+              "ip": "100.100.100.3",
+              "port": "32918"
+            },
+            "5db10750e8caff27f906b41c71b3471057dd2003": {
+              "ip": "100.100.100.4",
+              "port": "32918"
+            },
+            "5db10750e8caff27f906b41c71b3471057dd2004": {
+              "ip": "100.100.100.5",
+              "port": "32918"
+            }
+          },
+          "node": {
+            "5db10750e8caff27f906b41c71b3471057dd2006": {
+              "ip": "100.100.100.6",
+              "port": "32918"
+            },
+            "5db10750e8caff27f906b41c71b3471057dd2007": {
+              "ip": "100.100.100.7",
+              "port": "32918"
+            },
+            "5db10750e8caff27f906b41c71b3471057dd2008": {
+              "ip": "100.100.100.8",
+              "port": "32918"
+            },
+            "5db10750e8caff27f906b41c71b3471057dd2009": {
+              "ip": "100.100.100.9",
+              "port": "32918"
+            },
+            "5db10750e8caff27f906b41c71b3471057dd2010": {
+              "ip": "100.100.100.10",
+              "port": "32918"
             }
           }
         }

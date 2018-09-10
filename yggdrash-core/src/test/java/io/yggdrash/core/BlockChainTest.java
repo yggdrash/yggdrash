@@ -31,13 +31,13 @@ public class BlockChainTest {
         clearTestDb();
     }
 
-    @Test
-    public void shouldBeValidBlock() {
-        BlockChain blockChain = generateTestBlockChain();
-
-        assertThat(blockChain.getGenesisBlock().getAddress().toString())
-                .isEqualTo("817f6ff6c973e0cdb0592bd5f1e04e4cb7147b51");
-    }
+//    @Test
+//    public void shouldBeValidBlock() {
+//        BlockChain blockChain = generateTestBlockChain();
+//
+//        assertThat(blockChain.getGenesisBlock().getAddress().toString())
+//                .isEqualTo("817f6ff6c973e0cdb0592bd5f1e04e4cb7147b51");
+//    }
 
     @Test
     public void shouldBeGetBlockByHash() {

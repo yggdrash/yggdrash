@@ -109,9 +109,6 @@ public class TransactionTest {
             log.debug("tx6=" + tx6.toString());
             assertEquals(tx1.toJsonObject(), tx6.toJsonObject());
 
-            log.debug("tx1.bodyString=" + tx1.getBody().toHexString());
-
-
             Transaction tx7 = new Transaction(tx1.toBinary());
             log.debug("tx1=" + tx1.toString());
             log.debug("tx7=" + tx7.toString());

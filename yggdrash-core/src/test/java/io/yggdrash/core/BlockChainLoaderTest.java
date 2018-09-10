@@ -16,12 +16,16 @@
 
 package io.yggdrash.core;
 
+import io.yggdrash.core.genesis.BlockInfo;
+import io.yggdrash.core.genesis.GenesisBlock;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
+import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.File;
 import java.io.IOException;
+import java.security.SignatureException;
 import java.util.Objects;
 
 public class BlockChainLoaderTest {
@@ -37,8 +41,12 @@ public class BlockChainLoaderTest {
 
     @Test
     public void shouldBeLoadedBranchJsonFile() throws IOException {
-        BranchInfo branchInfo = blockChainLoader.loadBranchInfo();
-        Assertions.assertThat(branchInfo).isNotNull();
-        Assertions.assertThat(branchInfo.getBranchId()).isNotNull();
+        BlockInfo block = blockChainLoader.loadBranchInfo();
+        Assertions.assertThat(block).isNotNull();
+        Assertions.assertThat(block.header.chain).isNotNull();
+
+//        Block block = new GenesisBlock().getGenesisBlock();
+//        Assertions.assertThat(block).isNotNull();
+
     }
 }
