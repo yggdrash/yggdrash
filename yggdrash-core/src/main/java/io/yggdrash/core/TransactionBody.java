@@ -48,7 +48,7 @@ public class TransactionBody implements Cloneable {
     }
 
     public String toHexString() {
-        return Hex.toHexString(this.body.toString().getBytes(StandardCharsets.UTF_8));
+        return Hex.toHexString(this.body.toString().getBytes());
     }
 
     public byte[] toBinary() {

@@ -1,9 +1,12 @@
 package io.yggdrash.core;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.genesis.BlockInfo;
+import io.yggdrash.core.genesis.TransactionInfo;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
@@ -72,20 +75,27 @@ public class Transaction implements Cloneable {
         this.body = new TransactionBody(jsonObject.getAsJsonArray("body"));
     }
 
-    public Transaction(byte[] txBytes) throws UnsupportedEncodingException {
-        int pos = 0;
+    public Transaction(byte[] txBytes) {
+        int position = 0;
 
         byte[] headerBytes = new byte[84];
-        System.arraycopy(txBytes, pos, headerBytes, 0, pos =+ headerBytes.length);
+        System.arraycopy(txBytes, 0, headerBytes, 0, headerBytes.length);
         this.header = new TransactionHeader(headerBytes);
+        position += headerBytes.length;
 
         byte[] sigBytes = new byte[65];
-        System.arraycopy(txBytes, pos, sigBytes, 0, pos =+ sigBytes.length);
+        System.arraycopy(txBytes, position, sigBytes, 0, sigBytes.length);
+        position += sigBytes.length;
         this.signature = sigBytes;
 
         byte[] bodyBytes = new byte[txBytes.length - headerBytes.length - sigBytes.length];
-        System.arraycopy(txBytes, pos, bodyBytes, 0, pos =+ bodyBytes.length);
+        System.arraycopy(txBytes, position, bodyBytes, 0, bodyBytes.length);
+        position += bodyBytes.length;
         this.body = new TransactionBody(bodyBytes);
+
+        if (position != txBytes.length) {
+            throw new NotValidateException();
+        }
     }
 
     /**
@@ -302,6 +312,21 @@ public class Transaction implements Cloneable {
 
         return new Transaction(txHeader, txSignature, txBody);
 
+    }
+
+    public static Transaction fromTransactionInfo(TransactionInfo txi) {
+        TransactionHeader txHeader = new TransactionHeader(
+                Hex.decode(txi.header.chain),
+                Hex.decode(txi.header.version),
+                Hex.decode(txi.header.type),
+                ByteUtil.byteArrayToLong(Hex.decode(txi.header.timestamp)),
+                Hex.decode(txi.header.bodyHash),
+                ByteUtil.byteArrayToLong(Hex.decode(txi.header.bodyLength))
+        );
+
+        TransactionBody txBody = new TransactionBody(new Gson().toJson(txi.body));
+
+        return new Transaction(txHeader, Hex.decode(txi.signature), txBody);
     }
 
 }

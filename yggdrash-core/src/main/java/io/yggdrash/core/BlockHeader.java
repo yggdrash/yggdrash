@@ -2,6 +2,7 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.ByteUtil;
@@ -74,31 +75,43 @@ public class BlockHeader implements Cloneable {
         int pos = 0;
 
         this.chain = new byte[20];
-        System.arraycopy(blockHeaderBytes, pos, this.chain, 0, pos =+ this.chain.length);
+        System.arraycopy(blockHeaderBytes, pos, this.chain, 0, this.chain.length);
+        pos += this.chain.length;
 
         this.version = new byte[8];
-        System.arraycopy(blockHeaderBytes, pos, this.version, 0, pos =+ this.version.length);
+        System.arraycopy(blockHeaderBytes, pos, this.version, 0, this.version.length);
+        pos += this.version.length;
 
         this.type = new byte[8];
-        System.arraycopy(blockHeaderBytes, pos, this.type, 0, pos =+ this.type.length);
+        System.arraycopy(blockHeaderBytes, pos, this.type, 0, this.type.length);
+        pos += this.type.length;
 
         this.prevBlockHash = new byte[32];
-        System.arraycopy(blockHeaderBytes, pos, this.prevBlockHash, 0, pos =+ this.prevBlockHash.length);
+        System.arraycopy(blockHeaderBytes, pos, this.prevBlockHash, 0, this.prevBlockHash.length);
+        pos += this.prevBlockHash.length;
 
         byte[] indexBytes = new byte[8];
-        System.arraycopy(blockHeaderBytes, pos, indexBytes, 0, pos =+ indexBytes.length);
+        System.arraycopy(blockHeaderBytes, pos, indexBytes, 0, indexBytes.length);
+        pos += indexBytes.length;
         this.index = ByteUtil.byteArrayToLong(indexBytes);
 
         byte[] timestampBytes = new byte[8];
-        System.arraycopy(blockHeaderBytes, pos, timestampBytes, 0, pos =+ timestampBytes.length);
+        System.arraycopy(blockHeaderBytes, pos, timestampBytes, 0, timestampBytes.length);
+        pos += timestampBytes.length;
         this.timestamp = ByteUtil.byteArrayToLong(timestampBytes);
 
         this.merkleRoot = new byte[32];
-        System.arraycopy(blockHeaderBytes, pos, this.merkleRoot, 0, pos =+ this.merkleRoot.length);
+        System.arraycopy(blockHeaderBytes, pos, this.merkleRoot, 0, this.merkleRoot.length);
+        pos += this.merkleRoot.length;
 
         byte[] bodyLengthBytes = new byte[8];
-        System.arraycopy(blockHeaderBytes, pos, bodyLengthBytes, 0, pos =+ bodyLengthBytes.length);
+        System.arraycopy(blockHeaderBytes, pos, bodyLengthBytes, 0, bodyLengthBytes.length);
+        pos += bodyLengthBytes.length;
         this.bodyLength = ByteUtil.byteArrayToLong(bodyLengthBytes);
+
+        if (pos != blockHeaderBytes.length) {
+            throw new NotValidateException();
+        }
     }
 
     public byte[] getChain() {

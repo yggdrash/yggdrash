@@ -67,24 +67,35 @@ public class TransactionHeader implements Cloneable {
         int pos = 0;
 
         this.chain = new byte[20];
-        System.arraycopy(txHeaderBytes, pos, this.chain, 0, pos =+ this.chain.length);
+        System.arraycopy(txHeaderBytes, pos, this.chain, 0, this.chain.length);
+        pos += this.chain.length;
 
         this.version = new byte[8];
-        System.arraycopy(txHeaderBytes, pos, this.version, 0, pos =+ this.version.length);
+        System.arraycopy(txHeaderBytes, pos, this.version, 0, this.version.length);
+        pos += this.version.length;
 
         this.type = new byte[8];
-        System.arraycopy(txHeaderBytes, pos, this.type, 0, pos =+ this.type.length);
+        System.arraycopy(txHeaderBytes, pos, this.type, 0, this.type.length);
+        pos += this.type.length;
 
         byte[] timestampBytes = new byte[8];
-        System.arraycopy(txHeaderBytes, pos, timestampBytes, 0, pos =+ timestampBytes.length);
+        System.arraycopy(txHeaderBytes, pos, timestampBytes, 0, timestampBytes.length);
         this.timestamp = ByteUtil.byteArrayToLong(timestampBytes);
+        pos += timestampBytes.length;
 
         this.bodyHash = new byte[32];
-        System.arraycopy(txHeaderBytes, pos, this.bodyHash, 0, pos =+ this.bodyHash.length);
+        System.arraycopy(txHeaderBytes, pos, this.bodyHash, 0, this.bodyHash.length);
+        pos += this.bodyHash.length;
 
         byte[] bodyLengthBytes = new byte[8];
-        System.arraycopy(txHeaderBytes, pos, bodyLengthBytes, 0, pos =+ bodyLengthBytes.length);
+        System.arraycopy(txHeaderBytes, pos, bodyLengthBytes, 0, bodyLengthBytes.length);
         this.bodyLength = ByteUtil.byteArrayToLong(bodyLengthBytes);
+        pos += bodyLengthBytes.length;
+
+        if (pos != txHeaderBytes.length) {
+            throw new NotValidateException();
+        }
+
     }
 
     public long length() throws IOException {
