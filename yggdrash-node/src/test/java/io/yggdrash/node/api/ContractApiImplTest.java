@@ -152,4 +152,14 @@ public class ContractApiImplTest {
             e.printStackTrace();
         }
     }
+
+    @Test
+    public void getAllBranchId() {
+        try {
+            JsonObject queryObj = TestUtils.createQuery("getallbranchid", new JsonArray());
+            contractApi.query(queryObj.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }
