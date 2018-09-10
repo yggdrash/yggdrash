@@ -216,9 +216,9 @@ public class TestUtils {
     }
 
     public static Proto.Transaction[] sampleTxs() {
-        return new Proto.Transaction[] {sampleTx().toProtoTransaction(),
-                sampleTx().toProtoTransaction(),
-                sampleTx().toProtoTransaction()};
+        return new Proto.Transaction[] { Transaction.toProtoTransaction(sampleTx()),
+                Transaction.toProtoTransaction(sampleTx()),
+                Transaction.toProtoTransaction(sampleTx())};
     }
 
     public static JsonObject sampleBlockObject() {
@@ -323,7 +323,8 @@ public class TestUtils {
         return branch;
     }
 
-    public static JsonObject updateBranch(String description, String version, JsonObject branch, Integer checkSum) {
+    public static JsonObject updateBranch(
+            String description, String version, JsonObject branch, Integer checkSum) {
         JsonObject updatedBranch = new JsonObject();
         updatedBranch.addProperty("name", checkSum == 0 ? branch.get("name").getAsString() : "HELLO");
         updatedBranch.addProperty("owner", branch.get("owner").getAsString());

@@ -126,10 +126,6 @@ public class TransactionHeader implements Cloneable {
         return this.bodyLength;
     }
 
-//    protected void setTimestamp(long timestamp) {
-//        this.timestamp = timestamp;
-//    }
-
     /**
      * Get the headerHash for signning.
      *

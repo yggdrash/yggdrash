@@ -41,6 +41,7 @@ public class BlockChain {
         try {
             this.genesisBlock = new BlockChainLoader(infoFile).getGenesis();
             this.blockStore = new BlockStore(getBranchId());
+            this.blockStore.put(this.genesisBlock.getHash(), this.genesisBlock);
             this.transactionStore = new TransactionStore(new HashMapDbSource());
             this.contract = new NoneContract();
             this.runtime = new Runtime<>(new StateStore<>(), new TransactionReceiptStore());
@@ -54,6 +55,7 @@ public class BlockChain {
                       TransactionStore transactionStore, Contract contract, Runtime runtime) {
         this.genesisBlock = genesisBlock;
         this.blockStore = blockStore;
+        this.blockStore.put(this.genesisBlock.getHash(), this.genesisBlock);
         this.transactionStore = transactionStore;
         this.contract = contract;
         this.runtime = runtime;

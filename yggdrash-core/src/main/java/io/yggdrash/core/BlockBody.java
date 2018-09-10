@@ -34,7 +34,7 @@ public class BlockBody implements Cloneable {
         }
     }
 
-    public BlockBody(byte[] bodyBytes) throws UnsupportedEncodingException {
+    public BlockBody(byte[] bodyBytes) {
         int pos = 0;
         byte[] txHeaderBytes = new byte[84];
         byte[] txSigBytes = new byte[65];
@@ -60,7 +60,7 @@ public class BlockBody implements Cloneable {
             txBody = new TransactionBody(txBodyBytes);
 
             txList.add(new Transaction(txHeader, txSigBytes, txBody));
-        } while(pos >= bodyBytes.length);
+        } while (pos >= bodyBytes.length);
 
         this.body = txList;
     }

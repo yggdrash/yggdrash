@@ -44,9 +44,5 @@ public class BlockChainLoaderTest {
         BlockInfo block = blockChainLoader.loadBranchInfo();
         Assertions.assertThat(block).isNotNull();
         Assertions.assertThat(block.header.chain).isNotNull();
-
-//        Block block = new GenesisBlock().getGenesisBlock();
-//        Assertions.assertThat(block).isNotNull();
-
     }
 }

@@ -69,7 +69,7 @@ public class TestUtils {
     }
 
     public static Proto.Transaction getTransactionFixture() {
-        return new Transaction(sampleTxObject(null)).toProtoTransaction();
+        return Transaction.toProtoTransaction(new Transaction(sampleTxObject(null)));
     }
 
     public static Proto.Transaction[] getTransactionFixtures() {
@@ -364,7 +364,7 @@ public class TestUtils {
     }
 
     public static Proto.Transaction sampleProtoTx() {
-        return sampleTx().toProtoTransaction();
+        return Transaction.toProtoTransaction(sampleTx());
     }
 
     public static Proto.Block[] getBlockFixtures() {

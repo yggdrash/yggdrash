@@ -75,7 +75,8 @@ public class TransactionBodyTest {
             log.debug("txBody3 Hex String=" + txBody3.toString());
             assertEquals(txBody.toString(), txBody3.toString());
 
-            TransactionBody txBody4 =  new TransactionBody(jsonArray.toString().getBytes(StandardCharsets.UTF_8));
+            TransactionBody txBody4
+                    =  new TransactionBody(jsonArray.toString().getBytes(StandardCharsets.UTF_8));
             log.debug("txBody1 Hex String=" + txBody.toString());
             log.debug("txBody4 Hex String=" + txBody3.toString());
             assertEquals(txBody.toString(), txBody4.toString());

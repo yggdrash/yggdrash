@@ -1,7 +1,5 @@
 package io.yggdrash.core.genesis;
 
-import com.sun.org.apache.xalan.internal.lib.NodeInfo;
-
 import java.util.Map;
 
 public class GenesisParam {

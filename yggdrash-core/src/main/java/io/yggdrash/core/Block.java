@@ -6,6 +6,7 @@ import com.google.protobuf.ByteString;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.genesis.BlockInfo;
 import io.yggdrash.core.genesis.TransactionInfo;
+import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.ByteUtil;
@@ -16,6 +17,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.security.SignatureException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Block implements Cloneable {
@@ -69,8 +71,10 @@ public class Block implements Cloneable {
     }
 
     public byte[] getPubKey() throws IOException, SignatureException {
-        BlockSignatureHash blockSigWithHash = new BlockSignatureHash(this.signature, this.header.getHashForSignning());
-        return blockSigWithHash.getPubKey();
+        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
+        ECKey ecKeyPub = ECKey.signatureToKey(this.header.getHashForSignning(), ecdsaSignature);
+
+        return ecKeyPub.getPubKey();
     }
 
     public String getPubKeyHexString() throws IOException, SignatureException {
@@ -78,7 +82,9 @@ public class Block implements Cloneable {
     }
 
     public byte[] getAddress() throws IOException, SignatureException {
-        return HashUtil.sha3omit12(this.getPubKey());
+        byte[] pubBytes = this.getPubKey();
+        return HashUtil.sha3omit12(
+                Arrays.copyOfRange(pubBytes, 1, pubBytes.length));
     }
 
     public String getAddressHexString() throws IOException, SignatureException {
@@ -129,14 +135,10 @@ public class Block implements Cloneable {
     }
 
     public Proto.Block toProtoBlock() {
-        try {
-            return this.toProtoBlock(this);
-        } catch (UnsupportedEncodingException e) {
-            throw new NotValidateException();
-        }
+        return this.toProtoBlock(this);
     }
 
-    public static Proto.Block toProtoBlock(Block block) throws UnsupportedEncodingException {
+    public static Proto.Block toProtoBlock(Block block) {
         Proto.Block.Header protoHeader;
         protoHeader = Proto.Block.Header.newBuilder()
             .setChain(ByteString.copyFrom(block.getHeader().getChain()))
@@ -178,7 +180,8 @@ public class Block implements Cloneable {
                 ByteUtil.byteArrayToLong(protoBlock.getHeader().getBodyLength().toByteArray())
         );
 
-        BlockSignature blockSignature =  new BlockSignature(protoBlock.getSignature().toByteArray());
+        BlockSignature blockSignature
+                =  new BlockSignature(protoBlock.getSignature().toByteArray());
 
         List<Transaction> txList = new ArrayList<>();
 

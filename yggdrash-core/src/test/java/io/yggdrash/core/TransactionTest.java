@@ -250,8 +250,8 @@ public class TransactionTest {
             assertArrayEquals(tx1.getAddress(), tx2.getAddress());
             assertArrayEquals(tx1.getAddress(), wallet.getAddress());
 
-            Proto.Transaction protoTx1 = tx1.toProtoTransaction();
-            Proto.Transaction protoTx2 = tx2.toProtoTransaction();
+            Proto.Transaction protoTx1 = Transaction.toProtoTransaction(tx1);
+            Proto.Transaction protoTx2 = Transaction.toProtoTransaction(tx2);
             log.debug("tx1 proto=" + Hex.toHexString(protoTx1.toByteArray()));
             log.debug("tx2 proto=" + Hex.toHexString(protoTx2.toByteArray()));
 

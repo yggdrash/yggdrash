@@ -31,7 +31,6 @@ public class GenesisBlock {
     private Block genesisBlock;
 
     public GenesisBlock() throws IOException, InvalidCipherTextException, SignatureException {
-        Wallet wallet = new Wallet(defaultConfig);
 
         String transactionFileName = defaultConfig.getConfig().getString("genesis.config");
         JsonObject genesisObject = getJsonObjectFromFile(transactionFileName);
@@ -73,6 +72,7 @@ public class GenesisBlock {
                 timestamp,
                 txBody);
 
+        Wallet wallet = new Wallet(defaultConfig);
         Transaction tx = new Transaction(txHeader, wallet, txBody);
         List<Transaction> txList = new ArrayList<>();
         txList.add(tx);

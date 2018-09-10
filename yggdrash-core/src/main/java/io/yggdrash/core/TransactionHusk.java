@@ -67,7 +67,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
 
     public TransactionHusk(JsonObject jsonObject) {
         this.coreTransaction = new Transaction(jsonObject);
-        this.protoTransaction = this.coreTransaction.toProtoTransaction();
+        this.protoTransaction = Transaction.toProtoTransaction(this.coreTransaction);
     }
 
     public Proto.Transaction getProtoTransaction() {
@@ -94,7 +94,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
                             this.coreTransaction.getHeader(),
                             wallet,
                             this.coreTransaction.getBody());
-            this.protoTransaction = this.coreTransaction.toProtoTransaction();
+            this.protoTransaction = Transaction.toProtoTransaction(this.coreTransaction);
         } catch (Exception e) {
             throw new NotValidateException();
         }

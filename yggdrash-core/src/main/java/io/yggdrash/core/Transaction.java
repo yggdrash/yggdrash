@@ -258,15 +258,7 @@ public class Transaction implements Cloneable {
         return tx;
     }
 
-    public Proto.Transaction toProtoTransaction() {
-        try {
-            return this.toProtoTransaction(this);
-        } catch (UnsupportedEncodingException e) {
-            throw new NotValidateException();
-        }
-    }
-
-    public static Proto.Transaction toProtoTransaction(Transaction tx) throws UnsupportedEncodingException {
+    public static Proto.Transaction toProtoTransaction(Transaction tx) {
 
         Proto.Transaction.Header protoHeader;
         protoHeader = Proto.Transaction.Header.newBuilder()
