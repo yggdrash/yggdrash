@@ -8,6 +8,7 @@ import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
@@ -79,7 +80,7 @@ public class BlockChain {
     }
 
     public BranchId getBranchId() {
-        return new BranchId(genesisBlock.getHash());
+        return new BranchId(genesisBlock.getChainId());
     }
 
     public BlockHusk getGenesisBlock() {
