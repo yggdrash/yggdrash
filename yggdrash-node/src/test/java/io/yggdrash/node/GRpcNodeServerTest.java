@@ -100,7 +100,8 @@ public class GRpcNodeServerTest {
     public void syncBlock() {
         Set<BlockHusk> blocks = new HashSet<>();
         blocks.add(block);
-        when(branchGroupMock.getBlocks()).thenReturn(blocks);
+        when(branchGroupMock.getLastIndex()).thenReturn(0L);
+        when(branchGroupMock.getBlockByIndexOrHash("0")).thenReturn(block);
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());

@@ -8,10 +8,6 @@ import io.yggdrash.core.exception.NonExistObjectException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Comparator;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 @Service
 @AutoJsonRpcServiceImpl
 public class BlockApiImpl implements BlockApi {
@@ -24,17 +20,12 @@ public class BlockApiImpl implements BlockApi {
     }
 
     @Override
-    public int blockNumber() {
+    public long blockNumber() {
         try {
-            return branchGroup.getBlocks().size();
+            return branchGroup.getLastIndex() + 1;
         } catch (Exception exception) {
             throw new InternalErrorException();
         }
-    }
-
-    @Override
-    public Set<BlockHusk> getAllBlock() {
-        return branchGroup.getBlocks();
     }
 
     @Override
@@ -66,7 +57,6 @@ public class BlockApiImpl implements BlockApi {
 
     @Override
     public BlockHusk getLastBlock() {
-        return branchGroup.getBlocks().stream().sorted(Comparator.reverseOrder())
-                .collect(Collectors.toList()).get(0);
+        return branchGroup.getBlockByIndexOrHash(String.valueOf(branchGroup.getLastIndex()));
     }
 }

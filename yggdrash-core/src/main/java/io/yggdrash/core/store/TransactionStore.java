@@ -41,7 +41,6 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     private final Cache<Sha3Hash, TransactionHusk> huskTxPool;
     private final Set<Sha3Hash> unconfirmedTxs = new HashSet<>();
 
-
     public TransactionStore(DbSource db) {
         this.db = db;
         this.db.init();
@@ -52,7 +51,6 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
                                 ResourcePoolsBuilder.heap(10)));
     }
 
-    @Override
     public Set<TransactionHusk> getAll() {
         try {
             List<byte[]> dataList = db.getAll();
@@ -69,6 +67,11 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     @Override
     public boolean contains(Sha3Hash key) {
         return huskTxPool.containsKey(key) || db.get(key.getBytes()) != null;
+    }
+
+    @Override
+    public void close() {
+        db.close();
     }
 
     @Override

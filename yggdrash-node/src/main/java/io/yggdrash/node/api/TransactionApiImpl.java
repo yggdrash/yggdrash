@@ -7,11 +7,8 @@ import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.exception.NonExistObjectException;
-import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.node.controller.TransactionDto;
 import io.yggdrash.proto.Proto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.spongycastle.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,15 +20,11 @@ import java.util.Map;
 @AutoJsonRpcServiceImpl
 public class TransactionApiImpl implements TransactionApi {
 
-    private static final Logger log = LoggerFactory.getLogger(TransactionApiImpl.class);
-
     private final BranchGroup branchGroup;
-    private final TransactionReceiptStore txReceiptStore;
 
     @Autowired
-    public TransactionApiImpl(BranchGroup branchGroup, TransactionReceiptStore txReceiptStore) {
+    public TransactionApiImpl(BranchGroup branchGroup) {
         this.branchGroup = branchGroup;
-        this.txReceiptStore = txReceiptStore;
     }
 
     public int getCount(String address, List<TransactionHusk> txList) {
@@ -175,11 +168,11 @@ public class TransactionApiImpl implements TransactionApi {
 
     @Override
     public Map<String, TransactionReceipt> getAllTransactionReceipt() {
-        return txReceiptStore.getTxReceiptStore();
+        return branchGroup.getTransactionReceiptStore().getTxReceiptStore();
     }
 
     @Override
     public TransactionReceipt getTransactionReceipt(String hashOfTx) {
-        return txReceiptStore.get(hashOfTx);
+        return branchGroup.getTransactionReceiptStore().get(hashOfTx);
     }
 }

@@ -26,17 +26,19 @@ import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import java.util.Map;
 
 public class BlockStore implements Store<Sha3Hash, BlockHusk> {
     private static final Logger logger = LoggerFactory.getLogger(BlockStore.class);
 
     private DbSource<byte[], byte[]> db;
+    private Map<Long, byte[]> index = new HashMap<>();
 
     public BlockStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
+        indexing();
     }
 
     public BlockStore(BranchId branchId) {
@@ -45,11 +47,25 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
 
     public BlockStore(String branchId) {
         this.db = new LevelDbDataSource(branchId + "/blocks").init();
+        indexing();
+    }
+
+    private void indexing() {
+        try {
+            List<byte[]> dataList = db.getAll();
+            for (byte[] data : dataList) {
+                BlockHusk block = new BlockHusk(data);
+                index.put(block.getIndex(), data);
+            }
+        } catch (Exception e) {
+            throw new NotValidateException(e);
+        }
     }
 
     @Override
     public void put(Sha3Hash key, BlockHusk value) {
-        this.db.put(key.getBytes(), value.getData());
+        db.put(key.getBytes(), value.getData());
+        index.put(value.getIndex(), key.getBytes());
     }
 
     @Override
@@ -62,18 +78,17 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
         throw new NonExistObjectException("Not Found [" + key + "]");
     }
 
-    @Override
-    public Set<BlockHusk> getAll() {
-        try {
-            List<byte[]> dataList = db.getAll();
-            TreeSet<BlockHusk> blockSet = new TreeSet<>();
-            for (byte[] data : dataList) {
-                blockSet.add(new BlockHusk(data));
-            }
-            return blockSet;
-        } catch (Exception e) {
-            throw new NotValidateException(e);
+    public BlockHusk get(long idx) {
+        if (!index.containsKey(idx)) {
+            return null;
         }
+        byte[] foundValue = db.get(index.get(idx));
+
+        if (foundValue != null) {
+            return new BlockHusk(foundValue);
+        }
+
+        throw new NonExistObjectException("Not Found [" + idx + "]");
     }
 
     @Override
