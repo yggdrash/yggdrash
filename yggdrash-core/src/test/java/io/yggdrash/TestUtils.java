@@ -19,6 +19,8 @@ package io.yggdrash;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.config.Constants;
+import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
@@ -33,10 +35,15 @@ import io.yggdrash.core.TransactionSignature;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.util.FileUtil;
 import io.yggdrash.util.TimeUtils;
+import org.apache.commons.codec.binary.Hex;
 
+import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.file.Paths;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
@@ -146,6 +153,19 @@ public class TestUtils {
 
     }
 
+    public static JsonObject sampleBalanceOfQueryJson() {
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        params.add(param);
+
+        JsonObject query = new JsonObject();
+        query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        query.addProperty("method", "balanceOf");
+        query.add("params", params);
+        return query;
+    }
+
     public static JsonObject sampleTxObject(Wallet newWallet, JsonObject body) {
 
         Wallet nodeWallet;
@@ -184,6 +204,124 @@ public class TestUtils {
 
     }
 
+    public static JsonObject getSampleBranch1() {
+        String name = "TEST1";
+        String symbol = "TEST1";
+        String property = "dex";
+        String type = "immunity";
+        String description = "TEST1";
+        String version = "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76";
+        String referenceAddress = "";
+        String reserveAddress = "0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3";
+        return createBranch(name, symbol, property, type, description,
+                version, referenceAddress, reserveAddress);
+    }
+
+    public static JsonObject getSampleBranch2() {
+        String name = "TEST2";
+        String symbol = "TEST2";
+        String property = "exchange";
+        String type = "mutable";
+        String description = "TEST2";
+        String version = "0xe4452ervbo091qw4f5n2s8799232abr213er2c90";
+        String referenceAddress = "";
+        String reserveAddress = "0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3";
+        return createBranch(name, symbol, property, type, description,
+                version, referenceAddress, reserveAddress);
+    }
+
+    public static JsonObject getSampleBranch3(String branchId) {
+        String name = "Ethereum TO YEED";
+        String symbol = "ETH TO YEED";
+        String property = "exchange";
+        String type = "immunity";
+        String description = "ETH TO YEED";
+        String version = "0xb5790adeafbb9ac6c9be60955484ab1547ab0b76";
+        String referenceAddress = branchId;
+        String reserveAddress = "0x1F8f8A219550f89f9D372ab2eE0D1f023EC665a3";
+        return createBranch(name, symbol, property, type, description,
+                version, referenceAddress, reserveAddress);
+    }
+
+    private static JsonObject createBranch(String name,
+                                           String symbol,
+                                           String property,
+                                           String type,
+                                           String description,
+                                           String version,
+                                           String referenceAddress,
+                                           String reserveAddress) {
+        JsonArray versionHistory = new JsonArray();
+        versionHistory.add(version);
+        JsonObject branch = new JsonObject();
+        branch.addProperty("name", name);
+        //branch.addProperty("owner", wallet.getHexAddress());
+        branch.addProperty("owner", "9e187f5264037ab77c87fcffcecd943702cd72c3");
+        branch.addProperty("symbol", symbol);
+        branch.addProperty("property", property);
+        branch.addProperty("type", type);
+        branch.addProperty("timestamp", "0000016531dfa31c");
+        branch.addProperty("description", description);
+        branch.addProperty("tag", 0.1);
+        branch.addProperty("version", version);
+        branch.add("versionHistory", versionHistory);
+        branch.addProperty("reference_address", referenceAddress);
+        branch.addProperty("reserve_address", reserveAddress);
+
+        return branch;
+    }
+
+    public static JsonObject updateBranch(String description, String version, JsonObject branch, Integer checkSum) {
+        JsonObject updatedBranch = new JsonObject();
+        updatedBranch.addProperty("name", checkSum == 0 ? branch.get("name").getAsString() : "HELLO");
+        updatedBranch.addProperty("owner", branch.get("owner").getAsString());
+        updatedBranch.addProperty("symbol", branch.get("symbol").getAsString());
+        updatedBranch.addProperty("property", branch.get("property").getAsString());
+        updatedBranch.addProperty("type", branch.get("type").getAsString());
+        updatedBranch.addProperty("timestamp", branch.get("timestamp").getAsString());
+        updatedBranch.addProperty("description", description);
+        updatedBranch.addProperty("tag", branch.get("tag").getAsFloat());
+        updatedBranch.addProperty("version", version);
+        updatedBranch.add("versionHistory", branch.get("versionHistory").getAsJsonArray());
+        updatedBranch.addProperty("reference_address", branch.get("reference_address").getAsString());
+        updatedBranch.addProperty("reserve_address", branch.get("reserve_address").getAsString());
+
+        return updatedBranch;
+    }
+
+    public static String getBranchId(JsonObject branch) {
+        return Hex.encodeHexString(getBranchHash(branch));
+    }
+
+    private static byte[] getBranchHash(JsonObject branch) {
+        return HashUtil.sha3(getRawBranch(branch));
+    }
+
+    private static byte[] getRawBranch(JsonObject branch) {
+        ByteArrayOutputStream branchStream = new ByteArrayOutputStream();
+        try {
+            branchStream.write(branch.get("name").getAsString().getBytes());
+            branchStream.write(branch.get("property").getAsString().getBytes());
+            branchStream.write(branch.get("type").getAsString().getBytes());
+            branchStream.write(branch.get("timestamp").getAsString().getBytes());
+            //branchStream.write(branch.get("version").getAsString().getBytes());
+            branchStream.write(branch.get("versionHistory").getAsJsonArray().get(0)
+                    .getAsString().getBytes());
+            branchStream.write(branch.get("reference_address").getAsString().getBytes());
+            branchStream.write(branch.get("reserve_address").getAsString().getBytes());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return branchStream.toByteArray();
+    }
+
+    public static JsonObject createQuery(String method, JsonArray params) {
+        JsonObject query = new JsonObject();
+        query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        query.addProperty("method", method);
+        query.add("params", params);
+        return query;
+    }
     public static Transaction sampleTx() {
        return new Transaction(sampleTxObject(null));
     }
@@ -231,5 +369,10 @@ public class TestUtils {
 
     public static Proto.Block[] getBlockFixtures() {
         return new Proto.Block[] {getBlockFixture(), getBlockFixture(), getBlockFixture()};
+    }
+
+    public static void clearTestDb() {
+        String dbPath = new DefaultConfig().getConfig().getString(Constants.DATABASE_PATH);
+        FileUtil.recursiveDelete(Paths.get(dbPath));
     }
 }

@@ -1,18 +1,12 @@
 package io.yggdrash.core;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.config.Constants;
-import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.util.FileUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Paths;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,7 +22,7 @@ public class BlockChainTest {
 
     @After
     public void tearDown() {
-        clearTestDb();
+        TestUtils.clearTestDb();
     }
 
 //    @Test
@@ -113,10 +107,5 @@ public class BlockChainTest {
     public void shouldBeCreatedNewBlockChain() {
         BlockChain blockChain = new BlockChain(sampleBranchInfo);
         assertThat(blockChain.size()).isEqualTo(1L);
-    }
-
-    private void clearTestDb() {
-        String dbPath = new DefaultConfig().getConfig().getString(Constants.DATABASE_PATH);
-        FileUtil.recursiveDelete(Paths.get(dbPath));
     }
 }

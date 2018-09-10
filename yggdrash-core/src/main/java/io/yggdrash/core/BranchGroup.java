@@ -16,33 +16,36 @@
 
 package io.yggdrash.core;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.contract.Contract;
 import io.yggdrash.core.event.BranchEventListener;
+import io.yggdrash.core.exception.DuplicatedException;
+import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.core.store.StateStore;
+import io.yggdrash.core.store.TransactionReceiptStore;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BranchGroup {
 
-    private Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
+    private Map<String, BlockChain> branches = new ConcurrentHashMap<>();
     private static BlockChain chain;
 
-    private Runtime runtime;
     private BranchEventListener listener;
 
-    public BranchGroup(Runtime runtime) {
-        this.runtime = runtime;
-    }
-
     public void addBranch(BranchId branchId, BlockChain blockChain) {
-        if (branches.containsKey(branchId)) {
-            return;
+        if (branches.containsKey(branchId.toString())) {
+            throw new DuplicatedException(branchId.toString());
         }
         chain = blockChain; // TODO remove
-        branches.put(branchId, blockChain);
-        blockChain.init(runtime);
+        branches.put(branchId.toString(), blockChain);
+    }
+
+    public BlockChain getBranch(BranchId id) {
+        return branches.get(id.toString());
     }
 
     public void setListener(BranchEventListener listener) {
@@ -70,7 +73,7 @@ public class BranchGroup {
     }
 
     public BlockHusk generateBlock(Wallet wallet) {
-        BlockHusk newBlock = chain.generateBlock(wallet, runtime);
+        BlockHusk newBlock = chain.generateBlock(wallet);
         if (listener != null && newBlock != null) {
             listener.chainedBlock(newBlock);
         }
@@ -78,11 +81,7 @@ public class BranchGroup {
     }
 
     public BlockHusk addBlock(BlockHusk block) {
-        return chain.addBlock(block, runtime);
-    }
-
-    public Set<BlockHusk> getBlocks() {
-        return chain.getBlocks();
+        return chain.addBlock(block);
     }
 
     public BlockHusk getBlockByIndexOrHash(String indexOrHash) {
@@ -91,6 +90,30 @@ public class BranchGroup {
             return chain.getBlockByIndex(index);
         } else {
             return chain.getBlockByHash(indexOrHash);
+        }
+    }
+
+    public int getBranchSize() {
+        return branches.size();
+    }
+
+    public StateStore<?> getStateStore() {
+        return chain.getRuntime().getStateStore();
+    }
+
+    public TransactionReceiptStore getTransactionReceiptStore() {
+        return chain.getRuntime().getTransactionReceiptStore();
+    }
+
+    public Contract getContract() {
+        return chain.getContract();
+    }
+
+    public JsonObject query(JsonObject query) {
+        try {
+            return chain.getRuntime().query(chain.getContract(), query);
+        } catch (Exception e) {
+            throw new FailedOperationException(e);
         }
     }
 

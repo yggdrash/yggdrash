@@ -1,7 +1,7 @@
-package io.yggdrash;
+package io.yggdrash.trie;
 
+import io.yggdrash.TestUtils;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.trie.Trie;
 import org.apache.commons.codec.binary.Hex;
 import org.junit.Before;
 import org.junit.Test;

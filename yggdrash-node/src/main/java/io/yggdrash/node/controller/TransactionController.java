@@ -28,6 +28,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("txs")
 public class TransactionController {
@@ -55,5 +59,13 @@ public class TransactionController {
         }
 
         return ResponseEntity.ok(TransactionDto.createBy(tx));
+    }
+
+    @GetMapping
+    public ResponseEntity getAll() {
+        List<TransactionHusk> txs = branchGroup.getTransactionList();
+        List<TransactionDto> dtoList = txs.stream().sorted(Comparator.reverseOrder())
+                .map(TransactionDto::createBy).collect(Collectors.toList());
+        return ResponseEntity.ok(dtoList);
     }
 }

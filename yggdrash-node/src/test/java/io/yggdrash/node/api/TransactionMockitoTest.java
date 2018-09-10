@@ -17,9 +17,6 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -54,7 +51,7 @@ public class TransactionMockitoTest {
     public void setup() throws Exception {
         txReceiptStore = new HashMap<>();
         wallet = new Wallet();
-        txApiImpl = new TransactionApiImpl(branchGroupMock, txReceiptStoreMock);
+        txApiImpl = new TransactionApiImpl(branchGroupMock);
 
         tx = TestUtils.createTxHusk(wallet);
         hashOfTx = tx.getHash().toString();
@@ -67,6 +64,8 @@ public class TransactionMockitoTest {
         txReceiptStore.put(tx.getHash().toString(), txRecipt);
         block = TestUtils.createBlockHuskByTxList(wallet, txList);
         hashOfBlock = block.getHash().toString();
+        when(branchGroupMock.getTransactionReceiptStore()).thenReturn(txReceiptStoreMock);
+
     }
 
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);

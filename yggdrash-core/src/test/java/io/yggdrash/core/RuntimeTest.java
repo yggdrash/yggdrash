@@ -9,6 +9,8 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
@@ -16,11 +18,13 @@ import java.io.IOException;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RuntimeTest {
+    private static final Logger log = LoggerFactory.getLogger(RuntimeTest.class);
     private final TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
     private final CoinContract coinContract = new CoinContract();
     private final StemContract stemContract = new StemContract();
     private Runtime runtime;
     private Wallet wallet;
+    private String branchId;
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
@@ -29,29 +33,7 @@ public class RuntimeTest {
     }
 
     @Test
-    public void invokeTest() throws Exception {
-        runtime.invoke(coinContract, new TransactionHusk(TestUtils.sampleTx()));
-    }
-
-    @Test
-    public void queryTest() throws Exception {
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        params.add(param);
-
-        JsonObject query = new JsonObject();
-        query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        query.addProperty("method", "balanceOf");
-        query.add("params", params);
-
-        JsonObject result = runtime.query(coinContract, query);
-        assertThat(result).isNotNull();
-    }
-
-
-    @Test
-    public void invokeToYeedTest() throws Exception {
+    public void invokeFromYeedTest() throws Exception {
         JsonArray params = new JsonArray();
         JsonObject param1 = new JsonObject();
         param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
@@ -64,8 +46,43 @@ public class RuntimeTest {
         txObj.addProperty("method", "transfer");
         txObj.add("params", params);
 
-        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTxObject(null, txObj));
+        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTxObject(wallet, txObj));
         runtime.invoke(coinContract, tx);
+    }
+
+    @Test
+    public void invokeFromStemTest() throws Exception {
+        JsonObject branch = TestUtils.getSampleBranch1();
+        branchId = TestUtils.getBranchId(branch);
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+
+        param.addProperty("branchId", branchId);
+        param.add("branch", branch);
+        params.add(param);
+
+
+        JsonObject txObj = new JsonObject();
+        txObj.addProperty("method", "create");
+        txObj.add("params", params);
+
+        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTxObject(null, txObj));
+        runtime.invoke(stemContract, tx);
+
+        String description = "hello world!";
+        String updatedVersion = "0xf4312kjise099qw0nene76555484ab1547av8b9e";
+        JsonObject updatedBranch = TestUtils.updateBranch(description, updatedVersion, branch, 0);
+
+        params.remove(0);
+        param.addProperty("branchId", branchId);
+        param.add("branch", updatedBranch);
+        params.add(param);
+
+        txObj.addProperty("method", "update");
+        txObj.add("params", params);
+
+        tx = new TransactionHusk(TestUtils.sampleTxObject(null, txObj));
+        runtime.invoke(stemContract, tx);
     }
 
     @Test
@@ -75,42 +92,50 @@ public class RuntimeTest {
         param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
         params.add(param);
 
-        JsonObject result = runtime.query(coinContract, createQuery("balanceOf", params));
-        assertThat(result).isNotNull();
+        assertThat(runtime.query(coinContract,
+                TestUtils.createQuery("balanceOf", params))).isNotNull();
     }
 
     @Test
     public void queryToStemTest() throws Exception {
+        invokeFromStemTest();
+
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
         param.addProperty("branchId",
-                "e1bbdf827bb44f0ae1d88f34e5f3a360484adbf2cf65a6d34162af3bbd4b9523");
+                branchId);
         params.add(param);
 
-        JsonObject result = runtime.query(stemContract, createQuery("view", params));
-        assertThat(result).isNotNull();
+        assertThat(runtime.query(stemContract,
+                TestUtils.createQuery("getCurrentVersion", params))).isNotNull();
+        log.debug("[getCurrentVersion] res => " + runtime.query(stemContract,
+                TestUtils.createQuery("getCurrentVersion", params)));
 
-        result = runtime.query(stemContract, createQuery("getCurrentVersion", params));
-        assertThat(result).isNotNull();
+        assertThat(runtime.query(stemContract,
+                TestUtils.createQuery("getVersionHistory", params))).isNotNull();
+        log.debug("[getVersionHistory] res => " + runtime.query(stemContract,
+                TestUtils.createQuery("getVersionHistory", params)));
 
-        result = runtime.query(stemContract, createQuery("getVersionHistory", params));
-        assertThat(result).isNotNull();
+        assertThat(runtime.query(stemContract,
+                TestUtils.createQuery("getAllBranchId", new JsonArray()))).isNotNull();
+        log.debug("[getAllBranchId] res => " + runtime.query(stemContract,
+                TestUtils.createQuery("getAllBranchId", params)));
 
-        param.remove("branchId");
-        param.addProperty("type", "immutable");
         params.remove(0);
+        param.remove("branchId");
+        param.addProperty("key", "type");
+        param.addProperty("value", "immunity");
         params.add(param);
+        assertThat(runtime.query(stemContract, TestUtils.createQuery("search", params)))
+                .isNotNull();
+        log.debug("[Search | type | immunity] res => "
+                + runtime.query(stemContract, TestUtils.createQuery("search", params)));
 
-        result = runtime.query(stemContract, createQuery("search", params));
-        assertThat(result).isNotNull();
-    }
-
-    private JsonObject createQuery(String method, JsonArray params) {
-        JsonObject query = new JsonObject();
-        query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        query.addProperty("method", method);
-        query.add("params", params);
-        System.out.println("createQuery :: query => " + query);
-        return query;
+        param.addProperty("key", "name");
+        param.addProperty("value", "TEST1");
+        assertThat(runtime.query(stemContract, TestUtils.createQuery("search", params)))
+                .isNotNull();
+        log.debug("[Search | name | TEST1] res => "
+                + runtime.query(stemContract, TestUtils.createQuery("search", params)));
     }
 }

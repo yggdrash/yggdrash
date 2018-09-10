@@ -2,7 +2,6 @@ package io.yggdrash.core;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import io.yggdrash.trie.Trie;
 
 import java.io.ByteArrayOutputStream;

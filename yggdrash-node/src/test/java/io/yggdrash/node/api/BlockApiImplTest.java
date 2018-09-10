@@ -34,15 +34,6 @@ public class BlockApiImplTest {
     }
 
     @Test
-    public void getAllBlockTest() {
-        try {
-            assertThat(blockApi.getAllBlock().size()).isNotZero();
-        } catch (Exception exception) {
-            log.debug("getAllBlockTest :: exception : " + exception, exception);
-        }
-    }
-
-    @Test
     public void getBlockByHashTest() {
         try {
             String hashOfBlock = blockApi.getBlockByHash("0", true).getPrevHash().toString();
