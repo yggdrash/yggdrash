@@ -20,6 +20,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.Contract;
 import io.yggdrash.core.event.BranchEventListener;
+import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -30,17 +31,21 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class BranchGroup {
 
-    private Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
+    private Map<String, BlockChain> branches = new ConcurrentHashMap<>();
     private static BlockChain chain;
 
     private BranchEventListener listener;
 
     public void addBranch(BranchId branchId, BlockChain blockChain) {
-        if (branches.containsKey(branchId)) {
-            return;
+        if (branches.containsKey(branchId.toString())) {
+            throw new DuplicatedException(branchId.toString());
         }
         chain = blockChain; // TODO remove
-        branches.put(branchId, blockChain);
+        branches.put(branchId.toString(), blockChain);
+    }
+
+    public BlockChain getBranch(BranchId id) {
+        return branches.get(id.toString());
     }
 
     public void setListener(BranchEventListener listener) {

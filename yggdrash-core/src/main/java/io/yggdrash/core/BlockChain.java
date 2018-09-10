@@ -286,6 +286,7 @@ public class BlockChain {
 
     public void close() {
         this.blockStore.close();
+        this.transactionStore.close();
     }
 
     public String toStringStatus() {

@@ -42,6 +42,11 @@ public class MetaStore implements Store<MetaStore.MetaInfo, Sha3Hash> {
         return false;
     }
 
+    @Override
+    public void close() {
+        db.close();
+    }
+
     public enum MetaInfo {
         RECENT_BLOCK
     }

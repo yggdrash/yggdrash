@@ -70,6 +70,11 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     }
 
     @Override
+    public void close() {
+        db.close();
+    }
+
+    @Override
     public void put(Sha3Hash key, TransactionHusk tx) {
         huskTxPool.put(key, tx);
         unconfirmedTxs.add(key);

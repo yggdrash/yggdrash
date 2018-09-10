@@ -158,6 +158,19 @@ public class TestUtils {
 
     }
 
+    public static JsonObject sampleBalanceOfQueryJson() {
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        params.add(param);
+
+        JsonObject query = new JsonObject();
+        query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        query.addProperty("method", "balanceOf");
+        query.add("params", params);
+        return query;
+    }
+
     public static JsonObject sampleTxObject(Wallet newWallet, JsonObject body) {
 
         Wallet nodeWallet;
