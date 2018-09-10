@@ -11,6 +11,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -51,7 +52,7 @@ public class StemContract extends BaseContract<JsonObject> {
         String refAddress = branch.get("reference_address").getAsString();
         String type = branch.get("type").getAsString();
         String owner = branch.get("owner").getAsString();
-        if (isOwnerValid(owner)) {
+        if (this.sender != null && isOwnerValid(owner)) {
             if (verify(refAddress, type)) {
                 if (isBranchIdValid(branchId, branch)) {
                     state.put(branchId, branch);
@@ -80,9 +81,9 @@ public class StemContract extends BaseContract<JsonObject> {
         txReceipt.put("branchId", branchId);
         txReceipt.put("branch", branch);
         txReceipt.setStatus(0);
-        
+
         String owner = branch.get("owner").getAsString();
-        if (isOwnerValid(owner)) {
+        if (this.sender != null && isOwnerValid(owner)) {
             if (isBranchIdValid(branchId, branch)) {
                 if (isVersionHistoryUpdated(branchId, branch)) {
                     log.info("[StemContract | update] branchId => " + branchId);
@@ -108,10 +109,11 @@ public class StemContract extends BaseContract<JsonObject> {
         String subStateKey = params.get(0).getAsJsonObject().get("key").getAsString();
         String key = params.get(0).getAsJsonObject().get("value").getAsString();
 
-        if (state.getSubState(subStateKey).get(key) != null) {
+        if (state.getSubState(subStateKey) != null
+                && state.getSubState(subStateKey).get(key) != null) {
             return state.getSubState(subStateKey).get(key);
         }
-        return null;
+        return new HashSet<>();
     }
 
     /**

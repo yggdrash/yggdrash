@@ -92,49 +92,49 @@ public class StemContractTest {
         param.addProperty("value", "immunity");
         params.add(param);
 
-        log.debug("Search [type | immunity] res => " + stemContract.search(params));
         assertThat(stemContract.search(params)).isNotNull();
+        log.debug("Search [type | immunity] res => " + stemContract.search(params));
 
         param.addProperty("key", "name");
         param.addProperty("value", "TEST1");
         params.remove(0);
         params.add(param);
 
-        log.debug("Search [name | TEST1] res => " + stemContract.search(params));
         assertThat(stemContract.search(params)).isNotNull();
+        log.debug("Search [name | TEST1] res => " + stemContract.search(params));
 
         param.addProperty("key", "property");
         param.addProperty("value", "dex");
         params.remove(0);
         params.add(param);
 
-        log.debug("Search [property | dex] res => " + stemContract.search(params));
         assertThat(stemContract.search(params)).isNotNull();
+        log.debug("Search [property | dex] res => " + stemContract.search(params));
 
         param.addProperty("key", "owner");
         param.addProperty("value", "9e187f5264037ab77c87fcffcecd943702cd72c3");
         params.remove(0);
         params.add(param);
 
+        assertThat(stemContract.search(params)).isNotNull();
         log.debug("Search [owner | 9e187f5264037ab77c87fcffcecd943702cd72c3] res => "
                 + stemContract.search(params));
-        assertThat(stemContract.search(params)).isNotNull();
 
         param.addProperty("key", "symbol");
         param.addProperty("value", "TEST1");
         params.remove(0);
         params.add(param);
 
-        log.debug("Search [symbol | TEST1] res => " + stemContract.search(params));
         assertThat(stemContract.search(params)).isNotNull();
+        log.debug("Search [symbol | TEST1] res => " + stemContract.search(params));
 
         param.addProperty("key", "tag");
         param.addProperty("value", "0.1");
         params.remove(0);
         params.add(param);
 
-        log.debug("Search [tag | 0.1] res => " + stemContract.search(params));
         assertThat(stemContract.search(params)).isNotNull();
+        log.debug("Search [tag | 0.1] res => " + stemContract.search(params));
     }
 
     @Test
@@ -144,8 +144,8 @@ public class StemContractTest {
         param.addProperty("branchId", referenceBranchAddress);
         params.add(param);
 
+        assertThat(stemContract.view(params)).isEmpty();
         log.debug(stemContract.view(params));
-        assertThat(stemContract.view(params)).isNotEmpty();
     }
 
     @Test
@@ -155,8 +155,8 @@ public class StemContractTest {
         param.addProperty("branchId", referenceBranchAddress);
         params.add(param);
 
+        assertThat(stemContract.getcurrentversion(params)).isEmpty();
         log.debug(stemContract.getcurrentversion(params));
-        assertThat(stemContract.getcurrentversion(params)).isNotEmpty();
     }
 
     @Test
@@ -166,8 +166,7 @@ public class StemContractTest {
         param.addProperty("branchId", referenceBranchAddress);
         params.add(param);
 
-        log.debug(stemContract.getversionhistory(params).getAsString());
-        assertThat(stemContract.getversionhistory(params).size()).isNotZero();
+        assertThat(stemContract.getversionhistory(params).size()).isNotNull();
     }
 
     @Test
