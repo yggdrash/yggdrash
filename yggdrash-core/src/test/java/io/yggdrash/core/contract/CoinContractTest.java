@@ -1,6 +1,5 @@
 package io.yggdrash.core.contract;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.contract.CoinContract;
@@ -27,17 +26,7 @@ public class CoinContractTest {
 
     @Test
     public void balanceTest() throws Exception {
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        params.add(param);
-
-        JsonObject query = new JsonObject();
-        query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        query.addProperty("method", "balanceOf");
-        query.add("params", params);
-
-        JsonObject result = coinContract.query(query);
+        JsonObject result = coinContract.query(TestUtils.sampleBalanceOfQueryJson());
         assertThat(result).isNotNull();
     }
 

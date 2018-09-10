@@ -87,4 +87,10 @@ public class StateStore<T> implements Store<String, T> {
     public boolean contains(String key) {
         return state.containsKey(key);
     }
+
+    @Override
+    public void close() {
+        state.clear();
+        subState.clear();
+    }
 }

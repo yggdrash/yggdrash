@@ -24,4 +24,6 @@ public interface Store<K, V> {
     V get(K key) throws InvalidProtocolBufferException;
 
     boolean contains(K key);
+
+    void close();
 }

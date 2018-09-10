@@ -19,6 +19,8 @@ package io.yggdrash;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.config.Constants;
+import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
@@ -35,11 +37,13 @@ import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.util.FileUtil;
 import io.yggdrash.util.TimeUtils;
 import org.apache.commons.codec.binary.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.file.Paths;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
@@ -152,6 +156,19 @@ public class TestUtils {
 
         return sampleTxObject(newWallet, txObj);
 
+    }
+
+    public static JsonObject sampleBalanceOfQueryJson() {
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        params.add(param);
+
+        JsonObject query = new JsonObject();
+        query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        query.addProperty("method", "balanceOf");
+        query.add("params", params);
+        return query;
     }
 
     public static JsonObject sampleTxObject(Wallet newWallet, JsonObject body) {
@@ -373,5 +390,10 @@ public class TestUtils {
 
     public static Proto.Block[] getBlockFixtures() {
         return new Proto.Block[] {getBlockFixture(), getBlockFixture(), getBlockFixture()};
+    }
+
+    public static void clearTestDb() {
+        String dbPath = new DefaultConfig().getConfig().getString(Constants.DATABASE_PATH);
+        FileUtil.recursiveDelete(Paths.get(dbPath));
     }
 }

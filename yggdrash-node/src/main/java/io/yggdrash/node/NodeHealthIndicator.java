@@ -17,8 +17,8 @@
 package io.yggdrash.node;
 
 import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.core.store.BlockStore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -33,15 +33,15 @@ public class NodeHealthIndicator implements HealthIndicator {
 
     private final DefaultConfig defaultConfig;
 
-    private final BlockStore blockStore;
+    private final BranchGroup branchGroup;
 
     private final PeerGroup peerGroup;
 
     @Autowired
-    public NodeHealthIndicator(DefaultConfig defaultConfig, BlockStore blockStore,
+    public NodeHealthIndicator(DefaultConfig defaultConfig, BranchGroup branchGroup,
                                PeerGroup peerGroup) {
         this.defaultConfig = defaultConfig;
-        this.blockStore = blockStore;
+        this.branchGroup = branchGroup;
         this.peerGroup = peerGroup;
     }
 
@@ -65,7 +65,7 @@ public class NodeHealthIndicator implements HealthIndicator {
         builder.withDetail("version", defaultConfig.getNodeVersion());
         builder.withDetail("p2pVersion", defaultConfig.getNetworkP2PVersion());
         builder.withDetail("network", defaultConfig.getNetwork());
-        builder.withDetail("height", blockStore.size());
+        builder.withDetail("height", branchGroup.getLastIndex());
         builder.withDetail("activePeers", peerGroup.getActivePeerList().size());
         health.set(builder.build());
     }

@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.config.Constants;
+import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
@@ -37,10 +39,12 @@ import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.ByteUtil;
+import io.yggdrash.util.FileUtil;
 import io.yggdrash.util.TimeUtils;
 import org.apache.commons.codec.binary.Hex;
 
 import java.io.ByteArrayOutputStream;
+import java.nio.file.Paths;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
@@ -381,5 +385,10 @@ public class TestUtils {
         query.addProperty("method", method);
         query.add("params", params);
         return query;
+    }
+
+    public static void clearTestDb() {
+        String dbPath = new DefaultConfig().getConfig().getString(Constants.DATABASE_PATH);
+        FileUtil.recursiveDelete(Paths.get(dbPath));
     }
 }

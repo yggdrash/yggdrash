@@ -17,9 +17,8 @@
 package io.yggdrash.node;
 
 import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.core.store.BlockStore;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.boot.actuate.health.Health;
@@ -31,9 +30,9 @@ public class NodeHealthIndicatorTest {
 
     @Before
     public void setUp() {
+        BranchGroup branchGroup = new BranchGroup();
         PeerGroup peerGroup = new PeerGroup(1);
-        BlockStore blockStore = new BlockStore(new HashMapDbSource());
-        this.nodeHealthIndicator = new NodeHealthIndicator(new DefaultConfig(), blockStore,
+        this.nodeHealthIndicator = new NodeHealthIndicator(new DefaultConfig(), branchGroup,
                 peerGroup);
     }
 
