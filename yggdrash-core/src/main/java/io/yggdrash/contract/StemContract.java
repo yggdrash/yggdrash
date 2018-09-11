@@ -31,15 +31,16 @@ public class StemContract extends BaseContract<JsonObject> {
     }
 
     public TransactionReceipt genesis(JsonArray params) {
-        log.info("[StemContract | genesis] SUCCESS! params => " + params);
-        JsonObject jsonObject = params.get(0).getAsJsonObject();
-        String branchStr = jsonObject.get("branch").getAsString();
-        JsonParser jsonParser = new JsonParser();
-        JsonObject branch = (JsonObject) jsonParser.parse(branchStr);
-        jsonObject.add("branch", branch);
+        if (state.getState().size() == 0) {
+            log.info("[StemContract | genesis] SUCCESS! params => " + params);
+            JsonObject jsonObject = params.get(0).getAsJsonObject();
+            String branchStr = jsonObject.get("branch").getAsString();
+            JsonParser jsonParser = new JsonParser();
+            JsonObject branch = (JsonObject) jsonParser.parse(branchStr);
+            jsonObject.add("branch", branch);
 
-        create(params);
-
+            return create(params);
+        }
         return new TransactionReceipt();
     }
 
@@ -215,8 +216,8 @@ public class StemContract extends BaseContract<JsonObject> {
 
     private boolean isBranchIdValid(String branchId, JsonObject branch) {
         if (branchId.equals(getBranchId(branch))) {
-            log.info("[Validation] branchId is valid");
-            return true;
+            return branch.get("version").getAsString().equals(branch.get("versionHistory")
+                    .getAsJsonArray().get(0).getAsString());
         }
         log.warn("[Validation] branchId is not valid");
         return false;
@@ -251,9 +252,7 @@ public class StemContract extends BaseContract<JsonObject> {
             branchStream.write(branch.get("property").getAsString().getBytes());
             branchStream.write(branch.get("type").getAsString().getBytes());
             branchStream.write(branch.get("timestamp").getAsString().getBytes());
-            //branchStream.write(branch.get("version").getAsString().getBytes());
-            branchStream.write(branch.get("versionHistory").getAsJsonArray().get(0)
-                    .getAsString().getBytes());
+            branchStream.write(branch.get("version").getAsString().getBytes());
             branchStream.write(branch.get("reference_address").getAsString().getBytes());
             branchStream.write(branch.get("reserve_address").getAsString().getBytes());
         } catch (Exception e) {
