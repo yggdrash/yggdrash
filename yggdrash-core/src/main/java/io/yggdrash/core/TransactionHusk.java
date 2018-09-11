@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.security.SignatureException;
 import java.util.Objects;
 
@@ -65,12 +66,8 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
     }
 
     public TransactionHusk(JsonObject jsonObject) {
-        try {
-            this.coreTransaction = new Transaction(jsonObject);
-            this.protoTransaction = this.coreTransaction.toProtoTransaction();
-        } catch (SignatureException e) {
-            throw new NotValidateException();
-        }
+        this.coreTransaction = new Transaction(jsonObject);
+        this.protoTransaction = Transaction.toProtoTransaction(this.coreTransaction);
     }
 
     public Proto.Transaction getProtoTransaction() {
@@ -97,7 +94,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
                             this.coreTransaction.getHeader(),
                             wallet,
                             this.coreTransaction.getBody());
-            this.protoTransaction = this.coreTransaction.toProtoTransaction();
+            this.protoTransaction = Transaction.toProtoTransaction(this.coreTransaction);
         } catch (Exception e) {
             throw new NotValidateException();
         }
@@ -166,7 +163,12 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
     }
 
     public boolean verify() {
-        return this.coreTransaction.getSignature().verify();
+        try {
+            return this.coreTransaction.verify();
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            return false;
+        }
     }
 
     /**
@@ -175,16 +177,12 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
      * @return address
      */
     public Address getAddress() {
-        return new Address(this.coreTransaction.getAddress());
-    }
-
-    /**
-     * Get ECKey(include pubKey) using sig & signData.
-     *
-     * @return ECKey(include pubKey)
-     */
-    private ECKey ecKey() {
-        return this.coreTransaction.getSignature().getEcKeyPub();
+        try {
+            return new Address(this.coreTransaction.getAddress());
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            return null;
+        }
     }
 
     public JsonObject toJsonObject() {

@@ -76,8 +76,6 @@ public class BlockTest {
 
             wallet = new Wallet();
 
-            txHeader.setTimestamp(TimeUtils.time());
-
             txSig = new TransactionSignature(wallet, txHeader.getHashForSignning());
 
             tx1 = new Transaction(txHeader, txSig, txBody);
@@ -115,7 +113,7 @@ public class BlockTest {
     public void testBlockConstructor() {
 
         try {
-            Block block0 = new Block(blockHeader1, blockSig1, blockBody1);
+            Block block0 = new Block(blockHeader1, blockSig1.getSignature(), blockBody1);
 
             log.debug("block0=" + block0.toJsonObject());
             log.debug("block0=" + block0.toString());
@@ -154,7 +152,7 @@ public class BlockTest {
     @Test
     public void testBlockClone() {
         try {
-            Block block1 = new Block(blockHeader1, blockSig1, blockBody1);
+            Block block1 = new Block(blockHeader1, blockSig1.getSignature(), blockBody1);
             log.debug("block1=" + block1.toJsonObject());
 
             Block block2 = block1.clone();
@@ -178,15 +176,14 @@ public class BlockTest {
     @Test
     public void testBlockField() {
         try {
-            Block block1 = new Block(blockHeader1, blockSig1, blockBody1);
+            Block block1 = new Block(blockHeader1, blockSig1.getSignature(), blockBody1);
             log.debug("block1=" + block1.toJsonObject());
 
             Block block2 = block1.clone();
             log.debug("block2=" + block2.toJsonObject());
 
             assertEquals(block1.toJsonObject().toString(), block2.toJsonObject().toString());
-            assertEquals(block1.getSignature().getSignatureHexString(),
-                    block2.getSignature().getSignatureHexString());
+            assertArrayEquals(block1.getSignature(), block2.getSignature());
 
             block2.getHeader().setTimestamp(TimeUtils.time());
             log.debug("block1=" + block1.toJsonObject());
@@ -204,19 +201,19 @@ public class BlockTest {
     @Test
     public void testBlockGetHash() {
         try {
-            Block block1 = new Block(blockHeader1, blockSig1, blockBody1);
+            Block block1 = new Block(blockHeader1, blockSig1.getSignature(), blockBody1);
             log.debug("block1=" + block1.toJsonObject());
 
             Block block2 = block1.clone();
             log.debug("block2=" + block2.toJsonObject());
 
-            assertEquals(block1.getHashString(), block2.getHashString());
+            assertEquals(block1.getHashHexString(), block2.getHashHexString());
 
             block2.getHeader().setTimestamp(TimeUtils.time());
             log.debug("block1=" + block1.toJsonObject());
             log.debug("block2=" + block2.toJsonObject());
 
-            assertNotEquals(block1.getHashString(), block2.getHashString());
+            assertNotEquals(block1.getHashHexString(), block2.getHashHexString());
 
         } catch (Exception e) {
             log.debug(e.getMessage());
@@ -228,7 +225,7 @@ public class BlockTest {
     @Test
     public void testBlockKey() {
         try {
-            Block block1 = new Block(blockHeader1, blockSig1, blockBody1);
+            Block block1 = new Block(blockHeader1, blockSig1.getSignature(), blockBody1);
             log.debug("block1 pubKey=" + block1.getPubKeyHexString());
 
             Block block2 = block1.clone();
@@ -238,11 +235,11 @@ public class BlockTest {
             assertArrayEquals(block1.getPubKey(), block2.getPubKey());
             assertArrayEquals(block1.getPubKey(), wallet.getPubicKey());
 
-            log.debug("block1 author address=" + block1.getAddressToString());
-            log.debug("block2 author address=" + block2.getAddressToString());
+            log.debug("block1 author address=" + block1.getAddressHexString());
+            log.debug("block2 author address=" + block2.getAddressHexString());
             log.debug("wallet address=" + wallet.getHexAddress());
-            assertEquals(block1.getAddressToString(), block2.getAddressToString());
-            assertEquals(block1.getAddressToString(), wallet.getHexAddress());
+            assertEquals(block1.getAddressHexString(), block2.getAddressHexString());
+            assertEquals(block1.getAddressHexString(), wallet.getHexAddress());
 
         } catch (Exception e) {
             log.debug(e.getMessage());

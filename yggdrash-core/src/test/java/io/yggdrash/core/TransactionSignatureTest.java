@@ -61,23 +61,21 @@ public class TransactionSignatureTest {
         try {
             TransactionSignature txSig1
                     = new TransactionSignature(wallet, txHeader.getHashForSignning());
-            assertArrayEquals(txSig1.getHeaderHash(), txHeader.getHashForSignning());
 
             log.debug("txSig1.signature=" + Hex.toHexString(txSig1.getSignature()));
-            log.debug("txSig1.data=" + Hex.toHexString(txSig1.getHeaderHash()));
-            log.debug("txSig1.ecKeyPub=" + Hex.toHexString(txSig1.getEcKeyPub().getPubKey()));
+            log.debug("txSig1.signatureHex=" + txSig1.getSignatureHexString());
+            log.debug("txSig1.toJsonObject=" + txSig1.toJsonObject());
+            log.debug("txSig1.toString=" + txSig1.toString());
 
             TransactionSignature txSig2
-                    = new TransactionSignature(txSig1.getSignature(), txSig1.getHeaderHash());
+                    = new TransactionSignature(txSig1.getSignature());
 
             log.debug("txSig2.signature=" + Hex.toHexString(txSig2.getSignature()));
-            log.debug("txSig2.data=" + Hex.toHexString(txSig2.getHeaderHash()));
-            log.debug("txSig2.ecKeyPub=" + Hex.toHexString(txSig2.getEcKeyPub().getPubKey()));
+            log.debug("txSig2.signatureHex=" + txSig2.getSignatureHexString());
+            log.debug("txSig2.toJsonObject=" + txSig2.toJsonObject());
+            log.debug("txSig2.toString=" + txSig2.toString());
 
-            assertArrayEquals(txSig1.getEcdsaSignature().toBinary(),
-                    txSig2.getEcdsaSignature().toBinary());
-
-            assertArrayEquals(txSig1.getEcKeyPub().getPubKey(), txSig2.getEcKeyPub().getPubKey());
+            assertArrayEquals(txSig1.getSignature(), txSig2.getSignature());
 
             TransactionSignature txSig3 = new TransactionSignature(txSig1.toJsonObject());
             log.debug("txSig1=" + txSig1.toString());
@@ -85,15 +83,8 @@ public class TransactionSignatureTest {
 
             assertEquals(txSig1.toString(), txSig3.toString());
 
-            assertEquals(Hex.toHexString(txSig1.getHeaderHash()), txSig3.getHeaderHashHexString());
-
-            assertTrue(txSig1.verify());
-            assertTrue(txSig2.verify());
-            assertTrue(txSig3.verify());
-
             TransactionSignature txSig4 = new TransactionSignature(txSig1.toJsonObject());
-            assertEquals(txSig1.toJsonObject().toString(), txSig4.toJsonObject().toString());
-
+            assertEquals(txSig1.toString(), txSig4.toString());
 
         } catch (Exception e) {
             log.debug(e.getMessage());
@@ -118,6 +109,5 @@ public class TransactionSignatureTest {
             assert false;
         }
     }
-
 
 }

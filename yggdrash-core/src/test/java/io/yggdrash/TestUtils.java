@@ -69,12 +69,7 @@ public class TestUtils {
     }
 
     public static Proto.Transaction getTransactionFixture() {
-
-        try {
-            return new Transaction(sampleTxObject(null)).toProtoTransaction();
-        } catch (SignatureException e) {
-            throw new NotValidateException();
-        }
+        return Transaction.toProtoTransaction(new Transaction(sampleTxObject(null)));
     }
 
     public static Proto.Transaction[] getTransactionFixtures() {
@@ -328,27 +323,15 @@ public class TestUtils {
         return query;
     }
     public static Transaction sampleTx() {
-        try {
-            return new Transaction(sampleTxObject(null));
-        } catch (SignatureException e) {
-            return null;
-        }
+       return new Transaction(sampleTxObject(null));
     }
 
     public static Transaction sampleTx(JsonObject body) {
-        try {
-            return new Transaction(sampleTxObject(null));
-        } catch (SignatureException e) {
-            return null;
-        }
+        return new Transaction(sampleTxObject(null));
     }
 
     public static Transaction sampleTx(Wallet wallet) {
-        try {
-            return new Transaction(sampleTxObject(wallet));
-        } catch (SignatureException e) {
-            return null;
-        }
+        return new Transaction(sampleTxObject(wallet));
     }
 
     public static JsonObject sampleBlockObject() {
@@ -368,7 +351,7 @@ public class TestUtils {
 
             BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSignning());
 
-            Block block = new Block(blockHeader, blockSig, blockBody);
+            Block block = new Block(blockHeader, blockSig.getSignature(), blockBody);
 
             return block.toJsonObject();
         } catch (Exception e) {
@@ -377,15 +360,11 @@ public class TestUtils {
     }
 
     public static Block sampleBlock() {
-        try {
-            return new Block(sampleBlockObject());
-        } catch (SignatureException e) {
-            throw new NotValidateException();
-        }
+        return new Block(sampleBlockObject());
     }
 
     public static Proto.Transaction sampleProtoTx() {
-        return sampleTx().toProtoTransaction();
+        return Transaction.toProtoTransaction(sampleTx());
     }
 
     public static Proto.Block[] getBlockFixtures() {
