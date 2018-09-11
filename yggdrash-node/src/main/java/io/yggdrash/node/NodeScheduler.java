@@ -54,7 +54,7 @@ class NodeScheduler {
         peerGroup.healthCheck();
     }
 
-    @Scheduled(cron=cronValue)
+    @Scheduled(cron = cronValue)
     public void generateBlock() {
         if (nodeQueue.isEmpty()) {
             nodeQueue.addAll(peerGroup.getPeerUriList());
