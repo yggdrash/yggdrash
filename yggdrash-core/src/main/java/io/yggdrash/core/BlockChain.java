@@ -4,6 +4,7 @@ import com.google.common.annotations.VisibleForTesting;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.Contract;
 import io.yggdrash.contract.NoneContract;
+import io.yggdrash.core.event.BranchEventListener;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NonExistObjectException;
@@ -34,6 +35,8 @@ public class BlockChain {
     private TransactionStore transactionStore;
     private Contract contract;
     private Runtime<?> runtime;
+
+    private List<BranchEventListener> listenerList = new ArrayList<>();
 
     @VisibleForTesting
     public BlockChain(File infoFile) {
@@ -72,6 +75,10 @@ public class BlockChain {
                     storedBlock.getHash());
             this.prevBlock = storedBlock;
         }
+    }
+
+    public void addListener(BranchEventListener listener) {
+        listenerList.add(listener);
     }
 
     public Contract getContract() {
@@ -137,6 +144,9 @@ public class BlockChain {
         this.blockStore.put(nextBlock.getHash(), nextBlock);
         this.prevBlock = nextBlock;
         removeTxByBlock(nextBlock);
+        if (!listenerList.isEmpty()) {
+            listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
+        }
         return nextBlock;
     }
 
@@ -168,6 +178,9 @@ public class BlockChain {
 
         try {
             transactionStore.put(tx.getHash(), tx);
+            if (!listenerList.isEmpty()) {
+                listenerList.forEach(listener -> listener.receivedTransaction(tx));
+            }
             return tx;
         } catch (Exception e) {
             throw new FailedOperationException("Transaction");

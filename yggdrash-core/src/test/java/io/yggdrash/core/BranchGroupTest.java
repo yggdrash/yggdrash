@@ -60,14 +60,6 @@ public class BranchGroupTest {
     }
 
     @Test
-    public void setListener() {
-        branchGroup.setListener(block -> {
-            assertThat(block.getAddress()).isNotNull();
-        });
-        branchGroup.generateBlock(wallet);
-    }
-
-    @Test
     public void addTransaction() {
         branchGroup.addTransaction(tx);
         TransactionHusk pooledTx1 = branchGroup.getTxByHash(tx.getHash());

@@ -1,6 +1,7 @@
 package io.yggdrash.core;
 
 import io.yggdrash.TestUtils;
+import io.yggdrash.core.event.BranchEventListener;
 import io.yggdrash.core.exception.NotValidateException;
 import org.junit.After;
 import org.junit.Before;
@@ -108,4 +109,27 @@ public class BlockChainTest {
         BlockChain blockChain = new BlockChain(sampleBranchInfo);
         assertThat(blockChain.size()).isEqualTo(1L);
     }
+
+    @Test
+    public void shoudBeCallback() {
+        BlockChain blockChain = new BlockChain(sampleBranchInfo);
+        blockChain.addListener(new BranchEventListener() {
+            @Override
+            public void chainedBlock(BlockHusk block) {
+                assertThat(block).isNotNull();
+            }
+
+            @Override
+            public void receivedTransaction(TransactionHusk tx) {
+                assertThat(tx).isNotNull();
+            }
+        });
+        BlockHusk prevBlock = blockChain.getPrevBlock(); // goto Genesis
+        long blockIndex = blockChain.size();
+        BlockHusk testBlock = new BlockHusk(
+                TestUtils.getBlockFixture(blockIndex, prevBlock.getHash()));
+        blockChain.addBlock(testBlock);
+        blockChain.addTransaction(TestUtils.createTxHusk());
+    }
+
 }
