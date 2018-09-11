@@ -64,8 +64,6 @@ public class BlockBodyTest {
 
             wallet = new Wallet();
 
-            txHeader.setTimestamp(TimeUtils.time());
-
             txSig = new TransactionSignature(wallet, txHeader.getHashForSignning());
 
             tx1 = new Transaction(txHeader, txSig, txBody);

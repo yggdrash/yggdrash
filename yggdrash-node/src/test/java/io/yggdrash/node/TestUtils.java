@@ -156,10 +156,10 @@ public class TestUtils {
         long timestamp = TimeUtils.time();
 
         TransactionHeader txHeader;
-        txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
         try {
+            txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
             txSig = new TransactionSignature(nodeWallet, txHeader.getHashForSignning());
-            tx = new Transaction(txHeader, txSig, txBody);
+            tx = new Transaction(txHeader, txSig.getSignature(), txBody);
 
             return tx.toJsonObject();
 
@@ -208,25 +208,17 @@ public class TestUtils {
     }
 
     public static Transaction sampleTx() {
-        try {
-            return new Transaction(sampleTxObject(null));
-        } catch (SignatureException e) {
-            return null;
-        }
+        return new Transaction(sampleTxObject(null));
     }
 
     public static Transaction sampleTx(Wallet wallet) {
-        try {
-            return new Transaction(sampleTxObject(wallet));
-        } catch (SignatureException e) {
-            return null;
-        }
+        return new Transaction(sampleTxObject(wallet));
     }
 
     public static Proto.Transaction[] sampleTxs() {
-        return new Proto.Transaction[] {sampleTx().toProtoTransaction(),
-                sampleTx().toProtoTransaction(),
-                sampleTx().toProtoTransaction()};
+        return new Proto.Transaction[] { Transaction.toProtoTransaction(sampleTx()),
+                Transaction.toProtoTransaction(sampleTx()),
+                Transaction.toProtoTransaction(sampleTx())};
     }
 
     public static JsonObject sampleBlockObject() {
@@ -246,7 +238,7 @@ public class TestUtils {
 
             BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSignning());
 
-            Block block = new Block(blockHeader, blockSig, blockBody);
+            Block block = new Block(blockHeader, blockSig.getSignature(), blockBody);
 
             return block.toJsonObject();
         } catch (Exception e) {
@@ -255,11 +247,7 @@ public class TestUtils {
     }
 
     public static Block sampleBlock() {
-        try {
-            return new Block(sampleBlockObject());
-        } catch (SignatureException e) {
-            throw new NotValidateException();
-        }
+        return new Block(sampleBlockObject());
     }
 
     public static Proto.Block[] sampleBlocks() {
@@ -335,9 +323,11 @@ public class TestUtils {
         return branch;
     }
 
-    public static JsonObject updateBranch(String description, String version, JsonObject branch, Integer checkSum) {
+    public static JsonObject updateBranch(
+            String description, String version, JsonObject branch, Integer checkSum) {
         JsonObject updatedBranch = new JsonObject();
-        updatedBranch.addProperty("name", checkSum == 0 ? branch.get("name").getAsString() : "HELLO");
+        updatedBranch.addProperty(
+                "name", checkSum == 0 ? branch.get("name").getAsString() : "HELLO");
         updatedBranch.addProperty("owner", branch.get("owner").getAsString());
         updatedBranch.addProperty("symbol", branch.get("symbol").getAsString());
         updatedBranch.addProperty("property", branch.get("property").getAsString());
@@ -347,7 +337,8 @@ public class TestUtils {
         updatedBranch.addProperty("tag", branch.get("tag").getAsFloat());
         updatedBranch.addProperty("version", version);
         updatedBranch.add("versionHistory", branch.get("versionHistory").getAsJsonArray());
-        updatedBranch.addProperty("reference_address", branch.get("reference_address").getAsString());
+        updatedBranch.addProperty(
+                "reference_address", branch.get("reference_address").getAsString());
         updatedBranch.addProperty("reserve_address", branch.get("reserve_address").getAsString());
 
         return updatedBranch;

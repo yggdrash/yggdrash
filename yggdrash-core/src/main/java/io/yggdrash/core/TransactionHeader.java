@@ -1,14 +1,20 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.util.ByteUtil;
+import io.yggdrash.util.TimeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
+import java.io.UnsupportedEncodingException;
+import java.security.SignatureException;
 
 public class TransactionHeader implements Cloneable {
 
@@ -57,6 +63,41 @@ public class TransactionHeader implements Cloneable {
                 Hex.decode(jsonObject.get("bodyLength").getAsString()));
     }
 
+    public TransactionHeader(byte[] txHeaderBytes) {
+        int pos = 0;
+
+        this.chain = new byte[20];
+        System.arraycopy(txHeaderBytes, pos, this.chain, 0, this.chain.length);
+        pos += this.chain.length;
+
+        this.version = new byte[8];
+        System.arraycopy(txHeaderBytes, pos, this.version, 0, this.version.length);
+        pos += this.version.length;
+
+        this.type = new byte[8];
+        System.arraycopy(txHeaderBytes, pos, this.type, 0, this.type.length);
+        pos += this.type.length;
+
+        byte[] timestampBytes = new byte[8];
+        System.arraycopy(txHeaderBytes, pos, timestampBytes, 0, timestampBytes.length);
+        this.timestamp = ByteUtil.byteArrayToLong(timestampBytes);
+        pos += timestampBytes.length;
+
+        this.bodyHash = new byte[32];
+        System.arraycopy(txHeaderBytes, pos, this.bodyHash, 0, this.bodyHash.length);
+        pos += this.bodyHash.length;
+
+        byte[] bodyLengthBytes = new byte[8];
+        System.arraycopy(txHeaderBytes, pos, bodyLengthBytes, 0, bodyLengthBytes.length);
+        this.bodyLength = ByteUtil.byteArrayToLong(bodyLengthBytes);
+        pos += bodyLengthBytes.length;
+
+        if (pos != txHeaderBytes.length) {
+            throw new NotValidateException();
+        }
+
+    }
+
     public long length() throws IOException {
         return this.toBinary().length;
     }
@@ -83,10 +124,6 @@ public class TransactionHeader implements Cloneable {
 
     public long getBodyLength() {
         return this.bodyLength;
-    }
-
-    protected void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
     }
 
     /**

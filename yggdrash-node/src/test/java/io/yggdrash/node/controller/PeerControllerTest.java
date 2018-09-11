@@ -58,16 +58,16 @@ public class PeerControllerTest {
 
     @Test
     public void shouldAddPeer() throws Exception {
-        requestPeerPost(new PeerDto("ynode://75bff16c@127.0.0.1:9090"))
+        requestPeerPost(new PeerDto("ynode://75bff16c@127.0.0.1:32918"))
                 .andDo(print())
                 .andExpect(jsonPath("$.id",
-                        equalTo("ynode://75bff16c@127.0.0.1:9090")));
+                        equalTo("ynode://75bff16c@127.0.0.1:32918")));
     }
 
     @Test
     public void shouldGetPeers() throws Exception {
-        requestPeerPost(new PeerDto("ynode://75bff16c@127.0.0.1:9090"));
-        requestPeerPost(new PeerDto("ynode://65bff16c@127.0.0.1:9090"));
+        requestPeerPost(new PeerDto("ynode://75bff16c@127.0.0.1:32918"));
+        requestPeerPost(new PeerDto("ynode://65bff16c@127.0.0.1:32918"));
 
         mockMvc
                 .perform(

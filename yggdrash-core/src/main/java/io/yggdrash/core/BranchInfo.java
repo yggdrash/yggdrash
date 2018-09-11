@@ -33,7 +33,7 @@ public class BranchInfo {
     public String merkleRoot;
     public String bodyLength;
     public String signature;
-    public List<BranchData> body;
+    public List<BranchBody> body;
 
     public BranchInfo() {
     }
@@ -59,7 +59,7 @@ public class BranchInfo {
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
-    public static class BranchData {
+    public static class BranchBody {
         public String chain;
         public String version;
         public String type;
@@ -67,6 +67,6 @@ public class BranchInfo {
         public String bodyHash;
         public String bodyLength;
         public String signature;
-        public GenesisFrontierParam body;
+        public List<GenesisFrontierParam> body;
     }
 }
