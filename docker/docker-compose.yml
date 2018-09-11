@@ -1,20 +1,34 @@
 version: '3'
 
 services:
-  node1:
+  yggdrash-node1:
     image: yggdrash/yggdrash-node
+    build:
+      context: ./
+      args:
+        JAR_FILE: yggdrash-node.jar
     container_name: yggdrash-node1
     ports:
     - 8080:8080
     - 9090:9090
     environment:
-    - YGGDRASH_NODE_GRPC_HOST=node1
+    - YGGDRASH_NODE_GRPC_HOST=yggdrash-node1
     - YGGDRASH_NODE_MAX_PEERS=25
-  node2:
+    volumes:
+    - ynode1-data:/.yggdrash
+  yggdrash-node2:
     image: yggdrash/yggdrash-node
     container_name: yggdrash-node2
     ports:
     - 8081:8080
     environment:
-    - YGGDRASH_NODE_GRPC_HOST=node2
+    - YGGDRASH_NODE_GRPC_HOST=yggdrash-node2
     - RUN_SLEEP=3
+    volumes:
+    - ynode2-data:/.yggdrash
+
+volumes:
+  ynode1-data:
+    driver: local
+  ynode2-data:
+    driver: local
