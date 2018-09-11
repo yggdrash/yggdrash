@@ -62,13 +62,15 @@ class BlockController {
     }
 
     @GetMapping
-    public ResponseEntity getAll(@RequestParam(value = "offset", defaultValue = "25") long offset,
+    public ResponseEntity getAll(@RequestParam(value = "offset", required = false) Long offset,
                                  @RequestParam(value = "limit", defaultValue = "25") int limit) {
         List<BlockDto> blocks = new ArrayList<>();
         long lastIdx = branchGroup.getLastIndex();
-        if (offset > lastIdx) {
+
+        if (offset == null) {
             offset = lastIdx;
         }
+
         for (int i = 0; i < limit && offset >= 0; i++) {
             BlockHusk block = branchGroup.getBlockByIndexOrHash(String.valueOf(offset--));
             if (block == null) {
