@@ -86,7 +86,7 @@ public class GRpcNodeServerTest {
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        String ynodeUri = "ynode://75bff16c@localhost:9090";
+        String ynodeUri = "ynode://75bff16c@localhost:32918";
         NetProto.PeerRequest.Builder builder
                 = NetProto.PeerRequest.newBuilder().setFrom(ynodeUri);
         NetProto.PeerList response = blockingStub.requestPeerList(builder.build());

@@ -30,7 +30,7 @@ public class BranchGroupTest {
         try {
             wallet = new Wallet();
             branchJson = new File(Objects.requireNonNull(BranchGroupTest.class.getClassLoader()
-                    .getResource("branch-yeed.json")).getFile());
+                    .getResource("branch-sample.json")).getFile());
         } catch (Exception e) {
             throw new NotValidateException(e);
         }

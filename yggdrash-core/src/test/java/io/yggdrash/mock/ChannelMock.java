@@ -1,6 +1,7 @@
 package io.yggdrash.mock;
 
 import io.yggdrash.TestUtils;
+import io.yggdrash.core.Transaction;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.proto.Pong;
@@ -43,7 +44,7 @@ public class ChannelMock implements PeerClientChannel {
     @Override
     public List<Proto.Transaction> syncTransaction() {
         return Collections.singletonList(
-                Objects.requireNonNull(TestUtils.sampleTx()).toProtoTransaction());
+                Objects.requireNonNull(Transaction.toProtoTransaction(TestUtils.sampleTx())));
     }
 
     @Override

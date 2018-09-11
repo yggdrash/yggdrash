@@ -43,6 +43,7 @@ public class BlockChain {
         try {
             this.genesisBlock = new BlockChainLoader(infoFile).getGenesis();
             this.blockStore = new BlockStore(getBranchId());
+            this.blockStore.put(this.genesisBlock.getHash(), this.genesisBlock);
             this.transactionStore = new TransactionStore(new HashMapDbSource());
             this.contract = new NoneContract();
             this.runtime = new Runtime<>(new StateStore<>(), new TransactionReceiptStore());
@@ -102,7 +103,7 @@ public class BlockChain {
     }
 
     public BranchId getBranchId() {
-        return new BranchId(genesisBlock.getHash());
+        return new BranchId(genesisBlock.getChainId());
     }
 
     public BlockHusk getGenesisBlock() {

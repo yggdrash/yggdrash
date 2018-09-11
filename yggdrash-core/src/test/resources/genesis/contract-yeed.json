@@ -1,0 +1,15 @@
+{
+  "method": "genesis",
+  "branchName": "YEED",
+  "params": [
+    { "frontier" : "5db10750e8caff27f906b41c71b3471057dd2000",
+      "balance": "1000000000"
+    },
+    { "frontier" : "5db10750e8caff27f906b41c71b3471057dd2001",
+      "balance": "1000000000"
+    },
+    { "frontier" : "5db10750e8caff27f906b41c71b3471057dd2002",
+      "balance": "1000000000"
+    }
+  ]
+}

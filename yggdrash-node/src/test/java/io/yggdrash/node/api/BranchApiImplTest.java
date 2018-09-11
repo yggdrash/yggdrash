@@ -38,7 +38,6 @@ public class BranchApiImplTest {
     }
 
     private static void create() {
-        try {
             branch = TestUtils.getSampleBranch1();
             branchId = TestUtils.getBranchId(branch);
             JsonArray params = new JsonArray();
@@ -47,6 +46,7 @@ public class BranchApiImplTest {
             param.add("branch", branch);
             params.add(param);
 
+        try {
             JsonObject txObj = new JsonObject();
             txObj.addProperty("method", "create");
             txObj.add("params", params);

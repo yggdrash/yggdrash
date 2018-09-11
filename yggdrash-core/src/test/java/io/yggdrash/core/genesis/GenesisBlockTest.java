@@ -19,10 +19,9 @@ public class GenesisBlockTest {
     @Before
     public void setUp() throws Exception {
         this.genesisBlock = new GenesisBlock();
-
     }
 
-    @Test(expected = NullPointerException.class)
+    @Test
     public void generateGenesisBlock() throws IOException {
         this.genesisBlock.generateGenesisBlockFile();
 

@@ -27,7 +27,7 @@ public class PeerApiMockitoTest {
 
     @Before
     public void setUp() {
-        this.peer = Peer.valueOf("ynode://65bff16c@127.0.0.1:9090");
+        this.peer = Peer.valueOf("ynode://65bff16c@127.0.0.1:32918");
         peerApi = new PeerApiImpl(peerGroup);
     }
 

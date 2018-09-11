@@ -29,7 +29,7 @@ public class NodeSyncDemoClient {
      */
     public static void main(String[] args) throws InterruptedException {
         GRpcClientChannel client =
-                new GRpcClientChannel(Peer.valueOf("ynode://75bff16c@127.0.0.1:9090"));
+                new GRpcClientChannel(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
         client.ping("Ping");
         client.broadcastTransaction(TestUtils.sampleTxs());
         client.blockUtilShutdown();

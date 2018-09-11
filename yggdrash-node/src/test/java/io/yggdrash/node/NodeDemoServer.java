@@ -31,7 +31,7 @@ public class NodeDemoServer {
      */
     public static void main(String[] args) throws IOException, InterruptedException {
         GRpcNodeServer server = new GRpcNodeServer();
-        server.start("localhost", 9090);
+        server.start("localhost", 32918);
         server.blockUntilShutdown();
     }
 }

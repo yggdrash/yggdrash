@@ -28,6 +28,12 @@ public class StemContract extends BaseContract<JsonObject> {
         types.add("test");
     }
 
+    public TransactionReceipt genesis(JsonArray params) {
+        // TODO implemented
+        log.info("[StemContract | genesis] SUCCESS! params => " + params);
+        return new TransactionReceipt();
+    }
+
     /**
      * Returns the id of a registered branch
      *
