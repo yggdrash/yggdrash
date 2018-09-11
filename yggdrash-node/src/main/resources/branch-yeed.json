@@ -1,62 +1,44 @@
 {
   "header": {
-    "chain": "801c48d1648b008ae1f089cae2b7db3a40b224bf",
+    "chain": "3f69162d7cdf764bb50534513626a9c4070020c4",
     "version": "0000000000000000",
     "type": "0000000000000000",
     "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
     "index": "0000000000000000",
-    "timestamp": "00000165c25dcb66",
-    "merkleRoot": "d9cfba02c1682d1c8ef2ad526f91a4752166aaa7b870448c2597c97eef103e40",
-    "bodyLength": "00000000000006b7"
+    "timestamp": "00000165c6c08de3",
+    "merkleRoot": "edd5740c457fb1b269d2ec0045f1177bdbf40dde94148cabefd622a47d1160ca",
+    "bodyLength": "00000000000004f9"
   },
-  "signature": "1ca388a0f3a6a301f6e0ecfb7c0840884e22b43233289fc7fa8a9d19d8abc9cd670095f296692514e99804314f63d7b3a542929525b8e0be2a2c9a94ccaca22684",
+  "signature": "1b2429c86bd7590510349492a91b1f7bd0606ac5032f0b91c6f94f0067d1ae860f356a2dc2460bf88c458b7c98474dae2c1a50ac6991074882ac8ecb5d9ab320bf",
   "body": [
     {
       "header": {
-        "chain": "801c48d1648b008ae1f089cae2b7db3a40b224bf",
+        "chain": "3f69162d7cdf764bb50534513626a9c4070020c4",
         "version": "0000000000000000",
         "type": "0000000000000000",
-        "timestamp": "00000165c25dcb66",
-        "bodyHash": "6a5567e073a92650eb64d6d2323f5d7449343d07bec9c3e1bf216c973572a6a9",
-        "bodyLength": "0000000000000622"
+        "timestamp": "00000165c6c08de3",
+        "bodyHash": "bf3e00ce29cff56247f85c37f00ded715195a2dec405dea87bbe382acbbe7bf6",
+        "bodyLength": "0000000000000464"
       },
-      "signature": "1b832c2447528521b5caabb522de88d2e02fe6dfd94835b3d9adb5e7cc831bb3fa57470e00705d6c8066c6288da38a586da680209bc1ecbcfa54de64327d6392c7",
+      "signature": "1ba507c575644ee1a9497b64597f8453baea17b876312cdbe5aa665f302cb14100330250957370dc63e5aecd5b5f1f74596839f70966eeb0170857f223870ba408",
       "body": [
         {
-          "operator": "GENESIS",
-          "chainName": "YEED",
-          "frontier": {
-            "5db10750e8caff27f906b41c71b3471057dd2000": {
+          "method": "genesis",
+          "branchName": "YEED",
+          "params": [
+            {
+              "frontier": "5db10750e8caff27f906b41c71b3471057dd2000",
               "balance": "1000000000"
             },
-            "5db10750e8caff27f906b41c71b3471057dd2001": {
+            {
+              "frontier": "5db10750e8caff27f906b41c71b3471057dd2001",
               "balance": "1000000000"
             },
-            "5db10750e8caff27f906b41c71b3471057dd2002": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2003": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2004": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2005": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2006": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2007": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2008": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2009": {
+            {
+              "frontier": "5db10750e8caff27f906b41c71b3471057dd2002",
               "balance": "1000000000"
             }
-          },
+          ],
           "delegator": {
             "5db10750e8caff27f906b41c71b3471057dd2000": {
               "ip": "100.100.100.1",

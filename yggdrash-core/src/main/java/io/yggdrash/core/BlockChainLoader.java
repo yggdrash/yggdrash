@@ -16,24 +16,16 @@
 
 package io.yggdrash.core;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.protobuf.ByteString;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.genesis.BlockInfo;
-import io.yggdrash.proto.Proto;
-import io.yggdrash.util.ByteUtil;
-import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.List;
-
-import static io.yggdrash.core.BranchInfo.BranchBody;
 
 public class BlockChainLoader {
     private ObjectMapper mapper = new ObjectMapper();

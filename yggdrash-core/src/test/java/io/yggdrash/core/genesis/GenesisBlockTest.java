@@ -19,7 +19,6 @@ public class GenesisBlockTest {
     @Before
     public void setUp() throws Exception {
         this.genesisBlock = new GenesisBlock();
-
     }
 
     @Test

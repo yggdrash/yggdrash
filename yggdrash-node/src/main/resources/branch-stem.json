@@ -1,62 +1,36 @@
 {
   "header": {
-    "chain": "8c3e17dfeea4d7a216e1aac13d8b333e3c5b9f3d",
+    "chain": "a90eafbb53b3e936e907cf5ce8e037e2e045e1a9",
     "version": "0000000000000000",
     "type": "0000000000000000",
     "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
     "index": "0000000000000000",
-    "timestamp": "00000165c2609531",
-    "merkleRoot": "bd8725e7861fb6e314ad63c8ecb4ad9c32a87c6953f15647da14d024cb19edb1",
-    "bodyLength": "00000000000006b7"
+    "timestamp": "00000165c6c15795",
+    "merkleRoot": "0473060da9e1c26609c83ba81990f266f575e0e5196fc9111ec264efc1502742",
+    "bodyLength": "0000000000000625"
   },
-  "signature": "1b5ae707a938780af676437c708a3663efbd078446911634e8956b62527b2eb4c149c149fcb0535cdeacffb293900e982d58ec76defef26fd72df5f88c7e113e10",
+  "signature": "1cabea3d5be9788c6116c71de80b6d18fb023d853257fa44ba615a36279fc02ecf2d1f119ea6928cdcd6cb0d0374918c31b3103333806879c8313f8f488e6d817d",
   "body": [
     {
       "header": {
-        "chain": "8c3e17dfeea4d7a216e1aac13d8b333e3c5b9f3d",
+        "chain": "a90eafbb53b3e936e907cf5ce8e037e2e045e1a9",
         "version": "0000000000000000",
         "type": "0000000000000000",
-        "timestamp": "00000165c2609531",
-        "bodyHash": "ea30463fab1ab9b8a57421bf2a1d9d7dc3c76cb38ddd902028c8bf38a652be04",
-        "bodyLength": "0000000000000622"
+        "timestamp": "00000165c6c15795",
+        "bodyHash": "55dad7ad8e77b0c18401b7da241cbffde7967a9a12e6dc3b36eb8ac1d5689932",
+        "bodyLength": "0000000000000590"
       },
-      "signature": "1cf507dfc01bfcc9af3142ed643b4681d82e631ba40fcad189b943a407e52eb9aa7bfb346a988804c139ece48c520e9df0697eeadda5d461c245e0c60e8995cd29",
+      "signature": "1c5e053dbd37cec36eca0e5abc482c4e3a9c6f53aa002178c8b0bd86a085340b647382a8b24aff963ed39dc8710e6d21a4aa2cb165c3151bec57a5ba70aa01793e",
       "body": [
         {
-          "operator": "GENESIS",
-          "chainName": "STEM",
-          "frontier": {
-            "5db10750e8caff27f906b41c71b3471057dd2000": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2001": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2002": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2003": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2004": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2005": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2006": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2007": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2008": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2009": {
-              "balance": "1000000000"
+          "method": "genesis",
+          "branchName": "STEM",
+          "params": [
+            {
+              "branchId": "d2ee9e2a4447452525590a35876d69711dff1e35436c5cf40a637adb1f19d951",
+              "branch": "{\"name\":\"STEM\",\"owner\":\"cee3d4755e47055b530deeba062c5bd0c17eb00f\",\"symbol\":\"STEM\",\"property\":\"iob\",\"type\":\"immunity\",\"timestamp\":\"0000016531dfa31c\",\"description\":\"This is stem branch\",\"tag\":0.1,\"version\":\"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76\",\"versionHistory\":[\"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76\"],\"reference_address\":\"\",\"reserve_address\":\"0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3\"}"
             }
-          },
+          ],
           "delegator": {
             "5db10750e8caff27f906b41c71b3471057dd2000": {
               "ip": "100.100.100.1",

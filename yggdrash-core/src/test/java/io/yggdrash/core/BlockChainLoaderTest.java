@@ -17,15 +17,12 @@
 package io.yggdrash.core;
 
 import io.yggdrash.core.genesis.BlockInfo;
-import io.yggdrash.core.genesis.GenesisBlock;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
-import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.SignatureException;
 import java.util.Objects;
 
 public class BlockChainLoaderTest {
@@ -36,7 +33,7 @@ public class BlockChainLoaderTest {
     public void setUp() {
         blockChainLoader = new BlockChainLoader(
                 new File(Objects.requireNonNull(getClass().getClassLoader()
-                .getResource("branch-yeed.json")).getFile()));
+                .getResource("branch-sample.json")).getFile()));
     }
 
     @Test

@@ -1,0 +1,10 @@
+{
+  "method": "genesis",
+  "branchName": "STEM",
+  "params": [
+    {
+      "branchId": "d2ee9e2a4447452525590a35876d69711dff1e35436c5cf40a637adb1f19d951",
+      "branch": "{\"name\":\"STEM\",\"owner\":\"cee3d4755e47055b530deeba062c5bd0c17eb00f\",\"symbol\":\"STEM\",\"property\":\"iob\",\"type\":\"immunity\",\"timestamp\":\"0000016531dfa31c\",\"description\":\"This is stem branch\",\"tag\":0.1,\"version\":\"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76\",\"versionHistory\":[\"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76\"],\"reference_address\":\"\",\"reserve_address\":\"0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3\"}"
+    }
+  ]
+}

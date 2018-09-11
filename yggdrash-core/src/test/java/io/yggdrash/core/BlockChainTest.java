@@ -17,7 +17,7 @@ public class BlockChainTest {
     @Before
     public void init() {
         sampleBranchInfo = new File(Objects.requireNonNull(getClass().getClassLoader()
-                .getResource("branch-yeed.json")).getFile());
+                .getResource("branch-sample.json")).getFile());
     }
 
     @After

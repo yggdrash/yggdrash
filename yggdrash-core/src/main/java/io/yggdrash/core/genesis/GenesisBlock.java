@@ -8,7 +8,6 @@ import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
-import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionBody;
 import io.yggdrash.core.TransactionHeader;
@@ -20,7 +19,6 @@ import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -30,14 +28,10 @@ public class GenesisBlock {
     private final DefaultConfig defaultConfig = new DefaultConfig();
     private Block genesisBlock;
 
-    public GenesisBlock() throws IOException, InvalidCipherTextException, SignatureException {
+    public GenesisBlock() throws IOException, InvalidCipherTextException {
 
-        String transactionFileName = defaultConfig.getConfig().getString("genesis.config");
+        String transactionFileName = defaultConfig.getConfig().getString("genesis.contract");
         JsonObject genesisObject = getJsonObjectFromFile(transactionFileName);
-
-        String frontierFileName = defaultConfig.getConfig().getString("genesis.frontier");
-        JsonObject frontierObject = getJsonObjectFromFile(frontierFileName);
-        genesisObject.add("frontier", frontierObject.get("frontier"));
 
         String delegatorListFileName = defaultConfig.getConfig().getString("genesis.delegator");
         JsonObject delegatorListObject = getJsonObjectFromFile(delegatorListFileName);

@@ -8,7 +8,6 @@ import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -55,7 +54,6 @@ public class BlockChain {
                       TransactionStore transactionStore, Contract contract, Runtime runtime) {
         this.genesisBlock = genesisBlock;
         this.blockStore = blockStore;
-        this.blockStore.put(this.genesisBlock.getHash(), this.genesisBlock);
         this.transactionStore = transactionStore;
         this.contract = contract;
         this.runtime = runtime;
