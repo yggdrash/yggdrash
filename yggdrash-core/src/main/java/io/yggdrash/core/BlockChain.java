@@ -65,6 +65,13 @@ public class BlockChain {
         } catch (NonExistObjectException e) {
             addBlock(genesisBlock);
         }
+        for (int i = 1; i < blockStore.size(); i++) {
+            BlockHusk storedBlock = blockStore.get(i);
+            executeAllTx(new TreeSet<>(storedBlock.getBody()));
+            log.debug("Load block index=[{}], blockHash={}", storedBlock.getIndex(),
+                    storedBlock.getHash());
+            this.prevBlock = storedBlock;
+        }
     }
 
     public Contract getContract() {
