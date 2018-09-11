@@ -63,10 +63,10 @@ You can fully dockerize the yggdrash node. For more information refer to [docker
 Docker is one quick way for running an yggdrash node:
 
 ```
-docker --rm -p 8080:8080 -p 9090:9090 -h yggdrash-node1 --name yggdrash-node1 yggdrash/yggdrash-node
+docker --rm -p 8080:8080 -p 32918:32918 -h yggdrash-node1 --name yggdrash-node1 yggdrash/yggdrash-node
 ```
 
-Yggdrash node binds to `localhost` using `8080` for the RESTful API & JSON RPC, and `9090` for the gRPC by default.
+Yggdrash node binds to `localhost` using `8080` for the RESTful API & JSON RPC, and `32918` for the gRPC by default.
 
 You can also use other ports by providing options like `-p 8081:8080`
 

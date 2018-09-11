@@ -34,7 +34,7 @@ public class PeerGroupTest {
     @Test
     public void addPeerTest() {
         assert peerGroup.isEmpty();
-        peerGroup.addPeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:9090"));
+        peerGroup.addPeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
         assert peerGroup.count() == 1;
         assert !peerGroup.getPeers().isEmpty();
         assert !peerGroup.isEmpty();
@@ -44,23 +44,23 @@ public class PeerGroupTest {
 
     @Test
     public void removePeerTest() {
-        peerGroup.addPeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:9090"));
-        assert peerGroup.contains("ynode://75bff16c@127.0.0.1:9090");
+        peerGroup.addPeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
+        assert peerGroup.contains("ynode://75bff16c@127.0.0.1:32918");
         assert !peerGroup.contains("wrong");
     }
 
     @Test
     public void getSeedPeerList() {
         assert peerGroup.getSeedPeerList() == null;
-        peerGroup.setSeedPeerList(Collections.singletonList("ynode://75bff16c@127.0.0.1:9090"));
+        peerGroup.setSeedPeerList(Collections.singletonList("ynode://75bff16c@127.0.0.1:32918"));
         assert !peerGroup.getSeedPeerList().isEmpty();
     }
 
     @Test
     public void getPeerUriListTest() {
         assert peerGroup.getPeerUriList().isEmpty();
-        peerGroup.addPeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:9090"));
-        assert peerGroup.getPeerUriList().contains("ynode://75bff16c@127.0.0.1:9090");
+        peerGroup.addPeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
+        assert peerGroup.getPeerUriList().contains("ynode://75bff16c@127.0.0.1:32918");
     }
 
     @Test

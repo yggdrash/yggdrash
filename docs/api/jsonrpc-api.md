@@ -1080,8 +1080,8 @@ Add Peer
     "params":{
                 "peer":{
                         "host":"127.0.0.1",
-                        "port":9090,
-                        "ynodeUri":"ynode://75bff16c@127.0.0.1:9090"
+                        "port":32918,
+                        "ynodeUri":"ynode://75bff16c@127.0.0.1:32918"
                         }
               }
 }
@@ -1092,8 +1092,8 @@ Add Peer
     "id":"77582810",
     "result":{
                 "host":"127.0.0.1",
-                "port":9090,
-                "ynodeUri":"ynode://75bff16c@127.0.0.1:9090"
+                "port":32918,
+                "ynodeUri":"ynode://75bff16c@127.0.0.1:32918"
              }
 }
 ```
@@ -1126,7 +1126,7 @@ None
 {
     "jsonrpc":"2.0",
     "id":"794299408",
-    "result":[{"host":"localhost","port":9090,"ynodeUri":"ynode://9ea9225f0b7db3c697c0a2e09cdd65046899058d16f73378c1559d61aa3e10cd5dc9337142728f5a02faadafab2b926e2998d5bc2b62c2183fab75ca996de2ce@localhost:9090"},{"host":"127.0.0.1","port":9090,"ynodeUri":"ynode://75bff16c@127.0.0.1:9090"}]
+    "result":[{"host":"localhost","port":32918,"ynodeUri":"ynode://9ea9225f0b7db3c697c0a2e09cdd65046899058d16f73378c1559d61aa3e10cd5dc9337142728f5a02faadafab2b926e2998d5bc2b62c2183fab75ca996de2ce@localhost:32918"},{"host":"127.0.0.1","port":32918,"ynodeUri":"ynode://75bff16c@127.0.0.1:32918"}]
 }
 ```
   
