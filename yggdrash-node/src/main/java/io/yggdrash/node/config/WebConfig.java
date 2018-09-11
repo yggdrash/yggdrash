@@ -23,7 +23,6 @@ import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
-@Profile("!prod")
 public class WebConfig {
     @Bean
     public WebMvcConfigurer corsConfigurer() {
