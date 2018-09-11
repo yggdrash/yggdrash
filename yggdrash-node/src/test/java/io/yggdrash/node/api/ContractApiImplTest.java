@@ -38,7 +38,7 @@ public class ContractApiImplTest {
     }
 
     private static void create() {
-            branch = TestUtils.getSampleBranch1();
+            branch = TestUtils.getSampleBranch2();
             branchId = TestUtils.getBranchId(branch);
             JsonArray params = new JsonArray();
             JsonObject param = new JsonObject();

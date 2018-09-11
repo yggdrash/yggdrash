@@ -1,34 +1,34 @@
 {
   "header": {
-    "chain": "a90eafbb53b3e936e907cf5ce8e037e2e045e1a9",
+    "chain": "d4ecb8d1bf8a687819f4472f9a4f765a1049f211",
     "version": "0000000000000000",
     "type": "0000000000000000",
     "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
     "index": "0000000000000000",
-    "timestamp": "00000165c6c15795",
-    "merkleRoot": "0473060da9e1c26609c83ba81990f266f575e0e5196fc9111ec264efc1502742",
-    "bodyLength": "0000000000000625"
+    "timestamp": "00000165c775ead6",
+    "merkleRoot": "86ff37ab22b23c23190ce6f430533f1926ba87aeb778a0aea058f7b95ce177d1",
+    "bodyLength": "000000000000081c"
   },
-  "signature": "1cabea3d5be9788c6116c71de80b6d18fb023d853257fa44ba615a36279fc02ecf2d1f119ea6928cdcd6cb0d0374918c31b3103333806879c8313f8f488e6d817d",
+  "signature": "1cdc5e36bb0102380b5864436f3e3c921240dde62f2d72fe76554ac3f93f5ecaa85173505d0a973a29e1745f7c741e3ff78bfe261dc578577c14b0ea357ba8b9f8",
   "body": [
     {
       "header": {
-        "chain": "a90eafbb53b3e936e907cf5ce8e037e2e045e1a9",
+        "chain": "d4ecb8d1bf8a687819f4472f9a4f765a1049f211",
         "version": "0000000000000000",
         "type": "0000000000000000",
-        "timestamp": "00000165c6c15795",
-        "bodyHash": "55dad7ad8e77b0c18401b7da241cbffde7967a9a12e6dc3b36eb8ac1d5689932",
-        "bodyLength": "0000000000000590"
+        "timestamp": "00000165c775ead6",
+        "bodyHash": "0740fc45bfe41017e06a7dd52ec46fcf4bb98a8d1fb7acaf7deef10493340a05",
+        "bodyLength": "0000000000000787"
       },
-      "signature": "1c5e053dbd37cec36eca0e5abc482c4e3a9c6f53aa002178c8b0bd86a085340b647382a8b24aff963ed39dc8710e6d21a4aa2cb165c3151bec57a5ba70aa01793e",
+      "signature": "1c67e9b27962eb6c3bb68d302d54cb71bb8ed9acd650a16a9dd8e5d95fb85b67a45dd2311f25994d13be6c56046bd6e772f5572f719589c9dd74a2838b3a5ef255",
       "body": [
         {
           "method": "genesis",
           "branchName": "STEM",
           "params": [
             {
-              "branchId": "d2ee9e2a4447452525590a35876d69711dff1e35436c5cf40a637adb1f19d951",
-              "branch": "{\"name\":\"STEM\",\"owner\":\"cee3d4755e47055b530deeba062c5bd0c17eb00f\",\"symbol\":\"STEM\",\"property\":\"iob\",\"type\":\"immunity\",\"timestamp\":\"0000016531dfa31c\",\"description\":\"This is stem branch\",\"tag\":0.1,\"version\":\"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76\",\"versionHistory\":[\"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76\"],\"reference_address\":\"\",\"reserve_address\":\"0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3\"}"
+              "branchId": "5f74d94eec5beab25c5dfd263457865f419dcf11e4c8a8a4a327c4713950535d",
+              "branch": "{\"name\":\"STEM\",\"owner\":\"9e187f5264037ab77c87fcffcecd943702cd72c3\",\"symbol\":\"STEM\",\"property\":\"platform\",\"type\":\"immunity\",\"timestamp\":\"0000016531dfa31c\",\"description\":\"The Stem Chain is the main blockchain which is the root of the YGGDRASH ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains. The Stem Chain is optimized for transaction processing scalability and expandability by storing only minimum information such as the address of each Branch Chain. In addition, it connects each Branch Chain by referring the address of each Branch Chain and is able to manage the full life-cycle (creation / modification / destruction) of each chain.\",\"tag\":0.1,\"version\":\"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76\",\"versionHistory\":[\"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76\"],\"reference_address\":\"\",\"reserve_address\":\"0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3\"}"
             }
           ],
           "delegator": {

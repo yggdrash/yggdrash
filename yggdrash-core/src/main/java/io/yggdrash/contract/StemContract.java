@@ -3,6 +3,7 @@ package io.yggdrash.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.crypto.HashUtil;
 import org.apache.commons.codec.binary.Hex;
@@ -30,8 +31,15 @@ public class StemContract extends BaseContract<JsonObject> {
     }
 
     public TransactionReceipt genesis(JsonArray params) {
-        // TODO implemented
         log.info("[StemContract | genesis] SUCCESS! params => " + params);
+        JsonObject jsonObject = params.get(0).getAsJsonObject();
+        String branchStr = jsonObject.get("branch").getAsString();
+        JsonParser jsonParser = new JsonParser();
+        JsonObject branch = (JsonObject) jsonParser.parse(branchStr);
+        jsonObject.add("branch", branch);
+
+        create(params);
+
         return new TransactionReceipt();
     }
 
@@ -58,17 +66,17 @@ public class StemContract extends BaseContract<JsonObject> {
         String refAddress = branch.get("reference_address").getAsString();
         String type = branch.get("type").getAsString();
         String owner = branch.get("owner").getAsString();
-        if (this.sender != null && isOwnerValid(owner)) {
-            if (verify(refAddress, type)) {
-                if (isBranchIdValid(branchId, branch)) {
-                    state.put(branchId, branch);
-                    setSubState(branchId, branch);
-                    log.info("[StemContract | create] SUCCESS! branchId => " + branchId);
-                    txReceipt.setStatus(1);
-                    //return branchId;
-                }
+        //if (this.sender != null && isOwnerValid(owner)) {
+        if (verify(refAddress, type)) {
+            if (isBranchIdValid(branchId, branch)) {
+                state.put(branchId, branch);
+                setSubState(branchId, branch);
+                log.info("[StemContract | create] SUCCESS! branchId => " + branchId);
+                txReceipt.setStatus(1);
+                //return branchId;
             }
         }
+        //}
         //return null;
         return txReceipt;
     }
