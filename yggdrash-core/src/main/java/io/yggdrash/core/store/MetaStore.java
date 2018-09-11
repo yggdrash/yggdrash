@@ -20,8 +20,6 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 
-import java.util.Set;
-
 public class MetaStore implements Store<MetaStore.MetaInfo, Sha3Hash> {
     private DbSource<byte[], byte[]> db;
 
@@ -40,13 +38,13 @@ public class MetaStore implements Store<MetaStore.MetaInfo, Sha3Hash> {
     }
 
     @Override
-    public Set<Sha3Hash> getAll() {
-        return null;
+    public boolean contains(MetaInfo key) {
+        return false;
     }
 
     @Override
-    public boolean contains(MetaInfo key) {
-        return false;
+    public void close() {
+        db.close();
     }
 
     public enum MetaInfo {

@@ -43,6 +43,7 @@ public class BlockStoreTest {
         blockStore.put(blockHuskFixture.getHash(), blockHuskFixture);
         BlockHusk foundBlockHusk = blockStore.get(blockHuskFixture.getHash());
         Assertions.assertThat(foundBlockHusk).isEqualTo(blockHuskFixture);
+        Assertions.assertThat(blockStore.get(foundBlockHusk.getIndex())).isEqualTo(foundBlockHusk);
     }
 
     @Test

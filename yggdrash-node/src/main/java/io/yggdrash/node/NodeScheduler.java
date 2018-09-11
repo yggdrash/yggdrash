@@ -16,7 +16,8 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.net.NodeManager;
+import io.yggdrash.core.net.PeerGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,25 +37,25 @@ class NodeScheduler {
 
     private final Queue<String> nodeQueue = new LinkedBlockingQueue<>();
 
-    private final MessageSender messageSender;
-
     private final NodeManager nodeManager;
 
+    private final PeerGroup peerGroup;
+
     @Autowired
-    public NodeScheduler(MessageSender messageSender, NodeManager nodeManager) {
-        this.messageSender = messageSender;
+    public NodeScheduler(PeerGroup peerGroup, NodeManager nodeManager) {
+        this.peerGroup = peerGroup;
         this.nodeManager = nodeManager;
     }
 
     @Scheduled(fixedRate = 1000 * 10)
     public void healthCheck() {
-        messageSender.healthCheck();
+        peerGroup.healthCheck();
     }
 
     @Scheduled(initialDelay = 1000 * 5, fixedRate = 1000 * BLOCK_MINE_SEC)
     public void generateBlock() {
         if (nodeQueue.isEmpty()) {
-            nodeQueue.addAll(nodeManager.getPeerUriList());
+            nodeQueue.addAll(peerGroup.getPeerUriList());
         }
         String peerId = nodeQueue.poll();
         assert peerId != null;

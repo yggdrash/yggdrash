@@ -1,7 +1,7 @@
 package io.yggdrash.node.api;
 
 import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.node.TestUtils;
@@ -11,8 +11,8 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -21,17 +21,17 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class BlockMockitoTest {
     @Mock
-    private NodeManager nodeManagerMock;
+    private BranchGroup branchGroupMock;
     private BlockHusk block;
 
     private BlockApiImpl blockApiImpl;
     private String hashOfBlock;
     private String numOfblock;
-    private Set<BlockHusk> blockList = new HashSet<>();
+    private List<BlockHusk> blockList = new ArrayList<>();
 
     @Before
     public void setUp() {
-        blockApiImpl = new BlockApiImpl(nodeManagerMock);
+        blockApiImpl = new BlockApiImpl(branchGroupMock);
         block = TestUtils.createGenesisBlockHusk();
         hashOfBlock = block.getHash().toString();
         blockList.add(block);
@@ -40,26 +40,19 @@ public class BlockMockitoTest {
 
     @Test
     public void blockNumberTest() {
-        when(nodeManagerMock.getBlocks()).thenReturn(blockList);
+        when(branchGroupMock.getLastIndex()).thenReturn(0L);
         assertThat(blockApiImpl.blockNumber()).isEqualTo(blockList.size());
     }
 
     @Test(expected = InternalErrorException.class)
     public void blockNumberExceptionTest() {
-        when(nodeManagerMock.getBlocks()).thenThrow(new RuntimeException());
-        assertThat(blockApiImpl.blockNumber()).isEqualTo(blockList.size());
-    }
-
-    @Test
-    public void getAllBlockTest() {
-        when(nodeManagerMock.getBlocks()).thenReturn(blockList);
-        assertThat(blockApiImpl.getAllBlock()).isNotEmpty();
-        assertThat(blockApiImpl.getAllBlock().size()).isEqualTo(1);
+        when(branchGroupMock.getLastIndex()).thenThrow(new RuntimeException());
+        blockApiImpl.blockNumber();
     }
 
     @Test
     public void getBlockByHashTest() {
-        when(nodeManagerMock.getBlockByIndexOrHash(hashOfBlock)).thenReturn(block);
+        when(branchGroupMock.getBlockByIndexOrHash(hashOfBlock)).thenReturn(block);
         BlockHusk res = blockApiImpl.getBlockByHash(hashOfBlock, true);
         assertThat(res).isNotNull();
         assertEquals(res.getHash().toString(), hashOfBlock);
@@ -67,7 +60,7 @@ public class BlockMockitoTest {
 
     @Test
     public void getBlockByNumberTest() {
-        when(nodeManagerMock.getBlockByIndexOrHash(numOfblock)).thenReturn(block);
+        when(branchGroupMock.getBlockByIndexOrHash(numOfblock)).thenReturn(block);
         BlockHusk res = blockApiImpl.getBlockByNumber(numOfblock, true);
         assertThat(res).isNotNull();
         assertEquals(res.getHash().toString(), hashOfBlock);
@@ -75,7 +68,7 @@ public class BlockMockitoTest {
 
     @Test(expected = NonExistObjectException.class)
     public void getBlockByNumberExceptionTest() {
-        when(nodeManagerMock.getBlockByIndexOrHash(numOfblock)).thenThrow(new RuntimeException());
+        when(branchGroupMock.getBlockByIndexOrHash(numOfblock)).thenThrow(new RuntimeException());
         blockApiImpl.getBlockByNumber(numOfblock, true);
     }
 

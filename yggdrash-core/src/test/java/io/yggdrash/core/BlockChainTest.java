@@ -1,40 +1,36 @@
 package io.yggdrash.core;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.config.Constants;
-import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.util.FileUtil;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.nio.file.Paths;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockChainTest {
-    private static final Logger log = LoggerFactory.getLogger(BlockChainTest.class);
-    private static Wallet wallet;
-    private static DefaultConfig defaultConfig;
-    private String chainId = "chainId";
     private File sampleBranchInfo;
 
     @Before
-    public void init() throws Exception {
-        defaultConfig = new DefaultConfig();
-        wallet = new Wallet(defaultConfig);
+    public void init() {
         sampleBranchInfo = new File(Objects.requireNonNull(getClass().getClassLoader()
-                .getResource("branch-sample.json")).getFile());
+                .getResource("branch-yeed.json")).getFile());
     }
 
     @After
-    public void tearDown() throws Exception {
-        clearTestDb();
+    public void tearDown() {
+        TestUtils.clearTestDb();
+    }
+
+    @Test
+    public void shouldBeValidBlock() {
+        BlockChain blockChain = generateTestBlockChain();
+
+        assertThat(blockChain.getGenesisBlock().getAddress().toString())
+                .isEqualTo("817f6ff6c973e0cdb0592bd5f1e04e4cb7147b51");
     }
 
     @Test
@@ -111,10 +107,5 @@ public class BlockChainTest {
     public void shouldBeCreatedNewBlockChain() {
         BlockChain blockChain = new BlockChain(sampleBranchInfo);
         assertThat(blockChain.size()).isEqualTo(1L);
-    }
-
-    private void clearTestDb() {
-        String dbPath = defaultConfig.getConfig().getString(Constants.DATABASE_PATH);
-        FileUtil.recursiveDelete(Paths.get(dbPath));
     }
 }

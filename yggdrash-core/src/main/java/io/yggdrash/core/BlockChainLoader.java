@@ -20,7 +20,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.util.ByteUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
@@ -28,7 +30,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
 import java.util.List;
 
 import static io.yggdrash.core.BranchInfo.BranchData;
@@ -49,7 +50,7 @@ public class BlockChainLoader {
         }
     }
 
-    public BlockHusk getGenesis() throws IOException {
+    public BlockHusk getGenesis() {
         return convertJsonToBlock();
     }
 
@@ -57,56 +58,64 @@ public class BlockChainLoader {
         return mapper.readValue(branchInfoStream, BranchInfo.class);
     }
 
-    private BlockHusk convertJsonToBlock() throws IOException {
-        BranchInfo branchInfo = loadBranchInfo();
+    private BlockHusk convertJsonToBlock() {
         //TODO 브랜치 정보 파일 컨버팅
-        return convertBlock(branchInfo);
+        try {
+            BranchInfo branchInfo = loadBranchInfo();
+
+            return convertBlock(branchInfo);
+        } catch (Exception e) {
+            throw new NotValidateException();
+        }
     }
 
     private BlockHusk convertBlock(BranchInfo branchInfo) throws JsonProcessingException {
         return new BlockHusk(Proto.Block.newBuilder()
-                .setHeader(Proto.Block.Header.newBuilder()
-                        .setRawData(Proto.Block.Header.Raw.newBuilder()
-                                .setType(ByteString.copyFrom(Hex.decode(branchInfo.type)))
-                                .setVersion(ByteString.copyFrom(Hex.decode(branchInfo.version)))
-                                .setIndex(0)
-                                .setTimestamp(Long.parseLong(branchInfo.timestamp))
-                                .setPrevBlockHash(ByteString.copyFrom(branchInfo.prevBlockHash
-                                        .getBytes()))
-                                .setMerkleRoot(ByteString.copyFrom(branchInfo.merkleRoot
-                                        .getBytes()))
-                                .setDataSize(Long.parseLong(branchInfo.dataSize))
-                                .build()
-                        )
-                        .setSignature(ByteString.copyFrom(Hex.decode(branchInfo.signature)))
-                        .build()
-                )
-                .addAllBody(convertTransaction(branchInfo.data))
-                .build());
+            .setHeader(Proto.Block.Header.newBuilder()
+                .setChain(ByteString.copyFrom(Hex.decode(branchInfo.chain)))
+                .setVersion(ByteString.copyFrom(Hex.decode(branchInfo.version)))
+                .setType(ByteString.copyFrom(Hex.decode(branchInfo.type)))
+                .setPrevBlockHash(ByteString.copyFrom(Hex.decode(branchInfo.prevBlockHash)))
+                .setIndex(ByteString.copyFrom(
+                        ByteUtil.longToBytes(Long.parseLong(branchInfo.index))))
+                .setTimestamp(ByteString.copyFrom(
+                        ByteUtil.longToBytes(Long.parseLong(branchInfo.timestamp))))
+                .setMerkleRoot(ByteString.copyFrom(branchInfo.merkleRoot.getBytes()))
+                .setBodyLength(ByteString.copyFrom(
+                        ByteUtil.longToBytes(Long.parseLong(branchInfo.bodyLength))))
+                .build())
+            .setSignature(ByteString.copyFrom(Hex.decode(branchInfo.signature)))
+            .setBody(convertTransaction(branchInfo.body))
+            .build());
     }
 
-    private List<Proto.Transaction> convertTransaction(List<BranchData> branchDataList) throws
+    private Proto.TransactionList convertTransaction(List<BranchData> branchDataList) throws
             JsonProcessingException {
-        List<Proto.Transaction> list = new ArrayList<>();
+
+        Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
+        Proto.Transaction.Builder txBuilder = Proto.Transaction.newBuilder();
+        Proto.Transaction.Header.Builder txHeaderBuilder = Proto.Transaction.Header.newBuilder();
+
         for (BranchData branchData : branchDataList) {
-            ByteString byteString = ByteString.copyFrom(Hex.decode(branchData.dataHash));
-            list.add(Proto.Transaction.newBuilder()
-                    .setHeader(Proto.Transaction.Header.newBuilder()
-                            .setRawData(Proto.Transaction.Header.Raw.newBuilder()
-                                    .setType(ByteString.copyFrom(Hex.decode(branchData.type)))
-                                    .setVersion(ByteString.copyFrom(Hex.decode(branchData.version)))
-                                    .setTimestamp(Long.parseLong(branchData.timestamp))
-                                    .setDataHash(byteString)
-                                    .setDataSize(Long.parseLong(branchData.dataSize))
-                                    .build()
-                            )
-                            .setSignature(ByteString.copyFrom(Hex.decode(branchData.signature)))
-                            .build()
-                    )
-                    .setBody(mapper.writeValueAsString(branchData.data)).build()
+            builder.addTransactions(txBuilder
+                    .setHeader(txHeaderBuilder
+                            .setChain(ByteString.copyFrom(Hex.decode(branchData.chain)))
+                            .setVersion(ByteString.copyFrom(Hex.decode(branchData.version)))
+                            .setType(ByteString.copyFrom(Hex.decode(branchData.type)))
+                            .setTimestamp(ByteString.copyFrom(
+                                    ByteUtil.longToBytes(Long.parseLong(branchData.timestamp))))
+                            .setBodyHash(ByteString.copyFrom(Hex.decode(branchData.bodyHash)))
+                            .setBodyLength(ByteString.copyFrom(
+                                    ByteUtil.longToBytes(Long.parseLong(branchData.bodyLength))))
+                            .build())
+                    .setSignature(ByteString.copyFrom(Hex.decode(branchData.signature)))
+                    .setBody(ByteString.copyFrom(
+                            ("[" + mapper.writeValueAsString(branchData.body) + "]")
+                                    .getBytes())).build() // todo: modify
             );
         }
-        return list;
-    }
 
+        return builder.build();
+
+    }
 }

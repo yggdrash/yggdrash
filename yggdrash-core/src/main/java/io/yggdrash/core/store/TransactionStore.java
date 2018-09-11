@@ -16,13 +16,8 @@
 
 package io.yggdrash.core.store;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.datasource.DbSource;
 import org.ehcache.Cache;
@@ -31,9 +26,7 @@ import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.InvalidCipherTextException;
 
-import java.io.IOException;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -48,7 +41,6 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     private final Cache<Sha3Hash, TransactionHusk> huskTxPool;
     private final Set<Sha3Hash> unconfirmedTxs = new HashSet<>();
 
-
     public TransactionStore(DbSource db) {
         this.db = db;
         this.db.init();
@@ -59,34 +51,6 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
                                 ResourcePoolsBuilder.heap(10)));
     }
 
-    /* method for test (start) */
-    protected Wallet wallet;
-
-    public void putDummyTx(String x) {
-        try {
-            wallet = new Wallet(new DefaultConfig());
-        } catch (IOException | InvalidCipherTextException e) {
-            throw new RuntimeException(e);
-        }
-
-        JsonArray params = new JsonArray();
-        JsonObject param1 = new JsonObject();
-        param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        JsonObject param2 = new JsonObject();
-        param2.addProperty("amount", x);
-        params.add(param1);
-        params.add(param2);
-
-        JsonObject txObj = new JsonObject();
-        txObj.addProperty("method", "transfer");
-        txObj.add("params", params);
-
-        TransactionHusk tx = new TransactionHusk(txObj).sign(wallet);
-        put(tx.getHash(), tx);
-    }
-    /* method for test (end) */
-
-    @Override
     public Set<TransactionHusk> getAll() {
         try {
             List<byte[]> dataList = db.getAll();
@@ -95,7 +59,7 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
                 txSet.add(new TransactionHusk(data));
             }
             return txSet;
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new NotValidateException(e);
         }
     }
@@ -103,6 +67,11 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     @Override
     public boolean contains(Sha3Hash key) {
         return huskTxPool.containsKey(key) || db.get(key.getBytes()) != null;
+    }
+
+    @Override
+    public void close() {
+        db.close();
     }
 
     @Override
@@ -116,7 +85,7 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
         TransactionHusk item = huskTxPool.get(key);
         try {
             return item != null ? item : new TransactionHusk(db.get(key.getBytes()));
-        } catch (InvalidProtocolBufferException e) {
+        } catch (Exception e) {
             throw new IllegalArgumentException(e);
         }
     }
