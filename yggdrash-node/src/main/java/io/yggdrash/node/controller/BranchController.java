@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.Map;
 
 @RestController
@@ -41,13 +41,12 @@ public class BranchController {
     @GetMapping
     public ResponseEntity getAll() {
         Map<String, ?> state = branchGroup.getStateStore().getState();
-        Map<Object, Object> result = new HashMap<>();
+        ArrayList<String> result = new ArrayList<>();
         for (Map.Entry entry : state.entrySet()) {
             Object value = entry.getValue();
             if (value instanceof JsonObject) {
-                result.put(entry.getKey(), value.toString());
-            } else {
-                result.put(entry.getKey(), value);
+                ((JsonObject) value).addProperty("id", entry.getKey().toString());
+                result.add(value.toString());
             }
         }
         return ResponseEntity.ok(result);
