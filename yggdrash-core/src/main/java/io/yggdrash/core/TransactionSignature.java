@@ -1,11 +1,7 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.crypto.ECKey;
 import org.spongycastle.util.encoders.Hex;
-
-import java.security.SignatureException;
-import java.util.Arrays;
 
 public class TransactionSignature implements Cloneable {
 

@@ -2,12 +2,9 @@ package io.yggdrash.core;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.HashUtil;
-import io.yggdrash.util.ByteUtil;
 import org.spongycastle.util.encoders.Hex;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 
 public class TransactionBody implements Cloneable {

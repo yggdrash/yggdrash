@@ -62,10 +62,10 @@ cd yggdrash
 아래는 도커로 쉽고 빠르게 단일노드를 실행하고 컨테이너 종료시 삭제되는 명령입니다.
 
 ```
-docker --rm -p 8080:8080 -p 9090:9090 -h yggdrash-node1 --name yggdrash-node1 yggdrash/yggdrash-node
+docker --rm -p 8080:8080 -p 32918:32918 -h yggdrash-node1 --name yggdrash-node1 yggdrash/yggdrash-node
 ```
 
-이 경우 `localhost` 주소의 `8080`(기본값) 포트로 RESTful API 와 JSON RPC를 호출 가능하고, `9090`(기본값)은 노드간 gRPC 통신용 포트로 사용됩니다.
+이 경우 `localhost` 주소의 `8080`(기본값) 포트로 RESTful API 와 JSON RPC를 호출 가능하고, `32918`(기본값)은 노드간 gRPC 통신용 포트로 사용됩니다.
 
 다른 포트(예:8081)로 실행하려면 `-p 8081:8080` 옵션으로 실행합니다.
 

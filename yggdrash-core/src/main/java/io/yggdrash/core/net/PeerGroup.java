@@ -147,7 +147,8 @@ public class PeerGroup implements BranchEventListener {
         }
     }
 
-    public void newTransaction(TransactionHusk tx) {
+    @Override
+    public void receivedTransaction(TransactionHusk tx) {
         if (peerChannels.isEmpty()) {
             log.warn("Active peer is empty to broadcast transaction");
         }

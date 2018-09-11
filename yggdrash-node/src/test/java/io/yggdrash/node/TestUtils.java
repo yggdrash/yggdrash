@@ -45,7 +45,6 @@ import org.apache.commons.codec.binary.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.file.Paths;
-import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -326,7 +325,8 @@ public class TestUtils {
     public static JsonObject updateBranch(
             String description, String version, JsonObject branch, Integer checkSum) {
         JsonObject updatedBranch = new JsonObject();
-        updatedBranch.addProperty("name", checkSum == 0 ? branch.get("name").getAsString() : "HELLO");
+        updatedBranch.addProperty(
+                "name", checkSum == 0 ? branch.get("name").getAsString() : "HELLO");
         updatedBranch.addProperty("owner", branch.get("owner").getAsString());
         updatedBranch.addProperty("symbol", branch.get("symbol").getAsString());
         updatedBranch.addProperty("property", branch.get("property").getAsString());
@@ -336,7 +336,8 @@ public class TestUtils {
         updatedBranch.addProperty("tag", branch.get("tag").getAsFloat());
         updatedBranch.addProperty("version", version);
         updatedBranch.add("versionHistory", branch.get("versionHistory").getAsJsonArray());
-        updatedBranch.addProperty("reference_address", branch.get("reference_address").getAsString());
+        updatedBranch.addProperty(
+                "reference_address", branch.get("reference_address").getAsString());
         updatedBranch.addProperty("reserve_address", branch.get("reserve_address").getAsString());
 
         return updatedBranch;
