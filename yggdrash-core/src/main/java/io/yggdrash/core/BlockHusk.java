@@ -30,6 +30,7 @@ import io.yggdrash.trie.Trie;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.TimeUtils;
 
+import java.io.IOException;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -139,7 +140,11 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     }
 
     public Address getAddress() {
-        return new Address(ecKey().getAddress());
+        try {
+            return new Address(this.coreBlock.getAddress());
+        } catch (Exception e) {
+            throw new NotValidateException();
+        }
     }
 
     public Sha3Hash getPrevHash() {
@@ -172,21 +177,6 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     @Override
     public Proto.Block getInstance() {
         return this.protoBlock;
-    }
-
-    /**
-     * Get ECKey(include pubKey) using sig & signData.
-     *
-     * @return ECKey(include pubKey)
-     */
-    private ECKey ecKey() {
-        try {
-            byte[] hashedRawData = new Sha3Hash(getHeader().toByteArray()).getBytes();
-            byte[] signatureBin = this.protoBlock.getSignature().toByteArray();
-            return ECKey.signatureToKey(hashedRawData, signatureBin);
-        } catch (SignatureException e) {
-            throw new InvalidSignatureException(e);
-        }
     }
 
     @Override
