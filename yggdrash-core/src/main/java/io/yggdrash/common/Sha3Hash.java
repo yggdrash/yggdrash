@@ -25,7 +25,7 @@ import java.util.Arrays;
 public class Sha3Hash implements Serializable {
     private byte[] data;
 
-    private Sha3Hash(byte[] data, boolean hashed) {
+    public Sha3Hash(byte[] data, boolean hashed) {
         if (hashed) {
             this.data = data;
         } else {

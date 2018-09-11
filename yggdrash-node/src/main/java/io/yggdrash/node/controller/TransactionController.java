@@ -16,7 +16,7 @@
 
 package io.yggdrash.node.controller;
 
-import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.TransactionHusk;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,32 +28,44 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Comparator;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @RestController
 @RequestMapping("txs")
 public class TransactionController {
 
-    private final NodeManager nodeManager;
+    private final BranchGroup branchGroup;
 
     @Autowired
-    public TransactionController(NodeManager nodeManager) {
-        this.nodeManager = nodeManager;
+    public TransactionController(BranchGroup branchGroup) {
+        this.branchGroup = branchGroup;
     }
 
     @PostMapping
     public ResponseEntity add(@RequestBody TransactionDto request) {
         TransactionHusk tx = TransactionDto.of(request);
-        TransactionHusk addedTx = nodeManager.addTransaction(tx);
+        TransactionHusk addedTx = branchGroup.addTransaction(tx);
         return ResponseEntity.ok(TransactionDto.createBy(addedTx));
     }
 
     @GetMapping("{id}")
     public ResponseEntity get(@PathVariable String id) {
-        TransactionHusk tx = nodeManager.getTxByHash(id);
+        TransactionHusk tx = branchGroup.getTxByHash(id);
 
         if (tx == null) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
         }
 
         return ResponseEntity.ok(TransactionDto.createBy(tx));
+    }
+
+    @GetMapping
+    public ResponseEntity getAll() {
+        List<TransactionHusk> txs = branchGroup.getTransactionList();
+        List<TransactionDto> dtoList = txs.stream().sorted(Comparator.reverseOrder())
+                .map(TransactionDto::createBy).collect(Collectors.toList());
+        return ResponseEntity.ok(dtoList);
     }
 }

@@ -14,42 +14,16 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core;
+package io.yggdrash.core.net;
 
-import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.contract.StateStore;
+import io.yggdrash.core.Wallet;
 import io.yggdrash.core.event.PeerEventListener;
-
-import java.util.List;
-import java.util.Set;
 
 public interface NodeManager extends PeerEventListener {
 
-    void init();
-
-    TransactionHusk addTransaction(TransactionHusk tx);
-
-    List<TransactionHusk> getTransactionList();
-
-    TransactionHusk getTxByHash(Sha3Hash hash);
-
-    TransactionHusk getTxByHash(String id);
-
-    BlockHusk generateBlock();
-
-    BlockHusk addBlock(BlockHusk block);
-
-    Set<BlockHusk> getBlocks();
-
-    BlockHusk getBlockByIndexOrHash(String indexOrHash);
-
     String getNodeUri();
 
-    void addPeer(String peer);
-
-    void removePeer(String peer);
-
-    List<String> getPeerUriList();
-
     Wallet getWallet();
+
+    void generateBlock();
 }

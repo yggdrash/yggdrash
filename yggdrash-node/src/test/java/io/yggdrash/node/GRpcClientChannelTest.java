@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.net;
+package io.yggdrash.node;
 
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
-import io.yggdrash.TestUtils;
+import io.yggdrash.core.net.Peer;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.Ping;
@@ -39,7 +39,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GrpcClientChannelTest {
+public class GRpcClientChannelTest {
 
     @Rule
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
@@ -62,20 +62,20 @@ public class GrpcClientChannelTest {
     @Captor
     private ArgumentCaptor<NetProto.PeerRequest> peerRequestCaptor;
 
-    private GrpcClientChannel client;
+    private GRpcClientChannel client;
 
     @Before
     public void setUp() {
         Peer peer = Peer.valueOf("ynode://75bff16c@localhost:9999");
-        client = new GrpcClientChannel(grpcServerRule.getChannel(), peer);
+        client = new GRpcClientChannel(grpcServerRule.getChannel(), peer);
         grpcServerRule.getServiceRegistry().addService(pingPongService);
         grpcServerRule.getServiceRegistry().addService(blockChainService);
     }
 
     @Test
     public void getPeerYnodeUriTest() {
-        GrpcClientChannel client =
-                new GrpcClientChannel(Peer.valueOf("ynode://75bff16c@localhost:9090"));
+        GRpcClientChannel client =
+                new GRpcClientChannel(Peer.valueOf("ynode://75bff16c@localhost:9090"));
         assertEquals("ynode://75bff16c@localhost:9090", client.getPeer().getYnodeUri());
     }
 
@@ -134,7 +134,7 @@ public class GrpcClientChannelTest {
     @Test
     public void broadcastTransaction() {
 
-        client.broadcastTransaction(TestUtils.getTransactionFixtures());
+        client.broadcastTransaction(TestUtils.sampleTxs());
 
         verify(blockChainService).broadcastTransaction(any());
     }
@@ -142,7 +142,7 @@ public class GrpcClientChannelTest {
     @Test
     public void broadcastBlock() {
 
-        client.broadcastBlock(TestUtils.getBlockFixtures());
+        client.broadcastBlock(TestUtils.sampleBlocks());
 
         verify(blockChainService).broadcastBlock(any());
     }

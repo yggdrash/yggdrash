@@ -11,7 +11,7 @@ import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.RejectedAccessException;
 import io.yggdrash.node.controller.TransactionDto;
 
-import java.util.HashMap;
+import java.util.Map;
 
 @JsonRpcService("/api/transaction")
 public interface TransactionApi {
@@ -167,7 +167,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    HashMap<String, TransactionReceipt> getAllTransactionReceipt();
+    Map<String, TransactionReceipt> getAllTransactionReceipt();
 
     /**
      * Returns the TransactionReceipt of transaction hash

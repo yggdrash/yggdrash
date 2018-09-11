@@ -17,24 +17,38 @@
 package io.yggdrash.node;
 
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.net.PeerClientChannel;
-import io.yggdrash.core.store.BlockStore;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
-import io.yggdrash.node.config.NodeProperties;
+import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.net.PeerGroup;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.Status;
 
+import static org.mockito.Mockito.when;
+
+@RunWith(MockitoJUnitRunner.class)
 public class NodeHealthIndicatorTest {
     private static final Status SYNC = new Status("SYNC", "Synchronizing..");
+    @Mock
+    BranchGroup branchGroupMock;
+
     NodeHealthIndicator nodeHealthIndicator;
+
+    @After
+    public void tearDown() {
+        TestUtils.clearTestDb();
+    }
 
     @Before
     public void setUp() {
-        MessageSender<PeerClientChannel> sender = new MessageSender<>(new NodeProperties());
-        BlockStore blockStore = new BlockStore(new HashMapDbSource());
-        this.nodeHealthIndicator = new NodeHealthIndicator(new DefaultConfig(), blockStore, sender);
+        PeerGroup peerGroup = new PeerGroup(1);
+        this.nodeHealthIndicator = new NodeHealthIndicator(new DefaultConfig(), branchGroupMock,
+                peerGroup);
+        when(branchGroupMock.getLastIndex()).thenReturn(1L);
     }
 
     @Test
@@ -42,7 +56,7 @@ public class NodeHealthIndicatorTest {
         Health health = nodeHealthIndicator.health();
         assert health.getStatus() == Status.DOWN;
         assert health.getDetails().get("name").equals("yggdrash");
-        assert (long) health.getDetails().get("height") == 0;
+        assert (long) health.getDetails().get("height") == 1;
         assert (int) health.getDetails().get("activePeers") == 0;
     }
 

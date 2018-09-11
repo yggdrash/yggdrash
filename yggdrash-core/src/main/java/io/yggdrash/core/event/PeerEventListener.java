@@ -19,5 +19,5 @@ package io.yggdrash.core.event;
 import io.yggdrash.core.net.Peer;
 
 public interface PeerEventListener {
-    void disconnected(Peer peer);
+    void newPeer(Peer peer);
 }

@@ -18,20 +18,11 @@ package io.yggdrash.core.net;
 
 import java.io.IOException;
 
-/**
- * The type Node sync demo server.
- */
-public class NodeSyncDemoServer {
-    /**
-     * The entry point of application.
-     *
-     * @param args the input arguments
-     * @throws IOException          the io exception
-     * @throws InterruptedException the interrupted exception
-     */
-    public static void main(String[] args) throws IOException, InterruptedException {
-        NodeSyncServer server = new NodeSyncServer(null);
-        server.start(9090);
-        server.blockUntilShutdown();
-    }
+public interface NodeServer {
+
+    void start(String host, int port) throws IOException;
+
+    void blockUntilShutdown() throws InterruptedException;
+
+    void stop();
 }

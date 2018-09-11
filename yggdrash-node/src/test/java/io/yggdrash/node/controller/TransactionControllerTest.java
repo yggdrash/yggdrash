@@ -72,4 +72,11 @@ public class TransactionControllerTest {
 
         assertThat(postResponse.getContentAsString()).isEqualTo(getResponse.getContentAsString());
     }
+
+    @Test
+    public void shouldGetAllTxs() throws Exception {
+        mockMvc.perform(get("/txs")).andDo(print())
+                .andExpect(status().isOk());
+    }
+
 }

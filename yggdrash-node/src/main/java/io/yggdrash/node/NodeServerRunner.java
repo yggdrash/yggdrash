@@ -16,7 +16,6 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.net.NodeSyncServer;
 import io.yggdrash.node.config.NodeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,28 +25,30 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Component
-public class GRpcServerRunner implements CommandLineRunner, DisposableBean {
-    private static final Logger log = LoggerFactory.getLogger(GRpcServerRunner.class);
+public class NodeServerRunner implements CommandLineRunner, DisposableBean {
+    private static final Logger log = LoggerFactory.getLogger(NodeServerRunner.class);
 
     private final NodeProperties nodeProperties;
-    private final NodeSyncServer nodeSyncServer;
+    private final GRpcNodeServer nodeServer;
 
     @Autowired
-    public GRpcServerRunner(NodeProperties nodeProperties, NodeSyncServer nodeSyncServer) {
+    public NodeServerRunner(NodeProperties nodeProperties, GRpcNodeServer nodeServer) {
         this.nodeProperties = nodeProperties;
-        this.nodeSyncServer = nodeSyncServer;
+        this.nodeServer = nodeServer;
     }
 
     @Override
     public void run(String... args) throws Exception {
-        nodeSyncServer.start(nodeProperties.getGrpc().getPort());
+        String host = nodeProperties.getGrpc().getHost();
+        int port = nodeProperties.getGrpc().getPort();
+        nodeServer.start(host, port);
         startDaemonAwaitThread();
     }
 
     private void startDaemonAwaitThread() {
         Thread awaitThread = new Thread(() -> {
             try {
-                nodeSyncServer.blockUntilShutdown();
+                nodeServer.blockUntilShutdown();
             } catch (InterruptedException e) {
                 log.error("gRPC server stopped.", e);
             }
@@ -60,6 +61,6 @@ public class GRpcServerRunner implements CommandLineRunner, DisposableBean {
     @Override
     public void destroy() {
         log.info("Shutting down gRPC server...");
-        nodeSyncServer.stop();
+        nodeServer.stop();
     }
 }

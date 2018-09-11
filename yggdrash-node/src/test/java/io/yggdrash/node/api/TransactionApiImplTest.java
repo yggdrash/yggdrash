@@ -2,12 +2,8 @@ package io.yggdrash.node.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.primitives.Longs;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.store.TransactionReceiptStore;
-import io.yggdrash.node.NodeManagerImpl;
 import io.yggdrash.node.TestUtils;
 import io.yggdrash.node.controller.TransactionDto;
 import org.junit.Before;
@@ -29,8 +25,6 @@ public class TransactionApiImplTest {
     private static final BlockApi blockApi = new JsonRpcConfig().blockApi();
     private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
 
-    private final TransactionApiImpl txApiImpl = new TransactionApiImpl(new NodeManagerImpl(),
-            new TransactionReceiptStore());
     private final String address = "0x407d73d8a49eeb85d32cf465507dd71d507100c1";
     private final String tag = "latest";
     private final String hashOfTx =
@@ -60,7 +54,7 @@ public class TransactionApiImplTest {
     public void getTransactionCountTest() {
         try {
             assertThat(txApi.getTransactionCount(address, tag)).isNotZero();
-        } catch (Exception exception) {
+        } catch (Throwable exception) {
             log.debug("\n\ngetTransactionCountTest :: exception => " + exception);
         }
     }
@@ -78,7 +72,7 @@ public class TransactionApiImplTest {
     public void getBlockTransactionCountByNumberTest() {
         try {
             assertThat(txApi.getBlockTransactionCountByNumber(blockNumber)).isNotZero();
-        } catch (Exception exception) {
+        } catch (Throwable exception) {
             log.debug("\n\ngetBlockTransactionCountByNumberTest :: exception => " + exception);
         }
     }
@@ -98,7 +92,7 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByBlockHashAndIndexTest() {
         try {
-            TransactionHusk tx = new TransactionHusk(getJson()).sign(wallet);
+            TransactionHusk tx = new TransactionHusk(TestUtils.sampleTx(wallet));
             if (txApi.sendTransaction(TransactionDto.createBy(tx)) != null) {
                 Thread.sleep(10000);
                 String hashOfBlock = blockApi.getBlockByHash("1", true).getHash().toString();
@@ -132,7 +126,7 @@ public class TransactionApiImplTest {
 
     @Test
     public void sendTransactionTest() {
-        TransactionHusk tx = new TransactionHusk(TestUtils.getTransfer()).sign(wallet);
+        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTx());
 
         // Request Transaction with jsonStr
         try {
@@ -196,23 +190,9 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    public void transactionApiImplTest() {
-        try {
-            assertThat(1).isEqualTo(txApiImpl.getTransactionCount(address, tag));
-            assertThat(2).isEqualTo(txApiImpl.getTransactionCount(address, blockNumber));
-            assertThat(3).isEqualTo(txApiImpl.getBlockTransactionCountByHash(hashOfBlock));
-            assertThat(4).isEqualTo(txApiImpl.getBlockTransactionCountByNumber(blockNumber));
-            assertThat(5).isEqualTo(txApiImpl.getBlockTransactionCountByNumber(tag));
-            assertThat(6).isEqualTo(txApiImpl.newPendingTransactionFilter());
-        } catch (Exception exception) {
-            log.debug("\n\ntransactionApiImplTest :: exception => " + exception);
-        }
-    }
-
-    @Test
     public void txSigValidateTest() throws IOException {
         // Create Transaction
-        TransactionHusk tx = new TransactionHusk(getJson()).sign(wallet);
+        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTx(wallet));
 
         ObjectMapper mapper = TestUtils.getMapper();
         String jsonStr = mapper.writeValueAsString(TransactionDto.createBy(tx));
@@ -224,19 +204,4 @@ public class TransactionApiImplTest {
         assertTrue(TransactionDto.of(resDto).verify());
     }
 
-    private JsonObject getJson() {
-        JsonArray params = new JsonArray();
-        JsonObject param1 = new JsonObject();
-        param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        JsonObject param2 = new JsonObject();
-        param2.addProperty("amount", 100);
-        params.add(param1);
-        params.add(param2);
-
-        JsonObject txObj = new JsonObject();
-        txObj.addProperty("method", "transfer");
-        txObj.add("params", params);
-
-        return txObj;
-    }
 }

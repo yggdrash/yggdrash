@@ -16,31 +16,39 @@
 
 package io.yggdrash.node.controller;
 
-import io.yggdrash.core.Account;
-import io.yggdrash.core.Runtime;
+import com.google.gson.JsonObject;
+import io.yggdrash.core.BranchGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
+import java.util.Map;
+
 @RestController
-@RequestMapping("accounts")
-public class AccountController {
+@RequestMapping("branches")
+public class BranchController {
+
+    private final BranchGroup branchGroup;
 
     @Autowired
-    Runtime runtime;
-
-    @PostMapping
-    public ResponseEntity create() {
-        Account account = new Account();
-        AccountDto response = AccountDto.createBy(account);
-        return ResponseEntity.ok(response);
+    public BranchController(BranchGroup branchGroup) {
+        this.branchGroup = branchGroup;
     }
 
     @GetMapping
     public ResponseEntity getAll() {
-        return ResponseEntity.ok(runtime.getStateStore().getState());
+        Map<String, ?> state = branchGroup.getStateStore().getState();
+        ArrayList<String> result = new ArrayList<>();
+        for (Map.Entry entry : state.entrySet()) {
+            Object value = entry.getValue();
+            if (value instanceof JsonObject) {
+                ((JsonObject) value).addProperty("id", entry.getKey().toString());
+                result.add(value.toString());
+            }
+        }
+        return ResponseEntity.ok(result);
     }
 }

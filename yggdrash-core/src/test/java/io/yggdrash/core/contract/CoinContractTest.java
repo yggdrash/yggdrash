@@ -1,12 +1,11 @@
 package io.yggdrash.core.contract;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.contract.CoinContract;
-import io.yggdrash.contract.StateStore;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
+import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,7 +18,7 @@ public class CoinContractTest {
 
     @Before
     public void setUp() {
-        StateStore stateStore = new StateStore();
+        StateStore<Long> stateStore = new StateStore<>();
         TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
         coinContract = new CoinContract();
         coinContract.init(stateStore, txReceiptStore);
@@ -27,17 +26,7 @@ public class CoinContractTest {
 
     @Test
     public void balanceTest() throws Exception {
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        params.add(param);
-
-        JsonObject query = new JsonObject();
-        query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        query.addProperty("method", "balanceOf");
-        query.add("params", params);
-
-        JsonObject result = coinContract.query(query);
+        JsonObject result = coinContract.query(TestUtils.sampleBalanceOfQueryJson());
         assertThat(result).isNotNull();
     }
 
@@ -45,18 +34,17 @@ public class CoinContractTest {
     public void transferTest() throws Exception {
         Wallet wallet = new Wallet();
 
-        TransactionHusk tx = new TransactionHusk(TestUtils.getTransfer()).sign(wallet);
+        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTxObject(wallet));
         boolean result = coinContract.invoke(tx);
         assertThat(result).isTrue();
     }
 
     private JsonObject query(JsonObject query) throws Exception {
-        JsonObject res = coinContract.query(query);
-        return res;
+        return coinContract.query(query);
     }
 
     private Boolean invoke(TransactionHusk tx) throws Exception {
-        Boolean res = coinContract.invoke(tx);
-        return res;
+        return coinContract.invoke(tx);
     }
+
 }

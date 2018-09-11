@@ -24,45 +24,49 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class BranchInfo {
-    public String type;
+    public String chain;
     public String version;
+    public String type;
+    public String prevBlockHash;
     public String index;
     public String timestamp;
-    public String prevBlockHash;
     public String merkleRoot;
-    public String dataSize;
+    public String bodyLength;
     public String signature;
-    public List<BranchData> data;
+    public List<BranchData> body;
 
     public BranchInfo() {
     }
 
-    public ChainId getChainId() {
-        return new ChainId(new Sha3Hash(toString().getBytes()));
+    public BranchId getBranchId() {
+        return new BranchId(new Sha3Hash(toString().getBytes()));
     }
 
     @Override
     public String toString() {
         return "BranchInfo{"
-                + "type='" + type + '\''
+                + "chain='" + chain + '\''
                 + ", version='" + version + '\''
+                + ", type='" + type + '\''
                 + ", prevBlockHash='" + prevBlockHash + '\''
-                + ", merkleRoot='" + merkleRoot + '\''
+                + ", index='" + index + '\''
                 + ", timestamp='" + timestamp + '\''
-                + ", dataSize='" + dataSize + '\''
+                + ", merkleRoot='" + merkleRoot + '\''
+                + ", bodyLength='" + bodyLength + '\''
                 + ", signature='" + signature + '\''
-                + ", data='" + data + '\''
+                + ", body='" + body + '\''
                 + '}';
     }
 
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static class BranchData {
-        public String type;
+        public String chain;
         public String version;
-        public String dataHash;
+        public String type;
         public String timestamp;
-        public String dataSize;
+        public String bodyHash;
+        public String bodyLength;
         public String signature;
-        public GenesisFrontierParam data;
+        public GenesisFrontierParam body;
     }
 }

@@ -2,43 +2,36 @@ package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.NodeManager;
+import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Set;
-
 @Service
 @AutoJsonRpcServiceImpl
 public class BlockApiImpl implements BlockApi {
 
-    private final NodeManager nodeManager;
+    private final BranchGroup branchGroup;
 
     @Autowired
-    public BlockApiImpl(NodeManager nodeManager) {
-        this.nodeManager = nodeManager;
+    public BlockApiImpl(BranchGroup branchGroup) {
+        this.branchGroup = branchGroup;
     }
 
     @Override
-    public int blockNumber() {
+    public long blockNumber() {
         try {
-            return nodeManager.getBlocks().size();
+            return branchGroup.getLastIndex() + 1;
         } catch (Exception exception) {
             throw new InternalErrorException();
         }
     }
 
     @Override
-    public Set<BlockHusk> getAllBlock() {
-        return nodeManager.getBlocks();
-    }
-
-    @Override
     public BlockHusk getBlockByHash(String hashOfBlock, Boolean bool) {
         try {
-            return nodeManager.getBlockByIndexOrHash(hashOfBlock);
+            return branchGroup.getBlockByIndexOrHash(hashOfBlock);
         } catch (Exception exception) {
             throw new NonExistObjectException("block");
         }
@@ -47,7 +40,7 @@ public class BlockApiImpl implements BlockApi {
     @Override
     public BlockHusk getBlockByNumber(String numOfBlock, Boolean bool) {
         try {
-            return nodeManager.getBlockByIndexOrHash(numOfBlock);
+            return branchGroup.getBlockByIndexOrHash(numOfBlock);
         } catch (Exception exception) {
             throw new NonExistObjectException("block");
         }
@@ -60,5 +53,10 @@ public class BlockApiImpl implements BlockApi {
         } catch (Exception exception) {
             throw new InternalErrorException();
         }
+    }
+
+    @Override
+    public BlockHusk getLastBlock() {
+        return branchGroup.getBlockByIndexOrHash(String.valueOf(branchGroup.getLastIndex()));
     }
 }
