@@ -77,7 +77,7 @@ public class PeerGroupTest {
 
     @Test
     public void syncTransaction() {
-        peerGroup.newTransaction(tx);
+        peerGroup.receivedTransaction(tx);
         assert !peerGroup.syncTransaction().isEmpty();
     }
 

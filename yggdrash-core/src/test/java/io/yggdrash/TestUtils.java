@@ -44,7 +44,6 @@ import org.apache.commons.codec.binary.Hex;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.file.Paths;
-import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
