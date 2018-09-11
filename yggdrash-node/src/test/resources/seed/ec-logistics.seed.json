@@ -1,0 +1,11 @@
+{
+  "name":"EC Logistics",
+  "symbol":"EC Logistics",
+  "property":"currency",
+  "type":"immunity",
+  "description":"Looking for an efficient and cost-saving logistics service? You just found EC Logistics!",
+  "tag":0.1,
+  "version":"0xcc9612ff91ff844938acdb6608e58506a2f21b8a5d77e88726c0897e8d1d02c0",
+  "reference_address":"Fast and Easy access to all your favorite services with YGG ID",
+  "reserve_address":"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76"
+}
