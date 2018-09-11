@@ -33,7 +33,9 @@ import java.util.concurrent.LinkedBlockingQueue;
 class NodeScheduler {
     private static final Logger log = LoggerFactory.getLogger(NodeScheduler.class);
 
-    private static final int BLOCK_MINE_SEC = 10;
+    private static final int BLOCK_MINE_SEC = 30;
+
+    private static final String cronValue = "*/10 * * * * *";
 
     private final Queue<String> nodeQueue = new LinkedBlockingQueue<>();
 
@@ -52,7 +54,7 @@ class NodeScheduler {
         peerGroup.healthCheck();
     }
 
-    @Scheduled(initialDelay = 1000 * 5, fixedRate = 1000 * BLOCK_MINE_SEC)
+    @Scheduled(cron=cronValue)
     public void generateBlock() {
         if (nodeQueue.isEmpty()) {
             nodeQueue.addAll(peerGroup.getPeerUriList());
