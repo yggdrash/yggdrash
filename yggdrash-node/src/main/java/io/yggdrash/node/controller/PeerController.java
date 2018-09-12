@@ -16,13 +16,10 @@
 
 package io.yggdrash.node.controller;
 
-import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,13 +32,6 @@ class PeerController {
     @Autowired
     public PeerController(PeerGroup peerGroup) {
         this.peerGroup = peerGroup;
-    }
-
-    @PostMapping
-    public ResponseEntity add(@RequestBody PeerDto peerDto) {
-        Peer peer = PeerDto.of(peerDto);
-        peerGroup.addPeer(peer);
-        return ResponseEntity.ok(peerDto);
     }
 
     @GetMapping
