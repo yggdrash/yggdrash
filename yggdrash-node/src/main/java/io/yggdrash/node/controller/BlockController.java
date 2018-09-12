@@ -19,6 +19,8 @@ package io.yggdrash.node.controller;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.Wallet;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -52,7 +54,12 @@ class BlockController {
 
     @GetMapping("{id}")
     public ResponseEntity get(@PathVariable(name = "id") String id) {
-        BlockHusk foundBlock = branchGroup.getBlockByIndexOrHash(id);
+        BlockHusk foundBlock;
+        if (StringUtils.isNumeric(id)) {
+            foundBlock = branchGroup.getBlockByIndex(Long.valueOf(id));
+        } else {
+            foundBlock = branchGroup.getBlockByHash(id);
+        }
 
         if (foundBlock == null) {
             return ResponseEntity.notFound().build();
@@ -72,7 +79,7 @@ class BlockController {
         }
 
         for (int i = 0; i < limit && offset >= 0; i++) {
-            BlockHusk block = branchGroup.getBlockByIndexOrHash(String.valueOf(offset--));
+            BlockHusk block = branchGroup.getBlockByIndex(offset--);
             if (block == null) {
                 break;
             }
@@ -83,7 +90,8 @@ class BlockController {
 
     @GetMapping("latest")
     public ResponseEntity latest() {
-        String latest = String.valueOf(branchGroup.getLastIndex());
-        return ResponseEntity.ok(BlockDto.createBy(branchGroup.getBlockByIndexOrHash(latest)));
+        long latest = branchGroup.getLastIndex();
+        return ResponseEntity.ok(BlockDto.createBy(branchGroup.getBlockByIndex(latest)));
     }
+
 }

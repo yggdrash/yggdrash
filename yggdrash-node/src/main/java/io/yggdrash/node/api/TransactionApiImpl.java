@@ -46,25 +46,26 @@ public class TransactionApiImpl implements TransactionApi {
         } else {
             blockNumber = -1;
         }
-        BlockHusk block = branchGroup.getBlockByIndexOrHash(String.valueOf(blockNumber));
+        BlockHusk block = branchGroup.getBlockByIndex(blockNumber);
         return getCount(address, block.getBody());
     }
 
     @Override
-    public int getTransactionCount(String address, int blockNumber) {
-        BlockHusk block = branchGroup.getBlockByIndexOrHash(String.valueOf(blockNumber));
+    public int getTransactionCount(String address, long blockNumber) {
+        BlockHusk block = branchGroup.getBlockByIndex(blockNumber);
         return getCount(address, block.getBody());
     }
 
     @Override
     public int getBlockTransactionCountByHash(String hashOfBlock) {
-        BlockHusk block = branchGroup.getBlockByIndexOrHash(hashOfBlock);
+        BlockHusk block = branchGroup.getBlockByHash(hashOfBlock);
         return block.getBody().size();
     }
 
     @Override
-    public int getBlockTransactionCountByNumber(int blockNumber) {
-        return getBlockTransactionCountByHash(String.valueOf(blockNumber));
+    public int getBlockTransactionCountByNumber(long blockNumber) {
+        BlockHusk block = branchGroup.getBlockByIndex(blockNumber);
+        return block.getBody().size();
     }
 
     @Override
@@ -86,23 +87,21 @@ public class TransactionApiImpl implements TransactionApi {
     }
 
     @Override
-    public TransactionHusk getTransactionByBlockHashAndIndex(
-            String hashOfBlock, int txIndexPosition) {
-        BlockHusk block = branchGroup.getBlockByIndexOrHash(hashOfBlock);
+    public TransactionHusk getTransactionByBlockHash(String hashOfBlock, int txIndexPosition) {
+        BlockHusk block = branchGroup.getBlockByHash(hashOfBlock);
         return block.getBody().get(txIndexPosition);
     }
 
     @Override
-    public TransactionHusk getTransactionByBlockNumberAndIndex(
-            int blockNumber, int txIndexPosition) {
-        BlockHusk block = branchGroup.getBlockByIndexOrHash(String.valueOf(blockNumber));
+    public TransactionHusk getTransactionByBlockNumber(long blockNumber, int txIndexPosition) {
+        BlockHusk block = branchGroup.getBlockByIndex(blockNumber);
         return block.getBody().get(txIndexPosition);
     }
 
     @Override
-    public TransactionHusk getTransactionByBlockNumberAndIndex(String tag, int txIndexPosition) {
+    public TransactionHusk getTransactionByLatestBlock(String tag, int txIndexPosition) {
         if ("latest".equals(tag)) {
-            return getTransactionByBlockNumberAndIndex(0, txIndexPosition);
+            return getTransactionByBlockNumber(branchGroup.getLastIndex(), txIndexPosition);
         } else {
             return null;
         }

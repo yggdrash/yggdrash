@@ -31,16 +31,16 @@ public class BlockApiImpl implements BlockApi {
     @Override
     public BlockHusk getBlockByHash(String hashOfBlock, Boolean bool) {
         try {
-            return branchGroup.getBlockByIndexOrHash(hashOfBlock);
+            return branchGroup.getBlockByHash(hashOfBlock);
         } catch (Exception exception) {
             throw new NonExistObjectException("block");
         }
     }
 
     @Override
-    public BlockHusk getBlockByNumber(String numOfBlock, Boolean bool) {
+    public BlockHusk getBlockByNumber(long numOfBlock, Boolean bool) {
         try {
-            return branchGroup.getBlockByIndexOrHash(numOfBlock);
+            return branchGroup.getBlockByIndex(numOfBlock);
         } catch (Exception exception) {
             throw new NonExistObjectException("block");
         }
@@ -57,6 +57,6 @@ public class BlockApiImpl implements BlockApi {
 
     @Override
     public BlockHusk getLastBlock() {
-        return branchGroup.getBlockByIndexOrHash(String.valueOf(branchGroup.getLastIndex()));
+        return branchGroup.getBlockByHash(String.valueOf(branchGroup.getLastIndex()));
     }
 }

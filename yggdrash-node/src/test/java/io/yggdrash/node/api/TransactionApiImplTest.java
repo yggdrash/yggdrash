@@ -90,29 +90,29 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    public void getTransactionByBlockHashAndIndexTest() {
+    public void getTransactionByBlockHashTest() {
         try {
             TransactionHusk tx = new TransactionHusk(TestUtils.sampleTx(wallet));
             if (txApi.sendTransaction(TransactionDto.createBy(tx)) != null) {
                 Thread.sleep(10000);
                 String hashOfBlock = blockApi.getBlockByHash("1", true).getHash().toString();
                 assertThat(hashOfBlock).isNotEmpty();
-                assertThat(txApi.getTransactionByBlockHashAndIndex(hashOfBlock, 0)).isNotNull();
+                assertThat(txApi.getTransactionByBlockHash(hashOfBlock, 0)).isNotNull();
             } else {
                 log.error("Send Transaction Failed!");
             }
         } catch (Exception exception) {
-            log.debug("\n\ngetTransactionByBlockHashAndIndexTest :: exception => " + exception);
+            log.debug("\n\ngetTransactionByBlockHashTest :: exception => " + exception);
         }
     }
 
     @Test
-    public void getTransactionByBlockNumberAndIndexTest() {
+    public void getTransactionByBlockNumberTest() {
         try {
-            assertThat(txApi.getTransactionByBlockNumberAndIndex(blockNumber, txIndexPosition))
+            assertThat(txApi.getTransactionByBlockNumber(blockNumber, txIndexPosition))
                     .isNotNull();
         } catch (Exception exception) {
-            log.debug("\n\ngetTransactionByBlockNumberAndIndexTest :: exception => " + exception);
+            log.debug("\n\ngetTransactionByBlockNumberTest :: exception => " + exception);
         }
     }
 
