@@ -6,7 +6,7 @@ import java.util.Map;
 public class GenesisBody {
 
     public String method;
-    public String branchName;
+    public String branchId;
     public List<Map<String, String>> params;
     public Map<String, DelegatorInfo> delegator;
     public Map<String, NodeInfo> node;

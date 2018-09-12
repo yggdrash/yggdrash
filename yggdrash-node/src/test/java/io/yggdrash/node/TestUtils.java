@@ -348,7 +348,7 @@ public class TestUtils {
     }
 
     private static byte[] getBranchHash(JsonObject branch) {
-        return HashUtil.sha3(getRawBranch(branch));
+        return HashUtil.sha3omit12(getRawBranch(branch));
     }
 
     private static byte[] getRawBranch(JsonObject branch) {
