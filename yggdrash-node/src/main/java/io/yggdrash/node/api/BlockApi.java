@@ -41,7 +41,7 @@ public interface BlockApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    BlockHusk getBlockByNumber(@JsonRpcParam(value = "numOfBlock") String numOfBlock,
+    BlockHusk getBlockByNumber(@JsonRpcParam(value = "numOfBlock") long numOfBlock,
                            @JsonRpcParam(value = "bool") Boolean bool);
 
     /**

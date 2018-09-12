@@ -26,7 +26,7 @@ public class BlockMockitoTest {
 
     private BlockApiImpl blockApiImpl;
     private String hashOfBlock;
-    private String numOfblock;
+    private long numOfblock;
     private List<BlockHusk> blockList = new ArrayList<>();
 
     @Before
@@ -35,7 +35,7 @@ public class BlockMockitoTest {
         block = TestUtils.createGenesisBlockHusk();
         hashOfBlock = block.getHash().toString();
         blockList.add(block);
-        numOfblock = "1";
+        numOfblock = 1;
     }
 
     @Test
@@ -52,7 +52,7 @@ public class BlockMockitoTest {
 
     @Test
     public void getBlockByHashTest() {
-        when(branchGroupMock.getBlockByIndexOrHash(hashOfBlock)).thenReturn(block);
+        when(branchGroupMock.getBlockByHash(hashOfBlock)).thenReturn(block);
         BlockHusk res = blockApiImpl.getBlockByHash(hashOfBlock, true);
         assertThat(res).isNotNull();
         assertEquals(res.getHash().toString(), hashOfBlock);
@@ -60,7 +60,7 @@ public class BlockMockitoTest {
 
     @Test
     public void getBlockByNumberTest() {
-        when(branchGroupMock.getBlockByIndexOrHash(numOfblock)).thenReturn(block);
+        when(branchGroupMock.getBlockByIndex(numOfblock)).thenReturn(block);
         BlockHusk res = blockApiImpl.getBlockByNumber(numOfblock, true);
         assertThat(res).isNotNull();
         assertEquals(res.getHash().toString(), hashOfBlock);
@@ -68,7 +68,7 @@ public class BlockMockitoTest {
 
     @Test(expected = NonExistObjectException.class)
     public void getBlockByNumberExceptionTest() {
-        when(branchGroupMock.getBlockByIndexOrHash(numOfblock)).thenThrow(new RuntimeException());
+        when(branchGroupMock.getBlockByIndex(numOfblock)).thenThrow(new RuntimeException());
         blockApiImpl.getBlockByNumber(numOfblock, true);
     }
 

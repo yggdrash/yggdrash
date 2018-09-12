@@ -101,7 +101,7 @@ public class GRpcNodeServerTest {
         Set<BlockHusk> blocks = new HashSet<>();
         blocks.add(block);
         when(branchGroupMock.getLastIndex()).thenReturn(0L);
-        when(branchGroupMock.getBlockByIndexOrHash("0")).thenReturn(block);
+        when(branchGroupMock.getBlockByIndex(0L)).thenReturn(block);
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());

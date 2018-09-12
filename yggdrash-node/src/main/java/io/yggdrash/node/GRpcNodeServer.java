@@ -231,7 +231,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
             Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
             for (int i = 0; i < limit || limit == 0; i++) {
-                BlockHusk block = branchGroup.getBlockByIndexOrHash(String.valueOf(offset++));
+                BlockHusk block = branchGroup.getBlockByIndex(offset++);
                 if (block == null) {
                     break;
                 }

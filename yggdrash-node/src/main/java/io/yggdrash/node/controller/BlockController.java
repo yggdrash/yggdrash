@@ -52,7 +52,12 @@ class BlockController {
 
     @GetMapping("{id}")
     public ResponseEntity get(@PathVariable(name = "id") String id) {
-        BlockHusk foundBlock = branchGroup.getBlockByIndexOrHash(id);
+        BlockHusk foundBlock;
+        if (isNumeric(id)) {
+            foundBlock = branchGroup.getBlockByIndex(Long.valueOf(id));
+        } else {
+            foundBlock = branchGroup.getBlockByHash(id);
+        }
 
         if (foundBlock == null) {
             return ResponseEntity.notFound().build();
@@ -72,7 +77,7 @@ class BlockController {
         }
 
         for (int i = 0; i < limit && offset >= 0; i++) {
-            BlockHusk block = branchGroup.getBlockByIndexOrHash(String.valueOf(offset--));
+            BlockHusk block = branchGroup.getBlockByIndex(offset--);
             if (block == null) {
                 break;
             }
@@ -83,7 +88,17 @@ class BlockController {
 
     @GetMapping("latest")
     public ResponseEntity latest() {
-        String latest = String.valueOf(branchGroup.getLastIndex());
-        return ResponseEntity.ok(BlockDto.createBy(branchGroup.getBlockByIndexOrHash(latest)));
+        long latest = branchGroup.getLastIndex();
+        return ResponseEntity.ok(BlockDto.createBy(branchGroup.getBlockByIndex(latest)));
+    }
+
+    private boolean isNumeric(String str) {
+        try {
+            Long.parseLong(str);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        return true;
     }
 }

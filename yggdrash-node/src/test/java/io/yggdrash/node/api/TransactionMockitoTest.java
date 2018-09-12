@@ -26,7 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -72,7 +72,7 @@ public class TransactionMockitoTest {
 
     @Test
     public void getTransactionCountTest() {
-        when(branchGroupMock.getBlockByIndexOrHash(any())).thenReturn(block);
+        when(branchGroupMock.getBlockByIndex(anyLong())).thenReturn(block);
         Integer res = txApiImpl.getTransactionCount(wallet.getHexAddress(), 1);
         Integer res2 = txApiImpl.getTransactionCount(wallet.getHexAddress(), "latest");
         Integer sizeOfTxList = 3;
@@ -81,7 +81,7 @@ public class TransactionMockitoTest {
     }
 
     @Test
-    public void hexEncodeAndDecodeByteArray() throws Exception {
+    public void hexEncodeAndDecodeByteArrayTest() throws Exception {
         byte[] origin = tx.getAddress().getBytes();
         String encoded = Hex.encodeHexString(origin);
         byte[] decoded = Hex.decodeHex(encoded);
@@ -90,7 +90,7 @@ public class TransactionMockitoTest {
     }
 
     @Test
-    public void getTransactionByHash() {
+    public void getTransactionByHashTest() {
         when(branchGroupMock.getTxByHash(hashOfTx)).thenReturn(tx);
         TransactionHusk res = txApiImpl.getTransactionByHash(hashOfTx);
         assertThat(res).isNotNull();
@@ -98,17 +98,18 @@ public class TransactionMockitoTest {
     }
 
     @Test
-    public void getTransactionByBlockHashAndIndexTest() {
-        when(branchGroupMock.getBlockByIndexOrHash(hashOfBlock)).thenReturn(block);
-        TransactionHusk res = txApiImpl.getTransactionByBlockHashAndIndex(hashOfBlock, 0);
+    public void getTransactionByBlockHashTest() {
+        when(branchGroupMock.getBlockByHash(hashOfBlock)).thenReturn(block);
+        TransactionHusk res = txApiImpl.getTransactionByBlockHash(hashOfBlock, 0);
         assertEquals(res.getHash().toString(), hashOfTx);
     }
 
     @Test
-    public void getTransactionByBlockNumberAndIndexTest() {
-        when(branchGroupMock.getBlockByIndexOrHash(anyString())).thenReturn(block);
-        TransactionHusk res = txApiImpl.getTransactionByBlockNumberAndIndex(0, 0);
-        TransactionHusk res2 = txApiImpl.getTransactionByBlockNumberAndIndex("latest", 0);
+    public void getTransactionByLatestBlockTest() {
+        when(branchGroupMock.getBlockByIndex(0L)).thenReturn(block);
+        when(branchGroupMock.getLastIndex()).thenReturn(0L);
+        TransactionHusk res = txApiImpl.getTransactionByBlockNumber(0, 0);
+        TransactionHusk res2 = txApiImpl.getTransactionByLatestBlock("latest", 0);
         assertEquals(res.getHash(), res2.getHash());
     }
 
