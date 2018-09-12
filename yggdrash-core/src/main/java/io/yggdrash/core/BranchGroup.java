@@ -78,13 +78,12 @@ public class BranchGroup {
         return chain.addBlock(block);
     }
 
-    public BlockHusk getBlockByIndexOrHash(String indexOrHash) {
-        if (isNumeric(indexOrHash)) {
-            int index = Integer.parseInt(indexOrHash);
-            return chain.getBlockByIndex(index);
-        } else {
-            return chain.getBlockByHash(indexOrHash);
-        }
+    public BlockHusk getBlockByIndex(long index) {
+        return chain.getBlockByIndex(index);
+    }
+
+    public BlockHusk getBlockByHash(String hash) {
+        return chain.getBlockByHash(hash);
     }
 
     public int getBranchSize() {
@@ -109,15 +108,5 @@ public class BranchGroup {
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
-    }
-
-    private boolean isNumeric(String str) {
-        try {
-            Integer.parseInt(str);
-        } catch (NumberFormatException e) {
-            return false;
-        }
-
-        return true;
     }
 }
