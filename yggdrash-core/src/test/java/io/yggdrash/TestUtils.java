@@ -104,8 +104,6 @@ public class TestUtils {
         } catch (Exception e) {
             throw new NotValidateException();
         }
-
-
     }
 
     public static TransactionHusk createTxHusk() {
