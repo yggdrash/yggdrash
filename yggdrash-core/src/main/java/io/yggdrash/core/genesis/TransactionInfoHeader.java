@@ -7,6 +7,4 @@ public class TransactionInfoHeader {
     public String timestamp;
     public String bodyHash;
     public String bodyLength;
-
-    public TransactionInfoHeader() {}
 }
