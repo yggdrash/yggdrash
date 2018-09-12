@@ -19,6 +19,8 @@ package io.yggdrash.node.controller;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.Wallet;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -53,7 +55,7 @@ class BlockController {
     @GetMapping("{id}")
     public ResponseEntity get(@PathVariable(name = "id") String id) {
         BlockHusk foundBlock;
-        if (isNumeric(id)) {
+        if (StringUtils.isNumeric(id)) {
             foundBlock = branchGroup.getBlockByIndex(Long.valueOf(id));
         } else {
             foundBlock = branchGroup.getBlockByHash(id);
@@ -92,13 +94,4 @@ class BlockController {
         return ResponseEntity.ok(BlockDto.createBy(branchGroup.getBlockByIndex(latest)));
     }
 
-    private boolean isNumeric(String str) {
-        try {
-            Long.parseLong(str);
-        } catch (NumberFormatException e) {
-            return false;
-        }
-
-        return true;
-    }
 }
