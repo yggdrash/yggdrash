@@ -1,0 +1,11 @@
+{
+  "name":"sample2",
+  "symbol":"sample2",
+  "property":"dex",
+  "type":"mutable",
+  "description":"sample2",
+  "tag":0.1,
+  "version":"0xbf899a6e75b1edae05893bad844abf94d5cac7b0ceb69693c2bd241348fc70ee",
+  "reference_address":"",
+  "reserve_address":"0xe621e59f7f6fb9260f677a4029e1344dd2bb6d58"
+}

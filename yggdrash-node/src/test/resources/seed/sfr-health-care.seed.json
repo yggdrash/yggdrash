@@ -1,0 +1,11 @@
+{
+  "name":"SFR Health Care",
+  "symbol":"SFR",
+  "property":"service",
+  "type":"immunity",
+  "description":"Store personal health information onto a SAFE, FAST, and RELIABLE Health Care chain!",
+  "tag":0.1,
+  "version":"0x3a1dd2bc87c740a28a53f1f53812857ec474c083100accbea3c9168294a44b0a",
+  "reference_address":"",
+  "reserve_address":"0x31cce510798aa8e8de42eb3339c494fc79e90583"
+}

@@ -217,11 +217,11 @@ public class TestUtils {
     }
 
     public static JsonObject getSampleBranch2() {
-        String name = "TEST2";
-        String symbol = "TEST2";
-        String property = "exchange";
-        String type = "mutable";
-        String description = "TEST2";
+        String name = "STEM";
+        String symbol = "STEM";
+        String property = "ecosystem";
+        String type = "immunity";
+        String description = "The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.";
         String version = "0xe4452ervbo091qw4f5n2s8799232abr213er2c90";
         String referenceAddress = "";
         String reserveAddress = "0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3";
@@ -255,7 +255,7 @@ public class TestUtils {
         JsonObject branch = new JsonObject();
         branch.addProperty("name", name);
         //branch.addProperty("owner", wallet.getHexAddress());
-        branch.addProperty("owner", "9e187f5264037ab77c87fcffcecd943702cd72c3");
+        branch.addProperty("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
         branch.addProperty("symbol", symbol);
         branch.addProperty("property", property);
         branch.addProperty("type", type);
@@ -263,7 +263,7 @@ public class TestUtils {
         branch.addProperty("description", description);
         branch.addProperty("tag", 0.1);
         branch.addProperty("version", version);
-        branch.add("versionHistory", versionHistory);
+        branch.add("version_history", versionHistory);
         branch.addProperty("reference_address", referenceAddress);
         branch.addProperty("reserve_address", reserveAddress);
 
@@ -283,7 +283,7 @@ public class TestUtils {
         updatedBranch.addProperty("description", description);
         updatedBranch.addProperty("tag", branch.get("tag").getAsFloat());
         updatedBranch.addProperty("version", version);
-        updatedBranch.add("versionHistory", branch.get("versionHistory").getAsJsonArray());
+        updatedBranch.add("version_history", branch.get("version_history").getAsJsonArray());
         updatedBranch.addProperty(
                 "reference_address", branch.get("reference_address").getAsString());
         updatedBranch.addProperty("reserve_address", branch.get("reserve_address").getAsString());
@@ -307,7 +307,7 @@ public class TestUtils {
             branchStream.write(branch.get("type").getAsString().getBytes());
             branchStream.write(branch.get("timestamp").getAsString().getBytes());
             //branchStream.write(branch.get("version").getAsString().getBytes());
-            branchStream.write(branch.get("versionHistory").getAsJsonArray().get(0)
+            branchStream.write(branch.get("version_history").getAsJsonArray().get(0)
                     .getAsString().getBytes());
             branchStream.write(branch.get("reference_address").getAsString().getBytes());
             branchStream.write(branch.get("reserve_address").getAsString().getBytes());
