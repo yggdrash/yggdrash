@@ -3,10 +3,8 @@ package io.yggdrash.node;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.googlecode.jsonrpc4j.ProxyUtil;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.node.api.BlockApi;
 import io.yggdrash.node.api.JsonRpcConfig;
 import io.yggdrash.node.api.TransactionApi;
 import io.yggdrash.node.controller.TransactionDto;
@@ -15,7 +13,6 @@ import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
 import java.io.InputStreamReader;
-import java.net.URL;
 import java.util.Scanner;
 
 public class NodeContractDemoClient {
@@ -54,9 +51,7 @@ public class NodeContractDemoClient {
     private static void sendTx(TransactionHusk tx, String num) {
         TransactionApi txApi;
         if (num.equals("2")) {
-            System.out.println("전송할 서버의 주소를 입력하세요"
-                    + "(예. 10.10.10.100) : ");
-            txApi = new JsonRpcConfig().transactionApi(scan.nextLine());
+            txApi = new JsonRpcConfig().transactionApi("server");
         } else {
             txApi = new JsonRpcConfig().transactionApi();
         }

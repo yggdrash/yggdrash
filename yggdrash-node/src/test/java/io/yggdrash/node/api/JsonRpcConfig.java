@@ -64,10 +64,9 @@ public class JsonRpcConfig {
         }
     }
 
-    public TransactionApi transactionApi(String ip) {
+    public TransactionApi transactionApi(String server) {
         try {
-            String path = "http://" + ip + ":8080/api/transaction";
-            URL url = new URL(path);
+            URL url = new URL("http://10.10.10.100:8080/api/transaction");
             return ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     TransactionApi.class, jsonRpcHttpClient(url));
         } catch (MalformedURLException exception) {

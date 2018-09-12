@@ -100,17 +100,16 @@ public class StemContract extends BaseContract<JsonObject> {
         String owner = branch.get("owner").getAsString();
         if (this.sender != null && isOwnerValid(owner)) {
             if (isBranchIdValid(branchId, branch)) {
-                if (isVersionHistoryUpdated(branchId, branch)) {
+                /*if (isVersionHistoryUpdated(branchId, branch)) {
                     log.info("[StemContract | update] branchId => " + branchId);
                     log.info("[StemContract | update] branch => " + branch);
                     state.replace(branchId, branch);
                     txReceipt.setStatus(1);
-                    //return branchId;
-                }
+                }*/
+                txReceipt.setStatus(1);
                 state.replace(branchId, branch);
             }
         }
-        //return null;
         return txReceipt;
     }
 
@@ -223,7 +222,7 @@ public class StemContract extends BaseContract<JsonObject> {
         return false;
     }
 
-    private boolean isVersionHistoryUpdated(String branchId, JsonObject branch) {
+    /*private boolean isVersionHistoryUpdated(String branchId, JsonObject branch) {
         JsonElement updatedVersion = branch.get("version");
         JsonArray versionHistory = state.get(branchId).get("versionHistory").getAsJsonArray();
         if (!versionHistory.contains(updatedVersion)) {
@@ -231,7 +230,7 @@ public class StemContract extends BaseContract<JsonObject> {
             return true;
         }
         return false;
-    }
+    }*/
 
     private JsonObject getBranch(String branchId) {
         return state.get(branchId);
