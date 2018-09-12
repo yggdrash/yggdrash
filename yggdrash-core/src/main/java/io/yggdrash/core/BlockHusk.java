@@ -131,10 +131,6 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         return new Sha3Hash(protoBlock.getHeader().toByteArray());
     }
 
-    public Sha3Hash getChainId() {
-        return new Sha3Hash((coreBlock.getHeader().getChain()));
-    }
-
     public Address getAddress() {
         try {
             return new Address(this.coreBlock.getAddress());
@@ -261,19 +257,6 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
                 .setMerkleRoot(ByteString.copyFrom(merkleRoot))
                 .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(bodyLength)))
                 .build();
-    }
-
-    private static long getBodySize(List<TransactionHusk> body) {
-        long size = 0;
-        if (body == null || body.isEmpty()) {
-            return size;
-        }
-        for (TransactionHusk tx : body) {
-            if (tx.getInstance() != null) {
-                size += tx.getInstance().toByteArray().length;
-            }
-        }
-        return size;
     }
 
     @Override

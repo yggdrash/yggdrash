@@ -103,7 +103,8 @@ public class BlockChain {
     }
 
     public BranchId getBranchId() {
-        return new BranchId(genesisBlock.getChainId());
+        byte[] chain = genesisBlock.getInstance().getHeader().getChain().toByteArray();
+        return new BranchId(Sha3Hash.createByHashed(chain));
     }
 
     public BlockHusk getGenesisBlock() {
