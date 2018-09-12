@@ -21,7 +21,6 @@ import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.event.BranchEventListener;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
@@ -32,18 +31,8 @@ public class WebsocketController implements BranchEventListener {
 
     @Autowired
     public WebsocketController(BranchGroup branchGroup, SimpMessagingTemplate template) {
-        branchGroup.getAllBranch().forEach(blockChain -> blockChain.addListener(this));
         this.template = template;
-    }
-
-    @SendTo("/topic/blocks")
-    public BlockDto block(BlockDto block) {
-        return block;
-    }
-
-    @SendTo("/topic/txs")
-    public TransactionDto tx(TransactionDto tx) {
-        return tx;
+        branchGroup.getAllBranch().forEach(blockChain -> blockChain.addListener(this));
     }
 
     @Override
