@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class BranchApiImplTest {
-    private static final Logger log = LoggerFactory.getLogger(BranchApiImplTest.class);
+public class ContractApiImplTest {
+    private static final Logger log = LoggerFactory.getLogger(ContractApiImplTest.class);
     private static final ContractApi contractApi = new JsonRpcConfig().contractApi();
     private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
     private static Wallet wallet;
@@ -38,13 +38,13 @@ public class BranchApiImplTest {
     }
 
     private static void create() {
-            branch = TestUtils.getSampleBranch1();
-            branchId = TestUtils.getBranchId(branch);
-            JsonArray params = new JsonArray();
-            JsonObject param = new JsonObject();
-            param.addProperty("branchId", branchId);
-            param.add("branch", branch);
-            params.add(param);
+        branch = TestUtils.getSampleBranch1();
+        branchId = TestUtils.getBranchId(branch);
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        param.addProperty("branchId", branchId);
+        param.add("branch", branch);
+        params.add(param);
 
         try {
             JsonObject txObj = new JsonObject();
@@ -147,6 +147,16 @@ public class BranchApiImplTest {
             params.add(param);
 
             JsonObject queryObj = TestUtils.createQuery("getversionhistory", params);
+            contractApi.query(queryObj.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void getAllBranchId() {
+        try {
+            JsonObject queryObj = TestUtils.createQuery("getallbranchid", new JsonArray());
             contractApi.query(queryObj.toString());
         } catch (Exception e) {
             e.printStackTrace();
