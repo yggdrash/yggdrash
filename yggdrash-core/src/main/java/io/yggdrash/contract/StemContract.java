@@ -153,7 +153,7 @@ public class StemContract extends BaseContract<JsonObject> {
         String branchId = params.get(0).getAsJsonObject().get("branchId")
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
-            JsonArray versionHistory = getBranch(branchId).get("versionHistory").getAsJsonArray();
+            JsonArray versionHistory = getBranch(branchId).get("version_history").getAsJsonArray();
             int index = versionHistory.size() - 1;
 
             return versionHistory.get(index).getAsString();
@@ -170,7 +170,7 @@ public class StemContract extends BaseContract<JsonObject> {
         String branchId = params.get(0).getAsJsonObject().get("branchId")
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
-            return getBranch(branchId).get("versionHistory").getAsJsonArray();
+            return getBranch(branchId).get("version_history").getAsJsonArray();
         }
         return new JsonArray();
     }
@@ -215,7 +215,7 @@ public class StemContract extends BaseContract<JsonObject> {
 
     private boolean isBranchIdValid(String branchId, JsonObject branch) {
         if (branchId.equals(getBranchId(branch))) {
-            return branch.get("version").getAsString().equals(branch.get("versionHistory")
+            return branch.get("version").getAsString().equals(branch.get("version_history")
                     .getAsJsonArray().get(0).getAsString());
         }
         log.warn("[Validation] branchId is not valid");

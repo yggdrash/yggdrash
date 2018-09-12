@@ -81,7 +81,7 @@ public class NodeContractDemoClient {
         System.out.println("==[Result]==\nSeed     >>  " + branch);
         branch.addProperty("owner", wallet.getHexAddress());
         branch.addProperty("timestamp", System.currentTimeMillis());
-        branch.add("versionHistory", versionHistory);
+        branch.add("version_history", versionHistory);
         System.out.println("Branch   >>  " + branch);
 
         createBranchTx(wallet, branch);

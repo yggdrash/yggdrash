@@ -1,44 +1,44 @@
 {
   "header": {
-    "chain": "d4ecb8d1bf8a687819f4472f9a4f765a1049f211",
+    "chain": "534c0b39130032205c2c9ebf0cdb8232cbc6b22b",
     "version": "0000000000000000",
     "type": "0000000000000000",
     "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
     "index": "0000000000000000",
-    "timestamp": "00000165c775ead6",
-    "merkleRoot": "86ff37ab22b23c23190ce6f430533f1926ba87aeb778a0aea058f7b95ce177d1",
-    "bodyLength": "000000000000081c"
+    "timestamp": "00000165cc74645b",
+    "merkleRoot": "a1dbc111f8d6ad2dcf8a1f0c2fe88cde427cc4c36a0c067e5cb788af76fe1b99",
+    "bodyLength": "0000000000000693"
   },
-  "signature": "1cdc5e36bb0102380b5864436f3e3c921240dde62f2d72fe76554ac3f93f5ecaa85173505d0a973a29e1745f7c741e3ff78bfe261dc578577c14b0ea357ba8b9f8",
+  "signature": "1cc3361c27739319ab6da57ac389f9e75564e96392aa254f346ba7faaf9cac93c07579c392e33cb5cbb31c241bcd2a81f20b32433317e686482f6db710d1c5e9b9",
   "body": [
     {
       "header": {
-        "chain": "d4ecb8d1bf8a687819f4472f9a4f765a1049f211",
+        "chain": "534c0b39130032205c2c9ebf0cdb8232cbc6b22b",
         "version": "0000000000000000",
         "type": "0000000000000000",
-        "timestamp": "00000165c775ead6",
-        "bodyHash": "0740fc45bfe41017e06a7dd52ec46fcf4bb98a8d1fb7acaf7deef10493340a05",
-        "bodyLength": "0000000000000787"
+        "timestamp": "00000165cc74645b",
+        "bodyHash": "933930a194e69913a9a922105cd0c1fcc3a3843b3633f93c2ad1c32f86cfa91a",
+        "bodyLength": "00000000000005fe"
       },
-      "signature": "1c67e9b27962eb6c3bb68d302d54cb71bb8ed9acd650a16a9dd8e5d95fb85b67a45dd2311f25994d13be6c56046bd6e772f5572f719589c9dd74a2838b3a5ef255",
+      "signature": "1c63875abd3f6ee7ddfa220f9fd11ffb493c8d9fd034d79d75a302715d768a3f2b4c5ef4c1209d3ac772d7d103f03c9e8bf693b130f2107f38fefea42238ab5540",
       "body": [
         {
           "method": "genesis",
           "branchName": "STEM",
           "params": [
             {
-              "branchId": "5f74d94eec5beab25c5dfd263457865f419dcf11e4c8a8a4a327c4713950535d",
-              "branch": "{\"name\":\"STEM\",\"owner\":\"9e187f5264037ab77c87fcffcecd943702cd72c3\",\"symbol\":\"STEM\",\"property\":\"platform\",\"type\":\"immunity\",\"timestamp\":\"0000016531dfa31c\",\"description\":\"The Stem Chain is the main blockchain which is the root of the YGGDRASH ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains. The Stem Chain is optimized for transaction processing scalability and expandability by storing only minimum information such as the address of each Branch Chain. In addition, it connects each Branch Chain by referring the address of each Branch Chain and is able to manage the full life-cycle (creation / modification / destruction) of each chain.\",\"tag\":0.1,\"version\":\"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76\",\"versionHistory\":[\"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76\"],\"reference_address\":\"\",\"reserve_address\":\"0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3\"}"
+              "branchId": "0a17f5dce8a1b0cb8f50b8391d7a1b4d35abeb56ed01e8321657a5d7ad4fb9c3",
+              "branch": "{\"name\":\"STEM\",\"owner\":\"cee3d4755e47055b530deeba062c5bd0c17eb00f\",\"symbol\":\"STEM\",\"property\":\"ecosystem\",\"type\":\"immunity\",\"timestamp\":\"0000016531dfa31c\",\"description\":\"The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.\",\"tag\":0.1,\"version\":\"0xe4452ervbo091qw4f5n2s8799232abr213er2c90\",\"version_history\":[\"0xe4452ervbo091qw4f5n2s8799232abr213er2c90\"],\"reference_address\":\"\",\"reserve_address\":\"0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3\"}"
             }
           ],
           "delegator": {
-            "5db10750e8caff27f906b41c71b3471057dd2000": {
-              "ip": "100.100.100.1",
+            "a7a9ad6f834bcc080586c55e9b1981b7ec39f31d": {
+              "ip": "172.16.10.150",
               "port": "32918"
             },
-            "5db10750e8caff27f906b41c71b3471057dd2001": {
-              "ip": "100.100.100.2",
-              "port": "32918"
+            "50c7b8af63f57ddef4b954e38e7a1253c896b742": {
+              "ip": "172.16.10.150",
+              "port": "32919"
             },
             "5db10750e8caff27f906b41c71b3471057dd2002": {
               "ip": "100.100.100.3",

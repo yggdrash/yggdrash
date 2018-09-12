@@ -1,11 +1,11 @@
 {
   "name":"YEED to ETH",
-  "symbol":"YEED to ETH",
-  "property":"currency",
+  "symbol":"YTOE",
+  "property":"exchange",
   "type":"immunity",
   "description":"Coverting YEED to ETH was never this easy!",
   "tag":0.1,
-  "version":"0xcc9612ff91ff844938acdb6608e58506a2f21b8a5d77e88726c0897e8d1d02c0",
-  "reference_address":"Fast and Easy access to all your favorite services with YGG ID",
-  "reserve_address":"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76"
+  "version":"0x20c758df3adcd2bb15993aae38a610117bf28e57d35c6936f3668a2fd19d9766",
+  "reference_address":"",
+  "reserve_address":"0x81b7e08f65bdf5648606c89998a9cc8164397647"
 }

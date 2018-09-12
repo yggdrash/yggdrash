@@ -5,7 +5,7 @@
   "type":"immunity",
   "description":"YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.",
   "tag":0.1,
-  "version":"0xcc9612ff91ff844938acdb6608e58506a2f21b8a5d77e88726c0897e8d1d02c0",
+  "version":"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025",
   "reference_address":"",
-  "reserve_address":"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76"
+  "reserve_address":"0x9cc060690705a13078634637b1d2a5f2fe1b8096"
 }

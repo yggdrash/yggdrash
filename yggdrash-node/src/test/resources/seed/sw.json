@@ -1,11 +1,11 @@
 {
   "name":"Sacred Water",
-  "symbol":"Sacred Water",
-  "property":"currency",
+  "symbol":"SW",
+  "property":"reputation",
   "type":"immunity",
   "description":"Reputation Score Evaluation Chain. Contribute your time and benefit the ecosystem to earn a higher reputation score.",
   "tag":0.1,
-  "version":"0xcc9612ff91ff844938acdb6608e58506a2f21b8a5d77e88726c0897e8d1d02c0",
-  "reference_address":"Fast and Easy access to all your favorite services with YGG ID",
-  "reserve_address":"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76"
+  "version":"0xebe69520b56c81e1ad2ceec4c2f9ed9405376fa56e9a9713a026fb305989e042",
+  "reference_address":"",
+  "reserve_address":"0x2831de120827570cf8c7cfcb9b788c222e307de4"
 }
