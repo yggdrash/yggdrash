@@ -46,7 +46,7 @@ public class BlockApiImplTest {
     @Test
     public void getBlockByNumberTest() {
         try {
-            assertThat(blockApi.getBlockByNumber("0", true)).isNotNull();
+            assertThat(blockApi.getBlockByNumber(0, true)).isNotNull();
         } catch (Exception exception) {
             log.debug("getBlockByNumberTest :: exception : " + exception);
         }

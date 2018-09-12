@@ -5,6 +5,8 @@ import com.google.gson.JsonArray;
 import io.yggdrash.crypto.HashUtil;
 import org.spongycastle.util.encoders.Hex;
 
+import java.nio.charset.StandardCharsets;
+
 public class TransactionBody implements Cloneable {
 
     private JsonArray body;
@@ -16,6 +18,10 @@ public class TransactionBody implements Cloneable {
 
     public TransactionBody(String body) {
         this.body = new Gson().fromJson(body, JsonArray.class);
+    }
+
+    public TransactionBody(byte[] bodyBytes) {
+        this(new String(bodyBytes, StandardCharsets.UTF_8));
     }
 
     public JsonArray getBody() {
@@ -43,7 +49,7 @@ public class TransactionBody implements Cloneable {
     }
 
     public byte[] toBinary() {
-        return this.body.toString().getBytes();
+        return this.body.toString().getBytes(StandardCharsets.UTF_8);
     }
 
     @Override

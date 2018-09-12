@@ -1,6 +1,7 @@
 package io.yggdrash.core;
 
 import io.yggdrash.TestUtils;
+import io.yggdrash.core.event.BranchEventListener;
 import io.yggdrash.core.exception.NotValidateException;
 import org.junit.After;
 import org.junit.Before;
@@ -17,20 +18,12 @@ public class BlockChainTest {
     @Before
     public void init() {
         sampleBranchInfo = new File(Objects.requireNonNull(getClass().getClassLoader()
-                .getResource("branch-yeed.json")).getFile());
+                .getResource("branch-sample.json")).getFile());
     }
 
     @After
     public void tearDown() {
         TestUtils.clearTestDb();
-    }
-
-    @Test
-    public void shouldBeValidBlock() {
-        BlockChain blockChain = generateTestBlockChain();
-
-        assertThat(blockChain.getGenesisBlock().getAddress().toString())
-                .isEqualTo("817f6ff6c973e0cdb0592bd5f1e04e4cb7147b51");
     }
 
     @Test
@@ -108,4 +101,27 @@ public class BlockChainTest {
         BlockChain blockChain = new BlockChain(sampleBranchInfo);
         assertThat(blockChain.size()).isEqualTo(1L);
     }
+
+    @Test
+    public void shoudBeCallback() {
+        BlockChain blockChain = new BlockChain(sampleBranchInfo);
+        blockChain.addListener(new BranchEventListener() {
+            @Override
+            public void chainedBlock(BlockHusk block) {
+                assertThat(block).isNotNull();
+            }
+
+            @Override
+            public void receivedTransaction(TransactionHusk tx) {
+                assertThat(tx).isNotNull();
+            }
+        });
+        BlockHusk prevBlock = blockChain.getPrevBlock(); // goto Genesis
+        long blockIndex = blockChain.size();
+        BlockHusk testBlock = new BlockHusk(
+                TestUtils.getBlockFixture(blockIndex, prevBlock.getHash()));
+        blockChain.addBlock(testBlock);
+        blockChain.addTransaction(TestUtils.createTxHusk());
+    }
+
 }

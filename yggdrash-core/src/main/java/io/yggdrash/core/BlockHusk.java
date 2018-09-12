@@ -21,15 +21,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.crypto.ECKey;
+import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.trie.Trie;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.TimeUtils;
 
-import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -129,18 +127,29 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     }
 
     public Sha3Hash getHash() {
+
         return new Sha3Hash(protoBlock.getHeader().toByteArray());
     }
 
+    public Sha3Hash getChainId() {
+        return new Sha3Hash((coreBlock.getHeader().getChain()));
+    }
+
     public Address getAddress() {
-        return new Address(ecKey().getAddress());
+        try {
+            return new Address(this.coreBlock.getAddress());
+        } catch (Exception e) {
+            throw new NotValidateException();
+        }
     }
 
     public Sha3Hash getPrevHash() {
+
         return Sha3Hash.createByHashed(getHeader().getPrevBlockHash().toByteArray());
     }
 
     public long getIndex() {
+
         return ByteUtil.byteArrayToLong(this.protoBlock.getHeader().getIndex().toByteArray());
     }
 
@@ -164,21 +173,6 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     @Override
     public Proto.Block getInstance() {
         return this.protoBlock;
-    }
-
-    /**
-     * Get ECKey(include pubKey) using sig & signData.
-     *
-     * @return ECKey(include pubKey)
-     */
-    private ECKey ecKey() {
-        try {
-            byte[] hashedRawData = new Sha3Hash(getHeader().toByteArray()).getBytes();
-            byte[] signatureBin = this.protoBlock.getSignature().toByteArray();
-            return ECKey.signatureToKey(hashedRawData, signatureBin);
-        } catch (SignatureException e) {
-            throw new InvalidSignatureException(e);
-        }
     }
 
     @Override
@@ -226,12 +220,12 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
 
             BlockBody blockBody = new BlockBody(txList);
             BlockHeader blockHeader = new BlockHeader(
-                    new byte[20],
+                    HashUtil.sha3omit12(txBody.getBodyHash()),
                     new byte[8],
                     new byte[8],
                     new byte[32],
                     0L,
-                    TimeUtils.time(),
+                    0L,
                     blockBody.getMerkleRoot(),
                     blockBody.length());
 

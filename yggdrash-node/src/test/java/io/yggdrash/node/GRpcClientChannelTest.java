@@ -75,8 +75,8 @@ public class GRpcClientChannelTest {
     @Test
     public void getPeerYnodeUriTest() {
         GRpcClientChannel client =
-                new GRpcClientChannel(Peer.valueOf("ynode://75bff16c@localhost:9090"));
-        assertEquals("ynode://75bff16c@localhost:9090", client.getPeer().getYnodeUri());
+                new GRpcClientChannel(Peer.valueOf("ynode://75bff16c@localhost:32918"));
+        assertEquals("ynode://75bff16c@localhost:32918", client.getPeer().getYnodeUri());
     }
 
     @Test
@@ -156,11 +156,11 @@ public class GRpcClientChannelTest {
             return null;
         }).when(blockChainService).requestPeerList(peerRequestCaptor.capture(), any());
 
-        client.requestPeerList("ynode://75bff16c@localhost:9090", 10);
+        client.requestPeerList("ynode://75bff16c@localhost:32918", 10);
 
         verify(blockChainService).requestPeerList(peerRequestCaptor.capture(), any());
 
-        assertEquals("ynode://75bff16c@localhost:9090", peerRequestCaptor.getValue().getFrom());
+        assertEquals("ynode://75bff16c@localhost:32918", peerRequestCaptor.getValue().getFrom());
         assertEquals(10, peerRequestCaptor.getValue().getLimit());
     }
 

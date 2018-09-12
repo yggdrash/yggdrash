@@ -42,7 +42,7 @@ public interface TransactionApi {
                     code = NonExistObjectException.code)})
     int getTransactionCount(
             @JsonRpcParam(value = "address") String address,
-            @JsonRpcParam(value = "blockNumber") int blockNumber);
+            @JsonRpcParam(value = "blockNumber") long blockNumber);
 
     /**
      * Returns the number of transactions in a block from a block matching the given block hash.
@@ -64,7 +64,7 @@ public interface TransactionApi {
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
     int getBlockTransactionCountByNumber(
-            @JsonRpcParam(value = "blockNumber") int blockNumber);
+            @JsonRpcParam(value = "blockNumber") long blockNumber);
 
     /**
      * Returns the number of transactions in a block matching the given block number.
@@ -97,7 +97,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    TransactionHusk getTransactionByBlockHashAndIndex(
+    TransactionHusk getTransactionByBlockHash(
             @JsonRpcParam(value = "hashOfBlock") String hashOfBlock,
             @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
 
@@ -110,8 +110,8 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    TransactionHusk getTransactionByBlockNumberAndIndex(
-            @JsonRpcParam(value = "blockNumber") int blockNumber,
+    TransactionHusk getTransactionByBlockNumber(
+            @JsonRpcParam(value = "blockNumber") long blockNumber,
             @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
 
     /**
@@ -123,7 +123,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    TransactionHusk getTransactionByBlockNumberAndIndex(
+    TransactionHusk getTransactionByLatestBlock(
             @JsonRpcParam(value = "tag") String tag,
             @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
 

@@ -1,24 +1,27 @@
 package io.yggdrash.core;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.genesis.TransactionInfo;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.ByteUtil;
-import io.yggdrash.util.TimeUtils;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.SignatureException;
+import java.util.Arrays;
 
 public class Transaction implements Cloneable {
 
     // Transaction Data Format v0.0.3
     private TransactionHeader header;
-    private TransactionSignature signature;
+    private byte[] signature;
     private TransactionBody body;
 
     /**
@@ -30,6 +33,20 @@ public class Transaction implements Cloneable {
      */
     public Transaction(TransactionHeader header,
                        TransactionSignature signature, TransactionBody body) {
+        this.header = header;
+        this.signature = signature.getSignature();
+        this.body = body;
+    }
+
+    /**
+     * Transaction Constructor.
+     *
+     * @param header transaction header
+     * @param signature transaction signature
+     * @param body   transaction body
+     */
+    public Transaction(TransactionHeader header,
+                       byte[] signature, TransactionBody body) {
         this.header = header;
         this.signature = signature;
         this.body = body;
@@ -43,20 +60,39 @@ public class Transaction implements Cloneable {
      * @param body   transaction body
      */
     public Transaction(TransactionHeader header, Wallet wallet, TransactionBody body)
-            throws SignatureException, IOException {
-
+            throws IOException {
         this.body = body;
         this.header = header;
-        this.header.setTimestamp(TimeUtils.time());
-        this.signature = new TransactionSignature(wallet, this.header.getHashForSignning());
+        this.signature = wallet.signHashedData(this.header.getHashForSignning());
     }
 
-    public Transaction(JsonObject jsonObject) throws SignatureException {
-
+    public Transaction(JsonObject jsonObject) {
         this.header = new TransactionHeader(jsonObject.get("header").getAsJsonObject());
-        this.signature = new TransactionSignature(jsonObject.get("signature").getAsJsonObject());
+        this.signature = Hex.decode(jsonObject.get("signature").getAsString());
         this.body = new TransactionBody(jsonObject.getAsJsonArray("body"));
+    }
 
+    public Transaction(byte[] txBytes) {
+        int position = 0;
+
+        byte[] headerBytes = new byte[84];
+        System.arraycopy(txBytes, 0, headerBytes, 0, headerBytes.length);
+        this.header = new TransactionHeader(headerBytes);
+        position += headerBytes.length;
+
+        byte[] sigBytes = new byte[65];
+        System.arraycopy(txBytes, position, sigBytes, 0, sigBytes.length);
+        position += sigBytes.length;
+        this.signature = sigBytes;
+
+        byte[] bodyBytes = new byte[txBytes.length - headerBytes.length - sigBytes.length];
+        System.arraycopy(txBytes, position, bodyBytes, 0, bodyBytes.length);
+        position += bodyBytes.length;
+        this.body = new TransactionBody(bodyBytes);
+
+        if (position != txBytes.length) {
+            throw new NotValidateException();
+        }
     }
 
     /**
@@ -78,11 +114,11 @@ public class Transaction implements Cloneable {
     }
 
     /**
-     * Get TransactionSignature.
+     * Get Transaction signature.
      *
-     * @return transaction signature class
+     * @return transaction signature
      */
-    public TransactionSignature getSignature() {
+    public byte[] getSignature() {
         return signature;
     }
 
@@ -95,7 +131,7 @@ public class Transaction implements Cloneable {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
         bao.write(this.header.toBinary());
-        bao.write(this.signature.getSignature());
+        bao.write(this.signature);
 
         return HashUtil.sha3(bao.toByteArray());
     }
@@ -110,21 +146,15 @@ public class Transaction implements Cloneable {
     }
 
     /**
-     * Get ECKey (include pubKey).
-     *
-     * @return ECKey(include pubKey)
-     */
-    public ECKey getEcKeyPub() {
-        return this.signature.getEcKeyPub();
-    }
-
-    /**
      * Get the public key.
      *
      * @return public key
      */
-    public byte[] getPubKey() {
-        return this.getEcKeyPub().getPubKey();
+    public byte[] getPubKey() throws IOException, SignatureException {
+        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
+        ECKey ecKeyPub = ECKey.signatureToKey(this.header.getHashForSignning(), ecdsaSignature);
+
+        return ecKeyPub.getPubKey();
     }
 
     /**
@@ -132,8 +162,8 @@ public class Transaction implements Cloneable {
      *
      * @return the public key as HexString
      */
-    public String getPubKeyHexString() {
-        return Hex.toHexString(this.getEcKeyPub().getPubKey());
+    public String getPubKeyHexString() throws IOException, SignatureException {
+        return Hex.toHexString(this.getPubKey());
     }
 
     /**
@@ -141,8 +171,11 @@ public class Transaction implements Cloneable {
      *
      * @return address
      */
-    public byte[] getAddress() {
-        return this.getEcKeyPub().getAddress();
+    public byte[] getAddress() throws IOException, SignatureException {
+
+        byte[] pubKey = this.getPubKey();
+        return HashUtil.sha3omit12(
+                Arrays.copyOfRange(pubKey, 1, pubKey.length));
     }
 
     /**
@@ -150,8 +183,8 @@ public class Transaction implements Cloneable {
      *
      * @return address as HexString
      */
-    public String getAddressToString() {
-        return Hex.toHexString(getAddress());
+    public String getAddressToString() throws IOException, SignatureException {
+        return Hex.toHexString(this.getAddress());
     }
 
     /**
@@ -160,7 +193,16 @@ public class Transaction implements Cloneable {
      * @return tx length
      */
     public long length() throws IOException {
-        return this.header.length() + this.signature.length() + this.body.length();
+        return this.header.length() + this.signature.length + this.body.length();
+    }
+
+    public boolean verify() throws IOException, SignatureException {
+
+        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
+        byte[] hashedHeader = this.header.getHashForSignning();
+        ECKey ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
+
+        return ecKeyPub.verify(hashedHeader, ecdsaSignature);
     }
 
     /**
@@ -172,7 +214,7 @@ public class Transaction implements Cloneable {
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.add("header", this.header.toJsonObject());
-        jsonObject.add("signature", this.signature.toJsonObject());
+        jsonObject.addProperty("signature", Hex.toHexString(this.signature));
         jsonObject.add("body", this.body.getBody());
 
         return jsonObject;
@@ -197,7 +239,7 @@ public class Transaction implements Cloneable {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
         bao.write(this.header.toBinary());
-        bao.write(this.signature.getSignature());
+        bao.write(this.signature);
         bao.write(this.body.toBinary());
 
         return bao.toByteArray();
@@ -211,10 +253,6 @@ public class Transaction implements Cloneable {
         tx.body = this.body.clone();
 
         return tx;
-    }
-
-    public Proto.Transaction toProtoTransaction() {
-        return toProtoTransaction(this);
     }
 
     public static Proto.Transaction toProtoTransaction(Transaction tx) {
@@ -233,15 +271,14 @@ public class Transaction implements Cloneable {
 
         Proto.Transaction protoTransaction = Proto.Transaction.newBuilder()
                 .setHeader(protoHeader)
-                .setSignature(ByteString.copyFrom(tx.getSignature().getSignature()))
+                .setSignature(ByteString.copyFrom(tx.getSignature()))
                 .setBody(ByteString.copyFrom(tx.getBody().toBinary()))
                 .build();
 
         return protoTransaction;
     }
 
-    public static Transaction toTransaction(Proto.Transaction protoTransaction)
-            throws SignatureException, IOException {
+    public static Transaction toTransaction(Proto.Transaction protoTransaction) {
 
         TransactionHeader txHeader = new TransactionHeader(
                 protoTransaction.getHeader().getChain().toByteArray(),
@@ -255,8 +292,7 @@ public class Transaction implements Cloneable {
                 );
 
         TransactionSignature txSignature =  new TransactionSignature(
-                protoTransaction.getSignature().toByteArray(),
-                txHeader.getHashForSignning()
+                protoTransaction.getSignature().toByteArray()
         );
 
         TransactionBody txBody = new TransactionBody(
@@ -265,6 +301,21 @@ public class Transaction implements Cloneable {
 
         return new Transaction(txHeader, txSignature, txBody);
 
+    }
+
+    public static Transaction fromTransactionInfo(TransactionInfo txi) {
+        TransactionHeader txHeader = new TransactionHeader(
+                Hex.decode(txi.header.chain),
+                Hex.decode(txi.header.version),
+                Hex.decode(txi.header.type),
+                ByteUtil.byteArrayToLong(Hex.decode(txi.header.timestamp)),
+                Hex.decode(txi.header.bodyHash),
+                ByteUtil.byteArrayToLong(Hex.decode(txi.header.bodyLength))
+        );
+
+        TransactionBody txBody = new TransactionBody(new Gson().toJson(txi.body));
+
+        return new Transaction(txHeader, Hex.decode(txi.signature), txBody);
     }
 
 }

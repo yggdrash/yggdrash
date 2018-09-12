@@ -19,12 +19,12 @@ package io.yggdrash.core;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.Contract;
-import io.yggdrash.core.event.BranchEventListener;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -33,8 +33,6 @@ public class BranchGroup {
 
     private Map<String, BlockChain> branches = new ConcurrentHashMap<>();
     private static BlockChain chain;
-
-    private BranchEventListener listener;
 
     public void addBranch(BranchId branchId, BlockChain blockChain) {
         if (branches.containsKey(branchId.toString())) {
@@ -48,8 +46,8 @@ public class BranchGroup {
         return branches.get(id.toString());
     }
 
-    public void setListener(BranchEventListener listener) {
-        this.listener = listener;
+    public Collection<BlockChain> getAllBranch() {
+        return branches.values();
     }
 
     public TransactionHusk addTransaction(TransactionHusk tx) {
@@ -73,24 +71,19 @@ public class BranchGroup {
     }
 
     public BlockHusk generateBlock(Wallet wallet) {
-        BlockHusk newBlock = chain.generateBlock(wallet);
-        if (listener != null && newBlock != null) {
-            listener.chainedBlock(newBlock);
-        }
-        return newBlock;
+        return chain.generateBlock(wallet);
     }
 
     public BlockHusk addBlock(BlockHusk block) {
         return chain.addBlock(block);
     }
 
-    public BlockHusk getBlockByIndexOrHash(String indexOrHash) {
-        if (isNumeric(indexOrHash)) {
-            int index = Integer.parseInt(indexOrHash);
-            return chain.getBlockByIndex(index);
-        } else {
-            return chain.getBlockByHash(indexOrHash);
-        }
+    public BlockHusk getBlockByIndex(long index) {
+        return chain.getBlockByIndex(index);
+    }
+
+    public BlockHusk getBlockByHash(String hash) {
+        return chain.getBlockByHash(hash);
     }
 
     public int getBranchSize() {
@@ -115,15 +108,5 @@ public class BranchGroup {
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
-    }
-
-    private boolean isNumeric(String str) {
-        try {
-            Integer.parseInt(str);
-        } catch (NumberFormatException e) {
-            return false;
-        }
-
-        return true;
     }
 }

@@ -17,7 +17,10 @@
 package io.yggdrash.core.event;
 
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.TransactionHusk;
 
 public interface BranchEventListener {
     void chainedBlock(BlockHusk block);
+
+    void receivedTransaction(TransactionHusk tx);
 }

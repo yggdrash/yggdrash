@@ -10,7 +10,7 @@ services:
     container_name: yggdrash-node1
     ports:
     - 8080:8080
-    - 9090:9090
+    - 32918:32918
     environment:
     - YGGDRASH_NODE_GRPC_HOST=yggdrash-node1
     - YGGDRASH_NODE_MAX_PEERS=25

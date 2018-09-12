@@ -86,7 +86,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     @Autowired
     public void setBranchGroup(BranchGroup branchGroup) {
         this.branchGroup = branchGroup;
-        branchGroup.setListener(peerGroup);
     }
 
     @Override
@@ -131,6 +130,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     }
 
     private void init() {
+        branchGroup.getAllBranch().forEach(branch -> branch.addListener(peerGroup));
         requestPeerList();
         peerGroup.addPeer(peer);
         if (!peerGroup.isEmpty()) {
@@ -231,7 +231,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
             Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
             for (int i = 0; i < limit || limit == 0; i++) {
-                BlockHusk block = branchGroup.getBlockByIndexOrHash(String.valueOf(offset++));
+                BlockHusk block = branchGroup.getBlockByIndex(offset++);
                 if (block == null) {
                     break;
                 }

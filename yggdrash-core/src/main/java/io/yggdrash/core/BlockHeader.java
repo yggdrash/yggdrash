@@ -2,6 +2,7 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.ByteUtil;
@@ -67,6 +68,49 @@ public class BlockHeader implements Cloneable {
                 Hex.decode(jsonObject.get("bodyLength").getAsString()));
     }
 
+    public BlockHeader(byte[] blockHeaderBytes) {
+        int pos = 0;
+
+        this.chain = new byte[20];
+        System.arraycopy(blockHeaderBytes, pos, this.chain, 0, this.chain.length);
+        pos += this.chain.length;
+
+        this.version = new byte[8];
+        System.arraycopy(blockHeaderBytes, pos, this.version, 0, this.version.length);
+        pos += this.version.length;
+
+        this.type = new byte[8];
+        System.arraycopy(blockHeaderBytes, pos, this.type, 0, this.type.length);
+        pos += this.type.length;
+
+        this.prevBlockHash = new byte[32];
+        System.arraycopy(blockHeaderBytes, pos, this.prevBlockHash, 0, this.prevBlockHash.length);
+        pos += this.prevBlockHash.length;
+
+        byte[] indexBytes = new byte[8];
+        System.arraycopy(blockHeaderBytes, pos, indexBytes, 0, indexBytes.length);
+        pos += indexBytes.length;
+        this.index = ByteUtil.byteArrayToLong(indexBytes);
+
+        byte[] timestampBytes = new byte[8];
+        System.arraycopy(blockHeaderBytes, pos, timestampBytes, 0, timestampBytes.length);
+        pos += timestampBytes.length;
+        this.timestamp = ByteUtil.byteArrayToLong(timestampBytes);
+
+        this.merkleRoot = new byte[32];
+        System.arraycopy(blockHeaderBytes, pos, this.merkleRoot, 0, this.merkleRoot.length);
+        pos += this.merkleRoot.length;
+
+        byte[] bodyLengthBytes = new byte[8];
+        System.arraycopy(blockHeaderBytes, pos, bodyLengthBytes, 0, bodyLengthBytes.length);
+        pos += bodyLengthBytes.length;
+        this.bodyLength = ByteUtil.byteArrayToLong(bodyLengthBytes);
+
+        if (pos != blockHeaderBytes.length) {
+            throw new NotValidateException();
+        }
+    }
+
     public byte[] getChain() {
         return chain;
     }
@@ -99,11 +143,9 @@ public class BlockHeader implements Cloneable {
         return bodyLength;
     }
 
-
     protected void setTimestamp(long timestamp) {
         this.timestamp = timestamp;
     }
-
 
     public byte[] toBinary() throws IOException {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();

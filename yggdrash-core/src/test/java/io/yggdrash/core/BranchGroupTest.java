@@ -30,7 +30,7 @@ public class BranchGroupTest {
         try {
             wallet = new Wallet();
             branchJson = new File(Objects.requireNonNull(BranchGroupTest.class.getClassLoader()
-                    .getResource("branch-yeed.json")).getFile());
+                    .getResource("branch-sample.json")).getFile());
         } catch (Exception e) {
             throw new NotValidateException(e);
         }
@@ -44,7 +44,7 @@ public class BranchGroupTest {
         assertThat(branchGroup.getBranchSize()).isEqualTo(1);
         tx = TestUtils.createTxHusk(wallet);
         block = new BlockHusk(wallet, Collections.singletonList(tx),
-                branchGroup.getBlockByIndexOrHash("0"));
+                branchGroup.getBlockByIndex(0));
     }
 
     @After
@@ -57,14 +57,6 @@ public class BranchGroupTest {
         branchGroup.getBranch(blockChain.getBranchId()).close();
         BlockChain blockChain = new BlockChain(branchJson);
         branchGroup.addBranch(blockChain.getBranchId(), blockChain);
-    }
-
-    @Test
-    public void setListener() {
-        branchGroup.setListener(block -> {
-            assertThat(block.getAddress()).isNotNull();
-        });
-        branchGroup.generateBlock(wallet);
     }
 
     @Test
@@ -95,7 +87,7 @@ public class BranchGroupTest {
         branchGroup.addBlock(newBlock);
 
         assertThat(branchGroup.getLastIndex()).isEqualTo(2);
-        assertThat(branchGroup.getBlockByIndexOrHash("2").getHash()).isEqualTo(newBlock.getHash());
+        assertThat(branchGroup.getBlockByIndex(2).getHash()).isEqualTo(newBlock.getHash());
         TransactionHusk foundTx = branchGroup.getTxByHash(tx.getHash());
         assertThat(foundTx.getHash()).isEqualTo(tx.getHash());
     }

@@ -4,6 +4,7 @@ import com.google.common.annotations.VisibleForTesting;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.Contract;
 import io.yggdrash.contract.NoneContract;
+import io.yggdrash.core.event.BranchEventListener;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NonExistObjectException;
@@ -35,11 +36,14 @@ public class BlockChain {
     private Contract contract;
     private Runtime<?> runtime;
 
+    private List<BranchEventListener> listenerList = new ArrayList<>();
+
     @VisibleForTesting
     public BlockChain(File infoFile) {
         try {
             this.genesisBlock = new BlockChainLoader(infoFile).getGenesis();
             this.blockStore = new BlockStore(getBranchId());
+            this.blockStore.put(this.genesisBlock.getHash(), this.genesisBlock);
             this.transactionStore = new TransactionStore(new HashMapDbSource());
             this.contract = new NoneContract();
             this.runtime = new Runtime<>(new StateStore<>(), new TransactionReceiptStore());
@@ -74,6 +78,10 @@ public class BlockChain {
         }
     }
 
+    public void addListener(BranchEventListener listener) {
+        listenerList.add(listener);
+    }
+
     public Contract getContract() {
         return contract;
     }
@@ -95,7 +103,7 @@ public class BlockChain {
     }
 
     public BranchId getBranchId() {
-        return new BranchId(genesisBlock.getHash());
+        return new BranchId(genesisBlock.getChainId());
     }
 
     public BlockHusk getGenesisBlock() {
@@ -137,6 +145,9 @@ public class BlockChain {
         this.blockStore.put(nextBlock.getHash(), nextBlock);
         this.prevBlock = nextBlock;
         removeTxByBlock(nextBlock);
+        if (!listenerList.isEmpty()) {
+            listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
+        }
         return nextBlock;
     }
 
@@ -168,6 +179,9 @@ public class BlockChain {
 
         try {
             transactionStore.put(tx.getHash(), tx);
+            if (!listenerList.isEmpty()) {
+                listenerList.forEach(listener -> listener.receivedTransaction(tx));
+            }
             return tx;
         } catch (Exception e) {
             throw new FailedOperationException("Transaction");

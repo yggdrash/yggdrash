@@ -73,8 +73,6 @@ public class BlockSignatureTest {
 
             wallet = new Wallet();
 
-            txHeader.setTimestamp(TimeUtils.time());
-
             txSig = new TransactionSignature(wallet, txHeader.getHashForSignning());
 
             tx1 = new Transaction(txHeader, txSig, txBody);
@@ -110,25 +108,13 @@ public class BlockSignatureTest {
 
         try {
             blockSig1 = new BlockSignature(wallet, blockHeader1.getHashForSignning());
-            assertArrayEquals(blockSig1.getHeaderHash(), blockHeader1.getHashForSignning());
 
             log.debug("blockSig1.signature=" + Hex.toHexString(blockSig1.getSignature()));
-            log.debug("blockSig1.headerHash=" + Hex.toHexString(blockSig1.getHeaderHash()));
-            log.debug("blockSig1.ecKeyPub="
-                    + Hex.toHexString(blockSig1.getEcKeyPub().getPubKey()));
 
-            blockSig2 = new BlockSignature(blockSig1.getSignature(), blockSig1.getHeaderHash());
-
+            blockSig2 = new BlockSignature(blockSig1.getSignature());
             log.debug("blockSig2.signature=" + Hex.toHexString(blockSig2.getSignature()));
-            log.debug("blockSig2.headerHash=" + Hex.toHexString(blockSig2.getHeaderHash()));
-            log.debug("blockSig2.ecKeyPub="
-                    + Hex.toHexString(blockSig2.getEcKeyPub().getPubKey()));
-
-            assertArrayEquals(blockSig1.getEcdsaSignature().toBinary(),
-                    blockSig2.getEcdsaSignature().toBinary());
-
-            assertArrayEquals(blockSig1.getEcKeyPub().getPubKey(),
-                    blockSig2.getEcKeyPub().getPubKey());
+            assertArrayEquals(blockSig1.getSignature(),
+                    blockSig2.getSignature());
 
             BlockSignature blockSig3 = new BlockSignature(blockSig1.toJsonObject());
             assertEquals(blockSig1.toJsonObject().toString(), blockSig3.toJsonObject().toString());
@@ -144,19 +130,10 @@ public class BlockSignatureTest {
 
         try {
             blockSig1 = new BlockSignature(wallet, blockHeader1.getHashForSignning());
-
             log.debug("blockSig1.signature=" + Hex.toHexString(blockSig1.getSignature()));
-            log.debug("blockSig1.headerHash=" + Hex.toHexString(blockSig1.getHeaderHash()));
-            log.debug("blockSig1.ecKeyPub="
-                    + Hex.toHexString(blockSig1.getEcKeyPub().getPubKey()));
 
             blockSig2 = blockSig1.clone();
-
             log.debug("blockSig2.signature=" + Hex.toHexString(blockSig2.getSignature()));
-            log.debug("blockSig2.headerHash=" + Hex.toHexString(blockSig2.getHeaderHash()));
-            log.debug("blockSig2.ecKeyPub="
-                    + Hex.toHexString(blockSig2.getEcKeyPub().getPubKey()));
-
             assertArrayEquals(blockSig1.getSignature(), blockSig2.getSignature());
 
         } catch (Exception e) {

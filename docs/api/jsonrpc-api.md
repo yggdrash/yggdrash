@@ -54,11 +54,11 @@
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [getTransactionByBlockHashAndIndex](#get-transaction-by-block-hash-and-index)
+     * [getTransactionByBlockHash](#get-transaction-by-block-hash)
         * [Parameters]()
         * [Returns]()
         * [Example]()
-     * [getTransactionByBlockNumberAndIndex](#get-transaction-by-block-number-and-index)
+     * [getTransactionByBlockNumber](#get-transaction-by-block-number)
         * [Parameters]()
         * [Returns]()
         * [Example]()
@@ -94,7 +94,7 @@
         * [Parameters]()
         * [Returns]()
         * [Example]()     
-     * [[peer] getAllActivePeer](#get-all-Active-Peer)
+     * [[peer] getAllActivePeer](#get-all-active-peer)
         * [Parameters]()
         * [Returns]()
         * [Example]()     
@@ -132,7 +132,7 @@ The examples also do not include the URL/IP & port combination which must be the
 
 * [createAccount](#create-account)
 * [accounts](#accounts)
-* [balanceOF](#balance-of)
+* [balanceOf](#balance-of)
 * [getBalance](#get-balance)
 * [blockNumber](#block-number)
 * [getBlockByHash](#get-block-by-hash)
@@ -142,8 +142,8 @@ The examples also do not include the URL/IP & port combination which must be the
 * [getBlockTransactionCountByHash](#get-block-transaction-count-by-hash)
 * [getBlockTransactionCountByNumber](#get-block-transaction-count-by-number)
 * [getTransactionByHash](#get-transaction-by-hash)
-* [getTransactionByBlockHashAndIndex](#get-transaction-by-block-hash-and-index)
-* [getTransactionByBlockNumberAndIndex](#get-transaction-by-block-number-and-index)
+* [getTransactionByBlockHash](#get-transaction-by-block-hash)
+* [getTransactionByBlockNumber](#get-transaction-by-block-number)
 * [getTransactionReceipt](#get-transaction-receipt)
 * [sendTransaction](#send-transaction)
 * [sendRawTransaction](#send-raw-transaction)
@@ -152,12 +152,12 @@ The examples also do not include the URL/IP & port combination which must be the
 * [getAllTransactionReceipt](#get-all-transaction-receipt)
 * [[peer] add](#add)
 * [[peer] getAll](#get-all)
-* [[peer] getAllActivePeer](#get-all-Active-Peer)
+* [[peer] getAllActivePeer](#get-all-active-peer)
 
 
 ##JSON RPC API Reference
   
-#### createAccount 
+###createAccount 
 
 Create a new account.
 
@@ -667,7 +667,7 @@ params: [
  
 -----
 
-#### getTransactionByBlockHashAndIndex
+#### getTransactionByBlockHash
 
 Returns information about a transaction by block hash and transaction index position.
 
@@ -694,7 +694,7 @@ See [getTransactionByHash]()
 {
     "id":"1897986394",
     "jsonrpc":"2.0",
-    "method":"getTransactionByBlockHashAndIndex",
+    "method":"getTransactionByBlockHash",
     "params":{
                 "txIndexPosition":1,
                 "hashOfBlock":"0x76a9fa4681a8abf94618543872444ba079d5302203ac6a5b5b2087a9f56ea8bf"
@@ -731,7 +731,7 @@ See [getTransactionByHash]()
  
 -----
 
-#### getTransactionByBlockNumberAndIndex
+#### getTransactionByBlockNumber
 
 Returns information about a transaction by block number and transaction index position.
 
@@ -758,7 +758,7 @@ See [getTransactionByHash]()
 {
     "id":"1977444593",
     "jsonrpc":"2.0",
-    "method":"getTransactionByBlockNumberAndIndex",
+    "method":"getTransactionByBlockNumber",
     "params":{
                 "txIndexPosition":1,
                 "blockNumber":235
@@ -1080,8 +1080,8 @@ Add Peer
     "params":{
                 "peer":{
                         "host":"127.0.0.1",
-                        "port":9090,
-                        "ynodeUri":"ynode://75bff16c@127.0.0.1:9090"
+                        "port":32918,
+                        "ynodeUri":"ynode://75bff16c@127.0.0.1:32918"
                         }
               }
 }
@@ -1092,8 +1092,8 @@ Add Peer
     "id":"77582810",
     "result":{
                 "host":"127.0.0.1",
-                "port":9090,
-                "ynodeUri":"ynode://75bff16c@127.0.0.1:9090"
+                "port":32918,
+                "ynodeUri":"ynode://75bff16c@127.0.0.1:32918"
              }
 }
 ```
@@ -1126,7 +1126,7 @@ None
 {
     "jsonrpc":"2.0",
     "id":"794299408",
-    "result":[{"host":"localhost","port":9090,"ynodeUri":"ynode://9ea9225f0b7db3c697c0a2e09cdd65046899058d16f73378c1559d61aa3e10cd5dc9337142728f5a02faadafab2b926e2998d5bc2b62c2183fab75ca996de2ce@localhost:9090"},{"host":"127.0.0.1","port":9090,"ynodeUri":"ynode://75bff16c@127.0.0.1:9090"}]
+    "result":[{"host":"localhost","port":32918,"ynodeUri":"ynode://9ea9225f0b7db3c697c0a2e09cdd65046899058d16f73378c1559d61aa3e10cd5dc9337142728f5a02faadafab2b926e2998d5bc2b62c2183fab75ca996de2ce@localhost:32918"},{"host":"127.0.0.1","port":32918,"ynodeUri":"ynode://75bff16c@127.0.0.1:32918"}]
 }
 ```
   
