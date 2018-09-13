@@ -5,9 +5,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.crypto.HashUtil;
-import org.apache.commons.codec.binary.Hex;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
@@ -59,8 +59,8 @@ public class StemContract extends BaseContract<JsonObject> {
             String branchId = params.get(i).getAsJsonObject().get("branchId").getAsString();
             JsonObject branch = params.get(i).getAsJsonObject().get("branch").getAsJsonObject();
 
-            txReceipt.put("branchId-" + i, branchId);
-            txReceipt.put("branch-" + i, branch);
+            txReceipt.put(String.format("branchId[%d]",i), branchId);
+            txReceipt.put(String.format("branch[%d]", i), branch);
 
             log.info("[StemContract | create] (param) branch => " + branch);
             // 1. The type of the branch must be one of types.
@@ -239,7 +239,7 @@ public class StemContract extends BaseContract<JsonObject> {
     }
 
     public String getBranchId(JsonObject branch) {
-        return Hex.encodeHexString(getBranchHash(branch));
+        return Hex.toHexString(getBranchHash(branch));
     }
 
     private byte[] getBranchHash(JsonObject branch) {

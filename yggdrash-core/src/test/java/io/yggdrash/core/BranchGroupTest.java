@@ -13,8 +13,6 @@ import java.util.Collections;
 import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertThat;
 
 public class BranchGroupTest {
 
@@ -62,9 +60,10 @@ public class BranchGroupTest {
     @Test
     public void addTransaction() {
         branchGroup.addTransaction(tx);
-        TransactionHusk pooledTx1 = branchGroup.getTxByHash(tx.getHash());
+        TransactionHusk pooledTx1 = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
         assertThat(pooledTx1.getHash()).isEqualTo(tx.getHash());
-        TransactionHusk pooledTx2 = branchGroup.getTxByHash(tx.getHash().toString());
+        TransactionHusk pooledTx2 = branchGroup.getTxByHash(tx.getBranchId(),
+                tx.getHash().toString());
         assertThat(pooledTx2.getHash()).isEqualTo(tx.getHash());
         assertThat(branchGroup.getTransactionList().size()).isEqualTo(1);
     }
@@ -72,10 +71,13 @@ public class BranchGroupTest {
     @Test
     public void generateBlock() {
         branchGroup.addTransaction(tx);
-        BlockHusk chainedBlock = branchGroup.generateBlock(wallet);
-        assertThat(branchGroup.getLastIndex()).isEqualTo(1);
+        branchGroup.generateBlock(wallet);
+        long latest = branchGroup.getLastIndex(tx.getBranchId());
+        BlockHusk chainedBlock = branchGroup.getBlockByIndex(tx.getBranchId(), latest);
+        assertThat(latest).isEqualTo(1);
         assertThat(chainedBlock.getBody().size()).isEqualTo(1);
-        assertThat(branchGroup.getTxByHash(tx.getHash()).getHash(), equalTo(tx.getHash()));
+        assertThat(branchGroup.getTxByHash(tx.getBranchId(), tx.getHash()).getHash())
+                .isEqualTo(tx.getHash());
     }
 
     @Test
@@ -88,7 +90,7 @@ public class BranchGroupTest {
 
         assertThat(branchGroup.getLastIndex()).isEqualTo(2);
         assertThat(branchGroup.getBlockByIndex(2).getHash()).isEqualTo(newBlock.getHash());
-        TransactionHusk foundTx = branchGroup.getTxByHash(tx.getHash());
+        TransactionHusk foundTx = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
         assertThat(foundTx.getHash()).isEqualTo(tx.getHash());
     }
 

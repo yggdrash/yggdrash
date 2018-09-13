@@ -76,8 +76,9 @@ public class BranchConfiguration {
     private BlockChain getBlockChain(String branchName) throws IOException {
         Resource resource = resourceLoader.getResource(String.format(FORMAT, branchName));
         BlockHusk genesis = new BlockChainLoader(resource.getInputStream()).getGenesis();
-        BlockStore blockStore = new BlockStore(getDbSource(genesis.getHash() + "/blocks"));
-        TransactionStore txStore = new TransactionStore(getDbSource(genesis.getHash() + "/txs"));
+        BlockStore blockStore = new BlockStore(getDbSource(genesis.getBranchId() + "/blocks"));
+        TransactionStore txStore =
+                new TransactionStore(getDbSource(genesis.getBranchId() + "/txs"));
         Contract contract = getContract(branchName);
         Runtime<?> runtime = getRunTime(branchName);
         return new BlockChain(genesis, blockStore, txStore, contract, runtime);

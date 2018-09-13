@@ -182,6 +182,11 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         }
     }
 
+    public BranchId getBranchId() {
+        byte[] chain = protoTransaction.getHeader().getChain().toByteArray();
+        return new BranchId(Sha3Hash.createByHashed(chain));
+    }
+
     public JsonObject toJsonObject() {
         return this.coreTransaction.toJsonObject();
     }

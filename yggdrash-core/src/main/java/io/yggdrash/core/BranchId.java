@@ -17,10 +17,15 @@
 package io.yggdrash.core;
 
 import io.yggdrash.common.Sha3Hash;
+import org.spongycastle.util.encoders.Hex;
 
 public class BranchId {
 
     private final Sha3Hash id;
+
+    private BranchId(byte[] bytes) {
+        this(Sha3Hash.createByHashed(bytes));
+    }
 
     public BranchId(Sha3Hash hash) {
         this.id = hash;
@@ -46,5 +51,9 @@ public class BranchId {
     @Override
     public String toString() {
         return id.toString();
+    }
+
+    public static BranchId of(String hash) {
+        return new BranchId(Hex.decode(hash));
     }
 }

@@ -139,6 +139,11 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         }
     }
 
+    public BranchId getBranchId() {
+        byte[] chain = protoBlock.getHeader().getChain().toByteArray();
+        return new BranchId(Sha3Hash.createByHashed(chain));
+    }
+
     public Sha3Hash getPrevHash() {
 
         return Sha3Hash.createByHashed(getHeader().getPrevBlockHash().toByteArray());

@@ -17,29 +17,31 @@
 package io.yggdrash.node.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.yggdrash.node.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(BlockController.class)
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
 public class BlockControllerTest {
+
+    private static final String BRANCH_ID = Hex.toHexString(TestUtils.STEM_CHAIN);
+
     @Autowired
     private MockMvc mockMvc;
 
@@ -51,41 +53,33 @@ public class BlockControllerTest {
     }
 
     @Test
-    @DirtiesContext
-    public void shouldGetBlockByIndex() throws Exception {
-        MockHttpServletResponse postResponse = mockMvc.perform(post("/blocks"))
+    public void shouldGetBlock() throws Exception {
+        String format = "/blocks/%s/%s";
+        MockHttpServletResponse response = mockMvc.perform(
+                get(String.format(format, BRANCH_ID, "0")))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
 
-        String contentAsString = postResponse.getContentAsString();
-        long index = json.parseObject(contentAsString).getIndex();
-
-        mockMvc.perform(get("/blocks/" + index))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(content().json(contentAsString));
-    }
-
-    @Test
-    public void shouldGetBlockByHash() throws Exception {
-        MockHttpServletResponse postResponse = mockMvc.perform(post("/blocks"))
-                .andExpect(status().isOk())
-                .andReturn().getResponse();
-
-        String contentAsString = postResponse.getContentAsString();
+        String contentAsString = response.getContentAsString();
         String blockHash = json.parseObject(contentAsString).getHash();
 
-        mockMvc.perform(get("/blocks/" + blockHash))
+        mockMvc.perform(get(String.format(format, BRANCH_ID, blockHash)))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
 
-        assertThat(postResponse.getContentAsString()).contains(blockHash);
+        assertThat(response.getContentAsString()).contains(blockHash);
     }
 
     @Test
     public void shouldGetAllBlocks() throws Exception {
-        mockMvc.perform(get("/blocks")).andDo(print())
+        mockMvc.perform(get("/blocks/" + BRANCH_ID)).andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void shouldGetLatest() throws Exception {
+        mockMvc.perform(get("/blocks/" + BRANCH_ID + "/latest")).andDo(print())
                 .andExpect(status().isOk());
     }
 }
