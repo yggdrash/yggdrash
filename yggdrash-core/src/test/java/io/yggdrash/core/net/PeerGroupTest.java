@@ -72,13 +72,13 @@ public class PeerGroupTest {
     @Test
     public void syncBlock() {
         peerGroup.chainedBlock(block);
-        assert !peerGroup.syncBlock(0).isEmpty();
+        assert !peerGroup.syncBlock(TestUtils.STEM_BRANCH_ID, 0).isEmpty();
     }
 
     @Test
     public void syncTransaction() {
         peerGroup.receivedTransaction(tx);
-        assert !peerGroup.syncTransaction().isEmpty();
+        assert !peerGroup.syncTransaction(TestUtils.STEM_BRANCH_ID).isEmpty();
     }
 
     @Test

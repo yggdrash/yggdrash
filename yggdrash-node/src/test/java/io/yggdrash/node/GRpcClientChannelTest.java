@@ -18,6 +18,7 @@ package io.yggdrash.node;
 
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
@@ -55,9 +56,6 @@ public class GRpcClientChannelTest {
 
     @Captor
     private ArgumentCaptor<NetProto.SyncLimit> syncLimitRequestCaptor;
-
-    @Captor
-    private ArgumentCaptor<NetProto.Empty> emptyCaptor;
 
     @Captor
     private ArgumentCaptor<NetProto.PeerRequest> peerRequestCaptor;
@@ -108,7 +106,7 @@ public class GRpcClientChannelTest {
 
         long offset = 0;
 
-        client.syncBlock(offset);
+        client.syncBlock(TestUtils.STEM_BRANCH_ID, offset);
 
         verify(blockChainService).syncBlock(syncLimitRequestCaptor.capture(), any());
 
@@ -122,13 +120,14 @@ public class GRpcClientChannelTest {
             argument.onNext(null);
             argument.onCompleted();
             return null;
-        }).when(blockChainService).syncTransaction(emptyCaptor.capture(), any());
+        }).when(blockChainService).syncTransaction(syncLimitRequestCaptor.capture(), any());
 
-        client.syncTransaction();
+        client.syncTransaction(TestUtils.STEM_BRANCH_ID);
 
-        verify(blockChainService).syncTransaction(emptyCaptor.capture(), any());
+        verify(blockChainService).syncTransaction(syncLimitRequestCaptor.capture(), any());
 
-        assertEquals("", emptyCaptor.getValue().toString());
+        BranchId branch = BranchId.of(syncLimitRequestCaptor.getValue().getBranch().toByteArray());
+        assertEquals(TestUtils.STEM_BRANCH_ID, branch);
     }
 
     @Test
