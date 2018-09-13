@@ -3,6 +3,7 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
+import io.yggdrash.contract.ContractTx;
 import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.store.StateStore;
@@ -52,12 +53,9 @@ public class StemContractTest {
     public void createTest() {
         JsonObject newBranch = TestUtils.getSampleBranch3(referenceBranchAddress);
         BranchId newBranchId = BranchId.of(newBranch);
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("branchId", newBranchId.toString());
-        param.add("branch", newBranch);
-        params.add(param);
-        assertThat(stemContract.create(params)).isNotNull();
+
+        assertThat(stemContract.create(ContractTx.createStemParams(newBranchId, newBranch)))
+                .isNotNull();
     }
 
     @Test

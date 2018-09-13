@@ -2,12 +2,14 @@ package io.yggdrash.node.api;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.contract.ContractQry;
 import io.yggdrash.contract.ContractTx;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.node.TestUtils;
 import io.yggdrash.node.controller.TransactionDto;
+import org.apache.commons.codec.binary.Hex;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -42,18 +44,13 @@ public class ContractApiImplTest {
     private static void create() {
         branch = TestUtils.getSampleBranch1();
         branchId = BranchId.of(branch);
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("branchId", branchId.toString());
-        param.add("branch", branch);
-        params.add(param);
 
         try {
             TransactionHusk tx = ContractTx.createStemTx(wallet, branch, "create");
             txApi.sendTransaction(TransactionDto.createBy(tx));
             Thread.sleep(10000);
         } catch (Exception e) {
-             e.printStackTrace();
+            e.printStackTrace();
         }
     }
 
@@ -65,17 +62,7 @@ public class ContractApiImplTest {
             JsonObject updatedBranch = TestUtils.updateBranch(description, updatedVersion,
                     branch, 0);
 
-            JsonArray params = new JsonArray();
-            JsonObject param = new JsonObject();
-            param.addProperty("branchId", branchId.toString());
-            param.add("branch", updatedBranch);
-            params.add(param);
-
-            JsonObject txObj = new JsonObject();
-            txObj.addProperty("method", "update");
-            txObj.add("params", params);
-
-            TransactionHusk tx =  ContractTx.createStemTx(wallet, branch, "update");
+            TransactionHusk tx =  ContractTx.createStemTx(wallet, updatedBranch, "update");
             txApi.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {
             e.printStackTrace();
@@ -85,21 +72,16 @@ public class ContractApiImplTest {
     @Test
     public void search() {
         try {
-            JsonArray params = new JsonArray();
-            JsonObject param = new JsonObject();
-            param.addProperty("key", "type");
-            param.addProperty("value", "immunity");
-            params.add(param);
-
-            JsonObject queryObj = TestUtils.createQuery("search", params);
+            JsonObject queryObj = ContractQry.createQuery(
+                    Hex.encodeHexString(TestUtils.STEM_CHAIN),
+                    "search", ContractQry
+                    .createParams("key", "type", "value", "immunity"));
             contractApi.query(queryObj.toString());
 
-            params.remove(0);
-            param.addProperty("key", "name");
-            param.addProperty("value", "TEST1");
-            params.add(param);
-
-            queryObj = TestUtils.createQuery("search", params);
+            queryObj = ContractQry.createQuery(
+                    Hex.encodeHexString(TestUtils.STEM_CHAIN),
+                    "search", ContractQry.createParams(
+                    "key", "name", "value", "TEST1"));
             contractApi.query(queryObj.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -109,12 +91,10 @@ public class ContractApiImplTest {
     @Test
     public void view() {
         try {
-            JsonArray params = new JsonArray();
-            JsonObject param = new JsonObject();
-            param.addProperty("branchId", branchId.toString());
-            params.add(param);
-
-            JsonObject queryObj = TestUtils.createQuery("view", params);
+            JsonObject queryObj = ContractQry.createQuery(
+                    Hex.encodeHexString(TestUtils.STEM_CHAIN),
+                    "view", ContractQry.createParams(
+                    "branchId", branchId.toString()));
             contractApi.query(queryObj.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -124,12 +104,11 @@ public class ContractApiImplTest {
     @Test
     public void getCurrentVersion() {
         try {
-            JsonArray params = new JsonArray();
-            JsonObject param = new JsonObject();
-            param.addProperty("branchId", branchId.toString());
-            params.add(param);
+            JsonObject queryObj = ContractQry.createQuery(
+                    Hex.encodeHexString(TestUtils.STEM_CHAIN),
+                    "getcurrentversion",
+                    ContractQry.createParams("branchId", branchId.toString()));
 
-            JsonObject queryObj = TestUtils.createQuery("getcurrentversion", params);
             contractApi.query(queryObj.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -139,12 +118,10 @@ public class ContractApiImplTest {
     @Test
     public void getVersionHistory() {
         try {
-            JsonArray params = new JsonArray();
-            JsonObject param = new JsonObject();
-            param.addProperty("branchId", branchId.toString());
-            params.add(param);
-
-            JsonObject queryObj = TestUtils.createQuery("getversionhistory", params);
+            JsonObject queryObj = ContractQry.createQuery(
+                    Hex.encodeHexString(TestUtils.STEM_CHAIN),
+                    "getversionhistory",
+                    ContractQry.createParams("branchId", branchId.toString()));
             contractApi.query(queryObj.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -154,7 +131,10 @@ public class ContractApiImplTest {
     @Test
     public void getAllBranchId() {
         try {
-            JsonObject queryObj = TestUtils.createQuery("getallbranchid", new JsonArray());
+            JsonObject queryObj = ContractQry.createQuery(
+                    Hex.encodeHexString(TestUtils.STEM_CHAIN),
+                    "getallbranchid",
+                    new JsonArray());
             contractApi.query(queryObj.toString());
         } catch (Exception e) {
             e.printStackTrace();

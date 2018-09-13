@@ -143,13 +143,16 @@ public class BranchGroup {
         return branches.get(branchId).getContract();
     }
 
+    /*
     @Deprecated
     public JsonObject query(JsonObject query) {
         return query(chain.getBranchId(), query);
     }
+    */
 
-    public JsonObject query(BranchId branchId, JsonObject query) {
+    public JsonObject query(JsonObject query) {
         try {
+            BranchId branchId = BranchId.of(query.get("address").getAsString());
             BlockChain chain = branches.get(branchId);
             return chain.getRuntime().query(chain.getContract(), query);
         } catch (Exception e) {

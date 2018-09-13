@@ -45,7 +45,7 @@ public abstract class BaseContract<T> implements Contract<T> {
 
     @Override
     public JsonObject query(JsonObject query) throws Exception {
-        this.sender = query.get("address").getAsString();
+        //this.sender = query.get("address").getAsString();
         String method = query.get("method").getAsString().toLowerCase();
         JsonArray params = query.get("params").getAsJsonArray();
 

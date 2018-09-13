@@ -23,13 +23,13 @@ public class RuntimeTest {
     private final TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
     private final CoinContract coinContract = new CoinContract();
     private final StemContract stemContract = new StemContract();
-    private Runtime runtime;
+    private Runtime<JsonObject> runtime;
     private Wallet wallet;
     private BranchId branchId;
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        runtime = new Runtime(new StateStore(), txReceiptStore);
+        runtime = new Runtime<>(new StateStore<>(), txReceiptStore);
         wallet = new Wallet();
     }
 

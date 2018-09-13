@@ -34,14 +34,18 @@ public class ContractTx {
         return new TransactionHusk(txBodyJson(wallet, txBranchId, body));
     }
 
-    private static JsonArray createStemTxBody(BranchId branchId, JsonObject branch, String method) {
+    public static JsonArray createStemParams(BranchId branchId, JsonObject branch) {
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
         param.addProperty("branchId", branchId.toString());
         param.add("branch", branch);
         params.add(param);
 
-        return txBodyJson(params, method);
+        return params;
+    }
+
+    private static JsonArray createStemTxBody(BranchId branchId, JsonObject branch, String method) {
+        return txBodyJson(createStemParams(branchId, branch), method);
     }
 
     private static JsonArray createYeedTxBody(Address to, long amount) {
