@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@RequestMapping("blocks")
+@RequestMapping("branches/{branchId}/blocks")
 class BlockController {
 
     private final BranchGroup branchGroup;
@@ -42,7 +42,7 @@ class BlockController {
         this.branchGroup = branchGroup;
     }
 
-    @GetMapping("{branchId}/{id}")
+    @GetMapping("/{id}")
     public ResponseEntity get(@PathVariable(name = "branchId") String branchId,
                               @PathVariable(name = "id") String id) {
         BlockHusk foundBlock;
@@ -59,7 +59,7 @@ class BlockController {
         }
     }
 
-    @GetMapping("{branchId}")
+    @GetMapping
     public ResponseEntity getAll(@PathVariable(name = "branchId") String branchId,
                                  @RequestParam(value = "offset", required = false) Long offset,
                                  @RequestParam(value = "limit", defaultValue = "25") int limit) {
@@ -81,7 +81,7 @@ class BlockController {
         return ResponseEntity.ok(blocks);
     }
 
-    @GetMapping("{branchId}/latest")
+    @GetMapping("/latest")
     public ResponseEntity latest(@PathVariable(name = "branchId") String branchId) {
         BranchId id = BranchId.of(branchId);
         long latest = branchGroup.getLastIndex(id);

@@ -42,7 +42,7 @@ public class StateControllerTest {
 
     @Test
     public void shouldGetBranches() throws Exception {
-        mockMvc.perform(get("/states/" + BRANCH_ID))
+        mockMvc.perform(get("/branches/" + BRANCH_ID + "/states"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
