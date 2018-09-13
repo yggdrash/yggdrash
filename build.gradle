@@ -70,6 +70,7 @@ subprojects {
         sourceSets = [project.sourceSets.main]
         maxWarnings = 0
         configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+        configProperties = [ "suppressionFile" : rootProject.file('config/checkstyle/suppressions.xml')]
     }
 }
 
