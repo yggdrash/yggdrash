@@ -2,6 +2,7 @@ package io.yggdrash.node.api;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.node.TestUtils;
@@ -19,7 +20,7 @@ public class ContractApiImplTest {
     private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
     private static Wallet wallet;
     private static JsonObject branch;
-    private static String branchId;
+    private static BranchId branchId;
 
     @BeforeClass
     public static void beforeTest() throws Exception {
@@ -39,10 +40,10 @@ public class ContractApiImplTest {
 
     private static void create() {
         branch = TestUtils.getSampleBranch1();
-        branchId = TestUtils.getBranchId(branch);
+        branchId = BranchId.of(branch);
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.addProperty("branchId", branchId);
+        param.addProperty("branchId", branchId.toString());
         param.add("branch", branch);
         params.add(param);
 
@@ -69,7 +70,7 @@ public class ContractApiImplTest {
 
             JsonArray params = new JsonArray();
             JsonObject param = new JsonObject();
-            param.addProperty("branchId", branchId);
+            param.addProperty("branchId", branchId.toString());
             param.add("branch", updatedBranch);
             params.add(param);
 
@@ -113,7 +114,7 @@ public class ContractApiImplTest {
         try {
             JsonArray params = new JsonArray();
             JsonObject param = new JsonObject();
-            param.addProperty("branchId", branchId);
+            param.addProperty("branchId", branchId.toString());
             params.add(param);
 
             JsonObject queryObj = TestUtils.createQuery("view", params);
@@ -128,7 +129,7 @@ public class ContractApiImplTest {
         try {
             JsonArray params = new JsonArray();
             JsonObject param = new JsonObject();
-            param.addProperty("branchId", branchId);
+            param.addProperty("branchId", branchId.toString());
             params.add(param);
 
             JsonObject queryObj = TestUtils.createQuery("getcurrentversion", params);
@@ -143,7 +144,7 @@ public class ContractApiImplTest {
         try {
             JsonArray params = new JsonArray();
             JsonObject param = new JsonObject();
-            param.addProperty("branchId", branchId);
+            param.addProperty("branchId", branchId.toString());
             params.add(param);
 
             JsonObject queryObj = TestUtils.createQuery("getversionhistory", params);
