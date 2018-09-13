@@ -2,6 +2,7 @@ package io.yggdrash.node.api;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.contract.ContractTx;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
@@ -48,11 +49,7 @@ public class ContractApiImplTest {
         params.add(param);
 
         try {
-            JsonObject txObj = new JsonObject();
-            txObj.addProperty("method", "create");
-            txObj.add("params", params);
-
-            TransactionHusk tx = new TransactionHusk(TestUtils.sampleTxObject(wallet, txObj));
+            TransactionHusk tx = ContractTx.createStemTx(wallet, branch, "create");
             txApi.sendTransaction(TransactionDto.createBy(tx));
             Thread.sleep(10000);
         } catch (Exception e) {
@@ -78,7 +75,7 @@ public class ContractApiImplTest {
             txObj.addProperty("method", "update");
             txObj.add("params", params);
 
-            TransactionHusk tx =  new TransactionHusk(TestUtils.sampleTxObject(wallet, txObj));
+            TransactionHusk tx =  ContractTx.createStemTx(wallet, branch, "update");
             txApi.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {
             e.printStackTrace();

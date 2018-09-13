@@ -25,7 +25,7 @@ public class NodeContractDemoClient {
         TransactionHusk tx;
         System.out.println("[1] STEM  [2] YEED");
         if (scan.nextLine().equals("2")) {
-            tx = ContractTx.createYeedTx(wallet, new Address(wallet.getAddress()), 100);
+            tx = ContractTx.createYeedTx(wallet, new Address(TestUtils.TRANSFER_TO), 100);
         } else {
             System.out.println("사용할 .json 파일명을 입력하세요 (예. sample1.json) : ");
             JsonObject seed = getSampleBranch(scan.nextLine());

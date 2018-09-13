@@ -292,32 +292,6 @@ public class TestUtils {
         return updatedBranch;
     }
 
-    public static String getBranchId(JsonObject branch) {
-        return Hex.toHexString(getBranchHash(branch));
-    }
-
-    private static byte[] getBranchHash(JsonObject branch) {
-        return HashUtil.sha3omit12(getRawBranch(branch));
-    }
-
-    private static byte[] getRawBranch(JsonObject branch) {
-        ByteArrayOutputStream branchStream = new ByteArrayOutputStream();
-        try {
-            branchStream.write(branch.get("name").getAsString().getBytes());
-            branchStream.write(branch.get("property").getAsString().getBytes());
-            branchStream.write(branch.get("type").getAsString().getBytes());
-            branchStream.write(branch.get("timestamp").getAsString().getBytes());
-            //branchStream.write(branch.get("version").getAsString().getBytes());
-            branchStream.write(branch.get("version_history").getAsJsonArray().get(0)
-                    .getAsString().getBytes());
-            branchStream.write(branch.get("reference_address").getAsString().getBytes());
-            branchStream.write(branch.get("reserve_address").getAsString().getBytes());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return branchStream.toByteArray();
-    }
-
     public static JsonObject createQuery(String method, JsonArray params) {
         JsonObject query = new JsonObject();
         query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");

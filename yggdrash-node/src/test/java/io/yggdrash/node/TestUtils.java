@@ -172,44 +172,6 @@ public class TestUtils {
 
     }
 
-    public static JsonObject sampleTxObject(Wallet newWallet, JsonObject body) {
-
-        Wallet nodeWallet;
-        TransactionSignature txSig;
-        Transaction tx;
-
-        if (newWallet == null) {
-            nodeWallet = wallet;
-        } else {
-            nodeWallet = newWallet;
-        }
-
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(body);
-
-        TransactionBody txBody;
-        txBody = new TransactionBody(jsonArray);
-
-        byte[] chain = STEM_CHAIN;
-        byte[] version = new byte[8];
-        byte[] type = new byte[8];
-        long timestamp = TimeUtils.time();
-
-        TransactionHeader txHeader;
-        txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
-
-        try {
-            txSig = new TransactionSignature(nodeWallet, txHeader.getHashForSignning());
-            tx = new Transaction(txHeader, txSig, txBody);
-
-            return tx.toJsonObject();
-
-        } catch (Exception e) {
-            return null;
-        }
-
-    }
-
     public static Transaction sampleTx() {
         return new Transaction(sampleTxObject(null));
     }

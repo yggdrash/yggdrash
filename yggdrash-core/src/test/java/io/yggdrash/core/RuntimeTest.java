@@ -25,7 +25,7 @@ public class RuntimeTest {
     private final StemContract stemContract = new StemContract();
     private Runtime runtime;
     private Wallet wallet;
-    private String branchId;
+    private BranchId branchId;
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
@@ -43,11 +43,11 @@ public class RuntimeTest {
     @Test
     public void invokeFromStemTest() throws Exception {
         JsonObject branch = TestUtils.getSampleBranch1();
-        branchId = TestUtils.getBranchId(branch);
+        branchId = BranchId.of(branch);
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
 
-        param.addProperty("branchId", branchId);
+        param.addProperty("branchId", branchId.toString());
         param.add("branch", branch);
         params.add(param);
 
@@ -64,7 +64,7 @@ public class RuntimeTest {
         JsonObject updatedBranch = TestUtils.updateBranch(description, updatedVersion, branch, 0);
 
         params.remove(0);
-        param.addProperty("branchId", branchId);
+        param.addProperty("branchId", branchId.toString());
         param.add("branch", updatedBranch);
         params.add(param);
 
@@ -92,8 +92,7 @@ public class RuntimeTest {
 
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.addProperty("branchId",
-                branchId);
+        param.addProperty("branchId", branchId.toString());
         params.add(param);
 
         assertThat(runtime.query(stemContract,
