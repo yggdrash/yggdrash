@@ -21,6 +21,7 @@ import io.yggdrash.node.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
@@ -40,6 +41,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @WebMvcTest(TransactionController.class)
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
 public class TransactionControllerTest {
+
+    private static final String BRANCH_ID = Hex.toHexString(TestUtils.STEM_CHAIN);
 
     @Autowired
     private MockMvc mockMvc;
@@ -65,7 +68,8 @@ public class TransactionControllerTest {
         assertThat(postResponse.getContentAsString()).contains("transfer");
         String postTxHash = json.parseObject(postResponse.getContentAsString()).getTxHash();
 
-        MockHttpServletResponse getResponse = mockMvc.perform(get("/txs/" + postTxHash))
+        String reqUrl = String.format("/txs/%s/%s", BRANCH_ID, postTxHash);
+        MockHttpServletResponse getResponse = mockMvc.perform(get(reqUrl))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andReturn().getResponse();
@@ -75,7 +79,7 @@ public class TransactionControllerTest {
 
     @Test
     public void shouldGetAllTxs() throws Exception {
-        mockMvc.perform(get("/txs")).andDo(print())
+        mockMvc.perform(get("/txs/" + BRANCH_ID)).andDo(print())
                 .andExpect(status().isOk());
     }
 

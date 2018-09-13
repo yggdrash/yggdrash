@@ -17,6 +17,7 @@
 package io.yggdrash.node.controller;
 
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -50,9 +51,10 @@ public class TransactionController {
         return ResponseEntity.ok(TransactionDto.createBy(addedTx));
     }
 
-    @GetMapping("{id}")
-    public ResponseEntity get(@PathVariable String id) {
-        TransactionHusk tx = branchGroup.getTxByHash(id);
+    @GetMapping("{branchId}/{id}")
+    public ResponseEntity get(@PathVariable(name = "branchId") String branchId,
+                              @PathVariable String id) {
+        TransactionHusk tx = branchGroup.getTxByHash(BranchId.of(branchId), id);
 
         if (tx == null) {
             return new ResponseEntity(HttpStatus.NOT_FOUND);
@@ -61,9 +63,9 @@ public class TransactionController {
         return ResponseEntity.ok(TransactionDto.createBy(tx));
     }
 
-    @GetMapping
-    public ResponseEntity getAll() {
-        List<TransactionHusk> txs = branchGroup.getTransactionList();
+    @GetMapping("{branchId}")
+    public ResponseEntity getAll(@PathVariable(name = "branchId") String branchId) {
+        List<TransactionHusk> txs = branchGroup.getTransactionList(BranchId.of(branchId));
         List<TransactionDto> dtoList = txs.stream().sorted(Comparator.reverseOrder())
                 .map(TransactionDto::createBy).collect(Collectors.toList());
         return ResponseEntity.ok(dtoList);

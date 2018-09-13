@@ -35,7 +35,6 @@ public class TransactionDto {
     private String author;
     private String txHash;
 
-
     public String getChainHex() {
         return Hex.toHexString(chain);
     }
@@ -172,5 +171,4 @@ public class TransactionDto {
         transactionDto.setTxHash(tx.getHash().toString());
         return transactionDto;
     }
-
 }

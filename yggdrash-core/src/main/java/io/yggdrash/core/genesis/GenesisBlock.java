@@ -12,10 +12,10 @@ import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionBody;
 import io.yggdrash.core.TransactionHeader;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.util.FileUtil;
 import io.yggdrash.util.TimeUtils;
 import org.spongycastle.crypto.InvalidCipherTextException;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
 import java.io.IOException;
@@ -56,7 +56,8 @@ public class GenesisBlock {
                 timestamp,
                 txBody);
 
-        byte[] chain = HashUtil.sha3omit12(txHeader.toBinary());
+        String branchId = genesisObject.get("branchId").getAsString();
+        byte[] chain = Hex.decode(branchId);
 
         // todo: change values(version, type) using the configuration.
         txHeader = new TransactionHeader(

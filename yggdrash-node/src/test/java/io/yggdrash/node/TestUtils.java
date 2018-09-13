@@ -41,7 +41,7 @@ import io.yggdrash.proto.Proto;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.FileUtil;
 import io.yggdrash.util.TimeUtils;
-import org.apache.commons.codec.binary.Hex;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.file.Paths;
@@ -51,6 +51,8 @@ import java.util.Random;
 
 public class TestUtils {
     public static Wallet wallet;
+    public static final byte[] STEM_CHAIN =
+            Hex.decode("fe7b7c93dd23f78e12ad42650595bc0f874c88f7");
 
     private TestUtils() {}
 
@@ -149,7 +151,7 @@ public class TestUtils {
         TransactionBody txBody;
         txBody = new TransactionBody(jsonArray);
 
-        byte[] chain = new byte[20];
+        byte[] chain = STEM_CHAIN;
         byte[] version = new byte[8];
         byte[] type = new byte[8];
         long timestamp = TimeUtils.time();
@@ -186,7 +188,7 @@ public class TestUtils {
         TransactionBody txBody;
         txBody = new TransactionBody(jsonArray);
 
-        byte[] chain = new byte[20];
+        byte[] chain = STEM_CHAIN;
         byte[] version = new byte[8];
         byte[] type = new byte[8];
         long timestamp = TimeUtils.time();
@@ -232,7 +234,7 @@ public class TestUtils {
         BlockHeader blockHeader = null;
         try {
             blockHeader = new BlockHeader(
-                    new byte[20], new byte[8], new byte[8], new byte[32], index, timestamp,
+                    STEM_CHAIN, new byte[8], new byte[8], new byte[32], index, timestamp,
                     blockBody.getMerkleRoot(), blockBody.length());
 
             BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSignning());
@@ -344,11 +346,11 @@ public class TestUtils {
     }
 
     public static String getBranchId(JsonObject branch) {
-        return Hex.encodeHexString(getBranchHash(branch));
+        return Hex.toHexString(getBranchHash(branch));
     }
 
     private static byte[] getBranchHash(JsonObject branch) {
-        return HashUtil.sha3(getRawBranch(branch));
+        return HashUtil.sha3omit12(getRawBranch(branch));
     }
 
     private static byte[] getRawBranch(JsonObject branch) {

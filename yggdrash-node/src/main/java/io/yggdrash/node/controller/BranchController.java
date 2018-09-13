@@ -18,9 +18,11 @@ package io.yggdrash.node.controller;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.BranchId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -38,15 +40,20 @@ public class BranchController {
         this.branchGroup = branchGroup;
     }
 
-    @GetMapping
-    public ResponseEntity getAll() {
-        Map<String, ?> state = branchGroup.getStateStore().getState();
+    @GetMapping("{branchId}")
+    public ResponseEntity getAll(@PathVariable(name = "branchId") String branchId) {
+        Map<String, ?> state = branchGroup.getStateStore(BranchId.of(branchId)).getState();
         ArrayList<String> result = new ArrayList<>();
         for (Map.Entry entry : state.entrySet()) {
             Object value = entry.getValue();
             if (value instanceof JsonObject) {
                 ((JsonObject) value).addProperty("id", entry.getKey().toString());
                 result.add(value.toString());
+            } else {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("id", entry.getKey().toString());
+                jsonObject.addProperty("value", "" + entry.getValue());
+                result.add(jsonObject.toString());
             }
         }
         return ResponseEntity.ok(result);
