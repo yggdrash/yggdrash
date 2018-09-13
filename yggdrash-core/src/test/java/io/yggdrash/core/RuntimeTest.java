@@ -44,34 +44,15 @@ public class RuntimeTest {
     public void invokeFromStemTest() throws Exception {
         JsonObject branch = TestUtils.getSampleBranch1();
         branchId = BranchId.of(branch);
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
 
-        param.addProperty("branchId", branchId.toString());
-        param.add("branch", branch);
-        params.add(param);
-
-
-        JsonObject txObj = new JsonObject();
-        txObj.addProperty("method", "create");
-        txObj.add("params", params);
-
-        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTxObject(null, txObj));
+        TransactionHusk tx = ContractTx.createStemTx(wallet, branch, "create");
         runtime.invoke(stemContract, tx);
 
         String description = "hello world!";
         String updatedVersion = "0xf4312kjise099qw0nene76555484ab1547av8b9e";
         JsonObject updatedBranch = TestUtils.updateBranch(description, updatedVersion, branch, 0);
 
-        params.remove(0);
-        param.addProperty("branchId", branchId.toString());
-        param.add("branch", updatedBranch);
-        params.add(param);
-
-        txObj.addProperty("method", "update");
-        txObj.add("params", params);
-
-        tx = new TransactionHusk(TestUtils.sampleTxObject(null, txObj));
+        tx = ContractTx.createStemTx(wallet, updatedBranch, "update");
         runtime.invoke(stemContract, tx);
     }
 

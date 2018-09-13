@@ -21,6 +21,8 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.config.Constants;
 import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.contract.ContractTx;
+import io.yggdrash.core.Address;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
@@ -71,7 +73,8 @@ public class TestUtils {
     }
 
     public static Proto.Transaction getTransactionFixture() {
-        return Transaction.toProtoTransaction(new Transaction(sampleTxObject(null)));
+        return Transaction.toProtoTransaction(new Transaction(ContractTx.createYeedTx(
+                wallet, new Address(TRANSFER_TO), 100).toJsonObject()));
     }
 
     public static Proto.Transaction[] getTransactionFixtures() {
@@ -122,7 +125,8 @@ public class TestUtils {
     }
 
     public static BlockHusk createGenesisBlockHusk(Wallet wallet) {
-        return BlockHusk.genesis(wallet, sampleTxObject(null));
+        return BlockHusk.genesis(wallet,ContractTx.createYeedTx(
+                wallet, new Address(TRANSFER_TO), 100).toJsonObject());
     }
 
     public static BlockHusk createBlockHuskByTxList(Wallet wallet, List<TransactionHusk> txList) {
@@ -133,24 +137,6 @@ public class TestUtils {
         byte[] result = new byte[length];
         new Random().nextBytes(result);
         return result;
-    }
-
-    public static JsonObject sampleTxObject(Wallet newWallet) {
-
-        JsonArray params = new JsonArray();
-        JsonObject param1 = new JsonObject();
-        param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        JsonObject param2 = new JsonObject();
-        param2.addProperty("amount", 100);
-        params.add(param1);
-        params.add(param2);
-
-        JsonObject txObj = new JsonObject();
-        txObj.addProperty("method", "transfer");
-        txObj.add("params", params);
-
-        return sampleTxObject(newWallet, txObj);
-
     }
 
     public static JsonObject sampleBalanceOfQueryJson() {
@@ -164,44 +150,6 @@ public class TestUtils {
         query.addProperty("method", "balanceOf");
         query.add("params", params);
         return query;
-    }
-
-    public static JsonObject sampleTxObject(Wallet newWallet, JsonObject body) {
-
-        Wallet nodeWallet;
-        TransactionSignature txSig;
-        Transaction tx;
-
-        if (newWallet == null) {
-            nodeWallet = wallet;
-        } else {
-            nodeWallet = newWallet;
-        }
-
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(body);
-
-        TransactionBody txBody;
-        txBody = new TransactionBody(jsonArray);
-
-        byte[] chain = STEM_CHAIN;
-        byte[] version = new byte[8];
-        byte[] type = new byte[8];
-        long timestamp = TimeUtils.time();
-
-        TransactionHeader txHeader;
-        txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
-
-        try {
-            txSig = new TransactionSignature(nodeWallet, txHeader.getHashForSignning());
-            tx = new Transaction(txHeader, txSig, txBody);
-
-            return tx.toJsonObject();
-
-        } catch (Exception e) {
-            return null;
-        }
-
     }
 
     public static JsonObject getSampleBranch1() {
@@ -299,16 +247,20 @@ public class TestUtils {
         query.add("params", params);
         return query;
     }
+
     public static Transaction sampleTx() {
-       return new Transaction(sampleTxObject(null));
+       return new Transaction(ContractTx.createYeedTx(
+               wallet, new Address(TRANSFER_TO), 100).toJsonObject());
     }
 
     public static Transaction sampleTx(JsonObject body) {
-        return new Transaction(sampleTxObject(null));
+        return new Transaction(ContractTx.createYeedTx(
+                wallet, new Address(TRANSFER_TO), 100).toJsonObject());
     }
 
     public static Transaction sampleTx(Wallet wallet) {
-        return new Transaction(sampleTxObject(wallet));
+        return new Transaction(ContractTx.createStemTx(
+                wallet, getSampleBranch1(), "create").toJsonObject());
     }
 
     public static JsonObject sampleBlockObject() {

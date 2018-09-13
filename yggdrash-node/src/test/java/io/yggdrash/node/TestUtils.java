@@ -23,6 +23,7 @@ import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.config.Constants;
 import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.contract.ContractTx;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
@@ -104,7 +105,8 @@ public class TestUtils {
     }
 
     public static BlockHusk createGenesisBlockHusk(Wallet wallet) {
-        return BlockHusk.genesis(wallet, TestUtils.sampleTxObject(wallet));
+        return BlockHusk.genesis(wallet, ContractTx.createStemTx(
+                wallet, getSampleBranch1(), "create").toJsonObject());
     }
 
     public static BlockHusk createBlockHuskByTxList(Wallet wallet, List<TransactionHusk> txList) {
@@ -123,61 +125,14 @@ public class TestUtils {
         return result;
     }
 
-    public static JsonObject sampleTxObject(Wallet newWallet) {
-
-        Wallet nodeWallet;
-        TransactionSignature txSig;
-        Transaction tx;
-
-        if (newWallet == null) {
-            nodeWallet = wallet;
-        } else {
-            nodeWallet = newWallet;
-        }
-
-        JsonArray params = new JsonArray();
-        JsonObject param1 = new JsonObject();
-        param1.addProperty("address", "e1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        JsonObject param2 = new JsonObject();
-        param2.addProperty("amount", 100);
-        params.add(param1);
-        params.add(param2);
-
-        JsonObject txObj = new JsonObject();
-        txObj.addProperty("method", "transfer");
-        txObj.add("params", params);
-
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(txObj);
-
-        TransactionBody txBody;
-        txBody = new TransactionBody(jsonArray);
-
-        byte[] chain = STEM_CHAIN;
-        byte[] version = new byte[8];
-        byte[] type = new byte[8];
-        long timestamp = TimeUtils.time();
-
-        TransactionHeader txHeader;
-        try {
-            txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
-            txSig = new TransactionSignature(nodeWallet, txHeader.getHashForSignning());
-            tx = new Transaction(txHeader, txSig.getSignature(), txBody);
-
-            return tx.toJsonObject();
-
-        } catch (Exception e) {
-            return null;
-        }
-
-    }
-
     public static Transaction sampleTx() {
-        return new Transaction(sampleTxObject(null));
+        return new Transaction(ContractTx.createStemTx(
+                wallet, getSampleBranch1(), "create").toJsonObject());
     }
 
     public static Transaction sampleTx(Wallet wallet) {
-        return new Transaction(sampleTxObject(wallet));
+        return new Transaction(ContractTx.createStemTx(
+                wallet, getSampleBranch1(), "create").toJsonObject());
     }
 
     public static Proto.Transaction[] sampleTxs() {

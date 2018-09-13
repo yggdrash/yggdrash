@@ -5,12 +5,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionReceipt;
-import io.yggdrash.crypto.HashUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -224,16 +221,6 @@ public class StemContract extends BaseContract<JsonObject> {
         log.warn("[Validation] branchId is not valid");
         return false;
     }
-
-    /*private boolean isVersionHistoryUpdated(String branchId, JsonObject branch) {
-        JsonElement updatedVersion = branch.get("version");
-        JsonArray versionHistory = state.get(branchId).get("versionHistory").getAsJsonArray();
-        if (!versionHistory.contains(updatedVersion)) {
-            versionHistory.add(updatedVersion);
-            return true;
-        }
-        return false;
-    }*/
 
     private JsonObject getBranch(BranchId branchId) {
         return state.get(branchId.toString());
