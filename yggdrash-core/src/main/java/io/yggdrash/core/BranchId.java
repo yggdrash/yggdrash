@@ -71,6 +71,10 @@ public class BranchId {
         return new BranchId(Hex.decode(hash));
     }
 
+    public static BranchId of(byte[] hash) {
+        return new BranchId(hash);
+    }
+
     public static BranchId of(JsonObject branch) {
         return new BranchId(branch);
     }

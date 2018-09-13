@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.net;
 
+import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.event.PeerEventListener;
 
@@ -26,4 +27,6 @@ public interface NodeManager extends PeerEventListener {
     Wallet getWallet();
 
     void generateBlock();
+
+    BranchGroup getBranchGroup();
 }

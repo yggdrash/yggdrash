@@ -94,7 +94,7 @@ public class BranchGroup {
 
     public BlockHusk addBlock(BlockHusk block) {
         if (branches.containsKey(block.getBranchId())) {
-            return chain.addBlock(block);
+            return branches.get(block.getBranchId()).addBlock(block);
         }
         return block;
     }

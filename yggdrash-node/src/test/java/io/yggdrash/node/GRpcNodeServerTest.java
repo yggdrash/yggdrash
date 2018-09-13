@@ -16,6 +16,7 @@
 
 package io.yggdrash.node;
 
+import com.google.protobuf.ByteString;
 import io.grpc.internal.testing.StreamRecorder;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
@@ -100,25 +101,28 @@ public class GRpcNodeServerTest {
     public void syncBlock() {
         Set<BlockHusk> blocks = new HashSet<>();
         blocks.add(block);
-        when(branchGroupMock.getLastIndex()).thenReturn(0L);
-        when(branchGroupMock.getBlockByIndex(0L)).thenReturn(block);
+        when(branchGroupMock.getBlockByIndex(TestUtils.STEM_BRANCH_ID, 0L)).thenReturn(block);
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
+        ByteString branch = ByteString.copyFrom(TestUtils.STEM_BRANCH_ID.getBytes());
         NetProto.SyncLimit syncLimit
-                = NetProto.SyncLimit.newBuilder().setOffset(0).build();
+                = NetProto.SyncLimit.newBuilder().setOffset(0).setBranch(branch).build();
         Proto.BlockList list = blockingStub.syncBlock(syncLimit);
         assertEquals(1, list.getBlocksCount());
     }
 
     @Test
     public void syncTransaction() {
-        when(branchGroupMock.getTransactionList()).thenReturn(Collections.singletonList(tx));
+        when(branchGroupMock.getTransactionList(TestUtils.STEM_BRANCH_ID))
+                .thenReturn(Collections.singletonList(tx));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        NetProto.Empty empty = NetProto.Empty.getDefaultInstance();
-        Proto.TransactionList list = blockingStub.syncTransaction(empty);
+        ByteString branch = ByteString.copyFrom(TestUtils.STEM_BRANCH_ID.getBytes());
+        NetProto.SyncLimit syncLimit
+                = NetProto.SyncLimit.newBuilder().setBranch(branch).build();
+        Proto.TransactionList list = blockingStub.syncTransaction(syncLimit);
         assertEquals(1, list.getTransactionsCount());
     }
 

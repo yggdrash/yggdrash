@@ -29,6 +29,7 @@ import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BlockHuskBuilder;
 import io.yggdrash.core.BlockSignature;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionBody;
 import io.yggdrash.core.TransactionHeader;
@@ -58,6 +59,8 @@ public class TestUtils {
             Hex.decode("a08ee962cd8b2bd0edbfee989c1a9f7884d26532");
     public static final byte[] TRANSFER_TO =
             Hex.decode("e1980adeafbb9ac6c9be60955484ab1547ab0b76");
+    public static final BranchId STEM_BRANCH_ID = BranchId.of(STEM_CHAIN);
+
     private static Wallet wallet;
     private static byte[] type =
             ByteBuffer.allocate(4).putInt(BlockHuskBuilder.DEFAULT_TYPE).array();
