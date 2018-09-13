@@ -64,12 +64,14 @@ public class BlockChain {
     }
 
     private void loadBlockChain() {
+        int startIdx = 0;
         try {
             prevBlock = blockStore.get(genesisBlock.getHash());
         } catch (NonExistObjectException e) {
             addBlock(genesisBlock);
+            startIdx = 1;
         }
-        for (int i = 1; i < blockStore.size(); i++) {
+        for (int i = startIdx; i < blockStore.size(); i++) {
             BlockHusk storedBlock = blockStore.get(i);
             executeAllTx(new TreeSet<>(storedBlock.getBody()));
             log.debug("Load block index=[{}], blockHash={}", storedBlock.getIndex(),

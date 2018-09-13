@@ -13,7 +13,7 @@ ENV SPRING_PROFILES_ACTIVE=prod \
     RUN_SLEEP=0 \
     JAVA_OPTS=""
 EXPOSE 8080 32918
-VOLUME /tmp
+VOLUME /.yggdrash
 CMD echo "The Yggdrash Node will start in ${RUN_SLEEP}s..." && \
     sleep ${RUN_SLEEP} && \
     java ${JAVA_OPTS} -Djava.security.egd=file:/dev/./urandom -jar /app.jar

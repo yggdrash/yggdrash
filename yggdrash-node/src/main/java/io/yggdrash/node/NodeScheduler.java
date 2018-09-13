@@ -18,6 +18,7 @@ package io.yggdrash.node;
 
 import io.yggdrash.core.Address;
 import io.yggdrash.core.BlockChain;
+import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.net.NodeManager;
 import io.yggdrash.core.net.PeerGroup;
 import org.slf4j.Logger;
@@ -68,9 +69,15 @@ class NodeScheduler {
     }
 
     private boolean isMinable() {
-        BlockChain blockChain = (BlockChain) nodeManager.getBranchGroup().getAllBranch()
-                .toArray()[0];
-        Address myAddress = new Address(nodeManager.getWallet().getAddress());
-        return !blockChain.getPrevBlock().getAddress().equals(myAddress);
+        for (BlockChain blockChain : nodeManager.getBranchGroup().getAllBranch()) {
+            Address myAddress = new Address(nodeManager.getWallet().getAddress());
+            BlockHusk lastBlock = blockChain.getPrevBlock();
+            if (!lastBlock.getAddress().equals(myAddress)) {
+                return true;
+            } else if (lastBlock.getLastTimetamp() + 30000 < System.currentTimeMillis()) {
+                return true;
+            }
+        }
+        return false;
     }
 }
