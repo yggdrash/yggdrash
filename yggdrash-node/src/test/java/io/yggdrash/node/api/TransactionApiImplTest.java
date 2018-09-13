@@ -1,6 +1,8 @@
 package io.yggdrash.node.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.yggdrash.contract.ContractTx;
+import io.yggdrash.core.Address;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.node.TestUtils;
@@ -123,7 +125,8 @@ public class TransactionApiImplTest {
 
     @Test
     public void sendTransactionTest() {
-        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTx(wallet));
+        TransactionHusk tx = ContractTx.createYeedTx(
+                wallet, new Address(wallet.getAddress()), 100);
         hashOfTx = tx.getHash().toString();
 
         // Request Transaction with jsonStr

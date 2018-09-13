@@ -3,7 +3,9 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
+import io.yggdrash.contract.ContractTx;
 import io.yggdrash.contract.StemContract;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.junit.Before;
@@ -30,19 +32,19 @@ public class StemContractTest {
         stemContract.init(stateStore, txReceiptStore);
 
         referenceBranch = TestUtils.getSampleBranch1();
-        String referenceBranchId = TestUtils.getBranchId(referenceBranch);
-        referenceBranchAddress = referenceBranchId;
+        BranchId referenceBranchId = BranchId.of(referenceBranch);
+        referenceBranchAddress = referenceBranchId.toString();
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.addProperty("branchId", referenceBranchId);
+        param.addProperty("branchId", referenceBranchAddress);
         param.add("branch", referenceBranch);
         params.add(param);
         stemContract.create(params);
 
         JsonObject referenceBranch2 = TestUtils.getSampleBranch2();
-        String referenceBranch2Id = TestUtils.getBranchId(referenceBranch2);
+        BranchId referenceBranch2Id = BranchId.of(referenceBranch2);
 
-        param.addProperty("branchId", referenceBranch2Id);
+        param.addProperty("branchId", referenceBranch2Id.toString());
         param.add("branch", referenceBranch2);
         stemContract.create(params);
     }
@@ -50,13 +52,10 @@ public class StemContractTest {
     @Test
     public void createTest() {
         JsonObject newBranch = TestUtils.getSampleBranch3(referenceBranchAddress);
-        String newBranchId = TestUtils.getBranchId(newBranch);
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("branchId", newBranchId);
-        param.add("branch", newBranch);
-        params.add(param);
-        assertThat(stemContract.create(params)).isNotNull();
+        BranchId newBranchId = BranchId.of(newBranch);
+
+        assertThat(stemContract.create(ContractTx.createStemParams(newBranchId, newBranch)))
+                .isNotNull();
     }
 
     @Test

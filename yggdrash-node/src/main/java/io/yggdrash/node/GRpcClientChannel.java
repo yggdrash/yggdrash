@@ -17,10 +17,12 @@
 package io.yggdrash.node;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.proto.BlockChainGrpc;
@@ -100,8 +102,10 @@ public class GRpcClientChannel implements PeerClientChannel {
      * @return the block list
      */
     @Override
-    public List<Proto.Block> syncBlock(long offset) {
-        SyncLimit syncLimit = SyncLimit.newBuilder().setOffset(offset).build();
+    public List<Proto.Block> syncBlock(BranchId branchId, long offset) {
+        SyncLimit syncLimit = SyncLimit.newBuilder()
+                .setOffset(offset)
+                .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
         return blockingBlockChainStub.syncBlock(syncLimit).getBlocksList();
     }
 
@@ -111,9 +115,10 @@ public class GRpcClientChannel implements PeerClientChannel {
      * @return the transaction list
      */
     @Override
-    public List<Proto.Transaction> syncTransaction() {
-        Empty empty = Empty.getDefaultInstance();
-        return blockingBlockChainStub.syncTransaction(empty).getTransactionsList();
+    public List<Proto.Transaction> syncTransaction(BranchId branchId) {
+        SyncLimit syncLimit = SyncLimit.newBuilder()
+                .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
+        return blockingBlockChainStub.syncTransaction(syncLimit).getTransactionsList();
     }
 
     @Override

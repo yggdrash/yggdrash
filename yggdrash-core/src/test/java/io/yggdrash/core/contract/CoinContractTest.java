@@ -3,6 +3,8 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.contract.CoinContract;
+import io.yggdrash.contract.ContractTx;
+import io.yggdrash.core.Address;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.store.StateStore;
@@ -34,7 +36,8 @@ public class CoinContractTest {
     public void transferTest() throws Exception {
         Wallet wallet = new Wallet();
 
-        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTxObject(wallet));
+        TransactionHusk tx = ContractTx.createYeedTx(
+                wallet, new Address(TestUtils.TRANSFER_TO), 100);
         boolean result = coinContract.invoke(tx);
         assertThat(result).isTrue();
     }

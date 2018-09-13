@@ -1,9 +1,12 @@
 package io.yggdrash.core;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
+import io.yggdrash.contract.ContractQry;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.NotValidateException;
+import org.apache.commons.codec.binary.Hex;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -111,7 +114,11 @@ public class BranchGroupTest {
 
     @Test
     public void query() {
-        JsonObject result = branchGroup.query(TestUtils.sampleBalanceOfQueryJson());
+        JsonArray params = ContractQry.createParams(
+                "branchId", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        JsonObject query = ContractQry.createQuery(
+                Hex.encodeHexString(TestUtils.STEM_CHAIN), "view", params);
+        JsonObject result = branchGroup.query(query);
         assertThat(result.toString()).isEqualTo("{}");
     }
 }

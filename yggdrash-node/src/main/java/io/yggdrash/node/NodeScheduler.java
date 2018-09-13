@@ -16,37 +16,37 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.core.Address;
+import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.net.NodeManager;
 import io.yggdrash.core.net.PeerGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.actuate.health.Status;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-
-import java.util.Queue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 @Component
 @EnableScheduling
 class NodeScheduler {
     private static final Logger log = LoggerFactory.getLogger(NodeScheduler.class);
 
-    private static final int BLOCK_MINE_SEC = 30;
-
     private static final String cronValue = "*/10 * * * * *";
-
-    private final Queue<String> nodeQueue = new LinkedBlockingQueue<>();
 
     private final NodeManager nodeManager;
 
     private final PeerGroup peerGroup;
 
+    private final NodeHealthIndicator indicator;
+
     @Autowired
-    public NodeScheduler(PeerGroup peerGroup, NodeManager nodeManager) {
+    public NodeScheduler(PeerGroup peerGroup, NodeManager nodeManager,
+                         NodeHealthIndicator indicator) {
         this.peerGroup = peerGroup;
         this.nodeManager = nodeManager;
+        this.indicator = indicator;
     }
 
     @Scheduled(fixedRate = 1000 * 10)
@@ -56,16 +56,21 @@ class NodeScheduler {
 
     @Scheduled(cron = cronValue)
     public void generateBlock() {
-        if (nodeQueue.isEmpty()) {
-            nodeQueue.addAll(peerGroup.getPeerUriList());
+        if (!indicator.health().getStatus().equals(Status.UP)) {
+            log.debug("Waiting for up status...");
+            return;
         }
-        String peerId = nodeQueue.poll();
-        assert peerId != null;
-        if (peerId.equals(nodeManager.getNodeUri())) {
+        if (peerGroup.getActivePeerList().isEmpty() || isMinable()) {
             nodeManager.generateBlock();
         } else {
-            log.debug("Skip generation by another " + peerId.substring(peerId.lastIndexOf("@")));
+            log.debug("Skip generation by another");
         }
     }
 
+    private boolean isMinable() {
+        BlockChain blockChain = (BlockChain) nodeManager.getBranchGroup().getAllBranch()
+                .toArray()[0];
+        Address myAddress = new Address(nodeManager.getWallet().getAddress());
+        return !blockChain.getPrevBlock().getAddress().equals(myAddress);
+    }
 }

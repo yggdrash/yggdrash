@@ -19,8 +19,10 @@ package io.yggdrash.node;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.NodeManager;
@@ -81,6 +83,11 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     @Autowired
     public void setWallet(Wallet wallet) {
         this.wallet = wallet;
+    }
+
+    @Override
+    public BranchGroup getBranchGroup() {
+        return branchGroup;
     }
 
     @Autowired
@@ -185,13 +192,16 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
     private void syncBlockAndTransaction() {
         try {
-            List<BlockHusk> blockList = peerGroup.syncBlock(branchGroup.getLastIndex());
-            for (BlockHusk block : blockList) {
-                branchGroup.addBlock(block);
-            }
-            List<TransactionHusk> txList = peerGroup.syncTransaction();
-            for (TransactionHusk tx : txList) {
-                branchGroup.addTransaction(tx);
+            for (BlockChain blockChain : branchGroup.getAllBranch()) {
+                List<BlockHusk> blockList = peerGroup.syncBlock(blockChain.getBranchId(),
+                        blockChain.getLastIndex());
+                for (BlockHusk block : blockList) {
+                    blockChain.addBlock(block);
+                }
+                List<TransactionHusk> txList = peerGroup.syncTransaction(blockChain.getBranchId());
+                for (TransactionHusk tx : txList) {
+                    blockChain.addTransaction(tx);
+                }
             }
         } catch (Exception e) {
             log.warn(e.getMessage(), e);
@@ -215,7 +225,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         /**
          * Sync block response
          *
-         * @param syncLimit        the start block index and limit to sync
+         * @param syncLimit        the start branch id, block index and limit to sync
          * @param responseObserver the observer response to the block list
          */
         @Override
@@ -227,11 +237,12 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
                 offset = 0;
             }
             long limit = syncLimit.getLimit();
+            BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
             log.debug("Synchronize block request offset={}, limit={}", offset, limit);
 
             Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
             for (int i = 0; i < limit || limit == 0; i++) {
-                BlockHusk block = branchGroup.getBlockByIndex(offset++);
+                BlockHusk block = branchGroup.getBlockByIndex(branchId, offset++);
                 if (block == null) {
                     break;
                 }
@@ -244,16 +255,17 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         /**
          * Sync transaction response
          *
-         * @param empty            the empty message
+         * @param syncLimit        the branch id to sync
          * @param responseObserver the observer response to the transaction list
          */
         @Override
-        public void syncTransaction(NetProto.Empty empty,
+        public void syncTransaction(NetProto.SyncLimit syncLimit,
                                     StreamObserver<Proto.TransactionList> responseObserver) {
             log.debug("Synchronize tx request");
-            Proto.TransactionList.Builder builder
-                    = Proto.TransactionList.newBuilder();
-            for (TransactionHusk husk : branchGroup.getTransactionList()) {
+
+            BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
+            Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
+            for (TransactionHusk husk : branchGroup.getTransactionList(branchId)) {
                 builder.addTransactions(husk.getInstance());
             }
             responseObserver.onNext(builder.build());

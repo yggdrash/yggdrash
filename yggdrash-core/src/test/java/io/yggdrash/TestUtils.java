@@ -21,12 +21,15 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.config.Constants;
 import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.contract.ContractTx;
+import io.yggdrash.core.Address;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BlockHuskBuilder;
 import io.yggdrash.core.BlockSignature;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionBody;
 import io.yggdrash.core.TransactionHeader;
@@ -50,8 +53,14 @@ import java.util.Random;
 
 public class TestUtils {
     public static final String YGG_HOME = "testOutput";
-    private static final byte[] STEM_CHAIN =
+    public static final byte[] STEM_CHAIN =
             Hex.decode("fe7b7c93dd23f78e12ad42650595bc0f874c88f7");
+    public static final byte[] YEED_CHAIN =
+            Hex.decode("a08ee962cd8b2bd0edbfee989c1a9f7884d26532");
+    public static final byte[] TRANSFER_TO =
+            Hex.decode("e1980adeafbb9ac6c9be60955484ab1547ab0b76");
+    public static final BranchId STEM_BRANCH_ID = BranchId.of(STEM_CHAIN);
+
     private static Wallet wallet;
     private static byte[] type =
             ByteBuffer.allocate(4).putInt(BlockHuskBuilder.DEFAULT_TYPE).array();
@@ -69,7 +78,8 @@ public class TestUtils {
     }
 
     public static Proto.Transaction getTransactionFixture() {
-        return Transaction.toProtoTransaction(new Transaction(sampleTxObject(null)));
+        return Transaction.toProtoTransaction(new Transaction(ContractTx.createYeedTx(
+                wallet, new Address(TRANSFER_TO), 100).toJsonObject()));
     }
 
     public static Proto.Transaction[] getTransactionFixtures() {
@@ -120,7 +130,8 @@ public class TestUtils {
     }
 
     public static BlockHusk createGenesisBlockHusk(Wallet wallet) {
-        return BlockHusk.genesis(wallet, sampleTxObject(null));
+        return BlockHusk.genesis(wallet,ContractTx.createYeedTx(
+                wallet, new Address(TRANSFER_TO), 100).toJsonObject());
     }
 
     public static BlockHusk createBlockHuskByTxList(Wallet wallet, List<TransactionHusk> txList) {
@@ -131,24 +142,6 @@ public class TestUtils {
         byte[] result = new byte[length];
         new Random().nextBytes(result);
         return result;
-    }
-
-    public static JsonObject sampleTxObject(Wallet newWallet) {
-
-        JsonArray params = new JsonArray();
-        JsonObject param1 = new JsonObject();
-        param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        JsonObject param2 = new JsonObject();
-        param2.addProperty("amount", 100);
-        params.add(param1);
-        params.add(param2);
-
-        JsonObject txObj = new JsonObject();
-        txObj.addProperty("method", "transfer");
-        txObj.add("params", params);
-
-        return sampleTxObject(newWallet, txObj);
-
     }
 
     public static JsonObject sampleBalanceOfQueryJson() {
@@ -162,44 +155,6 @@ public class TestUtils {
         query.addProperty("method", "balanceOf");
         query.add("params", params);
         return query;
-    }
-
-    public static JsonObject sampleTxObject(Wallet newWallet, JsonObject body) {
-
-        Wallet nodeWallet;
-        TransactionSignature txSig;
-        Transaction tx;
-
-        if (newWallet == null) {
-            nodeWallet = wallet;
-        } else {
-            nodeWallet = newWallet;
-        }
-
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(body);
-
-        TransactionBody txBody;
-        txBody = new TransactionBody(jsonArray);
-
-        byte[] chain = STEM_CHAIN;
-        byte[] version = new byte[8];
-        byte[] type = new byte[8];
-        long timestamp = TimeUtils.time();
-
-        TransactionHeader txHeader;
-        txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
-
-        try {
-            txSig = new TransactionSignature(nodeWallet, txHeader.getHashForSignning());
-            tx = new Transaction(txHeader, txSig, txBody);
-
-            return tx.toJsonObject();
-
-        } catch (Exception e) {
-            return null;
-        }
-
     }
 
     public static JsonObject getSampleBranch1() {
@@ -290,32 +245,6 @@ public class TestUtils {
         return updatedBranch;
     }
 
-    public static String getBranchId(JsonObject branch) {
-        return Hex.toHexString(getBranchHash(branch));
-    }
-
-    private static byte[] getBranchHash(JsonObject branch) {
-        return HashUtil.sha3omit12(getRawBranch(branch));
-    }
-
-    private static byte[] getRawBranch(JsonObject branch) {
-        ByteArrayOutputStream branchStream = new ByteArrayOutputStream();
-        try {
-            branchStream.write(branch.get("name").getAsString().getBytes());
-            branchStream.write(branch.get("property").getAsString().getBytes());
-            branchStream.write(branch.get("type").getAsString().getBytes());
-            branchStream.write(branch.get("timestamp").getAsString().getBytes());
-            //branchStream.write(branch.get("version").getAsString().getBytes());
-            branchStream.write(branch.get("version_history").getAsJsonArray().get(0)
-                    .getAsString().getBytes());
-            branchStream.write(branch.get("reference_address").getAsString().getBytes());
-            branchStream.write(branch.get("reserve_address").getAsString().getBytes());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return branchStream.toByteArray();
-    }
-
     public static JsonObject createQuery(String method, JsonArray params) {
         JsonObject query = new JsonObject();
         query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
@@ -323,16 +252,20 @@ public class TestUtils {
         query.add("params", params);
         return query;
     }
+
     public static Transaction sampleTx() {
-       return new Transaction(sampleTxObject(null));
+       return new Transaction(ContractTx.createYeedTx(
+               wallet, new Address(TRANSFER_TO), 100).toJsonObject());
     }
 
     public static Transaction sampleTx(JsonObject body) {
-        return new Transaction(sampleTxObject(null));
+        return new Transaction(ContractTx.createYeedTx(
+                wallet, new Address(TRANSFER_TO), 100).toJsonObject());
     }
 
     public static Transaction sampleTx(Wallet wallet) {
-        return new Transaction(sampleTxObject(wallet));
+        return new Transaction(ContractTx.createStemTx(
+                wallet, getSampleBranch1(), "create").toJsonObject());
     }
 
     public static JsonObject sampleBlockObject() {

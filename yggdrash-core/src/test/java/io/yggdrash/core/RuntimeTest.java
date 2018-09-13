@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.contract.CoinContract;
+import io.yggdrash.contract.ContractTx;
 import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -22,66 +23,36 @@ public class RuntimeTest {
     private final TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
     private final CoinContract coinContract = new CoinContract();
     private final StemContract stemContract = new StemContract();
-    private Runtime runtime;
+    private Runtime<JsonObject> runtime;
     private Wallet wallet;
-    private String branchId;
+    private BranchId branchId;
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        runtime = new Runtime(new StateStore(), txReceiptStore);
+        runtime = new Runtime<>(new StateStore<>(), txReceiptStore);
         wallet = new Wallet();
     }
 
     @Test
     public void invokeFromYeedTest() throws Exception {
-        JsonArray params = new JsonArray();
-        JsonObject param1 = new JsonObject();
-        param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        JsonObject param2 = new JsonObject();
-        param2.addProperty("amount", 100);
-        params.add(param1);
-        params.add(param2);
-
-        JsonObject txObj = new JsonObject();
-        txObj.addProperty("method", "transfer");
-        txObj.add("params", params);
-
-        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTxObject(wallet, txObj));
+        TransactionHusk tx = ContractTx.createYeedTx(
+                wallet, new Address(TestUtils.TRANSFER_TO), 100);
         runtime.invoke(coinContract, tx);
     }
 
     @Test
     public void invokeFromStemTest() throws Exception {
         JsonObject branch = TestUtils.getSampleBranch1();
-        branchId = TestUtils.getBranchId(branch);
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
+        branchId = BranchId.of(branch);
 
-        param.addProperty("branchId", branchId);
-        param.add("branch", branch);
-        params.add(param);
-
-
-        JsonObject txObj = new JsonObject();
-        txObj.addProperty("method", "create");
-        txObj.add("params", params);
-
-        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTxObject(null, txObj));
+        TransactionHusk tx = ContractTx.createStemTx(wallet, branch, "create");
         runtime.invoke(stemContract, tx);
 
         String description = "hello world!";
         String updatedVersion = "0xf4312kjise099qw0nene76555484ab1547av8b9e";
         JsonObject updatedBranch = TestUtils.updateBranch(description, updatedVersion, branch, 0);
 
-        params.remove(0);
-        param.addProperty("branchId", branchId);
-        param.add("branch", updatedBranch);
-        params.add(param);
-
-        txObj.addProperty("method", "update");
-        txObj.add("params", params);
-
-        tx = new TransactionHusk(TestUtils.sampleTxObject(null, txObj));
+        tx = ContractTx.createStemTx(wallet, updatedBranch, "update");
         runtime.invoke(stemContract, tx);
     }
 
@@ -102,8 +73,7 @@ public class RuntimeTest {
 
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.addProperty("branchId",
-                branchId);
+        param.addProperty("branchId", branchId.toString());
         params.add(param);
 
         assertThat(runtime.query(stemContract,

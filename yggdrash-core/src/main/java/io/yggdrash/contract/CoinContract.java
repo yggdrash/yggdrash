@@ -46,7 +46,7 @@ public class CoinContract extends BaseContract<Long> {
     public TransactionReceipt transfer(JsonArray params) {
         log.info("\n transfer :: params => " + params);
         String to = params.get(0).getAsJsonObject().get("address").getAsString().toLowerCase();
-        long amount = params.get(1).getAsJsonObject().get("amount").getAsInt();
+        long amount = params.get(0).getAsJsonObject().get("amount").getAsLong();
 
         TransactionReceipt txRecipt = new TransactionReceipt();
         txRecipt.put("from", sender);
