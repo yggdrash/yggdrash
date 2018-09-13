@@ -3,10 +3,14 @@ logging:
   level:
     io.yggdrash: debug
 
-yggdrash.node:
-  grpc.host: "localhost"
-  grpc.port: 32918
-  max-peers: 25
+yggdrash:
+  branch:
+    name-list:
+    - "yeed"
+  node:
+    grpc.host: "localhost"
+    grpc.port: 32918
+    max-peers: 25
 
 management:
   endpoint.health.show-details: always
