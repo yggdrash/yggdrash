@@ -65,7 +65,7 @@ public class TransactionControllerTest {
                 .andDo(print())
                 .andReturn().getResponse();
 
-        assertThat(postResponse.getContentAsString()).contains("transfer");
+        assertThat(postResponse.getContentAsString()).contains("params");
         String postTxHash = json.parseObject(postResponse.getContentAsString()).getTxHash();
 
         String reqUrl = String.format("/txs/%s/%s", BRANCH_ID, postTxHash);
