@@ -1,6 +1,6 @@
 {
   "method": "genesis",
-  "branchName": "YEED",
+  "branchId": "a08ee962cd8b2bd0edbfee989c1a9f7884d26532",
   "params": [
     { "frontier" : "5db10750e8caff27f906b41c71b3471057dd2000",
       "balance": "1000000000"

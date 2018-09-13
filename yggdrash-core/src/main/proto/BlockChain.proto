@@ -13,7 +13,7 @@ service BlockChain {
     }
     rpc syncBlock (SyncLimit) returns (BlockList) {
     }
-    rpc syncTransaction (Empty) returns (TransactionList) {
+    rpc syncTransaction (SyncLimit) returns (TransactionList) {
     }
 
     // Client to server streaming RPC
@@ -36,6 +36,7 @@ message PeerList {
 }
 
 message SyncLimit {
-    uint64 offset = 1;
-    uint32 limit = 2;
+    bytes branch = 1;
+    uint64 offset = 2;
+    uint32 limit = 3;
 }

@@ -6,6 +6,4 @@ public class TransactionInfo {
     public TransactionInfoHeader header;
     public String signature;
     public List<GenesisBody> body;
-
-    public TransactionInfo() {}
 }

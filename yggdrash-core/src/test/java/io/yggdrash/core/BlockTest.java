@@ -241,6 +241,13 @@ public class BlockTest {
             assertEquals(block1.getAddressHexString(), block2.getAddressHexString());
             assertEquals(block1.getAddressHexString(), wallet.getHexAddress());
 
+            if (block1.verify() && block2.verify()) {
+                log.debug("verify success");
+            } else {
+                log.debug("verify fail");
+                assert false;
+            }
+
         } catch (Exception e) {
             log.debug(e.getMessage());
             assert false;

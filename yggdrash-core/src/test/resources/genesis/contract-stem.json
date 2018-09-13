@@ -1,10 +1,14 @@
 {
   "method": "genesis",
-  "branchName": "STEM",
+  "branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
   "params": [
     {
-      "branchId": "0a17f5dce8a1b0cb8f50b8391d7a1b4d35abeb56ed01e8321657a5d7ad4fb9c3",
-      "branch": "{\"name\":\"STEM\",\"owner\":\"cee3d4755e47055b530deeba062c5bd0c17eb00f\",\"symbol\":\"STEM\",\"property\":\"ecosystem\",\"type\":\"immunity\",\"timestamp\":\"0000016531dfa31c\",\"description\":\"The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.\",\"tag\":0.1,\"version\":\"0xe4452ervbo091qw4f5n2s8799232abr213er2c90\",\"version_history\":[\"0xe4452ervbo091qw4f5n2s8799232abr213er2c90\"],\"reference_address\":\"\",\"reserve_address\":\"0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3\"}"
+      "branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
+      "branch": "{\"name\":\"STEM\",\"symbol\":\"STEM\",\"property\":\"ecosystem\",\"type\":\"immunity\",\"description\":\"The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.\",\"tag\":0.1,\"version\":\"0xcc9612ff91ff844938acdb6608e58506a2f21b8a5d77e88726c0897e8d1d02c0\",\"reference_address\":\"\",\"reserve_address\":\"0xcee3d4755e47055b530deeba062c5bd0c17eb00f\",\"owner\":\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\",\"timestamp\":1536755670444,\"version_history\":[\"0xcc9612ff91ff844938acdb6608e58506a2f21b8a5d77e88726c0897e8d1d02c0\"]}"
+    },
+    {
+      "branchId": "a08ee962cd8b2bd0edbfee989c1a9f7884d26532",
+      "branch": "{\"name\":\"YEED\",\"symbol\":\"YEED\",\"property\":\"currency\",\"type\":\"immunity\",\"description\":\"YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.\",\"tag\":0.1,\"version\":\"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025\",\"reference_address\":\"\",\"reserve_address\":\"0x9cc060690705a13078634637b1d2a5f2fe1b8096\",\"owner\":\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\",\"timestamp\":1536756751728,\"version_history\":[\"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025\"]}"
     }
   ]
 }

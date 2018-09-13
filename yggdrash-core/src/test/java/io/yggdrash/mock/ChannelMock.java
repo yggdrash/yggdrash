@@ -1,6 +1,7 @@
 package io.yggdrash.mock;
 
 import io.yggdrash.TestUtils;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
@@ -37,12 +38,12 @@ public class ChannelMock implements PeerClientChannel {
     }
 
     @Override
-    public List<Proto.Block> syncBlock(long offset) {
+    public List<Proto.Block> syncBlock(BranchId branchId, long offset) {
         return Collections.singletonList(TestUtils.sampleBlock().toProtoBlock());
     }
 
     @Override
-    public List<Proto.Transaction> syncTransaction() {
+    public List<Proto.Transaction> syncTransaction(BranchId branchId) {
         return Collections.singletonList(
                 Objects.requireNonNull(Transaction.toProtoTransaction(TestUtils.sampleTx())));
     }

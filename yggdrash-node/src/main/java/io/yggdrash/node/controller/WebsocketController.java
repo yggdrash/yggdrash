@@ -37,11 +37,15 @@ public class WebsocketController implements BranchEventListener {
 
     @Override
     public void chainedBlock(BlockHusk block) {
+        String branchId = block.getBranchId().toString();
         template.convertAndSend("/topic/blocks", BlockDto.createBy(block));
+        template.convertAndSend("/topic/blocks/" + branchId, BlockDto.createBy(block));
     }
 
     @Override
     public void receivedTransaction(TransactionHusk tx) {
+        String branchId = tx.getBranchId().toString();
         template.convertAndSend("/topic/txs", TransactionDto.createBy(tx));
+        template.convertAndSend("/topic/txs/" + branchId, TransactionDto.createBy(tx));
     }
 }

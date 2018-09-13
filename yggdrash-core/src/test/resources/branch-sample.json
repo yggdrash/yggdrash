@@ -1,34 +1,38 @@
 {
   "header": {
-    "chain": "534c0b39130032205c2c9ebf0cdb8232cbc6b22b",
+    "chain": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
     "version": "0000000000000000",
     "type": "0000000000000000",
     "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
     "index": "0000000000000000",
-    "timestamp": "00000165cc74645b",
-    "merkleRoot": "a1dbc111f8d6ad2dcf8a1f0c2fe88cde427cc4c36a0c067e5cb788af76fe1b99",
-    "bodyLength": "0000000000000693"
+    "timestamp": "00000165cdf3e901",
+    "merkleRoot": "40ac328538dbe3eed8f2227ed456f76c879e1361cc226a0bdbdd1ba314ca5e61",
+    "bodyLength": "0000000000000976"
   },
-  "signature": "1cc3361c27739319ab6da57ac389f9e75564e96392aa254f346ba7faaf9cac93c07579c392e33cb5cbb31c241bcd2a81f20b32433317e686482f6db710d1c5e9b9",
+  "signature": "1c0130a081d87d92ba0c7dc5ed18beec920740eb1d23b9d5db14be149c832387364f086f0f919040410ec72c7da864f1b29146f33acc9a4f1926de6defbe75f6b0",
   "body": [
     {
       "header": {
-        "chain": "534c0b39130032205c2c9ebf0cdb8232cbc6b22b",
+        "chain": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
         "version": "0000000000000000",
         "type": "0000000000000000",
-        "timestamp": "00000165cc74645b",
-        "bodyHash": "933930a194e69913a9a922105cd0c1fcc3a3843b3633f93c2ad1c32f86cfa91a",
-        "bodyLength": "00000000000005fe"
+        "timestamp": "00000165cdf3e901",
+        "bodyHash": "57dfd19d3d9e2990e65e9a21179d43ea5ff5ac1bc9a0773f0a8cd99262646f9c",
+        "bodyLength": "00000000000008e1"
       },
-      "signature": "1c63875abd3f6ee7ddfa220f9fd11ffb493c8d9fd034d79d75a302715d768a3f2b4c5ef4c1209d3ac772d7d103f03c9e8bf693b130f2107f38fefea42238ab5540",
+      "signature": "1c8dd60d8513554536218232c9bdcf155302dd504d06bc61361169996343af34c4194c0030ae6bdc56e9e18d59ad63ae710e389880ab90415006b26254f76df746",
       "body": [
         {
           "method": "genesis",
-          "branchName": "STEM",
+          "branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
           "params": [
             {
-              "branchId": "0a17f5dce8a1b0cb8f50b8391d7a1b4d35abeb56ed01e8321657a5d7ad4fb9c3",
-              "branch": "{\"name\":\"STEM\",\"owner\":\"cee3d4755e47055b530deeba062c5bd0c17eb00f\",\"symbol\":\"STEM\",\"property\":\"ecosystem\",\"type\":\"immunity\",\"timestamp\":\"0000016531dfa31c\",\"description\":\"The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.\",\"tag\":0.1,\"version\":\"0xe4452ervbo091qw4f5n2s8799232abr213er2c90\",\"version_history\":[\"0xe4452ervbo091qw4f5n2s8799232abr213er2c90\"],\"reference_address\":\"\",\"reserve_address\":\"0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3\"}"
+              "branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
+              "branch": "{\"name\":\"STEM\",\"symbol\":\"STEM\",\"property\":\"ecosystem\",\"type\":\"immunity\",\"description\":\"The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.\",\"tag\":0.1,\"version\":\"0xcc9612ff91ff844938acdb6608e58506a2f21b8a5d77e88726c0897e8d1d02c0\",\"reference_address\":\"\",\"reserve_address\":\"0xcee3d4755e47055b530deeba062c5bd0c17eb00f\",\"owner\":\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\",\"timestamp\":1536755670444,\"version_history\":[\"0xcc9612ff91ff844938acdb6608e58506a2f21b8a5d77e88726c0897e8d1d02c0\"]}"
+            },
+            {
+              "branchId": "a08ee962cd8b2bd0edbfee989c1a9f7884d26532",
+              "branch": "{\"name\":\"YEED\",\"symbol\":\"YEED\",\"property\":\"currency\",\"type\":\"immunity\",\"description\":\"YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.\",\"tag\":0.1,\"version\":\"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025\",\"reference_address\":\"\",\"reserve_address\":\"0x9cc060690705a13078634637b1d2a5f2fe1b8096\",\"owner\":\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\",\"timestamp\":1536756751728,\"version_history\":[\"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025\"]}"
             }
           ],
           "delegator": {

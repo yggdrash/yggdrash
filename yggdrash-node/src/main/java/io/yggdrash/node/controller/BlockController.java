@@ -18,14 +18,12 @@ package io.yggdrash.node.controller;
 
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.Wallet;
+import io.yggdrash.core.BranchId;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.math.NumberUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,28 +35,21 @@ import java.util.List;
 @RequestMapping("blocks")
 class BlockController {
 
-    private final Wallet wallet;
     private final BranchGroup branchGroup;
 
     @Autowired
-    public BlockController(Wallet wallet, BranchGroup branchGroup) {
-        this.wallet = wallet;
+    public BlockController(BranchGroup branchGroup) {
         this.branchGroup = branchGroup;
     }
 
-    @PostMapping
-    public ResponseEntity add() {
-        BlockHusk generatedBlock = branchGroup.generateBlock(wallet);
-        return ResponseEntity.ok(BlockDto.createBy(generatedBlock));
-    }
-
-    @GetMapping("{id}")
-    public ResponseEntity get(@PathVariable(name = "id") String id) {
+    @GetMapping("{branchId}/{id}")
+    public ResponseEntity get(@PathVariable(name = "branchId") String branchId,
+                              @PathVariable(name = "id") String id) {
         BlockHusk foundBlock;
         if (StringUtils.isNumeric(id)) {
-            foundBlock = branchGroup.getBlockByIndex(Long.valueOf(id));
+            foundBlock = branchGroup.getBlockByIndex(BranchId.of(branchId), Long.valueOf(id));
         } else {
-            foundBlock = branchGroup.getBlockByHash(id);
+            foundBlock = branchGroup.getBlockByHash(BranchId.of(branchId), id);
         }
 
         if (foundBlock == null) {
@@ -68,18 +59,20 @@ class BlockController {
         }
     }
 
-    @GetMapping
-    public ResponseEntity getAll(@RequestParam(value = "offset", required = false) Long offset,
+    @GetMapping("{branchId}")
+    public ResponseEntity getAll(@PathVariable(name = "branchId") String branchId,
+                                 @RequestParam(value = "offset", required = false) Long offset,
                                  @RequestParam(value = "limit", defaultValue = "25") int limit) {
         List<BlockDto> blocks = new ArrayList<>();
-        long lastIdx = branchGroup.getLastIndex();
+        BranchId id = BranchId.of(branchId);
+        long lastIdx = branchGroup.getLastIndex(id);
 
         if (offset == null) {
             offset = lastIdx;
         }
 
         for (int i = 0; i < limit && offset >= 0; i++) {
-            BlockHusk block = branchGroup.getBlockByIndex(offset--);
+            BlockHusk block = branchGroup.getBlockByIndex(id, offset--);
             if (block == null) {
                 break;
             }
@@ -88,10 +81,11 @@ class BlockController {
         return ResponseEntity.ok(blocks);
     }
 
-    @GetMapping("latest")
-    public ResponseEntity latest() {
-        long latest = branchGroup.getLastIndex();
-        return ResponseEntity.ok(BlockDto.createBy(branchGroup.getBlockByIndex(latest)));
+    @GetMapping("{branchId}/latest")
+    public ResponseEntity latest(@PathVariable(name = "branchId") String branchId) {
+        BranchId id = BranchId.of(branchId);
+        long latest = branchGroup.getLastIndex(id);
+        return ResponseEntity.ok(BlockDto.createBy(branchGroup.getBlockByIndex(id, latest)));
     }
 
 }

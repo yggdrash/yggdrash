@@ -28,6 +28,8 @@ import io.yggdrash.trie.Trie;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.TimeUtils;
 
+import java.io.IOException;
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -94,7 +96,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
             length += txHusk.getCoreTransaction().getBody().length();
         }
 
-        Proto.Block.Header blockHeader  = getHeader(
+        Proto.Block.Header blockHeader = getHeader(
                 prevBlock.getHeader().getChain().toByteArray(),
                 new byte[8],
                 new byte[8],
@@ -131,16 +133,17 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         return new Sha3Hash(protoBlock.getHeader().toByteArray());
     }
 
-    public Sha3Hash getChainId() {
-        return new Sha3Hash((coreBlock.getHeader().getChain()));
-    }
-
     public Address getAddress() {
         try {
             return new Address(this.coreBlock.getAddress());
         } catch (Exception e) {
             throw new NotValidateException();
         }
+    }
+
+    public BranchId getBranchId() {
+        byte[] chain = protoBlock.getHeader().getChain().toByteArray();
+        return new BranchId(Sha3Hash.createByHashed(chain));
     }
 
     public Sha3Hash getPrevHash() {
@@ -173,6 +176,17 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     @Override
     public Proto.Block getInstance() {
         return this.protoBlock;
+    }
+
+
+    public boolean verify() {
+        try {
+            return this.coreBlock.verify();
+        } catch (IOException e) {
+            return false;
+        } catch (SignatureException e) {
+            return false;
+        }
     }
 
     @Override
@@ -261,19 +275,6 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
                 .setMerkleRoot(ByteString.copyFrom(merkleRoot))
                 .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(bodyLength)))
                 .build();
-    }
-
-    private static long getBodySize(List<TransactionHusk> body) {
-        long size = 0;
-        if (body == null || body.isEmpty()) {
-            return size;
-        }
-        for (TransactionHusk tx : body) {
-            if (tx.getInstance() != null) {
-                size += tx.getInstance().toByteArray().length;
-            }
-        }
-        return size;
     }
 
     @Override
