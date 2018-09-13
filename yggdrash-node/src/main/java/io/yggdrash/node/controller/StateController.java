@@ -30,13 +30,13 @@ import java.util.ArrayList;
 import java.util.Map;
 
 @RestController
-@RequestMapping("branches")
-public class BranchController {
+@RequestMapping("states")
+public class StateController {
 
     private final BranchGroup branchGroup;
 
     @Autowired
-    public BranchController(BranchGroup branchGroup) {
+    public StateController(BranchGroup branchGroup) {
         this.branchGroup = branchGroup;
     }
 

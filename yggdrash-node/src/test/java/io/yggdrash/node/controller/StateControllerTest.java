@@ -31,9 +31,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(BranchController.class)
+@WebMvcTest(StateController.class)
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
-public class BranchControllerTest {
+public class StateControllerTest {
 
     private static final String BRANCH_ID = Hex.toHexString(TestUtils.STEM_CHAIN);
 
@@ -42,7 +42,7 @@ public class BranchControllerTest {
 
     @Test
     public void shouldGetBranches() throws Exception {
-        mockMvc.perform(get("/branches/" + BRANCH_ID))
+        mockMvc.perform(get("/states/" + BRANCH_ID))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
