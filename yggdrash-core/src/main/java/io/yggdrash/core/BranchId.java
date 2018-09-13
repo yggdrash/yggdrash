@@ -31,6 +31,10 @@ public class BranchId {
         this.id = hash;
     }
 
+    public byte[] getBytes() {
+        return id.getBytes();
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -55,5 +59,9 @@ public class BranchId {
 
     public static BranchId of(String hash) {
         return new BranchId(Hex.decode(hash));
+    }
+
+    public static BranchId of(byte[] hash) {
+        return new BranchId(hash);
     }
 }

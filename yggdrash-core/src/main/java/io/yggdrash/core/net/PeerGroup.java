@@ -17,6 +17,7 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.event.BranchEventListener;
 import io.yggdrash.core.event.PeerEventListener;
@@ -230,7 +231,7 @@ public class PeerGroup implements BranchEventListener {
      * @param offset the offset
      * @return the block list
      */
-    public List<BlockHusk> syncBlock(long offset) {
+    public List<BlockHusk> syncBlock(BranchId branchId, long offset) {
         if (peerChannels.isEmpty()) {
             log.warn("Active peer is empty to sync block");
             return Collections.emptyList();
@@ -238,7 +239,7 @@ public class PeerGroup implements BranchEventListener {
         // TODO sync peer selection policy
         String key = (String) peerChannels.keySet().toArray()[0];
         PeerClientChannel client = peerChannels.get(key);
-        List<Proto.Block> blockList = client.syncBlock(offset);
+        List<Proto.Block> blockList = client.syncBlock(branchId, offset);
         log.debug("Synchronize block received=" + blockList.size());
         List<BlockHusk> syncList = new ArrayList<>(blockList.size());
         for (Proto.Block block : blockList) {
@@ -252,7 +253,7 @@ public class PeerGroup implements BranchEventListener {
      *
      * @return the transaction list
      */
-    public List<TransactionHusk> syncTransaction() {
+    public List<TransactionHusk> syncTransaction(BranchId branchId) {
         if (peerChannels.isEmpty()) {
             log.warn("Active peer is empty to sync transaction");
             return Collections.emptyList();
@@ -260,7 +261,7 @@ public class PeerGroup implements BranchEventListener {
         // TODO sync peer selection policy
         String key = (String) peerChannels.keySet().toArray()[0];
         PeerClientChannel client = peerChannels.get(key);
-        List<Proto.Transaction> txList = client.syncTransaction();
+        List<Proto.Transaction> txList = client.syncTransaction(branchId);
         log.debug("Synchronize transaction received=" + txList.size());
         List<TransactionHusk> syncList = new ArrayList<>(txList.size());
         for (Proto.Transaction tx : txList) {
