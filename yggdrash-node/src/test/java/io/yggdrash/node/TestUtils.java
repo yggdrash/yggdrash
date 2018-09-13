@@ -135,7 +135,7 @@ public class TestUtils {
 
         JsonArray params = new JsonArray();
         JsonObject param1 = new JsonObject();
-        param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        param1.addProperty("address", "e1980adeafbb9ac6c9be60955484ab1547ab0b76");
         JsonObject param2 = new JsonObject();
         param2.addProperty("amount", 100);
         params.add(param1);

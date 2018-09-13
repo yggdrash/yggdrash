@@ -93,6 +93,15 @@ public class Block implements Cloneable {
         return this.header.length() + this.signature.length + this.body.length();
     }
 
+    public boolean verify() throws IOException, SignatureException {
+
+        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
+        byte[] hashedHeader = this.header.getHashForSignning();
+        ECKey ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
+
+        return ecKeyPub.verify(hashedHeader, ecdsaSignature);
+    }
+
     public JsonObject toJsonObject() {
 
         JsonObject jsonObject = new JsonObject();

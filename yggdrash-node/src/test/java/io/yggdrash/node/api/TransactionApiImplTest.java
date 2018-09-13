@@ -138,41 +138,13 @@ public class TransactionApiImplTest {
 
     @Test
     public void sendRawTransactionTest() {
-        // Create an input parameter
-        byte[] type = new byte[4];
-        byte[] version = new byte[4];
-        byte[] dataHash = new byte[32];
-        type = "0000".getBytes();
-        version = "0000".getBytes();
-        dataHash = Base64.decode("bQ4ti+Xk4rGhhFrfNDuMmt+KMw0yVRL0rsfAAUEXASM=");
-        byte[] timestamp = Longs.toByteArray(Long.parseLong("155810745733540"));
-        byte[] dataSize = Longs.toByteArray((long) 38);
-
-        byte[] signature = new byte[65];
-        signature = Base64.decode("HMddN4GjlGPV4x26730eQoHwS9DVmGg0iXmyeJG4H0kqM8UffWs"
-                + "QwARCGHnLa4Su7QOsfEUjP65oEs1fxWKUT8k=");
-        byte[] data = "{\"id\":\"0\",\"name\":\"Rachael\",\"age\":\"27\"}".getBytes();
-
-        int totalLength = type.length + version.length + dataHash.length + timestamp.length
-                        + dataSize.length + signature.length + data.length;
-
-        ByteBuffer bb = ByteBuffer.allocate(totalLength);
-        bb.put(type);
-        bb.put(version);
-        bb.put(dataHash);
-        bb.put(timestamp);
-        bb.put(dataSize);
-        bb.put(signature);
-        bb.put(data);
-
-        byte[] input = bb.array();
-
         // Request Transaction with byteArr
         try {
+            byte[] input = TestUtils.sampleTx().toBinary();
             // Convert byteArray to Transaction
             assertThat(txApi.sendRawTransaction(input)).isNotEmpty();
-        } catch (Exception exception) {
-            log.debug("\n\nsendRawTransactionTest :: exception => " + exception);
+        } catch (Exception e) {
+            log.debug(e.getMessage());
         }
     }
 
