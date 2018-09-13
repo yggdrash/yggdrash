@@ -42,7 +42,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
 public class TransactionControllerTest {
 
-    private static final String BRANCH_ID = Hex.toHexString(TestUtils.STEM_CHAIN);
+    private static final String BASE_PATH =
+            String.format("/branches/%s/txs", Hex.toHexString(TestUtils.STEM_CHAIN));
 
     @Autowired
     private MockMvc mockMvc;
@@ -59,17 +60,16 @@ public class TransactionControllerTest {
         // 트랜잭션 풀에 있는 트랜잭션을 조회 후 블록 내 트랜잭션 조회 로직 추가 필요.
         TransactionDto req = TransactionDto.createBy(TestUtils.createTxHusk());
 
-        MockHttpServletResponse postResponse = mockMvc.perform(post("/txs")
+        MockHttpServletResponse postResponse = mockMvc.perform(post(BASE_PATH)
                 .contentType(MediaType.APPLICATION_JSON).content(json.write(req).getJson()))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andReturn().getResponse();
 
         assertThat(postResponse.getContentAsString()).contains("transfer");
-        String postTxHash = json.parseObject(postResponse.getContentAsString()).getTxHash();
+        String postTxHash = json.parseObject(postResponse.getContentAsString()).getHash();
 
-        String reqUrl = String.format("/txs/%s/%s", BRANCH_ID, postTxHash);
-        MockHttpServletResponse getResponse = mockMvc.perform(get(reqUrl))
+        MockHttpServletResponse getResponse = mockMvc.perform(get(BASE_PATH + "/" + postTxHash))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andReturn().getResponse();
@@ -79,8 +79,7 @@ public class TransactionControllerTest {
 
     @Test
     public void shouldGetAllTxs() throws Exception {
-        mockMvc.perform(get("/txs/" + BRANCH_ID)).andDo(print())
-                .andExpect(status().isOk());
+        mockMvc.perform(get(BASE_PATH)).andDo(print()).andExpect(status().isOk());
     }
 
 }

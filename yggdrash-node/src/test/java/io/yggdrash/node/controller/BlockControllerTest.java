@@ -40,7 +40,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
 public class BlockControllerTest {
 
-    private static final String BRANCH_ID = Hex.toHexString(TestUtils.STEM_CHAIN);
+    private static final String BASE_PATH =
+            String.format("/branches/%s/blocks", Hex.toHexString(TestUtils.STEM_CHAIN));
 
     @Autowired
     private MockMvc mockMvc;
@@ -54,16 +55,14 @@ public class BlockControllerTest {
 
     @Test
     public void shouldGetBlock() throws Exception {
-        String format = "/blocks/%s/%s";
-        MockHttpServletResponse response = mockMvc.perform(
-                get(String.format(format, BRANCH_ID, "0")))
+        MockHttpServletResponse response = mockMvc.perform(get(BASE_PATH + "/0"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
 
         String contentAsString = response.getContentAsString();
         String blockHash = json.parseObject(contentAsString).getHash();
 
-        mockMvc.perform(get(String.format(format, BRANCH_ID, blockHash)))
+        mockMvc.perform(get(BASE_PATH + "/" + blockHash))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
@@ -73,13 +72,13 @@ public class BlockControllerTest {
 
     @Test
     public void shouldGetAllBlocks() throws Exception {
-        mockMvc.perform(get("/blocks/" + BRANCH_ID)).andDo(print())
+        mockMvc.perform(get(BASE_PATH)).andDo(print())
                 .andExpect(status().isOk());
     }
 
     @Test
     public void shouldGetLatest() throws Exception {
-        mockMvc.perform(get("/blocks/" + BRANCH_ID + "/latest")).andDo(print())
+        mockMvc.perform(get(BASE_PATH + "/latest")).andDo(print())
                 .andExpect(status().isOk());
     }
 }

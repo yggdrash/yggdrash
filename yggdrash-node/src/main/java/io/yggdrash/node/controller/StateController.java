@@ -30,7 +30,7 @@ import java.util.ArrayList;
 import java.util.Map;
 
 @RestController
-@RequestMapping("states")
+@RequestMapping("branches/{branchId}")
 public class StateController {
 
     private final BranchGroup branchGroup;
@@ -40,7 +40,7 @@ public class StateController {
         this.branchGroup = branchGroup;
     }
 
-    @GetMapping("{branchId}")
+    @GetMapping("/states")
     public ResponseEntity getAll(@PathVariable(name = "branchId") String branchId) {
         Map<String, ?> state = branchGroup.getStateStore(BranchId.of(branchId)).getState();
         ArrayList<String> result = new ArrayList<>();
