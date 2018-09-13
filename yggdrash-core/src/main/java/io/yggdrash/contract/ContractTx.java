@@ -2,6 +2,7 @@ package io.yggdrash.contract;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.core.Address;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionBody;
@@ -13,12 +14,7 @@ import io.yggdrash.util.TimeUtils;
 
 public class ContractTx {
 
-    public static TransactionHusk createTx(Wallet wallet, BranchId txBranchId, JsonObject body) {
-        return new TransactionHusk(txBodyJson(wallet, txBranchId, body));
-    }
-
-    public static TransactionHusk createTxBySeed(Wallet wallet, BranchId txBranchId,
-                                                 JsonObject branch, String method) {
+    public static TransactionHusk createStemTx(Wallet wallet, JsonObject branch, String method) {
         JsonArray versionHistory = new JsonArray();
         versionHistory.add(branch.get("version").getAsString());
         branch.addProperty("owner", wallet.getHexAddress());
@@ -27,29 +23,55 @@ public class ContractTx {
 
         BranchId branchId = BranchId.of(branch);
 
+        return createTx(wallet, BranchId.stem(), createStemTxBody(branchId, branch, method));
+    }
+
+    public static TransactionHusk createYeedTx(Wallet wallet, Address to, long amount) {
+        return createTx(wallet, BranchId.yeed(), createYeedTxBody(to, amount));
+    }
+
+    private static TransactionHusk createTx(Wallet wallet, BranchId txBranchId, JsonArray body) {
+        return new TransactionHusk(txBodyJson(wallet, txBranchId, body));
+    }
+
+    private static JsonArray createStemTxBody(BranchId branchId, JsonObject branch, String method) {
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
         param.addProperty("branchId", branchId.toString());
         param.add("branch", branch);
         params.add(param);
 
+        return txBodyJson(params, method);
+    }
+
+    private static JsonArray createYeedTxBody(Address to, long amount) {
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        param.addProperty("address", to.toString());
+        param.addProperty("amount", amount);
+        params.add(param);
+
+        return txBodyJson(params, "transfer");
+    }
+
+    private static JsonArray txBodyJson(JsonArray params, String method) {
         JsonObject txObj = new JsonObject();
         txObj.addProperty("method", method);
         txObj.add("params", params);
 
-        return createTx(wallet, txBranchId, txObj);
+        JsonArray txBody = new JsonArray();
+        txBody.add(txObj);
+
+        return txBody;
     }
 
-    private static JsonObject txBodyJson(Wallet wallet, BranchId txBranchId, JsonObject body) {
+    private static JsonObject txBodyJson(Wallet wallet, BranchId txBranchId, JsonArray body) {
 
         TransactionSignature txSig;
         Transaction tx;
 
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(body);
-
         TransactionBody txBody;
-        txBody = new TransactionBody(jsonArray);
+        txBody = new TransactionBody(body);
 
         byte[] chain = txBranchId.getBytes();
         byte[] version = new byte[8];

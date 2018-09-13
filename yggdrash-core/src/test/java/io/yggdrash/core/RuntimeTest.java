@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.contract.CoinContract;
+import io.yggdrash.contract.ContractTx;
 import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -34,19 +35,8 @@ public class RuntimeTest {
 
     @Test
     public void invokeFromYeedTest() throws Exception {
-        JsonArray params = new JsonArray();
-        JsonObject param1 = new JsonObject();
-        param1.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        JsonObject param2 = new JsonObject();
-        param2.addProperty("amount", 100);
-        params.add(param1);
-        params.add(param2);
-
-        JsonObject txObj = new JsonObject();
-        txObj.addProperty("method", "transfer");
-        txObj.add("params", params);
-
-        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTxObject(wallet, txObj));
+        TransactionHusk tx = ContractTx.createYeedTx(
+                wallet, new Address(TestUtils.TRANSFER_TO), 100);
         runtime.invoke(coinContract, tx);
     }
 

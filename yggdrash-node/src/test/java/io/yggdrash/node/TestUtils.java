@@ -53,6 +53,8 @@ public class TestUtils {
     public static Wallet wallet;
     public static final byte[] STEM_CHAIN =
             Hex.decode("fe7b7c93dd23f78e12ad42650595bc0f874c88f7");
+    public static final byte[] TRANSFER_TO =
+            Hex.decode("e1980adeafbb9ac6c9be60955484ab1547ab0b76");
 
     private TestUtils() {}
 
