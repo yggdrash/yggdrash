@@ -103,7 +103,7 @@ public class BlockChain {
     }
 
     public BranchId getBranchId() {
-        return new BranchId(genesisBlock.getChainId());
+        return genesisBlock.getBranchId();
     }
 
     public BlockHusk getGenesisBlock() {
@@ -140,8 +140,8 @@ public class BlockChain {
             throw new NotValidateException("Invalid to chain");
         }
         executeAllTx(new TreeSet<>(nextBlock.getBody()));
-        log.debug("Added block index=[{}], blockHash={}", nextBlock.getIndex(),
-                nextBlock.getHash());
+        log.debug("Added idx=[{}], branch={}, blockHash={}", nextBlock.getIndex(),
+                getBranchId().toString(), nextBlock.getHash());
         this.blockStore.put(nextBlock.getHash(), nextBlock);
         this.prevBlock = nextBlock;
         removeTxByBlock(nextBlock);

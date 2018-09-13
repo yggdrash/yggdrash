@@ -23,19 +23,21 @@ public class CoinContract extends BaseContract<Long> {
      * Returns TransactionRecipt (invoke)
      */
     public TransactionReceipt genesis(JsonArray params) {
-        log.info("\n genesis :: params => " + params);
-        TransactionReceipt txRecipt = new TransactionReceipt();
-        for (int i = 0; i < params.size(); i++) {
-            JsonObject jsonObject = params.get(i).getAsJsonObject();
-            String frontier = jsonObject.get("frontier").getAsString();
-            long balance = jsonObject.get("balance").getAsLong();
-            txRecipt.put(String.format("frontier[%d]", i), frontier);
-            txRecipt.put(String.format("balance[%d]", i), balance);
-            state.put(frontier, balance);
-            log.info("\nAddress of Frontier : " + frontier
-                    + "\nBalance of Frontier : " + balance);
+        TransactionReceipt txReceipt = new TransactionReceipt();
+        if (state.getState().size() == 0) {
+            log.info("\n genesis :: params => " + params);
+            for (int i = 0; i < params.size(); i++) {
+                JsonObject jsonObject = params.get(i).getAsJsonObject();
+                String frontier = jsonObject.get("frontier").getAsString();
+                long balance = jsonObject.get("balance").getAsLong();
+                txReceipt.put(String.format("frontier[%d]", i), frontier);
+                txReceipt.put(String.format("balance[%d]", i), balance);
+                state.put(frontier, balance);
+                log.info("\nAddress of Frontier : " + frontier
+                        + "\nBalance of Frontier : " + balance);
+            }
         }
-        return txRecipt;
+        return txReceipt;
     }
 
     /**

@@ -64,6 +64,17 @@ public class JsonRpcConfig {
         }
     }
 
+    public TransactionApi transactionApi(String server) {
+        try {
+            URL url = new URL("http://10.10.10.100:8080/api/transaction");
+            return ProxyUtil.createClientProxy(getClass().getClassLoader(),
+                    TransactionApi.class, jsonRpcHttpClient(url));
+        } catch (MalformedURLException exception) {
+            exception.printStackTrace();
+            return null;
+        }
+    }
+
     public AccountApi accountApi() {
         try {
             URL url = new URL("http://localhost:8080/api/account");

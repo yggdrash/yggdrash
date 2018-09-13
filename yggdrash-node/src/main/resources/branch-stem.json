@@ -1,44 +1,48 @@
 {
   "header": {
-    "chain": "a90eafbb53b3e936e907cf5ce8e037e2e045e1a9",
+    "chain": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
     "version": "0000000000000000",
     "type": "0000000000000000",
     "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
     "index": "0000000000000000",
-    "timestamp": "00000165c6c15795",
-    "merkleRoot": "0473060da9e1c26609c83ba81990f266f575e0e5196fc9111ec264efc1502742",
-    "bodyLength": "0000000000000625"
+    "timestamp": "00000165cdf3e901",
+    "merkleRoot": "40ac328538dbe3eed8f2227ed456f76c879e1361cc226a0bdbdd1ba314ca5e61",
+    "bodyLength": "0000000000000976"
   },
-  "signature": "1cabea3d5be9788c6116c71de80b6d18fb023d853257fa44ba615a36279fc02ecf2d1f119ea6928cdcd6cb0d0374918c31b3103333806879c8313f8f488e6d817d",
+  "signature": "1c0130a081d87d92ba0c7dc5ed18beec920740eb1d23b9d5db14be149c832387364f086f0f919040410ec72c7da864f1b29146f33acc9a4f1926de6defbe75f6b0",
   "body": [
     {
       "header": {
-        "chain": "a90eafbb53b3e936e907cf5ce8e037e2e045e1a9",
+        "chain": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
         "version": "0000000000000000",
         "type": "0000000000000000",
-        "timestamp": "00000165c6c15795",
-        "bodyHash": "55dad7ad8e77b0c18401b7da241cbffde7967a9a12e6dc3b36eb8ac1d5689932",
-        "bodyLength": "0000000000000590"
+        "timestamp": "00000165cdf3e901",
+        "bodyHash": "57dfd19d3d9e2990e65e9a21179d43ea5ff5ac1bc9a0773f0a8cd99262646f9c",
+        "bodyLength": "00000000000008e1"
       },
-      "signature": "1c5e053dbd37cec36eca0e5abc482c4e3a9c6f53aa002178c8b0bd86a085340b647382a8b24aff963ed39dc8710e6d21a4aa2cb165c3151bec57a5ba70aa01793e",
+      "signature": "1c8dd60d8513554536218232c9bdcf155302dd504d06bc61361169996343af34c4194c0030ae6bdc56e9e18d59ad63ae710e389880ab90415006b26254f76df746",
       "body": [
         {
           "method": "genesis",
-          "branchName": "STEM",
+          "branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
           "params": [
             {
-              "branchId": "d2ee9e2a4447452525590a35876d69711dff1e35436c5cf40a637adb1f19d951",
-              "branch": "{\"name\":\"STEM\",\"owner\":\"cee3d4755e47055b530deeba062c5bd0c17eb00f\",\"symbol\":\"STEM\",\"property\":\"iob\",\"type\":\"immunity\",\"timestamp\":\"0000016531dfa31c\",\"description\":\"This is stem branch\",\"tag\":0.1,\"version\":\"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76\",\"versionHistory\":[\"0xe1980adeafbb9ac6c9be60955484ab1547ab0b76\"],\"reference_address\":\"\",\"reserve_address\":\"0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3\"}"
+              "branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
+              "branch": "{\"name\":\"STEM\",\"symbol\":\"STEM\",\"property\":\"ecosystem\",\"type\":\"immunity\",\"description\":\"The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.\",\"tag\":0.1,\"version\":\"0xcc9612ff91ff844938acdb6608e58506a2f21b8a5d77e88726c0897e8d1d02c0\",\"reference_address\":\"\",\"reserve_address\":\"0xcee3d4755e47055b530deeba062c5bd0c17eb00f\",\"owner\":\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\",\"timestamp\":1536755670444,\"version_history\":[\"0xcc9612ff91ff844938acdb6608e58506a2f21b8a5d77e88726c0897e8d1d02c0\"]}"
+            },
+            {
+              "branchId": "a08ee962cd8b2bd0edbfee989c1a9f7884d26532",
+              "branch": "{\"name\":\"YEED\",\"symbol\":\"YEED\",\"property\":\"currency\",\"type\":\"immunity\",\"description\":\"YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.\",\"tag\":0.1,\"version\":\"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025\",\"reference_address\":\"\",\"reserve_address\":\"0x9cc060690705a13078634637b1d2a5f2fe1b8096\",\"owner\":\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\",\"timestamp\":1536756751728,\"version_history\":[\"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025\"]}"
             }
           ],
           "delegator": {
-            "5db10750e8caff27f906b41c71b3471057dd2000": {
-              "ip": "100.100.100.1",
+            "a7a9ad6f834bcc080586c55e9b1981b7ec39f31d": {
+              "ip": "172.16.10.150",
               "port": "32918"
             },
-            "5db10750e8caff27f906b41c71b3471057dd2001": {
-              "ip": "100.100.100.2",
-              "port": "32918"
+            "50c7b8af63f57ddef4b954e38e7a1253c896b742": {
+              "ip": "172.16.10.150",
+              "port": "32919"
             },
             "5db10750e8caff27f906b41c71b3471057dd2002": {
               "ip": "100.100.100.3",
