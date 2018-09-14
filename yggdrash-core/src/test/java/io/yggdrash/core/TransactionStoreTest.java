@@ -25,6 +25,8 @@ import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.HashSet;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TransactionStoreTest {
@@ -35,7 +37,7 @@ public class TransactionStoreTest {
     public void setUp() {
         DbSource db = new HashMapDbSource();
         ts = new TransactionStore(db);
-        ts.flush();
+        ts.flush(new HashSet(ts.getUnconfirmedTxs()));
     }
 
     @Test

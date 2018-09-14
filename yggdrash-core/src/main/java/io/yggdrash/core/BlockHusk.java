@@ -89,10 +89,6 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
             throw new NotValidateException();
         }
 
-        while (body.remove(null)) {
-
-        }
-
         byte[] merkleRoot = Trie.getMerkleRootHusk(body);
         if (merkleRoot == null) {
             merkleRoot = EMPTY_BYTE;

@@ -60,7 +60,7 @@ public class StemContract extends BaseContract<JsonObject> {
             txReceipt.put(String.format("branchId[%d]",i), branchId);
             txReceipt.put(String.format("branch[%d]", i), branch);
 
-            log.info("[StemContract | create] (param) branch => " + branch);
+            //log.info("[StemContract | create] (param) branch => " + branch);
             // 1. The type of the branch must be one of types.
             // 2. The reference_address of the branch must be contained to branchStore.
             //    (In case of the branch has the reference_address)
@@ -73,7 +73,7 @@ public class StemContract extends BaseContract<JsonObject> {
                 if (isBranchIdValid(BranchId.of(branchId), branch)) {
                     state.put(branchId, branch);
                     setSubState(branchId, branch);
-                    log.info("[StemContract | create] SUCCESS! branchId => " + branchId);
+                    //log.info("[StemContract | create] SUCCESS! branchId => " + branchId);
                     txReceipt.setStatus(1);
                 }
             }
@@ -240,7 +240,7 @@ public class StemContract extends BaseContract<JsonObject> {
         state.putSubState("tag",
                 branch.get("tag").getAsString(), branchId);
 
-        printSubState();
+        //printSubState();
     }
 
     private void printSubState() {

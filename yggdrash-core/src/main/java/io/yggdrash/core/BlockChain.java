@@ -142,10 +142,10 @@ public class BlockChain {
             throw new NotValidateException("Invalid to chain");
         }
         executeAllTx(new TreeSet<>(nextBlock.getBody()));
-        log.debug("Added idx=[{}], branch={}, blockHash={}", nextBlock.getIndex(),
-                getBranchId().toString(), nextBlock.getHash());
         this.blockStore.put(nextBlock.getHash(), nextBlock);
         this.prevBlock = nextBlock;
+        log.debug("Added idx=[{}], tx={}, branch={}, blockHash={}", nextBlock.getIndex(),
+                nextBlock.getBody().size(), getBranchId().toString(), nextBlock.getHash());
         removeTxByBlock(nextBlock);
         if (!listenerList.isEmpty()) {
             listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
