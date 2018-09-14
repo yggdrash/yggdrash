@@ -23,6 +23,7 @@ import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.config.Constants;
 import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.contract.ContractTx;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
@@ -30,10 +31,7 @@ import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BlockSignature;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionBody;
-import io.yggdrash.core.TransactionHeader;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.TransactionSignature;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
@@ -44,7 +42,6 @@ import io.yggdrash.util.FileUtil;
 import io.yggdrash.util.TimeUtils;
 import org.spongycastle.util.encoders.Hex;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,6 +51,8 @@ public class TestUtils {
     public static Wallet wallet;
     public static final byte[] STEM_CHAIN =
             Hex.decode("fe7b7c93dd23f78e12ad42650595bc0f874c88f7");
+    public static final byte[] TRANSFER_TO =
+            Hex.decode("e1980adeafbb9ac6c9be60955484ab1547ab0b76");
     public static final BranchId STEM_BRANCH_ID = BranchId.of(STEM_CHAIN);
 
     private TestUtils() {}
@@ -104,7 +103,8 @@ public class TestUtils {
     }
 
     public static BlockHusk createGenesisBlockHusk(Wallet wallet) {
-        return BlockHusk.genesis(wallet, TestUtils.sampleTxObject(wallet));
+        return BlockHusk.genesis(wallet, ContractTx.createStemTx(
+                wallet, getSampleBranch1(), "create").toJsonObject());
     }
 
     public static BlockHusk createBlockHuskByTxList(Wallet wallet, List<TransactionHusk> txList) {
@@ -123,99 +123,14 @@ public class TestUtils {
         return result;
     }
 
-    public static JsonObject sampleTxObject(Wallet newWallet) {
-
-        Wallet nodeWallet;
-        TransactionSignature txSig;
-        Transaction tx;
-
-        if (newWallet == null) {
-            nodeWallet = wallet;
-        } else {
-            nodeWallet = newWallet;
-        }
-
-        JsonArray params = new JsonArray();
-        JsonObject param1 = new JsonObject();
-        param1.addProperty("address", "e1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        JsonObject param2 = new JsonObject();
-        param2.addProperty("amount", 100);
-        params.add(param1);
-        params.add(param2);
-
-        JsonObject txObj = new JsonObject();
-        txObj.addProperty("method", "transfer");
-        txObj.add("params", params);
-
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(txObj);
-
-        TransactionBody txBody;
-        txBody = new TransactionBody(jsonArray);
-
-        byte[] chain = STEM_CHAIN;
-        byte[] version = new byte[8];
-        byte[] type = new byte[8];
-        long timestamp = TimeUtils.time();
-
-        TransactionHeader txHeader;
-        try {
-            txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
-            txSig = new TransactionSignature(nodeWallet, txHeader.getHashForSignning());
-            tx = new Transaction(txHeader, txSig.getSignature(), txBody);
-
-            return tx.toJsonObject();
-
-        } catch (Exception e) {
-            return null;
-        }
-
-    }
-
-    public static JsonObject sampleTxObject(Wallet newWallet, JsonObject body) {
-
-        Wallet nodeWallet;
-        TransactionSignature txSig;
-        Transaction tx;
-
-        if (newWallet == null) {
-            nodeWallet = wallet;
-        } else {
-            nodeWallet = newWallet;
-        }
-
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(body);
-
-        TransactionBody txBody;
-        txBody = new TransactionBody(jsonArray);
-
-        byte[] chain = STEM_CHAIN;
-        byte[] version = new byte[8];
-        byte[] type = new byte[8];
-        long timestamp = TimeUtils.time();
-
-        TransactionHeader txHeader;
-        txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
-
-        try {
-            txSig = new TransactionSignature(nodeWallet, txHeader.getHashForSignning());
-            tx = new Transaction(txHeader, txSig, txBody);
-
-            return tx.toJsonObject();
-
-        } catch (Exception e) {
-            return null;
-        }
-
-    }
-
     public static Transaction sampleTx() {
-        return new Transaction(sampleTxObject(null));
+        return new Transaction(ContractTx.createStemTx(
+                wallet, getSampleBranch1(), "create").toJsonObject());
     }
 
     public static Transaction sampleTx(Wallet wallet) {
-        return new Transaction(sampleTxObject(wallet));
+        return new Transaction(ContractTx.createStemTx(
+                wallet, getSampleBranch1(), "create").toJsonObject());
     }
 
     public static Proto.Transaction[] sampleTxs() {
@@ -345,32 +260,6 @@ public class TestUtils {
         updatedBranch.addProperty("reserve_address", branch.get("reserve_address").getAsString());
 
         return updatedBranch;
-    }
-
-    public static String getBranchId(JsonObject branch) {
-        return Hex.toHexString(getBranchHash(branch));
-    }
-
-    private static byte[] getBranchHash(JsonObject branch) {
-        return HashUtil.sha3omit12(getRawBranch(branch));
-    }
-
-    private static byte[] getRawBranch(JsonObject branch) {
-        ByteArrayOutputStream branchStream = new ByteArrayOutputStream();
-        try {
-            branchStream.write(branch.get("name").getAsString().getBytes());
-            branchStream.write(branch.get("property").getAsString().getBytes());
-            branchStream.write(branch.get("type").getAsString().getBytes());
-            branchStream.write(branch.get("timestamp").getAsString().getBytes());
-            branchStream.write(branch.get("version").getAsString().getBytes());
-            //branchStream.write(branch.get("version_history").getAsJsonArray().get(0)
-            //        .getAsString().getBytes());
-            branchStream.write(branch.get("reference_address").getAsString().getBytes());
-            branchStream.write(branch.get("reserve_address").getAsString().getBytes());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return branchStream.toByteArray();
     }
 
     public static JsonObject createQuery(String method, JsonArray params) {

@@ -68,7 +68,7 @@ public class TransactionStoreTest {
 
         TransactionHusk foundTx = ts.get(key);
         assertThat(foundTx).isNotNull();
-        assertThat(foundTx.getBody()).contains("transfer");
+        assertThat(foundTx.getBody()).contains("create");
     }
 
     @Test

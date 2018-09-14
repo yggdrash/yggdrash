@@ -3,13 +3,11 @@ package io.yggdrash.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionReceipt;
-import io.yggdrash.crypto.HashUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
-import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -72,12 +70,11 @@ public class StemContract extends BaseContract<JsonObject> {
             String owner = branch.get("owner").getAsString();
             //if (this.sender != null && isOwnerValid(owner)) {
             if (verify(refAddress, type)) {
-                if (isBranchIdValid(branchId, branch)) {
+                if (isBranchIdValid(BranchId.of(branchId), branch)) {
                     state.put(branchId, branch);
                     setSubState(branchId, branch);
                     log.info("[StemContract | create] SUCCESS! branchId => " + branchId);
                     txReceipt.setStatus(1);
-                    //return branchId;
                 }
             }
         }
@@ -101,7 +98,7 @@ public class StemContract extends BaseContract<JsonObject> {
 
         String owner = branch.get("owner").getAsString();
         if (this.sender != null && isOwnerValid(owner)) {
-            if (isBranchIdValid(branchId, branch)) {
+            if (isBranchIdValid(BranchId.of(branchId), branch)) {
                 /*if (isVersionHistoryUpdated(branchId, branch)) {
                     log.info("[StemContract | update] branchId => " + branchId);
                     log.info("[StemContract | update] branch => " + branch);
@@ -141,7 +138,7 @@ public class StemContract extends BaseContract<JsonObject> {
         String branchId = params.get(0).getAsJsonObject().get("branchId")
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
-            return getBranch(branchId).toString();
+            return getBranch(BranchId.of(branchId)).toString();
         }
         return "";
     }
@@ -155,7 +152,8 @@ public class StemContract extends BaseContract<JsonObject> {
         String branchId = params.get(0).getAsJsonObject().get("branchId")
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
-            JsonArray versionHistory = getBranch(branchId).get("version_history").getAsJsonArray();
+            JsonArray versionHistory = getBranch(BranchId.of(branchId))
+                    .get("version_history").getAsJsonArray();
             int index = versionHistory.size() - 1;
 
             return versionHistory.get(index).getAsString();
@@ -172,7 +170,7 @@ public class StemContract extends BaseContract<JsonObject> {
         String branchId = params.get(0).getAsJsonObject().get("branchId")
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
-            return getBranch(branchId).get("version_history").getAsJsonArray();
+            return getBranch(BranchId.of(branchId)).get("version_history").getAsJsonArray();
         }
         return new JsonArray();
     }
@@ -215,8 +213,8 @@ public class StemContract extends BaseContract<JsonObject> {
         return true;
     }
 
-    private boolean isBranchIdValid(String branchId, JsonObject branch) {
-        if (branchId.equals(getBranchId(branch))) {
+    private boolean isBranchIdValid(BranchId branchId, JsonObject branch) {
+        if (branchId.equals(BranchId.of(branch))) {
             return branch.get("version").getAsString().equals(branch.get("version_history")
                     .getAsJsonArray().get(0).getAsString());
         }
@@ -224,42 +222,8 @@ public class StemContract extends BaseContract<JsonObject> {
         return false;
     }
 
-    /*private boolean isVersionHistoryUpdated(String branchId, JsonObject branch) {
-        JsonElement updatedVersion = branch.get("version");
-        JsonArray versionHistory = state.get(branchId).get("versionHistory").getAsJsonArray();
-        if (!versionHistory.contains(updatedVersion)) {
-            versionHistory.add(updatedVersion);
-            return true;
-        }
-        return false;
-    }*/
-
-    private JsonObject getBranch(String branchId) {
-        return state.get(branchId);
-    }
-
-    public String getBranchId(JsonObject branch) {
-        return Hex.toHexString(getBranchHash(branch));
-    }
-
-    private byte[] getBranchHash(JsonObject branch) {
-        return HashUtil.sha3omit12(getRawBranch(branch));
-    }
-
-    private byte[] getRawBranch(JsonObject branch) {
-        ByteArrayOutputStream branchStream = new ByteArrayOutputStream();
-        try {
-            branchStream.write(branch.get("name").getAsString().getBytes());
-            branchStream.write(branch.get("property").getAsString().getBytes());
-            branchStream.write(branch.get("type").getAsString().getBytes());
-            branchStream.write(branch.get("timestamp").getAsString().getBytes());
-            branchStream.write(branch.get("version").getAsString().getBytes());
-            branchStream.write(branch.get("reference_address").getAsString().getBytes());
-            branchStream.write(branch.get("reserve_address").getAsString().getBytes());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return branchStream.toByteArray();
+    private JsonObject getBranch(BranchId branchId) {
+        return state.get(branchId.toString());
     }
 
     private void setSubState(String branchId, JsonObject branch) {

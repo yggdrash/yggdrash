@@ -17,6 +17,8 @@
 package io.yggdrash.core.husk;
 
 import io.yggdrash.TestUtils;
+import io.yggdrash.contract.ContractTx;
+import io.yggdrash.core.Address;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import org.assertj.core.api.Assertions;
@@ -49,7 +51,8 @@ public class TransactionHuskTest {
     }
 
     @Test
-    public void shouldBeCreatedNonSingedTransaction() {
+    public void shouldBeCreatedNonSingedTransaction()
+            throws IOException, InvalidCipherTextException {
         /* 외부에서 받는 정보
            - target - 블록체인 ID - String
            - from - 보내는 주소 - String
@@ -59,8 +62,9 @@ public class TransactionHuskTest {
         Assertions.assertThat(transactionHusk).isNotNull();
     }
 
-    private TransactionHusk getTransactionHusk() {
-        return new TransactionHusk(TestUtils.sampleTxObject(null));
+    private TransactionHusk getTransactionHusk() throws IOException, InvalidCipherTextException {
+        return new TransactionHusk(ContractTx.createYeedTx(new Wallet(),
+                new Address(TestUtils.TRANSFER_TO), 100).toJsonObject());
     }
 
 }
