@@ -25,6 +25,7 @@ services:
     - 8081:8080
     environment:
     - YGGDRASH_NODE_GRPC_HOST=yggdrash-node2
+    - RUN_SLEEP=5
     volumes:
     - ynode2-data:/.yggdrash
     restart: on-failure
