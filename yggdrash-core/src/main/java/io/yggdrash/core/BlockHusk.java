@@ -155,17 +155,9 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         return Sha3Hash.createByHashed(getHeader().getPrevBlockHash().toByteArray());
     }
 
-    public long getLastTimetamp() {
-        return coreBlock.getHeader().getTimestamp();
-    }
-
     public long getIndex() {
 
         return ByteUtil.byteArrayToLong(this.protoBlock.getHeader().getIndex().toByteArray());
-    }
-
-    public long nextIndex() {
-        return getIndex() + 1;
     }
 
     public List<TransactionHusk> getBody() {
@@ -185,7 +177,6 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     public Proto.Block getInstance() {
         return this.protoBlock;
     }
-
 
     public boolean verify() {
         try {

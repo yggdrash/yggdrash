@@ -16,9 +16,6 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.Address;
-import io.yggdrash.core.BlockChain;
-import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.net.NodeManager;
 import io.yggdrash.core.net.PeerGroup;
 import org.slf4j.Logger;
@@ -29,12 +26,17 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.Queue;
+import java.util.concurrent.LinkedBlockingQueue;
+
 @Component
 @EnableScheduling
 class NodeScheduler {
     private static final Logger log = LoggerFactory.getLogger(NodeScheduler.class);
 
     private static final String cronValue = "*/10 * * * * *";
+
+    private final Queue<String> nodeQueue = new LinkedBlockingQueue<>();
 
     private final NodeManager nodeManager;
 
@@ -61,23 +63,16 @@ class NodeScheduler {
             log.debug("Waiting for up status...");
             return;
         }
-        if (peerGroup.getActivePeerList().isEmpty() || isMinable()) {
+
+        if (nodeQueue.isEmpty()) {
+            nodeQueue.addAll(peerGroup.getPeerUriList());
+        }
+        String peerId = nodeQueue.poll();
+        assert peerId != null;
+        if (peerGroup.getActivePeerList().isEmpty() || peerId.equals(nodeManager.getNodeUri())) {
             nodeManager.generateBlock();
         } else {
-            log.debug("Skip generation by another");
+            log.debug("Skip generation by another " + peerId.substring(peerId.lastIndexOf("@")));
         }
-    }
-
-    private boolean isMinable() {
-        for (BlockChain blockChain : nodeManager.getBranchGroup().getAllBranch()) {
-            Address myAddress = new Address(nodeManager.getWallet().getAddress());
-            BlockHusk lastBlock = blockChain.getPrevBlock();
-            if (!lastBlock.getAddress().equals(myAddress)) {
-                return true;
-            } else if (lastBlock.getLastTimetamp() + 30000 < System.currentTimeMillis()) {
-                return true;
-            }
-        }
-        return false;
     }
 }

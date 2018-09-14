@@ -30,6 +30,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 public class BranchGroup {
@@ -93,17 +94,17 @@ public class BranchGroup {
     }
 
     public void generateBlock(Wallet wallet) {
-        // TODO remove this
-        boolean sleep = true;
         for (BlockChain blockChain : branches.values()) {
-            blockChain.generateBlock(wallet);
-            if (getBranchSize() > 1 && sleep) {
+            if (blockChain.getBranchId().equals(BranchId.stem())) {
+                blockChain.generateBlock(wallet);
+            } else {
                 try {
-                    TimeUnit.SECONDS.sleep(5);
+                    int randomSleep = ThreadLocalRandom.current().nextInt(1, 9 + 1);
+                    TimeUnit.SECONDS.sleep(randomSleep);
+                    blockChain.generateBlock(wallet);
                 } catch (InterruptedException e) {
                     log.warn(e.getMessage());
                 }
-                sleep = false;
             }
         }
     }
@@ -158,13 +159,6 @@ public class BranchGroup {
     public Contract getContract(BranchId branchId) {
         return branches.get(branchId).getContract();
     }
-
-    /*
-    @Deprecated
-    public JsonObject query(JsonObject query) {
-        return query(chain.getBranchId(), query);
-    }
-    */
 
     public JsonObject query(JsonObject query) {
         try {
