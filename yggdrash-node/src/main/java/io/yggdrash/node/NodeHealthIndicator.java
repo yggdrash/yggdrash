@@ -16,16 +16,20 @@
 
 package io.yggdrash.node;
 
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+
 import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.net.PeerGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.stereotype.Component;
-
-import java.util.concurrent.atomic.AtomicReference;
 
 @Component
 public class NodeHealthIndicator implements HealthIndicator {
@@ -65,7 +69,12 @@ public class NodeHealthIndicator implements HealthIndicator {
         builder.withDetail("version", defaultConfig.getNodeVersion());
         builder.withDetail("p2pVersion", defaultConfig.getNetworkP2PVersion());
         builder.withDetail("network", defaultConfig.getNetwork());
-        builder.withDetail("height", branchGroup.getLastIndex());
+        // Add Node BranchIds and block index
+        Map<BranchId, Long> branchs = branchGroup.getAllBranch()
+                .stream()
+                .collect(Collectors.toMap(BlockChain::getBranchId, BlockChain::getLastIndex));
+        builder.withDetail("branchs", branchs);
+
         builder.withDetail("activePeers", peerGroup.getActivePeerList().size());
         health.set(builder.build());
     }

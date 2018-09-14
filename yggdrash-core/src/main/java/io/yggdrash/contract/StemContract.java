@@ -215,7 +215,9 @@ public class StemContract extends BaseContract<JsonObject> {
 
     private boolean isBranchIdValid(BranchId branchId, JsonObject branch) {
         if (branchId.equals(BranchId.of(branch))) {
-            return branch.get("version").getAsString().equals(branch.get("version_history")
+            // TODO 가시적 변경 필요
+            return branch.get("version")
+                    .getAsString().equals(branch.get("version_history")
                     .getAsJsonArray().get(0).getAsString());
         }
         log.warn("[Validation] branchId is not valid");
