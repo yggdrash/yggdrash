@@ -17,7 +17,7 @@
 package io.yggdrash.node.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.yggdrash.node.TestUtils;
+import io.yggdrash.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

@@ -2,6 +2,7 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.mock.ChannelMock;
@@ -72,13 +73,13 @@ public class PeerGroupTest {
     @Test
     public void syncBlock() {
         peerGroup.chainedBlock(block);
-        assert !peerGroup.syncBlock(TestUtils.STEM_BRANCH_ID, 0).isEmpty();
+        assert !peerGroup.syncBlock(BranchId.stem(), 0).isEmpty();
     }
 
     @Test
     public void syncTransaction() {
         peerGroup.receivedTransaction(tx);
-        assert !peerGroup.syncTransaction(TestUtils.STEM_BRANCH_ID).isEmpty();
+        assert !peerGroup.syncTransaction(BranchId.stem()).isEmpty();
     }
 
     @Test

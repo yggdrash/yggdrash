@@ -18,6 +18,7 @@ package io.yggdrash.node;
 
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
+import io.yggdrash.TestUtils;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.proto.BlockChainGrpc;
@@ -106,7 +107,7 @@ public class GRpcClientChannelTest {
 
         long offset = 0;
 
-        client.syncBlock(TestUtils.STEM_BRANCH_ID, offset);
+        client.syncBlock(BranchId.stem(), offset);
 
         verify(blockChainService).syncBlock(syncLimitRequestCaptor.capture(), any());
 
@@ -122,12 +123,12 @@ public class GRpcClientChannelTest {
             return null;
         }).when(blockChainService).syncTransaction(syncLimitRequestCaptor.capture(), any());
 
-        client.syncTransaction(TestUtils.STEM_BRANCH_ID);
+        client.syncTransaction(BranchId.stem());
 
         verify(blockChainService).syncTransaction(syncLimitRequestCaptor.capture(), any());
 
         BranchId branch = BranchId.of(syncLimitRequestCaptor.getValue().getBranch().toByteArray());
-        assertEquals(TestUtils.STEM_BRANCH_ID, branch);
+        assertEquals(BranchId.stem(), branch);
     }
 
     @Test

@@ -16,6 +16,8 @@
 
 package io.yggdrash;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
@@ -27,9 +29,7 @@ import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.BlockHuskBuilder;
 import io.yggdrash.core.BlockSignature;
-import io.yggdrash.core.BranchId;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
@@ -40,7 +40,6 @@ import io.yggdrash.util.FileUtil;
 import io.yggdrash.util.TimeUtils;
 import org.spongycastle.util.encoders.Hex;
 
-import java.nio.ByteBuffer;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -54,13 +53,8 @@ public class TestUtils {
             Hex.decode("a08ee962cd8b2bd0edbfee989c1a9f7884d26532");
     public static final byte[] TRANSFER_TO =
             Hex.decode("e1980adeafbb9ac6c9be60955484ab1547ab0b76");
-    public static final BranchId STEM_BRANCH_ID = BranchId.of(STEM_CHAIN);
 
     private static Wallet wallet;
-    private static byte[] type =
-            ByteBuffer.allocate(4).putInt(BlockHuskBuilder.DEFAULT_TYPE).array();
-    private static byte[] version =
-            ByteBuffer.allocate(4).putInt(BlockHuskBuilder.DEFAULT_VERSION).array();
 
     private TestUtils() {}
 
@@ -70,15 +64,6 @@ public class TestUtils {
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
-    }
-
-    public static Proto.Transaction getTransactionFixture() {
-        return Transaction.toProtoTransaction(new Transaction(ContractTx.createYeedTx(
-                wallet, new Address(TRANSFER_TO), 100).toJsonObject()));
-    }
-
-    public static Proto.Transaction[] getTransactionFixtures() {
-        return new Proto.Transaction[] {getTransactionFixture(), getTransactionFixture()};
     }
 
     public static Proto.Block getBlockFixture() {
@@ -133,6 +118,12 @@ public class TestUtils {
         return new BlockHusk(wallet, txList, createGenesisBlockHusk());
     }
 
+    public static ObjectMapper getMapper() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        return objectMapper;
+    }
+
     public static byte[] randomBytes(int length) {
         byte[] result = new byte[length];
         new Random().nextBytes(result);
@@ -150,6 +141,16 @@ public class TestUtils {
         query.addProperty("method", "balanceOf");
         query.add("params", params);
         return query;
+    }
+
+    public static Block sampleBlock() {
+        return new Block(sampleBlockObject());
+    }
+
+    public static Proto.Block[] sampleBlocks() {
+        return new Proto.Block[] {sampleBlock().toProtoBlock(),
+                sampleBlock().toProtoBlock(),
+                sampleBlock().toProtoBlock()};
     }
 
     public static JsonObject getSampleBranch1() {
@@ -253,14 +254,15 @@ public class TestUtils {
                wallet, new Address(TRANSFER_TO), 100).toJsonObject());
     }
 
-    public static Transaction sampleTx(JsonObject body) {
-        return new Transaction(ContractTx.createYeedTx(
-                wallet, new Address(TRANSFER_TO), 100).toJsonObject());
-    }
-
     public static Transaction sampleTx(Wallet wallet) {
         return new Transaction(ContractTx.createStemTx(
                 wallet, getSampleBranch1(), "create").toJsonObject());
+    }
+
+    public static Proto.Transaction[] sampleTxs() {
+        return new Proto.Transaction[] { Transaction.toProtoTransaction(sampleTx()),
+                Transaction.toProtoTransaction(sampleTx()),
+                Transaction.toProtoTransaction(sampleTx())};
     }
 
     public static JsonObject sampleBlockObject() {
@@ -286,18 +288,6 @@ public class TestUtils {
         } catch (Exception e) {
             throw new NotValidateException();
         }
-    }
-
-    public static Block sampleBlock() {
-        return new Block(sampleBlockObject());
-    }
-
-    public static Proto.Transaction sampleProtoTx() {
-        return Transaction.toProtoTransaction(sampleTx());
-    }
-
-    public static Proto.Block[] getBlockFixtures() {
-        return new Proto.Block[] {getBlockFixture(), getBlockFixture(), getBlockFixture()};
     }
 
     public static void clearTestDb() {
