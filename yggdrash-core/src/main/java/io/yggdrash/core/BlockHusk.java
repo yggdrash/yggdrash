@@ -85,11 +85,13 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
 
     public BlockHusk(Wallet wallet, List<TransactionHusk> body, BlockHusk prevBlock) {
 
-        if (wallet == null || body == null || prevBlock ==null) {
+        if (wallet == null || body == null || prevBlock == null) {
             throw new NotValidateException();
         }
 
-        while(body.remove(null));
+        while (body.remove(null)) {
+
+        }
 
         byte[] merkleRoot = Trie.getMerkleRootHusk(body);
         if (merkleRoot == null) {
