@@ -16,10 +16,6 @@
 
 package io.yggdrash.node;
 
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BranchGroup;
@@ -30,6 +26,10 @@ import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
 import org.springframework.boot.actuate.health.Status;
 import org.springframework.stereotype.Component;
+
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 @Component
 public class NodeHealthIndicator implements HealthIndicator {

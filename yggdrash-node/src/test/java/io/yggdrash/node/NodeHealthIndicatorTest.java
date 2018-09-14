@@ -28,9 +28,10 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.Status;
 
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
-@RunWith(MockitoJUnitRunner.class)
+@RunWith(MockitoJUnitRunner.Silent.class)
 public class NodeHealthIndicatorTest {
     private static final Status SYNC = new Status("SYNC", "Synchronizing..");
     @Mock
@@ -56,7 +57,7 @@ public class NodeHealthIndicatorTest {
         Health health = nodeHealthIndicator.health();
         assert health.getStatus() == Status.DOWN;
         assert health.getDetails().get("name").equals("yggdrash");
-        assert (long) health.getDetails().get("height") == 1;
+        assertNotNull(health.getDetails().get("branchs"));
         assert (int) health.getDetails().get("activePeers") == 0;
     }
 
