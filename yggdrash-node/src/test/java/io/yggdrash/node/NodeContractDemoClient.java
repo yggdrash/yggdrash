@@ -47,7 +47,7 @@ public class NodeContractDemoClient {
             System.out.print("전송할 횟수를 입력하세요 기본값(1) : ");
             String times = scan.nextLine();
 
-            if ("".equals(json)) {
+            if ("".equals(times)) {
                 times = "1";
             }
             for (int i = Integer.parseInt(times); i > 0; i--) {
@@ -70,7 +70,7 @@ public class NodeContractDemoClient {
     private static void sendTx(TransactionHusk tx, String server) {
         TransactionApi txApi;
         if (server.contains(".")) {
-            txApi = new JsonRpcConfig().transactionApi();
+            txApi = new JsonRpcConfig().transactionApi(server);
         } else {
             txApi = new JsonRpcConfig().transactionApi();
         }
