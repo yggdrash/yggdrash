@@ -9,3 +9,14 @@ pipelines:
         script:
           # https://docs.gradle.org/current/userguide/gradle_wrapper.html
           - bash ./gradlew build -PspringProfiles=ci
+  branches:
+    staging:
+      - step:
+          name: Deploy to AWS
+          deployment: staging
+          caches:
+            - gradle
+          script:
+            - bash ./gradlew build -PspringProfiles=ci
+            - scp $BUILD_JAR $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH
+            - ssh $DEPLOY_USER@$DEPLOY_HOST "./deploy.sh"

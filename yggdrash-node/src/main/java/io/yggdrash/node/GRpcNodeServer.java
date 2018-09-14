@@ -232,12 +232,12 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         public void syncBlock(NetProto.SyncLimit syncLimit,
                               StreamObserver<Proto.BlockList> responseObserver) {
             long offset = syncLimit.getOffset();
-            long lastIdx = branchGroup.getLastIndex();
+            BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
+            long lastIdx = branchGroup.getLastIndex(branchId);
             if (offset < 0 || offset > lastIdx) {
                 offset = 0;
             }
             long limit = syncLimit.getLimit();
-            BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
             log.debug("Synchronize block request offset={}, limit={}", offset, limit);
 
             Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
@@ -362,7 +362,12 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
                             protoBlock.getHeader().getIndex().toByteArray());
                     BlockHusk block = new BlockHusk(protoBlock);
                     log.debug("Received block id=[{}], hash={}", id, block.getHash());
-                    BlockHusk newBlock = branchGroup.addBlock(block);
+                    BlockHusk newBlock = null;
+                    try {
+                        newBlock = branchGroup.addBlock(block);
+                    } catch (Exception e) {
+                        log.warn(e.getMessage());
+                    }
                     // ignore broadcast by other node's broadcast
                     if (newBlock == null) {
                         return;

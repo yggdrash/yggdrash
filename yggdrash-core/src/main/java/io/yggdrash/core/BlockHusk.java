@@ -151,6 +151,10 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         return Sha3Hash.createByHashed(getHeader().getPrevBlockHash().toByteArray());
     }
 
+    public long getLastTimetamp() {
+        return coreBlock.getHeader().getTimestamp();
+    }
+
     public long getIndex() {
 
         return ByteUtil.byteArrayToLong(this.protoBlock.getHeader().getIndex().toByteArray());
@@ -182,9 +186,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     public boolean verify() {
         try {
             return this.coreBlock.verify();
-        } catch (IOException e) {
-            return false;
-        } catch (SignatureException e) {
+        } catch (IOException | SignatureException e) {
             return false;
         }
     }

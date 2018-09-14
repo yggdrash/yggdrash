@@ -23,13 +23,17 @@ import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 public class BranchGroup {
+    public static final Logger log = LoggerFactory.getLogger(BranchGroup.class);
 
     private Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
     private static BlockChain chain;
@@ -89,7 +93,19 @@ public class BranchGroup {
     }
 
     public void generateBlock(Wallet wallet) {
-        branches.values().forEach(chain -> chain.generateBlock(wallet));
+        // TODO remove this
+        boolean sleep = true;
+        for (BlockChain blockChain : branches.values()) {
+            blockChain.generateBlock(wallet);
+            if (getBranchSize() > 1 && sleep) {
+                try {
+                    TimeUnit.SECONDS.sleep(5);
+                } catch (InterruptedException e) {
+                    log.warn(e.getMessage());
+                }
+                sleep = false;
+            }
+        }
     }
 
     public BlockHusk addBlock(BlockHusk block) {
