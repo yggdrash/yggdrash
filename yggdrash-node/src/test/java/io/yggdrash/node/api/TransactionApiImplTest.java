@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.TestUtils;
 import io.yggdrash.contract.ContractTx;
 import io.yggdrash.core.Address;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.node.controller.TransactionDto;
@@ -30,6 +31,7 @@ public class TransactionApiImplTest {
     private final String tag = "latest";
     private final int blockNumber = 1;
     private final int txIndexPosition = 1;
+    private String branchId = BranchId.STEM;
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
@@ -51,7 +53,7 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionCountTest() {
         try {
-            assertThat(txApi.getTransactionCount(address, tag)).isNotZero();
+            assertThat(txApi.getTransactionCount(branchId, address, tag)).isNotZero();
         } catch (Throwable exception) {
             log.debug("\n\ngetTransactionCountTest :: exception => " + exception);
         }
@@ -60,7 +62,7 @@ public class TransactionApiImplTest {
     @Test
     public void getBlockTransactionCountByHashTest() {
         try {
-            assertThat(txApi.getBlockTransactionCountByHash(hashOfTx)).isNotZero();
+            assertThat(txApi.getBlockTransactionCountByHash(branchId, hashOfTx)).isNotZero();
         } catch (Exception exception) {
             log.debug("\n\ngetBlockTransactionCountByHashTest :: exception => " + exception);
         }
@@ -69,7 +71,7 @@ public class TransactionApiImplTest {
     @Test
     public void getBlockTransactionCountByNumberTest() {
         try {
-            assertThat(txApi.getBlockTransactionCountByNumber(blockNumber)).isNotZero();
+            assertThat(txApi.getBlockTransactionCountByNumber(branchId, blockNumber)).isNotZero();
         } catch (Throwable exception) {
             log.debug("\n\ngetBlockTransactionCountByNumberTest :: exception => " + exception);
         }
@@ -81,7 +83,7 @@ public class TransactionApiImplTest {
             TransactionHusk tx = TestUtils.createTxHusk();
 
             txApi.sendTransaction(TransactionDto.createBy(tx));
-            assertThat(txApi.getTransactionByHash(hashOfTx)).isNotNull();
+            assertThat(txApi.getTransactionByHash(branchId, hashOfTx)).isNotNull();
         } catch (Exception exception) {
             log.debug("\n\ngetTransactionByHashTest :: exception => " + exception);
         }
@@ -93,9 +95,9 @@ public class TransactionApiImplTest {
             TransactionHusk tx = new TransactionHusk(TestUtils.sampleTx(wallet));
             if (txApi.sendTransaction(TransactionDto.createBy(tx)) != null) {
                 Thread.sleep(10000);
-                String hashOfBlock = blockApi.getBlockByHash("1", true).getHash().toString();
+                String hashOfBlock = blockApi.getBlockByHash(branchId, "1", true).getHash().toString();
                 assertThat(hashOfBlock).isNotEmpty();
-                assertThat(txApi.getTransactionByBlockHash(hashOfBlock, 0)).isNotNull();
+                assertThat(txApi.getTransactionByBlockHash(branchId, hashOfBlock, 0)).isNotNull();
             } else {
                 log.error("Send Transaction Failed!");
             }
@@ -107,7 +109,7 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByBlockNumberTest() {
         try {
-            assertThat(txApi.getTransactionByBlockNumber(blockNumber, txIndexPosition))
+            assertThat(txApi.getTransactionByBlockNumber(branchId, blockNumber, txIndexPosition))
                     .isNotNull();
         } catch (Exception exception) {
             log.debug("\n\ngetTransactionByBlockNumberTest :: exception => " + exception);

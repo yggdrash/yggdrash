@@ -3,6 +3,7 @@ package io.yggdrash.node.api;
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.Wallet;
@@ -46,6 +47,7 @@ public class TransactionMockitoTest {
     private TransactionReceipt txRecipt;
 
     private HashMap<String, TransactionReceipt> txReceiptStore;
+    private BranchId stem = BranchId.stem();
 
     @Before
     public void setup() throws Exception {
@@ -64,7 +66,7 @@ public class TransactionMockitoTest {
         txReceiptStore.put(tx.getHash().toString(), txRecipt);
         block = TestUtils.createBlockHuskByTxList(wallet, txList);
         hashOfBlock = block.getHash().toString();
-        when(branchGroupMock.getTransactionReceiptStore()).thenReturn(txReceiptStoreMock);
+        when(branchGroupMock.getTransactionReceiptStore(stem)).thenReturn(txReceiptStoreMock);
 
     }
 
@@ -72,9 +74,9 @@ public class TransactionMockitoTest {
 
     @Test
     public void getTransactionCountTest() {
-        when(branchGroupMock.getBlockByIndex(anyLong())).thenReturn(block);
-        Integer res = txApiImpl.getTransactionCount(wallet.getHexAddress(), 1);
-        Integer res2 = txApiImpl.getTransactionCount(wallet.getHexAddress(), "latest");
+        when(branchGroupMock.getBlockByIndex(any(), anyLong())).thenReturn(block);
+        Integer res = txApiImpl.getTransactionCount(stem.toString(), wallet.getHexAddress(), 1);
+        Integer res2 = txApiImpl.getTransactionCount(stem.toString(), wallet.getHexAddress(), "latest");
         Integer sizeOfTxList = 3;
         assertThat(res).isEqualTo(sizeOfTxList);
         assertThat(res2).isEqualTo(res);
@@ -91,39 +93,39 @@ public class TransactionMockitoTest {
 
     @Test
     public void getTransactionByHashTest() {
-        when(branchGroupMock.getTxByHash(hashOfTx)).thenReturn(tx);
-        TransactionHusk res = txApiImpl.getTransactionByHash(hashOfTx);
+        when(branchGroupMock.getTxByHash(stem, hashOfTx)).thenReturn(tx);
+        TransactionHusk res = txApiImpl.getTransactionByHash(stem.toString(), hashOfTx);
         assertThat(res).isNotNull();
         assertEquals(res.getHash().toString(), hashOfTx);
     }
 
     @Test
     public void getTransactionByBlockHashTest() {
-        when(branchGroupMock.getBlockByHash(hashOfBlock)).thenReturn(block);
-        TransactionHusk res = txApiImpl.getTransactionByBlockHash(hashOfBlock, 0);
+        when(branchGroupMock.getBlockByHash(stem, hashOfBlock)).thenReturn(block);
+        TransactionHusk res = txApiImpl.getTransactionByBlockHash(stem.toString(), hashOfBlock, 0);
         assertEquals(res.getHash().toString(), hashOfTx);
     }
 
     @Test
     public void getTransactionByLatestBlockTest() {
-        when(branchGroupMock.getBlockByIndex(0L)).thenReturn(block);
-        when(branchGroupMock.getLastIndex()).thenReturn(0L);
-        TransactionHusk res = txApiImpl.getTransactionByBlockNumber(0, 0);
-        TransactionHusk res2 = txApiImpl.getTransactionByLatestBlock("latest", 0);
+        when(branchGroupMock.getBlockByIndex(stem,0L)).thenReturn(block);
+        when(branchGroupMock.getLastIndex(stem)).thenReturn(0L);
+        TransactionHusk res = txApiImpl.getTransactionByBlockNumber(stem.toString(), 0, 0);
+        TransactionHusk res2 = txApiImpl.getTransactionByLatestBlock(stem.toString(), "latest", 0);
         assertEquals(res.getHash(), res2.getHash());
     }
 
     @Test
     public void getTransactionReceiptTest() {
         when(txReceiptStoreMock.get(hashOfTx)).thenReturn(txRecipt);
-        TransactionReceipt res = txApiImpl.getTransactionReceipt(hashOfTx);
+        TransactionReceipt res = txApiImpl.getTransactionReceipt(stem.toString(), hashOfTx);
         assertEquals(res.getTransactionHash(), hashOfTx);
     }
 
     @Test
     public void getAllTransactionReceiptTest() {
         when(txReceiptStoreMock.getTxReceiptStore()).thenReturn(txReceiptStore);
-        Map<String, TransactionReceipt> res = txApiImpl.getAllTransactionReceipt();
+        Map<String, TransactionReceipt> res = txApiImpl.getAllTransactionReceipt(stem.toString());
         assertThat(res.containsKey(hashOfTx)).isTrue();
     }
 

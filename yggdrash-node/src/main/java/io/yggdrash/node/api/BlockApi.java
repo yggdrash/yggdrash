@@ -16,7 +16,7 @@ public interface BlockApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = InternalErrorException.class,
                     code = InternalErrorException.code)})
-    long blockNumber();
+    long blockNumber(@JsonRpcParam(value = "branchId") String branchId);
 
     /**
      * Returns information about a block by hash.
@@ -28,8 +28,9 @@ public interface BlockApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    BlockHusk getBlockByHash(@JsonRpcParam(value = "hashOfBlock") String hashOfBlock,
-                         @JsonRpcParam(value = "bool") Boolean bool);
+    BlockHusk getBlockByHash(@JsonRpcParam(value = "branchId") String branchId,
+                             @JsonRpcParam(value = "hashOfBlock") String hashOfBlock,
+                             @JsonRpcParam(value = "bool") Boolean bool);
 
     /**
      * Returns information about a block by block number.
@@ -41,8 +42,9 @@ public interface BlockApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    BlockHusk getBlockByNumber(@JsonRpcParam(value = "numOfBlock") long numOfBlock,
-                           @JsonRpcParam(value = "bool") Boolean bool);
+    BlockHusk getBlockByNumber(@JsonRpcParam(value = "branchId") String branchId,
+                               @JsonRpcParam(value = "numOfBlock") long numOfBlock,
+                               @JsonRpcParam(value = "bool") Boolean bool);
 
     /**
      * Creates a filter in the node, to notify when a new block arrives.
@@ -59,5 +61,5 @@ public interface BlockApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    BlockHusk getLastBlock();
+    BlockHusk getLastBlock(@JsonRpcParam(value = "branchId") String branchId);
 }

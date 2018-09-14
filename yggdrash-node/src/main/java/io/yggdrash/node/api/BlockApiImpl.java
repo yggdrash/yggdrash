@@ -3,6 +3,7 @@ package io.yggdrash.node.api;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,27 +21,27 @@ public class BlockApiImpl implements BlockApi {
     }
 
     @Override
-    public long blockNumber() {
+    public long blockNumber(String branchId) {
         try {
-            return branchGroup.getLastIndex() + 1;
+            return branchGroup.getLastIndex(BranchId.of(branchId)) + 1;
         } catch (Exception exception) {
             throw new InternalErrorException();
         }
     }
 
     @Override
-    public BlockHusk getBlockByHash(String hashOfBlock, Boolean bool) {
+    public BlockHusk getBlockByHash(String branchId, String hashOfBlock, Boolean bool) {
         try {
-            return branchGroup.getBlockByHash(hashOfBlock);
+            return branchGroup.getBlockByHash(BranchId.of(branchId), hashOfBlock);
         } catch (Exception exception) {
             throw new NonExistObjectException("block");
         }
     }
 
     @Override
-    public BlockHusk getBlockByNumber(long numOfBlock, Boolean bool) {
+    public BlockHusk getBlockByNumber(String branchId, long numOfBlock, Boolean bool) {
         try {
-            return branchGroup.getBlockByIndex(numOfBlock);
+            return branchGroup.getBlockByIndex(BranchId.of(branchId), numOfBlock);
         } catch (Exception exception) {
             throw new NonExistObjectException("block");
         }
@@ -56,7 +57,8 @@ public class BlockApiImpl implements BlockApi {
     }
 
     @Override
-    public BlockHusk getLastBlock() {
-        return branchGroup.getBlockByHash(String.valueOf(branchGroup.getLastIndex()));
+    public BlockHusk getLastBlock(String branchId) {
+        BranchId id = BranchId.of(branchId);
+        return branchGroup.getBlockByIndex(id, branchGroup.getLastIndex(id));
     }
 }

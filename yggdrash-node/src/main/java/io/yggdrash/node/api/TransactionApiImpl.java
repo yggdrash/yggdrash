@@ -1,15 +1,14 @@
 package io.yggdrash.node.api;
 
-import com.google.protobuf.ByteString;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.BranchId;
+import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.node.controller.TransactionDto;
-import io.yggdrash.proto.Proto;
-import org.spongycastle.util.Arrays;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -27,59 +26,49 @@ public class TransactionApiImpl implements TransactionApi {
         this.branchGroup = branchGroup;
     }
 
-    public int getCount(String address, List<TransactionHusk> txList) {
-        int cnt = 0;
-        for (TransactionHusk tx : txList) {
-            if (address.equals(tx.getAddress().toString())) {
-                cnt += 1;
-            }
-        }
-        return cnt;
-    }
-
     /* get */
     @Override
-    public int getTransactionCount(String address, String tag) {
+    public int getTransactionCount(String branchId, String address, String tag) {
         int blockNumber;
         if ("latest".equals(tag)) {
             blockNumber = 1;
         } else {
             blockNumber = -1;
         }
-        BlockHusk block = branchGroup.getBlockByIndex(blockNumber);
+        BlockHusk block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
         return getCount(address, block.getBody());
     }
 
     @Override
-    public int getTransactionCount(String address, long blockNumber) {
-        BlockHusk block = branchGroup.getBlockByIndex(blockNumber);
+    public int getTransactionCount(String branchId, String address, long blockNumber) {
+        BlockHusk block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
         return getCount(address, block.getBody());
     }
 
     @Override
-    public int getBlockTransactionCountByHash(String hashOfBlock) {
-        BlockHusk block = branchGroup.getBlockByHash(hashOfBlock);
+    public int getBlockTransactionCountByHash(String branchId, String hashOfBlock) {
+        BlockHusk block = branchGroup.getBlockByHash(BranchId.of(branchId), hashOfBlock);
         return block.getBody().size();
     }
 
     @Override
-    public int getBlockTransactionCountByNumber(long blockNumber) {
-        BlockHusk block = branchGroup.getBlockByIndex(blockNumber);
+    public int getBlockTransactionCountByNumber(String branchId, long blockNumber) {
+        BlockHusk block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
         return block.getBody().size();
     }
 
     @Override
-    public int getBlockTransactionCountByNumber(String tag) {
+    public int getBlockTransactionCountByNumber(String branchId, String tag) {
         if ("latest".equals(tag)) {
-            return getBlockTransactionCountByNumber(0);
+            return getBlockTransactionCountByNumber(branchId, 0);
         } else {
             return 0;
         }
     }
 
     @Override
-    public TransactionHusk getTransactionByHash(String hashOfTx) {
-        TransactionHusk tx = branchGroup.getTxByHash(hashOfTx);
+    public TransactionHusk getTransactionByHash(String branchId, String hashOfTx) {
+        TransactionHusk tx = branchGroup.getTxByHash(BranchId.of(branchId), hashOfTx);
         if (tx == null) {
             throw new NonExistObjectException("Transaction");
         }
@@ -87,21 +76,25 @@ public class TransactionApiImpl implements TransactionApi {
     }
 
     @Override
-    public TransactionHusk getTransactionByBlockHash(String hashOfBlock, int txIndexPosition) {
-        BlockHusk block = branchGroup.getBlockByHash(hashOfBlock);
+    public TransactionHusk getTransactionByBlockHash(String branchId, String hashOfBlock,
+                                                     int txIndexPosition) {
+        BlockHusk block = branchGroup.getBlockByHash(BranchId.of(branchId), hashOfBlock);
         return block.getBody().get(txIndexPosition);
     }
 
     @Override
-    public TransactionHusk getTransactionByBlockNumber(long blockNumber, int txIndexPosition) {
-        BlockHusk block = branchGroup.getBlockByIndex(blockNumber);
+    public TransactionHusk getTransactionByBlockNumber(String branchId, long blockNumber,
+                                                       int txIndexPosition) {
+        BlockHusk block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
         return block.getBody().get(txIndexPosition);
     }
 
     @Override
-    public TransactionHusk getTransactionByLatestBlock(String tag, int txIndexPosition) {
+    public TransactionHusk getTransactionByLatestBlock(String branchId, String tag,
+                                                       int txIndexPosition) {
         if ("latest".equals(tag)) {
-            return getTransactionByBlockNumber(branchGroup.getLastIndex(), txIndexPosition);
+            long lastIndex = branchGroup.getLastIndex(BranchId.of(branchId));
+            return getTransactionByBlockNumber(branchId, lastIndex, txIndexPosition);
         } else {
             return null;
         }
@@ -116,8 +109,9 @@ public class TransactionApiImpl implements TransactionApi {
 
     @Override
     public byte[] sendRawTransaction(byte[] bytes) {
-        TransactionHusk tx = convert(bytes);
-        TransactionHusk addedTx = branchGroup.addTransaction(tx);
+        Transaction tx = new Transaction(bytes);
+        TransactionHusk transaction = new TransactionHusk(tx);
+        TransactionHusk addedTx = branchGroup.addTransaction(transaction);
         return addedTx.getHash().getBytes();
     }
 
@@ -127,51 +121,23 @@ public class TransactionApiImpl implements TransactionApi {
         return 6;
     }
 
-    private TransactionHusk convert(byte[] bytes) {
-
-        int sum = 0;
-
-        byte[] chain = new byte[20];
-        chain = Arrays.copyOfRange(bytes, sum, sum += chain.length);
-        byte[] version = new byte[8];
-        version = Arrays.copyOfRange(bytes, sum, sum += version.length);
-        byte[] type = new byte[8];
-        type = Arrays.copyOfRange(bytes, sum, sum += type.length);
-        byte[] timestamp = new byte[8];
-        timestamp = Arrays.copyOfRange(bytes, sum, sum += timestamp.length);
-        byte[] bodyHash = new byte[32];
-        bodyHash = Arrays.copyOfRange(bytes, sum, sum += bodyHash.length);
-        byte[] bodyLength = new byte[8];
-        bodyLength = Arrays.copyOfRange(bytes, sum, sum += bodyLength.length);
-        byte[] signature = new byte[65];
-        signature = Arrays.copyOfRange(bytes, sum, sum += signature.length);
-        byte[] body = Arrays.copyOfRange(bytes, sum, bytes.length);
-
-        Proto.Transaction.Header transactionHeader = Proto.Transaction.Header.newBuilder()
-                .setChain(ByteString.copyFrom(chain))
-                .setVersion(ByteString.copyFrom(version))
-                .setType(ByteString.copyFrom(type))
-                .setTimestamp(ByteString.copyFrom(timestamp))
-                .setBodyHash(ByteString.copyFrom(bodyHash))
-                .setBodyLength(ByteString.copyFrom(bodyLength))
-                .build();
-
-        Proto.Transaction tx = Proto.Transaction.newBuilder()
-                .setHeader(transactionHeader)
-                .setSignature(ByteString.copyFrom(signature))
-                .setBody(ByteString.copyFrom(body))
-                .build();
-
-        return new TransactionHusk(tx);
+    private int getCount(String address, List<TransactionHusk> txList) {
+        int cnt = 0;
+        for (TransactionHusk tx : txList) {
+            if (address.equals(tx.getAddress().toString())) {
+                cnt += 1;
+            }
+        }
+        return cnt;
     }
 
     @Override
-    public Map<String, TransactionReceipt> getAllTransactionReceipt() {
-        return branchGroup.getTransactionReceiptStore().getTxReceiptStore();
+    public Map<String, TransactionReceipt> getAllTransactionReceipt(String branchId) {
+        return branchGroup.getTransactionReceiptStore(BranchId.of(branchId)).getTxReceiptStore();
     }
 
     @Override
-    public TransactionReceipt getTransactionReceipt(String hashOfTx) {
-        return branchGroup.getTransactionReceiptStore().get(hashOfTx);
+    public TransactionReceipt getTransactionReceipt(String branchId, String hashOfTx) {
+        return branchGroup.getTransactionReceiptStore(BranchId.of(branchId)).get(hashOfTx);
     }
 }
