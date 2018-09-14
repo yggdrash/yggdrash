@@ -151,7 +151,7 @@ public class PeerGroup implements BranchEventListener {
     @Override
     public void receivedTransaction(TransactionHusk tx) {
         if (peerChannels.isEmpty()) {
-            log.warn("Active peer is empty to broadcast transaction");
+            log.trace("Active peer is empty to broadcast transaction");
         }
         Proto.Transaction[] txns = new Proto.Transaction[] {tx.getInstance()};
 
@@ -165,8 +165,7 @@ public class PeerGroup implements BranchEventListener {
         if (peerChannels.isEmpty()) {
             log.trace("Active peer is empty to broadcast block");
         }
-        Proto.Block[] blocks
-                = new Proto.Block[] {block.getInstance()};
+        Proto.Block[] blocks = new Proto.Block[] {block.getInstance()};
         for (PeerClientChannel client : peerChannels.values()) {
             client.broadcastBlock(blocks);
         }
@@ -205,7 +204,7 @@ public class PeerGroup implements BranchEventListener {
      */
     public List<String> broadcastPeerConnect(String ynodeUri) {
         if (peerChannels.isEmpty()) {
-            log.warn("Active peer is empty to broadcast peer");
+            log.trace("Active peer is empty to broadcast peer");
             return Collections.emptyList();
         }
         List<String> peerList = new ArrayList<>();
@@ -233,7 +232,7 @@ public class PeerGroup implements BranchEventListener {
      */
     public List<BlockHusk> syncBlock(BranchId branchId, long offset) {
         if (peerChannels.isEmpty()) {
-            log.warn("Active peer is empty to sync block");
+            log.trace("Active peer is empty to sync block");
             return Collections.emptyList();
         }
         // TODO sync peer selection policy
@@ -255,7 +254,7 @@ public class PeerGroup implements BranchEventListener {
      */
     public List<TransactionHusk> syncTransaction(BranchId branchId) {
         if (peerChannels.isEmpty()) {
-            log.warn("Active peer is empty to sync transaction");
+            log.trace("Active peer is empty to sync transaction");
             return Collections.emptyList();
         }
         // TODO sync peer selection policy
