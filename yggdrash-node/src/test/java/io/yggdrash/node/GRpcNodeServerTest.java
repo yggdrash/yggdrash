@@ -20,8 +20,10 @@ import com.google.protobuf.ByteString;
 import io.grpc.internal.testing.StreamRecorder;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
+import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.proto.BlockChainGrpc;
@@ -101,11 +103,11 @@ public class GRpcNodeServerTest {
     public void syncBlock() {
         Set<BlockHusk> blocks = new HashSet<>();
         blocks.add(block);
-        when(branchGroupMock.getBlockByIndex(TestUtils.STEM_BRANCH_ID, 0L)).thenReturn(block);
+        when(branchGroupMock.getBlockByIndex(BranchId.stem(), 0L)).thenReturn(block);
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        ByteString branch = ByteString.copyFrom(TestUtils.STEM_BRANCH_ID.getBytes());
+        ByteString branch = ByteString.copyFrom(BranchId.stem().getBytes());
         NetProto.SyncLimit syncLimit
                 = NetProto.SyncLimit.newBuilder().setOffset(0).setBranch(branch).build();
         Proto.BlockList list = blockingStub.syncBlock(syncLimit);
@@ -114,12 +116,12 @@ public class GRpcNodeServerTest {
 
     @Test
     public void syncTransaction() {
-        when(branchGroupMock.getTransactionList(TestUtils.STEM_BRANCH_ID))
+        when(branchGroupMock.getTransactionList(BranchId.stem()))
                 .thenReturn(Collections.singletonList(tx));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        ByteString branch = ByteString.copyFrom(TestUtils.STEM_BRANCH_ID.getBytes());
+        ByteString branch = ByteString.copyFrom(BranchId.stem().getBytes());
         NetProto.SyncLimit syncLimit
                 = NetProto.SyncLimit.newBuilder().setBranch(branch).build();
         Proto.TransactionList list = blockingStub.syncTransaction(syncLimit);

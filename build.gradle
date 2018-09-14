@@ -143,6 +143,7 @@ project(':yggdrash-node') {
         compile("org.webjars:jquery:3.1.0")
         annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
         runtime('org.springframework.boot:spring-boot-devtools')
+        testCompile project(":yggdrash-core").sourceSets.test.output
         testCompile('org.springframework.boot:spring-boot-starter-test')
         testCompile("io.grpc:grpc-testing:${grpcVersion}")
     }

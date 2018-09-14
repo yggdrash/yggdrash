@@ -1,8 +1,8 @@
 package io.yggdrash.node.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockHusk;
-import io.yggdrash.node.TestUtils;
 import io.yggdrash.node.controller.BlockDto;
 import org.junit.Test;
 import org.slf4j.Logger;

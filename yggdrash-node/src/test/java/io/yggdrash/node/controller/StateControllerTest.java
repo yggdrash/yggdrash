@@ -16,7 +16,7 @@
 
 package io.yggdrash.node.controller;
 
-import io.yggdrash.node.TestUtils;
+import io.yggdrash.TestUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.spongycastle.util.encoders.Hex;
