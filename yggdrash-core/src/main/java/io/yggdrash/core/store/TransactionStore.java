@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.store;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.exception.NotValidateException;
@@ -33,9 +34,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     private static final Logger log = LoggerFactory.getLogger(TransactionStore.class);
+    private static final Lock LOCK = new ReentrantLock();
 
     private final DbSource<byte[], byte[]> db;
     private final Cache<Sha3Hash, TransactionHusk> huskTxPool;
@@ -48,7 +52,7 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
                 .newCacheManagerBuilder().build(true)
                 .createCache("txPool", CacheConfigurationBuilder
                         .newCacheConfigurationBuilder(Sha3Hash.class, TransactionHusk.class,
-                                ResourcePoolsBuilder.heap(10)));
+                                ResourcePoolsBuilder.heap(Long.MAX_VALUE)));
     }
 
     public Set<TransactionHusk> getAll() {
@@ -76,8 +80,14 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
 
     @Override
     public void put(Sha3Hash key, TransactionHusk tx) {
+        LOCK.lock();
         huskTxPool.put(key, tx);
-        unconfirmedTxs.add(key);
+        if (huskTxPool.containsKey(key)) {
+            unconfirmedTxs.add(key);
+        } else {
+            log.warn("unconfirmedTxs size={}, ignore key={}", unconfirmedTxs.size(), key);
+        }
+        LOCK.unlock();
     }
 
     @Override
@@ -90,11 +100,13 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
         }
     }
 
+    @VisibleForTesting
     public void batchAll() {
         this.batch(unconfirmedTxs);
     }
 
     public void batch(Set<Sha3Hash> keys) {
+        LOCK.lock();
         if (keys.size() > 0) {
             Map<Sha3Hash, TransactionHusk> map = huskTxPool.getAll(keys);
             for (Sha3Hash key : map.keySet()) {
@@ -103,8 +115,9 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
                     db.put(key.getBytes(), foundTx.getData());
                 }
             }
-            this.flush();
+            this.flush(keys);
         }
+        LOCK.unlock();
     }
 
     public Collection<TransactionHusk> getUnconfirmedTxs() {
@@ -119,8 +132,8 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
         return this.db.count();
     }
 
-    public void flush() {
-        huskTxPool.removeAll(unconfirmedTxs);
-        unconfirmedTxs.clear();
+    public void flush(Set<Sha3Hash> keys) {
+        huskTxPool.removeAll(keys);
+        unconfirmedTxs.removeAll(keys);
     }
 }
