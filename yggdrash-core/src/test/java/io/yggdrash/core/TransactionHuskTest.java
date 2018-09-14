@@ -1,9 +1,11 @@
 package io.yggdrash.core;
 
 import io.yggdrash.TestUtils;
+import io.yggdrash.contract.ContractTx;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.proto.Proto;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -157,6 +159,43 @@ public class TransactionHuskTest {
 
         assertArrayEquals(account.getAddress(), address);
         assertArrayEquals(account.getKey().getPubKey(), pubKey);
+    }
+    @Test
+    public void shouldBeVerifiedBySignature()
+            throws IOException, InvalidCipherTextException {
+        TransactionHusk transactionHusk = getTransactionHusk();
+        Wallet wallet = new Wallet();
+
+        transactionHusk.sign(wallet);
+        Assertions.assertThat(transactionHusk.verify()).isTrue();
+    }
+
+    @Test
+    public void shouldBeSignedTransaction() throws IOException, InvalidCipherTextException {
+        TransactionHusk transactionHusk = getTransactionHusk();
+
+        Wallet wallet = new Wallet();
+        transactionHusk.sign(wallet);
+
+        Assertions.assertThat(transactionHusk.isSigned()).isTrue();
+        Assertions.assertThat(transactionHusk.verify()).isTrue();
+    }
+
+    @Test
+    public void shouldBeCreatedNonSingedTransaction()
+            throws IOException, InvalidCipherTextException {
+        /* 외부에서 받는 정보
+           - target - 블록체인 ID - String
+           - from - 보내는 주소 - String
+           - body - JSON - String
+         */
+        TransactionHusk transactionHusk = getTransactionHusk();
+        Assertions.assertThat(transactionHusk).isNotNull();
+    }
+
+    private TransactionHusk getTransactionHusk() throws IOException, InvalidCipherTextException {
+        return new TransactionHusk(ContractTx.createYeedTx(new Wallet(),
+                new Address(TestUtils.TRANSFER_TO), 100).toJsonObject());
     }
 
     
