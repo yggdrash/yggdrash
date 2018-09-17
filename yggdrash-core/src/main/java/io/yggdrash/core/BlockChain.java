@@ -21,6 +21,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -68,6 +69,9 @@ public class BlockChain {
         try {
             prevBlock = blockStore.get(genesisBlock.getHash());
         } catch (NonExistObjectException e) {
+            for (TransactionHusk tx : genesisBlock.getBody()) {
+                transactionStore.put(tx.getHash(), tx);
+            }
             addBlock(genesisBlock);
             startIdx = 1;
         }
@@ -90,6 +94,10 @@ public class BlockChain {
 
     public Runtime<?> getRuntime() {
         return runtime;
+    }
+
+    public List<Map<String, Object>> getStateList() {
+        return runtime.getStateStore().getStateList();
     }
 
     public BlockHusk generateBlock(Wallet wallet) {
