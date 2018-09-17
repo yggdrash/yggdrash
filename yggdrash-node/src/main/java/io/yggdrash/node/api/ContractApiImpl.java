@@ -24,12 +24,12 @@ public class ContractApiImpl implements ContractApi {
 
     @Override
     public String query(String data) {
-        log.debug("[ContractAPI | data]" + data);
         JsonParser jsonParser = new JsonParser();
         JsonObject query = (JsonObject) jsonParser.parse(data);
         if (!query.has("address")) {
-            throw new NonExistObjectException("");
+            throw new NonExistObjectException("Address (BranchId) is required");
         }
+        log.debug("[ContractAPI | data]" + data);
         return branchGroup.query(query).toString();
     }
 }

@@ -25,41 +25,62 @@ public abstract class BaseContract<T> implements Contract<T> {
 
     @Override
     public boolean invoke(TransactionHusk txHusk) {
-        String data = txHusk.getBody();
-        JsonParser jsonParser = new JsonParser();
-        JsonArray txBodyArray = (JsonArray) jsonParser.parse(data);
-        JsonObject txBody = txBodyArray.get(0).getAsJsonObject();
-        String method = txBody.get("method").getAsString().toLowerCase();
-        this.sender = txHusk.getAddress().toString();
-        JsonArray params = txBody.get("params").getAsJsonArray();
+        try {
+            this.sender = txHusk.getAddress().toString();
+            String data = txHusk.getBody();
 
-        if (!method.isEmpty()) {
+            JsonParser jsonParser = new JsonParser();
+            JsonArray txBodyArray = (JsonArray) jsonParser.parse(data);
+            JsonObject txBody = txBodyArray.get(0).getAsJsonObject();
+
+            dataFormatValidation(txBody);
+
+            String method = txBody.get("method").getAsString().toLowerCase();
+            JsonArray params = txBody.get("params").getAsJsonArray();
             try {
                 TransactionReceipt txReceipt = (TransactionReceipt) this.getClass()
                         .getMethod(method, JsonArray.class)
                         .invoke(this, params);
                 txReceipt.setTransactionHash(txHusk.getHash().toString());
                 txReceiptStore.put(txHusk.getHash().toString(), txReceipt);
-                return true;
             } catch (Exception e) {
                 throw new FailedOperationException("No such method");
             }
+            return true;
+        } catch (Throwable e) {
+            TransactionReceipt txReceipt = new TransactionReceipt();
+            txReceipt.setTransactionHash(txHusk.getHash().toString());
+            txReceipt.setStatus(0);
+            txReceipt.put("Error", e);
+            txReceiptStore.put(txHusk.getHash().toString(), txReceipt);
+            return false;
         }
-        return false;
     }
 
     @Override
     public JsonObject query(JsonObject query) throws Exception {
+        dataFormatValidation(query);
+
         String method = query.get("method").getAsString().toLowerCase();
         JsonArray params = query.get("params").getAsJsonArray();
 
         JsonObject result = new JsonObject();
-        if (!method.isEmpty()) {
+        try {
             Object res = this.getClass().getMethod(method, JsonArray.class)
                     .invoke(this, params);
             result.addProperty("result", res.toString());
-            return result;
+        } catch (Exception e) {
+            throw new FailedOperationException("No such method");
         }
-        return null;
+        return result;
+    }
+
+    private void dataFormatValidation(JsonObject data) {
+        if (data.get("method").getAsString().toLowerCase().length() < 0) {
+            throw new FailedOperationException("Empty method");
+        }
+        if (!data.get("params").isJsonArray()) {
+            throw new FailedOperationException("Params must be JsonArray");
+        }
     }
 }
