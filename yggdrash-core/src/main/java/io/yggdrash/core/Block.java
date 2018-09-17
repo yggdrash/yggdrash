@@ -113,9 +113,15 @@ public class Block implements Cloneable {
         return ecKeyPub.verify(hashedHeader, ecdsaSignature);
     }
 
+    private boolean verifyCheckLengthNotNull(byte[] data, int length, String msg) {
 
-    private boolean verifyCheckLengthNotNull(byte[] data, int length) {
-        return data != null && data.length == length;
+        boolean result = !(data == null || data.length != length);
+
+        if (!result) {
+            log.debug(msg + " is not valid.");
+        }
+
+        return result;
     }
 
     /**
@@ -126,14 +132,16 @@ public class Block implements Cloneable {
     public boolean verifyData() throws IOException {
         // TODO CheckByValidate Code
         boolean check = true;
-        check &= verifyCheckLengthNotNull(this.header.getChain(), this.header.CHAIN_LENGTH);
-        check &= verifyCheckLengthNotNull(this.header.getVersion(), this.header.VERSION_LENGTH);
-        check &= verifyCheckLengthNotNull(this.header.getType(), this.header.TYPE_LENGTH);
         check &= verifyCheckLengthNotNull(
-                this.header.getPrevBlockHash(), this.header.PREVBLOCKHASH_LENGTH);
+                this.header.getChain(), this.header.CHAIN_LENGTH, "chain");
         check &= verifyCheckLengthNotNull(
-                this.header.getMerkleRoot(), this.header.MERKLEROOT_LENGTH);
-        check &= verifyCheckLengthNotNull(this.signature, this.SIGNATURE_LENGTH);
+                this.header.getVersion(), this.header.VERSION_LENGTH, "version");
+        check &= verifyCheckLengthNotNull(this.header.getType(), this.header.TYPE_LENGTH, "type");
+        check &= verifyCheckLengthNotNull(
+                this.header.getPrevBlockHash(), this.header.PREVBLOCKHASH_LENGTH, "prevBlockHash");
+        check &= verifyCheckLengthNotNull(
+                this.header.getMerkleRoot(), this.header.MERKLEROOT_LENGTH, "merkleRootLength");
+        check &= verifyCheckLengthNotNull(this.signature, this.SIGNATURE_LENGTH, "signature");
         check &= this.header.getIndex() >= 0;
         check &= this.header.getTimestamp() > 0;
         check &= !(this.header.getBodyLength() <= 0
@@ -143,7 +151,6 @@ public class Block implements Cloneable {
 
         return check;
     }
-
 
     public JsonObject toJsonObject() {
 

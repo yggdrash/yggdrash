@@ -9,6 +9,7 @@ import io.yggdrash.core.genesis.TransactionInfo;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.trie.Trie;
 import io.yggdrash.util.ByteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -232,41 +233,37 @@ public class Transaction implements Cloneable {
         return ecKeyPub.verify(hashedHeader, ecdsaSignature);
     }
 
+    private boolean verifyCheckLengthNotNull(byte[] data, int length, String msg) {
+
+        boolean result = !(data == null || data.length != length);
+
+        if (!result) {
+            log.debug(msg + " is not valid.");
+        }
+
+        return result;
+    }
+
     /**
      * Verify a transaction about transaction format.
      *
      * @return true(success), false(fail)
      */
     public boolean verifyData() {
+        // todo: error code
+        boolean check = true;
 
-        // check header size & null
-        if (this.header.getChain() == null
-                || this.header.getChain().length != this.header.CHAIN_LENGTH) {
-            log.debug("chain is not valid.");
-            return false;
-        } else if (this.header.getVersion() == null
-                || this.header.getVersion().length != this.header.VERSION_LENGTH) {
-            log.debug("version is not valid.");
-            return false;
-        } else if (this.header.getType() == null
-                || this.header.getType().length != this.header.TYPE_LENGTH) {
-            log.debug("type is not valid.");
-            return false;
-        } else if (this.header.getTimestamp() <= 0) {
-            log.debug("timestamp is not valid. " + this.header.getTimestamp());
-            return false;
-        } else if (this.header.getBodyHash() == null
-                || this.header.getBodyHash().length != this.header.BODYHASH_LENGTH) {
-            log.debug("bodyHash is not valid.");
-            return false;
-        } else if (this.header.getBodyLength() <= 0
-                || this.header.getBodyLength() != this.getBody().length()) {
-            log.debug("bodyLength is not valid. " + this.header.getBodyLength());
-            return false;
-        } else if (this.signature == null || this.signature.length != SIGNATURE_LENGTH) {
-            log.debug("signature is not valid.");
-            return false;
-        }
+        check &= verifyCheckLengthNotNull(
+                this.header.getChain(), this.header.CHAIN_LENGTH, "chain");
+        check &= verifyCheckLengthNotNull(
+                this.header.getVersion(), this.header.VERSION_LENGTH, "version");
+        check &= verifyCheckLengthNotNull(this.header.getType(), this.header.TYPE_LENGTH, "type");
+        check &= this.header.getTimestamp() > 0;
+        check &= verifyCheckLengthNotNull(
+                this.header.getBodyHash(), this.header.BODYHASH_LENGTH, "bodyHash");
+        check &= !(this.header.getBodyLength() <= 0
+                || this.header.getBodyLength() != this.getBody().length());
+        check &= verifyCheckLengthNotNull(this.signature, this.SIGNATURE_LENGTH, "signature");
 
         // check bodyHash
         if (!Arrays.equals(this.header.getBodyHash(), HashUtil.sha3(this.body.toBinary()))) {
@@ -275,7 +272,7 @@ public class Transaction implements Cloneable {
             return false;
         }
 
-        return true;
+        return check;
     }
 
     /**
