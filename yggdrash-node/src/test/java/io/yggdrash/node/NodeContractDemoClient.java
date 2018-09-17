@@ -3,7 +3,6 @@ package io.yggdrash.node;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.TestUtils;
-import io.yggdrash.contract.ContractTx;
 import io.yggdrash.core.Address;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
@@ -17,6 +16,9 @@ import org.springframework.core.io.ResourceLoader;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
+
+import static io.yggdrash.contract.ContractTx.createStemTx;
+import static io.yggdrash.contract.ContractTx.createYeedTx;
 
 public class NodeContractDemoClient {
 
@@ -34,7 +36,7 @@ public class NodeContractDemoClient {
         System.out.print("[1] STEM  [2] YEED : ");
         if (scan.nextLine().equals("2")) {
             TransactionHusk tx =
-                ContractTx.createYeedTx(wallet, new Address(TestUtils.TRANSFER_TO), 100);
+                    createYeedTx(wallet, new Address(TestUtils.TRANSFER_TO), 100);
             sendTx(tx, server);
 
         } else {
@@ -51,7 +53,7 @@ public class NodeContractDemoClient {
                 times = "1";
             }
             for (int i = Integer.parseInt(times); i > 0; i--) {
-                TransactionHusk tx = ContractTx.createStemTx(wallet, seed, "create");
+                TransactionHusk tx = createStemTx(wallet, seed, "create");
                 sendTx(tx, server);
             }
         }

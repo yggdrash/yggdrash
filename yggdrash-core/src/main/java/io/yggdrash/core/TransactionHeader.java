@@ -16,6 +16,13 @@ public class TransactionHeader implements Cloneable {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHeader.class);
 
+    public static final int CHAIN_LENGTH = 20;
+    public static final int VERSION_LENGTH = 8;
+    public static final int TYPE_LENGTH = 8;
+    public static final int TIMESTAMP_LENGTH = 8;
+    public static final int BODYHASH_LENGTH = 32;
+    public static final int BODYLENGTH_LENGTH = 8;
+
     // Transaction Format v0.0.3
     private byte[] chain;       // 20 Bytes
     private byte[] version;     // 8 Bytes
@@ -62,33 +69,34 @@ public class TransactionHeader implements Cloneable {
     public TransactionHeader(byte[] txHeaderBytes) {
         int pos = 0;
 
-        this.chain = new byte[20];
+        this.chain = new byte[CHAIN_LENGTH];
         System.arraycopy(txHeaderBytes, pos, this.chain, 0, this.chain.length);
         pos += this.chain.length;
 
-        this.version = new byte[8];
+        this.version = new byte[VERSION_LENGTH];
         System.arraycopy(txHeaderBytes, pos, this.version, 0, this.version.length);
         pos += this.version.length;
 
-        this.type = new byte[8];
+        this.type = new byte[TYPE_LENGTH];
         System.arraycopy(txHeaderBytes, pos, this.type, 0, this.type.length);
         pos += this.type.length;
 
-        byte[] timestampBytes = new byte[8];
+        byte[] timestampBytes = new byte[TIMESTAMP_LENGTH];
         System.arraycopy(txHeaderBytes, pos, timestampBytes, 0, timestampBytes.length);
         this.timestamp = ByteUtil.byteArrayToLong(timestampBytes);
         pos += timestampBytes.length;
 
-        this.bodyHash = new byte[32];
+        this.bodyHash = new byte[BODYHASH_LENGTH];
         System.arraycopy(txHeaderBytes, pos, this.bodyHash, 0, this.bodyHash.length);
         pos += this.bodyHash.length;
 
-        byte[] bodyLengthBytes = new byte[8];
+        byte[] bodyLengthBytes = new byte[BODYLENGTH_LENGTH];
         System.arraycopy(txHeaderBytes, pos, bodyLengthBytes, 0, bodyLengthBytes.length);
         this.bodyLength = ByteUtil.byteArrayToLong(bodyLengthBytes);
         pos += bodyLengthBytes.length;
 
         if (pos != txHeaderBytes.length) {
+            log.debug("Transaction Header Length is not valid.");
             throw new NotValidateException();
         }
 

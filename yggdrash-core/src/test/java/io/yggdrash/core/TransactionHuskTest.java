@@ -160,6 +160,7 @@ public class TransactionHuskTest {
         assertArrayEquals(account.getAddress(), address);
         assertArrayEquals(account.getKey().getPubKey(), pubKey);
     }
+
     @Test
     public void shouldBeVerifiedBySignature()
             throws IOException, InvalidCipherTextException {

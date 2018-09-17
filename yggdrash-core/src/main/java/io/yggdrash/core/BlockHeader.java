@@ -15,6 +15,15 @@ import java.io.IOException;
 
 public class BlockHeader implements Cloneable {
 
+    public static final int CHAIN_LENGTH = 20;
+    public static final int VERSION_LENGTH = 8;
+    public static final int TYPE_LENGTH = 8;
+    public static final int PREVBLOCKHASH_LENGTH = 32;
+    public static final int INDEX_LENGTH = 8;
+    public static final int TIMESTAMP_LENGTH = 8;
+    public static final int MERKLEROOT_LENGTH = 32;
+    public static final int BODYLENGTH_LENGTH = 8;
+
     // Data format v0.0.3
     private byte[] chain;           // 20 Bytes
     private byte[] version;         // 8 Bytes

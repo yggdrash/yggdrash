@@ -9,7 +9,10 @@ import io.yggdrash.core.genesis.TransactionInfo;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.trie.Trie;
 import io.yggdrash.util.ByteUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
@@ -20,6 +23,10 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Block implements Cloneable {
+
+    private static final Logger log = LoggerFactory.getLogger(Block.class);
+
+    private static final int SIGNATURE_LENGTH = 65;
 
     private BlockHeader header;
     private byte[] signature;
@@ -94,6 +101,10 @@ public class Block implements Cloneable {
 
     public boolean verify() {
 
+        if (!this.verifyData()) {
+            return false;
+        }
+
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
         byte[] hashedHeader = this.header.getHashForSignning();
         ECKey ecKeyPub;
@@ -104,6 +115,45 @@ public class Block implements Cloneable {
         }
 
         return ecKeyPub.verify(hashedHeader, ecdsaSignature);
+    }
+
+    private boolean verifyCheckLengthNotNull(byte[] data, int length, String msg) {
+
+        boolean result = !(data == null || data.length != length);
+
+        if (!result) {
+            log.debug(msg + " is not valid.");
+        }
+
+        return result;
+    }
+
+    /**
+     * Verify a block about block format.
+     *
+     * @return true(success), false(fail)
+     */
+    public boolean verifyData() throws IOException {
+        // TODO CheckByValidate Code
+        boolean check = true;
+        check &= verifyCheckLengthNotNull(
+                this.header.getChain(), this.header.CHAIN_LENGTH, "chain");
+        check &= verifyCheckLengthNotNull(
+                this.header.getVersion(), this.header.VERSION_LENGTH, "version");
+        check &= verifyCheckLengthNotNull(this.header.getType(), this.header.TYPE_LENGTH, "type");
+        check &= verifyCheckLengthNotNull(
+                this.header.getPrevBlockHash(), this.header.PREVBLOCKHASH_LENGTH, "prevBlockHash");
+        check &= verifyCheckLengthNotNull(
+                this.header.getMerkleRoot(), this.header.MERKLEROOT_LENGTH, "merkleRootLength");
+        check &= verifyCheckLengthNotNull(this.signature, this.SIGNATURE_LENGTH, "signature");
+        check &= this.header.getIndex() >= 0;
+        check &= this.header.getTimestamp() > 0;
+        check &= !(this.header.getBodyLength() <= 0
+                || this.header.getBodyLength() != this.getBody().length());
+        check &= Arrays.equals(
+                this.header.getMerkleRoot(), Trie.getMerkleRoot(this.body.getBody()));
+
+        return check;
     }
 
     public JsonObject toJsonObject() {

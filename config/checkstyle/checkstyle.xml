@@ -40,7 +40,7 @@
     <!-- Checks for whitespace                               -->
     <!-- See http://checkstyle.sf.net/config_whitespace.html -->
     <module name="SuppressionFilter">
-        <property name="file" value="${suppressionFile}" />
+        <property name="file" value="config/checkstyle/suppressions.xml" />
         <property name="optional" value="false" />
     </module>
     <module name="FileTabCharacter">
