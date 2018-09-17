@@ -18,6 +18,7 @@ package io.yggdrash.node.controller;
 
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.event.BranchEventListener;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,6 +42,9 @@ public class WebsocketController implements BranchEventListener {
         template.convertAndSend("/topic/blocks", BlockDto.createBy(block));
         template.convertAndSend("/topic/branches/" + branchId + "/blocks",
                 BlockDto.createBy(block));
+        if (block.getBranchId().equals(BranchId.stem())) {
+            template.convertAndSend("/topic/stem/blocks", BlockDto.createBy(block));
+        }
     }
 
     @Override
@@ -49,5 +53,8 @@ public class WebsocketController implements BranchEventListener {
         template.convertAndSend("/topic/txs", TransactionDto.createBy(tx));
         template.convertAndSend("/topic/branches/" + branchId + "/txs",
                 TransactionDto.createBy(tx));
+        if (tx.getBranchId().equals(BranchId.stem())) {
+            template.convertAndSend("/topic/stem/txs", TransactionDto.createBy(tx));
+        }
     }
 }
