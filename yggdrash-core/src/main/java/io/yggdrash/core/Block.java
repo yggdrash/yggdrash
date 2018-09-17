@@ -132,10 +132,10 @@ public class Block implements Cloneable {
         check &= verifyCheckLengthNotNull(this.header.getPrevBlockHash(), this.header.PREVBLOCKHASH_LENGTH);
         check &= verifyCheckLengthNotNull(this.header.getMerkleRoot(), this.header.MERKLEROOT_LENGTH);
         check &= verifyCheckLengthNotNull(this.signature, this.SIGNATURE_LENGTH);
-        check &= this.header.getIndex() < 0;
-        check &= this.header.getTimestamp() <= 0;
-        check &= (this.header.getBodyLength() <= 0
-                && this.header.getBodyLength() != this.getBody().length());
+        check &= this.header.getIndex() >= 0;
+        check &= this.header.getTimestamp() > 0;
+        check &= !(this.header.getBodyLength() <= 0
+                || this.header.getBodyLength() != this.getBody().length());
         check &= Arrays.equals(this.header.getMerkleRoot(), Trie.getMerkleRoot(this.body.getBody()));
 
         return check;
