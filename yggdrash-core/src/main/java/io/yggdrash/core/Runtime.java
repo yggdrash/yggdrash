@@ -15,7 +15,7 @@ public class Runtime<T> {
         this.txReceiptStore = txReceiptStore;
     }
 
-    public boolean invoke(Contract contract, TransactionHusk tx) throws Exception {
+    public boolean invoke(Contract contract, TransactionHusk tx) {
         contract.init(stateStore, txReceiptStore);
         return contract.invoke(tx);
     }

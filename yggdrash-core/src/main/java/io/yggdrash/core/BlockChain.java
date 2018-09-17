@@ -275,14 +275,10 @@ public class BlockChain {
 
 
     private void executeAllTx(Set<TransactionHusk> txList) {
-        try {
-            for (TransactionHusk tx : txList) {
-                if (!runtime.invoke(contract, tx)) {
-                    break;
-                }
+        for (TransactionHusk tx : txList) {
+            if (!runtime.invoke(contract, tx)) {
+                break;
             }
-        } catch (Exception e) {
-            throw new FailedOperationException(e);
         }
     }
 

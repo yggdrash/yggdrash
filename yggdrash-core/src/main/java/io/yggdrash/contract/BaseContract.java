@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
+import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.slf4j.Logger;
@@ -23,7 +24,7 @@ public abstract class BaseContract<T> implements Contract<T> {
     }
 
     @Override
-    public boolean invoke(TransactionHusk txHusk) throws Exception {
+    public boolean invoke(TransactionHusk txHusk) {
         String data = txHusk.getBody();
         JsonParser jsonParser = new JsonParser();
         JsonArray txBodyArray = (JsonArray) jsonParser.parse(data);
@@ -33,19 +34,22 @@ public abstract class BaseContract<T> implements Contract<T> {
         JsonArray params = txBody.get("params").getAsJsonArray();
 
         if (!method.isEmpty()) {
-            TransactionReceipt txReciept = (TransactionReceipt) this.getClass()
-                    .getMethod(method, JsonArray.class)
-                    .invoke(this, params);
-            txReciept.setTransactionHash(txHusk.getHash().toString());
-            txReceiptStore.put(txHusk.getHash().toString(), txReciept);
-            return true;
+            try {
+                TransactionReceipt txReceipt = (TransactionReceipt) this.getClass()
+                        .getMethod(method, JsonArray.class)
+                        .invoke(this, params);
+                txReceipt.setTransactionHash(txHusk.getHash().toString());
+                txReceiptStore.put(txHusk.getHash().toString(), txReceipt);
+                return true;
+            } catch (Exception e) {
+                throw new FailedOperationException("No such method");
+            }
         }
         return false;
     }
 
     @Override
     public JsonObject query(JsonObject query) throws Exception {
-        //this.sender = query.get("address").getAsString();
         String method = query.get("method").getAsString().toLowerCase();
         JsonArray params = query.get("params").getAsJsonArray();
 

@@ -8,7 +8,7 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 public interface Contract<T> {
     void init(StateStore<T> store, TransactionReceiptStore txReceiptStore);
 
-    boolean invoke(TransactionHusk tx) throws Exception;
+    boolean invoke(TransactionHusk tx);
 
     JsonObject query(JsonObject query) throws Exception;
 }
