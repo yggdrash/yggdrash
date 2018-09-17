@@ -1,5 +1,12 @@
 package io.yggdrash.core;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.SignatureException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
@@ -13,13 +20,6 @@ import io.yggdrash.util.ByteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
-
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.security.SignatureException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class Block implements Cloneable {
 
@@ -114,57 +114,31 @@ public class Block implements Cloneable {
     }
 
 
+    private boolean verifyCheckLengthNotNull(byte[] data, int length) {
+        return data != null && data.length == length;
+    }
+
     /**
      * Verify a block about block format.
      *
      * @return true(success), false(fail)
      */
     public boolean verifyData() throws IOException {
+        // TODO CheckByValidate Code
+        boolean check = true;
+        check &= verifyCheckLengthNotNull(this.header.getChain(), this.header.CHAIN_LENGTH);
+        check &= verifyCheckLengthNotNull(this.header.getVersion(), this.header.VERSION_LENGTH);
+        check &= verifyCheckLengthNotNull(this.header.getType(), this.header.TYPE_LENGTH);
+        check &= verifyCheckLengthNotNull(this.header.getPrevBlockHash(), this.header.PREVBLOCKHASH_LENGTH);
+        check &= verifyCheckLengthNotNull(this.header.getMerkleRoot(), this.header.MERKLEROOT_LENGTH);
+        check &= verifyCheckLengthNotNull(this.signature, this.SIGNATURE_LENGTH);
+        check &= this.header.getIndex() < 0;
+        check &= this.header.getTimestamp() <= 0;
+        check &= (this.header.getBodyLength() <= 0
+                && this.header.getBodyLength() != this.getBody().length());
+        check &= Arrays.equals(this.header.getMerkleRoot(), Trie.getMerkleRoot(this.body.getBody()));
 
-        // check header size & null
-        if (this.header.getChain() == null
-                || this.header.getChain().length != this.header.CHAIN_LENGTH) {
-            log.debug("chain is not valid.");
-            return false;
-        } else if (this.header.getVersion() == null
-                || this.header.getVersion().length != this.header.VERSION_LENGTH) {
-            log.debug("version is not valid.");
-            return false;
-        } else if (this.header.getType() == null
-                || this.header.getType().length != this.header.TYPE_LENGTH) {
-            log.debug("type is not valid.");
-            return false;
-        } else if (this.header.getPrevBlockHash() == null
-                || this.header.getPrevBlockHash().length != this.header.PREVBLOCKHASH_LENGTH) {
-            log.debug("type is not valid.");
-            return false;
-        } else if (this.header.getIndex() < 0) {
-            log.debug("index is not valid. " + this.header.getIndex());
-            return false;
-        } else if (this.header.getTimestamp() <= 0) {
-            log.debug("timestamp is not valid. " + this.header.getTimestamp());
-            return false;
-        } else if (this.header.getMerkleRoot() == null
-                || this.header.getMerkleRoot().length != this.header.MERKLEROOT_LENGTH) {
-            log.debug("merkleRoot is not valid.");
-            return false;
-        } else if (this.header.getBodyLength() <= 0
-                || this.header.getBodyLength() != this.getBody().length()) {
-            log.debug("bodyLength is not valid. " + this.header.getBodyLength());
-            return false;
-        } else if (this.signature == null || this.signature.length != SIGNATURE_LENGTH) {
-            log.debug("signature is not valid.");
-            return false;
-        }
-
-        // check merkleRoot
-        if (!Arrays.equals(this.header.getMerkleRoot(), Trie.getMerkleRoot(this.body.getBody()))) {
-            log.debug("merkleRoot is not equal to body :"
-                    + Hex.toHexString(this.header.getMerkleRoot()));
-            return false;
-        }
-
-        return true;
+        return check;
     }
 
 
