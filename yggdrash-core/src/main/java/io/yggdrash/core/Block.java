@@ -8,7 +8,10 @@ import io.yggdrash.core.genesis.TransactionInfo;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.trie.Trie;
 import io.yggdrash.util.ByteUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
@@ -19,6 +22,10 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Block implements Cloneable {
+
+    private static final Logger log = LoggerFactory.getLogger(Block.class);
+
+    private static final int SIGNATURE_LENGTH = 65;
 
     private BlockHeader header;
     private byte[] signature;
@@ -95,12 +102,71 @@ public class Block implements Cloneable {
 
     public boolean verify() throws IOException, SignatureException {
 
+        if (!this.verifyData()) {
+            return false;
+        }
+
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
         byte[] hashedHeader = this.header.getHashForSignning();
         ECKey ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
 
         return ecKeyPub.verify(hashedHeader, ecdsaSignature);
     }
+
+
+    /**
+     * Verify a block about block format.
+     *
+     * @return true(success), false(fail)
+     */
+    public boolean verifyData() throws IOException {
+
+        // check header size & null
+        if (this.header.getChain() == null
+                || this.header.getChain().length != this.header.CHAIN_LENGTH) {
+            log.debug("chain is not valid.");
+            return false;
+        } else if (this.header.getVersion() == null
+                || this.header.getVersion().length != this.header.VERSION_LENGTH) {
+            log.debug("version is not valid.");
+            return false;
+        } else if (this.header.getType() == null
+                || this.header.getType().length != this.header.TYPE_LENGTH) {
+            log.debug("type is not valid.");
+            return false;
+        } else if (this.header.getPrevBlockHash() == null
+                || this.header.getPrevBlockHash().length != this.header.PREVBLOCKHASH_LENGTH) {
+            log.debug("type is not valid.");
+            return false;
+        } else if (this.header.getIndex() < 0) {
+            log.debug("index is not valid. " + this.header.getIndex());
+            return false;
+        } else if (this.header.getTimestamp() <= 0) {
+            log.debug("timestamp is not valid. " + this.header.getTimestamp());
+            return false;
+        } else if (this.header.getMerkleRoot() == null
+                || this.header.getMerkleRoot().length != this.header.MERKLEROOT_LENGTH) {
+            log.debug("merkleRoot is not valid.");
+            return false;
+        } else if (this.header.getBodyLength() <= 0
+                || this.header.getBodyLength() != this.getBody().length()) {
+            log.debug("bodyLength is not valid. " + this.header.getBodyLength());
+            return false;
+        } else if (this.signature == null || this.signature.length != SIGNATURE_LENGTH ) {
+            log.debug("signature is not valid.");
+            return false;
+        }
+
+        // check merkleRoot
+        if(!Arrays.equals(this.header.getMerkleRoot(), Trie.getMerkleRoot(this.body.getBody()))) {
+            log.debug("merkleRoot is not equal to body :"
+                    + Hex.toHexString(this.header.getMerkleRoot()));
+            return false;
+        }
+
+        return true;
+    }
+
 
     public JsonObject toJsonObject() {
 

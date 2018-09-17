@@ -114,19 +114,21 @@ public class BlockTest {
 
         try {
             Block block0 = new Block(blockHeader1, blockSig1.getSignature(), blockBody1);
-
+            if(!block0.verify()) { assert false; }
             log.debug("block0=" + block0.toJsonObject());
             log.debug("block0=" + block0.toString());
             log.debug("block0=" + block0.toStringPretty());
 
             blockHeader1.setTimestamp(TimeUtils.time());
             block1 = new Block(blockHeader1, wallet, blockBody1);
+            if(!block1.verify()) { assert false; }
             log.debug("block1=" + block1.toJsonObject());
             log.debug("block1=" + block1.toString());
             log.debug("block1=" + block1.toStringPretty());
 
             block2 = new Block(
                     blockHeader1.clone(), block1.getSignature().clone(), blockBody1.clone());
+            if(!block2.verify()) { assert false; }
 
             log.debug("block2=" + block2.toJsonObject());
             log.debug("block2=" + block2.toString());
@@ -141,6 +143,8 @@ public class BlockTest {
             log.debug("block2=" + block2.toJsonObject());
 
             Block block3 = new Block(block0.toJsonObject());
+            if(!block3.verify()) { assert false; }
+
             assertEquals(block0.toJsonObject().toString(), block3.toJsonObject().toString());
 
         } catch (Exception e) {
