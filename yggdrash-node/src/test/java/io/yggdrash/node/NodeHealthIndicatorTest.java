@@ -29,6 +29,8 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.Status;
 
+import java.util.Collections;
+
 import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.when;
 
@@ -50,7 +52,7 @@ public class NodeHealthIndicatorTest {
         PeerGroup peerGroup = new PeerGroup(1);
         this.nodeHealthIndicator = new NodeHealthIndicator(new DefaultConfig(), branchGroupMock,
                 peerGroup);
-        when(branchGroupMock.getLastIndex()).thenReturn(1L);
+        when(branchGroupMock.getAllBranch()).thenReturn(Collections.EMPTY_LIST);
     }
 
     @Test
