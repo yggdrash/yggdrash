@@ -152,13 +152,13 @@ public class Block implements Cloneable {
                 || this.header.getBodyLength() != this.getBody().length()) {
             log.debug("bodyLength is not valid. " + this.header.getBodyLength());
             return false;
-        } else if (this.signature == null || this.signature.length != SIGNATURE_LENGTH ) {
+        } else if (this.signature == null || this.signature.length != SIGNATURE_LENGTH) {
             log.debug("signature is not valid.");
             return false;
         }
 
         // check merkleRoot
-        if(!Arrays.equals(this.header.getMerkleRoot(), Trie.getMerkleRoot(this.body.getBody()))) {
+        if (!Arrays.equals(this.header.getMerkleRoot(), Trie.getMerkleRoot(this.body.getBody()))) {
             log.debug("merkleRoot is not equal to body :"
                     + Hex.toHexString(this.header.getMerkleRoot()));
             return false;

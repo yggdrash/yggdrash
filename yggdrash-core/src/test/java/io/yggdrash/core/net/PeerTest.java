@@ -17,6 +17,7 @@ public class PeerTest {
     @Test
     public void getYnodeUri() {
         Peer peer = Peer.valueOf("75bff16c", "yggdrash-node1", 32918);
-        Assertions.assertThat(peer.getYnodeUri()).isEqualTo("ynode://75bff16c@yggdrash-node1:32918");
+        Assertions.assertThat(
+                peer.getYnodeUri()).isEqualTo("ynode://75bff16c@yggdrash-node1:32918");
     }
 }

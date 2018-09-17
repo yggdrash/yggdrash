@@ -216,8 +216,8 @@ public class Transaction implements Cloneable {
      * Verify a transaction.(data format & signning)
      *
      * @return true(success), false(fail)
-     * @throws IOException
-     * @throws SignatureException
+     * @throws IOException IOException
+     * @throws SignatureException SignatureException
      */
     public boolean verify() throws IOException, SignatureException {
 
@@ -263,13 +263,13 @@ public class Transaction implements Cloneable {
                 || this.header.getBodyLength() != this.getBody().length()) {
             log.debug("bodyLength is not valid. " + this.header.getBodyLength());
             return false;
-        } else if (this.signature == null || this.signature.length != SIGNATURE_LENGTH ) {
+        } else if (this.signature == null || this.signature.length != SIGNATURE_LENGTH) {
             log.debug("signature is not valid.");
             return false;
         }
 
         // check bodyHash
-        if(!Arrays.equals(this.header.getBodyHash(), HashUtil.sha3(this.body.toBinary()))) {
+        if (!Arrays.equals(this.header.getBodyHash(), HashUtil.sha3(this.body.toBinary()))) {
             log.debug("bodyHash is not equal to body :"
                     + Hex.toHexString(this.header.getBodyHash()));
             return false;
@@ -311,7 +311,7 @@ public class Transaction implements Cloneable {
      * Get a binary transaction data.
      *
      * @return a binary transaction data.
-     * @throws IOException
+     * @throws IOException IOException
      */
     public byte[] toBinary() throws IOException {
 
@@ -328,7 +328,7 @@ public class Transaction implements Cloneable {
      * Clone a transaction.
      *
      * @return a transaction
-     * @throws CloneNotSupportedException
+     * @throws CloneNotSupportedException CloneNotSupportedException
      */
     @Override
     public Transaction clone() throws CloneNotSupportedException {
