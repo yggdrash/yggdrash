@@ -27,8 +27,8 @@ public class ContractApiImpl implements ContractApi {
         log.debug("[ContractAPI | data]" + data);
         JsonParser jsonParser = new JsonParser();
         JsonObject query = (JsonObject) jsonParser.parse(data);
-        if(!query.has("address")) {
-           throw new NonExistObjectException("");
+        if (!query.has("address")) {
+            throw new NonExistObjectException("");
         }
         return branchGroup.query(query).toString();
     }
