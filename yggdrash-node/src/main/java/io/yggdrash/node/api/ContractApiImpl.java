@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.exception.NonExistObjectException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +27,9 @@ public class ContractApiImpl implements ContractApi {
         log.debug("[ContractAPI | data]" + data);
         JsonParser jsonParser = new JsonParser();
         JsonObject query = (JsonObject) jsonParser.parse(data);
+        if(!query.has("address")) {
+           throw new NonExistObjectException("");
+        }
         return branchGroup.query(query).toString();
     }
 }
