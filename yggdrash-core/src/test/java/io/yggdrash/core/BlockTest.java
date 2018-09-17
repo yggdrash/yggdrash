@@ -1,5 +1,13 @@
 package io.yggdrash.core;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.util.TimeUtils;
@@ -7,13 +15,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
 public class BlockTest {
 
@@ -114,27 +115,23 @@ public class BlockTest {
 
         try {
             Block block0 = new Block(blockHeader1, blockSig1.getSignature(), blockBody1);
-            if (!block0.verify()) {
-                assert false;
-            }
+            assertTrue(block0.verify());
+
             log.debug("block0=" + block0.toJsonObject());
             log.debug("block0=" + block0.toString());
             log.debug("block0=" + block0.toStringPretty());
 
             blockHeader1.setTimestamp(TimeUtils.time());
             block1 = new Block(blockHeader1, wallet, blockBody1);
-            if (!block1.verify()) {
-                assert false;
-            }
+            assertTrue(block1.verify());
+
             log.debug("block1=" + block1.toJsonObject());
             log.debug("block1=" + block1.toString());
             log.debug("block1=" + block1.toStringPretty());
 
             block2 = new Block(
                     blockHeader1.clone(), block1.getSignature().clone(), blockBody1.clone());
-            if (!block2.verify()) {
-                assert false;
-            }
+            assertTrue(block2.verify());
 
             log.debug("block2=" + block2.toJsonObject());
             log.debug("block2=" + block2.toString());
@@ -149,9 +146,7 @@ public class BlockTest {
             log.debug("block2=" + block2.toJsonObject());
 
             Block block3 = new Block(block0.toJsonObject());
-            if (!block3.verify()) {
-                assert false;
-            }
+            assertTrue(block3.verify());
 
             assertEquals(block0.toJsonObject().toString(), block3.toJsonObject().toString());
 
