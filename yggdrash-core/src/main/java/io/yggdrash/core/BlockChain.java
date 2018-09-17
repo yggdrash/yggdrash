@@ -1,5 +1,13 @@
 package io.yggdrash.core;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.stream.Collectors;
+
 import com.google.common.annotations.VisibleForTesting;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.Contract;
@@ -16,13 +24,6 @@ import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
 
 public class BlockChain {
 
@@ -273,18 +274,23 @@ public class BlockChain {
         return (this.prevBlock == null);
     }
 
+    // TODO excute All Transaction
+    private List<Boolean> executeAllTx(Set<TransactionHusk> txList) {
+        return txList.stream()
+            .map(t -> excuteTransaction(t))
+            .collect(Collectors.toList())
+        ;
+    }
 
-    private void executeAllTx(Set<TransactionHusk> txList) {
-        try {
-            for (TransactionHusk tx : txList) {
-                if (!runtime.invoke(contract, tx)) {
-                    break;
-                }
-            }
-        } catch (Exception e) {
-            throw new FailedOperationException(e);
+    private boolean excuteTransaction(TransactionHusk tx) {
+        try{
+            return runtime.invoke(contract, tx);
+        } catch ( Exception e ) {
+            log.error("excuteTransaction Error" + e);
+            return false;
         }
     }
+
 
     private void removeTxByBlock(BlockHusk block) {
         if (block == null || block.getBody() == null) {
