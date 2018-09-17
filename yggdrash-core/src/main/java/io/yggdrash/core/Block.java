@@ -1,12 +1,5 @@
 package io.yggdrash.core;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.security.SignatureException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
@@ -20,6 +13,13 @@ import io.yggdrash.util.ByteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.security.SignatureException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class Block implements Cloneable {
 
@@ -129,14 +129,17 @@ public class Block implements Cloneable {
         check &= verifyCheckLengthNotNull(this.header.getChain(), this.header.CHAIN_LENGTH);
         check &= verifyCheckLengthNotNull(this.header.getVersion(), this.header.VERSION_LENGTH);
         check &= verifyCheckLengthNotNull(this.header.getType(), this.header.TYPE_LENGTH);
-        check &= verifyCheckLengthNotNull(this.header.getPrevBlockHash(), this.header.PREVBLOCKHASH_LENGTH);
-        check &= verifyCheckLengthNotNull(this.header.getMerkleRoot(), this.header.MERKLEROOT_LENGTH);
+        check &= verifyCheckLengthNotNull(
+                this.header.getPrevBlockHash(), this.header.PREVBLOCKHASH_LENGTH);
+        check &= verifyCheckLengthNotNull(
+                this.header.getMerkleRoot(), this.header.MERKLEROOT_LENGTH);
         check &= verifyCheckLengthNotNull(this.signature, this.SIGNATURE_LENGTH);
         check &= this.header.getIndex() >= 0;
         check &= this.header.getTimestamp() > 0;
         check &= !(this.header.getBodyLength() <= 0
                 || this.header.getBodyLength() != this.getBody().length());
-        check &= Arrays.equals(this.header.getMerkleRoot(), Trie.getMerkleRoot(this.body.getBody()));
+        check &= Arrays.equals(
+                this.header.getMerkleRoot(), Trie.getMerkleRoot(this.body.getBody()));
 
         return check;
     }
