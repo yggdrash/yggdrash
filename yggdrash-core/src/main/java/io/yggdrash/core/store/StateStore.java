@@ -1,5 +1,8 @@
 package io.yggdrash.core.store;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonObject;
+import io.yggdrash.core.exception.FailedOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +19,7 @@ public class StateStore<T> implements Store<String, T> {
     private static final Logger logger = LoggerFactory.getLogger(StateStore.class);
     private final Map<String, T> state;
     private final Map<String, Map<Object, Set<Object>>> subState;
+    private static final ObjectMapper mapper = new ObjectMapper();
 
     public StateStore() {
         this.state = new ConcurrentHashMap<>();
@@ -24,6 +28,29 @@ public class StateStore<T> implements Store<String, T> {
 
     public Map<String, T> getState() {
         return this.state;
+    }
+
+    public List<Map<String, Object>> getStateList() {
+        ArrayList<Map<String, Object>> result = new ArrayList<>();
+        try {
+            for (Map.Entry entry : state.entrySet()) {
+                Object value = entry.getValue();
+                JsonObject jsonObject;
+                if (value instanceof JsonObject) {
+                    jsonObject = ((JsonObject) value);
+                    jsonObject.addProperty("id", entry.getKey().toString());
+                } else {
+                    jsonObject = new JsonObject();
+                    jsonObject.addProperty("id", entry.getKey().toString());
+                    jsonObject.addProperty("value", "" + entry.getValue());
+                }
+                Map<String, Object> map = mapper.readValue(jsonObject.toString(), HashMap.class);
+                result.add(map);
+            }
+        } catch (Exception e) {
+            throw new FailedOperationException(e.getMessage());
+        }
+        return result;
     }
 
     public  Map<Object, Set<Object>> getSubState(String key) {
