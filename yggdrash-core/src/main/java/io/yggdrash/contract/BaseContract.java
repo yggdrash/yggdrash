@@ -37,15 +37,13 @@ public abstract class BaseContract<T> implements Contract<T> {
 
             String method = txBody.get("method").getAsString().toLowerCase();
             JsonArray params = txBody.get("params").getAsJsonArray();
-            try {
-                TransactionReceipt txReceipt = (TransactionReceipt) this.getClass()
-                        .getMethod(method, JsonArray.class)
-                        .invoke(this, params);
-                txReceipt.setTransactionHash(txHusk.getHash().toString());
-                txReceiptStore.put(txHusk.getHash().toString(), txReceipt);
-            } catch (Exception e) {
-                throw new FailedOperationException("No such method");
-            }
+
+            TransactionReceipt txReceipt = (TransactionReceipt) this.getClass()
+                    .getMethod(method, JsonArray.class)
+                    .invoke(this, params);
+            txReceipt.setTransactionHash(txHusk.getHash().toString());
+            txReceiptStore.put(txHusk.getHash().toString(), txReceipt);
+
             return true;
         } catch (Throwable e) {
             TransactionReceipt txReceipt = new TransactionReceipt();

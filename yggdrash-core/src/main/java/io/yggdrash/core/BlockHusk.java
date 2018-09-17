@@ -179,11 +179,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     }
 
     public boolean verify() {
-        try {
-            return this.coreBlock.verify();
-        } catch (IOException | SignatureException e) {
-            return false;
-        }
+        return this.coreBlock.verify();
     }
 
     @Override

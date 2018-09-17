@@ -3,6 +3,7 @@ package io.yggdrash.core;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.genesis.BlockInfo;
 import io.yggdrash.core.genesis.TransactionInfo;
 import io.yggdrash.crypto.ECKey;
@@ -28,19 +29,17 @@ public class Block implements Cloneable {
         this.header = header;
         this.signature = signature;
         this.body = body;
+        verify();
     }
 
-    public Block(BlockHeader header, Wallet wallet, BlockBody body)
-            throws IOException {
-        this.header = header;
-        this.body = body;
-        this.signature = wallet.signHashedData(this.header.getHashForSignning());
+    public Block(BlockHeader header, Wallet wallet, BlockBody body) {
+        this(header, wallet.signHashedData(header.getHashForSignning()), body);
     }
 
     public Block(JsonObject jsonObject) {
-        this.header = new BlockHeader(jsonObject.get("header").getAsJsonObject());
-        this.signature = Hex.decode(jsonObject.get("signature").getAsString());
-        this.body = new BlockBody(jsonObject.getAsJsonArray("body"));
+        this(new BlockHeader(jsonObject.get("header").getAsJsonObject()),
+                Hex.decode(jsonObject.get("signature").getAsString()),
+                new BlockBody(jsonObject.getAsJsonArray("body")));
     }
 
     public BlockHeader getHeader() {
@@ -68,7 +67,7 @@ public class Block implements Cloneable {
         return org.spongycastle.util.encoders.Hex.toHexString(this.getHash());
     }
 
-    public byte[] getPubKey() throws IOException, SignatureException {
+    public byte[] getPubKey() throws SignatureException {
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
         ECKey ecKeyPub = ECKey.signatureToKey(this.header.getHashForSignning(), ecdsaSignature);
 
@@ -93,11 +92,16 @@ public class Block implements Cloneable {
         return this.header.length() + this.signature.length + this.body.length();
     }
 
-    public boolean verify() throws IOException, SignatureException {
+    public boolean verify() {
 
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
         byte[] hashedHeader = this.header.getHashForSignning();
-        ECKey ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
+        ECKey ecKeyPub;
+        try {
+            ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
+        } catch (SignatureException e) {
+            throw new InvalidSignatureException(e);
+        }
 
         return ecKeyPub.verify(hashedHeader, ecdsaSignature);
     }

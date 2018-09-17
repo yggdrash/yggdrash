@@ -2,6 +2,7 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
@@ -147,26 +148,29 @@ public class BlockHeader implements Cloneable {
         this.timestamp = timestamp;
     }
 
-    public byte[] toBinary() throws IOException {
+    public byte[] toBinary() {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        try {
+            bao.write(chain);
+            bao.write(version);
+            bao.write(type);
+            bao.write(prevBlockHash);
+            bao.write(ByteUtil.longToBytes(index));
+            bao.write(ByteUtil.longToBytes(timestamp));
+            bao.write(merkleRoot);
+            bao.write(ByteUtil.longToBytes(bodyLength));
 
-        bao.write(chain);
-        bao.write(version);
-        bao.write(type);
-        bao.write(prevBlockHash);
-        bao.write(ByteUtil.longToBytes(index));
-        bao.write(ByteUtil.longToBytes(timestamp));
-        bao.write(merkleRoot);
-        bao.write(ByteUtil.longToBytes(bodyLength));
-
-        return bao.toByteArray();
+            return bao.toByteArray();
+        } catch (IOException e) {
+            throw new InternalErrorException("toBinary error");
+        }
     }
 
     public long length() throws IOException {
         return this.toBinary().length;
     }
 
-    public byte[] getHashForSignning() throws IOException {
+    public byte[] getHashForSignning() {
         return HashUtil.sha3(this.toBinary());
     }
 
