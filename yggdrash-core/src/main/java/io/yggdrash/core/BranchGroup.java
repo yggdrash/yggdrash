@@ -37,13 +37,11 @@ public class BranchGroup {
     public static final Logger log = LoggerFactory.getLogger(BranchGroup.class);
 
     private Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
-    private static BlockChain chain;
 
     public void addBranch(BranchId branchId, BlockChain blockChain) {
         if (branches.containsKey(branchId)) {
             throw new DuplicatedException(branchId.toString());
         }
-        chain = blockChain; // TODO remove
         branches.put(branchId, blockChain);
     }
 
@@ -62,27 +60,12 @@ public class BranchGroup {
         return tx;
     }
 
-    @Deprecated
-    public long getLastIndex() {
-        return getLastIndex(chain.getBranchId());
-    }
-
     public long getLastIndex(BranchId id) {
         return branches.get(id).getLastIndex();
     }
 
-    @Deprecated
-    public List<TransactionHusk> getTransactionList() {
-        return getTransactionList(chain.getBranchId());
-    }
-
     public List<TransactionHusk> getTransactionList(BranchId branchId) {
         return branches.get(branchId).getTransactionList();
-    }
-
-    @Deprecated
-    public TransactionHusk getTxByHash(String id) {
-        return getTxByHash(chain.getBranchId(), new Sha3Hash(id));
     }
 
     public TransactionHusk getTxByHash(BranchId branchId, String id) {
@@ -116,18 +99,8 @@ public class BranchGroup {
         return block;
     }
 
-    @Deprecated
-    public BlockHusk getBlockByIndex(long index) {
-        return getBlockByIndex(chain.getBranchId(), index);
-    }
-
     public BlockHusk getBlockByIndex(BranchId branchId, long index) {
         return branches.get(branchId).getBlockByIndex(index);
-    }
-
-    @Deprecated
-    public BlockHusk getBlockByHash(String hash) {
-        return getBlockByHash(chain.getBranchId(), hash);
     }
 
     public BlockHusk getBlockByHash(BranchId branchId, String hash) {
@@ -138,22 +111,12 @@ public class BranchGroup {
         return branches.size();
     }
 
-    @Deprecated
-    public StateStore<?> getStateStore() {
-        return getStateStore(chain.getBranchId());
-    }
-
     public StateStore<?> getStateStore(BranchId branchId) {
         return branches.get(branchId).getRuntime().getStateStore();
     }
 
-    public TransactionReceiptStore getTransactionReceiptStore() {
-        return chain.getRuntime().getTransactionReceiptStore();
-    }
-
-    @Deprecated
-    public Contract getContract() {
-        return getContract(chain.getBranchId());
+    public TransactionReceiptStore getTransactionReceiptStore(BranchId branchId) {
+        return branches.get(branchId).getRuntime().getTransactionReceiptStore();
     }
 
     public Contract getContract(BranchId branchId) {

@@ -5,22 +5,22 @@
     "type": "0000000000000000",
     "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
     "index": "0000000000000000",
-    "timestamp": "00000165ce01923c",
-    "merkleRoot": "9086b067d7e6e263695276acbfaba2dfb123328bd666a272a99ce73a8b4398a5",
-    "bodyLength": "000000000000051b"
+    "timestamp": "00000165d750551b",
+    "merkleRoot": "ca92d5ae4119535b8c17a0c1f25cb00422a99da5427eb1fc898d91b69a12b931",
+    "bodyLength": "0000000000000608"
   },
-  "signature": "1b072e00e8da5f5d253e65b24ec9550357a1df20c7dc72b1cb593ec5158c787fdd57ff569b8bd85cba71019e902c3168ddc07d077692067c089b4dc23c081d4f4f",
+  "signature": "1c5f2c57985c153479f6f265790d8b030d6a5c3a3281a9ed8a105fb3b4ba6c74d56ab77bd08707a2adcb7fb331acad5ae99cefa806c1ffc9fbff0530ed98888a64",
   "body": [
     {
       "header": {
         "chain": "a08ee962cd8b2bd0edbfee989c1a9f7884d26532",
         "version": "0000000000000000",
         "type": "0000000000000000",
-        "timestamp": "00000165ce01923c",
-        "bodyHash": "d232eefb6915bd832f59d2058c7926a3c0d7c02d892b44f070c7a2b35f0a136a",
-        "bodyLength": "0000000000000486"
+        "timestamp": "00000165d750551b",
+        "bodyHash": "edb9549837ed763c20499674fa7ccbbf1e803b1843fd346c6ba0a853647317ba",
+        "bodyLength": "0000000000000573"
       },
-      "signature": "1ce8ee20b64cfec7df27484a5b5492e019e72e89a85903471bc4611a42dfc6792520f493e58eee24357c9319e4b24fe961ec7493633b615c24d30e2f1a34001dd1",
+      "signature": "1cb2d6008a1a05bbd23ce555e7c628c56d8066670ac118c14d06add773d9f700c31cf50c13b997ed5e334fe286e173afdd1bd3a467e79d7c04bb563e193ec2c353",
       "body": [
         {
           "method": "genesis",
@@ -36,6 +36,18 @@
             },
             {
               "frontier": "5db10750e8caff27f906b41c71b3471057dd2002",
+              "balance": "1000000000"
+            },
+            {
+              "frontier": "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
+              "balance": "1000000000"
+            },
+            {
+              "frontier": "ff8dec4db7559bc2da766c495b53955990872ec1",
+              "balance": "1000000000"
+            },
+            {
+              "frontier": "2d4b795ea9fba0dd4ea8698bcac49efe94004c04",
               "balance": "1000000000"
             }
           ],

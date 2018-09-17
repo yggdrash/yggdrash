@@ -45,7 +45,7 @@ public class BranchGroupTest {
         assertThat(branchGroup.getBranchSize()).isEqualTo(1);
         tx = TestUtils.createTxHusk(wallet);
         block = new BlockHusk(wallet, Collections.singletonList(tx),
-                branchGroup.getBlockByIndex(0));
+                branchGroup.getBlockByIndex(BranchId.stem(), 0));
     }
 
     @After
@@ -68,7 +68,7 @@ public class BranchGroupTest {
         TransactionHusk pooledTx2 = branchGroup.getTxByHash(tx.getBranchId(),
                 tx.getHash().toString());
         assertThat(pooledTx2.getHash()).isEqualTo(tx.getHash());
-        assertThat(branchGroup.getTransactionList().size()).isEqualTo(1);
+        assertThat(branchGroup.getTransactionList(BranchId.stem()).size()).isEqualTo(1);
     }
 
     @Test
@@ -91,25 +91,25 @@ public class BranchGroupTest {
         BlockHusk newBlock = new BlockHusk(wallet, Collections.singletonList(tx), block);
         branchGroup.addBlock(newBlock);
 
-        assertThat(branchGroup.getLastIndex()).isEqualTo(2);
-        assertThat(branchGroup.getBlockByIndex(2).getHash()).isEqualTo(newBlock.getHash());
+        assertThat(branchGroup.getLastIndex(BranchId.stem())).isEqualTo(2);
+        assertThat(branchGroup.getBlockByIndex(BranchId.stem(),2).getHash()).isEqualTo(newBlock.getHash());
         TransactionHusk foundTx = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
         assertThat(foundTx.getHash()).isEqualTo(tx.getHash());
     }
 
     @Test
     public void getStateStore() {
-        assertThat(branchGroup.getStateStore()).isNotNull();
+        assertThat(branchGroup.getStateStore(BranchId.stem())).isNotNull();
     }
 
     @Test
     public void getTransactionReceiptStore() {
-        assertThat(branchGroup.getTransactionReceiptStore()).isNotNull();
+        assertThat(branchGroup.getTransactionReceiptStore(BranchId.stem())).isNotNull();
     }
 
     @Test
     public void getContract() {
-        assertThat(branchGroup.getContract()).isNotNull();
+        assertThat(branchGroup.getContract(BranchId.stem())).isNotNull();
     }
 
     @Test

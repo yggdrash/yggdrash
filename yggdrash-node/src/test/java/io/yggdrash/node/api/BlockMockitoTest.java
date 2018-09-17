@@ -3,6 +3,7 @@ package io.yggdrash.node.api;
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import org.junit.Before;
@@ -28,6 +29,7 @@ public class BlockMockitoTest {
     private String hashOfBlock;
     private long numOfblock;
     private List<BlockHusk> blockList = new ArrayList<>();
+    private BranchId stem = BranchId.stem();
 
     @Before
     public void setUp() {
@@ -40,36 +42,36 @@ public class BlockMockitoTest {
 
     @Test
     public void blockNumberTest() {
-        when(branchGroupMock.getLastIndex()).thenReturn(0L);
-        assertThat(blockApiImpl.blockNumber()).isEqualTo(blockList.size());
+        when(branchGroupMock.getLastIndex(stem)).thenReturn(0L);
+        assertThat(blockApiImpl.blockNumber(stem.toString())).isEqualTo(blockList.size());
     }
 
     @Test(expected = InternalErrorException.class)
     public void blockNumberExceptionTest() {
-        when(branchGroupMock.getLastIndex()).thenThrow(new RuntimeException());
-        blockApiImpl.blockNumber();
+        when(branchGroupMock.getLastIndex(stem)).thenThrow(new RuntimeException());
+        blockApiImpl.blockNumber(stem.toString());
     }
 
     @Test
     public void getBlockByHashTest() {
-        when(branchGroupMock.getBlockByHash(hashOfBlock)).thenReturn(block);
-        BlockHusk res = blockApiImpl.getBlockByHash(hashOfBlock, true);
+        when(branchGroupMock.getBlockByHash(stem, hashOfBlock)).thenReturn(block);
+        BlockHusk res = blockApiImpl.getBlockByHash(stem.toString(), hashOfBlock, true);
         assertThat(res).isNotNull();
         assertEquals(res.getHash().toString(), hashOfBlock);
     }
 
     @Test
     public void getBlockByNumberTest() {
-        when(branchGroupMock.getBlockByIndex(numOfblock)).thenReturn(block);
-        BlockHusk res = blockApiImpl.getBlockByNumber(numOfblock, true);
+        when(branchGroupMock.getBlockByIndex(stem, numOfblock)).thenReturn(block);
+        BlockHusk res = blockApiImpl.getBlockByNumber(stem.toString(), numOfblock, true);
         assertThat(res).isNotNull();
         assertEquals(res.getHash().toString(), hashOfBlock);
     }
 
     @Test(expected = NonExistObjectException.class)
     public void getBlockByNumberExceptionTest() {
-        when(branchGroupMock.getBlockByIndex(numOfblock)).thenThrow(new RuntimeException());
-        blockApiImpl.getBlockByNumber(numOfblock, true);
+        when(branchGroupMock.getBlockByIndex(stem, numOfblock)).thenThrow(new RuntimeException());
+        blockApiImpl.getBlockByNumber(stem.toString(), numOfblock, true);
     }
 
     @Test
