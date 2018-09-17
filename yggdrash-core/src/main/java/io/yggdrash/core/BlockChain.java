@@ -69,6 +69,9 @@ public class BlockChain {
         try {
             prevBlock = blockStore.get(genesisBlock.getHash());
         } catch (NonExistObjectException e) {
+            for (TransactionHusk tx : genesisBlock.getBody()) {
+                transactionStore.put(tx.getHash(), tx);
+            }
             addBlock(genesisBlock);
             startIdx = 1;
         }
