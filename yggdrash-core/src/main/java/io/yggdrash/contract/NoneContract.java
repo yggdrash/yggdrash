@@ -12,7 +12,7 @@ public class NoneContract implements Contract {
     }
 
     @Override
-    public boolean invoke(TransactionHusk tx) throws Exception {
+    public boolean invoke(TransactionHusk tx) {
         return true;
     }
 

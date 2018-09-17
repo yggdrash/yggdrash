@@ -278,8 +278,7 @@ public class BlockChain {
     private List<Boolean> executeAllTx(Set<TransactionHusk> txList) {
         return txList.stream()
             .map(t -> excuteTransaction(t))
-            .collect(Collectors.toList())
-        ;
+            .collect(Collectors.toList());
     }
 
     private boolean excuteTransaction(TransactionHusk tx) {
