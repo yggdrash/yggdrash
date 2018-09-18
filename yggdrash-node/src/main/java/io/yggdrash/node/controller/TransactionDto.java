@@ -144,7 +144,7 @@ public class TransactionDto {
     public static TransactionHusk of(TransactionDto dto) {
         Proto.Transaction.Header header = Proto.Transaction.Header.newBuilder()
                 .setChain(ByteString.copyFrom(Hex.decode(dto.getChainHex())))
-                .setVersion(ByteString.copyFrom(Hex.decode(dto.getTypeHex())))
+                .setVersion(ByteString.copyFrom(Hex.decode(dto.getVersionHex())))
                 .setType(ByteString.copyFrom(Hex.decode(dto.getTypeHex())))
                 .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(dto.getTimestamp())))
                 .setBodyHash(ByteString.copyFrom(Hex.decode(dto.getBodyHashHex())))
