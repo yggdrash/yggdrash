@@ -26,11 +26,9 @@ public class Trie {
      */
     public static byte[] getMerkleRootHusk(List<TransactionHusk> txs) {
 
-        if (txs == null || txs.size() < 1) {
+        if (txs == null || txs.size() < 1 || txs.containsAll(Collections.singleton(null))) {
             return null;
         }
-
-        txs.removeAll(Collections.singleton(null));
 
         ArrayList<byte[]> tree = new ArrayList<>();
         for (TransactionHusk tx : txs) {
@@ -61,11 +59,9 @@ public class Trie {
      */
     public static byte[] getMerkleRoot(List<Transaction> txs) throws IOException {
 
-        if (txs == null || txs.size() < 1) {
+        if (txs == null || txs.size() < 1 || txs.containsAll(Collections.singleton(null))) {
             return null;
         }
-
-        txs.removeAll(Collections.singleton(null));
 
         ArrayList<byte[]> tree = new ArrayList<>();
         for (Transaction tx : txs) {
