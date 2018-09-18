@@ -17,7 +17,7 @@ public class NoneContract implements Contract {
     }
 
     @Override
-    public JsonObject query(JsonObject qurey) throws Exception {
+    public JsonObject query(JsonObject qurey) {
         return new JsonObject();
     }
 

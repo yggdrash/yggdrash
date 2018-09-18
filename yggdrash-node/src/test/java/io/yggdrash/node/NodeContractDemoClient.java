@@ -6,7 +6,6 @@ import io.yggdrash.TestUtils;
 import io.yggdrash.contract.ContractQry;
 import io.yggdrash.core.Address;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.node.api.ContractApi;

@@ -10,7 +10,6 @@ import io.yggdrash.core.genesis.TransactionInfo;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.trie.Trie;
 import io.yggdrash.util.ByteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -177,7 +176,7 @@ public class Transaction implements Cloneable {
      *
      * @return the public key as HexString
      */
-    public String getPubKeyHexString() throws IOException, SignatureException {
+    public String getPubKeyHexString() throws SignatureException {
         return Hex.toHexString(this.getPubKey());
     }
 
@@ -186,7 +185,7 @@ public class Transaction implements Cloneable {
      *
      * @return address
      */
-    public byte[] getAddress() throws IOException, SignatureException {
+    public byte[] getAddress() throws SignatureException {
 
         byte[] pubKey = this.getPubKey();
         return HashUtil.sha3omit12(
@@ -198,7 +197,7 @@ public class Transaction implements Cloneable {
      *
      * @return address as HexString
      */
-    public String getAddressToString() throws IOException, SignatureException {
+    public String getAddressToString() throws SignatureException {
         return Hex.toHexString(this.getAddress());
     }
 
@@ -207,7 +206,7 @@ public class Transaction implements Cloneable {
      *
      * @return tx length
      */
-    public long length() throws IOException {
+    public long length() {
         return this.header.length() + this.signature.length + this.body.length();
     }
 
@@ -255,16 +254,17 @@ public class Transaction implements Cloneable {
         boolean check = true;
 
         check &= verifyCheckLengthNotNull(
-                this.header.getChain(), this.header.CHAIN_LENGTH, "chain");
+                this.header.getChain(), TransactionHeader.CHAIN_LENGTH, "chain");
         check &= verifyCheckLengthNotNull(
-                this.header.getVersion(), this.header.VERSION_LENGTH, "version");
-        check &= verifyCheckLengthNotNull(this.header.getType(), this.header.TYPE_LENGTH, "type");
+                this.header.getVersion(), TransactionHeader.VERSION_LENGTH, "version");
+        check &= verifyCheckLengthNotNull(
+                this.header.getType(), TransactionHeader.TYPE_LENGTH, "type");
         check &= this.header.getTimestamp() > 0;
         check &= verifyCheckLengthNotNull(
-                this.header.getBodyHash(), this.header.BODYHASH_LENGTH, "bodyHash");
+                this.header.getBodyHash(), TransactionHeader.BODYHASH_LENGTH, "bodyHash");
         check &= !(this.header.getBodyLength() <= 0
                 || this.header.getBodyLength() != this.getBody().length());
-        check &= verifyCheckLengthNotNull(this.signature, this.SIGNATURE_LENGTH, "signature");
+        check &= verifyCheckLengthNotNull(this.signature, SIGNATURE_LENGTH, "signature");
 
         // check bodyHash
         if (!Arrays.equals(this.header.getBodyHash(), HashUtil.sha3(this.body.toBinary()))) {

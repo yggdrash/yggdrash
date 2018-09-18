@@ -52,7 +52,6 @@ public abstract class BaseContract<T> implements Contract<T> {
                 listener.onContractEvent(ContractEvent.of(txReceipt, txHusk));
             }
             txReceiptStore.put(txReceipt.getTransactionHash(), txReceipt);
-
             return true;
         } catch (Throwable e) {
             TransactionReceipt txReceipt = new TransactionReceipt();
@@ -65,7 +64,7 @@ public abstract class BaseContract<T> implements Contract<T> {
     }
 
     @Override
-    public JsonObject query(JsonObject query) throws Exception {
+    public JsonObject query(JsonObject query) {
         dataFormatValidation(query);
 
         String method = query.get("method").getAsString().toLowerCase();

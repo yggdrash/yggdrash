@@ -102,7 +102,7 @@ public class TransactionHeader implements Cloneable {
 
     }
 
-    public long length() throws IOException {
+    public long length() {
         return this.toBinary().length;
     }
 

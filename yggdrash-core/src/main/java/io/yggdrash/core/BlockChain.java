@@ -279,9 +279,7 @@ public class BlockChain {
 
     // TODO execute All Transaction
     private List<Boolean> executeAllTx(Set<TransactionHusk> txList) {
-        return txList.stream()
-            .map(t -> executeTransaction(t))
-            .collect(Collectors.toList());
+        return txList.stream().map(this::executeTransaction).collect(Collectors.toList());
     }
 
     private boolean executeTransaction(TransactionHusk tx) {
@@ -292,7 +290,6 @@ public class BlockChain {
             return false;
         }
     }
-
 
     private void removeTxByBlock(BlockHusk block) {
         if (block == null || block.getBody() == null) {
