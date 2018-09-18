@@ -16,20 +16,17 @@
 
 package io.yggdrash.node.controller;
 
-import com.google.gson.JsonObject;
-import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.BranchId;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 
-@RestController
-@RequestMapping("stem")
+@Controller
+@RequestMapping("stem/**")
 public class StemController {
 
     private final BranchGroup branchGroup;
@@ -39,25 +36,10 @@ public class StemController {
         this.branchGroup = branchGroup;
     }
 
-    @GetMapping("/branches")
-    public ResponseEntity getBranches() {
-        BlockChain stem = (BlockChain)branchGroup.getAllBranch().toArray()[0];
-        Map<String, ?> state = stem.getRuntime().getStateStore().getState();
-        ArrayList<String> result = new ArrayList<>();
-
-        for (Map.Entry entry : state.entrySet()) {
-            Object value = entry.getValue();
-            if (value instanceof JsonObject) {
-                ((JsonObject) value).addProperty("id", entry.getKey().toString());
-                result.add(value.toString());
-            } else {
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("id", entry.getKey().toString());
-                jsonObject.addProperty("value", "" + entry.getValue());
-                result.add(jsonObject.toString());
-            }
-        }
-
-        return ResponseEntity.ok(result);
+    @GetMapping
+    public String redirect(HttpServletRequest request) {
+        String uri = request.getRequestURI();
+        String query = request.getQueryString() == null ? "" : "?" + request.getQueryString();
+        return "redirect:" + "/branches/" + BranchId.STEM + uri.substring("/stem".length()) + query;
     }
 }

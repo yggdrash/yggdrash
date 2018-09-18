@@ -16,7 +16,6 @@
 
 package io.yggdrash.node.controller;
 
-import com.google.gson.JsonObject;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +25,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.List;
 
 @RestController
 @RequestMapping("branches/{branchId}")
@@ -42,20 +40,7 @@ public class StateController {
 
     @GetMapping("/states")
     public ResponseEntity getAll(@PathVariable(name = "branchId") String branchId) {
-        Map<String, ?> state = branchGroup.getStateStore(BranchId.of(branchId)).getState();
-        ArrayList<String> result = new ArrayList<>();
-        for (Map.Entry entry : state.entrySet()) {
-            Object value = entry.getValue();
-            if (value instanceof JsonObject) {
-                ((JsonObject) value).addProperty("id", entry.getKey().toString());
-                result.add(value.toString());
-            } else {
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("id", entry.getKey().toString());
-                jsonObject.addProperty("value", "" + entry.getValue());
-                result.add(jsonObject.toString());
-            }
-        }
-        return ResponseEntity.ok(result);
+        List state = branchGroup.getStateStore(BranchId.of(branchId)).getStateList();
+        return ResponseEntity.ok(state);
     }
 }
