@@ -6,7 +6,6 @@ import io.yggdrash.TestUtils;
 import io.yggdrash.contract.ContractQry;
 import io.yggdrash.core.Address;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.node.api.ContractApi;
@@ -18,11 +17,17 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
-import static io.yggdrash.contract.ContractTx.createStemTx;
+import static io.yggdrash.contract.ContractTx.createBranch;
+import static io.yggdrash.contract.ContractTx.createStemTxByBranch;
 import static io.yggdrash.contract.ContractTx.createYeedTx;
 
 public class NodeContractDemoClient {
@@ -32,30 +37,42 @@ public class NodeContractDemoClient {
     private static final ContractApi contractApi = new JsonRpcConfig().contractApi();
 
     public static void main(String[] args) throws Exception {
+        while (true) {
+            run();
+        }
+    }
+
+    private static void run() throws Exception {
         wallet = new Wallet();
 
-        System.out.print("============\n\n");
-        System.out.print("[1] 로컬에 트랜잭션 전송(기본값)\n[2] 배포서버(10.10.10.100)[서버 주소] 에 트랜잭션 전송\n[3] 브랜치 아이디로 STEM 에서 조회하기\n> ");
+        System.out.print("===============\n");
+        System.out.print("[1] 트랜잭션 전송\n[2] 브랜치 수정\n[3] 브랜치 조회\n[4] 종료\n>");
+
         String num = scan.nextLine();
 
         switch (num) {
             case "1" :
-                sendTx("");
+                sendTx();
                 break;
             case "2" :
-                sendTx("10.10.10.100");
+                update();
                 break;
             case "3" :
                 System.out.println("브랜치 아이디\n>");
                 view(scan.nextLine());
                 break;
+            case "4" :
+                System.exit(0);
+                break;
             default :
-                sendTx("");
+                sendTx();
                 break;
         }
     }
 
-    private static void sendTx(String server) throws Exception {
+    private static void sendTx() throws Exception {
+        String server = getServerAddress();
+
         System.out.print("[1] STEM  [2] YEED\n> ");
         if (scan.nextLine().equals("2")) {
             System.out.println("전송할 주소를 입력해주세요");
@@ -76,7 +93,7 @@ public class NodeContractDemoClient {
             if ("".equals(json)) {
                 json = "sample1.json";
             }
-            JsonObject seed = getSampleBranch(json);
+            JsonObject seed = getSeedFile(json);
             System.out.print("전송할 횟수를 입력하세요 기본값(1)\n> ");
             String times = scan.nextLine();
 
@@ -84,16 +101,27 @@ public class NodeContractDemoClient {
                 times = "1";
             }
             for (int i = Integer.parseInt(times); i > 0; i--) {
-                TransactionHusk tx = createStemTx(wallet, seed, "create");
+                JsonObject branch = createBranch(seed, wallet.getHexAddress());
+                saveBranchAsFile(json, branch);
+                TransactionHusk tx = createStemTxByBranch(wallet, branch, "create");
                 send(tx, server);
             }
         }
     }
 
-    private static JsonObject getSampleBranch(String path) throws Exception {
-        String sampleSeedPath = "classpath:/seed/%s";
+    private static String getServerAddress() {
+        String server = "";
+        System.out.println("[1] 로컬 [2] 서버(10.10.10.100)\n>");
+        if (scan.nextLine().equals("2")) {
+            server = "10.10.10.100";
+        }
+        return server;
+    }
+
+    private static JsonObject getSeedFile(String seed) throws Exception {
+        String seedPath = String.format("classpath:/seed/%s", seed);
         ResourceLoader resourceLoader = new DefaultResourceLoader();
-        Resource resource = resourceLoader.getResource(String.format(sampleSeedPath, path));
+        Resource resource = resourceLoader.getResource(seedPath);
         JsonParser jsonParser = new JsonParser();
 
         return (JsonObject) jsonParser.parse(
@@ -120,5 +148,44 @@ public class NodeContractDemoClient {
         } catch (Exception e) {
             throw new FailedOperationException("[ERR] view failed");
         }
+    }
+
+    private static void saveBranchAsFile(String fileName, JsonObject branch) throws IOException {
+        String userDir = System.getProperty("user.dir");
+        userDir += "/yggdrash-node/src/test/resources/branch/%s";
+
+        File file = new File(String.format(userDir, fileName));
+        FileWriter fileWriter = new FileWriter(file); //덮어쓰기
+
+        fileWriter.write(branch.toString());
+        fileWriter.flush();
+        fileWriter.close();
+    }
+
+    private static JsonObject getBranchFile(String fileName) throws FileNotFoundException {
+        String userDir = System.getProperty("user.dir");
+        userDir += "/yggdrash-node/src/test/resources/branch/%s";
+
+        JsonParser jsonParser = new JsonParser();
+        JsonObject branch = (JsonObject) jsonParser.parse(
+                new FileReader(String.format(userDir, fileName)));
+
+        return branch;
+    }
+
+    private static void update() throws Exception {
+        System.out.println("수정할 .json 파일명을 입력하세요 (기본값: sample1.json)\n>");
+        String json = scan.nextLine();
+        if ("".equals(json)) {
+            json = "sample1.json";
+        }
+        JsonObject branch = getBranchFile(json);
+        System.out.println("수정할 description 의 내용을 적어주세요 : ");
+        branch.addProperty("description", scan.nextLine());
+        saveBranchAsFile(json, branch);
+        TransactionHusk tx = createStemTxByBranch(wallet, branch, "update");
+
+        String server = getServerAddress();
+        send(tx, server);
     }
 }
