@@ -103,16 +103,24 @@ public class TransactionApiImpl implements TransactionApi {
     /* send */
     @Override
     public String sendTransaction(TransactionDto tx) {
-        TransactionHusk addedTx = branchGroup.addTransaction(TransactionDto.of(tx));
-        return addedTx.getHash().toString();
+        if (branchGroup.getBranch(BranchId.of(tx.getChainHex())) != null) {
+            TransactionHusk addedTx = branchGroup.addTransaction(TransactionDto.of(tx));
+            return addedTx.getHash().toString();
+        } else {
+            return "No branch existed";
+        }
     }
 
     @Override
     public byte[] sendRawTransaction(byte[] bytes) {
         Transaction tx = new Transaction(bytes);
         TransactionHusk transaction = new TransactionHusk(tx);
-        TransactionHusk addedTx = branchGroup.addTransaction(transaction);
-        return addedTx.getHash().getBytes();
+        if (branchGroup.getBranch(transaction.getBranchId()) != null) {
+            TransactionHusk addedTx = branchGroup.addTransaction(transaction);
+            return addedTx.getHash().getBytes();
+        } else {
+            return "No branch existed".getBytes();
+        }
     }
 
     /* filter */
