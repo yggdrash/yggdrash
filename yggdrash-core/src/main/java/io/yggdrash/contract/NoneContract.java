@@ -22,10 +22,6 @@ public class NoneContract implements Contract {
     }
 
     @Override
-    public void setBranchName(String branchName) {
-    }
-
-    @Override
     public void setListener(ContractEventListener listener) {
     }
 }

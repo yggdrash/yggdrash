@@ -80,7 +80,6 @@ public class BranchConfiguration {
         TransactionStore txStore =
                 new TransactionStore(getDbSource(genesis.getBranchId() + "/txs"));
         Contract contract = getContract(branchName);
-        contract.setBranchName(branchName);
         Runtime<?> runtime = getRunTime(branchName);
         return new BlockChain(genesis, blockStore, txStore, contract, runtime);
     }

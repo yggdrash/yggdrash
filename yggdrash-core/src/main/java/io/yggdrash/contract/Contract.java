@@ -13,7 +13,5 @@ public interface Contract<T> {
 
     JsonObject query(JsonObject query) throws Exception;
 
-    void setBranchName(String branchName);
-
     void setListener(ContractEventListener listener);
 }

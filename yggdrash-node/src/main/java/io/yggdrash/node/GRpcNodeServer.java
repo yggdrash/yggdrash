@@ -16,6 +16,7 @@
 
 package io.yggdrash.node;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
@@ -41,6 +42,7 @@ import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.ByteUtil;
+import io.yggdrash.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,7 +50,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -185,21 +189,32 @@ public class GRpcNodeServer implements NodeServer, NodeManager, ContractEventLis
     @Override
     public void onContractEvent(ContractEvent event) {
         TransactionReceipt txReceipt = event.getTransactionReceipt();
-        int paramSize = Integer.valueOf("" + txReceipt.get("paramSize"));
-        String txBranchName = String.valueOf(txReceipt.get("branchName"));
-        if (!txReceipt.isSuccess() || paramSize == 0
-                || !BranchConfiguration.STEM.equals(txBranchName)) {
+        TransactionHusk txHusk = event.getTransactionHusk();
+        if (!txReceipt.isSuccess() || !txHusk.getBranchId().equals(BranchId.stem())) {
             return;
         }
-        JsonObject branch = (JsonObject) txReceipt.get("branch[0]");
-        String branchName = branch.get("name").getAsString().toLowerCase();
-        try {
-            BlockChain blockChain = branchConfig.getBlockChainByName(branchName);
-            branchGroup.addBranch(blockChain.getBranchId(), blockChain);
-            blockChain.addListener(peerGroup);
-        } catch (Exception e) {
-            log.warn("add branch fail. name={}, err={}", branchName, e.getMessage());
+        JsonObject txBody = Utils.parseJsonArray(txHusk.getBody()).get(0).getAsJsonObject();
+        JsonArray params = txBody.get("params").getAsJsonArray();
+
+        for (int i = 0; i < params.size(); i++) {
+            String branchId = params.get(i).getAsJsonObject().get("branchId").getAsString();
+            if (containsBranch(branchId)) {
+                continue;
+            }
+            try {
+                Map branch = (HashMap)txReceipt.get(branchId);
+                String branchName = String.valueOf(branch.get("name"));
+                BlockChain blockChain = branchConfig.getBlockChainByName(branchName);
+                branchGroup.addBranch(blockChain.getBranchId(), blockChain);
+                blockChain.addListener(peerGroup);
+            } catch (Exception e) {
+                log.warn("add branch fail. id={}, err={}", branchId, e.getMessage());
+            }
         }
+    }
+
+    private boolean containsBranch(String branchId) {
+        return branchGroup.getBranch(BranchId.of(branchId)) != null;
     }
 
     private void requestPeerList() {

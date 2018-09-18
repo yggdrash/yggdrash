@@ -18,21 +18,30 @@
 
 package io.yggdrash.util;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.DecoderException;
 import org.spongycastle.util.encoders.Hex;
 
+import java.io.IOException;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.regex.Pattern;
 
 public class Utils {
-
-    static final BigInteger _1000_ = new BigInteger("1000");
+    private static final Logger log = LoggerFactory.getLogger(Utils.class);
+    private static final BigInteger _1000_ = new BigInteger("1000");
     private static final SecureRandom random = new SecureRandom();
+    private static final ObjectMapper mapper = new ObjectMapper();
+    private static final JsonParser jsonParser = new JsonParser();
 
     /**
      * @param number should be in form '0x34fabd34....'
@@ -267,5 +276,18 @@ public class Utils {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    public static HashMap convertJsonToMap(JsonObject json) {
+        try {
+            return mapper.readValue(json.toString(), HashMap.class);
+        } catch (IOException e) {
+            log.warn("convert fail json to map err={}", json);
+            return null;
+        }
+    }
+
+    public static JsonArray parseJsonArray(String data) {
+        return (JsonArray) jsonParser.parse(data);
     }
 }
