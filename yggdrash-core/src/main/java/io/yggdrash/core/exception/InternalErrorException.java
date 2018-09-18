@@ -7,4 +7,8 @@ public class InternalErrorException extends InternalError {
     public InternalErrorException() {
         super(msg);
     }
+
+    public InternalErrorException(String message) {
+        super(message);
+    }
 }

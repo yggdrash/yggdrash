@@ -1,6 +1,7 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.util.ByteUtil;
@@ -134,7 +135,7 @@ public class TransactionHeader implements Cloneable {
      *
      * @return hash of header
      */
-    public byte[] getHashForSignning() throws IOException {
+    public byte[] getHashForSignning() {
         return HashUtil.sha3(this.toBinary());
     }
 
@@ -143,17 +144,20 @@ public class TransactionHeader implements Cloneable {
      *
      * @return the binary data of TransactionHeader (84 byte)
      */
-    public byte[] toBinary() throws IOException {
+    public byte[] toBinary() {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        try {
+            bao.write(this.chain);
+            bao.write(this.version);
+            bao.write(this.type);
+            bao.write(ByteUtil.longToBytes(this.timestamp));
+            bao.write(this.bodyHash);
+            bao.write(ByteUtil.longToBytes(this.bodyLength));
 
-        bao.write(this.chain);
-        bao.write(this.version);
-        bao.write(this.type);
-        bao.write(ByteUtil.longToBytes(this.timestamp));
-        bao.write(this.bodyHash);
-        bao.write(ByteUtil.longToBytes(this.bodyLength));
-
-        return bao.toByteArray();
+            return bao.toByteArray();
+        } catch (IOException e) {
+            throw new InternalErrorException("toBinary error");
+        }
     }
 
     /**
