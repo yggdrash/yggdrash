@@ -40,6 +40,6 @@ public class StemController {
     public String redirect(HttpServletRequest request) {
         String uri = request.getRequestURI();
         String query = request.getQueryString() == null ? "" : "?" + request.getQueryString();
-        return "redirect:" + "/branches/" + BranchId.STEM + uri.substring("/stem".length()) + query;
+        return "forward:" + "/branches/" + BranchId.STEM + uri.substring("/stem".length()) + query;
     }
 }
