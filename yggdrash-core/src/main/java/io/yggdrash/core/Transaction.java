@@ -9,7 +9,10 @@ import io.yggdrash.core.genesis.TransactionInfo;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.trie.Trie;
 import io.yggdrash.util.ByteUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
@@ -18,6 +21,10 @@ import java.security.SignatureException;
 import java.util.Arrays;
 
 public class Transaction implements Cloneable {
+
+    private static final Logger log = LoggerFactory.getLogger(Transaction.class);
+
+    private static final int SIGNATURE_LENGTH = 65;
 
     // Transaction Data Format v0.0.3
     private TransactionHeader header;
@@ -66,12 +73,22 @@ public class Transaction implements Cloneable {
         this.signature = wallet.signHashedData(this.header.getHashForSignning());
     }
 
+    /**
+     * Transaction Constructor.
+     *
+     * @param jsonObject jsonObject transaction.
+     */
     public Transaction(JsonObject jsonObject) {
         this.header = new TransactionHeader(jsonObject.get("header").getAsJsonObject());
         this.signature = Hex.decode(jsonObject.get("signature").getAsString());
         this.body = new TransactionBody(jsonObject.getAsJsonArray("body"));
     }
 
+    /**
+     * Transaction Constructor.
+     *
+     * @param txBytes binary transaction.
+     */
     public Transaction(byte[] txBytes) {
         int position = 0;
 
@@ -196,13 +213,66 @@ public class Transaction implements Cloneable {
         return this.header.length() + this.signature.length + this.body.length();
     }
 
+    /**
+     * Verify a transaction.(data format & signning)
+     *
+     * @return true(success), false(fail)
+     * @throws IOException IOException
+     * @throws SignatureException SignatureException
+     */
     public boolean verify() throws IOException, SignatureException {
+
+        if (!this.verifyData()) {
+            return false;
+        }
 
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
         byte[] hashedHeader = this.header.getHashForSignning();
         ECKey ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
 
         return ecKeyPub.verify(hashedHeader, ecdsaSignature);
+    }
+
+    private boolean verifyCheckLengthNotNull(byte[] data, int length, String msg) {
+
+        boolean result = !(data == null || data.length != length);
+
+        if (!result) {
+            log.debug(msg + " is not valid.");
+        }
+
+        return result;
+    }
+
+    /**
+     * Verify a transaction about transaction format.
+     *
+     * @return true(success), false(fail)
+     */
+    public boolean verifyData() {
+        // todo: error code
+        boolean check = true;
+
+        check &= verifyCheckLengthNotNull(
+                this.header.getChain(), this.header.CHAIN_LENGTH, "chain");
+        check &= verifyCheckLengthNotNull(
+                this.header.getVersion(), this.header.VERSION_LENGTH, "version");
+        check &= verifyCheckLengthNotNull(this.header.getType(), this.header.TYPE_LENGTH, "type");
+        check &= this.header.getTimestamp() > 0;
+        check &= verifyCheckLengthNotNull(
+                this.header.getBodyHash(), this.header.BODYHASH_LENGTH, "bodyHash");
+        check &= !(this.header.getBodyLength() <= 0
+                || this.header.getBodyLength() != this.getBody().length());
+        check &= verifyCheckLengthNotNull(this.signature, this.SIGNATURE_LENGTH, "signature");
+
+        // check bodyHash
+        if (!Arrays.equals(this.header.getBodyHash(), HashUtil.sha3(this.body.toBinary()))) {
+            log.debug("bodyHash is not equal to body :"
+                    + Hex.toHexString(this.header.getBodyHash()));
+            return false;
+        }
+
+        return check;
     }
 
     /**
@@ -234,6 +304,12 @@ public class Transaction implements Cloneable {
         return new GsonBuilder().setPrettyPrinting().create().toJson(this.toJsonObject());
     }
 
+    /**
+     * Get a binary transaction data.
+     *
+     * @return a binary transaction data.
+     * @throws IOException IOException
+     */
     public byte[] toBinary() throws IOException {
 
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
@@ -245,6 +321,12 @@ public class Transaction implements Cloneable {
         return bao.toByteArray();
     }
 
+    /**
+     * Clone a transaction.
+     *
+     * @return a transaction
+     * @throws CloneNotSupportedException CloneNotSupportedException
+     */
     @Override
     public Transaction clone() throws CloneNotSupportedException {
         Transaction tx = (Transaction) super.clone();
@@ -256,6 +338,7 @@ public class Transaction implements Cloneable {
     }
 
     public static Proto.Transaction toProtoTransaction(Transaction tx) {
+        // todo: move at TransactionHusk
 
         Proto.Transaction.Header protoHeader;
         protoHeader = Proto.Transaction.Header.newBuilder()
@@ -279,6 +362,7 @@ public class Transaction implements Cloneable {
     }
 
     public static Transaction toTransaction(Proto.Transaction protoTransaction) {
+        // todo: move at TransactionHusk
 
         TransactionHeader txHeader = new TransactionHeader(
                 protoTransaction.getHeader().getChain().toByteArray(),
@@ -304,6 +388,7 @@ public class Transaction implements Cloneable {
     }
 
     public static Transaction fromTransactionInfo(TransactionInfo txi) {
+
         TransactionHeader txHeader = new TransactionHeader(
                 Hex.decode(txi.header.chain),
                 Hex.decode(txi.header.version),

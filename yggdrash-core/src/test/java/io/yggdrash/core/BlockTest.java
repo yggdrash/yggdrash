@@ -7,10 +7,10 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.List;
 
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -114,6 +114,7 @@ public class BlockTest {
 
         try {
             Block block0 = new Block(blockHeader1, blockSig1.getSignature(), blockBody1);
+            assertTrue(block0.verify());
 
             log.debug("block0=" + block0.toJsonObject());
             log.debug("block0=" + block0.toString());
@@ -121,12 +122,15 @@ public class BlockTest {
 
             blockHeader1.setTimestamp(TimeUtils.time());
             block1 = new Block(blockHeader1, wallet, blockBody1);
+            assertTrue(block1.verify());
+
             log.debug("block1=" + block1.toJsonObject());
             log.debug("block1=" + block1.toString());
             log.debug("block1=" + block1.toStringPretty());
 
             block2 = new Block(
                     blockHeader1.clone(), block1.getSignature().clone(), blockBody1.clone());
+            assertTrue(block2.verify());
 
             log.debug("block2=" + block2.toJsonObject());
             log.debug("block2=" + block2.toString());
@@ -141,6 +145,8 @@ public class BlockTest {
             log.debug("block2=" + block2.toJsonObject());
 
             Block block3 = new Block(block0.toJsonObject());
+            assertTrue(block3.verify());
+
             assertEquals(block0.toJsonObject().toString(), block3.toJsonObject().toString());
 
         } catch (Exception e) {

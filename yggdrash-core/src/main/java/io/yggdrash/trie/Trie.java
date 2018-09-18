@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -28,6 +29,8 @@ public class Trie {
         if (txs == null || txs.size() < 1) {
             return null;
         }
+
+        txs.removeAll(Collections.singleton(null));
 
         ArrayList<byte[]> tree = new ArrayList<>();
         for (TransactionHusk tx : txs) {
@@ -61,6 +64,8 @@ public class Trie {
         if (txs == null || txs.size() < 1) {
             return null;
         }
+
+        txs.removeAll(Collections.singleton(null));
 
         ArrayList<byte[]> tree = new ArrayList<>();
         for (Transaction tx : txs) {

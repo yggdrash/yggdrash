@@ -171,7 +171,10 @@ public class TestUtils {
         String symbol = "STEM";
         String property = "ecosystem";
         String type = "immunity";
-        String description = "The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.";
+        String description =
+                "The Basis of the YGGDRASH Ecosystem. "
+                + "It is also an aggregate and a blockchain containing information "
+                + "of all Branch Chains.";
         String version = "0xe4452ervbo091qw4f5n2s8799232abr213er2c90";
         String referenceAddress = "";
         String reserveAddress = "0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3";
@@ -250,8 +253,8 @@ public class TestUtils {
     }
 
     public static Transaction sampleTx() {
-       return new Transaction(ContractTx.createYeedTx(
-               wallet, new Address(TRANSFER_TO), 100).toJsonObject());
+        return new Transaction(
+               ContractTx.createYeedTx(wallet, new Address(TRANSFER_TO), 100).toJsonObject());
     }
 
     public static Transaction sampleTx(Wallet wallet) {

@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
+import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -74,18 +75,22 @@ public class TransactionTest {
 
         try {
             Transaction tx1 = new Transaction(txHeader, txSig, txBody);
+            assertTrue(tx1.verify());
 
             log.debug("tx1=" + tx1.toJsonObject());
             log.debug("tx1=" + tx1.toString());
             log.debug("tx1=" + tx1.toStringPretty());
 
             Transaction tx2 = new Transaction(tx1.toJsonObject());
+            assertTrue(tx2.verify());
             log.debug("tx2=" + tx2.toJsonObject());
             log.debug("tx2=" + tx2.toString());
             assertEquals(tx1.toJsonObject(), tx2.toJsonObject());
 
             Transaction tx3
                     = new Transaction(txHeader.clone(), tx1.getSignature().clone(), txBody.clone());
+            assertTrue(tx3.verify());
+
             log.debug("tx3=" + tx3.toJsonObject());
             log.debug("tx3=" + tx3.toString());
             assertEquals(tx1.toJsonObject(), tx3.toJsonObject());
@@ -95,21 +100,29 @@ public class TransactionTest {
                     Hex.toHexString(ByteUtil.longToBytes(TimeUtils.time() + 1)));
 
             Transaction tx4 = new Transaction(jsonObject);
+            assertTrue(tx4.verify());
+
             log.debug("tx1=" + tx1.toJsonObject());
             log.debug("tx4=" + tx4.toJsonObject());
             assertNotEquals(tx1.toJsonObject().toString(), tx4.toJsonObject().toString());
 
             Transaction tx5 = new Transaction(tx1.getHeader(), tx1.getSignature(), tx1.getBody());
+            assertTrue(tx5.verify());
+
             log.debug("tx1=" + tx1.toString());
             log.debug("tx5=" + tx5.toString());
             assertEquals(tx1.toJsonObject(), tx5.toJsonObject());
 
             Transaction tx6 = new Transaction(tx1.getHeader(), wallet, tx1.getBody());
+            assertTrue(tx6.verify());
+
             log.debug("tx1=" + tx1.toString());
             log.debug("tx6=" + tx6.toString());
             assertEquals(tx1.toJsonObject(), tx6.toJsonObject());
 
             Transaction tx7 = new Transaction(tx1.toBinary());
+            assertTrue(tx7.verify());
+
             log.debug("tx1=" + tx1.toString());
             log.debug("tx7=" + tx7.toString());
             assertEquals(tx1.toJsonObject(), tx7.toJsonObject());
