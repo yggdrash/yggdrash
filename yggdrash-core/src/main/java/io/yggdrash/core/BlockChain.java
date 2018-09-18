@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 
 public class BlockChain {
 
@@ -281,18 +282,22 @@ public class BlockChain {
         return (this.prevBlock == null);
     }
 
+    // TODO execute All Transaction
+    private List<Boolean> executeAllTx(Set<TransactionHusk> txList) {
+        return txList.stream()
+            .map(t -> executeTransaction(t))
+            .collect(Collectors.toList());
+    }
 
-    private void executeAllTx(Set<TransactionHusk> txList) {
+    private boolean executeTransaction(TransactionHusk tx) {
         try {
-            for (TransactionHusk tx : txList) {
-                if (!runtime.invoke(contract, tx)) {
-                    break;
-                }
-            }
+            return runtime.invoke(contract, tx);
         } catch (Exception e) {
-            throw new FailedOperationException(e);
+            log.error("executeTransaction Error" + e);
+            return false;
         }
     }
+
 
     private void removeTxByBlock(BlockHusk block) {
         if (block == null || block.getBody() == null) {
