@@ -3,6 +3,7 @@ package io.yggdrash.core;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.genesis.BlockInfo;
 import io.yggdrash.core.genesis.TransactionInfo;
@@ -101,8 +102,12 @@ public class Block implements Cloneable {
 
     public boolean verify() {
 
-        if (!this.verifyData()) {
-            return false;
+        try {
+            if (!this.verifyData()) {
+                return false;
+            }
+        } catch (IOException e) {
+            throw new InternalErrorException("verifyData error");
         }
 
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
