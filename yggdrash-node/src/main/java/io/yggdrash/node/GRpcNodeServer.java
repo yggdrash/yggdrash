@@ -16,19 +16,24 @@
 
 package io.yggdrash.node;
 
+import com.google.gson.JsonObject;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.contract.ContractEvent;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.Wallet;
+import io.yggdrash.core.event.ContractEventListener;
 import io.yggdrash.core.net.NodeManager;
 import io.yggdrash.core.net.NodeServer;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.node.config.BranchConfiguration;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.Ping;
@@ -49,7 +54,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
-public class GRpcNodeServer implements NodeServer, NodeManager {
+public class GRpcNodeServer implements NodeServer, NodeManager, ContractEventListener {
     private static final Logger log = LoggerFactory.getLogger(GRpcNodeServer.class);
     private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
 
@@ -64,6 +69,8 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     private NodeHealthIndicator nodeHealthIndicator;
 
     private Server server;
+
+    private BranchConfiguration branchConfig;
 
     @Autowired
     public void setPeerGroup(PeerGroup peerGroup) {
@@ -93,6 +100,11 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     @Autowired
     public void setBranchGroup(BranchGroup branchGroup) {
         this.branchGroup = branchGroup;
+    }
+
+    @Autowired
+    public void setBranchConfig(BranchConfiguration branchConfig) {
+        this.branchConfig = branchConfig;
     }
 
     @Override
@@ -137,7 +149,10 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     }
 
     private void init() {
-        branchGroup.getAllBranch().forEach(branch -> branch.addListener(peerGroup));
+        branchGroup.getAllBranch().forEach(branch -> {
+            branch.addListener(peerGroup);
+            branch.getContract().setListener(this);
+        });
         requestPeerList();
         peerGroup.addPeer(peer);
         if (!peerGroup.isEmpty()) {
@@ -165,6 +180,26 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             return;
         }
         peerGroup.newPeerChannel(new GRpcClientChannel(peer));
+    }
+
+    @Override
+    public void onContractEvent(ContractEvent event) {
+        TransactionReceipt txReceipt = event.getTransactionReceipt();
+        int paramSize = Integer.valueOf("" + txReceipt.get("paramSize"));
+        String txBranchName = String.valueOf(txReceipt.get("branchName"));
+        if (!txReceipt.isSuccess() || paramSize == 0
+                || !BranchConfiguration.STEM.equals(txBranchName)) {
+            return;
+        }
+        JsonObject branch = (JsonObject) txReceipt.get("branch[0]");
+        String branchName = branch.get("name").getAsString().toLowerCase();
+        try {
+            BlockChain blockChain = branchConfig.getBlockChainByName(branchName);
+            branchGroup.addBranch(blockChain.getBranchId(), blockChain);
+            blockChain.addListener(peerGroup);
+        } catch (Exception e) {
+            log.warn("add branch fail. name={}, err={}", branchName, e.getMessage());
+        }
     }
 
     private void requestPeerList() {
@@ -200,7 +235,11 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
                 }
                 List<TransactionHusk> txList = peerGroup.syncTransaction(blockChain.getBranchId());
                 for (TransactionHusk tx : txList) {
-                    blockChain.addTransaction(tx);
+                    try {
+                        blockChain.addTransaction(tx);
+                    } catch (Exception e) {
+                        log.warn(e.getMessage());
+                    }
                 }
             }
         } catch (Exception e) {

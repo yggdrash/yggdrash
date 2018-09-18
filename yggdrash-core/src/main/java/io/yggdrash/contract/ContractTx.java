@@ -17,8 +17,12 @@ public class ContractTx {
     public static TransactionHusk createStemTx(Wallet wallet, JsonObject branch, String method) {
         JsonArray versionHistory = new JsonArray();
         versionHistory.add(branch.get("version").getAsString());
-        branch.addProperty("owner", wallet.getHexAddress());
-        branch.addProperty("timestamp", System.currentTimeMillis());
+        if (!branch.has("owner")) {
+            branch.addProperty("owner", wallet.getHexAddress());
+        }
+        if (!branch.has("timestamp")) {
+            branch.addProperty("timestamp", System.currentTimeMillis());
+        }
         branch.add("version_history", versionHistory);
 
         BranchId branchId = BranchId.of(branch);

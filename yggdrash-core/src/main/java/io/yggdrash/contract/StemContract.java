@@ -52,7 +52,6 @@ public class StemContract extends BaseContract<JsonObject> {
 
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.setStatus(0);
-
         for (int i = 0; i < params.size(); i++) {
             String branchId = params.get(i).getAsJsonObject().get("branchId").getAsString();
             JsonObject branch = params.get(i).getAsJsonObject().get("branch").getAsJsonObject();
@@ -74,7 +73,7 @@ public class StemContract extends BaseContract<JsonObject> {
                     state.put(branchId, branch);
                     setSubState(branchId, branch);
                     //log.info("[StemContract | create] SUCCESS! branchId => " + branchId);
-                    txReceipt.setStatus(1);
+                    txReceipt.setStatus(TransactionReceipt.SUCCESS);
                 }
             }
         }
@@ -94,7 +93,6 @@ public class StemContract extends BaseContract<JsonObject> {
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.put("branchId", branchId);
         txReceipt.put("branch", branch);
-        txReceipt.setStatus(0);
 
         String owner = branch.get("owner").getAsString();
         if (this.sender != null && isOwnerValid(owner)) {
@@ -105,7 +103,7 @@ public class StemContract extends BaseContract<JsonObject> {
                     state.replace(branchId, branch);
                     txReceipt.setStatus(1);
                 }*/
-                txReceipt.setStatus(1);
+                txReceipt.setStatus(TransactionReceipt.SUCCESS);
                 state.replace(branchId, branch);
             }
         }
