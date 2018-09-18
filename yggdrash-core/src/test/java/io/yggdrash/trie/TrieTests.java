@@ -69,5 +69,16 @@ public class TrieTests {
         assertNull(merkleRoot);
 
         log.debug("MerkleRoot with tx null = null");
+
+        // 5. nulll list Test
+        txsList.add(this.tx1);
+        txsList.add(this.tx2);
+        merkleRoot = Trie.getMerkleRootHusk(txsList);
+        assertNotNull(merkleRoot);
+
+        txsList.add(null);
+        merkleRoot = Trie.getMerkleRootHusk(txsList);
+        assertNull(merkleRoot);
+
     }
 }
