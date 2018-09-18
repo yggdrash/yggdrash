@@ -40,10 +40,10 @@ public class NodeContractDemoClient {
             sendTx(tx, server);
 
         } else {
-            System.out.print("사용할 .json 파일명을 입력하세요 (기본값: sample1.json) : ");
+            System.out.print("사용할 .json 파일명을 입력하세요 (기본값: yeed.seed.json) : ");
             String json = scan.nextLine();
             if ("".equals(json)) {
-                json = "sample1.json";
+                json = "yeed.seed.json";
             }
             JsonObject seed = getSampleBranch(json);
             System.out.print("전송할 횟수를 입력하세요 기본값(1) : ");

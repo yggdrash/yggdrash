@@ -12,7 +12,6 @@ import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionBody;
 import io.yggdrash.core.TransactionHeader;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.util.FileUtil;
 import io.yggdrash.util.TimeUtils;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Hex;
@@ -86,7 +85,6 @@ public class GenesisBlock {
                 blockBody.length());
 
         genesisBlock = new Block(blockHeader, wallet, blockBody);
-
     }
 
     private JsonObject getJsonObjectFromFile(String fileName) throws IOException {
@@ -106,21 +104,11 @@ public class GenesisBlock {
         return new Gson().fromJson(result.toString(), JsonObject.class);
     }
 
-    public Block getGenesisBlock() {
-        return genesisBlock;
-    }
-
-    public void generateGenesisBlockFile() throws IOException {
+    public String getGenesisJson() {
         //todo: change the method to serializing method
 
         JsonObject jsonObject = this.genesisBlock.toJsonObject();
-
-        ClassLoader classLoader = getClass().getClassLoader();
-        File genesisFile = new File(classLoader.getResource(
-                defaultConfig.getConfig().getString("genesis.block")).getFile());
-
-        FileUtil.writeStringToFile(genesisFile,
-                new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject));
+        return new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject);
     }
 
 }
