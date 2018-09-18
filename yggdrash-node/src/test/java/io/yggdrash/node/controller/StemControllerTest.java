@@ -24,7 +24,7 @@ public class StemControllerTest {
     public void shouldGetBranches() throws Exception {
         mockMvc.perform(get("/stem/blocks"))
                 .andDo(print())
-                .andExpect(status().is3xxRedirection())
+                .andExpect(status().isOk())
                 .andReturn().getResponse();
     }
 }
