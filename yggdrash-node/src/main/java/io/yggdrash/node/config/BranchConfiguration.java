@@ -49,7 +49,7 @@ import java.util.Arrays;
 @Configuration
 public class BranchConfiguration {
     public static final String STEM = "stem";
-    private static final String YEED = "yeed";
+    public static final String YEED = "yeed";
     private static final String FORMAT = "classpath:/branch-%s.json";
 
     private final BranchProperties branchProperties;
