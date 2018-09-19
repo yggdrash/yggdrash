@@ -45,14 +45,15 @@ public class RuntimeTest {
         JsonObject branch = TestUtils.getSampleBranch1();
         branchId = BranchId.of(branch);
 
-        TransactionHusk tx = ContractTx.createStemTx(wallet, branch, "create");
+        TransactionHusk tx = ContractTx.createStemTxBySeed(wallet, branch, "create");
         runtime.invoke(stemContract, tx);
 
         String description = "hello world!";
         String updatedVersion = "0xf4312kjise099qw0nene76555484ab1547av8b9e";
-        JsonObject updatedBranch = TestUtils.updateBranch(description, updatedVersion, branch, 0);
+        JsonObject updatedBranch = TestUtils.updateBranch(
+                description, updatedVersion, branch, 0);
 
-        tx = ContractTx.createStemTx(wallet, updatedBranch, "update");
+        tx = ContractTx.createStemTxBySeed(wallet, updatedBranch, "update");
         runtime.invoke(stemContract, tx);
     }
 

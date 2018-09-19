@@ -33,11 +33,11 @@ public class TransactionReceipt {
     private Map<String, Object> txLog = new HashMap<>();
     private int status = 0;
 
-    public void put(String key, Object value) {
+    public void putLog(String key, Object value) {
         txLog.put(key, value);
     }
 
-    public Object get(String key) {
+    public Object getLog(String key) {
         return txLog.get(key);
     }
 
@@ -51,6 +51,30 @@ public class TransactionReceipt {
 
     public String getTransactionHash() {
         return transactionHash;
+    }
+
+    public int getTransactionIndex() {
+        return transactionIndex;
+    }
+
+    public String getBlockHash() {
+        return blockHash;
+    }
+
+    public int getYeedUsed() {
+        return yeedUsed;
+    }
+
+    public String getBranchAddress() {
+        return branchAddress;
+    }
+
+    public Map<String, Object> getTxLog() {
+        return txLog;
+    }
+
+    public int getStatus() {
+        return status;
     }
 
     public boolean isSuccess() {

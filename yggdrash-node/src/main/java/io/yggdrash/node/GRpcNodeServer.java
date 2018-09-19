@@ -202,7 +202,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager, ContractEventLis
                 continue;
             }
             try {
-                Map branch = (HashMap)txReceipt.get(branchId);
+                Map branch = (HashMap)txReceipt.getLog(branchId);
                 String branchName = String.valueOf(branch.get("name"));
                 BlockChain blockChain = branchConfig.getBlockChainByName(branchName);
                 branchGroup.addBranch(blockChain.getBranchId(), blockChain);

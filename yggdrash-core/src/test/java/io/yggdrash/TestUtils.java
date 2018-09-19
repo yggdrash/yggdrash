@@ -258,7 +258,7 @@ public class TestUtils {
     }
 
     public static Transaction sampleTx(Wallet wallet) {
-        return new Transaction(ContractTx.createStemTx(
+        return new Transaction(ContractTx.createStemTxBySeed(
                 wallet, getSampleBranch1(), "create").toJsonObject());
     }
 

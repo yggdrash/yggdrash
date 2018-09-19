@@ -14,20 +14,39 @@ import io.yggdrash.util.TimeUtils;
 
 public class ContractTx {
 
-    public static TransactionHusk createStemTx(Wallet wallet, JsonObject branch, String method) {
+    public static TransactionHusk createStemTxBySeed(
+            Wallet wallet, JsonObject seed, String method) {
         JsonArray versionHistory = new JsonArray();
-        versionHistory.add(branch.get("version").getAsString());
-        if (!branch.has("owner")) {
-            branch.addProperty("owner", wallet.getHexAddress());
+        versionHistory.add(seed.get("version").getAsString());
+        if (!seed.has("owner")) {
+            seed.addProperty("owner", wallet.getHexAddress());
         }
-        if (!branch.has("timestamp")) {
-            branch.addProperty("timestamp", System.currentTimeMillis());
+        if (!seed.has("timestamp")) {
+            seed.addProperty("timestamp", System.currentTimeMillis());
         }
-        branch.add("version_history", versionHistory);
+        seed.add("version_history", versionHistory);
 
+        BranchId branchId = BranchId.of(seed);
+
+        return createTx(wallet, BranchId.stem(), createStemTxBody(branchId, seed, method));
+    }
+
+    public static TransactionHusk createStemTxByBranch(
+            Wallet wallet, JsonObject branch, String method) {
         BranchId branchId = BranchId.of(branch);
 
         return createTx(wallet, BranchId.stem(), createStemTxBody(branchId, branch, method));
+    }
+
+
+    public static JsonObject createBranch(JsonObject branch, String owner) {
+        JsonArray versionHistory = new JsonArray();
+        versionHistory.add(branch.get("version").getAsString());
+        branch.addProperty("owner", owner);
+        branch.addProperty("timestamp", System.currentTimeMillis());
+        branch.add("version_history", versionHistory);
+
+        return branch;
     }
 
     public static TransactionHusk createYeedTx(Wallet wallet, Address to, long amount) {
