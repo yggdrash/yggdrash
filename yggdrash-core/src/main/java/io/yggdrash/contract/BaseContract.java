@@ -39,7 +39,7 @@ public abstract class BaseContract<T> implements Contract<T> {
             TransactionReceipt txReceipt = (TransactionReceipt) this.getClass()
                     .getMethod(method, JsonArray.class)
                     .invoke(this, params);
-            txReceipt.put("method", method);
+            txReceipt.putLog("method", method);
             txReceipt.setTransactionHash(txHusk.getHash().toString());
             if (listener != null) {
                 listener.onContractEvent(ContractEvent.of(txReceipt, txHusk));
@@ -50,7 +50,7 @@ public abstract class BaseContract<T> implements Contract<T> {
             TransactionReceipt txReceipt = new TransactionReceipt();
             txReceipt.setTransactionHash(txHusk.getHash().toString());
             txReceipt.setStatus(0);
-            txReceipt.put("Error", e);
+            txReceipt.putLog("Error", e);
             txReceiptStore.put(txHusk.getHash().toString(), txReceipt);
             return false;
         }

@@ -60,9 +60,12 @@ public class StemContract extends BaseContract<JsonObject> {
 
             HashMap map = Utils.convertJsonToMap(branch);
             if (map != null) {
-                txReceipt.put("branchId", branchId);
-                txReceipt.put("branch", map);
-                //txReceipt.put(branchId, map);
+                txReceipt.putLog(branchId, map);
+                /*
+                TODO ContractEvent advancement required.
+                txReceipt.putLog("branchId", branchId);
+                txReceipt.putLog("branch", map);
+                */
             }
 
             //log.info("[StemContract | create] (param) branch => " + branch);
@@ -99,20 +102,25 @@ public class StemContract extends BaseContract<JsonObject> {
         TransactionReceipt txReceipt = new TransactionReceipt();
         HashMap map = Utils.convertJsonToMap(branch);
         if (map != null) {
-            txReceipt.put("branchId", branchId);
-            txReceipt.put("branch", map);
-            //txReceipt.put(branchId, map);
+            txReceipt.putLog(branchId, map);
+            /*
+            TODO ContractEvent advancement required.
+            txReceipt.putLog("branchId", branchId);
+            txReceipt.putLog("branch", map);
+            */
         }
 
         String owner = branch.get("owner").getAsString();
         if (this.sender != null && isOwnerValid(owner)) {
             if (isBranchIdValid(BranchId.of(branchId), branch)) {
-                /*if (isVersionHistoryUpdated(branchId, branch)) {
+                /*
+                if (isVersionHistoryUpdated(branchId, branch)) {
                     log.info("[StemContract | update] branchId => " + branchId);
                     log.info("[StemContract | update] branch => " + branch);
                     state.replace(branchId, branch);
                     txReceipt.setStatus(1);
-                }*/
+                }
+                */
                 txReceipt.setStatus(TransactionReceipt.SUCCESS);
                 state.replace(branchId, branch);
             }

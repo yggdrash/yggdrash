@@ -33,11 +33,11 @@ public class TransactionReceipt {
     private Map<String, Object> txLog = new HashMap<>();
     private int status = 0;
 
-    public void put(String key, Object value) {
+    public void putLog(String key, Object value) {
         txLog.put(key, value);
     }
 
-    public Object get(String key) {
+    public Object getLog(String key) {
         return txLog.get(key);
     }
 
