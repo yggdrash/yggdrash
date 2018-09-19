@@ -47,6 +47,30 @@ public class TransactionReceipt {
         return transactionHash;
     }
 
+    public int getTransactionIndex() {
+        return transactionIndex;
+    }
+
+    public String getBlockHash() {
+        return blockHash;
+    }
+
+    public int getYeedUsed() {
+        return yeedUsed;
+    }
+
+    public String getBranchAddress() {
+        return branchAddress;
+    }
+
+    public Map<String, Object> getTxLog() {
+        return txLog;
+    }
+
+    public int getStatus() {
+        return status;
+    }
+
     @Override
     public String toString() {
         return "TransactionReceipt{"

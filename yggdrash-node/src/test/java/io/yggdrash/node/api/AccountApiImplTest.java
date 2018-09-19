@@ -2,6 +2,9 @@ package io.yggdrash.node.api;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.TestUtils;
+import io.yggdrash.contract.ContractQry;
+import org.apache.commons.codec.binary.Hex;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,18 +37,12 @@ public class AccountApiImplTest {
     @Test
     public void balanceOfTest() {
         try {
-            JsonArray params = new JsonArray();
-            JsonObject param = new JsonObject();
-            param.addProperty("address", "e1980adeafbb9ac6c9be60955484ab1547ab0b76");
-            params.add(param);
+            JsonObject qry = ContractQry.createQuery(
+                    Hex.encodeHexString(TestUtils.YEED_CHAIN),
+                    "balanceOf",
+                    ContractQry.createParams("address", "e1980adeafbb9ac6c9be60955484ab1547ab0b76"));
 
-            JsonObject query = new JsonObject();
-            query.addProperty("address", "e1980adeafbb9ac6c9be60955484ab1547ab0b76");
-            query.addProperty("method", "balanceOf");
-            query.add("params", params);
-
-            String qryString = query.toString();
-            assertThat(accountApi.balanceOf(qryString)).isNotEmpty();
+            assertThat(accountApi.balanceOf(qry.toString())).isNotEmpty();
         } catch (Exception e) {
             log.debug("\nbalanceOfTest :: exception : " + e);
         }

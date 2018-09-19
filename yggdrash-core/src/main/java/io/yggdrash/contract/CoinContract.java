@@ -48,16 +48,16 @@ public class CoinContract extends BaseContract<Long> {
         String to = params.get(0).getAsJsonObject().get("address").getAsString().toLowerCase();
         long amount = params.get(0).getAsJsonObject().get("amount").getAsLong();
 
-        TransactionReceipt txRecipt = new TransactionReceipt();
-        txRecipt.put("from", sender);
-        txRecipt.put("to", to);
-        txRecipt.put("amount", String.valueOf(amount));
+        TransactionReceipt txReceipt = new TransactionReceipt();
+        txReceipt.put("from", sender);
+        txReceipt.put("to", to);
+        txReceipt.put("amount", String.valueOf(amount));
 
         if (state.get(sender) != null) {
             long balanceOfFrom = state.get(sender);
 
             if (balanceOfFrom - amount < 0) {
-                txRecipt.setStatus(0);
+                txReceipt.setStatus(0);
                 log.info("\n[ERR] " + sender + " has no enough balance!");
             } else {
                 balanceOfFrom -= amount;
@@ -74,9 +74,9 @@ public class CoinContract extends BaseContract<Long> {
                                 + "\nBalance of To   : " + state.get(to));
             }
         } else {
-            txRecipt.setStatus(0);
+            txReceipt.setStatus(0);
             log.info("\n[ERR] " + sender + " has no balance!");
         }
-        return txRecipt;
+        return txReceipt;
     }
 }
