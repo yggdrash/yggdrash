@@ -5,10 +5,12 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionReceipt;
+import io.yggdrash.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -52,13 +54,16 @@ public class StemContract extends BaseContract<JsonObject> {
 
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.setStatus(0);
-
         for (int i = 0; i < params.size(); i++) {
             String branchId = params.get(i).getAsJsonObject().get("branchId").getAsString();
             JsonObject branch = params.get(i).getAsJsonObject().get("branch").getAsJsonObject();
 
-            txReceipt.put(String.format("branchId[%d]",i), branchId);
-            txReceipt.put(String.format("branch[%d]", i), branch);
+            HashMap map = Utils.convertJsonToMap(branch);
+            if (map != null) {
+                txReceipt.put("branchId", branchId);
+                txReceipt.put("branch", map);
+                //txReceipt.put(branchId, map);
+            }
 
             //log.info("[StemContract | create] (param) branch => " + branch);
             // 1. The type of the branch must be one of types.
@@ -74,7 +79,7 @@ public class StemContract extends BaseContract<JsonObject> {
                     state.put(branchId, branch);
                     setSubState(branchId, branch);
                     //log.info("[StemContract | create] SUCCESS! branchId => " + branchId);
-                    txReceipt.setStatus(1);
+                    txReceipt.setStatus(TransactionReceipt.SUCCESS);
                 }
             }
         }
@@ -92,9 +97,12 @@ public class StemContract extends BaseContract<JsonObject> {
         JsonObject branch = params.get(0).getAsJsonObject().get("branch").getAsJsonObject();
 
         TransactionReceipt txReceipt = new TransactionReceipt();
-        txReceipt.put("branchId", branchId);
-        txReceipt.put("branch", branch);
-        txReceipt.setStatus(0);
+        HashMap map = Utils.convertJsonToMap(branch);
+        if (map != null) {
+            txReceipt.put("branchId", branchId);
+            txReceipt.put("branch", map);
+            //txReceipt.put(branchId, map);
+        }
 
         String owner = branch.get("owner").getAsString();
         if (this.sender != null && isOwnerValid(owner)) {
@@ -105,7 +113,7 @@ public class StemContract extends BaseContract<JsonObject> {
                     state.replace(branchId, branch);
                     txReceipt.setStatus(1);
                 }*/
-                txReceipt.setStatus(1);
+                txReceipt.setStatus(TransactionReceipt.SUCCESS);
                 state.replace(branchId, branch);
             }
         }

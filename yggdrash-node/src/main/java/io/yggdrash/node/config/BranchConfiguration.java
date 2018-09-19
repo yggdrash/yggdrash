@@ -44,7 +44,7 @@ import java.util.Arrays;
 
 @Configuration
 public class BranchConfiguration {
-    private static final String STEM = "stem";
+    public static final String STEM = "stem";
     private static final String YEED = "yeed";
     private static final String FORMAT = "classpath:/branch-%s.json";
 
@@ -64,16 +64,16 @@ public class BranchConfiguration {
     @Bean
     BranchGroup branchGroup() throws IOException {
         BranchGroup banchGroup = new BranchGroup();
-        BlockChain stem = getBlockChain(STEM);
+        BlockChain stem = getBlockChainByName(STEM);
         banchGroup.addBranch(stem.getBranchId(), stem);
         for (String branchName : branchProperties.getNameList()) {
-            BlockChain branch = getBlockChain(branchName);
+            BlockChain branch = getBlockChainByName(branchName);
             banchGroup.addBranch(branch.getBranchId(), branch);
         }
         return banchGroup;
     }
 
-    private BlockChain getBlockChain(String branchName) throws IOException {
+    public BlockChain getBlockChainByName(String branchName) throws IOException {
         Resource resource = resourceLoader.getResource(String.format(FORMAT, branchName));
         BlockHusk genesis = new BlockChainLoader(resource.getInputStream()).getGenesis();
         BlockStore blockStore = new BlockStore(getDbSource(genesis.getBranchId() + "/blocks"));

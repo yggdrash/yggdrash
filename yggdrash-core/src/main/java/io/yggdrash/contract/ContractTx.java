@@ -18,8 +18,12 @@ public class ContractTx {
             Wallet wallet, JsonObject seed, String method) {
         JsonArray versionHistory = new JsonArray();
         versionHistory.add(seed.get("version").getAsString());
-        seed.addProperty("owner", wallet.getHexAddress());
-        seed.addProperty("timestamp", System.currentTimeMillis());
+        if (!seed.has("owner")) {
+            seed.addProperty("owner", wallet.getHexAddress());
+        }
+        if (!seed.has("timestamp")) {
+            seed.addProperty("timestamp", System.currentTimeMillis());
+        }
         seed.add("version_history", versionHistory);
 
         BranchId branchId = BranchId.of(seed);

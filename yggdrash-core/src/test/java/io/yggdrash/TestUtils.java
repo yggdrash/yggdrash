@@ -177,7 +177,7 @@ public class TestUtils {
                 + "of all Branch Chains.";
         String version = "0xe4452ervbo091qw4f5n2s8799232abr213er2c90";
         String referenceAddress = "";
-        String reserveAddress = "0x2G5f8A319550f80f9D362ab2eE0D1f023EC665a3";
+        String reserveAddress = "0x9cc060690705a13078634637b1d2a5f2fe1b8096";
         return createBranch(name, symbol, property, type, description,
                 version, referenceAddress, reserveAddress);
     }
@@ -208,11 +208,11 @@ public class TestUtils {
         JsonObject branch = new JsonObject();
         branch.addProperty("name", name);
         //branch.addProperty("owner", wallet.getHexAddress());
-        branch.addProperty("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
+        branch.addProperty("owner", "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
         branch.addProperty("symbol", symbol);
         branch.addProperty("property", property);
         branch.addProperty("type", type);
-        branch.addProperty("timestamp", "0000016531dfa31c");
+        branch.addProperty("timestamp", 1536756751728L);
         branch.addProperty("description", description);
         branch.addProperty("tag", 0.1);
         branch.addProperty("version", version);
@@ -277,7 +277,7 @@ public class TestUtils {
 
         long index = 0;
         long timestamp = TimeUtils.time();
-        BlockHeader blockHeader = null;
+        BlockHeader blockHeader;
         try {
             blockHeader = new BlockHeader(
                     STEM_CHAIN, new byte[8], new byte[8], new byte[32], index, timestamp,

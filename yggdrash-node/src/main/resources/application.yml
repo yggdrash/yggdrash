@@ -6,7 +6,7 @@ logging:
 yggdrash:
   branch:
     name-list:
-    - "yeed"
+    #- "yeed"
   node:
     grpc.host: "localhost"
     grpc.port: 32918

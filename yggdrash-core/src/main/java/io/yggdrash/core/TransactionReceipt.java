@@ -20,6 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TransactionReceipt {
+    public static final int SUCCESS = 1;
+
     private String transactionHash =
             "0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238";
     private int transactionIndex = 1;
@@ -29,10 +31,14 @@ public class TransactionReceipt {
     private String branchAddress =
             "0xb60e8dd61c5d32be8058bb8eb970870f07233155";
     private Map<String, Object> txLog = new HashMap<>();
-    private int status = 1;
+    private int status = 0;
 
     public void put(String key, Object value) {
         txLog.put(key, value);
+    }
+
+    public Object get(String key) {
+        return txLog.get(key);
     }
 
     public void setStatus(int status) {
@@ -69,6 +75,10 @@ public class TransactionReceipt {
 
     public int getStatus() {
         return status;
+    }
+
+    public boolean isSuccess() {
+        return status == SUCCESS;
     }
 
     @Override
