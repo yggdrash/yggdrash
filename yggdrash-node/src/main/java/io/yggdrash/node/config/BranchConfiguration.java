@@ -16,16 +16,20 @@
 
 package io.yggdrash.node.config;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.contract.CoinContract;
 import io.yggdrash.contract.Contract;
+import io.yggdrash.contract.ContractQry;
 import io.yggdrash.contract.NoneContract;
 import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockChainLoader;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.Runtime;
+import io.yggdrash.core.Wallet;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -71,6 +75,23 @@ public class BranchConfiguration {
             banchGroup.addBranch(branch.getBranchId(), branch);
         }
         return banchGroup;
+    }
+
+    public BlockChain getBlockChain(Wallet wallet, String owner, BranchId branchId,
+                                    String branchName) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("branchId", branchId.toString());
+        jsonObject.addProperty("method", "genesis");
+        JsonArray params =
+                ContractQry.createParams("frontier", owner, "balance", "1000000000");
+        jsonObject.add("params", params);
+        BlockHusk genesis = BlockHusk.genesis(wallet, jsonObject);
+        BlockStore blockStore = new BlockStore(getDbSource(genesis.getBranchId() + "/blocks"));
+        TransactionStore txStore =
+                new TransactionStore(getDbSource(genesis.getBranchId() + "/txs"));
+        Contract contract = getContract(branchName);
+        Runtime<?> runtime = getRunTime(branchName);
+        return new BlockChain(genesis, blockStore, txStore, contract, runtime);
     }
 
     public BlockChain getBlockChainByName(String branchName) throws IOException {

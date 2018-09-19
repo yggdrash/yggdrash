@@ -16,17 +16,16 @@
 
 package io.yggdrash.core;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.trie.Trie;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.TimeUtils;
+import org.spongycastle.util.encoders.Hex;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -205,15 +204,19 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         return this.coreBlock.toJsonObject();
     }
 
-    @VisibleForTesting
     public static BlockHusk genesis(Wallet wallet, JsonObject jsonObject) {
         try {
             JsonArray jsonArrayTxBody = new JsonArray();
             jsonArrayTxBody.add(jsonObject);
 
             TransactionBody txBody = new TransactionBody(jsonArrayTxBody);
+            byte[] chain = new byte[20];
+            if (jsonObject.has("branchId")) {
+                chain = Hex.decode(jsonObject.get("branchId").getAsString());
+            }
+
             TransactionHeader txHeader = new TransactionHeader(
-                    new byte[20],
+                    chain,
                     new byte[8],
                     new byte[8],
                     TimeUtils.time(),
@@ -225,7 +228,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
 
             BlockBody blockBody = new BlockBody(txList);
             BlockHeader blockHeader = new BlockHeader(
-                    HashUtil.sha3omit12(txBody.getBodyHash()),
+                    chain,
                     new byte[8],
                     new byte[8],
                     new byte[32],
