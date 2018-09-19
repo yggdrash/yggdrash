@@ -213,7 +213,10 @@ public class GRpcNodeServer implements NodeServer, NodeManager, ContractEventLis
                         BranchId.of(branchId), branchName);
                 branchGroup.addBranch(blockChain.getBranchId(), blockChain);
                 blockChain.addListener(peerGroup);
-                blockChain.addListener(controller);
+                // TODO remove this
+                if (BranchConfiguration.YEED.equals(branchName)) {
+                    blockChain.addListener(controller);
+                }
             } catch (Exception e) {
                 log.warn("add branch fail. id={}, err={}", branchId, e.getMessage());
             }
