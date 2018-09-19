@@ -1,5 +1,6 @@
 package io.yggdrash.node;
 
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.TestUtils;
@@ -116,7 +117,6 @@ public class NodeContractDemoClient {
             } else {
                 for (int i = Integer.parseInt(times); i > 0; i--) {
                     JsonObject branch = createBranch(seed, wallet.getHexAddress());
-                    saveBranchAsFile(json, branch);
                     TransactionHusk tx = createStemTxByBranch(wallet, branch, "create");
                     send(toServer(), tx);
                 }
@@ -233,9 +233,9 @@ public class NodeContractDemoClient {
         userDir += "/yggdrash-node/src/test/resources/branch/%s";
 
         File file = new File(String.format(userDir, fileName));
-        FileWriter fileWriter = new FileWriter(file); //덮어쓰기
+        FileWriter fileWriter = new FileWriter(file); //overwritten
 
-        fileWriter.write(branch.toString());
+        fileWriter.write(new GsonBuilder().setPrettyPrinting().create().toJson(branch));
         fileWriter.flush();
         fileWriter.close();
     }
