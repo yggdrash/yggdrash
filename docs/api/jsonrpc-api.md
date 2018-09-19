@@ -86,6 +86,10 @@
         * [Parameters]()
         * [Returns]()
         * [Example]()
+     * [[contract] query](#query)
+        * [Parameters]()
+        * [Returns]()
+        * [Example]()  
      * [[peer] add](#add)
         * [Parameters]()
         * [Returns]()
@@ -150,6 +154,7 @@ The examples also do not include the URL/IP & port combination which must be the
 * [newPendingTransactionFilter](#new-pending-transaction-filter)
 * [getTransactionReceipt](#get-transaction-receipt)
 * [getAllTransactionReceipt](#get-all-transaction-receipt)
+* [[contract] query](#query)
 * [[peer] add](#add)
 * [[peer] getAll](#get-all)
 * [[peer] getAllActivePeer](#get-all-active-peer)
@@ -1054,6 +1059,39 @@ None
 }
 ```
 
+ 
+------
+ 
+#### [Contract] query
+
+Handles all queries that are dispatched to the contract
+
+**Parameter**
+
+`DATA`, string - query 
+
+**Returns**
+
+`DATA`, string - result of query
+
+**Example**
+
+```
+//request
+{
+	"id": "706872067",
+	"jsonrpc": "2.0",
+	"method": "query",
+	"params": ["{\"address\":\"fe7b7c93dd23f78e12ad42650595bc0f874c88f7\",\"method\":\"view\",\"params\":[{\"branchId\":\"a08ee962cd8b2bd0edbfee989c1a9f7884d26532\"}]}"]
+}
+
+//result
+{
+	"jsonrpc": "2.0",
+	"id": "706872067",
+	"result": "{\"result\":\"{\\\"name\\\":\\\"YEED\\\",\\\"owner\\\":\\\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\\\",\\\"symbol\\\":\\\"YEED\\\",\\\"property\\\":\\\"currency\\\",\\\"type\\\":\\\"immunity\\\",\\\"timestamp\\\":1536756751728,\\\"description\\\":\\\"YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.\\\",\\\"tag\\\":0.1,\\\"version\\\":\\\"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025\\\",\\\"version_history\\\":[\\\"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025\\\"],\\\"reference_address\\\":\\\"\\\",\\\"reserve_address\\\":\\\"0x9cc060690705a13078634637b1d2a5f2fe1b8096\\\"}\"}"
+}
+```
  
 ------
  

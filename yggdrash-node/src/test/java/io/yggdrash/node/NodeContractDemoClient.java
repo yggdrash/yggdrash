@@ -101,25 +101,31 @@ public class NodeContractDemoClient {
         } else {
             System.out.print("사용할 .json 파일명을 입력하세요 (기본값: yeed.seed.json)\n> ");
             String json = scan.nextLine();
+
             if ("".equals(json)) {
                 json = "yeed.seed.json";
             }
-            JsonObject seed = getSeedFile(json);
+
+            Boolean toServer = toServer();
+            JsonObject branch;
+
+            if (!json.contains("seed")) {
+                branch = getBranchFile(json);
+            } else {
+                JsonObject seed = getSeedFile(json);
+                branch = createBranch(seed, wallet.getHexAddress());
+            }
+
             System.out.print("전송할 횟수를 입력하세요 기본값(1)\n> ");
             String times = scan.nextLine();
 
             if ("".equals(times)) {
                 times = "1";
             }
-            if ("yeed.json".equals(json)) {
-                TransactionHusk tx = createStemTxByBranch(wallet, getBranchFile(json), "create");
-                send(toServer(), tx);
-            } else {
-                for (int i = Integer.parseInt(times); i > 0; i--) {
-                    JsonObject branch = createBranch(seed, wallet.getHexAddress());
-                    TransactionHusk tx = createStemTxByBranch(wallet, branch, "create");
-                    send(toServer(), tx);
-                }
+
+            for (int i = Integer.parseInt(times); i > 0; i--) {
+                TransactionHusk tx = createStemTxByBranch(wallet, branch, "create");
+                send(toServer, tx);
             }
         }
     }
