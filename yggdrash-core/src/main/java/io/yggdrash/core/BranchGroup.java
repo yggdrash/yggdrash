@@ -40,7 +40,7 @@ public class BranchGroup {
 
     public void addBranch(BranchId branchId, BlockChain blockChain) {
         if (branches.containsKey(branchId)) {
-            throw new DuplicatedException(branchId.toString());
+            throw new DuplicatedException(branchId.toString() + " duplicated");
         }
         branches.put(branchId, blockChain);
     }

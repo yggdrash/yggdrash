@@ -21,7 +21,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -95,10 +94,6 @@ public class BlockChain {
 
     public Runtime<?> getRuntime() {
         return runtime;
-    }
-
-    public List<Map<String, Object>> getStateList() {
-        return runtime.getStateStore().getStateList();
     }
 
     public BlockHusk generateBlock(Wallet wallet) {
@@ -284,9 +279,7 @@ public class BlockChain {
 
     // TODO execute All Transaction
     private List<Boolean> executeAllTx(Set<TransactionHusk> txList) {
-        return txList.stream()
-            .map(t -> executeTransaction(t))
-            .collect(Collectors.toList());
+        return txList.stream().map(this::executeTransaction).collect(Collectors.toList());
     }
 
     private boolean executeTransaction(TransactionHusk tx) {
@@ -297,7 +290,6 @@ public class BlockChain {
             return false;
         }
     }
-
 
     private void removeTxByBlock(BlockHusk block) {
         if (block == null || block.getBody() == null) {

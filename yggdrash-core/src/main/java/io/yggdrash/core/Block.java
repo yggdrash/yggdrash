@@ -82,17 +82,17 @@ public class Block implements Cloneable {
         return ecKeyPub.getPubKey();
     }
 
-    public String getPubKeyHexString() throws IOException, SignatureException {
+    public String getPubKeyHexString() throws SignatureException {
         return Hex.toHexString(this.getPubKey());
     }
 
-    public byte[] getAddress() throws IOException, SignatureException {
+    public byte[] getAddress() throws SignatureException {
         byte[] pubBytes = this.getPubKey();
         return HashUtil.sha3omit12(
                 Arrays.copyOfRange(pubBytes, 1, pubBytes.length));
     }
 
-    public String getAddressHexString() throws IOException, SignatureException {
+    public String getAddressHexString() throws SignatureException {
         return Hex.toHexString(getAddress());
     }
 
@@ -142,15 +142,15 @@ public class Block implements Cloneable {
         // TODO CheckByValidate Code
         boolean check = true;
         check &= verifyCheckLengthNotNull(
-                this.header.getChain(), this.header.CHAIN_LENGTH, "chain");
+                this.header.getChain(), BlockHeader.CHAIN_LENGTH, "chain");
         check &= verifyCheckLengthNotNull(
-                this.header.getVersion(), this.header.VERSION_LENGTH, "version");
-        check &= verifyCheckLengthNotNull(this.header.getType(), this.header.TYPE_LENGTH, "type");
+                this.header.getVersion(), BlockHeader.VERSION_LENGTH, "version");
+        check &= verifyCheckLengthNotNull(header.getType(), BlockHeader.TYPE_LENGTH, "type");
         check &= verifyCheckLengthNotNull(
-                this.header.getPrevBlockHash(), this.header.PREVBLOCKHASH_LENGTH, "prevBlockHash");
+                this.header.getPrevBlockHash(), BlockHeader.PREVBLOCKHASH_LENGTH, "prevBlockHash");
         check &= verifyCheckLengthNotNull(
-                this.header.getMerkleRoot(), this.header.MERKLEROOT_LENGTH, "merkleRootLength");
-        check &= verifyCheckLengthNotNull(this.signature, this.SIGNATURE_LENGTH, "signature");
+                this.header.getMerkleRoot(), BlockHeader.MERKLEROOT_LENGTH, "merkleRootLength");
+        check &= verifyCheckLengthNotNull(this.signature, SIGNATURE_LENGTH, "signature");
         check &= this.header.getIndex() >= 0;
         check &= this.header.getTimestamp() > 0;
         check &= !(this.header.getBodyLength() <= 0
@@ -201,7 +201,7 @@ public class Block implements Cloneable {
     }
 
     public Proto.Block toProtoBlock() {
-        return this.toProtoBlock(this);
+        return toProtoBlock(this);
     }
 
     public static Proto.Block toProtoBlock(Block block) {

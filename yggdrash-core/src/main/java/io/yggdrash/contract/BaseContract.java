@@ -2,12 +2,13 @@ package io.yggdrash.contract;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
+import io.yggdrash.core.event.ContractEventListener;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +17,7 @@ public abstract class BaseContract<T> implements Contract<T> {
     protected StateStore<T> state;
     protected TransactionReceiptStore txReceiptStore;
     protected String sender;
+    protected ContractEventListener listener;
 
     @Override
     public void init(StateStore<T> store, TransactionReceiptStore txReceiptStore) {
@@ -27,11 +29,7 @@ public abstract class BaseContract<T> implements Contract<T> {
     public boolean invoke(TransactionHusk txHusk) {
         try {
             this.sender = txHusk.getAddress().toString();
-            String data = txHusk.getBody();
-
-            JsonParser jsonParser = new JsonParser();
-            JsonArray txBodyArray = (JsonArray) jsonParser.parse(data);
-            JsonObject txBody = txBodyArray.get(0).getAsJsonObject();
+            JsonObject txBody = Utils.parseJsonArray(txHusk.getBody()).get(0).getAsJsonObject();
 
             dataFormatValidation(txBody);
 
@@ -41,9 +39,12 @@ public abstract class BaseContract<T> implements Contract<T> {
             TransactionReceipt txReceipt = (TransactionReceipt) this.getClass()
                     .getMethod(method, JsonArray.class)
                     .invoke(this, params);
+            txReceipt.put("method", method);
             txReceipt.setTransactionHash(txHusk.getHash().toString());
-            txReceiptStore.put(txHusk.getHash().toString(), txReceipt);
-
+            if (listener != null) {
+                listener.onContractEvent(ContractEvent.of(txReceipt, txHusk));
+            }
+            txReceiptStore.put(txReceipt.getTransactionHash(), txReceipt);
             return true;
         } catch (Throwable e) {
             TransactionReceipt txReceipt = new TransactionReceipt();
@@ -56,7 +57,7 @@ public abstract class BaseContract<T> implements Contract<T> {
     }
 
     @Override
-    public JsonObject query(JsonObject query) throws Exception {
+    public JsonObject query(JsonObject query) {
         dataFormatValidation(query);
 
         String method = query.get("method").getAsString().toLowerCase();
@@ -80,5 +81,10 @@ public abstract class BaseContract<T> implements Contract<T> {
         if (!data.get("params").isJsonArray()) {
             throw new FailedOperationException("Params must be JsonArray");
         }
+    }
+
+    @Override
+    public void setListener(ContractEventListener listener) {
+        this.listener = listener;
     }
 }

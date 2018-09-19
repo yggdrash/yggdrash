@@ -6,7 +6,6 @@ import io.yggdrash.TestUtils;
 import io.yggdrash.contract.ContractQry;
 import io.yggdrash.core.Address;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.node.api.ContractApi;
@@ -71,10 +70,10 @@ public class NodeContractDemoClient {
             send(tx, server);
 
         } else {
-            System.out.print("사용할 .json 파일명을 입력하세요 (기본값: sample1.json)\n> ");
+            System.out.print("사용할 .json 파일명을 입력하세요 (기본값: yeed.seed.json)\n> ");
             String json = scan.nextLine();
             if ("".equals(json)) {
-                json = "sample1.json";
+                json = "yeed.seed.json";
             }
             JsonObject seed = getSampleBranch(json);
             System.out.print("전송할 횟수를 입력하세요 기본값(1)\n> ");
