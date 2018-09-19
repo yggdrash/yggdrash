@@ -35,6 +35,7 @@ import io.yggdrash.core.net.NodeServer;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.node.config.BranchConfiguration;
+import io.yggdrash.node.controller.WebsocketController;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.Ping;
@@ -75,6 +76,9 @@ public class GRpcNodeServer implements NodeServer, NodeManager, ContractEventLis
     private Server server;
 
     private BranchConfiguration branchConfig;
+
+    @Autowired
+    private WebsocketController controller;
 
     @Autowired
     public void setPeerGroup(PeerGroup peerGroup) {
@@ -203,10 +207,13 @@ public class GRpcNodeServer implements NodeServer, NodeManager, ContractEventLis
             }
             try {
                 Map branch = (HashMap)txReceipt.getLog(branchId);
+                String owner = String.valueOf(branch.get("owner"));
                 String branchName = String.valueOf(branch.get("name"));
-                BlockChain blockChain = branchConfig.getBlockChainByName(branchName);
+                BlockChain blockChain = branchConfig.getBlockChain(wallet, owner,
+                        BranchId.of(branchId), branchName);
                 branchGroup.addBranch(blockChain.getBranchId(), blockChain);
                 blockChain.addListener(peerGroup);
+                blockChain.addListener(controller);
             } catch (Exception e) {
                 log.warn("add branch fail. id={}, err={}", branchId, e.getMessage());
             }
