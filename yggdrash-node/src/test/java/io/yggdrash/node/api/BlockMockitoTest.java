@@ -6,6 +6,7 @@ import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.node.controller.BlockDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -55,7 +56,7 @@ public class BlockMockitoTest {
     @Test
     public void getBlockByHashTest() {
         when(branchGroupMock.getBlockByHash(stem, hashOfBlock)).thenReturn(block);
-        BlockHusk res = blockApiImpl.getBlockByHash(stem.toString(), hashOfBlock, true);
+        BlockDto res = blockApiImpl.getBlockByHash(stem.toString(), hashOfBlock, true);
         assertThat(res).isNotNull();
         assertEquals(res.getHash().toString(), hashOfBlock);
     }
@@ -63,7 +64,7 @@ public class BlockMockitoTest {
     @Test
     public void getBlockByNumberTest() {
         when(branchGroupMock.getBlockByIndex(stem, numOfblock)).thenReturn(block);
-        BlockHusk res = blockApiImpl.getBlockByNumber(stem.toString(), numOfblock, true);
+        BlockDto res = blockApiImpl.getBlockByNumber(stem.toString(), numOfblock, true);
         assertThat(res).isNotNull();
         assertEquals(res.getHash().toString(), hashOfBlock);
     }

@@ -4,7 +4,6 @@ import com.googlecode.jsonrpc4j.JsonRpcError;
 import com.googlecode.jsonrpc4j.JsonRpcErrors;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
-import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NonExistObjectException;
@@ -17,33 +16,6 @@ import java.util.Map;
 public interface TransactionApi {
 
     /* get */
-
-    /**
-     * Returns the number of transactions sent from an address.
-     *
-     * @param address account address
-     * @param tag     "latest","earlest","pending"
-     */
-    @JsonRpcErrors({
-            @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
-    int getTransactionCount(@JsonRpcParam(value = "branchId") String branchId,
-                            @JsonRpcParam(value = "address") String address,
-                            @JsonRpcParam(value = "tag") String tag);
-
-    /**
-     * Returns information about a block by hash.
-     *
-     * @param address     account address
-     * @param blockNumber integer of block number
-     */
-    @JsonRpcErrors({
-            @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
-    int getTransactionCount(@JsonRpcParam(value = "branchId") String branchId,
-                            @JsonRpcParam(value = "address") String address,
-                            @JsonRpcParam(value = "blockNumber") long blockNumber);
-
     /**
      * Returns the number of transactions in a block from a block matching the given block hash.
      *
@@ -52,7 +24,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    int getBlockTransactionCountByHash(@JsonRpcParam(value = "branchId") String branchId,
+    int getTransactionCountByBlockHash(@JsonRpcParam(value = "branchId") String branchId,
                                        @JsonRpcParam(value = "hashOfBlock") String hashOfBlock);
 
     /**
@@ -63,7 +35,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    int getBlockTransactionCountByNumber(@JsonRpcParam(value = "branchId") String branchId,
+    int getTransactionCountByBlockNumber(@JsonRpcParam(value = "branchId") String branchId,
                                          @JsonRpcParam(value = "blockNumber") long blockNumber);
 
     /**
@@ -74,7 +46,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    int getBlockTransactionCountByNumber(@JsonRpcParam(value = "branchId") String branchId,
+    int getTransactionCountByBlockNumber(@JsonRpcParam(value = "branchId") String branchId,
                                          @JsonRpcParam(value = "tag") String tag);
 
     /**
@@ -85,7 +57,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    TransactionHusk getTransactionByHash(@JsonRpcParam(value = "branchId") String branchId,
+    TransactionDto getTransactionByHash(@JsonRpcParam(value = "branchId") String branchId,
                                          @JsonRpcParam(value = "hashOfTx") String hashOfTx);
 
     /**
@@ -97,7 +69,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    TransactionHusk getTransactionByBlockHash(@JsonRpcParam(value = "branchId") String branchId,
+    TransactionDto getTransactionByBlockHash(@JsonRpcParam(value = "branchId") String branchId,
                                       @JsonRpcParam(value = "hashOfBlock") String hashOfBlock,
                                       @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
 
@@ -110,7 +82,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    TransactionHusk getTransactionByBlockNumber(@JsonRpcParam(value = "branchId") String branchId,
+    TransactionDto getTransactionByBlockNumber(@JsonRpcParam(value = "branchId") String branchId,
                                     @JsonRpcParam(value = "blockNumber") long blockNumber,
                                     @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
 
@@ -123,7 +95,7 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    TransactionHusk getTransactionByLatestBlock(@JsonRpcParam(value = "branchId") String branchId,
+    TransactionDto getTransactionByBlockNumber(@JsonRpcParam(value = "branchId") String branchId,
                                     @JsonRpcParam(value = "tag") String tag,
                                     @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
 
@@ -157,7 +129,8 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = RejectedAccessException.class,
                     code = RejectedAccessException.code)})
-    int newPendingTransactionFilter();
+    int newPendingTransactionFilter(
+            @JsonRpcParam(value = "branchId") String branchId);
 
     /**
      * Returns all TransactionReceipts
