@@ -14,26 +14,32 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.controller;
+package io.yggdrash.node;
 
+import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.Branch;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.event.BranchEventListener;
+import io.yggdrash.core.event.BranchGroupEventListener;
+import io.yggdrash.node.controller.BlockDto;
+import io.yggdrash.node.controller.TransactionDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Component;
 
-@Controller
-public class WebsocketController implements BranchEventListener {
+@Component
+public class WebsocketSender implements BranchEventListener, BranchGroupEventListener {
 
     private final SimpMessagingTemplate template;
 
     @Autowired
-    public WebsocketController(BranchGroup branchGroup, SimpMessagingTemplate template) {
+    public WebsocketSender(BranchGroup branchGroup, SimpMessagingTemplate template) {
+        branchGroup.setListener(this);
+        branchGroup.getAllBranch().forEach(branch -> branch.addListener(this));
         this.template = template;
-        branchGroup.getAllBranch().forEach(blockChain -> blockChain.addListener(this));
     }
 
     @Override
@@ -55,6 +61,13 @@ public class WebsocketController implements BranchEventListener {
                 TransactionDto.createBy(tx));
         if (tx.getBranchId().equals(BranchId.stem())) {
             template.convertAndSend("/topic/stem/txs", TransactionDto.createBy(tx));
+        }
+    }
+
+    @Override
+    public void newBranch(BlockChain blockChain) {
+        if (Branch.YEED.equals(blockChain.getBranchName())) {
+            blockChain.addListener(this);
         }
     }
 }

@@ -19,6 +19,9 @@ package io.yggdrash.core;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.Contract;
+import io.yggdrash.core.event.BranchEventListener;
+import io.yggdrash.core.event.BranchGroupEventListener;
+import io.yggdrash.core.event.ContractEventListener;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;
@@ -38,11 +41,24 @@ public class BranchGroup {
 
     private Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
 
-    public void addBranch(BranchId branchId, BlockChain blockChain) {
+    BranchGroupEventListener listener;
+
+    public void setListener(BranchGroupEventListener listener) {
+        this.listener = listener;
+    }
+
+    public void addBranch(BranchId branchId, BlockChain blockChain,
+                          BranchEventListener branchEventListener,
+                          ContractEventListener contractEventListener) {
         if (branches.containsKey(branchId)) {
             throw new DuplicatedException(branchId.toString() + " duplicated");
         }
+        blockChain.addListener(branchEventListener);
+        blockChain.init(contractEventListener);
         branches.put(branchId, blockChain);
+        if (listener != null) {
+            listener.newBranch(blockChain);
+        }
     }
 
     public BlockChain getBranch(BranchId branchId) {

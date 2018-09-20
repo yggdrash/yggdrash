@@ -106,12 +106,7 @@ public class TestUtils {
     }
 
     public static BlockHusk createGenesisBlockHusk() {
-        return createGenesisBlockHusk(wallet);
-    }
-
-    public static BlockHusk createGenesisBlockHusk(Wallet wallet) {
-        return BlockHusk.genesis(wallet,ContractTx.createYeedTx(
-                wallet, new Address(TRANSFER_TO), 100).toJsonObject());
+        return new BlockHusk(sampleBlock().toProtoBlock());
     }
 
     public static BlockHusk createBlockHuskByTxList(Wallet wallet, List<TransactionHusk> txList) {

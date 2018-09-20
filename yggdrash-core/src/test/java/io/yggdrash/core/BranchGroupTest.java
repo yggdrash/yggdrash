@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.contract.ContractQry;
+import io.yggdrash.core.event.BranchEventListener;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.NotValidateException;
 import org.apache.commons.codec.binary.Hex;
@@ -41,11 +42,24 @@ public class BranchGroupTest {
     public void setUp() {
         branchGroup = new BranchGroup();
         blockChain = new BlockChain(branchJson);
-        branchGroup.addBranch(blockChain.getBranchId(), blockChain);
+        addBranch(blockChain);
         assertThat(branchGroup.getBranchSize()).isEqualTo(1);
         tx = TestUtils.createTxHusk(wallet);
         block = new BlockHusk(wallet, Collections.singletonList(tx),
                 branchGroup.getBlockByIndex(BranchId.stem(), 0));
+    }
+
+    private void addBranch(BlockChain blockChain) {
+        branchGroup.addBranch(blockChain.getBranchId(), blockChain, new BranchEventListener() {
+            @Override
+            public void chainedBlock(BlockHusk block) {
+            }
+
+            @Override
+            public void receivedTransaction(TransactionHusk tx) {
+            }
+        }, contractEvent -> {
+        });
     }
 
     @After
@@ -57,7 +71,7 @@ public class BranchGroupTest {
     public void addExistedBranch() {
         branchGroup.getBranch(blockChain.getBranchId()).close();
         BlockChain blockChain = new BlockChain(branchJson);
-        branchGroup.addBranch(blockChain.getBranchId(), blockChain);
+        addBranch(blockChain);
     }
 
     @Test
