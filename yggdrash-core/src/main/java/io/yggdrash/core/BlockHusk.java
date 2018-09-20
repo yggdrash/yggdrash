@@ -16,7 +16,6 @@
 
 package io.yggdrash.core;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.Sha3Hash;
@@ -25,7 +24,6 @@ import io.yggdrash.proto.Proto;
 import io.yggdrash.trie.Trie;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.TimeUtils;
-import org.spongycastle.util.encoders.Hex;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -202,47 +200,6 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
      */
     public JsonObject toJsonObject() {
         return this.coreBlock.toJsonObject();
-    }
-
-    public static BlockHusk genesis(Wallet wallet, JsonObject jsonObject) {
-        try {
-            JsonArray jsonArrayTxBody = new JsonArray();
-            jsonArrayTxBody.add(jsonObject);
-
-            TransactionBody txBody = new TransactionBody(jsonArrayTxBody);
-            byte[] chain = new byte[20];
-            if (jsonObject.has("branchId")) {
-                chain = Hex.decode(jsonObject.get("branchId").getAsString());
-            }
-
-            TransactionHeader txHeader = new TransactionHeader(
-                    chain,
-                    new byte[8],
-                    new byte[8],
-                    TimeUtils.time(),
-                    txBody);
-
-            Transaction tx = new Transaction(txHeader, wallet, txBody);
-            List<Transaction> txList = new ArrayList<>();
-            txList.add(tx);
-
-            BlockBody blockBody = new BlockBody(txList);
-            BlockHeader blockHeader = new BlockHeader(
-                    chain,
-                    new byte[8],
-                    new byte[8],
-                    new byte[32],
-                    0L,
-                    0L,
-                    blockBody.getMerkleRoot(),
-                    blockBody.length());
-
-            Block coreBlock = new Block(blockHeader, wallet, blockBody);
-
-            return new BlockHusk(Block.toProtoBlock(coreBlock));
-        } catch (Exception e) {
-            throw new NotValidateException();
-        }
     }
 
     private Proto.Block.Header getHeader() {

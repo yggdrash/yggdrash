@@ -16,26 +16,19 @@
 
 package io.yggdrash.node;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
-import io.yggdrash.contract.ContractEvent;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.event.ContractEventListener;
 import io.yggdrash.core.net.NodeManager;
 import io.yggdrash.core.net.NodeServer;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.node.config.BranchConfiguration;
-import io.yggdrash.node.controller.WebsocketController;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.Ping;
@@ -43,7 +36,6 @@ import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.ByteUtil;
-import io.yggdrash.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -51,15 +43,13 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Service
-public class GRpcNodeServer implements NodeServer, NodeManager, ContractEventListener {
+public class GRpcNodeServer implements NodeServer, NodeManager {
     private static final Logger log = LoggerFactory.getLogger(GRpcNodeServer.class);
     private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
 
@@ -74,11 +64,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager, ContractEventLis
     private NodeHealthIndicator nodeHealthIndicator;
 
     private Server server;
-
-    private BranchConfiguration branchConfig;
-
-    @Autowired
-    private WebsocketController controller;
 
     @Autowired
     public void setPeerGroup(PeerGroup peerGroup) {
@@ -108,11 +93,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager, ContractEventLis
     @Autowired
     public void setBranchGroup(BranchGroup branchGroup) {
         this.branchGroup = branchGroup;
-    }
-
-    @Autowired
-    public void setBranchConfig(BranchConfiguration branchConfig) {
-        this.branchConfig = branchConfig;
     }
 
     @Override
@@ -157,10 +137,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager, ContractEventLis
     }
 
     private void init() {
-        branchGroup.getAllBranch().forEach(branch -> {
-            branch.addListener(peerGroup);
-            branch.getContract().setListener(this);
-        });
         requestPeerList();
         peerGroup.addPeer(peer);
         if (!peerGroup.isEmpty()) {
@@ -188,43 +164,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager, ContractEventLis
             return;
         }
         peerGroup.newPeerChannel(new GRpcClientChannel(peer));
-    }
-
-    @Override
-    public void onContractEvent(ContractEvent event) {
-        TransactionReceipt txReceipt = event.getTransactionReceipt();
-        TransactionHusk txHusk = event.getTransactionHusk();
-        if (!txReceipt.isSuccess() || !txHusk.getBranchId().equals(BranchId.stem())) {
-            return;
-        }
-        JsonObject txBody = Utils.parseJsonArray(txHusk.getBody()).get(0).getAsJsonObject();
-        JsonArray params = txBody.get("params").getAsJsonArray();
-
-        for (int i = 0; i < params.size(); i++) {
-            String branchId = params.get(i).getAsJsonObject().get("branchId").getAsString();
-            if (containsBranch(branchId)) {
-                continue;
-            }
-            try {
-                Map branch = (HashMap)txReceipt.getLog(branchId);
-                String owner = String.valueOf(branch.get("owner"));
-                String branchName = String.valueOf(branch.get("name"));
-                BlockChain blockChain = branchConfig.getBlockChain(wallet, owner,
-                        BranchId.of(branchId), branchName);
-                branchGroup.addBranch(blockChain.getBranchId(), blockChain);
-                blockChain.addListener(peerGroup);
-                // TODO remove this
-                if (BranchConfiguration.YEED.equals(branchName)) {
-                    blockChain.addListener(controller);
-                }
-            } catch (Exception e) {
-                log.warn("add branch fail. id={}, err={}", branchId, e.getMessage());
-            }
-        }
-    }
-
-    private boolean containsBranch(String branchId) {
-        return branchGroup.getBranch(BranchId.of(branchId)) != null;
     }
 
     private void requestPeerList() {

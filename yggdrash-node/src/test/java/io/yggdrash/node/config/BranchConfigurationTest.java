@@ -1,46 +1,42 @@
 package io.yggdrash.node.config;
 
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.Wallet;
+import io.yggdrash.core.net.PeerGroup;
 import org.junit.Before;
 import org.junit.Test;
+import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.mock.env.MockEnvironment;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Collections;
 
 public class BranchConfigurationTest {
-    static final ResourceLoader loader = new DefaultResourceLoader();
+
     MockEnvironment mockEnv;
-    BranchProperties properties;
+    PeerGroup peerGroup = new PeerGroup(1);
+    ResourceLoader loader = new DefaultResourceLoader();
 
     @Before
     public void setUp() {
         mockEnv = new MockEnvironment();
-        properties = new BranchProperties();
     }
 
     @Test
-    public void defaultBranchGroupTest() throws IOException {
+    public void defaultBranchGroupTest() throws IOException, InvalidCipherTextException {
         assert getBranchGroup().getBranchSize() == 1;
     }
 
     @Test
-    public void productionBranchGroupTest() throws IOException {
+    public void productionBranchGroupTest() throws IOException, InvalidCipherTextException {
         mockEnv.addActiveProfile("prod");
         assert getBranchGroup().getBranchSize() == 1;
     }
 
-    @Test(expected = FileNotFoundException.class)
-    public void unknownBranchGroupTest() throws IOException {
-        properties.setNameList(Collections.singletonList("dart"));
-        getBranchGroup();
-    }
-
-    private BranchGroup getBranchGroup() throws IOException {
-        BranchConfiguration config = new BranchConfiguration(properties, loader, mockEnv);
+    private BranchGroup getBranchGroup() throws IOException, InvalidCipherTextException {
+        BranchConfiguration config = new BranchConfiguration(mockEnv, new Wallet(), peerGroup);
+        config.setResource(loader.getResource("classpath:/genesis.json"));
         return config.branchGroup();
     }
 }

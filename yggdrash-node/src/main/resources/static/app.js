@@ -39,7 +39,7 @@ function disconnect() {
 }
 
 function showBlocks(block) {
-    $("#blocks").append("<tr><td>" + block.hash + "</td></tr>");
+    $("#blocks").append("<tr><td>branch=" + block.chain + " hash=" + block.hash + "</td></tr>");
 }
 
 function showTxs(tx) {

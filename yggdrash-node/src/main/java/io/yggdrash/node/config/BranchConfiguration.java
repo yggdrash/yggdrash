@@ -18,122 +18,106 @@ package io.yggdrash.node.config;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.contract.CoinContract;
-import io.yggdrash.contract.Contract;
-import io.yggdrash.contract.ContractQry;
-import io.yggdrash.contract.NoneContract;
-import io.yggdrash.contract.StemContract;
+import io.yggdrash.contract.ContractEvent;
 import io.yggdrash.core.BlockChain;
+import io.yggdrash.core.BlockChainBuilder;
 import io.yggdrash.core.BlockChainLoader;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.Branch;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
-import io.yggdrash.core.Runtime;
+import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.TransactionReceipt;
 import io.yggdrash.core.Wallet;
-import io.yggdrash.core.store.BlockStore;
-import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
-import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.core.store.datasource.DbSource;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
-import io.yggdrash.core.store.datasource.LevelDbDataSource;
+import io.yggdrash.core.event.ContractEventListener;
+import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.util.Utils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
-public class BranchConfiguration {
-    public static final String STEM = "stem";
-    public static final String YEED = "yeed";
-    private static final String FORMAT = "classpath:/branch-%s.json";
+public class BranchConfiguration implements ContractEventListener {
+    private static final Logger log = LoggerFactory.getLogger(BranchConfiguration.class);
 
-    private final BranchProperties branchProperties;
-    private final ResourceLoader resourceLoader;
-    private boolean isProduction = false;
+    private final boolean isProduction;
+    private final Wallet wallet;
+    private final BlockChainBuilder builder;
+    private final PeerGroup peerGroup;
 
-    BranchConfiguration(BranchProperties branchProperties, ResourceLoader resourceLoader,
-                        Environment env) {
-        this.branchProperties = branchProperties;
-        this.resourceLoader = resourceLoader;
-        if (Arrays.asList(env.getActiveProfiles()).contains("prod")) {
-            isProduction = true;
-        }
+    private BranchGroup branchGroup;
+
+    @Value("classpath:/genesis.json")
+    private Resource resource;
+
+    public void setResource(Resource resource) {
+        this.resource = resource;
+    }
+
+    BranchConfiguration(Environment env, Wallet wallet, PeerGroup peerGroup) {
+        this.isProduction = Arrays.asList(env.getActiveProfiles()).contains("prod");
+        this.wallet = wallet;
+        this.peerGroup = peerGroup;
+        this.builder = new BlockChainBuilder();
     }
 
     @Bean
     BranchGroup branchGroup() throws IOException {
-        BranchGroup banchGroup = new BranchGroup();
-        BlockChain stem = getBlockChainByName(STEM);
-        banchGroup.addBranch(stem.getBranchId(), stem);
-        for (String branchName : branchProperties.getNameList()) {
-            BlockChain branch = getBlockChainByName(branchName);
-            banchGroup.addBranch(branch.getBranchId(), branch);
-        }
-        return banchGroup;
-    }
-
-    public BlockChain getBlockChain(Wallet wallet, String owner, BranchId branchId,
-                                    String branchName) {
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("branchId", branchId.toString());
-        jsonObject.addProperty("method", "genesis");
-        JsonArray params =
-                ContractQry.createParams("frontier", owner, "balance", "1000000000");
-        jsonObject.add("params", params);
-        BlockHusk genesis = BlockHusk.genesis(wallet, jsonObject);
-        BlockStore blockStore = new BlockStore(getDbSource(genesis.getBranchId() + "/blocks"));
-        TransactionStore txStore =
-                new TransactionStore(getDbSource(genesis.getBranchId() + "/txs"));
-        Contract contract = getContract(branchName);
-        Runtime<?> runtime = getRunTime(branchName);
-        return new BlockChain(genesis, blockStore, txStore, contract, runtime);
-    }
-
-    public BlockChain getBlockChainByName(String branchName) throws IOException {
-        Resource resource = resourceLoader.getResource(String.format(FORMAT, branchName));
+        this.branchGroup = new BranchGroup();
         BlockHusk genesis = new BlockChainLoader(resource.getInputStream()).getGenesis();
-        BlockStore blockStore = new BlockStore(getDbSource(genesis.getBranchId() + "/blocks"));
-        TransactionStore txStore =
-                new TransactionStore(getDbSource(genesis.getBranchId() + "/txs"));
-        Contract contract = getContract(branchName);
-        Runtime<?> runtime = getRunTime(branchName);
-        return new BlockChain(genesis, blockStore, txStore, contract, runtime);
+        BlockChain stem = builder.buildBlockChain(genesis, Branch.STEM, isProduction);
+        branchGroup.addBranch(stem.getBranchId(), stem, peerGroup, this);
+        return branchGroup;
     }
 
-    private DbSource<byte[], byte[]> getDbSource(String path) {
-        if (isProduction) {
-            return new LevelDbDataSource(path);
-        } else {
-            return new HashMapDbSource();
+    @Override
+    public void onContractEvent(ContractEvent event) {
+        TransactionReceipt txReceipt = event.getTransactionReceipt();
+        TransactionHusk txHusk = event.getTransactionHusk();
+        if (!txReceipt.isSuccess() || !txHusk.getBranchId().equals(BranchId.stem())) {
+            return;
+        }
+
+        JsonObject txBody = Utils.parseJsonArray(txHusk.getBody()).get(0).getAsJsonObject();
+        JsonArray params = txBody.get("params").getAsJsonArray();
+
+        for (int i = 0; i < params.size(); i++) {
+            String branchId = params.get(i).getAsJsonObject().get("branchId").getAsString();
+            if (containsBranch(branchId)) {
+                continue;
+            }
+            try {
+                Map branchMap = (HashMap)txReceipt.getLog(branchId);
+                String reserveAddress = String.valueOf(branchMap.get("reserve_address"));
+                if (!Arrays.equals(Hex.decode(reserveAddress), wallet.getAddress())) {
+                    log.warn("Ignore branch creation. branch={}, reserveAddress={}", branchId,
+                            reserveAddress);
+                    continue;
+                }
+                String branchName = String.valueOf(branchMap.get("name"));
+                String owner = String.valueOf(branchMap.get("owner"));
+                Branch branch = Branch.of(branchId, branchName, owner);
+                BlockChain blockChain = builder.buildBlockChain(wallet, branch, isProduction);
+                branchGroup.addBranch(blockChain.getBranchId(), blockChain, peerGroup, this);
+                log.info("New branch created. id={}, name={}, genesis={}", blockChain.getBranchId(),
+                        blockChain.getBranchName(), blockChain.getPrevBlock().getHash());
+            } catch (Exception e) {
+                log.warn("Add branch fail. id={}, err={}", branchId, e.getMessage());
+            }
         }
     }
 
-    private Contract getContract(String branchName) {
-        if (STEM.equalsIgnoreCase(branchName)) {
-            return new StemContract();
-        } else if (YEED.equalsIgnoreCase(branchName)) {
-            return new CoinContract();
-        } else {
-            return new NoneContract();
-        }
-    }
-
-    private Runtime<?> getRunTime(String branchName) {
-        if (STEM.equalsIgnoreCase(branchName)) {
-            return getRunTime(JsonObject.class);
-        } else if (YEED.equalsIgnoreCase(branchName)) {
-            return getRunTime(Long.class);
-        } else {
-            return getRunTime(String.class);
-        }
-    }
-
-    private <T> Runtime<T> getRunTime(Class<T> clazz) {
-        return new Runtime<>(new StateStore<>(), new TransactionReceiptStore());
+    private boolean containsBranch(String branchId) {
+        return branchGroup.getBranch(BranchId.of(branchId)) != null;
     }
 }

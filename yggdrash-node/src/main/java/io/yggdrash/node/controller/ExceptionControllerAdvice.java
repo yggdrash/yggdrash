@@ -14,25 +14,19 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.config;
+package io.yggdrash.node.controller;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
-import java.util.ArrayList;
-import java.util.List;
+@ControllerAdvice
+public class ExceptionControllerAdvice {
 
-@Configuration
-@ConfigurationProperties(prefix = "yggdrash.branch", ignoreUnknownFields = false)
-public class BranchProperties {
-
-    private List<String> nameList = new ArrayList<>();
-
-    public List<String> getNameList() {
-        return nameList;
-    }
-
-    public void setNameList(List<String> nameList) {
-        this.nameList = nameList;
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    @ExceptionHandler(NullPointerException.class)
+    public void handleNotFound() {
+        // Nothing to do
     }
 }
