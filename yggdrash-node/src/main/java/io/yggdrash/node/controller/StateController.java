@@ -18,6 +18,7 @@ package io.yggdrash.node.controller;
 
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
+import org.apache.commons.lang3.tuple.Pair;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,9 +27,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("branches/{branchId}")
+@RequestMapping("branches")
 public class StateController {
 
     private final BranchGroup branchGroup;
@@ -38,8 +40,16 @@ public class StateController {
         this.branchGroup = branchGroup;
     }
 
-    @GetMapping("/states")
-    public ResponseEntity getAll(@PathVariable(name = "branchId") String branchId) {
+    @GetMapping
+    public ResponseEntity getAll() {
+        List branches = branchGroup.getAllBranch().stream()
+                .map(branch -> Pair.of(branch.getBranchName(), branch.getBranchId().toString()))
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(branches);
+    }
+
+    @GetMapping("/{branchId}/states")
+    public ResponseEntity getStates(@PathVariable(name = "branchId") String branchId) {
         List state = branchGroup.getStateStore(BranchId.of(branchId)).getStateList();
         return ResponseEntity.ok(state);
     }
