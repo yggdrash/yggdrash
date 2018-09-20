@@ -5,6 +5,7 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.Contract;
 import io.yggdrash.contract.NoneContract;
 import io.yggdrash.core.event.BranchEventListener;
+import io.yggdrash.core.event.ContractEventListener;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NonExistObjectException;
@@ -36,6 +37,7 @@ public class BlockChain {
     private TransactionStore transactionStore;
     private Contract contract;
     private Runtime<?> runtime;
+    private String branchName;
 
     private List<BranchEventListener> listenerList = new ArrayList<>();
 
@@ -65,21 +67,25 @@ public class BlockChain {
     }
 
     private void loadBlockChain() {
-        int startIdx = 0;
         try {
             prevBlock = blockStore.get(genesisBlock.getHash());
         } catch (NonExistObjectException e) {
             for (TransactionHusk tx : genesisBlock.getBody()) {
                 transactionStore.put(tx.getHash(), tx);
             }
-            addBlock(genesisBlock);
-            startIdx = 1;
+            blockStore.put(genesisBlock.getHash(), genesisBlock);
+            prevBlock = genesisBlock;
+            removeTxByBlock(genesisBlock);
         }
-        for (int i = startIdx; i < blockStore.size(); i++) {
+    }
+
+    public void init(ContractEventListener contractEventListener) {
+        contract.setListener(contractEventListener);
+        for (int i = 0; i < blockStore.size(); i++) {
             BlockHusk storedBlock = blockStore.get(i);
             executeAllTx(new TreeSet<>(storedBlock.getBody()));
-            log.debug("Load block index=[{}], blockHash={}", storedBlock.getIndex(),
-                    storedBlock.getHash());
+            log.debug("Load idx=[{}], tx={}, branch={}, blockHash={}", storedBlock.getIndex(),
+                    storedBlock.getBody().size(), storedBlock.getBranchId(), storedBlock.getHash());
             this.prevBlock = storedBlock;
         }
     }
@@ -114,6 +120,14 @@ public class BlockChain {
 
     public BranchId getBranchId() {
         return genesisBlock.getBranchId();
+    }
+
+    public String getBranchName() {
+        return branchName;
+    }
+
+    public void setBranchName(String branchName) {
+        this.branchName = branchName;
     }
 
     public BlockHusk getGenesisBlock() {
@@ -172,7 +186,7 @@ public class BlockChain {
             log.warn("invalid index: prev:{} / new:{}", prevBlock.getIndex(), nextBlock.getIndex());
             return false;
         } else if (!prevBlock.getHash().equals(nextBlock.getPrevHash())) {
-            log.warn("invalid previous hash");
+            log.warn("invalid previous hash={}", prevBlock.getHash());
             return false;
         }
 
