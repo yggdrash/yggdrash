@@ -69,7 +69,6 @@ public class BlockChainBuilder {
 
     private BlockHusk getGenesis(Wallet wallet, Branch branch) {
 
-        JsonArray jsonArrayTxBody = new JsonArray();
         if (!branch.isYeed()) {
             throw new FailedOperationException("Not supported name=" + branch.getName());
         }
@@ -80,6 +79,8 @@ public class BlockChainBuilder {
         JsonArray params = ContractQry.createParams("frontier", branch.getOwner(),
                 "balance", "1000000000");
         jsonObject.add("params", params);
+
+        JsonArray jsonArrayTxBody = new JsonArray();
         jsonArrayTxBody.add(jsonObject);
 
         return genesis(wallet, branch.getBranchId(), jsonArrayTxBody);
