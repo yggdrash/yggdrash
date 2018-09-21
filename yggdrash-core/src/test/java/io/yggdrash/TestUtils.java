@@ -30,6 +30,7 @@ import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BlockSignature;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
@@ -47,10 +48,6 @@ import java.util.Random;
 
 public class TestUtils {
     public static final String YGG_HOME = "testOutput";
-    public static final byte[] STEM_CHAIN =
-            Hex.decode("fe7b7c93dd23f78e12ad42650595bc0f874c88f7");
-    public static final byte[] YEED_CHAIN =
-            Hex.decode("a08ee962cd8b2bd0edbfee989c1a9f7884d26532");
     public static final byte[] TRANSFER_TO =
             Hex.decode("e1980adeafbb9ac6c9be60955484ab1547ab0b76");
 
@@ -263,7 +260,7 @@ public class TestUtils {
                 Transaction.toProtoTransaction(sampleTx())};
     }
 
-    public static JsonObject sampleBlockObject() {
+    private static JsonObject sampleBlockObject() {
 
         List<Transaction> txs1 = new ArrayList<>();
         txs1.add(sampleTx());
@@ -275,7 +272,8 @@ public class TestUtils {
         BlockHeader blockHeader;
         try {
             blockHeader = new BlockHeader(
-                    STEM_CHAIN, new byte[8], new byte[8], new byte[32], index, timestamp,
+                    BranchId.stem().getBytes(),
+                    new byte[8], new byte[8], new byte[32], index, timestamp,
                     blockBody.getMerkleRoot(), blockBody.length());
 
             BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSignning());

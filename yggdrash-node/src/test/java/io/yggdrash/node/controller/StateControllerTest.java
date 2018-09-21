@@ -16,10 +16,9 @@
 
 package io.yggdrash.node.controller;
 
-import io.yggdrash.TestUtils;
+import io.yggdrash.core.BranchId;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.test.annotation.IfProfileValue;
@@ -35,14 +34,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
 public class StateControllerTest {
 
-    private static final String BRANCH_ID = Hex.toHexString(TestUtils.STEM_CHAIN);
-
     @Autowired
     private MockMvc mockMvc;
 
     @Test
     public void shouldGetBranches() throws Exception {
-        mockMvc.perform(get("/branches/" + BRANCH_ID + "/states"))
+        mockMvc.perform(get("/branches/" + BranchId.STEM + "/states"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn().getResponse();

@@ -18,10 +18,10 @@ package io.yggdrash.node.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.TestUtils;
+import io.yggdrash.core.BranchId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
@@ -42,8 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
 public class TransactionControllerTest {
 
-    private static final String BASE_PATH =
-            String.format("/branches/%s/txs", Hex.toHexString(TestUtils.STEM_CHAIN));
+    private static final String BASE_PATH = String.format("/branches/%s/txs", BranchId.STEM);
 
     @Autowired
     private MockMvc mockMvc;

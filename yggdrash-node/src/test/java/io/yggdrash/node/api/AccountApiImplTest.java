@@ -1,10 +1,8 @@
 package io.yggdrash.node.api;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.TestUtils;
 import io.yggdrash.contract.ContractQry;
-import org.apache.commons.codec.binary.Hex;
+import io.yggdrash.core.BranchId;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,8 +35,7 @@ public class AccountApiImplTest {
     @Test
     public void balanceOfTest() {
         try {
-            JsonObject qry = ContractQry.createQuery(
-                    Hex.encodeHexString(TestUtils.YEED_CHAIN),
+            JsonObject qry = ContractQry.createQuery(BranchId.YEED,
                     "balanceOf",
                     ContractQry.createParams("address", "e1980adeafbb9ac6c9be60955484ab1547ab0b76"));
 
