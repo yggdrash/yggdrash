@@ -27,6 +27,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -50,7 +51,7 @@ public class StateController {
 
     @GetMapping("/{branchId}/states")
     public ResponseEntity getStates(@PathVariable(name = "branchId") String branchId) {
-        List state = branchGroup.getStateStore(BranchId.of(branchId)).getStateList();
+        Map state = branchGroup.getStateStore(BranchId.of(branchId)).getStateMap();
         return ResponseEntity.ok(state);
     }
 }
