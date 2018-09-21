@@ -135,6 +135,10 @@ public class BranchGroup {
         return branches.get(branchId).getRuntime().getTransactionReceiptStore();
     }
 
+    public List<TransactionHusk> getUnconfirmedTxs(BranchId branchId) {
+        return branches.get(branchId).getUnconfirmedTxs();
+    }
+
     public Contract getContract(BranchId branchId) {
         return branches.get(branchId).getContract();
     }

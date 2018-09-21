@@ -114,6 +114,10 @@ public class BlockChain {
         return list;
     }
 
+    public List<TransactionHusk> getUnconfirmedTxs() {
+        return new ArrayList<>(transactionStore.getUnconfirmedTxs());
+    }
+
     public BranchId getBranchId() {
         return genesisBlock.getBranchId();
     }

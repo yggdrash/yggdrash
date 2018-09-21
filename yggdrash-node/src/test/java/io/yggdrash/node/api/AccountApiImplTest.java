@@ -1,6 +1,5 @@
 package io.yggdrash.node.api;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.contract.ContractQry;
@@ -40,7 +39,7 @@ public class AccountApiImplTest {
             JsonObject qry = ContractQry.createQuery(
                     Hex.encodeHexString(TestUtils.YEED_CHAIN),
                     "balanceOf",
-                    ContractQry.createParams("address", "e1980adeafbb9ac6c9be60955484ab1547ab0b76"));
+                    ContractQry.createParams("address", "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94"));
 
             assertThat(accountApi.balanceOf(qry.toString())).isNotEmpty();
         } catch (Exception e) {
@@ -51,9 +50,9 @@ public class AccountApiImplTest {
     @Test
     public void getBalanceTest() {
         try {
-            assertThat(accountApi.getBalance("e1980adeafbb9ac6c9be60955484ab1547ab0b76",
+            assertThat(accountApi.getBalance("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
                     "latest")).isNotZero();
-            assertThat(accountApi.getBalance("e1980adeafbb9ac6c9be60955484ab1547ab0b76",
+            assertThat(accountApi.getBalance("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
                     "1023")).isNotZero();
         } catch (Exception e) {
             log.debug("getBalanceTest :: exception : " + e);
