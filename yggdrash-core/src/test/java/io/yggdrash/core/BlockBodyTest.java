@@ -64,7 +64,7 @@ public class BlockBodyTest {
 
             wallet = new Wallet();
 
-            txSig = new TransactionSignature(wallet, txHeader.getHashForSignning());
+            txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
 
             tx1 = new Transaction(txHeader, txSig, txBody);
 
@@ -113,8 +113,8 @@ public class BlockBodyTest {
             assertEquals(bb1.getBodyCount(), 2);
             assertEquals(bb1.getBodyCount(), bb2.getBodyCount());
 
-            log.debug("bb1.merkelRoot=" + Hex.toHexString(bb1.getMerkleRoot()));
-            log.debug("bb2.merkelRoot=" + Hex.toHexString(bb2.getMerkleRoot()));
+            log.debug("bb1.merkleRoot=" + Hex.toHexString(bb1.getMerkleRoot()));
+            log.debug("bb2.merkleRoot=" + Hex.toHexString(bb2.getMerkleRoot()));
 
             assertArrayEquals(bb1.getMerkleRoot(), bb2.getMerkleRoot());
             assertEquals(bb1.getMerkleRoot().length, 32);

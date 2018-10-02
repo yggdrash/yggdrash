@@ -103,7 +103,7 @@ public class BlockChainTest {
     }
 
     @Test
-    public void shoudBeCallback() {
+    public void shouldBeCallback() {
         BlockChain blockChain = new BlockChain(sampleBranchInfo);
         blockChain.addListener(new BranchEventListener() {
             @Override

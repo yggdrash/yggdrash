@@ -86,7 +86,7 @@ public class Wallet {
     }
 
     /**
-     * Wallet Constructor as loading the keyfile.
+     * Wallet Constructor as loading the key file.
      *
      * @param keyPath  keyPath(directory)
      * @param keyName  keyName

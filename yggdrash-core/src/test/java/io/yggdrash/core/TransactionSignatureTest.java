@@ -59,7 +59,7 @@ public class TransactionSignatureTest {
 
         try {
             TransactionSignature txSig1
-                    = new TransactionSignature(wallet, txHeader.getHashForSignning());
+                    = new TransactionSignature(wallet, txHeader.getHashForSigning());
 
             log.debug("txSig1.signature=" + Hex.toHexString(txSig1.getSignature()));
             log.debug("txSig1.signatureHex=" + txSig1.getSignatureHexString());
@@ -96,7 +96,7 @@ public class TransactionSignatureTest {
 
         try {
             TransactionSignature txSig1
-                    = new TransactionSignature(wallet, txHeader.getHashForSignning());
+                    = new TransactionSignature(wallet, txHeader.getHashForSigning());
             TransactionSignature txSig2 = txSig1.clone();
             log.debug("txSig1=" + txSig1.getSignatureHexString());
             log.debug("txSig2=" + txSig2.getSignatureHexString());

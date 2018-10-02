@@ -28,7 +28,7 @@ public class BlockMockitoTest {
 
     private BlockApiImpl blockApiImpl;
     private String hashOfBlock;
-    private long numOfblock;
+    private long numOfBlock;
     private List<BlockHusk> blockList = new ArrayList<>();
     private BranchId stem = BranchId.stem();
 
@@ -38,7 +38,7 @@ public class BlockMockitoTest {
         block = TestUtils.createGenesisBlockHusk();
         hashOfBlock = block.getHash().toString();
         blockList.add(block);
-        numOfblock = 1;
+        numOfBlock = 1;
     }
 
     @Test
@@ -63,16 +63,16 @@ public class BlockMockitoTest {
 
     @Test
     public void getBlockByNumberTest() {
-        when(branchGroupMock.getBlockByIndex(stem, numOfblock)).thenReturn(block);
-        BlockDto res = blockApiImpl.getBlockByNumber(stem.toString(), numOfblock, true);
+        when(branchGroupMock.getBlockByIndex(stem, numOfBlock)).thenReturn(block);
+        BlockDto res = blockApiImpl.getBlockByNumber(stem.toString(), numOfBlock, true);
         assertThat(res).isNotNull();
         assertEquals(res.getHash().toString(), hashOfBlock);
     }
 
     @Test(expected = NonExistObjectException.class)
     public void getBlockByNumberExceptionTest() {
-        when(branchGroupMock.getBlockByIndex(stem, numOfblock)).thenThrow(new RuntimeException());
-        blockApiImpl.getBlockByNumber(stem.toString(), numOfblock, true);
+        when(branchGroupMock.getBlockByIndex(stem, numOfBlock)).thenThrow(new RuntimeException());
+        blockApiImpl.getBlockByNumber(stem.toString(), numOfBlock, true);
     }
 
     @Test

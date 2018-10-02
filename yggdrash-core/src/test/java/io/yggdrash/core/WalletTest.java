@@ -179,19 +179,19 @@ public class WalletTest {
 
 
     /**
-     * This is a test method for checking the generation of wallets with configfile or not.
+     * This is a test method for checking the generation of wallets with config file or not.
      */
     @Test
     public void testWalletGeneration() {
 
         DefaultConfig defaultConfig = new DefaultConfig();
-        String keyfilePath = defaultConfig.getConfig().getString("key.path");
+        String keyFilePath = defaultConfig.getConfig().getString("key.path");
         // TODO: change as cli interface
         String password = defaultConfig.getConfig().getString("key.password");
 
         assertFalse("Check yggdrash.conf(key.path & key.password)",
-                Strings.isNullOrEmpty(keyfilePath) || Strings.isNullOrEmpty(password));
-        log.debug("Private key: " + keyfilePath);
+                Strings.isNullOrEmpty(keyFilePath) || Strings.isNullOrEmpty(password));
+        log.debug("Private key: " + keyFilePath);
         log.debug("Password : " + password); // for debug
 
         // check password validation
@@ -201,7 +201,7 @@ public class WalletTest {
         log.debug("Password is valid");
 
         // check whether the key file exists
-        Path path = Paths.get(keyfilePath);
+        Path path = Paths.get(keyFilePath);
         String keyPath = path.getParent().toString();
         String keyName = path.getFileName().toString();
 
@@ -223,7 +223,7 @@ public class WalletTest {
     }
 
     /**
-     * This is a test method for checking the generation of wallets with configfile or not.
+     * This is a test method for checking the generation of wallets with config file or not.
      */
     @Test
     public void testWalletGenerationWithFilePath() {

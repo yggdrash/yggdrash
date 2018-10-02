@@ -109,7 +109,7 @@ public class ContractTx {
         txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
         try {
-            txSig = new TransactionSignature(wallet, txHeader.getHashForSignning());
+            txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
             tx = new Transaction(txHeader, txSig, txBody);
 
             return tx.toJsonObject();

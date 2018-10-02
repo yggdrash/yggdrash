@@ -73,7 +73,7 @@ public class BlockSignatureTest {
 
             wallet = new Wallet();
 
-            txSig = new TransactionSignature(wallet, txHeader.getHashForSignning());
+            txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
 
             tx1 = new Transaction(txHeader, txSig, txBody);
 
@@ -107,7 +107,7 @@ public class BlockSignatureTest {
     public void testBlockSignature() {
 
         try {
-            blockSig1 = new BlockSignature(wallet, blockHeader1.getHashForSignning());
+            blockSig1 = new BlockSignature(wallet, blockHeader1.getHashForSigning());
 
             log.debug("blockSig1.signature=" + Hex.toHexString(blockSig1.getSignature()));
 
@@ -129,7 +129,7 @@ public class BlockSignatureTest {
     public void testBlockSignatureClone() {
 
         try {
-            blockSig1 = new BlockSignature(wallet, blockHeader1.getHashForSignning());
+            blockSig1 = new BlockSignature(wallet, blockHeader1.getHashForSigning());
             log.debug("blockSig1.signature=" + Hex.toHexString(blockSig1.getSignature()));
 
             blockSig2 = blockSig1.clone();

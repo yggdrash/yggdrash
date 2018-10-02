@@ -85,7 +85,7 @@ public class TransactionHeaderTest {
 
             assertEquals(txHeader1.toJsonObject(), txHeader2.toJsonObject());
 
-            assertArrayEquals(txHeader1.getHashForSignning(), txHeader2.getHashForSignning());
+            assertArrayEquals(txHeader1.getHashForSigning(), txHeader2.getHashForSigning());
 
             JsonObject jsonObject3 = txHeader2.toJsonObject();
             jsonObject3.addProperty("timestamp",

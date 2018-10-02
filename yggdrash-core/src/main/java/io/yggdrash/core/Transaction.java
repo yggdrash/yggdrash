@@ -62,11 +62,11 @@ public class Transaction implements Cloneable {
      * Transaction Constructor.
      *
      * @param header transaction header
-     * @param wallet wallet for signning
+     * @param wallet wallet for signing
      * @param body   transaction body
      */
     public Transaction(TransactionHeader header, Wallet wallet, TransactionBody body) {
-        this(header, wallet.signHashedData(header.getHashForSignning()), body);
+        this(header, wallet.signHashedData(header.getHashForSigning()), body);
     }
 
     /**
@@ -166,7 +166,7 @@ public class Transaction implements Cloneable {
      */
     public byte[] getPubKey() throws SignatureException {
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
-        ECKey ecKeyPub = ECKey.signatureToKey(this.header.getHashForSignning(), ecdsaSignature);
+        ECKey ecKeyPub = ECKey.signatureToKey(this.header.getHashForSigning(), ecdsaSignature);
 
         return ecKeyPub.getPubKey();
     }
@@ -211,7 +211,7 @@ public class Transaction implements Cloneable {
     }
 
     /**
-     * Verify a transaction.(data format & signning)
+     * Verify a transaction.(data format & signing)
      *
      * @return true(success), false(fail)
      */
@@ -222,7 +222,7 @@ public class Transaction implements Cloneable {
         }
 
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
-        byte[] hashedHeader = this.header.getHashForSignning();
+        byte[] hashedHeader = this.header.getHashForSigning();
         ECKey ecKeyPub;
         try {
             ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);

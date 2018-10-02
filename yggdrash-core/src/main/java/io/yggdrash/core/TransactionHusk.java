@@ -107,8 +107,8 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         }
     }
 
-    public Sha3Hash getHashForSignning() {
-        return Sha3Hash.createByHashed(this.coreTransaction.getHeader().getHashForSignning());
+    public Sha3Hash getHashForSigning() {
+        return Sha3Hash.createByHashed(this.coreTransaction.getHeader().getHashForSigning());
     }
 
     @Override
