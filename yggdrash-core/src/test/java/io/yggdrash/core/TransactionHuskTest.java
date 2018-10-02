@@ -18,6 +18,7 @@ import java.security.SignatureException;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class TransactionHuskTest {
 
@@ -133,12 +134,7 @@ public class TransactionHuskTest {
         log.debug("Test Transaction1: " + txHusk1.toString());
         log.debug("Test Transaction1 Address: " + txHusk1.getAddress());
 
-        if (txHusk1.verify()) {
-            log.debug("verify success");
-        } else {
-            assert false;
-        }
-
+        assertTrue(txHusk1.verify());
         assertArrayEquals(wallet.getAddress(), account.getAddress());
         assertArrayEquals(wallet.getAddress(), txHusk1.getAddress().getBytes());
 

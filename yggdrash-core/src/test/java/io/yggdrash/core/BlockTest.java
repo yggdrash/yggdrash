@@ -184,12 +184,8 @@ public class BlockTest {
         log.debug("wallet address=" + wallet.getHexAddress());
         assertEquals(block1.getAddressHexString(), block2.getAddressHexString());
         assertEquals(block1.getAddressHexString(), wallet.getHexAddress());
-        if (block1.verify() && block2.verify()) {
-            log.debug("verify success");
-        } else {
-            log.debug("verify fail");
-            assert false;
-        }
+        assertTrue(block1.verify());
+        assertTrue(block2.verify());
     }
 
 }
