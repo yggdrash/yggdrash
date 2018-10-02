@@ -71,7 +71,7 @@ public class BlockHeaderTest {
 
             wallet = new Wallet();
 
-            txSig = new TransactionSignature(wallet, txHeader.getHashForSignning());
+            txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
 
             tx1 = new Transaction(txHeader, txSig, txBody);
 
@@ -113,7 +113,7 @@ public class BlockHeaderTest {
 
             assertEquals(blockHeader1.toJsonObject(), blockHeader2.toJsonObject());
 
-            assertArrayEquals(blockHeader1.getHashForSignning(), blockHeader2.getHashForSignning());
+            assertArrayEquals(blockHeader1.getHashForSigning(), blockHeader2.getHashForSigning());
 
             this.blockHeader1.setTimestamp(TimeUtils.time() + 1);
             assertNotEquals(blockHeader1.toString(), blockHeader2.toString());

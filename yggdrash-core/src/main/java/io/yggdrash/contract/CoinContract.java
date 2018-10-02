@@ -20,7 +20,7 @@ public class CoinContract extends BaseContract<Long> {
     }
 
     /**
-     * Returns TransactionRecipt (invoke)
+     * Returns TransactionReceipt (invoke)
      */
     public TransactionReceipt genesis(JsonArray params) {
         TransactionReceipt txReceipt = new TransactionReceipt();
@@ -41,7 +41,7 @@ public class CoinContract extends BaseContract<Long> {
     }
 
     /**
-     * Returns TransactionRecipt (invoke)
+     * Returns TransactionReceipt (invoke)
      */
     public TransactionReceipt transfer(JsonArray params) {
         log.info("\n transfer :: params => " + params);

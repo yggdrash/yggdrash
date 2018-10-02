@@ -4,8 +4,8 @@
 ```json
 [{
    "body":{
-     "issuer" : "0x------ 어카운트(publick 의 hash)",
-     "timestemp":"utc-0 시간 (integer)",
+     "issuer" : "0x------ 어카운트(public key 의 hash)",
+     "timestamp":"utc-0 시간 (integer)",
      "branch_id":"branch network address",
      "params":{
          "method":"method name",

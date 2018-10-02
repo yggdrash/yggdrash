@@ -93,7 +93,7 @@ public class BlockBody implements Cloneable {
     /**
      * Covert BlockBody.class to JsonArray
      *
-     * @return blockbody as JsonArray
+     * @return block body as JsonArray
      */
     public JsonArray toJsonArray() {
         JsonArray jsonArray = new JsonArray();

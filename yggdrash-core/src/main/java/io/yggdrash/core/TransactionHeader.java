@@ -131,11 +131,11 @@ public class TransactionHeader implements Cloneable {
     }
 
     /**
-     * Get the headerHash for signning.
+     * Get the headerHash for signing.
      *
      * @return hash of header
      */
-    public byte[] getHashForSignning() {
+    public byte[] getHashForSigning() {
         return HashUtil.sha3(this.toBinary());
     }
 

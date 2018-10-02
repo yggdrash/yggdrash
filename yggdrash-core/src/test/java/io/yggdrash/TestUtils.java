@@ -276,7 +276,7 @@ public class TestUtils {
                     new byte[8], new byte[8], new byte[32], index, timestamp,
                     blockBody.getMerkleRoot(), blockBody.length());
 
-            BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSignning());
+            BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSigning());
 
             Block block = new Block(blockHeader, blockSig.getSignature(), blockBody);
 

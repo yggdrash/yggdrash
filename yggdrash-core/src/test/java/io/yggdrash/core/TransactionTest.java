@@ -62,7 +62,7 @@ public class TransactionTest {
             wallet = new Wallet();
             log.debug("wallet.pubKey=" + Hex.toHexString(wallet.getPubicKey()));
 
-            txSig = new TransactionSignature(wallet, txHeader.getHashForSignning());
+            txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
 
         } catch (Exception e) {
             log.debug(e.getMessage());
@@ -214,13 +214,13 @@ public class TransactionTest {
         try {
             Transaction tx1 = new Transaction(txHeader, txSig, txBody);
             log.debug("tx1 pubKey=" + tx1.getPubKeyHexString());
-            log.debug("tx1 headerHash=" + Hex.toHexString(tx1.getHeader().getHashForSignning()));
+            log.debug("tx1 headerHash=" + Hex.toHexString(tx1.getHeader().getHashForSigning()));
             log.debug("tx1 signature=" + Hex.toHexString(tx1.getSignature()));
             log.debug("tx1 pubKey=" + Hex.toHexString(tx1.getPubKey()));
 
             Transaction tx2 = tx1.clone();
             log.debug("tx2 pubKey=" + tx2.getPubKeyHexString());
-            log.debug("tx2 headerHash=" + Hex.toHexString(tx2.getHeader().getHashForSignning()));
+            log.debug("tx2 headerHash=" + Hex.toHexString(tx2.getHeader().getHashForSigning()));
             log.debug("tx2 pubKey=" + Hex.toHexString(tx2.getPubKey()));
 
             assertEquals(tx1.getPubKeyHexString(), tx2.getPubKeyHexString());
@@ -231,7 +231,7 @@ public class TransactionTest {
             log.debug("tx2 address=" + tx2.getAddressToString());
             log.debug("wallet address=" + wallet.getHexAddress());
             log.debug("wallet signature=" + Hex.toHexString(
-                    wallet.signHashedData(tx1.getHeader().getHashForSignning())));
+                    wallet.signHashedData(tx1.getHeader().getHashForSigning())));
             log.debug("wallet pubKey=" + Hex.toHexString(
                     wallet.getPubicKey()));
 

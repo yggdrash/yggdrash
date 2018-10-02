@@ -70,10 +70,10 @@ public class NodeHealthIndicator implements HealthIndicator {
         builder.withDetail("p2pVersion", defaultConfig.getNetworkP2PVersion());
         builder.withDetail("network", defaultConfig.getNetwork());
         // Add Node BranchIds and block index
-        Map<BranchId, Long> branchs = branchGroup.getAllBranch()
+        Map<BranchId, Long> branches = branchGroup.getAllBranch()
                 .stream()
                 .collect(Collectors.toMap(BlockChain::getBranchId, BlockChain::getLastIndex));
-        builder.withDetail("branchs", branchs);
+        builder.withDetail("branches", branches);
 
         builder.withDetail("activePeers", peerGroup.getActivePeerList().size());
         health.set(builder.build());

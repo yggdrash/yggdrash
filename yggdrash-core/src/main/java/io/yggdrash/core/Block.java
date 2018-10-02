@@ -41,7 +41,7 @@ public class Block implements Cloneable {
     }
 
     public Block(BlockHeader header, Wallet wallet, BlockBody body) {
-        this(header, wallet.signHashedData(header.getHashForSignning()), body);
+        this(header, wallet.signHashedData(header.getHashForSigning()), body);
     }
 
     public Block(JsonObject jsonObject) {
@@ -77,7 +77,7 @@ public class Block implements Cloneable {
 
     public byte[] getPubKey() throws SignatureException {
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
-        ECKey ecKeyPub = ECKey.signatureToKey(this.header.getHashForSignning(), ecdsaSignature);
+        ECKey ecKeyPub = ECKey.signatureToKey(this.header.getHashForSigning(), ecdsaSignature);
 
         return ecKeyPub.getPubKey();
     }
@@ -111,7 +111,7 @@ public class Block implements Cloneable {
         }
 
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
-        byte[] hashedHeader = this.header.getHashForSignning();
+        byte[] hashedHeader = this.header.getHashForSigning();
         ECKey ecKeyPub;
         try {
             ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);

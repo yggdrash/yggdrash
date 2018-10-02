@@ -179,7 +179,7 @@ public class BlockHeader implements Cloneable {
         return this.toBinary().length;
     }
 
-    public byte[] getHashForSignning() {
+    public byte[] getHashForSigning() {
         return HashUtil.sha3(this.toBinary());
     }
 

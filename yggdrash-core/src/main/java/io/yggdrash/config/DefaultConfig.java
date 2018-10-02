@@ -74,7 +74,7 @@ public class DefaultConfig {
     }
 
     enum Network {
-        MAIN_NET(1), TESTNET(3);
+        MAIN_NET(1), TEST_NET(3);
         private int code;
 
         Network(int code) {

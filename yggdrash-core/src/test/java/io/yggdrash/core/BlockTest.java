@@ -7,6 +7,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -76,7 +77,7 @@ public class BlockTest {
 
             wallet = new Wallet();
 
-            txSig = new TransactionSignature(wallet, txHeader.getHashForSignning());
+            txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
 
             tx1 = new Transaction(txHeader, txSig, txBody);
 
@@ -99,8 +100,8 @@ public class BlockTest {
 
             blockHeader2 = blockHeader1.clone();
 
-            blockSig1 = new BlockSignature(wallet, blockHeader1.getHashForSignning());
-            blockSig2 = new BlockSignature(wallet, blockHeader2.getHashForSignning());
+            blockSig1 = new BlockSignature(wallet, blockHeader1.getHashForSigning());
+            blockSig2 = new BlockSignature(wallet, blockHeader2.getHashForSigning());
 
         } catch (Exception e) {
             log.debug(e.getMessage());

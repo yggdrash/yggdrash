@@ -57,7 +57,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     public BlockHusk(Proto.Block.Header blockHeader, Wallet wallet, List<TransactionHusk> body) {
 
         try {
-            byte[] hashDataForSign = BlockHeader.toBlockHeader(blockHeader).getHashForSignning();
+            byte[] hashDataForSign = BlockHeader.toBlockHeader(blockHeader).getHashForSigning();
 
             Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
             for (TransactionHusk tx : body) {
@@ -106,7 +106,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
                 length);
 
         try {
-            byte[] hashDataForSign = BlockHeader.toBlockHeader(blockHeader).getHashForSignning();
+            byte[] hashDataForSign = BlockHeader.toBlockHeader(blockHeader).getHashForSigning();
 
             Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
             for (TransactionHusk tx : body) {

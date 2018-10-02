@@ -8,7 +8,7 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 
 public class NoneContract implements Contract {
     @Override
-    public void init(StateStore stateStore, TransactionReceiptStore txReciptStore) {
+    public void init(StateStore stateStore, TransactionReceiptStore txReceiptStore) {
     }
 
     @Override
@@ -17,7 +17,7 @@ public class NoneContract implements Contract {
     }
 
     @Override
-    public JsonObject query(JsonObject qurey) {
+    public JsonObject query(JsonObject query) {
         return new JsonObject();
     }
 

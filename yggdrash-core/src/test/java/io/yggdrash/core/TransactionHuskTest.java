@@ -142,7 +142,7 @@ public class TransactionHuskTest {
         assertArrayEquals(wallet.getAddress(), account.getAddress());
         assertArrayEquals(wallet.getAddress(), txHusk1.getAddress().getBytes());
 
-        byte[] hashedRawData = txHusk1.getHashForSignning().getBytes();
+        byte[] hashedRawData = txHusk1.getHashForSigning().getBytes();
         log.debug("hashedRawData: " + Hex.toHexString(hashedRawData));
 
         byte[] signatureBin = txHusk1.getInstance().getSignature().toByteArray();
