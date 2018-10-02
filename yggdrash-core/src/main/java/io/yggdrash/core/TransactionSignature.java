@@ -19,10 +19,6 @@ public class TransactionSignature implements Cloneable {
         this(wallet.signHashedData(headerHash));
     }
 
-    public long length() {
-        return this.signature.length;
-    }
-
     public byte[] getSignature() {
         return this.signature;
     }

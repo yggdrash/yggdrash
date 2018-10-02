@@ -24,11 +24,11 @@ import java.util.Scanner;
 
 public class GenesisBlock {
 
-    private final DefaultConfig defaultConfig = new DefaultConfig();
     private Block genesisBlock;
 
     public GenesisBlock() throws IOException, InvalidCipherTextException {
 
+        DefaultConfig defaultConfig = new DefaultConfig();
         String transactionFileName = defaultConfig.getConfig().getString("genesis.contract");
         JsonObject genesisObject = getJsonObjectFromFile(transactionFileName);
 

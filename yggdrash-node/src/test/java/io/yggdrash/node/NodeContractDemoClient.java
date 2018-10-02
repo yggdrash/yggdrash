@@ -186,7 +186,7 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static void balance() throws Exception {
+    private static void balance() {
         System.out.println("조회할 주소를 적어주세요\n>");
         JsonObject qry = ContractQry.createQuery(BranchId.YEED,
                 "balanceOf",

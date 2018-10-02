@@ -210,10 +210,6 @@ public class BlockHeader implements Cloneable {
         return (BlockHeader) super.clone();
     }
 
-    public Proto.Block.Header toProtoBlockHeader() {
-        return toProtoBlockHeader(this);
-    }
-
     public static Proto.Block.Header toProtoBlockHeader(BlockHeader blockHeader) {
         Proto.Block.Header protoHeader = Proto.Block.Header.newBuilder()
                 .setChain(ByteString.copyFrom(blockHeader.getChain()))

@@ -27,7 +27,7 @@ public class CoinContractTest {
     }
 
     @Test
-    public void balanceTest() throws Exception {
+    public void balanceTest() {
         JsonObject result = coinContract.query(TestUtils.sampleBalanceOfQueryJson());
         assertThat(result).isNotNull();
     }
@@ -41,13 +41,4 @@ public class CoinContractTest {
         boolean result = coinContract.invoke(tx);
         assertThat(result).isTrue();
     }
-
-    private JsonObject query(JsonObject query) throws Exception {
-        return coinContract.query(query);
-    }
-
-    private Boolean invoke(TransactionHusk tx) throws Exception {
-        return coinContract.invoke(tx);
-    }
-
 }

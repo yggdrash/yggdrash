@@ -75,7 +75,7 @@ public class BlockBody implements Cloneable {
      *
      * @return the BlockBody length.
      */
-    public long length() throws IOException {
+    public long length() {
 
         long length = 0;
 

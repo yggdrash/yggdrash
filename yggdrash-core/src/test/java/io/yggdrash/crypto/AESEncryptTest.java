@@ -35,7 +35,7 @@ public class AESEncryptTest {
     /**
      * test encryption/decryption with large data 100 kByte.
      *
-     * @throws InvalidCipherTextException
+     * throws InvalidCipherTextException
      */
     @Test
     public void testEncryptDecrypt2() throws InvalidCipherTextException {
@@ -64,7 +64,7 @@ public class AESEncryptTest {
     /**
      * test encryption/decryption with large data 100 MByte.
      *
-     * @throws InvalidCipherTextException
+     * throws InvalidCipherTextException
      */
     @Test
     public void testEncryptDecrypt3() throws InvalidCipherTextException {

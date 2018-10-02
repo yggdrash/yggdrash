@@ -96,7 +96,7 @@ public class Block implements Cloneable {
         return Hex.toHexString(getAddress());
     }
 
-    public long length() throws IOException {
+    public long length() {
         return this.header.length() + this.signature.length + this.body.length();
     }
 

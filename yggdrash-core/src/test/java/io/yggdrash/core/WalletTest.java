@@ -3,7 +3,6 @@ package io.yggdrash.core;
 import com.google.common.base.Strings;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.crypto.AESEncrypt;
-import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.Password;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.FileUtil;
@@ -42,11 +41,6 @@ public class WalletTest {
     // key encryption with random iv
     @Test
     public void testKeyEncryption2() {
-
-        // key generation
-        ECKey ecKey = new ECKey();
-        byte[] priKey = ecKey.getPrivKeyBytes();
-
         // password generation using KDF
         String password = "Aa1234567890#";
         byte[] kdf = Password.generateKeyDerivation(password.getBytes(), 32);
@@ -85,11 +79,6 @@ public class WalletTest {
     // key encryption
     @Test
     public void testKeyEncryption3() {
-
-        // key generation
-        ECKey ecKey = new ECKey();
-        byte[] priKey = ecKey.getPrivKeyBytes();
-
         // password generation using KDF
         String password = "Aa1234567890#";
         byte[] kdf = Password.generateKeyDerivation(password.getBytes(), 32);

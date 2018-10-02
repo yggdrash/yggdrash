@@ -27,9 +27,6 @@ public class TransactionApiImplTest {
     private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
 
     private Wallet wallet;
-    private String address;
-    private String hashOfTx;
-    private final String tag = "latest";
     private final int blockNumber = 3;
     private final int txIndexPosition = 2;
     private String branchId = BranchId.STEM;
@@ -38,7 +35,6 @@ public class TransactionApiImplTest {
     public void setUp() throws IOException, InvalidCipherTextException {
         this.wallet = new Wallet();
         sendTransactionTest();
-        address = wallet.getHexAddress();
     }
 
     @Test
@@ -87,7 +83,6 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByBlockHashTest() {
         try {
-            TransactionHusk tx = new TransactionHusk(TestUtils.sampleTx(wallet));
             assertThat(txApi.getTransactionByBlockHash(branchId,
                     "5ef71a90c6d99c7bc13bfbcaffb50cb89210678e99ed6626c9d2f378700b392c",
                     2)).isNotNull();
@@ -109,6 +104,7 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByBlockNumberWithTagTest() {
         try {
+            String tag = "latest";
             txApi.getTransactionByBlockNumber(branchId, tag, txIndexPosition);
         } catch (Exception e) {
             log.debug("\n\ngetTransactionByBlockNumberWithTagTest :: exception => " + e);
@@ -127,7 +123,6 @@ public class TransactionApiImplTest {
     public void sendTransactionTest() {
         TransactionHusk tx = ContractTx.createYeedTx(
                 wallet, new Address(wallet.getAddress()), 100);
-        hashOfTx = tx.getHash().toString();
 
         // Request Transaction with jsonStr
         try {
