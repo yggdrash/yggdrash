@@ -16,7 +16,6 @@
 
 package io.yggdrash.core;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.store.TransactionStore;
@@ -41,7 +40,7 @@ public class TransactionStoreTest {
     }
 
     @Test
-    public void shouldGetFromDb() throws InvalidProtocolBufferException {
+    public void shouldGetFromDb() {
         TransactionHusk tx = TestUtils.createTxHusk();
         Sha3Hash key = tx.getHash();
         ts.put(tx.getHash(), tx);
@@ -62,7 +61,7 @@ public class TransactionStoreTest {
     }
 
     @Test
-    public void shouldBeGotTxFromCache() throws InvalidProtocolBufferException {
+    public void shouldBeGotTxFromCache() {
         TransactionHusk tx = TestUtils.createTxHusk();
 
         Sha3Hash key = tx.getHash();

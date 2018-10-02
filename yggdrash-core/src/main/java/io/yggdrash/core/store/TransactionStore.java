@@ -19,6 +19,7 @@ package io.yggdrash.core.store;
 import com.google.common.annotations.VisibleForTesting;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.datasource.DbSource;
 import org.ehcache.Cache;
@@ -96,7 +97,7 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
         try {
             return item != null ? item : new TransactionHusk(db.get(key.getBytes()));
         } catch (Exception e) {
-            throw new IllegalArgumentException(e);
+            throw new FailedOperationException(e);
         }
     }
 

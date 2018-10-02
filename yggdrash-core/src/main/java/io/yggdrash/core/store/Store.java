@@ -16,12 +16,10 @@
 
 package io.yggdrash.core.store;
 
-import com.google.protobuf.InvalidProtocolBufferException;
-
 public interface Store<K, V> {
     void put(K key, V value);
 
-    V get(K key) throws InvalidProtocolBufferException;
+    V get(K key);
 
     boolean contains(K key);
 

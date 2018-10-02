@@ -26,8 +26,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -39,7 +37,6 @@ public class TransactionMockitoTest {
     private TransactionReceiptStore txReceiptStoreMock;
     private TransactionHusk tx;
     private BlockHusk block;
-    private Wallet wallet;
 
     private TransactionApiImpl txApiImpl;
     private String hashOfTx;
@@ -52,7 +49,7 @@ public class TransactionMockitoTest {
     @Before
     public void setup() throws Exception {
         txReceiptStore = new HashMap<>();
-        wallet = new Wallet();
+        Wallet wallet = new Wallet();
         txApiImpl = new TransactionApiImpl(branchGroupMock);
 
         tx = TestUtils.createTxHusk(wallet);
@@ -86,7 +83,7 @@ public class TransactionMockitoTest {
         when(branchGroupMock.getTxByHash(stem, hashOfTx)).thenReturn(tx);
         TransactionDto res = txApiImpl.getTransactionByHash(stem.toString(), hashOfTx);
         assertThat(res).isNotNull();
-        assertEquals(res.getHash().toString(), hashOfTx);
+        assertEquals(res.getHash(), hashOfTx);
     }
 
     @Test
@@ -94,7 +91,7 @@ public class TransactionMockitoTest {
         when(branchGroupMock.getBlockByHash(stem, hashOfBlock)).thenReturn(block);
         TransactionDto res = txApiImpl.getTransactionByBlockHash(
                 stem.toString(), hashOfBlock, 0);
-        assertEquals(res.getHash().toString(), hashOfTx);
+        assertEquals(res.getHash(), hashOfTx);
     }
 
     @Test

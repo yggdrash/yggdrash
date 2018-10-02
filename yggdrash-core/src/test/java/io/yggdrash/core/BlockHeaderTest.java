@@ -3,7 +3,6 @@ package io.yggdrash.core;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.util.TimeUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -89,11 +88,6 @@ public class BlockHeaderTest {
             log.debug(e.getMessage());
             assert false;
         }
-    }
-
-    @After
-    public void exit() {
-
     }
 
     @Test

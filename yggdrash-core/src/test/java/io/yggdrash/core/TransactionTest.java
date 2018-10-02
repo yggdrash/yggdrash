@@ -24,7 +24,6 @@ public class TransactionTest {
     TransactionHeader txHeader;
     Wallet wallet;
     TransactionSignature txSig;
-    Transaction tx;
 
     @Before
     public void init() {

@@ -34,14 +34,14 @@ public class RuntimeTest {
     }
 
     @Test
-    public void invokeFromYeedTest() throws Exception {
+    public void invokeFromYeedTest() {
         TransactionHusk tx = ContractTx.createYeedTx(
                 wallet, new Address(TestUtils.TRANSFER_TO), 100);
         runtime.invoke(coinContract, tx);
     }
 
     @Test
-    public void invokeFromStemTest() throws Exception {
+    public void invokeFromStemTest() {
         JsonObject branch = TestUtils.getSampleBranch1();
         branchId = BranchId.of(branch);
 
