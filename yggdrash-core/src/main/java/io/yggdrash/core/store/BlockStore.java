@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.Map;
 
 public class BlockStore implements Store<Sha3Hash, BlockHusk> {
-    private DbSource<byte[], byte[]> db;
-    private Map<Long, Sha3Hash> index = new HashMap<>();
+    private final DbSource<byte[], byte[]> db;
+    private final Map<Long, Sha3Hash> index = new HashMap<>();
 
     public BlockStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();

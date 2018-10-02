@@ -24,13 +24,13 @@ public class TransactionReceipt {
 
     private String transactionHash =
             "0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238";
-    private int transactionIndex = 1;
-    private String blockHash =
+    private final int transactionIndex = 1;
+    private final String blockHash =
             "0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b";
-    private int yeedUsed = 30000;
-    private String branchAddress =
+    private final int yeedUsed = 30000;
+    private final String branchAddress =
             "0xb60e8dd61c5d32be8058bb8eb970870f07233155";
-    private Map<String, Object> txLog = new HashMap<>();
+    private final Map<String, Object> txLog = new HashMap<>();
     private int status = 0;
 
     public void putLog(String key, Object value) {

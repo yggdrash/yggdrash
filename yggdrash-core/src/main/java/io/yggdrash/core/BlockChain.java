@@ -32,14 +32,14 @@ public class BlockChain {
 
     // <Variable>
     private final BlockHusk genesisBlock;
+    private final List<BranchEventListener> listenerList = new ArrayList<>();
+
     private BlockHusk prevBlock;
     private BlockStore blockStore;
     private TransactionStore transactionStore;
     private Contract contract;
     private Runtime<?> runtime;
     private String branchName;
-
-    private List<BranchEventListener> listenerList = new ArrayList<>();
 
     @VisibleForTesting
     public BlockChain(File infoFile) {

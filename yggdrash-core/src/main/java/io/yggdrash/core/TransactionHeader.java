@@ -24,12 +24,12 @@ public class TransactionHeader implements Cloneable {
     public static final int BODYLENGTH_LENGTH = 8;
 
     // Transaction Format v0.0.3
-    private byte[] chain;       // 20 Bytes
-    private byte[] version;     // 8 Bytes
-    private byte[] type;        // 8 Bytes
-    private long timestamp;     // 8 Bytes
-    private byte[] bodyHash;    // 32 Bytes
-    private long bodyLength;    // 8 Bytes
+    private final byte[] chain;       // 20 Bytes
+    private final byte[] version;     // 8 Bytes
+    private final byte[] type;        // 8 Bytes
+    private final long timestamp;     // 8 Bytes
+    private final byte[] bodyHash;    // 32 Bytes
+    private final long bodyLength;    // 8 Bytes
 
     public TransactionHeader(
             byte[] chain,

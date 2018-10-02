@@ -19,12 +19,10 @@ public class BlockSignatureTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockSignatureTest.class);
 
-    private byte[] chain = new byte[20];
-    private byte[] version = new byte[8];
-    private byte[] type = new byte[8];
-    private byte[] prevBlockHash = new byte[32];
-    private long index = 0;
-    private long timestamp = TimeUtils.time();
+    private final byte[] chain = new byte[20];
+    private final byte[] version = new byte[8];
+    private final byte[] type = new byte[8];
+    private final byte[] prevBlockHash = new byte[32];
 
     private BlockBody blockBody1;
 
@@ -69,6 +67,7 @@ public class BlockSignatureTest {
 
             txBody = new TransactionBody(jsonArray);
 
+            long timestamp = TimeUtils.time();
             txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
             wallet = new Wallet();
@@ -88,6 +87,7 @@ public class BlockSignatureTest {
             blockBody1 = new BlockBody(txs1);
 
             timestamp = TimeUtils.time() + 1;
+            long index = 0;
             blockHeader1 = new BlockHeader(
                     chain, version, type, prevBlockHash, index, timestamp,
                     blockBody1.getMerkleRoot(), blockBody1.length());

@@ -22,7 +22,7 @@ import static org.junit.Assert.assertEquals;
 public class TransactionHuskTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHuskTest.class);
-    private static Wallet wallet;
+    private static final Wallet wallet;
 
     private TransactionHusk txHusk;
 

@@ -9,7 +9,7 @@ import java.nio.charset.StandardCharsets;
 
 public class TransactionBody implements Cloneable {
 
-    private JsonArray body;
+    private final JsonArray body;
 
     public TransactionBody(JsonArray body) {
 

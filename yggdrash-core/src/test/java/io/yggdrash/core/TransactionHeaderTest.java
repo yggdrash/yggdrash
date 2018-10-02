@@ -18,9 +18,9 @@ public class TransactionHeaderTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHeaderTest.class);
 
-    byte[] chain = new byte[20];
-    byte[] version = new byte[8];
-    byte[] type = new byte[8];
+    final byte[] chain = new byte[20];
+    final byte[] version = new byte[8];
+    final byte[] type = new byte[8];
     long timestamp;
     byte[] bodyHash;
     long bodyLength;
@@ -41,6 +41,7 @@ public class TransactionHeaderTest {
         jsonArray.add(jsonObject1);
         jsonArray.add(jsonObject2);
 
+        timestamp = TimeUtils.time();
         txBody = new TransactionBody(jsonArray);
         bodyHash = txBody.getBodyHash();
         bodyLength = txBody.length();
@@ -50,7 +51,6 @@ public class TransactionHeaderTest {
     public void testTransactionHeader() {
 
         try {
-            timestamp = TimeUtils.time();
             TransactionHeader txHeader1 =
                     new TransactionHeader(chain, version, type, timestamp, bodyHash, bodyLength);
 
@@ -114,7 +114,6 @@ public class TransactionHeaderTest {
     @Test
     public void testTransactionHeaderClone() {
         try {
-            timestamp = TimeUtils.time();
             TransactionHeader txHeader1
                     = new TransactionHeader(chain, version, type, timestamp, bodyHash, bodyLength);
 

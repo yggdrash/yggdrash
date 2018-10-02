@@ -28,7 +28,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class BlockChainLoader {
-    private ObjectMapper mapper = new ObjectMapper();
+    private final ObjectMapper mapper = new ObjectMapper();
     private InputStream branchInfoStream;
 
     public BlockChainLoader(InputStream branchInfoStream) {

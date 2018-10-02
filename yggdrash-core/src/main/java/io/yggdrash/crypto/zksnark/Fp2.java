@@ -44,8 +44,8 @@ class Fp2 implements Field<Fp2> {
             new Fp(new BigInteger("21888242871839275222246405745257275088696311157297823662689037894645226208582"))
     };
 
-    Fp a;
-    Fp b;
+    final Fp a;
+    final Fp b;
 
     Fp2(Fp a, Fp b) {
         this.a = a;

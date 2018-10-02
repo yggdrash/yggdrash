@@ -26,10 +26,11 @@ public class TransactionApiImplTest {
     private static final BlockApi blockApi = new JsonRpcConfig().blockApi();
     private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
 
-    private Wallet wallet;
     private final int blockNumber = 3;
     private final int txIndexPosition = 2;
-    private String branchId = BranchId.STEM;
+    private final String branchId = BranchId.STEM;
+
+    private Wallet wallet;
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {

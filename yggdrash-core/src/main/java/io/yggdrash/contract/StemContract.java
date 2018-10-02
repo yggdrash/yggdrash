@@ -18,7 +18,7 @@ import java.util.Set;
 public class StemContract extends BaseContract<JsonObject> {
 
     private static final Logger log = LoggerFactory.getLogger(StemContract.class);
-    private ArrayList<String> types;
+    private final ArrayList<String> types;
 
     public StemContract() {
         types = new ArrayList<>();

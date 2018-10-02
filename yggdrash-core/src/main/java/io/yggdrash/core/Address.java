@@ -21,7 +21,7 @@ import org.spongycastle.util.encoders.Hex;
 import java.util.Arrays;
 
 public class Address {
-    private byte[] data;
+    private final byte[] data;
 
     public Address(byte[] data) {
         this.data = data;

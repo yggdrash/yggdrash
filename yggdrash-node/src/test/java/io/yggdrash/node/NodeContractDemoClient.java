@@ -35,8 +35,7 @@ import static io.yggdrash.contract.ContractTx.createYeedTx;
 
 public class NodeContractDemoClient {
 
-    private static Scanner scan = new Scanner(System.in);
-    private static Wallet wallet;
+    private static final Scanner scan = new Scanner(System.in);
     private static final String server = "10.10.10.100";
     private static final TransactionApi transactionApiLocal = new JsonRpcConfig().transactionApi();
     private static final TransactionApi transactionApiServer = new JsonRpcConfig().transactionApi(server);
@@ -44,6 +43,7 @@ public class NodeContractDemoClient {
     private static final ContractApi contractApiServer = new JsonRpcConfig().contractApi(server);
     private static final AccountApi accountApiLocal = new JsonRpcConfig().accountApi();
     private static final AccountApi accountApiServer = new JsonRpcConfig().accountApi(server);
+    private static Wallet wallet;
 
     public static void main(String[] args) throws Exception {
         while (true) {

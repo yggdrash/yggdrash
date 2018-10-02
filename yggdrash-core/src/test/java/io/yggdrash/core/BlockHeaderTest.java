@@ -13,18 +13,17 @@ import java.util.List;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 
 public class BlockHeaderTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockHeaderTest.class);
 
-    private byte[] chain = new byte[20];
-    private byte[] version = new byte[8];
-    private byte[] type = new byte[8];
-    private byte[] prevBlockHash = new byte[32];
-    private long index = 0;
-    private long timestamp = TimeUtils.time();
+    private final byte[] chain = new byte[20];
+    private final byte[] version = new byte[8];
+    private final byte[] type = new byte[8];
+    private final byte[] prevBlockHash = new byte[32];
+    private final long index = 0;
+    private final long timestamp = TimeUtils.time();
 
     private BlockBody blockBody1;
 
@@ -33,7 +32,7 @@ public class BlockHeaderTest {
 
 
     @Before
-    public void init() {
+    public void init() throws Exception {
 
         TransactionBody txBody;
         TransactionHeader txHeader;
@@ -41,107 +40,75 @@ public class BlockHeaderTest {
         TransactionSignature txSig;
         Transaction tx1;
         Transaction tx2;
+        JsonObject jsonParams1 = new JsonObject();
+        jsonParams1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
+        jsonParams1.addProperty("amount", "10000000");
 
-        try {
+        JsonObject jsonObject1 = new JsonObject();
+        jsonObject1.addProperty("method", "transfer");
+        jsonObject1.add("params", jsonParams1);
 
-            JsonObject jsonParams1 = new JsonObject();
-            jsonParams1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
-            jsonParams1.addProperty("amount", "10000000");
+        JsonObject jsonParams2 = new JsonObject();
+        jsonParams2.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2001");
+        jsonParams2.addProperty("amount", "5000000");
 
-            JsonObject jsonObject1 = new JsonObject();
-            jsonObject1.addProperty("method", "transfer");
-            jsonObject1.add("params", jsonParams1);
+        JsonObject jsonObject2 = new JsonObject();
+        jsonObject2.addProperty("method", "transfer");
+        jsonObject2.add("params", jsonParams2);
 
-            JsonObject jsonParams2 = new JsonObject();
-            jsonParams2.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2001");
-            jsonParams2.addProperty("amount", "5000000");
+        JsonArray jsonArray = new JsonArray();
+        jsonArray.add(jsonObject1);
+        jsonArray.add(jsonObject2);
 
-            JsonObject jsonObject2 = new JsonObject();
-            jsonObject2.addProperty("method", "transfer");
-            jsonObject2.add("params", jsonParams2);
+        txBody = new TransactionBody(jsonArray);
 
-            JsonArray jsonArray = new JsonArray();
-            jsonArray.add(jsonObject1);
-            jsonArray.add(jsonObject2);
+        txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
-            txBody = new TransactionBody(jsonArray);
+        wallet = new Wallet();
 
-            txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
+        txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
 
-            wallet = new Wallet();
+        tx1 = new Transaction(txHeader, txSig, txBody);
 
-            txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
+        tx2 = tx1.clone();
 
-            tx1 = new Transaction(txHeader, txSig, txBody);
+        List<Transaction> txs1 = new ArrayList<>();
+        txs1.add(tx1);
+        txs1.add(tx2);
 
-            tx2 = tx1.clone();
+        log.debug("txs=" + txs1.toString());
 
-            List<Transaction> txs1 = new ArrayList<>();
-            txs1.add(tx1);
-            txs1.add(tx2);
-
-            log.debug("txs=" + txs1.toString());
-
-            blockBody1 = new BlockBody(txs1);
-
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            assert false;
-        }
-    }
-
-    @Test
-    public void testBlockHeader() {
-
-        try {
-            timestamp = TimeUtils.time();
-            blockHeader1 = new BlockHeader(
-                    chain, version, type, prevBlockHash, index, timestamp,
-                    blockBody1.getMerkleRoot(), blockBody1.length());
-
-            log.debug(blockHeader1.toString());
-
-            blockHeader2 = blockHeader1.clone();
-
-            log.debug(blockHeader2.toString());
-
-            assertEquals(blockHeader1.toJsonObject(), blockHeader2.toJsonObject());
-
-            assertArrayEquals(blockHeader1.getHashForSigning(), blockHeader2.getHashForSigning());
-
-            this.blockHeader1.setTimestamp(TimeUtils.time() + 1);
-            assertNotEquals(blockHeader1.toString(), blockHeader2.toString());
-
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            assert false;
-        }
+        blockBody1 = new BlockBody(txs1);
 
     }
 
     @Test
-    public void testBlockHeaderClone() {
-        try {
-            timestamp = TimeUtils.time();
-            blockHeader1 = new BlockHeader(
-                    chain, version, type, prevBlockHash, index, timestamp,
-                    blockBody1.getMerkleRoot(), blockBody1.length());
+    public void testBlockHeader() throws Exception {
+        blockHeader1 = new BlockHeader(
+                chain, version, type, prevBlockHash, index, timestamp,
+                blockBody1.getMerkleRoot(), blockBody1.length());
 
-            blockHeader2 = blockHeader1.clone();
-            log.debug("blockHeader1=" + blockHeader1.toJsonObject());
-            log.debug("blockHeader2=" + blockHeader2.toJsonObject());
-            assertEquals(blockHeader1.toJsonObject(), blockHeader2.toJsonObject());
+        log.debug(blockHeader1.toString());
 
-            blockHeader2.setTimestamp(TimeUtils.time() + 1);
-            log.debug("blockHeader1=" + blockHeader1.toJsonObject());
-            log.debug("blockHeader2=" + blockHeader2.toJsonObject());
-            assertNotEquals(blockHeader1.toJsonObject(), blockHeader2.toJsonObject());
+        blockHeader2 = blockHeader1.clone();
 
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            assert false;
-        }
+        log.debug(blockHeader2.toString());
 
+        assertEquals(blockHeader1.toJsonObject(), blockHeader2.toJsonObject());
+
+        assertArrayEquals(blockHeader1.getHashForSigning(), blockHeader2.getHashForSigning());
+    }
+
+    @Test
+    public void testBlockHeaderClone() throws Exception {
+        blockHeader1 = new BlockHeader(
+                chain, version, type, prevBlockHash, index, timestamp,
+                blockBody1.getMerkleRoot(), blockBody1.length());
+
+        blockHeader2 = blockHeader1.clone();
+        log.debug("blockHeader1=" + blockHeader1.toJsonObject());
+        log.debug("blockHeader2=" + blockHeader2.toJsonObject());
+        assertEquals(blockHeader1.toJsonObject(), blockHeader2.toJsonObject());
     }
 
 }
