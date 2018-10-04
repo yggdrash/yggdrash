@@ -25,7 +25,7 @@ public class PeerGroupTest {
     @Before
     public void setUp() {
         this.peerGroup = new PeerGroup(MAX_PEERS);
-        this.tx = TestUtils.createTxHusk();
+        this.tx = TestUtils.createTransferTxHusk();
         this.block = TestUtils.createGenesisBlockHusk();
         peerGroup.setListener(peer -> log.debug(peer.getYnodeUri() + " disconnected"));
         ChannelMock channel = new ChannelMock("ynode://75bff16c@localhost:9999");
@@ -44,10 +44,28 @@ public class PeerGroupTest {
     }
 
     @Test
+    public void addPeerByYnodeUriTest() {
+        assert peerGroup.isEmpty();
+        peerGroup.addPeerByYnodeUri("ynode://75bff16c@127.0.0.1:32918");
+        assert peerGroup.count() == 1;
+        peerGroup.addPeerByYnodeUri(Collections.singletonList("ynode://75bff16c@127.0.0.1:32919"));
+        assert peerGroup.count() == 2;
+    }
+
+    @Test
+    public void addMaxPeerTest() {
+        int testCount = MAX_PEERS + 5;
+        for (int i = 0; i < testCount; i++) {
+            int port = i + 32918;
+            peerGroup.addPeerByYnodeUri("ynode://75bff16c@localhost:" + port);
+        }
+        assert MAX_PEERS == peerGroup.getPeers().size();
+    }
+
+    @Test
     public void removePeerTest() {
         peerGroup.addPeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
         assert peerGroup.contains("ynode://75bff16c@127.0.0.1:32918");
-        assert !peerGroup.contains("wrong");
     }
 
     @Test
@@ -86,7 +104,7 @@ public class PeerGroupTest {
     public void addActivePeer() {
         int testCount = MAX_PEERS + 5;
         for (int i = 0; i < testCount; i++) {
-            int port = i + 9000;
+            int port = i + 32918;
             ChannelMock channel = new ChannelMock("ynode://75bff16c@localhost:" + port);
             peerGroup.newPeerChannel(channel);
         }
