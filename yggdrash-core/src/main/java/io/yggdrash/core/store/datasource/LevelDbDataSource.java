@@ -179,7 +179,7 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         }
     }
 
-    public boolean isAlive() {
+    private boolean isAlive() {
         return alive;
     }
 
@@ -210,7 +210,7 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         db.delete(Base64.decodeBase64(key));
     }
 
-    public void removeByKey(byte[] key) {
+    private void removeByKey(byte[] key) {
         db.delete(key);
     }
 

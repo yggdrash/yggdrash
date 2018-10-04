@@ -20,10 +20,10 @@ public class TransactionTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionTest.class);
 
-    TransactionBody txBody;
-    TransactionHeader txHeader;
-    Wallet wallet;
-    TransactionSignature txSig;
+    private TransactionBody txBody;
+    private TransactionHeader txHeader;
+    private Wallet wallet;
+    private TransactionSignature txSig;
 
     @Before
     public void init() throws Exception {

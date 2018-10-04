@@ -27,8 +27,8 @@ import java.util.Arrays;
 
 public class ByteUtil {
 
-    public static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
-    public static final byte[] ZERO_BYTE_ARRAY = new byte[] {0};
+    private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
+    private static final byte[] ZERO_BYTE_ARRAY = new byte[] {0};
 
     /**
      * Creates a copy of bytes and appends b to the end of it
@@ -279,7 +279,7 @@ public class ByteUtil {
         return builder.toString();
     }
 
-    public static String oneByteToHexString(byte value) {
+    private static String oneByteToHexString(byte value) {
         String retVal = Integer.toString(value & 0xFF, 16);
         if (retVal.length() == 1) {
             retVal = "0" + retVal;

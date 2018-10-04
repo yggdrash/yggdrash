@@ -58,7 +58,6 @@ public class ECKeyTest {
     private final BigInteger privateKey = new BigInteger(privString, 16);
 
     private final String privString2 = "35919d465e7704bcd97379f436fa38293151ebf728d23ddf7b6acf26dac13702";
-    private final BigInteger privateKey2 = new BigInteger(privString2, 16);
 
     private final String pubString = "040947751e3022ecf3016be03ec77ab0ce3c2662b4843898cb068d74f698ccc8ad75aa17564ae80a20bb044ee7a6d903e8e8df624b089c95d66a0570f051e5a05b";
     private final String compressedPubString = "030947751e3022ecf3016be03ec77ab0ce3c2662b4843898cb068d74f698ccc8ad";
@@ -120,7 +119,7 @@ public class ECKeyTest {
     public void testSignIncorrectInputSize() {
         ECKey key = new ECKey();
         String message = "The quick brown fox jumps over the lazy dog.";
-        ECDSASignature sig = key.doSign(message.getBytes());
+        key.doSign(message.getBytes());
         fail("Expecting an IllegalArgumentException for a non 32-byte input");
     }
 
@@ -129,7 +128,7 @@ public class ECKeyTest {
         ECKey key = ECKey.fromPublicOnly(pubKey);
         String message = "The quick brown fox jumps over the lazy dog.";
         byte[] input = HashUtil.sha3(message.getBytes());
-        ECDSASignature sig = key.doSign(input);
+        key.doSign(input);
         fail("Expecting an MissingPrivateKeyException for a public only ECKey");
     }
 

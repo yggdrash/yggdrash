@@ -146,7 +146,6 @@ public class CryptoTest {
 
         byte[] keyBytes = sha3("...".getBytes());
         log.info("key: {}", Hex.toHexString(keyBytes));
-        byte[] ivBytes = new byte[16];
         byte[] payload = Hex.decode("22400891000000000000000000000000");
 
         KeyParameter key = new KeyParameter(keyBytes);

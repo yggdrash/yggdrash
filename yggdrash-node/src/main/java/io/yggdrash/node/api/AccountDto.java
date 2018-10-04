@@ -4,13 +4,7 @@ import io.yggdrash.core.Account;
 import org.apache.commons.codec.binary.Hex;
 
 public class AccountDto {
-    String address;
-
-    public static AccountDto createBy(Account account) {
-        AccountDto dto = new AccountDto();
-        dto.setAddress(Hex.encodeHexString(account.getAddress()));
-        return dto;
-    }
+    private String address;
 
     public String getAddress() {
         return address;
@@ -18,5 +12,11 @@ public class AccountDto {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public static AccountDto createBy(Account account) {
+        AccountDto dto = new AccountDto();
+        dto.setAddress(Hex.encodeHexString(account.getAddress()));
+        return dto;
     }
 }

@@ -37,10 +37,11 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class NodeHealthIndicatorTest {
     private static final Status SYNC = new Status("SYNC", "Synchronizing..");
-    @Mock
-    BranchGroup branchGroupMock;
 
-    NodeHealthIndicator nodeHealthIndicator;
+    @Mock
+    private BranchGroup branchGroupMock;
+
+    private NodeHealthIndicator nodeHealthIndicator;
 
     @After
     public void tearDown() {

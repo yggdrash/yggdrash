@@ -62,7 +62,7 @@ public class Block implements Cloneable {
         return body;
     }
 
-    public byte[] getHash() throws IOException {
+    private byte[] getHash() throws IOException {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
         bao.write(this.header.toBinary());
@@ -138,7 +138,7 @@ public class Block implements Cloneable {
      *
      * @return true(success), false(fail)
      */
-    public boolean verifyData() throws IOException {
+    private boolean verifyData() throws IOException {
         // TODO CheckByValidate Code
         boolean check = true;
         check &= verifyCheckLengthNotNull(

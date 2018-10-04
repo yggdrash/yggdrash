@@ -37,7 +37,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 public class BranchGroup {
-    public static final Logger log = LoggerFactory.getLogger(BranchGroup.class);
+    private static final Logger log = LoggerFactory.getLogger(BranchGroup.class);
 
     private final Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
 

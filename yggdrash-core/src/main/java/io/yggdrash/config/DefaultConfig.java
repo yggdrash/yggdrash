@@ -81,7 +81,7 @@ public class DefaultConfig {
             this.code = code;
         }
 
-        public static Network valueOf(int code) {
+        static Network valueOf(int code) {
             return Arrays.stream(Network.values()).filter(v -> v.code == code).findFirst()
                     .orElseThrow(NoSuchElementException::new);
         }

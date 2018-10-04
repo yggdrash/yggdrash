@@ -18,7 +18,7 @@ package io.yggdrash.core;
 
 import java.io.Serializable;
 
-public interface ProtoHusk<T> extends Serializable {
+interface ProtoHusk<T> extends Serializable {
     byte[] getData();
 
     T getInstance();

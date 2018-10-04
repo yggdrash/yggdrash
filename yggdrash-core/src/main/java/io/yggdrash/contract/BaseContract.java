@@ -14,10 +14,10 @@ import org.slf4j.LoggerFactory;
 
 public abstract class BaseContract<T> implements Contract<T> {
     protected static final Logger log = LoggerFactory.getLogger(BaseContract.class);
-    protected StateStore<T> state;
-    protected TransactionReceiptStore txReceiptStore;
-    protected String sender;
-    protected ContractEventListener listener;
+    private TransactionReceiptStore txReceiptStore;
+    private ContractEventListener listener;
+    StateStore<T> state;
+    String sender;
 
     @Override
     public void init(StateStore<T> store, TransactionReceiptStore txReceiptStore) {

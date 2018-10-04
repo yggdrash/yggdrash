@@ -249,7 +249,7 @@ public class Transaction implements Cloneable {
      *
      * @return true(success), false(fail)
      */
-    public boolean verifyData() {
+    private boolean verifyData() {
         // todo: error code
         boolean check = true;
 
