@@ -17,17 +17,16 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.BlockHusk;
 import org.junit.Test;
 
 public class MetaStoreTest {
+
     @Test
     public void name() {
         MetaStore metaStore = new MetaStore();
         BlockHusk blockHusk = new BlockHusk(TestUtils.getBlockFixture());
         metaStore.put(MetaStore.MetaInfo.RECENT_BLOCK, blockHusk.getHash());
-
-        Sha3Hash sha3Hash = metaStore.get(MetaStore.MetaInfo.RECENT_BLOCK);
+        metaStore.get(MetaStore.MetaInfo.RECENT_BLOCK);
     }
 }

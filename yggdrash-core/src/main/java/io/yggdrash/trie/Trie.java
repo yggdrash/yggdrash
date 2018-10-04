@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 /**
@@ -18,7 +17,7 @@ import java.util.List;
 public class Trie {
 
     /**
-     * Get merkle root vaule.
+     * Get merkle root value.
      *
      * @param txs Transaction list
      * @return byte[32] - merkle root value <br>
@@ -26,7 +25,7 @@ public class Trie {
      */
     public static byte[] getMerkleRootHusk(List<TransactionHusk> txs) {
 
-        if (txs == null || txs.size() < 1 || txs.containsAll(Collections.singleton(null))) {
+        if (txs == null || txs.size() < 1 || txs.contains(null)) {
             return null;
         }
 
@@ -35,23 +34,13 @@ public class Trie {
             tree.add(tx.getHash().getBytes());
         }
 
-        int levelOffset = 0;
-        for (int levelSize = txs.size(); levelSize > 1; levelSize = (levelSize + 1) / 2) {
-
-            for (int left = 0; left < levelSize; left += 2) {
-                int right = Math.min(left + 1, levelSize - 1);
-                byte[] leftBytes = reverseBytes(tree.get(levelOffset + left));
-                byte[] rightBytes = reverseBytes(tree.get(levelOffset + right));
-                tree.add(reverseBytes(hashTwice(leftBytes, 0, 32, rightBytes, 0, 32)));
-            }
-            levelOffset += levelSize;
-        }
+        calculateMerkle(tree, txs.size());
 
         return HashUtil.sha3(tree.get(tree.size() - 1));
     }
 
     /**
-     * Get merkle root vaule.
+     * Get merkle root value.
      *
      * @param txs Transaction list
      * @return merkle root value (byte[32]) <br>
@@ -59,7 +48,7 @@ public class Trie {
      */
     public static byte[] getMerkleRoot(List<Transaction> txs) throws IOException {
 
-        if (txs == null || txs.size() < 1 || txs.containsAll(Collections.singleton(null))) {
+        if (txs == null || txs.size() < 1 || txs.contains(null)) {
             return null;
         }
 
@@ -68,8 +57,14 @@ public class Trie {
             tree.add(tx.getHash());
         }
 
+        calculateMerkle(tree, txs.size());
+
+        return HashUtil.sha3(tree.get(tree.size() - 1));
+    }
+
+    private static void calculateMerkle(ArrayList<byte[]> tree, int size) {
         int levelOffset = 0;
-        for (int levelSize = txs.size(); levelSize > 1; levelSize = (levelSize + 1) / 2) {
+        for (int levelSize = size; levelSize > 1; levelSize = (levelSize + 1) / 2) {
 
             for (int left = 0; left < levelSize; left += 2) {
                 int right = Math.min(left + 1, levelSize - 1);
@@ -79,8 +74,6 @@ public class Trie {
             }
             levelOffset += levelSize;
         }
-
-        return HashUtil.sha3(tree.get(tree.size() - 1));
     }
 
     private static byte[] reverseBytes(byte[] bytes) {

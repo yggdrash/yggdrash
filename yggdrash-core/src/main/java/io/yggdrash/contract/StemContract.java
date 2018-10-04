@@ -260,21 +260,21 @@ public class StemContract extends BaseContract<JsonObject> {
         state.putSubState("tag",
                 branch.get("tag").getAsString(), branchId);
 
-        //printSubState();
+        printSubState();
     }
 
     private void printSubState() {
-        log.info("[StemContract | printSubState] typeState => "
+        log.trace("[StemContract | printSubState] typeState => "
                 + state.getSubState("type").toString());
-        log.info("[StemContract | printSubState] nameState => "
+        log.trace("[StemContract | printSubState] nameState => "
                 + state.getSubState("name").toString());
-        log.info("[StemContract | printSubState] propertyState => "
+        log.trace("[StemContract | printSubState] propertyState => "
                 + state.getSubState("property").toString());
-        log.info("[StemContract | printSubState] ownerState => "
+        log.trace("[StemContract | printSubState] ownerState => "
                 + state.getSubState("owner").toString());
-        log.info("[StemContract | printSubState] symbolState => "
+        log.trace("[StemContract | printSubState] symbolState => "
                 + state.getSubState("symbol").toString());
-        log.info("[StemContract | printSubState] tagState => "
+        log.trace("[StemContract | printSubState] tagState => "
                 + state.getSubState("tag").toString());
     }
 }

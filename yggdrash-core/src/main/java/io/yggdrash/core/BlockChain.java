@@ -231,7 +231,7 @@ public class BlockChain {
      * @param blockChain the block chain
      * @return the boolean
      */
-    public boolean isValidChain(BlockChain blockChain) {
+    private boolean isValidChain(BlockChain blockChain) {
         if (blockChain.getPrevBlock() != null) {
             BlockHusk block = blockChain.getPrevBlock(); // Get Last Block
             while (block.getIndex() != 0L) {
@@ -291,7 +291,7 @@ public class BlockChain {
      *
      * @return the boolean
      */
-    public boolean isGenesisBlockChain() {
+    private boolean isGenesisBlockChain() {
         return (this.prevBlock == null);
     }
 

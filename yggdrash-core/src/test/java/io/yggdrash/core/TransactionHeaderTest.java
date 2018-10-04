@@ -18,14 +18,14 @@ public class TransactionHeaderTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHeaderTest.class);
 
-    final byte[] chain = new byte[20];
-    final byte[] version = new byte[8];
-    final byte[] type = new byte[8];
-    long timestamp;
-    byte[] bodyHash;
-    long bodyLength;
+    private final byte[] chain = new byte[20];
+    private final byte[] version = new byte[8];
+    private final byte[] type = new byte[8];
+    private long timestamp;
+    private byte[] bodyHash;
+    private long bodyLength;
 
-    TransactionBody txBody;
+    private TransactionBody txBody;
 
 
     @Before

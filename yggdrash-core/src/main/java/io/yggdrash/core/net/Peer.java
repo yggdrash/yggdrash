@@ -23,7 +23,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 public class Peer {
-    public static final String YGGDRASH_NODE_SCHEMA = "ynode";
+    private static final String YGGDRASH_NODE_SCHEMA = "ynode";
     private static final String PEER_URI_FORMAT = "%s://%s@%s";
     private byte[] id;
     private String host;

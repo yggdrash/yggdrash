@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class TransactionStoreTest {
 
-    TransactionStore ts;
+    private TransactionStore ts;
 
     @Before
     public void setUp() {

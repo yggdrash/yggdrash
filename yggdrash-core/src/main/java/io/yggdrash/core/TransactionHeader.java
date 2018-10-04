@@ -16,12 +16,12 @@ public class TransactionHeader implements Cloneable {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHeader.class);
 
-    public static final int CHAIN_LENGTH = 20;
-    public static final int VERSION_LENGTH = 8;
-    public static final int TYPE_LENGTH = 8;
-    public static final int TIMESTAMP_LENGTH = 8;
-    public static final int BODYHASH_LENGTH = 32;
-    public static final int BODYLENGTH_LENGTH = 8;
+    static final int CHAIN_LENGTH = 20;
+    static final int VERSION_LENGTH = 8;
+    static final int TYPE_LENGTH = 8;
+    static final int TIMESTAMP_LENGTH = 8;
+    static final int BODYHASH_LENGTH = 32;
+    static final int BODYLENGTH_LENGTH = 8;
 
     // Transaction Format v0.0.3
     private final byte[] chain;       // 20 Bytes

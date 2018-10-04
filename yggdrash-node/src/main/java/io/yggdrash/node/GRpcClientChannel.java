@@ -40,9 +40,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class GRpcClientChannel implements PeerClientChannel {
+class GRpcClientChannel implements PeerClientChannel {
 
-    public static final Logger log = LoggerFactory.getLogger(GRpcClientChannel.class);
+    private static final Logger log = LoggerFactory.getLogger(GRpcClientChannel.class);
 
     private final ManagedChannel channel;
     private final PingPongGrpc.PingPongBlockingStub blockingPingPongStub;
@@ -50,13 +50,13 @@ public class GRpcClientChannel implements PeerClientChannel {
     private final BlockChainGrpc.BlockChainStub asyncBlockChainStub;
     private final Peer peer;
 
-    public GRpcClientChannel(Peer peer) {
+    GRpcClientChannel(Peer peer) {
         this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
                 .build(), peer);
     }
 
     @VisibleForTesting
-    public GRpcClientChannel(ManagedChannel channel, Peer peer) {
+    GRpcClientChannel(ManagedChannel channel, Peer peer) {
         this.channel = channel;
         this.peer = peer;
         blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);

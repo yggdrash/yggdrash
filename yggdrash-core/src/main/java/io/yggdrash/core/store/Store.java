@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.store;
 
-public interface Store<K, V> {
+interface Store<K, V> {
     void put(K key, V value);
 
     V get(K key);

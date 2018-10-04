@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class HashMapDbSource implements DbSource<byte[], byte[]> {
-    Map<String, byte[]> db;
+    private Map<String, byte[]> db;
 
     @Override
     public DbSource init() {

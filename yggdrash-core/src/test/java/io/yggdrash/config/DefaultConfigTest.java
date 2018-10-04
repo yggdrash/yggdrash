@@ -17,7 +17,7 @@ public class DefaultConfigTest {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultConfigTest.class);
 
-    DefaultConfig defaultConfig;
+    private DefaultConfig defaultConfig;
 
     @Before
     public void setUp() {

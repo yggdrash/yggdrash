@@ -22,11 +22,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class GenesisBlock {
+class GenesisBlock {
 
     private Block genesisBlock;
 
-    public GenesisBlock() throws IOException, InvalidCipherTextException {
+    GenesisBlock() throws IOException, InvalidCipherTextException {
 
         DefaultConfig defaultConfig = new DefaultConfig();
         String transactionFileName = defaultConfig.getConfig().getString("genesis.contract");
@@ -104,7 +104,7 @@ public class GenesisBlock {
         return new Gson().fromJson(result.toString(), JsonObject.class);
     }
 
-    public String getGenesisJson() {
+    String getGenesisJson() {
         //todo: change the method to serializing method
 
         JsonObject jsonObject = this.genesisBlock.toJsonObject();
