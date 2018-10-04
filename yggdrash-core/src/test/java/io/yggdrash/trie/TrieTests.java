@@ -24,8 +24,8 @@ public class TrieTests {
     @Before
     public void setUp() {
         // create sample tx
-        this.tx1 = TestUtils.createTxHusk();
-        this.tx2 = TestUtils.createTxHusk();
+        this.tx1 = TestUtils.createTransferTxHusk();
+        this.tx2 = TestUtils.createTransferTxHusk();
     }
 
     @Test

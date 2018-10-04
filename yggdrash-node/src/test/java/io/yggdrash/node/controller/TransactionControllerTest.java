@@ -57,7 +57,8 @@ public class TransactionControllerTest {
     public void shouldGetTransactionByHash() throws Exception {
 
         // 트랜잭션 풀에 있는 트랜잭션을 조회 후 블록 내 트랜잭션 조회 로직 추가 필요.
-        TransactionDto req = TransactionDto.createBy(TestUtils.createTxHusk());
+        TransactionDto req =
+                TransactionDto.createBy(TestUtils.createBranchTxHusk(TestUtils.wallet()));
 
         MockHttpServletResponse postResponse = mockMvc.perform(post(BASE_PATH)
                 .contentType(MediaType.APPLICATION_JSON).content(json.write(req).getJson()))

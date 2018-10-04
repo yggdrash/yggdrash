@@ -35,8 +35,7 @@ public class RuntimeTest {
 
     @Test
     public void invokeFromYeedTest() {
-        TransactionHusk tx = ContractTx.createYeedTx(
-                wallet, new Address(TestUtils.TRANSFER_TO), 100);
+        TransactionHusk tx = ContractTx.createYeedTx(wallet, TestUtils.TRANSFER_TO, 100);
         runtime.invoke(coinContract, tx);
     }
 

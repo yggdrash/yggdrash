@@ -31,17 +31,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TransactionStoreTest {
 
     private TransactionStore ts;
+    private TransactionHusk tx;
 
     @Before
     public void setUp() {
         DbSource db = new HashMapDbSource();
         ts = new TransactionStore(db);
+        assertThat(ts).isNotNull();
         ts.flush(new HashSet(ts.getUnconfirmedTxs()));
+        tx = TestUtils.createTransferTxHusk();
     }
 
     @Test
     public void shouldGetFromDb() {
-        TransactionHusk tx = TestUtils.createTxHusk();
         Sha3Hash key = tx.getHash();
         ts.put(tx.getHash(), tx);
 
@@ -52,7 +54,6 @@ public class TransactionStoreTest {
 
     @Test
     public void shouldBeBatched() {
-        TransactionHusk tx = TestUtils.createTxHusk();
         ts.put(tx.getHash(), tx);
 
         ts.batchAll();
@@ -62,24 +63,12 @@ public class TransactionStoreTest {
 
     @Test
     public void shouldBeGotTxFromCache() {
-        TransactionHusk tx = TestUtils.createTxHusk();
 
         Sha3Hash key = tx.getHash();
         ts.put(tx.getHash(), tx);
 
         TransactionHusk foundTx = ts.get(key);
         assertThat(foundTx).isNotNull();
-        assertThat(foundTx.getBody()).contains("create");
-    }
-
-    @Test
-    public void shouldBePutTx() {
-        TransactionHusk tx = TestUtils.createTxHusk();
-        ts.put(tx.getHash(), tx);
-    }
-
-    @Test
-    public void shouldLoadTestObject() {
-        assertThat(ts).isNotNull();
+        assertThat(foundTx.getBody()).contains("transfer");
     }
 }

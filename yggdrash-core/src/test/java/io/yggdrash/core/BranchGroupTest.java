@@ -43,7 +43,7 @@ public class BranchGroupTest {
         blockChain = new BlockChain(branchJson);
         addBranch(blockChain);
         assertThat(branchGroup.getBranchSize()).isEqualTo(1);
-        tx = TestUtils.createTxHusk(wallet);
+        tx = TestUtils.createBranchTxHusk(wallet);
         block = new BlockHusk(wallet, Collections.singletonList(tx),
                 branchGroup.getBlockByIndex(BranchId.stem(), 0));
     }

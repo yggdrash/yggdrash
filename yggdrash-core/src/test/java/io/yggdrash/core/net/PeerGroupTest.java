@@ -110,16 +110,4 @@ public class PeerGroupTest {
         }
         assert MAX_PEERS == peerGroup.getActivePeerList().size();
     }
-
-    @Test
-    public void broadcastPeerConnect() {
-        assert !peerGroup.broadcastPeerConnect("ynode://75bff16c@localhost:9999").isEmpty();
-    }
-
-    @Test
-    public void broadcastPeerDisconnect() {
-        assert !peerGroup.getActivePeerList().isEmpty();
-        peerGroup.broadcastPeerDisconnect("ynode://75bff16c@localhost:9999");
-        assert peerGroup.getActivePeerList().isEmpty();
-    }
 }

@@ -52,7 +52,7 @@ public class NodeContractDemoClient {
     }
 
     private static void run() throws Exception {
-        wallet = new Wallet();
+        wallet = TestUtils.wallet();
 
         System.out.print("===============\n");
         System.out.print("[1] 트랜잭션 전송\n[2] 트랜잭션 조회\n[3] 브랜치 수정\n[4] 브랜치 조회\n[5] 발란스 조회\n[6] 종료\n>");
@@ -88,14 +88,14 @@ public class NodeContractDemoClient {
         System.out.print("[1] STEM  [2] YEED\n> ");
         if (scan.nextLine().equals("2")) {
             System.out.println("전송할 주소를 입력해주세요");
-            System.out.println("(기본값 : " + new Address(TestUtils.TRANSFER_TO).toString() + ")");
+            System.out.println("(기본값 : " + TestUtils.TRANSFER_TO.toString() + ")");
             System.out.println(">");
             String address = scan.nextLine();
             TransactionHusk tx;
             if (address.length() > 0) {
                 tx = createYeedTx(wallet, new Address(Hex.decodeHex(address)), 100);
             } else {
-                tx = createYeedTx(wallet, new Address(TestUtils.TRANSFER_TO), 100);
+                tx = createYeedTx(wallet, TestUtils.TRANSFER_TO, 100);
             }
             send(toServer(), tx);
 

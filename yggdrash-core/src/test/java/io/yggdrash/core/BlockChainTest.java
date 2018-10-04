@@ -121,7 +121,7 @@ public class BlockChainTest {
         BlockHusk testBlock = new BlockHusk(
                 TestUtils.getBlockFixture(blockIndex, prevBlock.getHash()));
         blockChain.addBlock(testBlock);
-        blockChain.addTransaction(TestUtils.createTxHusk());
+        blockChain.addTransaction(TestUtils.createTransferTxHusk());
     }
 
 }

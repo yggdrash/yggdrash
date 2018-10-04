@@ -20,7 +20,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.contract.CoinContract;
 import io.yggdrash.contract.Contract;
-import io.yggdrash.contract.ContractQry;
 import io.yggdrash.contract.NoneContract;
 import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.exception.FailedOperationException;
@@ -76,8 +75,12 @@ public class BlockChainBuilder {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("branchId", branch.getBranchId().toString());
         jsonObject.addProperty("method", "genesis");
-        JsonArray params = ContractQry.createParams("frontier", branch.getOwner(),
-                "balance", "1000000000");
+
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        param.addProperty("frontier", branch.getOwner());
+        param.addProperty("balance", "1000000000");
+        params.add(param);
         jsonObject.add("params", params);
 
         JsonArray jsonArrayTxBody = new JsonArray();

@@ -69,13 +69,13 @@ public abstract class BaseContract<T> implements Contract<T> {
                     .invoke(this, params);
             result.addProperty("result", res.toString());
         } catch (Exception e) {
-            throw new FailedOperationException("No such method");
+            throw new FailedOperationException(e);
         }
         return result;
     }
 
     private void dataFormatValidation(JsonObject data) {
-        if (data.get("method").getAsString().toLowerCase().length() < 0) {
+        if (data.get("method").getAsString().length() < 0) {
             throw new FailedOperationException("Empty method");
         }
         if (!data.get("params").isJsonArray()) {

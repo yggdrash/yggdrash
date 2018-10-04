@@ -12,17 +12,6 @@ public class Account {
     private final ECKey key;
     private final byte[] address;
 
-
-    /**
-     * Account Constructor.
-     *
-     * @param key account key
-     */
-    public Account(ECKey key) {
-        this.key = key;
-        this.address = key.getAddress();
-    }
-
     /**
      * Account Constructor.
      * - generate account with new key

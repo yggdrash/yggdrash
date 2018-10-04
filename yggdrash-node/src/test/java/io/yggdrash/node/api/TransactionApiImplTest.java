@@ -13,7 +13,6 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
 
@@ -30,11 +29,8 @@ public class TransactionApiImplTest {
     private final int txIndexPosition = 2;
     private final String branchId = BranchId.STEM;
 
-    private Wallet wallet;
-
     @Before
-    public void setUp() throws IOException, InvalidCipherTextException {
-        this.wallet = new Wallet();
+    public void setUp() {
         sendTransactionTest();
     }
 
@@ -114,7 +110,7 @@ public class TransactionApiImplTest {
 
     @Test
     public void checkTransactionJsonFormat() throws IOException {
-        TransactionHusk tx = TestUtils.createTxHusk();
+        TransactionHusk tx = TestUtils.createTransferTxHusk();
         ObjectMapper objectMapper = TestUtils.getMapper();
         log.debug("\n\nTransaction Format : "
                 + objectMapper.writeValueAsString(TransactionDto.createBy(tx)));
@@ -122,6 +118,7 @@ public class TransactionApiImplTest {
 
     @Test
     public void sendTransactionTest() {
+        Wallet wallet = TestUtils.wallet();
         TransactionHusk tx = ContractTx.createYeedTx(
                 wallet, new Address(wallet.getAddress()), 100);
 
@@ -137,7 +134,7 @@ public class TransactionApiImplTest {
     public void sendRawTransactionTest() {
         // Request Transaction with byteArr
         try {
-            byte[] input = TestUtils.sampleTx().toBinary();
+            byte[] input = TestUtils.createTransferTxHusk().toBinary();
             // Convert byteArray to Transaction
             assertThat(txApi.sendRawTransaction(input)).isNotEmpty();
         } catch (Exception e) {
@@ -168,7 +165,7 @@ public class TransactionApiImplTest {
     @Test
     public void txSigValidateTest() throws IOException {
         // Create Transaction
-        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTx(wallet));
+        TransactionHusk tx = TestUtils.createTransferTxHusk();
 
         ObjectMapper mapper = TestUtils.getMapper();
         String jsonStr = mapper.writeValueAsString(TransactionDto.createBy(tx));
