@@ -25,14 +25,14 @@ public class BlockHeader implements Cloneable {
     public static final int BODYLENGTH_LENGTH = 8;
 
     // Data format v0.0.3
-    private byte[] chain;           // 20 Bytes
-    private byte[] version;         // 8 Bytes
-    private byte[] type;            // 8 Bytes
-    private byte[] prevBlockHash;   // 32 Bytes
-    private long index;             // 8 Bytes
-    private long timestamp;         // 8 Bytes
-    private byte[] merkleRoot;      // 32 Bytes
-    private long bodyLength;        // 8 Bytes
+    private final byte[] chain;           // 20 Bytes
+    private final byte[] version;         // 8 Bytes
+    private final byte[] type;            // 8 Bytes
+    private final byte[] prevBlockHash;   // 32 Bytes
+    private final long index;             // 8 Bytes
+    private final long timestamp;         // 8 Bytes
+    private final byte[] merkleRoot;      // 32 Bytes
+    private final long bodyLength;        // 8 Bytes
 
     public BlockHeader(
             byte[] chain,
@@ -151,10 +151,6 @@ public class BlockHeader implements Cloneable {
 
     public long getBodyLength() {
         return bodyLength;
-    }
-
-    protected void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
     }
 
     public byte[] toBinary() {

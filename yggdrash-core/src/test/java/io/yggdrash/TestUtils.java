@@ -51,7 +51,7 @@ public class TestUtils {
     public static final byte[] TRANSFER_TO =
             Hex.decode("e1980adeafbb9ac6c9be60955484ab1547ab0b76");
 
-    private static Wallet wallet;
+    private static final Wallet wallet;
 
     private TestUtils() {}
 

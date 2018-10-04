@@ -44,7 +44,7 @@ public class TransactionMockitoTest {
     private TransactionReceipt txReceipt;
 
     private HashMap<String, TransactionReceipt> txReceiptStore;
-    private BranchId stem = BranchId.stem();
+    private final BranchId stem = BranchId.stem();
 
     @Before
     public void setup() throws Exception {

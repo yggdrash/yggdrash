@@ -212,8 +212,8 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     }
 
     static class BlockChainImpl extends BlockChainGrpc.BlockChainImplBase {
-        private PeerGroup peerGroup;
-        private BranchGroup branchGroup;
+        private final PeerGroup peerGroup;
+        private final BranchGroup branchGroup;
 
         BlockChainImpl(PeerGroup peerGroup, BranchGroup branchGroup) {
             this.peerGroup = peerGroup;

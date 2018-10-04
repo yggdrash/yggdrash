@@ -14,9 +14,9 @@ import java.io.IOException;
 
 public class BranchConfigurationTest {
 
-    MockEnvironment mockEnv;
-    PeerGroup peerGroup = new PeerGroup(1);
-    ResourceLoader loader = new DefaultResourceLoader();
+    private final PeerGroup peerGroup = new PeerGroup(1);
+    private final ResourceLoader loader = new DefaultResourceLoader();
+    private MockEnvironment mockEnv;
 
     @Before
     public void setUp() {

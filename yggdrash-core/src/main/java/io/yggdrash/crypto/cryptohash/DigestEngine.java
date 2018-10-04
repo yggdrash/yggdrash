@@ -68,8 +68,11 @@ import java.security.MessageDigest;
 
 public abstract class DigestEngine extends MessageDigest implements Digest {
 
-    private int digestLen, blockLen, inputLen;
-    private byte[] inputBuf, outputBuf;
+    private int digestLen;
+    private final int blockLen;
+    private int inputLen;
+    private final byte[] inputBuf;
+    private byte[] outputBuf;
     private long blockCount;
 
     /**

@@ -43,10 +43,11 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
 
     private static final Logger log = LoggerFactory.getLogger(LevelDbDataSource.class);
 
+    private final ReadWriteLock resetDbLock = new ReentrantReadWriteLock();
+    private final String name;
+    private final String dbPath;
+
     private boolean alive;
-    private ReadWriteLock resetDbLock = new ReentrantReadWriteLock();
-    private String name;
-    private String dbPath;
     private DB db;
 
     public LevelDbDataSource(String name) {

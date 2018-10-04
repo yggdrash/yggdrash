@@ -23,18 +23,14 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import io.yggdrash.core.Wallet;
 import io.yggdrash.crypto.ECKey.ECDSASignature;
 import io.yggdrash.crypto.jce.SpongyCastleProvider;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Hex;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPairGenerator;
 import java.security.Provider;
@@ -68,17 +64,11 @@ public class ECKeyTest {
     private final String compressedPubString = "030947751e3022ecf3016be03ec77ab0ce3c2662b4843898cb068d74f698ccc8ad";
     private final byte[] pubKey = Hex.decode(pubString);
     private final byte[] compressedPubKey = Hex.decode(compressedPubString);
-    private String address = "cd2a3d9f938e13cd947ec05abc7fe734df8dd826";
+    private final String address = "cd2a3d9f938e13cd947ec05abc7fe734df8dd826";
 
     private final String exampleMessage = "This is an example of a signed message.";
     private final String sigBase64 = "HNLOSI9Nop5o8iywXKwbGbdd8XChK0rRvdRTG46RFcb7dcH+UKlejM/8u1SCoeQvu91jJBMd/nXDs7f5p8ch7Ms=";
-    private String signatureHex = "d2ce488f4da29e68f22cb05cac1b19b75df170a12b4ad1bdd4531b8e9115c6fb75c1fe50a95e8ccffcbb5482a1e42fbbdd6324131dfe75c3b3b7f9a7c721eccb01";
-    private Wallet wallet;
-
-    @Before
-    public void setUp() throws IOException, InvalidCipherTextException {
-        wallet = new Wallet();
-    }
+    private final String signatureHex = "d2ce488f4da29e68f22cb05cac1b19b75df170a12b4ad1bdd4531b8e9115c6fb75c1fe50a95e8ccffcbb5482a1e42fbbdd6324131dfe75c3b3b7f9a7c721eccb01";
 
     @Test
     public void testHashCode() {

@@ -19,12 +19,10 @@ public class BlockSignatureTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockSignatureTest.class);
 
-    private byte[] chain = new byte[20];
-    private byte[] version = new byte[8];
-    private byte[] type = new byte[8];
-    private byte[] prevBlockHash = new byte[32];
-    private long index = 0;
-    private long timestamp = TimeUtils.time();
+    private final byte[] chain = new byte[20];
+    private final byte[] version = new byte[8];
+    private final byte[] type = new byte[8];
+    private final byte[] prevBlockHash = new byte[32];
 
     private BlockBody blockBody1;
 
@@ -37,7 +35,7 @@ public class BlockSignatureTest {
     private Wallet wallet;
 
     @Before
-    public void init() {
+    public void init() throws Exception {
 
         TransactionBody txBody;
         TransactionHeader txHeader;
@@ -45,100 +43,82 @@ public class BlockSignatureTest {
         Transaction tx1;
         Transaction tx2;
 
-        try {
+        JsonObject jsonParams1 = new JsonObject();
+        jsonParams1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
+        jsonParams1.addProperty("amount", "10000000");
 
-            JsonObject jsonParams1 = new JsonObject();
-            jsonParams1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
-            jsonParams1.addProperty("amount", "10000000");
+        JsonObject jsonObject1 = new JsonObject();
+        jsonObject1.addProperty("method", "transfer");
+        jsonObject1.add("params", jsonParams1);
 
-            JsonObject jsonObject1 = new JsonObject();
-            jsonObject1.addProperty("method", "transfer");
-            jsonObject1.add("params", jsonParams1);
+        JsonObject jsonParams2 = new JsonObject();
+        jsonParams2.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2001");
+        jsonParams2.addProperty("amount", "5000000");
 
-            JsonObject jsonParams2 = new JsonObject();
-            jsonParams2.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2001");
-            jsonParams2.addProperty("amount", "5000000");
+        JsonObject jsonObject2 = new JsonObject();
+        jsonObject2.addProperty("method", "transfer");
+        jsonObject2.add("params", jsonParams2);
 
-            JsonObject jsonObject2 = new JsonObject();
-            jsonObject2.addProperty("method", "transfer");
-            jsonObject2.add("params", jsonParams2);
+        JsonArray jsonArray = new JsonArray();
+        jsonArray.add(jsonObject1);
+        jsonArray.add(jsonObject2);
 
-            JsonArray jsonArray = new JsonArray();
-            jsonArray.add(jsonObject1);
-            jsonArray.add(jsonObject2);
+        txBody = new TransactionBody(jsonArray);
 
-            txBody = new TransactionBody(jsonArray);
+        long timestamp = TimeUtils.time();
+        txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
-            txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
+        wallet = new Wallet();
 
-            wallet = new Wallet();
+        txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
 
-            txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
+        tx1 = new Transaction(txHeader, txSig, txBody);
 
-            tx1 = new Transaction(txHeader, txSig, txBody);
+        tx2 = tx1.clone();
 
-            tx2 = tx1.clone();
+        List<Transaction> txs1 = new ArrayList<>();
+        txs1.add(tx1);
+        txs1.add(tx2);
 
-            List<Transaction> txs1 = new ArrayList<>();
-            txs1.add(tx1);
-            txs1.add(tx2);
+        log.debug("txs=" + txs1.toString());
 
-            log.debug("txs=" + txs1.toString());
+        blockBody1 = new BlockBody(txs1);
 
-            blockBody1 = new BlockBody(txs1);
+        timestamp = TimeUtils.time() + 1;
+        long index = 0;
+        blockHeader1 = new BlockHeader(
+                chain, version, type, prevBlockHash, index, timestamp,
+                blockBody1.getMerkleRoot(), blockBody1.length());
 
-            timestamp = TimeUtils.time() + 1;
-            blockHeader1 = new BlockHeader(
-                    chain, version, type, prevBlockHash, index, timestamp,
-                    blockBody1.getMerkleRoot(), blockBody1.length());
+        log.debug(blockHeader1.toString());
 
-            log.debug(blockHeader1.toString());
-
-            blockHeader2 = blockHeader1.clone();
-
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            assert false;
-        }
-
+        blockHeader2 = blockHeader1.clone();
     }
 
     @Test
     public void testBlockSignature() {
 
-        try {
-            blockSig1 = new BlockSignature(wallet, blockHeader1.getHashForSigning());
+        blockSig1 = new BlockSignature(wallet, blockHeader1.getHashForSigning());
 
-            log.debug("blockSig1.signature=" + Hex.toHexString(blockSig1.getSignature()));
+        log.debug("blockSig1.signature=" + Hex.toHexString(blockSig1.getSignature()));
 
-            blockSig2 = new BlockSignature(blockSig1.getSignature());
-            log.debug("blockSig2.signature=" + Hex.toHexString(blockSig2.getSignature()));
-            assertArrayEquals(blockSig1.getSignature(),
-                    blockSig2.getSignature());
+        blockSig2 = new BlockSignature(blockSig1.getSignature());
+        log.debug("blockSig2.signature=" + Hex.toHexString(blockSig2.getSignature()));
+        assertArrayEquals(blockSig1.getSignature(),
+                blockSig2.getSignature());
 
-            BlockSignature blockSig3 = new BlockSignature(blockSig1.toJsonObject());
-            assertEquals(blockSig1.toJsonObject().toString(), blockSig3.toJsonObject().toString());
-
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            assert false;
-        }
+        BlockSignature blockSig3 = new BlockSignature(blockSig1.toJsonObject());
+        assertEquals(blockSig1.toJsonObject().toString(), blockSig3.toJsonObject().toString());
     }
 
     @Test
-    public void testBlockSignatureClone() {
+    public void testBlockSignatureClone() throws Exception {
 
-        try {
-            blockSig1 = new BlockSignature(wallet, blockHeader1.getHashForSigning());
-            log.debug("blockSig1.signature=" + Hex.toHexString(blockSig1.getSignature()));
+        blockSig1 = new BlockSignature(wallet, blockHeader1.getHashForSigning());
+        log.debug("blockSig1.signature=" + Hex.toHexString(blockSig1.getSignature()));
 
-            blockSig2 = blockSig1.clone();
-            log.debug("blockSig2.signature=" + Hex.toHexString(blockSig2.getSignature()));
-            assertArrayEquals(blockSig1.getSignature(), blockSig2.getSignature());
-
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            assert false;
-        }
+        blockSig2 = blockSig1.clone();
+        log.debug("blockSig2.signature=" + Hex.toHexString(blockSig2.getSignature()));
+        assertArrayEquals(blockSig1.getSignature(), blockSig2.getSignature());
     }
 }

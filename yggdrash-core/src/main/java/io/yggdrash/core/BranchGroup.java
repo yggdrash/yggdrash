@@ -39,9 +39,9 @@ import java.util.concurrent.TimeUnit;
 public class BranchGroup {
     public static final Logger log = LoggerFactory.getLogger(BranchGroup.class);
 
-    private Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
+    private final Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
 
-    BranchGroupEventListener listener;
+    private BranchGroupEventListener listener;
 
     public void setListener(BranchGroupEventListener listener) {
         this.listener = listener;

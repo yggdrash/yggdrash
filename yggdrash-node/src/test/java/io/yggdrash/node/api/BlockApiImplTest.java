@@ -19,7 +19,7 @@ public class BlockApiImplTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
     private static final BlockApi blockApi = new JsonRpcConfig().blockApi();
-    private String branchId = BranchId.STEM;
+    private final String branchId = BranchId.STEM;
 
     @Test
     public void blockApiIsNotNull() {

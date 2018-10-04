@@ -29,8 +29,8 @@ public class BlockMockitoTest {
     private BlockApiImpl blockApiImpl;
     private String hashOfBlock;
     private long numOfBlock;
-    private List<BlockHusk> blockList = new ArrayList<>();
-    private BranchId stem = BranchId.stem();
+    private final List<BlockHusk> blockList = new ArrayList<>();
+    private final BranchId stem = BranchId.stem();
 
     @Before
     public void setUp() {

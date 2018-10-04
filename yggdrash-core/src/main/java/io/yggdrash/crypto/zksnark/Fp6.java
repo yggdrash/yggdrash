@@ -78,9 +78,9 @@ class Fp6 implements Field<Fp6> {
             new Fp2(new BigInteger("13981852324922362344252311234282257507216387789820983642040889267519694726527"),
                     new BigInteger("7629828391165209371577384193250820201684255241773809077146787135900891633097"))
     };
-    Fp2 a;
-    Fp2 b;
-    Fp2 c;
+    final Fp2 a;
+    final Fp2 b;
+    final Fp2 c;
 
     Fp6(Fp2 a, Fp2 b, Fp2 c) {
         this.a = a;
