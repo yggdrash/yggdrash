@@ -20,13 +20,11 @@ import java.io.IOException;
 import java.util.List;
 
 public interface DbSource<K, V> {
-    DbSource init();
+    DbSource<K, V> init();
 
     V get(K key);
 
     void put(K key, V value);
-
-    long count();
 
     List<K> getAllKey() throws IOException;
 

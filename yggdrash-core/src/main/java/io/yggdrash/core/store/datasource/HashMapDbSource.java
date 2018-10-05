@@ -30,7 +30,7 @@ public class HashMapDbSource implements DbSource<byte[], byte[]> {
     private Map<String, byte[]> db;
 
     @Override
-    public DbSource init() {
+    public DbSource<byte[], byte[]> init() {
         db = new ConcurrentHashMap<>();
         return this;
     }
@@ -43,11 +43,6 @@ public class HashMapDbSource implements DbSource<byte[], byte[]> {
     @Override
     public void put(byte[] key, byte[] value) {
         db.put(Hex.encodeHexString(key), value);
-    }
-
-    @Override
-    public long count() {
-        return db.size();
     }
 
     @Override

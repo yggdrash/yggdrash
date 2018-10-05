@@ -19,7 +19,6 @@ package io.yggdrash.core.store.datasource;
 import io.yggdrash.config.Constants;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.util.FileUtil;
-import org.apache.commons.codec.binary.Base64;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;
@@ -60,7 +59,7 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         this.name = name;
     }
 
-    public LevelDbDataSource init() {
+    public DbSource<byte[], byte[]> init() {
         resetDbLock.writeLock().lock();
         try {
             log.info("Initialize db: {}", name);
@@ -126,22 +125,7 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         }
     }
 
-    @Override
-    public long count() {
-        resetDbLock.readLock().lock();
-        long count = 0;
-        try {
-            DBIterator iterator = db.iterator();
-            for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
-                count++;
-            }
-        } finally {
-            resetDbLock.readLock().unlock();
-        }
-        return count;
-    }
-
-    public void updateByBatch(Map<byte[], byte[]> rows) {
+    void updateByBatch(Map<byte[], byte[]> rows) {
         resetDbLock.readLock().lock();
         try {
             WriteBatch batch = db.createWriteBatch();
@@ -158,7 +142,7 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         }
     }
 
-    public void reset() {
+    void reset() {
         close();
         FileUtil.recursiveDelete(getDbPath());
         init();
@@ -204,23 +188,4 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         }
         return valueList;
     }
-
-    /* methods for test (start) */
-    public void removeByKey(String key) {
-        db.delete(Base64.decodeBase64(key));
-    }
-
-    private void removeByKey(byte[] key) {
-        db.delete(key);
-    }
-
-    public void removeAll() throws IOException {
-        try (DBIterator iterator = db.iterator()) {
-            for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
-                byte[] key = iterator.peekNext().getKey();
-                removeByKey(key);
-            }
-        }
-    }
-    /* methods for test (end) */
 }
