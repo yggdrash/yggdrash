@@ -37,8 +37,8 @@ public class NodeContractDemoClient {
 
     private static final Scanner scan = new Scanner(System.in);
     private static final String server = "10.10.10.100";
-    private static final TransactionApi transactionApiLocal = new JsonRpcConfig().transactionApi();
-    private static final TransactionApi transactionApiServer = new JsonRpcConfig().transactionApi(server);
+    private static final TransactionApi txApiLocal = new JsonRpcConfig().transactionApi();
+    private static final TransactionApi txApiServer = new JsonRpcConfig().transactionApi(server);
     private static final ContractApi contractApiLocal = new JsonRpcConfig().contractApi();
     private static final ContractApi contractApiServer = new JsonRpcConfig().contractApi(server);
     private static final AccountApi accountApiLocal = new JsonRpcConfig().accountApi();
@@ -180,9 +180,9 @@ public class NodeContractDemoClient {
         String txHash = scan.nextLine();
 
         if (toServer()) {
-            transactionApiServer.getTransactionReceipt(branchId, txHash);
+            txApiServer.getTransactionReceipt(branchId, txHash);
         } else {
-            transactionApiLocal.getTransactionReceipt(branchId, txHash);
+            txApiLocal.getTransactionReceipt(branchId, txHash);
         }
     }
 
@@ -207,9 +207,9 @@ public class NodeContractDemoClient {
 
     private static void send(Boolean toServer, TransactionHusk tx) {
         if (toServer) {
-            transactionApiServer.sendTransaction(TransactionDto.createBy(tx));
+            txApiServer.sendTransaction(TransactionDto.createBy(tx));
         } else {
-            transactionApiLocal.sendTransaction(TransactionDto.createBy(tx));
+            txApiLocal.sendTransaction(TransactionDto.createBy(tx));
         }
     }
 
