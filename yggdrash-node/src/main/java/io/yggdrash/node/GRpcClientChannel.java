@@ -16,7 +16,6 @@
 
 package io.yggdrash.node;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -38,7 +37,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 class GRpcClientChannel implements PeerClientChannel {
 
@@ -55,13 +53,12 @@ class GRpcClientChannel implements PeerClientChannel {
                 .build(), peer);
     }
 
-    @VisibleForTesting
     GRpcClientChannel(ManagedChannel channel, Peer peer) {
         this.channel = channel;
         this.peer = peer;
-        blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);
-        blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
-        asyncBlockChainStub = BlockChainGrpc.newStub(channel);
+        this.blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);
+        this.blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
+        this.asyncBlockChainStub = BlockChainGrpc.newStub(channel);
     }
 
     @Override
@@ -81,12 +78,6 @@ class GRpcClientChannel implements PeerClientChannel {
     public void stop(String ynodeUri) {
         disconnectPeer(ynodeUri);
         stop();
-    }
-
-    public void blockUtilShutdown() throws InterruptedException {
-        if (channel != null) {
-            channel.awaitTermination(5, TimeUnit.MINUTES);
-        }
     }
 
     @Override

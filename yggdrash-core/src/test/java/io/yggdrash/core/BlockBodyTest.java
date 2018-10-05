@@ -2,6 +2,7 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.TestUtils;
 import io.yggdrash.util.TimeUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -24,12 +25,8 @@ public class BlockBodyTest {
     private Transaction tx2;
 
     @Before
-    public void init() throws Exception {
+    public void setUp() throws Exception {
 
-        Wallet wallet;
-        TransactionBody txBody;
-        TransactionHeader txHeader;
-        TransactionSignature txSig;
         JsonObject jsonParams1 = new JsonObject();
         jsonParams1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
         jsonParams1.addProperty("amount", "10000000");
@@ -50,21 +47,18 @@ public class BlockBodyTest {
         jsonArray.add(jsonObject1);
         jsonArray.add(jsonObject2);
 
-        txBody = new TransactionBody(jsonArray);
-
         byte[] chain = new byte[20];
         byte[] version = new byte[8];
         byte[] type = new byte[8];
         long timestamp = TimeUtils.time();
 
-        txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
+        TransactionBody txBody = new TransactionBody(jsonArray);
+        TransactionHeader txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
-        wallet = new Wallet();
+        TransactionSignature txSig =
+                new TransactionSignature(TestUtils.wallet(), txHeader.getHashForSigning());
 
-        txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-
-        tx1 = new Transaction(txHeader, txSig, txBody);
-
+        tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
         tx2 = tx1.clone();
     }
 

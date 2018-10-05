@@ -19,12 +19,12 @@ package io.yggdrash.core;
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,10 +35,8 @@ public class TransactionStoreTest {
 
     @Before
     public void setUp() {
-        DbSource db = new HashMapDbSource();
-        ts = new TransactionStore(db);
+        ts = new TransactionStore(new HashMapDbSource());
         assertThat(ts).isNotNull();
-        ts.flush(new HashSet(ts.getUnconfirmedTxs()));
         tx = TestUtils.createTransferTxHusk();
     }
 
@@ -46,8 +44,7 @@ public class TransactionStoreTest {
     public void shouldGetFromDb() {
         Sha3Hash key = tx.getHash();
         ts.put(tx.getHash(), tx);
-
-        ts.batchAll();
+        batch();
         TransactionHusk transactionHusk = ts.get(key);
         assertThat(transactionHusk).isEqualTo(tx);
     }
@@ -55,20 +52,23 @@ public class TransactionStoreTest {
     @Test
     public void shouldBeBatched() {
         ts.put(tx.getHash(), tx);
-
-        ts.batchAll();
-        assertThat(ts.countFromCache()).isZero();
-        assertThat(ts.countFromDb()).isEqualTo(1L);
+        batch();
+        assertThat(ts.getUnconfirmedTxs()).isEmpty();
+        assertThat(ts.getAll().size()).isEqualTo(1L);
     }
 
     @Test
     public void shouldBeGotTxFromCache() {
-
         Sha3Hash key = tx.getHash();
         ts.put(tx.getHash(), tx);
-
         TransactionHusk foundTx = ts.get(key);
         assertThat(foundTx).isNotNull();
-        assertThat(foundTx.getBody()).contains("transfer");
+        assertThat(ts.getUnconfirmedTxs()).isNotEmpty();
+    }
+
+    private void batch() {
+        Set<Sha3Hash> keys = ts.getUnconfirmedTxs().stream().map(TransactionHusk::getHash)
+                .collect(Collectors.toSet());
+        ts.batch(keys);
     }
 }
