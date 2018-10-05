@@ -23,41 +23,24 @@ import org.ehcache.CacheManager;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
 import org.ehcache.config.builders.ResourcePoolsBuilder;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class EhCacheSourceTest {
 
-    private Cache<String, TransactionHusk> cache;
-
-    @Before
-    public void setUp() {
+    @Test
+    public void shouldPutAndGetTx() {
 
         CacheManager cacheManager = CacheManagerBuilder.newCacheManagerBuilder().build(true);
-        this.cache = cacheManager.createCache("txCache",
+        Cache<String, TransactionHusk> cache = cacheManager.createCache("txCache",
                 CacheConfigurationBuilder
                         .newCacheConfigurationBuilder(String.class, TransactionHusk.class,
                                 ResourcePoolsBuilder.heap(10)));
-    }
-
-    @Test
-    public void shouldGetTx() {
-        TransactionHusk dummyTx = TestUtils.createTxHusk();
-        cache.put(dummyTx.getHash().toString(), dummyTx);
-        TransactionHusk foundTx = cache.get(dummyTx.getHash().toString());
-        assertThat(foundTx).isEqualTo(dummyTx);
-    }
-
-    @Test
-    public void shouldPutTx() {
-        TransactionHusk dummyTx = TestUtils.createTxHusk();
-        cache.put(dummyTx.getHash().toString(), dummyTx);
-    }
-
-    @Test
-    public void shouldBeLoadedBean() {
         assertThat(cache).isNotNull();
+        TransactionHusk txHusk = TestUtils.createTransferTxHusk();
+        cache.put(txHusk.getHash().toString(), txHusk);
+        TransactionHusk foundTx = cache.get(txHusk.getHash().toString());
+        assertThat(foundTx).isEqualTo(txHusk);
     }
 }

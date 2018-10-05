@@ -297,7 +297,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             }
             responseObserver.onNext(builder.build());
             responseObserver.onCompleted();
-            peerGroup.addPeer(peerRequest.getFrom());
+            peerGroup.addPeerByYnodeUri(peerRequest.getFrom());
         }
 
         /**

@@ -48,10 +48,11 @@ import java.util.Random;
 
 public class TestUtils {
     public static final String YGG_HOME = "testOutput";
-    public static final byte[] TRANSFER_TO =
-            Hex.decode("e1980adeafbb9ac6c9be60955484ab1547ab0b76");
+    public static final String OWNER = "e1980adeafbb9ac6c9be60955484ab1547ab0b76";
+    public static final Address TRANSFER_TO =
+            new Address(Hex.decode("e1980adeafbb9ac6c9be60955484ab1547ab0b76"));
 
-    private static final Wallet wallet;
+    public static final Wallet wallet;
 
     private TestUtils() {}
 
@@ -61,6 +62,10 @@ public class TestUtils {
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
+    }
+
+    public static Wallet wallet() {
+        return wallet;
     }
 
     public static Proto.Block getBlockFixture() {
@@ -94,12 +99,12 @@ public class TestUtils {
         }
     }
 
-    public static TransactionHusk createTxHusk() {
-        return createTxHusk(wallet);
+    public static TransactionHusk createTransferTxHusk() {
+        return new TransactionHusk(sampleTransferTx());
     }
 
-    public static TransactionHusk createTxHusk(Wallet wallet) {
-        return new TransactionHusk(sampleTx(wallet));
+    public static TransactionHusk createBranchTxHusk(Wallet wallet) {
+        return new TransactionHusk(sampleCreateBranchTx(wallet));
     }
 
     public static BlockHusk createGenesisBlockHusk() {
@@ -120,19 +125,6 @@ public class TestUtils {
         byte[] result = new byte[length];
         new Random().nextBytes(result);
         return result;
-    }
-
-    public static JsonObject sampleBalanceOfQueryJson() {
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        params.add(param);
-
-        JsonObject query = new JsonObject();
-        query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        query.addProperty("method", "balanceOf");
-        query.add("params", params);
-        return query;
     }
 
     public static Block sampleBlock() {
@@ -181,10 +173,9 @@ public class TestUtils {
         String type = "immunity";
         String description = "ETH TO YEED";
         String version = "0xb5790adeafbb9ac6c9be60955484ab1547ab0b76";
-        String referenceAddress = branchId;
         String reserveAddress = "0x1F8f8A219550f89f9D372ab2eE0D1f023EC665a3";
         return createBranch(name, symbol, property, type, description,
-                version, referenceAddress, reserveAddress);
+                version, branchId, reserveAddress);
     }
 
     private static JsonObject createBranch(String name,
@@ -244,26 +235,27 @@ public class TestUtils {
         return query;
     }
 
-    public static Transaction sampleTx() {
-        return new Transaction(
-               ContractTx.createYeedTx(wallet, new Address(TRANSFER_TO), 100).toJsonObject());
+    public static Transaction sampleTransferTx() {
+        JsonObject createYeedTxJson =
+                ContractTx.createYeedTx(wallet, TRANSFER_TO, 100).toJsonObject();
+        return new Transaction(createYeedTxJson);
     }
 
-    public static Transaction sampleTx(Wallet wallet) {
+    private static Transaction sampleCreateBranchTx(Wallet wallet) {
         return new Transaction(ContractTx.createStemTxBySeed(
                 wallet, getSampleBranch1(), "create").toJsonObject());
     }
 
     public static Proto.Transaction[] sampleTxs() {
-        return new Proto.Transaction[] { Transaction.toProtoTransaction(sampleTx()),
-                Transaction.toProtoTransaction(sampleTx()),
-                Transaction.toProtoTransaction(sampleTx())};
+        return new Proto.Transaction[] {Transaction.toProtoTransaction(sampleTransferTx()),
+                Transaction.toProtoTransaction(sampleTransferTx()),
+                Transaction.toProtoTransaction(sampleTransferTx())};
     }
 
     private static JsonObject sampleBlockObject() {
 
         List<Transaction> txs1 = new ArrayList<>();
-        txs1.add(sampleTx());
+        txs1.add(sampleTransferTx());
 
         BlockBody blockBody = new BlockBody(txs1);
 

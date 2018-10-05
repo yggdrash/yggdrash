@@ -38,7 +38,6 @@ public class ContractTx {
         return createTx(wallet, BranchId.stem(), createStemTxBody(branchId, branch, method));
     }
 
-
     public static JsonObject createBranch(JsonObject branch, String owner) {
         JsonArray versionHistory = new JsonArray();
         versionHistory.add(branch.get("version").getAsString());
@@ -57,7 +56,7 @@ public class ContractTx {
         return new TransactionHusk(txBodyJson(wallet, txBranchId, body));
     }
 
-    public static JsonArray createStemParams(BranchId branchId, JsonObject branch) {
+    private static JsonArray createStemParams(BranchId branchId, JsonObject branch) {
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
         param.addProperty("branchId", branchId.toString());

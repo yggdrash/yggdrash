@@ -68,7 +68,7 @@ public class GRpcNodeServerTest {
         grpcServerRule.getServiceRegistry().addService(
                 new GRpcNodeServer.BlockChainImpl(peerGroupMock, branchGroupMock));
 
-        this.tx = TestUtils.createTxHusk();
+        this.tx = TestUtils.createTransferTxHusk();
         when(branchGroupMock.addTransaction(any())).thenReturn(tx);
         this.block = TestUtils.createGenesisBlockHusk();
         when(branchGroupMock.addBlock(any())).thenReturn(block);

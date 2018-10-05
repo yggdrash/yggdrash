@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.net;
 
-import io.yggdrash.core.Account;
+import io.yggdrash.core.exception.NotValidateException;
 import org.spongycastle.util.encoders.Hex;
 
 import java.net.URI;
@@ -30,22 +30,24 @@ public class Peer {
     private int port;
     private String ynodeUri;
 
-    public Peer() {
-    }
-
     private Peer(String ynodeUri) {
         try {
             URI uri = new URI(ynodeUri);
             if (!uri.getScheme().equals(YGGDRASH_NODE_SCHEMA)) {
-                throw new RuntimeException("expecting URL in the format ynode://PUBKEY@HOST:PORT");
+                throw new NotValidateException(
+                        "expecting URL in the format ynode://PUBKEY@HOST:PORT");
             }
             this.id = Hex.decode(uri.getUserInfo());
             this.host = uri.getHost();
             this.port = uri.getPort();
             this.ynodeUri = ynodeUri;
         } catch (URISyntaxException e) {
-            throw new RuntimeException("expecting URL in the format ynode://PUBKEY@HOST:PORT", e);
+            throw new NotValidateException("expecting URL in the format ynode://PUBKEY@HOST:PORT");
         }
+    }
+
+    public static Peer valueOf(String ynodeUri) {
+        return new Peer(ynodeUri);
     }
 
     public static Peer valueOf(String nodeId, String host, int port) {
@@ -53,22 +55,8 @@ public class Peer {
                 nodeId, host + ":" + port));
     }
 
-    public static Peer valueOf(String addressOrYnode) {
-        try {
-            URI uri = new URI(addressOrYnode);
-            if (uri.getScheme().equals(YGGDRASH_NODE_SCHEMA)) {
-                return new Peer(addressOrYnode);
-            }
-        } catch (URISyntaxException e) {
-            // continue
-        }
-        final String generatedNodeId = Hex.toHexString(new Account().getKey().getNodeId());
-        return new Peer(String.format(PEER_URI_FORMAT, YGGDRASH_NODE_SCHEMA,
-                generatedNodeId, addressOrYnode));
-    }
-
-    public String getYnodeUri() {
-        return ynodeUri;
+    public byte[] getId() {
+        return id;
     }
 
     public String getHost() {
@@ -77,5 +65,9 @@ public class Peer {
 
     public int getPort() {
         return port;
+    }
+
+    public String getYnodeUri() {
+        return ynodeUri;
     }
 }

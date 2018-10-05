@@ -52,19 +52,18 @@ public class TransactionMockitoTest {
         Wallet wallet = new Wallet();
         txApiImpl = new TransactionApiImpl(branchGroupMock);
 
-        tx = TestUtils.createTxHusk(wallet);
+        tx = TestUtils.createBranchTxHusk(wallet);
         hashOfTx = tx.getHash().toString();
         List<TransactionHusk> txList = new ArrayList<>();
         txList.add(tx);
         txList.add(tx);
         txList.add(tx);
         txReceipt = new TransactionReceipt();
-        txReceipt.setTransactionHash(tx.getHash().toString());
-        txReceiptStore.put(tx.getHash().toString(), txReceipt);
+        txReceipt.setTransactionHash(hashOfTx);
+        txReceiptStore.put(hashOfTx, txReceipt);
         block = TestUtils.createBlockHuskByTxList(wallet, txList);
         hashOfBlock = block.getHash().toString();
         when(branchGroupMock.getTransactionReceiptStore(stem)).thenReturn(txReceiptStoreMock);
-
     }
 
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
