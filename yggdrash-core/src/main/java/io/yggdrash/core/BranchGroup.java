@@ -88,7 +88,7 @@ public class BranchGroup {
         return getTxByHash(branchId, new Sha3Hash(id));
     }
 
-    public TransactionHusk getTxByHash(BranchId branchId, Sha3Hash hash) {
+    TransactionHusk getTxByHash(BranchId branchId, Sha3Hash hash) {
         return branches.get(branchId).getTxByHash(hash);
     }
 
@@ -109,8 +109,12 @@ public class BranchGroup {
     }
 
     public BlockHusk addBlock(BlockHusk block) {
+        return addBlock(block, true);
+    }
+
+    private BlockHusk addBlock(BlockHusk block, boolean broadcast) {
         if (branches.containsKey(block.getBranchId())) {
-            return branches.get(block.getBranchId()).addBlock(block);
+            return branches.get(block.getBranchId()).addBlock(block, broadcast);
         }
         return block;
     }
@@ -139,7 +143,7 @@ public class BranchGroup {
         return branches.get(branchId).getUnconfirmedTxs();
     }
 
-    public Contract getContract(BranchId branchId) {
+    Contract getContract(BranchId branchId) {
         return branches.get(branchId).getContract();
     }
 

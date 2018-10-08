@@ -85,7 +85,7 @@ public class BlockChain {
     BlockHusk generateBlock(Wallet wallet) {
         BlockHusk block = new BlockHusk(wallet,
                 new ArrayList<>(transactionStore.getUnconfirmedTxs()), getPrevBlock());
-        return addBlock(block);
+        return addBlock(block, true);
     }
 
     List<TransactionHusk> getTransactionList() {
@@ -136,7 +136,7 @@ public class BlockChain {
      * @param nextBlock the next block
      * @throws NotValidateException the not validate exception
      */
-    public BlockHusk addBlock(BlockHusk nextBlock) {
+    public BlockHusk addBlock(BlockHusk nextBlock, boolean broadcast) {
         if (blockStore.contains(nextBlock.getHash())) {
             return null;
         }
@@ -149,7 +149,7 @@ public class BlockChain {
         log.debug("Added idx=[{}], tx={}, branch={}, blockHash={}", nextBlock.getIndex(),
                 nextBlock.getBody().size(), getBranchId().toString(), nextBlock.getHash());
         removeTxByBlock(nextBlock);
-        if (!listenerList.isEmpty()) {
+        if (!listenerList.isEmpty() && broadcast) {
             listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
         }
         return nextBlock;

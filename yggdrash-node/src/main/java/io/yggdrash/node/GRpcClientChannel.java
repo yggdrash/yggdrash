@@ -144,7 +144,7 @@ class GRpcClientChannel implements PeerClientChannel {
 
     @Override
     public void broadcastBlock(Proto.Block[] blocks) {
-        log.info("*** Broadcasting blocks...");
+        log.info("*** Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
         StreamObserver<Proto.Block> requestObserver =
                 asyncBlockChainStub.broadcastBlock(new StreamObserver<NetProto.Empty>() {
                     @Override

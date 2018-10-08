@@ -211,7 +211,7 @@ public class PeerGroup implements BranchEventListener {
         String key = (String) peerChannels.keySet().toArray()[0];
         PeerClientChannel client = peerChannels.get(key);
         List<Proto.Block> blockList = client.syncBlock(branchId, offset);
-        log.debug("Synchronize block received=" + blockList.size());
+        log.info("Synchronize block receivedSize={}, from={}", blockList.size(), client.getPeer());
         List<BlockHusk> syncList = new ArrayList<>(blockList.size());
         for (Proto.Block block : blockList) {
             syncList.add(new BlockHusk(block));
@@ -233,7 +233,8 @@ public class PeerGroup implements BranchEventListener {
         String key = (String) peerChannels.keySet().toArray()[0];
         PeerClientChannel client = peerChannels.get(key);
         List<Proto.Transaction> txList = client.syncTransaction(branchId);
-        log.info("Synchronize transaction received={}, from={}", txList.size(), client.getPeer());
+        log.info("Synchronize transaction receivedSize={}, from={}", txList.size(),
+                client.getPeer());
         List<TransactionHusk> syncList = new ArrayList<>(txList.size());
         for (Proto.Transaction tx : txList) {
             syncList.add(new TransactionHusk(tx));

@@ -25,6 +25,7 @@ import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
@@ -51,13 +52,15 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class GRpcNodeServerTest {
-    private final BranchId testBranchId = BranchId.stem();
+
     @Rule
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
     @Mock
     private PeerGroup peerGroupMock;
     @Mock
     private BranchGroup branchGroupMock;
+    @Mock
+    private NodeStatus nodeStatus;
 
     private TransactionHusk tx;
     private BlockHusk block;
@@ -65,8 +68,9 @@ public class GRpcNodeServerTest {
     @Before
     public void setUp() {
         grpcServerRule.getServiceRegistry().addService(new GRpcNodeServer.PingPongImpl());
-        grpcServerRule.getServiceRegistry().addService(
-                new GRpcNodeServer.BlockChainImpl(peerGroupMock, branchGroupMock));
+        grpcServerRule.getServiceRegistry().addService(new GRpcNodeServer.BlockChainImpl(
+                peerGroupMock, branchGroupMock, nodeStatus)
+        );
 
         this.tx = TestUtils.createTransferTxHusk();
         when(branchGroupMock.addTransaction(any())).thenReturn(tx);
@@ -142,6 +146,8 @@ public class GRpcNodeServerTest {
 
     @Test
     public void broadcastBlock() throws Exception {
+        when(nodeStatus.isUpStatus()).thenReturn(true);
+        when(branchGroupMock.getBranch(any())).thenReturn(TestUtils.createBlockChain(false));
         BlockChainGrpc.BlockChainStub stub = BlockChainGrpc.newStub(grpcServerRule.getChannel());
         StreamRecorder<NetProto.Empty> responseObserver = StreamRecorder.create();
         StreamObserver<Proto.Block> requestObserver
