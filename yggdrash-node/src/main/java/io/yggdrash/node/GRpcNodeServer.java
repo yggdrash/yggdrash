@@ -62,7 +62,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
     private Peer peer;
 
-    private NodeHealthIndicator nodeHealthIndicator;
+    private NodeStatus nodeStatus;
 
     private Server server;
 
@@ -73,8 +73,8 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     }
 
     @Autowired
-    public void setNodeHealthIndicator(NodeHealthIndicator nodeHealthIndicator) {
-        this.nodeHealthIndicator = nodeHealthIndicator;
+    public void setNodeStatus(NodeStatus nodeStatus) {
+        this.nodeStatus = nodeStatus;
     }
 
     public Wallet getWallet() {
@@ -101,7 +101,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         this.peer = Peer.valueOf(wallet.getNodeId(), host, port);
         this.server = ServerBuilder.forPort(port)
                 .addService(new PingPongImpl())
-                .addService(new BlockChainImpl(peerGroup, branchGroup, nodeHealthIndicator))
+                .addService(new BlockChainImpl(peerGroup, branchGroup, nodeStatus))
                 .build()
                 .start();
         log.info("GRPC Server started, listening on " + port);
@@ -141,7 +141,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         log.info("Init node=" + peer.getYnodeUri());
         requestPeerList();
         peerGroup.addPeer(peer);
-        nodeHealthIndicator.sync();
+        nodeStatus.sync();
         syncBlockAndTransaction();
     }
 
@@ -195,7 +195,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
                 BlockChainSync.syncTransaction(blockChain, peerGroup);
                 BlockChainSync.syncBlock(blockChain, peerGroup);
             }
-            nodeHealthIndicator.up();
+            nodeStatus.up();
         } catch (Exception e) {
             log.warn(e.getMessage(), e);
         }
@@ -358,7 +358,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
                             protoBlock.getHeader().getIndex().toByteArray());
                     BlockHusk block = new BlockHusk(protoBlock);
                     log.debug("Received block id=[{}], hash={}", id, block.getHash());
-                    if (valid(block)) {
+                    if (isValid(block)) {
                         try {
                             branchGroup.addBlock(block);
                         } catch (Exception e) {
@@ -385,7 +385,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
                     responseObserver.onCompleted();
                 }
 
-                private boolean valid(BlockHusk block) {
+                private boolean isValid(BlockHusk block) {
                     BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
                     if (!nodeStatus.isUpStatus()) {
                         log.trace("Ignore broadcast block");
