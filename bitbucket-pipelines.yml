@@ -18,5 +18,5 @@ pipelines:
             - gradle
           script:
             - bash ./gradlew build -PspringProfiles=ci
-            - scp $BUILD_JAR $DEPLOY_USER@$DEPLOY_HOST:$DEPLOY_PATH
-            - ssh $DEPLOY_USER@$DEPLOY_HOST "./deploy.sh"
+            - scp $BUILD_JAR $DEPLOY_USER@$DEPLOY_STAGING_HOST:$DEPLOY_PATH
+            - ssh $DEPLOY_USER@$DEPLOY_STAGING_HOST "./deploy.sh"
