@@ -31,8 +31,8 @@ import org.spongycastle.util.Pack;
  */
 public class ConcatKDFBytesGenerator
         implements DigestDerivationFunction {
-    private int counterStart;
-    private Digest digest;
+    private final int counterStart;
+    private final Digest digest;
     private byte[] shared;
     private byte[] iv;
 

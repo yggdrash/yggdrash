@@ -24,8 +24,8 @@ public class TrieTests {
     @Before
     public void setUp() {
         // create sample tx
-        this.tx1 = TestUtils.createTxHusk();
-        this.tx2 = TestUtils.createTxHusk();
+        this.tx1 = TestUtils.createTransferTxHusk();
+        this.tx2 = TestUtils.createTransferTxHusk();
     }
 
     @Test
@@ -47,7 +47,7 @@ public class TrieTests {
         merkleRoot = Trie.getMerkleRootHusk(txsList);
         assertNotNull(merkleRoot);
 
-        log.debug("MerkelRoot with tx 7=" + Hex.encodeHexString(merkleRoot));
+        log.debug("MerkleRoot with tx 7=" + Hex.encodeHexString(merkleRoot));
 
         // 2. test with tx 1
         txsList = new ArrayList<>();
@@ -55,7 +55,7 @@ public class TrieTests {
         merkleRoot = Trie.getMerkleRootHusk(txsList);
         assertNotNull(merkleRoot);
 
-        log.debug("MerkelRoot with tx 1=" + Hex.encodeHexString(merkleRoot));
+        log.debug("MerkleRoot with tx 1=" + Hex.encodeHexString(merkleRoot));
 
         // 3. test with tx 0
         txsList = new ArrayList<>();
@@ -70,7 +70,7 @@ public class TrieTests {
 
         log.debug("MerkleRoot with tx null = null");
 
-        // 5. nulll list Test
+        // 5. null list Test
         txsList.add(this.tx1);
         txsList.add(this.tx2);
         merkleRoot = Trie.getMerkleRootHusk(txsList);

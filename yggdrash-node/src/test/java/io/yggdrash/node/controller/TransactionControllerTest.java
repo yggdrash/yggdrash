@@ -18,10 +18,10 @@ package io.yggdrash.node.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.TestUtils;
+import io.yggdrash.core.BranchId;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
@@ -42,8 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
 public class TransactionControllerTest {
 
-    private static final String BASE_PATH =
-            String.format("/branches/%s/txs", Hex.toHexString(TestUtils.STEM_CHAIN));
+    private static final String BASE_PATH = String.format("/branches/%s/txs", BranchId.STEM);
 
     @Autowired
     private MockMvc mockMvc;
@@ -58,7 +57,8 @@ public class TransactionControllerTest {
     public void shouldGetTransactionByHash() throws Exception {
 
         // 트랜잭션 풀에 있는 트랜잭션을 조회 후 블록 내 트랜잭션 조회 로직 추가 필요.
-        TransactionDto req = TransactionDto.createBy(TestUtils.createTxHusk());
+        TransactionDto req =
+                TransactionDto.createBy(TestUtils.createBranchTxHusk(TestUtils.wallet()));
 
         MockHttpServletResponse postResponse = mockMvc.perform(post(BASE_PATH)
                 .contentType(MediaType.APPLICATION_JSON).content(json.write(req).getJson()))

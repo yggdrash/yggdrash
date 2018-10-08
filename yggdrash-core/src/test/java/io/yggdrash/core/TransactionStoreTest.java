@@ -16,71 +16,59 @@
 
 package io.yggdrash.core;
 
-import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class TransactionStoreTest {
 
-    TransactionStore ts;
+    private TransactionStore ts;
+    private TransactionHusk tx;
 
     @Before
     public void setUp() {
-        DbSource db = new HashMapDbSource();
-        ts = new TransactionStore(db);
-        ts.flush(new HashSet(ts.getUnconfirmedTxs()));
+        ts = new TransactionStore(new HashMapDbSource());
+        assertThat(ts).isNotNull();
+        tx = TestUtils.createTransferTxHusk();
     }
 
     @Test
-    public void shouldGetFromDb() throws InvalidProtocolBufferException {
-        TransactionHusk tx = TestUtils.createTxHusk();
+    public void shouldGetFromDb() {
         Sha3Hash key = tx.getHash();
         ts.put(tx.getHash(), tx);
-
-        ts.batchAll();
+        batch();
         TransactionHusk transactionHusk = ts.get(key);
         assertThat(transactionHusk).isEqualTo(tx);
     }
 
     @Test
     public void shouldBeBatched() {
-        TransactionHusk tx = TestUtils.createTxHusk();
         ts.put(tx.getHash(), tx);
-
-        ts.batchAll();
-        assertThat(ts.countFromCache()).isZero();
-        assertThat(ts.countFromDb()).isEqualTo(1L);
+        batch();
+        assertThat(ts.getUnconfirmedTxs()).isEmpty();
+        assertThat(ts.getAll().size()).isEqualTo(1L);
     }
 
     @Test
-    public void shouldBeGotTxFromCache() throws InvalidProtocolBufferException {
-        TransactionHusk tx = TestUtils.createTxHusk();
-
+    public void shouldBeGotTxFromCache() {
         Sha3Hash key = tx.getHash();
         ts.put(tx.getHash(), tx);
-
         TransactionHusk foundTx = ts.get(key);
         assertThat(foundTx).isNotNull();
-        assertThat(foundTx.getBody()).contains("create");
+        assertThat(ts.getUnconfirmedTxs()).isNotEmpty();
     }
 
-    @Test
-    public void shouldBePutTx() {
-        TransactionHusk tx = TestUtils.createTxHusk();
-        ts.put(tx.getHash(), tx);
-    }
-
-    @Test
-    public void shouldLoadTestObject() {
-        assertThat(ts).isNotNull();
+    private void batch() {
+        Set<Sha3Hash> keys = ts.getUnconfirmedTxs().stream().map(TransactionHusk::getHash)
+                .collect(Collectors.toSet());
+        ts.batch(keys);
     }
 }

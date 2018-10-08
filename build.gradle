@@ -67,7 +67,6 @@ subprojects {
     checkstyle {
         ignoreFailures = false
         toolVersion = '8.11'
-        sourceSets = [project.sourceSets.main]
         maxWarnings = 0
         configFile = rootProject.file('config/checkstyle/checkstyle.xml')
         configProperties = [ "suppressionFile" : rootProject.file('config/checkstyle/suppressions.xml')]

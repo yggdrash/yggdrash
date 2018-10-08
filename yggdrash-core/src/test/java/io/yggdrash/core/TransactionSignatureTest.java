@@ -3,6 +3,7 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.TestUtils;
 import io.yggdrash.util.TimeUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,95 +19,59 @@ public class TransactionSignatureTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionSignatureTest.class);
 
-    private Wallet wallet;
-    private TransactionHeader txHeader;
+    private TransactionSignature txSig1;
 
     @Before
-    public void init() {
+    public void setUp() {
+        JsonObject jsonObject1 = new JsonObject();
+        jsonObject1.addProperty("test1", "01");
 
-        TransactionBody txBody;
+        JsonObject jsonObject2 = new JsonObject();
+        jsonObject2.addProperty("test2", "02");
 
-        try {
-            JsonObject jsonObject1 = new JsonObject();
-            jsonObject1.addProperty("test1", "01");
+        JsonArray jsonArray = new JsonArray();
+        jsonArray.add(jsonObject1);
+        jsonArray.add(jsonObject2);
 
-            JsonObject jsonObject2 = new JsonObject();
-            jsonObject2.addProperty("test2", "02");
+        TransactionBody txBody = new TransactionBody(jsonArray);
 
-            JsonArray jsonArray = new JsonArray();
-            jsonArray.add(jsonObject1);
-            jsonArray.add(jsonObject2);
+        byte[] chain = new byte[20];
+        byte[] version = new byte[8];
+        byte[] type = new byte[8];
+        long timestamp = TimeUtils.time();
 
-            txBody = new TransactionBody(jsonArray);
-
-            byte[] chain = new byte[20];
-            byte[] version = new byte[8];
-            byte[] type = new byte[8];
-            long timestamp = TimeUtils.time();
-
-            txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
-
-            wallet = new Wallet();
-            log.debug("wallet.pubKey=" + Hex.toHexString(wallet.getPubicKey()));
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            assert false;
-        }
+        TransactionHeader txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
+        txSig1 = new TransactionSignature(TestUtils.wallet(), txHeader.getHashForSigning());
     }
 
     @Test
     public void testTransactionSignature() {
+        TransactionSignature txSig2 = new TransactionSignature(txSig1.getSignature());
 
-        try {
-            TransactionSignature txSig1
-                    = new TransactionSignature(wallet, txHeader.getHashForSignning());
+        log.debug("txSig2.signature=" + Hex.toHexString(txSig2.getSignature()));
+        log.debug("txSig2.signatureHex=" + txSig2.getSignatureHexString());
+        log.debug("txSig2.toJsonObject=" + txSig2.toJsonObject());
+        log.debug("txSig2.toString=" + txSig2.toString());
 
-            log.debug("txSig1.signature=" + Hex.toHexString(txSig1.getSignature()));
-            log.debug("txSig1.signatureHex=" + txSig1.getSignatureHexString());
-            log.debug("txSig1.toJsonObject=" + txSig1.toJsonObject());
-            log.debug("txSig1.toString=" + txSig1.toString());
+        assertArrayEquals(txSig1.getSignature(), txSig2.getSignature());
 
-            TransactionSignature txSig2
-                    = new TransactionSignature(txSig1.getSignature());
+        TransactionSignature txSig3 = new TransactionSignature(txSig1.toJsonObject());
+        log.debug("txSig1=" + txSig1.toString());
+        log.debug("txSig3=" + txSig3.toString());
 
-            log.debug("txSig2.signature=" + Hex.toHexString(txSig2.getSignature()));
-            log.debug("txSig2.signatureHex=" + txSig2.getSignatureHexString());
-            log.debug("txSig2.toJsonObject=" + txSig2.toJsonObject());
-            log.debug("txSig2.toString=" + txSig2.toString());
+        assertEquals(txSig1.toString(), txSig3.toString());
 
-            assertArrayEquals(txSig1.getSignature(), txSig2.getSignature());
-
-            TransactionSignature txSig3 = new TransactionSignature(txSig1.toJsonObject());
-            log.debug("txSig1=" + txSig1.toString());
-            log.debug("txSig3=" + txSig3.toString());
-
-            assertEquals(txSig1.toString(), txSig3.toString());
-
-            TransactionSignature txSig4 = new TransactionSignature(txSig1.toJsonObject());
-            assertEquals(txSig1.toString(), txSig4.toString());
-
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            assert false;
-        }
+        TransactionSignature txSig4 = new TransactionSignature(txSig1.toJsonObject());
+        assertEquals(txSig1.toString(), txSig4.toString());
     }
 
     @Test
-    public void testTransactionSignatureClone() {
+    public void testTransactionSignatureClone() throws Exception {
+        TransactionSignature txSig2 = txSig1.clone();
+        log.debug("txSig1=" + txSig1.getSignatureHexString());
+        log.debug("txSig2=" + txSig2.getSignatureHexString());
 
-        try {
-            TransactionSignature txSig1
-                    = new TransactionSignature(wallet, txHeader.getHashForSignning());
-            TransactionSignature txSig2 = txSig1.clone();
-            log.debug("txSig1=" + txSig1.getSignatureHexString());
-            log.debug("txSig2=" + txSig2.getSignatureHexString());
-
-            assertArrayEquals(txSig1.getSignature(), txSig2.getSignature());
-
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-            assert false;
-        }
+        assertArrayEquals(txSig1.getSignature(), txSig2.getSignature());
     }
 
 }

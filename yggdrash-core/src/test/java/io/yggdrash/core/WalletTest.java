@@ -3,7 +3,6 @@ package io.yggdrash.core;
 import com.google.common.base.Strings;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.crypto.AESEncrypt;
-import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.Password;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.FileUtil;
@@ -42,11 +41,6 @@ public class WalletTest {
     // key encryption with random iv
     @Test
     public void testKeyEncryption2() {
-
-        // key generation
-        ECKey ecKey = new ECKey();
-        byte[] priKey = ecKey.getPrivKeyBytes();
-
         // password generation using KDF
         String password = "Aa1234567890#";
         byte[] kdf = Password.generateKeyDerivation(password.getBytes(), 32);
@@ -85,11 +79,6 @@ public class WalletTest {
     // key encryption
     @Test
     public void testKeyEncryption3() {
-
-        // key generation
-        ECKey ecKey = new ECKey();
-        byte[] priKey = ecKey.getPrivKeyBytes();
-
         // password generation using KDF
         String password = "Aa1234567890#";
         byte[] kdf = Password.generateKeyDerivation(password.getBytes(), 32);
@@ -179,19 +168,19 @@ public class WalletTest {
 
 
     /**
-     * This is a test method for checking the generation of wallets with configfile or not.
+     * This is a test method for checking the generation of wallets with config file or not.
      */
     @Test
     public void testWalletGeneration() {
 
         DefaultConfig defaultConfig = new DefaultConfig();
-        String keyfilePath = defaultConfig.getConfig().getString("key.path");
+        String keyFilePath = defaultConfig.getConfig().getString("key.path");
         // TODO: change as cli interface
         String password = defaultConfig.getConfig().getString("key.password");
 
         assertFalse("Check yggdrash.conf(key.path & key.password)",
-                Strings.isNullOrEmpty(keyfilePath) || Strings.isNullOrEmpty(password));
-        log.debug("Private key: " + keyfilePath);
+                Strings.isNullOrEmpty(keyFilePath) || Strings.isNullOrEmpty(password));
+        log.debug("Private key: " + keyFilePath);
         log.debug("Password : " + password); // for debug
 
         // check password validation
@@ -201,7 +190,7 @@ public class WalletTest {
         log.debug("Password is valid");
 
         // check whether the key file exists
-        Path path = Paths.get(keyfilePath);
+        Path path = Paths.get(keyFilePath);
         String keyPath = path.getParent().toString();
         String keyName = path.getFileName().toString();
 
@@ -223,7 +212,7 @@ public class WalletTest {
     }
 
     /**
-     * This is a test method for checking the generation of wallets with configfile or not.
+     * This is a test method for checking the generation of wallets with config file or not.
      */
     @Test
     public void testWalletGenerationWithFilePath() {

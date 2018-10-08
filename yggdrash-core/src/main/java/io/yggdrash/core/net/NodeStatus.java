@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,25 +14,13 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.controller;
+package io.yggdrash.core.net;
 
-import io.yggdrash.core.Account;
-import org.apache.commons.codec.binary.Hex;
+public interface NodeStatus {
 
-public class AccountDto {
-    String address;
+    boolean isUpStatus();
 
-    public static AccountDto createBy(Account account) {
-        AccountDto dto = new AccountDto();
-        dto.setAddress(Hex.encodeHexString(account.getAddress()));
-        return dto;
-    }
+    void up();
 
-    public String getAddress() {
-        return address;
-    }
-
-    public void setAddress(String address) {
-        this.address = address;
-    }
+    void sync();
 }

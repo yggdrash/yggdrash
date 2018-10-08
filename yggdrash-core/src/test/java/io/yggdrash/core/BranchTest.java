@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.store;
+package io.yggdrash.core;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.BlockHusk;
 import org.junit.Test;
+import org.spongycastle.util.encoders.Hex;
 
-public class MetaStoreTest {
+public class BranchTest {
 
     @Test
-    public void name() {
-        MetaStore metaStore = new MetaStore();
-        BlockHusk blockHusk = new BlockHusk(TestUtils.getBlockFixture());
-        metaStore.put(MetaStore.MetaInfo.RECENT_BLOCK, blockHusk.getHash());
-        metaStore.get(MetaStore.MetaInfo.RECENT_BLOCK);
+    public void branchTest() {
+        Branch stemBranch = Branch.of(BranchId.STEM, Branch.STEM, TestUtils.OWNER);
+        assert stemBranch.getBranchId().equals(BranchId.stem());
+        assert !stemBranch.isYeed();
+
+        BranchId yeed = BranchId.of(Hex.decode(BranchId.YEED));
+        Branch yeedBranch = Branch.of(yeed.toString(), Branch.YEED, TestUtils.OWNER);
+        assert yeedBranch.isYeed();
     }
 }

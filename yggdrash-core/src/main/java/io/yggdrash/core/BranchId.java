@@ -18,10 +18,12 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.crypto.HashUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 public class BranchId {
 
@@ -97,8 +99,8 @@ public class BranchId {
             branchStream.write(branch.get("version").getAsString().getBytes());
             branchStream.write(branch.get("reference_address").getAsString().getBytes());
             branchStream.write(branch.get("reserve_address").getAsString().getBytes());
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            throw new NotValidateException(e);
         }
         return branchStream.toByteArray();
     }

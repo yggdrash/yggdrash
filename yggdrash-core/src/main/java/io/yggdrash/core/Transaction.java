@@ -39,18 +39,6 @@ public class Transaction implements Cloneable {
      * @param body   transaction body
      */
     public Transaction(TransactionHeader header,
-                       TransactionSignature signature, TransactionBody body) {
-        this(header, signature.getSignature(), body);
-    }
-
-    /**
-     * Transaction Constructor.
-     *
-     * @param header transaction header
-     * @param signature transaction signature
-     * @param body   transaction body
-     */
-    public Transaction(TransactionHeader header,
                        byte[] signature, TransactionBody body) {
         this.header = header;
         this.signature = signature;
@@ -62,11 +50,11 @@ public class Transaction implements Cloneable {
      * Transaction Constructor.
      *
      * @param header transaction header
-     * @param wallet wallet for signning
+     * @param wallet wallet for signing
      * @param body   transaction body
      */
     public Transaction(TransactionHeader header, Wallet wallet, TransactionBody body) {
-        this(header, wallet.signHashedData(header.getHashForSignning()), body);
+        this(header, wallet.signHashedData(header.getHashForSigning()), body);
     }
 
     /**
@@ -155,7 +143,7 @@ public class Transaction implements Cloneable {
      *
      * @return transaction hash(HexString)
      */
-    public String getHashString() throws IOException {
+    String getHashString() throws IOException {
         return Hex.toHexString(this.getHash());
     }
 
@@ -164,9 +152,9 @@ public class Transaction implements Cloneable {
      *
      * @return public key
      */
-    public byte[] getPubKey() throws SignatureException {
+    byte[] getPubKey() throws SignatureException {
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
-        ECKey ecKeyPub = ECKey.signatureToKey(this.header.getHashForSignning(), ecdsaSignature);
+        ECKey ecKeyPub = ECKey.signatureToKey(this.header.getHashForSigning(), ecdsaSignature);
 
         return ecKeyPub.getPubKey();
     }
@@ -176,7 +164,7 @@ public class Transaction implements Cloneable {
      *
      * @return the public key as HexString
      */
-    public String getPubKeyHexString() throws SignatureException {
+    String getPubKeyHexString() throws SignatureException {
         return Hex.toHexString(this.getPubKey());
     }
 
@@ -197,7 +185,7 @@ public class Transaction implements Cloneable {
      *
      * @return address as HexString
      */
-    public String getAddressToString() throws SignatureException {
+    String getAddressToString() throws SignatureException {
         return Hex.toHexString(this.getAddress());
     }
 
@@ -211,7 +199,7 @@ public class Transaction implements Cloneable {
     }
 
     /**
-     * Verify a transaction.(data format & signning)
+     * Verify a transaction.(data format & signing)
      *
      * @return true(success), false(fail)
      */
@@ -222,7 +210,7 @@ public class Transaction implements Cloneable {
         }
 
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
-        byte[] hashedHeader = this.header.getHashForSignning();
+        byte[] hashedHeader = this.header.getHashForSigning();
         ECKey ecKeyPub;
         try {
             ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
@@ -249,7 +237,7 @@ public class Transaction implements Cloneable {
      *
      * @return true(success), false(fail)
      */
-    public boolean verifyData() {
+    private boolean verifyData() {
         // todo: error code
         boolean check = true;
 
@@ -362,7 +350,7 @@ public class Transaction implements Cloneable {
         return protoTransaction;
     }
 
-    public static Transaction toTransaction(Proto.Transaction protoTransaction) {
+    static Transaction toTransaction(Proto.Transaction protoTransaction) {
         // todo: move at TransactionHusk
 
         TransactionHeader txHeader = new TransactionHeader(
@@ -376,19 +364,15 @@ public class Transaction implements Cloneable {
                         protoTransaction.getHeader().getBodyLength().toByteArray())
                 );
 
-        TransactionSignature txSignature =  new TransactionSignature(
-                protoTransaction.getSignature().toByteArray()
-        );
-
         TransactionBody txBody = new TransactionBody(
                 protoTransaction.getBody().toStringUtf8()
         );
 
-        return new Transaction(txHeader, txSignature, txBody);
+        return new Transaction(txHeader, protoTransaction.getSignature().toByteArray(), txBody);
 
     }
 
-    public static Transaction fromTransactionInfo(TransactionInfo txi) {
+    static Transaction fromTransactionInfo(TransactionInfo txi) {
 
         TransactionHeader txHeader = new TransactionHeader(
                 Hex.decode(txi.header.chain),

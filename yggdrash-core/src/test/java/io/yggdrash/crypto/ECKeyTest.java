@@ -23,18 +23,14 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import io.yggdrash.core.Wallet;
 import io.yggdrash.crypto.ECKey.ECDSASignature;
 import io.yggdrash.crypto.jce.SpongyCastleProvider;
 import org.junit.Assert;
-import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Hex;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.security.KeyPairGenerator;
 import java.security.Provider;
@@ -62,23 +58,16 @@ public class ECKeyTest {
     private final BigInteger privateKey = new BigInteger(privString, 16);
 
     private final String privString2 = "35919d465e7704bcd97379f436fa38293151ebf728d23ddf7b6acf26dac13702";
-    private final BigInteger privateKey2 = new BigInteger(privString2, 16);
 
     private final String pubString = "040947751e3022ecf3016be03ec77ab0ce3c2662b4843898cb068d74f698ccc8ad75aa17564ae80a20bb044ee7a6d903e8e8df624b089c95d66a0570f051e5a05b";
     private final String compressedPubString = "030947751e3022ecf3016be03ec77ab0ce3c2662b4843898cb068d74f698ccc8ad";
     private final byte[] pubKey = Hex.decode(pubString);
     private final byte[] compressedPubKey = Hex.decode(compressedPubString);
-    private String address = "cd2a3d9f938e13cd947ec05abc7fe734df8dd826";
+    private final String address = "cd2a3d9f938e13cd947ec05abc7fe734df8dd826";
 
     private final String exampleMessage = "This is an example of a signed message.";
     private final String sigBase64 = "HNLOSI9Nop5o8iywXKwbGbdd8XChK0rRvdRTG46RFcb7dcH+UKlejM/8u1SCoeQvu91jJBMd/nXDs7f5p8ch7Ms=";
-    private String signatureHex = "d2ce488f4da29e68f22cb05cac1b19b75df170a12b4ad1bdd4531b8e9115c6fb75c1fe50a95e8ccffcbb5482a1e42fbbdd6324131dfe75c3b3b7f9a7c721eccb01";
-    private Wallet wallet;
-
-    @Before
-    public void setUp() throws IOException, InvalidCipherTextException {
-        wallet = new Wallet();
-    }
+    private final String signatureHex = "d2ce488f4da29e68f22cb05cac1b19b75df170a12b4ad1bdd4531b8e9115c6fb75c1fe50a95e8ccffcbb5482a1e42fbbdd6324131dfe75c3b3b7f9a7c721eccb01";
 
     @Test
     public void testHashCode() {
@@ -130,7 +119,7 @@ public class ECKeyTest {
     public void testSignIncorrectInputSize() {
         ECKey key = new ECKey();
         String message = "The quick brown fox jumps over the lazy dog.";
-        ECDSASignature sig = key.doSign(message.getBytes());
+        key.doSign(message.getBytes());
         fail("Expecting an IllegalArgumentException for a non 32-byte input");
     }
 
@@ -139,7 +128,7 @@ public class ECKeyTest {
         ECKey key = ECKey.fromPublicOnly(pubKey);
         String message = "The quick brown fox jumps over the lazy dog.";
         byte[] input = HashUtil.sha3(message.getBytes());
-        ECDSASignature sig = key.doSign(input);
+        key.doSign(input);
         fail("Expecting an MissingPrivateKeyException for a public only ECKey");
     }
 
@@ -309,122 +298,7 @@ public class ECKeyTest {
     }
 
     @Test
-    public void testVerifySignature7() throws SignatureException {
-
-//        log.debug("wallet.pubKey=" + Hex.toHexString(wallet.getPubicKey()));
-//        log.debug("wallet.address=" + Hex.toHexString(wallet.getAddress()));
-//
-//        // create tx
-//        TransactionHusk tx = TestUtils.createTxHusk(wallet);
-//
-//        // get the sig & key(pub)
-//        byte[] messageHash = tx.getDataHashForSigning();
-//        log.debug("messageHash=" + Hex.toHexString(messageHash));
-//
-//        byte[] signature = tx.getInstance().getHeader().getSignature().toByteArray();
-//        log.debug("signature=" + Hex.toHexString(signature));
-//
-//        ECDSASignature sig = new ECDSASignature(signature);
-//        ECKey keyFromSig = ECKey.signatureToKey(messageHash, sig);
-//
-//        // verify
-//        assertTrue(keyFromSig.verify(messageHash, sig));
-//
-//        // check signature
-//        assertArrayEquals(sig.toBinary(), signature);
-//
-//        // check public key
-//        log.debug("keyFromSig pubKey=" + Hex.toHexString(keyFromSig.getPubKey()));
-//        log.debug("wallet pubKey=" + Hex.toHexString(wallet.getPubicKey()));
-//        assertArrayEquals(keyFromSig.getPubKey(), wallet.getPubicKey());
-
-    }
-
-    @Test
-    public void testGetAddressFromSignature() throws SignatureException, IOException, InvalidCipherTextException {
-//        // create account with privateKey
-//        Account account = new Account(ECKey.fromPrivate(privateKey));
-//        log.debug("Account: " + account.toString());
-//        log.debug("Account address: " + Hex.toHexString(account.getAddress()));
-//
-//        Wallet wallet = new Wallet(account.getKey(), "tmp/path", "nodePri2.key", "Aa1234567890!");
-//        ECKey key = ECKey.fromPublicOnly(wallet.getPubicKey());
-//        log.debug("Account pubKey: " + Hex.toHexString(key.getPubKey()));
-//        log.debug("Wallet pubKey: " + Hex.toHexString(wallet.getPubicKey()));
-//
-//        // check public & private key with key
-//        assertArrayEquals(wallet.getPubicKey(), key.getPubKey());
-//
-//        // create tx
-//        TransactionHusk tx = TestUtils.createTxHusk(wallet);
-//
-//        assertArrayEquals(key.getAddress(), tx.getAddress().getBytes());
-//
-//        // get the sig & key(pub)
-//        byte[] rawMessage = tx.getDataForSigning();
-//        byte[] messageHash = new Sha3Hash(rawMessage).getBytes();
-//        byte[] signature = tx.getInstance().getHeader().getSignature().toByteArray();
-//        ECDSASignature sig = new ECDSASignature(signature);
-//        ECKey keyFromSig = ECKey.signatureToKey(messageHash, sig);
-//        log.debug("keyFromSig: " + keyFromSig.toString());
-//
-//        assertArrayEquals(key.getAddress(), keyFromSig.getAddress());
-//
-//        // verify
-//        assertTrue(keyFromSig.verify(messageHash, sig));
-//
-//        // check signature
-//        assertArrayEquals(sig.toBinary(), signature);
-//
-//        // check public key
-//        assertArrayEquals(keyFromSig.getPubKey(), wallet.getPubicKey());
-    }
-
-
-    @Test
-    public void testGetAddressFromSignature2() throws SignatureException, IOException, InvalidCipherTextException {
-//        // create account with privateKey
-//        Account account = new Account(ECKey.fromPrivate(privateKey2));
-//        log.debug("Account: " + account.toString());
-//        log.debug("Account address: " + Hex.toHexString(account.getAddress()));
-//
-//        Wallet wallet = new Wallet(account.getKey(), "tmp/path", "nodePri2.key", "Aa1234567890!");
-//        ECKey key = account.getKey();
-//        log.debug("pubKey: " + Hex.toHexString(key.getPubKey()));
-//        log.debug("wallet pubKey: " + Hex.toHexString(wallet.getPubicKey()));
-//
-//        // create tx
-//        TransactionHusk tx = TestUtils.createTxHusk(wallet);
-//        assertArrayEquals(key.getAddress(), tx.getAddress().getBytes());
-//
-//        // get the sig & key(pub)
-//        byte[] rawMessage = tx.getDataForSigning();
-//        log.debug("-- rawMessage: " + Hex.toHexString(rawMessage));
-//
-//        byte[] messageHash = new Sha3Hash(rawMessage).getBytes();
-//        log.debug("-- messageHash: " + Hex.toHexString(messageHash));
-//
-//        byte[] signature = tx.getInstance().getHeader().getSignature().toByteArray();
-//        log.debug("-- signature: " + Hex.toHexString(signature));
-//
-//        ECDSASignature sig = new ECDSASignature(signature);
-//        ECKey keyFromSig = ECKey.signatureToKey(messageHash, sig);
-//        log.debug("keyFromSig: " + keyFromSig.toString());
-//
-//        assertArrayEquals(key.getAddress(), keyFromSig.getAddress());
-//
-//        // verify
-//        assertTrue(keyFromSig.verify(messageHash, sig));
-//
-//        // check signature
-//        assertArrayEquals(sig.toBinary(), signature);
-//
-//        // check public key
-//        assertArrayEquals(keyFromSig.getPubKey(), wallet.getPubicKey());
-    }
-
-
-    @Test
+    @SuppressWarnings("UnstableApiUsage")
     public void testSValue() throws Exception {
         // Check that we never generate an S value that is larger than half the curve order. This avoids a malleability
         // issue that can allow someone to change a transaction [hash] without invalidating the signature.

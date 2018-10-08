@@ -52,9 +52,9 @@ import java.math.BigInteger;
  */
 public abstract class BN128<T extends Field<T>> {
 
-    protected T x;
-    protected T y;
-    protected T z;
+    protected final T x;
+    protected final T y;
+    protected final T z;
 
     protected BN128(T x, T y, T z) {
         this.x = x;

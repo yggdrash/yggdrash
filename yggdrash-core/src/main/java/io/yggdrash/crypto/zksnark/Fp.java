@@ -36,7 +36,7 @@ public class Fp implements Field<Fp> {
 
     static final Fp _2_INV = new Fp(BigInteger.valueOf(2).modInverse(P));
 
-    BigInteger v;
+    final BigInteger v;
 
     Fp(BigInteger v) {
         this.v = v;

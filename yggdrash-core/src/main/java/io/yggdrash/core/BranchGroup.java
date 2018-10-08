@@ -37,11 +37,11 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 public class BranchGroup {
-    public static final Logger log = LoggerFactory.getLogger(BranchGroup.class);
+    private static final Logger log = LoggerFactory.getLogger(BranchGroup.class);
 
-    private Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
+    private final Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
 
-    BranchGroupEventListener listener;
+    private BranchGroupEventListener listener;
 
     public void setListener(BranchGroupEventListener listener) {
         this.listener = listener;
@@ -88,7 +88,7 @@ public class BranchGroup {
         return getTxByHash(branchId, new Sha3Hash(id));
     }
 
-    public TransactionHusk getTxByHash(BranchId branchId, Sha3Hash hash) {
+    TransactionHusk getTxByHash(BranchId branchId, Sha3Hash hash) {
         return branches.get(branchId).getTxByHash(hash);
     }
 
@@ -109,8 +109,12 @@ public class BranchGroup {
     }
 
     public BlockHusk addBlock(BlockHusk block) {
+        return addBlock(block, true);
+    }
+
+    private BlockHusk addBlock(BlockHusk block, boolean broadcast) {
         if (branches.containsKey(block.getBranchId())) {
-            return branches.get(block.getBranchId()).addBlock(block);
+            return branches.get(block.getBranchId()).addBlock(block, broadcast);
         }
         return block;
     }
@@ -135,7 +139,11 @@ public class BranchGroup {
         return branches.get(branchId).getRuntime().getTransactionReceiptStore();
     }
 
-    public Contract getContract(BranchId branchId) {
+    public List<TransactionHusk> getUnconfirmedTxs(BranchId branchId) {
+        return branches.get(branchId).getUnconfirmedTxs();
+    }
+
+    Contract getContract(BranchId branchId) {
         return branches.get(branchId).getContract();
     }
 

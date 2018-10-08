@@ -16,7 +16,6 @@
 
 package io.yggdrash.node;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -38,11 +37,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-public class GRpcClientChannel implements PeerClientChannel {
+class GRpcClientChannel implements PeerClientChannel {
 
-    public static final Logger log = LoggerFactory.getLogger(GRpcClientChannel.class);
+    private static final Logger log = LoggerFactory.getLogger(GRpcClientChannel.class);
 
     private final ManagedChannel channel;
     private final PingPongGrpc.PingPongBlockingStub blockingPingPongStub;
@@ -50,18 +48,17 @@ public class GRpcClientChannel implements PeerClientChannel {
     private final BlockChainGrpc.BlockChainStub asyncBlockChainStub;
     private final Peer peer;
 
-    public GRpcClientChannel(Peer peer) {
+    GRpcClientChannel(Peer peer) {
         this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
                 .build(), peer);
     }
 
-    @VisibleForTesting
-    public GRpcClientChannel(ManagedChannel channel, Peer peer) {
+    GRpcClientChannel(ManagedChannel channel, Peer peer) {
         this.channel = channel;
         this.peer = peer;
-        blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);
-        blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
-        asyncBlockChainStub = BlockChainGrpc.newStub(channel);
+        this.blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);
+        this.blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
+        this.asyncBlockChainStub = BlockChainGrpc.newStub(channel);
     }
 
     @Override
@@ -81,12 +78,6 @@ public class GRpcClientChannel implements PeerClientChannel {
     public void stop(String ynodeUri) {
         disconnectPeer(ynodeUri);
         stop();
-    }
-
-    public void blockUtilShutdown() throws InterruptedException {
-        if (channel != null) {
-            channel.awaitTermination(5, TimeUnit.MINUTES);
-        }
     }
 
     @Override
@@ -153,7 +144,7 @@ public class GRpcClientChannel implements PeerClientChannel {
 
     @Override
     public void broadcastBlock(Proto.Block[] blocks) {
-        log.info("*** Broadcasting blocks...");
+        log.info("*** Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
         StreamObserver<Proto.Block> requestObserver =
                 asyncBlockChainStub.broadcastBlock(new StreamObserver<NetProto.Empty>() {
                     @Override

@@ -6,6 +6,7 @@ import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.node.controller.BlockDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,9 +28,9 @@ public class BlockMockitoTest {
 
     private BlockApiImpl blockApiImpl;
     private String hashOfBlock;
-    private long numOfblock;
-    private List<BlockHusk> blockList = new ArrayList<>();
-    private BranchId stem = BranchId.stem();
+    private long numOfBlock;
+    private final List<BlockHusk> blockList = new ArrayList<>();
+    private final BranchId stem = BranchId.stem();
 
     @Before
     public void setUp() {
@@ -37,7 +38,7 @@ public class BlockMockitoTest {
         block = TestUtils.createGenesisBlockHusk();
         hashOfBlock = block.getHash().toString();
         blockList.add(block);
-        numOfblock = 1;
+        numOfBlock = 1;
     }
 
     @Test
@@ -55,23 +56,23 @@ public class BlockMockitoTest {
     @Test
     public void getBlockByHashTest() {
         when(branchGroupMock.getBlockByHash(stem, hashOfBlock)).thenReturn(block);
-        BlockHusk res = blockApiImpl.getBlockByHash(stem.toString(), hashOfBlock, true);
+        BlockDto res = blockApiImpl.getBlockByHash(stem.toString(), hashOfBlock, true);
         assertThat(res).isNotNull();
-        assertEquals(res.getHash().toString(), hashOfBlock);
+        assertEquals(res.getHash(), hashOfBlock);
     }
 
     @Test
     public void getBlockByNumberTest() {
-        when(branchGroupMock.getBlockByIndex(stem, numOfblock)).thenReturn(block);
-        BlockHusk res = blockApiImpl.getBlockByNumber(stem.toString(), numOfblock, true);
+        when(branchGroupMock.getBlockByIndex(stem, numOfBlock)).thenReturn(block);
+        BlockDto res = blockApiImpl.getBlockByNumber(stem.toString(), numOfBlock, true);
         assertThat(res).isNotNull();
-        assertEquals(res.getHash().toString(), hashOfBlock);
+        assertEquals(res.getHash(), hashOfBlock);
     }
 
     @Test(expected = NonExistObjectException.class)
     public void getBlockByNumberExceptionTest() {
-        when(branchGroupMock.getBlockByIndex(stem, numOfblock)).thenThrow(new RuntimeException());
-        blockApiImpl.getBlockByNumber(stem.toString(), numOfblock, true);
+        when(branchGroupMock.getBlockByIndex(stem, numOfBlock)).thenThrow(new RuntimeException());
+        blockApiImpl.getBlockByNumber(stem.toString(), numOfBlock, true);
     }
 
     @Test

@@ -1,6 +1,5 @@
 package io.yggdrash.node.api;
 
-import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.JsonRpcError;
 import com.googlecode.jsonrpc4j.JsonRpcErrors;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
@@ -36,7 +35,7 @@ public interface AccountApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    String balanceOf(@JsonRpcParam(value = "data") String data) throws Exception;
+    String balanceOf(@JsonRpcParam(value = "data") String data);
 
     /**
      * Returns the balance of the account of given address.

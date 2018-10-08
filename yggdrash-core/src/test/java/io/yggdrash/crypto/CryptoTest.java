@@ -18,7 +18,6 @@
 
 package io.yggdrash.crypto;
 
-import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.Utils;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -49,8 +48,7 @@ import static org.junit.Assert.assertEquals;
 
 public class CryptoTest {
 
-    private static final Logger log = LoggerFactory.getLogger("test");
-
+    private static final Logger log = LoggerFactory.getLogger(CryptoTest.class);
 
     @Test
     public void test1() {
@@ -86,23 +84,6 @@ public class CryptoTest {
         byte[] horseBytes = sha3("horse".getBytes());
         byte[] addr = ECKey.fromPrivate(horseBytes).getAddress();
         assertEquals("13978AEE95F38490E9769C39B2773ED763D9CD5F", Hex.toHexString(addr).toUpperCase());
-    }
-
-    @Test   /* performance test */
-    public void test6() {
-
-        long firstTime = System.currentTimeMillis();
-        log.debug(Hex.toHexString(ByteUtil.longToBytes(firstTime)));
-        for (int i = 0; i < 1000; ++i) {
-
-            byte[] horseBytes = sha3("horse".getBytes());
-            byte[] addr = ECKey.fromPrivate(horseBytes).getAddress();
-            assertEquals("13978AEE95F38490E9769C39B2773ED763D9CD5F", Hex.toHexString(addr).toUpperCase());
-        }
-
-        long secondTime = System.currentTimeMillis();
-        log.debug(Hex.toHexString(ByteUtil.longToBytes(secondTime - firstTime)) + " millisec");
-        // 1) result: ~52 address calculation every second
     }
 
     @Test /* real tx hash calc */
@@ -146,7 +127,6 @@ public class CryptoTest {
 
         byte[] keyBytes = sha3("...".getBytes());
         log.info("key: {}", Hex.toHexString(keyBytes));
-        byte[] ivBytes = new byte[16];
         byte[] payload = Hex.decode("22400891000000000000000000000000");
 
         KeyParameter key = new KeyParameter(keyBytes);

@@ -12,7 +12,6 @@ import io.yggdrash.node.controller.TransactionDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -28,69 +27,51 @@ public class TransactionApiImpl implements TransactionApi {
 
     /* get */
     @Override
-    public int getTransactionCount(String branchId, String address, String tag) {
-        int blockNumber;
-        if ("latest".equals(tag)) {
-            blockNumber = 1;
-        } else {
-            blockNumber = -1;
-        }
-        BlockHusk block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
-        return getCount(address, block.getBody());
-    }
-
-    @Override
-    public int getTransactionCount(String branchId, String address, long blockNumber) {
-        BlockHusk block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
-        return getCount(address, block.getBody());
-    }
-
-    @Override
-    public int getBlockTransactionCountByHash(String branchId, String hashOfBlock) {
+    public int getTransactionCountByBlockHash(String branchId, String hashOfBlock) {
         BlockHusk block = branchGroup.getBlockByHash(BranchId.of(branchId), hashOfBlock);
         return block.getBody().size();
     }
 
     @Override
-    public int getBlockTransactionCountByNumber(String branchId, long blockNumber) {
+    public int getTransactionCountByBlockNumber(String branchId, long blockNumber) {
         BlockHusk block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
         return block.getBody().size();
     }
 
     @Override
-    public int getBlockTransactionCountByNumber(String branchId, String tag) {
+    public int getTransactionCountByBlockNumber(String branchId, String tag) {
         if ("latest".equals(tag)) {
-            return getBlockTransactionCountByNumber(branchId, 0);
+            return getTransactionCountByBlockNumber(branchId, 0);
         } else {
             return 0;
         }
     }
 
     @Override
-    public TransactionHusk getTransactionByHash(String branchId, String hashOfTx) {
+    public TransactionDto getTransactionByHash(String branchId, String hashOfTx) {
         TransactionHusk tx = branchGroup.getTxByHash(BranchId.of(branchId), hashOfTx);
         if (tx == null) {
             throw new NonExistObjectException("Transaction");
         }
-        return tx;
+        return TransactionDto.createBy(tx);
     }
 
     @Override
-    public TransactionHusk getTransactionByBlockHash(String branchId, String hashOfBlock,
+    public TransactionDto getTransactionByBlockHash(String branchId, String hashOfBlock,
                                                      int txIndexPosition) {
         BlockHusk block = branchGroup.getBlockByHash(BranchId.of(branchId), hashOfBlock);
-        return block.getBody().get(txIndexPosition);
+        return TransactionDto.createBy(block.getBody().get(txIndexPosition));
     }
 
     @Override
-    public TransactionHusk getTransactionByBlockNumber(String branchId, long blockNumber,
+    public TransactionDto getTransactionByBlockNumber(String branchId, long blockNumber,
                                                        int txIndexPosition) {
         BlockHusk block = branchGroup.getBlockByIndex(BranchId.of(branchId), blockNumber);
-        return block.getBody().get(txIndexPosition);
+        return TransactionDto.createBy(block.getBody().get(txIndexPosition));
     }
 
     @Override
-    public TransactionHusk getTransactionByLatestBlock(String branchId, String tag,
+    public TransactionDto getTransactionByBlockNumber(String branchId, String tag,
                                                        int txIndexPosition) {
         if ("latest".equals(tag)) {
             long lastIndex = branchGroup.getLastIndex(BranchId.of(branchId));
@@ -125,18 +106,8 @@ public class TransactionApiImpl implements TransactionApi {
 
     /* filter */
     @Override
-    public int newPendingTransactionFilter() {
-        return 6;
-    }
-
-    private int getCount(String address, List<TransactionHusk> txList) {
-        int cnt = 0;
-        for (TransactionHusk tx : txList) {
-            if (address.equals(tx.getAddress().toString())) {
-                cnt += 1;
-            }
-        }
-        return cnt;
+    public int newPendingTransactionFilter(String branchId) {
+        return branchGroup.getUnconfirmedTxs(BranchId.of(branchId)).size();
     }
 
     @Override

@@ -54,11 +54,11 @@ import java.math.BigInteger;
  */
 public class EthereumIESEngine {
     private final Digest hash;
-    BasicAgreement agree;
-    DerivationFunction kdf;
-    Mac mac;
-    BufferedBlockCipher cipher;
-    byte[] macBuf;
+    final BasicAgreement agree;
+    final DerivationFunction kdf;
+    final Mac mac;
+    final BufferedBlockCipher cipher;
+    final byte[] macBuf;
 
     boolean forEncryption;
     CipherParameters privParam, pubParam;

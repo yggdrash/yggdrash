@@ -17,7 +17,7 @@ public class DefaultConfigTest {
 
     private static final Logger log = LoggerFactory.getLogger(DefaultConfigTest.class);
 
-    DefaultConfig defaultConfig;
+    private DefaultConfig defaultConfig;
 
     @Before
     public void setUp() {
@@ -98,7 +98,7 @@ public class DefaultConfigTest {
     @Test
     public void testNodeInfo() {
         assert defaultConfig.getNetworkP2PVersion().equals("0.0.1");
-        assert defaultConfig.getNetwork() == DefaultConfig.Network.TESTNET;
+        assert defaultConfig.getNetwork() == DefaultConfig.Network.TEST_NET;
         assert defaultConfig.getNodeName().equals("yggdrash");
         assert defaultConfig.getNodeVersion().equals("0.0.2");
 

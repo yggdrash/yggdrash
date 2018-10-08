@@ -16,9 +16,7 @@
 
 package io.yggdrash.node.controller;
 
-import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,13 +26,6 @@ import javax.servlet.http.HttpServletRequest;
 @Controller
 @RequestMapping("stem/**")
 public class StemController {
-
-    private final BranchGroup branchGroup;
-
-    @Autowired
-    public StemController(BranchGroup branchGroup) {
-        this.branchGroup = branchGroup;
-    }
 
     @GetMapping
     public String redirect(HttpServletRequest request) {

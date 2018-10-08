@@ -123,7 +123,7 @@ public class BlockDto {
         return bodyLength;
     }
 
-    public void setbodyLength(long bodyLength) {
+    public void setBodyLength(long bodyLength) {
         this.bodyLength = bodyLength;
     }
 
@@ -169,7 +169,7 @@ public class BlockDto {
         blockDto.setIndex(block.getIndex());
         blockDto.setTimestamp(ByteUtil.byteArrayToLong(header.getTimestamp().toByteArray()));
         blockDto.setMerkleRoot(header.getMerkleRoot().toByteArray());
-        blockDto.setbodyLength(ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray()));
+        blockDto.setBodyLength(ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray()));
         blockDto.setSignature(block.getInstance().getSignature().toByteArray());
         blockDto.setBody(block.getBody().stream().map(TransactionDto::createBy)
                 .collect(Collectors.toList()));

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.store;
+package io.yggdrash.contract;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.TransactionReceipt;
 import org.junit.Test;
 
-public class MetaStoreTest {
+public class ContractEventTest {
 
     @Test
-    public void name() {
-        MetaStore metaStore = new MetaStore();
-        BlockHusk blockHusk = new BlockHusk(TestUtils.getBlockFixture());
-        metaStore.put(MetaStore.MetaInfo.RECENT_BLOCK, blockHusk.getHash());
-        metaStore.get(MetaStore.MetaInfo.RECENT_BLOCK);
+    public void getTransactionReceipt() {
+        TransactionHusk tx = TestUtils.createTransferTxHusk();
+        TransactionReceipt txReceipt = new TransactionReceipt();
+        ContractEvent event = ContractEvent.of(txReceipt, tx);
+        assert event.getTransactionReceipt().getStatus() == txReceipt.getStatus();
+        assert event.getTransactionHusk().equals(tx);
     }
 }

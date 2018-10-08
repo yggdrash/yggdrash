@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import io.yggdrash.TestUtils;
 import io.yggdrash.contract.ContractQry;
 import io.yggdrash.core.Address;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.FailedOperationException;
@@ -34,15 +35,15 @@ import static io.yggdrash.contract.ContractTx.createYeedTx;
 
 public class NodeContractDemoClient {
 
-    private static Scanner scan = new Scanner(System.in);
-    private static Wallet wallet;
+    private static final Scanner scan = new Scanner(System.in);
     private static final String server = "10.10.10.100";
-    private static final TransactionApi transactionApiLocal = new JsonRpcConfig().transactionApi();
-    private static final TransactionApi transactionApiServer = new JsonRpcConfig().transactionApi(server);
+    private static final TransactionApi txApiLocal = new JsonRpcConfig().transactionApi();
+    private static final TransactionApi txApiServer = new JsonRpcConfig().transactionApi(server);
     private static final ContractApi contractApiLocal = new JsonRpcConfig().contractApi();
     private static final ContractApi contractApiServer = new JsonRpcConfig().contractApi(server);
     private static final AccountApi accountApiLocal = new JsonRpcConfig().accountApi();
     private static final AccountApi accountApiServer = new JsonRpcConfig().accountApi(server);
+    private static Wallet wallet;
 
     public static void main(String[] args) throws Exception {
         while (true) {
@@ -51,7 +52,7 @@ public class NodeContractDemoClient {
     }
 
     private static void run() throws Exception {
-        wallet = new Wallet();
+        wallet = TestUtils.wallet();
 
         System.out.print("===============\n");
         System.out.print("[1] 트랜잭션 전송\n[2] 트랜잭션 조회\n[3] 브랜치 수정\n[4] 브랜치 조회\n[5] 발란스 조회\n[6] 종료\n>");
@@ -87,14 +88,14 @@ public class NodeContractDemoClient {
         System.out.print("[1] STEM  [2] YEED\n> ");
         if (scan.nextLine().equals("2")) {
             System.out.println("전송할 주소를 입력해주세요");
-            System.out.println("(기본값 : " + new Address(TestUtils.TRANSFER_TO).toString() + ")");
+            System.out.println("(기본값 : " + TestUtils.TRANSFER_TO.toString() + ")");
             System.out.println(">");
             String address = scan.nextLine();
             TransactionHusk tx;
             if (address.length() > 0) {
                 tx = createYeedTx(wallet, new Address(Hex.decodeHex(address)), 100);
             } else {
-                tx = createYeedTx(wallet, new Address(TestUtils.TRANSFER_TO), 100);
+                tx = createYeedTx(wallet, TestUtils.TRANSFER_TO, 100);
             }
             send(toServer(), tx);
 
@@ -134,8 +135,7 @@ public class NodeContractDemoClient {
         System.out.println("브랜치 아이디\n>");
         String branchId = scan.nextLine();
         try {
-            JsonObject qry = ContractQry.createQuery(
-                    Hex.encodeHexString(TestUtils.STEM_CHAIN),
+            JsonObject qry = ContractQry.createQuery(BranchId.STEM,
                     "view",
                     ContractQry.createParams("branchId", branchId));
 
@@ -180,16 +180,15 @@ public class NodeContractDemoClient {
         String txHash = scan.nextLine();
 
         if (toServer()) {
-            transactionApiServer.getTransactionReceipt(branchId, txHash);
+            txApiServer.getTransactionReceipt(branchId, txHash);
         } else {
-            transactionApiLocal.getTransactionReceipt(branchId, txHash);
+            txApiLocal.getTransactionReceipt(branchId, txHash);
         }
     }
 
-    private static void balance() throws Exception {
+    private static void balance() {
         System.out.println("조회할 주소를 적어주세요\n>");
-        JsonObject qry = ContractQry.createQuery(
-                Hex.encodeHexString(TestUtils.YEED_CHAIN),
+        JsonObject qry = ContractQry.createQuery(BranchId.YEED,
                 "balanceOf",
                 ContractQry.createParams("address", scan.nextLine()));
 
@@ -208,9 +207,9 @@ public class NodeContractDemoClient {
 
     private static void send(Boolean toServer, TransactionHusk tx) {
         if (toServer) {
-            transactionApiServer.sendTransaction(TransactionDto.createBy(tx));
+            txApiServer.sendTransaction(TransactionDto.createBy(tx));
         } else {
-            transactionApiLocal.sendTransaction(TransactionDto.createBy(tx));
+            txApiLocal.sendTransaction(TransactionDto.createBy(tx));
         }
     }
 

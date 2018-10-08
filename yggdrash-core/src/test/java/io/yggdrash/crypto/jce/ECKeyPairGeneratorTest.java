@@ -35,7 +35,7 @@ public class ECKeyPairGeneratorTest {
     }
 
     @Test(expected = NoSuchAlgorithmException.class)
-    public void getInstanceByProvier() throws NoSuchAlgorithmException {
+    public void getInstanceByProvider() throws NoSuchAlgorithmException {
         ECKeyPairGenerator.getInstance(new Sun(), SecureRandom.getInstance("EC"));
     }
 }

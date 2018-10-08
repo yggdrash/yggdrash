@@ -6,60 +6,30 @@ import io.yggdrash.TestUtils;
 import io.yggdrash.contract.ContractQry;
 import io.yggdrash.core.event.BranchEventListener;
 import io.yggdrash.core.exception.DuplicatedException;
-import io.yggdrash.core.exception.NotValidateException;
-import org.apache.commons.codec.binary.Hex;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.Collections;
-import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BranchGroupTest {
 
-    private static final Wallet wallet;
-    private static final File branchJson;
+    private final Wallet wallet = TestUtils.wallet();
 
     private BranchGroup branchGroup;
-    private BlockChain blockChain;
     private TransactionHusk tx;
     private BlockHusk block;
-
-    static {
-        try {
-            wallet = new Wallet();
-            branchJson = new File(Objects.requireNonNull(BranchGroupTest.class.getClassLoader()
-                    .getResource("branch-sample.json")).getFile());
-        } catch (Exception e) {
-            throw new NotValidateException(e);
-        }
-    }
 
     @Before
     public void setUp() {
         branchGroup = new BranchGroup();
-        blockChain = new BlockChain(branchJson);
-        addBranch(blockChain);
+        addBranch(TestUtils.createBlockChain(false));
         assertThat(branchGroup.getBranchSize()).isEqualTo(1);
-        tx = TestUtils.createTxHusk(wallet);
+        tx = TestUtils.createBranchTxHusk(wallet);
         block = new BlockHusk(wallet, Collections.singletonList(tx),
                 branchGroup.getBlockByIndex(BranchId.stem(), 0));
-    }
-
-    private void addBranch(BlockChain blockChain) {
-        branchGroup.addBranch(blockChain.getBranchId(), blockChain, new BranchEventListener() {
-            @Override
-            public void chainedBlock(BlockHusk block) {
-            }
-
-            @Override
-            public void receivedTransaction(TransactionHusk tx) {
-            }
-        }, contractEvent -> {
-        });
     }
 
     @After
@@ -69,9 +39,7 @@ public class BranchGroupTest {
 
     @Test(expected = DuplicatedException.class)
     public void addExistedBranch() {
-        branchGroup.getBranch(blockChain.getBranchId()).close();
-        BlockChain blockChain = new BlockChain(branchJson);
-        addBranch(blockChain);
+        addBranch(TestUtils.createBlockChain(false));
     }
 
     @Test
@@ -82,7 +50,7 @@ public class BranchGroupTest {
         TransactionHusk pooledTx2 = branchGroup.getTxByHash(tx.getBranchId(),
                 tx.getHash().toString());
         assertThat(pooledTx2.getHash()).isEqualTo(tx.getHash());
-        assertThat(branchGroup.getTransactionList(BranchId.stem()).size()).isEqualTo(1);
+        assertThat(branchGroup.getTransactionList(tx.getBranchId()).size()).isEqualTo(2);
     }
 
     @Test
@@ -106,7 +74,8 @@ public class BranchGroupTest {
         branchGroup.addBlock(newBlock);
 
         assertThat(branchGroup.getLastIndex(BranchId.stem())).isEqualTo(2);
-        assertThat(branchGroup.getBlockByIndex(BranchId.stem(),2).getHash()).isEqualTo(newBlock.getHash());
+        assertThat(branchGroup.getBlockByIndex(BranchId.stem(), 2).getHash())
+                .isEqualTo(newBlock.getHash());
         TransactionHusk foundTx = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
         assertThat(foundTx.getHash()).isEqualTo(tx.getHash());
     }
@@ -130,9 +99,23 @@ public class BranchGroupTest {
     public void query() {
         JsonArray params = ContractQry.createParams(
                 "branchId", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        JsonObject query = ContractQry.createQuery(
-                Hex.encodeHexString(TestUtils.STEM_CHAIN), "view", params);
+        JsonObject query = ContractQry.createQuery(BranchId.STEM, "view", params);
         JsonObject result = branchGroup.query(query);
-        assertThat(result.toString()).isEqualTo("{}");
+        assertThat(result.toString()).contains("result");
+    }
+
+    private void addBranch(BlockChain blockChain) {
+        branchGroup.addBranch(blockChain.getBranchId(), blockChain,
+                new BranchEventListener() {
+                    @Override
+                    public void chainedBlock(BlockHusk block) {
+                    }
+
+                    @Override
+                    public void receivedTransaction(TransactionHusk tx) {
+                    }
+                },
+                contractEvent -> {
+                });
     }
 }

@@ -21,7 +21,7 @@ import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 
 public class MetaStore implements Store<MetaStore.MetaInfo, Sha3Hash> {
-    private DbSource<byte[], byte[]> db;
+    private final DbSource<byte[], byte[]> db;
 
     public MetaStore() {
         db = new LevelDbDataSource("meta").init();

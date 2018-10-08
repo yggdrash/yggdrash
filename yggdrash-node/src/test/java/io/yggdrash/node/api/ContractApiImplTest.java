@@ -9,16 +9,13 @@ import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.node.controller.TransactionDto;
-import org.apache.commons.codec.binary.Hex;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContractApiImplTest {
-    private static final Logger log = LoggerFactory.getLogger(ContractApiImplTest.class);
+    private static final String TEST_BRANCH = BranchId.STEM;
     private static final ContractApi contractApi = new JsonRpcConfig().contractApi();
     private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
     private static Wallet wallet;
@@ -73,14 +70,12 @@ public class ContractApiImplTest {
     @Test
     public void search() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(
-                    Hex.encodeHexString(TestUtils.STEM_CHAIN),
+            JsonObject queryObj = ContractQry.createQuery(TEST_BRANCH,
                     "search", ContractQry
                     .createParams("key", "type", "value", "immunity"));
             contractApi.query(queryObj.toString());
 
-            queryObj = ContractQry.createQuery(
-                    Hex.encodeHexString(TestUtils.STEM_CHAIN),
+            queryObj = ContractQry.createQuery(TEST_BRANCH,
                     "search", ContractQry.createParams(
                     "key", "name", "value", "TEST1"));
             contractApi.query(queryObj.toString());
@@ -92,8 +87,7 @@ public class ContractApiImplTest {
     @Test
     public void view() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(
-                    Hex.encodeHexString(TestUtils.STEM_CHAIN),
+            JsonObject queryObj = ContractQry.createQuery(TEST_BRANCH,
                     "view", ContractQry.createParams(
                     "branchId", branchId.toString()));
             contractApi.query(queryObj.toString());
@@ -105,8 +99,7 @@ public class ContractApiImplTest {
     @Test
     public void getCurrentVersion() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(
-                    Hex.encodeHexString(TestUtils.STEM_CHAIN),
+            JsonObject queryObj = ContractQry.createQuery(TEST_BRANCH,
                     "getcurrentversion",
                     ContractQry.createParams("branchId", branchId.toString()));
 
@@ -119,8 +112,7 @@ public class ContractApiImplTest {
     @Test
     public void getVersionHistory() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(
-                    Hex.encodeHexString(TestUtils.STEM_CHAIN),
+            JsonObject queryObj = ContractQry.createQuery(TEST_BRANCH,
                     "getversionhistory",
                     ContractQry.createParams("branchId", branchId.toString()));
             contractApi.query(queryObj.toString());
@@ -132,8 +124,7 @@ public class ContractApiImplTest {
     @Test
     public void getAllBranchId() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(
-                    Hex.encodeHexString(TestUtils.STEM_CHAIN),
+            JsonObject queryObj = ContractQry.createQuery(TEST_BRANCH,
                     "getallbranchid",
                     new JsonArray());
             contractApi.query(queryObj.toString());

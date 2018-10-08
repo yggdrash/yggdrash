@@ -55,7 +55,7 @@ public class PairingCheck {
 
     static final BigInteger LOOP_COUNT = new BigInteger("29793968203157093288");
 
-    List<Pair> pairs = new ArrayList<>();
+    final List<Pair> pairs = new ArrayList<>();
     Fp12 product = Fp12._1;
 
     private PairingCheck() {
@@ -255,8 +255,8 @@ public class PairingCheck {
 
     static class Precomputed {
 
-        BN128G2 g2;
-        EllCoeffs coeffs;
+        final BN128G2 g2;
+        final EllCoeffs coeffs;
 
         Precomputed(BN128G2 g2, EllCoeffs coeffs) {
             this.g2 = g2;
@@ -270,8 +270,8 @@ public class PairingCheck {
 
     static class Pair {
 
-        BN128G1 g1;
-        BN128G2 g2;
+        final BN128G1 g1;
+        final BN128G2 g2;
 
         Pair(BN128G1 g1, BN128G2 g2) {
             this.g1 = g1;
@@ -297,9 +297,9 @@ public class PairingCheck {
     }
 
     static class EllCoeffs {
-        Fp2 ell0;
-        Fp2 ellVW;
-        Fp2 ellVV;
+        final Fp2 ell0;
+        final Fp2 ellVW;
+        final Fp2 ellVV;
 
         EllCoeffs(Fp2 ell0, Fp2 ellVW, Fp2 ellVV) {
             this.ell0 = ell0;

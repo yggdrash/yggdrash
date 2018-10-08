@@ -20,7 +20,7 @@ public class CoinContract extends BaseContract<Long> {
     }
 
     /**
-     * Returns TransactionRecipt (invoke)
+     * Returns TransactionReceipt (invoke)
      */
     public TransactionReceipt genesis(JsonArray params) {
         TransactionReceipt txReceipt = new TransactionReceipt();
@@ -33,6 +33,7 @@ public class CoinContract extends BaseContract<Long> {
                 txReceipt.putLog(String.format("frontier[%d]", i), frontier);
                 txReceipt.putLog(String.format("balance[%d]", i), balance);
                 state.put(frontier, balance);
+                txReceipt.setStatus(TransactionReceipt.SUCCESS);
                 log.info("\nAddress of Frontier : " + frontier
                         + "\nBalance of Frontier : " + balance);
             }
@@ -41,7 +42,7 @@ public class CoinContract extends BaseContract<Long> {
     }
 
     /**
-     * Returns TransactionRecipt (invoke)
+     * Returns TransactionReceipt (invoke)
      */
     public TransactionReceipt transfer(JsonArray params) {
         log.info("\n transfer :: params => " + params);
@@ -57,7 +58,6 @@ public class CoinContract extends BaseContract<Long> {
             long balanceOfFrom = state.get(sender);
 
             if (balanceOfFrom - amount < 0) {
-                txReceipt.setStatus(0);
                 log.info("\n[ERR] " + sender + " has no enough balance!");
             } else {
                 balanceOfFrom -= amount;
@@ -69,6 +69,7 @@ public class CoinContract extends BaseContract<Long> {
                 } else {
                     state.put(to, amount);
                 }
+                txReceipt.setStatus(TransactionReceipt.SUCCESS);
                 log.info(
                         "\nBalance of From : " + state.get(sender)
                                 + "\nBalance of To   : " + state.get(to));

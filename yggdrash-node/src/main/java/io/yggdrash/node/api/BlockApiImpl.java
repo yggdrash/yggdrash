@@ -6,6 +6,7 @@ import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.node.controller.BlockDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -30,18 +31,20 @@ public class BlockApiImpl implements BlockApi {
     }
 
     @Override
-    public BlockHusk getBlockByHash(String branchId, String hashOfBlock, Boolean bool) {
+    public BlockDto getBlockByHash(String branchId, String hashOfBlock, Boolean bool) {
         try {
-            return branchGroup.getBlockByHash(BranchId.of(branchId), hashOfBlock);
+            BlockHusk blockHusk = branchGroup.getBlockByHash(BranchId.of(branchId), hashOfBlock);
+            return BlockDto.createBy(blockHusk);
         } catch (Exception exception) {
             throw new NonExistObjectException("block");
         }
     }
 
     @Override
-    public BlockHusk getBlockByNumber(String branchId, long numOfBlock, Boolean bool) {
+    public BlockDto getBlockByNumber(String branchId, long numOfBlock, Boolean bool) {
         try {
-            return branchGroup.getBlockByIndex(BranchId.of(branchId), numOfBlock);
+            BlockHusk blockHusk = branchGroup.getBlockByIndex(BranchId.of(branchId), numOfBlock);
+            return BlockDto.createBy(blockHusk);
         } catch (Exception exception) {
             throw new NonExistObjectException("block");
         }
@@ -57,8 +60,9 @@ public class BlockApiImpl implements BlockApi {
     }
 
     @Override
-    public BlockHusk getLastBlock(String branchId) {
+    public BlockDto getLastBlock(String branchId) {
         BranchId id = BranchId.of(branchId);
-        return branchGroup.getBlockByIndex(id, branchGroup.getLastIndex(id));
+        BlockHusk blockHusk = branchGroup.getBlockByIndex(id, branchGroup.getLastIndex(id));
+        return BlockDto.createBy(blockHusk);
     }
 }

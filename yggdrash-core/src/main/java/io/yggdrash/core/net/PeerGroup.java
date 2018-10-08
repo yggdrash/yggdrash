@@ -58,12 +58,11 @@ public class PeerGroup implements BranchEventListener {
 
     public void addPeerByYnodeUri(List<String> peerList) {
         for (String ynodeUri : peerList) {
-            Peer peer = Peer.valueOf(ynodeUri);
-            addPeer(peer);
+            addPeerByYnodeUri(ynodeUri);
         }
     }
 
-    public void addPeer(String ynodeUri) {
+    public void addPeerByYnodeUri(String ynodeUri) {
         addPeer(Peer.valueOf(ynodeUri));
     }
 
@@ -83,7 +82,7 @@ public class PeerGroup implements BranchEventListener {
         broadcastPeerConnect(ynodeUri);
     }
 
-    public int count() {
+    int count() {
         return peers.size();
     }
 
@@ -185,6 +184,7 @@ public class PeerGroup implements BranchEventListener {
             Pong pong = client.ping("Ping");
             // TODO validation peer
             if (pong.getPong().equals("Pong")) {
+                log.info("Added channel={}", peer);
                 peerChannels.put(peer.getYnodeUri(), client);
             }
         } catch (Exception e) {
@@ -194,34 +194,6 @@ public class PeerGroup implements BranchEventListener {
 
     public List<String> getActivePeerList() {
         return new ArrayList<>(peerChannels.keySet());
-    }
-
-    /**
-     * Broadcast peer uri
-     *
-     * @param ynodeUri the peer uri to broadcast
-     * @return the block list
-     */
-    public List<String> broadcastPeerConnect(String ynodeUri) {
-        if (peerChannels.isEmpty()) {
-            log.trace("Active peer is empty to broadcast peer");
-            return Collections.emptyList();
-        }
-        List<String> peerList = new ArrayList<>();
-        for (PeerClientChannel client : peerChannels.values()) {
-            peerList.addAll(client.requestPeerList(ynodeUri, 0));
-        }
-        return peerList;
-    }
-
-    public void broadcastPeerDisconnect(String ynodeUri) {
-        PeerClientChannel disconnectedPeer = peerChannels.remove(ynodeUri);
-        if (disconnectedPeer != null) {
-            disconnectedPeer.stop();
-        }
-        for (PeerClientChannel client : peerChannels.values()) {
-            client.disconnectPeer(ynodeUri);
-        }
     }
 
     /**
@@ -239,7 +211,7 @@ public class PeerGroup implements BranchEventListener {
         String key = (String) peerChannels.keySet().toArray()[0];
         PeerClientChannel client = peerChannels.get(key);
         List<Proto.Block> blockList = client.syncBlock(branchId, offset);
-        log.debug("Synchronize block received=" + blockList.size());
+        log.info("Synchronize block receivedSize={}, from={}", blockList.size(), client.getPeer());
         List<BlockHusk> syncList = new ArrayList<>(blockList.size());
         for (Proto.Block block : blockList) {
             syncList.add(new BlockHusk(block));
@@ -261,11 +233,40 @@ public class PeerGroup implements BranchEventListener {
         String key = (String) peerChannels.keySet().toArray()[0];
         PeerClientChannel client = peerChannels.get(key);
         List<Proto.Transaction> txList = client.syncTransaction(branchId);
-        log.debug("Synchronize transaction received=" + txList.size());
+        log.info("Synchronize transaction receivedSize={}, from={}", txList.size(),
+                client.getPeer());
         List<TransactionHusk> syncList = new ArrayList<>(txList.size());
         for (Proto.Transaction tx : txList) {
             syncList.add(new TransactionHusk(tx));
         }
         return syncList;
+    }
+
+    /**
+     * Broadcast peer uri
+     *
+     * @param ynodeUri the peer uri to broadcast
+     * @return the block list
+     */
+    private List<String> broadcastPeerConnect(String ynodeUri) {
+        if (peerChannels.isEmpty()) {
+            log.trace("Active peer is empty to broadcast peer");
+            return Collections.emptyList();
+        }
+        List<String> peerList = new ArrayList<>();
+        for (PeerClientChannel client : peerChannels.values()) {
+            peerList.addAll(client.requestPeerList(ynodeUri, 0));
+        }
+        return peerList;
+    }
+
+    private void broadcastPeerDisconnect(String ynodeUri) {
+        PeerClientChannel disconnectedPeer = peerChannels.remove(ynodeUri);
+        if (disconnectedPeer != null) {
+            disconnectedPeer.stop();
+        }
+        for (PeerClientChannel client : peerChannels.values()) {
+            client.disconnectPeer(ynodeUri);
+        }
     }
 }

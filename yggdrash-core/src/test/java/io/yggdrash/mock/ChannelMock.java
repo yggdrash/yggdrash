@@ -10,7 +10,6 @@ import io.yggdrash.proto.Proto;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 public class ChannelMock implements PeerClientChannel {
     private final Peer peer;
@@ -44,8 +43,8 @@ public class ChannelMock implements PeerClientChannel {
 
     @Override
     public List<Proto.Transaction> syncTransaction(BranchId branchId) {
-        return Collections.singletonList(
-                Objects.requireNonNull(Transaction.toProtoTransaction(TestUtils.sampleTx())));
+        Proto.Transaction protoTx = Transaction.toProtoTransaction(TestUtils.sampleTransferTx());
+        return Collections.singletonList(protoTx);
     }
 
     @Override
@@ -63,6 +62,9 @@ public class ChannelMock implements PeerClientChannel {
 
     @Override
     public void disconnectPeer(String ynodeUri) {
+    }
 
+    public static PeerClientChannel dummy() {
+        return new ChannelMock("ynode://75bff16c@localhost:32918");
     }
 }

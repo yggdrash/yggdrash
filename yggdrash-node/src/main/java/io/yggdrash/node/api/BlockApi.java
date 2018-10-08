@@ -4,9 +4,9 @@ import com.googlecode.jsonrpc4j.JsonRpcError;
 import com.googlecode.jsonrpc4j.JsonRpcErrors;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
-import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.node.controller.BlockDto;
 
 @JsonRpcService("/api/block")
 public interface BlockApi {
@@ -28,7 +28,7 @@ public interface BlockApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    BlockHusk getBlockByHash(@JsonRpcParam(value = "branchId") String branchId,
+    BlockDto getBlockByHash(@JsonRpcParam(value = "branchId") String branchId,
                              @JsonRpcParam(value = "hashOfBlock") String hashOfBlock,
                              @JsonRpcParam(value = "bool") Boolean bool);
 
@@ -42,9 +42,9 @@ public interface BlockApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    BlockHusk getBlockByNumber(@JsonRpcParam(value = "branchId") String branchId,
-                               @JsonRpcParam(value = "numOfBlock") long numOfBlock,
-                               @JsonRpcParam(value = "bool") Boolean bool);
+    BlockDto getBlockByNumber(@JsonRpcParam(value = "branchId") String branchId,
+                              @JsonRpcParam(value = "numOfBlock") long numOfBlock,
+                              @JsonRpcParam(value = "bool") Boolean bool);
 
     /**
      * Creates a filter in the node, to notify when a new block arrives.
@@ -61,5 +61,5 @@ public interface BlockApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    BlockHusk getLastBlock(@JsonRpcParam(value = "branchId") String branchId);
+    BlockDto getLastBlock(@JsonRpcParam(value = "branchId") String branchId);
 }
