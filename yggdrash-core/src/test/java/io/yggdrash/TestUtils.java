@@ -27,9 +27,12 @@ import io.yggdrash.contract.ContractTx;
 import io.yggdrash.core.Address;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
+import io.yggdrash.core.BlockChain;
+import io.yggdrash.core.BlockChainBuilder;
 import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BlockSignature;
+import io.yggdrash.core.Branch;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHusk;
@@ -41,9 +44,12 @@ import io.yggdrash.util.FileUtil;
 import io.yggdrash.util.TimeUtils;
 import org.spongycastle.util.encoders.Hex;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 
 public class TestUtils {
@@ -52,13 +58,17 @@ public class TestUtils {
     public static final Address TRANSFER_TO =
             new Address(Hex.decode("e1980adeafbb9ac6c9be60955484ab1547ab0b76"));
 
-    public static final Wallet wallet;
+    private static final Wallet wallet;
+    private static final BlockHusk genesis;
 
     private TestUtils() {}
 
     static {
         try {
             wallet = new Wallet();
+            File genesisFile = new File(Objects.requireNonNull(TestUtils.class.getClassLoader()
+                    .getResource("branch-sample.json")).getFile());
+            genesis = Block.loadGenesis(new FileInputStream(genesisFile));
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
@@ -281,5 +291,9 @@ public class TestUtils {
     public static void clearTestDb() {
         String dbPath = new DefaultConfig().getConfig().getString(Constants.DATABASE_PATH);
         FileUtil.recursiveDelete(Paths.get(dbPath));
+    }
+
+    public static BlockChain createBlockChain(boolean isProduction) {
+        return BlockChainBuilder.buildBlockChain(genesis, Branch.STEM, isProduction);
     }
 }

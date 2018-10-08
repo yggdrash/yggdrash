@@ -1,10 +1,12 @@
 package io.yggdrash.core;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.InvalidSignatureException;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.genesis.BlockInfo;
 import io.yggdrash.core.genesis.TransactionInfo;
 import io.yggdrash.crypto.ECKey;
@@ -18,6 +20,7 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -71,18 +74,18 @@ public class Block implements Cloneable {
         return HashUtil.sha3(bao.toByteArray());
     }
 
-    public String getHashHexString() throws IOException {
+    String getHashHexString() throws IOException {
         return org.spongycastle.util.encoders.Hex.toHexString(this.getHash());
     }
 
-    public byte[] getPubKey() throws SignatureException {
+    byte[] getPubKey() throws SignatureException {
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
         ECKey ecKeyPub = ECKey.signatureToKey(this.header.getHashForSigning(), ecdsaSignature);
 
         return ecKeyPub.getPubKey();
     }
 
-    public String getPubKeyHexString() throws SignatureException {
+    String getPubKeyHexString() throws SignatureException {
         return Hex.toHexString(this.getPubKey());
     }
 
@@ -92,7 +95,7 @@ public class Block implements Cloneable {
                 Arrays.copyOfRange(pubBytes, 1, pubBytes.length));
     }
 
-    public String getAddressHexString() throws SignatureException {
+    String getAddressHexString() throws SignatureException {
         return Hex.toHexString(getAddress());
     }
 
@@ -204,7 +207,7 @@ public class Block implements Cloneable {
         return toProtoBlock(this);
     }
 
-    public static Proto.Block toProtoBlock(Block block) {
+    private Proto.Block toProtoBlock(Block block) {
         Proto.Block.Header protoHeader;
         protoHeader = Proto.Block.Header.newBuilder()
             .setChain(ByteString.copyFrom(block.getHeader().getChain()))
@@ -233,7 +236,7 @@ public class Block implements Cloneable {
         return protoBlock;
     }
 
-    public static Block toBlock(Proto.Block protoBlock) {
+    static Block toBlock(Proto.Block protoBlock) {
 
         BlockHeader blockHeader = new BlockHeader(
                 protoBlock.getHeader().getChain().toByteArray(),
@@ -246,9 +249,6 @@ public class Block implements Cloneable {
                 ByteUtil.byteArrayToLong(protoBlock.getHeader().getBodyLength().toByteArray())
         );
 
-        BlockSignature blockSignature
-                =  new BlockSignature(protoBlock.getSignature().toByteArray());
-
         List<Transaction> txList = new ArrayList<>();
 
         for (Proto.Transaction tx : protoBlock.getBody().getTransactionsList()) {
@@ -257,11 +257,20 @@ public class Block implements Cloneable {
 
         BlockBody txBody = new BlockBody(txList);
 
-        return new Block(blockHeader, blockSignature.getSignature(), txBody);
+        return new Block(blockHeader, protoBlock.getSignature().toByteArray(), txBody);
 
     }
 
-    public static Block fromBlockInfo(BlockInfo blockinfo) {
+    public static BlockHusk loadGenesis(InputStream branchInfoStream) {
+        try {
+            BlockInfo blockinfo = new ObjectMapper().readValue(branchInfoStream, BlockInfo.class);
+            return new BlockHusk(Block.fromBlockInfo(blockinfo).toProtoBlock());
+        } catch (Exception e) {
+            throw new NotValidateException(e);
+        }
+    }
+
+    private static Block fromBlockInfo(BlockInfo blockinfo) {
         BlockHeader blockHeader = new BlockHeader(
                 Hex.decode(blockinfo.header.chain),
                 Hex.decode(blockinfo.header.version),

@@ -35,9 +35,9 @@ public class AccountApiImplTest {
     @Test
     public void balanceOfTest() {
         try {
-            JsonObject qry = ContractQry.createQuery(BranchId.YEED,
-                    "balanceOf",
-                    ContractQry.createParams("address", "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94"));
+            JsonObject qry = ContractQry.createQuery(BranchId.YEED, "balanceOf",
+                    ContractQry.createParams("address",
+                            "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94"));
 
             assertThat(accountApi.balanceOf(qry.toString())).isNotEmpty();
         } catch (Exception e) {

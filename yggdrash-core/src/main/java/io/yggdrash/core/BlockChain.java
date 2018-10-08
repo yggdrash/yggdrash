@@ -1,9 +1,7 @@
 package io.yggdrash.core;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.Contract;
-import io.yggdrash.contract.NoneContract;
 import io.yggdrash.core.event.BranchEventListener;
 import io.yggdrash.core.event.ContractEventListener;
 import io.yggdrash.core.exception.FailedOperationException;
@@ -11,14 +9,10 @@ import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.BlockStore;
-import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -34,27 +28,13 @@ public class BlockChain {
     private final BlockHusk genesisBlock;
     private final List<BranchEventListener> listenerList = new ArrayList<>();
 
-    private BlockHusk prevBlock;
-    private BlockStore blockStore;
-    private TransactionStore transactionStore;
-    private Contract contract;
-    private Runtime<?> runtime;
-    private String branchName;
+    private final BlockStore blockStore;
+    private final TransactionStore transactionStore;
+    private final Contract contract;
+    private final Runtime<?> runtime;
 
-    @VisibleForTesting
-    public BlockChain(File infoFile) {
-        try {
-            this.genesisBlock = new BlockChainLoader(infoFile).getGenesis();
-            this.blockStore = new BlockStore(getBranchId());
-            this.blockStore.put(this.genesisBlock.getHash(), this.genesisBlock);
-            this.transactionStore = new TransactionStore(new HashMapDbSource());
-            this.contract = new NoneContract();
-            this.runtime = new Runtime<>(new StateStore<>(), new TransactionReceiptStore());
-            loadBlockChain();
-        } catch (Exception e) {
-            throw new NotValidateException(e);
-        }
-    }
+    private BlockHusk prevBlock;
+    private String branchName;
 
     public BlockChain(BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, Contract contract, Runtime runtime) {
@@ -98,23 +78,23 @@ public class BlockChain {
         return contract;
     }
 
-    public Runtime<?> getRuntime() {
+    Runtime<?> getRuntime() {
         return runtime;
     }
 
-    public BlockHusk generateBlock(Wallet wallet) {
+    BlockHusk generateBlock(Wallet wallet) {
         BlockHusk block = new BlockHusk(wallet,
                 new ArrayList<>(transactionStore.getUnconfirmedTxs()), getPrevBlock());
         return addBlock(block);
     }
 
-    public List<TransactionHusk> getTransactionList() {
+    List<TransactionHusk> getTransactionList() {
         List<TransactionHusk> list = new ArrayList<>(transactionStore.getUnconfirmedTxs());
         list.addAll(transactionStore.getAll());
         return list;
     }
 
-    public List<TransactionHusk> getUnconfirmedTxs() {
+    List<TransactionHusk> getUnconfirmedTxs() {
         return new ArrayList<>(transactionStore.getUnconfirmedTxs());
     }
 
@@ -126,11 +106,11 @@ public class BlockChain {
         return branchName;
     }
 
-    public void setBranchName(String branchName) {
+    void setBranchName(String branchName) {
         this.branchName = branchName;
     }
 
-    public BlockHusk getGenesisBlock() {
+    BlockHusk getGenesisBlock() {
         return this.genesisBlock;
     }
 
@@ -221,7 +201,7 @@ public class BlockChain {
      *
      * @return the boolean
      */
-    public boolean isValidChain() {
+    boolean isValidChain() {
         return isValidChain(this);
     }
 
@@ -282,7 +262,7 @@ public class BlockChain {
      * @param hash the hash
      * @return the transaction by hash
      */
-    public TransactionHusk getTxByHash(Sha3Hash hash) {
+    TransactionHusk getTxByHash(Sha3Hash hash) {
         return transactionStore.get(hash);
     }
 

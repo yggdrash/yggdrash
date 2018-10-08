@@ -19,9 +19,9 @@ package io.yggdrash.node.config;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.contract.ContractEvent;
+import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockChainBuilder;
-import io.yggdrash.core.BlockChainLoader;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.Branch;
 import io.yggdrash.core.BranchGroup;
@@ -52,7 +52,6 @@ public class BranchConfiguration implements ContractEventListener {
 
     private final boolean isProduction;
     private final Wallet wallet;
-    private final BlockChainBuilder builder;
     private final PeerGroup peerGroup;
 
     private BranchGroup branchGroup;
@@ -60,7 +59,7 @@ public class BranchConfiguration implements ContractEventListener {
     @Value("classpath:/genesis.json")
     private Resource resource;
 
-    public void setResource(Resource resource) {
+    void setResource(Resource resource) {
         this.resource = resource;
     }
 
@@ -68,14 +67,13 @@ public class BranchConfiguration implements ContractEventListener {
         this.isProduction = Arrays.asList(env.getActiveProfiles()).contains("prod");
         this.wallet = wallet;
         this.peerGroup = peerGroup;
-        this.builder = new BlockChainBuilder();
     }
 
     @Bean
     BranchGroup branchGroup() throws IOException {
         this.branchGroup = new BranchGroup();
-        BlockHusk genesis = new BlockChainLoader(resource.getInputStream()).getGenesis();
-        BlockChain stem = builder.buildBlockChain(genesis, Branch.STEM, isProduction);
+        BlockHusk genesis = Block.loadGenesis(resource.getInputStream());
+        BlockChain stem = BlockChainBuilder.buildBlockChain(genesis, Branch.STEM, isProduction);
         branchGroup.addBranch(stem.getBranchId(), stem, peerGroup, this);
         return branchGroup;
     }
@@ -107,7 +105,8 @@ public class BranchConfiguration implements ContractEventListener {
                 String branchName = String.valueOf(branchMap.get("name"));
                 String owner = String.valueOf(branchMap.get("owner"));
                 Branch branch = Branch.of(branchId, branchName, owner);
-                BlockChain blockChain = builder.buildBlockChain(wallet, branch, isProduction);
+                BlockChain blockChain =
+                        BlockChainBuilder.buildBlockChain(wallet, branch, isProduction);
                 branchGroup.addBranch(blockChain.getBranchId(), blockChain, peerGroup, this);
                 log.info("New branch created. id={}, name={}, genesis={}", blockChain.getBranchId(),
                         blockChain.getBranchName(), blockChain.getPrevBlock().getHash());

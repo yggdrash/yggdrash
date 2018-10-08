@@ -48,7 +48,8 @@ public class CoinContractTest {
 
     @Test
     public void transferTest() {
-        TransactionHusk tx = ContractTx.createYeedTx(TestUtils.wallet(), TestUtils.TRANSFER_TO, 100);
+        TransactionHusk tx =
+                ContractTx.createYeedTx(TestUtils.wallet(), TestUtils.TRANSFER_TO, 100);
         boolean result = coinContract.invoke(tx);
         assertThat(result).isTrue();
         JsonObject balance =

@@ -18,11 +18,9 @@ package io.yggdrash.core.store;
 
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.BranchId;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.datasource.DbSource;
-import io.yggdrash.core.store.datasource.LevelDbDataSource;
 
 import java.util.HashMap;
 import java.util.List;
@@ -35,27 +33,6 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
     public BlockStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
         indexing();
-    }
-
-    public BlockStore(BranchId branchId) {
-        this(branchId.toString());
-    }
-
-    public BlockStore(String branchId) {
-        this.db = new LevelDbDataSource(branchId + "/blocks").init();
-        indexing();
-    }
-
-    private void indexing() {
-        try {
-            List<byte[]> dataList = db.getAll();
-            for (byte[] data : dataList) {
-                BlockHusk block = new BlockHusk(data);
-                index.put(block.getIndex(), block.getHash());
-            }
-        } catch (Exception e) {
-            throw new NotValidateException(e);
-        }
     }
 
     @Override
@@ -92,5 +69,17 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
 
     public void close() {
         this.db.close();
+    }
+
+    private void indexing() {
+        try {
+            List<byte[]> dataList = db.getAll();
+            for (byte[] data : dataList) {
+                BlockHusk block = new BlockHusk(data);
+                index.put(block.getIndex(), block.getHash());
+            }
+        } catch (Exception e) {
+            throw new NotValidateException(e);
+        }
     }
 }

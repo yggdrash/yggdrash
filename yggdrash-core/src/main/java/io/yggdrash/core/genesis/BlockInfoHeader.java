@@ -9,7 +9,5 @@ public class BlockInfoHeader {
     public String timestamp;
     public String merkleRoot;
     public String bodyLength;
-
-    public BlockInfoHeader() {}
 }
 

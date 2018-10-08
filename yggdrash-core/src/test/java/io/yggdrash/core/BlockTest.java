@@ -2,14 +2,20 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.TestUtils;
 import io.yggdrash.util.TimeUtils;
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertArrayEquals;
@@ -24,28 +30,11 @@ public class BlockTest {
     private final byte[] type = new byte[8];
     private final byte[] prevBlockHash = new byte[32];
 
-    private BlockBody blockBody1;
-
-    private BlockHeader blockHeader1;
-    private BlockHeader blockHeader2;
-
-    private Wallet wallet;
-
-    private BlockSignature blockSig1;
-    private BlockSignature blockSig2;
-
+    private final Wallet wallet = TestUtils.wallet();
     private Block block1;
-    private Block block2;
 
     @Before
     public void init() throws Exception {
-
-        TransactionBody txBody;
-        TransactionHeader txHeader;
-        TransactionSignature txSig;
-        Transaction tx1;
-        Transaction tx2;
-
         JsonObject jsonParams1 = new JsonObject();
         jsonParams1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
         jsonParams1.addProperty("amount", "10000000");
@@ -66,18 +55,14 @@ public class BlockTest {
         jsonArray.add(jsonObject1);
         jsonArray.add(jsonObject2);
 
-        txBody = new TransactionBody(jsonArray);
+        TransactionBody txBody = new TransactionBody(jsonArray);
 
         long timestamp = TimeUtils.time();
-        txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
+        TransactionHeader txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
+        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
 
-        wallet = new Wallet();
-
-        txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-
-        tx1 = new Transaction(txHeader, txSig, txBody);
-
-        tx2 = tx1.clone();
+        Transaction tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
+        Transaction tx2 = tx1.clone();
 
         List<Transaction> txs1 = new ArrayList<>();
         txs1.add(tx1);
@@ -85,93 +70,63 @@ public class BlockTest {
 
         log.debug("txs=" + txs1.toString());
 
-        blockBody1 = new BlockBody(txs1);
+        BlockBody blockBody1 = new BlockBody(txs1);
 
         timestamp = TimeUtils.time();
         long index = 0;
-        blockHeader1 = new BlockHeader(
+        BlockHeader blockHeader = new BlockHeader(
                 chain, version, type, prevBlockHash, index, timestamp,
                 blockBody1.getMerkleRoot(), blockBody1.length());
 
-        log.debug(blockHeader1.toString());
+        log.debug(blockHeader.toString());
 
-        blockHeader2 = blockHeader1.clone();
+        BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSigning());
+        block1 = new Block(blockHeader, blockSig.getSignature(), blockBody1);
+    }
 
-        blockSig1 = new BlockSignature(wallet, blockHeader1.getHashForSigning());
-        blockSig2 = new BlockSignature(wallet, blockHeader2.getHashForSigning());
+    @Test
+    public void shouldBeLoadedBranchJsonFile() throws IOException {
+        File genesisFile = new File(Objects.requireNonNull(getClass().getClassLoader()
+                .getResource("branch-sample.json")).getFile());
+
+        BlockHusk block = Block.loadGenesis(new FileInputStream(genesisFile));
+        Assertions.assertThat(block).isNotNull();
+        Assertions.assertThat(block.getIndex()).isEqualTo(0);
     }
 
     @Test
     public void testBlockConstructor() throws Exception {
-        Block block0 = new Block(blockHeader1, blockSig1.getSignature(), blockBody1);
-        assertTrue(block0.verify());
+        BlockHeader blockHeader2 = block1.getHeader().clone();
+        BlockBody blockBody2 = block1.getBody().clone();
+        BlockSignature blockSig2 = new BlockSignature(wallet, blockHeader2.getHashForSigning());
+        Block block2 = new Block(blockHeader2, blockSig2.getSignature(), blockBody2);
 
-        log.debug("block0=" + block0.toJsonObject());
-        log.debug("block0=" + block0.toString());
-        log.debug("block0=" + block0.toStringPretty());
-
-        block1 = new Block(blockHeader1, wallet, blockBody1);
-        assertTrue(block1.verify());
-
-        log.debug("block1=" + block1.toJsonObject());
-        log.debug("block1=" + block1.toString());
-        log.debug("block1=" + block1.toStringPretty());
-
-        block2 = new Block(
-                blockHeader1.clone(), block1.getSignature().clone(), blockBody1.clone());
         assertTrue(block2.verify());
-
-        log.debug("block2=" + block2.toJsonObject());
-        log.debug("block2=" + block2.toString());
-        log.debug("block2=" + block2.toStringPretty());
-
         assertEquals(block1.toJsonObject(), block2.toJsonObject());
 
-        Block block3 = new Block(block0.toJsonObject());
-        assertTrue(block3.verify());
+        Block block3 = new Block(
+                blockHeader2.clone(), wallet, block2.getBody().clone());
 
-        assertEquals(block0.toJsonObject().toString(), block3.toJsonObject().toString());
+        assertTrue(block3.verify());
+        assertEquals(block1.toJsonObject(), block3.toJsonObject());
+
+        Block block4 = new Block(block1.toJsonObject());
+        assertTrue(block4.verify());
+        assertEquals(block1.toJsonObject().toString(), block4.toJsonObject().toString());
     }
 
     @Test
     public void testBlockClone() throws Exception {
-        Block block1 = new Block(blockHeader1, blockSig1.getSignature(), blockBody1);
-        log.debug("block1=" + block1.toJsonObject());
-
         Block block2 = block1.clone();
         log.debug("block2=" + block2.toJsonObject());
 
-        assertEquals(block1.toJsonObject().toString(), block2.toJsonObject().toString());
-    }
-
-    @Test
-    public void testBlockField() throws Exception {
-        Block block1 = new Block(blockHeader1, blockSig1.getSignature(), blockBody1);
-        log.debug("block1=" + block1.toJsonObject());
-
-        Block block2 = block1.clone();
-        log.debug("block2=" + block2.toJsonObject());
-
+        assertEquals(block1.getHashHexString(), block2.getHashHexString());
         assertEquals(block1.toJsonObject().toString(), block2.toJsonObject().toString());
         assertArrayEquals(block1.getSignature(), block2.getSignature());
     }
 
     @Test
-    public void testBlockGetHash() throws Exception {
-        Block block1 = new Block(blockHeader1, blockSig1.getSignature(), blockBody1);
-        log.debug("block1=" + block1.toJsonObject());
-
-        Block block2 = block1.clone();
-        log.debug("block2=" + block2.toJsonObject());
-
-        assertEquals(block1.getHashHexString(), block2.getHashHexString());
-    }
-
-    @Test
     public void testBlockKey() throws Exception {
-        Block block1 = new Block(blockHeader1, blockSig1.getSignature(), blockBody1);
-        log.debug("block1 pubKey=" + block1.getPubKeyHexString());
-
         Block block2 = block1.clone();
         log.debug("block2 pubKey=" + block2.getPubKeyHexString());
 
@@ -187,5 +142,4 @@ public class BlockTest {
         assertTrue(block1.verify());
         assertTrue(block2.verify());
     }
-
 }

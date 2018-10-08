@@ -24,9 +24,10 @@ public class TransactionTest {
     private TransactionHeader txHeader;
     private Wallet wallet;
     private TransactionSignature txSig;
+    private Transaction tx1;
 
     @Before
-    public void init() throws Exception {
+    public void setUp() throws Exception {
 
         JsonObject jsonParams1 = new JsonObject();
         jsonParams1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
@@ -61,19 +62,12 @@ public class TransactionTest {
         log.debug("wallet.pubKey=" + Hex.toHexString(wallet.getPubicKey()));
 
         txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-
+        tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
+        assertTrue(tx1.verify());
     }
 
     @Test
     public void testTransactionConstructor() throws Exception {
-
-        Transaction tx1 = new Transaction(txHeader, txSig, txBody);
-        assertTrue(tx1.verify());
-
-        log.debug("tx1=" + tx1.toJsonObject());
-        log.debug("tx1=" + tx1.toString());
-        log.debug("tx1=" + tx1.toStringPretty());
-
         Transaction tx2 = new Transaction(tx1.toJsonObject());
         assertTrue(tx2.verify());
         log.debug("tx2=" + tx2.toJsonObject());
@@ -123,9 +117,6 @@ public class TransactionTest {
 
     @Test
     public void testTransactionClone() throws Exception {
-        Transaction tx1 = new Transaction(txHeader, txSig, txBody);
-        log.debug("tx1=" + tx1.toJsonObject());
-
         Transaction tx2 = tx1.clone();
         log.debug("tx2=" + tx2.toJsonObject());
 
@@ -144,9 +135,6 @@ public class TransactionTest {
 
     @Test
     public void testTransactionField() throws Exception {
-        Transaction tx1 = new Transaction(txHeader, txSig, txBody);
-        log.debug("tx1=" + tx1.toJsonObject());
-
         Transaction tx2 = tx1.clone();
         log.debug("tx2=" + tx2.toJsonObject());
 
@@ -158,9 +146,6 @@ public class TransactionTest {
 
     @Test
     public void testTransactionGetHash() throws Exception {
-        Transaction tx1 = new Transaction(txHeader, txSig, txBody);
-        log.debug("tx1=" + tx1.toJsonObject());
-
         Transaction tx2 = tx1.clone();
         log.debug("tx2=" + tx2.toJsonObject());
 
@@ -178,12 +163,6 @@ public class TransactionTest {
 
     @Test
     public void testTransactionKey() throws Exception {
-        Transaction tx1 = new Transaction(txHeader, txSig, txBody);
-        log.debug("tx1 pubKey=" + tx1.getPubKeyHexString());
-        log.debug("tx1 headerHash=" + Hex.toHexString(tx1.getHeader().getHashForSigning()));
-        log.debug("tx1 signature=" + Hex.toHexString(tx1.getSignature()));
-        log.debug("tx1 pubKey=" + Hex.toHexString(tx1.getPubKey()));
-
         Transaction tx2 = tx1.clone();
         log.debug("tx2 pubKey=" + tx2.getPubKeyHexString());
         log.debug("tx2 headerHash=" + Hex.toHexString(tx2.getHeader().getHashForSigning()));
@@ -207,9 +186,6 @@ public class TransactionTest {
 
     @Test
     public void testTransactionToProto() throws Exception {
-        Transaction tx1 = new Transaction(txHeader, txSig, txBody);
-        log.debug("tx1 pubKey=" + tx1.getPubKeyHexString());
-
         Transaction tx2 = tx1.clone();
         log.debug("tx2 pubKey=" + tx2.getPubKeyHexString());
 

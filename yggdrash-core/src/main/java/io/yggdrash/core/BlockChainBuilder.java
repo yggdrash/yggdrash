@@ -38,7 +38,7 @@ import java.util.List;
 
 public class BlockChainBuilder {
 
-    public BlockChain buildBlockChain(Wallet wallet, Branch branch, boolean isProduction) {
+    public static BlockChain buildBlockChain(Wallet wallet, Branch branch, boolean isProduction) {
 
         BlockStore blockStore =
                 new BlockStore(getDbSource(isProduction,branch.getBranchId() + "/blocks"));
@@ -53,7 +53,8 @@ public class BlockChainBuilder {
         return buildBlockChain(genesis, branch.getName(), isProduction);
     }
 
-    public BlockChain buildBlockChain(BlockHusk genesis, String branchName, boolean isProduction) {
+    public static BlockChain buildBlockChain(BlockHusk genesis, String branchName,
+                                             boolean isProduction) {
         BlockStore blockStore =
                 new BlockStore(getDbSource(isProduction,genesis.getBranchId() + "/blocks"));
         TransactionStore txStore =
@@ -66,7 +67,7 @@ public class BlockChainBuilder {
         return blockChain;
     }
 
-    private BlockHusk getGenesis(Wallet wallet, Branch branch) {
+    private static BlockHusk getGenesis(Wallet wallet, Branch branch) {
 
         if (!branch.isYeed()) {
             throw new FailedOperationException("Not supported name=" + branch.getName());
@@ -89,7 +90,7 @@ public class BlockChainBuilder {
         return genesis(wallet, branch.getBranchId(), jsonArrayTxBody);
     }
 
-    private BlockHusk genesis(Wallet wallet, BranchId branchId, JsonArray jsonArrayTxBody) {
+    private static BlockHusk genesis(Wallet wallet, BranchId branchId, JsonArray jsonArrayTxBody) {
         try {
             TransactionBody txBody = new TransactionBody(jsonArrayTxBody);
 
@@ -117,13 +118,13 @@ public class BlockChainBuilder {
 
             Block coreBlock = new Block(blockHeader, wallet, blockBody);
 
-            return new BlockHusk(Block.toProtoBlock(coreBlock));
+            return new BlockHusk(coreBlock.toProtoBlock());
         } catch (Exception e) {
             throw new NotValidateException();
         }
     }
 
-    private DbSource<byte[], byte[]> getDbSource(boolean isProduction, String path) {
+    private static DbSource<byte[], byte[]> getDbSource(boolean isProduction, String path) {
         if (isProduction) {
             return new LevelDbDataSource(path);
         } else {
@@ -131,7 +132,7 @@ public class BlockChainBuilder {
         }
     }
 
-    private Contract getContract(String branchName) {
+    private static Contract getContract(String branchName) {
         if (Branch.STEM.equalsIgnoreCase(branchName)) {
             return new StemContract();
         } else if (Branch.YEED.equalsIgnoreCase(branchName)) {
@@ -141,7 +142,7 @@ public class BlockChainBuilder {
         }
     }
 
-    private Runtime<?> getRunTime(String branchName) {
+    private static Runtime<?> getRunTime(String branchName) {
         if (Branch.STEM.equalsIgnoreCase(branchName)) {
             return getRunTime(JsonObject.class);
         } else if (Branch.YEED.equalsIgnoreCase(branchName)) {
@@ -151,7 +152,7 @@ public class BlockChainBuilder {
         }
     }
 
-    private <T> Runtime<T> getRunTime(Class<T> clazz) {
+    private static <T> Runtime<T> getRunTime(Class<T> clazz) {
         return new Runtime<>(new StateStore<>(), new TransactionReceiptStore());
     }
 }

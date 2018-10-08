@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.store;
 
-import com.google.common.annotations.VisibleForTesting;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.exception.FailedOperationException;
@@ -46,9 +45,8 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     private final Cache<Sha3Hash, TransactionHusk> huskTxPool;
     private final Set<Sha3Hash> unconfirmedTxs = new HashSet<>();
 
-    public TransactionStore(DbSource db) {
-        this.db = db;
-        this.db.init();
+    public TransactionStore(DbSource<byte[], byte[]> db) {
+        this.db = db.init();
         this.huskTxPool = CacheManagerBuilder
                 .newCacheManagerBuilder().build(true)
                 .createCache("txPool", CacheConfigurationBuilder
@@ -101,11 +99,6 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
         }
     }
 
-    @VisibleForTesting
-    public void batchAll() {
-        this.batch(unconfirmedTxs);
-    }
-
     public void batch(Set<Sha3Hash> keys) {
         LOCK.lock();
         if (keys.size() > 0) {
@@ -125,15 +118,7 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
         return huskTxPool.getAll(unconfirmedTxs).values();
     }
 
-    public long countFromCache() {
-        return unconfirmedTxs.size();
-    }
-
-    public long countFromDb() {
-        return this.db.count();
-    }
-
-    public void flush(Set<Sha3Hash> keys) {
+    private void flush(Set<Sha3Hash> keys) {
         huskTxPool.removeAll(keys);
         unconfirmedTxs.removeAll(keys);
     }

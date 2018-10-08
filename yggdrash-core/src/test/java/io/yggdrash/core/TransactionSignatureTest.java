@@ -3,6 +3,7 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.TestUtils;
 import io.yggdrash.util.TimeUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -18,14 +19,10 @@ public class TransactionSignatureTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionSignatureTest.class);
 
-    private Wallet wallet;
-    private TransactionHeader txHeader;
+    private TransactionSignature txSig1;
 
     @Before
-    public void init() throws Exception {
-
-        TransactionBody txBody;
-
+    public void setUp() {
         JsonObject jsonObject1 = new JsonObject();
         jsonObject1.addProperty("test1", "01");
 
@@ -36,32 +33,20 @@ public class TransactionSignatureTest {
         jsonArray.add(jsonObject1);
         jsonArray.add(jsonObject2);
 
-        txBody = new TransactionBody(jsonArray);
+        TransactionBody txBody = new TransactionBody(jsonArray);
 
         byte[] chain = new byte[20];
         byte[] version = new byte[8];
         byte[] type = new byte[8];
         long timestamp = TimeUtils.time();
 
-        txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
-
-        wallet = new Wallet();
-        log.debug("wallet.pubKey=" + Hex.toHexString(wallet.getPubicKey()));
+        TransactionHeader txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
+        txSig1 = new TransactionSignature(TestUtils.wallet(), txHeader.getHashForSigning());
     }
 
     @Test
     public void testTransactionSignature() {
-
-        TransactionSignature txSig1
-                = new TransactionSignature(wallet, txHeader.getHashForSigning());
-
-        log.debug("txSig1.signature=" + Hex.toHexString(txSig1.getSignature()));
-        log.debug("txSig1.signatureHex=" + txSig1.getSignatureHexString());
-        log.debug("txSig1.toJsonObject=" + txSig1.toJsonObject());
-        log.debug("txSig1.toString=" + txSig1.toString());
-
-        TransactionSignature txSig2
-                = new TransactionSignature(txSig1.getSignature());
+        TransactionSignature txSig2 = new TransactionSignature(txSig1.getSignature());
 
         log.debug("txSig2.signature=" + Hex.toHexString(txSig2.getSignature()));
         log.debug("txSig2.signatureHex=" + txSig2.getSignatureHexString());
@@ -82,9 +67,6 @@ public class TransactionSignatureTest {
 
     @Test
     public void testTransactionSignatureClone() throws Exception {
-
-        TransactionSignature txSig1
-                = new TransactionSignature(wallet, txHeader.getHashForSigning());
         TransactionSignature txSig2 = txSig1.clone();
         log.debug("txSig1=" + txSig1.getSignatureHexString());
         log.debug("txSig2=" + txSig2.getSignatureHexString());
