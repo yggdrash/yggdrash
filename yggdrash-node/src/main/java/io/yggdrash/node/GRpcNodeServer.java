@@ -180,7 +180,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
                 List<String> peerList = client.requestPeerList(getNodeUri(), 0);
                 client.stop();
                 peerGroup.addPeerByYnodeUri(peerList);
-            } catch (Exception e) {
+            } catch (Throwable e) {
                 log.warn("ynode={}, error={}", ynodeUri, e.getMessage());
             }
         }
@@ -228,15 +228,21 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
                               StreamObserver<Proto.BlockList> responseObserver) {
             long offset = syncLimit.getOffset();
             BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
-            long lastIdx = branchGroup.getLastIndex(branchId);
-            if (offset < 0 || offset > lastIdx) {
+            BlockChain blockChain = branchGroup.getBranch(branchId);
+            Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
+            if (blockChain == null) {
+                log.warn("Invalid request for branchId={}", branchId);
+                responseObserver.onNext(builder.build());
+                responseObserver.onCompleted();
+                return;
+            }
+            if (offset < 0) {
                 offset = 0;
             }
             long limit = syncLimit.getLimit();
             log.debug("Synchronize block request offset={}, limit={}", offset, limit);
 
-            Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
-            for (int i = 0; i < limit || limit == 0; i++) {
+            for (int i = 0; i < limit; i++) {
                 BlockHusk block = branchGroup.getBlockByIndex(branchId, offset++);
                 if (block == null) {
                     break;
@@ -418,11 +424,14 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     private static class BlockChainSync {
 
         static void syncBlock(BlockChain blockChain, PeerGroup peerGroup) {
-            List<BlockHusk> blockList = peerGroup.syncBlock(blockChain.getBranchId(),
-                    blockChain.getLastIndex() + 1);
-            for (BlockHusk block : blockList) {
-                blockChain.addBlock(block, false);
-            }
+            List<BlockHusk> blockList;
+            do {
+                blockList = peerGroup.syncBlock(blockChain.getBranchId(),
+                        blockChain.getLastIndex() + 1);
+                for (BlockHusk block : blockList) {
+                    blockChain.addBlock(block, false);
+                }
+            } while (!blockList.isEmpty());
         }
 
         static void syncTransaction(BlockChain blockChain, PeerGroup peerGroup) {

@@ -211,7 +211,8 @@ public class PeerGroup implements BranchEventListener {
         String key = (String) peerChannels.keySet().toArray()[0];
         PeerClientChannel client = peerChannels.get(key);
         List<Proto.Block> blockList = client.syncBlock(branchId, offset);
-        log.info("Synchronize block receivedSize={}, from={}", blockList.size(), client.getPeer());
+        log.debug("Synchronize block offset={} receivedSize={}, from={}", offset, blockList.size(),
+                client.getPeer());
         List<BlockHusk> syncList = new ArrayList<>(blockList.size());
         for (Proto.Block block : blockList) {
             syncList.add(new BlockHusk(block));

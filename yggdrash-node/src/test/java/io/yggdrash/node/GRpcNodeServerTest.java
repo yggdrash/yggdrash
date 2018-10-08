@@ -108,12 +108,13 @@ public class GRpcNodeServerTest {
         Set<BlockHusk> blocks = new HashSet<>();
         blocks.add(block);
         when(branchGroupMock.getBlockByIndex(BranchId.stem(), 0L)).thenReturn(block);
+        when(branchGroupMock.getBranch(any())).thenReturn(TestUtils.createBlockChain(false));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
         ByteString branch = ByteString.copyFrom(BranchId.stem().getBytes());
-        NetProto.SyncLimit syncLimit
-                = NetProto.SyncLimit.newBuilder().setOffset(0).setBranch(branch).build();
+        NetProto.SyncLimit syncLimit = NetProto.SyncLimit.newBuilder().setOffset(0).setLimit(10000)
+                .setBranch(branch).build();
         Proto.BlockList list = blockingStub.syncBlock(syncLimit);
         assertEquals(1, list.getBlocksCount());
     }
