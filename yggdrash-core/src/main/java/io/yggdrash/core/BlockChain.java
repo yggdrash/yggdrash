@@ -89,7 +89,7 @@ public class BlockChain {
     }
 
     List<TransactionHusk> getTransactionList() {
-        List<TransactionHusk> list = new ArrayList<>(transactionStore.getUnconfirmedTxs());
+        List<TransactionHusk> list = getUnconfirmedTxs();
         list.addAll(transactionStore.getAll());
         return list;
     }
@@ -244,16 +244,6 @@ public class BlockChain {
      */
     public BlockHusk getBlockByHash(Sha3Hash hash) {
         return blockStore.get(hash);
-    }
-
-    /**
-     * Gets transaction by hash.
-     *
-     * @param hash the hash
-     * @return the transaction by hash
-     */
-    public TransactionHusk getTxByHash(String hash) {
-        return getTxByHash(new Sha3Hash(hash));
     }
 
     /**

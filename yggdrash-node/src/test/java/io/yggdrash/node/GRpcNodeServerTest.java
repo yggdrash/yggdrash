@@ -51,7 +51,7 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class GRpcNodeServerTest {
-
+    private final BranchId testBranchId = BranchId.stem();
     @Rule
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
     @Mock

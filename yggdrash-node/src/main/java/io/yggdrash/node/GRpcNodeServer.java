@@ -132,18 +132,18 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
     @PreDestroy
     public void destroy() {
-        log.info("destroy uri=" + peer.getYnodeUri());
+        log.info("Destroy node=" + peer.getYnodeUri());
         peerGroup.destroy(peer.getYnodeUri());
     }
 
     private void init() {
+        log.info("Init node=" + peer.getYnodeUri());
         requestPeerList();
         peerGroup.addPeer(peer);
         if (!peerGroup.isEmpty()) {
             nodeHealthIndicator.sync();
             syncBlockAndTransaction();
         }
-        peerGroup.addPeer(peer);
         log.info("Init node=" + peer.getYnodeUri());
         nodeHealthIndicator.up();
     }

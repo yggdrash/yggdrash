@@ -62,6 +62,9 @@ public class ChannelMock implements PeerClientChannel {
 
     @Override
     public void disconnectPeer(String ynodeUri) {
+    }
 
+    public static PeerClientChannel dummy() {
+        return new ChannelMock("ynode://75bff16c@localhost:32918");
     }
 }
