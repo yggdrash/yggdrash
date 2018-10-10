@@ -181,6 +181,7 @@ public class Utils {
         return unixTime * 1000;
     }
 
+    @SafeVarargs
     public static <T> T[] mergeArrays(T[]... arr) {
         int size = 0;
         for (T[] ts : arr) {

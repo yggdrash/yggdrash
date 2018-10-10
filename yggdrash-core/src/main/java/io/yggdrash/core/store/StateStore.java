@@ -26,8 +26,8 @@ public class StateStore<T> implements Store<String, T> {
         return this.state;
     }
 
-    public List<Map<String, Object>> getStateList() {
-        List<Map<String, Object>> result = new ArrayList<>();
+    public List<Map> getStateList() {
+        List<Map> result = new ArrayList<>();
         try {
             for (Map.Entry entry : state.entrySet()) {
                 Object value = entry.getValue();

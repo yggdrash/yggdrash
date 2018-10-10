@@ -82,10 +82,10 @@ public class BlockChain {
         return runtime;
     }
 
-    BlockHusk generateBlock(Wallet wallet) {
+    void generateBlock(Wallet wallet) {
         BlockHusk block = new BlockHusk(wallet,
                 new ArrayList<>(transactionStore.getUnconfirmedTxs()), getPrevBlock());
-        return addBlock(block, true);
+        addBlock(block, true);
     }
 
     List<TransactionHusk> getTransactionList() {

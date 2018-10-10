@@ -54,30 +54,6 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         }
     }
 
-    public BlockHusk(Proto.Block.Header blockHeader, Wallet wallet, List<TransactionHusk> body) {
-
-        try {
-            byte[] hashDataForSign = BlockHeader.toBlockHeader(blockHeader).getHashForSigning();
-
-            Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
-            for (TransactionHusk tx : body) {
-                builder.addTransactions(tx.getProtoTransaction());
-            }
-
-            Proto.Block protoBlock = Proto.Block.newBuilder()
-                    .setHeader(blockHeader)
-                    .setSignature(ByteString.copyFrom(wallet.signHashedData(hashDataForSign)))
-                    .setBody(builder.build())
-                    .build();
-
-            this.protoBlock = protoBlock;
-            this.coreBlock = Block.toBlock(this.protoBlock);
-
-        } catch (Exception e) {
-            throw new NotValidateException();
-        }
-    }
-
     public BlockHusk(Wallet wallet, List<TransactionHusk> body, BlockHusk prevBlock) {
 
         if (wallet == null || body == null || prevBlock == null) {

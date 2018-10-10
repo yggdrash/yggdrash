@@ -167,17 +167,6 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         return alive;
     }
 
-    public List<byte[]> getAllKey() throws IOException {
-        List<byte[]> keyList = new ArrayList<>();
-        try (DBIterator iterator = db.iterator()) {
-            for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
-                byte[] key = iterator.peekNext().getKey();
-                keyList.add(key);
-            }
-        }
-        return keyList;
-    }
-
     public List<byte[]> getAll() throws IOException {
         List<byte[]> valueList = new ArrayList<>();
         try (DBIterator iterator = db.iterator()) {

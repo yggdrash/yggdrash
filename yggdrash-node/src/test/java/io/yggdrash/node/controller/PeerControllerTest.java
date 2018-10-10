@@ -45,8 +45,6 @@ public class PeerControllerTest {
     @Autowired
     private PeerGroup peerGroup;
 
-    private JacksonTester<PeerDto> json;
-
     @Before
     public void setUp() {
         JacksonTester.initFields(this, new ObjectMapper());

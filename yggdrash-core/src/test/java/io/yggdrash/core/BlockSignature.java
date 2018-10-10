@@ -16,9 +16,6 @@
 
 package io.yggdrash.core;
 
-import com.google.gson.JsonObject;
-import org.spongycastle.util.encoders.Hex;
-
 public class BlockSignature implements Cloneable {
 
     private final byte[] signature;
@@ -33,12 +30,6 @@ public class BlockSignature implements Cloneable {
 
     public byte[] getSignature() {
         return this.signature;
-    }
-
-    public JsonObject toJsonObject() {
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("signature", Hex.toHexString(this.signature));
-        return jsonObject;
     }
 
     @Override
