@@ -24,7 +24,7 @@ public class BlockChainTest {
         long blockIndex = blockChain.size();
         BlockHusk testBlock = new BlockHusk(
                 TestUtils.getBlockFixture(blockIndex, prevBlock.getHash()));
-        blockChain.addBlock(testBlock);
+        blockChain.addBlock(testBlock, false);
 
         assertThat(blockChain.getBlockByHash(testBlock.getHash()))
                 .isEqualTo(testBlock);
@@ -37,7 +37,7 @@ public class BlockChainTest {
         long blockIndex = blockChain.size();
         BlockHusk testBlock = new BlockHusk(
                 TestUtils.getBlockFixture(blockIndex, prevBlock.getHash()));
-        blockChain.addBlock(testBlock);
+        blockChain.addBlock(testBlock, false);
 
         assertThat(blockChain.getBlockByIndex(blockIndex))
                 .isEqualTo(testBlock);
@@ -52,9 +52,9 @@ public class BlockChainTest {
     @Test(expected = NotValidateException.class)
     public void shouldBeExceptedNotValidateException() {
         BlockHusk block1 = new BlockHusk(TestUtils.getBlockFixture(1L));
-        blockChain.addBlock(block1);
+        blockChain.addBlock(block1, false);
         BlockHusk block2 = new BlockHusk(TestUtils.getBlockFixture(2L));
-        blockChain.addBlock(block2);
+        blockChain.addBlock(block2, false);
         blockChain.isValidChain();
     }
 
@@ -65,7 +65,7 @@ public class BlockChainTest {
 
         BlockHusk testBlock = new BlockHusk(
                 TestUtils.getBlockFixture(1L, genesisBlock.getHash()));
-        blockCHain1.addBlock(testBlock);
+        blockCHain1.addBlock(testBlock, false);
         blockCHain1.close();
 
         BlockChain blockCHain2 = TestUtils.createBlockChain(true);
@@ -94,7 +94,7 @@ public class BlockChainTest {
         long blockIndex = blockChain.size();
         BlockHusk testBlock = new BlockHusk(
                 TestUtils.getBlockFixture(blockIndex, prevBlock.getHash()));
-        blockChain.addBlock(testBlock);
+        blockChain.addBlock(testBlock, false);
         blockChain.addTransaction(TestUtils.createTransferTxHusk());
     }
 
@@ -102,10 +102,10 @@ public class BlockChainTest {
         BlockHusk genesisBlock = blockChain.getGenesisBlock();
         BlockHusk block1 = new BlockHusk(
                 TestUtils.getBlockFixture(1L, genesisBlock.getHash()));
-        blockChain.addBlock(block1);
+        blockChain.addBlock(block1, false);
         BlockHusk block2 = new BlockHusk(
                 TestUtils.getBlockFixture(2L, block1.getHash()));
-        blockChain.addBlock(block2);
+        blockChain.addBlock(block2, false);
         return blockChain;
     }
 

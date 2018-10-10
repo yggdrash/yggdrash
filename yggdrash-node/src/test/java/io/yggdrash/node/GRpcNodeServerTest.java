@@ -25,6 +25,7 @@ import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
@@ -58,6 +59,8 @@ public class GRpcNodeServerTest {
     private PeerGroup peerGroupMock;
     @Mock
     private BranchGroup branchGroupMock;
+    @Mock
+    private NodeStatus nodeStatus;
 
     private TransactionHusk tx;
     private BlockHusk block;
@@ -65,8 +68,9 @@ public class GRpcNodeServerTest {
     @Before
     public void setUp() {
         grpcServerRule.getServiceRegistry().addService(new GRpcNodeServer.PingPongImpl());
-        grpcServerRule.getServiceRegistry().addService(
-                new GRpcNodeServer.BlockChainImpl(peerGroupMock, branchGroupMock));
+        grpcServerRule.getServiceRegistry().addService(new GRpcNodeServer.BlockChainImpl(
+                peerGroupMock, branchGroupMock, nodeStatus)
+        );
 
         this.tx = TestUtils.createTransferTxHusk();
         when(branchGroupMock.addTransaction(any())).thenReturn(tx);
@@ -104,12 +108,13 @@ public class GRpcNodeServerTest {
         Set<BlockHusk> blocks = new HashSet<>();
         blocks.add(block);
         when(branchGroupMock.getBlockByIndex(BranchId.stem(), 0L)).thenReturn(block);
+        when(branchGroupMock.getBranch(any())).thenReturn(TestUtils.createBlockChain(false));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
         ByteString branch = ByteString.copyFrom(BranchId.stem().getBytes());
-        NetProto.SyncLimit syncLimit
-                = NetProto.SyncLimit.newBuilder().setOffset(0).setBranch(branch).build();
+        NetProto.SyncLimit syncLimit = NetProto.SyncLimit.newBuilder().setOffset(0).setLimit(10000)
+                .setBranch(branch).build();
         Proto.BlockList list = blockingStub.syncBlock(syncLimit);
         assertEquals(1, list.getBlocksCount());
     }
@@ -142,6 +147,8 @@ public class GRpcNodeServerTest {
 
     @Test
     public void broadcastBlock() throws Exception {
+        when(nodeStatus.isUpStatus()).thenReturn(true);
+        when(branchGroupMock.getBranch(any())).thenReturn(TestUtils.createBlockChain(false));
         BlockChainGrpc.BlockChainStub stub = BlockChainGrpc.newStub(grpcServerRule.getChannel());
         StreamRecorder<NetProto.Empty> responseObserver = StreamRecorder.create();
         StreamObserver<Proto.Block> requestObserver

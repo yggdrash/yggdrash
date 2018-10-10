@@ -17,11 +17,11 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.net.NodeManager;
+import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.Status;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -42,14 +42,14 @@ class NodeScheduler {
 
     private final PeerGroup peerGroup;
 
-    private final NodeHealthIndicator indicator;
+    private final NodeStatus nodeStatus;
 
     @Autowired
     public NodeScheduler(PeerGroup peerGroup, NodeManager nodeManager,
-                         NodeHealthIndicator indicator) {
+                         NodeStatus nodeStatus) {
         this.peerGroup = peerGroup;
         this.nodeManager = nodeManager;
-        this.indicator = indicator;
+        this.nodeStatus = nodeStatus;
     }
 
     @Scheduled(fixedRate = 1000 * 10)
@@ -59,7 +59,7 @@ class NodeScheduler {
 
     @Scheduled(cron = cronValue)
     public void generateBlock() {
-        if (!indicator.health().getStatus().equals(Status.UP)) {
+        if (!nodeStatus.isUpStatus()) {
             log.debug("Waiting for up status...");
             return;
         }

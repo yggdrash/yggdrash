@@ -70,4 +70,9 @@ public class Peer {
     public String getYnodeUri() {
         return ynodeUri;
     }
+
+    @Override
+    public String toString() {
+        return ynodeUri;
+    }
 }

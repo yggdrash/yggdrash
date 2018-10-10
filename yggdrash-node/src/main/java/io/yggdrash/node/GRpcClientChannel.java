@@ -41,6 +41,7 @@ import java.util.List;
 class GRpcClientChannel implements PeerClientChannel {
 
     private static final Logger log = LoggerFactory.getLogger(GRpcClientChannel.class);
+    private static final int DEFAULT_LIMIT = 10000;
 
     private final ManagedChannel channel;
     private final PingPongGrpc.PingPongBlockingStub blockingPingPongStub;
@@ -96,6 +97,7 @@ class GRpcClientChannel implements PeerClientChannel {
     public List<Proto.Block> syncBlock(BranchId branchId, long offset) {
         SyncLimit syncLimit = SyncLimit.newBuilder()
                 .setOffset(offset)
+                .setLimit(DEFAULT_LIMIT)
                 .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
         return blockingBlockChainStub.syncBlock(syncLimit).getBlocksList();
     }
@@ -144,7 +146,7 @@ class GRpcClientChannel implements PeerClientChannel {
 
     @Override
     public void broadcastBlock(Proto.Block[] blocks) {
-        log.info("*** Broadcasting blocks...");
+        log.info("*** Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
         StreamObserver<Proto.Block> requestObserver =
                 asyncBlockChainStub.broadcastBlock(new StreamObserver<NetProto.Empty>() {
                     @Override

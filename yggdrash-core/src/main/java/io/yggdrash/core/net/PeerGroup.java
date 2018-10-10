@@ -82,7 +82,7 @@ public class PeerGroup implements BranchEventListener {
         broadcastPeerConnect(ynodeUri);
     }
 
-    public int count() {
+    int count() {
         return peers.size();
     }
 
@@ -184,6 +184,7 @@ public class PeerGroup implements BranchEventListener {
             Pong pong = client.ping("Ping");
             // TODO validation peer
             if (pong.getPong().equals("Pong")) {
+                log.info("Added channel={}", peer);
                 peerChannels.put(peer.getYnodeUri(), client);
             }
         } catch (Exception e) {
@@ -210,7 +211,8 @@ public class PeerGroup implements BranchEventListener {
         String key = (String) peerChannels.keySet().toArray()[0];
         PeerClientChannel client = peerChannels.get(key);
         List<Proto.Block> blockList = client.syncBlock(branchId, offset);
-        log.debug("Synchronize block received=" + blockList.size());
+        log.debug("Synchronize block offset={} receivedSize={}, from={}", offset, blockList.size(),
+                client.getPeer());
         List<BlockHusk> syncList = new ArrayList<>(blockList.size());
         for (Proto.Block block : blockList) {
             syncList.add(new BlockHusk(block));
@@ -232,7 +234,8 @@ public class PeerGroup implements BranchEventListener {
         String key = (String) peerChannels.keySet().toArray()[0];
         PeerClientChannel client = peerChannels.get(key);
         List<Proto.Transaction> txList = client.syncTransaction(branchId);
-        log.debug("Synchronize transaction received=" + txList.size());
+        log.info("Synchronize transaction receivedSize={}, from={}", txList.size(),
+                client.getPeer());
         List<TransactionHusk> syncList = new ArrayList<>(txList.size());
         for (Proto.Transaction tx : txList) {
             syncList.add(new TransactionHusk(tx));
