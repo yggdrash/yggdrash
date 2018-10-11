@@ -35,7 +35,6 @@ import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.List;
 
 class GRpcClientChannel implements PeerClientChannel {
@@ -73,12 +72,6 @@ class GRpcClientChannel implements PeerClientChannel {
         if (channel != null) {
             channel.shutdown();
         }
-    }
-
-    @Override
-    public void stop(String ynodeUri) {
-        disconnectPeer(ynodeUri);
-        stop();
     }
 
     @Override
@@ -171,28 +164,5 @@ class GRpcClientChannel implements PeerClientChannel {
         }
 
         requestObserver.onCompleted();
-    }
-
-    @Override
-    public List<String> requestPeerList(String ynodeUri, int limit) {
-        if (ynodeUri.equals(peer.getYnodeUri())) {
-            log.debug("ignore from me");
-            return Collections.emptyList();
-        }
-        NetProto.PeerRequest request = NetProto.PeerRequest.newBuilder()
-                .setFrom(ynodeUri).setLimit(limit).build();
-        return blockingBlockChainStub.requestPeerList(request).getPeersList();
-    }
-
-    @Override
-    public void disconnectPeer(String ynodeUri) {
-        if (ynodeUri.equals(peer.getYnodeUri())) {
-            log.debug("ignore from me");
-            return;
-        }
-        log.info("Disconnect request peer=" + ynodeUri);
-        NetProto.PeerRequest request = NetProto.PeerRequest.newBuilder()
-                .setFrom(ynodeUri).build();
-        blockingBlockChainStub.disconnectPeer(request);
     }
 }

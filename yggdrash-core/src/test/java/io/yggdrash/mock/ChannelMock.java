@@ -28,10 +28,6 @@ public class ChannelMock implements PeerClientChannel {
     }
 
     @Override
-    public void stop(String ynodeUri) {
-    }
-
-    @Override
     public Pong ping(String message) {
         return Pong.newBuilder().setPong("Pong").build();
     }
@@ -53,15 +49,6 @@ public class ChannelMock implements PeerClientChannel {
 
     @Override
     public void broadcastBlock(Proto.Block[] blocks) {
-    }
-
-    @Override
-    public List<String> requestPeerList(String ynodeUri, int limit) {
-        return Collections.singletonList(peer.getYnodeUri());
-    }
-
-    @Override
-    public void disconnectPeer(String ynodeUri) {
     }
 
     public static PeerClientChannel dummy() {
