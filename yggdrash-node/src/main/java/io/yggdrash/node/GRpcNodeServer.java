@@ -77,18 +77,9 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         this.nodeStatus = nodeStatus;
     }
 
-    public Wallet getWallet() {
-        return wallet;
-    }
-
     @Autowired
     public void setWallet(Wallet wallet) {
         this.wallet = wallet;
-    }
-
-    @Override
-    public BranchGroup getBranchGroup() {
-        return branchGroup;
     }
 
     @Autowired

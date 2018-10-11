@@ -26,8 +26,6 @@ public interface DbSource<K, V> {
 
     void put(K key, V value);
 
-    List<K> getAllKey() throws IOException;
-
     List<V> getAll() throws IOException;
 
     void close();

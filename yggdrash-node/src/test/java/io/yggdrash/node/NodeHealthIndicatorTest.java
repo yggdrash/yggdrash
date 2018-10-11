@@ -29,10 +29,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.Status;
 
-import java.util.Collections;
-
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class NodeHealthIndicatorTest {
@@ -43,17 +40,16 @@ public class NodeHealthIndicatorTest {
 
     private NodeHealthIndicator nodeHealthIndicator;
 
-    @After
-    public void tearDown() {
-        TestUtils.clearTestDb();
-    }
-
     @Before
     public void setUp() {
         PeerGroup peerGroup = new PeerGroup(1);
         this.nodeHealthIndicator = new NodeHealthIndicator(new DefaultConfig(), branchGroupMock,
                 peerGroup);
-        when(branchGroupMock.getAllBranch()).thenReturn(Collections.EMPTY_LIST);
+    }
+
+    @After
+    public void tearDown() {
+        TestUtils.clearTestDb();
     }
 
     @Test

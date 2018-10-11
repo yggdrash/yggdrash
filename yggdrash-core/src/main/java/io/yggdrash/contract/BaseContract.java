@@ -13,7 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public abstract class BaseContract<T> implements Contract<T> {
-    protected static final Logger log = LoggerFactory.getLogger(BaseContract.class);
+    static final Logger log = LoggerFactory.getLogger(BaseContract.class);
     private TransactionReceiptStore txReceiptStore;
     private ContractEventListener listener;
     StateStore<T> state;
