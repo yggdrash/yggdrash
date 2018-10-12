@@ -58,9 +58,6 @@ public class GRpcClientChannelTest {
     @Captor
     private ArgumentCaptor<NetProto.SyncLimit> syncLimitRequestCaptor;
 
-    @Captor
-    private ArgumentCaptor<NetProto.PeerRequest> peerRequestCaptor;
-
     private GRpcClientChannel client;
 
     @Before
@@ -133,50 +130,13 @@ public class GRpcClientChannelTest {
 
     @Test
     public void broadcastTransaction() {
-
         client.broadcastTransaction(TestUtils.sampleTxs());
-
         verify(blockChainService).broadcastTransaction(any());
     }
 
     @Test
     public void broadcastBlock() {
-
         client.broadcastBlock(TestUtils.sampleBlocks());
-
         verify(blockChainService).broadcastBlock(any());
-    }
-
-    @Test
-    public void requestPeerList() {
-        doAnswer((invocationOnMock) -> {
-            StreamObserver<NetProto.PeerRequest> argument = invocationOnMock.getArgument(1);
-            argument.onNext(null);
-            argument.onCompleted();
-            return null;
-        }).when(blockChainService).requestPeerList(peerRequestCaptor.capture(), any());
-
-        client.requestPeerList("ynode://75bff16c@localhost:32918", 10);
-
-        verify(blockChainService).requestPeerList(peerRequestCaptor.capture(), any());
-
-        assertEquals("ynode://75bff16c@localhost:32918", peerRequestCaptor.getValue().getFrom());
-        assertEquals(10, peerRequestCaptor.getValue().getLimit());
-    }
-
-    @Test
-    public void disconnectPeer() {
-        doAnswer((invocationOnMock) -> {
-            StreamObserver<NetProto.PeerRequest> argument = invocationOnMock.getArgument(1);
-            argument.onNext(null);
-            argument.onCompleted();
-            return null;
-        }).when(blockChainService).disconnectPeer(peerRequestCaptor.capture(), any());
-
-        client.disconnectPeer("ynode://75bff16c@localhost:9091");
-
-        verify(blockChainService).disconnectPeer(peerRequestCaptor.capture(), any());
-
-        assertEquals("ynode://75bff16c@localhost:9091", peerRequestCaptor.getValue().getFrom());
     }
 }

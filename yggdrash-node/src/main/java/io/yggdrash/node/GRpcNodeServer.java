@@ -47,7 +47,6 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
 
 @Service
 public class GRpcNodeServer implements NodeServer, NodeManager {
@@ -69,7 +68,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     @Autowired
     public void setPeerGroup(PeerGroup peerGroup) {
         this.peerGroup = peerGroup;
-        peerGroup.setListener(this);
     }
 
     @Autowired
@@ -125,7 +123,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     @PreDestroy
     public void destroy() {
         log.info("Destroy node=" + peer.getYnodeUri());
-        peerGroup.destroy(peer.getYnodeUri());
+        peerGroup.destroy();
     }
 
     private void init() {
@@ -146,8 +144,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         return peer.getYnodeUri();
     }
 
-    @Override
-    public void newPeer(Peer peer) {
+    public void add(Peer peer) {
         if (peer == null || this.peer.getYnodeUri().equals(peer.getYnodeUri())) {
             return;
         }
@@ -163,17 +160,8 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             if (ynodeUri.equals(peer.getYnodeUri())) {
                 continue;
             }
-            try {
-                Peer peer = Peer.valueOf(ynodeUri);
-                log.info("Trying to connecting SEED peer at {}", ynodeUri);
-                GRpcClientChannel client = new GRpcClientChannel(peer);
-                // TODO validation peer(encrypting msg by privateKey and signing by publicKey ...)
-                List<String> peerList = client.requestPeerList(getNodeUri(), 0);
-                client.stop();
-                peerGroup.addPeerByYnodeUri(peerList);
-            } catch (Throwable e) {
-                log.warn("ynode={}, error={}", ynodeUri, e.getMessage());
-            }
+            Peer peer = Peer.valueOf(ynodeUri);
+            log.info("Trying to connecting SEED peer at {}", peer);
         }
     }
 
@@ -262,46 +250,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             }
             responseObserver.onNext(builder.build());
             responseObserver.onCompleted();
-        }
-
-        /**
-         * Peer list response
-         *
-         * @param peerRequest      the request with limit of peer and peer uri
-         * @param responseObserver the observer response to the peer list
-         */
-        @Override
-        public void requestPeerList(NetProto.PeerRequest peerRequest,
-                                    StreamObserver<NetProto.PeerList> responseObserver) {
-            log.debug("Synchronize peer request from=" + peerRequest.getFrom());
-            NetProto.PeerList.Builder builder = NetProto.PeerList.newBuilder();
-
-            List<String> peerUriList = peerGroup.getPeerUriList();
-
-            if (peerRequest.getLimit() > 0) {
-                int limit = peerRequest.getLimit();
-                builder.addAllPeers(peerUriList.stream().limit(limit).collect(Collectors.toList()));
-            } else {
-                builder.addAllPeers(peerUriList);
-            }
-            responseObserver.onNext(builder.build());
-            responseObserver.onCompleted();
-            peerGroup.addPeerByYnodeUri(peerRequest.getFrom());
-        }
-
-        /**
-         * Broadcast a disconnected peer
-         *
-         * @param peerRequest      the request with disconnected peer uri
-         * @param responseObserver the empty response
-         */
-        @Override
-        public void disconnectPeer(NetProto.PeerRequest peerRequest,
-                                   StreamObserver<NetProto.Empty> responseObserver) {
-            log.debug("Received disconnect for=" + peerRequest.getFrom());
-            responseObserver.onNext(EMPTY);
-            responseObserver.onCompleted();
-            peerGroup.disconnected(peerRequest.getFrom());
         }
 
         @Override

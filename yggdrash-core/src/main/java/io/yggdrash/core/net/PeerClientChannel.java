@@ -12,8 +12,6 @@ public interface PeerClientChannel {
 
     void stop();
 
-    void stop(String ynodeUri);
-
     Pong ping(String message);
 
     List<Proto.Block> syncBlock(BranchId branchId, long offset);
@@ -23,8 +21,4 @@ public interface PeerClientChannel {
     void broadcastTransaction(Proto.Transaction[] txs);
 
     void broadcastBlock(Proto.Block[] blocks);
-
-    List<String> requestPeerList(String ynodeUri, int limit);
-
-    void disconnectPeer(String ynodeUri);
 }

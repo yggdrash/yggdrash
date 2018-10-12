@@ -20,7 +20,6 @@ import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.event.BranchEventListener;
-import io.yggdrash.core.event.PeerEventListener;
 import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
@@ -46,23 +45,17 @@ public class PeerGroup implements BranchEventListener {
 
     private List<String> seedPeerList;
 
-    private PeerEventListener listener;
-
     public PeerGroup(int maxPeers) {
         this.maxPeers = maxPeers;
     }
 
-    public void setListener(PeerEventListener listener) {
-        this.listener = listener;
-    }
-
-    public void addPeerByYnodeUri(List<String> peerList) {
+    void addPeerByYnodeUri(List<String> peerList) {
         for (String ynodeUri : peerList) {
             addPeerByYnodeUri(ynodeUri);
         }
     }
 
-    public void addPeerByYnodeUri(String ynodeUri) {
+    void addPeerByYnodeUri(String ynodeUri) {
         addPeer(Peer.valueOf(ynodeUri));
     }
 
@@ -76,21 +69,10 @@ public class PeerGroup implements BranchEventListener {
             return;
         }
         peers.put(ynodeUri, peer);
-        if (listener != null) {
-            listener.newPeer(peer);
-        }
-        broadcastPeerConnect(ynodeUri);
     }
 
     int count() {
         return peers.size();
-    }
-
-    public void disconnected(String ynodeUri) {
-        Peer removed = peers.remove(ynodeUri);
-        if (removed != null) {
-            broadcastPeerDisconnect(ynodeUri);
-        }
     }
 
     public Collection<Peer> getPeers() {
@@ -121,8 +103,8 @@ public class PeerGroup implements BranchEventListener {
         return peers.values().stream().map(Peer::getYnodeUri).collect(Collectors.toList());
     }
 
-    public void destroy(String ynodeUri) {
-        peerChannels.values().forEach(client -> client.stop(ynodeUri));
+    public void destroy() {
+        peerChannels.values().forEach(PeerClientChannel::stop);
     }
 
     public void healthCheck() {
@@ -143,7 +125,6 @@ public class PeerGroup implements BranchEventListener {
             String ynodeUri = client.getPeer().getYnodeUri();
             peerChannels.remove(ynodeUri);
             client.stop();
-            disconnected(ynodeUri);
         }
     }
 
@@ -241,33 +222,5 @@ public class PeerGroup implements BranchEventListener {
             syncList.add(new TransactionHusk(tx));
         }
         return syncList;
-    }
-
-    /**
-     * Broadcast peer uri
-     *
-     * @param ynodeUri the peer uri to broadcast
-     * @return the block list
-     */
-    private List<String> broadcastPeerConnect(String ynodeUri) {
-        if (peerChannels.isEmpty()) {
-            log.trace("Active peer is empty to broadcast peer");
-            return Collections.emptyList();
-        }
-        List<String> peerList = new ArrayList<>();
-        for (PeerClientChannel client : peerChannels.values()) {
-            peerList.addAll(client.requestPeerList(ynodeUri, 0));
-        }
-        return peerList;
-    }
-
-    private void broadcastPeerDisconnect(String ynodeUri) {
-        PeerClientChannel disconnectedPeer = peerChannels.remove(ynodeUri);
-        if (disconnectedPeer != null) {
-            disconnectedPeer.stop();
-        }
-        for (PeerClientChannel client : peerChannels.values()) {
-            client.disconnectPeer(ynodeUri);
-        }
     }
 }

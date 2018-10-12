@@ -16,9 +16,7 @@
 
 package io.yggdrash.core.net;
 
-import io.yggdrash.core.event.PeerEventListener;
-
-public interface NodeManager extends PeerEventListener {
+public interface NodeManager {
 
     String getNodeUri();
 

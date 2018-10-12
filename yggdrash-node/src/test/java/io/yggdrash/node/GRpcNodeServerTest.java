@@ -40,7 +40,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -85,22 +84,6 @@ public class GRpcNodeServerTest {
 
         Pong pong = blockingStub.play(Ping.newBuilder().setPing("Ping").build());
         assertEquals("Pong", pong.getPong());
-    }
-
-    @Test
-    public void requestPeerList() {
-        when(peerGroupMock.getPeerUriList()).thenReturn(Arrays.asList("a", "b", "c"));
-
-        BlockChainGrpc.BlockChainBlockingStub blockingStub
-                = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        String ynodeUri = "ynode://75bff16c@localhost:32918";
-        NetProto.PeerRequest.Builder builder
-                = NetProto.PeerRequest.newBuilder().setFrom(ynodeUri);
-        NetProto.PeerList response = blockingStub.requestPeerList(builder.build());
-        assertEquals(3, response.getPeersCount());
-        // limit test
-        response = blockingStub.requestPeerList(builder.setLimit(2).build());
-        assertEquals(2, response.getPeersCount());
     }
 
     @Test

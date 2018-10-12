@@ -27,7 +27,6 @@ public class PeerGroupTest {
         this.peerGroup = new PeerGroup(MAX_PEERS);
         this.tx = TestUtils.createTransferTxHusk();
         this.block = TestUtils.createGenesisBlockHusk();
-        peerGroup.setListener(peer -> log.debug(peer.getYnodeUri() + " disconnected"));
         peerGroup.newPeerChannel(ChannelMock.dummy());
     }
 
