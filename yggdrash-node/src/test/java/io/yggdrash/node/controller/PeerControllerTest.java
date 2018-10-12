@@ -53,7 +53,7 @@ public class PeerControllerTest {
 
     @Test
     public void shouldGetPeers() throws Exception {
-        peerGroup.addPeer(BranchId.yeed(), Peer.valueOf("ynode://75bff16c@127.0.0.1:8080"));
+        peerGroup.addPeer(BranchId.yeed(), Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
 
         mockMvc
                 .perform(

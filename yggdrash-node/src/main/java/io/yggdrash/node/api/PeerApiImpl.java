@@ -2,7 +2,6 @@ package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.BranchId;
-import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,8 +21,8 @@ public class PeerApiImpl implements PeerApi {
     }
 
     @Override
-    public Collection<Peer> getPeers(String branchId) {
-        return peerGroup.getPeers(BranchId.of(branchId));
+    public Collection<String> getPeers(PeerDto peerDto) {
+        return peerGroup.getPeers(BranchId.of(peerDto.getBranchId()), peerDto.toPeer());
     }
 
     @Override

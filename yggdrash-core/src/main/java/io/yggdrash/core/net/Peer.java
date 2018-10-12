@@ -72,6 +72,20 @@ public class Peer {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Peer peer = (Peer) o;
+        return ynodeUri.equals(peer.getYnodeUri());
+    }
+
+    @Override
     public String toString() {
         return ynodeUri;
     }

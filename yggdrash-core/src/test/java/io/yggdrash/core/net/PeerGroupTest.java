@@ -11,6 +11,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -20,6 +21,7 @@ public class PeerGroupTest {
     private static final int MAX_PEERS = 25;
     private static final BranchId BRANCH = BranchId.stem();
     private static final BranchId OTHER_BRANCH = BranchId.yeed();
+    private static final Peer DUMMY_PEER = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
 
     private PeerGroup peerGroup;
     private TransactionHusk tx;
@@ -39,8 +41,17 @@ public class PeerGroupTest {
         peerGroup.addPeer(OTHER_BRANCH, Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
         assert peerGroup.count(BRANCH) == 2;
         assert peerGroup.count(OTHER_BRANCH) == 1;
-        assert !peerGroup.getPeers(BRANCH).isEmpty();
+        assert !peerGroup.getPeers(BRANCH, DUMMY_PEER).isEmpty();
         assert !peerGroup.isEmpty(BRANCH);
+    }
+
+    @Test
+    public void getPeerTest() {
+        Peer requester = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        Collection<String> peerListWithoutRequester = peerGroup.getPeers(BRANCH, requester);
+        assert peerListWithoutRequester.isEmpty();
+        // requester 가 peer 목록 조회 후에는 peerTable 에 등록되어 있다
+        assert peerGroup.contains(BRANCH, requester.toString());
     }
 
     @Test
@@ -66,8 +77,8 @@ public class PeerGroupTest {
             peerGroup.addPeerByYnodeUri(BRANCH, "ynode://75bff16c@localhost:" + port);
             peerGroup.addPeerByYnodeUri(OTHER_BRANCH, "ynode://75bff16c@localhost:" + port);
         }
-        assert MAX_PEERS == peerGroup.getPeers(BRANCH).size();
-        assert MAX_PEERS == peerGroup.getPeers(OTHER_BRANCH).size();
+        assert MAX_PEERS == peerGroup.getPeers(BRANCH, DUMMY_PEER).size();
+        assert MAX_PEERS == peerGroup.getPeers(OTHER_BRANCH, DUMMY_PEER).size();
     }
 
     @Test

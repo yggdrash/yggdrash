@@ -18,6 +18,7 @@ package io.yggdrash.node.controller;
 
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.node.api.PeerDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -37,8 +38,9 @@ class PeerController {
     }
 
     @GetMapping
-    public ResponseEntity findPeers(@RequestParam String branchId) {
-        return ResponseEntity.ok(peerGroup.getPeers(BranchId.of(branchId)));
+    public ResponseEntity findPeers(@RequestParam PeerDto peerDto) {
+        BranchId branchId = BranchId.of(peerDto.getBranchId());
+        return ResponseEntity.ok(peerGroup.getPeers(branchId, peerDto.toPeer()));
     }
 
     @GetMapping("/active")

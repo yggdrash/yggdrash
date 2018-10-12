@@ -91,17 +91,31 @@ public class PeerGroup implements BranchEventListener {
         return peerTables.get(branchId).size();
     }
 
-    public Collection<Peer> getPeers(BranchId branchId) {
+    public Collection<String> getPeers(BranchId branchId, Peer peer) {
+        ArrayList<String> peerList = new ArrayList<>();
+        Map<String, Peer> peerMap;
+
         if (peerTables.containsKey(branchId)) {
             log.debug(branchId + "'s peers size => " + peerTables.get(branchId).values().size());
-            return peerTables.get(branchId).values();
+            peerMap = peerTables.get(branchId);
         } else {
-            return new ArrayList<>();
+            peerMap = new ConcurrentHashMap<>();
+            peerTables.put(branchId, peerMap);
         }
+
+        for (Peer storedPeer : peerMap.values()) {
+            peerList.add(storedPeer.toString());
+        }
+        peerMap.put(peer.getYnodeUri(), peer);
+        return peerList;
     }
 
     public boolean contains(BranchId branchId, String ynodeUri) {
-        return peerTables.get(branchId).containsKey(ynodeUri);
+        if (peerTables.containsKey(branchId)) {
+            return peerTables.get(branchId).containsKey(ynodeUri);
+        } else {
+            return false;
+        }
     }
 
     public boolean isEmpty(BranchId branchId) {
