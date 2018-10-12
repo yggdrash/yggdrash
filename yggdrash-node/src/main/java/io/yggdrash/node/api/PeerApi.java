@@ -12,21 +12,14 @@ import java.util.List;
 
 @JsonRpcService("/api/peer")
 public interface PeerApi {
-    /**
-     * Returns all peers
-     */
-    @JsonRpcErrors({
-            @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
-    Peer add(@JsonRpcParam(value = "peer") Peer peer);
 
     /**
-     * Returns all peers
+     * Returns peers by branchId
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    Collection<Peer> getAll();
+    Collection<Peer> getPeers(@JsonRpcParam(value = "branchId") String branchId);
 
     /**
      * Returns all active peers

@@ -17,6 +17,7 @@
 package io.yggdrash.node.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import org.junit.Before;
@@ -48,16 +49,22 @@ public class PeerControllerTest {
     @Before
     public void setUp() {
         JacksonTester.initFields(this, new ObjectMapper());
-        peerGroup.clear();
     }
 
     @Test
     public void shouldGetPeers() throws Exception {
-        peerGroup.addPeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
+        peerGroup.addPeer(BranchId.yeed(), Peer.valueOf("ynode://75bff16c@127.0.0.1:8080"));
 
         mockMvc
                 .perform(
-                        get("/peers"))
+                        get("/peers?branchId=" + BranchId.stem().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)))
+                .andDo(print());
+
+        mockMvc
+                .perform(
+                        get("/peers?branchId=" + BranchId.yeed().toString()))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andDo(print());

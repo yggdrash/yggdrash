@@ -16,6 +16,7 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.net.NodeManager;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerGroup;
@@ -65,7 +66,7 @@ class NodeScheduler {
         }
 
         if (nodeQueue.isEmpty()) {
-            nodeQueue.addAll(peerGroup.getPeerUriList());
+            nodeQueue.addAll(peerGroup.getPeerUriList(BranchId.stem()));
         }
         String peerId = nodeQueue.poll();
         assert peerId != null;
