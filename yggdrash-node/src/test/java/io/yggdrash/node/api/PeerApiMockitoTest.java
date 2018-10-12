@@ -1,7 +1,6 @@
 package io.yggdrash.node.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.yggdrash.TestUtils;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import org.junit.Before;
@@ -18,12 +17,13 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class PeerApiMockitoTest {
 
+    private static final PeerApi peerApiRpc = new JsonRpcConfig().peerApi();
+    private static final BranchId BRANCH = BranchId.stem();
+
     @Mock
     private PeerGroup peerGroup;
     private Peer peer;
-
     private PeerApiImpl peerApi;
-    private static final PeerApi peerApiRpc = new JsonRpcConfig().peerApi();
 
     @Before
     public void setUp() {
@@ -32,14 +32,9 @@ public class PeerApiMockitoTest {
     }
 
     @Test
-    public void addTest() {
-        assertThat(peerApi.add(peer)).isNotNull();
-    }
-
-    @Test
-    public void getAllTest() {
-        when(peerGroup.getPeers()).thenReturn(Collections.singletonList(peer));
-        assertThat(peerApi.getAll().size()).isEqualTo(1);
+    public void getPeersTest() {
+        when(peerGroup.getPeers(BRANCH)).thenReturn(Collections.singletonList(peer));
+        assertThat(peerApi.getPeers(BRANCH.toString()).size()).isEqualTo(1);
     }
 
     @Test
@@ -50,21 +45,9 @@ public class PeerApiMockitoTest {
     }
 
     @Test
-    public void addRpcTest() {
+    public void getPeersRpcTest() {
         try {
-            ObjectMapper objectMapper = TestUtils.getMapper();
-            String peerStr = objectMapper.writeValueAsString(peer);
-            Peer peer = objectMapper.readValue(peerStr, Peer.class);
-            peerApiRpc.add(peer);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Test
-    public void getAllRpcTest() {
-        try {
-            peerApiRpc.getAll();
+            peerApiRpc.getPeers(BRANCH.toString());
         } catch (Exception e) {
             e.printStackTrace();
         }
