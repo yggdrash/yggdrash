@@ -57,16 +57,22 @@ public class PeerControllerTest {
 
         mockMvc
                 .perform(
-                        get("/peers?branchId=" + BranchId.stem().toString()))
+                        get("/peers")
+                                .param("branchId", BranchId.stem().toString())
+                                .param("peerId", "75bff16c")
+                                .param("ip", "127.0.0.1")
+                                .param("port", "32919"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andDo(print());
 
         mockMvc
                 .perform(
-                        get("/peers?branchId=" + BranchId.yeed().toString()))
+                        get("/peers")
+                                .param("branchId", BranchId.stem().toString())
+                                .param("peerId", "75bff16c"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$", hasSize(2)))
                 .andDo(print());
     }
 

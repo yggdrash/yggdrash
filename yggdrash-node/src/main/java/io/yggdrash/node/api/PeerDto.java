@@ -1,6 +1,5 @@
 package io.yggdrash.node.api;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.yggdrash.core.net.Peer;
 import org.spongycastle.util.encoders.Hex;
 
@@ -10,7 +9,6 @@ public class PeerDto {
     private String ip;
     private int port;
 
-    @JsonProperty("info_hash")
     public String getBranchId() {
         return branchId;
     }
@@ -19,7 +17,6 @@ public class PeerDto {
         this.branchId = branchId;
     }
 
-    @JsonProperty("peer_id")
     public String getPeerId() {
         return peerId;
     }
