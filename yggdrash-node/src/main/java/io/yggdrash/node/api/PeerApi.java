@@ -6,7 +6,6 @@ import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
 import io.yggdrash.core.exception.NonExistObjectException;
 
-import java.util.Collection;
 import java.util.List;
 
 @JsonRpcService("/api/peer")
@@ -18,7 +17,7 @@ public interface PeerApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    Collection<String> getPeers(@JsonRpcParam(value = "peer") PeerDto peerDto);
+    List<String> getPeers(@JsonRpcParam(value = "peer") PeerDto peerDto);
 
     /**
      * Returns all active peers

@@ -46,19 +46,18 @@ public class PeerApiMockitoTest {
     @Test
     public void getAllActivePeerTest() {
         when(peerGroup.getActivePeerList())
-                .thenReturn(Collections.singletonList(peer.getYnodeUri()));
+                .thenReturn(Collections.singletonList(peer.toString()));
         assertThat(peerApi.getAllActivePeer().size()).isEqualTo(1);
     }
 
     @Test
     public void getPeersRpcTest() {
         try {
-            Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+            Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32919");
             PeerDto requester = PeerDto.valueOf(BRANCH.toString(), peer);
             Collection<String> peerListWithoutRequester =
                     peerApiRpc.getPeers(requester);
-            assertThat(peerListWithoutRequester).isEmpty();
-            assertThat(peerGroup.contains(BRANCH, peer.toString())).isTrue();
+            assertThat(peerListWithoutRequester.size()).isNotZero();
         } catch (Exception e) {
             e.printStackTrace();
         }

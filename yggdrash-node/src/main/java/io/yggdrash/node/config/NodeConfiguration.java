@@ -18,6 +18,7 @@ package io.yggdrash.node.config;
 
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Wallet;
+import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,8 +38,10 @@ public class NodeConfiguration {
     }
 
     @Bean
-    PeerGroup peerGroup() {
-        PeerGroup peerGroup = new PeerGroup(nodeProperties.getMaxPeers());
+    PeerGroup peerGroup(Wallet wallet) {
+        Peer owner = Peer.valueOf(wallet.getNodeId(), nodeProperties.getGrpc().getHost(),
+                nodeProperties.getGrpc().getPort());
+        PeerGroup peerGroup = new PeerGroup(owner, nodeProperties.getMaxPeers());
         peerGroup.setSeedPeerList(nodeProperties.getSeedPeerList());
         return peerGroup;
     }

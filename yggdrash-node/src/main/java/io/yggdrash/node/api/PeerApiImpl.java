@@ -6,7 +6,6 @@ import io.yggdrash.core.net.PeerGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Collection;
 import java.util.List;
 
 @Service
@@ -21,7 +20,7 @@ public class PeerApiImpl implements PeerApi {
     }
 
     @Override
-    public Collection<String> getPeers(PeerDto peerDto) {
+    public List<String> getPeers(PeerDto peerDto) {
         return peerGroup.getPeers(BranchId.of(peerDto.getBranchId()), peerDto.toPeer());
     }
 
