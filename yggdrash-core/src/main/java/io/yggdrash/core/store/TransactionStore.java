@@ -28,6 +28,7 @@ import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -43,13 +44,22 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
 
     private final DbSource<byte[], byte[]> db;
     private final Cache<Sha3Hash, TransactionHusk> huskTxPool;
+    private final Cache<Sha3Hash, TransactionHusk> readCache;
+    private final Set<Sha3Hash> txIds = new HashSet<>();
     private final Set<Sha3Hash> unconfirmedTxs = new HashSet<>();
+    private long countOfTxs = 0;
 
     public TransactionStore(DbSource<byte[], byte[]> db) {
         this.db = db.init();
         this.huskTxPool = CacheManagerBuilder
                 .newCacheManagerBuilder().build(true)
                 .createCache("txPool", CacheConfigurationBuilder
+                        .newCacheConfigurationBuilder(Sha3Hash.class, TransactionHusk.class,
+                                ResourcePoolsBuilder.heap(Long.MAX_VALUE)));
+
+        this.readCache = CacheManagerBuilder
+                .newCacheManagerBuilder().build(true)
+                .createCache("txCache", CacheConfigurationBuilder
                         .newCacheConfigurationBuilder(Sha3Hash.class, TransactionHusk.class,
                                 ResourcePoolsBuilder.heap(Long.MAX_VALUE)));
     }
@@ -108,11 +118,18 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
                 TransactionHusk foundTx = map.get(key);
                 if (foundTx != null) {
                     db.put(key.getBytes(), foundTx.getData());
+                    readCache.put(key, foundTx);
+                    txIds.add(key);
                 }
             }
+            this.countOfTxs += map.size();
             this.flush(keys);
         }
         LOCK.unlock();
+    }
+
+    long getCountOfTxs() {
+        return this.countOfTxs;
     }
 
     public Collection<TransactionHusk> getUnconfirmedTxs() {
@@ -122,5 +139,9 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     private void flush(Set<Sha3Hash> keys) {
         huskTxPool.removeAll(keys);
         unconfirmedTxs.removeAll(keys);
+    }
+
+    Map<Sha3Hash, TransactionHusk> getRecentTxs() {
+        return readCache.getAll(txIds);
     }
 }

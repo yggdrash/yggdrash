@@ -23,6 +23,8 @@ import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -41,6 +43,26 @@ public class TransactionStoreTest {
     }
 
     @Test
+    public void shouldBeGotRecentTxs() {
+        ts.put(tx.getHash(), tx);
+        batch();
+        Collection<TransactionHusk> unconfirmedTxs = ts.getUnconfirmedTxs();
+        assertThat(unconfirmedTxs.size()).isEqualTo(0);
+        Map<Sha3Hash, TransactionHusk> txs = ts.getRecentTxs();
+        assertThat(txs.size()).isEqualTo(1);
+    }
+
+    /* 배치가 돌기 전에는 최근 트랜잭션에 들어가지 않고 언컨펌트랜잭션에서만 조회 가능 */
+    @Test
+    public void shouldNotGetRecentTxsWhenNotBatched() {
+        ts.put(tx.getHash(), tx);
+        Map<Sha3Hash, TransactionHusk> txs = ts.getRecentTxs();
+        assertThat(txs).isEmpty();
+        Collection<TransactionHusk> unconfirmedTxs = ts.getUnconfirmedTxs();
+        assertThat(unconfirmedTxs.size()).isEqualTo(1);
+    }
+
+    @Test
     public void shouldGetFromDb() {
         Sha3Hash key = tx.getHash();
         ts.put(tx.getHash(), tx);
@@ -54,7 +76,7 @@ public class TransactionStoreTest {
         ts.put(tx.getHash(), tx);
         batch();
         assertThat(ts.getUnconfirmedTxs()).isEmpty();
-        assertThat(ts.getAll().size()).isEqualTo(1L);
+        assertThat(ts.getCountOfTxs()).isEqualTo(1L);
     }
 
     @Test
