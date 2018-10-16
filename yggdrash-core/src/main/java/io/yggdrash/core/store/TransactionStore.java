@@ -54,6 +54,7 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
                                 ResourcePoolsBuilder.heap(Long.MAX_VALUE)));
     }
 
+    @Deprecated
     public Set<TransactionHusk> getAll() {
         try {
             List<byte[]> dataList = db.getAll();

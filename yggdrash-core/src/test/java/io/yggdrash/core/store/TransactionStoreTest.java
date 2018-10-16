@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core;
+package io.yggdrash.core.store;
 
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.store.TransactionStore;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Before;
 import org.junit.Test;

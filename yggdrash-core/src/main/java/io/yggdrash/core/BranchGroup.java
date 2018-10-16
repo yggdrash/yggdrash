@@ -80,6 +80,7 @@ public class BranchGroup {
         return branches.get(id).getLastIndex();
     }
 
+    @Deprecated
     public List<TransactionHusk> getTransactionList(BranchId branchId) {
         return branches.get(branchId).getTransactionList();
     }

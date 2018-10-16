@@ -88,6 +88,7 @@ public class BlockChain {
         addBlock(block, true);
     }
 
+    @Deprecated
     List<TransactionHusk> getTransactionList() {
         List<TransactionHusk> list = getUnconfirmedTxs();
         list.addAll(transactionStore.getAll());
