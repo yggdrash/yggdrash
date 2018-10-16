@@ -43,6 +43,21 @@ public class TransactionStoreTest {
     }
 
     @Test
+    public void shouldBeGetLotOfRecentTxs() {
+        int countOfTest = 500;
+        for(int i = 0; i < countOfTest; i++) {
+            tx = TestUtils.createTransferTxHusk();
+            ts.put(tx.getHash(), tx);
+        }
+        assertThat(ts.getUnconfirmedTxs().size()).isEqualTo(countOfTest);
+        batch();
+        assertThat(ts.getUnconfirmedTxs().size()).isEqualTo(0);
+        assertThat(ts.getCountOfTxs()).isEqualTo(countOfTest);
+        Map<Sha3Hash, TransactionHusk> recentTxs = ts.getRecentTxs();
+        assertThat(recentTxs.size()).isEqualTo(countOfTest);
+    }
+
+    @Test
     public void shouldBeGotRecentTxs() {
         ts.put(tx.getHash(), tx);
         batch();

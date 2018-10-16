@@ -118,10 +118,10 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
                 TransactionHusk foundTx = map.get(key);
                 if (foundTx != null) {
                     db.put(key.getBytes(), foundTx.getData());
-                    readCache.put(key, foundTx);
                     txIds.add(key);
                 }
             }
+            readCache.putAll(map);
             this.countOfTxs += map.size();
             this.flush(keys);
         }
@@ -142,6 +142,12 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     }
 
     Map<Sha3Hash, TransactionHusk> getRecentTxs() {
-        return readCache.getAll(txIds);
+        Set<Sha3Hash> containIds = new HashSet<>();
+        for(Sha3Hash id : txIds) {
+            if(readCache.containsKey(id)) {
+                containIds.add(id);
+            }
+        }
+        return readCache.getAll(containIds);
     }
 }
