@@ -21,7 +21,6 @@ import io.yggdrash.core.exception.NotValidateException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
 
 public class Peer {
     private static final String YGGDRASH_NODE_SCHEMA = "ynode";
@@ -57,7 +56,7 @@ public class Peer {
     }
 
     public static Peer valueOf(byte[] ynodeUriBytes) {
-        return valueOf(Arrays.toString(ynodeUriBytes));
+        return valueOf(new String(ynodeUriBytes));
     }
 
     public static Peer valueOf(String nodeId, String host, int port) {
@@ -65,7 +64,7 @@ public class Peer {
                 nodeId, host + ":" + port));
     }
 
-    PeerId getPeerId() {
+    public PeerId getPeerId() {
         return peerId;
     }
 
