@@ -101,14 +101,17 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
         LOCK.lock();
         if (keys.size() > 0) {
             Map<Sha3Hash, TransactionHusk> map = huskTxPool.getAll(keys);
+            int countOfBatchedTxs = map.size();
             for (Sha3Hash key : map.keySet()) {
                 TransactionHusk foundTx = map.get(key);
                 if (foundTx != null) {
                     db.put(key.getBytes(), foundTx.getData());
                     addReadCache(foundTx);
+                } else {
+                    countOfBatchedTxs -= 1;
                 }
             }
-            this.countOfTxs += map.size();
+            this.countOfTxs += countOfBatchedTxs;
             this.flush(keys);
         }
         LOCK.unlock();
