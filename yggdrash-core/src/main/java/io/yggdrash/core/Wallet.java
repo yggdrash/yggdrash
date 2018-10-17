@@ -2,6 +2,7 @@ package io.yggdrash.core;
 
 import com.google.common.base.Strings;
 import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.crypto.AESEncrypt;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
@@ -18,6 +19,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
+import java.security.SignatureException;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -301,6 +303,21 @@ public class Wallet {
         ECKey.ECDSASignature sig = new ECKey.ECDSASignature(signature);
 
         return key.verify(hashedData, sig);
+    }
+
+    public static boolean verify(byte[] data, byte[] signature, boolean hashed) {
+
+        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signature);
+        byte[] hashedData = hashed ? data : HashUtil.sha3(data);
+        ECKey ecKeyPub;
+        try {
+            ecKeyPub = ECKey.signatureToKey(hashedData, ecdsaSignature);
+        } catch (SignatureException e) {
+            logger.debug("Invalid signature" + e.getMessage());
+            return false;
+        }
+
+        return ecKeyPub.verify(hashedData, ecdsaSignature);
     }
 
     /**
