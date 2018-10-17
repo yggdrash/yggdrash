@@ -44,8 +44,7 @@ public class TransactionStoreTest {
     @Test
     public void shouldBeCachedByCacheSize() {
         int cacheSize = 5;
-        ts = new TransactionStore
-                (new HashMapDbSource(), cacheSize);
+        ts = new TransactionStore(new HashMapDbSource(), cacheSize);
 
         // 캐시 사이즈보다 하나 더 입력
         for (int i = 0; i < cacheSize + 1; i++) {
