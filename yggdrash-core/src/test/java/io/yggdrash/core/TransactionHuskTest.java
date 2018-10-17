@@ -3,7 +3,6 @@ package io.yggdrash.core;
 import io.yggdrash.TestUtils;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.proto.Proto;
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -14,6 +13,7 @@ import org.spongycastle.util.encoders.Hex;
 import java.io.IOException;
 import java.security.SignatureException;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -33,8 +33,15 @@ public class TransactionHuskTest {
     }
 
     @Test
+    public void shouldBeEquals() {
+        TransactionHusk tx1 = TestUtils.createTransferTxHusk();
+        TransactionHusk tx2 = TestUtils.createTransferTxHusk();
+        assertThat(tx1).isNotEqualTo(tx2);
+    }
+
+    @Test
     public void transactionTest() {
-        Assertions.assertThat(txHusk).isNotNull();
+        assertThat(txHusk).isNotNull();
         assert txHusk.getHash() != null;
     }
 
@@ -124,8 +131,8 @@ public class TransactionHuskTest {
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signatureBin);
         ECKey key = ECKey.signatureToKey(hashedRawData, ecdsaSignature);
 
-        byte [] address = key.getAddress();
-        byte [] pubKey = key.getPubKey();
+        byte[] address = key.getAddress();
+        byte[] pubKey = key.getPubKey();
 
         log.debug("address: " + Hex.toHexString(address));
         log.debug("pubKey: " + Hex.toHexString(pubKey));
@@ -138,7 +145,7 @@ public class TransactionHuskTest {
     public void shouldBeSignedTransaction() {
         txHusk.sign(TestUtils.wallet());
 
-        Assertions.assertThat(txHusk.isSigned()).isTrue();
-        Assertions.assertThat(txHusk.verify()).isTrue();
+        assertThat(txHusk.isSigned()).isTrue();
+        assertThat(txHusk.verify()).isTrue();
     }
 }

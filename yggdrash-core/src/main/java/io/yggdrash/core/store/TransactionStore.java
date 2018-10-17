@@ -41,11 +41,11 @@ import java.util.concurrent.locks.ReentrantLock;
 public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     private static final Logger log = LoggerFactory.getLogger(TransactionStore.class);
     private static final Lock LOCK = new ReentrantLock();
+    private long cacheSize = 500;
 
     private final DbSource<byte[], byte[]> db;
     private final Cache<Sha3Hash, TransactionHusk> huskTxPool;
-    private final Cache<Sha3Hash, TransactionHusk> readCache;
-    private final Set<Sha3Hash> txIds = new HashSet<>();
+    private final List<TransactionHusk> recentTxs = new ArrayList<>();
     private final Set<Sha3Hash> unconfirmedTxs = new HashSet<>();
     private long countOfTxs = 0;
 
@@ -56,12 +56,11 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
                 .createCache("txPool", CacheConfigurationBuilder
                         .newCacheConfigurationBuilder(Sha3Hash.class, TransactionHusk.class,
                                 ResourcePoolsBuilder.heap(Long.MAX_VALUE)));
+    }
 
-        this.readCache = CacheManagerBuilder
-                .newCacheManagerBuilder().build(true)
-                .createCache("txCache", CacheConfigurationBuilder
-                        .newCacheConfigurationBuilder(Sha3Hash.class, TransactionHusk.class,
-                                ResourcePoolsBuilder.heap(Long.MAX_VALUE)));
+    TransactionStore(DbSource<byte[], byte[]> db, long cacheSize) {
+        this(db);
+        this.cacheSize = cacheSize;
     }
 
     @Deprecated
@@ -76,6 +75,10 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
         } catch (Exception e) {
             throw new NotValidateException(e);
         }
+    }
+
+    Collection<TransactionHusk> getRecentTxs() {
+        return this.recentTxs;
     }
 
     @Override
@@ -118,17 +121,25 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
                 TransactionHusk foundTx = map.get(key);
                 if (foundTx != null) {
                     db.put(key.getBytes(), foundTx.getData());
-                    txIds.add(key);
+                    addReadCache(foundTx);
                 }
             }
-            readCache.putAll(map);
             this.countOfTxs += map.size();
             this.flush(keys);
         }
         LOCK.unlock();
     }
 
-    long getCountOfTxs() {
+    private void addReadCache(TransactionHusk tx) {
+        synchronized (recentTxs) {
+            recentTxs.add(tx);
+            if (recentTxs.size() > cacheSize) {
+                this.recentTxs.remove(0);
+            }
+        }
+    }
+
+    long countOfTxs() {
         return this.countOfTxs;
     }
 
@@ -139,15 +150,5 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     private void flush(Set<Sha3Hash> keys) {
         huskTxPool.removeAll(keys);
         unconfirmedTxs.removeAll(keys);
-    }
-
-    Map<Sha3Hash, TransactionHusk> getRecentTxs() {
-        Set<Sha3Hash> containIds = new HashSet<>();
-        for(Sha3Hash id : txIds) {
-            if(readCache.containsKey(id)) {
-                containIds.add(id);
-            }
-        }
-        return readCache.getAll(containIds);
     }
 }
