@@ -8,6 +8,7 @@ import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.config.Constants;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Wallet;
+import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.node.controller.AdminDto;
 import io.yggdrash.util.ByteUtil;
 import org.spongycastle.util.encoders.Hex;
@@ -92,6 +93,10 @@ public class AdminApiImpl implements AdminApi {
         }
 
         // check bodyHash
+        if (!header.get("bodyHash").getAsString().equals(
+                Hex.toHexString(HashUtil.sha3(body.toString().getBytes())))) {
+            return false;
+        }
 
         // verify a signature
 
