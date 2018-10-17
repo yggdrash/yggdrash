@@ -2,7 +2,6 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.core.exception.NotValidateException;
 import org.junit.Test;
-import org.spongycastle.util.encoders.Hex;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,7 +20,6 @@ public class PeerTest {
     public void createPeerWithNodeIdTest() {
         Peer peer = Peer.valueOf("75bff16c", "yggdrash-node1", 32918);
         assertThat(peer.getYnodeUri()).isEqualTo("ynode://75bff16c@yggdrash-node1:32918");
-        assertThat(Hex.decode("75bff16c")).isEqualTo(peer.getId());
     }
 
     @Test(expected = NotValidateException.class)
