@@ -13,6 +13,8 @@ import java.util.List;
 
 public class ChannelMock implements PeerClientChannel {
     private final Peer peer;
+    private final Pong pong = Pong.newBuilder().setPong("Pong").build();
+    private boolean pongResponse = true;
 
     public ChannelMock(String ynodeUri) {
         this.peer = Peer.valueOf(ynodeUri);
@@ -29,7 +31,12 @@ public class ChannelMock implements PeerClientChannel {
 
     @Override
     public Pong ping(String message) {
-        return Pong.newBuilder().setPong("Pong").build();
+        if (pongResponse) {
+            pongResponse = false;
+            return pong;
+        }
+        pongResponse = true;
+        return null;
     }
 
     @Override

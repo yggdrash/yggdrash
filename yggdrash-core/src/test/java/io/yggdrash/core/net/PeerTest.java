@@ -28,4 +28,11 @@ public class PeerTest {
     public void unkownSchemaTest() {
         Peer.valueOf("http://75bff16c@yggdrash-node1:32918");
     }
+
+    @Test
+    public void equalsTest() {
+        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32919");
+        assert !peer1.equals(peer2);
+    }
 }

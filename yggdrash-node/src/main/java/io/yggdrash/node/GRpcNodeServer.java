@@ -132,9 +132,9 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         nodeStatus.sync();
         for (BlockChain blockChain : branchGroup.getAllBranch()) {
             BranchId branchId = blockChain.getBranchId();
-            peerGroup.addPeer(branchId, peer);
             syncBlockAndTransaction(branchId);
         }
+        nodeStatus.up();
     }
 
     @Override
@@ -169,7 +169,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     }
 
     private void syncBlockAndTransaction(BranchId branchId) {
-        if (peerGroup.isEmpty(branchId)) {
+        if (peerGroup.isChannelEmpty(branchId)) {
             return;
         }
         try {
@@ -177,7 +177,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
                 BlockChainSync.syncTransaction(blockChain, peerGroup);
                 BlockChainSync.syncBlock(blockChain, peerGroup);
             }
-            nodeStatus.up();
         } catch (Exception e) {
             log.warn(e.getMessage(), e);
         }

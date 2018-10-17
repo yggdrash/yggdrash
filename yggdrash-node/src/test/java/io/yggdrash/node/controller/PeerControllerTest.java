@@ -18,7 +18,6 @@ package io.yggdrash.node.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.core.BranchId;
-import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import org.junit.Before;
 import org.junit.Test;
@@ -53,18 +52,22 @@ public class PeerControllerTest {
 
     @Test
     public void shouldGetPeers() throws Exception {
-        peerGroup.addPeer(BranchId.yeed(), Peer.valueOf("ynode://75bff16c@127.0.0.1:8080"));
-
         mockMvc
                 .perform(
-                        get("/peers?branchId=" + BranchId.stem().toString()))
+                        get("/peers")
+                                .param("branchId", BranchId.stem().toString())
+                                .param("peerId", "75bff16c")
+                                .param("ip", "127.0.0.1")
+                                .param("port", "32919"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
+                .andExpect(jsonPath("$", hasSize(0)))
                 .andDo(print());
 
         mockMvc
                 .perform(
-                        get("/peers?branchId=" + BranchId.yeed().toString()))
+                        get("/peers")
+                                .param("branchId", BranchId.stem().toString())
+                                .param("peerId", "75bff16c"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)))
                 .andDo(print());

@@ -29,6 +29,9 @@ public class Peer {
     private String host;
     private int port;
     private String ynodeUri;
+    private PeerId peerId;
+    private long modified;
+    private int distance;
 
     private Peer(String ynodeUri) {
         try {
@@ -41,6 +44,8 @@ public class Peer {
             this.host = uri.getHost();
             this.port = uri.getPort();
             this.ynodeUri = ynodeUri;
+            this.peerId = PeerId.of(ynodeUri);
+            touch();
         } catch (URISyntaxException e) {
             throw new NotValidateException("expecting URL in the format ynode://PUBKEY@HOST:PORT");
         }
@@ -71,8 +76,42 @@ public class Peer {
         return ynodeUri;
     }
 
+    PeerId getPeerId() {
+        return peerId;
+    }
+
+    void setDistance(Peer owner) {
+        this.distance = owner.peerId.distanceTo(peerId.getBytes());
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Peer peer = (Peer) o;
+        return peerId.equals(peer.getPeerId());
+    }
+
     @Override
     public String toString() {
         return ynodeUri;
+    }
+
+    void touch() {
+        modified = System.currentTimeMillis();
+    }
+
+    long getModified() {
+        return modified;
+    }
+
+    int getDistance() {
+        return distance;
     }
 }
