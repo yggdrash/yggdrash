@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -55,7 +56,7 @@ public class BlockChain {
             }
             blockStore.put(genesisBlock.getHash(), genesisBlock);
             prevBlock = genesisBlock;
-            removeTxByBlock(genesisBlock);
+            batchTxs(genesisBlock);
         }
     }
 
@@ -88,14 +89,16 @@ public class BlockChain {
         addBlock(block, true);
     }
 
-    List<TransactionHusk> getTransactionList() {
-        List<TransactionHusk> list = getUnconfirmedTxs();
-        list.addAll(transactionStore.getAll());
-        return list;
+    Collection<TransactionHusk> getRecentTxs() {
+        return transactionStore.getRecentTxs();
     }
 
     List<TransactionHusk> getUnconfirmedTxs() {
         return new ArrayList<>(transactionStore.getUnconfirmedTxs());
+    }
+
+    long countOfTxs() {
+        return transactionStore.countOfTxs();
     }
 
     public BranchId getBranchId() {
@@ -148,7 +151,7 @@ public class BlockChain {
         this.prevBlock = nextBlock;
         log.debug("Added idx=[{}], tx={}, branch={}, blockHash={}", nextBlock.getIndex(),
                 nextBlock.getBody().size(), getBranchId().toString(), nextBlock.getHash());
-        removeTxByBlock(nextBlock);
+        batchTxs(nextBlock);
         if (!listenerList.isEmpty() && broadcast) {
             listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
         }
@@ -279,7 +282,7 @@ public class BlockChain {
         }
     }
 
-    private void removeTxByBlock(BlockHusk block) {
+    private void batchTxs(BlockHusk block) {
         if (block == null || block.getBody() == null) {
             return;
         }
