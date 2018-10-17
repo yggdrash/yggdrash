@@ -3,6 +3,7 @@ package io.yggdrash.core;
 import com.google.common.base.Strings;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.crypto.AESEncrypt;
+import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.crypto.Password;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.FileUtil;
@@ -271,7 +272,18 @@ public class WalletTest {
 
         boolean verifyResult = wallet.verify(plain, signature);
         log.debug("Verify Result: " + verifyResult);
+        assertTrue(verifyResult);
 
+        verifyResult = wallet.verifyHashedData(HashUtil.sha3(plain), signature);
+        log.debug("Verify Result: " + verifyResult);
+        assertTrue(verifyResult);
+
+        verifyResult = Wallet.verify(HashUtil.sha3(plain), signature, true);
+        log.debug("Verify Result: " + verifyResult);
+        assertTrue(verifyResult);
+
+        verifyResult = Wallet.verify(plain, signature, false);
+        log.debug("Verify Result: " + verifyResult);
         assertTrue(verifyResult);
     }
 
