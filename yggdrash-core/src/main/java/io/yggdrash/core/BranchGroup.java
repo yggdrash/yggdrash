@@ -80,9 +80,8 @@ public class BranchGroup {
         return branches.get(id).getLastIndex();
     }
 
-    @Deprecated
-    public List<TransactionHusk> getTransactionList(BranchId branchId) {
-        return branches.get(branchId).getTransactionList();
+    public Collection<TransactionHusk> getRecentTxs(BranchId branchId) {
+        return branches.get(branchId).getRecentTxs();
     }
 
     public TransactionHusk getTxByHash(BranchId branchId, String id) {
@@ -152,5 +151,9 @@ public class BranchGroup {
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
+    }
+
+    public long countOfTxs(BranchId branchId) {
+        return branches.get(branchId).countOfTxs();
     }
 }

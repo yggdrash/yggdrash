@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -88,15 +89,16 @@ public class BlockChain {
         addBlock(block, true);
     }
 
-    @Deprecated
-    List<TransactionHusk> getTransactionList() {
-        List<TransactionHusk> list = getUnconfirmedTxs();
-        list.addAll(transactionStore.getAll());
-        return list;
+    Collection<TransactionHusk> getRecentTxs() {
+        return transactionStore.getRecentTxs();
     }
 
     List<TransactionHusk> getUnconfirmedTxs() {
         return new ArrayList<>(transactionStore.getUnconfirmedTxs());
+    }
+
+    long countOfTxs() {
+        return transactionStore.countOfTxs();
     }
 
     public BranchId getBranchId() {

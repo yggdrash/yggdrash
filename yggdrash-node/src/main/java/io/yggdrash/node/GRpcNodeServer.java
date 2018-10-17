@@ -248,7 +248,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
             BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
             Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
-            for (TransactionHusk husk : branchGroup.getTransactionList(branchId)) {
+            for (TransactionHusk husk : branchGroup.getRecentTxs(branchId)) {
                 builder.addTransactions(husk.getInstance());
             }
             responseObserver.onNext(builder.build());

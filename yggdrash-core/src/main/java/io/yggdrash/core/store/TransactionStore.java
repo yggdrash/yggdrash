@@ -19,7 +19,6 @@ package io.yggdrash.core.store;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.exception.FailedOperationException;
-import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.datasource.DbSource;
 import org.ehcache.Cache;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
@@ -28,10 +27,8 @@ import org.ehcache.config.builders.ResourcePoolsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -41,13 +38,14 @@ import java.util.concurrent.locks.ReentrantLock;
 public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     private static final Logger log = LoggerFactory.getLogger(TransactionStore.class);
     private static final Lock LOCK = new ReentrantLock();
+
     private long cacheSize = 500;
+    private long countOfTxs = 0;
 
     private final DbSource<byte[], byte[]> db;
     private final Cache<Sha3Hash, TransactionHusk> huskTxPool;
-    private final List<TransactionHusk> recentTxs = new ArrayList<>();
+    private final TreeSet<TransactionHusk> recentTxs = new TreeSet<>();
     private final Set<Sha3Hash> unconfirmedTxs = new HashSet<>();
-    private long countOfTxs = 0;
 
     public TransactionStore(DbSource<byte[], byte[]> db) {
         this.db = db.init();
@@ -63,21 +61,7 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
         this.cacheSize = cacheSize;
     }
 
-    @Deprecated
-    public Set<TransactionHusk> getAll() {
-        try {
-            List<byte[]> dataList = db.getAll();
-            TreeSet<TransactionHusk> txSet = new TreeSet<>();
-            for (byte[] data : dataList) {
-                txSet.add(new TransactionHusk(data));
-            }
-            return txSet;
-        } catch (Exception e) {
-            throw new NotValidateException(e);
-        }
-    }
-
-    Collection<TransactionHusk> getRecentTxs() {
+    public Collection<TransactionHusk> getRecentTxs() {
         return this.recentTxs;
     }
 
@@ -131,15 +115,13 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     }
 
     private void addReadCache(TransactionHusk tx) {
-        synchronized (recentTxs) {
-            recentTxs.add(tx);
-            if (recentTxs.size() > cacheSize) {
-                this.recentTxs.remove(0);
-            }
+        recentTxs.add(tx);
+        if (recentTxs.size() > cacheSize) {
+            this.recentTxs.pollFirst();
         }
     }
 
-    long countOfTxs() {
+    public long countOfTxs() {
         return this.countOfTxs;
     }
 
