@@ -10,5 +10,6 @@
   "version":"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025",
   "version_history":["0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025"],
   "reference_address":"",
-  "reserve_address":"0x9cc060690705a13078634637b1d2a5f2fe1b8096"
+  "reserve_address": "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb"
 }
+// reserve_address 는 블록 생성시 author 주소
