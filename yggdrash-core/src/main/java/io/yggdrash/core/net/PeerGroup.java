@@ -96,6 +96,10 @@ public class PeerGroup implements BranchEventListener {
         return peerList;
     }
 
+    PeerTable getPeerTable(BranchId branchId) {
+        return peerTables.getOrDefault(branchId, null);
+    }
+
     boolean containsPeer(BranchId branchId, Peer peer) {
         if (peerTables.containsKey(branchId)) {
             return peerTables.get(branchId).contains(peer);
