@@ -19,7 +19,6 @@ package io.yggdrash.core.store;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.exception.FailedOperationException;
-import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.datasource.DbSource;
 import org.ehcache.Cache;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
@@ -30,7 +29,6 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -41,8 +39,12 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     private static final Logger log = LoggerFactory.getLogger(TransactionStore.class);
     private static final Lock LOCK = new ReentrantLock();
 
+    private long cacheSize = 500;
+    private long countOfTxs = 0;
+
     private final DbSource<byte[], byte[]> db;
     private final Cache<Sha3Hash, TransactionHusk> huskTxPool;
+    private final TreeSet<TransactionHusk> recentTxs = new TreeSet<>();
     private final Set<Sha3Hash> unconfirmedTxs = new HashSet<>();
 
     public TransactionStore(DbSource<byte[], byte[]> db) {
@@ -54,17 +56,13 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
                                 ResourcePoolsBuilder.heap(Long.MAX_VALUE)));
     }
 
-    public Set<TransactionHusk> getAll() {
-        try {
-            List<byte[]> dataList = db.getAll();
-            TreeSet<TransactionHusk> txSet = new TreeSet<>();
-            for (byte[] data : dataList) {
-                txSet.add(new TransactionHusk(data));
-            }
-            return txSet;
-        } catch (Exception e) {
-            throw new NotValidateException(e);
-        }
+    TransactionStore(DbSource<byte[], byte[]> db, long cacheSize) {
+        this(db);
+        this.cacheSize = cacheSize;
+    }
+
+    public Collection<TransactionHusk> getRecentTxs() {
+        return this.recentTxs;
     }
 
     @Override
@@ -103,15 +101,31 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
         LOCK.lock();
         if (keys.size() > 0) {
             Map<Sha3Hash, TransactionHusk> map = huskTxPool.getAll(keys);
+            int countOfBatchedTxs = map.size();
             for (Sha3Hash key : map.keySet()) {
                 TransactionHusk foundTx = map.get(key);
                 if (foundTx != null) {
                     db.put(key.getBytes(), foundTx.getData());
+                    addReadCache(foundTx);
+                } else {
+                    countOfBatchedTxs -= 1;
                 }
             }
+            this.countOfTxs += countOfBatchedTxs;
             this.flush(keys);
         }
         LOCK.unlock();
+    }
+
+    private void addReadCache(TransactionHusk tx) {
+        recentTxs.add(tx);
+        if (recentTxs.size() > cacheSize) {
+            this.recentTxs.pollFirst();
+        }
+    }
+
+    public long countOfTxs() {
+        return this.countOfTxs;
     }
 
     public Collection<TransactionHusk> getUnconfirmedTxs() {
