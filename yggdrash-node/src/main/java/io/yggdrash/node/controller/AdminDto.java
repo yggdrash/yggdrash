@@ -1,9 +1,12 @@
 package io.yggdrash.node.controller;
 
 public class AdminDto {
-    String header;
-    String signature;
-    String body;
+
+    private String header;
+
+    private String signature;
+
+    private String body;
 
     public String getHeader() {
         return header;
