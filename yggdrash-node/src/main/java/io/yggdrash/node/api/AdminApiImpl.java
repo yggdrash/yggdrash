@@ -116,6 +116,8 @@ public class AdminApiImpl implements AdminApi {
     }
 
     private boolean verifyAdminDto(AdminDto command, String method) {
+        //todo: add checking length.
+
         // null check
         if (command.getHeader() == null || command.getSignature() == null
                 || command.getBody() == null) {
