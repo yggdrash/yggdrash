@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package io.yggdrash.common;
+package io.yggdrash.contract;
 
+import io.yggdrash.crypto.HashUtil;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -23,17 +24,18 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.ByteBuffer;
 
-public class YggdrashContractLoader extends ClassLoader {
+public class ContractClassLoader extends ClassLoader {
 
-    public YggdrashClassLoader(ClassLoader parent) {
+    public ContractClassLoader(ClassLoader parent) {
         super(parent);
     }
 
-    public Class loadClass(File file) throws ClassNotFoundException {
+    public Class loadContract(String contractFullName, File contractFile) {
+        byte[] classData = null;
         try {
-
-            URL myUrl = file.toURI().toURL();
+            URL myUrl = contractFile.toURI().toURL();
             URLConnection connection = myUrl.openConnection();
             InputStream input = connection.getInputStream();
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
@@ -46,17 +48,31 @@ public class YggdrashContractLoader extends ClassLoader {
 
             input.close();
 
-            byte[] classData = buffer.toByteArray();
-
-            return defineClass("reflection.MyObject",
-                    classData, 0, classData.length);
-
+            classData = buffer.toByteArray();
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        return null;
+        if(classData == null) {
+            return null;
+        } else {
+            return loadContract(contractFullName, classData);
+        }
     }
+
+    public Class loadContract(String contractFullName, byte[] b) {
+        ByteBuffer contractKey = ByteBuffer.wrap(contractHash(b));
+        return defineClass(contractFullName, b, 0, b.length);
+    }
+
+    public static Class loadContractClass(String contractFullName, File contractFile) {
+        ContractClassLoader loader = new ContractClassLoader(Object.class.getClassLoader());
+        return loader.loadContract(contractFullName, contractFile);
+    }
+
+    public static byte[] contractHash(byte[] contractBytes) {
+        return HashUtil.sha1(contractBytes);
+    }
+
 }
