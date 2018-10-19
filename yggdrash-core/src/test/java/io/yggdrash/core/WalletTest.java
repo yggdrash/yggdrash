@@ -285,6 +285,11 @@ public class WalletTest {
         verifyResult = Wallet.verify(plain, signature, false);
         log.debug("Verify Result: " + verifyResult);
         assertTrue(verifyResult);
+
+        verifyResult = Wallet.verify(plain, signature, false, wallet.getPubicKey());
+        log.debug("Verify Result: " + verifyResult);
+        assertTrue(verifyResult);
+
     }
 
     /**
