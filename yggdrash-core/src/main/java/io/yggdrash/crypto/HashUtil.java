@@ -37,12 +37,15 @@ public class HashUtil {
 
     private static final String HASH_256_ALGORITHM_NAME;
 
+    private static final String HASH_SHA_1_ALGORITHM_NAME;
+
     static {
 
         Security.addProvider(SpongyCastleProvider.getInstance());
 
         CRYPTO_PROVIDER = Security.getProvider("SC");
         HASH_256_ALGORITHM_NAME = "ETH-KECCAK-256";
+        HASH_SHA_1_ALGORITHM_NAME = "SHA-1";
     }
 
     /**
@@ -69,7 +72,16 @@ public class HashUtil {
             LOG.error("Can't find such algorithm", e);
             throw new RuntimeException(e);
         }
+    }
 
+    public static byte[] sha1(byte[] input) {
+        try {
+            MessageDigest sha256digest = MessageDigest.getInstance("SHA-1");
+            return sha256digest.digest(input);
+        } catch (NoSuchAlgorithmException e) {
+            LOG.error("Can't find such algorithm", e);
+            throw new RuntimeException(e);
+        }
     }
 
     /**
