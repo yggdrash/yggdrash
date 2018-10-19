@@ -3,7 +3,6 @@ package io.yggdrash.node.api;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.net.Peer;
 import org.junit.Test;
-import org.spongycastle.util.encoders.Hex;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,7 +28,7 @@ public class PeerDtoTest {
 
     private void assertInternal(PeerDto peerDto, Peer peer) {
         assertThat(peerDto.getBranchId()).isEqualTo(BranchId.stem().toString());
-        assert Hex.toHexString(peer.getId()).equals(peerDto.getPeerId());
+        assert peer.getPubKey().toString().equals(peerDto.getPeerId());
         assert peer.getHost().equals(peerDto.getIp());
         assert peer.getPort() == peerDto.getPort();
 

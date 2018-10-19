@@ -1,7 +1,6 @@
 package io.yggdrash.node.api;
 
 import io.yggdrash.core.net.Peer;
-import org.spongycastle.util.encoders.Hex;
 
 public class PeerDto {
     private String branchId;
@@ -44,7 +43,7 @@ public class PeerDto {
     static PeerDto valueOf(String branchId, Peer peer) {
         PeerDto dto = new PeerDto();
         dto.branchId = branchId;
-        dto.peerId = Hex.toHexString(peer.getId());
+        dto.peerId = peer.getPubKey().toString();
         dto.ip = peer.getHost();
         dto.port = peer.getPort();
         return dto;

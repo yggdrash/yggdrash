@@ -294,6 +294,6 @@ public class TestUtils {
     }
 
     public static BlockChain createBlockChain(boolean isProduction) {
-        return BlockChainBuilder.buildBlockChain(genesis, Branch.STEM, isProduction);
+        return new BlockChainBuilder(isProduction).build(genesis, Branch.STEM);
     }
 }
