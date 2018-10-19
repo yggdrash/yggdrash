@@ -40,7 +40,9 @@ public class Peer {
                 throw new NotValidateException(
                         "expecting URL in the format ynode://PUBKEY@HOST:PORT");
             }
-            this.id = Hex.decode(uri.getUserInfo());
+            if (uri.getUserInfo() != null) {
+                this.id = Hex.decode(uri.getUserInfo());
+            }
             this.host = uri.getHost();
             this.port = uri.getPort();
             this.ynodeUri = ynodeUri;

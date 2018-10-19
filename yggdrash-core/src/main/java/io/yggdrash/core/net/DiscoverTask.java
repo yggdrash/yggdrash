@@ -11,24 +11,24 @@ import java.util.List;
 public class DiscoverTask implements Runnable {
     private static final Logger log = LoggerFactory.getLogger("DiscoverTask");
 
+    private DiscoveryClient discoveryClient;
     private PeerGroup peerGroup;
-    private NodeManager nodeManager;
-    private Peer owner;
-    private byte[] ownerId;
+    private final Peer owner;
+    private final byte[] ownerId;
 
-    public DiscoverTask(NodeManager nodeManager) {
-        this.nodeManager = nodeManager;
-        String ynodeUri = nodeManager.getNodeUri();
-        owner = Peer.valueOf(ynodeUri);
-        ownerId = owner.getPeerId().getBytes();
+    DiscoverTask(PeerGroup peerGroup, DiscoveryClient discoveryClient) {
+        this.peerGroup = peerGroup;
+        this.owner = peerGroup.getOwner();
+        this.ownerId = owner.getPeerId().getBytes();
+        this.discoveryClient = discoveryClient;
     }
 
     @Override
     public void run() {
-        discover(ownerId, 0, new ArrayList<>());
+        discover(0, new ArrayList<>());
     }
 
-    public synchronized void discover(byte[] peerId, int round, List<Peer> prevTried) {
+    private synchronized void discover(int round, List<Peer> prevTried) {
         try {
             if (round == KademliaOptions.MAX_STEPS) {
                 log.debug("Peer table contains [{}] peers", peerGroup.count(BranchId.stem()));
@@ -46,7 +46,8 @@ public class DiscoverTask implements Runnable {
             for (Peer p : closest) {
                 if (!tried.contains(p) && !prevTried.contains(p)) {
                     try {
-                        //TODO FIND_NODE 메세지 전송 (NodeHandler)
+                        discoveryClient.findPeers(p.getHost(), p.getPort(), owner);
+
                         tried.add(p);
                         Utils.sleep(50);
                     } catch (Exception e) {
@@ -68,7 +69,7 @@ public class DiscoverTask implements Runnable {
             }
 
             tried.addAll(prevTried);
-            discover(ownerId, round + 1, tried);
+            discover(round + 1, tried);
         } catch (Exception e) {
             log.info("{}", e);
         }

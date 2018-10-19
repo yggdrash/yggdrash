@@ -52,6 +52,33 @@ public class PeerGroup implements BranchEventListener {
         this.maxPeers = maxPeers;
     }
 
+    public Peer getOwner() {
+        return owner;
+    }
+
+    public void bootstrapping(DiscoveryClient discoveryClient) {
+        List<String> seedPeerList = getSeedPeerList();
+        if (seedPeerList == null || seedPeerList.isEmpty()) {
+            return;
+        }
+        for (String ynodeUri : seedPeerList) {
+            if (ynodeUri.equals(owner.getYnodeUri())) {
+                continue;
+            }
+            Peer peer = Peer.valueOf(ynodeUri);
+            log.info("Try connecting to SEED peer = {}", peer);
+
+            try {
+                discoveryClient.findPeers(peer.getHost(), peer.getPort(), owner);
+            } catch (Exception e) {
+                log.error("Failed connecting to SEED peer = {}", peer);
+                continue;
+            }
+            DiscoverTask discoverTask = new DiscoverTask(this, discoveryClient);
+            discoverTask.run();
+        }
+    }
+
     void addPeerByYnodeUri(BranchId branchId, List<String> peerList) {
         for (String ynodeUri : peerList) {
             addPeerByYnodeUri(branchId, ynodeUri);
@@ -124,7 +151,7 @@ public class PeerGroup implements BranchEventListener {
         }
     }
 
-    public List<String> getSeedPeerList() {
+    List<String> getSeedPeerList() {
         return seedPeerList;
     }
 
