@@ -24,7 +24,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.nio.ByteBuffer;
 
 public class ContractClassLoader extends ClassLoader {
 
@@ -41,7 +40,7 @@ public class ContractClassLoader extends ClassLoader {
             ByteArrayOutputStream buffer = new ByteArrayOutputStream();
             int data = input.read();
 
-            while(data != -1) {
+            while (data != -1) {
                 buffer.write(data);
                 data = input.read();
             }
@@ -54,7 +53,7 @@ public class ContractClassLoader extends ClassLoader {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        if(classData == null) {
+        if (classData == null) {
             return null;
         } else {
             return loadContract(contractFullName, classData);
@@ -62,7 +61,6 @@ public class ContractClassLoader extends ClassLoader {
     }
 
     public Class loadContract(String contractFullName, byte[] b) {
-        ByteBuffer contractKey = ByteBuffer.wrap(contractHash(b));
         return defineClass(contractFullName, b, 0, b.length);
     }
 
