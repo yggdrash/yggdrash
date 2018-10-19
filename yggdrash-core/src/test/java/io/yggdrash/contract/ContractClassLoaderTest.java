@@ -17,20 +17,22 @@
 package io.yggdrash.contract;
 
 import io.yggdrash.common.LoadClassTest;
-import java.io.File;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.File;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class ContractClassLoaderTest {
     private static final Logger log = LoggerFactory.getLogger(ContractClassLoaderTest.class);
 
     @Test
-    public void testFilePath() throws IllegalAccessException, InstantiationException, InvocationTargetException {
+    public void testFilePath() throws IllegalAccessException, InstantiationException,
+            InvocationTargetException {
         File d1 = new File("./src/test/resources/LoadClassTest1.class"); // test1
         Class a = ContractClassLoader.loadContractClass(null, d1);
 
@@ -45,11 +47,12 @@ public class ContractClassLoaderTest {
         log.debug(a.getTypeName());
     }
 
-    public String invokeTest(Class a) throws InvocationTargetException, IllegalAccessException, InstantiationException {
+    public String invokeTest(Class a) throws InvocationTargetException, IllegalAccessException,
+            InstantiationException {
         Object t = a.newInstance();
         Method[] ms = a.getDeclaredMethods();
-        for(Method m : ms) {
-            if("test".equals(m.getName())) {
+        for (Method m : ms) {
+            if ("test".equals(m.getName())) {
                 m.setAccessible(true);
                 return m.invoke(t).toString();
             }
