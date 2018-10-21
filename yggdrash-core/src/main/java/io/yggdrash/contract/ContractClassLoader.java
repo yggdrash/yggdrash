@@ -16,13 +16,11 @@
 
 package io.yggdrash.contract;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.MalformedURLException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
 public class ContractClassLoader extends ClassLoader {
     private static final Logger log = LoggerFactory.getLogger(ContractClassLoader.class);
@@ -45,8 +43,6 @@ public class ContractClassLoader extends ClassLoader {
             classData = new byte[Math.toIntExact(contractFile.length())];
             inputStream.read(classData);
             inputStream.close();
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -70,11 +66,7 @@ public class ContractClassLoader extends ClassLoader {
         return loader.loadContract(contractFullName, contractFile);
     }
 
-    public static ContractMeta loadContract(byte[] contractId) {
-        return ContractClassLoader.loadContract(Hex.encode(contractId));
-    }
-
-    public static ContractMeta loadContract(String contractId) {
+    public static ContractMeta loadContractById(String contractId) {
         // TODO Change Contract Path by resource path
         File contractFile = new File(CONTRACT_PATH + contractId + ".class");
         log.debug(contractFile.getAbsolutePath());
@@ -85,7 +77,4 @@ public class ContractClassLoader extends ClassLoader {
         }
 
     }
-
-
-
 }

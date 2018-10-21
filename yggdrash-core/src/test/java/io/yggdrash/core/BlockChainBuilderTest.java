@@ -25,13 +25,13 @@ import static org.junit.Assert.assertEquals;
 public class BlockChainBuilderTest {
 
     @Test(expected = FailedOperationException.class)
-    public void buildStemBlockChain() {
+    public void buildStemBlockChain() throws InstantiationException, IllegalAccessException {
         Branch branch = Branch.of(BranchId.STEM, Branch.STEM, TestUtils.OWNER);
         BlockChainBuilder.buildBlockChain(TestUtils.wallet(), branch, false);
     }
 
     @Test
-    public void buildYeedBlockChain() {
+    public void buildYeedBlockChain() throws InstantiationException, IllegalAccessException {
         Branch branch = Branch.of(BranchId.YEED, Branch.YEED, TestUtils.OWNER);
         BlockChain blockChain =
                 BlockChainBuilder.buildBlockChain(TestUtils.wallet(), branch, false);

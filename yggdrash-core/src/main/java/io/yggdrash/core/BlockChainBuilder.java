@@ -140,7 +140,7 @@ public class BlockChainBuilder {
         if (Branch.STEM.equalsIgnoreCase(branchName)) {
             // replace StemContract
             ContractMeta stem
-                    = ContractClassLoader.loadContract("5e793e345791e26c22498d6978ada9a2392b0692");
+                    = ContractClassLoader.loadContractById("5e793e345791e26c22498d6978ada9a2392b0692");
             return stem.getContract().newInstance();
         } else if (Branch.YEED.equalsIgnoreCase(branchName)) {
             return new CoinContract();
