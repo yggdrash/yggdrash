@@ -40,7 +40,7 @@ public class BlockChainBuilder {
 
     public static BlockChain buildBlockChain(Wallet wallet, Branch branch, boolean isProduction)
             throws IllegalAccessException, InstantiationException {
-
+        // TODO fix change builder patten ref : https://jdm.kr/blog/217
         BlockStore blockStore =
                 new BlockStore(getDbSource(isProduction,branch.getBranchId() + "/blocks"));
 
@@ -57,6 +57,7 @@ public class BlockChainBuilder {
     public static BlockChain buildBlockChain(BlockHusk genesis, String branchName,
                                              boolean isProduction)
             throws InstantiationException, IllegalAccessException {
+        // TODO fix blockchain by branch information (contract and other information)
         BlockStore blockStore =
                 new BlockStore(getDbSource(isProduction,genesis.getBranchId() + "/blocks"));
         TransactionStore txStore =
