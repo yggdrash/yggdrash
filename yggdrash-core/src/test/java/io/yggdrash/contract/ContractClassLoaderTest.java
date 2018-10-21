@@ -65,6 +65,13 @@ public class ContractClassLoaderTest {
 
     }
 
+    @Test
+    public void testLoadByHash() {
+        ContractMeta classMeta = ContractClassLoader.loadContract("79ff1978e131b6d4de263daa7f3b598ea84097b6");
+        assertTrue("io.yggdrash.contract.NoneContract".equals(classMeta.getContract().getName()));
+
+    }
+
 
     public String invokeTest(Class a) throws InvocationTargetException, IllegalAccessException,
             InstantiationException {

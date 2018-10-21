@@ -20,10 +20,14 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ContractClassLoader extends ClassLoader {
-    static Long MAX_FILE_LENGTH = 5242880L; // default 5MB bytes
+    private static final Logger log = LoggerFactory.getLogger(ContractClassLoader.class);
 
+    static Long MAX_FILE_LENGTH = 5242880L; // default 5MB bytes
+    static String CONTRACT_PATH = "./resources/contract/";
 
     public ContractClassLoader(ClassLoader parent) {
         super(parent);
@@ -63,6 +67,21 @@ public class ContractClassLoader extends ClassLoader {
         ContractClassLoader loader =
                 new ContractClassLoader(ContractClassLoader.class.getClassLoader());
         return loader.loadContract(contractFullName, contractFile);
+    }
+
+//    public ContractMeta loadContract(byte[] contractId) {
+//
+//    }
+
+    public static ContractMeta loadContract(String contractId) {
+        File contractFile = new File(CONTRACT_PATH + contractId + ".class");
+        log.debug(contractFile.getAbsolutePath());
+        if (contractFile.exists()) {
+            return ContractClassLoader.loadContractClass(null, contractFile);
+        } else {
+            return null;
+        }
+
     }
 
 
