@@ -52,7 +52,7 @@ public class ContractClassLoaderTest {
     @Test
     public void testContract() throws  IllegalAccessException, InstantiationException,
             InvocationTargetException {
-        File contractNone = new File("./resources/contract/NoneContract.class");
+        File contractNone = new File("./resources/contract/79ff1978e131b6d4de263daa7f3b598ea84097b6.class");
         ContractMeta noneContract = ContractClassLoader.loadContractClass(null, contractNone);
         Class<Contract> none = noneContract.getContract();
         log.debug(String.valueOf(Hex.encodeHex(noneContract.getContractId().array())));
