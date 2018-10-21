@@ -19,7 +19,6 @@ package io.yggdrash.contract;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.crypto.HashUtil;
-import java.lang.reflect.Method;
 import java.nio.ByteBuffer;
 
 public class ContractMeta {
@@ -33,9 +32,9 @@ public class ContractMeta {
         this.contractId = ByteBuffer.wrap(ContractMeta.convertId(contractBinaly));
     }
 
-    public Contract newInstance(StateStore store, TransactionReceiptStore txReceiptStore) throws IllegalAccessException, InstantiationException, NoSuchMethodException {
+    public Contract newInstance(StateStore store, TransactionReceiptStore txReceiptStore)
+            throws IllegalAccessException, InstantiationException, NoSuchMethodException {
         // contract init
-//        Method init = contract.getMethod("init", StateStore.class.getClass(), TransactionReceiptStore.class.getClass());
         Contract c = contract.newInstance();
         c.init(store, txReceiptStore);
         return c;

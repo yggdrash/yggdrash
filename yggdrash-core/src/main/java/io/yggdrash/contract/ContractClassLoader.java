@@ -33,7 +33,7 @@ public class ContractClassLoader extends ClassLoader {
         byte[] classData = null;
         try {
             // contract max file length is 5mb TODO change max byte
-            if( contractFile.length() > ContractClassLoader.MAX_FILE_LENGTH ) {
+            if (contractFile.length() > ContractClassLoader.MAX_FILE_LENGTH) {
                 return null;
             }
             FileInputStream inputStream = new FileInputStream(contractFile);
