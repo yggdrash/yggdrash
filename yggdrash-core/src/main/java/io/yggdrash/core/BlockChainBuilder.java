@@ -38,7 +38,8 @@ import java.util.List;
 
 public class BlockChainBuilder {
 
-    public static BlockChain buildBlockChain(Wallet wallet, Branch branch, boolean isProduction) throws IllegalAccessException, InstantiationException {
+    public static BlockChain buildBlockChain(Wallet wallet, Branch branch, boolean isProduction)
+            throws IllegalAccessException, InstantiationException {
 
         BlockStore blockStore =
                 new BlockStore(getDbSource(isProduction,branch.getBranchId() + "/blocks"));
@@ -54,7 +55,8 @@ public class BlockChainBuilder {
     }
 
     public static BlockChain buildBlockChain(BlockHusk genesis, String branchName,
-                                             boolean isProduction) throws InstantiationException, IllegalAccessException {
+                                             boolean isProduction)
+            throws InstantiationException, IllegalAccessException {
         BlockStore blockStore =
                 new BlockStore(getDbSource(isProduction,genesis.getBranchId() + "/blocks"));
         TransactionStore txStore =
@@ -132,10 +134,12 @@ public class BlockChainBuilder {
         }
     }
 
-    private static Contract getContract(String branchName) throws IllegalAccessException, InstantiationException {
+    private static Contract getContract(String branchName)
+            throws IllegalAccessException, InstantiationException {
         if (Branch.STEM.equalsIgnoreCase(branchName)) {
             // replace StemContract
-            ContractMeta stem = ContractClassLoader.loadContract("5e793e345791e26c22498d6978ada9a2392b0692");
+            ContractMeta stem
+                    = ContractClassLoader.loadContract("5e793e345791e26c22498d6978ada9a2392b0692");
             return stem.getContract().newInstance();
         } else if (Branch.YEED.equalsIgnoreCase(branchName)) {
             return new CoinContract();
