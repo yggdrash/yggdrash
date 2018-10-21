@@ -67,7 +67,14 @@ public class ContractClassLoaderTest {
 
     @Test
     public void testLoadByHash() {
-        ContractMeta classMeta = ContractClassLoader.loadContract("79ff1978e131b6d4de263daa7f3b598ea84097b6");
+        // LOAD Stem Contract
+        ContractMeta classMeta = ContractClassLoader.loadContract("5e793e345791e26c22498d6978ada9a2392b0692");
+        log.debug(Hex.encodeHexString(classMeta.getContractId().array()));
+        assertTrue("io.yggdrash.contract.StemContract".equals(classMeta.getContract().getName()));
+
+        // LOAD None Contract
+        classMeta = ContractClassLoader.loadContract("79ff1978e131b6d4de263daa7f3b598ea84097b6");
+        log.debug(Hex.encodeHexString(classMeta.getContractId().array()));
         assertTrue("io.yggdrash.contract.NoneContract".equals(classMeta.getContract().getName()));
 
     }

@@ -20,8 +20,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.contract.CoinContract;
 import io.yggdrash.contract.Contract;
+import io.yggdrash.contract.ContractClassLoader;
+import io.yggdrash.contract.ContractMeta;
 import io.yggdrash.contract.NoneContract;
-import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.BlockStore;
@@ -32,13 +33,12 @@ import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.util.TimeUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 
 public class BlockChainBuilder {
 
-    public static BlockChain buildBlockChain(Wallet wallet, Branch branch, boolean isProduction) {
+    public static BlockChain buildBlockChain(Wallet wallet, Branch branch, boolean isProduction) throws IllegalAccessException, InstantiationException {
 
         BlockStore blockStore =
                 new BlockStore(getDbSource(isProduction,branch.getBranchId() + "/blocks"));
@@ -54,7 +54,7 @@ public class BlockChainBuilder {
     }
 
     public static BlockChain buildBlockChain(BlockHusk genesis, String branchName,
-                                             boolean isProduction) {
+                                             boolean isProduction) throws InstantiationException, IllegalAccessException {
         BlockStore blockStore =
                 new BlockStore(getDbSource(isProduction,genesis.getBranchId() + "/blocks"));
         TransactionStore txStore =
@@ -132,9 +132,11 @@ public class BlockChainBuilder {
         }
     }
 
-    private static Contract getContract(String branchName) {
+    private static Contract getContract(String branchName) throws IllegalAccessException, InstantiationException {
         if (Branch.STEM.equalsIgnoreCase(branchName)) {
-            return new StemContract();
+            // replace StemContract
+            ContractMeta stem = ContractClassLoader.loadContract("5e793e345791e26c22498d6978ada9a2392b0692");
+            return stem.getContract().newInstance();
         } else if (Branch.YEED.equalsIgnoreCase(branchName)) {
             return new CoinContract();
         } else {
