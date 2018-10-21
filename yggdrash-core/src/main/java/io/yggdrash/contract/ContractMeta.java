@@ -23,17 +23,19 @@ import java.nio.ByteBuffer;
 
 public class ContractMeta {
     Class<Contract> contract;
-    byte[] contractBinaly;
+    String contractClassName;
+    byte[] contractBinary;
     ByteBuffer contractId;
 
-    public ContractMeta(byte[] contractBinaly, Class<Contract> contractClass) {
-        this.contractBinaly = contractBinaly;
+    public ContractMeta(byte[] contractBinary, Class<Contract> contractClass) {
+        this.contractBinary = contractBinary;
         this.contract = contractClass;
-        this.contractId = ByteBuffer.wrap(ContractMeta.convertId(contractBinaly));
+        this.contractClassName = contractClass.getName();
+        this.contractId = ByteBuffer.wrap(ContractMeta.convertId(contractBinary));
     }
 
     public Contract newInstance(StateStore store, TransactionReceiptStore txReceiptStore)
-            throws IllegalAccessException, InstantiationException, NoSuchMethodException {
+            throws IllegalAccessException, InstantiationException {
         // contract init
         Contract c = contract.newInstance();
         c.init(store, txReceiptStore);

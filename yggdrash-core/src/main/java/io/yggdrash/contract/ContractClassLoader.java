@@ -22,6 +22,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 public class ContractClassLoader extends ClassLoader {
     private static final Logger log = LoggerFactory.getLogger(ContractClassLoader.class);
@@ -69,11 +70,12 @@ public class ContractClassLoader extends ClassLoader {
         return loader.loadContract(contractFullName, contractFile);
     }
 
-//    public ContractMeta loadContract(byte[] contractId) {
-//
-//    }
+    public static ContractMeta loadContract(byte[] contractId) {
+        return ContractClassLoader.loadContract(Hex.encode(contractId));
+    }
 
     public static ContractMeta loadContract(String contractId) {
+        // TODO Change Contract Path by resource path
         File contractFile = new File(CONTRACT_PATH + contractId + ".class");
         log.debug(contractFile.getAbsolutePath());
         if (contractFile.exists()) {
