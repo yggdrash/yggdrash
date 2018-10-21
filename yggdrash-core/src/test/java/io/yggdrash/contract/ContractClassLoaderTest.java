@@ -21,12 +21,17 @@ import org.apache.commons.codec.binary.Hex;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+
+
 
 public class ContractClassLoaderTest {
     private static final Logger log = LoggerFactory.getLogger(ContractClassLoaderTest.class);
@@ -44,6 +49,22 @@ public class ContractClassLoaderTest {
         Contract b = none.newInstance();
         assertFalse("Two Contract are not same instance.", a.equals(b));
     }
+
+    @Test
+    public void testConvertContractClassToContractMeta() throws IOException {
+        Class c = NoneContract.class.getClass();
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(bos);
+        oos.writeObject(c);
+        oos.flush();
+
+        byte[] classData = bos.toByteArray();
+
+        ContractMeta classMeta = new ContractMeta(classData, c);
+        log.debug(Hex.encodeHexString(classMeta.getContractId().array()));
+
+    }
+
 
     public String invokeTest(Class a) throws InvocationTargetException, IllegalAccessException,
             InstantiationException {

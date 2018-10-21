@@ -52,8 +52,4 @@ public class ContractMeta {
         return HashUtil.sha1(contractBytes);
     }
 
-    private boolean checkContract(Class z) {
-        // TODO checkContract instance
-        return z.isInstance(io.yggdrash.contract.Contract.class);
-    }
 }
