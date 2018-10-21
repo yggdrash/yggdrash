@@ -17,15 +17,14 @@
 package io.yggdrash.contract;
 
 import io.yggdrash.crypto.HashUtil;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
 
 public class ContractClassLoader extends ClassLoader {
+    static Long MAX_FILE_LENGTH = 5242880L;
+
 
     public ContractClassLoader(ClassLoader parent) {
         super(parent);
@@ -34,25 +33,20 @@ public class ContractClassLoader extends ClassLoader {
     public Class loadContract(String contractFullName, File contractFile) {
         byte[] classData = null;
         try {
-            URL myUrl = contractFile.toURI().toURL();
-            URLConnection connection = myUrl.openConnection();
-            InputStream input = connection.getInputStream();
-            ByteArrayOutputStream buffer = new ByteArrayOutputStream();
-            int data = input.read();
-
-            while (data != -1) {
-                buffer.write(data);
-                data = input.read();
+            // contract max file length is 5mb TODO change max byte
+            if(contractFile.length() > ContractClassLoader.MAX_FILE_LENGTH) {
+                return null;
             }
-
-            input.close();
-
-            classData = buffer.toByteArray();
+            FileInputStream inputStream = new FileInputStream(contractFile);
+            classData = new byte[Math.toIntExact(contractFile.length())];
+            inputStream.read(classData);
+            inputStream.close();
         } catch (MalformedURLException e) {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         if (classData == null) {
             return null;
         } else {
@@ -65,7 +59,7 @@ public class ContractClassLoader extends ClassLoader {
     }
 
     public static Class loadContractClass(String contractFullName, File contractFile) {
-        ContractClassLoader loader = new ContractClassLoader(Object.class.getClassLoader());
+        ContractClassLoader loader = new ContractClassLoader(ContractClassLoader.class.getClassLoader());
         return loader.loadContract(contractFullName, contractFile);
     }
 
