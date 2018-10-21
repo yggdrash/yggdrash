@@ -16,21 +16,20 @@
 
 package io.yggdrash.contract;
 
-import io.yggdrash.crypto.HashUtil;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.MalformedURLException;
 
 public class ContractClassLoader extends ClassLoader {
-    static Long MAX_FILE_LENGTH = 5242880L;
+    static Long MAX_FILE_LENGTH = 5242880L; // default 5MB bytes
 
 
     public ContractClassLoader(ClassLoader parent) {
         super(parent);
     }
 
-    public Class loadContract(String contractFullName, File contractFile) {
+    public ContractMeta loadContract(String contractFullName, File contractFile) {
         byte[] classData = null;
         try {
             // contract max file length is 5mb TODO change max byte
@@ -54,17 +53,17 @@ public class ContractClassLoader extends ClassLoader {
         }
     }
 
-    public Class loadContract(String contractFullName, byte[] b) {
-        return defineClass(contractFullName, b, 0, b.length);
+    public ContractMeta loadContract(String contractFullName, byte[] b) {
+        Class contract = defineClass(contractFullName, b, 0, b.length);
+        return new ContractMeta(b, contract);
+
     }
 
-    public static Class loadContractClass(String contractFullName, File contractFile) {
+    public static ContractMeta loadContractClass(String contractFullName, File contractFile) {
         ContractClassLoader loader = new ContractClassLoader(ContractClassLoader.class.getClassLoader());
         return loader.loadContract(contractFullName, contractFile);
     }
 
-    public static byte[] contractHash(byte[] contractBytes) {
-        return HashUtil.sha1(contractBytes);
-    }
+
 
 }

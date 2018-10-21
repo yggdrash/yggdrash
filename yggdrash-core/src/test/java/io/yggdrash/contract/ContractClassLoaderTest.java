@@ -16,35 +16,50 @@
 
 package io.yggdrash.contract;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.common.LoadClassTest;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-
+import org.apache.commons.codec.binary.Hex;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ContractClassLoaderTest {
     private static final Logger log = LoggerFactory.getLogger(ContractClassLoaderTest.class);
 
-    @Test
+//    @Test
     public void testFilePath() throws IllegalAccessException, InstantiationException,
             InvocationTargetException {
         File d1 = new File("./src/test/resources/LoadClassTest1.class"); // test1
-        Class a = ContractClassLoader.loadContractClass(null, d1);
-
+        ContractMeta aContract = ContractClassLoader.loadContractClass(null, d1);
+        Class<Contract> a = aContract.getContract();
         assertTrue("Test1".equals(invokeTest(a)));
         LoadClassTest t = new LoadClassTest(); // test3
         assertTrue("Test3".equals(t.test()));
         File d2 = new File("./src/test/resources/LoadClassTest2.class"); // test2
-        Class b = ContractClassLoader.loadContractClass(null, d2);
+        ContractMeta bContract = ContractClassLoader.loadContractClass(null, d2);
+        Class<Contract> b = bContract.getContract();
         assertTrue("Test3".equals(t.test()));
         assertTrue(a.getName().equals(b.getName()) && a.getName().equals(t.getClass().getName()));
         assertFalse(b.isInstance(a.newInstance()));
         log.debug(a.getTypeName());
+    }
+
+    @Test
+    public void testContract() throws  IllegalAccessException, InstantiationException,
+            InvocationTargetException {
+        File contractNone = new File("./resources/contract/NoneContract.class");
+        ContractMeta noneContract = ContractClassLoader.loadContractClass(null, contractNone);
+        Class<Contract> none = noneContract.getContract();
+        log.debug(String.valueOf(Hex.encodeHex(noneContract.getContractId().array())));
+        assertTrue("{}".equals(invokeTest(none)));
+        Contract a = none.newInstance();
+        Contract b = none.newInstance();
+        assertFalse("Two Contract are not same instance.", a.equals(b));
     }
 
     public String invokeTest(Class a) throws InvocationTargetException, IllegalAccessException,
@@ -52,9 +67,9 @@ public class ContractClassLoaderTest {
         Object t = a.newInstance();
         Method[] ms = a.getDeclaredMethods();
         for (Method m : ms) {
-            if ("test".equals(m.getName())) {
+            if ("query".equals(m.getName())) {
                 m.setAccessible(true);
-                return m.invoke(t).toString();
+                return m.invoke(t, new JsonObject()).toString();
             }
         }
         return null;
