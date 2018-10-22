@@ -16,7 +16,7 @@ public abstract class BaseContract<T> implements Contract<T> {
     static final Logger log = LoggerFactory.getLogger(BaseContract.class);
     private TransactionReceiptStore txReceiptStore;
     private ContractEventListener listener;
-    StateStore<T> state;
+    protected StateStore<T> state;
     String sender;
 
     @Override

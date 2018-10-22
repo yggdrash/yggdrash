@@ -26,17 +26,20 @@ public class BranchConfigurationTest {
     }
 
     @Test
-    public void defaultBranchGroupTest() throws IOException, InvalidCipherTextException {
+    public void defaultBranchGroupTest() throws IOException, InvalidCipherTextException,
+            IllegalAccessException, InstantiationException {
         assert getBranchGroup().getBranchSize() == 1;
     }
 
     @Test
-    public void productionBranchGroupTest() throws IOException, InvalidCipherTextException {
+    public void productionBranchGroupTest() throws IOException, InvalidCipherTextException,
+            IllegalAccessException, InstantiationException {
         mockEnv.addActiveProfile("prod");
         assert getBranchGroup().getBranchSize() == 1;
     }
 
-    private BranchGroup getBranchGroup() throws IOException, InvalidCipherTextException {
+    private BranchGroup getBranchGroup() throws IOException, InvalidCipherTextException,
+            InstantiationException, IllegalAccessException {
         BranchConfiguration config = new BranchConfiguration(mockEnv, new Wallet(), peerGroup);
         config.setResource(loader.getResource("classpath:/genesis.json"));
         return config.branchGroup();

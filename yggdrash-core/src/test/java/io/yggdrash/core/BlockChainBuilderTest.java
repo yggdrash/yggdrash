@@ -32,13 +32,13 @@ public class BlockChainBuilderTest {
     }
 
     @Test(expected = FailedOperationException.class)
-    public void buildStemBlockChain() {
+    public void buildStemBlockChain() throws InstantiationException, IllegalAccessException {
         Branch branch = Branch.of(BranchId.STEM, Branch.STEM, TestUtils.OWNER);
         builder.build(TestUtils.wallet(), branch);
     }
 
     @Test
-    public void buildYeedBlockChain() {
+    public void buildYeedBlockChain() throws InstantiationException, IllegalAccessException {
         Branch branch = Branch.of(BranchId.YEED, Branch.YEED, TestUtils.OWNER);
         BlockChain blockChain = builder.build(TestUtils.wallet(), branch);
         assertEquals(blockChain.getBranchId(), BranchId.yeed());

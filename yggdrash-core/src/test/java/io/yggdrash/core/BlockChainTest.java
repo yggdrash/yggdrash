@@ -13,7 +13,7 @@ public class BlockChainTest {
     private BlockChain blockChain;
 
     @Before
-    public void setUp() {
+    public void setUp() throws InstantiationException, IllegalAccessException {
         blockChain = TestUtils.createBlockChain(false);
         assertThat(blockChain.size()).isEqualTo(1L);
     }
@@ -59,7 +59,7 @@ public class BlockChainTest {
     }
 
     @Test
-    public void shouldBeLoadedStoredBlocks() {
+    public void shouldBeLoadedStoredBlocks() throws InstantiationException, IllegalAccessException {
         BlockChain blockCHain1 = TestUtils.createBlockChain(true);
         BlockHusk genesisBlock = blockCHain1.getGenesisBlock();
 

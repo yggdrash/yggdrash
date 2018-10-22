@@ -47,7 +47,7 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     private final TreeSet<TransactionHusk> recentTxs = new TreeSet<>();
     private final Set<Sha3Hash> unconfirmedTxs = new HashSet<>();
 
-    public TransactionStore(DbSource<byte[], byte[]> db) {
+    TransactionStore(DbSource<byte[], byte[]> db) {
         this.db = db.init();
         this.huskTxPool = CacheManagerBuilder
                 .newCacheManagerBuilder().build(true)
