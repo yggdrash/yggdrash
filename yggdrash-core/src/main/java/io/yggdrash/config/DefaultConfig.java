@@ -27,8 +27,12 @@ public class DefaultConfig {
         try {
             Config javaSystemProperties = ConfigFactory.load("no-such-resource-only-system-props");
             Config referenceConfig = ConfigFactory.parseResources("yggdrash.conf");
+            Config adminConfig = ConfigFactory.parseResources("admin.conf");
 
-            config = apiConfig.withFallback(referenceConfig);
+            config = apiConfig
+                    .withFallback(adminConfig)
+                    .withFallback(referenceConfig);
+
             config = javaSystemProperties.withFallback(config).resolve();
 
         } catch (Exception e) {
