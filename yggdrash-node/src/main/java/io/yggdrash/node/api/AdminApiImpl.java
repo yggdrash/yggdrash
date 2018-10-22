@@ -135,7 +135,7 @@ public class AdminApiImpl implements AdminApi {
 
         this.commandMap.put(Hex.toHexString(newRand),
                 Hex.toHexString(ByteUtil.longToBytes(timestamp)));
-        // todo: delete the unused
+        // todo: delete the unused for a long time.
 
         return returnObject.toString();
     }
@@ -302,7 +302,7 @@ public class AdminApiImpl implements AdminApi {
                 Hex.decode(signature), false, adminPubKey)) {
             log.error("Signature is not valid.");
             errorMsg.append(" Signature is not valid.");
-             return false;
+            return false;
         }
 
         return true;
