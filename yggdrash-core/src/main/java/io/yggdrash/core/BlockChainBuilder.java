@@ -66,15 +66,11 @@ public class BlockChainBuilder {
         TransactionStore txStore = storeBuilder.buildTxStore(genesis.getBranchId());
 
         Contract contract = getContract(branchName);
-        Runtime<?> runtime = getRunTime(branchName);
+        Runtime<?> runtime = getRunTime(contract.getClass().getGenericSuperclass().getClass());
 
         BlockChain blockChain = new BlockChain(genesis, blockStore, txStore, contract, runtime);
         blockChain.setBranchName(branchName);
         return blockChain;
-    }
-
-    public static BlockChainBuilder of(boolean isProduction) {
-        return new BlockChainBuilder(isProduction);
     }
 
     private BlockHusk getGenesis(Wallet wallet, Branch branch) {
@@ -134,27 +130,22 @@ public class BlockChainBuilder {
         }
     }
 
+    public static BlockChainBuilder of(boolean isProduction) {
+        return new BlockChainBuilder(isProduction);
+    }
+
     private static Contract getContract(String branchName)
             throws IllegalAccessException, InstantiationException {
         if (Branch.STEM.equalsIgnoreCase(branchName)) {
             // replace StemContract
             ContractMeta stem = ContractClassLoader
-                    .loadContractById("5e793e345791e26c22498d6978ada9a2392b0692");
+                    .loadContractById("4fc0d50cba2f2538d6cda789aa4955e88c810ef5");
+            assert stem != null;
             return stem.getContract().newInstance();
         } else if (Branch.YEED.equalsIgnoreCase(branchName)) {
             return new CoinContract();
         } else {
             return new NoneContract();
-        }
-    }
-
-    private static Runtime<?> getRunTime(String branchName) {
-        if (Branch.STEM.equalsIgnoreCase(branchName)) {
-            return getRunTime(JsonObject.class);
-        } else if (Branch.YEED.equalsIgnoreCase(branchName)) {
-            return getRunTime(Long.class);
-        } else {
-            return getRunTime(String.class);
         }
     }
 

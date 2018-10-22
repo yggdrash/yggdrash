@@ -17,7 +17,6 @@
 package io.yggdrash.contract;
 
 import com.google.gson.JsonObject;
-import org.apache.commons.codec.binary.Hex;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,10 +41,12 @@ public class ContractClassLoaderTest {
     public void testContract() throws  IllegalAccessException, InstantiationException,
             InvocationTargetException {
         File contractNone =
-                new File("./resources/contract/79ff1978e131b6d4de263daa7f3b598ea84097b6.class");
+                new File(".yggdrash/contract/9607aea1d4e358a594006c7926a07262b5258c31.class");
         ContractMeta noneContract = ContractClassLoader.loadContractClass(null, contractNone);
         Class<? extends Contract> none = noneContract.getContract();
-        log.debug(String.valueOf(Hex.encodeHex(noneContract.getContractId().array())));
+
+        assertEquals("9607aea1d4e358a594006c7926a07262b5258c31",
+                noneContract.getContractId().toString());
         assertEquals("{}", invokeTest(none));
         Contract a = none.newInstance();
         Contract b = none.newInstance();
@@ -61,28 +62,28 @@ public class ContractClassLoaderTest {
         oos.flush();
 
         byte[] classData = bos.toByteArray();
-
+        ContractId idByClassBinary = ContractId.of(classData);
         ContractMeta classMeta = new ContractMeta(classData, c);
-        log.debug(Hex.encodeHexString(classMeta.getContractId().array()));
-
+        assertEquals(idByClassBinary, classMeta.getContractId());
     }
 
     @Test
     public void testLoadByHash() {
         // LOAD Stem Contract
         ContractMeta classMeta = ContractClassLoader.loadContractById(
-                "5e793e345791e26c22498d6978ada9a2392b0692");
+                "4fc0d50cba2f2538d6cda789aa4955e88c810ef5");
         assertNotNull(classMeta);
-        log.debug(Hex.encodeHexString(classMeta.getContractId().array()));
+        assertEquals("4fc0d50cba2f2538d6cda789aa4955e88c810ef5",
+                classMeta.getContractId().toString());
         assertEquals("io.yggdrash.contract.StemContract", classMeta.getContract().getName());
 
         // LOAD None Contract
         classMeta = ContractClassLoader.loadContractById(
-                "79ff1978e131b6d4de263daa7f3b598ea84097b6");
+                "9607aea1d4e358a594006c7926a07262b5258c31");
         assertNotNull(classMeta);
-        log.debug(Hex.encodeHexString(classMeta.getContractId().array()));
+        assertEquals("9607aea1d4e358a594006c7926a07262b5258c31",
+                classMeta.getContractId().toString());
         assertEquals("io.yggdrash.contract.NoneContract", classMeta.getContract().getName());
-
     }
 
     private String invokeTest(Class a) throws InvocationTargetException, IllegalAccessException,

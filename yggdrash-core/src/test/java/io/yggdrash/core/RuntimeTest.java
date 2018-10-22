@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.contract.CoinContract;
+import io.yggdrash.contract.Contract;
 import io.yggdrash.contract.ContractTx;
 import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.store.StateStore;
@@ -21,22 +22,24 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RuntimeTest {
     private static final Logger log = LoggerFactory.getLogger(RuntimeTest.class);
     private final TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
-    private final CoinContract coinContract = new CoinContract();
-    private final StemContract stemContract = new StemContract();
-    private Runtime<JsonObject> runtime;
+    private final Contract<Long> coinContract = new CoinContract();
+    private final Contract<JsonObject> stemContract = new StemContract();
+    private Runtime<JsonObject> stemRuntime;
+    private Runtime<Long> yeedRuntime;
     private Wallet wallet;
     private BranchId branchId;
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        runtime = new Runtime<>(new StateStore<>(), txReceiptStore);
+        stemRuntime = new Runtime<>(new StateStore<>(), txReceiptStore);
+        yeedRuntime = new Runtime<>(new StateStore<>(), txReceiptStore);
         wallet = new Wallet();
     }
 
     @Test
     public void invokeFromYeedTest() {
         TransactionHusk tx = ContractTx.createYeedTx(wallet, TestUtils.TRANSFER_TO, 100);
-        runtime.invoke(coinContract, tx);
+        yeedRuntime.invoke(coinContract, tx);
     }
 
     @Test
@@ -45,7 +48,7 @@ public class RuntimeTest {
         branchId = BranchId.of(branch);
 
         TransactionHusk tx = ContractTx.createStemTxBySeed(wallet, branch, "create");
-        runtime.invoke(stemContract, tx);
+        stemRuntime.invoke(stemContract, tx);
 
         String description = "hello world!";
         String updatedVersion = "0xf4312kjise099qw0nene76555484ab1547av8b9e";
@@ -53,7 +56,7 @@ public class RuntimeTest {
                 description, updatedVersion, branch, 0);
 
         tx = ContractTx.createStemTxBySeed(wallet, updatedBranch, "update");
-        runtime.invoke(stemContract, tx);
+        stemRuntime.invoke(stemContract, tx);
     }
 
     @Test
@@ -63,7 +66,7 @@ public class RuntimeTest {
         param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
         params.add(param);
 
-        assertThat(runtime.query(coinContract,
+        assertThat(yeedRuntime.query(coinContract,
                 TestUtils.createQuery("balanceOf", params))).isNotNull();
     }
 
@@ -76,19 +79,19 @@ public class RuntimeTest {
         param.addProperty("branchId", branchId.toString());
         params.add(param);
 
-        assertThat(runtime.query(stemContract,
+        assertThat(stemRuntime.query(stemContract,
                 TestUtils.createQuery("getCurrentVersion", params))).isNotNull();
-        log.debug("[getCurrentVersion] res => " + runtime.query(stemContract,
+        log.debug("[getCurrentVersion] res => " + stemRuntime.query(stemContract,
                 TestUtils.createQuery("getCurrentVersion", params)));
 
-        assertThat(runtime.query(stemContract,
+        assertThat(stemRuntime.query(stemContract,
                 TestUtils.createQuery("getVersionHistory", params))).isNotNull();
-        log.debug("[getVersionHistory] res => " + runtime.query(stemContract,
+        log.debug("[getVersionHistory] res => " + stemRuntime.query(stemContract,
                 TestUtils.createQuery("getVersionHistory", params)));
 
-        assertThat(runtime.query(stemContract,
+        assertThat(stemRuntime.query(stemContract,
                 TestUtils.createQuery("getAllBranchId", new JsonArray()))).isNotNull();
-        log.debug("[getAllBranchId] res => " + runtime.query(stemContract,
+        log.debug("[getAllBranchId] res => " + stemRuntime.query(stemContract,
                 TestUtils.createQuery("getAllBranchId", params)));
 
         params.remove(0);
@@ -96,16 +99,16 @@ public class RuntimeTest {
         param.addProperty("key", "type");
         param.addProperty("value", "immunity");
         params.add(param);
-        assertThat(runtime.query(stemContract, TestUtils.createQuery("search", params)))
+        assertThat(stemRuntime.query(stemContract, TestUtils.createQuery("search", params)))
                 .isNotNull();
         log.debug("[Search | type | immunity] res => "
-                + runtime.query(stemContract, TestUtils.createQuery("search", params)));
+                + stemRuntime.query(stemContract, TestUtils.createQuery("search", params)));
 
         param.addProperty("key", "name");
         param.addProperty("value", "TEST1");
-        assertThat(runtime.query(stemContract, TestUtils.createQuery("search", params)))
+        assertThat(stemRuntime.query(stemContract, TestUtils.createQuery("search", params)))
                 .isNotNull();
         log.debug("[Search | name | TEST1] res => "
-                + runtime.query(stemContract, TestUtils.createQuery("search", params)));
+                + stemRuntime.query(stemContract, TestUtils.createQuery("search", params)));
     }
 }
