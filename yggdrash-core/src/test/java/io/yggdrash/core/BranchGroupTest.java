@@ -44,13 +44,20 @@ public class BranchGroupTest {
 
     @Test
     public void addTransaction() {
+        // should be existed tx on genesis block
+        assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(1);
+        assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(1);
+
         branchGroup.addTransaction(tx);
-        TransactionHusk pooledTx1 = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
-        assertThat(pooledTx1.getHash()).isEqualTo(tx.getHash());
-        TransactionHusk pooledTx2 = branchGroup.getTxByHash(tx.getBranchId(),
-                tx.getHash().toString());
-        assertThat(pooledTx2.getHash()).isEqualTo(tx.getHash());
-        assertThat(branchGroup.getTransactionList(tx.getBranchId()).size()).isEqualTo(2);
+        TransactionHusk foundTxBySha3 = branchGroup.getTxByHash(
+                tx.getBranchId(), tx.getHash());
+        assertThat(foundTxBySha3.getHash()).isEqualTo(tx.getHash());
+
+        TransactionHusk foundTxByString = branchGroup.getTxByHash(
+                tx.getBranchId(), tx.getHash().toString());
+        assertThat(foundTxByString.getHash()).isEqualTo(tx.getHash());
+
+        assertThat(branchGroup.getUnconfirmedTxs(tx.getBranchId()).size()).isEqualTo(1);
     }
 
     @Test

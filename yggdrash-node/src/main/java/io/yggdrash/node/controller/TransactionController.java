@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -70,7 +71,8 @@ public class TransactionController {
 
     @GetMapping
     public ResponseEntity getAll(@PathVariable(name = "branchId") String branchId) {
-        List<TransactionHusk> txs = branchGroup.getTransactionList(BranchId.of(branchId));
+        List<TransactionHusk> txs =
+                new ArrayList<>(branchGroup.getRecentTxs(BranchId.of(branchId)));
         List<TransactionDto> dtoList = txs.stream().sorted(Comparator.reverseOrder())
                 .map(TransactionDto::createBy).collect(Collectors.toList());
         return ResponseEntity.ok(dtoList);

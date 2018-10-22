@@ -20,29 +20,32 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.contract.CoinContract;
 import io.yggdrash.contract.Contract;
-import io.yggdrash.contract.ContractClassLoader;
-import io.yggdrash.contract.ContractMeta;
 import io.yggdrash.contract.NoneContract;
+import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.StateStore;
+import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.core.store.datasource.DbSource;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
-import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.util.TimeUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class BlockChainBuilder {
 
-    public static BlockChain buildBlockChain(Wallet wallet, Branch branch, boolean isProduction)
-            throws IllegalAccessException, InstantiationException {
+    private final StoreBuilder storeBuilder;
+
+    public BlockChainBuilder(boolean isProduction) {
+        this.storeBuilder = new StoreBuilder(isProduction);
+    }
+
+    public BlockChain build(Wallet wallet, Branch branch) {
         // TODO fix change builder patten ref : https://jdm.kr/blog/217
-        BlockStore blockStore =
-                new BlockStore(getDbSource(isProduction,branch.getBranchId() + "/blocks"));
+
+        BlockStore blockStore = storeBuilder.buildBlockStore(branch.getBranchId());
 
         BlockHusk genesis;
         if (blockStore.size() > 0) {
@@ -51,17 +54,16 @@ public class BlockChainBuilder {
             genesis = getGenesis(wallet, branch);
         }
         blockStore.close();
-        return buildBlockChain(genesis, branch.getName(), isProduction);
+        return build(genesis, branch.getName());
     }
 
     public static BlockChain buildBlockChain(BlockHusk genesis, String branchName,
                                              boolean isProduction)
             throws InstantiationException, IllegalAccessException {
         // TODO fix blockchain by branch information (contract and other information)
-        BlockStore blockStore =
-                new BlockStore(getDbSource(isProduction,genesis.getBranchId() + "/blocks"));
-        TransactionStore txStore =
-                new TransactionStore(getDbSource(isProduction, genesis.getBranchId() + "/txs"));
+        BlockStore blockStore = storeBuilder.buildBlockStore(genesis.getBranchId());
+        TransactionStore txStore = storeBuilder.buildTxStore(genesis.getBranchId());
+
         Contract contract = getContract(branchName);
         Runtime<?> runtime = getRunTime(branchName);
 
@@ -70,7 +72,11 @@ public class BlockChainBuilder {
         return blockChain;
     }
 
-    private static BlockHusk getGenesis(Wallet wallet, Branch branch) {
+    public static BlockChainBuilder of(boolean isProduction) {
+        return new BlockChainBuilder(isProduction);
+    }
+
+    private BlockHusk getGenesis(Wallet wallet, Branch branch) {
 
         if (!branch.isYeed()) {
             throw new FailedOperationException("Not supported name=" + branch.getName());
@@ -93,7 +99,7 @@ public class BlockChainBuilder {
         return genesis(wallet, branch.getBranchId(), jsonArrayTxBody);
     }
 
-    private static BlockHusk genesis(Wallet wallet, BranchId branchId, JsonArray jsonArrayTxBody) {
+    private BlockHusk genesis(Wallet wallet, BranchId branchId, JsonArray jsonArrayTxBody) {
         try {
             TransactionBody txBody = new TransactionBody(jsonArrayTxBody);
 
@@ -127,16 +133,7 @@ public class BlockChainBuilder {
         }
     }
 
-    private static DbSource<byte[], byte[]> getDbSource(boolean isProduction, String path) {
-        if (isProduction) {
-            return new LevelDbDataSource(path);
-        } else {
-            return new HashMapDbSource();
-        }
-    }
-
-    private static Contract getContract(String branchName)
-            throws IllegalAccessException, InstantiationException {
+    private static Contract getContract(String branchName) {
         if (Branch.STEM.equalsIgnoreCase(branchName)) {
             // replace StemContract
             ContractMeta stem = ContractClassLoader

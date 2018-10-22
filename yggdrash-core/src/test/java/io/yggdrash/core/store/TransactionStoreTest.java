@@ -14,15 +14,16 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core;
+package io.yggdrash.core.store;
 
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.store.TransactionStore;
+import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -41,6 +42,45 @@ public class TransactionStoreTest {
     }
 
     @Test
+    public void shouldBeCachedByCacheSize() {
+        int cacheSize = 5;
+        ts = new TransactionStore(new HashMapDbSource(), cacheSize);
+
+        // 캐시 사이즈보다 하나 더 입력
+        for (int i = 0; i < cacheSize + 1; i++) {
+            tx = TestUtils.createTransferTxHusk();
+            ts.put(tx.getHash(), tx);
+        }
+
+        assertThat(ts.getUnconfirmedTxs().size()).isEqualTo(cacheSize + 1);
+        batch();
+        assertThat(ts.getUnconfirmedTxs()).isEmpty();
+        assertThat(ts.countOfTxs()).isEqualTo(cacheSize + 1);
+        assertThat(ts.getRecentTxs().size()).isEqualTo(cacheSize);
+    }
+
+    @Test
+    public void shouldBeGotRecentTxs() {
+        ts.put(tx.getHash(), tx);
+        batch();
+        Collection<TransactionHusk> unconfirmedTxs = ts.getUnconfirmedTxs();
+        assertThat(unconfirmedTxs.size()).isEqualTo(0);
+        Collection<TransactionHusk> recentTxs = ts.getRecentTxs();
+        assertThat(recentTxs.size()).isEqualTo(1);
+        assertThat(recentTxs.contains(tx)).isTrue();
+    }
+
+    /* 배치가 돌기 전에는 최근 트랜잭션에 들어가지 않고 언컨펌트랜잭션에서만 조회 가능 */
+    @Test
+    public void shouldNotGetRecentTxsWhenNotBatched() {
+        ts.put(tx.getHash(), tx);
+        Collection<TransactionHusk> recentTxs = ts.getRecentTxs();
+        assertThat(recentTxs).isEmpty();
+        Collection<TransactionHusk> unconfirmedTxs = ts.getUnconfirmedTxs();
+        assertThat(unconfirmedTxs.size()).isEqualTo(1);
+    }
+
+    @Test
     public void shouldGetFromDb() {
         Sha3Hash key = tx.getHash();
         ts.put(tx.getHash(), tx);
@@ -54,7 +94,7 @@ public class TransactionStoreTest {
         ts.put(tx.getHash(), tx);
         batch();
         assertThat(ts.getUnconfirmedTxs()).isEmpty();
-        assertThat(ts.getAll().size()).isEqualTo(1L);
+        assertThat(ts.countOfTxs()).isEqualTo(1L);
     }
 
     @Test

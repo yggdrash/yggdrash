@@ -19,6 +19,7 @@ package io.yggdrash.node;
 import io.yggdrash.TestUtils;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import org.junit.After;
 import org.junit.Before;
@@ -40,9 +41,11 @@ public class NodeHealthIndicatorTest {
 
     private NodeHealthIndicator nodeHealthIndicator;
 
+    private Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+
     @Before
     public void setUp() {
-        PeerGroup peerGroup = new PeerGroup(1);
+        PeerGroup peerGroup = new PeerGroup(owner, 1);
         this.nodeHealthIndicator = new NodeHealthIndicator(new DefaultConfig(), branchGroupMock,
                 peerGroup);
     }

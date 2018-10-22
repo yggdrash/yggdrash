@@ -132,9 +132,9 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         nodeStatus.sync();
         for (BlockChain blockChain : branchGroup.getAllBranch()) {
             BranchId branchId = blockChain.getBranchId();
-            peerGroup.addPeer(branchId, peer);
             syncBlockAndTransaction(branchId);
         }
+        nodeStatus.up();
     }
 
     @Override
@@ -169,7 +169,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     }
 
     private void syncBlockAndTransaction(BranchId branchId) {
-        if (peerGroup.isEmpty(branchId)) {
+        if (peerGroup.isChannelEmpty(branchId)) {
             return;
         }
         try {
@@ -177,7 +177,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
                 BlockChainSync.syncTransaction(blockChain, peerGroup);
                 BlockChainSync.syncBlock(blockChain, peerGroup);
             }
-            nodeStatus.up();
         } catch (Exception e) {
             log.warn(e.getMessage(), e);
         }
@@ -248,7 +247,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
             BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
             Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
-            for (TransactionHusk husk : branchGroup.getTransactionList(branchId)) {
+            for (TransactionHusk husk : branchGroup.getRecentTxs(branchId)) {
                 builder.addTransactions(husk.getInstance());
             }
             responseObserver.onNext(builder.build());
