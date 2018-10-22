@@ -2,7 +2,6 @@ package io.yggdrash.node.api;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.config.DefaultConfig;
@@ -10,6 +9,7 @@ import io.yggdrash.core.Wallet;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.node.controller.AdminDto;
 import io.yggdrash.util.ByteUtil;
+import io.yggdrash.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
@@ -18,8 +18,11 @@ import org.springframework.cloud.context.restart.RestartEndpoint;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermission;
 import java.security.SecureRandom;
-import java.util.Map;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -137,6 +140,13 @@ public class AdminApiImpl implements AdminApi {
         return returnObject.toString();
     }
 
+    private void restart() {
+        // todo: consider CLI restart.
+        Thread restartThread = new Thread(() -> restartEndpoint.restart());
+        restartThread.setDaemon(false);
+        restartThread.start();
+    }
+
     @Override
     public String requestCommand(AdminDto command) {
         // check the adminMode & client ip
@@ -165,24 +175,43 @@ public class AdminApiImpl implements AdminApi {
         // execute command
         String methodCommand = body.get(0).getAsJsonObject().get("method").getAsString();
 
-        if (methodCommand.equals("restart")) {
-            // restart
-            // todo: consider CLI restart.
-            Thread restartThread = new Thread(() -> restartEndpoint.restart());
-            restartThread.setDaemon(false);
-            restartThread.start();
-        } else if (methodCommand.equals("setConfig")) {
-            // setConfig
-            Set<Map.Entry<String, JsonElement>> params
-                    = body.get(0).getAsJsonObject().get("params").getAsJsonObject().entrySet();
+        switch (methodCommand) {
+            case "restart":
+                // todo: change CLI commander
+                restart();
+                break;
+            case "setConfig":
+                try {
 
-//            for(Map.Entry<String, JsonElement> entry : params) {
-//                defaultConfig.
-//            }
+                    String userDir = System.getProperty("user.dir") + "/.yggdrash";
+                    File file = new File(userDir, "admin.conf");
+                    Set<PosixFilePermission> perms = new HashSet<>();
 
+                    if (file.exists()) {
+                        perms.add(PosixFilePermission.OWNER_WRITE);
+                        Files.setPosixFilePermissions(file.toPath(), perms);
+                    }
 
-        } else {
-            return "Error. Command is not valid.";
+                    FileUtil.writeStringToFile(file,
+                            body.get(0).getAsJsonObject().get("params").getAsString());
+
+                    perms = new HashSet<>();
+                    perms.add(PosixFilePermission.OWNER_READ);
+                    perms.add(PosixFilePermission.OWNER_WRITE);
+                    Files.setPosixFilePermissions(file.toPath(), perms);
+
+                } catch (Exception e) {
+                    log.error(e.getMessage());
+                    return "Error. Admin Configuration is not valid.";
+                }
+
+                // restart
+                // todo: consider CLI restart.
+                restart();
+
+                break;
+            default:
+                return "Error. Command is not valid.";
         }
 
         // make a responseCommand message
@@ -251,20 +280,13 @@ public class AdminApiImpl implements AdminApi {
             return false;
         }
 
-        // body message check
-//        if (!body.get(0).getAsJsonObject().get("method").getAsString().equals(method)) {
-//            errorMsg.append(" Method is not valid.");
-//            return false;
-//        }
-
         // timestamp check (3 min)
         long timestamp = ByteUtil.byteArrayToLong(
                 Hex.decode(header.get("timestamp").getAsString()));
         if (timestamp < System.currentTimeMillis() - (COMMAND_ACTIVE_TIME)) {
             log.error("Timestamp is not valid.");
             errorMsg.append(" Timestamp is not valid.");
-            // return false;
-            // todo: delete comment;
+            return false;
         }
 
         // check bodyHash
@@ -272,7 +294,7 @@ public class AdminApiImpl implements AdminApi {
                 Hex.toHexString(HashUtil.sha3(body.toString().getBytes())))) {
             log.error("BodyHash is not valid.");
             errorMsg.append(" BodyHash is not valid.");
-            //return false;
+            return false;
         }
 
         // verify a signature
@@ -280,7 +302,7 @@ public class AdminApiImpl implements AdminApi {
                 Hex.decode(signature), false, adminPubKey)) {
             log.error("Signature is not valid.");
             errorMsg.append(" Signature is not valid.");
-            // return false;
+             return false;
         }
 
         return true;

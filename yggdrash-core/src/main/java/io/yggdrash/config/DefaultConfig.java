@@ -6,6 +6,7 @@ import com.typesafe.config.ConfigValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -27,7 +28,10 @@ public class DefaultConfig {
         try {
             Config javaSystemProperties = ConfigFactory.load("no-such-resource-only-system-props");
             Config referenceConfig = ConfigFactory.parseResources("yggdrash.conf");
-            Config adminConfig = ConfigFactory.parseResources("admin.conf");
+
+            String userDir = System.getProperty("user.dir") + "/.yggdrash";
+            File file = new File(userDir, "admin.conf");
+            Config adminConfig = ConfigFactory.parseFile(file);
 
             config = apiConfig
                     .withFallback(adminConfig)
