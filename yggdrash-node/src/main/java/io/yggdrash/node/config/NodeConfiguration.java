@@ -45,12 +45,12 @@ public class NodeConfiguration {
     }
 
     @Bean
-    @Qualifier("defaultConfig")
     DefaultConfig defaultConfig() {
         return new DefaultConfig();
     }
 
     @Bean
+    @Autowired
     Wallet wallet(DefaultConfig defaultConfig) throws IOException, InvalidCipherTextException {
         return new Wallet(defaultConfig);
     }

@@ -33,9 +33,9 @@ public class AdminApiImpl implements AdminApi {
 
     private HttpServletRequest request;
 
-    @Autowired
-    @Qualifier("defaultConfig")
-    private DefaultConfig defaultConfig;
+    // todo: check the autowired about defaultConfig.
+
+    private DefaultConfig defaultConfig = new DefaultConfig();
 
     private String adminMode = defaultConfig.getConfig().getString("admin.mode");
     private String adminIp = defaultConfig.getConfig().getString("admin.ip");
@@ -124,6 +124,7 @@ public class AdminApiImpl implements AdminApi {
         returnObject.add("body", body);
 
         this.commandMap.put(Hex.toHexString(newRand), Hex.toHexString(ByteUtil.longToBytes(timestamp)));
+        // todo: delete the unused
 
         return returnObject.toString();
     }
