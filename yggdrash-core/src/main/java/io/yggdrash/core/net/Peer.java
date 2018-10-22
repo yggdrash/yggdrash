@@ -16,8 +16,8 @@
 
 package io.yggdrash.core.net;
 
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.exception.NotValidateException;
-import org.spongycastle.util.encoders.Hex;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -25,11 +25,11 @@ import java.net.URISyntaxException;
 public class Peer {
     private static final String YGGDRASH_NODE_SCHEMA = "ynode";
     private static final String PEER_URI_FORMAT = "%s://%s@%s";
-    private byte[] id;
+    private PeerId peerId;
+    private Sha3Hash pubKey;
     private String host;
     private int port;
     private String ynodeUri;
-    private PeerId peerId;
     private long modified;
     private int distance;
 
@@ -40,13 +40,11 @@ public class Peer {
                 throw new NotValidateException(
                         "expecting URL in the format ynode://PUBKEY@HOST:PORT");
             }
-            if (uri.getUserInfo() != null) {
-                this.id = Hex.decode(uri.getUserInfo());
-            }
+            this.peerId = PeerId.of(ynodeUri);
+            this.pubKey = new Sha3Hash(uri.getUserInfo());
             this.host = uri.getHost();
             this.port = uri.getPort();
             this.ynodeUri = ynodeUri;
-            this.peerId = PeerId.of(ynodeUri);
             touch();
         } catch (URISyntaxException e) {
             throw new NotValidateException("expecting URL in the format ynode://PUBKEY@HOST:PORT");
@@ -57,13 +55,21 @@ public class Peer {
         return new Peer(ynodeUri);
     }
 
+    public static Peer valueOf(byte[] ynodeUriBytes) {
+        return valueOf(new String(ynodeUriBytes));
+    }
+
     public static Peer valueOf(String nodeId, String host, int port) {
-        return new Peer(String.format(PEER_URI_FORMAT, YGGDRASH_NODE_SCHEMA,
+        return valueOf(String.format(PEER_URI_FORMAT, YGGDRASH_NODE_SCHEMA,
                 nodeId, host + ":" + port));
     }
 
-    public byte[] getId() {
-        return id;
+    public PeerId getPeerId() {
+        return peerId;
+    }
+
+    public Sha3Hash getPubKey() {
+        return pubKey;
     }
 
     public String getHost() {
@@ -76,10 +82,6 @@ public class Peer {
 
     public String getYnodeUri() {
         return ynodeUri;
-    }
-
-    PeerId getPeerId() {
-        return peerId;
     }
 
     void setDistance(Peer owner) {

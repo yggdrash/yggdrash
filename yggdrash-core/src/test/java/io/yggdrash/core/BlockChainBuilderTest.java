@@ -18,27 +18,33 @@ package io.yggdrash.core;
 
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.exception.FailedOperationException;
+import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 public class BlockChainBuilderTest {
+    private BlockChainBuilder builder;
+
+    @Before
+    public void setUp() {
+        builder = new BlockChainBuilder(false);
+    }
 
     @Test(expected = FailedOperationException.class)
     public void buildStemBlockChain() {
         Branch branch = Branch.of(BranchId.STEM, Branch.STEM, TestUtils.OWNER);
-        BlockChainBuilder.buildBlockChain(TestUtils.wallet(), branch, false);
+        builder.build(TestUtils.wallet(), branch);
     }
 
     @Test
     public void buildYeedBlockChain() {
         Branch branch = Branch.of(BranchId.YEED, Branch.YEED, TestUtils.OWNER);
-        BlockChain blockChain =
-                BlockChainBuilder.buildBlockChain(TestUtils.wallet(), branch, false);
+        BlockChain blockChain = builder.build(TestUtils.wallet(), branch);
         assertEquals(blockChain.getBranchId(), BranchId.yeed());
 
         BlockHusk genesis = TestUtils.createGenesisBlockHusk();
-        blockChain = BlockChainBuilder.buildBlockChain(genesis, Branch.YEED, false);
+        blockChain = builder.build(genesis, Branch.YEED);
         assertEquals(blockChain.getGenesisBlock().getHash(), genesis.getHash());
     }
 }

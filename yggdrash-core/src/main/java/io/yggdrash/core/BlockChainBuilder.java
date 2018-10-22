@@ -26,11 +26,9 @@ import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.StateStore;
+import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.core.store.datasource.DbSource;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
-import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.util.TimeUtils;
 
 import java.util.ArrayList;
@@ -38,10 +36,15 @@ import java.util.List;
 
 public class BlockChainBuilder {
 
-    public static BlockChain buildBlockChain(Wallet wallet, Branch branch, boolean isProduction) {
+    private final StoreBuilder storeBuilder;
 
-        BlockStore blockStore =
-                new BlockStore(getDbSource(isProduction,branch.getBranchId() + "/blocks"));
+    public BlockChainBuilder(boolean isProduction) {
+        this.storeBuilder = new StoreBuilder(isProduction);
+    }
+
+    public BlockChain build(Wallet wallet, Branch branch) {
+
+        BlockStore blockStore = storeBuilder.buildBlockStore(branch.getBranchId());
 
         BlockHusk genesis;
         if (blockStore.size() > 0) {
@@ -50,15 +53,13 @@ public class BlockChainBuilder {
             genesis = getGenesis(wallet, branch);
         }
         blockStore.close();
-        return buildBlockChain(genesis, branch.getName(), isProduction);
+        return build(genesis, branch.getName());
     }
 
-    public static BlockChain buildBlockChain(BlockHusk genesis, String branchName,
-                                             boolean isProduction) {
-        BlockStore blockStore =
-                new BlockStore(getDbSource(isProduction,genesis.getBranchId() + "/blocks"));
-        TransactionStore txStore =
-                new TransactionStore(getDbSource(isProduction, genesis.getBranchId() + "/txs"));
+    public BlockChain build(BlockHusk genesis, String branchName) {
+        BlockStore blockStore = storeBuilder.buildBlockStore(genesis.getBranchId());
+        TransactionStore txStore = storeBuilder.buildTxStore(genesis.getBranchId());
+
         Contract contract = getContract(branchName);
         Runtime<?> runtime = getRunTime(branchName);
 
@@ -67,7 +68,11 @@ public class BlockChainBuilder {
         return blockChain;
     }
 
-    private static BlockHusk getGenesis(Wallet wallet, Branch branch) {
+    public static BlockChainBuilder of(boolean isProduction) {
+        return new BlockChainBuilder(isProduction);
+    }
+
+    private BlockHusk getGenesis(Wallet wallet, Branch branch) {
 
         if (!branch.isYeed()) {
             throw new FailedOperationException("Not supported name=" + branch.getName());
@@ -90,7 +95,7 @@ public class BlockChainBuilder {
         return genesis(wallet, branch.getBranchId(), jsonArrayTxBody);
     }
 
-    private static BlockHusk genesis(Wallet wallet, BranchId branchId, JsonArray jsonArrayTxBody) {
+    private BlockHusk genesis(Wallet wallet, BranchId branchId, JsonArray jsonArrayTxBody) {
         try {
             TransactionBody txBody = new TransactionBody(jsonArrayTxBody);
 
@@ -121,14 +126,6 @@ public class BlockChainBuilder {
             return new BlockHusk(coreBlock.toProtoBlock());
         } catch (Exception e) {
             throw new NotValidateException();
-        }
-    }
-
-    private static DbSource<byte[], byte[]> getDbSource(boolean isProduction, String path) {
-        if (isProduction) {
-            return new LevelDbDataSource(path);
-        } else {
-            return new HashMapDbSource();
         }
     }
 
