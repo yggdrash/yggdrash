@@ -19,15 +19,16 @@ package io.yggdrash.contract;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.crypto.HashUtil;
+
 import java.nio.ByteBuffer;
 
 public class ContractMeta {
-    Class<Contract> contract;
-    String contractClassName;
-    byte[] contractBinary;
-    ByteBuffer contractId;
+    private final Class<? extends Contract> contract;
+    private final byte[] contractBinary;
+    private final String contractClassName;
+    private final ByteBuffer contractId;
 
-    public ContractMeta(byte[] contractBinary, Class<Contract> contractClass) {
+    ContractMeta(byte[] contractBinary, Class<? extends Contract> contractClass) {
         this.contractBinary = contractBinary;
         this.contract = contractClass;
         this.contractClassName = contractClass.getName();
@@ -42,15 +43,15 @@ public class ContractMeta {
         return c;
     }
 
-    public Class<Contract> getContract() {
+    public Class<? extends Contract> getContract() {
         return this.contract;
     }
 
-    public ByteBuffer getContractId() {
+    ByteBuffer getContractId() {
         return this.contractId;
     }
 
-    public static byte[] convertId(byte[] contractBytes) {
+    private static byte[] convertId(byte[] contractBytes) {
         return HashUtil.sha1(contractBytes);
     }
 

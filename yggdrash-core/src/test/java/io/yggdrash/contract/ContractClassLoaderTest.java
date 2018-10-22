@@ -21,6 +21,7 @@ import org.apache.commons.codec.binary.Hex;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
@@ -28,8 +29,9 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotEquals;
+import static org.junit.Assert.assertNotNull;
 
 
 
@@ -42,17 +44,17 @@ public class ContractClassLoaderTest {
         File contractNone =
                 new File("./resources/contract/79ff1978e131b6d4de263daa7f3b598ea84097b6.class");
         ContractMeta noneContract = ContractClassLoader.loadContractClass(null, contractNone);
-        Class<Contract> none = noneContract.getContract();
+        Class<? extends Contract> none = noneContract.getContract();
         log.debug(String.valueOf(Hex.encodeHex(noneContract.getContractId().array())));
-        assertTrue("{}".equals(invokeTest(none)));
+        assertEquals("{}", invokeTest(none));
         Contract a = none.newInstance();
         Contract b = none.newInstance();
-        assertFalse("Two Contract are not same instance.", a.equals(b));
+        assertNotEquals("Two Contract are not same instance.", a, b);
     }
 
     @Test
     public void testConvertContractClassToContractMeta() throws IOException {
-        Class c = NoneContract.class.getClass();
+        Class<? extends Contract> c = NoneContract.class;
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(bos);
         oos.writeObject(c);
@@ -68,19 +70,22 @@ public class ContractClassLoaderTest {
     @Test
     public void testLoadByHash() {
         // LOAD Stem Contract
-        ContractMeta classMeta = ContractClassLoader.loadContractById("5e793e345791e26c22498d6978ada9a2392b0692");
+        ContractMeta classMeta = ContractClassLoader.loadContractById(
+                "5e793e345791e26c22498d6978ada9a2392b0692");
+        assertNotNull(classMeta);
         log.debug(Hex.encodeHexString(classMeta.getContractId().array()));
-        assertTrue("io.yggdrash.contract.StemContract".equals(classMeta.getContract().getName()));
+        assertEquals("io.yggdrash.contract.StemContract", classMeta.getContract().getName());
 
         // LOAD None Contract
-        classMeta = ContractClassLoader.loadContractById("79ff1978e131b6d4de263daa7f3b598ea84097b6");
+        classMeta = ContractClassLoader.loadContractById(
+                "79ff1978e131b6d4de263daa7f3b598ea84097b6");
+        assertNotNull(classMeta);
         log.debug(Hex.encodeHexString(classMeta.getContractId().array()));
-        assertTrue("io.yggdrash.contract.NoneContract".equals(classMeta.getContract().getName()));
+        assertEquals("io.yggdrash.contract.NoneContract", classMeta.getContract().getName());
 
     }
 
-
-    public String invokeTest(Class a) throws InvocationTargetException, IllegalAccessException,
+    private String invokeTest(Class a) throws InvocationTargetException, IllegalAccessException,
             InstantiationException {
         Object t = a.newInstance();
         Method[] ms = a.getDeclaredMethods();
