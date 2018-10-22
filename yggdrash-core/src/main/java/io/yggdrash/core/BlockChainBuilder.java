@@ -20,8 +20,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.contract.CoinContract;
 import io.yggdrash.contract.Contract;
+import io.yggdrash.contract.ContractClassLoader;
+import io.yggdrash.contract.ContractMeta;
 import io.yggdrash.contract.NoneContract;
-import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.BlockStore;
@@ -42,7 +43,8 @@ public class BlockChainBuilder {
         this.storeBuilder = new StoreBuilder(isProduction);
     }
 
-    public BlockChain build(Wallet wallet, Branch branch) {
+    public BlockChain build(Wallet wallet, Branch branch) throws IllegalAccessException,
+            InstantiationException {
         // TODO fix change builder patten ref : https://jdm.kr/blog/217
 
         BlockStore blockStore = storeBuilder.buildBlockStore(branch.getBranchId());
@@ -57,8 +59,7 @@ public class BlockChainBuilder {
         return build(genesis, branch.getName());
     }
 
-    public static BlockChain buildBlockChain(BlockHusk genesis, String branchName,
-                                             boolean isProduction)
+    public BlockChain build(BlockHusk genesis, String branchName)
             throws InstantiationException, IllegalAccessException {
         // TODO fix blockchain by branch information (contract and other information)
         BlockStore blockStore = storeBuilder.buildBlockStore(genesis.getBranchId());
@@ -133,7 +134,8 @@ public class BlockChainBuilder {
         }
     }
 
-    private static Contract getContract(String branchName) {
+    private static Contract getContract(String branchName)
+            throws IllegalAccessException, InstantiationException {
         if (Branch.STEM.equalsIgnoreCase(branchName)) {
             // replace StemContract
             ContractMeta stem = ContractClassLoader

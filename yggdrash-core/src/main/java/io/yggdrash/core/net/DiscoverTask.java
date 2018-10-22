@@ -28,7 +28,7 @@ public class DiscoverTask implements Runnable {
         discover(ownerId, 0, new ArrayList<>());
     }
 
-    public synchronized void discover(byte[] peerId, int round, List<Peer> prevTried) {
+    private synchronized void discover(byte[] peerId, int round, List<Peer> prevTried) {
         try {
             if (round == KademliaOptions.MAX_STEPS) {
                 log.debug("Peer table contains [{}] peers", peerGroup.count(BranchId.stem()));
