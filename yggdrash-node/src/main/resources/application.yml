@@ -22,3 +22,8 @@ spring:
   output:
     ansi:
       enabled: always
+
+management:
+  endpoint:
+    restart:
+      enabled: true
