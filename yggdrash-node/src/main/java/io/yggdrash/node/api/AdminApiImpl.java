@@ -8,15 +8,20 @@ import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.node.controller.AdminDto;
+import io.yggdrash.proto.Proto;
 import io.yggdrash.util.ByteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import java.security.SecureRandom;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @AutoJsonRpcServiceImpl
@@ -27,15 +32,22 @@ public class AdminApiImpl implements AdminApi {
     private static long COMMAND_ACTIVE_TIME = 3 * 60 * 1000;
 
     private HttpServletRequest request;
-    private DefaultConfig defaultConfig = new DefaultConfig();
+
+    @Autowired
+    @Qualifier("defaultConfig")
+    private DefaultConfig defaultConfig;
+
     private String adminMode = defaultConfig.getConfig().getString("admin.mode");
     private String adminIp = defaultConfig.getConfig().getString("admin.ip");
+    private byte[] adminPubKey = Hex.decode(defaultConfig.getConfig().getString("admin.pubKey"));
 
     private JsonObject header;
     private String signature;
     private JsonArray body;
 
     private StringBuilder errorMsg;
+
+    private final ConcurrentHashMap<String, String> commandMap = new ConcurrentHashMap<>(); // nonce, timestamp
 
     @Autowired
     private Wallet wallet;
@@ -71,10 +83,79 @@ public class AdminApiImpl implements AdminApi {
         }
 
         // make a clientHello message
-
         // create body
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "clientHello");
+        JsonArray body = new JsonArray();
+        body.add(bodyObject);
+
+        // create header
+        JsonObject header = new JsonObject();
+
+        // - timestamp
+        long timestamp = System.currentTimeMillis();
+        header.addProperty("timestamp", Hex.toHexString(ByteUtil.longToBytes(timestamp)));
+
+        // - nonce
+        byte[] nonce = Hex.decode(this.header.get("nonce").getAsString());
+        byte[] newRand = new byte[8];
+        SecureRandom prng = new SecureRandom();
+        prng.nextBytes(newRand);
+
+        byte[] newNonce = new byte[16];
+        System.arraycopy(nonce, 8, newNonce, 0, 8);
+        System.arraycopy(newRand, 0, newNonce, 8, 8);
+        header.addProperty("nonce", Hex.toHexString(newNonce));
+
+        // - bodyHash
+        byte[] bodyHash = HashUtil.sha3(body.toString().getBytes());
+        header.addProperty("bodyHash", Hex.toHexString(bodyHash));
+
+        // - bodyLength
+        byte[] bodyLength = ByteUtil.longToBytes((long)body.toString().length());
+        header.addProperty("bodyLength", Hex.toHexString(bodyLength));
+
+        // create signature
+        String signature = Hex.toHexString(wallet.sign(header.toString().getBytes()));
+
+        JsonObject returnObject = new JsonObject();
+        returnObject.add("header", header);
+        returnObject.addProperty("signature", signature);
+        returnObject.add("body", body);
+
+        this.commandMap.put(Hex.toHexString(newRand), Hex.toHexString(ByteUtil.longToBytes(timestamp)));
+
+        return returnObject.toString();
+    }
+
+    @Override
+    public String requestCommand(AdminDto command) {
+        // check the adminMode & client ip
+        if (!getClientIp().equals(adminIp) || !adminMode.equals("true")) {
+            // todo: check the ip fake
+            return "Error." + " IP is not valid.";
+        }
+
+        errorMsg = new StringBuilder();
+
+        // check the command validation
+        if (!verifyAdminDto(command, "requestCommand")) {
+            return "Error." + errorMsg.toString();
+        }
+
+        // check nonce
+        synchronized (commandMap) {
+            if (!commandMap.containsKey(header.get("nonce").getAsString().substring(0,7))) {
+                return "Error." + " Nonce is not valid.";
+            }
+
+            commandMap.remove(header.get("nonce").getAsString());
+        }
+
+        // make a clientHello message
+        // create body
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "responseCommand");
         JsonArray body = new JsonArray();
         body.add(bodyObject);
 
@@ -162,7 +243,7 @@ public class AdminApiImpl implements AdminApi {
         }
 
         // verify a signature
-        if (!wallet.verify(header.toString().getBytes(), Hex.decode(signature))) {
+        if (!Wallet.verify(header.toString().getBytes(), Hex.decode(signature), false, adminPubKey)) {
             log.error("Signature is not valid.");
             errorMsg.append(" Signature is not valid.");
             return false;

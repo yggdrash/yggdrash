@@ -11,7 +11,7 @@ import io.yggdrash.node.controller.AdminDto;
 public interface AdminApi {
 
     /**
-     * Client send a nodeHello, node return a clientHello message.
+     * Client send a nodeHello message, node return a clientHello message.
      *
      * @param command The command data
      */
@@ -19,4 +19,15 @@ public interface AdminApi {
             @JsonRpcError(exception = FailedOperationException.class,
                     code = FailedOperationException.code)})
     String nodeHello(@JsonRpcParam(value = "command") AdminDto command);
+
+    /**
+     * Client send a requestCommand message, node return a responseCommand message.
+     *
+     * @param command The command data
+     */
+    @JsonRpcErrors({
+            @JsonRpcError(exception = FailedOperationException.class,
+                    code = FailedOperationException.code)})
+    String requestCommand(@JsonRpcParam(value = "command") AdminDto command);
+
 }

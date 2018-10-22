@@ -21,6 +21,7 @@ import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.PeerGroup;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -44,6 +45,7 @@ public class NodeConfiguration {
     }
 
     @Bean
+    @Qualifier("defaultConfig")
     DefaultConfig defaultConfig() {
         return new DefaultConfig();
     }
