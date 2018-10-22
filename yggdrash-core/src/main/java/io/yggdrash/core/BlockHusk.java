@@ -68,7 +68,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         long length = 0;
 
         for (TransactionHusk txHusk: body) {
-            length += txHusk.getCoreTransaction().getBody().length();
+            length += txHusk.getCoreTransaction().length();
         }
 
         Proto.Block.Header blockHeader = getHeader(
