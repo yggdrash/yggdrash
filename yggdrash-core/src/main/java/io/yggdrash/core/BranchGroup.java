@@ -153,7 +153,7 @@ public class BranchGroup {
         }
     }
 
-    long countOfTxs(BranchId branchId) {
+    public long countOfTxs(BranchId branchId) {
         return branches.get(branchId).countOfTxs();
     }
 }
