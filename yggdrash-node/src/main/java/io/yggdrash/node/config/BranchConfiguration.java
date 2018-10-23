@@ -71,7 +71,7 @@ public class BranchConfiguration implements ContractEventListener {
     }
 
     @Bean
-    BranchGroup branchGroup() throws IOException {
+    BranchGroup branchGroup() throws IOException, IllegalAccessException, InstantiationException {
         this.branchGroup = new BranchGroup();
         BlockHusk genesis = Block.loadGenesis(resource.getInputStream());
         BlockChain stem = builder.build(genesis, Branch.STEM);

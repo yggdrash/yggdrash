@@ -103,7 +103,7 @@ public class PeerTable {
         return peers;
     }
 
-    public synchronized List<Peer> getClosestPeers(byte[] targetId) {
+    synchronized List<Peer> getClosestPeers(byte[] targetId) {
         List<Peer> closestEntries = getAllPeers();
         closestEntries.sort(new DistanceComparator(targetId));
         if (closestEntries.size() > KademliaOptions.BUCKET_SIZE) {

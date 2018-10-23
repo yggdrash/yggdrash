@@ -23,7 +23,7 @@ public class BranchGroupTest {
     private BlockHusk block;
 
     @Before
-    public void setUp() {
+    public void setUp() throws InstantiationException, IllegalAccessException {
         branchGroup = new BranchGroup();
         addBranch(TestUtils.createBlockChain(false));
         assertThat(branchGroup.getBranchSize()).isEqualTo(1);
@@ -38,7 +38,7 @@ public class BranchGroupTest {
     }
 
     @Test(expected = DuplicatedException.class)
-    public void addExistedBranch() {
+    public void addExistedBranch() throws InstantiationException, IllegalAccessException {
         addBranch(TestUtils.createBlockChain(false));
     }
 
