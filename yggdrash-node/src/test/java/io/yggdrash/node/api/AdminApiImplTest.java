@@ -6,7 +6,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.crypto.HashUtil;
-import io.yggdrash.node.controller.AdminDto;
 import io.yggdrash.util.ByteUtil;
 import org.junit.Test;
 import org.slf4j.Logger;

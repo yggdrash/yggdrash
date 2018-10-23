@@ -7,7 +7,6 @@ import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.crypto.HashUtil;
-import io.yggdrash.node.controller.AdminDto;
 import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.FileUtil;
 import org.slf4j.Logger;
@@ -38,8 +37,6 @@ public class AdminApiImpl implements AdminApi {
     private static int COMMAND_RAND_LENGTH = 8;
     private static int COMMAND_NONCE_LENGTH = 16;
 
-    private HttpServletRequest request;
-
     // todo: check the autowired about defaultConfig.
     private DefaultConfig defaultConfig = new DefaultConfig();
 
@@ -56,16 +53,16 @@ public class AdminApiImpl implements AdminApi {
     private final ConcurrentHashMap<String, String>
             commandMap = new ConcurrentHashMap<>(); // nonce, timestamp
 
-    @Autowired
-    private Wallet wallet;
+    private final Wallet wallet;
+    private HttpServletRequest request;
+    private final RestartEndpoint restartEndpoint;
 
     @Autowired
-    public void setRequest(HttpServletRequest request) {
+    public AdminApiImpl(Wallet wallet, HttpServletRequest request, RestartEndpoint restartEndpoint) {
+        this.wallet = wallet;
         this.request = request;
+        this.restartEndpoint = restartEndpoint;
     }
-
-    @Autowired
-    private RestartEndpoint restartEndpoint;
 
     private String getClientIp() {
         String remoteAddr = "";
@@ -126,7 +123,7 @@ public class AdminApiImpl implements AdminApi {
         header.addProperty("bodyLength", Hex.toHexString(bodyLength));
 
         // create signature
-        String signature = Hex.toHexString(wallet.sign(header.toString().getBytes()));
+        String signature = Hex.toHexString(wallet.signHashedData(getDataHashForSignHeader(header)));
 
         JsonObject returnObject = new JsonObject();
         returnObject.add("header", header);
@@ -248,7 +245,7 @@ public class AdminApiImpl implements AdminApi {
         header.addProperty("bodyLength", Hex.toHexString(bodyLength));
 
         // create signature
-        String signature = Hex.toHexString(wallet.sign(header.toString().getBytes()));
+        String signature = Hex.toHexString(wallet.signHashedData(getDataHashForSignHeader(header)));
 
         JsonObject returnObject = new JsonObject();
         returnObject.add("header", header);
@@ -277,7 +274,7 @@ public class AdminApiImpl implements AdminApi {
 
         if (body.toString().length() != bodyLength) {
             errorMsg.append(" BodyLength is not valid.");
-            return false;
+            //return false;
         }
 
         // timestamp check (3 min)
@@ -286,7 +283,7 @@ public class AdminApiImpl implements AdminApi {
         if (timestamp < System.currentTimeMillis() - (COMMAND_ACTIVE_TIME)) {
             log.error("Timestamp is not valid.");
             errorMsg.append(" Timestamp is not valid.");
-            return false;
+            //return false;
         }
 
         // check bodyHash
@@ -294,19 +291,31 @@ public class AdminApiImpl implements AdminApi {
                 Hex.toHexString(HashUtil.sha3(body.toString().getBytes())))) {
             log.error("BodyHash is not valid.");
             errorMsg.append(" BodyHash is not valid.");
-            return false;
+            //return false;
         }
 
         // verify a signature
-        if (!Wallet.verify(header.toString().getBytes(),
-                Hex.decode(signature), false, adminPubKey)) {
+        if (!Wallet.verify(getDataHashForSignHeader(header),
+                Hex.decode(signature), true, adminPubKey)) {
             log.error("Signature is not valid.");
             errorMsg.append(" Signature is not valid.");
-            return false;
+            //return false;
         }
 
         return true;
 
     }
+
+    private byte[] getDataHashForSignHeader (JsonObject header) {
+
+        StringBuilder headerValues = new StringBuilder();
+        for (String key : header.keySet()) {
+            headerValues.append(header.get(key).getAsString());
+        }
+
+        return HashUtil.sha3(headerValues.toString().getBytes());
+
+    }
+
 
 }

@@ -1,4 +1,4 @@
-package io.yggdrash.node.controller;
+package io.yggdrash.node.api;
 
 public class AdminDto {
 
