@@ -39,9 +39,9 @@ public class StoreBuilderTest {
     public void shouldBeBuiltMetaStore() {
         BlockHusk block = TestUtils.createGenesisBlockHusk();
         MetaStore store = builder.buildMetaStore(BRANCH_ID);
-        store.put(MetaStore.MetaInfo.RECENT_BLOCK, block.getHash());
-        assertThat(store.contains(MetaStore.MetaInfo.RECENT_BLOCK)).isTrue();
-        assertThat(store.get(MetaStore.MetaInfo.RECENT_BLOCK)).isEqualTo(block.getHash());
+        store.put(MetaStore.MetaInfo.BEST_BLOCK, block.getHash());
+        assertThat(store.contains(MetaStore.MetaInfo.BEST_BLOCK)).isTrue();
+        assertThat(store.get(MetaStore.MetaInfo.BEST_BLOCK)).isEqualTo(block.getHash());
     }
 
     @Test
@@ -50,7 +50,6 @@ public class StoreBuilderTest {
         BlockStore store = builder.buildBlockStore(BRANCH_ID);
         store.put(block.getHash(), block);
         assert store.contains(block.getHash());
-        assert store.get(block.getIndex()).equals(block);
         assert store.get(block.getHash()).equals(block);
     }
 

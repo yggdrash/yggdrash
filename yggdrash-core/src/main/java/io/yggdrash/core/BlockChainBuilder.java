@@ -44,16 +44,7 @@ public class BlockChainBuilder {
     }
 
     public BlockChain build(Wallet wallet, Branch branch) {
-
-        BlockStore blockStore = storeBuilder.buildBlockStore(branch.getBranchId());
-
-        BlockHusk genesis;
-        if (blockStore.size() > 0) {
-            genesis = blockStore.get(0);
-        } else {
-            genesis = getGenesis(wallet, branch);
-        }
-        blockStore.close();
+        BlockHusk genesis = getGenesis(wallet, branch);
         return build(genesis, branch.getName());
     }
 

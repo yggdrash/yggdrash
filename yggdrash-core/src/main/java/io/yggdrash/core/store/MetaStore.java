@@ -47,6 +47,6 @@ public class MetaStore implements Store<MetaStore.MetaInfo, Sha3Hash> {
     }
 
     public enum MetaInfo {
-        RECENT_BLOCK
+        BEST_BLOCK
     }
 }

@@ -39,13 +39,13 @@ public class MetaStoreTest {
     public void shouldBeLoaded() {
         ms = new MetaStore(new LevelDbDataSource(getPath(), "meta"));
         BlockHusk blockHusk = new BlockHusk(TestUtils.getBlockFixture());
-        ms.put(MetaStore.MetaInfo.RECENT_BLOCK, blockHusk.getHash());
-        Sha3Hash sha3Hash = ms.get(MetaStore.MetaInfo.RECENT_BLOCK);
+        ms.put(MetaStore.MetaInfo.BEST_BLOCK, blockHusk.getHash());
+        Sha3Hash sha3Hash = ms.get(MetaStore.MetaInfo.BEST_BLOCK);
         Assertions.assertThat(sha3Hash).isEqualTo(blockHusk.getHash());
 
         ms.close();
         ms = new MetaStore(new LevelDbDataSource(getPath(), "meta"));
-        Sha3Hash sha3HashAgain = ms.get(MetaStore.MetaInfo.RECENT_BLOCK);
+        Sha3Hash sha3HashAgain = ms.get(MetaStore.MetaInfo.BEST_BLOCK);
         Assertions.assertThat(sha3HashAgain).isEqualTo(sha3Hash);
     }
 
@@ -53,8 +53,8 @@ public class MetaStoreTest {
     public void shouldBePutMeta() {
         ms = new MetaStore(new LevelDbDataSource(getPath(), "meta"));
         BlockHusk blockHusk = new BlockHusk(TestUtils.getBlockFixture());
-        ms.put(MetaStore.MetaInfo.RECENT_BLOCK, blockHusk.getHash());
-        Sha3Hash sha3Hash = ms.get(MetaStore.MetaInfo.RECENT_BLOCK);
+        ms.put(MetaStore.MetaInfo.BEST_BLOCK, blockHusk.getHash());
+        Sha3Hash sha3Hash = ms.get(MetaStore.MetaInfo.BEST_BLOCK);
         Assertions.assertThat(sha3Hash).isEqualTo(blockHusk.getHash());
     }
 

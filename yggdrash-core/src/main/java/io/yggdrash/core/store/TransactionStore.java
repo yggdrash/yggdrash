@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
@@ -47,7 +48,7 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     private final TreeSet<TransactionHusk> recentTxs = new TreeSet<>();
     private final Set<Sha3Hash> unconfirmedTxs = new HashSet<>();
 
-    public TransactionStore(DbSource<byte[], byte[]> db) {
+    TransactionStore(DbSource<byte[], byte[]> db) {
         this.db = db.init();
         this.huskTxPool = CacheManagerBuilder
                 .newCacheManagerBuilder().build(true)
@@ -135,5 +136,11 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     private void flush(Set<Sha3Hash> keys) {
         huskTxPool.removeAll(keys);
         unconfirmedTxs.removeAll(keys);
+    }
+
+    //TODO Use EvictingQueue
+    public void updateCache(List<TransactionHusk> body) {
+        this.countOfTxs += body.size();
+        this.recentTxs.addAll(body);
     }
 }
