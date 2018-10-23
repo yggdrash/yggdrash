@@ -313,7 +313,7 @@ public class AdminApiImpl implements AdminApi {
             headerValues.append(header.get(key).getAsString());
         }
 
-        return HashUtil.sha3(headerValues.toString().getBytes());
+        return HashUtil.sha3(Hex.decode(headerValues.toString()));
 
     }
 
