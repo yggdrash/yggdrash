@@ -31,18 +31,13 @@ public class AdminApiImpl implements AdminApi {
 
     private static final Logger log = LoggerFactory.getLogger(AdminApiImpl.class);
 
-    private static long COMMAND_ACTIVE_TIME = 60 * 60 * 1000; // 3 min
-    // todo: change the time value to config file.
-
+    private static int COMMAND_ACTIVE_TIME;
     private static int COMMAND_RAND_LENGTH = 8;
     private static int COMMAND_NONCE_LENGTH = 16;
 
-    // todo: check the autowired about defaultConfig.
-    private DefaultConfig defaultConfig = new DefaultConfig();
-
-    private String adminMode = defaultConfig.getConfig().getString("admin.mode");
-    private String adminIp = defaultConfig.getConfig().getString("admin.ip");
-    private byte[] adminPubKey = Hex.decode(defaultConfig.getConfig().getString("admin.pubKey"));
+    private String adminMode;
+    private String adminIp;
+    private byte[] adminPubKey;
 
     private JsonObject header;
     private String signature;
@@ -53,25 +48,26 @@ public class AdminApiImpl implements AdminApi {
     private final ConcurrentHashMap<String, String>
             commandMap = new ConcurrentHashMap<>(); // nonce, timestamp
 
+    private final DefaultConfig defaultConfig;
     private final Wallet wallet;
-    private HttpServletRequest request;
+    private final HttpServletRequest request;
     private final RestartEndpoint restartEndpoint;
 
     @Autowired
-    public AdminApiImpl(Wallet wallet, HttpServletRequest request, RestartEndpoint restartEndpoint) {
+    public AdminApiImpl(DefaultConfig defaultConfig,
+                        Wallet wallet,
+                        HttpServletRequest request,
+                        RestartEndpoint restartEndpoint) {
+        this.defaultConfig = defaultConfig;
         this.wallet = wallet;
         this.request = request;
         this.restartEndpoint = restartEndpoint;
-    }
 
-    private String getClientIp() {
-        String remoteAddr = "";
+        this.adminMode = defaultConfig.getConfig().getString("admin.mode");
+        this.adminIp = defaultConfig.getConfig().getString("admin.ip");
+        this.adminPubKey = Hex.decode(defaultConfig.getConfig().getString("admin.pubKey"));
 
-        if (request != null) {
-            remoteAddr = request.getRemoteAddr();
-        }
-
-        return remoteAddr;
+        COMMAND_ACTIVE_TIME = defaultConfig.getConfig().getInt("admin.commandTime") * 1000;
     }
 
     @Override
@@ -132,17 +128,11 @@ public class AdminApiImpl implements AdminApi {
 
         this.commandMap.put(Hex.toHexString(newRand),
                 Hex.toHexString(ByteUtil.longToBytes(timestamp)));
-        // todo: delete the unused for a long time.
+        // todo: delete the unused data for a long time.
 
         return returnObject.toString();
     }
 
-    private void restart() {
-        // todo: consider CLI restart.
-        Thread restartThread = new Thread(() -> restartEndpoint.restart());
-        restartThread.setDaemon(false);
-        restartThread.start();
-    }
 
     @Override
     public String requestCommand(AdminDto command) {
@@ -175,11 +165,12 @@ public class AdminApiImpl implements AdminApi {
         switch (methodCommand) {
             case "restart":
                 // todo: change CLI commander
-                restart();
+                restartSpringDaemon();
                 break;
             case "setConfig":
                 try {
 
+                    // todo: change to config file.
                     String userDir = System.getProperty("user.dir") + "/.yggdrash";
                     File file = new File(userDir, "admin.conf");
                     Set<PosixFilePermission> perms = new HashSet<>();
@@ -204,7 +195,7 @@ public class AdminApiImpl implements AdminApi {
 
                 // restart
                 // todo: consider CLI restart.
-                restart();
+                restartSpringDaemon();
 
                 break;
             default:
@@ -256,7 +247,6 @@ public class AdminApiImpl implements AdminApi {
     }
 
     private boolean verifyAdminDto(AdminDto command) {
-        //todo: add checking length.
 
         // null check
         if (command.getHeader() == null || command.getSignature() == null
@@ -274,7 +264,7 @@ public class AdminApiImpl implements AdminApi {
 
         if (body.toString().length() != bodyLength) {
             errorMsg.append(" BodyLength is not valid.");
-            //return false;
+            return false;
         }
 
         // timestamp check (3 min)
@@ -283,7 +273,7 @@ public class AdminApiImpl implements AdminApi {
         if (timestamp < System.currentTimeMillis() - (COMMAND_ACTIVE_TIME)) {
             log.error("Timestamp is not valid.");
             errorMsg.append(" Timestamp is not valid.");
-            //return false;
+            return false;
         }
 
         // check bodyHash
@@ -291,7 +281,7 @@ public class AdminApiImpl implements AdminApi {
                 Hex.toHexString(HashUtil.sha3(body.toString().getBytes())))) {
             log.error("BodyHash is not valid.");
             errorMsg.append(" BodyHash is not valid.");
-            //return false;
+            return false;
         }
 
         // verify a signature
@@ -299,23 +289,37 @@ public class AdminApiImpl implements AdminApi {
                 Hex.decode(signature), true, adminPubKey)) {
             log.error("Signature is not valid.");
             errorMsg.append(" Signature is not valid.");
-            //return false;
+            return false;
         }
 
         return true;
 
     }
 
-    private byte[] getDataHashForSignHeader (JsonObject header) {
-
+    private byte[] getDataHashForSignHeader(JsonObject header) {
         StringBuilder headerValues = new StringBuilder();
         for (String key : header.keySet()) {
             headerValues.append(header.get(key).getAsString());
         }
 
         return HashUtil.sha3(Hex.decode(headerValues.toString()));
-
     }
 
+    private String getClientIp() {
+        String remoteAddr = "";
+
+        if (request != null) {
+            remoteAddr = request.getRemoteAddr();
+        }
+
+        return remoteAddr;
+    }
+
+    private void restartSpringDaemon() {
+        // todo: consider CLI restart.
+        Thread restartThread = new Thread(this.restartEndpoint::restart);
+        restartThread.setDaemon(false);
+        restartThread.start();
+    }
 
 }
