@@ -7,6 +7,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 public class DiscoverTask implements Runnable {
     private static final Logger log = LoggerFactory.getLogger("DiscoverTask");
@@ -29,6 +30,7 @@ public class DiscoverTask implements Runnable {
     }
 
     private synchronized void discover(int round, List<Peer> prevTried) {
+        log.info("Start discover!");
         try {
             if (round == KademliaOptions.MAX_STEPS) {
                 log.debug("Peer table contains [{}] peers", peerGroup.count(BranchId.stem()));
@@ -40,13 +42,23 @@ public class DiscoverTask implements Runnable {
                 return;
             }
 
-            List<Peer> closest = peerGroup.getPeerTable(BranchId.stem()).getClosestPeers(ownerId);
+            Optional<PeerTable> peerTable
+                    = Optional.ofNullable(peerGroup.getPeerTable(BranchId.stem()));
+            List<Peer> closest = peerTable
+                    .map(pt -> pt.getClosestPeers(ownerId)).orElse(new ArrayList<>());
             List<Peer> tried = new ArrayList<>();
 
             for (Peer p : closest) {
                 if (!tried.contains(p) && !prevTried.contains(p)) {
                     try {
-                        discoveryClient.findPeers(p.getHost(), p.getPort(), owner);
+                        /*List<String> foundedPeerList =
+                                discoveryClient.findPeers(p.getHost(), p.getPort(), owner);
+                        foundedPeerList.forEach(
+                                u -> peerGroup.addPeerByYnodeUri(BranchId.stem(), u));*/
+                        Optional<List<String>> list = Optional.ofNullable(
+                                discoveryClient.findPeers(p.getHost(), p.getPort(), owner));
+                        list.ifPresent(strings -> strings.forEach(
+                                u -> peerGroup.addPeerByYnodeUri(BranchId.stem(), u)));
 
                         tried.add(p);
                         Utils.sleep(50);

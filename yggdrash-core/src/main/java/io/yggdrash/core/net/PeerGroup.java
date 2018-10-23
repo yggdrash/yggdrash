@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -69,8 +70,11 @@ public class PeerGroup implements BranchEventListener {
             log.info("Try connecting to SEED peer = {}", peer);
 
             try {
-                discoveryClient.findPeers(peer.getHost(), peer.getPort(), owner);
+                List<String> foundedPeerList =
+                        discoveryClient.findPeers(peer.getHost(), peer.getPort(), owner);
+                foundedPeerList.forEach(u -> addPeerByYnodeUri(BranchId.stem(), u));
             } catch (Exception e) {
+                //log.debug(e.getMessage(), e);
                 log.error("Failed connecting to SEED peer = {}", peer);
                 continue;
             }
@@ -90,6 +94,7 @@ public class PeerGroup implements BranchEventListener {
     }
 
     void addPeer(BranchId branchId, Peer peer) {
+        log.info("Add peer => {}, PeerTable of {} : {}", peer, branchId, peerTables.get(branchId));
         PeerTable peerTable = peerTables.get(branchId);
         if (peerTable == null) {
             peerTable = new PeerTable(owner);
@@ -99,8 +104,10 @@ public class PeerGroup implements BranchEventListener {
     }
 
     int count(BranchId branchId) {
-        log.debug(branchId + "'s count => " + peerTables.get(branchId).getPeersCount());
-        return peerTables.get(branchId).getPeersCount();
+        Optional<PeerTable> peerTable = Optional.ofNullable(peerTables.get(branchId));
+        return peerTable.map(PeerTable::getPeersCount).orElse(0);
+        //log.debug(branchId + "'s count => " + peerTables.get(branchId).getPeersCount());
+        //return peerTables.get(branchId).getPeersCount();
     }
 
     public List<String> getPeers(BranchId branchId, Peer peer) {

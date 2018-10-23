@@ -13,6 +13,7 @@ import io.yggdrash.node.api.PeerDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,10 +28,8 @@ public class JsonRpcDiscoverClient implements DiscoveryClient {
     @Override
     public List<String> findPeers(String host, int port, Peer owner) {
         PeerApi peerApi = peerApi(host, port);
-        return Optional.ofNullable(owner)
-                .map(o -> PeerDto.valueOf(BranchId.STEM, o))
-                .map(peerApi::getPeers)
-                .orElse(new ArrayList<>());
+        return Optional.of(PeerDto.valueOf(BranchId.STEM, owner)).map(peerApi::getPeers)
+                .orElseThrow(() -> new FailedOperationException("Failed to connect to peer"));
     }
 
     private JsonRpcHttpClient jsonRpcHttpClient(URL endpoint) {
@@ -48,7 +47,7 @@ public class JsonRpcDiscoverClient implements DiscoveryClient {
 
     private PeerApi peerApi(String host, int port) {
         try {
-            String spec = "http://" + host + ":" + port;
+            String spec = "http://" + host + ":" + port + "/api/peer";
             URL url = new URL(spec);
             return ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     PeerApi.class, jsonRpcHttpClient(url));
