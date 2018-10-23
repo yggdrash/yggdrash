@@ -9,6 +9,7 @@ import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.BlockStore;
+import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.TransactionStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,6 +32,8 @@ public class BlockChain {
 
     private final BlockStore blockStore;
     private final TransactionStore transactionStore;
+    private final MetaStore metaStore;
+
     private final Contract contract;
     private final Runtime<?> runtime;
 
@@ -38,10 +41,12 @@ public class BlockChain {
     private String branchName;
 
     public BlockChain(BlockHusk genesisBlock, BlockStore blockStore,
-                      TransactionStore transactionStore, Contract contract, Runtime runtime) {
+                      TransactionStore transactionStore, MetaStore metaStore,
+                      Contract contract, Runtime runtime) {
         this.genesisBlock = genesisBlock;
         this.blockStore = blockStore;
         this.transactionStore = transactionStore;
+        this.metaStore = metaStore;
         this.contract = contract;
         this.runtime = runtime;
         loadBlockChain();
@@ -306,6 +311,7 @@ public class BlockChain {
     public void close() {
         this.blockStore.close();
         this.transactionStore.close();
+        this.metaStore.close();
     }
 
     public String toStringStatus() {

@@ -24,6 +24,8 @@ import io.yggdrash.core.net.Peer;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class StoreBuilderTest {
     private static final BranchId BRANCH_ID = BranchId.stem();
     private StoreBuilder builder;
@@ -31,6 +33,15 @@ public class StoreBuilderTest {
     @Before
     public void setUp() {
         builder = new StoreBuilder(false);
+    }
+
+    @Test
+    public void shouldBeBuiltMetaStore() {
+        BlockHusk block = TestUtils.createGenesisBlockHusk();
+        MetaStore store = builder.buildMetaStore(BRANCH_ID);
+        store.put(MetaStore.MetaInfo.RECENT_BLOCK, block.getHash());
+        assertThat(store.contains(MetaStore.MetaInfo.RECENT_BLOCK)).isTrue();
+        assertThat(store.get(MetaStore.MetaInfo.RECENT_BLOCK)).isEqualTo(block.getHash());
     }
 
     @Test

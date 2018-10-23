@@ -25,6 +25,7 @@ import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.BlockStore;
+import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -59,11 +60,12 @@ public class BlockChainBuilder {
     public BlockChain build(BlockHusk genesis, String branchName) {
         BlockStore blockStore = storeBuilder.buildBlockStore(genesis.getBranchId());
         TransactionStore txStore = storeBuilder.buildTxStore(genesis.getBranchId());
+        MetaStore metaStore = storeBuilder.buildMetaStore(genesis.getBranchId());
 
         Contract contract = getContract(branchName);
         Runtime<?> runtime = getRunTime(branchName);
 
-        BlockChain blockChain = new BlockChain(genesis, blockStore, txStore, contract, runtime);
+        BlockChain blockChain = new BlockChain(genesis, blockStore, txStore, metaStore, contract, runtime);
         blockChain.setBranchName(branchName);
         return blockChain;
     }
