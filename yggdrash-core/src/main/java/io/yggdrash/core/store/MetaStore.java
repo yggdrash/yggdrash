@@ -18,13 +18,12 @@ package io.yggdrash.core.store;
 
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.store.datasource.DbSource;
-import io.yggdrash.core.store.datasource.LevelDbDataSource;
 
 public class MetaStore implements Store<MetaStore.MetaInfo, Sha3Hash> {
     private final DbSource<byte[], byte[]> db;
 
-    public MetaStore() {
-        db = new LevelDbDataSource("meta").init();
+    MetaStore(DbSource<byte[], byte[]> dbSource) {
+        this.db = dbSource.init();
     }
 
     @Override
@@ -34,12 +33,12 @@ public class MetaStore implements Store<MetaStore.MetaInfo, Sha3Hash> {
 
     @Override
     public Sha3Hash get(MetaInfo key) {
-        return new Sha3Hash(db.get(key.name().getBytes()));
+        return new Sha3Hash(db.get(key.name().getBytes()), true);
     }
 
     @Override
     public boolean contains(MetaInfo key) {
-        return false;
+        return db.get(key.name().getBytes()) != null;
     }
 
     @Override
