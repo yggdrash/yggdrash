@@ -33,7 +33,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 
 class DefaultBranchAutoConfig {
-    private final BlockChainBuilder builder;
+    private final boolean isProduction;
 
     @Value("classpath:/genesis-stem.json")
     Resource stemResource;
@@ -42,28 +42,33 @@ class DefaultBranchAutoConfig {
     Resource yeedResource;
 
     DefaultBranchAutoConfig(Environment env) {
-        boolean isProduction = Arrays.asList(env.getActiveProfiles()).contains("prod");
-        this.builder = BlockChainBuilder.of(isProduction);
+        this.isProduction = Arrays.asList(env.getActiveProfiles()).contains("prod");
     }
 
     @Bean(Branch.STEM)
     BlockChain stem(PeerGroup peerGroup, BranchGroup branchGroup) throws IOException,
             IllegalAccessException, InstantiationException {
-        return addBranch(stemResource.getInputStream(), Branch.STEM, peerGroup, branchGroup);
+        return addBranch(stemResource.getInputStream(),
+                "4fc0d50cba2f2538d6cda789aa4955e88c810ef5", peerGroup, branchGroup);
     }
 
     @Bean(Branch.YEED)
     BlockChain yeed(PeerGroup peerGroup, BranchGroup branchGroup) throws IOException,
             IllegalAccessException, InstantiationException {
-        return addBranch(yeedResource.getInputStream(), Branch.YEED, peerGroup, branchGroup);
+        return addBranch(yeedResource.getInputStream(),
+                "da2778112c033cdbaa3ca75616472c784a4d4410", peerGroup, branchGroup);
     }
 
-    private BlockChain addBranch(InputStream json, String branchName, PeerGroup peerGroup,
+    private BlockChain addBranch(InputStream json, String contractId, PeerGroup peerGroup,
                                  BranchGroup branchGroup)
             throws IllegalAccessException, InstantiationException {
         BlockHusk genesis = Block.loadGenesis(json);
 
-        BlockChain branch = builder.build(genesis, branchName);
+        BlockChainBuilder builder = BlockChainBuilder.Builder()
+                .addGenesis(genesis)
+                .addContractId(contractId);
+        BlockChain branch = isProduction ? builder.buildForProduction() : builder.build();
+
         branchGroup.addBranch(branch.getBranchId(), branch, peerGroup);
         return branch;
     }

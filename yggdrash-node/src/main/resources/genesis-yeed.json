@@ -1,30 +1,30 @@
 {
   "header": {
-    "chain": "5fbb0de7145d8f76e2875403fa0f73bbb7503781",
+    "chain": "7afc09c2c3c72687a78fdf3f03bbe8d35980bc39",
     "version": "0000000000000000",
     "type": "0000000000000000",
     "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
     "index": "0000000000000000",
-    "timestamp": "00000166a3b2c4a3",
-    "merkleRoot": "a9e44c755ec18773682d4d60addbf82a04d2f74be5ad0d4eadc036bddcfed4fe",
+    "timestamp": "00000166a51fd001",
+    "merkleRoot": "fab0f54ca2798084649ff005b3a539e37054c2af88cec4d387bb8592d672c5a2",
     "bodyLength": "0000000000000640"
   },
-  "signature": "1c7a7e9a362f2d189b49ae70c531ccdeb256765e8189b016090af620bacd28f6105c4573918aed1eb59beb93ddc425efc69f958c61813f38771b7f6a9492972815",
+  "signature": "1b38b74ff0b21c109146d62e82057071dfe57bd94ec3f117149df1c5f8830ff6a76609c751f9dae827a8ecdb0665b4e8321765b8ec2dab41338918f0ae21e45141",
   "body": [
     {
       "header": {
-        "chain": "5fbb0de7145d8f76e2875403fa0f73bbb7503781",
+        "chain": "7afc09c2c3c72687a78fdf3f03bbe8d35980bc39",
         "version": "0000000000000000",
         "type": "0000000000000000",
-        "timestamp": "00000166a3b2c4a3",
-        "bodyHash": "21dc3db9b02955f45c376f48fc71401e418147a856be9563dd3b4169050a368b",
+        "timestamp": "00000166a51fd001",
+        "bodyHash": "676331ec100fd32545e13f1a2ba8e586f187a1fe428d9f68518eb0e3c01f466e",
         "bodyLength": "00000000000005ab"
       },
-      "signature": "1c4936253e3a08b68d99bfb0f37dce973f712479837b436fbdffbfdc84c15cf7e31e8459332c3d71a10b572fc10ef8a6aadec4b412addfa76887e68f19ec3dc876",
+      "signature": "1c27f886c801ab43e44ae220b9f41cf9b7665779b92abfb3f7af8958a15b6b6f6b28f0351f67e392a2fb9132f85ab232f5e42e6770617be03551bb7999047c35df",
       "body": [
         {
           "method": "genesis",
-          "branchId": "5fbb0de7145d8f76e2875403fa0f73bbb7503781",
+          "branchId": "7afc09c2c3c72687a78fdf3f03bbe8d35980bc39",
           "contractId": "da2778112c033cdbaa3ca75616472c784a4d4410",
           "params": [
             {

@@ -17,34 +17,30 @@
 package io.yggdrash.core;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.exception.FailedOperationException;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 public class BlockChainBuilderTest {
-    private BlockChainBuilder builder;
 
-    @Before
-    public void setUp() {
-        builder = BlockChainBuilder.of(false);
-    }
+    @Test
+    public void buildBlockChainTest() throws InstantiationException, IllegalAccessException {
+        BlockHusk genesis = TestUtils.createGenesisBlockHusk();
 
-    @Test(expected = FailedOperationException.class)
-    public void buildStemBlockChain() throws InstantiationException, IllegalAccessException {
-        Branch branch = Branch.of(BranchId.STEM, Branch.STEM, TestUtils.OWNER);
-        builder.build(TestUtils.wallet(), branch);
+        BlockChainBuilder builder = BlockChainBuilder.Builder()
+                .addGenesis(genesis)
+                .addContractId("4fc0d50cba2f2538d6cda789aa4955e88c810ef5");
+
+        BlockChain blockChain = builder.build();
+        assertEquals(blockChain.getGenesisBlock().getHash(), genesis.getHash());
     }
 
     @Test
-    public void buildYeedBlockChain() throws InstantiationException, IllegalAccessException {
-        Branch branch = Branch.of(BranchId.YEED, Branch.YEED, TestUtils.OWNER);
-        BlockChain blockChain = builder.build(TestUtils.wallet(), branch);
-        assertEquals(blockChain.getBranchId(), BranchId.yeed());
+    public void buildProductionBlockChainTest()
+            throws InstantiationException, IllegalAccessException {
+        BlockChain bc1 = TestUtils.createBlockChain(false);
+        BlockChain bc2 = TestUtils.createBlockChain(true);
 
-        BlockHusk genesis = TestUtils.createGenesisBlockHusk();
-        blockChain = builder.build(genesis, Branch.YEED);
-        assertEquals(blockChain.getGenesisBlock().getHash(), genesis.getHash());
+        assertEquals(bc1.getGenesisBlock().getHash(), bc2.getGenesisBlock().getHash());
     }
 }
