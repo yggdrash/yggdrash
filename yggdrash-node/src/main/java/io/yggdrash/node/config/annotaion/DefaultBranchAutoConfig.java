@@ -48,27 +48,24 @@ public class DefaultBranchAutoConfig {
     @Bean(Branch.STEM)
     BlockChain stem(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
             throws IOException, IllegalAccessException, InstantiationException {
-        return addBranch(stemResource.getInputStream(),
-                "4fc0d50cba2f2538d6cda789aa4955e88c810ef5", peerGroup, branchGroup,
+        return addBranch(stemResource.getInputStream(), peerGroup, branchGroup,
                 websocketSender);
     }
 
     @Bean(Branch.YEED)
     BlockChain yeed(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
             throws IOException, IllegalAccessException, InstantiationException {
-        return addBranch(yeedResource.getInputStream(),
-                "da2778112c033cdbaa3ca75616472c784a4d4410", peerGroup, branchGroup,
+        return addBranch(yeedResource.getInputStream(), peerGroup, branchGroup,
                 websocketSender);
     }
 
-    private BlockChain addBranch(InputStream json, String contractId, PeerGroup peerGroup,
+    private BlockChain addBranch(InputStream json, PeerGroup peerGroup,
                                  BranchGroup branchGroup, WebsocketSender websocketSender)
             throws IllegalAccessException, InstantiationException {
         GenesisBlock genesis = new GenesisBlock(json);
 
         BlockChain branch = BlockChainBuilder.Builder()
                 .addGenesis(genesis)
-                .addContractId(contractId)
                 .setProductMode(productionMode)
                 .build();
         branch.addListener(websocketSender);

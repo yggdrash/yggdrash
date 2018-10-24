@@ -301,7 +301,6 @@ public class TestUtils {
             InstantiationException {
         return BlockChainBuilder.Builder()
                 .addGenesis(genesis)
-                .addContractId("4fc0d50cba2f2538d6cda789aa4955e88c810ef5")
                 .setProductMode(isProduction)
                 .build();
     }

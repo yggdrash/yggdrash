@@ -3,7 +3,7 @@ package io.yggdrash.core.genesis;
 import java.util.List;
 import java.util.Map;
 
-class GenesisBody {
+class TransactionInfoBody {
 
     public String method;
     public String branchId;

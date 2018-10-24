@@ -29,12 +29,13 @@ import java.util.Scanner;
 
 public class GenesisBlock {
 
+    private final BlockInfo blockInfo;
     private final BlockHusk block;
 
     public GenesisBlock(InputStream branchInfoStream) {
         try {
-            BlockInfo blockinfo = new ObjectMapper().readValue(branchInfoStream, BlockInfo.class);
-            this.block = new BlockHusk(fromBlockInfo(blockinfo).toProtoBlock());
+            this.blockInfo = new ObjectMapper().readValue(branchInfoStream, BlockInfo.class);
+            this.block = new BlockHusk(toBlock().toProtoBlock());
         } catch (Exception e) {
             throw new NotValidateException(e);
         }
@@ -44,30 +45,40 @@ public class GenesisBlock {
         return block;
     }
 
-    private Block fromBlockInfo(BlockInfo blockinfo) {
+    public String getContractId() {
+        if (blockInfo.body != null && !blockInfo.body.isEmpty()) {
+            TransactionInfo txInfo = blockInfo.body.get(0);
+            if (txInfo.body != null && !txInfo.body.isEmpty()) {
+                return txInfo.body.get(0).contractId;
+            }
+        }
+        return null;
+    }
+
+    private Block toBlock() {
         BlockHeader blockHeader = new BlockHeader(
-                Hex.decode(blockinfo.header.chain),
-                Hex.decode(blockinfo.header.version),
-                Hex.decode(blockinfo.header.type),
-                Hex.decode(blockinfo.header.prevBlockHash),
-                ByteUtil.byteArrayToLong(Hex.decode(blockinfo.header.index)),
-                ByteUtil.byteArrayToLong(Hex.decode(blockinfo.header.timestamp)),
-                Hex.decode(blockinfo.header.merkleRoot),
-                ByteUtil.byteArrayToLong(Hex.decode(blockinfo.header.bodyLength))
+                Hex.decode(blockInfo.header.chain),
+                Hex.decode(blockInfo.header.version),
+                Hex.decode(blockInfo.header.type),
+                Hex.decode(blockInfo.header.prevBlockHash),
+                ByteUtil.byteArrayToLong(Hex.decode(blockInfo.header.index)),
+                ByteUtil.byteArrayToLong(Hex.decode(blockInfo.header.timestamp)),
+                Hex.decode(blockInfo.header.merkleRoot),
+                ByteUtil.byteArrayToLong(Hex.decode(blockInfo.header.bodyLength))
         );
 
         List<Transaction> txList = new ArrayList<>();
 
-        for (TransactionInfo txi : blockinfo.body) {
-            txList.add(fromTransactionInfo(txi));
+        for (TransactionInfo txi : blockInfo.body) {
+            txList.add(toTransaction(txi));
         }
 
         BlockBody txBody = new BlockBody(txList);
 
-        return new Block(blockHeader, Hex.decode(blockinfo.signature), txBody);
+        return new Block(blockHeader, Hex.decode(blockInfo.signature), txBody);
     }
 
-    private Transaction fromTransactionInfo(TransactionInfo txi) {
+    private Transaction toTransaction(TransactionInfo txi) {
 
         TransactionHeader txHeader = new TransactionHeader(
                 Hex.decode(txi.header.chain),
@@ -105,19 +116,11 @@ public class GenesisBlock {
 
         long timestamp = TimeUtils.time();
 
-        // todo: change values(version, type) using the configuration.
-        TransactionHeader txHeader = new TransactionHeader(
-                new byte[20],
-                new byte[8],
-                new byte[8],
-                timestamp,
-                txBody);
-
         String branchId = genesisObject.get("branchId").getAsString();
         byte[] chain = Hex.decode(branchId);
 
         // todo: change values(version, type) using the configuration.
-        txHeader = new TransactionHeader(
+        TransactionHeader txHeader = new TransactionHeader(
                 chain,
                 new byte[8],
                 new byte[8],
