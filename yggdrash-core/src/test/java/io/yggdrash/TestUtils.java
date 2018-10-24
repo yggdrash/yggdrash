@@ -32,7 +32,6 @@ import io.yggdrash.core.BlockChainBuilder;
 import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BlockSignature;
-import io.yggdrash.core.Branch;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHusk;
@@ -295,6 +294,14 @@ public class TestUtils {
 
     public static BlockChain createBlockChain(boolean isProduction) throws IllegalAccessException,
             InstantiationException {
-        return new BlockChainBuilder(isProduction).build(genesis, Branch.STEM);
+        BlockChainBuilder builder = BlockChainBuilder.Builder()
+                .addGenesis(genesis)
+                .addContractId("4fc0d50cba2f2538d6cda789aa4955e88c810ef5");
+
+        if (isProduction) {
+            return builder.buildForProduction();
+        } else {
+            return builder.build();
+        }
     }
 }
