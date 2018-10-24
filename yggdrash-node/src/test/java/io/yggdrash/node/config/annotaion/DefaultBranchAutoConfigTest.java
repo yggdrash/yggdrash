@@ -48,7 +48,7 @@ public class DefaultBranchAutoConfigTest {
             InstantiationException {
         DefaultBranchAutoConfig config = new DefaultBranchAutoConfig(mockEnv);
         config.stemResource = loader.getResource("classpath:/genesis-stem.json");
-        BlockChain blockChain = config.stem(peerGroup, branchGroup);
+        BlockChain blockChain = config.stem(peerGroup, branchGroup, null);
         assert blockChain.getBranchId().equals(BranchId.stem());
         assert branchGroup.getBranchSize() == 1;
     }
@@ -65,7 +65,7 @@ public class DefaultBranchAutoConfigTest {
             InstantiationException {
         DefaultBranchAutoConfig config = new DefaultBranchAutoConfig(mockEnv);
         config.yeedResource = loader.getResource("classpath:/genesis-yeed.json");
-        BlockChain blockChain = config.yeed(peerGroup, branchGroup);
+        BlockChain blockChain = config.yeed(peerGroup, branchGroup, null);
         assert blockChain.getBranchId().equals(BranchId.yeed());
         assert branchGroup.getBranchSize() == 1;
     }
