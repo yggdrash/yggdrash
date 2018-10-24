@@ -38,9 +38,27 @@ import java.util.List;
 public class BlockChainBuilder {
 
     private final StoreBuilder storeBuilder;
+    private BlockHusk genesis;
+    private Wallet wallet;
+    private Branch branch;
 
     public BlockChainBuilder(boolean isProduction) {
         this.storeBuilder = new StoreBuilder(isProduction);
+    }
+
+    public BlockChainBuilder addGenesis(BlockHusk genesis) {
+        this.genesis = genesis;
+        return this;
+    }
+
+    public BlockChainBuilder addWallet(Wallet wallet) {
+        this.wallet = wallet;
+        return this;
+    }
+
+    public BlockChainBuilder addBranch(Branch branch) {
+        this.branch = branch;
+        return this;
     }
 
     public BlockChain build(Wallet wallet, Branch branch) throws IllegalAccessException,
@@ -71,6 +89,20 @@ public class BlockChainBuilder {
         BlockChain blockChain = new BlockChain(genesis, blockStore, txStore, contract, runtime);
         blockChain.setBranchName(branchName);
         return blockChain;
+    }
+
+    public BlockChain build() throws InstantiationException, IllegalAccessException {
+        // TODO initialization wallet and branch
+        this.genesis = getGenesis(this.wallet, this.branch);
+
+        BlockStore blockStore = storeBuilder.buildBlockStore(genesis.getBranchId());
+        TransactionStore txStore = storeBuilder.buildTxStore(genesis.getBranchId());
+        // TODO branch Name get branch
+        Contract contract = BlockChainBuilder.getContract(this.branch.getName());
+        Runtime<?> runtime = getRunTime(contract.getClass().getGenericSuperclass().getClass());
+        BlockChain bc = new BlockChain(genesis, blockStore, txStore, contract, runtime);
+
+        return bc;
     }
 
     private BlockHusk getGenesis(Wallet wallet, Branch branch) {
