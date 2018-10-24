@@ -81,11 +81,14 @@ public class BlockChain {
 
     private void indexing() {
         Sha3Hash storedBestBlockHash = metaStore.get(MetaStore.MetaInfo.BEST_BLOCK);
-        BlockHusk currentBlock = blockStore.get(storedBestBlockHash);
+        Sha3Hash previousBlockHash = storedBestBlockHash;
+        Sha3Hash nullHash = new Sha3Hash(new byte[32], true);
+        BlockHusk currentBlock;
 
-        while (currentBlock != null) {
+        while (!previousBlockHash.equals(nullHash)) {
+            currentBlock = blockStore.get(previousBlockHash);
             blockIndex.put(currentBlock.getIndex(), currentBlock.getHash());
-            currentBlock = blockStore.get(currentBlock.getPrevHash());
+            previousBlockHash = currentBlock.getPrevHash();
         }
 
         this.prevBlock = blockStore.get(storedBestBlockHash);
