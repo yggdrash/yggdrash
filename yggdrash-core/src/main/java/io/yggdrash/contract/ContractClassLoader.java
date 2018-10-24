@@ -89,7 +89,6 @@ public class ContractClassLoader extends ClassLoader {
     }
 
     public static ContractMeta loadContractById(String contractId) {
-        // TODO Change Contract Path by resource path
         File contractFile = new File(CONTRACT_PATH, contractId + ".class");
         log.debug("Load contract={}", contractFile.getAbsolutePath());
         if (contractFile.exists()) {

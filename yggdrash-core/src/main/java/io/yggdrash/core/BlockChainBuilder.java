@@ -16,133 +16,65 @@
 
 package io.yggdrash.core;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import io.yggdrash.contract.CoinContract;
 import io.yggdrash.contract.Contract;
 import io.yggdrash.contract.ContractClassLoader;
 import io.yggdrash.contract.ContractMeta;
-import io.yggdrash.contract.NoneContract;
-import io.yggdrash.core.exception.FailedOperationException;
-import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.util.TimeUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class BlockChainBuilder {
 
-    private final StoreBuilder storeBuilder;
+    private BlockHusk genesis;
+    private String contractId;
 
-    public BlockChainBuilder(boolean isProduction) {
-        this.storeBuilder = new StoreBuilder(isProduction);
+    public BlockChainBuilder addGenesis(BlockHusk genesis) {
+        this.genesis = genesis;
+        return this;
     }
 
-    public BlockChain build(Wallet wallet, Branch branch)
-            throws IllegalAccessException, InstantiationException {
-        BlockHusk genesis = getGenesis(wallet, branch);
-        return build(genesis, branch.getName());
+    // TODO get contractId from genesis
+    public BlockChainBuilder addContractId(String contractId) {
+        this.contractId = contractId;
+        return this;
     }
 
-    public BlockChain build(BlockHusk genesis, String branchName)
-            throws InstantiationException, IllegalAccessException {
-        // TODO fix blockchain by branch information (contract and other information)
+    public BlockChain build() throws InstantiationException, IllegalAccessException {
+        return buildIntenal(false);
+    }
+
+    public BlockChain buildForProduction() throws InstantiationException, IllegalAccessException {
+        return buildIntenal(true);
+    }
+
+    private BlockChain buildIntenal(boolean isProduction) throws InstantiationException,
+            IllegalAccessException {
+        StoreBuilder storeBuilder = new StoreBuilder(isProduction);
         BlockStore blockStore = storeBuilder.buildBlockStore(genesis.getBranchId());
         TransactionStore txStore = storeBuilder.buildTxStore(genesis.getBranchId());
         MetaStore metaStore = storeBuilder.buildMetaStore(genesis.getBranchId());
 
-        Contract contract = getContract(branchName);
+        Contract contract = getContract();
         Runtime<?> runtime = getRunTime(contract.getClass().getGenericSuperclass().getClass());
 
-        BlockChain blockChain = new BlockChain(
+        return new BlockChain(
                 genesis, blockStore, txStore, metaStore, contract, runtime);
-        blockChain.setBranchName(branchName);
-        return blockChain;
     }
 
-    private BlockHusk getGenesis(Wallet wallet, Branch branch) {
-
-        if (!branch.isYeed()) {
-            throw new FailedOperationException("Not supported name=" + branch.getName());
-        }
-
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("branchId", branch.getBranchId().toString());
-        jsonObject.addProperty("method", "genesis");
-
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("frontier", branch.getOwner());
-        param.addProperty("balance", "1000000000");
-        params.add(param);
-        jsonObject.add("params", params);
-
-        JsonArray jsonArrayTxBody = new JsonArray();
-        jsonArrayTxBody.add(jsonObject);
-
-        return genesis(wallet, branch.getBranchId(), jsonArrayTxBody);
-    }
-
-    private BlockHusk genesis(Wallet wallet, BranchId branchId, JsonArray jsonArrayTxBody) {
-        try {
-            TransactionBody txBody = new TransactionBody(jsonArrayTxBody);
-
-            TransactionHeader txHeader = new TransactionHeader(
-                    branchId.getBytes(),
-                    new byte[8],
-                    new byte[8],
-                    TimeUtils.time(),
-                    txBody);
-
-            Transaction tx = new Transaction(txHeader, wallet, txBody);
-            List<Transaction> txList = new ArrayList<>();
-            txList.add(tx);
-
-            BlockBody blockBody = new BlockBody(txList);
-            BlockHeader blockHeader = new BlockHeader(
-                    branchId.getBytes(),
-                    new byte[8],
-                    new byte[8],
-                    new byte[32],
-                    0L,
-                    0L,
-                    blockBody.getMerkleRoot(),
-                    blockBody.length());
-
-            Block coreBlock = new Block(blockHeader, wallet, blockBody);
-
-            return new BlockHusk(coreBlock.toProtoBlock());
-        } catch (Exception e) {
-            throw new NotValidateException();
-        }
-    }
-
-    public static BlockChainBuilder of(boolean isProduction) {
-        return new BlockChainBuilder(isProduction);
-    }
-
-    private static Contract getContract(String branchName)
+    private Contract getContract()
             throws IllegalAccessException, InstantiationException {
-        if (Branch.STEM.equalsIgnoreCase(branchName)) {
-            // replace StemContract
-            ContractMeta stem = ContractClassLoader
-                    .loadContractById("4fc0d50cba2f2538d6cda789aa4955e88c810ef5");
-            assert stem != null;
-            return stem.getContract().newInstance();
-        } else if (Branch.YEED.equalsIgnoreCase(branchName)) {
-            return new CoinContract();
-        } else {
-            return new NoneContract();
-        }
+        ContractMeta contractMeta = ContractClassLoader.loadContractById(contractId);
+        return contractMeta.getContract().newInstance();
     }
 
-    private static <T> Runtime<T> getRunTime(Class<T> clazz) {
+    private <T> Runtime<T> getRunTime(Class<T> clazz) {
         return new Runtime<>(new StateStore<>(), new TransactionReceiptStore());
+    }
+
+    public static BlockChainBuilder Builder() {
+        return new BlockChainBuilder();
     }
 }

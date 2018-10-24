@@ -16,25 +16,17 @@
 
 package io.yggdrash.node.config;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import io.yggdrash.contract.ContractEvent;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockChainBuilder;
 import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.Branch;
 import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.BranchId;
-import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.TransactionReceipt;
-import io.yggdrash.core.Wallet;
 import io.yggdrash.core.event.ContractEventListener;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,15 +35,12 @@ import org.springframework.core.io.Resource;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 
 @Configuration
 public class BranchConfiguration implements ContractEventListener {
     private static final Logger log = LoggerFactory.getLogger(BranchConfiguration.class);
 
-    private final BlockChainBuilder builder;
-    private final Wallet wallet;
+    private final boolean isProduction;
     private final PeerGroup peerGroup;
 
     private BranchGroup branchGroup;
@@ -63,10 +52,9 @@ public class BranchConfiguration implements ContractEventListener {
         this.resource = resource;
     }
 
-    BranchConfiguration(Environment env, Wallet wallet, PeerGroup peerGroup) {
-        boolean isProduction = Arrays.asList(env.getActiveProfiles()).contains("prod");
-        this.builder = new BlockChainBuilder(isProduction);
-        this.wallet = wallet;
+    @Autowired
+    BranchConfiguration(Environment env, PeerGroup peerGroup) {
+        this.isProduction = Arrays.asList(env.getActiveProfiles()).contains("prod");
         this.peerGroup = peerGroup;
     }
 
@@ -74,49 +62,17 @@ public class BranchConfiguration implements ContractEventListener {
     BranchGroup branchGroup() throws IOException, IllegalAccessException, InstantiationException {
         this.branchGroup = new BranchGroup();
         BlockHusk genesis = Block.loadGenesis(resource.getInputStream());
-        BlockChain stem = builder.build(genesis, Branch.STEM);
-        branchGroup.addBranch(stem.getBranchId(), stem, peerGroup, this);
+        BlockChainBuilder builder = BlockChainBuilder.Builder()
+                .addGenesis(genesis)
+                .addContractId("4fc0d50cba2f2538d6cda789aa4955e88c810ef5");
+
+        BlockChain blockChain = isProduction ? builder.buildForProduction() : builder.build();
+        branchGroup.addBranch(blockChain.getBranchId(), blockChain, peerGroup, this);
         return branchGroup;
     }
 
     @Override
     public void onContractEvent(ContractEvent event) {
-        TransactionReceipt txReceipt = event.getTransactionReceipt();
-        TransactionHusk txHusk = event.getTransactionHusk();
-        if (!txReceipt.isSuccess() || !txHusk.getBranchId().equals(BranchId.stem())) {
-            return;
-        }
-
-        JsonObject txBody = Utils.parseJsonArray(txHusk.getBody()).get(0).getAsJsonObject();
-        JsonArray params = txBody.get("params").getAsJsonArray();
-
-        for (int i = 0; i < params.size(); i++) {
-            String branchId = params.get(i).getAsJsonObject().get("branchId").getAsString();
-            if (containsBranch(branchId)) {
-                continue;
-            }
-            try {
-                Map branchMap = (HashMap)txReceipt.getLog(branchId);
-                String reserveAddress = String.valueOf(branchMap.get("reserve_address"));
-                if (!Arrays.equals(Hex.decode(reserveAddress), wallet.getAddress())) {
-                    log.warn("Ignore branch creation. branch={}, reserveAddress={}", branchId,
-                            reserveAddress);
-                    continue;
-                }
-                String branchName = String.valueOf(branchMap.get("name"));
-                String owner = String.valueOf(branchMap.get("owner"));
-                Branch branch = Branch.of(branchId, branchName, owner);
-                BlockChain blockChain = builder.build(wallet, branch);
-                branchGroup.addBranch(blockChain.getBranchId(), blockChain, peerGroup, this);
-                log.info("New branch created. id={}, name={}, genesis={}", blockChain.getBranchId(),
-                        blockChain.getBranchName(), blockChain.getPrevBlock().getHash());
-            } catch (Exception e) {
-                log.warn("Add branch fail. id={}, err={}", branchId, e.getMessage());
-            }
-        }
-    }
-
-    private boolean containsBranch(String branchId) {
-        return branchGroup.getBranch(BranchId.of(branchId)) != null;
+        log.warn("Deprecated");
     }
 }

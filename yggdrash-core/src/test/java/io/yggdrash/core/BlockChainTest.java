@@ -79,6 +79,27 @@ public class BlockChainTest {
     }
 
     @Test
+    public void shouldBeGenerateAfterLoadedStoredBlocks() throws InstantiationException,
+            IllegalAccessException {
+        TestUtils.clearTestDb();
+        BlockChain blockChain1 = TestUtils.createBlockChain(true);
+        BlockHusk genesisBlock = blockChain1.getGenesisBlock();
+
+        BlockHusk testBlock = new BlockHusk(
+                TestUtils.getBlockFixture(1L, genesisBlock.getHash()));
+        blockChain1.addBlock(testBlock, false);
+
+        blockChain1.generateBlock(TestUtils.wallet());
+        assertThat(blockChain1.getLastIndex()).isEqualTo(2);
+        blockChain1.close();
+
+        BlockChain blockChain2 = TestUtils.createBlockChain(true);
+        blockChain2.generateBlock(TestUtils.wallet());
+        assertThat(blockChain1.getLastIndex()).isEqualTo(3);
+        TestUtils.clearTestDb();
+    }
+
+    @Test
     public void shouldBeCallback() {
         blockChain.addListener(new BranchEventListener() {
             @Override
