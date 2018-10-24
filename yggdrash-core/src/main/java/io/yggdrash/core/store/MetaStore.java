@@ -33,7 +33,7 @@ public class MetaStore implements Store<MetaStore.MetaInfo, Sha3Hash> {
 
     @Override
     public Sha3Hash get(MetaInfo key) {
-        return new Sha3Hash(db.get(key.name().getBytes()), true);
+        return Sha3Hash.createByHashed(db.get(key.name().getBytes()));
     }
 
     @Override
