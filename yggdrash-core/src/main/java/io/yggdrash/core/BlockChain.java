@@ -3,7 +3,6 @@ package io.yggdrash.core;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.Contract;
 import io.yggdrash.core.event.BranchEventListener;
-import io.yggdrash.core.event.ContractEventListener;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NonExistObjectException;
@@ -60,8 +59,7 @@ public class BlockChain {
         }
     }
 
-    public void init(ContractEventListener contractEventListener) {
-        contract.setListener(contractEventListener);
+    public void init() {
         for (int i = 0; i < blockStore.size(); i++) {
             BlockHusk storedBlock = blockStore.get(i);
             executeAllTx(new TreeSet<>(storedBlock.getBody()));
@@ -117,7 +115,7 @@ public class BlockChain {
         return this.genesisBlock;
     }
 
-    public BlockHusk getPrevBlock() {
+    BlockHusk getPrevBlock() {
         return this.prevBlock;
     }
 

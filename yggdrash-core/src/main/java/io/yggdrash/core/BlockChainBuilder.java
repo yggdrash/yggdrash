@@ -18,7 +18,6 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.contract.CoinContract;
 import io.yggdrash.contract.Contract;
 import io.yggdrash.contract.ContractClassLoader;
 import io.yggdrash.contract.ContractMeta;
@@ -39,7 +38,7 @@ public class BlockChainBuilder {
 
     private final StoreBuilder storeBuilder;
 
-    public BlockChainBuilder(boolean isProduction) {
+    private BlockChainBuilder(boolean isProduction) {
         this.storeBuilder = new StoreBuilder(isProduction);
     }
 
@@ -130,10 +129,6 @@ public class BlockChainBuilder {
         }
     }
 
-    public static BlockChainBuilder of(boolean isProduction) {
-        return new BlockChainBuilder(isProduction);
-    }
-
     private static Contract getContract(String branchName)
             throws IllegalAccessException, InstantiationException {
         if (Branch.STEM.equalsIgnoreCase(branchName)) {
@@ -143,7 +138,10 @@ public class BlockChainBuilder {
             assert stem != null;
             return stem.getContract().newInstance();
         } else if (Branch.YEED.equalsIgnoreCase(branchName)) {
-            return new CoinContract();
+            ContractMeta yeed = ContractClassLoader
+                    .loadContractById("da2778112c033cdbaa3ca75616472c784a4d4410");
+            assert yeed != null;
+            return yeed.getContract().newInstance();
         } else {
             return new NoneContract();
         }
@@ -152,4 +150,9 @@ public class BlockChainBuilder {
     private static <T> Runtime<T> getRunTime(Class<T> clazz) {
         return new Runtime<>(new StateStore<>(), new TransactionReceiptStore());
     }
+
+    public static BlockChainBuilder of(boolean isProduction) {
+        return new BlockChainBuilder(isProduction);
+    }
+
 }

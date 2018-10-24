@@ -28,7 +28,7 @@ public class BlockChainBuilderTest {
 
     @Before
     public void setUp() {
-        builder = new BlockChainBuilder(false);
+        builder = BlockChainBuilder.of(false);
     }
 
     @Test(expected = FailedOperationException.class)

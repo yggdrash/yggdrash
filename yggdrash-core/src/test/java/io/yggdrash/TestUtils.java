@@ -295,6 +295,6 @@ public class TestUtils {
 
     public static BlockChain createBlockChain(boolean isProduction) throws IllegalAccessException,
             InstantiationException {
-        return new BlockChainBuilder(isProduction).build(genesis, Branch.STEM);
+        return BlockChainBuilder.of(isProduction).build(genesis, Branch.STEM);
     }
 }

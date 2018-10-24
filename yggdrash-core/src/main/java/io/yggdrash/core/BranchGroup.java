@@ -21,7 +21,6 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.Contract;
 import io.yggdrash.core.event.BranchEventListener;
 import io.yggdrash.core.event.BranchGroupEventListener;
-import io.yggdrash.core.event.ContractEventListener;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;
@@ -33,8 +32,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 
 public class BranchGroup {
     private static final Logger log = LoggerFactory.getLogger(BranchGroup.class);
@@ -48,13 +45,12 @@ public class BranchGroup {
     }
 
     public void addBranch(BranchId branchId, BlockChain blockChain,
-                          BranchEventListener branchEventListener,
-                          ContractEventListener contractEventListener) {
+                          BranchEventListener branchEventListener) {
         if (branches.containsKey(branchId)) {
             throw new DuplicatedException(branchId.toString() + " duplicated");
         }
         blockChain.addListener(branchEventListener);
-        blockChain.init(contractEventListener);
+        blockChain.init();
         branches.put(branchId, blockChain);
         if (listener != null) {
             listener.newBranch(blockChain);
@@ -94,17 +90,7 @@ public class BranchGroup {
 
     public void generateBlock(Wallet wallet) {
         for (BlockChain blockChain : branches.values()) {
-            if (blockChain.getBranchId().equals(BranchId.stem())) {
-                blockChain.generateBlock(wallet);
-            } else {
-                try {
-                    int randomSleep = ThreadLocalRandom.current().nextInt(1, 9 + 1);
-                    TimeUnit.SECONDS.sleep(randomSleep);
-                    blockChain.generateBlock(wallet);
-                } catch (InterruptedException e) {
-                    log.warn(e.getMessage());
-                }
-            }
+            blockChain.generateBlock(wallet);
         }
     }
 

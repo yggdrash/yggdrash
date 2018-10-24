@@ -1,23 +1,30 @@
 {
   "method": "genesis",
-  "branchId": "a08ee962cd8b2bd0edbfee989c1a9f7884d26532",
+  "branchId": "5fbb0de7145d8f76e2875403fa0f73bbb7503781",
+  "contractId": "da2778112c033cdbaa3ca75616472c784a4d4410",
   "params": [
-    { "frontier" : "5db10750e8caff27f906b41c71b3471057dd2000",
+    {
+      "frontier": "5db10750e8caff27f906b41c71b3471057dd2000",
       "balance": "1000000000"
     },
-    { "frontier" : "5db10750e8caff27f906b41c71b3471057dd2001",
+    {
+      "frontier": "5db10750e8caff27f906b41c71b3471057dd2001",
       "balance": "1000000000"
     },
-    { "frontier" : "5db10750e8caff27f906b41c71b3471057dd2002",
+    {
+      "frontier": "5db10750e8caff27f906b41c71b3471057dd2002",
       "balance": "1000000000"
     },
-    { "frontier" : "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
+    {
+      "frontier": "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
       "balance": "1000000000"
     },
-    { "frontier" : "ff8dec4db7559bc2da766c495b53955990872ec1",
+    {
+      "frontier": "ff8dec4db7559bc2da766c495b53955990872ec1",
       "balance": "1000000000"
     },
-    { "frontier" : "2d4b795ea9fba0dd4ea8698bcac49efe94004c04",
+    {
+      "frontier": "2d4b795ea9fba0dd4ea8698bcac49efe94004c04",
       "balance": "1000000000"
     }
   ]
