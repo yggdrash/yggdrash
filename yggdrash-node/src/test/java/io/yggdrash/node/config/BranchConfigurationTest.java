@@ -1,12 +1,10 @@
 package io.yggdrash.node.config;
 
 import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import org.junit.Before;
 import org.junit.Test;
-import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.mock.env.MockEnvironment;
@@ -26,21 +24,21 @@ public class BranchConfigurationTest {
     }
 
     @Test
-    public void defaultBranchGroupTest() throws IOException, InvalidCipherTextException,
+    public void defaultBranchGroupTest() throws IOException,
             IllegalAccessException, InstantiationException {
         assert getBranchGroup().getBranchSize() == 1;
     }
 
     @Test
-    public void productionBranchGroupTest() throws IOException, InvalidCipherTextException,
+    public void productionBranchGroupTest() throws IOException,
             IllegalAccessException, InstantiationException {
         mockEnv.addActiveProfile("prod");
         assert getBranchGroup().getBranchSize() == 1;
     }
 
-    private BranchGroup getBranchGroup() throws IOException, InvalidCipherTextException,
+    private BranchGroup getBranchGroup() throws IOException,
             InstantiationException, IllegalAccessException {
-        BranchConfiguration config = new BranchConfiguration(mockEnv, new Wallet(), peerGroup);
+        BranchConfiguration config = new BranchConfiguration(mockEnv, peerGroup);
         config.setResource(loader.getResource("classpath:/genesis.json"));
         return config.branchGroup();
     }
