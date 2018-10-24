@@ -45,7 +45,7 @@ public class BlockChainBuilder {
     }
 
     public BlockChain build(Wallet wallet, Branch branch)
-            throws IllegalAccessException, InstantiationException{
+            throws IllegalAccessException, InstantiationException {
         BlockHusk genesis = getGenesis(wallet, branch);
         return build(genesis, branch.getName());
     }

@@ -71,8 +71,11 @@ public class BlockChain {
             List<TransactionHusk> blockBody = blockStore.get(blockIndex.get(i)).getBody();
             transactionStore.updateCache(blockBody);
             executeAllTx(new TreeSet<>(blockBody));
-            log.debug("Load idx=[{}], tx={}, branch={}, blockHash={}", blockStore.get(blockIndex.get(i)).getIndex(),
-                    blockBody.size(), blockStore.get(blockIndex.get(i)).getBranchId(), blockStore.get(blockIndex.get(i)).getHash());
+            log.debug("Load idx=[{}], tx={}, branch={}, blockHash={}",
+                    blockStore.get(blockIndex.get(i)).getIndex(),
+                    blockBody.size(),
+                    blockStore.get(blockIndex.get(i)).getBranchId(),
+                    blockStore.get(blockIndex.get(i)).getHash());
         }
     }
 
@@ -80,7 +83,7 @@ public class BlockChain {
         Sha3Hash storedBestBlockHash = metaStore.get(MetaStore.MetaInfo.BEST_BLOCK);
         BlockHusk currentBlock = blockStore.get(storedBestBlockHash);
 
-        while(currentBlock != null) {
+        while (currentBlock != null) {
             blockIndex.put(currentBlock.getIndex(), currentBlock.getHash());
             currentBlock = blockStore.get(currentBlock.getPrevHash());
         }

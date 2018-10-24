@@ -60,9 +60,9 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
 
     }
 
-    TransactionStore(DbSource<byte[], byte[]> db, int CACHE_SIZE) {
+    TransactionStore(DbSource<byte[], byte[]> db, int cacheSize) {
         this(db);
-        this.recentTxs = EvictingQueue.create(CACHE_SIZE);
+        this.recentTxs = EvictingQueue.create(cacheSize);
     }
 
     public Collection<TransactionHusk> getRecentTxs() {
