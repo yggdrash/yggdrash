@@ -23,6 +23,7 @@ import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.Branch;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.node.WebsocketSender;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.Environment;
@@ -32,7 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 
-class DefaultBranchAutoConfig {
+public class DefaultBranchAutoConfig {
     private final boolean productionMode;
 
     @Value("classpath:/genesis-stem.json")
@@ -46,21 +47,23 @@ class DefaultBranchAutoConfig {
     }
 
     @Bean(Branch.STEM)
-    BlockChain stem(PeerGroup peerGroup, BranchGroup branchGroup) throws IOException,
-            IllegalAccessException, InstantiationException {
+    BlockChain stem(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
+            throws IOException, IllegalAccessException, InstantiationException {
         return addBranch(stemResource.getInputStream(),
-                "4fc0d50cba2f2538d6cda789aa4955e88c810ef5", peerGroup, branchGroup);
+                "4fc0d50cba2f2538d6cda789aa4955e88c810ef5", peerGroup, branchGroup,
+                websocketSender);
     }
 
     @Bean(Branch.YEED)
-    BlockChain yeed(PeerGroup peerGroup, BranchGroup branchGroup) throws IOException,
-            IllegalAccessException, InstantiationException {
+    BlockChain yeed(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
+            throws IOException, IllegalAccessException, InstantiationException {
         return addBranch(yeedResource.getInputStream(),
-                "da2778112c033cdbaa3ca75616472c784a4d4410", peerGroup, branchGroup);
+                "da2778112c033cdbaa3ca75616472c784a4d4410", peerGroup, branchGroup,
+                websocketSender);
     }
 
     private BlockChain addBranch(InputStream json, String contractId, PeerGroup peerGroup,
-                                 BranchGroup branchGroup)
+                                 BranchGroup branchGroup, WebsocketSender websocketSender)
             throws IllegalAccessException, InstantiationException {
         BlockHusk genesis = Block.loadGenesis(json);
 
@@ -69,7 +72,7 @@ class DefaultBranchAutoConfig {
                 .addContractId(contractId)
                 .setProductMode(productionMode)
                 .build();
-
+        branch.addListener(websocketSender);
         branchGroup.addBranch(branch.getBranchId(), branch, peerGroup);
         return branch;
     }

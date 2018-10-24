@@ -34,7 +34,6 @@ public class BlockChain {
     private final Runtime<?> runtime;
 
     private BlockHusk prevBlock;
-    private String branchName;
 
     public BlockChain(BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, Contract contract, Runtime runtime) {
@@ -101,14 +100,6 @@ public class BlockChain {
 
     public BranchId getBranchId() {
         return genesisBlock.getBranchId();
-    }
-
-    public String getBranchName() {
-        return branchName;
-    }
-
-    void setBranchName(String branchName) {
-        this.branchName = branchName;
     }
 
     BlockHusk getGenesisBlock() {

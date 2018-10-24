@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
-import io.yggdrash.core.event.ContractEventListener;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -18,7 +17,6 @@ import java.util.List;
 public abstract class BaseContract<T> implements Contract<T> {
     static final Logger log = LoggerFactory.getLogger(BaseContract.class);
     private TransactionReceiptStore txReceiptStore;
-    private ContractEventListener listener;
     protected StateStore<T> state;
     String sender;
 
@@ -44,9 +42,6 @@ public abstract class BaseContract<T> implements Contract<T> {
                     .invoke(this, params);
             txReceipt.putLog("method", method);
             txReceipt.setTransactionHash(txHusk.getHash().toString());
-            if (listener != null) {
-                listener.onContractEvent(ContractEvent.of(txReceipt, txHusk));
-            }
             txReceiptStore.put(txReceipt.getTransactionHash(), txReceipt);
             return true;
         } catch (Throwable e) {
@@ -101,10 +96,5 @@ public abstract class BaseContract<T> implements Contract<T> {
         }
 
         return sb.toString();
-    }
-
-    @Override
-    public void setListener(ContractEventListener listener) {
-        this.listener = listener;
     }
 }

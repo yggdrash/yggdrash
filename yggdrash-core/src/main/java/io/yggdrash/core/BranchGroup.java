@@ -20,13 +20,10 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.Contract;
 import io.yggdrash.core.event.BranchEventListener;
-import io.yggdrash.core.event.BranchGroupEventListener;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -34,15 +31,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BranchGroup {
-    private static final Logger log = LoggerFactory.getLogger(BranchGroup.class);
-
     private final Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
-
-    private BranchGroupEventListener listener;
-
-    public void setListener(BranchGroupEventListener listener) {
-        this.listener = listener;
-    }
 
     public void addBranch(BranchId branchId, BlockChain blockChain,
                           BranchEventListener branchEventListener) {
@@ -52,9 +41,6 @@ public class BranchGroup {
         blockChain.addListener(branchEventListener);
         blockChain.init();
         branches.put(branchId, blockChain);
-        if (listener != null) {
-            listener.newBranch(blockChain);
-        }
     }
 
     public BlockChain getBranch(BranchId branchId) {
