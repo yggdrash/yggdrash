@@ -60,11 +60,12 @@ public class BranchConfiguration implements ContractEventListener {
     BranchGroup branchGroup() throws IOException, IllegalAccessException, InstantiationException {
         this.branchGroup = new BranchGroup();
         BlockHusk genesis = Block.loadGenesis(resource.getInputStream());
-        BlockChainBuilder builder = BlockChainBuilder.Builder()
+        BlockChain blockChain = BlockChainBuilder.Builder()
                 .addGenesis(genesis)
-                .addContractId("4fc0d50cba2f2538d6cda789aa4955e88c810ef5");
+                .addContractId("4fc0d50cba2f2538d6cda789aa4955e88c810ef5")
+                .setProductMode(isProduction)
+                .build();
 
-        BlockChain blockChain = isProduction ? builder.buildForProduction() : builder.build();
         branchGroup.addBranch(blockChain.getBranchId(), blockChain, peerGroup, this);
         return branchGroup;
     }
