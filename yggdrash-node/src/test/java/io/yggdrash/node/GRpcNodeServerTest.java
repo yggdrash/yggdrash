@@ -87,7 +87,7 @@ public class GRpcNodeServerTest {
     }
 
     @Test
-    public void syncBlock() {
+    public void syncBlock() throws InstantiationException, IllegalAccessException {
         Set<BlockHusk> blocks = new HashSet<>();
         blocks.add(block);
         when(branchGroupMock.getBlockByIndex(BranchId.stem(), 0L)).thenReturn(block);

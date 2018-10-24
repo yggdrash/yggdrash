@@ -15,12 +15,12 @@ class Runtime<T> {
         this.txReceiptStore = txReceiptStore;
     }
 
-    public boolean invoke(Contract contract, TransactionHusk tx) {
+    public boolean invoke(Contract<T> contract, TransactionHusk tx) {
         contract.init(stateStore, txReceiptStore);
         return contract.invoke(tx);
     }
 
-    public JsonObject query(Contract contract, JsonObject query) throws Exception {
+    public JsonObject query(Contract<T> contract, JsonObject query) throws Exception {
         contract.init(stateStore, txReceiptStore);
         return contract.query(query);
     }

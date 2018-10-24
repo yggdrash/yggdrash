@@ -20,8 +20,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.contract.CoinContract;
 import io.yggdrash.contract.Contract;
+import io.yggdrash.contract.ContractClassLoader;
+import io.yggdrash.contract.ContractMeta;
 import io.yggdrash.contract.NoneContract;
-import io.yggdrash.contract.StemContract;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.BlockStore;
@@ -43,26 +44,26 @@ public class BlockChainBuilder {
         this.storeBuilder = new StoreBuilder(isProduction);
     }
 
-    public BlockChain build(Wallet wallet, Branch branch) {
+    public BlockChain build(Wallet wallet, Branch branch)
+            throws IllegalAccessException, InstantiationException{
         BlockHusk genesis = getGenesis(wallet, branch);
         return build(genesis, branch.getName());
     }
 
-    public BlockChain build(BlockHusk genesis, String branchName) {
+    public BlockChain build(BlockHusk genesis, String branchName)
+            throws InstantiationException, IllegalAccessException {
+        // TODO fix blockchain by branch information (contract and other information)
         BlockStore blockStore = storeBuilder.buildBlockStore(genesis.getBranchId());
         TransactionStore txStore = storeBuilder.buildTxStore(genesis.getBranchId());
         MetaStore metaStore = storeBuilder.buildMetaStore(genesis.getBranchId());
 
         Contract contract = getContract(branchName);
-        Runtime<?> runtime = getRunTime(branchName);
+        Runtime<?> runtime = getRunTime(contract.getClass().getGenericSuperclass().getClass());
 
-        BlockChain blockChain = new BlockChain(genesis, blockStore, txStore, metaStore, contract, runtime);
+        BlockChain blockChain = new BlockChain(
+                genesis, blockStore, txStore, metaStore, contract, runtime);
         blockChain.setBranchName(branchName);
         return blockChain;
-    }
-
-    public static BlockChainBuilder of(boolean isProduction) {
-        return new BlockChainBuilder(isProduction);
     }
 
     private BlockHusk getGenesis(Wallet wallet, Branch branch) {
@@ -122,23 +123,22 @@ public class BlockChainBuilder {
         }
     }
 
-    private static Contract getContract(String branchName) {
+    public static BlockChainBuilder of(boolean isProduction) {
+        return new BlockChainBuilder(isProduction);
+    }
+
+    private static Contract getContract(String branchName)
+            throws IllegalAccessException, InstantiationException {
         if (Branch.STEM.equalsIgnoreCase(branchName)) {
-            return new StemContract();
+            // replace StemContract
+            ContractMeta stem = ContractClassLoader
+                    .loadContractById("4fc0d50cba2f2538d6cda789aa4955e88c810ef5");
+            assert stem != null;
+            return stem.getContract().newInstance();
         } else if (Branch.YEED.equalsIgnoreCase(branchName)) {
             return new CoinContract();
         } else {
             return new NoneContract();
-        }
-    }
-
-    private static Runtime<?> getRunTime(String branchName) {
-        if (Branch.STEM.equalsIgnoreCase(branchName)) {
-            return getRunTime(JsonObject.class);
-        } else if (Branch.YEED.equalsIgnoreCase(branchName)) {
-            return getRunTime(Long.class);
-        } else {
-            return getRunTime(String.class);
         }
     }
 
