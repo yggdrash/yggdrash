@@ -16,12 +16,11 @@
 
 package io.yggdrash.node.config.annotaion;
 
-import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockChainBuilder;
-import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.Branch;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.core.net.PeerGroup;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -62,7 +61,7 @@ class DefaultBranchAutoConfig {
     private BlockChain addBranch(InputStream json, String contractId, PeerGroup peerGroup,
                                  BranchGroup branchGroup)
             throws IllegalAccessException, InstantiationException {
-        BlockHusk genesis = Block.loadGenesis(json);
+        GenesisBlock genesis = new GenesisBlock(json);
 
         BlockChain branch = BlockChainBuilder.Builder()
                 .addGenesis(genesis)

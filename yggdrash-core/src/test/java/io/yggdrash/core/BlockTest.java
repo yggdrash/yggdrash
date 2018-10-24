@@ -3,6 +3,7 @@ package io.yggdrash.core;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
+import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.util.TimeUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -89,9 +90,9 @@ public class BlockTest {
         File genesisFile = new File(Objects.requireNonNull(getClass().getClassLoader()
                 .getResource("branch-sample.json")).getFile());
 
-        BlockHusk block = Block.loadGenesis(new FileInputStream(genesisFile));
-        Assertions.assertThat(block).isNotNull();
-        Assertions.assertThat(block.getIndex()).isEqualTo(0);
+        GenesisBlock genesisBlock = new GenesisBlock(new FileInputStream(genesisFile));
+        Assertions.assertThat(genesisBlock.getBlock()).isNotNull();
+        Assertions.assertThat(genesisBlock.getBlock().getIndex()).isEqualTo(0);
     }
 
     @Test

@@ -19,6 +19,7 @@ package io.yggdrash.core;
 import io.yggdrash.contract.Contract;
 import io.yggdrash.contract.ContractClassLoader;
 import io.yggdrash.contract.ContractMeta;
+import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.StoreBuilder;
@@ -27,11 +28,11 @@ import io.yggdrash.core.store.TransactionStore;
 
 public class BlockChainBuilder {
 
-    private BlockHusk genesis;
+    private GenesisBlock genesis;
     private String contractId;
     private boolean productMode = false;
 
-    public BlockChainBuilder addGenesis(BlockHusk genesis) {
+    public BlockChainBuilder addGenesis(GenesisBlock genesis) {
         this.genesis = genesis;
         return this;
     }
@@ -49,13 +50,15 @@ public class BlockChainBuilder {
 
     public BlockChain build() throws InstantiationException, IllegalAccessException {
         StoreBuilder storeBuilder = new StoreBuilder(this.productMode);
-        BlockStore blockStore = storeBuilder.buildBlockStore(genesis.getBranchId());
-        TransactionStore txStore = storeBuilder.buildTxStore(genesis.getBranchId());
+
+        BlockHusk genesisBlock = genesis.getBlock();
+        BlockStore blockStore = storeBuilder.buildBlockStore(genesisBlock.getBranchId());
+        TransactionStore txStore = storeBuilder.buildTxStore(genesisBlock.getBranchId());
 
         Contract contract = getContract();
         Runtime<?> runtime = getRunTime(contract.getClass().getGenericSuperclass().getClass());
 
-        return new BlockChain(genesis, blockStore, txStore, contract, runtime);
+        return new BlockChain(genesisBlock, blockStore, txStore, contract, runtime);
     }
 
     private Contract getContract()

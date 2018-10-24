@@ -1,5 +1,6 @@
 package io.yggdrash.core.genesis;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
@@ -8,25 +9,82 @@ import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
+import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionBody;
 import io.yggdrash.core.TransactionHeader;
 import io.yggdrash.core.Wallet;
+import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.util.ByteUtil;
 import io.yggdrash.util.TimeUtils;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-class GenesisBlock {
+public class GenesisBlock {
 
-    private Block genesisBlock;
+    private final BlockHusk block;
 
-    GenesisBlock() throws IOException, InvalidCipherTextException {
+    public GenesisBlock(InputStream branchInfoStream) {
+        try {
+            BlockInfo blockinfo = new ObjectMapper().readValue(branchInfoStream, BlockInfo.class);
+            this.block = new BlockHusk(fromBlockInfo(blockinfo).toProtoBlock());
+        } catch (Exception e) {
+            throw new NotValidateException(e);
+        }
+    }
+
+    public BlockHusk getBlock() {
+        return block;
+    }
+
+    private Block fromBlockInfo(BlockInfo blockinfo) {
+        BlockHeader blockHeader = new BlockHeader(
+                Hex.decode(blockinfo.header.chain),
+                Hex.decode(blockinfo.header.version),
+                Hex.decode(blockinfo.header.type),
+                Hex.decode(blockinfo.header.prevBlockHash),
+                ByteUtil.byteArrayToLong(Hex.decode(blockinfo.header.index)),
+                ByteUtil.byteArrayToLong(Hex.decode(blockinfo.header.timestamp)),
+                Hex.decode(blockinfo.header.merkleRoot),
+                ByteUtil.byteArrayToLong(Hex.decode(blockinfo.header.bodyLength))
+        );
+
+        List<Transaction> txList = new ArrayList<>();
+
+        for (TransactionInfo txi : blockinfo.body) {
+            txList.add(fromTransactionInfo(txi));
+        }
+
+        BlockBody txBody = new BlockBody(txList);
+
+        return new Block(blockHeader, Hex.decode(blockinfo.signature), txBody);
+    }
+
+    private Transaction fromTransactionInfo(TransactionInfo txi) {
+
+        TransactionHeader txHeader = new TransactionHeader(
+                Hex.decode(txi.header.chain),
+                Hex.decode(txi.header.version),
+                Hex.decode(txi.header.type),
+                ByteUtil.byteArrayToLong(Hex.decode(txi.header.timestamp)),
+                Hex.decode(txi.header.bodyHash),
+                ByteUtil.byteArrayToLong(Hex.decode(txi.header.bodyLength))
+        );
+
+        TransactionBody txBody = new TransactionBody(new Gson().toJson(txi.body));
+
+        return new Transaction(txHeader, Hex.decode(txi.signature), txBody);
+    }
+
+    static String generate() throws IOException, InvalidCipherTextException {
+        //todo: change the method to serializing method
 
         DefaultConfig defaultConfig = new DefaultConfig();
         String transactionFileName = defaultConfig.getConfig().getString("genesis.contract");
@@ -84,12 +142,14 @@ class GenesisBlock {
                 blockBody.getMerkleRoot(),
                 blockBody.length());
 
-        genesisBlock = new Block(blockHeader, wallet, blockBody);
+        Block genesisBlock = new Block(blockHeader, wallet, blockBody);
+        JsonObject jsonObject = genesisBlock.toJsonObject();
+        return new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject);
     }
 
-    private JsonObject getJsonObjectFromFile(String fileName) throws IOException {
+    private static JsonObject getJsonObjectFromFile(String fileName) throws IOException {
         StringBuilder result = new StringBuilder();
-        ClassLoader classLoader = getClass().getClassLoader();
+        ClassLoader classLoader = GenesisBlock.class.getClassLoader();
         File file = new File(classLoader.getResource(fileName).getFile());
 
         Scanner scanner = new Scanner(file);
@@ -103,12 +163,4 @@ class GenesisBlock {
 
         return new Gson().fromJson(result.toString(), JsonObject.class);
     }
-
-    String getGenesisJson() {
-        //todo: change the method to serializing method
-
-        JsonObject jsonObject = this.genesisBlock.toJsonObject();
-        return new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject);
-    }
-
 }
