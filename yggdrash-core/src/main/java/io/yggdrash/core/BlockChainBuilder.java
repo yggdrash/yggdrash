@@ -29,6 +29,7 @@ public class BlockChainBuilder {
 
     private BlockHusk genesis;
     private String contractId;
+    private boolean productMode = false;
 
     public BlockChainBuilder addGenesis(BlockHusk genesis) {
         this.genesis = genesis;
@@ -41,17 +42,13 @@ public class BlockChainBuilder {
         return this;
     }
 
+    public BlockChainBuilder setProductMode(boolean productMode) {
+        this.productMode = productMode;
+        return this;
+    }
+
     public BlockChain build() throws InstantiationException, IllegalAccessException {
-        return buildIntenal(false);
-    }
-
-    public BlockChain buildForProduction() throws InstantiationException, IllegalAccessException {
-        return buildIntenal(true);
-    }
-
-    private BlockChain buildIntenal(boolean isProduction) throws InstantiationException,
-            IllegalAccessException {
-        StoreBuilder storeBuilder = new StoreBuilder(isProduction);
+        StoreBuilder storeBuilder = new StoreBuilder(this.productMode);
         BlockStore blockStore = storeBuilder.buildBlockStore(genesis.getBranchId());
         TransactionStore txStore = storeBuilder.buildTxStore(genesis.getBranchId());
 

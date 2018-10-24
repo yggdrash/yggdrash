@@ -33,7 +33,7 @@ import java.io.InputStream;
 import java.util.Arrays;
 
 class DefaultBranchAutoConfig {
-    private final boolean isProduction;
+    private final boolean productionMode;
 
     @Value("classpath:/genesis-stem.json")
     Resource stemResource;
@@ -42,7 +42,7 @@ class DefaultBranchAutoConfig {
     Resource yeedResource;
 
     DefaultBranchAutoConfig(Environment env) {
-        this.isProduction = Arrays.asList(env.getActiveProfiles()).contains("prod");
+        this.productionMode = Arrays.asList(env.getActiveProfiles()).contains("prod");
     }
 
     @Bean(Branch.STEM)
@@ -64,10 +64,11 @@ class DefaultBranchAutoConfig {
             throws IllegalAccessException, InstantiationException {
         BlockHusk genesis = Block.loadGenesis(json);
 
-        BlockChainBuilder builder = BlockChainBuilder.Builder()
+        BlockChain branch = BlockChainBuilder.Builder()
                 .addGenesis(genesis)
-                .addContractId(contractId);
-        BlockChain branch = isProduction ? builder.buildForProduction() : builder.build();
+                .addContractId(contractId)
+                .setProductMode(productionMode)
+                .build();
 
         branchGroup.addBranch(branch.getBranchId(), branch, peerGroup);
         return branch;
