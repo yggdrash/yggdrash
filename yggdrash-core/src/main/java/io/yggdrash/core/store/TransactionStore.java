@@ -36,13 +36,12 @@ import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     private static final Logger log = LoggerFactory.getLogger(TransactionStore.class);
     private static final Lock LOCK = new ReentrantLock();
 
-    private int cacheSize = 500;
+    private static final int CACHE_SIZE = 500;
     private long countOfTxs = 0;
 
     private final DbSource<byte[], byte[]> db;
@@ -57,17 +56,17 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
                 .createCache("txPool", CacheConfigurationBuilder
                         .newCacheConfigurationBuilder(Sha3Hash.class, TransactionHusk.class,
                                 ResourcePoolsBuilder.heap(Long.MAX_VALUE)));
-        this.recentTxs = EvictingQueue.create(this.cacheSize);
+        this.recentTxs = EvictingQueue.create(CACHE_SIZE);
 
     }
 
-    TransactionStore(DbSource<byte[], byte[]> db, int cacheSize) {
+    TransactionStore(DbSource<byte[], byte[]> db, int CACHE_SIZE) {
         this(db);
-        this.recentTxs = EvictingQueue.create(cacheSize);
+        this.recentTxs = EvictingQueue.create(CACHE_SIZE);
     }
 
     public Collection<TransactionHusk> getRecentTxs() {
-        return recentTxs.stream().collect(Collectors.toCollection(ArrayList::new));
+        return new ArrayList<>(recentTxs);
     }
 
     @Override
@@ -139,7 +138,6 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
         unconfirmedTxs.removeAll(keys);
     }
 
-    //TODO Use EvictingQueue
     public void updateCache(List<TransactionHusk> body) {
         this.countOfTxs += body.size();
         this.recentTxs.addAll(body);
