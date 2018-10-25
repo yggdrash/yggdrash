@@ -15,10 +15,10 @@ import java.util.Collection;
 import java.util.List;
 
 public abstract class BaseContract<T> implements Contract<T> {
-    static final Logger log = LoggerFactory.getLogger(BaseContract.class);
-    private TransactionReceiptStore txReceiptStore;
+    protected static final Logger log = LoggerFactory.getLogger(BaseContract.class);
+    protected TransactionReceiptStore txReceiptStore;
     protected StateStore<T> state;
-    String sender;
+    protected String sender;
 
     @Override
     public void init(StateStore<T> store, TransactionReceiptStore txReceiptStore) {
