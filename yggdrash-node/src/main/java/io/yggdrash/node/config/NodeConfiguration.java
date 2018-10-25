@@ -17,9 +17,11 @@
 package io.yggdrash.node.config;
 
 import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.node.config.annotaion.EnableDefaultBranch;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +31,7 @@ import org.springframework.context.annotation.Configuration;
 import java.io.IOException;
 
 @Configuration
+@EnableDefaultBranch
 public class NodeConfiguration {
 
     private final NodeProperties nodeProperties;
@@ -48,6 +51,11 @@ public class NodeConfiguration {
         PeerGroup peerGroup = new PeerGroup(owner, nodeProperties.getMaxPeers());
         peerGroup.setSeedPeerList(nodeProperties.getSeedPeerList());
         return peerGroup;
+    }
+
+    @Bean
+    BranchGroup branchGroup() {
+        return new BranchGroup();
     }
 
     @Bean

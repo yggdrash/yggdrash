@@ -3,10 +3,11 @@ package io.yggdrash.core.genesis;
 import java.util.List;
 import java.util.Map;
 
-class GenesisBody {
+class TransactionInfoBody {
 
     public String method;
     public String branchId;
+    public String contractId;
     public List<Map<String, String>> params;
     public Map<String, DelegatorInfo> delegator;
     public Map<String, NodeInfo> node;

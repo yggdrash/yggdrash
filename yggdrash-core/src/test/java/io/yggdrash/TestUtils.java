@@ -32,13 +32,13 @@ import io.yggdrash.core.BlockChainBuilder;
 import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BlockSignature;
-import io.yggdrash.core.Branch;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.Wallet;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.util.FileUtil;
 import io.yggdrash.util.TimeUtils;
@@ -59,7 +59,7 @@ public class TestUtils {
             new Address(Hex.decode("e1980adeafbb9ac6c9be60955484ab1547ab0b76"));
 
     private static final Wallet wallet;
-    private static final BlockHusk genesis;
+    private static final GenesisBlock genesis;
 
     private TestUtils() {}
 
@@ -68,7 +68,7 @@ public class TestUtils {
             wallet = new Wallet();
             File genesisFile = new File(Objects.requireNonNull(TestUtils.class.getClassLoader()
                     .getResource("branch-sample.json")).getFile());
-            genesis = Block.loadGenesis(new FileInputStream(genesisFile));
+            genesis = new GenesisBlock(new FileInputStream(genesisFile));
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
@@ -76,6 +76,10 @@ public class TestUtils {
 
     public static Wallet wallet() {
         return wallet;
+    }
+
+    public static GenesisBlock genesis() {
+        return genesis;
     }
 
     public static Proto.Block getBlockFixture() {
@@ -295,6 +299,9 @@ public class TestUtils {
 
     public static BlockChain createBlockChain(boolean isProduction) throws IllegalAccessException,
             InstantiationException {
-        return new BlockChainBuilder(isProduction).build(genesis, Branch.STEM);
+        return BlockChainBuilder.Builder()
+                .addGenesis(genesis)
+                .setProductMode(isProduction)
+                .build();
     }
 }

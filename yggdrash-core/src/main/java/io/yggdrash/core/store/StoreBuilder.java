@@ -41,6 +41,10 @@ public class StoreBuilder {
         return new PeerStore(getDbSource(branchId + "/peers"));
     }
 
+    public MetaStore buildMetaStore(BranchId branchId) {
+        return new MetaStore(getDbSource(branchId + "/meta"));
+    }
+
     private DbSource<byte[], byte[]> getDbSource(String path) {
         if (isProduction) {
             return new LevelDbDataSource(path);

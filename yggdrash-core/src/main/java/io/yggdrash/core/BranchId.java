@@ -27,8 +27,8 @@ import java.io.IOException;
 
 public class BranchId {
 
-    public static final String STEM = "fe7b7c93dd23f78e12ad42650595bc0f874c88f7";
-    public static final String YEED = "a08ee962cd8b2bd0edbfee989c1a9f7884d26532";
+    public static final String STEM = "99232a38e12176ca08932bf2a37fa5f1c951fd4b";
+    public static final String YEED = "7afc09c2c3c72687a78fdf3f03bbe8d35980bc39";
     private final Sha3Hash id;
 
     public BranchId(Sha3Hash hash) {

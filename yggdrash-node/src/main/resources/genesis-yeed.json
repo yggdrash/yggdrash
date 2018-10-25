@@ -1,34 +1,55 @@
 {
   "header": {
-    "chain": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
+    "chain": "7afc09c2c3c72687a78fdf3f03bbe8d35980bc39",
     "version": "0000000000000000",
     "type": "0000000000000000",
     "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
     "index": "0000000000000000",
-    "timestamp": "00000165eb0cc79a",
-    "merkleRoot": "1cf4b39c9530026fb5294c8e53041304252749e9bdccc7014a6bc78985699d60",
-    "bodyLength": "00000000000006c6"
+    "timestamp": "00000166a51fd001",
+    "merkleRoot": "fab0f54ca2798084649ff005b3a539e37054c2af88cec4d387bb8592d672c5a2",
+    "bodyLength": "0000000000000640"
   },
-  "signature": "1c8d4fdb448e55ada01ec98add95a360d18e750cc3a5230a142b0027684e1b7642207ffc435a93a9408040b0466c7d6bc1045b9ec0d6bf31c0783a4fc2859fc3f0",
+  "signature": "1b38b74ff0b21c109146d62e82057071dfe57bd94ec3f117149df1c5f8830ff6a76609c751f9dae827a8ecdb0665b4e8321765b8ec2dab41338918f0ae21e45141",
   "body": [
     {
       "header": {
-        "chain": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
+        "chain": "7afc09c2c3c72687a78fdf3f03bbe8d35980bc39",
         "version": "0000000000000000",
         "type": "0000000000000000",
-        "timestamp": "00000165eb0cc79a",
-        "bodyHash": "09ecdfc92e99c14e67ad93dd0d7b13c69042ff652206b2aea89878f045dd598c",
-        "bodyLength": "0000000000000631"
+        "timestamp": "00000166a51fd001",
+        "bodyHash": "676331ec100fd32545e13f1a2ba8e586f187a1fe428d9f68518eb0e3c01f466e",
+        "bodyLength": "00000000000005ab"
       },
-      "signature": "1cf604a2e271344dacdfa3119e066a87966514b018d24980ca89b11b58e672b16949fd05f63f9178916489c39594819b0efd26801b8572b3c962ac9fc0f38d52f5",
+      "signature": "1c27f886c801ab43e44ae220b9f41cf9b7665779b92abfb3f7af8958a15b6b6f6b28f0351f67e392a2fb9132f85ab232f5e42e6770617be03551bb7999047c35df",
       "body": [
         {
           "method": "genesis",
-          "branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
+          "branchId": "7afc09c2c3c72687a78fdf3f03bbe8d35980bc39",
+          "contractId": "da2778112c033cdbaa3ca75616472c784a4d4410",
           "params": [
             {
-              "branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-              "branch": "{\"name\":\"STEM\",\"symbol\":\"STEM\",\"property\":\"ecosystem\",\"type\":\"immunity\",\"description\":\"The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.\",\"tag\":0.1,\"version\":\"0xcc9612ff91ff844938acdb6608e58506a2f21b8a5d77e88726c0897e8d1d02c0\",\"reference_address\":\"\",\"reserve_address\":\"0xcee3d4755e47055b530deeba062c5bd0c17eb00f\",\"owner\":\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\",\"timestamp\":1536755670444,\"version_history\":[\"0xcc9612ff91ff844938acdb6608e58506a2f21b8a5d77e88726c0897e8d1d02c0\"]}"
+              "frontier": "5db10750e8caff27f906b41c71b3471057dd2000",
+              "balance": "1000000000"
+            },
+            {
+              "frontier": "5db10750e8caff27f906b41c71b3471057dd2001",
+              "balance": "1000000000"
+            },
+            {
+              "frontier": "5db10750e8caff27f906b41c71b3471057dd2002",
+              "balance": "1000000000"
+            },
+            {
+              "frontier": "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
+              "balance": "1000000000"
+            },
+            {
+              "frontier": "ff8dec4db7559bc2da766c495b53955990872ec1",
+              "balance": "1000000000"
+            },
+            {
+              "frontier": "2d4b795ea9fba0dd4ea8698bcac49efe94004c04",
+              "balance": "1000000000"
             }
           ],
           "delegator": {

@@ -17,34 +17,26 @@
 package io.yggdrash.core;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.exception.FailedOperationException;
-import org.junit.Before;
+import io.yggdrash.core.genesis.GenesisBlock;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 
 public class BlockChainBuilderTest {
-    private BlockChainBuilder builder;
 
-    @Before
-    public void setUp() {
-        builder = new BlockChainBuilder(false);
-    }
-
-    @Test(expected = FailedOperationException.class)
-    public void buildStemBlockChain() throws InstantiationException, IllegalAccessException {
-        Branch branch = Branch.of(BranchId.STEM, Branch.STEM, TestUtils.OWNER);
-        builder.build(TestUtils.wallet(), branch);
+    @Test
+    public void buildBlockChainTest() throws InstantiationException, IllegalAccessException {
+        GenesisBlock genesis = TestUtils.genesis();
+        BlockChain blockChain = BlockChainBuilder.Builder().addGenesis(genesis).build();
+        assertEquals(blockChain.getGenesisBlock().getHash(), genesis.getBlock().getHash());
     }
 
     @Test
-    public void buildYeedBlockChain() throws InstantiationException, IllegalAccessException {
-        Branch branch = Branch.of(BranchId.YEED, Branch.YEED, TestUtils.OWNER);
-        BlockChain blockChain = builder.build(TestUtils.wallet(), branch);
-        assertEquals(blockChain.getBranchId(), BranchId.yeed());
+    public void buildProductionBlockChainTest()
+            throws InstantiationException, IllegalAccessException {
+        BlockChain bc1 = TestUtils.createBlockChain(false);
+        BlockChain bc2 = TestUtils.createBlockChain(true);
 
-        BlockHusk genesis = TestUtils.createGenesisBlockHusk();
-        blockChain = builder.build(genesis, Branch.YEED);
-        assertEquals(blockChain.getGenesisBlock().getHash(), genesis.getHash());
+        assertEquals(bc1.getGenesisBlock().getHash(), bc2.getGenesisBlock().getHash());
     }
 }

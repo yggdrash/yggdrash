@@ -71,6 +71,7 @@ public class ContractClassLoader extends ClassLoader {
             throw new RuntimeException("Failed to create=" + targetDir.getAbsolutePath());
         }
         String[] contractFiles = {"4fc0d50cba2f2538d6cda789aa4955e88c810ef5.class",
+                "da2778112c033cdbaa3ca75616472c784a4d4410.class",
                 "9607aea1d4e358a594006c7926a07262b5258c31.class"};
         for (String contractFile : contractFiles) {
             URL resource = ContractClassLoader.class.getResource("/contract/" + contractFile);
@@ -89,7 +90,6 @@ public class ContractClassLoader extends ClassLoader {
     }
 
     public static ContractMeta loadContractById(String contractId) {
-        // TODO Change Contract Path by resource path
         File contractFile = new File(CONTRACT_PATH, contractId + ".class");
         log.debug("Load contract={}", contractFile.getAbsolutePath());
         if (contractFile.exists()) {
