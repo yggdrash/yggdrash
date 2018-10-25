@@ -7,15 +7,14 @@ import com.googlecode.jsonrpc4j.ProxyUtil;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.net.DiscoveryClient;
+import io.yggdrash.core.net.KademliaOptions;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.node.api.PeerApi;
 import io.yggdrash.node.api.PeerDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.lang.reflect.UndeclaredThrowableException;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,7 +41,9 @@ public class JsonRpcDiscoverClient implements DiscoveryClient {
         }
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        return new JsonRpcHttpClient(objectMapper, url, map);
+        JsonRpcHttpClient jsonRpcHttpClient = new JsonRpcHttpClient(objectMapper, url, map);
+        jsonRpcHttpClient.setConnectionTimeoutMillis((int) KademliaOptions.REQ_TIMEOUT);
+        return jsonRpcHttpClient;
     }
 
     private PeerApi peerApi(String host, int port) {

@@ -51,16 +51,12 @@ public class DiscoverTask implements Runnable {
             for (Peer p : closest) {
                 if (!tried.contains(p) && !prevTried.contains(p)) {
                     try {
-                        /*List<String> foundedPeerList =
-                                discoveryClient.findPeers(p.getHost(), p.getPort(), owner);
-                        foundedPeerList.forEach(
-                                u -> peerGroup.addPeerByYnodeUri(BranchId.stem(), u));*/
                         Optional<List<String>> list = Optional.ofNullable(
                                 discoveryClient.findPeers(p.getHost(), p.getPort(), owner));
                         list.ifPresent(strings -> strings.forEach(
                                 u -> peerGroup.addPeerByYnodeUri(BranchId.stem(), u)));
 
-                        tried.add(p); //for loop 는 무조건 3번만 ? list를 tried에 추가해줘야하나?
+                        tried.add(p);
                         Utils.sleep(50);
                     } catch (Exception e) {
                         //log.error("Unexpected Exception " + e, e);

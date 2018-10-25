@@ -70,6 +70,7 @@ public class DefaultBranchAutoConfig {
                 .build();
         branch.addListener(websocketSender);
         branchGroup.addBranch(branch.getBranchId(), branch, peerGroup);
+        peerGroup.addPeerTable(branch.getBranchId(), productionMode);
         return branch;
     }
 }

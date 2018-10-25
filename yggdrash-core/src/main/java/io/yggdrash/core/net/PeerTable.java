@@ -2,14 +2,12 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.core.store.PeerStore;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class PeerTable {
     private final Peer owner;  // our node
     private transient PeerBucket[] buckets;
-    private transient List<Peer> peers;
     private transient PeerStore peerStore;
 
     PeerTable(PeerStore peerStore, Peer p) {
@@ -30,7 +28,6 @@ public class PeerTable {
     }
 
     public final void init() {
-        peers = new ArrayList<>();
         buckets = new PeerBucket[KademliaOptions.BINS];
         for (int i = 0; i < KademliaOptions.BINS; i++) {
             buckets[i] = new PeerBucket(i);
@@ -43,15 +40,15 @@ public class PeerTable {
         if (lastSeen != null) {
             return lastSeen;
         }
-        if (!peers.contains(p)) {
-            peers.add(p);
+        if (!peerStore.contains(p.getPeerId())) {
+            peerStore.put(p.getPeerId(), p);
         }
         return null;
     }
 
     synchronized void dropPeer(Peer p) {
         buckets[getBucketId(p)].dropPeer(p);
-        peers.remove(p);
+        peerStore.remove(p.getPeerId());
     }
 
     public synchronized boolean contains(Peer p) {
@@ -92,10 +89,10 @@ public class PeerTable {
     }
 
     synchronized int getPeersCount() {
-        return peers.size();
+        return peerStore.getAll().size();
     }
 
-    public synchronized List<Peer> getAllPeers() {
+    synchronized List<Peer> getAllPeers() {
         List<Peer> peers = new ArrayList<>();
 
         for (PeerBucket b : buckets) {
@@ -118,19 +115,11 @@ public class PeerTable {
         return new ArrayList<>(closestEntries);
     }
 
-    synchronized boolean isPeerStoreEmpty() throws IOException {
+    synchronized boolean isPeerStoreEmpty() {
         return peerStore.isEmpty();
     }
 
-    synchronized void putPeerToPeerStore(Peer peer) {
-        peerStore.put(peer.getPeerId(), peer);
-    }
-
-    synchronized void removePeerFromPeerStore(Peer peer) throws IOException {
-        peerStore.remove(peer.getPeerId());
-    }
-
-    synchronized List<String> getAllFromPeerStore() throws IOException {
+    synchronized List<String> getAllFromPeerStore() {
         return peerStore.getAll();
     }
 }

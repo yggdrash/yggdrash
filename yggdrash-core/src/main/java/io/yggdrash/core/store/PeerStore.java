@@ -16,19 +16,19 @@
 
 package io.yggdrash.core.store;
 
-import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerId;
 import io.yggdrash.core.store.datasource.DbSource;
-import org.apache.commons.codec.binary.Hex;
 
-import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PeerStore implements Store<PeerId, Peer> {
 
     private final DbSource<byte[], byte[]> db;
+    private transient Map<PeerId, Peer> peers = new HashMap<>();
 
     PeerStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
@@ -36,38 +36,34 @@ public class PeerStore implements Store<PeerId, Peer> {
 
     @Override
     public void put(PeerId key, Peer value) {
+        peers.put(key, value);
         db.put(key.getBytes(), value.toString().getBytes());
     }
 
     @Override
     public Peer get(PeerId key) {
-        byte[] foundValue = db.get(key.getBytes());
-
-        if (foundValue != null) {
-            return Peer.valueOf(foundValue);
-        }
-
-        throw new NonExistObjectException("Not Found [" + key + "]");
+        return peers.get(key);
     }
 
     @Override
     public boolean contains(PeerId key) {
-        return db.get(key.getBytes()) != null;
+        return peers.containsKey(key);
     }
 
     public void close() {
         this.db.close();
     }
 
-    public List<String> getAll() throws IOException {
-        return db.getAll().stream().map(Hex::encodeHexString).collect(Collectors.toList());
+    public void remove(PeerId key) {
+        peers.remove(key);
+        db.delete(key.getBytes());
     }
 
-    public void remove(PeerId key) throws IOException {
-        db.getAll().remove(key.getBytes());
+    public List<String> getAll() {
+        return peers.values().stream().map(Peer::toString).collect(Collectors.toList());
     }
 
-    public boolean isEmpty() throws IOException {
-        return db.getAll().isEmpty();
+    public boolean isEmpty() {
+        return peers.isEmpty();
     }
 }
