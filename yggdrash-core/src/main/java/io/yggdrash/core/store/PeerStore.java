@@ -20,8 +20,14 @@ import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerId;
 import io.yggdrash.core.store.datasource.DbSource;
+import org.apache.commons.codec.binary.Hex;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class PeerStore implements Store<PeerId, Peer> {
+
     private final DbSource<byte[], byte[]> db;
 
     PeerStore(DbSource<byte[], byte[]> dbSource) {
@@ -36,6 +42,7 @@ public class PeerStore implements Store<PeerId, Peer> {
     @Override
     public Peer get(PeerId key) {
         byte[] foundValue = db.get(key.getBytes());
+
         if (foundValue != null) {
             return Peer.valueOf(foundValue);
         }
@@ -50,5 +57,17 @@ public class PeerStore implements Store<PeerId, Peer> {
 
     public void close() {
         this.db.close();
+    }
+
+    public List<String> getAll() throws IOException {
+        return db.getAll().stream().map(Hex::encodeHexString).collect(Collectors.toList());
+    }
+
+    public void remove(PeerId key) throws IOException {
+        db.getAll().remove(key.getBytes());
+    }
+
+    public boolean isEmpty() throws IOException {
+        return db.getAll().isEmpty();
     }
 }

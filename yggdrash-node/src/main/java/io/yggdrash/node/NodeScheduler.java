@@ -17,6 +17,8 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.BranchId;
+import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.core.net.KademliaOptions;
 import io.yggdrash.core.net.NodeManager;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerGroup;
@@ -53,9 +55,15 @@ class NodeScheduler {
         this.nodeStatus = nodeStatus;
     }
 
-    @Scheduled(fixedRate = 1000 * 10)
+    //@Scheduled(fixedRate = 1000 * 10)
+    @Scheduled(fixedRate = KademliaOptions.BUCKET_REFRESH * 10)
     public void healthCheck() {
-        peerGroup.healthCheck();
+        try {
+            peerGroup.healthCheck();
+        } catch (NonExistObjectException e) {
+            // 저장된 모든 노드가 접속 불가하면 부트스트랩 노드로부터 디스커버리 한다.
+            nodeManager.bootstrapping();
+        }
     }
 
     @Scheduled(cron = cronValue)

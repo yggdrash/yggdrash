@@ -125,7 +125,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
     private void init() {
         log.info("Init node=" + peerGroup.getOwner());
-        peerGroup.bootstrapping(new JsonRpcDiscoverClient());
+        bootstrapping();
         nodeStatus.sync();
         for (BlockChain blockChain : branchGroup.getAllBranch()) {
             BranchId branchId = blockChain.getBranchId();
@@ -142,6 +142,12 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     @Override
     public String getNodeUri() {
         return peerGroup.getOwner().getYnodeUri();
+    }
+
+    @Override
+    public void bootstrapping() {
+        peerGroup.bootstrapping(new JsonRpcDiscoverClient());
+        peerGroup.getClosestPeers().forEach(p -> addPeerChannel(BranchId.stem(), p));
     }
 
     public void addPeerChannel(BranchId branchId, Peer peer) {

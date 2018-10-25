@@ -1,6 +1,6 @@
 package io.yggdrash.core.net;
 
-interface KademliaOptions {
+public interface KademliaOptions {
     int BUCKET_SIZE = 16;
     int ALPHA = 3;
     int BINS = 256;

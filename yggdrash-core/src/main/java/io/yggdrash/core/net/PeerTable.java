@@ -1,5 +1,8 @@
 package io.yggdrash.core.net;
 
+import io.yggdrash.core.store.PeerStore;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,13 +10,15 @@ public class PeerTable {
     private final Peer owner;  // our node
     private transient PeerBucket[] buckets;
     private transient List<Peer> peers;
+    private transient PeerStore peerStore;
 
-    PeerTable(Peer p) {
-        this(p, true);
+    PeerTable(PeerStore peerStore, Peer p) {
+        this(peerStore, p, true);
     }
 
-    private PeerTable(Peer p, boolean includeHomeNode) {
+    private PeerTable(PeerStore peerStore, Peer p, boolean includeHomeNode) {
         this.owner = p;
+        this.peerStore = peerStore;
         init();
         if (includeHomeNode) {
             addPeer(this.owner);
@@ -90,7 +95,7 @@ public class PeerTable {
         return peers.size();
     }
 
-    synchronized List<Peer> getAllPeers() {
+    public synchronized List<Peer> getAllPeers() {
         List<Peer> peers = new ArrayList<>();
 
         for (PeerBucket b : buckets) {
@@ -111,5 +116,21 @@ public class PeerTable {
         }
 
         return new ArrayList<>(closestEntries);
+    }
+
+    synchronized boolean isPeerStoreEmpty() throws IOException {
+        return peerStore.isEmpty();
+    }
+
+    synchronized void putPeerToPeerStore(Peer peer) {
+        peerStore.put(peer.getPeerId(), peer);
+    }
+
+    synchronized void removePeerFromPeerStore(Peer peer) throws IOException {
+        peerStore.remove(peer.getPeerId());
+    }
+
+    synchronized List<String> getAllFromPeerStore() throws IOException {
+        return peerStore.getAll();
     }
 }
