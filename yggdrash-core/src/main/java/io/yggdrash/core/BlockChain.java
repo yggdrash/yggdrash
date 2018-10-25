@@ -3,7 +3,6 @@ package io.yggdrash.core;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.contract.Contract;
 import io.yggdrash.core.event.BranchEventListener;
-import io.yggdrash.core.event.ContractEventListener;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NonExistObjectException;
@@ -65,8 +64,7 @@ public class BlockChain {
         }
     }
 
-    public void init(ContractEventListener contractEventListener) {
-        contract.setListener(contractEventListener);
+    public void init() {
         for (long i = 0; i < blockIndex.size(); i++) {
             List<TransactionHusk> blockBody = blockStore.get(blockIndex.get(i)).getBody();
             transactionStore.updateCache(blockBody);
@@ -125,14 +123,6 @@ public class BlockChain {
 
     public BranchId getBranchId() {
         return genesisBlock.getBranchId();
-    }
-
-    public String getBranchName() {
-        return branchName;
-    }
-
-    void setBranchName(String branchName) {
-        this.branchName = branchName;
     }
 
     BlockHusk getGenesisBlock() {

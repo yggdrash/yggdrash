@@ -1,12 +1,10 @@
 package io.yggdrash.core;
 
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.genesis.TransactionInfo;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
@@ -371,21 +369,4 @@ public class Transaction implements Cloneable {
         return new Transaction(txHeader, protoTransaction.getSignature().toByteArray(), txBody);
 
     }
-
-    static Transaction fromTransactionInfo(TransactionInfo txi) {
-
-        TransactionHeader txHeader = new TransactionHeader(
-                Hex.decode(txi.header.chain),
-                Hex.decode(txi.header.version),
-                Hex.decode(txi.header.type),
-                ByteUtil.byteArrayToLong(Hex.decode(txi.header.timestamp)),
-                Hex.decode(txi.header.bodyHash),
-                ByteUtil.byteArrayToLong(Hex.decode(txi.header.bodyLength))
-        );
-
-        TransactionBody txBody = new TransactionBody(new Gson().toJson(txi.body));
-
-        return new Transaction(txHeader, Hex.decode(txi.signature), txBody);
-    }
-
 }

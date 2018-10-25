@@ -17,6 +17,7 @@
 package io.yggdrash.core;
 
 import io.yggdrash.TestUtils;
+import io.yggdrash.core.genesis.GenesisBlock;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -25,14 +26,9 @@ public class BlockChainBuilderTest {
 
     @Test
     public void buildBlockChainTest() throws InstantiationException, IllegalAccessException {
-        BlockHusk genesis = TestUtils.createGenesisBlockHusk();
-
-        BlockChainBuilder builder = BlockChainBuilder.Builder()
-                .addGenesis(genesis)
-                .addContractId("4fc0d50cba2f2538d6cda789aa4955e88c810ef5");
-
-        BlockChain blockChain = builder.build();
-        assertEquals(blockChain.getGenesisBlock().getHash(), genesis.getHash());
+        GenesisBlock genesis = TestUtils.genesis();
+        BlockChain blockChain = BlockChainBuilder.Builder().addGenesis(genesis).build();
+        assertEquals(blockChain.getGenesisBlock().getHash(), genesis.getBlock().getHash());
     }
 
     @Test

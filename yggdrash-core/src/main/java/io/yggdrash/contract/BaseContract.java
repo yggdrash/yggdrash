@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionReceipt;
-import io.yggdrash.core.event.ContractEventListener;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -12,12 +11,14 @@ import io.yggdrash.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collection;
+import java.util.List;
+
 public abstract class BaseContract<T> implements Contract<T> {
-    static final Logger log = LoggerFactory.getLogger(BaseContract.class);
-    private TransactionReceiptStore txReceiptStore;
-    private ContractEventListener listener;
+    protected static final Logger log = LoggerFactory.getLogger(BaseContract.class);
+    protected TransactionReceiptStore txReceiptStore;
     protected StateStore<T> state;
-    String sender;
+    protected String sender;
 
     @Override
     public void init(StateStore<T> store, TransactionReceiptStore txReceiptStore) {
@@ -41,9 +42,6 @@ public abstract class BaseContract<T> implements Contract<T> {
                     .invoke(this, params);
             txReceipt.putLog("method", method);
             txReceipt.setTransactionHash(txHusk.getHash().toString());
-            if (listener != null) {
-                listener.onContractEvent(ContractEvent.of(txReceipt, txHusk));
-            }
             txReceiptStore.put(txReceipt.getTransactionHash(), txReceipt);
             return true;
         } catch (Throwable e) {
@@ -67,7 +65,11 @@ public abstract class BaseContract<T> implements Contract<T> {
         try {
             Object res = this.getClass().getMethod(method, JsonArray.class)
                     .invoke(this, params);
-            result.addProperty("result", res.toString());
+            if (res instanceof List) {
+                result.addProperty("result", collectionToString((List) res));
+            } else {
+                result.addProperty("result", res.toString());
+            }
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
@@ -83,8 +85,16 @@ public abstract class BaseContract<T> implements Contract<T> {
         }
     }
 
-    @Override
-    public void setListener(ContractEventListener listener) {
-        this.listener = listener;
+    private String collectionToString(Collection<Object> collection) {
+        StringBuilder sb = new StringBuilder();
+        for (Object obj : collection) {
+            String str = obj.toString();
+            if (sb.length() != 0) {
+                sb.append(",");
+            }
+            sb.append(str);
+        }
+
+        return sb.toString();
     }
 }
