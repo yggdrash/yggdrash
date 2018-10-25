@@ -20,6 +20,7 @@ import io.yggdrash.contract.Contract;
 import io.yggdrash.contract.ContractClassLoader;
 import io.yggdrash.contract.ContractMeta;
 import io.yggdrash.core.store.BlockStore;
+import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -51,11 +52,12 @@ public class BlockChainBuilder {
         StoreBuilder storeBuilder = new StoreBuilder(this.productMode);
         BlockStore blockStore = storeBuilder.buildBlockStore(genesis.getBranchId());
         TransactionStore txStore = storeBuilder.buildTxStore(genesis.getBranchId());
+        MetaStore metaStore = storeBuilder.buildMetaStore(genesis.getBranchId());
 
         Contract contract = getContract();
         Runtime<?> runtime = getRunTime(contract.getClass().getGenericSuperclass().getClass());
 
-        return new BlockChain(genesis, blockStore, txStore, contract, runtime);
+        return new BlockChain(genesis, blockStore, txStore, metaStore, contract, runtime);
     }
 
     private Contract getContract()
