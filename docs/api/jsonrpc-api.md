@@ -1,4 +1,4 @@
-#JSON RPC
+# JSON RPC
 **Contents**
 * [JSON RPC API](#json-rpc-api)
   * [JavaScript API](#javascript-api)
@@ -31,7 +31,7 @@
      * [[admin] nodeHello](#admin-nodeHello)
      * [[admin] requestCommand](#admin-requestcommand) 
 
-#JSON RPC API 
+# JSON RPC API 
 
 [JSON](http://json.org/) is a lightweight data-interchange format. 
 It can represent numbers, strings, ordered sequences of values, and collections of name/value pairs.
@@ -41,9 +41,9 @@ Primarily this specification defines several data structures and the rules aroun
 It is transport agnostic in that the concepts can be used within the same process, over sockets, over HTTP, or in many various message passing environments. 
 It uses JSON ([RFC 4627](http://www.ietf.org/rfc/rfc4627.txt)) as data format.
 
-##JavaScript API
+## JavaScript API
 
-##JSON-RPC Endpoint
+## JSON-RPC Endpoint
 
 Default JSON-RPC endpoints : 
 
@@ -51,7 +51,7 @@ Default JSON-RPC endpoints :
 | :----: | :--------------------------------------------: |
 | Java   | [http://localhost:8080](http://localhost:8080) |
 
-##Curl Examples Explained
+## Curl Examples Explained
 
 The curl options below might return a response where the node complains about the content type, 
 this is because the --data option sets the content type to application/x-www-form-urlencoded . 
@@ -59,7 +59,7 @@ If your node does complain, manually set the header by placing -H "Content-Type:
 
 The examples also do not include the URL/IP & port combination which must be the last argument given to curl e.x. 127.0.0.1:8080
 
-##JSON RPC API Reference
+## JSON RPC API Reference
   
 ### createAccount 
 
