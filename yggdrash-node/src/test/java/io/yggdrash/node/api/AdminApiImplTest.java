@@ -26,7 +26,7 @@ public class AdminApiImplTest {
     @Test
     public void testJsonMessage() throws IOException, InvalidCipherTextException {
 
-        wallet =  new Wallet();
+        wallet = new Wallet();
 
         String jsonMsg = "{"
                 + "\"header\": \"{\\\"timestamp\\\":\\\"00000166818E7D38\\\",\\\"nonce\\\":"
@@ -88,5 +88,5 @@ public class AdminApiImplTest {
 
     }
 
-    
+
 }

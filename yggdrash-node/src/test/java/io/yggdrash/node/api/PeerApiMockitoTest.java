@@ -53,7 +53,10 @@ public class PeerApiMockitoTest {
     @Test
     public void getPeersRpcTest() {
         try {
-            Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32919");
+            Peer peer = Peer.valueOf(
+                    "ynode://9ea9225f0b7db3c697c0a2e09cdd65046899058d16f73378c1559d61aa3e10cd5d"
+                            + "c9337142728f5a02faadafab2b926e2998d5bc2b62c2183fab75ca996de2ce@l"
+                            + "ocalhost:8082");
             PeerDto requester = PeerDto.valueOf(BRANCH.toString(), peer);
             Collection<String> peerListWithoutRequester =
                     peerApiRpc.getPeers(requester);

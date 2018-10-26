@@ -59,8 +59,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
     private Wallet wallet;
 
-    private Peer peer;
-
     private NodeStatus nodeStatus;
 
     private Server server;
@@ -87,7 +85,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
     @Override
     public void start(String host, int port) throws IOException {
-        this.peer = Peer.valueOf(wallet.getNodeId(), host, port);
         this.server = ServerBuilder.forPort(port)
                 .addService(new PingPongImpl())
                 .addService(new BlockChainImpl(peerGroup, branchGroup, nodeStatus))
@@ -122,13 +119,13 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
     @PreDestroy
     public void destroy() {
-        log.info("Destroy node=" + peer.getYnodeUri());
+        log.info("Destroy node=" + peerGroup.getOwner());
         peerGroup.destroy();
     }
 
     private void init() {
-        log.info("Init node=" + peer.getYnodeUri());
-        requestPeerList();
+        log.info("Init node=" + peerGroup.getOwner());
+        bootstrapping();
         nodeStatus.sync();
         for (BlockChain blockChain : branchGroup.getAllBranch()) {
             BranchId branchId = blockChain.getBranchId();
@@ -144,28 +141,20 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
     @Override
     public String getNodeUri() {
-        return peer.getYnodeUri();
+        return peerGroup.getOwner().getYnodeUri();
     }
 
-    public void add(BranchId branchId, Peer peer) {
-        if (peer == null || this.peer.getYnodeUri().equals(peer.getYnodeUri())) {
+    @Override
+    public void bootstrapping() {
+        peerGroup.bootstrapping(new JsonRpcDiscoverClient());
+        peerGroup.getClosestPeers().forEach(p -> addPeerChannel(BranchId.stem(), p));
+    }
+
+    public void addPeerChannel(BranchId branchId, Peer peer) {
+        if (peer == null || peerGroup.getOwner().equals(peer)) {
             return;
         }
         peerGroup.newPeerChannel(branchId, new GRpcClientChannel(peer));
-    }
-
-    private void requestPeerList() {
-        List<String> seedPeerList = peerGroup.getSeedPeerList();
-        if (seedPeerList == null || seedPeerList.isEmpty()) {
-            return;
-        }
-        for (String ynodeUri : seedPeerList) {
-            if (ynodeUri.equals(peer.getYnodeUri())) {
-                continue;
-            }
-            Peer peer = Peer.valueOf(ynodeUri);
-            log.info("Trying to connecting SEED peer at {}", peer);
-        }
     }
 
     private void syncBlockAndTransaction(BranchId branchId) {

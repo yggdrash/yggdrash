@@ -2,7 +2,6 @@ package io.yggdrash.core;
 
 import com.google.common.base.Strings;
 import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.crypto.AESEncrypt;
 import io.yggdrash.crypto.ECKey;
 import io.yggdrash.crypto.HashUtil;

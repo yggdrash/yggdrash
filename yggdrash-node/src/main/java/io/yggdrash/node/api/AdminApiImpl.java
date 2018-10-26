@@ -115,7 +115,7 @@ public class AdminApiImpl implements AdminApi {
         header.addProperty("bodyHash", Hex.toHexString(bodyHash));
 
         // - bodyLength
-        byte[] bodyLength = ByteUtil.longToBytes((long)body.toString().length());
+        byte[] bodyLength = ByteUtil.longToBytes((long) body.toString().length());
         header.addProperty("bodyLength", Hex.toHexString(bodyLength));
 
         // create signature
@@ -152,7 +152,7 @@ public class AdminApiImpl implements AdminApi {
         // check nonce
         synchronized (commandMap) {
             if (!commandMap.containsKey(header.get("nonce").getAsString()
-                    .substring(0,COMMAND_NONCE_LENGTH))) {
+                    .substring(0, COMMAND_NONCE_LENGTH))) {
                 return "Error. Nonce is not valid.";
             }
 
@@ -232,7 +232,7 @@ public class AdminApiImpl implements AdminApi {
         header.addProperty("bodyHash", Hex.toHexString(bodyHash));
 
         // - bodyLength
-        byte[] bodyLength = ByteUtil.longToBytes((long)body.toString().length());
+        byte[] bodyLength = ByteUtil.longToBytes((long) body.toString().length());
         header.addProperty("bodyLength", Hex.toHexString(bodyLength));
 
         // create signature

@@ -29,4 +29,6 @@ public interface DbSource<K, V> {
     List<V> getAll() throws IOException;
 
     void close();
+
+    void delete(K key);
 }
