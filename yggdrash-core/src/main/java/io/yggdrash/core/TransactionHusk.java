@@ -40,7 +40,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         try {
             this.coreTransaction = Transaction.toTransaction(transaction);
         } catch (Exception e) {
-            throw new InvalidSignatureException();
+            throw new InvalidSignatureException(e);
         }
     }
 
@@ -49,7 +49,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         try {
             this.protoTransaction = Transaction.toProtoTransaction(transaction);
         } catch (Exception e) {
-            throw new NotValidateException();
+            throw new NotValidateException(e);
         }
     }
 
@@ -58,7 +58,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
             this.protoTransaction = Proto.Transaction.parseFrom(data);
             this.coreTransaction = Transaction.toTransaction(protoTransaction);
         } catch (Exception e) {
-            throw new NotValidateException();
+            throw new NotValidateException(e);
         }
     }
 
@@ -93,7 +93,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
                             this.coreTransaction.getBody());
             this.protoTransaction = Transaction.toProtoTransaction(this.coreTransaction);
         } catch (Exception e) {
-            throw new NotValidateException();
+            throw new NotValidateException(e);
         }
     }
 
@@ -128,7 +128,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         try {
             return this.coreTransaction.toBinary();
         } catch (IOException e) {
-            throw new NotValidateException();
+            throw new NotValidateException(e);
         }
     }
 

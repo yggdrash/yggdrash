@@ -140,6 +140,7 @@ project(':yggdrash-node') {
         compile("org.webjars:stomp-websocket:2.3.3")
         compile("org.webjars:bootstrap:3.3.7")
         compile("org.webjars:jquery:3.1.0")
+        compile("org.springframework.cloud:spring-cloud-starter:2.0.0.RELEASE")
         annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
         runtime('org.springframework.boot:spring-boot-devtools')
         testCompile project(":yggdrash-core").sourceSets.test.output

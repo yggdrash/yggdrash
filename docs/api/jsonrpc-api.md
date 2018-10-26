@@ -6,7 +6,7 @@
   * [Curl Examples Explained]()
   * [JSON-RPC methods]()
   * [JSON RPC API Reference]()
-     * [createAccount](#create-account)
+     * [createAccount](#createAccount)
         * [Parameters]()
         * [Returns]()
         * [Example]()
@@ -98,7 +98,15 @@
         * [Parameters]()
         * [Returns]()
         * [Example]()     
-     
+     * [[admin] nodeHello](#[admin]-nodeHello)
+        * [Parameters](#[admin]-nodeHello)
+        * [Returns](#[admin]-nodeHello)
+        * [Example](#[admin]-nodeHello)     
+     * [[admin] requestCommand](#[admin]-requestCommand) 
+        * [Parameters](#[admin]-requestCommand)
+        * [Returns](#[admin]-requestCommand)
+        * [Example](#[admin]-requestCommand)     
+
 
 #JSON RPC API 
 
@@ -153,7 +161,8 @@ The examples also do not include the URL/IP & port combination which must be the
 * [[peer] add](#add)
 * [[peer] getAll](#get-all)
 * [[peer] getAllActivePeer](#get-all-active-peer)
-
+* [[admin] nodeHello](#[admin]-nodeHello)
+* [[admin] requestCommand](#[admin]-requestCommand) 
 
 ##JSON RPC API Reference
   
@@ -1344,40 +1353,97 @@ None
 }
 ```
  
+-----
 
+#### [admin] nodeHello
 
+Returns a clientHello message(with nonce) for managing node. 
 
+**Parameter**
+  
+`Object` - Command object
 
+**Returns**
+  
+`String` - String of Command object 
+  
+**Example**
+  
+```
+// request
+{
+    "id":"142596201",
+    "jsonrpc":"2.0",
+    "method":"nodeHello",
+    "params":{
+        "command":{
+            "header":"{\"timestamp\":\"00000166818E7D38\",\"nonce\":\"0000000000000000baabb165899f98a8\",\"bodyHash\":\"3717ec34f5b0345c3b480d9cd402f0be1111c0e04cb9dbe1da5b933e353a5bba\",\"bodyLength\":\"0000000000000018\"}",
+            "signature":"1b9cd47ba5847be5830a25cb94c407eaad0bbabaf0ad1a984dfb1ed04ccbb96e9f3a8b188568ba46415bb6895c166797417547b1029e3074dfd358a12f982a015a",
+            "body":"[{\"method\":\"nodeHello\"}]"
+        }
+    }
+}
 
+// result
+{
+    "jsonrpc": "2.0",
+    "id": "142596201",
+    "result": "{\"header\":{\"timestamp\":\"000001668a0a2bae\",\"nonce\":\"baabb165899f98a8b90b7251d88f2bcf\",\"bodyHash\":\"f5ef2617558e62b5a882187978f411a6ec1d437bb13a5d94e473e680d8ce7e7c\",\"bodyLength\":\"000000000000001a\"},\"signature\":\"1bab5fbd03a51cddd6b4aa0d2a68453b3073d2aa7aa58190073d1d6e647353bbaa0618d5e3f126fb5275a03f17b304b4a6afd293cf631fed6dfa31fb7c70db1c0d\",\"body\":[{\"method\":\"clientHello\"}]}"
+}
+```
 
+-----
 
+#### [admin] requestCommand
 
+Returns a responseCommand message(with nonce) for managing node. 
 
+**Parameter**
+  
+`Object` - Command object
 
+**Returns**
+  
+`String` - String of Command object 
+  
+**Example**
+  
+```
+// request
+{
+    "id":"142596201",
+    "jsonrpc":"2.0",
+    "method":"requestCommand",
+    "params":{
+        "command":{
+            "header":"{\"timestamp\":\"00000166818E7D38\",\"nonce\":\"28ef9ba1d6a55167aaabb165899f988a\",\"bodyHash\":\"3717ec34f5b0345c3b480d9cd402f0be1111c0e04cb9dbe1da5b933e353a5bba\",\"bodyLength\":\"0000000000000016\"}",
+            "signature":"1b9cd47ba5847be5830a25cb94c407eaad0bbabaf0ad1a984dfb1ed04ccbb96e9f3a8b188568ba46415bb6895c166797417547b1029e3074dfd358a12f982a015a",
+            "body":"[{\"method\":\"setConfig\",\"params\":\"{network{port:32921},log{level:info}}\"}]"
+        }
+    }
+}
 
+or
 
+{
+    "id":"142596201",
+    "jsonrpc":"2.0",
+    "method":"requestCommand",
+    "params":{
+        "command":{
+            "header":"{\"timestamp\":\"00000166818E7D38\",\"nonce\":\"28ef9ba1d6a55167aaabb165899f988a\",\"bodyHash\":\"3717ec34f5b0345c3b480d9cd402f0be1111c0e04cb9dbe1da5b933e353a5bba\",\"bodyLength\":\"0000000000000016\"}",
+            "signature":"1b9cd47ba5847be5830a25cb94c407eaad0bbabaf0ad1a984dfb1ed04ccbb96e9f3a8b188568ba46415bb6895c166797417547b1029e3074dfd358a12f982a015a",
+            "body":"[{\"method\":\"restart\"}]"
+        }
+    }
+}
 
+// result
+{
+    "jsonrpc": "2.0",
+    "id": "142596201",
+    "result": "{\"header\":{\"timestamp\":\"000001669b8df580\",\"nonce\":\"aaabb165899f988aecd8754326149367\",\"bodyHash\":\"2344c5b38540509e0babd9292553d001fde5bc4a52e8af09221fc7dedc493ee7\",\"bodyLength\":\"000000000000001e\"},\"signature\":\"1c36f6e720b32bd03d981388a0bc103ee5a4e4affee8481f175ab527ed4c189c045105aa4e99f78b64ed4e99f2d8a76fb430ebd88184e744378991a84f41b7650f\",\"body\":[{\"method\":\"responseCommand\"}]}"
+}
+```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+-----

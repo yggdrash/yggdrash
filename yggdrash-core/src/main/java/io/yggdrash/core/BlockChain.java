@@ -41,8 +41,6 @@ public class BlockChain {
     private BlockHusk prevBlock;
     private final Map<Long, Sha3Hash> blockIndex = new HashMap<>();
 
-    private String branchName;
-
     public BlockChain(BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, MetaStore metaStore,
                       Contract contract, Runtime runtime) {

@@ -109,7 +109,7 @@ public class TestUtils {
 
             return new Block(newBlockHeader, wallet, tmpBlockBody).toProtoBlock();
         } catch (Exception e) {
-            throw new NotValidateException();
+            throw new NotValidateException(e);
         }
     }
 
@@ -288,7 +288,7 @@ public class TestUtils {
 
             return block.toJsonObject();
         } catch (Exception e) {
-            throw new NotValidateException();
+            throw new NotValidateException(e);
         }
     }
 
