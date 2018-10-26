@@ -42,7 +42,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
             this.protoBlock = Proto.Block.parseFrom(bytes);
             this.coreBlock = Block.toBlock(this.protoBlock);
         } catch (Exception e) {
-            throw new NotValidateException();
+            throw new NotValidateException(e);
         }
     }
 
@@ -51,7 +51,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         try {
             this.coreBlock = Block.toBlock(this.protoBlock);
         } catch (Exception e) {
-            throw new NotValidateException();
+            throw new NotValidateException(e);
         }
     }
 
@@ -100,7 +100,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
             this.coreBlock = Block.toBlock(this.protoBlock);
 
         } catch (Exception e) {
-            throw new NotValidateException();
+            throw new NotValidateException(e);
         }
     }
 
@@ -113,7 +113,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         try {
             return new Address(this.coreBlock.getAddress());
         } catch (Exception e) {
-            throw new NotValidateException();
+            throw new NotValidateException(e);
         }
     }
 
