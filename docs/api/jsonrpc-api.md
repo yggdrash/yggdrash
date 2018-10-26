@@ -1,114 +1,37 @@
-#JSON RPC
+# JSON RPC
 **Contents**
-* [JSON RPC API]()
-  * [JavaScript API]()
-  * [JSON-RPC Endpoint]()
-  * [Curl Examples Explained]()
-  * [JSON-RPC methods]()
-  * [JSON RPC API Reference]()
+* [JSON RPC API](#json-rpc-api)
+  * [JavaScript API](#javascript-api)
+  * [JSON-RPC Endpoint](#json-rpc-endpoint)
+  * [Curl Examples Explained](#curl-examples-explained)
+  * [JSON RPC API Reference](#json-rpc-api-reference)
      * [createAccount](#createAccount)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
      * [accounts](#accounts)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [balanceOf](#balance-of)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [getBalance](#get-balance)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [blockNumber](#block-number)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [getBlockByHash](#get-block-by-hash)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [getBlockByNumber](#get-block-by-number)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [newBlockFilter](#new-block-filter)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [getTransactionCountByBlockHash](#get-block-transaction-count-by-hash)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [getTransactionCountByBlockNumber](#get-block-transaction-count-by-number)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [getTransactionByHash](#get-transaction-by-hash)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [getTransactionByBlockHash](#get-transaction-by-block-hash)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [getTransactionByBlockNumber](#get-transaction-by-block-number)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [getTransactionReceipt](#get-transaction-receipt)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [sendTransaction](#send-transaction)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [sendRawTransaction](#send-raw-transaction)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [newPendingTransactionFilter](#new-pending-transaction-filter)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [getTransactionReceipt](#get-transaction-receipt)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [getAllTransactionReceipt](#get-all-transaction-receipt)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()
-     * [[contract] query](#query)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()  
-     * [[peer] add](#add)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()     
-     * [[peer] getAll](#get-all)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()     
-     * [[peer] getAllActivePeer](#get-all-active-peer)
-        * [Parameters]()
-        * [Returns]()
-        * [Example]()     
-     * [[admin] nodeHello](#[admin]-nodeHello)
-        * [Parameters](#[admin]-nodeHello)
-        * [Returns](#[admin]-nodeHello)
-        * [Example](#[admin]-nodeHello)     
-     * [[admin] requestCommand](#[admin]-requestCommand) 
-        * [Parameters](#[admin]-requestCommand)
-        * [Returns](#[admin]-requestCommand)
-        * [Example](#[admin]-requestCommand)     
+     * [balanceOf](#balanceOf)
+     * [getBalance](#getBalance)
+     * [blockNumber](#blockNumber)
+     * [getBlockByHash](#getBlockByHash)
+     * [getBlockByNumber](#getBlockByNumber)
+     * [newBlockFilter](#newBlockFilter)
+     * [getTransactionCountByBlockHash](#getTransactionCountByBlockHash)
+     * [getTransactionCountByBlockNumber](#getTransactionCountByBlockNumber)
+     * [getTransactionByHash](#getTransactionByHash)
+     * [getTransactionByBlockHash](#getTransactionByBlockHash)
+     * [getTransactionByBlockNumber](#getTransactionByBlockNumber)
+     * [getTransactionReceipt](#getTransactionReceipt)
+     * [sendTransaction](#sendTransaction)
+     * [sendRawTransaction](#sendRawTransaction)
+     * [newPendingTransactionFilter](#newPendingTransactionFilter)
+     * [getTransactionReceipt](#getTransactionReceipt)
+     * [getAllTransactionReceipt](#getAllTransactionReceipt)
+     * [[contract] query](#contract-query)
+     * [[peer] add](#peer-add)
+     * [[peer] getAll](#peer-getall)
+     * [[peer] getAllActivePeer](#peer-getAllActivePeer)
+     * [[admin] nodeHello](#admin-nodeHello)
+     * [[admin] requestCommand](#admin-requestcommand) 
 
-
-#JSON RPC API 
+# JSON RPC API 
 
 [JSON](http://json.org/) is a lightweight data-interchange format. 
 It can represent numbers, strings, ordered sequences of values, and collections of name/value pairs.
@@ -118,9 +41,9 @@ Primarily this specification defines several data structures and the rules aroun
 It is transport agnostic in that the concepts can be used within the same process, over sockets, over HTTP, or in many various message passing environments. 
 It uses JSON ([RFC 4627](http://www.ietf.org/rfc/rfc4627.txt)) as data format.
 
-##JavaScript API
+## JavaScript API
 
-##JSON-RPC Endpoint
+## JSON-RPC Endpoint
 
 Default JSON-RPC endpoints : 
 
@@ -128,7 +51,7 @@ Default JSON-RPC endpoints :
 | :----: | :--------------------------------------------: |
 | Java   | [http://localhost:8080](http://localhost:8080) |
 
-##Curl Examples Explained
+## Curl Examples Explained
 
 The curl options below might return a response where the node complains about the content type, 
 this is because the --data option sets the content type to application/x-www-form-urlencoded . 
@@ -136,37 +59,9 @@ If your node does complain, manually set the header by placing -H "Content-Type:
 
 The examples also do not include the URL/IP & port combination which must be the last argument given to curl e.x. 127.0.0.1:8080
 
-##JSON-RPC methods
-
-* [createAccount](#create-account)
-* [accounts](#accounts)
-* [balanceOf](#balance-of)
-* [getBalance](#get-balance)
-* [blockNumber](#block-number)
-* [getBlockByHash](#get-block-by-hash)
-* [getBlockByNumber](#get-block-by-number)
-* [newBlockFilter](#new-block-filter)
-* [getTransactionCountByBlockHash](#get-block-transaction-count-by-hash)
-* [getTransactionCountByBlockNumber](#get-block-transaction-count-by-number)
-* [getTransactionByHash](#get-transaction-by-hash)
-* [getTransactionByBlockHash](#get-transaction-by-block-hash)
-* [getTransactionByBlockNumber](#get-transaction-by-block-number)
-* [getTransactionReceipt](#get-transaction-receipt)
-* [sendTransaction](#send-transaction)
-* [sendRawTransaction](#send-raw-transaction)
-* [newPendingTransactionFilter](#new-pending-transaction-filter)
-* [getTransactionReceipt](#get-transaction-receipt)
-* [getAllTransactionReceipt](#get-all-transaction-receipt)
-* [[contract] query](#query)
-* [[peer] add](#add)
-* [[peer] getAll](#get-all)
-* [[peer] getAllActivePeer](#get-all-active-peer)
-* [[admin] nodeHello](#[admin]-nodeHello)
-* [[admin] requestCommand](#[admin]-requestCommand) 
-
-##JSON RPC API Reference
+## JSON RPC API Reference
   
-###createAccount 
+### createAccount 
 
 Create a new account.
 
