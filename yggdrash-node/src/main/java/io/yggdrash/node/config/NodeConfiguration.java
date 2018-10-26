@@ -21,7 +21,6 @@ import io.yggdrash.core.Wallet;
 import io.yggdrash.core.net.PeerGroup;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -50,7 +49,6 @@ public class NodeConfiguration {
     }
 
     @Bean
-    @Autowired
     Wallet wallet(DefaultConfig defaultConfig) throws IOException, InvalidCipherTextException {
         return new Wallet(defaultConfig);
     }
