@@ -16,14 +16,10 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.Branch;
-import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.BranchEventListener;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.event.BranchEventListener;
-import io.yggdrash.core.event.BranchGroupEventListener;
 import io.yggdrash.node.controller.BlockDto;
 import io.yggdrash.node.controller.TransactionDto;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,14 +27,12 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-public class WebsocketSender implements BranchEventListener, BranchGroupEventListener {
+public class WebsocketSender implements BranchEventListener {
 
     private final SimpMessagingTemplate template;
 
     @Autowired
-    public WebsocketSender(BranchGroup branchGroup, SimpMessagingTemplate template) {
-        branchGroup.setListener(this);
-        branchGroup.getAllBranch().forEach(branch -> branch.addListener(this));
+    public WebsocketSender(SimpMessagingTemplate template) {
         this.template = template;
     }
 
@@ -61,13 +55,6 @@ public class WebsocketSender implements BranchEventListener, BranchGroupEventLis
                 TransactionDto.createBy(tx));
         if (tx.getBranchId().equals(BranchId.stem())) {
             template.convertAndSend("/topic/stem/txs", TransactionDto.createBy(tx));
-        }
-    }
-
-    @Override
-    public void newBranch(BlockChain blockChain) {
-        if (Branch.YEED.equals(blockChain.getBranchName())) {
-            blockChain.addListener(this);
         }
     }
 }

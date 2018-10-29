@@ -1,0 +1,103 @@
+{
+  "header": {
+    "chain": "fc35bcd26643c34fbb3a03a122d0b586d3487944",
+    "version": "0000000000000000",
+    "type": "0000000000000000",
+    "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
+    "index": "0000000000000000",
+    "timestamp": "00000166bdf27ff7",
+    "merkleRoot": "8e376cd9daf81ee66ce175d8fdba1dcd144daf0836e011c7bb0b25ba0447bdda",
+    "bodyLength": "0000000000000640"
+  },
+  "signature": "1c7f6ff9aa315ddadf6b9618bccad6e8257880d2f2aa099e2fc776d2e9c102354e0c623e5e86f0f9b6adc3e84a46d42b36a988b72a7e09ec80fa48c02d12ec83eb",
+  "body": [
+    {
+      "header": {
+        "chain": "fc35bcd26643c34fbb3a03a122d0b586d3487944",
+        "version": "0000000000000000",
+        "type": "0000000000000000",
+        "timestamp": "00000166bdf27ff7",
+        "bodyHash": "50925875eb8414bfaf38ffb05668cf838dbae5cf09357412ffb8333baf4f7ffd",
+        "bodyLength": "00000000000005ab"
+      },
+      "signature": "1b6d89faea07f0926ce95c14ce26f597c52a6636d61917ec8a2be956a1cc53a9502ff8ac20684d09ba4655322ddc18f5d5de24122c2bfd2e580d8b4806a8b17666",
+      "body": [
+        {
+          "method": "genesis",
+          "branchId": "fc35bcd26643c34fbb3a03a122d0b586d3487944",
+          "contractId": "2e7e9fe79925fde90c61c3e13ad65140b8cd1522",
+          "params": [
+            {
+              "frontier": "5db10750e8caff27f906b41c71b3471057dd2000",
+              "balance": "1000000000"
+            },
+            {
+              "frontier": "5db10750e8caff27f906b41c71b3471057dd2001",
+              "balance": "1000000000"
+            },
+            {
+              "frontier": "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
+              "balance": "1000000000"
+            },
+            {
+              "frontier": "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
+              "balance": "1000000000"
+            },
+            {
+              "frontier": "ff8dec4db7559bc2da766c495b53955990872ec1",
+              "balance": "1000000000"
+            },
+            {
+              "frontier": "2d4b795ea9fba0dd4ea8698bcac49efe94004c04",
+              "balance": "1000000000"
+            }
+          ],
+          "delegator": {
+            "a7a9ad6f834bcc080586c55e9b1981b7ec39f31d": {
+              "ip": "172.16.10.150",
+              "port": "32918"
+            },
+            "50c7b8af63f57ddef4b954e38e7a1253c896b742": {
+              "ip": "172.16.10.150",
+              "port": "32919"
+            },
+            "5db10750e8caff27f906b41c71b3471057dd2002": {
+              "ip": "100.100.100.3",
+              "port": "32918"
+            },
+            "5db10750e8caff27f906b41c71b3471057dd2003": {
+              "ip": "100.100.100.4",
+              "port": "32918"
+            },
+            "5db10750e8caff27f906b41c71b3471057dd2004": {
+              "ip": "100.100.100.5",
+              "port": "32918"
+            }
+          },
+          "node": {
+            "5db10750e8caff27f906b41c71b3471057dd2006": {
+              "ip": "100.100.100.6",
+              "port": "32918"
+            },
+            "5db10750e8caff27f906b41c71b3471057dd2007": {
+              "ip": "100.100.100.7",
+              "port": "32918"
+            },
+            "5db10750e8caff27f906b41c71b3471057dd2008": {
+              "ip": "100.100.100.8",
+              "port": "32918"
+            },
+            "5db10750e8caff27f906b41c71b3471057dd2009": {
+              "ip": "100.100.100.9",
+              "port": "32918"
+            },
+            "5db10750e8caff27f906b41c71b3471057dd2010": {
+              "ip": "100.100.100.10",
+              "port": "32918"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

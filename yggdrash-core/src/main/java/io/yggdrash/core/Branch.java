@@ -24,24 +24,12 @@ public class Branch {
         return branchId;
     }
 
-    public void setBranchId(BranchId branchId) {
-        this.branchId = branchId;
-    }
-
     public String getName() {
         return name;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
     public String getOwner() {
         return owner;
-    }
-
-    public void setOwner(String owner) {
-        this.owner = owner;
     }
 
     public boolean isYeed() {

@@ -16,7 +16,6 @@
 
 package io.yggdrash.node;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -36,13 +35,12 @@ import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
-public class GRpcClientChannel implements PeerClientChannel {
+class GRpcClientChannel implements PeerClientChannel {
 
-    public static final Logger log = LoggerFactory.getLogger(GRpcClientChannel.class);
+    private static final Logger log = LoggerFactory.getLogger(GRpcClientChannel.class);
+    private static final int DEFAULT_LIMIT = 10000;
 
     private final ManagedChannel channel;
     private final PingPongGrpc.PingPongBlockingStub blockingPingPongStub;
@@ -50,18 +48,17 @@ public class GRpcClientChannel implements PeerClientChannel {
     private final BlockChainGrpc.BlockChainStub asyncBlockChainStub;
     private final Peer peer;
 
-    public GRpcClientChannel(Peer peer) {
+    GRpcClientChannel(Peer peer) {
         this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
                 .build(), peer);
     }
 
-    @VisibleForTesting
-    public GRpcClientChannel(ManagedChannel channel, Peer peer) {
+    GRpcClientChannel(ManagedChannel channel, Peer peer) {
         this.channel = channel;
         this.peer = peer;
-        blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);
-        blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
-        asyncBlockChainStub = BlockChainGrpc.newStub(channel);
+        this.blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);
+        this.blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
+        this.asyncBlockChainStub = BlockChainGrpc.newStub(channel);
     }
 
     @Override
@@ -74,18 +71,6 @@ public class GRpcClientChannel implements PeerClientChannel {
         log.debug("Stop for peer=" + peer.getYnodeUri());
         if (channel != null) {
             channel.shutdown();
-        }
-    }
-
-    @Override
-    public void stop(String ynodeUri) {
-        disconnectPeer(ynodeUri);
-        stop();
-    }
-
-    public void blockUtilShutdown() throws InterruptedException {
-        if (channel != null) {
-            channel.awaitTermination(5, TimeUnit.MINUTES);
         }
     }
 
@@ -105,6 +90,7 @@ public class GRpcClientChannel implements PeerClientChannel {
     public List<Proto.Block> syncBlock(BranchId branchId, long offset) {
         SyncLimit syncLimit = SyncLimit.newBuilder()
                 .setOffset(offset)
+                .setLimit(DEFAULT_LIMIT)
                 .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
         return blockingBlockChainStub.syncBlock(syncLimit).getBlocksList();
     }
@@ -153,7 +139,7 @@ public class GRpcClientChannel implements PeerClientChannel {
 
     @Override
     public void broadcastBlock(Proto.Block[] blocks) {
-        log.info("*** Broadcasting blocks...");
+        log.info("*** Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
         StreamObserver<Proto.Block> requestObserver =
                 asyncBlockChainStub.broadcastBlock(new StreamObserver<NetProto.Empty>() {
                     @Override
@@ -178,28 +164,5 @@ public class GRpcClientChannel implements PeerClientChannel {
         }
 
         requestObserver.onCompleted();
-    }
-
-    @Override
-    public List<String> requestPeerList(String ynodeUri, int limit) {
-        if (ynodeUri.equals(peer.getYnodeUri())) {
-            log.debug("ignore from me");
-            return Collections.emptyList();
-        }
-        NetProto.PeerRequest request = NetProto.PeerRequest.newBuilder()
-                .setFrom(ynodeUri).setLimit(limit).build();
-        return blockingBlockChainStub.requestPeerList(request).getPeersList();
-    }
-
-    @Override
-    public void disconnectPeer(String ynodeUri) {
-        if (ynodeUri.equals(peer.getYnodeUri())) {
-            log.debug("ignore from me");
-            return;
-        }
-        log.info("Disconnect request peer=" + ynodeUri);
-        NetProto.PeerRequest request = NetProto.PeerRequest.newBuilder()
-                .setFrom(ynodeUri).build();
-        blockingBlockChainStub.disconnectPeer(request);
     }
 }

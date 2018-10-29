@@ -18,16 +18,47 @@ package io.yggdrash.core.store;
 
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.util.FileUtil;
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.store.datasource.LevelDbDataSource;
+import org.assertj.core.api.Assertions;
+import org.junit.After;
 import org.junit.Test;
 
-public class MetaStoreTest {
-    @Test
-    public void name() {
-        MetaStore metaStore = new MetaStore();
-        BlockHusk blockHusk = new BlockHusk(TestUtils.getBlockFixture());
-        metaStore.put(MetaStore.MetaInfo.RECENT_BLOCK, blockHusk.getHash());
+import java.nio.file.Paths;
 
-        Sha3Hash sha3Hash = metaStore.get(MetaStore.MetaInfo.RECENT_BLOCK);
+public class MetaStoreTest {
+    private MetaStore ms;
+
+    @After
+    public void tearDown() {
+        FileUtil.recursiveDelete(Paths.get(TestUtils.YGG_HOME));
+    }
+
+    @Test
+    public void shouldBeLoaded() {
+        ms = new MetaStore(new LevelDbDataSource(getPath(), "meta"));
+        BlockHusk blockHusk = new BlockHusk(TestUtils.getBlockFixture());
+        ms.put(MetaStore.MetaInfo.BEST_BLOCK, blockHusk.getHash());
+        Sha3Hash sha3Hash = ms.get(MetaStore.MetaInfo.BEST_BLOCK);
+        Assertions.assertThat(sha3Hash).isEqualTo(blockHusk.getHash());
+
+        ms.close();
+        ms = new MetaStore(new LevelDbDataSource(getPath(), "meta"));
+        Sha3Hash sha3HashAgain = ms.get(MetaStore.MetaInfo.BEST_BLOCK);
+        Assertions.assertThat(sha3HashAgain).isEqualTo(sha3Hash);
+    }
+
+    @Test
+    public void shouldBePutMeta() {
+        ms = new MetaStore(new LevelDbDataSource(getPath(), "meta"));
+        BlockHusk blockHusk = new BlockHusk(TestUtils.getBlockFixture());
+        ms.put(MetaStore.MetaInfo.BEST_BLOCK, blockHusk.getHash());
+        Sha3Hash sha3Hash = ms.get(MetaStore.MetaInfo.BEST_BLOCK);
+        Assertions.assertThat(sha3Hash).isEqualTo(blockHusk.getHash());
+    }
+
+    private String getPath() {
+        return Paths.get(TestUtils.YGG_HOME, "store").toString();
     }
 }

@@ -19,11 +19,13 @@ package io.yggdrash.core;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.trie.Trie;
+import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.core.account.Address;
+import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.trie.Trie;
-import io.yggdrash.util.ByteUtil;
-import io.yggdrash.util.TimeUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,6 +34,7 @@ import java.util.Objects;
 
 public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> {
     private static final byte[] EMPTY_BYTE = new byte[32];
+    static final Sha3Hash EMPTY_HASH = Sha3Hash.createByHashed(EMPTY_BYTE);
 
     private Proto.Block protoBlock;
     private Block coreBlock;
@@ -41,7 +44,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
             this.protoBlock = Proto.Block.parseFrom(bytes);
             this.coreBlock = Block.toBlock(this.protoBlock);
         } catch (Exception e) {
-            throw new NotValidateException();
+            throw new NotValidateException(e);
         }
     }
 
@@ -50,31 +53,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         try {
             this.coreBlock = Block.toBlock(this.protoBlock);
         } catch (Exception e) {
-            throw new NotValidateException();
-        }
-    }
-
-    public BlockHusk(Proto.Block.Header blockHeader, Wallet wallet, List<TransactionHusk> body) {
-
-        try {
-            byte[] hashDataForSign = BlockHeader.toBlockHeader(blockHeader).getHashForSignning();
-
-            Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
-            for (TransactionHusk tx : body) {
-                builder.addTransactions(tx.getProtoTransaction());
-            }
-
-            Proto.Block protoBlock = Proto.Block.newBuilder()
-                    .setHeader(blockHeader)
-                    .setSignature(ByteString.copyFrom(wallet.signHashedData(hashDataForSign)))
-                    .setBody(builder.build())
-                    .build();
-
-            this.protoBlock = protoBlock;
-            this.coreBlock = Block.toBlock(this.protoBlock);
-
-        } catch (Exception e) {
-            throw new NotValidateException();
+            throw new NotValidateException(e);
         }
     }
 
@@ -92,7 +71,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         long length = 0;
 
         for (TransactionHusk txHusk: body) {
-            length += txHusk.getCoreTransaction().getBody().length();
+            length += txHusk.getCoreTransaction().length();
         }
 
         Proto.Block.Header blockHeader = getHeader(
@@ -106,7 +85,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
                 length);
 
         try {
-            byte[] hashDataForSign = BlockHeader.toBlockHeader(blockHeader).getHashForSignning();
+            byte[] hashDataForSign = BlockHeader.toBlockHeader(blockHeader).getHashForSigning();
 
             Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
             for (TransactionHusk tx : body) {
@@ -123,7 +102,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
             this.coreBlock = Block.toBlock(this.protoBlock);
 
         } catch (Exception e) {
-            throw new NotValidateException();
+            throw new NotValidateException(e);
         }
     }
 
@@ -136,7 +115,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         try {
             return new Address(this.coreBlock.getAddress());
         } catch (Exception e) {
-            throw new NotValidateException();
+            throw new NotValidateException(e);
         }
     }
 

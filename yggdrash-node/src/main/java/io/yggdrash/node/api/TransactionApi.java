@@ -4,7 +4,7 @@ import com.googlecode.jsonrpc4j.JsonRpcError;
 import com.googlecode.jsonrpc4j.JsonRpcErrors;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
-import io.yggdrash.core.TransactionReceipt;
+import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.RejectedAccessException;
@@ -41,7 +41,7 @@ public interface TransactionApi {
     /**
      * Returns the number of transactions in a block matching the given block number.
      *
-     * @param tag "latest","earlest","pending"
+     * @param tag "latest","earliest","pending"
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
@@ -89,7 +89,7 @@ public interface TransactionApi {
     /**
      * Returns information about a transaction by block number and transaction index position.
      *
-     * @param tag             "latest","earlest","pending"
+     * @param tag             "latest","earliest","pending"
      * @param txIndexPosition the transaction index position.
      */
     @JsonRpcErrors({

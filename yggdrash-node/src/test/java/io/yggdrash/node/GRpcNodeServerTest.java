@@ -25,6 +25,7 @@ import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
@@ -39,7 +40,6 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
@@ -58,6 +58,8 @@ public class GRpcNodeServerTest {
     private PeerGroup peerGroupMock;
     @Mock
     private BranchGroup branchGroupMock;
+    @Mock
+    private NodeStatus nodeStatus;
 
     private TransactionHusk tx;
     private BlockHusk block;
@@ -65,10 +67,11 @@ public class GRpcNodeServerTest {
     @Before
     public void setUp() {
         grpcServerRule.getServiceRegistry().addService(new GRpcNodeServer.PingPongImpl());
-        grpcServerRule.getServiceRegistry().addService(
-                new GRpcNodeServer.BlockChainImpl(peerGroupMock, branchGroupMock));
+        grpcServerRule.getServiceRegistry().addService(new GRpcNodeServer.BlockChainImpl(
+                peerGroupMock, branchGroupMock, nodeStatus)
+        );
 
-        this.tx = TestUtils.createTxHusk();
+        this.tx = TestUtils.createTransferTxHusk();
         when(branchGroupMock.addTransaction(any())).thenReturn(tx);
         this.block = TestUtils.createGenesisBlockHusk();
         when(branchGroupMock.addBlock(any())).thenReturn(block);
@@ -84,39 +87,24 @@ public class GRpcNodeServerTest {
     }
 
     @Test
-    public void requestPeerList() {
-        when(peerGroupMock.getPeerUriList()).thenReturn(Arrays.asList("a", "b", "c"));
-
-        BlockChainGrpc.BlockChainBlockingStub blockingStub
-                = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        String ynodeUri = "ynode://75bff16c@localhost:32918";
-        NetProto.PeerRequest.Builder builder
-                = NetProto.PeerRequest.newBuilder().setFrom(ynodeUri);
-        NetProto.PeerList response = blockingStub.requestPeerList(builder.build());
-        assertEquals(3, response.getPeersCount());
-        // limit test
-        response = blockingStub.requestPeerList(builder.setLimit(2).build());
-        assertEquals(2, response.getPeersCount());
-    }
-
-    @Test
-    public void syncBlock() {
+    public void syncBlock() throws InstantiationException, IllegalAccessException {
         Set<BlockHusk> blocks = new HashSet<>();
         blocks.add(block);
         when(branchGroupMock.getBlockByIndex(BranchId.stem(), 0L)).thenReturn(block);
+        when(branchGroupMock.getBranch(any())).thenReturn(TestUtils.createBlockChain(false));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
         ByteString branch = ByteString.copyFrom(BranchId.stem().getBytes());
-        NetProto.SyncLimit syncLimit
-                = NetProto.SyncLimit.newBuilder().setOffset(0).setBranch(branch).build();
+        NetProto.SyncLimit syncLimit = NetProto.SyncLimit.newBuilder().setOffset(0).setLimit(10000)
+                .setBranch(branch).build();
         Proto.BlockList list = blockingStub.syncBlock(syncLimit);
         assertEquals(1, list.getBlocksCount());
     }
 
     @Test
     public void syncTransaction() {
-        when(branchGroupMock.getTransactionList(BranchId.stem()))
+        when(branchGroupMock.getRecentTxs(BranchId.stem()))
                 .thenReturn(Collections.singletonList(tx));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
@@ -142,6 +130,8 @@ public class GRpcNodeServerTest {
 
     @Test
     public void broadcastBlock() throws Exception {
+        when(nodeStatus.isUpStatus()).thenReturn(true);
+        when(branchGroupMock.getBranch(any())).thenReturn(TestUtils.createBlockChain(false));
         BlockChainGrpc.BlockChainStub stub = BlockChainGrpc.newStub(grpcServerRule.getChannel());
         StreamRecorder<NetProto.Empty> responseObserver = StreamRecorder.create();
         StreamObserver<Proto.Block> requestObserver

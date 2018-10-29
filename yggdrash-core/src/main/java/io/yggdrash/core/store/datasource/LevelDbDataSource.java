@@ -16,10 +16,9 @@
 
 package io.yggdrash.core.store.datasource;
 
-import io.yggdrash.config.Constants;
-import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.util.FileUtil;
-import org.apache.commons.codec.binary.Base64;
+import io.yggdrash.common.config.Constants;
+import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.util.FileUtil;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBIterator;
 import org.iq80.leveldb.Options;
@@ -43,10 +42,11 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
 
     private static final Logger log = LoggerFactory.getLogger(LevelDbDataSource.class);
 
+    private final ReadWriteLock resetDbLock = new ReentrantReadWriteLock();
+    private final String name;
+    private final String dbPath;
+
     private boolean alive;
-    private ReadWriteLock resetDbLock = new ReentrantReadWriteLock();
-    private String name;
-    private String dbPath;
     private DB db;
 
     public LevelDbDataSource(String name) {
@@ -59,7 +59,7 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         this.name = name;
     }
 
-    public LevelDbDataSource init() {
+    public DbSource<byte[], byte[]> init() {
         resetDbLock.writeLock().lock();
         try {
             log.info("Initialize db: {}", name);
@@ -125,22 +125,7 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         }
     }
 
-    @Override
-    public long count() {
-        resetDbLock.readLock().lock();
-        long count = 0;
-        try {
-            DBIterator iterator = db.iterator();
-            for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
-                count++;
-            }
-        } finally {
-            resetDbLock.readLock().unlock();
-        }
-        return count;
-    }
-
-    public void updateByBatch(Map<byte[], byte[]> rows) {
+    void updateByBatch(Map<byte[], byte[]> rows) {
         resetDbLock.readLock().lock();
         try {
             WriteBatch batch = db.createWriteBatch();
@@ -157,7 +142,7 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         }
     }
 
-    public void reset() {
+    void reset() {
         close();
         FileUtil.recursiveDelete(getDbPath());
         init();
@@ -178,19 +163,18 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         }
     }
 
-    public boolean isAlive() {
-        return alive;
+    @Override
+    public void delete(byte[] key) {
+        resetDbLock.readLock().lock();
+        try {
+            db.delete(key);
+        } finally {
+            resetDbLock.readLock().unlock();
+        }
     }
 
-    public List<byte[]> getAllKey() throws IOException {
-        List<byte[]> keyList = new ArrayList<>();
-        try (DBIterator iterator = db.iterator()) {
-            for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
-                byte[] key = iterator.peekNext().getKey();
-                keyList.add(key);
-            }
-        }
-        return keyList;
+    private boolean isAlive() {
+        return alive;
     }
 
     public List<byte[]> getAll() throws IOException {
@@ -203,23 +187,4 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         }
         return valueList;
     }
-
-    /* methods for test (start) */
-    public void removeByKey(String key) {
-        db.delete(Base64.decodeBase64(key));
-    }
-
-    public void removeByKey(byte[] key) {
-        db.delete(key);
-    }
-
-    public void removeAll() throws IOException {
-        try (DBIterator iterator = db.iterator()) {
-            for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
-                byte[] key = iterator.peekNext().getKey();
-                removeByKey(key);
-            }
-        }
-    }
-    /* methods for test (end) */
 }

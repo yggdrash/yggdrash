@@ -19,7 +19,7 @@ public class BlockApiImplTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
     private static final BlockApi blockApi = new JsonRpcConfig().blockApi();
-    private String branchId = BranchId.STEM;
+    private final String branchId = BranchId.STEM;
 
     @Test
     public void blockApiIsNotNull() {
@@ -38,8 +38,9 @@ public class BlockApiImplTest {
     @Test
     public void getBlockByHashTest() {
         try {
-            //String hashOfBlock = blockApi.getBlockByHash(branchId,"0", true).getPrevHash().toString();
-            assertThat(blockApi.getBlockByHash(branchId, "ad7dd0552336ebf3b2f4f648c4a87d7c35ed74382219e2954047ad9138a247c5", true)).isNotNull();
+            assertThat(blockApi.getBlockByHash(branchId,
+                    "ad7dd0552336ebf3b2f4f648c4a87d7c35ed74382219e2954047ad9138a247c5",
+                    true)).isNotNull();
         } catch (Exception exception) {
             log.debug("getBlockByHashTest :: exception : " + exception);
         }

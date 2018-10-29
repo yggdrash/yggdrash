@@ -1,7 +1,7 @@
 package io.yggdrash.core;
 
 import com.google.gson.JsonArray;
-import io.yggdrash.trie.Trie;
+import io.yggdrash.common.trie.Trie;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -66,7 +66,7 @@ public class BlockBody implements Cloneable {
         return this.body;
     }
 
-    public long getBodyCount() {
+    long getBodyCount() {
         return this.body.size();
     }
 
@@ -75,7 +75,7 @@ public class BlockBody implements Cloneable {
      *
      * @return the BlockBody length.
      */
-    public long length() throws IOException {
+    public long length() {
 
         long length = 0;
 
@@ -93,9 +93,9 @@ public class BlockBody implements Cloneable {
     /**
      * Covert BlockBody.class to JsonArray
      *
-     * @return blockbody as JsonArray
+     * @return block body as JsonArray
      */
-    public JsonArray toJsonArray() {
+    JsonArray toJsonArray() {
         JsonArray jsonArray = new JsonArray();
 
         for (Transaction tx : this.body) {

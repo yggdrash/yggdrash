@@ -6,13 +6,12 @@ import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.TransactionReceipt;
+import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.node.controller.TransactionDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -109,16 +108,6 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public int newPendingTransactionFilter(String branchId) {
         return branchGroup.getUnconfirmedTxs(BranchId.of(branchId)).size();
-    }
-
-    private int getCount(String address, List<TransactionHusk> txList) {
-        int cnt = 0;
-        for (TransactionHusk tx : txList) {
-            if (address.equals(tx.getAddress().toString())) {
-                cnt += 1;
-            }
-        }
-        return cnt;
     }
 
     @Override

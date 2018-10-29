@@ -16,11 +16,14 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
+import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerGroup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.HealthIndicator;
@@ -32,13 +35,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 @Component
-public class NodeHealthIndicator implements HealthIndicator {
+public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
+    private static final Logger log = LoggerFactory.getLogger(NodeHealthIndicator.class);
+    private static final Status SYNC = new Status("SYNC", "Synchronizing..");
+
     private final AtomicReference<Health> health = new AtomicReference<>(Health.down().build());
-
     private final DefaultConfig defaultConfig;
-
     private final BranchGroup branchGroup;
-
     private final PeerGroup peerGroup;
 
     @Autowired
@@ -55,12 +58,21 @@ public class NodeHealthIndicator implements HealthIndicator {
         return health.get();
     }
 
+    @Override
     public void up() {
+        log.info("Changed node status={} -> {}", health.get().getStatus(), Status.UP);
         updateDetail(Status.UP);
     }
 
+    @Override
     public void sync() {
-        updateDetail(new Status("SYNC", "Synchronizing.."));
+        log.info("Changed node status={} -> {}", health.get().getStatus(), SYNC);
+        updateDetail(SYNC);
+    }
+
+    @Override
+    public boolean isUpStatus() {
+        return health.get().getStatus().equals(Status.UP);
     }
 
     private void updateDetail(Status status) {
@@ -70,10 +82,10 @@ public class NodeHealthIndicator implements HealthIndicator {
         builder.withDetail("p2pVersion", defaultConfig.getNetworkP2PVersion());
         builder.withDetail("network", defaultConfig.getNetwork());
         // Add Node BranchIds and block index
-        Map<BranchId, Long> branchs = branchGroup.getAllBranch()
+        Map<BranchId, Long> branches = branchGroup.getAllBranch()
                 .stream()
                 .collect(Collectors.toMap(BlockChain::getBranchId, BlockChain::getLastIndex));
-        builder.withDetail("branchs", branchs);
+        builder.withDetail("branches", branches);
 
         builder.withDetail("activePeers", peerGroup.getActivePeerList().size());
         health.set(builder.build());

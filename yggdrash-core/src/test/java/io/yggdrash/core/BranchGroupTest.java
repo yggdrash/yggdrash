@@ -3,63 +3,34 @@ package io.yggdrash.core;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
-import io.yggdrash.contract.ContractQry;
-import io.yggdrash.core.event.BranchEventListener;
+import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.contract.Contract;
+import io.yggdrash.core.contract.ContractQry;
 import io.yggdrash.core.exception.DuplicatedException;
-import io.yggdrash.core.exception.NotValidateException;
-import org.apache.commons.codec.binary.Hex;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.Collections;
-import java.util.Objects;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BranchGroupTest {
 
-    private static final Wallet wallet;
-    private static final File branchJson;
+    private final Wallet wallet = TestUtils.wallet();
 
     private BranchGroup branchGroup;
-    private BlockChain blockChain;
     private TransactionHusk tx;
     private BlockHusk block;
 
-    static {
-        try {
-            wallet = new Wallet();
-            branchJson = new File(Objects.requireNonNull(BranchGroupTest.class.getClassLoader()
-                    .getResource("branch-sample.json")).getFile());
-        } catch (Exception e) {
-            throw new NotValidateException(e);
-        }
-    }
-
     @Before
-    public void setUp() {
+    public void setUp() throws InstantiationException, IllegalAccessException {
         branchGroup = new BranchGroup();
-        blockChain = new BlockChain(branchJson);
-        addBranch(blockChain);
+        addBranch(TestUtils.createBlockChain(false));
         assertThat(branchGroup.getBranchSize()).isEqualTo(1);
-        tx = TestUtils.createTxHusk(wallet);
+        tx = TestUtils.createBranchTxHusk(wallet);
         block = new BlockHusk(wallet, Collections.singletonList(tx),
                 branchGroup.getBlockByIndex(BranchId.stem(), 0));
-    }
-
-    private void addBranch(BlockChain blockChain) {
-        branchGroup.addBranch(blockChain.getBranchId(), blockChain, new BranchEventListener() {
-            @Override
-            public void chainedBlock(BlockHusk block) {
-            }
-
-            @Override
-            public void receivedTransaction(TransactionHusk tx) {
-            }
-        }, contractEvent -> {
-        });
     }
 
     @After
@@ -68,21 +39,26 @@ public class BranchGroupTest {
     }
 
     @Test(expected = DuplicatedException.class)
-    public void addExistedBranch() {
-        branchGroup.getBranch(blockChain.getBranchId()).close();
-        BlockChain blockChain = new BlockChain(branchJson);
-        addBranch(blockChain);
+    public void addExistedBranch() throws InstantiationException, IllegalAccessException {
+        addBranch(TestUtils.createBlockChain(false));
     }
 
     @Test
     public void addTransaction() {
+        // should be existed tx on genesis block
+        assertThat(branchGroup.getRecentTxs(tx.getBranchId()).size()).isEqualTo(1);
+        assertThat(branchGroup.countOfTxs(tx.getBranchId())).isEqualTo(1);
+
         branchGroup.addTransaction(tx);
-        TransactionHusk pooledTx1 = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
-        assertThat(pooledTx1.getHash()).isEqualTo(tx.getHash());
-        TransactionHusk pooledTx2 = branchGroup.getTxByHash(tx.getBranchId(),
-                tx.getHash().toString());
-        assertThat(pooledTx2.getHash()).isEqualTo(tx.getHash());
-        assertThat(branchGroup.getTransactionList(BranchId.stem()).size()).isEqualTo(1);
+        TransactionHusk foundTxBySha3 = branchGroup.getTxByHash(
+                tx.getBranchId(), tx.getHash());
+        assertThat(foundTxBySha3.getHash()).isEqualTo(tx.getHash());
+
+        TransactionHusk foundTxByString = branchGroup.getTxByHash(
+                tx.getBranchId(), tx.getHash().toString());
+        assertThat(foundTxByString.getHash()).isEqualTo(tx.getHash());
+
+        assertThat(branchGroup.getUnconfirmedTxs(tx.getBranchId()).size()).isEqualTo(1);
     }
 
     @Test
@@ -106,7 +82,8 @@ public class BranchGroupTest {
         branchGroup.addBlock(newBlock);
 
         assertThat(branchGroup.getLastIndex(BranchId.stem())).isEqualTo(2);
-        assertThat(branchGroup.getBlockByIndex(BranchId.stem(),2).getHash()).isEqualTo(newBlock.getHash());
+        assertThat(branchGroup.getBlockByIndex(BranchId.stem(), 2).getHash())
+                .isEqualTo(newBlock.getHash());
         TransactionHusk foundTx = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
         assertThat(foundTx.getHash()).isEqualTo(tx.getHash());
     }
@@ -122,17 +99,35 @@ public class BranchGroupTest {
     }
 
     @Test
-    public void getContract() {
-        assertThat(branchGroup.getContract(BranchId.stem())).isNotNull();
+    public void getContract() throws Exception {
+        Contract contract = branchGroup.getContract(BranchId.stem());
+        assertThat(contract).isNotNull();
+        JsonObject query = ContractQry.createQuery(null, "getAllBranchId",
+                new JsonArray());
+        JsonObject resultObject = contract.query(query);
+        String result = resultObject.get("result").getAsString();
+        assertThat(result).contains(BranchId.STEM);
     }
 
     @Test
     public void query() {
         JsonArray params = ContractQry.createParams(
                 "branchId", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        JsonObject query = ContractQry.createQuery(
-                Hex.encodeHexString(TestUtils.STEM_CHAIN), "view", params);
+        JsonObject query = ContractQry.createQuery(BranchId.STEM, "view", params);
         JsonObject result = branchGroup.query(query);
-        assertThat(result.toString()).isEqualTo("{}");
+        assertThat(result.toString()).contains("result");
+    }
+
+    private void addBranch(BlockChain blockChain) {
+        branchGroup.addBranch(blockChain.getBranchId(), blockChain,
+                new BranchEventListener() {
+                    @Override
+                    public void chainedBlock(BlockHusk block) {
+                    }
+
+                    @Override
+                    public void receivedTransaction(TransactionHusk tx) {
+                    }
+                });
     }
 }

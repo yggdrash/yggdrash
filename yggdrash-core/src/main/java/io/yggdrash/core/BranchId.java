@@ -18,15 +18,17 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.crypto.HashUtil;
+import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.core.exception.NotValidateException;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 public class BranchId {
 
-    public static final String STEM = "fe7b7c93dd23f78e12ad42650595bc0f874c88f7";
-    public static final String YEED = "a08ee962cd8b2bd0edbfee989c1a9f7884d26532";
+    public static final String STEM = "9435b0e642e99606cd9cdf362e63fb2d46fca12b";
+    public static final String YEED = "fc35bcd26643c34fbb3a03a122d0b586d3487944";
     private final Sha3Hash id;
 
     public BranchId(Sha3Hash hash) {
@@ -97,8 +99,8 @@ public class BranchId {
             branchStream.write(branch.get("version").getAsString().getBytes());
             branchStream.write(branch.get("reference_address").getAsString().getBytes());
             branchStream.write(branch.get("reserve_address").getAsString().getBytes());
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (IOException e) {
+            throw new NotValidateException(e);
         }
         return branchStream.toByteArray();
     }

@@ -17,8 +17,9 @@
 package io.yggdrash.node;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import org.junit.After;
 import org.junit.Before;
@@ -29,30 +30,29 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.Status;
 
-import java.util.Collections;
-
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
 public class NodeHealthIndicatorTest {
     private static final Status SYNC = new Status("SYNC", "Synchronizing..");
-    @Mock
-    BranchGroup branchGroupMock;
 
-    NodeHealthIndicator nodeHealthIndicator;
+    @Mock
+    private BranchGroup branchGroupMock;
+
+    private NodeHealthIndicator nodeHealthIndicator;
+
+    private Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+
+    @Before
+    public void setUp() {
+        PeerGroup peerGroup = new PeerGroup(owner, 1);
+        this.nodeHealthIndicator = new NodeHealthIndicator(new DefaultConfig(), branchGroupMock,
+                peerGroup);
+    }
 
     @After
     public void tearDown() {
         TestUtils.clearTestDb();
-    }
-
-    @Before
-    public void setUp() {
-        PeerGroup peerGroup = new PeerGroup(1);
-        this.nodeHealthIndicator = new NodeHealthIndicator(new DefaultConfig(), branchGroupMock,
-                peerGroup);
-        when(branchGroupMock.getAllBranch()).thenReturn(Collections.EMPTY_LIST);
     }
 
     @Test
@@ -60,7 +60,7 @@ public class NodeHealthIndicatorTest {
         Health health = nodeHealthIndicator.health();
         assert health.getStatus() == Status.DOWN;
         assert health.getDetails().get("name").equals("yggdrash");
-        assertNotNull(health.getDetails().get("branchs"));
+        assertNotNull(health.getDetails().get("branches"));
         assert (int) health.getDetails().get("activePeers") == 0;
     }
 

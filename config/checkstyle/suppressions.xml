@@ -6,10 +6,10 @@
 
 <suppressions>
     <!-- Exception for library codes -->
-    <suppress checks=".*" files="io/yggdrash/crypto/*"/>
-    <suppress checks=".*" files="io/yggdrash/util/Utils.java"/>
-    <suppress checks=".*" files="io/yggdrash/util/ByteUtil.java"/>
-    <suppress checks=".*" files="io/yggdrash/config/Constants.java"/>
+    <suppress checks=".*" files="io/yggdrash/common/crypto/*"/>
+    <suppress checks=".*" files="io/yggdrash/common/util/Utils.java"/>
+    <suppress checks=".*" files="io/yggdrash/common/util/ByteUtil.java"/>
+    <suppress checks=".*" files="io/yggdrash/common/config/Constants.java"/>
 
     <!-- Exception for proto auto-generated classes -->
     <suppress checks=".*" files="build/generated/source/proto/main/*"/>

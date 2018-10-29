@@ -16,139 +16,58 @@
 
 package io.yggdrash.core;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import io.yggdrash.contract.CoinContract;
-import io.yggdrash.contract.Contract;
-import io.yggdrash.contract.ContractQry;
-import io.yggdrash.contract.NoneContract;
-import io.yggdrash.contract.StemContract;
-import io.yggdrash.core.exception.FailedOperationException;
-import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.contract.Contract;
+import io.yggdrash.core.contract.ContractClassLoader;
+import io.yggdrash.core.contract.ContractMeta;
+import io.yggdrash.core.contract.Runtime;
+import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.core.store.BlockStore;
+import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.StateStore;
+import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.core.store.datasource.DbSource;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
-import io.yggdrash.core.store.datasource.LevelDbDataSource;
-import io.yggdrash.util.TimeUtils;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class BlockChainBuilder {
 
-    public BlockChain buildBlockChain(Wallet wallet, Branch branch, boolean isProduction) {
+    private GenesisBlock genesis;
+    private boolean productMode = false;
 
-        BlockStore blockStore =
-                new BlockStore(getDbSource(isProduction,branch.getBranchId() + "/blocks"));
-
-        BlockHusk genesis;
-        if (blockStore.size() > 0) {
-            genesis = blockStore.get(0);
-        } else {
-            genesis = getGenesis(wallet, branch);
-        }
-        blockStore.close();
-        return buildBlockChain(genesis, branch.getName(), isProduction);
+    public BlockChainBuilder addGenesis(GenesisBlock genesis) {
+        this.genesis = genesis;
+        return this;
     }
 
-    public BlockChain buildBlockChain(BlockHusk genesis, String branchName, boolean isProduction) {
-        BlockStore blockStore =
-                new BlockStore(getDbSource(isProduction,genesis.getBranchId() + "/blocks"));
-        TransactionStore txStore =
-                new TransactionStore(getDbSource(isProduction, genesis.getBranchId() + "/txs"));
-        Contract contract = getContract(branchName);
-        Runtime<?> runtime = getRunTime(branchName);
-
-        BlockChain blockChain = new BlockChain(genesis, blockStore, txStore, contract, runtime);
-        blockChain.setBranchName(branchName);
-        return blockChain;
+    public BlockChainBuilder setProductMode(boolean productMode) {
+        this.productMode = productMode;
+        return this;
     }
 
-    private BlockHusk getGenesis(Wallet wallet, Branch branch) {
+    public BlockChain build() throws InstantiationException, IllegalAccessException {
+        StoreBuilder storeBuilder = new StoreBuilder(this.productMode);
 
-        if (!branch.isYeed()) {
-            throw new FailedOperationException("Not supported name=" + branch.getName());
-        }
+        BlockHusk genesisBlock = genesis.getBlock();
+        BlockStore blockStore = storeBuilder.buildBlockStore(genesisBlock.getBranchId());
+        TransactionStore txStore = storeBuilder.buildTxStore(genesisBlock.getBranchId());
+        MetaStore metaStore = storeBuilder.buildMetaStore(genesisBlock.getBranchId());
 
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("branchId", branch.getBranchId().toString());
-        jsonObject.addProperty("method", "genesis");
-        JsonArray params = ContractQry.createParams("frontier", branch.getOwner(),
-                "balance", "1000000000");
-        jsonObject.add("params", params);
+        Contract contract = getContract();
+        Runtime<?> runtime = getRunTime(contract.getClass().getGenericSuperclass().getClass());
 
-        JsonArray jsonArrayTxBody = new JsonArray();
-        jsonArrayTxBody.add(jsonObject);
-
-        return genesis(wallet, branch.getBranchId(), jsonArrayTxBody);
+        return new BlockChain(genesisBlock, blockStore, txStore, metaStore, contract, runtime);
     }
 
-    private BlockHusk genesis(Wallet wallet, BranchId branchId, JsonArray jsonArrayTxBody) {
-        try {
-            TransactionBody txBody = new TransactionBody(jsonArrayTxBody);
-
-            TransactionHeader txHeader = new TransactionHeader(
-                    branchId.getBytes(),
-                    new byte[8],
-                    new byte[8],
-                    TimeUtils.time(),
-                    txBody);
-
-            Transaction tx = new Transaction(txHeader, wallet, txBody);
-            List<Transaction> txList = new ArrayList<>();
-            txList.add(tx);
-
-            BlockBody blockBody = new BlockBody(txList);
-            BlockHeader blockHeader = new BlockHeader(
-                    branchId.getBytes(),
-                    new byte[8],
-                    new byte[8],
-                    new byte[32],
-                    0L,
-                    0L,
-                    blockBody.getMerkleRoot(),
-                    blockBody.length());
-
-            Block coreBlock = new Block(blockHeader, wallet, blockBody);
-
-            return new BlockHusk(Block.toProtoBlock(coreBlock));
-        } catch (Exception e) {
-            throw new NotValidateException();
-        }
-    }
-
-    private DbSource<byte[], byte[]> getDbSource(boolean isProduction, String path) {
-        if (isProduction) {
-            return new LevelDbDataSource(path);
-        } else {
-            return new HashMapDbSource();
-        }
-    }
-
-    private Contract getContract(String branchName) {
-        if (Branch.STEM.equalsIgnoreCase(branchName)) {
-            return new StemContract();
-        } else if (Branch.YEED.equalsIgnoreCase(branchName)) {
-            return new CoinContract();
-        } else {
-            return new NoneContract();
-        }
-    }
-
-    private Runtime<?> getRunTime(String branchName) {
-        if (Branch.STEM.equalsIgnoreCase(branchName)) {
-            return getRunTime(JsonObject.class);
-        } else if (Branch.YEED.equalsIgnoreCase(branchName)) {
-            return getRunTime(Long.class);
-        } else {
-            return getRunTime(String.class);
-        }
+    private Contract getContract()
+            throws IllegalAccessException, InstantiationException {
+        ContractMeta contractMeta = ContractClassLoader.loadContractById(genesis.getContractId());
+        return contractMeta.getContract().newInstance();
     }
 
     private <T> Runtime<T> getRunTime(Class<T> clazz) {
         return new Runtime<>(new StateStore<>(), new TransactionReceiptStore());
+    }
+
+    public static BlockChainBuilder Builder() {
+        return new BlockChainBuilder();
     }
 }

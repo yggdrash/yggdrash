@@ -17,10 +17,10 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.TestUtils;
+import io.yggdrash.common.util.FileUtil;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.util.FileUtil;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -43,7 +43,7 @@ public class BlockStoreTest {
         blockStore.put(blockHuskFixture.getHash(), blockHuskFixture);
         BlockHusk foundBlockHusk = blockStore.get(blockHuskFixture.getHash());
         Assertions.assertThat(foundBlockHusk).isEqualTo(blockHuskFixture);
-        Assertions.assertThat(blockStore.get(foundBlockHusk.getIndex())).isEqualTo(foundBlockHusk);
+        Assertions.assertThat(blockStore.get(foundBlockHusk.getHash())).isEqualTo(foundBlockHusk);
     }
 
     @Test

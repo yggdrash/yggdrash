@@ -18,47 +18,29 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.contract.Contract;
-import io.yggdrash.core.event.BranchEventListener;
-import io.yggdrash.core.event.BranchGroupEventListener;
-import io.yggdrash.core.event.ContractEventListener;
+import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ThreadLocalRandom;
-import java.util.concurrent.TimeUnit;
 
 public class BranchGroup {
-    public static final Logger log = LoggerFactory.getLogger(BranchGroup.class);
-
-    private Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
-
-    BranchGroupEventListener listener;
-
-    public void setListener(BranchGroupEventListener listener) {
-        this.listener = listener;
-    }
+    private final Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
 
     public void addBranch(BranchId branchId, BlockChain blockChain,
-                          BranchEventListener branchEventListener,
-                          ContractEventListener contractEventListener) {
+                          BranchEventListener branchEventListener) {
         if (branches.containsKey(branchId)) {
             throw new DuplicatedException(branchId.toString() + " duplicated");
         }
         blockChain.addListener(branchEventListener);
-        blockChain.init(contractEventListener);
+        blockChain.init();
         branches.put(branchId, blockChain);
-        if (listener != null) {
-            listener.newBranch(blockChain);
-        }
     }
 
     public BlockChain getBranch(BranchId branchId) {
@@ -80,37 +62,27 @@ public class BranchGroup {
         return branches.get(id).getLastIndex();
     }
 
-    public List<TransactionHusk> getTransactionList(BranchId branchId) {
-        return branches.get(branchId).getTransactionList();
+    public Collection<TransactionHusk> getRecentTxs(BranchId branchId) {
+        return branches.get(branchId).getRecentTxs();
     }
 
     public TransactionHusk getTxByHash(BranchId branchId, String id) {
         return getTxByHash(branchId, new Sha3Hash(id));
     }
 
-    public TransactionHusk getTxByHash(BranchId branchId, Sha3Hash hash) {
+    TransactionHusk getTxByHash(BranchId branchId, Sha3Hash hash) {
         return branches.get(branchId).getTxByHash(hash);
     }
 
     public void generateBlock(Wallet wallet) {
         for (BlockChain blockChain : branches.values()) {
-            if (blockChain.getBranchId().equals(BranchId.stem())) {
-                blockChain.generateBlock(wallet);
-            } else {
-                try {
-                    int randomSleep = ThreadLocalRandom.current().nextInt(1, 9 + 1);
-                    TimeUnit.SECONDS.sleep(randomSleep);
-                    blockChain.generateBlock(wallet);
-                } catch (InterruptedException e) {
-                    log.warn(e.getMessage());
-                }
-            }
+            blockChain.generateBlock(wallet);
         }
     }
 
     public BlockHusk addBlock(BlockHusk block) {
         if (branches.containsKey(block.getBranchId())) {
-            return branches.get(block.getBranchId()).addBlock(block);
+            return branches.get(block.getBranchId()).addBlock(block, true);
         }
         return block;
     }
@@ -139,7 +111,7 @@ public class BranchGroup {
         return branches.get(branchId).getUnconfirmedTxs();
     }
 
-    public Contract getContract(BranchId branchId) {
+    Contract getContract(BranchId branchId) {
         return branches.get(branchId).getContract();
     }
 
@@ -151,5 +123,9 @@ public class BranchGroup {
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
+    }
+
+    public long countOfTxs(BranchId branchId) {
+        return branches.get(branchId).countOfTxs();
     }
 }

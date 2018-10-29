@@ -16,35 +16,38 @@
 
 package io.yggdrash.node.controller;
 
-import io.yggdrash.TestUtils;
+import io.yggdrash.core.BranchId;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(StateController.class)
+@Import(RefreshEndpointAutoConfiguration.class)
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
 public class StateControllerTest {
-
-    private static final String BRANCH_ID = Hex.toHexString(TestUtils.STEM_CHAIN);
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
     public void shouldGetBranches() throws Exception {
-        mockMvc.perform(get("/branches/" + BRANCH_ID + "/states"))
+        mockMvc.perform(get("/branches/" + BranchId.STEM + "/states"))
                 .andDo(print())
                 .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)))
                 .andReturn().getResponse();
     }
 }

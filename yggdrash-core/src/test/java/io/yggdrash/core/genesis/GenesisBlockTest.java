@@ -13,7 +13,7 @@ public class GenesisBlockTest {
 
     @Test
     public void generateGenesisBlock() throws InvalidCipherTextException, IOException {
-        log.debug(System.lineSeparator() + new GenesisBlock().getGenesisJson());
+        log.debug(System.lineSeparator() + GenesisBlock.generate());
     }
 
 }

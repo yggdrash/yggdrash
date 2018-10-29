@@ -16,21 +16,18 @@
 
 package io.yggdrash.core.store.datasource;
 
-import io.yggdrash.core.exception.NotValidateException;
-import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class HashMapDbSource implements DbSource<byte[], byte[]> {
-    Map<String, byte[]> db;
+    private Map<String, byte[]> db;
 
     @Override
-    public DbSource init() {
+    public DbSource<byte[], byte[]> init() {
         db = new ConcurrentHashMap<>();
         return this;
     }
@@ -46,25 +43,6 @@ public class HashMapDbSource implements DbSource<byte[], byte[]> {
     }
 
     @Override
-    public long count() {
-        return db.size();
-    }
-
-    @Override
-    public List<byte[]> getAllKey() {
-        List<byte[]> keyList = new ArrayList<>(db.size());
-        Iterator<String> iterator = db.keySet().iterator();
-        try {
-            while (iterator.hasNext()) {
-                keyList.add(Hex.decodeHex(iterator.next().toCharArray()));
-            }
-        } catch (DecoderException e) {
-            throw new NotValidateException(e);
-        }
-        return keyList;
-    }
-
-    @Override
     public List<byte[]> getAll() {
         return new ArrayList<>(db.values());
     }
@@ -72,5 +50,10 @@ public class HashMapDbSource implements DbSource<byte[], byte[]> {
     @Override
     public void close() {
         db = null;
+    }
+
+    @Override
+    public void delete(byte[] key) {
+        db.remove(Hex.encodeHexString(key));
     }
 }

@@ -3,3 +3,8 @@ yggdrash.node:
   grpc.port: 0
   seed-peer-list:
   - "ynode://04d321800fcd76ccdb5909ab8cd9797a363c464aad7803e2a83f0fdc891ae89daaf83c00cc7713bd6bf2f2db0a70d0be91fa93c3937f01128def9339f9576381b4@localhost:9091"
+
+management:
+  endpoint:
+    restart:
+      enabled: true

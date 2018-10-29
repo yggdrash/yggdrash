@@ -5,8 +5,8 @@ import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.TransactionReceipt;
-import io.yggdrash.core.Wallet;
+import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.node.controller.TransactionDto;
 import org.apache.commons.codec.binary.Hex;
@@ -26,8 +26,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -39,7 +37,6 @@ public class TransactionMockitoTest {
     private TransactionReceiptStore txReceiptStoreMock;
     private TransactionHusk tx;
     private BlockHusk block;
-    private Wallet wallet;
 
     private TransactionApiImpl txApiImpl;
     private String hashOfTx;
@@ -47,27 +44,26 @@ public class TransactionMockitoTest {
     private TransactionReceipt txReceipt;
 
     private HashMap<String, TransactionReceipt> txReceiptStore;
-    private BranchId stem = BranchId.stem();
+    private final BranchId stem = BranchId.stem();
 
     @Before
     public void setup() throws Exception {
         txReceiptStore = new HashMap<>();
-        wallet = new Wallet();
+        Wallet wallet = new Wallet();
         txApiImpl = new TransactionApiImpl(branchGroupMock);
 
-        tx = TestUtils.createTxHusk(wallet);
+        tx = TestUtils.createBranchTxHusk(wallet);
         hashOfTx = tx.getHash().toString();
         List<TransactionHusk> txList = new ArrayList<>();
         txList.add(tx);
         txList.add(tx);
         txList.add(tx);
         txReceipt = new TransactionReceipt();
-        txReceipt.setTransactionHash(tx.getHash().toString());
-        txReceiptStore.put(tx.getHash().toString(), txReceipt);
+        txReceipt.setTransactionHash(hashOfTx);
+        txReceiptStore.put(hashOfTx, txReceipt);
         block = TestUtils.createBlockHuskByTxList(wallet, txList);
         hashOfBlock = block.getHash().toString();
         when(branchGroupMock.getTransactionReceiptStore(stem)).thenReturn(txReceiptStoreMock);
-
     }
 
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
@@ -86,7 +82,7 @@ public class TransactionMockitoTest {
         when(branchGroupMock.getTxByHash(stem, hashOfTx)).thenReturn(tx);
         TransactionDto res = txApiImpl.getTransactionByHash(stem.toString(), hashOfTx);
         assertThat(res).isNotNull();
-        assertEquals(res.getHash().toString(), hashOfTx);
+        assertEquals(res.getHash(), hashOfTx);
     }
 
     @Test
@@ -94,7 +90,7 @@ public class TransactionMockitoTest {
         when(branchGroupMock.getBlockByHash(stem, hashOfBlock)).thenReturn(block);
         TransactionDto res = txApiImpl.getTransactionByBlockHash(
                 stem.toString(), hashOfBlock, 0);
-        assertEquals(res.getHash().toString(), hashOfTx);
+        assertEquals(res.getHash(), hashOfTx);
     }
 
     @Test

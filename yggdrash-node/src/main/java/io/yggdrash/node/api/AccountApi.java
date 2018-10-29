@@ -35,7 +35,7 @@ public interface AccountApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    String balanceOf(@JsonRpcParam(value = "data") String data) throws Exception;
+    String balanceOf(@JsonRpcParam(value = "data") String data);
 
     /**
      * Returns the balance of the account of given address.

@@ -16,12 +16,15 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.core.BranchId;
+import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.core.net.KademliaOptions;
 import io.yggdrash.core.net.NodeManager;
+import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.Status;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -42,30 +45,36 @@ class NodeScheduler {
 
     private final PeerGroup peerGroup;
 
-    private final NodeHealthIndicator indicator;
+    private final NodeStatus nodeStatus;
 
     @Autowired
     public NodeScheduler(PeerGroup peerGroup, NodeManager nodeManager,
-                         NodeHealthIndicator indicator) {
+                         NodeStatus nodeStatus) {
         this.peerGroup = peerGroup;
         this.nodeManager = nodeManager;
-        this.indicator = indicator;
+        this.nodeStatus = nodeStatus;
     }
 
-    @Scheduled(fixedRate = 1000 * 10)
+    //@Scheduled(fixedRate = 1000 * 10)
+    @Scheduled(fixedRate = KademliaOptions.BUCKET_REFRESH * 10)
     public void healthCheck() {
-        peerGroup.healthCheck();
+        try {
+            peerGroup.healthCheck();
+        } catch (NonExistObjectException e) {
+            // 저장된 모든 노드가 접속 불가하면 부트스트랩 노드로부터 디스커버리 한다.
+            nodeManager.bootstrapping();
+        }
     }
 
     @Scheduled(cron = cronValue)
     public void generateBlock() {
-        if (!indicator.health().getStatus().equals(Status.UP)) {
+        if (!nodeStatus.isUpStatus()) {
             log.debug("Waiting for up status...");
             return;
         }
 
         if (nodeQueue.isEmpty()) {
-            nodeQueue.addAll(peerGroup.getPeerUriList());
+            nodeQueue.addAll(peerGroup.getPeerUriList(BranchId.stem()));
         }
         String peerId = nodeQueue.poll();
         assert peerId != null;

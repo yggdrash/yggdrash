@@ -1,6 +1,6 @@
 package io.yggdrash.core.store;
 
-import io.yggdrash.core.TransactionReceipt;
+import io.yggdrash.core.contract.TransactionReceipt;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;

@@ -2,18 +2,17 @@ package io.yggdrash.node.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.TestUtils;
-import io.yggdrash.contract.ContractTx;
-import io.yggdrash.core.Address;
+import io.yggdrash.core.Branch;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.Wallet;
+import io.yggdrash.core.account.Address;
+import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.contract.ContractTx;
 import io.yggdrash.node.controller.TransactionDto;
-import org.apache.commons.codec.binary.Hex;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
 
@@ -26,19 +25,13 @@ public class TransactionApiImplTest {
     private static final BlockApi blockApi = new JsonRpcConfig().blockApi();
     private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
 
-    private Wallet wallet;
-    private String address;
-    private String hashOfTx;
-    private final String tag = "latest";
     private final int blockNumber = 3;
     private final int txIndexPosition = 2;
-    private String branchId = BranchId.STEM;
+    private final String branchId = BranchId.STEM;
 
     @Before
-    public void setUp() throws IOException, InvalidCipherTextException {
-        this.wallet = new Wallet();
+    public void setUp() {
         sendTransactionTest();
-        address = wallet.getHexAddress();
     }
 
     @Test
@@ -87,7 +80,6 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByBlockHashTest() {
         try {
-            TransactionHusk tx = new TransactionHusk(TestUtils.sampleTx(wallet));
             assertThat(txApi.getTransactionByBlockHash(branchId,
                     "5ef71a90c6d99c7bc13bfbcaffb50cb89210678e99ed6626c9d2f378700b392c",
                     2)).isNotNull();
@@ -109,6 +101,7 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByBlockNumberWithTagTest() {
         try {
+            String tag = "latest";
             txApi.getTransactionByBlockNumber(branchId, tag, txIndexPosition);
         } catch (Exception e) {
             log.debug("\n\ngetTransactionByBlockNumberWithTagTest :: exception => " + e);
@@ -117,7 +110,7 @@ public class TransactionApiImplTest {
 
     @Test
     public void checkTransactionJsonFormat() throws IOException {
-        TransactionHusk tx = TestUtils.createTxHusk();
+        TransactionHusk tx = TestUtils.createTransferTxHusk();
         ObjectMapper objectMapper = TestUtils.getMapper();
         log.debug("\n\nTransaction Format : "
                 + objectMapper.writeValueAsString(TransactionDto.createBy(tx)));
@@ -125,9 +118,9 @@ public class TransactionApiImplTest {
 
     @Test
     public void sendTransactionTest() {
+        Wallet wallet = TestUtils.wallet();
         TransactionHusk tx = ContractTx.createYeedTx(
                 wallet, new Address(wallet.getAddress()), 100);
-        hashOfTx = tx.getHash().toString();
 
         // Request Transaction with jsonStr
         try {
@@ -141,7 +134,7 @@ public class TransactionApiImplTest {
     public void sendRawTransactionTest() {
         // Request Transaction with byteArr
         try {
-            byte[] input = TestUtils.sampleTx().toBinary();
+            byte[] input = TestUtils.createTransferTxHusk().toBinary();
             // Convert byteArray to Transaction
             assertThat(txApi.sendRawTransaction(input)).isNotEmpty();
         } catch (Exception e) {
@@ -152,10 +145,8 @@ public class TransactionApiImplTest {
     @Test
     public void newPendingTransactionFilterTest() {
         try {
-            assertThat(txApi.newPendingTransactionFilter(Hex.encodeHexString(TestUtils.STEM_CHAIN)))
-                    .isGreaterThanOrEqualTo(0);
-            assertThat(txApi.newPendingTransactionFilter(Hex.encodeHexString(TestUtils.YEED_CHAIN)))
-                    .isGreaterThanOrEqualTo(0);
+            assertThat(txApi.newPendingTransactionFilter(Branch.STEM)).isGreaterThanOrEqualTo(0);
+            assertThat(txApi.newPendingTransactionFilter(Branch.YEED)).isGreaterThanOrEqualTo(0);
         } catch (Exception e) {
             log.debug("\n\nnewPendingTransactionFilterTest :: exception => " + e);
         }
@@ -164,10 +155,8 @@ public class TransactionApiImplTest {
     @Test
     public void getAllTransactionReceiptTest() {
         try {
-            assertThat(txApi.getAllTransactionReceipt(Hex.encodeHexString(TestUtils.STEM_CHAIN)))
-                    .isNotEmpty();
-            assertThat(txApi.getAllTransactionReceipt(Hex.encodeHexString(TestUtils.YEED_CHAIN)))
-                    .isNotEmpty();
+            assertThat(txApi.getAllTransactionReceipt(Branch.STEM)).isNotEmpty();
+            assertThat(txApi.getAllTransactionReceipt(Branch.YEED)).isNotEmpty();
         } catch (Exception e) {
             log.debug("\n\ngetAllTransactionReceiptTest :: exception => " + e);
         }
@@ -176,7 +165,7 @@ public class TransactionApiImplTest {
     @Test
     public void txSigValidateTest() throws IOException {
         // Create Transaction
-        TransactionHusk tx = new TransactionHusk(TestUtils.sampleTx(wallet));
+        TransactionHusk tx = TestUtils.createTransferTxHusk();
 
         ObjectMapper mapper = TestUtils.getMapper();
         String jsonStr = mapper.writeValueAsString(TransactionDto.createBy(tx));
