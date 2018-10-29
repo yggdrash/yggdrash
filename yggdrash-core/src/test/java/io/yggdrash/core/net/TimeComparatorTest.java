@@ -1,6 +1,6 @@
 package io.yggdrash.core.net;
 
-import io.yggdrash.util.Utils;
+import io.yggdrash.common.util.Utils;
 import org.junit.Test;
 
 import java.util.ArrayList;

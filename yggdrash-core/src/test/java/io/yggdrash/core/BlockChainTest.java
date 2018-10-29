@@ -1,7 +1,6 @@
 package io.yggdrash.core;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.event.BranchEventListener;
 import io.yggdrash.core.exception.NotValidateException;
 import org.junit.Before;
 import org.junit.Test;

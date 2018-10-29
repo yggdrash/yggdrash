@@ -1,8 +1,8 @@
 package io.yggdrash.core.store;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.exception.FailedOperationException;
-import io.yggdrash.util.Utils;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -2,7 +2,7 @@ package io.yggdrash.core;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import io.yggdrash.crypto.HashUtil;
+import io.yggdrash.common.crypto.HashUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;
@@ -28,7 +28,7 @@ public class TransactionBody implements Cloneable {
         return this.body;
     }
 
-    public long getBodyCount() {
+    long getBodyCount() {
         return this.body.size();
     }
 

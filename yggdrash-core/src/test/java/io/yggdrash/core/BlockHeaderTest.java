@@ -3,7 +3,7 @@ package io.yggdrash.core;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
-import io.yggdrash.util.TimeUtils;
+import io.yggdrash.common.util.TimeUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

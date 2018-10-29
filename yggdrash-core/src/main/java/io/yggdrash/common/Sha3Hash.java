@@ -16,7 +16,7 @@
 
 package io.yggdrash.common;
 
-import io.yggdrash.crypto.HashUtil;
+import io.yggdrash.common.crypto.HashUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.Serializable;

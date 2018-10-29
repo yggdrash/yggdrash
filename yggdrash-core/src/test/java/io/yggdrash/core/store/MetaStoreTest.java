@@ -18,9 +18,9 @@ package io.yggdrash.core.store;
 
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.util.FileUtil;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
-import io.yggdrash.util.FileUtil;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Test;

@@ -1,7 +1,7 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.crypto.HashUtil;
+import io.yggdrash.common.crypto.HashUtil;
 
 public class PeerId {
     private final Sha3Hash id;
@@ -48,7 +48,7 @@ public class PeerId {
         return of(HashUtil.sha3omit12(ynodeUri.getBytes()));
     }
 
-    public int distanceTo(byte[] targetId) {
+    int distanceTo(byte[] targetId) {
         byte[] ownerId = id.getBytes();
         byte[] hash = new byte[Math.min(ownerId.length, targetId.length)];
 

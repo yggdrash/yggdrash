@@ -16,6 +16,8 @@
 
 package io.yggdrash.core;
 
+import io.yggdrash.core.account.Wallet;
+
 public class BlockSignature implements Cloneable {
 
     private final byte[] signature;

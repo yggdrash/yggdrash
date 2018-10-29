@@ -16,9 +16,10 @@
 
 package io.yggdrash.core;
 
-import io.yggdrash.contract.Contract;
-import io.yggdrash.contract.ContractClassLoader;
-import io.yggdrash.contract.ContractMeta;
+import io.yggdrash.core.contract.Contract;
+import io.yggdrash.core.contract.ContractClassLoader;
+import io.yggdrash.core.contract.ContractMeta;
+import io.yggdrash.core.contract.Runtime;
 import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;

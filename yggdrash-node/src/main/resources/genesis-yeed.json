@@ -1,31 +1,31 @@
 {
   "header": {
-    "chain": "7afc09c2c3c72687a78fdf3f03bbe8d35980bc39",
+    "chain": "fc35bcd26643c34fbb3a03a122d0b586d3487944",
     "version": "0000000000000000",
     "type": "0000000000000000",
     "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
     "index": "0000000000000000",
-    "timestamp": "00000166a51fd001",
-    "merkleRoot": "fab0f54ca2798084649ff005b3a539e37054c2af88cec4d387bb8592d672c5a2",
+    "timestamp": "00000166bdf27ff7",
+    "merkleRoot": "8e376cd9daf81ee66ce175d8fdba1dcd144daf0836e011c7bb0b25ba0447bdda",
     "bodyLength": "0000000000000640"
   },
-  "signature": "1b38b74ff0b21c109146d62e82057071dfe57bd94ec3f117149df1c5f8830ff6a76609c751f9dae827a8ecdb0665b4e8321765b8ec2dab41338918f0ae21e45141",
+  "signature": "1c7f6ff9aa315ddadf6b9618bccad6e8257880d2f2aa099e2fc776d2e9c102354e0c623e5e86f0f9b6adc3e84a46d42b36a988b72a7e09ec80fa48c02d12ec83eb",
   "body": [
     {
       "header": {
-        "chain": "7afc09c2c3c72687a78fdf3f03bbe8d35980bc39",
+        "chain": "fc35bcd26643c34fbb3a03a122d0b586d3487944",
         "version": "0000000000000000",
         "type": "0000000000000000",
-        "timestamp": "00000166a51fd001",
-        "bodyHash": "676331ec100fd32545e13f1a2ba8e586f187a1fe428d9f68518eb0e3c01f466e",
+        "timestamp": "00000166bdf27ff7",
+        "bodyHash": "50925875eb8414bfaf38ffb05668cf838dbae5cf09357412ffb8333baf4f7ffd",
         "bodyLength": "00000000000005ab"
       },
-      "signature": "1c27f886c801ab43e44ae220b9f41cf9b7665779b92abfb3f7af8958a15b6b6f6b28f0351f67e392a2fb9132f85ab232f5e42e6770617be03551bb7999047c35df",
+      "signature": "1b6d89faea07f0926ce95c14ce26f597c52a6636d61917ec8a2be956a1cc53a9502ff8ac20684d09ba4655322ddc18f5d5de24122c2bfd2e580d8b4806a8b17666",
       "body": [
         {
           "method": "genesis",
-          "branchId": "7afc09c2c3c72687a78fdf3f03bbe8d35980bc39",
-          "contractId": "da2778112c033cdbaa3ca75616472c784a4d4410",
+          "branchId": "fc35bcd26643c34fbb3a03a122d0b586d3487944",
+          "contractId": "2e7e9fe79925fde90c61c3e13ad65140b8cd1522",
           "params": [
             {
               "frontier": "5db10750e8caff27f906b41c71b3471057dd2000",
@@ -36,7 +36,7 @@
               "balance": "1000000000"
             },
             {
-              "frontier": "5db10750e8caff27f906b41c71b3471057dd2002",
+              "frontier": "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
               "balance": "1000000000"
             },
             {
