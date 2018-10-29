@@ -1,7 +1,7 @@
 package io.yggdrash.core.net;
 
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.BranchId;
-import io.yggdrash.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

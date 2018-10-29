@@ -18,8 +18,8 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.crypto.HashUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
@@ -27,8 +27,8 @@ import java.io.IOException;
 
 public class BranchId {
 
-    public static final String STEM = "99232a38e12176ca08932bf2a37fa5f1c951fd4b";
-    public static final String YEED = "7afc09c2c3c72687a78fdf3f03bbe8d35980bc39";
+    public static final String STEM = "9435b0e642e99606cd9cdf362e63fb2d46fca12b";
+    public static final String YEED = "fc35bcd26643c34fbb3a03a122d0b586d3487944";
     private final Sha3Hash id;
 
     public BranchId(Sha3Hash hash) {

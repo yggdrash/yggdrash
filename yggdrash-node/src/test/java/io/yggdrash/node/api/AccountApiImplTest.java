@@ -1,8 +1,8 @@
 package io.yggdrash.node.api;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.contract.ContractQry;
 import io.yggdrash.core.BranchId;
+import io.yggdrash.core.contract.ContractQry;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

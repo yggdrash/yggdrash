@@ -16,10 +16,10 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.crypto.AESEncrypt;
-import io.yggdrash.crypto.ECKey;
-import io.yggdrash.crypto.Password;
-import io.yggdrash.util.ByteUtil;
+import io.yggdrash.common.crypto.AESEncrypt;
+import io.yggdrash.common.crypto.ECKey;
+import io.yggdrash.common.crypto.Password;
+import io.yggdrash.common.util.ByteUtil;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -29,7 +29,7 @@ import org.spongycastle.util.encoders.Hex;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static io.yggdrash.crypto.HashUtil.sha3;
+import static io.yggdrash.common.crypto.HashUtil.sha3;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 

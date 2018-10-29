@@ -19,12 +19,13 @@ package io.yggdrash.node;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.Wallet;
+import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.net.NodeManager;
 import io.yggdrash.core.net.NodeServer;
 import io.yggdrash.core.net.NodeStatus;
@@ -36,7 +37,6 @@ import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.util.ByteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -150,7 +150,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         peerGroup.getClosestPeers().forEach(p -> addPeerChannel(BranchId.stem(), p));
     }
 
-    public void addPeerChannel(BranchId branchId, Peer peer) {
+    private void addPeerChannel(BranchId branchId, Peer peer) {
         if (peer == null || peerGroup.getOwner().equals(peer)) {
             return;
         }

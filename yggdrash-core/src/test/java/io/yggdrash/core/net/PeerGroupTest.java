@@ -5,7 +5,6 @@ import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.store.BlockStore;
-import io.yggdrash.mock.ChannelMock;
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;

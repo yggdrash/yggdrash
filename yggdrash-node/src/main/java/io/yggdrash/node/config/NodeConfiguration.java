@@ -16,9 +16,9 @@
 
 package io.yggdrash.node.config;
 
-import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.Wallet;
+import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.node.config.annotaion.EnableDefaultBranch;

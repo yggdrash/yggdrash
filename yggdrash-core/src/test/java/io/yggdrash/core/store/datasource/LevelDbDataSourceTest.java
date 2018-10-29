@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.store.datasource;
 
-import io.yggdrash.util.FileUtil;
+import io.yggdrash.common.util.FileUtil;
 import org.junit.AfterClass;
 import org.junit.Test;
 

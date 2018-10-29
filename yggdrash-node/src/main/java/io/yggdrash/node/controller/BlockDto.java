@@ -16,9 +16,9 @@
 
 package io.yggdrash.node.controller;
 
+import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.util.ByteUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.util.List;

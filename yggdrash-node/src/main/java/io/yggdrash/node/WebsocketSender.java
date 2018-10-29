@@ -17,9 +17,9 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.BranchEventListener;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.event.BranchEventListener;
 import io.yggdrash.node.controller.BlockDto;
 import io.yggdrash.node.controller.TransactionDto;
 import org.springframework.beans.factory.annotation.Autowired;

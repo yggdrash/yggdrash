@@ -16,7 +16,7 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.config.DefaultConfig;
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;

@@ -4,11 +4,11 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.TestUtils;
-import io.yggdrash.contract.ContractQry;
-import io.yggdrash.core.Address;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.Wallet;
+import io.yggdrash.core.account.Address;
+import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.contract.ContractQry;
 import io.yggdrash.node.api.JsonRpcConfig;
 import io.yggdrash.node.controller.TransactionDto;
 import org.apache.commons.codec.binary.Hex;
@@ -22,9 +22,9 @@ import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
-import static io.yggdrash.contract.ContractTx.createBranch;
-import static io.yggdrash.contract.ContractTx.createStemTxByBranch;
-import static io.yggdrash.contract.ContractTx.createYeedTx;
+import static io.yggdrash.core.contract.ContractTx.createBranch;
+import static io.yggdrash.core.contract.ContractTx.createStemTxByBranch;
+import static io.yggdrash.core.contract.ContractTx.createYeedTx;
 
 public class NodeContractDemoClient {
 

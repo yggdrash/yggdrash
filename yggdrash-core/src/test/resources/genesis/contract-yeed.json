@@ -1,7 +1,7 @@
 {
   "method": "genesis",
-  "branchId": "7afc09c2c3c72687a78fdf3f03bbe8d35980bc39",
-  "contractId": "da2778112c033cdbaa3ca75616472c784a4d4410",
+  "branchId": "fc35bcd26643c34fbb3a03a122d0b586d3487944",
+  "contractId": "2e7e9fe79925fde90c61c3e13ad65140b8cd1522",
   "params": [
     {
       "frontier": "5db10750e8caff27f906b41c71b3471057dd2000",
@@ -12,7 +12,7 @@
       "balance": "1000000000"
     },
     {
-      "frontier": "5db10750e8caff27f906b41c71b3471057dd2002",
+      "frontier": "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
       "balance": "1000000000"
     },
     {

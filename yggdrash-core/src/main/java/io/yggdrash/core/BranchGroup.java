@@ -18,8 +18,8 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.contract.Contract;
-import io.yggdrash.core.event.BranchEventListener;
+import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;

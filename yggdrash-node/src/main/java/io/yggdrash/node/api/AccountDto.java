@@ -1,6 +1,6 @@
 package io.yggdrash.node.api;
 
-import io.yggdrash.core.Account;
+import io.yggdrash.core.account.Account;
 import org.apache.commons.codec.binary.Hex;
 
 public class AccountDto {
