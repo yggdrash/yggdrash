@@ -64,7 +64,6 @@ public class ContractClassLoaderTest {
         ContractId idByClassBinary = ContractId.of(classData);
         ContractMeta classMeta = new ContractMeta(classData, c);
         assertEquals(idByClassBinary, classMeta.getContractId());
-        assertEquals(ContractId.of(NONE_CONTRACT), classMeta.getContractId());
     }
 
     @Test

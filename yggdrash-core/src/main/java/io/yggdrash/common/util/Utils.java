@@ -28,6 +28,7 @@ import org.spongycastle.util.encoders.DecoderException;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
+import java.io.Reader;
 import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.security.SecureRandom;
@@ -291,4 +292,9 @@ public class Utils {
     public static JsonArray parseJsonArray(String data) {
         return (JsonArray) jsonParser.parse(data);
     }
+
+    public static JsonObject parseJsonObject(Reader json) {
+        return (JsonObject) jsonParser.parse(json);
+    }
+
 }
