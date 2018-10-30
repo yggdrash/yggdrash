@@ -18,6 +18,8 @@ package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -31,15 +33,13 @@ import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 
 public class ContractClassLoaderTest {
-    private static final String STEM_CONTRACT = "d399cd6d34288d04ba9e68ddfda9f5fe99dd778e";
-    private static final String COIN_CONTRACT = "2e7e9fe79925fde90c61c3e13ad65140b8cd1522";
+    private static final Logger log = LoggerFactory.getLogger(ContractClassLoaderTest.class);
     private static final String NONE_CONTRACT = "91d64aa71525f24da7c1c63620705039b4fb93e9";
 
     @Test
     public void testContract() throws  IllegalAccessException, InstantiationException,
             InvocationTargetException {
-        File contractNone =
-                new File(".yggdrash/contract/91d64aa71525f24da7c1c63620705039b4fb93e9.class");
+        File contractNone = new File(".yggdrash/contract/" + NONE_CONTRACT + ".class");
         ContractMeta noneContract = ContractClassLoader.loadContractClass(null, contractNone);
         Class<? extends Contract> none = noneContract.getContract();
 
@@ -53,29 +53,32 @@ public class ContractClassLoaderTest {
     @Test
     public void testConvertContractClassToContractMeta() throws IOException {
         Class<? extends Contract> c = NoneContract.class;
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(bos);
-        oos.writeObject(c);
-        oos.flush();
+        byte[] classData;
+        try (ByteArrayOutputStream bos = new ByteArrayOutputStream()) {
+            ObjectOutputStream oos = new ObjectOutputStream(bos);
+            oos.writeObject(c);
+            oos.flush();
 
-        byte[] classData = bos.toByteArray();
+            classData = bos.toByteArray();
+        }
         ContractId idByClassBinary = ContractId.of(classData);
         ContractMeta classMeta = new ContractMeta(classData, c);
         assertEquals(idByClassBinary, classMeta.getContractId());
+        assertEquals(ContractId.of(NONE_CONTRACT), classMeta.getContractId());
     }
 
     @Test
     public void testLoadByHash() {
         // LOAD Stem Contract
-        ContractMeta classMeta = ContractClassLoader.loadContractById(STEM_CONTRACT);
+        ContractMeta classMeta = ContractClassLoader.loadContractClass(StemContract.class);
         assertNotNull(classMeta);
-        assertEquals(STEM_CONTRACT, classMeta.getContractId().toString());
+        log.debug("StemContract.class id={}", classMeta.getContractId().toString());
         assertEquals("io.yggdrash.core.contract.StemContract", classMeta.getContract().getName());
 
         // LOAD Coin Contract
-        classMeta = ContractClassLoader.loadContractById(COIN_CONTRACT);
+        classMeta = ContractClassLoader.loadContractClass(CoinContract.class);
         assertNotNull(classMeta);
-        assertEquals(COIN_CONTRACT, classMeta.getContractId().toString());
+        log.debug("CoinContract.class id={}", classMeta.getContractId().toString());
         assertEquals("io.yggdrash.core.contract.CoinContract", classMeta.getContract().getName());
     }
 
