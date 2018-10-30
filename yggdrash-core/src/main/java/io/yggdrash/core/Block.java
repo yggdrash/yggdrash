@@ -22,6 +22,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
+
 public class Block implements Cloneable {
 
     private static final Logger log = LoggerFactory.getLogger(Block.class);
@@ -151,7 +153,7 @@ public class Block implements Cloneable {
                 this.header.getMerkleRoot(), BlockHeader.MERKLEROOT_LENGTH, "merkleRootLength");
         check &= verifyCheckLengthNotNull(this.signature, SIGNATURE_LENGTH, "signature");
         check &= this.header.getIndex() >= 0;
-        check &= this.header.getTimestamp() > 0;
+        check &= this.header.getTimestamp() > TIMESTAMP_2018;
         check &= !(this.header.getBodyLength() <= 0
                 || this.header.getBodyLength() != this.getBody().length());
         check &= Arrays.equals(
