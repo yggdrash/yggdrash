@@ -11,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
-import java.util.List;
 
 public abstract class BaseContract<T> implements Contract<T> {
     protected static final Logger log = LoggerFactory.getLogger(BaseContract.class);
@@ -27,6 +26,7 @@ public abstract class BaseContract<T> implements Contract<T> {
 
     @Override
     public boolean invoke(TransactionHusk txHusk) {
+        TransactionReceipt txReceipt;
         try {
             this.sender = txHusk.getAddress().toString();
             JsonObject txBody = Utils.parseJsonArray(txHusk.getBody()).get(0).getAsJsonObject();
@@ -36,21 +36,20 @@ public abstract class BaseContract<T> implements Contract<T> {
             String method = txBody.get("method").getAsString().toLowerCase();
             JsonArray params = txBody.get("params").getAsJsonArray();
 
-            TransactionReceipt txReceipt = (TransactionReceipt) this.getClass()
+            txReceipt = (TransactionReceipt) this.getClass()
                     .getMethod(method, JsonArray.class)
                     .invoke(this, params);
             txReceipt.putLog("method", method);
             txReceipt.setTransactionHash(txHusk.getHash().toString());
             txReceiptStore.put(txReceipt.getTransactionHash(), txReceipt);
-            return true;
         } catch (Throwable e) {
-            TransactionReceipt txReceipt = new TransactionReceipt();
+            txReceipt = new TransactionReceipt();
             txReceipt.setTransactionHash(txHusk.getHash().toString());
             txReceipt.setStatus(0);
             txReceipt.putLog("Error", e);
             txReceiptStore.put(txHusk.getHash().toString(), txReceipt);
-            return false;
         }
+        return txReceipt.isSuccess();
     }
 
     @Override
@@ -62,10 +61,9 @@ public abstract class BaseContract<T> implements Contract<T> {
 
         JsonObject result = new JsonObject();
         try {
-            Object res = this.getClass().getMethod(method, JsonArray.class)
-                    .invoke(this, params);
-            if (res instanceof List) {
-                result.addProperty("result", collectionToString((List) res));
+            Object res = getClass().getMethod(method, JsonArray.class).invoke(this, params);
+            if (res instanceof Collection) {
+                result.addProperty("result", collectionToString((Collection<Object>) res));
             } else {
                 result.addProperty("result", res.toString());
             }
