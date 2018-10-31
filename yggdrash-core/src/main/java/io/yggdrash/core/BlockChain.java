@@ -56,7 +56,7 @@ public class BlockChain {
             initGenesis();
         } else {
             indexing();
-            updateTxCache();
+            loadTransaction();
         }
     }
 
@@ -81,7 +81,7 @@ public class BlockChain {
         this.prevBlock = blockStore.get(storedBestBlockHash);
     }
 
-    private void updateTxCache() {
+    private void loadTransaction() {
         for (long i = 0; i < blockIndex.size(); i++) {
             List<TransactionHusk> blockBody = blockStore.get(blockIndex.get(i)).getBody();
             transactionStore.updateCache(blockBody);
