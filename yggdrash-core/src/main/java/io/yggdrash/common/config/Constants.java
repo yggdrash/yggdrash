@@ -17,6 +17,8 @@ public class Constants {
     private static final BigInteger SECP256K1N = new BigInteger("fffffffffffffffffffffffffff"
             + "ffffebaaedce6af48a03bbfd25e8cd0364141", 16);
 
+    public static final long TIMESTAMP_2018 = 1514764800000L;
+
     /**
      * Introduced in the Homestead release
      */
