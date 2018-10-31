@@ -47,4 +47,8 @@ public class ContractMeta {
     ContractId getContractId() {
         return contractId;
     }
+
+    byte[] getContractBinary() {
+        return contractBinary;
+    }
 }
