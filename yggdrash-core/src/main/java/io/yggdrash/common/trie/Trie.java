@@ -36,7 +36,7 @@ public class Trie {
 
         calculateMerkle(tree, txs.size());
 
-        return HashUtil.sha3(tree.get(tree.size() - 1));
+        return HashUtil.sha256(tree.get(tree.size() - 1));
     }
 
     /**
@@ -59,10 +59,10 @@ public class Trie {
 
         calculateMerkle(tree, txs.size());
 
-        return HashUtil.sha3(tree.get(tree.size() - 1));
+        return HashUtil.sha256(tree.get(tree.size() - 1));
     }
 
-    private static void calculateMerkle(ArrayList<byte[]> tree, int size) {
+    public static void calculateMerkle(ArrayList<byte[]> tree, int size) {
         int levelOffset = 0;
         for (int levelSize = size; levelSize > 1; levelSize = (levelSize + 1) / 2) {
 
@@ -84,6 +84,12 @@ public class Trie {
         return buf;
     }
 
+    public static byte[] hashTwice(byte[] input, int offset, int length) {
+        MessageDigest digest = newDigest();
+        digest.update(input, offset, length);
+        return digest.digest(digest.digest());
+    }
+
     private static byte[] hashTwice(byte[] input1, int offset1, int length1,
                                     byte[] input2, int offset2, int length2) {
         MessageDigest digest = newDigest();
@@ -99,5 +105,7 @@ public class Trie {
             throw new RuntimeException(e);
         }
     }
+
+
 
 }
