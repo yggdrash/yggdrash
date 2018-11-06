@@ -27,10 +27,9 @@ public class BlockApiImpl implements BlockApi {
     @Override
     public long blockNumber(String branchId) {
         try {
-            return branchGroup.getLastIndex(BranchId.of(branchId)) + 1;
+            return branchGroup.getLastIndex(BranchId.of(branchId));
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
-            throw new InternalErrorException();
+            throw new NonExistObjectException(e.getMessage());
         }
     }
 
