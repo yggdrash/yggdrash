@@ -84,7 +84,7 @@ public class TrieTests {
     }
 
     @Test
-    public void MerkleRootSHA256Leaf1Test() {
+    public void MerkleRootSha256Leaf1Test() {
 
         String algorithm = "SHA-256";
 
@@ -107,76 +107,77 @@ public class TrieTests {
         }
 
         byte[] result1Double = Trie.getMerkleRoot(tree1Double, algorithm, true);
+        assert result1Double != null;
         log.info(Hex.toHexString(result1Double));
         assertEquals(Hex.toHexString(result1Double),
                 "0123456789012345678901234567890123456789012345678901234567890123");
     }
 
     @Test
-    public void MerkleRootSHA256Leaf2Test() {
+    public void MerkleRootSha256Leaf2Test() {
 
         String algorithm = "SHA-256";
 
-        // test2
-        String[] inputs2 = {"0123456789012345678901234567890123456789012345678901234567890123",
+        String[] inputs = {"0123456789012345678901234567890123456789012345678901234567890123",
                 "0123456789012345678901234567890123456789012345678901234567890123"};
 
-        ArrayList<byte[]> tree2 = new ArrayList<>();
-        for (String input : inputs2) {
-            tree2.add(Hex.decode(input));
+        ArrayList<byte[]> tree = new ArrayList<>();
+        for (String input : inputs) {
+            tree.add(Hex.decode(input));
         }
 
-        byte[] result2 = Trie.getMerkleRoot(tree2, algorithm);
-        log.info(Hex.toHexString(result2));
-        assertEquals(Hex.toHexString(result2),
+        byte[] result = Trie.getMerkleRoot(tree, algorithm);
+        log.info(Hex.toHexString(result));
+        assertEquals(Hex.toHexString(result),
                 "657eb7d33674849942a420f00f3f67e9195e2b003a646ec4dad2f8c9e4a9a5a9");
 
-        ArrayList<byte[]> tree2Double = new ArrayList<>();
-        for (String input : inputs2) {
-            tree2Double.add(Hex.decode(input));
+        ArrayList<byte[]> treeDouble = new ArrayList<>();
+        for (String input : inputs) {
+            treeDouble.add(Hex.decode(input));
         }
 
-        byte[] result2Double = Trie.getMerkleRoot(tree2Double, algorithm, true);
-        log.info(Hex.toHexString(result2Double));
-        assertEquals(Hex.toHexString(result2Double),
+        byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
+        assert resultDouble != null;
+        log.info(Hex.toHexString(resultDouble));
+        assertEquals(Hex.toHexString(resultDouble),
                 "d6be2369c291d80a1663d990020705f36c1ab669d7d98248851304045dc20af2");
 
     }
 
     @Test
-    public void MerkleRootSHA256Leaf3Test() {
+    public void MerkleRootSha256Leaf3Test() {
 
         String algorithm = "SHA-256";
 
-        // test3
-        String[] inputs3 = {"0123456789012345678901234567890123456789012345678901234567890123",
+        String[] inputs = {"0123456789012345678901234567890123456789012345678901234567890123",
                 "0123456789012345678901234567890123456789012345678901234567890123",
                 "0123456789012345678901234567890123456789012345678901234567890123"};
 
-        ArrayList<byte[]> tree3 = new ArrayList<>();
-        for (String input : inputs3) {
-            tree3.add(Hex.decode(input));
+        ArrayList<byte[]> tree = new ArrayList<>();
+        for (String input : inputs) {
+            tree.add(Hex.decode(input));
         }
 
-        byte[] result3 = Trie.getMerkleRoot(tree3, algorithm);
-        log.info(Hex.toHexString(result3));
-        assertEquals(Hex.toHexString(result3),
+        byte[] result = Trie.getMerkleRoot(tree, algorithm);
+        log.info(Hex.toHexString(result));
+        assertEquals(Hex.toHexString(result),
                 "1fde90e914c974be374168a23dd4b764cf0ea6ff751af379932e810c33585540");
 
-        ArrayList<byte[]> tree3Double = new ArrayList<>();
-        for (String input : inputs3) {
-            tree3Double.add(Hex.decode(input));
+        ArrayList<byte[]> treeDouble = new ArrayList<>();
+        for (String input : inputs) {
+            treeDouble.add(Hex.decode(input));
         }
 
-        byte[] result3Double = Trie.getMerkleRoot(tree3Double, algorithm, true);
-        log.info(Hex.toHexString(result3Double));
-        assertEquals(Hex.toHexString(result3Double),
-               "499360821ab840409ea59057c9452c1f3082ddea5ade6bea5ece3675c437fa5f");
+        byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
+        assert resultDouble != null;
+        log.info(Hex.toHexString(resultDouble));
+        assertEquals(Hex.toHexString(resultDouble),
+                "499360821ab840409ea59057c9452c1f3082ddea5ade6bea5ece3675c437fa5f");
 
     }
 
     @Test
-    public void MerkleRootSHA256Leaf4Test() {
+    public void MerkleRootSha256Leaf4Test() {
 
         String algorithm = "SHA-256";
 
@@ -202,6 +203,7 @@ public class TrieTests {
         }
 
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
+        assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
         assertEquals(Hex.toHexString(resultDouble),
                 "499360821ab840409ea59057c9452c1f3082ddea5ade6bea5ece3675c437fa5f");
@@ -209,7 +211,7 @@ public class TrieTests {
     }
 
     @Test
-    public void MerkleRootSHA256Leaf5Test() {
+    public void MerkleRootSha256Leaf5Test() {
 
         String algorithm = "SHA-256";
 
@@ -236,6 +238,7 @@ public class TrieTests {
         }
 
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
+        assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
         assertEquals(Hex.toHexString(resultDouble),
                 "8cc04dba0093dd7da136c396a5f1fc27b2d2fbc104cf9eec412bc74da4ea3360");
@@ -243,7 +246,7 @@ public class TrieTests {
     }
 
     @Test
-    public void MerkleRootSHA3256Leaf1Test() {
+    public void MerkleRootSha3256Leaf1Test() {
 
         String algorithm = "SHA3-256";
 
@@ -266,13 +269,14 @@ public class TrieTests {
         }
 
         byte[] result1Double = Trie.getMerkleRoot(tree1Double, algorithm, true);
+        assert result1Double != null;
         log.info(Hex.toHexString(result1Double));
         assertEquals(Hex.toHexString(result1Double),
                 "0123456789012345678901234567890123456789012345678901234567890123");
     }
 
     @Test
-    public void MerkleRootSHA3256Leaf2Test() {
+    public void MerkleRootSha3256Leaf2Test() {
 
         String algorithm = "SHA3-256";
 
@@ -296,6 +300,7 @@ public class TrieTests {
         }
 
         byte[] result2Double = Trie.getMerkleRoot(tree2Double, algorithm, true);
+        assert result2Double != null;
         log.info(Hex.toHexString(result2Double));
         assertEquals(Hex.toHexString(result2Double),
                 "5ca442bee9f7e49fea6f12a727f0a3d89149b762bbbb328f745cf57173b3dd36");
@@ -303,7 +308,7 @@ public class TrieTests {
     }
 
     @Test
-    public void MerkleRootSHA3256Leaf3Test() {
+    public void MerkleRootSha3256Leaf3Test() {
 
         String algorithm = "SHA3-256";
 
@@ -328,6 +333,7 @@ public class TrieTests {
         }
 
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
+        assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
         assertEquals(Hex.toHexString(resultDouble),
                 "b128ac9fde01b3e89ef20e46f9a6bacb6b69515ecb795f98078fd9c8a6d1e14a");
@@ -335,7 +341,7 @@ public class TrieTests {
     }
 
     @Test
-    public void MerkleRootSHA3256Leaf4Test() {
+    public void MerkleRootSha3256Leaf4Test() {
 
         String algorithm = "SHA3-256";
 
@@ -361,6 +367,7 @@ public class TrieTests {
         }
 
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
+        assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
         assertEquals(Hex.toHexString(resultDouble),
                 "b128ac9fde01b3e89ef20e46f9a6bacb6b69515ecb795f98078fd9c8a6d1e14a");
@@ -368,7 +375,7 @@ public class TrieTests {
     }
 
     @Test
-    public void MerkleRootSHA3256Leaf5Test() {
+    public void MerkleRootSha3256Leaf5Test() {
 
         String algorithm = "SHA3-256";
 
@@ -395,6 +402,7 @@ public class TrieTests {
         }
 
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
+        assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
         assertEquals(Hex.toHexString(resultDouble),
                 "3a7a8543647800a660311d960e53ed9175b17ab58c12dacde4f41b3a2368bfa5");
@@ -402,7 +410,7 @@ public class TrieTests {
     }
 
     @Test
-    public void MerkleRootKECCAK256Leaf1Test() {
+    public void MerkleRootKeccak256Leaf1Test() {
 
         String algorithm = "KECCAK-256";
 
@@ -425,13 +433,14 @@ public class TrieTests {
         }
 
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
+        assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
         assertEquals(Hex.toHexString(resultDouble),
                 "0123456789012345678901234567890123456789012345678901234567890123");
     }
 
     @Test
-    public void MerkleRootKECCAK256Leaf2Test() {
+    public void MerkleRootKeccak256Leaf2Test() {
 
         String algorithm = "KECCAK-256";
 
@@ -456,13 +465,14 @@ public class TrieTests {
         }
 
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
+        assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
         assertEquals(Hex.toHexString(resultDouble),
                 "d788be966d089f0676c8cec86022086929b52884963915b0129e896c1ec5f3b2");
     }
 
     @Test
-    public void MerkleRootKECCAK256Leaf3Test() {
+    public void MerkleRootKeccak256Leaf3Test() {
 
         String algorithm = "KECCAK-256";
 
@@ -488,13 +498,14 @@ public class TrieTests {
         }
 
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
+        assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
         assertEquals(Hex.toHexString(resultDouble),
                 "0b718469b6e14b0872d1d81ebb893700c0a664c83c10162c9452afa536e71413");
     }
 
     @Test
-    public void MerkleRootKECCAK256Leaf4Test() {
+    public void MerkleRootKeccak256Leaf4Test() {
 
         String algorithm = "KECCAK-256";
 
@@ -521,13 +532,14 @@ public class TrieTests {
         }
 
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
+        assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
         assertEquals(Hex.toHexString(resultDouble),
                 "0b718469b6e14b0872d1d81ebb893700c0a664c83c10162c9452afa536e71413");
     }
 
     @Test
-    public void MerkleRootKECCAK256Leaf5Test() {
+    public void MerkleRootKeccak256Leaf5Test() {
 
         String algorithm = "KECCAK-256";
 
@@ -555,6 +567,7 @@ public class TrieTests {
         }
 
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
+        assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
         assertEquals(Hex.toHexString(resultDouble),
                 "88e84a3cb5986ffec233920ee531639ba63bb117e13b1195e57eda030bbc4879");
