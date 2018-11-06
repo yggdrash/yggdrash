@@ -20,6 +20,7 @@ import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.contract.ContractMeta;
 import io.yggdrash.core.contract.Runtime;
+import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
@@ -43,7 +44,7 @@ public class BlockChainBuilder {
         return this;
     }
 
-    public BlockChain build() throws InstantiationException, IllegalAccessException {
+    public BlockChain build() {
         StoreBuilder storeBuilder = new StoreBuilder(this.productMode);
 
         BlockHusk genesisBlock = genesis.getBlock();
@@ -57,10 +58,14 @@ public class BlockChainBuilder {
         return new BlockChain(genesisBlock, blockStore, txStore, metaStore, contract, runtime);
     }
 
-    private Contract getContract()
-            throws IllegalAccessException, InstantiationException {
+    private Contract getContract() {
         ContractMeta contractMeta = ContractClassLoader.loadContractById(genesis.getContractId());
-        return contractMeta.getContract().newInstance();
+        try {
+            return contractMeta.getContract().newInstance();
+        } catch (Exception e) {
+            throw new InternalErrorException("Can't load contract id="
+                    + genesis.getContractId(), e);
+        }
     }
 
     private <T> Runtime<T> getRunTime(Class<T> clazz) {

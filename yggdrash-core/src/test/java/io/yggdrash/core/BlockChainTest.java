@@ -2,23 +2,15 @@ package io.yggdrash.core;
 
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.exception.NotValidateException;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockChainTest {
 
-    private BlockChain blockChain;
-
-    @Before
-    public void setUp() throws InstantiationException, IllegalAccessException {
-        blockChain = TestUtils.createBlockChain(false);
-        assertThat(blockChain.size()).isEqualTo(1L);
-    }
-
     @Test
     public void shouldBeGetBlockByHash() {
+        BlockChain blockChain = TestUtils.createBlockChain(false);
         BlockHusk prevBlock = blockChain.getPrevBlock(); // goto Genesis
         long blockIndex = blockChain.size();
         BlockHusk testBlock = new BlockHusk(
@@ -50,6 +42,7 @@ public class BlockChainTest {
 
     @Test(expected = NotValidateException.class)
     public void shouldBeExceptedNotValidateException() {
+        BlockChain blockChain = TestUtils.createBlockChain(false);
         BlockHusk block1 = new BlockHusk(TestUtils.getBlockFixture(1L));
         blockChain.addBlock(block1, false);
         BlockHusk block2 = new BlockHusk(TestUtils.getBlockFixture(2L));
@@ -58,7 +51,7 @@ public class BlockChainTest {
     }
 
     @Test
-    public void shouldBeLoadedStoredBlocks() throws InstantiationException, IllegalAccessException {
+    public void shouldBeLoadedStoredBlocks() {
         TestUtils.clearTestDb();
         BlockChain blockChain1 = TestUtils.createBlockChain(true);
         BlockHusk genesisBlock = blockChain1.getGenesisBlock();
@@ -78,8 +71,20 @@ public class BlockChainTest {
     }
 
     @Test
-    public void shouldBeGeneratedAfterLoadedStoredBlocks() throws InstantiationException,
-            IllegalAccessException {
+    public void shouldBeStoredGenesisTxs() {
+        TestUtils.clearTestDb();
+        BlockChain blockChain = TestUtils.createBlockChain(true);
+        BlockHusk genesis = blockChain.getGenesisBlock();
+        for (TransactionHusk tx : genesis.getBody()) {
+            assertThat(blockChain.getTxByHash(tx.getHash())).isNotNull();
+        }
+        assertThat(blockChain.countOfTxs()).isEqualTo(genesis.getBody().size());
+
+        TestUtils.clearTestDb();
+    }
+
+    @Test
+    public void shouldBeGeneratedAfterLoadedStoredBlocks() {
         TestUtils.clearTestDb();
         BlockChain newDbBlockChain = TestUtils.createBlockChain(true);
         BlockHusk genesisBlock = newDbBlockChain.getGenesisBlock();
@@ -99,6 +104,7 @@ public class BlockChainTest {
 
     @Test
     public void shouldBeCallback() {
+        BlockChain blockChain = TestUtils.createBlockChain(false);
         blockChain.addListener(new BranchEventListener() {
             @Override
             public void chainedBlock(BlockHusk block) {
@@ -119,6 +125,7 @@ public class BlockChainTest {
     }
 
     private BlockChain generateTestBlockChain() {
+        BlockChain blockChain = TestUtils.createBlockChain(false);
         BlockHusk genesisBlock = blockChain.getGenesisBlock();
         BlockHusk block1 = new BlockHusk(
                 TestUtils.getBlockFixture(1L, genesisBlock.getHash()));

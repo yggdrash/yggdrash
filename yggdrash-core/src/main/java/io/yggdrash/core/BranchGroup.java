@@ -39,7 +39,6 @@ public class BranchGroup {
             throw new DuplicatedException(branchId.toString() + " duplicated");
         }
         blockChain.addListener(branchEventListener);
-        blockChain.init();
         branches.put(branchId, blockChain);
     }
 
