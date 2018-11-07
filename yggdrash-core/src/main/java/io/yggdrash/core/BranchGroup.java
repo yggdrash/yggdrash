@@ -58,7 +58,10 @@ public class BranchGroup {
     }
 
     public long getLastIndex(BranchId id) {
-        return branches.get(id).getLastIndex();
+        if (branches.containsKey(id)) {
+            return branches.get(id).getLastIndex();
+        }
+        return 0L;
     }
 
     public Collection<TransactionHusk> getRecentTxs(BranchId branchId) {

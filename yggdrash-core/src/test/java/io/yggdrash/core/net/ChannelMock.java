@@ -19,6 +19,7 @@ package io.yggdrash.core.net;
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.Transaction;
+import io.yggdrash.proto.NodeInfo;
 import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
 
@@ -32,6 +33,12 @@ public class ChannelMock implements PeerClientChannel {
 
     ChannelMock(String ynodeUri) {
         this.peer = Peer.valueOf(ynodeUri);
+    }
+
+
+    @Override
+    public List<NodeInfo> findPeers(BranchId branchId, Peer peer) {
+        return null;
     }
 
     @Override

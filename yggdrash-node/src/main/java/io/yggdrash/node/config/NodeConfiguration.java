@@ -22,7 +22,6 @@ import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -38,13 +37,10 @@ public class NodeConfiguration {
         this.nodeProperties = nodeProperties;
     }
 
-    @Value("${server.port:8080}")
-    private int jsonRpcPort;
-
     @Bean
     PeerGroup peerGroup(Wallet wallet) {
         Peer owner = Peer.valueOf(wallet.getNodeId(), nodeProperties.getGrpc().getHost(),
-                jsonRpcPort);
+                nodeProperties.getGrpc().getPort());
         PeerGroup peerGroup = new PeerGroup(owner, nodeProperties.getMaxPeers());
         peerGroup.setSeedPeerList(nodeProperties.getSeedPeerList());
         return peerGroup;

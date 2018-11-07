@@ -2,6 +2,7 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.BranchId;
+import io.yggdrash.proto.NodeInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -9,19 +10,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class DiscoverTask implements Runnable {
-    private static final Logger log = LoggerFactory.getLogger("DiscoverTask");
+public abstract class DiscoverTask implements Runnable {
+    private static final Logger log = LoggerFactory.getLogger(DiscoverTask.class);
 
-    private DiscoveryClient discoveryClient;
     private PeerGroup peerGroup;
     private final Peer owner;
     private final byte[] ownerId;
 
-    DiscoverTask(PeerGroup peerGroup, DiscoveryClient discoveryClient) {
+    public DiscoverTask(PeerGroup peerGroup) {
         this.peerGroup = peerGroup;
         this.owner = peerGroup.getOwner();
         this.ownerId = owner.getPeerId().getBytes();
-        this.discoveryClient = discoveryClient;
     }
 
     @Override
@@ -29,8 +28,12 @@ public class DiscoverTask implements Runnable {
         discover(0, new ArrayList<>());
     }
 
+    public abstract PeerClientChannel getClient(Peer peer);
+
     private synchronized void discover(int round, List<Peer> prevTried) {
         log.info("Start discover!");
+        log.info("Size of STEM PeerTable => {}",
+                peerGroup.getPeerTable(BranchId.stem()).getPeersCount() - 1);
         try {
             if (round == KademliaOptions.MAX_STEPS) {
                 log.debug("Peer table contains [{}] peers", peerGroup.count(BranchId.stem()));
@@ -51,10 +54,10 @@ public class DiscoverTask implements Runnable {
             for (Peer p : closest) {
                 if (!tried.contains(p) && !prevTried.contains(p)) {
                     try {
-                        Optional<List<String>> list = Optional.ofNullable(
-                                discoveryClient.findPeers(p.getHost(), p.getPort(), owner));
-                        list.ifPresent(strings -> strings.forEach(
-                                u -> peerGroup.addPeerByYnodeUri(BranchId.stem(), u)));
+                        Optional<List<NodeInfo>> list = Optional.ofNullable(
+                                getClient(p).findPeers(BranchId.stem(), owner));
+                        list.ifPresent(nodeInfo -> nodeInfo.forEach(
+                                n -> peerGroup.addPeerByYnodeUri(BranchId.stem(), n.getUrl())));
 
                         tried.add(p);
                         Utils.sleep(50);
@@ -68,8 +71,7 @@ public class DiscoverTask implements Runnable {
             }
 
             if (tried.isEmpty()) {
-                log.debug("{}", String.format(
-                        "(tried.isEmpty()) Terminating discover after %d rounds.", round));
+                log.debug("Terminating discover after {} rounds.", round);
                 log.trace("{}\n{}",
                         String.format("Peers discovered %d", peerGroup.count(BranchId.stem())),
                         peerGroup.getPeerUriList(BranchId.stem()));

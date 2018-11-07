@@ -1,12 +1,14 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.core.BranchId;
+import io.yggdrash.proto.NodeInfo;
 import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
 
 import java.util.List;
 
 public interface PeerClientChannel {
+    List<NodeInfo> findPeers(BranchId branchId, Peer peer);
 
     Peer getPeer();
 

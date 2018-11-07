@@ -104,7 +104,7 @@ public class GRpcNodeServerTest {
 
     @Test
     public void syncTransaction() {
-        when(branchGroupMock.getRecentTxs(BranchId.stem()))
+        when(branchGroupMock.getUnconfirmedTxs(BranchId.stem()))
                 .thenReturn(Collections.singletonList(tx));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub

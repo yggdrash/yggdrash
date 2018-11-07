@@ -11,16 +11,10 @@ public class PeerTable {
     private transient PeerStore peerStore;
 
     PeerTable(PeerStore peerStore, Peer p) {
-        this(peerStore, p, true);
-    }
-
-    private PeerTable(PeerStore peerStore, Peer p, boolean includeHomeNode) {
         this.owner = p;
         this.peerStore = peerStore;
         init();
-        if (includeHomeNode) {
-            addPeer(this.owner);
-        }
+        addPeer(this.owner);
     }
 
     public Peer getPeer() {
@@ -89,7 +83,7 @@ public class PeerTable {
     }
 
     synchronized int getPeersCount() {
-        return peerStore.getAll().size();
+        return peerStore.size();
     }
 
     synchronized List<Peer> getAllPeers() {
@@ -116,7 +110,7 @@ public class PeerTable {
     }
 
     synchronized boolean isPeerStoreEmpty() {
-        return peerStore.isEmpty();
+        return peerStore.size() == 1 && peerStore.contains(owner.getPeerId());
     }
 
     synchronized List<String> getAllFromPeerStore() {

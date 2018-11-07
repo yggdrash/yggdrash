@@ -38,20 +38,6 @@ public class PeerGroupTest {
     }
 
     @Test
-    public void bootstrappingTest() {
-        // SeedPeerList 가 아닌 peerTables 세팅 후 bootstrapping
-        Peer p1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        Peer p2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32919");
-        peerGroup.addPeer(BRANCH, p1);
-        peerGroup.addPeer(BRANCH, p2);
-        peerGroup.bootstrapping(discoveryClient);
-
-        assert peerGroup.getPeerTable(BRANCH).contains(p1);
-        assert peerGroup.getPeerTable(BRANCH).contains(p2);
-        assert peerGroup.getPeerTable(BRANCH).getPeersCount() == 3;
-    }
-
-    @Test
     public void addPeerTest() {
         assert !peerGroup.isPeerEmpty(BRANCH);
         assert peerGroup.getPeerTable(BRANCH).getPeersCount() == 1;

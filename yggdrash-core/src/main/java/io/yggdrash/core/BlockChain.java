@@ -243,7 +243,11 @@ public class BlockChain {
     }
 
     public BlockHusk getBlockByIndex(long idx) {
-        return blockStore.get(blockIndex.get(idx));
+        Sha3Hash index = blockIndex.get(idx);
+        if (index == null) {
+            return null;
+        }
+        return blockStore.get(index);
     }
 
     /**
