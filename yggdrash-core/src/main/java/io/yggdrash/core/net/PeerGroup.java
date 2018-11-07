@@ -79,7 +79,7 @@ public class PeerGroup implements BranchEventListener {
 
     public void addPeerTable(BranchId branchId, boolean isProduction) {
         if (peerTables.containsKey(branchId)) {
-            throw new DuplicatedException(branchId.toString() + " duplicated");
+            throw new DuplicatedException(branchId.toString() + " branch duplicated");
         }
         StoreBuilder storeBuilder = new StoreBuilder(isProduction);
         PeerStore peerStore = storeBuilder.buildPeerStore(branchId);
