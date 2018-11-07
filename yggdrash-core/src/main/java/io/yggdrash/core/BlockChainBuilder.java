@@ -20,7 +20,7 @@ import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.contract.ContractMeta;
 import io.yggdrash.core.contract.Runtime;
-import io.yggdrash.core.exception.InternalErrorException;
+import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
@@ -63,7 +63,7 @@ public class BlockChainBuilder {
         try {
             return contractMeta.getContract().newInstance();
         } catch (Exception e) {
-            throw new InternalErrorException("Can't load contract id="
+            throw new FailedOperationException("Can't load contract id="
                     + genesis.getContractId(), e);
         }
     }

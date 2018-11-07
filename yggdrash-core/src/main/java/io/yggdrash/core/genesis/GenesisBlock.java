@@ -2,7 +2,10 @@ package io.yggdrash.core.genesis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
@@ -10,6 +13,7 @@ import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionBody;
 import io.yggdrash.core.TransactionHeader;
+import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.exception.NotValidateException;
 import org.spongycastle.util.encoders.Hex;
 
@@ -18,17 +22,36 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GenesisBlock {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final BlockInfo blockInfo;
     private final BlockHusk block;
+    private String contractId;
 
+    /**
+     * Build genesis for static genesis.json
+     *
+     * @param branchInfoStream static generated genesis json
+     */
     public GenesisBlock(InputStream branchInfoStream) {
         try {
-            this.blockInfo = new ObjectMapper().readValue(branchInfoStream, BlockInfo.class);
+            this.blockInfo = MAPPER.readValue(branchInfoStream, BlockInfo.class);
             this.block = new BlockHusk(toBlock().toProtoBlock());
         } catch (Exception e) {
             throw new NotValidateException(e);
         }
+    }
+
+    /**
+     * Build genesis for dynamic branch.json
+     *
+     * @param branchJson dynamic loaded json
+     * @param wallet     for signing
+     */
+    GenesisBlock(BranchJson branchJson, Wallet wallet) throws Exception {
+        this.blockInfo = new BlockInfo();
+        this.contractId = branchJson.version;
+        this.block = new BlockHusk(toBlock(branchJson, wallet).toProtoBlock());
     }
 
     public BlockHusk getBlock() {
@@ -42,7 +65,7 @@ public class GenesisBlock {
                 return txInfo.body.get(0).contractId;
             }
         }
-        return null;
+        return contractId;
     }
 
     private Block toBlock() {
@@ -66,6 +89,50 @@ public class GenesisBlock {
         BlockBody txBody = new BlockBody(txList);
 
         return new Block(blockHeader, Hex.decode(blockInfo.signature), txBody);
+    }
+
+    private Block toBlock(BranchJson branchJson, Wallet wallet) throws Exception {
+        JsonArray params = new JsonArray();
+        params.add(Utils.parseJsonObject(branchJson.genesis));
+
+        JsonObject genesisObject = new JsonObject();
+        genesisObject.addProperty("method", "genesis");
+        genesisObject.add("params", params);
+        JsonArray jsonArrayTxBody = new JsonArray();
+        jsonArrayTxBody.add(genesisObject);
+
+        TransactionBody txBody = new TransactionBody(jsonArrayTxBody);
+
+        long timestamp = ByteUtil.byteArrayToLong(Hex.decode(branchJson.timestamp));
+
+        byte[] chain = org.spongycastle.util.encoders.Hex.decode(branchJson.branchId);
+
+        // todo: change values(version, type) using the configuration.
+        TransactionHeader txHeader = new TransactionHeader(
+                chain,
+                new byte[8],
+                new byte[8],
+                timestamp,
+                txBody);
+
+        Transaction tx = new Transaction(txHeader, wallet, txBody);
+        List<Transaction> txList = new ArrayList<>();
+        txList.add(tx);
+
+        BlockBody blockBody = new BlockBody(txList);
+
+        // todo: change values(version, type) using the configuration.
+        BlockHeader blockHeader = new BlockHeader(
+                chain,
+                new byte[8],
+                new byte[8],
+                new byte[32],
+                0L,
+                timestamp,
+                blockBody.getMerkleRoot(),
+                blockBody.length());
+
+        return new Block(blockHeader, wallet, blockBody);
     }
 
     private Transaction toTransaction(TransactionInfo txi) {
