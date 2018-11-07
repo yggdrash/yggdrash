@@ -17,18 +17,13 @@
 package io.yggdrash.core.genesis;
 
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.account.Wallet;
 import org.junit.Test;
-import org.spongycastle.crypto.InvalidCipherTextException;
-
-import java.io.IOException;
 
 public class BranchLoaderTest {
 
     @Test
-    public void getBranchInfo() throws IOException, InvalidCipherTextException {
-        DefaultConfig defaultConfig = new DefaultConfig();
-        BranchLoader loader = new BranchLoader(defaultConfig, new Wallet(defaultConfig));
+    public void getBranchInfo() {
+        BranchLoader loader = new BranchLoader(new DefaultConfig());
         loader.getGenesisBlockList();
     }
 }

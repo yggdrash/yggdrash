@@ -20,7 +20,6 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockChainBuilder;
 import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.genesis.BranchLoader;
 import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.core.net.PeerGroup;
@@ -52,8 +51,8 @@ public class BranchConfiguration {
 
     @Bean
     BranchLoader branchLoader(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender sender,
-                              DefaultConfig defaultConfig, Wallet wallet) {
-        BranchLoader loader = new BranchLoader(defaultConfig, wallet);
+                              DefaultConfig defaultConfig) {
+        BranchLoader loader = new BranchLoader(defaultConfig);
         for (GenesisBlock genesis : loader.getGenesisBlockList()) {
             addBranch(peerGroup, branchGroup, sender, genesis);
         }

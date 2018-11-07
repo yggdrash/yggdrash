@@ -13,7 +13,6 @@ import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionBody;
 import io.yggdrash.core.TransactionHeader;
-import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.exception.NotValidateException;
 import org.spongycastle.util.encoders.Hex;
 
@@ -46,12 +45,11 @@ public class GenesisBlock {
      * Build genesis for dynamic branch.json
      *
      * @param branchJson dynamic loaded json
-     * @param wallet     for signing
      */
-    GenesisBlock(BranchJson branchJson, Wallet wallet) throws Exception {
+    GenesisBlock(BranchJson branchJson) throws Exception {
         this.blockInfo = new BlockInfo();
         this.contractId = branchJson.version;
-        this.block = new BlockHusk(toBlock(branchJson, wallet).toProtoBlock());
+        this.block = new BlockHusk(toBlock(branchJson).toProtoBlock());
     }
 
     public BlockHusk getBlock() {
@@ -66,6 +64,22 @@ public class GenesisBlock {
             }
         }
         return contractId;
+    }
+
+    private Transaction toTransaction(TransactionInfo txi) {
+
+        TransactionHeader txHeader = new TransactionHeader(
+                Hex.decode(txi.header.chain),
+                Hex.decode(txi.header.version),
+                Hex.decode(txi.header.type),
+                ByteUtil.byteArrayToLong(Hex.decode(txi.header.timestamp)),
+                Hex.decode(txi.header.bodyHash),
+                ByteUtil.byteArrayToLong(Hex.decode(txi.header.bodyLength))
+        );
+
+        TransactionBody txBody = new TransactionBody(new Gson().toJson(txi.body));
+
+        return new Transaction(txHeader, Hex.decode(txi.signature), txBody);
     }
 
     private Block toBlock() {
@@ -91,35 +105,22 @@ public class GenesisBlock {
         return new Block(blockHeader, Hex.decode(blockInfo.signature), txBody);
     }
 
-    private Block toBlock(BranchJson branchJson, Wallet wallet) throws Exception {
-        JsonArray params = new JsonArray();
-        params.add(Utils.parseJsonObject(branchJson.genesis));
-
-        JsonObject genesisObject = new JsonObject();
-        genesisObject.addProperty("method", "genesis");
-        genesisObject.add("params", params);
-        JsonArray jsonArrayTxBody = new JsonArray();
-        jsonArrayTxBody.add(genesisObject);
-
-        TransactionBody txBody = new TransactionBody(jsonArrayTxBody);
-
+    private Block toBlock(BranchJson branchJson) throws Exception {
         long timestamp = ByteUtil.byteArrayToLong(Hex.decode(branchJson.timestamp));
-
         byte[] chain = org.spongycastle.util.encoders.Hex.decode(branchJson.branchId);
 
-        // todo: change values(version, type) using the configuration.
-        TransactionHeader txHeader = new TransactionHeader(
-                chain,
-                new byte[8],
-                new byte[8],
-                timestamp,
-                txBody);
+        JsonObject jsonObjectBlock = toJsonObjectBlock(branchJson, chain, timestamp);
 
-        Transaction tx = new Transaction(txHeader, wallet, txBody);
-        List<Transaction> txList = new ArrayList<>();
-        txList.add(tx);
+        return new Block(jsonObjectBlock);
+    }
 
-        BlockBody blockBody = new BlockBody(txList);
+    private JsonObject toJsonObjectBlock(BranchJson branchJson, byte[] chain, long timestamp)
+            throws Exception {
+        JsonObject jsonObjectTx = toJsonObjectTx(branchJson, chain, timestamp);
+        JsonArray jsonArrayBlockBody = new JsonArray();
+        jsonArrayBlockBody.add(jsonObjectTx);
+
+        BlockBody blockBody = new BlockBody(jsonArrayBlockBody);
 
         // todo: change values(version, type) using the configuration.
         BlockHeader blockHeader = new BlockHeader(
@@ -132,22 +133,43 @@ public class GenesisBlock {
                 blockBody.getMerkleRoot(),
                 blockBody.length());
 
-        return new Block(blockHeader, wallet, blockBody);
+        JsonObject jsonObjectBlock = new JsonObject();
+        jsonObjectBlock.add("header", blockHeader.toJsonObject());
+        jsonObjectBlock.addProperty("signature", branchJson.signature);
+        jsonObjectBlock.add("body", jsonArrayBlockBody);
+
+        return jsonObjectBlock;
     }
 
-    private Transaction toTransaction(TransactionInfo txi) {
-
+    private JsonObject toJsonObjectTx(BranchJson branchJson, byte[] chain, long timestamp) {
+        JsonArray jsonArrayTxBody = toJsonArrayTxBody(branchJson);
+        // todo: change values(version, type) using the configuration.
         TransactionHeader txHeader = new TransactionHeader(
-                Hex.decode(txi.header.chain),
-                Hex.decode(txi.header.version),
-                Hex.decode(txi.header.type),
-                ByteUtil.byteArrayToLong(Hex.decode(txi.header.timestamp)),
-                Hex.decode(txi.header.bodyHash),
-                ByteUtil.byteArrayToLong(Hex.decode(txi.header.bodyLength))
-        );
+                chain,
+                new byte[8],
+                new byte[8],
+                timestamp,
+                new TransactionBody(jsonArrayTxBody));
 
-        TransactionBody txBody = new TransactionBody(new Gson().toJson(txi.body));
+        JsonObject jsonObjectTx = new JsonObject();
+        jsonObjectTx.add("header", txHeader.toJsonObject());
+        jsonObjectTx.addProperty("signature", branchJson.signature);
+        jsonObjectTx.add("body", jsonArrayTxBody);
 
-        return new Transaction(txHeader, Hex.decode(txi.signature), txBody);
+        return jsonObjectTx;
+    }
+
+    private JsonArray toJsonArrayTxBody(BranchJson branchJson) {
+        JsonArray jsonArrayTxBody = new JsonArray();
+        JsonObject jsonObjectTx = new JsonObject();
+        jsonArrayTxBody.add(jsonObjectTx);
+
+        jsonObjectTx.addProperty("method", "genesis");
+
+        JsonArray params = new JsonArray();
+        params.add(Utils.parseJsonObject(branchJson.genesis));
+        jsonObjectTx.add("params", params);
+
+        return jsonArrayTxBody;
     }
 }

@@ -16,10 +16,10 @@
 
 package io.yggdrash.core.genesis;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.account.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,27 +31,29 @@ public class BranchLoader {
     private static final Logger log = LoggerFactory.getLogger(BranchLoader.class);
 
     private static final String BRANCH_FILE = "branch.json";
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final File branchRoot;
     private final List<GenesisBlock> genesisBlockList = new ArrayList<>();
 
-    public BranchLoader(DefaultConfig defaultConfig, Wallet wallet) {
+    public BranchLoader(DefaultConfig defaultConfig) {
         String branchPath = defaultConfig.getConfig().getString(Constants.BRANCH_PATH);
         this.branchRoot = new File(branchPath);
         if (!branchRoot.exists()) {
             branchRoot.mkdirs();
         }
-        load(wallet);
+        load();
     }
 
-    private void load(Wallet wallet) {
+    private void load() {
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
         for (File branchDir : branchRoot.listFiles()) {
             File branchFile = new File(branchDir, BRANCH_FILE);
             try {
-                BranchJson branchJson = MAPPER.readValue(branchFile, BranchJson.class);
+                BranchJson branchJson = objectMapper.readValue(branchFile, BranchJson.class);
                 branchJson.branchId = branchDir.getName();
-                genesisBlockList.add(new GenesisBlock(branchJson, wallet));
+                genesisBlockList.add(new GenesisBlock(branchJson));
             } catch (Exception e) {
                 log.error(e.getMessage());
             }

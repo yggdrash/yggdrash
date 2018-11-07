@@ -23,7 +23,6 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
-import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import org.apache.commons.io.FileUtils;
@@ -60,10 +59,9 @@ public class BranchConfigurationTest {
     }
 
     @Test
-    public void branchLoaderTest() throws Exception {
+    public void branchLoaderTest() {
         BranchGroup branchGroup = branchConfiguration.branchGroup();
-        branchConfiguration.branchLoader(peerGroup, branchGroup, null, new DefaultConfig(),
-                new Wallet());
+        branchConfiguration.branchLoader(peerGroup, branchGroup, null, new DefaultConfig());
         assert branchGroup.getAllBranch().size() == 1;
     }
 
