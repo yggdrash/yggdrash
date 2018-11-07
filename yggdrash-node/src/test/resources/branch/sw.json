@@ -9,8 +9,5 @@
   "tag": 0.1,
   "version": "0xebe69520b56c81e1ad2ceec4c2f9ed9405376fa56e9a9713a026fb305989e042",
   "reference_address": "",
-  "reserve_address": "0x2831de120827570cf8c7cfcb9b788c222e307de4",
-  "version_history": [
-    "0xebe69520b56c81e1ad2ceec4c2f9ed9405376fa56e9a9713a026fb305989e042"
-  ]
+  "reserve_address": "0x2831de120827570cf8c7cfcb9b788c222e307de4"
 }

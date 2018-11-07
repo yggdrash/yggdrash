@@ -18,7 +18,6 @@ package io.yggdrash.core.genesis;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-import java.util.List;
 import java.util.Map;
 
 public class BranchJson {
@@ -31,8 +30,6 @@ public class BranchJson {
     public String description;
     public String tag;
     public String version;
-    @JsonProperty("version_history")
-    public List<String> versionHistory;
     @JsonProperty("reference_address")
     public String referenceAddress;
     @JsonProperty("reserve_address")

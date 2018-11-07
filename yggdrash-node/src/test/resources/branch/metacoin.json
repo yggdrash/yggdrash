@@ -8,8 +8,6 @@
   "description": "Meta coin sample",
   "tag": "0.1",
   "version": "f3eda0a0e223d5ed67beab2fad8b0d1339cee02c",
-  "version_history": [
-  ],
   "reference_address": "",
   "reserve_address": "0x9cc060690705a13078634637b1d2a5f2fe1b8096",
   "genesis": {
