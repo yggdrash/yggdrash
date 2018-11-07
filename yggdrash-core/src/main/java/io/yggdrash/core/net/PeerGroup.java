@@ -28,11 +28,7 @@ import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -79,7 +75,7 @@ public class PeerGroup implements BranchEventListener {
 
     public void addPeerTable(BranchId branchId, boolean isProduction) {
         if (peerTables.containsKey(branchId)) {
-            throw new DuplicatedException(branchId.toString() + " duplicated");
+            throw new DuplicatedException(branchId.toString() + " branch duplicated");
         }
         StoreBuilder storeBuilder = new StoreBuilder(isProduction);
         PeerStore peerStore = storeBuilder.buildPeerStore(branchId);
