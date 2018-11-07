@@ -49,8 +49,10 @@ public class HashUtil {
     }
 
     /**
+     * SHA256 Hash Method.
      * @param input - data for hashing
      * @return - sha256 hash of the data
+     * @deprecated Use hash()
      */
     public static byte[] sha256(byte[] input) {
         try {
@@ -62,6 +64,12 @@ public class HashUtil {
         }
     }
 
+    /**
+     * SHA3(Keccak256) Hash Method.
+     * @param input data
+     * @return hashed data
+     * @deprecated Use hash()
+     */
     public static byte[] sha3(byte[] input) {
         MessageDigest digest;
         try {
@@ -74,6 +82,12 @@ public class HashUtil {
         }
     }
 
+    /**
+     * SHA1 Hash Method.
+     * @param input data
+     * @return hashed data
+     * @deprecated Use hash()
+     */
     public static byte[] sha1(byte[] input) {
         try {
             MessageDigest sha256digest = MessageDigest.getInstance(HASH_SHA_1_ALGORITHM_NAME);
@@ -94,6 +108,42 @@ public class HashUtil {
     public static byte[] sha3omit12(byte[] input) {
         byte[] hash = sha3(input);
         return copyOfRange(hash, 12, hash.length);
+    }
+
+    /**
+     * The hash method for supporting many algorithms.
+     * @param input data for hashing.
+     * @param algorithm algorithm for hashing. ex) "SHA-256", "KECCAK-256", "SHA3-256", "SHA-1"
+     * @param doubleHash whether double hash or not
+     * @return hashed data.
+     */
+    public static byte[] hash(byte[] input, String algorithm, boolean doubleHash) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance(algorithm);
+            return doubleHash ? digest.digest(digest.digest(input)) : digest.digest(input);
+        } catch (NoSuchAlgorithmException e) {
+            LOG.error("Can't find such algorithm", e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * The hash method for supporting many algorithms.
+     * @param input data for hashing.
+     * @param algorithm algorithm for hashing. ex) "SHA-256", "KECCAK-256", "SHA3-256", "SHA-1"
+     * @return hashed data.
+     */
+    public static byte[] hash(byte[] input, String algorithm) {
+        return hash(input, algorithm, false);
+    }
+
+    /**
+     * The hash method for KECCAK-256.
+     * @param input data for hashing.
+     * @return hashed data.
+     */
+    public static byte[] hash(byte[] input) {
+        return hash(input, "KECCAK-256");
     }
 
 }
