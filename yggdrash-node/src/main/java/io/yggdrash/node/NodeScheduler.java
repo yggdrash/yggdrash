@@ -58,6 +58,10 @@ class NodeScheduler {
     //@Scheduled(fixedRate = 1000 * 10)
     @Scheduled(fixedRate = KademliaOptions.BUCKET_REFRESH * 10)
     public void healthCheck() {
+        if (!nodeStatus.isUpStatus()) {
+            return;
+        }
+
         try {
             peerGroup.healthCheck();
         } catch (NonExistObjectException e) {

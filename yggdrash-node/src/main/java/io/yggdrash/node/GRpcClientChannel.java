@@ -28,10 +28,13 @@ import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.NetProto.Empty;
 import io.yggdrash.proto.NetProto.SyncLimit;
+import io.yggdrash.proto.NodeInfo;
+import io.yggdrash.proto.PeerGrpc;
 import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.proto.RequestPeer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,6 +46,7 @@ class GRpcClientChannel implements PeerClientChannel {
     private static final int DEFAULT_LIMIT = 10000;
 
     private final ManagedChannel channel;
+    private final PeerGrpc.PeerBlockingStub blockingPeerStub;
     private final PingPongGrpc.PingPongBlockingStub blockingPingPongStub;
     private final BlockChainGrpc.BlockChainBlockingStub blockingBlockChainStub;
     private final BlockChainGrpc.BlockChainStub asyncBlockChainStub;
@@ -56,9 +60,21 @@ class GRpcClientChannel implements PeerClientChannel {
     GRpcClientChannel(ManagedChannel channel, Peer peer) {
         this.channel = channel;
         this.peer = peer;
+        this.blockingPeerStub = PeerGrpc.newBlockingStub(channel);
         this.blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);
         this.blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
         this.asyncBlockChainStub = BlockChainGrpc.newStub(channel);
+    }
+
+    @Override
+    public List<NodeInfo> findPeers(BranchId branchId, Peer peer) {
+        RequestPeer requestPeer = RequestPeer.newBuilder()
+                .setBranchId(branchId.toString())
+                .setPubKey(peer.getPubKey().toString())
+                .setIp(peer.getHost())
+                .setPort(peer.getPort())
+                .build();
+        return blockingPeerStub.findPeers(requestPeer).getNodesList();
     }
 
     @Override

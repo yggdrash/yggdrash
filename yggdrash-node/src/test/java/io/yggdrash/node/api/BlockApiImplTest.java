@@ -17,8 +17,8 @@ import static org.junit.Assert.assertEquals;
 
 public class BlockApiImplTest {
 
-    private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
-    private static final BlockApi blockApi = new JsonRpcConfig().blockApi();
+    private static final Logger log = LoggerFactory.getLogger(BlockApiImplTest.class);
+    private final BlockApi blockApi = new JsonRpcConfig().blockApi();
     private final String branchId = BranchId.STEM;
 
     @Test

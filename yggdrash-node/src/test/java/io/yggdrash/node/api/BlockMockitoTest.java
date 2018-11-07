@@ -4,7 +4,6 @@ import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
-import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.node.controller.BlockDto;
 import org.junit.Before;
@@ -43,11 +42,11 @@ public class BlockMockitoTest {
 
     @Test
     public void blockNumberTest() {
-        when(branchGroupMock.getLastIndex(stem)).thenReturn(0L);
+        when(branchGroupMock.getLastIndex(stem)).thenReturn(1L);
         assertThat(blockApiImpl.blockNumber(stem.toString())).isEqualTo(blockList.size());
     }
 
-    @Test(expected = InternalErrorException.class)
+    @Test(expected = NonExistObjectException.class)
     public void blockNumberExceptionTest() {
         when(branchGroupMock.getLastIndex(stem)).thenThrow(new RuntimeException());
         blockApiImpl.blockNumber(stem.toString());
