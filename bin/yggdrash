@@ -105,6 +105,12 @@ log() {
     tail -f $LOG
 }
 
+help() {
+
+    echo "YGGDRASH node"
+    echo "Usage: ./$0 start | stop | restart | status | log | help"
+}
+
 case "$1" in
     'start')
             start
