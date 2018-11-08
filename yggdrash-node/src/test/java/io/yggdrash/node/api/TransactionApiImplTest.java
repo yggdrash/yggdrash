@@ -2,7 +2,6 @@ package io.yggdrash.node.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.Branch;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.account.Address;
@@ -145,8 +144,8 @@ public class TransactionApiImplTest {
     @Test
     public void newPendingTransactionFilterTest() {
         try {
-            assertThat(txApi.newPendingTransactionFilter(Branch.STEM)).isGreaterThanOrEqualTo(0);
-            assertThat(txApi.newPendingTransactionFilter(Branch.YEED)).isGreaterThanOrEqualTo(0);
+            assertThat(txApi.newPendingTransactionFilter(BranchId.STEM)).isGreaterThanOrEqualTo(0);
+            assertThat(txApi.newPendingTransactionFilter(BranchId.YEED)).isGreaterThanOrEqualTo(0);
         } catch (Exception e) {
             log.debug("\n\nnewPendingTransactionFilterTest :: exception => " + e);
         }
@@ -155,8 +154,8 @@ public class TransactionApiImplTest {
     @Test
     public void getAllTransactionReceiptTest() {
         try {
-            assertThat(txApi.getAllTransactionReceipt(Branch.STEM)).isNotEmpty();
-            assertThat(txApi.getAllTransactionReceipt(Branch.YEED)).isNotEmpty();
+            assertThat(txApi.getAllTransactionReceipt(BranchId.STEM)).isNotEmpty();
+            assertThat(txApi.getAllTransactionReceipt(BranchId.YEED)).isNotEmpty();
         } catch (Exception e) {
             log.debug("\n\ngetAllTransactionReceiptTest :: exception => " + e);
         }

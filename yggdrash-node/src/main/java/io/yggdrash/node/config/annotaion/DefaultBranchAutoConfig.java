@@ -18,7 +18,6 @@ package io.yggdrash.node.config.annotaion;
 
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockChainBuilder;
-import io.yggdrash.core.Branch;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.core.net.PeerGroup;
@@ -45,14 +44,14 @@ public class DefaultBranchAutoConfig {
         this.productionMode = Arrays.asList(env.getActiveProfiles()).contains("prod");
     }
 
-    @Bean(Branch.STEM)
+    @Bean("stem")
     BlockChain stem(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
             throws IOException {
         return addBranch(stemResource.getInputStream(), peerGroup, branchGroup,
                 websocketSender);
     }
 
-    @Bean(Branch.YEED)
+    @Bean("yeed")
     BlockChain yeed(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
             throws IOException {
         return addBranch(yeedResource.getInputStream(), peerGroup, branchGroup,
