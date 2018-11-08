@@ -106,17 +106,15 @@ public class GenesisBlock {
     }
 
     private Block toBlock(BranchJson branchJson) throws Exception {
-        long timestamp = ByteUtil.byteArrayToLong(Hex.decode(branchJson.timestamp));
-        byte[] chain = org.spongycastle.util.encoders.Hex.decode(branchJson.branchId);
 
-        JsonObject jsonObjectBlock = toJsonObjectBlock(branchJson, chain, timestamp);
+        JsonObject jsonObjectBlock = toJsonObjectBlock(branchJson);
 
         return new Block(jsonObjectBlock);
     }
 
-    private JsonObject toJsonObjectBlock(BranchJson branchJson, byte[] chain, long timestamp)
+    private JsonObject toJsonObjectBlock(BranchJson branchJson)
             throws Exception {
-        JsonObject jsonObjectTx = toJsonObjectTx(branchJson, chain, timestamp);
+        JsonObject jsonObjectTx = toJsonObjectTx(branchJson);
         JsonArray jsonArrayBlockBody = new JsonArray();
         jsonArrayBlockBody.add(jsonObjectTx);
 
@@ -124,12 +122,12 @@ public class GenesisBlock {
 
         // todo: change values(version, type) using the configuration.
         BlockHeader blockHeader = new BlockHeader(
-                chain,
+                branchJson.branchId().getBytes(),
                 new byte[8],
                 new byte[8],
                 new byte[32],
                 0L,
-                timestamp,
+                branchJson.longTimestamp(),
                 blockBody.getMerkleRoot(),
                 blockBody.length());
 
@@ -141,14 +139,14 @@ public class GenesisBlock {
         return jsonObjectBlock;
     }
 
-    private JsonObject toJsonObjectTx(BranchJson branchJson, byte[] chain, long timestamp) {
+    private JsonObject toJsonObjectTx(BranchJson branchJson) {
         JsonArray jsonArrayTxBody = toJsonArrayTxBody(branchJson);
         // todo: change values(version, type) using the configuration.
         TransactionHeader txHeader = new TransactionHeader(
-                chain,
+                branchJson.branchId().getBytes(),
                 new byte[8],
                 new byte[8],
-                timestamp,
+                branchJson.longTimestamp(),
                 new TransactionBody(jsonArrayTxBody));
 
         JsonObject jsonObjectTx = new JsonObject();
@@ -164,11 +162,14 @@ public class GenesisBlock {
         JsonObject jsonObjectTx = new JsonObject();
         jsonArrayTxBody.add(jsonObjectTx);
 
-        jsonObjectTx.addProperty("method", "genesis");
+        JsonObject jsonObjectBranch = Utils.parseJsonObject(branchJson);
 
         JsonArray params = new JsonArray();
-        params.add(Utils.parseJsonObject(branchJson.genesis));
+        params.add(jsonObjectBranch.remove("genesis"));
+
+        jsonObjectTx.addProperty("method", "genesis");
         jsonObjectTx.add("params", params);
+        jsonObjectTx.add("branch", jsonObjectBranch);
 
         return jsonArrayTxBody;
     }
