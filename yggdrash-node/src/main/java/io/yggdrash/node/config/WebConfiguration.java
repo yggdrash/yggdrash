@@ -27,7 +27,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 
 @Configuration
 @EnableWebSocketMessageBroker
-public class WebConfig implements WebSocketMessageBrokerConfigurer {
+public class WebConfiguration implements WebSocketMessageBrokerConfigurer {
 
     @Bean
     public WebMvcConfigurer corsConfigurer() {
