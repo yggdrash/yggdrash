@@ -4,7 +4,7 @@ echo "==========================================================================
 
 if [ -n $YGGDRASH_HOME ]
 then
-    export YGGDRASH_HOME="$PWD/.."
+    YGGDRASH_HOME="$PWD/.."
 fi
 
 HOME=$YGGDRASH_HOME
@@ -24,7 +24,7 @@ status() {
     if [ -f $PID ]
     then
         echo "Pid file: $( cat $PID ) [$PID]"
-        ps -ef | grep -v grep | grep $( cat $PID )
+        ps -ef | grep -v grep | grep $( cat $PID ) | grep "java"
     else
         echo "YGGDRASH node is not started."
     fi
@@ -34,7 +34,7 @@ start() {
 
     if [ ! -f $EXEFILE ]
     then
-        echo "JAR:$EXEFILE"
+        echo "Compiling JAR:$EXEFILE"
         cd $YGGDRASH_HOME
         echo $PWD
         ./gradlew -PspringProfiles=prod clean build
@@ -49,9 +49,11 @@ start() {
         touch $PID
         if nohup $COMMAND >>$LOG 2>&1 &
         then echo $! >$PID
-            echo "Started the YGGDRASH node.($PID)"
+            echo "Started the YGGDRASH node."
+            echo "Success!"
+            echo "PID: $(cat $PID)"
             echo "$(date '+%Y-%m-%d %X'): START" >>$LOG
-            echo "Log file: $LOG"
+            echo "LOG: $LOG"
         else echo "Error... "
             /bin/rm $PID
         fi
@@ -97,6 +99,10 @@ stop() {
 }
 
 
+log() {
+    tail -f $LOG
+}
+
 case "$1" in
     'start')
             start
@@ -111,9 +117,12 @@ case "$1" in
     'status')
             status
             ;;
+    'log')
+            log
+            ;;
     *)
             echo
-            echo "Usage: $0 { start | stop | restart | status }"
+            echo "Usage: $0 { start | stop | restart | status | log }"
             echo
             exit 1
             ;;
