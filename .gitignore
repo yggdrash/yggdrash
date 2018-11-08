@@ -5,6 +5,7 @@ out/
 .yggdrash/
 tmp/
 logs/
+*.log
 
 .coveralls.yml
 
