@@ -17,6 +17,16 @@ import java.util.NoSuchElementException;
 public class DefaultConfig {
 
     private static final Logger logger = LoggerFactory.getLogger("general");
+    private static final String PROPERTY_KEYPATH = "key.path";
+    private static final String PROPERTY_KEYPASSWORD = "key.password"; // todo: change to CLI
+    private static final String PROPERTY_NODE_NAME = "node.name";
+    private static final String PROPERTY_NODE_VER = "node.version";
+    private static final String PROPERTY_NETWORK_ID = "network.id";
+    private static final String PROPERTY_NETWORK_P2P_VER = "network.p2p.version";
+
+    private static final String DATABASE_PATH = "database.path";
+    private static final String CONTRACT_PATH = "contract.path";
+    private static final String BRANCH_PATH = "branch.path";
 
     private Config config;
 
@@ -65,20 +75,40 @@ public class DefaultConfig {
         return "DefaultConfig{" + config.substring(0, config.length() - 1) + "}";
     }
 
+    public String getKeyPath() {
+        return config.getString(PROPERTY_KEYPATH);
+    }
+
+    public String getKeyPassword() {
+        return config.getString(PROPERTY_KEYPASSWORD);
+    }
+
     public String getNodeName() {
-        return config.getString(Constants.PROPERTY_NODE_NAME);
+        return config.getString(PROPERTY_NODE_NAME);
     }
 
     public String getNodeVersion() {
-        return config.getString(Constants.PROPERTY_NODE_VER);
+        return config.getString(PROPERTY_NODE_VER);
     }
 
     public Network getNetwork() {
-        return Network.valueOf(config.getInt(Constants.PROPERTY_NETWORK_ID));
+        return Network.valueOf(config.getInt(PROPERTY_NETWORK_ID));
     }
 
     public String getNetworkP2PVersion() {
-        return config.getString(Constants.PROPERTY_NETWORK_P2P_VER);
+        return config.getString(PROPERTY_NETWORK_P2P_VER);
+    }
+
+    public String getDatabasePath() {
+        return config.getString(DATABASE_PATH);
+    }
+
+    public String getContractPath() {
+        return config.getString(CONTRACT_PATH);
+    }
+
+    public String getBranchPath() {
+        return config.getString(BRANCH_PATH);
     }
 
     enum Network {

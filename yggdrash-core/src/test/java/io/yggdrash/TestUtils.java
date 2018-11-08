@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.FileUtil;
 import io.yggdrash.common.util.TimeUtils;
@@ -293,7 +292,7 @@ public class TestUtils {
     }
 
     public static void clearTestDb() {
-        String dbPath = new DefaultConfig().getConfig().getString(Constants.DATABASE_PATH);
+        String dbPath = new DefaultConfig().getDatabasePath();
         FileUtil.recursiveDelete(Paths.get(dbPath));
     }
 

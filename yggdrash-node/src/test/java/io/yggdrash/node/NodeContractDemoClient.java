@@ -4,7 +4,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.BranchId;
@@ -256,7 +255,7 @@ public class NodeContractDemoClient {
 
     private static void saveFile(BranchId branchId, String fileName, String json)
             throws IOException {
-        String branchPath = new DefaultConfig().getConfig().getString(Constants.BRANCH_PATH);
+        String branchPath = new DefaultConfig().getBranchPath();
         File branchDir = new File(branchPath, branchId.toString());
         if (!branchDir.exists()) {
             branchDir.mkdirs();

@@ -18,8 +18,6 @@ package io.yggdrash.core.genesis;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.yggdrash.common.config.Constants;
-import io.yggdrash.common.config.DefaultConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +33,7 @@ public class BranchLoader {
     private final File branchRoot;
     private final List<GenesisBlock> genesisBlockList = new ArrayList<>();
 
-    public BranchLoader(DefaultConfig defaultConfig) {
-        String branchPath = defaultConfig.getConfig().getString(Constants.BRANCH_PATH);
+    public BranchLoader(String branchPath) {
         this.branchRoot = new File(branchPath);
         if (!branchRoot.exists()) {
             branchRoot.mkdirs();

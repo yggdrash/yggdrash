@@ -18,7 +18,6 @@ package io.yggdrash.node.config;
 
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.BranchGroup;
@@ -42,8 +41,7 @@ import java.nio.charset.StandardCharsets;
 
 public class BranchConfigurationTest {
 
-    private static final String BRANCH_PATH
-            = new DefaultConfig().getConfig().getString(Constants.BRANCH_PATH);
+    private static final String BRANCH_PATH = new DefaultConfig().getBranchPath();
     private final Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
     private final PeerGroup peerGroup = new PeerGroup(owner, 1);
     private BranchConfiguration branchConfiguration;

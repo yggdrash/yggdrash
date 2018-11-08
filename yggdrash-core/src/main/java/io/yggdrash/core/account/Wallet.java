@@ -39,9 +39,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
-import static io.yggdrash.common.config.Constants.PROPERTY_KEYPASSWORD;
-import static io.yggdrash.common.config.Constants.PROPERTY_KEYPATH;
-
 /**
  * Wallet Class.
  */
@@ -161,8 +158,8 @@ public class Wallet {
     public Wallet(DefaultConfig config) throws IOException, InvalidCipherTextException {
         //todo: change password logic to CLI for security
 
-        String keyFilePathName = config.getConfig().getString(PROPERTY_KEYPATH);
-        String keyPassword = config.getConfig().getString(PROPERTY_KEYPASSWORD);
+        String keyFilePathName = config.getKeyPath();
+        String keyPassword = config.getKeyPassword();
 
         if (Strings.isNullOrEmpty(keyFilePathName) || Strings.isNullOrEmpty(keyPassword)) {
             logger.error("Invalid keyPath or keyPassword");
