@@ -52,7 +52,7 @@ public class BranchConfiguration {
     @Bean
     BranchLoader branchLoader(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender sender,
                               DefaultConfig defaultConfig) {
-        BranchLoader loader = new BranchLoader(defaultConfig);
+        BranchLoader loader = new BranchLoader(defaultConfig.getBranchPath());
         for (GenesisBlock genesis : loader.getGenesisBlockList()) {
             addBranch(peerGroup, branchGroup, sender, genesis);
         }

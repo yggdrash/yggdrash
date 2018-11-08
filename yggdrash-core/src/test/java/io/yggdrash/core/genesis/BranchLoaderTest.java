@@ -23,7 +23,8 @@ public class BranchLoaderTest {
 
     @Test
     public void getBranchInfo() {
-        BranchLoader loader = new BranchLoader(new DefaultConfig());
+        String branchPath = new DefaultConfig().getBranchPath();
+        BranchLoader loader = new BranchLoader(branchPath);
         loader.getGenesisBlockList();
     }
 }

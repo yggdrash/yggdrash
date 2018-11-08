@@ -17,6 +17,9 @@
 package io.yggdrash.core.genesis;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.core.BranchId;
+import org.spongycastle.util.encoders.Hex;
 
 import java.util.Map;
 
@@ -36,5 +39,14 @@ public class BranchJson {
     public String reserveAddress;
     public Map<String, Map<String, Map<String, String>>> genesis;
     public String signature;
+    @JsonProperty("branch_id")
     public String branchId;
+
+    long longTimestamp() {
+        return ByteUtil.byteArrayToLong(Hex.decode(timestamp));
+    }
+
+    BranchId branchId() {
+        return BranchId.of(branchId);
+    }
 }

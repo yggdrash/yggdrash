@@ -38,7 +38,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.SecureRandom;
 
-import static io.yggdrash.common.config.Constants.PROPERTY_KEYPATH;
 import static junit.framework.TestCase.assertTrue;
 import static junit.framework.TestCase.fail;
 import static org.junit.Assert.assertArrayEquals;
@@ -333,7 +332,7 @@ public class WalletTest {
 
         Wallet wallet = new Wallet(config);
 
-        Path path = Paths.get(config.getConfig().getString(PROPERTY_KEYPATH));
+        Path path = Paths.get(config.getKeyPath());
         String keyPath = path.getParent().toString();
         String keyName = path.getFileName().toString();
 
