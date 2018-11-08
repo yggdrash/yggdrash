@@ -47,8 +47,10 @@ public class DefaultBranchAutoConfig {
     @Bean("stem")
     BlockChain stem(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
             throws IOException {
-        return addBranch(stemResource.getInputStream(), peerGroup, branchGroup,
+        BlockChain blockChain = addBranch(stemResource.getInputStream(), peerGroup, branchGroup,
                 websocketSender);
+        websocketSender.setStemBranchId(blockChain.getBranchId());
+        return blockChain;
     }
 
     @Bean("yeed")

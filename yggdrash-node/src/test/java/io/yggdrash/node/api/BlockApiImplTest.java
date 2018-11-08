@@ -3,7 +3,6 @@ package io.yggdrash.node.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.BranchId;
 import io.yggdrash.node.controller.BlockDto;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -19,7 +18,7 @@ public class BlockApiImplTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockApiImplTest.class);
     private final BlockApi blockApi = new JsonRpcConfig().blockApi();
-    private final String branchId = BranchId.STEM;
+    private final String branchId = TestUtils.STEM.toString();
 
     @Test
     public void blockApiIsNotNull() {

@@ -5,7 +5,6 @@ import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.contract.ContractQry;
 import io.yggdrash.core.contract.ContractTx;
 import io.yggdrash.node.controller.TransactionDto;
@@ -15,17 +14,24 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class ContractApiImplTest {
-    private static final String TEST_BRANCH = BranchId.STEM;
     private static final ContractApi contractApi = new JsonRpcConfig().contractApi();
     private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
-    private static Wallet wallet;
     private static JsonObject branch;
     private static BranchId branchId;
 
     @BeforeClass
-    public static void beforeTest() throws Exception {
-        wallet = new Wallet();
-        create();
+    public static void beforeTest() {
+        branch = TestUtils.getSampleBranch1();
+        branchId = BranchId.of(branch);
+
+        try {
+            TransactionHusk tx = ContractTx.createStemTxBySeed(TestUtils.STEM,
+                    TestUtils.wallet(), branch, "create");
+            txApi.sendTransaction(TransactionDto.createBy(tx));
+            Thread.sleep(10000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
@@ -38,19 +44,6 @@ public class ContractApiImplTest {
         assertThat(txApi).isNotNull();
     }
 
-    private static void create() {
-        branch = TestUtils.getSampleBranch1();
-        branchId = BranchId.of(branch);
-
-        try {
-            TransactionHusk tx = ContractTx.createStemTxBySeed(wallet, branch, "create");
-            txApi.sendTransaction(TransactionDto.createBy(tx));
-            Thread.sleep(10000);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     @Test
     public void update() {
         try {
@@ -59,8 +52,9 @@ public class ContractApiImplTest {
             JsonObject updatedBranch = TestUtils.updateBranch(description, updatedVersion,
                     branch, 0);
 
-            TransactionHusk tx =  ContractTx.createStemTxBySeed(
-                    wallet, updatedBranch, "update");
+            TransactionHusk tx =
+                    ContractTx.createStemTxBySeed(TestUtils.STEM, TestUtils.wallet(),
+                            updatedBranch, "update");
             txApi.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {
             e.printStackTrace();
@@ -70,12 +64,12 @@ public class ContractApiImplTest {
     @Test
     public void search() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(TEST_BRANCH,
+            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
                     "search", ContractQry
                     .createParams("key", "type", "value", "immunity"));
             contractApi.query(queryObj.toString());
 
-            queryObj = ContractQry.createQuery(TEST_BRANCH,
+            queryObj = ContractQry.createQuery(branchId.toString(),
                     "search", ContractQry.createParams(
                     "key", "name", "value", "TEST1"));
             contractApi.query(queryObj.toString());
@@ -87,7 +81,7 @@ public class ContractApiImplTest {
     @Test
     public void view() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(TEST_BRANCH,
+            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
                     "view", ContractQry.createParams(
                     "branchId", branchId.toString()));
             contractApi.query(queryObj.toString());
@@ -99,7 +93,7 @@ public class ContractApiImplTest {
     @Test
     public void getCurrentVersion() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(TEST_BRANCH,
+            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
                     "getcurrentversion",
                     ContractQry.createParams("branchId", branchId.toString()));
 
@@ -112,7 +106,7 @@ public class ContractApiImplTest {
     @Test
     public void getVersionHistory() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(TEST_BRANCH,
+            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
                     "getversionhistory",
                     ContractQry.createParams("branchId", branchId.toString()));
             contractApi.query(queryObj.toString());
@@ -124,7 +118,7 @@ public class ContractApiImplTest {
     @Test
     public void getAllBranchId() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(TEST_BRANCH,
+            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
                     "getallbranchid",
                     new JsonArray());
             contractApi.query(queryObj.toString());

@@ -4,30 +4,22 @@ import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.store.BlockStore;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 public class PeerGroupTest {
-    private static final Logger log = LoggerFactory.getLogger(BlockStore.class);
 
     private static final int MAX_PEERS = 25;
-    private static final BranchId BRANCH = BranchId.stem();
-    private static final BranchId OTHER_BRANCH = BranchId.yeed();
+    private static final BranchId BRANCH = TestUtils.STEM;
+    private static final BranchId OTHER_BRANCH = TestUtils.YEED;
     private static final Peer OWNER = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
 
     private PeerGroup peerGroup;
     private TransactionHusk tx;
-
-    @Mock
-    private DiscoveryClient discoveryClient;
 
     @Before
     public void setUp() {

@@ -19,6 +19,7 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
+import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -32,6 +33,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class CoinContractTest {
     private static final String TRANSFER_FROM = TestUtils.wallet().getHexAddress();
     private CoinContract coinContract;
+    private BranchId branchId = TestUtils.YEED;
 
     @Before
     public void setUp() {
@@ -48,7 +50,7 @@ public class CoinContractTest {
     @Test
     public void transferTest() {
         TransactionHusk tx =
-                ContractTx.createYeedTx(TestUtils.wallet(), TestUtils.TRANSFER_TO, 10);
+                ContractTx.createYeedTx(branchId, TestUtils.wallet(), TestUtils.TRANSFER_TO, 10);
         boolean result = coinContract.invoke(tx);
         assertThat(result).isTrue();
         assertBalanceFromAndTo("90", "10");
@@ -57,12 +59,12 @@ public class CoinContractTest {
     @Test
     public void transferWrongAmountTest() {
         TransactionHusk tx =
-                ContractTx.createYeedTx(TestUtils.wallet(), TestUtils.TRANSFER_TO, 1000);
+                ContractTx.createYeedTx(branchId, TestUtils.wallet(), TestUtils.TRANSFER_TO, 1000);
         boolean result = coinContract.invoke(tx);
         assertThat(result).isFalse();
         assertBalanceFromAndTo("100", "0");
 
-        tx = ContractTx.createYeedTx(TestUtils.wallet(), TestUtils.TRANSFER_TO, 100);
+        tx = ContractTx.createYeedTx(branchId, TestUtils.wallet(), TestUtils.TRANSFER_TO, 100);
         result = coinContract.invoke(tx);
         assertThat(result).isTrue();
         assertBalanceFromAndTo("0", "100");

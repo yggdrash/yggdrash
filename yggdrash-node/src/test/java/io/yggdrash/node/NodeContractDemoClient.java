@@ -117,7 +117,7 @@ public class NodeContractDemoClient {
         int times = getSendTimes();
         String serverAddress = getServerAddress();
         for (int i = 0; i < times; i++) {
-            TransactionHusk tx = createYeedTx(wallet, address, amount);
+            TransactionHusk tx = createYeedTx(TestUtils.YEED, wallet, address, amount);
             rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
         }
     }
@@ -125,7 +125,7 @@ public class NodeContractDemoClient {
     private static void view() throws Exception {
         String branchId = getBranchId();
         JsonArray params = ContractQry.createParams("branchId", branchId);
-        JsonObject qry = ContractQry.createQuery(BranchId.STEM, "view", params);
+        JsonObject qry = ContractQry.createQuery(TestUtils.STEM.toString(), "view", params);
 
         String serverAddress = getServerAddress();
         rpc.contractApi(serverAddress).query(qry.toString());
@@ -175,8 +175,7 @@ public class NodeContractDemoClient {
 
     private static void balance() {
         System.out.println("조회할 주소를 적어주세요\n>");
-        JsonObject qry = ContractQry.createQuery(BranchId.YEED,
-                "balanceOf",
+        JsonObject qry = ContractQry.createQuery(TestUtils.YEED.toString(), "balanceOf",
                 ContractQry.createParams("address", scan.nextLine()));
 
         String serverAddress = getServerAddress();
@@ -220,9 +219,9 @@ public class NodeContractDemoClient {
         String branchId = scan.nextLine();
         switch (branchId) {
             case "1":
-                return BranchId.stem().toString();
+                return TestUtils.STEM.toString();
             case "2":
-                return BranchId.yeed().toString();
+                return TestUtils.YEED.toString();
             default:
                 return branchId;
         }

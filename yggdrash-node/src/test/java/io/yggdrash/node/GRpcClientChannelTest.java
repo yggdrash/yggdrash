@@ -104,7 +104,7 @@ public class GRpcClientChannelTest {
 
         long offset = 0;
 
-        client.syncBlock(BranchId.stem(), offset);
+        client.syncBlock(BranchId.NULL, offset);
 
         verify(blockChainService).syncBlock(syncLimitRequestCaptor.capture(), any());
 
@@ -120,12 +120,12 @@ public class GRpcClientChannelTest {
             return null;
         }).when(blockChainService).syncTransaction(syncLimitRequestCaptor.capture(), any());
 
-        client.syncTransaction(BranchId.stem());
+        client.syncTransaction(BranchId.NULL);
 
         verify(blockChainService).syncTransaction(syncLimitRequestCaptor.capture(), any());
 
         BranchId branch = BranchId.of(syncLimitRequestCaptor.getValue().getBranch().toByteArray());
-        assertEquals(BranchId.stem(), branch);
+        assertEquals(BranchId.NULL, branch);
     }
 
     @Test
