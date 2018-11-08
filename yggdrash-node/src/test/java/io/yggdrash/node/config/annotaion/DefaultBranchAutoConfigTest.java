@@ -16,11 +16,12 @@
 
 package io.yggdrash.node.config.annotaion;
 
+import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.BranchId;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.node.WebsocketSender;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.core.io.DefaultResourceLoader;
@@ -47,8 +48,8 @@ public class DefaultBranchAutoConfigTest {
     public void addStemBranchTest() throws IOException {
         DefaultBranchAutoConfig config = new DefaultBranchAutoConfig(mockEnv);
         config.stemResource = loader.getResource("classpath:/genesis-stem.json");
-        BlockChain blockChain = config.stem(peerGroup, branchGroup, null);
-        assert blockChain.getBranchId().equals(BranchId.stem());
+        BlockChain blockChain = config.stem(peerGroup, branchGroup, new WebsocketSender(null));
+        assert blockChain.getBranchId().equals(TestUtils.STEM);
         assert branchGroup.getBranchSize() == 1;
     }
 
@@ -62,8 +63,8 @@ public class DefaultBranchAutoConfigTest {
     public void addYeedBranchTest() throws IOException {
         DefaultBranchAutoConfig config = new DefaultBranchAutoConfig(mockEnv);
         config.yeedResource = loader.getResource("classpath:/genesis-yeed.json");
-        BlockChain blockChain = config.yeed(peerGroup, branchGroup, null);
-        assert blockChain.getBranchId().equals(BranchId.yeed());
+        BlockChain blockChain = config.yeed(peerGroup, branchGroup, new WebsocketSender(null));
+        assert blockChain.getBranchId().equals(TestUtils.YEED);
         assert branchGroup.getBranchSize() == 1;
     }
 }

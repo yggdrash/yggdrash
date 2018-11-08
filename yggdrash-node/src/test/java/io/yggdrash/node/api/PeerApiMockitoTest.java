@@ -1,6 +1,5 @@
 package io.yggdrash.node.api;
 
-import io.yggdrash.core.BranchId;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import org.junit.Before;
@@ -18,7 +17,6 @@ import static org.mockito.Mockito.when;
 public class PeerApiMockitoTest {
 
     private static final PeerApi peerApiRpc = new JsonRpcConfig().peerApi();
-    private static final BranchId BRANCH = BranchId.stem();
 
     @Mock
     private PeerGroup peerGroup;

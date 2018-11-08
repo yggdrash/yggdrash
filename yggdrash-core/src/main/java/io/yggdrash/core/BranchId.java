@@ -27,8 +27,8 @@ import java.io.IOException;
 
 public class BranchId {
 
-    public static final String STEM = "9435b0e642e99606cd9cdf362e63fb2d46fca12b";
-    public static final String YEED = "c675b96caad16eaf1bd159fddade28082e8466c3";
+    public static BranchId NULL = new BranchId(new byte[20]);
+
     private final Sha3Hash id;
 
     public BranchId(Sha3Hash hash) {
@@ -79,14 +79,6 @@ public class BranchId {
 
     public static BranchId of(JsonObject branch) {
         return new BranchId(branch);
-    }
-
-    public static BranchId stem() {
-        return BranchId.of(STEM);
-    }
-
-    public static BranchId yeed() {
-        return BranchId.of(YEED);
     }
 
     private static byte[] getRawBranch(JsonObject branch) {

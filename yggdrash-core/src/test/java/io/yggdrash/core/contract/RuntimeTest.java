@@ -54,7 +54,8 @@ public class RuntimeTest {
 
     @Test
     public void invokeFromYeedTest() {
-        TransactionHusk tx = ContractTx.createYeedTx(wallet, TestUtils.TRANSFER_TO, 100);
+        TransactionHusk tx =
+                ContractTx.createYeedTx(TestUtils.YEED, wallet, TestUtils.TRANSFER_TO, 100);
         yeedRuntime.invoke(coinContract, tx);
     }
 
@@ -63,7 +64,8 @@ public class RuntimeTest {
         JsonObject branch = TestUtils.getSampleBranch1();
         branchId = BranchId.of(branch);
 
-        TransactionHusk tx = ContractTx.createStemTxBySeed(wallet, branch, "create");
+        TransactionHusk tx =
+                ContractTx.createStemTxBySeed(TestUtils.STEM, wallet, branch, "create");
         stemRuntime.invoke(stemContract, tx);
 
         String description = "hello world!";
@@ -71,7 +73,7 @@ public class RuntimeTest {
         JsonObject updatedBranch = TestUtils.updateBranch(
                 description, updatedVersion, branch, 0);
 
-        tx = ContractTx.createStemTxBySeed(wallet, updatedBranch, "update");
+        tx = ContractTx.createStemTxBySeed(TestUtils.STEM, wallet, updatedBranch, "update");
         stemRuntime.invoke(stemContract, tx);
     }
 

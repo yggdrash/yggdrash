@@ -63,6 +63,7 @@ public class GRpcNodeServerTest {
 
     private TransactionHusk tx;
     private BlockHusk block;
+    private BranchId branchId;
 
     @Before
     public void setUp() {
@@ -71,10 +72,11 @@ public class GRpcNodeServerTest {
                 peerGroupMock, branchGroupMock, nodeStatus)
         );
 
-        this.tx = TestUtils.createTransferTxHusk();
+        tx = TestUtils.createTransferTxHusk();
         when(branchGroupMock.addTransaction(any())).thenReturn(tx);
-        this.block = TestUtils.createGenesisBlockHusk();
+        block = TestUtils.createGenesisBlockHusk();
         when(branchGroupMock.addBlock(any())).thenReturn(block);
+        branchId = block.getBranchId();
     }
 
     @Test
@@ -90,12 +92,12 @@ public class GRpcNodeServerTest {
     public void syncBlock() {
         Set<BlockHusk> blocks = new HashSet<>();
         blocks.add(block);
-        when(branchGroupMock.getBlockByIndex(BranchId.stem(), 0L)).thenReturn(block);
+        when(branchGroupMock.getBlockByIndex(branchId, 0L)).thenReturn(block);
         when(branchGroupMock.getBranch(any())).thenReturn(TestUtils.createBlockChain(false));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        ByteString branch = ByteString.copyFrom(BranchId.stem().getBytes());
+        ByteString branch = ByteString.copyFrom(branchId.getBytes());
         NetProto.SyncLimit syncLimit = NetProto.SyncLimit.newBuilder().setOffset(0).setLimit(10000)
                 .setBranch(branch).build();
         Proto.BlockList list = blockingStub.syncBlock(syncLimit);
@@ -104,12 +106,12 @@ public class GRpcNodeServerTest {
 
     @Test
     public void syncTransaction() {
-        when(branchGroupMock.getUnconfirmedTxs(BranchId.stem()))
+        when(branchGroupMock.getUnconfirmedTxs(branchId))
                 .thenReturn(Collections.singletonList(tx));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        ByteString branch = ByteString.copyFrom(BranchId.stem().getBytes());
+        ByteString branch = ByteString.copyFrom(branchId.getBytes());
         NetProto.SyncLimit syncLimit
                 = NetProto.SyncLimit.newBuilder().setBranch(branch).build();
         Proto.TransactionList list = blockingStub.syncTransaction(syncLimit);

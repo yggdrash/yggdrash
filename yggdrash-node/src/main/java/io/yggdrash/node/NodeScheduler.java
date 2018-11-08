@@ -16,6 +16,7 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.net.KademliaOptions;
@@ -25,6 +26,7 @@ import io.yggdrash.core.net.PeerGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -42,17 +44,17 @@ class NodeScheduler {
     private final Queue<String> nodeQueue = new LinkedBlockingQueue<>();
 
     private final NodeManager nodeManager;
-
     private final PeerGroup peerGroup;
-
     private final NodeStatus nodeStatus;
+    private final BranchId stemBranchId;
 
-    @Autowired
+    @Autowired(required = false)
     public NodeScheduler(PeerGroup peerGroup, NodeManager nodeManager,
-                         NodeStatus nodeStatus) {
+                         NodeStatus nodeStatus, @Qualifier("stem") BlockChain blockChain) {
         this.peerGroup = peerGroup;
         this.nodeManager = nodeManager;
         this.nodeStatus = nodeStatus;
+        this.stemBranchId = blockChain == null ? BranchId.NULL : blockChain.getBranchId();
     }
 
     //@Scheduled(fixedRate = 1000 * 10)
@@ -78,7 +80,7 @@ class NodeScheduler {
         }
 
         if (nodeQueue.isEmpty()) {
-            nodeQueue.addAll(peerGroup.getPeerUriList(BranchId.stem()));
+            nodeQueue.addAll(peerGroup.getPeerUriList(stemBranchId));
         }
         String peerId = nodeQueue.poll();
         assert peerId != null;
