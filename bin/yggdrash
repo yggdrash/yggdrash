@@ -17,8 +17,7 @@ ERROR=$HOME/logs/error.log
 
 CMD="yggdrash-node.jar"
 COMMAND="$BIN/$CMD"
-EXEFILE="$YGGDRASH_HOME/yggdrash-node/build/libs/yggdrash-node.jar"
-
+JARFILE="$YGGDRASH_HOME/yggdrash-node/build/libs/yggdrash-node.jar"
 
 status() {
     echo "YGGDARSH Status"
@@ -34,9 +33,9 @@ status() {
 
 start() {
 
-    if [ ! -f $EXEFILE ]
+    if [ ! -f $JARFILE ]
     then
-        echo "Compiling JAR:$EXEFILE"
+        echo "Compiling JAR:$JARFILE"
         cd $YGGDRASH_HOME
         echo $PWD
         ./gradlew -PspringProfiles=prod clean build
@@ -99,7 +98,6 @@ stop() {
         echo "No pid file. Already stopped?"
     fi
 }
-
 
 log() {
     tail -f $LOG
