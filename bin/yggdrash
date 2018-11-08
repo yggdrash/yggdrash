@@ -4,7 +4,9 @@ echo "==========================================================================
 
 if [ -n $YGGDRASH_HOME ]
 then
-    YGGDRASH_HOME="$PWD/.."
+    cd ..
+    YGGDRASH_HOME="$PWD"
+    cd bin
 fi
 
 HOME=$YGGDRASH_HOME
@@ -111,7 +113,7 @@ case "$1" in
             stop
             ;;
     'restart')
-            stop ; echo "Sleeping..."; sleep 1 ;
+            stop ; echo; sleep 1 ;
             start
             ;;
     'status')
