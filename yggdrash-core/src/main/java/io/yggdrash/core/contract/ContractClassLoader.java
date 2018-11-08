@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.contract;
 
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -36,8 +35,7 @@ public class ContractClassLoader extends ClassLoader {
     private static final String CONTRACT_PATH;
 
     static {
-        CONTRACT_PATH =
-                new DefaultConfig().getConfig().getString(Constants.CONTRACT_PATH);
+        CONTRACT_PATH = new DefaultConfig().getContractPath();
         copyResourcesToContractPath();
     }
 
