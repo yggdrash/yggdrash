@@ -44,8 +44,7 @@ public class DefaultBranchAutoConfigTest {
     }
 
     @Test
-    public void addStemBranchTest() throws IllegalAccessException, IOException,
-            InstantiationException {
+    public void addStemBranchTest() throws IOException {
         DefaultBranchAutoConfig config = new DefaultBranchAutoConfig(mockEnv);
         config.stemResource = loader.getResource("classpath:/genesis-stem.json");
         BlockChain blockChain = config.stem(peerGroup, branchGroup, null);
@@ -54,15 +53,13 @@ public class DefaultBranchAutoConfigTest {
     }
 
     @Test
-    public void addProductionStemBranchTest() throws IllegalAccessException, IOException,
-            InstantiationException {
+    public void addProductionStemBranchTest() throws IOException {
         mockEnv.addActiveProfile("prod");
         addStemBranchTest();
     }
 
     @Test
-    public void addYeedBranchTest() throws IllegalAccessException, IOException,
-            InstantiationException {
+    public void addYeedBranchTest() throws IOException {
         DefaultBranchAutoConfig config = new DefaultBranchAutoConfig(mockEnv);
         config.yeedResource = loader.getResource("classpath:/genesis-yeed.json");
         BlockChain blockChain = config.yeed(peerGroup, branchGroup, null);
