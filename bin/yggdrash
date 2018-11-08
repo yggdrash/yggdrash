@@ -31,15 +31,20 @@ status() {
     fi
 }
 
+build() {
+    echo "Compiling JAR:$JARFILE"
+    cd $YGGDRASH_HOME
+    echo $PWD
+    ./gradlew -PspringProfiles=prod clean build
+    cd $BIN
+}
+
+
 start() {
 
     if [ ! -f $JARFILE ]
     then
-        echo "Compiling JAR:$JARFILE"
-        cd $YGGDRASH_HOME
-        echo $PWD
-        ./gradlew -PspringProfiles=prod clean build
-        cd $BIN
+        build
     fi
 
     if [ -f $PID ]
@@ -106,7 +111,7 @@ log() {
 help() {
 
     echo "YGGDRASH node"
-    echo "Usage: ./$0 start | stop | restart | status | log | help"
+    echo "Usage: $0 start | stop | restart | status | log | build | help"
 }
 
 case "$1" in
@@ -126,11 +131,11 @@ case "$1" in
     'log')
             log
             ;;
+    'build')
+            build
+            ;;
     *)
-            echo
-            echo "Usage: $0 { start | stop | restart | status | log }"
-            echo
-            exit 1
+            help
             ;;
 esac
 
