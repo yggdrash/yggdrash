@@ -4,6 +4,8 @@ out/
 !gradle/wrapper/gradle-wrapper.jar
 .yggdrash/
 tmp/
+logs/
+*.log
 
 .coveralls.yml
 
