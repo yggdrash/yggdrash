@@ -48,7 +48,7 @@ public class GenesisBlock {
      */
     GenesisBlock(BranchJson branchJson) throws Exception {
         this.blockInfo = new BlockInfo();
-        this.contractId = branchJson.version;
+        this.contractId = branchJson.getContractId();
         this.block = new BlockHusk(toBlock(branchJson).toProtoBlock());
     }
 

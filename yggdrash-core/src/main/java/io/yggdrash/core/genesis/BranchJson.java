@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.genesis;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.BranchId;
 import org.spongycastle.util.encoders.Hex;
@@ -31,15 +30,9 @@ public class BranchJson {
     public String type;
     public String timestamp;
     public String description;
-    public String tag;
-    public String version;
-    @JsonProperty("reference_address")
-    public String referenceAddress;
-    @JsonProperty("reserve_address")
-    public String reserveAddress;
+    public String contractId;
     public Map<String, Map<String, Map<String, String>>> genesis;
     public String signature;
-    @JsonProperty("branch_id")
     public String branchId;
 
     long longTimestamp() {
@@ -48,5 +41,9 @@ public class BranchJson {
 
     BranchId branchId() {
         return BranchId.of(branchId);
+    }
+
+    String getContractId() {
+        return contractId;
     }
 }
