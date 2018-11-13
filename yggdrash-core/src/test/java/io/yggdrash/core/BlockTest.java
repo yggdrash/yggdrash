@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.genesis.BranchJson;
 import io.yggdrash.core.genesis.GenesisBlock;
 import org.assertj.core.api.Assertions;
 import org.junit.Before;
@@ -12,12 +13,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertArrayEquals;
@@ -88,10 +87,11 @@ public class BlockTest {
 
     @Test
     public void shouldBeLoadedBranchJsonFile() throws IOException {
-        File genesisFile = new File(Objects.requireNonNull(getClass().getClassLoader()
-                .getResource("branch-sample.json")).getFile());
+        ClassLoader loader = TestUtils.class.getClassLoader();
+        InputStream is = loader.getResourceAsStream("branch-sample.json");
+        BranchJson branchJson = BranchJson.toBranchJson(is);
 
-        GenesisBlock genesisBlock = new GenesisBlock(new FileInputStream(genesisFile));
+        GenesisBlock genesisBlock = new GenesisBlock(branchJson);
         Assertions.assertThat(genesisBlock.getBlock()).isNotNull();
         Assertions.assertThat(genesisBlock.getBlock().getIndex()).isEqualTo(0);
     }

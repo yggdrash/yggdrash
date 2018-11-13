@@ -5,15 +5,18 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.account.Address;
 import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.contract.ContractQry;
+import io.yggdrash.core.contract.ContractTx;
+import io.yggdrash.core.genesis.BranchJson;
 import io.yggdrash.node.api.JsonRpcConfig;
 import io.yggdrash.node.controller.TransactionDto;
-import org.apache.commons.codec.binary.Hex;
+import org.spongycastle.util.encoders.Hex;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
@@ -25,10 +28,6 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
-
-import static io.yggdrash.core.contract.ContractTx.createBranch;
-import static io.yggdrash.core.contract.ContractTx.createStemTxByBranch;
-import static io.yggdrash.core.contract.ContractTx.createYeedTx;
 
 public class NodeContractDemoClient {
 
@@ -97,18 +96,18 @@ public class NodeContractDemoClient {
         int times = getSendTimes();
         String serverAddress = getServerAddress();
         for (int i = 0; i < times; i++) {
-            TransactionHusk tx = createStemTxByBranch(wallet, branch, method);
+            TransactionHusk tx = ContractTx.createStemTxByBranch(wallet, branch, method);
             rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
         }
     }
 
-    private static void sendYeedTx() throws Exception {
+    private static void sendYeedTx() {
         System.out.println("전송할 주소를 입력해주세요 (기본값 : " + TRANSFER_TO + ")");
         System.out.println(">");
 
         String addressHex = scan.nextLine();
         addressHex = addressHex.length() > 0 ? addressHex : TRANSFER_TO;
-        Address address = new Address(Hex.decodeHex(addressHex));
+        Address address = new Address(Hex.decode(addressHex));
 
         sendYeedTx(address, TRANSFER_AMOUNT);
     }
@@ -117,7 +116,7 @@ public class NodeContractDemoClient {
         int times = getSendTimes();
         String serverAddress = getServerAddress();
         for (int i = 0; i < times; i++) {
-            TransactionHusk tx = createYeedTx(TestUtils.YEED, wallet, address, amount);
+            TransactionHusk tx = ContractTx.createYeedTx(TestUtils.YEED, wallet, address, amount);
             rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
         }
     }
@@ -161,14 +160,11 @@ public class NodeContractDemoClient {
         String contractId = scan.nextLine();
 
         if ("".equals(contractId)) {
-            contractId = branch.get("version").getAsString();
+            contractId = branch.get("contractId").getAsString();
         }
-        branch.addProperty("version", contractId);
+        branch.addProperty("contractId", contractId);
 
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(contractId);
-        branch.add("version_history", jsonArray);
-
+        BranchJson.signBranch(wallet, branch);
         BranchId branchId = BranchId.of(branch);
         saveBranchAsFile(branchId, branch);
     }
@@ -194,7 +190,10 @@ public class NodeContractDemoClient {
             return getJsonObjectFromFile("branch", json);
         } else {
             JsonObject seed = getJsonObjectFromFile("seed", json);
-            return createBranch(seed, wallet.getHexAddress());
+            if (!seed.has("timestamp")) {
+                seed.addProperty("timestamp", TimeUtils.hexTime());
+            }
+            return seed;
         }
     }
 

@@ -61,7 +61,7 @@ public class RuntimeTest {
 
     @Test
     public void invokeFromStemTest() {
-        JsonObject branch = TestUtils.getSampleBranch1();
+        JsonObject branch = TestUtils.getSampleBranch();
         branchId = BranchId.of(branch);
 
         TransactionHusk tx =
@@ -69,9 +69,7 @@ public class RuntimeTest {
         stemRuntime.invoke(stemContract, tx);
 
         String description = "hello world!";
-        String updatedVersion = "0xf4312kjise099qw0nene76555484ab1547av8b9e";
-        JsonObject updatedBranch = TestUtils.updateBranch(
-                description, updatedVersion, branch, 0);
+        JsonObject updatedBranch = TestUtils.updateBranch(description, branch, 0);
 
         tx = ContractTx.createStemTxBySeed(TestUtils.STEM, wallet, updatedBranch, "update");
         stemRuntime.invoke(stemContract, tx);

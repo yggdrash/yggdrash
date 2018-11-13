@@ -63,6 +63,6 @@ public class StateControllerTest {
         mockMvc.perform(get("/branches/" + TestUtils.STEM + "/states"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(jsonPath("$", hasSize(1)));
     }
 }

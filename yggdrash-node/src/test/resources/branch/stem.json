@@ -1,10 +1,11 @@
 {
-  "name":"STEM",
-  "owner":"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
-  "symbol":"STEM",
-  "property":"ecosystem",
-  "type":"immunity",
+  "name": "STEM",
+  "symbol": "STEM",
+  "property": "ecosystem",
+  "description": "The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.",
+  "contractId": "6d7e3a369ace398da114b9a1d70174d20cd20df7",
+  "genesis": {},
   "timestamp": "00000166c837f0c9",
-  "description":"The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.",
-  "contractId": "d399cd6d34288d04ba9e68ddfda9f5fe99dd778e"
+  "owner": "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
+  "signature": "1bfc8f5931db6b8e0b98494e5f8b63c3626b7392658b82f49bf7c8b2df5494009402e27f6296217013f5d77607f2e6c420e42fa3a4c1168277da5e19c76de61e9b"
 }

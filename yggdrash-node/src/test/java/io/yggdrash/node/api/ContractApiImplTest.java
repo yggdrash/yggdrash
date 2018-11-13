@@ -21,7 +21,7 @@ public class ContractApiImplTest {
 
     @BeforeClass
     public static void beforeTest() {
-        branch = TestUtils.getSampleBranch1();
+        branch = TestUtils.getSampleBranch();
         branchId = BranchId.of(branch);
 
         try {
@@ -48,9 +48,7 @@ public class ContractApiImplTest {
     public void update() {
         try {
             String description = "hello world!";
-            String updatedVersion = "0xf4312kjise099qw0nene76555484ab1547av8b9e";
-            JsonObject updatedBranch = TestUtils.updateBranch(description, updatedVersion,
-                    branch, 0);
+            JsonObject updatedBranch = TestUtils.updateBranch(description, branch, 0);
 
             TransactionHusk tx =
                     ContractTx.createStemTxBySeed(TestUtils.STEM, TestUtils.wallet(),

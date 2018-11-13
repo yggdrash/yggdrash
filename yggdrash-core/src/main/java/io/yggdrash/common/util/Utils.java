@@ -18,7 +18,6 @@
 
 package io.yggdrash.common.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -294,17 +293,11 @@ public class Utils {
         return (JsonArray) jsonParser.parse(data);
     }
 
-    public static JsonObject parseJsonObject(Reader json) {
+    public static JsonObject parseJsonObject(String json) {
         return (JsonObject) jsonParser.parse(json);
     }
 
-    public static JsonObject parseJsonObject(Object obj) {
-        try {
-            String json = mapper.writeValueAsString(obj);
-            return (JsonObject) jsonParser.parse(json);
-        } catch (JsonProcessingException e) {
-            log.warn(e.getMessage(), e);
-            return null;
-        }
+    public static JsonObject parseJsonObject(Reader json) {
+        return (JsonObject) jsonParser.parse(json);
     }
 }

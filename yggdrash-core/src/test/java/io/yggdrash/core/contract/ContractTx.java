@@ -27,21 +27,19 @@ import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionSignature;
 import io.yggdrash.core.account.Address;
 import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.genesis.BranchJson;
 
 public class ContractTx {
 
     public static TransactionHusk createStemTxBySeed(BranchId stemBranchId, Wallet wallet,
                                                      JsonObject seed, String method) {
-        JsonArray versionHistory = new JsonArray();
-        versionHistory.add(seed.get("version").getAsString());
-        if (!seed.has("owner")) {
-            seed.addProperty("owner", wallet.getHexAddress());
+        if (!seed.has("genesis")) {
+            seed.add("genesis", new JsonObject());
         }
         if (!seed.has("timestamp")) {
-            seed.addProperty("timestamp", System.currentTimeMillis());
+            seed.addProperty("timestamp", TimeUtils.hexTime());
         }
-        seed.add("version_history", versionHistory);
-
+        BranchJson.signBranch(wallet, seed);
         BranchId branchId = BranchId.of(seed);
 
         return createTx(wallet, stemBranchId, createStemTxBody(branchId, seed, method));
@@ -52,16 +50,6 @@ public class ContractTx {
         BranchId branchId = BranchId.of(branch);
 
         return createTx(wallet, branchId, createStemTxBody(branchId, branch, method));
-    }
-
-    public static JsonObject createBranch(JsonObject branch, String owner) {
-        JsonArray versionHistory = new JsonArray();
-        versionHistory.add(branch.get("version").getAsString());
-        branch.addProperty("owner", owner);
-        branch.addProperty("timestamp", System.currentTimeMillis());
-        branch.add("version_history", versionHistory);
-
-        return branch;
     }
 
     public static TransactionHusk createYeedTx(BranchId branchId, Wallet wallet, Address to,

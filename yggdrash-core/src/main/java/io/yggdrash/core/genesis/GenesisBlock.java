@@ -3,9 +3,9 @@ package io.yggdrash.core.genesis;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
@@ -16,6 +16,7 @@ import io.yggdrash.core.TransactionHeader;
 import io.yggdrash.core.exception.NotValidateException;
 import org.spongycastle.util.encoders.Hex;
 
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -46,7 +47,7 @@ public class GenesisBlock {
      *
      * @param branchJson dynamic loaded json
      */
-    GenesisBlock(BranchJson branchJson) throws Exception {
+    public GenesisBlock(BranchJson branchJson) throws IOException {
         this.blockInfo = new BlockInfo();
         this.contractId = branchJson.getContractId();
         this.block = new BlockHusk(toBlock(branchJson).toProtoBlock());
@@ -105,15 +106,14 @@ public class GenesisBlock {
         return new Block(blockHeader, Hex.decode(blockInfo.signature), txBody);
     }
 
-    private Block toBlock(BranchJson branchJson) throws Exception {
+    private Block toBlock(BranchJson branchJson) throws IOException {
 
         JsonObject jsonObjectBlock = toJsonObjectBlock(branchJson);
 
         return new Block(jsonObjectBlock);
     }
 
-    private JsonObject toJsonObjectBlock(BranchJson branchJson)
-            throws Exception {
+    private JsonObject toJsonObjectBlock(BranchJson branchJson) throws IOException {
         JsonObject jsonObjectTx = toJsonObjectTx(branchJson);
         JsonArray jsonArrayBlockBody = new JsonArray();
         jsonArrayBlockBody.add(jsonObjectTx);
@@ -162,15 +162,28 @@ public class GenesisBlock {
         JsonObject jsonObjectTx = new JsonObject();
         jsonArrayTxBody.add(jsonObjectTx);
 
-        JsonObject jsonObjectBranch = Utils.parseJsonObject(branchJson);
+        JsonObject jsonObjectBranch = branchJson.toJsonObject();
 
-        JsonArray params = new JsonArray();
-        params.add(jsonObjectBranch.remove("genesis"));
+        JsonArray params = toGenesisParams(jsonObjectBranch, branchJson.isStem());
+        jsonObjectTx.add("params", params);
 
         jsonObjectTx.addProperty("method", "genesis");
-        jsonObjectTx.add("params", params);
         jsonObjectTx.add("branch", jsonObjectBranch);
 
         return jsonArrayTxBody;
+    }
+
+    private JsonArray toGenesisParams(JsonObject jsonObjectBranch, boolean isStem) {
+        JsonElement jsonElementGenesis = jsonObjectBranch.remove("genesis");
+        JsonArray params = new JsonArray();
+        if (isStem) {
+            JsonObject param = new JsonObject();
+            param.add(jsonObjectBranch.get("branchId").getAsString(), jsonObjectBranch);
+            params.add(param);
+        } else {
+            params.add(jsonElementGenesis);
+        }
+
+        return params;
     }
 }

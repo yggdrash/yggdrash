@@ -16,22 +16,41 @@
 
 package io.yggdrash.core.genesis;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.JsonObject;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.BranchId;
+import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.exception.NotValidateException;
+import org.apache.commons.io.IOUtils;
 import org.spongycastle.util.encoders.Hex;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 public class BranchJson {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    static {
+        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+    }
+
     public String name;
-    public String owner;
     public String symbol;
     public String property;
-    public String type;
-    public String timestamp;
     public String description;
     public String contractId;
     public Map<String, Map<String, Map<String, String>>> genesis;
+    public String timestamp;
+    public String owner;
     public String signature;
     public String branchId;
 
@@ -45,5 +64,44 @@ public class BranchJson {
 
     String getContractId() {
         return contractId;
+    }
+
+    boolean isStem() {
+        return symbol != null && "STEM".equals(symbol);
+    }
+
+    public static BranchJson toBranchJson(JsonObject jsonObjectBranch) throws IOException {
+        return MAPPER.readValue(jsonObjectBranch.toString(), BranchJson.class);
+    }
+
+    public static BranchJson toBranchJson(InputStream branch) throws IOException {
+        String branchString = IOUtils.toString(branch, StandardCharsets.UTF_8);
+        JsonObject jsonObjectBranch = Utils.parseJsonObject(branchString);
+        BranchJson branchJson = MAPPER.readValue(branchString, BranchJson.class);
+        branchJson.branchId = BranchId.of(jsonObjectBranch).toString();
+        return branchJson;
+    }
+
+    JsonObject toJsonObject() {
+        try {
+            String jsonString = MAPPER.writeValueAsString(this);
+            return Utils.parseJsonObject(jsonString);
+        } catch (JsonProcessingException e) {
+            throw new NotValidateException(e);
+        }
+    }
+
+    public static JsonObject signBranch(Wallet wallet, JsonObject raw) {
+        if (!raw.has("signature")) {
+            raw.addProperty("owner", wallet.getHexAddress());
+            Sha3Hash hashForSign = new Sha3Hash(raw.toString().getBytes(StandardCharsets.UTF_8));
+            byte[] signature = wallet.signHashedData(hashForSign.getBytes());
+            raw.addProperty("signature", Hex.toHexString(signature));
+        }
+        return raw;
+    }
+
+    boolean verify() {
+        return true;
     }
 }

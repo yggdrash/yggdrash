@@ -101,7 +101,7 @@ public class BranchConfigurationTest {
 
     private JsonObject getBranchJson() throws IOException {
         ResourceLoader resourceLoader = new DefaultResourceLoader();
-        Resource resource = resourceLoader.getResource("classpath:/branch/test.json");
+        Resource resource = resourceLoader.getResource("classpath:/branch/sw.json");
         Reader json = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
         return Utils.parseJsonObject(json);
     }

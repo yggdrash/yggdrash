@@ -47,7 +47,7 @@ public class DefaultBranchAutoConfigTest {
     @Test
     public void addStemBranchTest() throws IOException {
         DefaultBranchAutoConfig config = new DefaultBranchAutoConfig(mockEnv);
-        config.stemResource = loader.getResource("classpath:/genesis-stem.json");
+        config.stemResource = loader.getResource("classpath:/branch-stem.json");
         BlockChain blockChain = config.stem(peerGroup, branchGroup, new WebsocketSender(null));
         assert blockChain.getBranchId().equals(TestUtils.STEM);
         assert branchGroup.getBranchSize() == 1;
@@ -62,7 +62,7 @@ public class DefaultBranchAutoConfigTest {
     @Test
     public void addYeedBranchTest() throws IOException {
         DefaultBranchAutoConfig config = new DefaultBranchAutoConfig(mockEnv);
-        config.yeedResource = loader.getResource("classpath:/genesis-yeed.json");
+        config.yeedResource = loader.getResource("classpath:/branch-yeed.json");
         BlockChain blockChain = config.yeed(peerGroup, branchGroup, new WebsocketSender(null));
         assert blockChain.getBranchId().equals(TestUtils.YEED);
         assert branchGroup.getBranchSize() == 1;

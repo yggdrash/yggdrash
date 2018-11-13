@@ -19,11 +19,9 @@ package io.yggdrash.core;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.core.exception.NotValidateException;
 import org.spongycastle.util.encoders.Hex;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class BranchId {
 
@@ -82,18 +80,6 @@ public class BranchId {
     }
 
     private static byte[] getRawBranch(JsonObject branch) {
-        ByteArrayOutputStream branchStream = new ByteArrayOutputStream();
-        try {
-            branchStream.write(branch.get("name").getAsString().getBytes());
-            branchStream.write(branch.get("property").getAsString().getBytes());
-            branchStream.write(branch.get("type").getAsString().getBytes());
-            branchStream.write(branch.get("timestamp").getAsString().getBytes());
-            branchStream.write(branch.get("version").getAsString().getBytes());
-            branchStream.write(branch.get("reference_address").getAsString().getBytes());
-            branchStream.write(branch.get("reserve_address").getAsString().getBytes());
-        } catch (IOException e) {
-            throw new NotValidateException(e);
-        }
-        return branchStream.toByteArray();
+        return branch.toString().getBytes(StandardCharsets.UTF_8);
     }
 }

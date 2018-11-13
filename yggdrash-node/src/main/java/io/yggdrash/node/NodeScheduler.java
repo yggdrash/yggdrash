@@ -31,6 +31,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -46,14 +47,22 @@ class NodeScheduler {
     private final NodeManager nodeManager;
     private final PeerGroup peerGroup;
     private final NodeStatus nodeStatus;
-    private final BranchId stemBranchId;
 
     @Autowired(required = false)
+    @Qualifier("stem")
+    private BlockChain blockChain;
+
+    private BranchId stemBranchId;
+
     public NodeScheduler(PeerGroup peerGroup, NodeManager nodeManager,
-                         NodeStatus nodeStatus, @Qualifier("stem") BlockChain blockChain) {
+                         NodeStatus nodeStatus) {
         this.peerGroup = peerGroup;
         this.nodeManager = nodeManager;
         this.nodeStatus = nodeStatus;
+    }
+
+    @PostConstruct
+    private void init() {
         this.stemBranchId = blockChain == null ? BranchId.NULL : blockChain.getBranchId();
     }
 
