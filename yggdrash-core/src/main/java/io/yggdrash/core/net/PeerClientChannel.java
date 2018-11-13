@@ -10,6 +10,8 @@ import java.util.List;
 public interface PeerClientChannel {
     List<NodeInfo> findPeers(BranchId branchId, Peer peer);
 
+    void broadcastConsensus(BranchId branchId, Peer peer);
+
     Peer getPeer();
 
     void stop();

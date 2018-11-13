@@ -52,7 +52,7 @@ public class DefaultBranchAutoConfig {
                 websocketSender);
     }
 
-    @Bean(Branch.YEED)
+    //@Bean(Branch.YEED)
     BlockChain yeed(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
             throws IOException, IllegalAccessException, InstantiationException {
         return addBranch(yeedResource.getInputStream(), peerGroup, branchGroup,

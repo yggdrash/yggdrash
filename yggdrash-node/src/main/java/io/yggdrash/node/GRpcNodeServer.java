@@ -275,6 +275,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             responseObserver.onCompleted();
         }
 
+        /*
         @Override
         public StreamObserver<Proto.Transaction> broadcastTransaction(
                 StreamObserver<NetProto.Empty> responseObserver) {
@@ -311,8 +312,8 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
                     responseObserver.onCompleted();
                 }
             };
-        }
-
+        }*/
+        /*
         @Override
         public StreamObserver<Proto.Block> broadcastBlock(
                 StreamObserver<NetProto.Empty> responseObserver) {
@@ -328,13 +329,14 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
                     log.debug("Received block id=[{}], hash={}", id, block.getHash());
                     if (isValid(block)) {
                         try {
-                            branchGroup.addBlock(block);
+                            branchGroup.addBlock(block,false);
                         } catch (Exception e) {
                             log.warn(e.getMessage());
                         }
                     }
                     for (StreamObserver<NetProto.Empty> observer : blockObservers) {
                         observer.onNext(EMPTY);
+                        observer.onCompleted();
                     }
                 }
 
@@ -348,8 +350,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
                 @Override
                 public void onCompleted() {
                     blockObservers.remove(responseObserver);
-                    log.debug("BroadcastBlock onCompleted. blockObserver={}",
-                            blockObservers.size());
                     responseObserver.onCompleted();
                 }
 
@@ -370,11 +370,59 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
                     return true;
                 }
             };
+        }*/
+
+        @Override
+        public void broadcastBlock(Proto.Block request,
+                                   StreamObserver<NetProto.Empty> responseObserver) {
+            long id = ByteUtil.byteArrayToLong(
+                    request.getHeader().getIndex().toByteArray());
+            BlockHusk block = new BlockHusk(request);
+            log.debug("Received block id=[{}], hash={}", id, block.getHash());
+            if (isBlockValid(block)) {
+                try {
+                    branchGroup.addBlock(block, false);
+                } catch (Exception e) {
+                    log.warn(e.getMessage());
+                }
+            }
+            responseObserver.onNext(EMPTY);
+            responseObserver.onCompleted();
+        }
+
+        @Override
+        public void broadcastTransaction(Proto.Transaction request,
+                                         StreamObserver<NetProto.Empty> responseObserver) {
+            log.debug("Received transaction: {}", request);
+            TransactionHusk tx = new TransactionHusk(request);
+            try {
+                branchGroup.addTransaction(tx);
+            } catch (Exception e) {
+                log.warn(e.getMessage());
+            }
+            responseObserver.onNext(EMPTY);
+            responseObserver.onCompleted();
+        }
+
+        private boolean isBlockValid(BlockHusk block) {
+            BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
+            if (!nodeStatus.isUpStatus()) {
+                log.trace("Ignore broadcast block");
+            } else if (blockChain == null) {
+                return false;
+            } else if (blockChain.getLastIndex() + 1 < block.getIndex()) {
+                log.info("Sync request latest block id=[{}]", blockChain.getLastIndex());
+                nodeStatus.sync();
+                BlockChainSync.syncBlock(blockChain, peerGroup);
+                nodeStatus.up();
+                return false;
+            }
+            return true;
         }
     }
 
     public class GrpcDiscoverTask extends DiscoverTask {
-        public GrpcDiscoverTask(PeerGroup peerGroup) {
+        GrpcDiscoverTask(PeerGroup peerGroup) {
             super(peerGroup);
         }
 
@@ -390,6 +438,8 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             log.debug("Request Peer => "
                     + request.getPubKey() + "@" + request.getIp() + ":" + request.getPort());
             Peer peer = Peer.valueOf(request.getPubKey(), request.getIp(), request.getPort());
+            peerGroup.newPeerChannel(
+                    BranchId.of(request.getBranchId()), new GRpcClientChannel(peer));
             List<String> list = peerGroup.getPeers(BranchId.of(request.getBranchId()), peer);
             PeerList.Builder peerListBuilder = PeerList.newBuilder();
             for (String url : list) {
@@ -398,6 +448,25 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             PeerList peerList = peerListBuilder.build();
             responseObserver.onNext(peerList);
             responseObserver.onCompleted();
+        }
+
+        @Override
+        public void broadcastConsensus(
+                RequestPeer request, StreamObserver<RequestPeer> responseObserver) {
+            log.debug("The peer to generate the block is => "
+                    + request.getIp() + ":" + request.getPort());
+            responseObserver.onNext(request);
+            responseObserver.onCompleted();
+
+            // RequestPeer 는 블록을 생성할 피어 (네트워크 상에서 블록을 생성할 피어의 순서를 지정하기 위함)
+            String selectedPeer = Peer.valueOf(
+                    request.getPubKey(), request.getIp(), request.getPort()).getYnodeUri();
+            String owner = getNodeUri();
+
+            // owner 가 selectedPeer 인 경우 블록 생성
+            if (owner.equals(selectedPeer)) {
+                generateBlock();
+            }
         }
     }
 

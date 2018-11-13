@@ -82,9 +82,13 @@ public class BranchGroup {
         }
     }
 
-    public BlockHusk addBlock(BlockHusk block) {
+    BlockHusk addBlock(BlockHusk block) {
+        return addBlock(block, true);
+    }
+
+    public BlockHusk addBlock(BlockHusk block, boolean broadcast) {
         if (branches.containsKey(block.getBranchId())) {
-            return branches.get(block.getBranchId()).addBlock(block, true);
+            return branches.get(block.getBranchId()).addBlock(block, broadcast);
         }
         return block;
     }

@@ -75,6 +75,13 @@ public abstract class DiscoverTask implements Runnable {
                 log.trace("{}\n{}",
                         String.format("Peers discovered %d", peerGroup.count(BranchId.stem())),
                         peerGroup.getPeerUriList(BranchId.stem()));
+
+                if (round == 0) {
+                    // SeedPeer 로부터 빈 리스트([])를 받았을 때 SeedPeer 를 테이블과 채널에 추가해야한다.
+                    Peer seedPeer = Peer.valueOf(peerGroup.getSeedPeerList().get(0));
+                    peerGroup.addPeerByYnodeUri(BranchId.stem(), seedPeer.getYnodeUri());
+                    peerGroup.newPeerChannel(BranchId.stem(), getClient(seedPeer));
+                }
                 return;
             }
 
