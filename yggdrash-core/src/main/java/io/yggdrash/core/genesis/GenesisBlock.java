@@ -2,7 +2,10 @@ package io.yggdrash.core.genesis;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
@@ -18,17 +21,35 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GenesisBlock {
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final BlockInfo blockInfo;
     private final BlockHusk block;
+    private String contractId;
 
+    /**
+     * Build genesis for static genesis.json
+     *
+     * @param branchInfoStream static generated genesis json
+     */
     public GenesisBlock(InputStream branchInfoStream) {
         try {
-            this.blockInfo = new ObjectMapper().readValue(branchInfoStream, BlockInfo.class);
+            this.blockInfo = MAPPER.readValue(branchInfoStream, BlockInfo.class);
             this.block = new BlockHusk(toBlock().toProtoBlock());
         } catch (Exception e) {
             throw new NotValidateException(e);
         }
+    }
+
+    /**
+     * Build genesis for dynamic branch.json
+     *
+     * @param branchJson dynamic loaded json
+     */
+    GenesisBlock(BranchJson branchJson) throws Exception {
+        this.blockInfo = new BlockInfo();
+        this.contractId = branchJson.version;
+        this.block = new BlockHusk(toBlock(branchJson).toProtoBlock());
     }
 
     public BlockHusk getBlock() {
@@ -42,7 +63,23 @@ public class GenesisBlock {
                 return txInfo.body.get(0).contractId;
             }
         }
-        return null;
+        return contractId;
+    }
+
+    private Transaction toTransaction(TransactionInfo txi) {
+
+        TransactionHeader txHeader = new TransactionHeader(
+                Hex.decode(txi.header.chain),
+                Hex.decode(txi.header.version),
+                Hex.decode(txi.header.type),
+                ByteUtil.byteArrayToLong(Hex.decode(txi.header.timestamp)),
+                Hex.decode(txi.header.bodyHash),
+                ByteUtil.byteArrayToLong(Hex.decode(txi.header.bodyLength))
+        );
+
+        TransactionBody txBody = new TransactionBody(new Gson().toJson(txi.body));
+
+        return new Transaction(txHeader, Hex.decode(txi.signature), txBody);
     }
 
     private Block toBlock() {
@@ -68,19 +105,72 @@ public class GenesisBlock {
         return new Block(blockHeader, Hex.decode(blockInfo.signature), txBody);
     }
 
-    private Transaction toTransaction(TransactionInfo txi) {
+    private Block toBlock(BranchJson branchJson) throws Exception {
 
+        JsonObject jsonObjectBlock = toJsonObjectBlock(branchJson);
+
+        return new Block(jsonObjectBlock);
+    }
+
+    private JsonObject toJsonObjectBlock(BranchJson branchJson)
+            throws Exception {
+        JsonObject jsonObjectTx = toJsonObjectTx(branchJson);
+        JsonArray jsonArrayBlockBody = new JsonArray();
+        jsonArrayBlockBody.add(jsonObjectTx);
+
+        BlockBody blockBody = new BlockBody(jsonArrayBlockBody);
+
+        // todo: change values(version, type) using the configuration.
+        BlockHeader blockHeader = new BlockHeader(
+                branchJson.branchId().getBytes(),
+                new byte[8],
+                new byte[8],
+                new byte[32],
+                0L,
+                branchJson.longTimestamp(),
+                blockBody.getMerkleRoot(),
+                blockBody.length());
+
+        JsonObject jsonObjectBlock = new JsonObject();
+        jsonObjectBlock.add("header", blockHeader.toJsonObject());
+        jsonObjectBlock.addProperty("signature", branchJson.signature);
+        jsonObjectBlock.add("body", jsonArrayBlockBody);
+
+        return jsonObjectBlock;
+    }
+
+    private JsonObject toJsonObjectTx(BranchJson branchJson) {
+        JsonArray jsonArrayTxBody = toJsonArrayTxBody(branchJson);
+        // todo: change values(version, type) using the configuration.
         TransactionHeader txHeader = new TransactionHeader(
-                Hex.decode(txi.header.chain),
-                Hex.decode(txi.header.version),
-                Hex.decode(txi.header.type),
-                ByteUtil.byteArrayToLong(Hex.decode(txi.header.timestamp)),
-                Hex.decode(txi.header.bodyHash),
-                ByteUtil.byteArrayToLong(Hex.decode(txi.header.bodyLength))
-        );
+                branchJson.branchId().getBytes(),
+                new byte[8],
+                new byte[8],
+                branchJson.longTimestamp(),
+                new TransactionBody(jsonArrayTxBody));
 
-        TransactionBody txBody = new TransactionBody(new Gson().toJson(txi.body));
+        JsonObject jsonObjectTx = new JsonObject();
+        jsonObjectTx.add("header", txHeader.toJsonObject());
+        jsonObjectTx.addProperty("signature", branchJson.signature);
+        jsonObjectTx.add("body", jsonArrayTxBody);
 
-        return new Transaction(txHeader, Hex.decode(txi.signature), txBody);
+        return jsonObjectTx;
+    }
+
+    private JsonArray toJsonArrayTxBody(BranchJson branchJson) {
+        JsonArray jsonArrayTxBody = new JsonArray();
+        JsonObject jsonObjectTx = new JsonObject();
+        jsonArrayTxBody.add(jsonObjectTx);
+
+        JsonObject jsonObjectBranch = Utils.parseJsonObject(branchJson);
+
+        JsonArray params = new JsonArray();
+        params.add(jsonObjectBranch.remove("genesis"));
+
+        jsonObjectTx.addProperty("method", "genesis");
+        jsonObjectTx.add("params", params);
+        jsonObjectTx.add("branch", jsonObjectBranch);
+
+        return jsonArrayTxBody;
     }
 }

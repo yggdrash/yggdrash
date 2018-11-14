@@ -30,8 +30,8 @@ import io.yggdrash.core.account.Wallet;
 
 public class ContractTx {
 
-    public static TransactionHusk createStemTxBySeed(
-            Wallet wallet, JsonObject seed, String method) {
+    public static TransactionHusk createStemTxBySeed(BranchId stemBranchId, Wallet wallet,
+                                                     JsonObject seed, String method) {
         JsonArray versionHistory = new JsonArray();
         versionHistory.add(seed.get("version").getAsString());
         if (!seed.has("owner")) {
@@ -44,14 +44,14 @@ public class ContractTx {
 
         BranchId branchId = BranchId.of(seed);
 
-        return createTx(wallet, BranchId.stem(), createStemTxBody(branchId, seed, method));
+        return createTx(wallet, stemBranchId, createStemTxBody(branchId, seed, method));
     }
 
     public static TransactionHusk createStemTxByBranch(
             Wallet wallet, JsonObject branch, String method) {
         BranchId branchId = BranchId.of(branch);
 
-        return createTx(wallet, BranchId.stem(), createStemTxBody(branchId, branch, method));
+        return createTx(wallet, branchId, createStemTxBody(branchId, branch, method));
     }
 
     public static JsonObject createBranch(JsonObject branch, String owner) {
@@ -64,8 +64,9 @@ public class ContractTx {
         return branch;
     }
 
-    public static TransactionHusk createYeedTx(Wallet wallet, Address to, long amount) {
-        return createTx(wallet, BranchId.yeed(), createYeedTxBody(to, amount));
+    public static TransactionHusk createYeedTx(BranchId branchId, Wallet wallet, Address to,
+                                               long amount) {
+        return createTx(wallet, branchId, createYeedTxBody(to, amount));
     }
 
     private static TransactionHusk createTx(Wallet wallet, BranchId txBranchId, JsonArray body) {

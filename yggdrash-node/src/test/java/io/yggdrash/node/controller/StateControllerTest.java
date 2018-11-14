@@ -16,7 +16,7 @@
 
 package io.yggdrash.node.controller;
 
-import io.yggdrash.core.BranchId;
+import io.yggdrash.TestUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,10 +44,25 @@ public class StateControllerTest {
 
     @Test
     public void shouldGetBranches() throws Exception {
-        mockMvc.perform(get("/branches/" + BranchId.STEM + "/states"))
+        mockMvc.perform(get("/branches"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)))
                 .andReturn().getResponse();
+    }
+
+    @Test
+    public void shouldGetActiveBranches() throws Exception {
+        mockMvc.perform(get("/branches/active"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+    }
+
+    @Test
+    public void shouldGetStemBrancheStates() throws Exception {
+        mockMvc.perform(get("/branches/" + TestUtils.STEM + "/states"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(2)));
     }
 }

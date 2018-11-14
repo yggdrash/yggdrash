@@ -27,7 +27,7 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class StoreBuilderTest {
-    private static final BranchId BRANCH_ID = BranchId.stem();
+    private static final BranchId BRANCH_ID = BranchId.NULL;
     private StoreBuilder builder;
 
     @Before

@@ -1,6 +1,7 @@
 package io.yggdrash.common.trie;
 
 import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHusk;
 
@@ -34,13 +35,11 @@ public class Trie {
             tree.add(tx.getHash().getBytes());
         }
 
-        calculateMerkle(tree, txs.size());
-
-        return HashUtil.sha3(tree.get(tree.size() - 1));
+        return getMerkleRoot(tree);
     }
 
     /**
-     * Get merkle root value.
+     * Get merkleRoot using Transactions.
      *
      * @param txs Transaction list
      * @return merkle root value (byte[32]) <br>
@@ -57,47 +56,57 @@ public class Trie {
             tree.add(tx.getHash());
         }
 
-        calculateMerkle(tree, txs.size());
-
-        return HashUtil.sha3(tree.get(tree.size() - 1));
+        return getMerkleRoot(tree);
     }
 
-    private static void calculateMerkle(ArrayList<byte[]> tree, int size) {
-        int levelOffset = 0;
-        for (int levelSize = size; levelSize > 1; levelSize = (levelSize + 1) / 2) {
+    /**
+     * Get merkleRoot using list of hashed data.
+     *
+     * @param hashTree ArrayList of hashed data
+     * @param algorithm Hash algorithm
+     * @param doubleHash Whether double hash or not
+     * @return merkle root data
+     */
+    public static byte[] getMerkleRoot(
+            ArrayList<byte[]> hashTree, String algorithm, boolean doubleHash) {
 
+        int treeSize = 0;
+        int levelOffset = 0;
+
+        try {
+            if (hashTree == null || hashTree.contains(null)) {
+                return null;
+            }
+
+            treeSize = hashTree.size();
+            if (treeSize == 0) {
+                return null;
+            }
+        } catch (Exception e) {
+            return null;
+        }
+
+        for (int levelSize = treeSize; levelSize > 1; levelSize = (levelSize + 1) / 2) {
             for (int left = 0; left < levelSize; left += 2) {
                 int right = Math.min(left + 1, levelSize - 1);
-                byte[] leftBytes = reverseBytes(tree.get(levelOffset + left));
-                byte[] rightBytes = reverseBytes(tree.get(levelOffset + right));
-                tree.add(reverseBytes(hashTwice(leftBytes, 0, 32, rightBytes, 0, 32)));
+                byte[] leftBytes = hashTree.get(levelOffset + left);
+                byte[] rightBytes = hashTree.get(levelOffset + right);
+                hashTree.add(HashUtil.hash(
+                        ByteUtil.merge(leftBytes, rightBytes), algorithm, doubleHash));
             }
+
             levelOffset += levelSize;
         }
+
+        return hashTree.get(hashTree.size() - 1);
     }
 
-    private static byte[] reverseBytes(byte[] bytes) {
-        byte[] buf = new byte[bytes.length];
-        for (int i = 0; i < bytes.length; i++) {
-            buf[i] = bytes[bytes.length - 1 - i];
-        }
-        return buf;
+    public static byte[] getMerkleRoot(ArrayList<byte[]> hashTree, String algorithm) {
+        return getMerkleRoot(hashTree, algorithm, false);
     }
 
-    private static byte[] hashTwice(byte[] input1, int offset1, int length1,
-                                    byte[] input2, int offset2, int length2) {
-        MessageDigest digest = newDigest();
-        digest.update(input1, offset1, length1);
-        digest.update(input2, offset2, length2);
-        return digest.digest(digest.digest());
-    }
-
-    private static MessageDigest newDigest() {
-        try {
-            return MessageDigest.getInstance("SHA-256");
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
-        }
+    public static byte[] getMerkleRoot(ArrayList<byte[]> hashTree) {
+        return getMerkleRoot(hashTree, "KECCAK-256");
     }
 
 }

@@ -18,7 +18,6 @@ package io.yggdrash.node.config.annotaion;
 
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockChainBuilder;
-import io.yggdrash.core.Branch;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.core.net.PeerGroup;
@@ -45,30 +44,31 @@ public class DefaultBranchAutoConfig {
         this.productionMode = Arrays.asList(env.getActiveProfiles()).contains("prod");
     }
 
-    @Bean(Branch.STEM)
+    @Bean("stem")
     BlockChain stem(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
-            throws IOException, IllegalAccessException, InstantiationException {
-        return addBranch(stemResource.getInputStream(), peerGroup, branchGroup,
+            throws IOException {
+        BlockChain blockChain = addBranch(stemResource.getInputStream(), peerGroup, branchGroup,
                 websocketSender);
+        websocketSender.setStemBranchId(blockChain.getBranchId());
+        return blockChain;
     }
 
-    //@Bean(Branch.YEED)
+    @Bean("yeed")
     BlockChain yeed(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
-            throws IOException, IllegalAccessException, InstantiationException {
+            throws IOException {
         return addBranch(yeedResource.getInputStream(), peerGroup, branchGroup,
                 websocketSender);
     }
 
     private BlockChain addBranch(InputStream json, PeerGroup peerGroup,
-                                 BranchGroup branchGroup, WebsocketSender websocketSender)
-            throws IllegalAccessException, InstantiationException {
+                                 BranchGroup branchGroup, WebsocketSender sender) {
         GenesisBlock genesis = new GenesisBlock(json);
 
         BlockChain branch = BlockChainBuilder.Builder()
                 .addGenesis(genesis)
                 .setProductMode(productionMode)
                 .build();
-        branch.addListener(websocketSender);
+        branch.addListener(sender);
         branchGroup.addBranch(branch.getBranchId(), branch, peerGroup);
         peerGroup.addPeerTable(branch.getBranchId(), productionMode);
         return branch;

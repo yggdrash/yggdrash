@@ -16,6 +16,7 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.net.KademliaOptions;
@@ -27,6 +28,7 @@ import io.yggdrash.core.net.PeerGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -46,20 +48,20 @@ class NodeScheduler {
     private final Queue<String> nodeQueue = new LinkedBlockingQueue<>();
 
     private final NodeManager nodeManager;
-
     private final PeerGroup peerGroup;
-
     private final NodeStatus nodeStatus;
+    private final BranchId stemBranchId;
 
     private final boolean isSeedPeer;
 
-    @Autowired
+    @Autowired(required = false)
     public NodeScheduler(PeerGroup peerGroup, NodeManager nodeManager,
-                         NodeStatus nodeStatus) {
+                         NodeStatus nodeStatus, @Qualifier("stem") BlockChain blockChain) {
         this.peerGroup = peerGroup;
         this.nodeManager = nodeManager;
         this.nodeStatus = nodeStatus;
         this.isSeedPeer = isSeedPeer(peerGroup.getSeedPeerList());
+        this.stemBranchId = blockChain == null ? BranchId.NULL : blockChain.getBranchId();
     }
 
     @Scheduled(fixedRate = KademliaOptions.BUCKET_REFRESH * 10)
@@ -95,17 +97,17 @@ class NodeScheduler {
         if (nodeQueue.isEmpty()) {
             // Seed 피어는 nodeQueue 에 포함되지 않는다.
             // TODO stem 외 branch 들의 Peer 를 가져올 수 있도록 수정해야 한다.
-            nodeQueue.addAll(peerGroup.getPeerUriList(BranchId.stem()));
+            nodeQueue.addAll(peerGroup.getPeerUriList(stemBranchId));
         }
         String selectedPeerId = nodeQueue.poll();
         assert selectedPeerId != null;
         if (!peerGroup.getActivePeerList().isEmpty()) {
             Collection<PeerClientChannel> peerClientChannels
-                    = peerGroup.getActivePeerListOf(BranchId.stem());
+                    = peerGroup.getActivePeerListOf(stemBranchId);
             // Seed 피어는 ActivePeer 에게 블록 생성할 피어(=selectedPeer)를 Broadcast 한다.
             for (PeerClientChannel peerClientChannel : peerClientChannels) {
                 peerClientChannel.broadcastConsensus(
-                        BranchId.stem(),
+                        stemBranchId,
                         Peer.valueOf(selectedPeerId));
             }
         }

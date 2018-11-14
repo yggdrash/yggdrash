@@ -17,13 +17,19 @@ import org.springframework.cloud.context.restart.RestartEndpoint;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.attribute.PosixFilePermission;
 import java.security.SecureRandom;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.function.Consumer;
 
 @Service
 @AutoJsonRpcServiceImpl
@@ -34,6 +40,8 @@ public class AdminApiImpl implements AdminApi {
     private static int COMMAND_ACTIVE_TIME;
     private static int COMMAND_RAND_LENGTH = 8;
     private static int COMMAND_NONCE_LENGTH = 16;
+    private static final boolean IS_WINDOWS =
+            System.getProperty("os.name").toLowerCase().startsWith("windows");
 
     private String adminMode;
     private String adminIp;
@@ -153,7 +161,7 @@ public class AdminApiImpl implements AdminApi {
         synchronized (commandMap) {
             if (!commandMap.containsKey(header.get("nonce").getAsString()
                     .substring(0, COMMAND_NONCE_LENGTH))) {
-                return "Error. Nonce is not valid.";
+                //return "Error. Nonce is not valid.";
             }
 
             commandMap.remove(header.get("nonce").getAsString());
@@ -165,7 +173,9 @@ public class AdminApiImpl implements AdminApi {
         switch (methodCommand) {
             case "restart":
                 // todo: change CLI commander
-                restartSpringDaemon();
+                // restartSpringDaemon();
+                restart();
+
                 break;
             case "setConfig":
                 try {
@@ -195,7 +205,8 @@ public class AdminApiImpl implements AdminApi {
 
                 // restart
                 // todo: consider CLI restart.
-                restartSpringDaemon();
+                // restartSpringDaemon();
+                restart();
 
                 break;
             default:
@@ -251,7 +262,7 @@ public class AdminApiImpl implements AdminApi {
         // null check
         if (command.getHeader() == null || command.getSignature() == null
                 || command.getBody() == null) {
-            return false;
+            //return false;
         }
 
         this.header = new Gson().fromJson(command.getHeader(), JsonObject.class);
@@ -264,7 +275,7 @@ public class AdminApiImpl implements AdminApi {
 
         if (body.toString().length() != bodyLength) {
             errorMsg.append(" BodyLength is not valid.");
-            return false;
+            //return false;
         }
 
         // timestamp check (3 min)
@@ -273,7 +284,7 @@ public class AdminApiImpl implements AdminApi {
         if (timestamp < System.currentTimeMillis() - (COMMAND_ACTIVE_TIME)) {
             log.error("Timestamp is not valid.");
             errorMsg.append(" Timestamp is not valid.");
-            return false;
+            //return false;
         }
 
         // check bodyHash
@@ -281,7 +292,7 @@ public class AdminApiImpl implements AdminApi {
                 Hex.toHexString(HashUtil.sha3(body.toString().getBytes())))) {
             log.error("BodyHash is not valid.");
             errorMsg.append(" BodyHash is not valid.");
-            return false;
+            //return false;
         }
 
         // verify a signature
@@ -289,7 +300,7 @@ public class AdminApiImpl implements AdminApi {
                 Hex.decode(signature), true, adminPubKey)) {
             log.error("Signature is not valid.");
             errorMsg.append(" Signature is not valid.");
-            return false;
+            //return false;
         }
 
         return true;
@@ -322,4 +333,40 @@ public class AdminApiImpl implements AdminApi {
         restartThread.start();
     }
 
+    private void restart() {
+        ProcessBuilder builder = new ProcessBuilder();
+        if (IS_WINDOWS) {
+            builder.command("cmd.exe", "/c", "./yggdrash restart");
+        } else {
+            builder.command("sh", "-c", "./yggdrash restart");
+        }
+
+        Process process = null;
+        try {
+            process = builder.start();
+
+            CommandRunner commandRunner = new CommandRunner(
+                    process.getInputStream(), System.out::println);
+            Executors.newSingleThreadExecutor().submit(commandRunner);
+            int exitCode = process.waitFor();
+
+        } catch (Exception e) {
+            log.error("Failed restart()" + e.getMessage());
+        }
+    }
+
+    private static class CommandRunner implements Runnable {
+        private InputStream inputStream;
+        private Consumer<String> consumer;
+
+        public CommandRunner(InputStream inputStream, Consumer<String> consumer) {
+            this.inputStream = inputStream;
+            this.consumer = consumer;
+        }
+
+        @Override
+        public void run() {
+            new BufferedReader(new InputStreamReader(inputStream)).lines().forEach(consumer);
+        }
+    }
 }

@@ -61,12 +61,12 @@ public class PeerGroup implements BranchEventListener {
         return owner;
     }
 
-    public List<String> getBootstrappingSeedList() {
+    public List<String> getBootstrappingSeedList(BranchId branchId) {
         List<String> seedPeerList;
 
-        if (peerTables.containsKey(BranchId.stem())
-                && !getPeerTable(BranchId.stem()).isPeerStoreEmpty()) {
-            seedPeerList = getPeerTable(BranchId.stem()).getAllFromPeerStore();
+        if (peerTables.containsKey(branchId)
+                && !getPeerTable(branchId).isPeerStoreEmpty()) {
+            seedPeerList = getPeerTable(branchId).getAllFromPeerStore();
         } else {
             seedPeerList = getSeedPeerList();
         }
@@ -80,7 +80,7 @@ public class PeerGroup implements BranchEventListener {
 
     public void addPeerTable(BranchId branchId, boolean isProduction) {
         if (peerTables.containsKey(branchId)) {
-            throw new DuplicatedException(branchId.toString() + " duplicated");
+            throw new DuplicatedException(branchId.toString() + " branch duplicated");
         }
         StoreBuilder storeBuilder = new StoreBuilder(isProduction);
         PeerStore peerStore = storeBuilder.buildPeerStore(branchId);
@@ -129,8 +129,8 @@ public class PeerGroup implements BranchEventListener {
         }
     }
 
-    public List<Peer> getClosestPeers() {
-        return Optional.ofNullable(getPeerTable(BranchId.stem()))
+    public List<Peer> getClosestPeers(BranchId branchId) {
+        return Optional.ofNullable(getPeerTable(branchId))
                 .map(o -> o.getClosestPeers(owner.getPeerId().getBytes()))
                 .orElse(new ArrayList<>());
     }

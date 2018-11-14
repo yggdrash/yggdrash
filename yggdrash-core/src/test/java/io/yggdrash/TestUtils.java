@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.FileUtil;
 import io.yggdrash.common.util.TimeUtils;
@@ -53,6 +52,9 @@ import java.util.Objects;
 import java.util.Random;
 
 public class TestUtils {
+    public static final BranchId STEM = BranchId.of("9435b0e642e99606cd9cdf362e63fb2d46fca12b");
+    public static final BranchId YEED = BranchId.of("c675b96caad16eaf1bd159fddade28082e8466c3");
+
     public static final String YGG_HOME = "testOutput";
     public static final String OWNER = "e1980adeafbb9ac6c9be60955484ab1547ab0b76";
     public static final Address TRANSFER_TO =
@@ -251,12 +253,12 @@ public class TestUtils {
 
     public static Transaction sampleTransferTx() {
         JsonObject createYeedTxJson =
-                ContractTx.createYeedTx(wallet, TRANSFER_TO, 100).toJsonObject();
+                ContractTx.createYeedTx(YEED, wallet, TRANSFER_TO, 100).toJsonObject();
         return new Transaction(createYeedTxJson);
     }
 
     private static Transaction sampleCreateBranchTx(Wallet wallet) {
-        return new Transaction(ContractTx.createStemTxBySeed(
+        return new Transaction(ContractTx.createStemTxBySeed(TestUtils.STEM,
                 wallet, getSampleBranch1(), "create").toJsonObject());
     }
 
@@ -278,7 +280,7 @@ public class TestUtils {
         BlockHeader blockHeader;
         try {
             blockHeader = new BlockHeader(
-                    BranchId.stem().getBytes(),
+                    STEM.getBytes(),
                     new byte[8], new byte[8], new byte[32], index, timestamp,
                     blockBody.getMerkleRoot(), blockBody.length());
 
@@ -293,7 +295,7 @@ public class TestUtils {
     }
 
     public static void clearTestDb() {
-        String dbPath = new DefaultConfig().getConfig().getString(Constants.DATABASE_PATH);
+        String dbPath = new DefaultConfig().getDatabasePath();
         FileUtil.recursiveDelete(Paths.get(dbPath));
     }
 

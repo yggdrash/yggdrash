@@ -153,12 +153,17 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
     @Override
     public void bootstrapping() {
-        nodeDiscovery();
-        peerGroup.getClosestPeers().forEach(p -> addPeerChannel(BranchId.stem(), p));
+        for (BlockChain blockChain : branchGroup.getAllBranch()) {
+            BranchId branchId = blockChain.getBranchId();
+            nodeDiscovery(branchId);
+            peerGroup.getClosestPeers(branchId).forEach(p -> addPeerChannel(branchId, p));
+            // TODO remove (for debug only);
+            break;
+        }
     }
 
-    private void nodeDiscovery() {
-        for (String ynodeUri : peerGroup.getBootstrappingSeedList()) {
+    private void nodeDiscovery(BranchId branchId) {
+        for (String ynodeUri : peerGroup.getBootstrappingSeedList(branchId)) {
             if (ynodeUri.equals(peerGroup.getOwner().getYnodeUri())) {
                 continue;
             }
@@ -168,15 +173,15 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
             try {
                 List<NodeInfo> foundedPeerList
-                        = client.findPeers(BranchId.stem(), peerGroup.getOwner());
+                        = client.findPeers(branchId, peerGroup.getOwner());
                 for (NodeInfo nodeInfo : foundedPeerList) {
-                    peerGroup.addPeerByYnodeUri(BranchId.stem(), nodeInfo.getUrl());
+                    peerGroup.addPeerByYnodeUri(branchId, nodeInfo.getUrl());
                 }
             } catch (Exception e) {
                 log.error("Failed connecting to SEED peer = {}", peer);
                 continue;
             }
-            DiscoverTask discoverTask = new GrpcDiscoverTask(peerGroup);
+            DiscoverTask discoverTask = new GrpcDiscoverTask(peerGroup, branchId);
             discoverTask.run();
             return;
         }
@@ -422,8 +427,8 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     }
 
     public class GrpcDiscoverTask extends DiscoverTask {
-        GrpcDiscoverTask(PeerGroup peerGroup) {
-            super(peerGroup);
+        GrpcDiscoverTask(PeerGroup peerGroup, BranchId branchId) {
+            super(peerGroup, branchId);
         }
 
         @Override

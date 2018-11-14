@@ -13,14 +13,16 @@ import java.util.Optional;
 public abstract class DiscoverTask implements Runnable {
     private static final Logger log = LoggerFactory.getLogger(DiscoverTask.class);
 
-    private PeerGroup peerGroup;
+    private final PeerGroup peerGroup;
     private final Peer owner;
     private final byte[] ownerId;
+    private final BranchId branchId;
 
-    public DiscoverTask(PeerGroup peerGroup) {
+    public DiscoverTask(PeerGroup peerGroup, BranchId branchId) {
         this.peerGroup = peerGroup;
         this.owner = peerGroup.getOwner();
         this.ownerId = owner.getPeerId().getBytes();
+        this.branchId = branchId;
     }
 
     @Override
@@ -33,20 +35,20 @@ public abstract class DiscoverTask implements Runnable {
     private synchronized void discover(int round, List<Peer> prevTried) {
         log.info("Start discover!");
         log.info("Size of STEM PeerTable => {}",
-                peerGroup.getPeerTable(BranchId.stem()).getPeersCount() - 1);
+                peerGroup.getPeerTable(branchId).getPeersCount() - 1);
         try {
             if (round == KademliaOptions.MAX_STEPS) {
-                log.debug("Peer table contains [{}] peers", peerGroup.count(BranchId.stem()));
+                log.debug("Peer table contains [{}] peers", peerGroup.count(branchId));
                 log.debug("{}", String.format("(KademliaOptions.MAX_STEPS) Terminating discover"
                         + "after %d rounds.", round));
                 log.trace("{}\n{}",
-                        String.format("Peers discovered %d", peerGroup.count(BranchId.stem())),
-                        peerGroup.getPeerUriList(BranchId.stem()));
+                        String.format("Peers discovered %d", peerGroup.count(branchId)),
+                        peerGroup.getPeerUriList(branchId));
                 return;
             }
 
             Optional<PeerTable> peerTable
-                    = Optional.ofNullable(peerGroup.getPeerTable(BranchId.stem()));
+                    = Optional.ofNullable(peerGroup.getPeerTable(branchId));
             List<Peer> closest = peerTable
                     .map(pt -> pt.getClosestPeers(ownerId)).orElse(new ArrayList<>());
             List<Peer> tried = new ArrayList<>();
@@ -55,9 +57,9 @@ public abstract class DiscoverTask implements Runnable {
                 if (!tried.contains(p) && !prevTried.contains(p)) {
                     try {
                         Optional<List<NodeInfo>> list = Optional.ofNullable(
-                                getClient(p).findPeers(BranchId.stem(), owner));
+                                getClient(p).findPeers(branchId, owner));
                         list.ifPresent(nodeInfo -> nodeInfo.forEach(
-                                n -> peerGroup.addPeerByYnodeUri(BranchId.stem(), n.getUrl())));
+                                n -> peerGroup.addPeerByYnodeUri(branchId, n.getUrl())));
 
                         tried.add(p);
                         Utils.sleep(50);
@@ -73,14 +75,14 @@ public abstract class DiscoverTask implements Runnable {
             if (tried.isEmpty()) {
                 log.debug("Terminating discover after {} rounds.", round);
                 log.trace("{}\n{}",
-                        String.format("Peers discovered %d", peerGroup.count(BranchId.stem())),
-                        peerGroup.getPeerUriList(BranchId.stem()));
+                        String.format("Peers discovered %d", peerGroup.count(branchId)),
+                        peerGroup.getPeerUriList(branchId));
 
                 if (round == 0) {
                     // SeedPeer 로부터 빈 리스트([])를 받았을 때 SeedPeer 를 테이블과 채널에 추가해야한다.
                     Peer seedPeer = Peer.valueOf(peerGroup.getSeedPeerList().get(0));
-                    peerGroup.addPeerByYnodeUri(BranchId.stem(), seedPeer.getYnodeUri());
-                    peerGroup.newPeerChannel(BranchId.stem(), getClient(seedPeer));
+                    peerGroup.addPeerByYnodeUri(branchId, seedPeer.getYnodeUri());
+                    peerGroup.newPeerChannel(branchId, getClient(seedPeer));
                 }
                 return;
             }

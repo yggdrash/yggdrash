@@ -17,11 +17,12 @@
 package io.yggdrash.node.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.yggdrash.core.BranchId;
+import io.yggdrash.core.BlockChain;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
@@ -42,7 +43,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
 public class BlockControllerTest {
 
-    private static final String BASE_PATH = String.format("/branches/%s/blocks", BranchId.STEM);
+    private String basePath;
+
+    @Autowired
+    @Qualifier("stem")
+    private BlockChain stem;
 
     @Autowired
     private MockMvc mockMvc;
@@ -52,18 +57,19 @@ public class BlockControllerTest {
     @Before
     public void setUp() {
         JacksonTester.initFields(this, new ObjectMapper());
+        basePath = String.format("/branches/%s/blocks", stem.getBranchId());
     }
 
     @Test
     public void shouldGetBlock() throws Exception {
-        MockHttpServletResponse response = mockMvc.perform(get(BASE_PATH + "/0"))
+        MockHttpServletResponse response = mockMvc.perform(get(basePath + "/0"))
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
 
         String contentAsString = response.getContentAsString();
         String blockHash = json.parseObject(contentAsString).getHash();
 
-        mockMvc.perform(get(BASE_PATH + "/" + blockHash))
+        mockMvc.perform(get(basePath + "/" + blockHash))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
@@ -73,13 +79,13 @@ public class BlockControllerTest {
 
     @Test
     public void shouldGetAllBlocks() throws Exception {
-        mockMvc.perform(get(BASE_PATH)).andDo(print())
+        mockMvc.perform(get(basePath)).andDo(print())
                 .andExpect(status().isOk());
     }
 
     @Test
     public void shouldGetLatest() throws Exception {
-        mockMvc.perform(get(BASE_PATH + "/latest")).andDo(print())
+        mockMvc.perform(get(basePath + "/latest")).andDo(print())
                 .andExpect(status().isOk());
     }
 }

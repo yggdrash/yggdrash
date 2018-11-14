@@ -14,22 +14,17 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core;
+package io.yggdrash.core.genesis;
 
-import io.yggdrash.TestUtils;
+import io.yggdrash.common.config.DefaultConfig;
 import org.junit.Test;
-import org.spongycastle.util.encoders.Hex;
 
-public class BranchTest {
+public class BranchLoaderTest {
 
     @Test
-    public void branchTest() {
-        Branch stemBranch = Branch.of(BranchId.STEM, Branch.STEM, TestUtils.OWNER);
-        assert stemBranch.getBranchId().equals(BranchId.stem());
-        assert !stemBranch.isYeed();
-
-        BranchId yeed = BranchId.of(Hex.decode(BranchId.YEED));
-        Branch yeedBranch = Branch.of(yeed.toString(), Branch.YEED, TestUtils.OWNER);
-        assert yeedBranch.isYeed();
+    public void getBranchInfo() {
+        String branchPath = new DefaultConfig().getBranchPath();
+        BranchLoader loader = new BranchLoader(branchPath);
+        loader.getGenesisBlockList();
     }
 }

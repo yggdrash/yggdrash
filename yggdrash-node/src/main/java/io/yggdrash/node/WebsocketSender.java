@@ -30,30 +30,35 @@ import org.springframework.stereotype.Component;
 public class WebsocketSender implements BranchEventListener {
 
     private final SimpMessagingTemplate template;
+    private BranchId stemBranchId = BranchId.NULL;
 
     @Autowired
     public WebsocketSender(SimpMessagingTemplate template) {
         this.template = template;
     }
 
+    public void setStemBranchId(BranchId stemBranchId) {
+        this.stemBranchId = stemBranchId;
+    }
+
     @Override
     public void chainedBlock(BlockHusk block) {
-        String branchId = block.getBranchId().toString();
+        BranchId branchId = block.getBranchId();
         template.convertAndSend("/topic/blocks", BlockDto.createBy(block));
         template.convertAndSend("/topic/branches/" + branchId + "/blocks",
                 BlockDto.createBy(block));
-        if (block.getBranchId().equals(BranchId.stem())) {
+        if (block.getBranchId().equals(stemBranchId)) {
             template.convertAndSend("/topic/stem/blocks", BlockDto.createBy(block));
         }
     }
 
     @Override
     public void receivedTransaction(TransactionHusk tx) {
-        String branchId = tx.getBranchId().toString();
+        BranchId branchId = tx.getBranchId();
         template.convertAndSend("/topic/txs", TransactionDto.createBy(tx));
         template.convertAndSend("/topic/branches/" + branchId + "/txs",
                 TransactionDto.createBy(tx));
-        if (tx.getBranchId().equals(BranchId.stem())) {
+        if (tx.getBranchId().equals(stemBranchId)) {
             template.convertAndSend("/topic/stem/txs", TransactionDto.createBy(tx));
         }
     }

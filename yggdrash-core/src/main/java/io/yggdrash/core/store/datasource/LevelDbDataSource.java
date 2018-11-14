@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.store.datasource;
 
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.FileUtil;
 import org.iq80.leveldb.DB;
@@ -50,7 +49,7 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
     private DB db;
 
     public LevelDbDataSource(String name) {
-        this.dbPath = new DefaultConfig().getConfig().getString(Constants.DATABASE_PATH);
+        this.dbPath = new DefaultConfig().getDatabasePath();
         this.name = name;
     }
 

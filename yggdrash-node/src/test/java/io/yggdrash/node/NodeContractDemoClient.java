@@ -4,17 +4,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.util.Utils;
-import io.yggdrash.core.Block;
-import io.yggdrash.core.BlockBody;
-import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.BranchId;
-import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionBody;
-import io.yggdrash.core.TransactionHeader;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.account.Address;
 import io.yggdrash.core.account.Wallet;
@@ -32,8 +24,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 import static io.yggdrash.core.contract.ContractTx.createBranch;
@@ -59,7 +49,7 @@ public class NodeContractDemoClient {
 
     private static void run() throws Exception {
         System.out.print("===============\n");
-        System.out.print("[1] 트랜잭션 전송\n[2] 트랜잭션 조회\n[3] 브랜치 생성\n[4] 브랜치 수정\n"
+        System.out.print("[1] 트랜잭션 전송\n[2] 트랜잭션 조회\n[3] 브랜치 배포\n[4] 브랜치 수정\n"
                 + "[5] 브랜치 조회\n[6] 발란스 조회\n[9] 종료\n>");
 
         String num = scan.nextLine();
@@ -69,7 +59,7 @@ public class NodeContractDemoClient {
                 txReceipt();
                 break;
             case "3":
-                plantBranch();
+                deployBranch();
                 break;
             case "4":
                 update();
@@ -127,7 +117,7 @@ public class NodeContractDemoClient {
         int times = getSendTimes();
         String serverAddress = getServerAddress();
         for (int i = 0; i < times; i++) {
-            TransactionHusk tx = createYeedTx(wallet, address, amount);
+            TransactionHusk tx = createYeedTx(TestUtils.YEED, wallet, address, amount);
             rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
         }
     }
@@ -135,7 +125,7 @@ public class NodeContractDemoClient {
     private static void view() throws Exception {
         String branchId = getBranchId();
         JsonArray params = ContractQry.createParams("branchId", branchId);
-        JsonObject qry = ContractQry.createQuery(BranchId.STEM, "view", params);
+        JsonObject qry = ContractQry.createQuery(TestUtils.STEM.toString(), "view", params);
 
         String serverAddress = getServerAddress();
         rpc.contractApi(serverAddress).query(qry.toString());
@@ -165,7 +155,7 @@ public class NodeContractDemoClient {
         rpc.transactionApi(serverAddress).getTransactionReceipt(branchId, txHash);
     }
 
-    private static void plantBranch() throws Exception {
+    private static void deployBranch() throws Exception {
         JsonObject branch = getBranch();
         System.out.print("Contract Id를 입력하세요\n> ");
         String contractId = scan.nextLine();
@@ -181,17 +171,11 @@ public class NodeContractDemoClient {
 
         BranchId branchId = BranchId.of(branch);
         saveBranchAsFile(branchId, branch);
-
-        String symbol = branch.get("symbol").getAsString().toLowerCase();
-        String seedFileName = String.format("genesis.%s.seed.json", symbol);
-        String genesis = generate(seedFileName);
-        saveGenesisAsFile(branchId, genesis);
     }
 
     private static void balance() {
         System.out.println("조회할 주소를 적어주세요\n>");
-        JsonObject qry = ContractQry.createQuery(BranchId.YEED,
-                "balanceOf",
+        JsonObject qry = ContractQry.createQuery(TestUtils.YEED.toString(), "balanceOf",
                 ContractQry.createParams("address", scan.nextLine()));
 
         String serverAddress = getServerAddress();
@@ -235,9 +219,9 @@ public class NodeContractDemoClient {
         String branchId = scan.nextLine();
         switch (branchId) {
             case "1":
-                return BranchId.stem().toString();
+                return TestUtils.STEM.toString();
             case "2":
-                return BranchId.yeed().toString();
+                return TestUtils.YEED.toString();
             default:
                 return branchId;
         }
@@ -254,10 +238,6 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static JsonObject getJsonObjectFromFile(String fileName) throws Exception {
-        return getJsonObjectFromFile("genesis", fileName);
-    }
-
     private static JsonObject getJsonObjectFromFile(String dir, String fileName) throws Exception {
         String seedPath = String.format("classpath:/%s/%s", dir, fileName);
         ResourceLoader resourceLoader = new DefaultResourceLoader();
@@ -267,19 +247,14 @@ public class NodeContractDemoClient {
     }
 
     private static void saveBranchAsFile(BranchId branchId, JsonObject branch) throws IOException {
-        String fileName = branchId + ".json";
+        String fileName = "branch.json";
         String json = new GsonBuilder().setPrettyPrinting().create().toJson(branch);
         saveFile(branchId, fileName, json);
     }
 
-    private static void saveGenesisAsFile(BranchId branchId, String genesis) throws IOException {
-        String fileName = "genesis.json";
-        saveFile(branchId, fileName, genesis);
-    }
-
     private static void saveFile(BranchId branchId, String fileName, String json)
             throws IOException {
-        String branchPath = new DefaultConfig().getConfig().getString(Constants.BRANCH_PATH);
+        String branchPath = new DefaultConfig().getBranchPath();
         File branchDir = new File(branchPath, branchId.toString());
         if (!branchDir.exists()) {
             branchDir.mkdirs();
@@ -291,55 +266,6 @@ public class NodeContractDemoClient {
         fileWriter.flush();
         fileWriter.close();
         System.out.println("created at " + file.getAbsolutePath());
-    }
-
-    private static String generate(String seedFileName) throws Exception {
-        JsonObject genesisObject = getJsonObjectFromFile(seedFileName);
-
-        JsonObject delegatorListObject = getJsonObjectFromFile("delegator.json");
-        genesisObject.add("delegator", delegatorListObject.get("delegator"));
-
-        JsonObject nodeListObject = getJsonObjectFromFile("node.json");
-        genesisObject.add("node", nodeListObject.get("node"));
-
-        JsonArray jsonArrayTxBody = new JsonArray();
-        jsonArrayTxBody.add(genesisObject);
-
-        TransactionBody txBody = new TransactionBody(jsonArrayTxBody);
-
-        long timestamp = TimeUtils.time();
-
-        String branchId = genesisObject.get("branchId").getAsString();
-        byte[] chain = org.spongycastle.util.encoders.Hex.decode(branchId);
-
-        // todo: change values(version, type) using the configuration.
-        TransactionHeader txHeader = new TransactionHeader(
-                chain,
-                new byte[8],
-                new byte[8],
-                timestamp,
-                txBody);
-
-        Transaction tx = new Transaction(txHeader, wallet, txBody);
-        List<Transaction> txList = new ArrayList<>();
-        txList.add(tx);
-
-        BlockBody blockBody = new BlockBody(txList);
-
-        // todo: change values(version, type) using the configuration.
-        BlockHeader blockHeader = new BlockHeader(
-                chain,
-                new byte[8],
-                new byte[8],
-                new byte[32],
-                0L,
-                timestamp,
-                blockBody.getMerkleRoot(),
-                blockBody.length());
-
-        Block genesisBlock = new Block(blockHeader, wallet, blockBody);
-        JsonObject jsonObject = genesisBlock.toJsonObject();
-        return new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject);
     }
 }
 
