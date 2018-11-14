@@ -50,6 +50,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -142,8 +143,13 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     }
 
     @Override
-    public void generateBlock() {
-        branchGroup.generateBlock(wallet);
+    public void generateBlock(BranchId branchId) {
+        branchGroup.generateBlock(wallet, branchId);
+    }
+
+    @Override
+    public List<BranchId> getActiveBranchIdList() {
+        return new ArrayList<>(branchGroup.getAllBranchId());
     }
 
     @Override
@@ -153,12 +159,10 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
     @Override
     public void bootstrapping() {
-        for (BlockChain blockChain : branchGroup.getAllBranch()) {
-            BranchId branchId = blockChain.getBranchId();
+        for (BranchId branchId : branchGroup.getAllBranchId()) {
+            log.debug("bootstrapping :: branchId => " + branchId);
             nodeDiscovery(branchId);
             peerGroup.getClosestPeers(branchId).forEach(p -> addPeerChannel(branchId, p));
-            // TODO remove (for debug only);
-            break;
         }
     }
 
@@ -458,8 +462,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         @Override
         public void broadcastConsensus(
                 RequestPeer request, StreamObserver<RequestPeer> responseObserver) {
-            log.debug("The peer to generate the block is => "
-                    + request.getIp() + ":" + request.getPort());
             responseObserver.onNext(request);
             responseObserver.onCompleted();
 
@@ -470,7 +472,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
             // owner 가 selectedPeer 인 경우 블록 생성
             if (owner.equals(selectedPeer)) {
-                generateBlock();
+                generateBlock(BranchId.of(request.getBranchId()));
             }
         }
     }

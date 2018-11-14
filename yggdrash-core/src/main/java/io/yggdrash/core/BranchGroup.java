@@ -28,6 +28,7 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BranchGroup {
@@ -44,6 +45,10 @@ public class BranchGroup {
 
     public BlockChain getBranch(BranchId branchId) {
         return branches.get(branchId);
+    }
+
+    public Set<BranchId> getAllBranchId() {
+        return branches.keySet();
     }
 
     public Collection<BlockChain> getAllBranch() {
@@ -76,13 +81,11 @@ public class BranchGroup {
         return branches.get(branchId).getTxByHash(hash);
     }
 
-    public void generateBlock(Wallet wallet) {
-        for (BlockChain blockChain : branches.values()) {
-            blockChain.generateBlock(wallet);
-        }
+    public void generateBlock(Wallet wallet, BranchId branchId) {
+        branches.get(branchId).generateBlock(wallet);
     }
 
-    BlockHusk addBlock(BlockHusk block) {
+    public BlockHusk addBlock(BlockHusk block) {
         return addBlock(block, true);
     }
 

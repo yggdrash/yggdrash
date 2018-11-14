@@ -34,7 +34,8 @@ public abstract class DiscoverTask implements Runnable {
 
     private synchronized void discover(int round, List<Peer> prevTried) {
         log.info("Start discover!");
-        log.info("Size of STEM PeerTable => {}",
+        log.info("Size of {} PeerTable => {}",
+                branchId,
                 peerGroup.getPeerTable(branchId).getPeersCount() - 1);
         try {
             if (round == KademliaOptions.MAX_STEPS) {

@@ -72,7 +72,7 @@ public class GRpcNodeServerTest {
         tx = TestUtils.createTransferTxHusk();
         when(branchGroupMock.addTransaction(any())).thenReturn(tx);
         block = TestUtils.createGenesisBlockHusk();
-        when(branchGroupMock.addBlock(any())).thenReturn(block);
+        //when(branchGroupMock.addBlock(any())).thenReturn(block);
         branchId = block.getBranchId();
     }
 

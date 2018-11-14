@@ -99,7 +99,8 @@ public class PeerGroup implements BranchEventListener {
     }
 
     void addPeer(BranchId branchId, Peer peer) {
-        log.info("Add peer => {}, PeerTable of {} : {}", peer, branchId, peerTables.get(branchId));
+        log.info("Add peer => " + peer.getHost() + ":" + peer.getPort()
+                + ", BranchId => " + branchId);
 
         if (peerTables.containsKey(branchId)) {
             getPeerTable(branchId).addPeer(peer);
@@ -121,7 +122,7 @@ public class PeerGroup implements BranchEventListener {
             PeerTable peerTable = peerTables.get(branchId);
             peerTable.getAllPeers().forEach(p -> peerList.add(p.toString()));
             peerTable.addPeer(peer);
-            log.debug("Added peer => " + peer);
+            log.debug("Added peer => " + peer.getHost() + ":" + peer.getPort());
             return peerList;
         } else {
             log.info("Ignore branchId => {}", branchId);

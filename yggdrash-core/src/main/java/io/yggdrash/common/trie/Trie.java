@@ -6,8 +6,6 @@ import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHusk;
 
 import java.io.IOException;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -62,8 +60,8 @@ public class Trie {
     /**
      * Get merkleRoot using list of hashed data.
      *
-     * @param hashTree ArrayList of hashed data
-     * @param algorithm Hash algorithm
+     * @param hashTree   ArrayList of hashed data
+     * @param algorithm  Hash algorithm
      * @param doubleHash Whether double hash or not
      * @return merkle root data
      */
