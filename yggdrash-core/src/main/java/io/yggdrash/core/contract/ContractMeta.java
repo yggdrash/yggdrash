@@ -19,7 +19,11 @@ package io.yggdrash.core.contract;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 
+import java.io.File;
+
 public class ContractMeta {
+    private static final String SUFFIX = ".class";
+
     private final Class<? extends Contract> contract;
     private final byte[] contractBinary;
     private final String contractClassName;
@@ -50,5 +54,10 @@ public class ContractMeta {
 
     byte[] getContractBinary() {
         return contractBinary;
+    }
+
+    static File contractFile(String rootPath, String contractId) {
+        String filePath = contractId.substring(0, 2) + File.separator + contractId + SUFFIX;
+        return new File(rootPath + File.separator + filePath);
     }
 }
