@@ -165,6 +165,8 @@ public class GenesisBlock {
         JsonObject jsonObjectBranch = Utils.parseJsonObject(branchJson);
 
         JsonArray params = new JsonArray();
+
+        assert jsonObjectBranch != null;
         params.add(jsonObjectBranch.remove("genesis"));
 
         jsonObjectTx.addProperty("method", "genesis");

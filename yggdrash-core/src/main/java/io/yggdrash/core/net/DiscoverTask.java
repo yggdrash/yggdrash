@@ -34,7 +34,8 @@ public abstract class DiscoverTask implements Runnable {
 
     private synchronized void discover(int round, List<Peer> prevTried) {
         log.info("Start discover!");
-        log.info("Size of STEM PeerTable => {}",
+        log.info("Size of {} PeerTable => {}",
+                branchId,
                 peerGroup.getPeerTable(branchId).getPeersCount() - 1);
         try {
             if (round == KademliaOptions.MAX_STEPS) {
@@ -77,6 +78,13 @@ public abstract class DiscoverTask implements Runnable {
                 log.trace("{}\n{}",
                         String.format("Peers discovered %d", peerGroup.count(branchId)),
                         peerGroup.getPeerUriList(branchId));
+
+                if (round == 0) {
+                    // SeedPeer 로부터 빈 리스트([])를 받았을 때 SeedPeer 를 테이블과 채널에 추가해야한다.
+                    Peer seedPeer = Peer.valueOf(peerGroup.getSeedPeerList().get(0));
+                    peerGroup.addPeerByYnodeUri(branchId, seedPeer.getYnodeUri());
+                    peerGroup.newPeerChannel(branchId, getClient(seedPeer));
+                }
                 return;
             }
 

@@ -19,14 +19,10 @@ package io.yggdrash.node;
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.Status;
-import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.proto.BlockChainGrpc;
-import io.yggdrash.proto.NetProto;
-import io.yggdrash.proto.NetProto.Empty;
 import io.yggdrash.proto.NetProto.SyncLimit;
 import io.yggdrash.proto.NodeInfo;
 import io.yggdrash.proto.PeerGrpc;
@@ -49,7 +45,8 @@ class GRpcClientChannel implements PeerClientChannel {
     private final PeerGrpc.PeerBlockingStub blockingPeerStub;
     private final PingPongGrpc.PingPongBlockingStub blockingPingPongStub;
     private final BlockChainGrpc.BlockChainBlockingStub blockingBlockChainStub;
-    private final BlockChainGrpc.BlockChainStub asyncBlockChainStub;
+    private final BlockChainGrpc.BlockChainBlockingStub asyncBlockChainStub;
+    //private final BlockChainGrpc.BlockChainStub asyncBlockChainStub;
     private final Peer peer;
 
     GRpcClientChannel(Peer peer) {
@@ -63,7 +60,8 @@ class GRpcClientChannel implements PeerClientChannel {
         this.blockingPeerStub = PeerGrpc.newBlockingStub(channel);
         this.blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);
         this.blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
-        this.asyncBlockChainStub = BlockChainGrpc.newStub(channel);
+        this.asyncBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
+        //this.asyncBlockChainStub = BlockChainGrpc.newStub(channel);
     }
 
     @Override
@@ -125,6 +123,38 @@ class GRpcClientChannel implements PeerClientChannel {
 
     @Override
     public void broadcastTransaction(Proto.Transaction[] txs) {
+        log.info("*** Broadcasting txs...");
+        for (Proto.Transaction tx : txs) {
+            log.trace("Sending transaction: {}", tx);
+            asyncBlockChainStub.broadcastTransaction(tx);
+        }
+    }
+
+    @Override
+    public void broadcastBlock(Proto.Block[] blocks) {
+        log.info("*** Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
+        for (Proto.Block block : blocks) {
+            log.trace("Sending block: {}", block);
+            asyncBlockChainStub.broadcastBlock(block);
+        }
+    }
+
+    @Override
+    public void broadcastConsensus(BranchId branchId, Peer peer) {
+        log.info("*** Broadcasting Consensus -> {}",
+                this.peer.getHost() + ":" + this.peer.getPort());
+        RequestPeer requestPeer = RequestPeer.newBuilder()
+                .setBranchId(branchId.toString())
+                .setPubKey(peer.getPubKey().toString())
+                .setIp(peer.getHost())
+                .setPort(peer.getPort())
+                .build();
+        blockingPeerStub.broadcastConsensus(requestPeer);
+    }
+
+    /*
+    @Override
+    public void broadcastTransaction(Proto.Transaction[] txs) {
         log.info("*** Broadcasting tx...");
         StreamObserver<Proto.Transaction> requestObserver =
                 asyncBlockChainStub.broadcastTransaction(new StreamObserver<Empty>() {
@@ -181,4 +211,5 @@ class GRpcClientChannel implements PeerClientChannel {
 
         requestObserver.onCompleted();
     }
+    */
 }

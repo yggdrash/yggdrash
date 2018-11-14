@@ -79,6 +79,10 @@ public class ChannelMock implements PeerClientChannel {
     public void broadcastBlock(Proto.Block[] blocks) {
     }
 
+    @Override
+    public void broadcastConsensus(BranchId branchId, Peer peer) {
+    }
+
     static PeerClientChannel dummy() {
         return new ChannelMock("ynode://75bff16c@localhost:32918");
     }
