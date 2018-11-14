@@ -50,7 +50,7 @@ public class CoinContractTest {
     @Test
     public void transferTest() {
         TransactionHusk tx =
-                ContractTx.createYeedTx(branchId, TestUtils.wallet(), TestUtils.TRANSFER_TO, 10);
+                ContractTx.createTx(branchId, TestUtils.wallet(), TestUtils.TRANSFER_TO, 10);
         boolean result = coinContract.invoke(tx);
         assertThat(result).isTrue();
         assertBalanceFromAndTo("90", "10");
@@ -59,12 +59,12 @@ public class CoinContractTest {
     @Test
     public void transferWrongAmountTest() {
         TransactionHusk tx =
-                ContractTx.createYeedTx(branchId, TestUtils.wallet(), TestUtils.TRANSFER_TO, 1000);
+                ContractTx.createTx(branchId, TestUtils.wallet(), TestUtils.TRANSFER_TO, 1000);
         boolean result = coinContract.invoke(tx);
         assertThat(result).isFalse();
         assertBalanceFromAndTo("100", "0");
 
-        tx = ContractTx.createYeedTx(branchId, TestUtils.wallet(), TestUtils.TRANSFER_TO, 100);
+        tx = ContractTx.createTx(branchId, TestUtils.wallet(), TestUtils.TRANSFER_TO, 100);
         result = coinContract.invoke(tx);
         assertThat(result).isTrue();
         assertBalanceFromAndTo("0", "100");
@@ -88,7 +88,7 @@ public class CoinContractTest {
         JsonObject fromBalance = coinContract.query(sampleBalanceOfQueryJson(TRANSFER_FROM));
         assertThat(fromBalance.get("result").getAsString()).isEqualTo(from);
         JsonObject toBalance =
-                coinContract.query(sampleBalanceOfQueryJson(TestUtils.TRANSFER_TO.toString()));
+                coinContract.query(sampleBalanceOfQueryJson(TestUtils.TRANSFER_TO));
         assertThat(toBalance.get("result").getAsString()).isEqualTo(to);
 
     }

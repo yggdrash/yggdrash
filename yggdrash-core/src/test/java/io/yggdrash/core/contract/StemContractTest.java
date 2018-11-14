@@ -47,7 +47,7 @@ public class StemContractTest {
         jsonObjectBranch = TestUtils.getSampleBranch();
         stemContract.sender = jsonObjectBranch.get("owner").getAsString();
         branchId = BranchId.of(jsonObjectBranch);
-        JsonArray params = getInvokeParams(branchId, jsonObjectBranch);
+        JsonArray params = ContractTx.createStemParams(branchId, jsonObjectBranch);
         stemContract.create(params);
     }
 
@@ -55,7 +55,7 @@ public class StemContractTest {
     public void createTest() {
         JsonObject newBranch = getYeedBranch();
         BranchId newBranchId = BranchId.of(newBranch);
-        JsonArray params = getInvokeParams(newBranchId, newBranch);
+        JsonArray params = ContractTx.createStemParams(newBranchId, newBranch);
 
         assertThat(stemContract.create(params)).isNotNull();
     }
@@ -64,7 +64,7 @@ public class StemContractTest {
     public void updateTest() {
         String description = "Hello World!";
         JsonObject updatedBranch = TestUtils.updateBranch(description, jsonObjectBranch, 0);
-        JsonArray params = getInvokeParams(branchId, updatedBranch);
+        JsonArray params = ContractTx.createStemParams(branchId, updatedBranch);
         assertThat(stemContract.update(params).isSuccess()).isTrue();
         viewTest(description);
     }
@@ -147,14 +147,6 @@ public class StemContractTest {
     @Test
     public void getAllBranchIdTest() {
         assertThat(stemContract.getallbranchid(null).size()).isEqualTo(1);
-    }
-
-    private JsonArray getInvokeParams(BranchId branchId, JsonObject branch) {
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.add(branchId.toString(), branch);
-        params.add(param);
-        return params;
     }
 
     private JsonArray getQueryParams() {

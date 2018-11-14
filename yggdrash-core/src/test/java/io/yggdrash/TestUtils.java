@@ -34,7 +34,6 @@ import io.yggdrash.core.BlockSignature;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.account.Address;
 import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.contract.ContractTx;
 import io.yggdrash.core.exception.InvalidSignatureException;
@@ -43,7 +42,6 @@ import io.yggdrash.core.genesis.BranchJson;
 import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.proto.Proto;
-import org.spongycastle.util.encoders.Hex;
 
 import java.io.InputStream;
 import java.nio.file.Paths;
@@ -56,8 +54,7 @@ public class TestUtils {
     public static final BranchId YEED = BranchId.of("ba93ca9f4e0e71dd20bc3fc9b79e53df716a3f95");
 
     public static final String YGG_HOME = "testOutput";
-    public static final Address TRANSFER_TO =
-            new Address(Hex.decode("e1980adeafbb9ac6c9be60955484ab1547ab0b76"));
+    public static final String TRANSFER_TO = "e1980adeafbb9ac6c9be60955484ab1547ab0b76";
     private static final Wallet wallet;
     private static final GenesisBlock genesis;
 
@@ -172,7 +169,7 @@ public class TestUtils {
 
     public static Transaction sampleTransferTx() {
         JsonObject createYeedTxJson =
-                ContractTx.createYeedTx(YEED, wallet, TRANSFER_TO, 100).toJsonObject();
+                ContractTx.createTx(YEED, wallet, TRANSFER_TO, 100).toJsonObject();
         return new Transaction(createYeedTxJson);
     }
 
@@ -196,8 +193,8 @@ public class TestUtils {
     }
 
     private static Transaction sampleCreateBranchTx(Wallet wallet) {
-        return new Transaction(ContractTx.createStemTxBySeed(TestUtils.STEM,
-                wallet, getSampleBranch(), "create").toJsonObject());
+        TransactionHusk tx = ContractTx.createStemTx(wallet, getSampleBranch(), "create");
+        return new Transaction(tx.toJsonObject());
     }
 
     public static JsonObject createBranch(String name,

@@ -25,8 +25,7 @@ public class ContractApiImplTest {
         branchId = BranchId.of(branch);
 
         try {
-            TransactionHusk tx = ContractTx.createStemTxBySeed(TestUtils.STEM,
-                    TestUtils.wallet(), branch, "create");
+            TransactionHusk tx = ContractTx.createStemTx(TestUtils.wallet(), branch, "create");
             txApi.sendTransaction(TransactionDto.createBy(tx));
             Thread.sleep(10000);
         } catch (Exception e) {
@@ -51,8 +50,7 @@ public class ContractApiImplTest {
             JsonObject updatedBranch = TestUtils.updateBranch(description, branch, 0);
 
             TransactionHusk tx =
-                    ContractTx.createStemTxBySeed(TestUtils.STEM, TestUtils.wallet(),
-                            updatedBranch, "update");
+                    ContractTx.createStemTx(TestUtils.wallet(), updatedBranch, "update");
             txApi.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {
             e.printStackTrace();

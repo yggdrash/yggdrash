@@ -9,7 +9,6 @@ import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.account.Address;
 import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.contract.ContractQry;
 import io.yggdrash.core.contract.ContractTx;
@@ -17,7 +16,6 @@ import io.yggdrash.core.genesis.BranchJson;
 import io.yggdrash.core.genesis.BranchLoader;
 import io.yggdrash.node.api.JsonRpcConfig;
 import io.yggdrash.node.controller.TransactionDto;
-import org.spongycastle.util.encoders.Hex;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 
@@ -80,11 +78,19 @@ public class NodeContractDemoClient {
     }
 
     private static void sendTx() {
-        System.out.print("[1] STEM  [2] YEED\n> ");
-        if (scan.nextLine().equals("2")) {
-            sendYeedTx();
-        } else {
-            sendStemTx();
+        System.out.print("[1] STEM  [2] YEED [3] NONE\n> ");
+        String num = scan.nextLine();
+
+        switch (num) {
+            case "2":
+                sendYeedTx();
+                break;
+            case "3":
+                sendNoneTx();
+                break;
+            default:
+                sendStemTx();
+                break;
         }
     }
 
@@ -97,7 +103,18 @@ public class NodeContractDemoClient {
         int times = getSendTimes();
         String serverAddress = getServerAddress();
         for (int i = 0; i < times; i++) {
-            TransactionHusk tx = ContractTx.createStemTxByBranch(wallet, branch, method);
+            TransactionHusk tx = ContractTx.createStemTx(wallet, branch, method);
+            rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
+        }
+    }
+
+    private static void sendNoneTx() {
+        String branchId = getBranchId();
+        int times = getSendTimes();
+        String serverAddress = getServerAddress();
+        int amount = 1;
+        for (int i = 0; i < times; i++) {
+            TransactionHusk tx = ContractTx.createTx(BranchId.of(branchId), wallet, "", amount);
             rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
         }
     }
@@ -106,18 +123,17 @@ public class NodeContractDemoClient {
         System.out.println("전송할 주소를 입력해주세요 (기본값 : " + TRANSFER_TO + ")");
         System.out.println(">");
 
-        String addressHex = scan.nextLine();
-        addressHex = addressHex.length() > 0 ? addressHex : TRANSFER_TO;
-        Address address = new Address(Hex.decode(addressHex));
+        String address = scan.nextLine();
+        address = address.length() > 0 ? address : TRANSFER_TO;
 
         sendYeedTx(address, TRANSFER_AMOUNT);
     }
 
-    private static void sendYeedTx(Address address, int amount) {
+    private static void sendYeedTx(String address, int amount) {
         int times = getSendTimes();
         String serverAddress = getServerAddress();
         for (int i = 0; i < times; i++) {
-            TransactionHusk tx = ContractTx.createYeedTx(TestUtils.YEED, wallet, address, amount);
+            TransactionHusk tx = ContractTx.createTx(TestUtils.YEED, wallet, address, amount);
             rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
         }
     }
@@ -214,7 +230,7 @@ public class NodeContractDemoClient {
     }
 
     private static String getBranchId() {
-        System.out.println("조회할 트랜잭션의 브랜치 아이디 : [1] STEM [2] YEED [3] etc\n>");
+        System.out.println("트랜잭션의 브랜치 아이디 : [1] STEM [2] YEED [3] etc\n>");
 
         String branchId = scan.nextLine();
         switch (branchId) {
