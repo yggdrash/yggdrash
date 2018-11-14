@@ -64,7 +64,7 @@ public class BranchGroupTest {
     @Test
     public void generateBlock() {
         branchGroup.addTransaction(tx);
-        branchGroup.generateBlock(wallet);
+        branchGroup.generateBlock(wallet, tx.getBranchId());
         long latest = branchGroup.getLastIndex(tx.getBranchId());
         BlockHusk chainedBlock = branchGroup.getBlockByIndex(tx.getBranchId(), latest);
         assertThat(latest).isEqualTo(1);

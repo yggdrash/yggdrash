@@ -4,5 +4,6 @@ logging:
     io.yggdrash: info
 
 yggdrash.node:
+  grpc.host: "yggdrash-node1"
   seed-peer-list:
-  - "ynode://75bff16c22e6b38c71fd2005657827acce3dfd4a1db1cc417303e429d7da9625525ba3f1b7794e104397467f8c5a11c8e86af4ffcc0aefcdf7024013cdc0508d@yggdrash-node1:8080"
+  - "ynode://9ea9225f0b7db3c697c0a2e09cdd65046899058d16f73378c1559d61aa3e10cd5dc9337142728f5a02faadafab2b926e2998d5bc2b62c2183fab75ca996de2ce@yggdrash-node1:32918"

@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -98,7 +99,8 @@ public class PeerGroup implements BranchEventListener {
     }
 
     void addPeer(BranchId branchId, Peer peer) {
-        log.info("Add peer => {}, PeerTable of {} : {}", peer, branchId, peerTables.get(branchId));
+        log.info("Add peer => " + peer.getHost() + ":" + peer.getPort()
+                + ", BranchId => " + branchId);
 
         if (peerTables.containsKey(branchId)) {
             getPeerTable(branchId).addPeer(peer);
@@ -120,7 +122,7 @@ public class PeerGroup implements BranchEventListener {
             PeerTable peerTable = peerTables.get(branchId);
             peerTable.getAllPeers().forEach(p -> peerList.add(p.toString()));
             peerTable.addPeer(peer);
-            log.debug("Added peer => " + peer);
+            log.debug("Added peer => " + peer.getHost() + ":" + peer.getPort());
             return peerList;
         } else {
             log.info("Ignore branchId => {}", branchId);
@@ -162,7 +164,7 @@ public class PeerGroup implements BranchEventListener {
         }
     }
 
-    List<String> getSeedPeerList() {
+    public List<String> getSeedPeerList() {
         return seedPeerList;
     }
 
@@ -287,6 +289,15 @@ public class PeerGroup implements BranchEventListener {
                     .map(channel -> channel.getPeer().toString())
                     .collect(Collectors.toList());
             activePeerList.addAll(branchChannelList);
+        }
+        return activePeerList;
+    }
+
+    public Collection<PeerClientChannel> getActivePeerListOf(BranchId branchId) {
+        Collection<PeerClientChannel> activePeerList = new ArrayList<>();
+
+        if (peerTableChannels.containsKey(branchId)) {
+            activePeerList = peerTableChannels.get(branchId).values();
         }
         return activePeerList;
     }

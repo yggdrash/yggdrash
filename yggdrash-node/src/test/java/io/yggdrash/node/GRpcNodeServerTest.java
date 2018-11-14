@@ -17,8 +17,6 @@
 package io.yggdrash.node;
 
 import com.google.protobuf.ByteString;
-import io.grpc.internal.testing.StreamRecorder;
-import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockHusk;
@@ -45,7 +43,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -75,7 +72,7 @@ public class GRpcNodeServerTest {
         tx = TestUtils.createTransferTxHusk();
         when(branchGroupMock.addTransaction(any())).thenReturn(tx);
         block = TestUtils.createGenesisBlockHusk();
-        when(branchGroupMock.addBlock(any())).thenReturn(block);
+        //when(branchGroupMock.addBlock(any())).thenReturn(block);
         branchId = block.getBranchId();
     }
 
@@ -86,6 +83,22 @@ public class GRpcNodeServerTest {
 
         Pong pong = blockingStub.play(Ping.newBuilder().setPing("Ping").build());
         assertEquals("Pong", pong.getPong());
+    }
+
+    @Test
+    public void broadcastBlock() {
+        BlockChainGrpc.BlockChainBlockingStub blockChainBlockingStub
+                = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
+        NetProto.Empty empty = NetProto.Empty.newBuilder().build();
+        assertEquals(empty, blockChainBlockingStub.broadcastBlock(TestUtils.getBlockFixture()));
+    }
+
+    @Test
+    public void broadcastTransaction() {
+        BlockChainGrpc.BlockChainBlockingStub blockChainBlockingStub
+                = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
+        NetProto.Empty empty = NetProto.Empty.newBuilder().build();
+        assertEquals(empty, blockChainBlockingStub.broadcastTransaction(TestUtils.sampleTxs()[0]));
     }
 
     @Test
@@ -118,6 +131,7 @@ public class GRpcNodeServerTest {
         assertEquals(1, list.getTransactionsCount());
     }
 
+    /*
     @Test
     public void broadcastTransaction() throws Exception {
         BlockChainGrpc.BlockChainStub stub = BlockChainGrpc.newStub(grpcServerRule.getChannel());
@@ -145,4 +159,5 @@ public class GRpcNodeServerTest {
         NetProto.Empty firstResponse = responseObserver.firstValue().get();
         assertNotNull(firstResponse);
     }
+    */
 }
