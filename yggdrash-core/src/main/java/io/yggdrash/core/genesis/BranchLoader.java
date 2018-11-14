@@ -25,8 +25,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BranchLoader {
+    public static final String BRANCH_FILE = "branch.json";
     private static final Logger log = LoggerFactory.getLogger(BranchLoader.class);
-    private static final String BRANCH_FILE = "branch.json";
 
     private final File branchRoot;
     private final List<GenesisBlock> genesisBlockList = new ArrayList<>();

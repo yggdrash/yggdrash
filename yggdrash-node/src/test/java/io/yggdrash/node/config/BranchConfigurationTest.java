@@ -16,9 +16,9 @@
 
 package io.yggdrash.node.config;
 
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.TestUtils;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.BlockChain;
@@ -26,10 +26,11 @@ import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.genesis.BranchLoader;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.node.WebsocketSender;
 import org.apache.commons.io.FileUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -49,32 +50,62 @@ import java.nio.charset.StandardCharsets;
 public class BranchConfigurationTest {
     private static final Logger log = LoggerFactory.getLogger(BranchConfigurationTest.class);
 
-    private static final String BRANCH_PATH = new DefaultConfig().getBranchPath();
-    private final Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-    private final PeerGroup peerGroup = new PeerGroup(owner, 1);
-    private BranchConfiguration branchConfiguration;
+    private static final DefaultConfig config = new DefaultConfig();
+    private static final Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+    private static final WebsocketSender sender = new WebsocketSender(null);
+    private static final ResourceLoader loader = new DefaultResourceLoader();
+
+    private PeerGroup peerGroup;
+    private BranchConfiguration branchConfig;
     private MockEnvironment mockEnv;
-    private BranchId branchId;
 
     @Before
-    public void setUp() throws IOException {
+    public void setUp() {
         this.mockEnv = new MockEnvironment();
-        this.branchConfiguration = new BranchConfiguration(mockEnv);
+        this.branchConfig = new BranchConfiguration(mockEnv);
+        this.peerGroup = new PeerGroup(owner, 1);
+    }
 
-        JsonObject branchJson = getBranchJson();
-        this.branchId = BranchId.of(branchJson);
+    @Test
+    public void addStemBranchTest() throws IOException {
+        BranchGroup branchGroup = branchConfig.branchGroup();
+        branchConfig.stemResource = loader.getResource("classpath:/branch-stem.json");
+        BlockChain blockChain = branchConfig.stem(peerGroup, branchGroup, sender);
+        assert blockChain.getBranchId().equals(TestUtils.STEM);
+        assert branchGroup.getBranchSize() == 1;
+    }
 
-        saveFile(branchJson);
+    @Test
+    public void addProductionStemBranchTest() throws IOException {
+        mockEnv.addActiveProfile("prod");
+        addStemBranchTest();
+    }
+
+    @Test
+    public void addYeedBranchTest() throws IOException {
+        BranchGroup branchGroup = branchConfig.branchGroup();
+        branchConfig.stemResource = loader.getResource("classpath:/branch-yeed.json");
+        BlockChain blockChain = branchConfig.stem(peerGroup, branchGroup, sender);
+        assert blockChain.getBranchId().equals(TestUtils.YEED);
+        assert branchGroup.getBranchSize() == 1;
     }
 
     @Test
     public void branchLoaderTest() throws IOException {
-        BranchGroup branchGroup = branchConfiguration.branchGroup();
-        branchConfiguration.branchLoader(peerGroup, branchGroup, null, new DefaultConfig());
+        JsonObject branchJson = getBranchJson();
+        BranchId branchId = BranchId.of(branchJson);
+
+        saveFile(branchId, branchJson);
+
+        BranchGroup branchGroup = branchConfig.branchGroup();
+        branchConfig.branchLoader(peerGroup, branchGroup, null, config);
         BlockChain branch = branchGroup.getBranch(branchId);
         assert branch != null;
         assert branch.getBranchId().equals(branchId);
         assertTransaction(branch);
+
+        File branchDir = new File(config.getBranchPath(), branchId.toString());
+        FileUtils.deleteQuietly(branchDir);
     }
 
     private void assertTransaction(BlockChain branch) throws IOException {
@@ -93,12 +124,6 @@ public class BranchConfigurationTest {
         assert jsonObjectTxBody.has("params");
     }
 
-    @After
-    public void tearDown() {
-        File branchDir = new File(BRANCH_PATH, branchId.toString());
-        FileUtils.deleteQuietly(branchDir);
-    }
-
     private JsonObject getBranchJson() throws IOException {
         ResourceLoader resourceLoader = new DefaultResourceLoader();
         Resource resource = resourceLoader.getResource("classpath:/branch/sw.json");
@@ -106,14 +131,13 @@ public class BranchConfigurationTest {
         return Utils.parseJsonObject(json);
     }
 
-    private void saveFile(JsonObject branch) throws IOException {
-        File branchDir = new File(BRANCH_PATH, branchId.toString());
+    private void saveFile(BranchId branchId, JsonObject branch) throws IOException {
+        File branchDir = new File(config.getBranchPath(), branchId.toString());
         if (!branchDir.exists()) {
             branchDir.mkdirs();
         }
-        File file = new File(branchDir, "branch.json");
-        String json = new GsonBuilder().setPrettyPrinting().create().toJson(branch);
-        FileUtils.writeStringToFile(file, json);
+        File file = new File(branchDir, BranchLoader.BRANCH_FILE);
+        FileUtils.writeStringToFile(file, branch.toString());
     }
 
 }

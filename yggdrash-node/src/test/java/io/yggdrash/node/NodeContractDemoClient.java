@@ -14,16 +14,17 @@ import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.contract.ContractQry;
 import io.yggdrash.core.contract.ContractTx;
 import io.yggdrash.core.genesis.BranchJson;
+import io.yggdrash.core.genesis.BranchLoader;
 import io.yggdrash.node.api.JsonRpcConfig;
 import io.yggdrash.node.controller.TransactionDto;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
@@ -78,7 +79,7 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static void sendTx() throws Exception {
+    private static void sendTx() {
         System.out.print("[1] STEM  [2] YEED\n> ");
         if (scan.nextLine().equals("2")) {
             sendYeedTx();
@@ -87,7 +88,7 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static void sendStemTx() throws Exception {
+    private static void sendStemTx() {
         JsonObject branch = getBranch();
         sendStemTx(branch, "create");
     }
@@ -130,7 +131,7 @@ public class NodeContractDemoClient {
         rpc.contractApi(serverAddress).query(qry.toString());
     }
 
-    private static void update() throws Exception {
+    private static void update() {
         System.out.println("수정할 .json 파일명을 입력하세요 (기본값: yeed.json)\n>");
         String json = scan.nextLine();
         if ("".equals(json)) {
@@ -178,7 +179,7 @@ public class NodeContractDemoClient {
         rpc.accountApi(serverAddress).balanceOf(qry.toString());
     }
 
-    private static JsonObject getBranch() throws Exception {
+    private static JsonObject getBranch() {
         System.out.print("사용할 .json 파일명을 입력하세요 (기본값: yeed.seed.json)\n> ");
         String json = scan.nextLine();
 
@@ -237,28 +238,31 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static JsonObject getJsonObjectFromFile(String dir, String fileName) throws Exception {
+    private static JsonObject getJsonObjectFromFile(String dir, String fileName) {
         String seedPath = String.format("classpath:/%s/%s", dir, fileName);
-        ResourceLoader resourceLoader = new DefaultResourceLoader();
-        Resource resource = resourceLoader.getResource(seedPath);
-        Reader json = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
-        return Utils.parseJsonObject(json);
+        Resource resource = new DefaultResourceLoader().getResource(seedPath);
+        try (InputStream is = resource.getInputStream()) {
+            Reader json = new InputStreamReader(is, StandardCharsets.UTF_8);
+            return Utils.parseJsonObject(json);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private static void saveBranchAsFile(BranchId branchId, JsonObject branch) throws IOException {
-        String fileName = "branch.json";
         String json = new GsonBuilder().setPrettyPrinting().create().toJson(branch);
-        saveFile(branchId, fileName, json);
+        saveFile(branchId, json);
     }
 
-    private static void saveFile(BranchId branchId, String fileName, String json)
+    private static void saveFile(BranchId branchId, String json)
             throws IOException {
         String branchPath = new DefaultConfig().getBranchPath();
         File branchDir = new File(branchPath, branchId.toString());
         if (!branchDir.exists()) {
             branchDir.mkdirs();
         }
-        File file = new File(branchDir, fileName);
+        File file = new File(branchDir, BranchLoader.BRANCH_FILE);
         FileWriter fileWriter = new FileWriter(file); //overwritten
 
         fileWriter.write(json);

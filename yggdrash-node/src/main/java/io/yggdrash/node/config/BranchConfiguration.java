@@ -20,28 +20,67 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockChainBuilder;
 import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.genesis.BranchJson;
 import io.yggdrash.core.genesis.BranchLoader;
 import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.node.WebsocketSender;
-import io.yggdrash.node.config.annotaion.EnableDefaultBranch;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
+import org.springframework.core.io.Resource;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Arrays;
 
 @Configuration
-@EnableDefaultBranch
 public class BranchConfiguration {
     private static final Logger log = LoggerFactory.getLogger(BranchConfiguration.class);
 
     private final boolean productionMode;
 
+    @Value("classpath:/branch-stem.json")
+    Resource stemResource;
+
+    @Value("classpath:/branch-yeed.json")
+    Resource yeedResource;
+
+    @Value("classpath:/branch-sw.json")
+    Resource swResource;
+
     BranchConfiguration(Environment env) {
         this.productionMode = Arrays.asList(env.getActiveProfiles()).contains("prod");
+    }
+
+    @Bean("stem")
+    @ConditionalOnProperty("yggdrash.branch.default.active")
+    BlockChain stem(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
+            throws IOException {
+        BlockChain blockChain = addBranch(stemResource.getInputStream(), peerGroup, branchGroup,
+                websocketSender);
+        websocketSender.setStemBranchId(blockChain.getBranchId());
+        return blockChain;
+    }
+
+    @Bean("yeed")
+    @ConditionalOnProperty("yggdrash.branch.default.active")
+    BlockChain yeed(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
+            throws IOException {
+        return addBranch(yeedResource.getInputStream(), peerGroup, branchGroup,
+                websocketSender);
+    }
+
+    @Bean("sw")
+    @ConditionalOnProperty("yggdrash.branch.default.active")
+    BlockChain none(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
+            throws IOException {
+        return addBranch(swResource.getInputStream(), peerGroup, branchGroup,
+                websocketSender);
     }
 
     @Bean
@@ -52,26 +91,36 @@ public class BranchConfiguration {
     @Bean
     BranchLoader branchLoader(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender sender,
                               DefaultConfig defaultConfig) {
-        BranchLoader loader = new BranchLoader(defaultConfig.getBranchPath());
-        for (GenesisBlock genesis : loader.getGenesisBlockList()) {
-            addBranch(peerGroup, branchGroup, sender, genesis);
+        try {
+            BranchLoader loader = new BranchLoader(defaultConfig.getBranchPath());
+            for (GenesisBlock genesis : loader.getGenesisBlockList()) {
+                addBranch(genesis, peerGroup, branchGroup, sender);
+            }
+            return loader;
+        } catch (Exception e) {
+            log.warn(e.getMessage(), e);
+            return null;
         }
-        return loader;
     }
 
-    private void addBranch(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender sender,
-                           GenesisBlock genesis) {
-        try {
-            BlockChain branch = BlockChainBuilder.Builder()
-                    .addGenesis(genesis)
-                    .setProductMode(productionMode)
-                    .build();
-            branch.addListener(sender);
-            branchGroup.addBranch(branch.getBranchId(), branch, peerGroup);
-            peerGroup.addPeerTable(branch.getBranchId(), productionMode);
-        } catch (Exception e) {
-            log.error(e.getMessage());
-        }
+    private BlockChain addBranch(InputStream is, PeerGroup peerGroup, BranchGroup branchGroup,
+                                 WebsocketSender sender) throws IOException {
+        BranchJson branchJson = BranchJson.toBranchJson(is);
+        GenesisBlock genesis = new GenesisBlock(branchJson);
+
+        return addBranch(genesis, peerGroup, branchGroup, sender);
+    }
+
+    private BlockChain addBranch(GenesisBlock genesis, PeerGroup peerGroup, BranchGroup branchGroup,
+                                 WebsocketSender sender) {
+        BlockChain branch = BlockChainBuilder.Builder()
+                .addGenesis(genesis)
+                .setProductMode(productionMode)
+                .build();
+        branch.addListener(sender);
+        branchGroup.addBranch(branch.getBranchId(), branch, peerGroup);
+        peerGroup.addPeerTable(branch.getBranchId(), productionMode);
+        return branch;
     }
 
 }
