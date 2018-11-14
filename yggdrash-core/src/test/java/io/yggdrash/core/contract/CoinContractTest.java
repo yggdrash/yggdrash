@@ -41,7 +41,7 @@ public class CoinContractTest {
         TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
         coinContract = new CoinContract();
         coinContract.init(stateStore, txReceiptStore);
-        JsonArray params = ContractQry.createParams("frontier", TRANSFER_FROM, "balance", "100");
+        JsonArray params = ContractQry.createYeedGenesisParams(TRANSFER_FROM, "100");
         TransactionReceipt result = coinContract.genesis(params);
         assertThat(result.isSuccess()).isTrue();
         assertBalanceFromAndTo("100", "0");

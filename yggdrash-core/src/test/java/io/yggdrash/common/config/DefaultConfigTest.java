@@ -2,13 +2,12 @@ package io.yggdrash.common.config;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
-import com.typesafe.config.ConfigValue;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
+import java.io.File;
 
 import static org.hamcrest.CoreMatchers.containsString;
 import static org.junit.Assert.assertThat;
@@ -32,23 +31,25 @@ public class DefaultConfigTest {
     public void defaultConfigTest() {
         log.debug(defaultConfig.toString());
 
-        for (Map.Entry<String, ConfigValue> entry : defaultConfig.getConfig().entrySet()) {
-            log.debug("Name:  " + entry.getKey());
-            log.debug(entry.toString());
-        }
-
-        assertThat(defaultConfig.getConfig().getString("java.version"), containsString("1.8"));
+        assertThat(defaultConfig.getString("java.version"), containsString("1.8"));
         log.debug("DefaultConfig java.version: "
-                + defaultConfig.getConfig().getString("java.version"));
+                + defaultConfig.getString("java.version"));
 
-        assertThat(defaultConfig.getConfig().getString("node.name"), containsString("yggdrash"));
+        assertThat(defaultConfig.getString("node.name"), containsString("yggdrash"));
         log.debug("DefaultConfig node.name: "
-                + defaultConfig.getConfig().getString("node.name"));
+                + defaultConfig.getString("node.name"));
 
-        assertThat(defaultConfig.getConfig().getString("network.port"), containsString("32918"));
+        assertThat(defaultConfig.getString("network.port"), containsString("32918"));
         log.debug("DefaultConfig network.port: "
-                + defaultConfig.getConfig().getString("network.port"));
+                + defaultConfig.getString("network.port"));
 
+    }
+
+    @Test
+    public void productionConfigTest() {
+        DefaultConfig productionConfig = new DefaultConfig(true);
+        String yggDataPath = productionConfig.getString("YGG_DATA_PATH");
+        assert yggDataPath.equals(System.getProperty("user.home") + File.separator + ".yggdrash");
     }
 
     /**
@@ -56,10 +57,10 @@ public class DefaultConfigTest {
      */
     @Test
     public void javaVersionConfigTest() {
-        assertThat(defaultConfig.getConfig().getString("java.version"), containsString("1.8"));
+        assertThat(defaultConfig.getString("java.version"), containsString("1.8"));
 
         log.debug("DefaultConfig java.version: "
-                + defaultConfig.getConfig().getString("java.version"));
+                + defaultConfig.getString("java.version"));
 
     }
 
@@ -68,10 +69,10 @@ public class DefaultConfigTest {
      */
     @Test
     public void yggdrashConfConfigTest() {
-        assertThat(defaultConfig.getConfig().getString("node.name"), containsString("yggdrash"));
+        assertThat(defaultConfig.getString("node.name"), containsString("yggdrash"));
 
         log.debug("yggdrash.conf node.name: "
-                + defaultConfig.getConfig().getString("node.name"));
+                + defaultConfig.getString("node.name"));
 
     }
 
@@ -82,13 +83,12 @@ public class DefaultConfigTest {
     @Test
     public void newConfigFileTest() {
         Config config = ConfigFactory.parseResources("yggdrash_sample.conf");
-
         DefaultConfig defaultConfig = new DefaultConfig(config);
 
-        assertThat(defaultConfig.getConfig().getString("key.path"), containsString("nodePri2.key"));
+        assertThat(defaultConfig.getString("key.path"), containsString("nodePri2.key"));
 
         log.debug("newConfigFile key.path: "
-                + defaultConfig.getConfig().getString("key.path"));
+                + defaultConfig.getString("key.path"));
 
     }
 

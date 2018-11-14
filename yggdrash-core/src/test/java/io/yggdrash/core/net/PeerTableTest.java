@@ -1,5 +1,6 @@
 package io.yggdrash.core.net;
 
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.StoreBuilder;
@@ -13,7 +14,7 @@ public class PeerTableTest {
 
     @Before
     public void setUp() {
-        StoreBuilder storeBuilder = new StoreBuilder(false);
+        StoreBuilder storeBuilder = new StoreBuilder(new DefaultConfig());
         PeerStore peerStore = storeBuilder.buildPeerStore(BranchId.NULL);
         peerTable = new PeerTable(peerStore, OWNER);
     }

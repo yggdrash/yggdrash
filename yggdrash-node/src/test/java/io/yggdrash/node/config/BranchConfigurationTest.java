@@ -29,6 +29,7 @@ import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.genesis.BranchLoader;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.WebsocketSender;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -39,7 +40,6 @@ import org.spongycastle.util.encoders.Hex;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-import org.springframework.mock.env.MockEnvironment;
 
 import java.io.File;
 import java.io.IOException;
@@ -57,18 +57,16 @@ public class BranchConfigurationTest {
 
     private PeerGroup peerGroup;
     private BranchConfiguration branchConfig;
-    private MockEnvironment mockEnv;
 
     @Before
     public void setUp() {
-        this.mockEnv = new MockEnvironment();
-        this.branchConfig = new BranchConfiguration(mockEnv);
+        this.branchConfig = new BranchConfiguration(new StoreBuilder(config));
         this.peerGroup = new PeerGroup(owner, 1);
     }
 
     @Test
     public void addStemBranchTest() throws IOException {
-        BranchGroup branchGroup = branchConfig.branchGroup();
+        BranchGroup branchGroup = getBranchGroup();
         branchConfig.stemResource = loader.getResource("classpath:/branch-stem.json");
         BlockChain blockChain = branchConfig.stem(peerGroup, branchGroup, sender);
         assert blockChain.getBranchId().equals(TestUtils.STEM);
@@ -77,13 +75,13 @@ public class BranchConfigurationTest {
 
     @Test
     public void addProductionStemBranchTest() throws IOException {
-        mockEnv.addActiveProfile("prod");
+        this.branchConfig = new BranchConfiguration(new StoreBuilder(new DefaultConfig(true)));
         addStemBranchTest();
     }
 
     @Test
     public void addYeedBranchTest() throws IOException {
-        BranchGroup branchGroup = branchConfig.branchGroup();
+        BranchGroup branchGroup = getBranchGroup();
         branchConfig.stemResource = loader.getResource("classpath:/branch-yeed.json");
         BlockChain blockChain = branchConfig.stem(peerGroup, branchGroup, sender);
         assert blockChain.getBranchId().equals(TestUtils.YEED);
@@ -96,9 +94,7 @@ public class BranchConfigurationTest {
         BranchId branchId = BranchId.of(branchJson);
 
         saveFile(branchId, branchJson);
-
-        BranchGroup branchGroup = branchConfig.branchGroup();
-        branchConfig.branchLoader(peerGroup, branchGroup, null, config);
+        BranchGroup branchGroup = getBranchGroup();
         BlockChain branch = branchGroup.getBranch(branchId);
         assert branch != null;
         assert branch.getBranchId().equals(branchId);
@@ -106,6 +102,11 @@ public class BranchConfigurationTest {
 
         File branchDir = new File(config.getBranchPath(), branchId.toString());
         FileUtils.deleteQuietly(branchDir);
+    }
+
+    private BranchGroup getBranchGroup() {
+        BranchLoader loader = branchConfig.branchLoader(config);
+        return branchConfig.branchGroup(loader, peerGroup, sender);
     }
 
     private void assertTransaction(BlockChain branch) throws IOException {

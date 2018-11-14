@@ -60,4 +60,8 @@ public class ContractMeta {
         String filePath = contractId.substring(0, 2) + File.separator + contractId + SUFFIX;
         return new File(rootPath + File.separator + filePath);
     }
+
+    static String classAsResourcePath(Class<? extends Contract> clazz) {
+        return clazz.getName().replace(".", "/") + SUFFIX;
+    }
 }

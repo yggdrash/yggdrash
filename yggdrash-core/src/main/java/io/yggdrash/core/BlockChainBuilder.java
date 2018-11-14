@@ -28,25 +28,26 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BlockChainBuilder {
+    private static final Logger log = LoggerFactory.getLogger(BlockChainBuilder.class);
 
     private GenesisBlock genesis;
-    private boolean productMode = false;
+    private StoreBuilder storeBuilder;
 
     public BlockChainBuilder addGenesis(GenesisBlock genesis) {
         this.genesis = genesis;
         return this;
     }
 
-    public BlockChainBuilder setProductMode(boolean productMode) {
-        this.productMode = productMode;
+    public BlockChainBuilder setStoreBuilder(StoreBuilder storeBuilder) {
+        this.storeBuilder = storeBuilder;
         return this;
     }
 
     public BlockChain build() {
-        StoreBuilder storeBuilder = new StoreBuilder(this.productMode);
-
         BlockHusk genesisBlock = genesis.getBlock();
         BlockStore blockStore = storeBuilder.buildBlockStore(genesisBlock.getBranchId());
         TransactionStore txStore = storeBuilder.buildTxStore(genesisBlock.getBranchId());
@@ -59,12 +60,12 @@ public class BlockChainBuilder {
     }
 
     private Contract getContract() {
-        ContractMeta contractMeta = ContractClassLoader.loadContractById(genesis.getContractId());
         try {
+            ContractMeta contractMeta = ContractClassLoader.loadContractById(
+                    storeBuilder.getConfig().getContractPath(), genesis.getContractId());
             return contractMeta.getContract().newInstance();
-        } catch (Exception e) {
-            throw new FailedOperationException("Can't load contract id="
-                    + genesis.getContractId(), e);
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new FailedOperationException(e);
         }
     }
 

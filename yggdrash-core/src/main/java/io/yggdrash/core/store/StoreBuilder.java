@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.store;
 
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
@@ -23,10 +24,14 @@ import io.yggdrash.core.store.datasource.LevelDbDataSource;
 
 public class StoreBuilder {
 
-    private final boolean isProduction;
+    private final DefaultConfig config;
 
-    public StoreBuilder(boolean isProduction) {
-        this.isProduction = isProduction;
+    public StoreBuilder(DefaultConfig config) {
+        this.config = config;
+    }
+
+    public DefaultConfig getConfig() {
+        return config;
     }
 
     public BlockStore buildBlockStore(BranchId branchId) {
@@ -45,9 +50,9 @@ public class StoreBuilder {
         return new MetaStore(getDbSource(branchId + "/meta"));
     }
 
-    private DbSource<byte[], byte[]> getDbSource(String path) {
-        if (isProduction) {
-            return new LevelDbDataSource(path);
+    private DbSource<byte[], byte[]> getDbSource(String name) {
+        if (config.isProductionMode()) {
+            return new LevelDbDataSource(config.getDatabasePath(), name);
         } else {
             return new HashMapDbSource();
         }

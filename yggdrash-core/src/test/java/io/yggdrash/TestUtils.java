@@ -41,6 +41,7 @@ import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.genesis.BranchJson;
 import io.yggdrash.core.genesis.GenesisBlock;
+import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;
 
@@ -52,7 +53,7 @@ import java.util.Random;
 
 public class TestUtils {
     public static final BranchId STEM = BranchId.of("b4e639d48bea1c26b7c72a9db94371c376779694");
-    public static final BranchId YEED = BranchId.of("3bdafd39f9dfcd056d6e305a75a4e5c636e8118d");
+    public static final BranchId YEED = BranchId.of("ba93ca9f4e0e71dd20bc3fc9b79e53df716a3f95");
 
     public static final String YGG_HOME = "testOutput";
     public static final Address TRANSFER_TO =
@@ -83,14 +84,20 @@ public class TestUtils {
     }
 
     public static void clearTestDb() {
-        String dbPath = new DefaultConfig().getDatabasePath();
+        String dbPath = new ProdDefaultConfig().getDatabasePath();
         FileUtil.recursiveDelete(Paths.get(dbPath));
     }
 
-    public static BlockChain createBlockChain(boolean isProduction) {
+    public static BlockChain createBlockChain(boolean isProductionMode) {
+        StoreBuilder storeBuilder;
+        if (isProductionMode) {
+            storeBuilder = new StoreBuilder(new ProdDefaultConfig());
+        } else {
+            storeBuilder = new StoreBuilder(new DefaultConfig());
+        }
         return BlockChainBuilder.Builder()
                 .addGenesis(genesis)
-                .setProductMode(isProduction)
+                .setStoreBuilder(storeBuilder)
                 .build();
     }
 
@@ -260,6 +267,13 @@ public class TestUtils {
             return block.toJsonObject();
         } catch (Exception e) {
             throw new NotValidateException(e);
+        }
+    }
+
+    private static class ProdDefaultConfig extends DefaultConfig {
+        ProdDefaultConfig() {
+            super();
+            this.productionMode = true;
         }
     }
 }

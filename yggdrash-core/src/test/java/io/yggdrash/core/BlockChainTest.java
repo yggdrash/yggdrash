@@ -79,7 +79,7 @@ public class BlockChainTest {
             assertThat(blockChain.getTxByHash(tx.getHash())).isNotNull();
         }
         assertThat(blockChain.countOfTxs()).isEqualTo(genesis.getBody().size());
-
+        blockChain.close();
         TestUtils.clearTestDb();
     }
 

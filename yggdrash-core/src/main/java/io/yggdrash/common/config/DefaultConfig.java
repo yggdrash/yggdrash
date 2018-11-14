@@ -24,23 +24,40 @@ public class DefaultConfig {
     private static final String PROPERTY_NETWORK_ID = "network.id";
     private static final String PROPERTY_NETWORK_P2P_VER = "network.p2p.version";
 
-    private static final String DATABASE_PATH = "database.path";
     private static final String CONTRACT_PATH = "contract.path";
     private static final String BRANCH_PATH = "branch.path";
+    private static final String DATABASE_PATH = "database.path";
+    protected boolean productionMode;
 
-    private Config config;
+    protected Config config;
 
     public DefaultConfig() {
         this(ConfigFactory.empty());
     }
 
+    public DefaultConfig(boolean productionMode) {
+        this(ConfigFactory.empty(), productionMode);
+    }
+
     public DefaultConfig(Config apiConfig) {
+        this(apiConfig, false);
+    }
+
+    public DefaultConfig(Config apiConfig, boolean productionMode) {
         try {
+            this.productionMode = productionMode;
             Config javaSystemProperties = ConfigFactory.load("no-such-resource-only-system-props");
             Config referenceConfig = ConfigFactory.parseResources("yggdrash.conf");
 
-            String userDir = System.getProperty("user.dir") + "/.yggdrash";
-            File file = new File(userDir, "admin.conf");
+            String basePath = productionMode ? System.getProperty("user.home") :
+                    System.getProperty("user.dir");
+            String yggDataPath = referenceConfig.getString("YGG_DATA_PATH");
+
+            String path = basePath + File.separator + yggDataPath;
+            Config prodConfig = ConfigFactory.parseString("YGG_DATA_PATH = " + path);
+            referenceConfig = prodConfig.withFallback(referenceConfig).resolve();
+
+            File file = new File(path, "admin.conf");
             Config adminConfig = ConfigFactory.parseFile(file);
 
             config = apiConfig
@@ -48,15 +65,14 @@ public class DefaultConfig {
                     .withFallback(referenceConfig);
 
             config = javaSystemProperties.withFallback(config).resolve();
-
         } catch (Exception e) {
             logger.error("Can't read config.");
             throw new RuntimeException(e);
         }
     }
 
-    public Config getConfig() {
-        return config;
+    public String getString(String path) {
+        return config.getString(path);
     }
 
     public String toString() {
@@ -73,6 +89,10 @@ public class DefaultConfig {
         }
 
         return "DefaultConfig{" + config.substring(0, config.length() - 1) + "}";
+    }
+
+    public boolean isProductionMode() {
+        return productionMode;
     }
 
     public String getKeyPath() {
