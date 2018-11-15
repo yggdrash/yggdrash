@@ -46,29 +46,36 @@ public class DefaultConfig {
     public DefaultConfig(Config apiConfig, boolean productionMode) {
         try {
             this.productionMode = productionMode;
-            Config javaSystemProperties = ConfigFactory.load("no-such-resource-only-system-props");
-            Config referenceConfig = ConfigFactory.parseResources("yggdrash.conf");
+            Config referenceConfig = getReferenceConfig();
 
-            String basePath = productionMode ? System.getProperty("user.home") :
-                    System.getProperty("user.dir");
-            String yggDataPath = referenceConfig.getString("YGG_DATA_PATH");
-
-            String path = basePath + File.separator + yggDataPath;
-            Config prodConfig = ConfigFactory.parseString("YGG_DATA_PATH = " + path);
-            referenceConfig = prodConfig.withFallback(referenceConfig).resolve();
-
-            File file = new File(path, "admin.conf");
+            File file = new File(referenceConfig.getString("YGG_DATA_PATH"), "admin.conf");
             Config adminConfig = ConfigFactory.parseFile(file);
 
             config = apiConfig
                     .withFallback(adminConfig)
                     .withFallback(referenceConfig);
 
+            Config javaSystemProperties = ConfigFactory.load("no-such-resource-only-system-props");
             config = javaSystemProperties.withFallback(config).resolve();
         } catch (Exception e) {
             logger.error("Can't read config.");
             throw new RuntimeException(e);
         }
+    }
+
+    private Config getReferenceConfig() {
+        Config referenceConfig = ConfigFactory.parseResources("yggdrash.conf");
+
+        String userName = System.getProperty("user.name");
+        if ("root".equals(userName) || !productionMode) {
+            return referenceConfig;
+        }
+        String basePath = System.getProperty("user.home");
+        String yggDataPath = referenceConfig.getString("YGG_DATA_PATH");
+        String path = basePath + File.separator + yggDataPath;
+        Config prodConfig = ConfigFactory.parseString("YGG_DATA_PATH = " + path);
+
+        return prodConfig.withFallback(referenceConfig).resolve();
     }
 
     public String getString(String path) {
