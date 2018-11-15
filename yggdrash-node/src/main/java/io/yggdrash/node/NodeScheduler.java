@@ -115,11 +115,10 @@ class NodeScheduler {
     }
 
     private boolean isSeedPeer(List<String> seedPeerList) {
-        String nodeUriWithouPubKey = nodeManager.getNodeUri();
-        nodeUriWithouPubKey = nodeUriWithouPubKey.substring(nodeUriWithouPubKey.indexOf("@"));
-
+        String nodeUriWithoutPubKey = nodeManager.getNodeUri();
+        nodeUriWithoutPubKey = nodeUriWithoutPubKey.substring(nodeUriWithoutPubKey.indexOf("@"));
         for (String seedPeer : seedPeerList) {
-            if (seedPeer.contains(nodeUriWithouPubKey)) {
+            if (seedPeer.contains(nodeUriWithoutPubKey)) {
                 return true;
             }
         }

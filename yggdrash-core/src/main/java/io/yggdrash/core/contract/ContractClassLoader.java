@@ -70,8 +70,10 @@ public class ContractClassLoader extends ClassLoader {
             throw new RuntimeException("Failed to create=" + targetDir.getAbsolutePath());
         }
         for (Class contract : CONTRACTS) {
+            log.debug("copyResourcesToContractPath :: contract => " + contract);
             ContractMeta contractMeta = loadContractClass(contract);
             String contractId = contractMeta.getContractId().toString();
+            log.debug("copyResourcesToContractPath :: contractId => " + contractId);
             File contractFile = ContractMeta.contractFile(contractPath, contractId);
             if (!contractFile.exists()) {
                 try {

@@ -38,6 +38,14 @@ public class CoinStandardContract extends BaseContract<BigDecimal> implements Co
      */
     @Override
     public BigDecimal allowance(JsonArray params) {
+        log.info("\n allowance :: params => " + params);
+        String owner = params.get(0).getAsJsonObject().get("owner").getAsString().toLowerCase();
+        String spender = params.get(0).getAsJsonObject().get("spender").getAsString().toLowerCase();
+
+        TransactionReceipt txReceipt = new TransactionReceipt();
+        txReceipt.putLog("owner", owner);
+        txReceipt.putLog("spender", spender);
+
         return null;
     }
 
@@ -91,8 +99,8 @@ public class CoinStandardContract extends BaseContract<BigDecimal> implements Co
      */
     @Override
     public TransactionReceipt approve(JsonArray params) {
-        // Map<spender, Map<amount, Set<owner>>
-        // spender는 amount를 owners 한테 할당받았다.
+        // Map<spender, Map<owner, Set<amount>>
+
         return null;
     }
 
@@ -106,6 +114,15 @@ public class CoinStandardContract extends BaseContract<BigDecimal> implements Co
      */
     @Override
     public TransactionReceipt transferfrom(JsonArray params) {
+        log.info("\n transferfrom :: params => " + params);
+        String from = params.get(0).getAsJsonObject().get("from").getAsString().toLowerCase();
+        String to = params.get(0).getAsJsonObject().get("to").getAsString().toLowerCase();
+        BigDecimal amount = params.get(0).getAsJsonObject().get("amount").getAsBigDecimal();
+
+        TransactionReceipt txReceipt = new TransactionReceipt();
+        txReceipt.putLog("from", from);
+        txReceipt.putLog("to", to);
+        txReceipt.putLog("amount", String.valueOf(amount));
         return null;
     }
 
