@@ -15,7 +15,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(StateController.class)
+@WebMvcTest(StemController.class)
 @Import(RefreshEndpointAutoConfiguration.class)
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
 public class StemControllerTest {

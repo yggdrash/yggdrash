@@ -17,6 +17,7 @@
 package io.yggdrash.core.contract;
 
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.core.exception.NonExistObjectException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -30,13 +31,11 @@ import java.io.InputStream;
 public class ContractClassLoader extends ClassLoader {
     private static final Logger log = LoggerFactory.getLogger(ContractClassLoader.class);
     private static final Class[] CONTRACTS = {StemContract.class, CoinContract.class,
-            NoneContract.class, MetaCoinContract.class};
+            NoneContract.class, CoinStandardContract.class};
     private static final Long MAX_FILE_LENGTH = 5242880L; // default 5MB bytes
-    private static final String CONTRACT_PATH;
 
     static {
-        CONTRACT_PATH = new DefaultConfig().getContractPath();
-        copyResourcesToContractPath();
+        copyResourcesToContractPath(new DefaultConfig().getContractPath());
     }
 
     private ContractClassLoader(ClassLoader parent) {
@@ -65,15 +64,17 @@ public class ContractClassLoader extends ClassLoader {
         return new ContractMeta(b, contract);
     }
 
-    private static void copyResourcesToContractPath() {
-        File targetDir = new File(CONTRACT_PATH);
+    public static void copyResourcesToContractPath(String contractPath) {
+        File targetDir = new File(contractPath);
         if (!targetDir.exists() && !targetDir.mkdirs()) {
             throw new RuntimeException("Failed to create=" + targetDir.getAbsolutePath());
         }
         for (Class contract : CONTRACTS) {
+            log.debug("copyResourcesToContractPath :: contract => " + contract);
             ContractMeta contractMeta = loadContractClass(contract);
             String contractId = contractMeta.getContractId().toString();
-            File contractFile = ContractMeta.contractFile(CONTRACT_PATH, contractId);
+            log.debug("copyResourcesToContractPath :: contractId => " + contractId);
+            File contractFile = ContractMeta.contractFile(contractPath, contractId);
             if (!contractFile.exists()) {
                 try {
                     FileUtils.writeByteArrayToFile(contractFile, contractMeta.getContractBinary());
@@ -85,7 +86,7 @@ public class ContractClassLoader extends ClassLoader {
     }
 
     static ContractMeta loadContractClass(Class<? extends Contract> clazz) {
-        String resourcePath = clazz.getName().replace(".", "/") + ".class";
+        String resourcePath = ContractMeta.classAsResourcePath(clazz);
         try (InputStream is = clazz.getClassLoader().getResourceAsStream(resourcePath)) {
             byte[] bytes = IOUtils.toByteArray(is);
             return new ContractMeta(bytes, clazz);
@@ -100,13 +101,13 @@ public class ContractClassLoader extends ClassLoader {
         return loader.loadContract(contractFullName, contractFile);
     }
 
-    public static ContractMeta loadContractById(String contractId) {
-        File contractFile = ContractMeta.contractFile(CONTRACT_PATH, contractId);
+    public static ContractMeta loadContractById(String contractPath, String contractId) {
+        File contractFile = ContractMeta.contractFile(contractPath, contractId);
         log.debug("Load contract={}", contractFile.getAbsolutePath());
         if (contractFile.exists()) {
             return ContractClassLoader.loadContractClass(null, contractFile);
         } else {
-            return null;
+            throw new NonExistObjectException(contractFile.getAbsolutePath());
         }
     }
 }

@@ -34,10 +34,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(StateController.class)
+@WebMvcTest(BranchController.class)
 @Import(RefreshEndpointAutoConfiguration.class)
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
-public class StateControllerTest {
+public class BranchControllerTest {
 
     @Autowired
     private MockMvc mockMvc;
@@ -63,6 +63,6 @@ public class StateControllerTest {
         mockMvc.perform(get("/branches/" + TestUtils.STEM + "/states"))
                 .andDo(print())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(2)));
+                .andExpect(jsonPath("$", hasSize(1)));
     }
 }

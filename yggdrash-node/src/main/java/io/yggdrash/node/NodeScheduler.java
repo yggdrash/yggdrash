@@ -83,7 +83,6 @@ class NodeScheduler {
         if (!isSeedPeer) {
             return;
         }
-        log.info("* I'm the SeedPeer!");
 
         List<BranchId> branchIdList = nodeManager.getActiveBranchIdList();
         for (BranchId branchId : branchIdList) {
@@ -115,11 +114,11 @@ class NodeScheduler {
     }
 
     private boolean isSeedPeer(List<String> seedPeerList) {
-        String nodeUriWithouPubKey = nodeManager.getNodeUri();
-        nodeUriWithouPubKey = nodeUriWithouPubKey.substring(nodeUriWithouPubKey.indexOf("@"));
-
+        String nodeUriWithoutPubKey = nodeManager.getNodeUri();
+        nodeUriWithoutPubKey = nodeUriWithoutPubKey.substring(nodeUriWithoutPubKey.indexOf("@"));
         for (String seedPeer : seedPeerList) {
-            if (seedPeer.contains(nodeUriWithouPubKey)) {
+            if (seedPeer.contains(nodeUriWithoutPubKey)) {
+                log.info("* I'm the SeedPeer!");
                 return true;
             }
         }

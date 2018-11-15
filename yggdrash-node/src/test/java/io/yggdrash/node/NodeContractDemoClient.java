@@ -5,30 +5,28 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.account.Address;
 import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.contract.ContractQry;
+import io.yggdrash.core.contract.ContractTx;
+import io.yggdrash.core.genesis.BranchJson;
+import io.yggdrash.core.genesis.BranchLoader;
 import io.yggdrash.node.api.JsonRpcConfig;
 import io.yggdrash.node.controller.TransactionDto;
-import org.apache.commons.codec.binary.Hex;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
-
-import static io.yggdrash.core.contract.ContractTx.createBranch;
-import static io.yggdrash.core.contract.ContractTx.createStemTxByBranch;
-import static io.yggdrash.core.contract.ContractTx.createYeedTx;
 
 public class NodeContractDemoClient {
 
@@ -79,16 +77,24 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static void sendTx() throws Exception {
-        System.out.print("[1] STEM  [2] YEED\n> ");
-        if (scan.nextLine().equals("2")) {
-            sendYeedTx();
-        } else {
-            sendStemTx();
+    private static void sendTx() {
+        System.out.print("[1] STEM  [2] YEED [3] NONE\n> ");
+        String num = scan.nextLine();
+
+        switch (num) {
+            case "2":
+                sendYeedTx();
+                break;
+            case "3":
+                sendNoneTx();
+                break;
+            default:
+                sendStemTx();
+                break;
         }
     }
 
-    private static void sendStemTx() throws Exception {
+    private static void sendStemTx() {
         JsonObject branch = getBranch();
         sendStemTx(branch, "create");
     }
@@ -97,27 +103,37 @@ public class NodeContractDemoClient {
         int times = getSendTimes();
         String serverAddress = getServerAddress();
         for (int i = 0; i < times; i++) {
-            TransactionHusk tx = createStemTxByBranch(wallet, branch, method);
+            TransactionHusk tx = ContractTx.createStemTx(wallet, branch, method);
             rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
         }
     }
 
-    private static void sendYeedTx() throws Exception {
+    private static void sendNoneTx() {
+        String branchId = getBranchId();
+        int times = getSendTimes();
+        String serverAddress = getServerAddress();
+        int amount = 1;
+        for (int i = 0; i < times; i++) {
+            TransactionHusk tx = ContractTx.createTx(BranchId.of(branchId), wallet, "", amount);
+            rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
+        }
+    }
+
+    private static void sendYeedTx() {
         System.out.println("전송할 주소를 입력해주세요 (기본값 : " + TRANSFER_TO + ")");
         System.out.println(">");
 
-        String addressHex = scan.nextLine();
-        addressHex = addressHex.length() > 0 ? addressHex : TRANSFER_TO;
-        Address address = new Address(Hex.decodeHex(addressHex));
+        String address = scan.nextLine();
+        address = address.length() > 0 ? address : TRANSFER_TO;
 
         sendYeedTx(address, TRANSFER_AMOUNT);
     }
 
-    private static void sendYeedTx(Address address, int amount) {
+    private static void sendYeedTx(String address, int amount) {
         int times = getSendTimes();
         String serverAddress = getServerAddress();
         for (int i = 0; i < times; i++) {
-            TransactionHusk tx = createYeedTx(TestUtils.YEED, wallet, address, amount);
+            TransactionHusk tx = ContractTx.createTx(TestUtils.YEED, wallet, address, amount);
             rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
         }
     }
@@ -131,7 +147,7 @@ public class NodeContractDemoClient {
         rpc.contractApi(serverAddress).query(qry.toString());
     }
 
-    private static void update() throws Exception {
+    private static void update() {
         System.out.println("수정할 .json 파일명을 입력하세요 (기본값: yeed.json)\n>");
         String json = scan.nextLine();
         if ("".equals(json)) {
@@ -161,14 +177,11 @@ public class NodeContractDemoClient {
         String contractId = scan.nextLine();
 
         if ("".equals(contractId)) {
-            contractId = branch.get("version").getAsString();
+            contractId = branch.get("contractId").getAsString();
         }
-        branch.addProperty("version", contractId);
+        branch.addProperty("contractId", contractId);
 
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(contractId);
-        branch.add("version_history", jsonArray);
-
+        BranchJson.signBranch(wallet, branch);
         BranchId branchId = BranchId.of(branch);
         saveBranchAsFile(branchId, branch);
     }
@@ -182,7 +195,7 @@ public class NodeContractDemoClient {
         rpc.accountApi(serverAddress).balanceOf(qry.toString());
     }
 
-    private static JsonObject getBranch() throws Exception {
+    private static JsonObject getBranch() {
         System.out.print("사용할 .json 파일명을 입력하세요 (기본값: yeed.seed.json)\n> ");
         String json = scan.nextLine();
 
@@ -193,8 +206,7 @@ public class NodeContractDemoClient {
         if (!json.contains("seed")) {
             return getJsonObjectFromFile("branch", json);
         } else {
-            JsonObject seed = getJsonObjectFromFile("seed", json);
-            return createBranch(seed, wallet.getHexAddress());
+            return getJsonObjectFromFile("seed", json);
         }
     }
 
@@ -214,7 +226,7 @@ public class NodeContractDemoClient {
     }
 
     private static String getBranchId() {
-        System.out.println("조회할 트랜잭션의 브랜치 아이디 : [1] STEM [2] YEED [3] etc\n>");
+        System.out.println("트랜잭션의 브랜치 아이디 : [1] STEM [2] YEED [3] etc\n>");
 
         String branchId = scan.nextLine();
         switch (branchId) {
@@ -238,28 +250,35 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static JsonObject getJsonObjectFromFile(String dir, String fileName) throws Exception {
+    private static JsonObject getJsonObjectFromFile(String dir, String fileName) {
         String seedPath = String.format("classpath:/%s/%s", dir, fileName);
-        ResourceLoader resourceLoader = new DefaultResourceLoader();
-        Resource resource = resourceLoader.getResource(seedPath);
-        Reader json = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
-        return Utils.parseJsonObject(json);
+        Resource resource = new DefaultResourceLoader().getResource(seedPath);
+        try (InputStream is = resource.getInputStream()) {
+            Reader json = new InputStreamReader(is, StandardCharsets.UTF_8);
+            JsonObject jsonObject = Utils.parseJsonObject(json);
+            if (!jsonObject.has("timestamp")) {
+                jsonObject.addProperty("timestamp", TimeUtils.hexTime());
+            }
+            return jsonObject;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private static void saveBranchAsFile(BranchId branchId, JsonObject branch) throws IOException {
-        String fileName = "branch.json";
         String json = new GsonBuilder().setPrettyPrinting().create().toJson(branch);
-        saveFile(branchId, fileName, json);
+        saveFile(branchId, json);
     }
 
-    private static void saveFile(BranchId branchId, String fileName, String json)
+    private static void saveFile(BranchId branchId, String json)
             throws IOException {
         String branchPath = new DefaultConfig().getBranchPath();
         File branchDir = new File(branchPath, branchId.toString());
         if (!branchDir.exists()) {
             branchDir.mkdirs();
         }
-        File file = new File(branchDir, fileName);
+        File file = new File(branchDir, BranchLoader.BRANCH_FILE);
         FileWriter fileWriter = new FileWriter(file); //overwritten
 
         fileWriter.write(json);

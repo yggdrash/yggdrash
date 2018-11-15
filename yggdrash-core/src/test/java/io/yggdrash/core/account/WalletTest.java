@@ -190,9 +190,9 @@ public class WalletTest {
     public void testWalletGeneration() {
 
         DefaultConfig defaultConfig = new DefaultConfig();
-        String keyFilePath = defaultConfig.getConfig().getString("key.path");
+        String keyFilePath = defaultConfig.getString("key.path");
         // TODO: change as cli interface
-        String password = defaultConfig.getConfig().getString("key.password");
+        String password = defaultConfig.getString("key.password");
 
         assertFalse("Check yggdrash.conf(key.path & key.password)",
                 Strings.isNullOrEmpty(keyFilePath) || Strings.isNullOrEmpty(password));
@@ -234,9 +234,9 @@ public class WalletTest {
     public void testWalletGenerationWithFilePath() {
 
         DefaultConfig defaultConfig = new DefaultConfig();
-        String keyFilePath = defaultConfig.getConfig().getString("key.path");
+        String keyFilePath = defaultConfig.getString("key.path");
         //TODO change as cli interface
-        String password = defaultConfig.getConfig().getString("key.password");
+        String password = defaultConfig.getString("key.password");
 
         assertFalse("Check yggdrash.conf(key.path & key.password)",
                 Strings.isNullOrEmpty(keyFilePath) || Strings.isNullOrEmpty(password));

@@ -1,17 +1,18 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.BranchId;
+import io.yggdrash.core.genesis.BranchJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class StemContract extends BaseContract<JsonObject> {
@@ -30,15 +31,9 @@ public class StemContract extends BaseContract<JsonObject> {
 
     public TransactionReceipt genesis(JsonArray params) {
         if (state.getState().size() == 0) {
+            TransactionReceipt receipt = create(params);
             log.info("[StemContract | genesis] SUCCESS! params => " + params);
-            JsonParser jsonParser = new JsonParser();
-            for (int i = 0; i < params.size(); i++) {
-                JsonObject jsonObject = params.get(i).getAsJsonObject();
-                String branchStr = jsonObject.get("branch").getAsString();
-                JsonObject branch = (JsonObject) jsonParser.parse(branchStr);
-                jsonObject.add("branch", branch);
-            }
-            return create(params);
+            return receipt;
         }
         return new TransactionReceipt();
     }
@@ -46,46 +41,50 @@ public class StemContract extends BaseContract<JsonObject> {
     /**
      * Returns the id of a registered branch
      *
-     * @param params branchId : The Id of the branch to create
-     *               branch   : The branch.json to register on the stem
+     * @param params branch   : The branch.json to register on the stem
      */
     public TransactionReceipt create(JsonArray params) {
 
         TransactionReceipt txReceipt = new TransactionReceipt();
-        txReceipt.setStatus(0);
-        for (int i = 0; i < params.size(); i++) {
-            String branchId = params.get(i).getAsJsonObject().get("branchId").getAsString();
-            JsonObject branch = params.get(i).getAsJsonObject().get("branch").getAsJsonObject();
+        JsonObject branchObject = params.get(0).getAsJsonObject();
 
-            HashMap map = Utils.convertJsonToMap(branch);
-            if (map != null) {
-                txReceipt.putLog(branchId, map);
-                /*
-                TODO ContractEvent advancement required.
-                txReceipt.putLog("branchId", branchId);
-                txReceipt.putLog("branch", map);
-                */
+        for (Map.Entry<String, JsonElement> entry : branchObject.entrySet()) {
+            BranchId branchId = BranchId.of(entry.getKey());
+            JsonObject jsonObjectBranch = entry.getValue().getAsJsonObject();
+            BranchJson branchJson;
+            try {
+                branchJson = BranchJson.toBranchJson(jsonObjectBranch);
+            } catch (IOException e) {
+                log.warn("Failed to convert BranchJson = {}", jsonObjectBranch);
+                continue;
             }
-
-            //log.info("[StemContract | create] (param) branch => " + branch);
-            // 1. The type of the branch must be one of types.
-            // 2. The reference_address of the branch must be contained to branchStore.
-            //    (In case of the branch has the reference_address)
-
-            String refAddress = branch.get("reference_address").getAsString();
-            String type = branch.get("type").getAsString();
-            String owner = branch.get("owner").getAsString();
-            //if (this.sender != null && isOwnerValid(owner)) {
-            if (verify(refAddress, type)) {
-                if (isBranchIdValid(BranchId.of(branchId), branch)) {
-                    state.put(branchId, branch);
-                    setSubState(branchId, branch);
-                    //log.info("[StemContract | create] SUCCESS! branchId => " + branchId);
-                    txReceipt.setStatus(TransactionReceipt.SUCCESS);
-                }
+            txReceipt.putLog(branchId.toString(), branchJson);
+            state.put(branchId.toString(), jsonObjectBranch);
+            if (isBranchIdValid(branchId, jsonObjectBranch)) {
+                addAdditionalProperty(jsonObjectBranch);
+                state.put(branchId.toString(), jsonObjectBranch);
+                setSubState(branchId.toString(), jsonObjectBranch);
+                log.info("\nBranch id : " + branchId.toString()
+                        + "\nBranch info : " + jsonObjectBranch);
+                //if (this.sender != null && isOwnerValid(owner)) {
+                txReceipt.setStatus(TransactionReceipt.SUCCESS);
             }
         }
         return txReceipt;
+    }
+
+    private void addAdditionalProperty(JsonObject branch) {
+        if (!branch.has("type")) {
+            branch.addProperty("type", "immunity");
+        }
+        if (!branch.has("tag")) {
+            branch.addProperty("tag", "0.1");
+        }
+        if (!branch.has("contractHistory")) {
+            JsonArray contractHistory = new JsonArray();
+            contractHistory.add(branch.get("contractId").getAsString());
+            branch.add("contractHistory", contractHistory);
+        }
     }
 
     /**
@@ -95,33 +94,26 @@ public class StemContract extends BaseContract<JsonObject> {
      *               branch   The branch.json to update on the stem
      */
     public TransactionReceipt update(JsonArray params) {
-        String branchId = params.get(0).getAsJsonObject().get("branchId").getAsString();
-        JsonObject branch = params.get(0).getAsJsonObject().get("branch").getAsJsonObject();
-
+        JsonObject branchObject = params.get(0).getAsJsonObject();
         TransactionReceipt txReceipt = new TransactionReceipt();
-        HashMap map = Utils.convertJsonToMap(branch);
-        if (map != null) {
-            txReceipt.putLog(branchId, map);
-            /*
-            TODO ContractEvent advancement required.
-            txReceipt.putLog("branchId", branchId);
-            txReceipt.putLog("branch", map);
-            */
-        }
+        for (Map.Entry<String, JsonElement> entry : branchObject.entrySet()) {
+            BranchId branchId = BranchId.of(entry.getKey());
+            JsonObject jsonObjectBranch = entry.getValue().getAsJsonObject();
+            BranchJson branchJson;
+            try {
+                branchJson = BranchJson.toBranchJson(jsonObjectBranch);
+                txReceipt.putLog(branchId.toString(), branchJson);
+            } catch (IOException e) {
+                log.warn("Failed to convert BranchJson = {}", jsonObjectBranch);
+                continue;
+            }
 
-        String owner = branch.get("owner").getAsString();
-        if (this.sender != null && isOwnerValid(owner)) {
-            if (isBranchIdValid(BranchId.of(branchId), branch)) {
-                /*
-                if (isVersionHistoryUpdated(branchId, branch)) {
-                    log.info("[StemContract | update] branchId => " + branchId);
-                    log.info("[StemContract | update] branch => " + branch);
-                    state.replace(branchId, branch);
-                    txReceipt.setStatus(1);
-                }
-                */
+            if (this.sender != null && isOwnerValid(branchJson.owner)) {
+                addAdditionalProperty(jsonObjectBranch);
+                state.replace(branchId.toString(), jsonObjectBranch);
                 txReceipt.setStatus(TransactionReceipt.SUCCESS);
-                state.replace(branchId, branch);
+                log.info("[StemContract | update] branchId => " + branchId);
+                log.info("[StemContract | update] branch => " + jsonObjectBranch);
             }
         }
         return txReceipt;
@@ -167,11 +159,11 @@ public class StemContract extends BaseContract<JsonObject> {
         String branchId = params.get(0).getAsJsonObject().get("branchId")
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
-            JsonArray versionHistory = getBranch(BranchId.of(branchId))
-                    .get("version_history").getAsJsonArray();
-            int index = versionHistory.size() - 1;
+            JsonArray contractHistory = getBranch(BranchId.of(branchId))
+                    .get("contractHistory").getAsJsonArray();
+            int index = contractHistory.size() - 1;
 
-            return versionHistory.get(index).getAsString();
+            return contractHistory.get(index).getAsString();
         }
         return "";
     }
@@ -185,7 +177,7 @@ public class StemContract extends BaseContract<JsonObject> {
         String branchId = params.get(0).getAsJsonObject().get("branchId")
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
-            return getBranch(BranchId.of(branchId)).get("version_history").getAsJsonArray();
+            return getBranch(BranchId.of(branchId)).get("contractHistory").getAsJsonArray();
         }
         return new JsonArray();
     }
@@ -200,10 +192,6 @@ public class StemContract extends BaseContract<JsonObject> {
         return state.getAllKey();
     }
 
-    private boolean verify(String refAddress, String type) {
-        return isRefAddressValid(refAddress) && isTypeValid(type);
-    }
-
     private boolean isBranchExist(String branchId) {
         return state.get(branchId) != null;
     }
@@ -212,33 +200,8 @@ public class StemContract extends BaseContract<JsonObject> {
         return this.sender.equals(owner);
     }
 
-    private boolean isRefAddressValid(String key) {
-        if (!key.isEmpty() && state.get(key) == null) {
-            log.warn("[Validation] reference_address is not valid");
-            return false;
-        }
-        return true;
-    }
-
-    private boolean isTypeValid(String key) {
-        if (!types.contains(key)) {
-            log.warn("[Validation] type is not valid");
-            return false;
-        }
-        return true;
-    }
-
     private boolean isBranchIdValid(BranchId branchId, JsonObject branch) {
-        if (branchId.equals(BranchId.of(branch))) {
-            if (branch.get("version").getAsString().equals(branch.get("version_history")
-                    .getAsJsonArray().get(0).getAsString())) {
-                return true;
-            } else {
-                log.warn("[Validation] version or version_history is not valid");
-            }
-        }
-        log.warn("[Validation] branchId is not valid");
-        return false;
+        return BranchId.of(branch).equals(branchId);
     }
 
     private JsonObject getBranch(BranchId branchId) {
@@ -256,8 +219,6 @@ public class StemContract extends BaseContract<JsonObject> {
                 branch.get("owner").getAsString(), branchId);
         state.putSubState("symbol",
                 branch.get("symbol").getAsString(), branchId);
-        state.putSubState("tag",
-                branch.get("tag").getAsString(), branchId);
 
         printSubState();
     }
@@ -273,7 +234,5 @@ public class StemContract extends BaseContract<JsonObject> {
                 + state.getSubState("owner").toString());
         log.trace("[StemContract | printSubState] symbolState => "
                 + state.getSubState("symbol").toString());
-        log.trace("[StemContract | printSubState] tagState => "
-                + state.getSubState("tag").toString());
     }
 }

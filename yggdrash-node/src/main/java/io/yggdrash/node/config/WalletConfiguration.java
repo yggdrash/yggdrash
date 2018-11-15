@@ -18,18 +18,27 @@ package io.yggdrash.node.config;
 
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.store.StoreBuilder;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 @Configuration
 public class WalletConfiguration {
 
     @Bean
-    DefaultConfig defaultConfig() {
-        return new DefaultConfig();
+    DefaultConfig defaultConfig(Environment env) {
+        boolean isProductionMode = Arrays.asList(env.getActiveProfiles()).contains("prod");
+        return new DefaultConfig(isProductionMode);
+    }
+
+    @Bean
+    StoreBuilder storeBuilder(DefaultConfig defaultConfig) {
+        return new StoreBuilder(defaultConfig);
     }
 
     @Bean

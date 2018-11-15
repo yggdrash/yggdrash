@@ -1,9 +1,11 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.TestUtils;
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.store.StoreBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -17,6 +19,7 @@ public class PeerGroupTest {
     private static final BranchId BRANCH = TestUtils.STEM;
     private static final BranchId OTHER_BRANCH = TestUtils.YEED;
     private static final Peer OWNER = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
+    private static final StoreBuilder storeBuilder = new StoreBuilder(new DefaultConfig());
 
     private PeerGroup peerGroup;
     private TransactionHusk tx;
@@ -25,8 +28,8 @@ public class PeerGroupTest {
     public void setUp() {
         this.peerGroup = new PeerGroup(OWNER, MAX_PEERS);
         this.tx = TestUtils.createTransferTxHusk();
-        peerGroup.addPeerTable(BRANCH, false);
-        peerGroup.addPeerTable(OTHER_BRANCH, false);
+        peerGroup.addPeerTable(BRANCH, storeBuilder.buildPeerStore(BRANCH));
+        peerGroup.addPeerTable(OTHER_BRANCH, storeBuilder.buildPeerStore(OTHER_BRANCH));
     }
 
     @Test

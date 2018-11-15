@@ -85,7 +85,7 @@ public class BranchGroup {
         branches.get(branchId).generateBlock(wallet);
     }
 
-    public BlockHusk addBlock(BlockHusk block) {
+    BlockHusk addBlock(BlockHusk block) {
         return addBlock(block, true);
     }
 

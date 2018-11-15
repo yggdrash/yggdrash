@@ -48,4 +48,20 @@ public class ContractQry {
 
         return params;
     }
+
+    static JsonArray createYeedGenesisParams(String key, String value) {
+        JsonObject balance = new JsonObject();
+        balance.addProperty("balance", value);
+
+        JsonObject alloc = new JsonObject();
+        alloc.add(key, balance);
+
+        JsonObject param = new JsonObject();
+        param.add("alloc", alloc);
+
+        JsonArray params = new JsonArray();
+        params.add(param);
+
+        return params;
+    }
 }

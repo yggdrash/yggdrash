@@ -168,7 +168,9 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
     private void nodeDiscovery(BranchId branchId) {
         for (String ynodeUri : peerGroup.getBootstrappingSeedList(branchId)) {
-            if (ynodeUri.equals(peerGroup.getOwner().getYnodeUri())) {
+            String ynodeUriWithoutPubKey = peerGroup.getOwner().getYnodeUri()
+                    .substring(ynodeUri.indexOf("@"));
+            if (ynodeUri.contains(ynodeUriWithoutPubKey)) {
                 continue;
             }
             Peer peer = Peer.valueOf(ynodeUri);

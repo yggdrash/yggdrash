@@ -65,11 +65,11 @@ public class AdminApiImpl implements AdminApi {
         this.request = request;
         this.restartEndpoint = restartEndpoint;
 
-        this.adminMode = defaultConfig.getConfig().getString("admin.mode");
-        this.adminIp = defaultConfig.getConfig().getString("admin.ip");
-        this.adminPubKey = Hex.decode(defaultConfig.getConfig().getString("admin.pubKey"));
+        this.adminMode = defaultConfig.getString("admin.mode");
+        this.adminIp = defaultConfig.getString("admin.ip");
+        this.adminPubKey = Hex.decode(defaultConfig.getString("admin.pubKey"));
 
-        COMMAND_ACTIVE_TIME = defaultConfig.getConfig().getInt("admin.commandTime") * 1000;
+        COMMAND_ACTIVE_TIME = defaultConfig.getInt("admin.commandTime") * 1000;
     }
 
     @Override
@@ -172,8 +172,7 @@ public class AdminApiImpl implements AdminApi {
             case "setConfig":
                 try {
 
-                    String userDir = System.getProperty("user.dir") + "/.yggdrash";
-                    File file = new File(userDir, "admin.conf");
+                    File file = new File(defaultConfig.getYggDataPath(), "admin.conf");
                     Set<PosixFilePermission> perms = new HashSet<>();
 
                     if (file.exists()) {

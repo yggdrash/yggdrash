@@ -16,22 +16,21 @@
 
 package io.yggdrash.core.genesis;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 
 public class BranchLoader {
+    public static final String BRANCH_FILE = "branch.json";
     private static final Logger log = LoggerFactory.getLogger(BranchLoader.class);
-
-    private static final String BRANCH_FILE = "branch.json";
 
     private final File branchRoot;
     private final List<GenesisBlock> genesisBlockList = new ArrayList<>();
+
 
     public BranchLoader(String branchPath) {
         this.branchRoot = new File(branchPath);
@@ -42,14 +41,11 @@ public class BranchLoader {
     }
 
     private void load() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
         for (File branchDir : branchRoot.listFiles()) {
             File branchFile = new File(branchDir, BRANCH_FILE);
-            try {
-                BranchJson branchJson = objectMapper.readValue(branchFile, BranchJson.class);
-                branchJson.branchId = branchDir.getName();
+            try (FileInputStream is = new FileInputStream(branchFile)) {
+                BranchJson branchJson = BranchJson.toBranchJson(is);
+                branchJson.verify();
                 genesisBlockList.add(new GenesisBlock(branchJson));
             } catch (Exception e) {
                 log.error(e.getMessage());
@@ -60,4 +56,5 @@ public class BranchLoader {
     public List<GenesisBlock> getGenesisBlockList() {
         return genesisBlockList;
     }
+
 }

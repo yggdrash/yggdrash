@@ -22,7 +22,6 @@ import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.store.PeerStore;
-import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
@@ -78,12 +77,10 @@ public class PeerGroup implements BranchEventListener {
         return seedPeerList;
     }
 
-    public void addPeerTable(BranchId branchId, boolean isProduction) {
+    public void addPeerTable(BranchId branchId, PeerStore peerStore) {
         if (peerTables.containsKey(branchId)) {
             throw new DuplicatedException(branchId.toString() + " branch duplicated");
         }
-        StoreBuilder storeBuilder = new StoreBuilder(isProduction);
-        PeerStore peerStore = storeBuilder.buildPeerStore(branchId);
         PeerTable peerTable = new PeerTable(peerStore, owner);
         peerTables.put(branchId, peerTable);
     }
@@ -149,10 +146,10 @@ public class PeerGroup implements BranchEventListener {
     }
 
     boolean isPeerEmpty(BranchId branchId) {
-        if (peerTables.containsKey(branchId)) {
-            return peerTables.get(branchId).getPeersCount() == 0;
-        } else {
+        if (!peerTables.containsKey(branchId)) {
             return true;
+        } else {
+            return peerTables.get(branchId).getPeersCount() == 0;
         }
     }
 

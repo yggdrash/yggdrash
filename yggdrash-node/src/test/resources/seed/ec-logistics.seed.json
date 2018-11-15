@@ -1,11 +1,8 @@
 {
-  "name":"EC Logistics",
-  "symbol":"ECL",
-  "property":"service",
-  "type":"mutable",
-  "description":"Looking for an efficient and cost-saving logistics service? You just found EC Logistics!",
-  "tag":0.1,
-  "version":"0x24970f40362ee01468d90c2b370093db67a368315bd9141055415033c8eb4886",
-  "reference_address":"",
-  "reserve_address":"0xf4e6e6fa97e10ddc057c94f501b94c1d24ef85aa"
+  "name": "EC Logistics",
+  "symbol": "ECL",
+  "property": "service",
+  "description": "Looking for an efficient and cost-saving logistics service? You just found EC Logistics!",
+  "contractId": "91d64aa71525f24da7c1c63620705039b4fb93e9",
+  "genesis": {}
 }

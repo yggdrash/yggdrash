@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.store.datasource;
 
-import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.FileUtil;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBIterator;
@@ -47,11 +46,6 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
 
     private boolean alive;
     private DB db;
-
-    public LevelDbDataSource(String name) {
-        this.dbPath = new DefaultConfig().getDatabasePath();
-        this.name = name;
-    }
 
     public LevelDbDataSource(String dbPath, String name) {
         this.dbPath = dbPath;

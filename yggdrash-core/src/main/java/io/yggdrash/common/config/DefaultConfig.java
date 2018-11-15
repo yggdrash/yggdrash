@@ -17,6 +17,7 @@ import java.util.NoSuchElementException;
 public class DefaultConfig {
 
     private static final Logger logger = LoggerFactory.getLogger("general");
+    private static final String YGG_DATA_PATH = "YGG_DATA_PATH";
     private static final String PROPERTY_KEYPATH = "key.path";
     private static final String PROPERTY_KEYPASSWORD = "key.password"; // todo: change to CLI
     private static final String PROPERTY_NODE_NAME = "node.name";
@@ -24,39 +25,72 @@ public class DefaultConfig {
     private static final String PROPERTY_NETWORK_ID = "network.id";
     private static final String PROPERTY_NETWORK_P2P_VER = "network.p2p.version";
 
-    private static final String DATABASE_PATH = "database.path";
     private static final String CONTRACT_PATH = "contract.path";
     private static final String BRANCH_PATH = "branch.path";
+    private static final String DATABASE_PATH = "database.path";
+    protected boolean productionMode;
 
-    private Config config;
+    protected Config config;
 
     public DefaultConfig() {
         this(ConfigFactory.empty());
     }
 
-    public DefaultConfig(Config apiConfig) {
-        try {
-            Config javaSystemProperties = ConfigFactory.load("no-such-resource-only-system-props");
-            Config referenceConfig = ConfigFactory.parseResources("yggdrash.conf");
+    public DefaultConfig(boolean productionMode) {
+        this(ConfigFactory.empty(), productionMode);
+    }
 
-            String userDir = System.getProperty("user.dir") + "/.yggdrash";
-            File file = new File(userDir, "admin.conf");
+    public DefaultConfig(Config apiConfig) {
+        this(apiConfig, false);
+    }
+
+    public DefaultConfig(Config apiConfig, boolean productionMode) {
+        try {
+            this.productionMode = productionMode;
+            Config referenceConfig = getReferenceConfig();
+
+            File file = new File(referenceConfig.getString(YGG_DATA_PATH), "admin.conf");
             Config adminConfig = ConfigFactory.parseFile(file);
 
             config = apiConfig
                     .withFallback(adminConfig)
                     .withFallback(referenceConfig);
 
+            Config javaSystemProperties = ConfigFactory.load("no-such-resource-only-system-props");
             config = javaSystemProperties.withFallback(config).resolve();
-
         } catch (Exception e) {
             logger.error("Can't read config.");
             throw new RuntimeException(e);
         }
     }
 
-    public Config getConfig() {
-        return config;
+    private Config getReferenceConfig() {
+        Config referenceConfig = ConfigFactory.parseResources("yggdrash.conf");
+
+        String userName = System.getProperty("user.name");
+        String basePath;
+        if ("root".equals(userName)) {
+            basePath = System.getProperty("user.dir");
+        } else if (productionMode) {
+            basePath = System.getProperty("user.home");
+        } else {
+            basePath = System.getProperty("user.dir");
+        }
+
+        String yggDataPath = referenceConfig.getString(YGG_DATA_PATH);
+        String path = basePath + File.separator + yggDataPath;
+        path = path.replace("//", "/");
+        Config prodConfig = ConfigFactory.parseString(YGG_DATA_PATH + " = " + path);
+
+        return prodConfig.withFallback(referenceConfig).resolve();
+    }
+
+    public String getString(String path) {
+        return config.getString(path);
+    }
+
+    public int getInt(String path) {
+        return config.getInt(path);
     }
 
     public String toString() {
@@ -73,6 +107,10 @@ public class DefaultConfig {
         }
 
         return "DefaultConfig{" + config.substring(0, config.length() - 1) + "}";
+    }
+
+    public boolean isProductionMode() {
+        return productionMode;
     }
 
     public String getKeyPath() {
@@ -109,6 +147,10 @@ public class DefaultConfig {
 
     public String getBranchPath() {
         return config.getString(BRANCH_PATH);
+    }
+
+    public String getYggDataPath() {
+        return config.getString(YGG_DATA_PATH);
     }
 
     enum Network {
