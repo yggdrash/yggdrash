@@ -3,6 +3,7 @@ package io.yggdrash.common.config;
 import java.math.BigInteger;
 
 public class Constants {
+    public static final String STEM = "STEM";
 
     private static final BigInteger SECP256K1N = new BigInteger("fffffffffffffffffffffffffff"
             + "ffffebaaedce6af48a03bbfd25e8cd0364141", 16);

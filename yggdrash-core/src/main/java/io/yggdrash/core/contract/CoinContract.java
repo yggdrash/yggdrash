@@ -1,9 +1,11 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 public class CoinContract extends BaseContract<BigDecimal> {
 
@@ -25,19 +27,22 @@ public class CoinContract extends BaseContract<BigDecimal> {
      */
     public TransactionReceipt genesis(JsonArray params) {
         TransactionReceipt txReceipt = new TransactionReceipt();
-        if (state.getState().size() == 0) {
-            log.info("\n genesis :: params => " + params);
-            for (int i = 0; i < params.size(); i++) {
-                JsonObject jsonObject = params.get(i).getAsJsonObject();
-                String frontier = jsonObject.get("frontier").getAsString();
-                BigDecimal balance = jsonObject.get("balance").getAsBigDecimal();
-                txReceipt.putLog(String.format("frontier[%d]", i), frontier);
-                txReceipt.putLog(String.format("balance[%d]", i), balance);
-                state.put(frontier, balance);
-                txReceipt.setStatus(TransactionReceipt.SUCCESS);
-                log.info("\nAddress of Frontier : " + frontier
-                        + "\nBalance of Frontier : " + balance);
-            }
+        if (state.getState().size() > 0) {
+            return txReceipt;
+        }
+        log.info("\n genesis :: params => " + params);
+        JsonObject json = params.get(0).getAsJsonObject();
+        JsonObject alloc = json.get("alloc").getAsJsonObject();
+
+        for (Map.Entry<String, JsonElement> entry : alloc.entrySet()) {
+            String frontier = entry.getKey();
+            JsonObject value = entry.getValue().getAsJsonObject();
+            BigDecimal balance = value.get("balance").getAsBigDecimal();
+            txReceipt.putLog(frontier, balance);
+            state.put(frontier, balance);
+            txReceipt.setStatus(TransactionReceipt.SUCCESS);
+            log.info("\nAddress of Frontier : " + frontier
+                    + "\nBalance of Frontier : " + balance);
         }
         return txReceipt;
     }

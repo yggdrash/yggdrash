@@ -18,6 +18,7 @@ package io.yggdrash.core.contract;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.TestUtils;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.Transaction;
@@ -25,72 +26,46 @@ import io.yggdrash.core.TransactionBody;
 import io.yggdrash.core.TransactionHeader;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionSignature;
-import io.yggdrash.core.account.Address;
 import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.genesis.BranchJson;
 
 public class ContractTx {
 
-    public static TransactionHusk createStemTxBySeed(BranchId stemBranchId, Wallet wallet,
-                                                     JsonObject seed, String method) {
-        JsonArray versionHistory = new JsonArray();
-        versionHistory.add(seed.get("version").getAsString());
-        if (!seed.has("owner")) {
-            seed.addProperty("owner", wallet.getHexAddress());
+    public static TransactionHusk createStemTx(Wallet wallet, JsonObject branch, String method) {
+        if (!branch.has("genesis")) {
+            branch.add("genesis", new JsonObject());
         }
-        if (!seed.has("timestamp")) {
-            seed.addProperty("timestamp", System.currentTimeMillis());
+        if (!branch.has("timestamp")) {
+            branch.addProperty("timestamp", TimeUtils.hexTime());
         }
-        seed.add("version_history", versionHistory);
-
-        BranchId branchId = BranchId.of(seed);
-
-        return createTx(wallet, stemBranchId, createStemTxBody(branchId, seed, method));
-    }
-
-    public static TransactionHusk createStemTxByBranch(
-            Wallet wallet, JsonObject branch, String method) {
+        BranchJson.signBranch(wallet, branch);
         BranchId branchId = BranchId.of(branch);
-
-        return createTx(wallet, branchId, createStemTxBody(branchId, branch, method));
+        JsonArray txBody = txBodyJson(createStemParams(branchId, branch), method);
+        return createTx(wallet, TestUtils.STEM, txBody);
     }
 
-    public static JsonObject createBranch(JsonObject branch, String owner) {
-        JsonArray versionHistory = new JsonArray();
-        versionHistory.add(branch.get("version").getAsString());
-        branch.addProperty("owner", owner);
-        branch.addProperty("timestamp", System.currentTimeMillis());
-        branch.add("version_history", versionHistory);
-
-        return branch;
+    public static TransactionHusk createTx(BranchId branchId, Wallet wallet, String to,
+                                           long amount) {
+        return createTx(wallet, branchId, createTxBody(to, amount));
     }
 
-    public static TransactionHusk createYeedTx(BranchId branchId, Wallet wallet, Address to,
-                                               long amount) {
-        return createTx(wallet, branchId, createYeedTxBody(to, amount));
+    private static TransactionHusk createTx(Wallet wallet, BranchId txBranchId, JsonArray txBody) {
+        return new TransactionHusk(txBodyJson(wallet, txBranchId, txBody));
     }
 
-    private static TransactionHusk createTx(Wallet wallet, BranchId txBranchId, JsonArray body) {
-        return new TransactionHusk(txBodyJson(wallet, txBranchId, body));
-    }
-
-    private static JsonArray createStemParams(BranchId branchId, JsonObject branch) {
+    static JsonArray createStemParams(BranchId branchId, JsonObject branch) {
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.addProperty("branchId", branchId.toString());
-        param.add("branch", branch);
+        param.add(branchId.toString(), branch);
         params.add(param);
 
         return params;
     }
 
-    private static JsonArray createStemTxBody(BranchId branchId, JsonObject branch, String method) {
-        return txBodyJson(createStemParams(branchId, branch), method);
-    }
-
-    private static JsonArray createYeedTxBody(Address to, long amount) {
+    private static JsonArray createTxBody(String to, long amount) {
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.addProperty("address", to.toString());
+        param.addProperty("address", to);
         param.addProperty("amount", amount);
         params.add(param);
 

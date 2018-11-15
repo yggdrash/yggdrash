@@ -5,8 +5,7 @@ logging:
 
 yggdrash:
   branch:
-    name-list:
-    #- "yeed"
+    default.active: true
   node:
     grpc.host: "localhost"
     grpc.port: 32918
@@ -25,5 +24,3 @@ spring:
   output:
     ansi:
       enabled: always
-
-

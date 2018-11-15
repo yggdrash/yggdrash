@@ -1,13 +1,8 @@
 {
-  "name":"Sacred Water",
-  "owner":"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
-  "symbol":"SW",
-  "property":"reputation",
-  "type":"immunity",
-  "timestamp":1536756751728,
-  "description":"Reputation Score Evaluation Chain. Contribute your time and benefit the ecosystem to earn a higher reputation score.",
-  "tag":0.1,
-  "version":"0xebe69520b56c81e1ad2ceec4c2f9ed9405376fa56e9a9713a026fb305989e042",
-  "reference_address":"",
-  "reserve_address":"0x2831de120827570cf8c7cfcb9b788c222e307de4"
+  "name": "Sacred Water",
+  "symbol": "SW",
+  "property": "reputation",
+  "description": "Reputation Score Evaluation Chain. Contribute your time and benefit the ecosystem to earn a higher reputation score.",
+  "contractId": "91d64aa71525f24da7c1c63620705039b4fb93e9",
+  "genesis": {}
 }

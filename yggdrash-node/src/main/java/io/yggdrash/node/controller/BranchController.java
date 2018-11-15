@@ -43,8 +43,8 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("branches")
-public class StateController {
-    private static final Logger log = LoggerFactory.getLogger(StateController.class);
+public class BranchController {
+    private static final Logger log = LoggerFactory.getLogger(BranchController.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final BranchGroup branchGroup;
@@ -54,7 +54,7 @@ public class StateController {
     }
 
     @Autowired
-    public StateController(BranchGroup branchGroup) {
+    public BranchController(BranchGroup branchGroup) {
         this.branchGroup = branchGroup;
     }
 

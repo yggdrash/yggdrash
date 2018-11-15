@@ -24,39 +24,62 @@ public class DefaultConfig {
     private static final String PROPERTY_NETWORK_ID = "network.id";
     private static final String PROPERTY_NETWORK_P2P_VER = "network.p2p.version";
 
-    private static final String DATABASE_PATH = "database.path";
     private static final String CONTRACT_PATH = "contract.path";
     private static final String BRANCH_PATH = "branch.path";
+    private static final String DATABASE_PATH = "database.path";
+    protected boolean productionMode;
 
-    private Config config;
+    protected Config config;
 
     public DefaultConfig() {
         this(ConfigFactory.empty());
     }
 
-    public DefaultConfig(Config apiConfig) {
-        try {
-            Config javaSystemProperties = ConfigFactory.load("no-such-resource-only-system-props");
-            Config referenceConfig = ConfigFactory.parseResources("yggdrash.conf");
+    public DefaultConfig(boolean productionMode) {
+        this(ConfigFactory.empty(), productionMode);
+    }
 
-            String userDir = System.getProperty("user.dir") + "/.yggdrash";
-            File file = new File(userDir, "admin.conf");
+    public DefaultConfig(Config apiConfig) {
+        this(apiConfig, false);
+    }
+
+    public DefaultConfig(Config apiConfig, boolean productionMode) {
+        try {
+            this.productionMode = productionMode;
+            Config referenceConfig = getReferenceConfig();
+
+            File file = new File(referenceConfig.getString("YGG_DATA_PATH"), "admin.conf");
             Config adminConfig = ConfigFactory.parseFile(file);
 
             config = apiConfig
                     .withFallback(adminConfig)
                     .withFallback(referenceConfig);
 
+            Config javaSystemProperties = ConfigFactory.load("no-such-resource-only-system-props");
             config = javaSystemProperties.withFallback(config).resolve();
-
         } catch (Exception e) {
             logger.error("Can't read config.");
             throw new RuntimeException(e);
         }
     }
 
-    public Config getConfig() {
-        return config;
+    private Config getReferenceConfig() {
+        Config referenceConfig = ConfigFactory.parseResources("yggdrash.conf");
+
+        String userName = System.getProperty("user.name");
+        if ("root".equals(userName) || !productionMode) {
+            return referenceConfig;
+        }
+        String basePath = System.getProperty("user.home");
+        String yggDataPath = referenceConfig.getString("YGG_DATA_PATH");
+        String path = basePath + File.separator + yggDataPath;
+        Config prodConfig = ConfigFactory.parseString("YGG_DATA_PATH = " + path);
+
+        return prodConfig.withFallback(referenceConfig).resolve();
+    }
+
+    public String getString(String path) {
+        return config.getString(path);
     }
 
     public String toString() {
@@ -73,6 +96,10 @@ public class DefaultConfig {
         }
 
         return "DefaultConfig{" + config.substring(0, config.length() - 1) + "}";
+    }
+
+    public boolean isProductionMode() {
+        return productionMode;
     }
 
     public String getKeyPath() {

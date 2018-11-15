@@ -24,15 +24,21 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
 @Controller
 @RequestMapping("stem/**")
 public class StemController {
-    private final BranchId stemBranchId;
 
     @Autowired(required = false)
-    public StemController(@Qualifier("stem") BlockChain blockChain) {
+    @Qualifier("stem")
+    private BlockChain blockChain;
+
+    private BranchId stemBranchId;
+
+    @PostConstruct
+    public void init() {
         this.stemBranchId = blockChain == null ? BranchId.NULL : blockChain.getBranchId();
     }
 

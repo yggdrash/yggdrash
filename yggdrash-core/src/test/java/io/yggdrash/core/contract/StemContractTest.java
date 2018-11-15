@@ -34,8 +34,8 @@ public class StemContractTest {
     private static final Logger log = LoggerFactory.getLogger(StemContractTest.class);
 
     private StemContract stemContract;
-    private JsonObject referenceBranch;
-    private String referenceBranchAddress;
+    private JsonObject jsonObjectBranch;
+    private BranchId branchId;
 
     @Before
     public void setUp() {
@@ -44,61 +44,36 @@ public class StemContractTest {
 
         stemContract = new StemContract();
         stemContract.init(stateStore, txReceiptStore);
-
-        referenceBranch = TestUtils.getSampleBranch1();
-        BranchId referenceBranchId = BranchId.of(referenceBranch);
-        referenceBranchAddress = referenceBranchId.toString();
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("branchId", referenceBranchAddress);
-        param.add("branch", referenceBranch);
-        params.add(param);
-        stemContract.create(params);
-
-        JsonObject referenceBranch2 = TestUtils.getSampleBranch2();
-        BranchId referenceBranch2Id = BranchId.of(referenceBranch2);
-
-        param.addProperty("branchId", referenceBranch2Id.toString());
-        param.add("branch", referenceBranch2);
+        jsonObjectBranch = TestUtils.getSampleBranch();
+        stemContract.sender = jsonObjectBranch.get("owner").getAsString();
+        branchId = BranchId.of(jsonObjectBranch);
+        JsonArray params = ContractTx.createStemParams(branchId, jsonObjectBranch);
         stemContract.create(params);
     }
 
     @Test
     public void createTest() {
-        JsonObject newBranch = TestUtils.getSampleBranch3(referenceBranchAddress);
+        JsonObject newBranch = getYeedBranch();
         BranchId newBranchId = BranchId.of(newBranch);
+        JsonArray params = ContractTx.createStemParams(newBranchId, newBranch);
 
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("branchId", newBranchId.toString());
-        param.add("branch", newBranch);
-        params.add(param);
         assertThat(stemContract.create(params)).isNotNull();
     }
 
     @Test
     public void updateTest() {
-        String branchId = referenceBranchAddress;
         String description = "Hello World!";
-        String updatedVersion = "0xf4312kjise099qw0nene76555484ab1547av8b9e";
-        JsonObject updatedBranch = TestUtils.updateBranch(description, updatedVersion,
-                referenceBranch, 0);
+        JsonObject updatedBranch = TestUtils.updateBranch(description, jsonObjectBranch, 0);
+        JsonArray params = ContractTx.createStemParams(branchId, updatedBranch);
+        assertThat(stemContract.update(params).isSuccess()).isTrue();
+        viewTest(description);
+    }
 
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("branchId", branchId);
-        param.add("branch", updatedBranch);
-        params.add(param);
-
-        assertThat(stemContract.update(params)).isNotNull();
-
-        updatedBranch = TestUtils.updateBranch(description, updatedVersion,
-                referenceBranch, 1);
-        params.remove(0);
-        param.add("branch", updatedBranch);
-        params.add(param);
-
-        assertThat(stemContract.update(params)).isNotNull();
+    private void viewTest(String description) {
+        JsonArray params = getQueryParams();
+        String json = stemContract.view(params);
+        assertThat(json).contains(description); // No owner validation
+        log.debug(stemContract.view(params));
     }
 
     @Test
@@ -155,41 +130,40 @@ public class StemContractTest {
     }
 
     @Test
-    public void viewTest() {
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("branchId", referenceBranchAddress);
-        params.add(param);
-
-        //assertThat(stemContract.view(params)).isEmpty();
-        assertThat(stemContract.view(params)).isNotEmpty(); // No owner validation
-        log.debug(stemContract.view(params));
-    }
-
-    @Test
     public void getCurrentVersionTest() {
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("branchId", referenceBranchAddress);
-        params.add(param);
-
-        //assertThat(stemContract.getcurrentversion(params)).isEmpty();
-        assertThat(stemContract.getcurrentversion(params)).isNotEmpty(); // No owner validation
+        JsonArray params = getQueryParams();
+        String current = stemContract.getcurrentversion(params); // No owner validation
+        String contractId = jsonObjectBranch.get("contractId").getAsString();
+        assertThat(current).isEqualTo(contractId);
         log.debug(stemContract.getcurrentversion(params));
     }
 
     @Test
     public void getVersionHistoryTest() {
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("branchId", referenceBranchAddress);
-        params.add(param);
-
-        assertThat(stemContract.getversionhistory(params).size()).isNotNull();
+        JsonArray params = getQueryParams();
+        assertThat(stemContract.getversionhistory(params).size()).isEqualTo(1);
     }
 
     @Test
     public void getAllBranchIdTest() {
-        assertThat(stemContract.getallbranchid(new JsonArray())).isNotNull();
+        assertThat(stemContract.getallbranchid(null).size()).isEqualTo(1);
+    }
+
+    private JsonArray getQueryParams() {
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        param.addProperty("branchId", branchId.toString());
+        params.add(param);
+        return params;
+    }
+
+    private static JsonObject getYeedBranch() {
+        String name = "Ethereum TO YEED";
+        String symbol = "ETH TO YEED";
+        String property = "exchange";
+        String type = "immunity";
+        String description = "ETH TO YEED";
+        String contractId = "b5790adeafbb9ac6c9be60955484ab1547ab0b76";
+        return TestUtils.createBranch(name, symbol, property, type, description, contractId);
     }
 }
