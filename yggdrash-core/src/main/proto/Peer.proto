@@ -6,6 +6,10 @@ option java_package = "io.yggdrash.proto";
 service Peer {
     rpc findPeers (RequestPeer) returns (PeerList) {
     }
+
+    rpc broadcastConsensus (RequestPeer) returns (RequestPeer) {
+
+    }
 }
 
 message RequestPeer {

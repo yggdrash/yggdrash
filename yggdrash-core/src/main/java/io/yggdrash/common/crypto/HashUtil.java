@@ -66,6 +66,7 @@ public class HashUtil {
 
     /**
      * SHA3(Keccak256) Hash Method.
+     *
      * @param input data
      * @return hashed data
      * @deprecated Use hash()
@@ -84,6 +85,7 @@ public class HashUtil {
 
     /**
      * SHA1 Hash Method.
+     *
      * @param input data
      * @return hashed data
      * @deprecated Use hash()
@@ -112,8 +114,9 @@ public class HashUtil {
 
     /**
      * The hash method for supporting many algorithms.
-     * @param input data for hashing.
-     * @param algorithm algorithm for hashing. ex) "SHA-256", "KECCAK-256", "SHA3-256", "SHA-1"
+     *
+     * @param input      data for hashing.
+     * @param algorithm  algorithm for hashing. ex) "SHA-256", "KECCAK-256", "SHA3-256", "SHA-1"
      * @param doubleHash whether double hash or not
      * @return hashed data.
      */
@@ -129,7 +132,8 @@ public class HashUtil {
 
     /**
      * The hash method for supporting many algorithms.
-     * @param input data for hashing.
+     *
+     * @param input     data for hashing.
      * @param algorithm algorithm for hashing. ex) "SHA-256", "KECCAK-256", "SHA3-256", "SHA-1"
      * @return hashed data.
      */
@@ -139,6 +143,7 @@ public class HashUtil {
 
     /**
      * The hash method for KECCAK-256.
+     *
      * @param input data for hashing.
      * @return hashed data.
      */
