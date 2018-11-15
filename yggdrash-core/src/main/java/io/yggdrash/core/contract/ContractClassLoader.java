@@ -31,7 +31,7 @@ import java.io.InputStream;
 public class ContractClassLoader extends ClassLoader {
     private static final Logger log = LoggerFactory.getLogger(ContractClassLoader.class);
     private static final Class[] CONTRACTS = {StemContract.class, CoinContract.class,
-            NoneContract.class};
+            NoneContract.class, CoinStandardContract.class};
     private static final Long MAX_FILE_LENGTH = 5242880L; // default 5MB bytes
 
     static {
@@ -70,8 +70,10 @@ public class ContractClassLoader extends ClassLoader {
             throw new RuntimeException("Failed to create=" + targetDir.getAbsolutePath());
         }
         for (Class contract : CONTRACTS) {
+            log.debug("copyResourcesToContractPath :: contract => " + contract);
             ContractMeta contractMeta = loadContractClass(contract);
             String contractId = contractMeta.getContractId().toString();
+            log.debug("copyResourcesToContractPath :: contractId => " + contractId);
             File contractFile = ContractMeta.contractFile(contractPath, contractId);
             if (!contractFile.exists()) {
                 try {
