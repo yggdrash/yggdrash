@@ -146,10 +146,10 @@ public class PeerGroup implements BranchEventListener {
     }
 
     boolean isPeerEmpty(BranchId branchId) {
-        if (peerTables.containsKey(branchId)) {
-            return peerTables.get(branchId).getPeersCount() == 0;
-        } else {
+        if (!peerTables.containsKey(branchId)) {
             return true;
+        } else {
+            return peerTables.get(branchId).getPeersCount() == 0;
         }
     }
 
