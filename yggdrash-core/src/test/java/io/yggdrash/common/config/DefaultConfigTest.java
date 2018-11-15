@@ -9,8 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-import static org.hamcrest.CoreMatchers.containsString;
-import static org.junit.Assert.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class DefaultConfigTest {
 
@@ -31,15 +30,15 @@ public class DefaultConfigTest {
     public void defaultConfigTest() {
         log.debug(defaultConfig.toString());
 
-        assertThat(defaultConfig.getString("java.version"), containsString("1.8"));
+        assertThat(defaultConfig.getString("java.version")).startsWith("1.8");
         log.debug("DefaultConfig java.version: "
                 + defaultConfig.getString("java.version"));
 
-        assertThat(defaultConfig.getString("node.name"), containsString("yggdrash"));
+        assertThat(defaultConfig.getString("node.name")).isEqualTo("yggdrash");
         log.debug("DefaultConfig node.name: "
                 + defaultConfig.getString("node.name"));
 
-        assertThat(defaultConfig.getString("network.port"), containsString("32918"));
+        assertThat(defaultConfig.getString("network.port")).isEqualTo("32918");
         log.debug("DefaultConfig network.port: "
                 + defaultConfig.getString("network.port"));
 
@@ -55,31 +54,7 @@ public class DefaultConfigTest {
         } else {
             expectedDataPath = System.getProperty("user.home") + File.separator + ".yggdrash";
         }
-        assert yggDataPath.equals(expectedDataPath);
-    }
-
-    /**
-     * This is the config test as java version.
-     */
-    @Test
-    public void javaVersionConfigTest() {
-        assertThat(defaultConfig.getString("java.version"), containsString("1.8"));
-
-        log.debug("DefaultConfig java.version: "
-                + defaultConfig.getString("java.version"));
-
-    }
-
-    /**
-     * This is the config test as yggdrash.conf.
-     */
-    @Test
-    public void yggdrashConfConfigTest() {
-        assertThat(defaultConfig.getString("node.name"), containsString("yggdrash"));
-
-        log.debug("yggdrash.conf node.name: "
-                + defaultConfig.getString("node.name"));
-
+        assertThat(yggDataPath).isEqualTo(expectedDataPath);
     }
 
     /**
@@ -91,11 +66,10 @@ public class DefaultConfigTest {
         Config config = ConfigFactory.parseResources("yggdrash_sample.conf");
         DefaultConfig defaultConfig = new DefaultConfig(config);
 
-        assertThat(defaultConfig.getString("key.path"), containsString("nodePri2.key"));
+        assertThat(defaultConfig.getString("key.path")).endsWith("nodePri2.key");
 
         log.debug("newConfigFile key.path: "
                 + defaultConfig.getString("key.path"));
-
     }
 
     /**
