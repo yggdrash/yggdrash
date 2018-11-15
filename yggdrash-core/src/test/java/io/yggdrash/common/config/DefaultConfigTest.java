@@ -48,8 +48,14 @@ public class DefaultConfigTest {
     @Test
     public void productionConfigTest() {
         DefaultConfig productionConfig = new DefaultConfig(true);
-        String yggDataPath = productionConfig.getString("YGG_DATA_PATH");
-        assert yggDataPath.equals(System.getProperty("user.home") + File.separator + ".yggdrash");
+        String yggDataPath = productionConfig.getYggDataPath();
+        String expectedDataPath;
+        if ("root".equals(System.getProperty("user.name"))) {
+            expectedDataPath = System.getProperty("user.dir") + File.separator + ".yggdrash";
+        } else {
+            expectedDataPath = System.getProperty("user.home") + File.separator + ".yggdrash";
+        }
+        assert yggDataPath.equals(expectedDataPath);
     }
 
     /**

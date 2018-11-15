@@ -17,6 +17,7 @@ import java.util.NoSuchElementException;
 public class DefaultConfig {
 
     private static final Logger logger = LoggerFactory.getLogger("general");
+    private static final String YGG_DATA_PATH = "YGG_DATA_PATH";
     private static final String PROPERTY_KEYPATH = "key.path";
     private static final String PROPERTY_KEYPASSWORD = "key.password"; // todo: change to CLI
     private static final String PROPERTY_NODE_NAME = "node.name";
@@ -48,7 +49,7 @@ public class DefaultConfig {
             this.productionMode = productionMode;
             Config referenceConfig = getReferenceConfig();
 
-            File file = new File(referenceConfig.getString("YGG_DATA_PATH"), "admin.conf");
+            File file = new File(referenceConfig.getString(YGG_DATA_PATH), "admin.conf");
             Config adminConfig = ConfigFactory.parseFile(file);
 
             config = apiConfig
@@ -71,15 +72,19 @@ public class DefaultConfig {
             return referenceConfig;
         }
         String basePath = System.getProperty("user.home");
-        String yggDataPath = referenceConfig.getString("YGG_DATA_PATH");
+        String yggDataPath = referenceConfig.getString(YGG_DATA_PATH);
         String path = basePath + File.separator + yggDataPath;
-        Config prodConfig = ConfigFactory.parseString("YGG_DATA_PATH = " + path);
+        Config prodConfig = ConfigFactory.parseString(YGG_DATA_PATH + " = " + path);
 
         return prodConfig.withFallback(referenceConfig).resolve();
     }
 
     public String getString(String path) {
         return config.getString(path);
+    }
+
+    public int getInt(String path) {
+        return config.getInt(path);
     }
 
     public String toString() {
@@ -136,6 +141,10 @@ public class DefaultConfig {
 
     public String getBranchPath() {
         return config.getString(BRANCH_PATH);
+    }
+
+    public String getYggDataPath() {
+        return config.getString(YGG_DATA_PATH);
     }
 
     enum Network {
