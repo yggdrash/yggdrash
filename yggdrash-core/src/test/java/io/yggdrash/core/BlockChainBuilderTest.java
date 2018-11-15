@@ -40,7 +40,8 @@ public class BlockChainBuilderTest {
 
         BlockChain bc1 = TestUtils.createBlockChain(false);
         BlockChain bc2 = TestUtils.createBlockChain(true);
-
+        bc2.close();
+        TestUtils.clearTestDb();
         assertEquals(bc1.getGenesisBlock().getHash(), bc2.getGenesisBlock().getHash());
     }
 }

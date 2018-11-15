@@ -52,7 +52,6 @@ public class BlockChainTest {
 
     @Test
     public void shouldBeLoadedStoredBlocks() {
-        TestUtils.clearTestDb();
         BlockChain blockChain1 = TestUtils.createBlockChain(true);
         BlockHusk genesisBlock = blockChain1.getGenesisBlock();
 
@@ -72,7 +71,6 @@ public class BlockChainTest {
 
     @Test
     public void shouldBeStoredGenesisTxs() {
-        TestUtils.clearTestDb();
         BlockChain blockChain = TestUtils.createBlockChain(true);
         BlockHusk genesis = blockChain.getGenesisBlock();
         for (TransactionHusk tx : genesis.getBody()) {
@@ -85,7 +83,6 @@ public class BlockChainTest {
 
     @Test
     public void shouldBeGeneratedAfterLoadedStoredBlocks() {
-        TestUtils.clearTestDb();
         BlockChain newDbBlockChain = TestUtils.createBlockChain(true);
         BlockHusk genesisBlock = newDbBlockChain.getGenesisBlock();
 

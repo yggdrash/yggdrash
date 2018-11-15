@@ -81,14 +81,14 @@ public class TestUtils {
     }
 
     public static void clearTestDb() {
-        String dbPath = new ProdDefaultConfig().getDatabasePath();
+        String dbPath = new DefaultConfig().getDatabasePath();
         FileUtil.recursiveDelete(Paths.get(dbPath));
     }
 
     public static BlockChain createBlockChain(boolean isProductionMode) {
         StoreBuilder storeBuilder;
         if (isProductionMode) {
-            storeBuilder = new StoreBuilder(new ProdDefaultConfig());
+            storeBuilder = getProdMockBuilder();
         } else {
             storeBuilder = new StoreBuilder(new DefaultConfig());
         }
@@ -239,6 +239,10 @@ public class TestUtils {
         query.addProperty("method", method);
         query.add("params", params);
         return query;
+    }
+
+    public static StoreBuilder getProdMockBuilder() {
+        return new StoreBuilder(new ProdDefaultConfig());
     }
 
     private static JsonObject sampleBlockObject() {

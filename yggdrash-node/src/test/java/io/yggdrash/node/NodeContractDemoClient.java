@@ -206,11 +206,7 @@ public class NodeContractDemoClient {
         if (!json.contains("seed")) {
             return getJsonObjectFromFile("branch", json);
         } else {
-            JsonObject seed = getJsonObjectFromFile("seed", json);
-            if (!seed.has("timestamp")) {
-                seed.addProperty("timestamp", TimeUtils.hexTime());
-            }
-            return seed;
+            return getJsonObjectFromFile("seed", json);
         }
     }
 
@@ -259,7 +255,11 @@ public class NodeContractDemoClient {
         Resource resource = new DefaultResourceLoader().getResource(seedPath);
         try (InputStream is = resource.getInputStream()) {
             Reader json = new InputStreamReader(is, StandardCharsets.UTF_8);
-            return Utils.parseJsonObject(json);
+            JsonObject jsonObject = Utils.parseJsonObject(json);
+            if (!jsonObject.has("timestamp")) {
+                jsonObject.addProperty("timestamp", TimeUtils.hexTime());
+            }
+            return jsonObject;
         } catch (Exception e) {
             e.printStackTrace();
             return null;

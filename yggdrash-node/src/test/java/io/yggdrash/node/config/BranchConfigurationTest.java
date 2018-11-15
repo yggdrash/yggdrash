@@ -69,14 +69,16 @@ public class BranchConfigurationTest {
         BranchGroup branchGroup = getBranchGroup();
         branchConfig.stemResource = loader.getResource("classpath:/branch-stem.json");
         BlockChain blockChain = branchConfig.stem(peerGroup, branchGroup, sender);
+        blockChain.close();
         assert blockChain.getBranchId().equals(TestUtils.STEM);
         assert branchGroup.getBranchSize() == 1;
     }
 
     @Test
     public void addProductionStemBranchTest() throws IOException {
-        this.branchConfig = new BranchConfiguration(new StoreBuilder(new DefaultConfig(true)));
+        this.branchConfig = new BranchConfiguration(TestUtils.getProdMockBuilder());
         addStemBranchTest();
+        TestUtils.clearTestDb();
     }
 
     @Test
