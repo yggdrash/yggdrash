@@ -131,13 +131,21 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     }
 
     public Collection<TransactionHusk> getUnconfirmedTxs() {
-        return pendingPool.getAll(pendingKeys).values();
+        LOCK.lock();
+        Set<Sha3Hash> unconfirmedKeys = new HashSet<>(pendingKeys);
+        Collection<TransactionHusk> unconfirmedTxs = pendingPool.getAll(unconfirmedKeys).values();
+        if (unconfirmedTxs.size() > 0) {
+            log.debug("unconfirmedKeys={} unconfirmedTxs={}",
+                    unconfirmedKeys.size(), unconfirmedTxs.size());
+        }
+        LOCK.unlock();
+        return unconfirmedTxs;
     }
 
     private void flush(Set<Sha3Hash> keys) {
-        log.debug("pendingSize={}, readCacheSize={}", pendingKeys.size(), readCache.size());
         pendingPool.removeAll(keys);
         pendingKeys.removeAll(keys);
+        log.debug("flushSize={} remainPendingSize={}", keys.size(), pendingKeys.size());
     }
 
     public void updateCache(List<TransactionHusk> body) {
