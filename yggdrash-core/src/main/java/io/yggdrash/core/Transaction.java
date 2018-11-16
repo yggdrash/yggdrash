@@ -44,7 +44,7 @@ public class Transaction implements Cloneable {
         this.header = header;
         this.signature = signature;
         this.body = body;
-        verify();
+        //verify();
     }
 
     /**
