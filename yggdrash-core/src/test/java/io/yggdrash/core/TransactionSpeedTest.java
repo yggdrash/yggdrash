@@ -173,7 +173,7 @@ public class TransactionSpeedTest {
         }
 
         long everageTime = totalTime/MAX;
-        log.info(" Transaction:Contructor(Header,sig,body) nanoTime:" + everageTime);
+        log.info(" Transaction:verify() nanoTime:" + everageTime);
     }
 
 }
