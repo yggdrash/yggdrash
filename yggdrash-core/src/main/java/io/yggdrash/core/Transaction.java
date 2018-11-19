@@ -352,7 +352,7 @@ public class Transaction implements Cloneable {
         return protoTransaction;
     }
 
-    static Transaction toTransaction(Proto.Transaction protoTransaction) {
+    public static Transaction toTransaction(Proto.Transaction protoTransaction) {
         // todo: move at TransactionHusk
 
         TransactionHeader txHeader = new TransactionHeader(
