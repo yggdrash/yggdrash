@@ -29,7 +29,6 @@ public class ContractApiImpl implements ContractApi {
         if (!query.has("address")) {
             throw new NonExistObjectException("Address (BranchId) is required");
         }
-        log.debug("[ContractAPI | data]" + data);
         return branchGroup.query(query).toString();
     }
 }

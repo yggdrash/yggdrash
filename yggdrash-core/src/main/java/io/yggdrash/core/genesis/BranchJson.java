@@ -48,7 +48,7 @@ public class BranchJson {
     public String property;
     public String description;
     public String contractId;
-    public Map<String, Map<String, Map<String, String>>> genesis;
+    public Map<String, Object> genesis;
     public String timestamp;
     public String owner;
     public String signature;
