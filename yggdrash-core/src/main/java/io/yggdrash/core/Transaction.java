@@ -44,7 +44,6 @@ public class Transaction implements Cloneable {
         this.header = header;
         this.signature = signature;
         this.body = body;
-        //verify();
     }
 
     /**
@@ -95,7 +94,6 @@ public class Transaction implements Cloneable {
         if (position != txBytes.length) {
             throw new NotValidateException();
         }
-        verify();
     }
 
     /**

@@ -67,7 +67,7 @@ public class BlockControllerTest {
                 .andReturn().getResponse();
 
         String contentAsString = response.getContentAsString();
-        String blockHash = json.parseObject(contentAsString).getHash();
+        String blockHash = json.parseObject(contentAsString).hash;
 
         mockMvc.perform(get(basePath + "/" + blockHash))
                 .andDo(print())

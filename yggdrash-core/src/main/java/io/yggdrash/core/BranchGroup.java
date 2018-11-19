@@ -34,8 +34,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BranchGroup {
     private final Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
 
-    public void addBranch(BranchId branchId, BlockChain blockChain,
+    public void addBranch(BlockChain blockChain,
                           BranchEventListener branchEventListener) {
+        BranchId branchId = blockChain.getBranchId();
         if (branches.containsKey(branchId)) {
             throw new DuplicatedException(branchId.toString() + " duplicated");
         }

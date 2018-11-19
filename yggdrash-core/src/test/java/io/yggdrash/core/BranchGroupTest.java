@@ -119,7 +119,7 @@ public class BranchGroupTest {
     }
 
     private void addBranch(BlockChain blockChain) {
-        branchGroup.addBranch(blockChain.getBranchId(), blockChain,
+        branchGroup.addBranch(blockChain,
                 new BranchEventListener() {
                     @Override
                     public void chainedBlock(BlockHusk block) {
