@@ -107,8 +107,8 @@ public class BlockChain {
     }
 
     void generateBlock(Wallet wallet) {
-        BlockHusk block = new BlockHusk(wallet,
-                new ArrayList<>(transactionStore.getUnconfirmedTxs()), getPrevBlock());
+        List<TransactionHusk> txs = getUnconfirmedTxs();
+        BlockHusk block = new BlockHusk(wallet, txs, getPrevBlock());
         addBlock(block, true);
     }
 
@@ -161,17 +161,19 @@ public class BlockChain {
         if (!isValidNewBlock(prevBlock, nextBlock)) {
             throw new NotValidateException("Invalid to chain");
         }
-        executeAllTx(new TreeSet<>(nextBlock.getBody()));
+        Set<TransactionHusk> sorted = new TreeSet<>(nextBlock.getBody());
+        executeAllTx(sorted);
+
         this.blockStore.put(nextBlock.getHash(), nextBlock);
         this.blockIndex.put(nextBlock.getIndex(), nextBlock.getHash());
         this.metaStore.put(MetaStore.MetaInfo.BEST_BLOCK, nextBlock.getHash());
         this.prevBlock = nextBlock;
-        log.debug("Added idx=[{}], tx={}, branch={}, blockHash={}", nextBlock.getIndex(),
-                nextBlock.getBody().size(), getBranchId().toString(), nextBlock.getHash());
         batchTxs(nextBlock);
         if (!listenerList.isEmpty() && broadcast) {
             listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
         }
+        log.debug("Added idx=[{}], tx={}, branch={}, blockHash={}", nextBlock.getIndex(),
+                nextBlock.getBodySize(), getBranchId().toString(), nextBlock.getHash());
         return nextBlock;
     }
 

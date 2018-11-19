@@ -34,6 +34,7 @@ public class BlockDto {
     private long timestamp;
     private byte[] merkleRoot;
     private long bodyLength;
+    private long txSize;
     private byte[] signature;
     private List<TransactionDto> body;
     private String author;
@@ -160,6 +161,10 @@ public class BlockDto {
     }
 
     public static BlockDto createBy(BlockHusk block) {
+        return createBy(block, false);
+    }
+
+    public static BlockDto createBy(BlockHusk block, boolean withoutBody) {
         BlockDto blockDto = new BlockDto();
         Proto.Block.Header header = block.getInstance().getHeader();
         blockDto.setChain(header.getChain().toByteArray());
@@ -171,8 +176,11 @@ public class BlockDto {
         blockDto.setMerkleRoot(header.getMerkleRoot().toByteArray());
         blockDto.setBodyLength(ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray()));
         blockDto.setSignature(block.getInstance().getSignature().toByteArray());
-        blockDto.setBody(block.getBody().stream().map(TransactionDto::createBy)
-                .collect(Collectors.toList()));
+        blockDto.txSize = block.getBodySize();
+        if (withoutBody) {
+            blockDto.setBody(block.getBody().stream().map(TransactionDto::createBy)
+                    .collect(Collectors.toList()));
+        }
         blockDto.setAuthor(block.getAddress().toString());
         blockDto.setHash(block.getHash().getBytes());
         return blockDto;

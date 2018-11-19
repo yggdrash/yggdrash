@@ -68,12 +68,18 @@ public class DefaultConfig {
         Config referenceConfig = ConfigFactory.parseResources("yggdrash.conf");
 
         String userName = System.getProperty("user.name");
-        if ("root".equals(userName) || !productionMode) {
-            return referenceConfig;
+        String basePath;
+        if ("root".equals(userName)) {
+            basePath = System.getProperty("user.dir");
+        } else if (productionMode) {
+            basePath = System.getProperty("user.home");
+        } else {
+            basePath = System.getProperty("user.dir");
         }
-        String basePath = System.getProperty("user.home");
+
         String yggDataPath = referenceConfig.getString(YGG_DATA_PATH);
         String path = basePath + File.separator + yggDataPath;
+        path = path.replace("//", "/");
         Config prodConfig = ConfigFactory.parseString(YGG_DATA_PATH + " = " + path);
 
         return prodConfig.withFallback(referenceConfig).resolve();
