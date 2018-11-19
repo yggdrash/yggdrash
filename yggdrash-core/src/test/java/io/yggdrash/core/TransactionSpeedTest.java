@@ -189,9 +189,4 @@ public class TransactionSpeedTest {
         log.info(" Transaction:verify() nanoTime:" + averageTime);
     }
 
-
-
-
-
-
 }
