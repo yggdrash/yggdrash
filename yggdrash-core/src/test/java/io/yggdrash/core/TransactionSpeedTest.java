@@ -17,6 +17,8 @@ public class TransactionSpeedTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionSpeedTest.class);
 
+    private static final long MAX = 1000L;
+
     private TransactionBody txBody;
     private TransactionHeader txHeader;
     private Wallet wallet;
@@ -35,17 +37,8 @@ public class TransactionSpeedTest {
         jsonObject1.addProperty("method", "transfer");
         jsonObject1.add("params", jsonParams1);
 
-        JsonObject jsonParams2 = new JsonObject();
-        jsonParams2.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2001");
-        jsonParams2.addProperty("amount", "5000000");
-
-        JsonObject jsonObject2 = new JsonObject();
-        jsonObject2.addProperty("method", "transfer");
-        jsonObject2.add("params", jsonParams2);
-
         JsonArray jsonArray = new JsonArray();
         jsonArray.add(jsonObject1);
-        jsonArray.add(jsonObject2);
 
         txBody = new TransactionBody(jsonArray);
 
@@ -65,12 +58,10 @@ public class TransactionSpeedTest {
         txBytes1 = tx1.toBinary();
     }
 
-
-    @Test (timeout = 5000L)
+    @Test (timeout = 1000L)
     public void testSpeedTransactionConstructor_1() {
 
         Transaction tx = null;
-        long MAX = 100000L;
         long startTime;
         long endTime;
         long[] timeList = new long[(int)MAX];
@@ -86,18 +77,43 @@ public class TransactionSpeedTest {
         }
 
         long totalTime = 0;
-        for(long value : timeList) {
+        for (long value : timeList) {
             totalTime += value;
         }
 
-        long everageTime = totalTime/MAX;
-        log.info(" Transaction:Contructor(Header,sig,body) nanoTime:" + everageTime);
+        long averageTime = totalTime / MAX;
+        log.info(" Transaction:Contructor(Header,sig,body) nanoTime:" + averageTime);
     }
 
     @Test (timeout = 5000L)
     public void testSpeedTransactionConstructor_2() {
 
-        long MAX = 100000L;
+        long startTime;
+        long endTime;
+        long[] timeList = new long[(int)MAX];
+
+        for (long i = 0; i < MAX; i++) {
+            startTime = System.nanoTime();
+
+            // Test method
+            new Transaction(txHeader, wallet, txBody);
+
+            endTime = System.nanoTime();
+            Arrays.fill(timeList,endTime - startTime);
+        }
+
+        long totalTime = 0;
+        for (long value : timeList) {
+            totalTime += value;
+        }
+
+        long averageTime = totalTime / MAX;
+        log.info(" Transaction:Contructor(Header,wallet,body) nanoTime:" + averageTime);
+    }
+
+    @Test (timeout = 1000L)
+    public void testSpeedTransactionConstructor_3() {
+
         long startTime;
         long endTime;
         long[] timeList = new long[(int)MAX];
@@ -113,18 +129,17 @@ public class TransactionSpeedTest {
         }
 
         long totalTime = 0;
-        for(long value : timeList) {
+        for (long value : timeList) {
             totalTime += value;
         }
 
-        long everageTime = totalTime/MAX;
-        log.info(" Transaction:Contructor(jsonObject) nanoTime:" + everageTime);
+        long averageTime = totalTime / MAX;
+        log.info(" Transaction:Contructor(jsonObject) nanoTime:" + averageTime);
     }
 
-    @Test (timeout = 5000L)
-    public void testSpeedTransactionConstructor_3() {
+    @Test (timeout = 1000L)
+    public void testSpeedTransactionConstructor_4() {
 
-        long MAX = 100000L;
         long startTime;
         long endTime;
         long[] timeList = new long[(int)MAX];
@@ -140,19 +155,17 @@ public class TransactionSpeedTest {
         }
 
         long totalTime = 0;
-        for(long value : timeList) {
+        for (long value : timeList) {
             totalTime += value;
         }
 
-        long everageTime = totalTime/MAX;
-        log.info(" Transaction:Contructor(byte[]) nanoTime:" + everageTime);
+        long averageTime = totalTime / MAX;
+        log.info(" Transaction:Contructor(byte[]) nanoTime:" + averageTime);
     }
 
+    @Test (timeout = 50000L)
+    public void testSpeedTransactionVerify() {
 
-    @Test (timeout = 30000L)
-    public void testSpeedTransactionConstructor_4() {
-
-        long MAX = 10000L;
         long startTime;
         long endTime;
         long[] timeList = new long[(int)MAX];
@@ -168,12 +181,17 @@ public class TransactionSpeedTest {
         }
 
         long totalTime = 0;
-        for(long value : timeList) {
+        for (long value : timeList) {
             totalTime += value;
         }
 
-        long everageTime = totalTime/MAX;
-        log.info(" Transaction:verify() nanoTime:" + everageTime);
+        long averageTime = totalTime / MAX;
+        log.info(" Transaction:verify() nanoTime:" + averageTime);
     }
+
+
+
+
+
 
 }

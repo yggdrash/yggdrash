@@ -211,13 +211,16 @@ public class Transaction implements Cloneable {
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
         byte[] hashedHeader = this.header.getHashForSigning();
         ECKey ecKeyPub;
+
         try {
             ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
+
         } catch (SignatureException e) {
             throw new InvalidSignatureException(e);
         }
 
         return ecKeyPub.verify(hashedHeader, ecdsaSignature);
+
     }
 
     private boolean verifyCheckLengthNotNull(byte[] data, int length, String msg) {
