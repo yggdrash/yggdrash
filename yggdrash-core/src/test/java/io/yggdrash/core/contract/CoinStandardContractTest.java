@@ -46,6 +46,7 @@ public class CoinStandardContractTest {
         List<String> methods = coinstandardContract.specification(new JsonArray());
 
         assertTrue(!methods.isEmpty());
+        assertEquals(methods.size(), 7);
     }
 
     @Test

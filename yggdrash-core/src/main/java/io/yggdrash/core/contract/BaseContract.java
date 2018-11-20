@@ -10,9 +10,10 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Arrays;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public abstract class BaseContract<T> implements Contract<T> {
@@ -78,7 +79,13 @@ public abstract class BaseContract<T> implements Contract<T> {
 
 
     public List<String> specification(JsonArray params) {
-        return Collections.singletonList(Arrays.toString(getClass().getDeclaredMethods()));
+        List<String> methods = new ArrayList<>();
+        for (Method method : getClass().getDeclaredMethods()) {
+            if (Modifier.isPublic(method.getModifiers())) {
+                methods.add(method.toString());
+            }
+        }
+        return methods;
     }
 
     private void dataFormatValidation(JsonObject data) {
