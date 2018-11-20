@@ -29,6 +29,8 @@ import io.yggdrash.core.TransactionSignature;
 import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.genesis.BranchJson;
 
+import java.math.BigDecimal;
+
 public class ContractTx {
 
     public static TransactionHusk createStemTx(Wallet wallet, JsonObject branch, String method) {
@@ -44,13 +46,30 @@ public class ContractTx {
         return createTx(wallet, TestUtils.STEM, txBody);
     }
 
+    private static TransactionHusk createTx(Wallet wallet, BranchId txBranchId, JsonArray txBody) {
+        return new TransactionHusk(txBodyJson(wallet, txBranchId, txBody));
+    }
+
+    @Deprecated
     public static TransactionHusk createTx(BranchId branchId, Wallet wallet, String to,
                                            long amount) {
         return createTx(wallet, branchId, createTxBody(to, amount));
     }
 
-    private static TransactionHusk createTx(Wallet wallet, BranchId txBranchId, JsonArray txBody) {
-        return new TransactionHusk(txBodyJson(wallet, txBranchId, txBody));
+    @Deprecated
+    private static JsonArray createTxBody(String to, long amount) {
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        param.addProperty("address", to);
+        param.addProperty("amount", amount);
+        params.add(param);
+
+        return txBodyJson(params, "transfer");
+    }
+
+    public static TransactionHusk createCoinContractTx(
+            BranchId branchId, Wallet wallet, JsonArray params) {
+        return createTx(wallet, branchId, params);
     }
 
     static JsonArray createStemParams(BranchId branchId, JsonObject branch) {
@@ -62,14 +81,36 @@ public class ContractTx {
         return params;
     }
 
-    private static JsonArray createTxBody(String to, long amount) {
+    public static JsonArray createTransferBody(String to, BigDecimal amount) {
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.addProperty("address", to);
+        param.addProperty("to", to);
         param.addProperty("amount", amount);
         params.add(param);
 
         return txBodyJson(params, "transfer");
+    }
+
+    public static JsonArray createApproveBody(String spender, BigDecimal amount) {
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        param.addProperty("spender", spender);
+        param.addProperty("amount", amount);
+        params.add(param);
+
+        return txBodyJson(params, "approve");
+    }
+
+    public static JsonArray createTransferFromBody(String from, String to, BigDecimal amount) {
+        JsonObject param = new JsonObject();
+        param.addProperty("from", from);
+        param.addProperty("to", to);
+        param.addProperty("amount", amount);
+
+        JsonArray params = new JsonArray();
+        params.add(param);
+
+        return txBodyJson(params, "transferfrom");
     }
 
     private static JsonArray txBodyJson(JsonArray params, String method) {
