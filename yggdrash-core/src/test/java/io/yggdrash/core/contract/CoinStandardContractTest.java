@@ -11,8 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class CoinStandardContractTest {
 
@@ -37,6 +39,13 @@ public class CoinStandardContractTest {
 
         assertEquals(result.getStatus(), 1);
         assertEquals(result.getTxLog().size(), 4);
+    }
+
+    @Test
+    public void specification() {
+        List<String> methods = coinstandardContract.specification(new JsonArray());
+
+        assertTrue(!methods.isEmpty());
     }
 
     @Test
