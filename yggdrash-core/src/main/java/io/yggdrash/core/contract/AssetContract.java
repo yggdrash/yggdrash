@@ -27,9 +27,7 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
 
 public class AssetContract extends BaseContract<JsonArray> {
 
@@ -80,17 +78,19 @@ public class AssetContract extends BaseContract<JsonArray> {
 
         for (JsonElement element : params) {
             String dbName = element.getAsJsonObject().get("db").getAsString();
-            if (dbName != null && !dbName.equals("")) {
+            if (dbName == null || dbName.equals("")) {
+                txReceipt.setStatus(TransactionReceipt.FALSE);
+                txReceipt.putLog("createDatabase", "This dbName is not valid.");
+                break;
+            } else {
                 if (state.get(dbName) == null) {
                     state.put(dbName, new JsonArray());
                     txReceipt.putLog("createDatabase", dbName);
                 } else {
                     txReceipt.setStatus(TransactionReceipt.FALSE);
+                    txReceipt.putLog("createDatabase", "This dbName is already exist.");
                     break;
                 }
-            } else {
-                txReceipt.setStatus(TransactionReceipt.FALSE);
-                break;
             }
         }
 
@@ -107,16 +107,94 @@ public class AssetContract extends BaseContract<JsonArray> {
 
         for (JsonElement element : params) {
             String dbName = element.getAsJsonObject().get("db").getAsString();
-            if (dbName != null && !dbName.equals("")) {
-                if (state.get(dbName) == null) {
-                    state.put(dbName, new JsonArray());
-                    txReceipt.putLog("createTable", dbName);
+            String tableName = element.getAsJsonObject().get("table").getAsString();
+            JsonObject keyObject = element.getAsJsonObject().get("key").getAsJsonObject();
+            JsonObject recordObject = element.getAsJsonObject().get("record").getAsJsonObject();
+
+            if (dbName == null || dbName.equals("")
+                    || tableName == null || tableName.equals("")
+                    || keyObject == null || keyObject.size() == 0
+                    || recordObject == null) {
+                txReceipt.setStatus(TransactionReceipt.FALSE);
+                txReceipt.putLog("createTable",
+                        params.toString() + " This table is not valid.");
+                break;
+            } else {
+                JsonObject tableObject = element.getAsJsonObject();
+                tableObject.remove("db");
+
+                for (JsonElement dbElement : (JsonArray)state.get(dbName)) {
+                    if (dbElement.getAsJsonObject().get("table").getAsString().equals(tableName)) {
+                        txReceipt.setStatus(TransactionReceipt.FALSE);
+                        txReceipt.putLog("createTable",
+                                params.toString() + " This table is already exist.");
+                        break;
+                    }
+                }
+
+                JsonArray stateArray = ((JsonArray) state.get(dbName)).getAsJsonArray();
+                if (stateArray != null) {
+                    stateArray.add(tableObject);
+                    state.replace(dbName, stateArray);
+                    txReceipt.putLog("createTable", tableObject);
                 } else {
                     txReceipt.setStatus(TransactionReceipt.FALSE);
+                    txReceipt.putLog("createTable",
+                            params.toString() + " This table is already exist.");
                     break;
                 }
-            } else {
+            }
+        }
+
+        log.debug(txReceipt.toString());
+
+        return txReceipt;
+    }
+
+    public TransactionReceipt insert(JsonArray params) {
+        log.debug("insert :: params => " + params);
+
+        TransactionReceipt txReceipt = new TransactionReceipt();
+        txReceipt.setStatus(TransactionReceipt.SUCCESS);
+
+        for (JsonElement element : params) {
+            String dbName = element.getAsJsonObject().get("db").getAsString();
+            String tableName = element.getAsJsonObject().get("table").getAsString();
+            JsonObject keyObject = element.getAsJsonObject().get("key").getAsJsonObject();
+            JsonObject recordObject = element.getAsJsonObject().get("record").getAsJsonObject();
+
+            if (dbName == null || dbName.equals("")
+                    || tableName == null || tableName.equals("")
+                    || keyObject == null || keyObject.size() == 0
+                    || recordObject == null || recordObject.size() == 0) {
                 txReceipt.setStatus(TransactionReceipt.FALSE);
+                txReceipt.putLog("insert",
+                        params.toString() + " This data is not valid.");
+                break;
+            }
+
+            JsonArray dbStateArray = (JsonArray) state.get(dbName);
+
+            // check db & table
+            JsonObject tableObject = null;
+            for (JsonElement dbElement : (JsonArray) state.get(dbName)) {
+                if (dbElement.getAsJsonObject().get("table").getAsString().equals(tableName)) {
+                    tableObject = dbElement.getAsJsonObject();
+                }
+            }
+
+            if (tableObject == null || !checkParams(tableObject, (JsonObject) element)) {
+                txReceipt.setStatus(TransactionReceipt.FALSE);
+                txReceipt.putLog("insert",
+                        params.toString() + " This table is not valid.");
+                break;
+            }
+
+            // insert record
+            if (!state.putAssetState(dbName, tableName, keyObject, recordObject)) {
+                txReceipt.setStatus(TransactionReceipt.FALSE);
+                txReceipt.putLog("insert",
+                        params.toString() + " This record is not valid.");
                 break;
             }
         }
@@ -133,6 +211,43 @@ public class AssetContract extends BaseContract<JsonArray> {
         if (!data.get("params").isJsonArray()) {
             throw new FailedOperationException("Params must be JsonArray");
         }
+    }
+
+    private boolean checkParams(JsonObject table, JsonObject record) {
+
+        String tableObjectName = table.get("table").getAsString();
+        String recordObjectName = record.get("table").getAsString();
+
+        if (!tableObjectName.equals(recordObjectName)) {
+            return false;
+        }
+
+        JsonObject tableKeyObject = table.get("key").getAsJsonObject();
+        JsonObject recordKeyObject = record.get("key").getAsJsonObject();
+
+        // check key size
+        if (tableKeyObject.size() != recordKeyObject.size()) {
+            return false;
+        }
+
+        // check key
+        for (Map.Entry<String, JsonElement> entry : tableKeyObject.entrySet()) {
+            if (!recordKeyObject.has(entry.getKey())) {
+                return false;
+            }
+        }
+
+        JsonObject tableRecordObject = table.get("record").getAsJsonObject();
+        JsonObject recordRecordObject = record.get("record").getAsJsonObject();
+
+        // check record
+        for (Map.Entry<String, JsonElement> entry : recordRecordObject.entrySet()) {
+            if (!tableRecordObject.has(entry.getKey())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
 
