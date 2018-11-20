@@ -3,7 +3,7 @@
   "symbol": "YEED",
   "property": "currency",
   "description": "YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.",
-  "contractId": "c98cd3bf38c3ba95ff067718581f030fb71ecaaf",
+  "contractId": "1b6fa31dbc22c1b7df16d0ffebaa4febdb335f34",
   "genesis": {
     "alloc": {
       "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94": {
@@ -11,6 +11,9 @@
       },
       "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e": {
         "balance": "1000000000"
+      },
+      "cee3d4755e47055b530deeba062c5bd0c17eb00f": {
+        "balance": "998000000000"
       }
     }
   }

@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.exception.FailedOperationException;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,10 +17,21 @@ public class StateStore<T> implements Store<String, T> {
 
     private final Map<String, T> state;
     private final Map<String, Map<Object, Set<Object>>> subState;
+    private BigDecimal totalSupply = BigDecimal.ZERO;
 
     public StateStore() {
         this.state = new ConcurrentHashMap<>();
         this.subState = new HashMap<>();
+    }
+
+    public void setTotalSupply(BigDecimal totalSupply) {
+        if (this.totalSupply.equals(BigDecimal.ZERO)) {
+            this.totalSupply = totalSupply;
+        }
+    }
+
+    public BigDecimal getTotalSupply() {
+        return totalSupply;
     }
 
     public Map<String, T> getState() {

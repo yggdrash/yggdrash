@@ -1,17 +1,22 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
-public class CoinStandardContract extends BaseContract<BigDecimal> implements CoinStandard {
+public class CoinStandardContract extends BaseContract<CoinStandardStateTable>
+        implements CoinStandard {
+
     /**
      * @return Total amount of coin in existence
      */
     @Override
     public BigDecimal totalsupply(JsonArray params) {
-        return null;
+        log.info("\ntotalsupply :: params => " + params);
+        return state.getTotalSupply();
     }
 
     /**
@@ -22,9 +27,12 @@ public class CoinStandardContract extends BaseContract<BigDecimal> implements Co
      */
     @Override
     public BigDecimal balanceof(JsonArray params) {
+        log.info("\nbalanceof :: params => " + params);
+
         String address = params.get(0).getAsJsonObject().get("address").getAsString().toLowerCase();
         if (state.get(address) != null) {
-            return state.get(address);
+            CoinStandardStateTable table = state.get(address);
+            return table.getMyBalance();
         }
         return BigDecimal.ZERO;
     }
@@ -38,15 +46,15 @@ public class CoinStandardContract extends BaseContract<BigDecimal> implements Co
      */
     @Override
     public BigDecimal allowance(JsonArray params) {
-        log.info("\n allowance :: params => " + params);
+        log.info("\nallowance :: params => " + params);
+
         String owner = params.get(0).getAsJsonObject().get("owner").getAsString().toLowerCase();
         String spender = params.get(0).getAsJsonObject().get("spender").getAsString().toLowerCase();
 
-        TransactionReceipt txReceipt = new TransactionReceipt();
-        txReceipt.putLog("owner", owner);
-        txReceipt.putLog("spender", spender);
-
-        return null;
+        if (state.get(owner) != null) {
+            return state.get(owner).getAllowedAmount(spender);
+        }
+        return BigDecimal.ZERO;
     }
 
     /**
@@ -58,31 +66,30 @@ public class CoinStandardContract extends BaseContract<BigDecimal> implements Co
      */
     @Override
     public TransactionReceipt transfer(JsonArray params) {
-        log.info("\n transfer :: params => " + params);
-        String to = params.get(0).getAsJsonObject().get("address").getAsString().toLowerCase();
+        log.info("\ntransfer :: params => " + params);
+
+        String to = params.get(0).getAsJsonObject().get("to").getAsString().toLowerCase();
         BigDecimal amount = params.get(0).getAsJsonObject().get("amount").getAsBigDecimal();
 
         TransactionReceipt txReceipt = new TransactionReceipt();
-        txReceipt.putLog("from", sender);
         txReceipt.putLog("to", to);
         txReceipt.putLog("amount", String.valueOf(amount));
 
         if (state.get(sender) != null) {
-            BigDecimal balanceOfFrom = state.get(sender);
+            CoinStandardStateTable senderTable = state.get(sender);
+            BigDecimal senderBalance = senderTable.getMyBalance();
 
-            if (balanceOfFrom.subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
+            if (senderBalance.subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
                 log.info("\n[ERR] " + sender + " has no enough balance!");
             } else {
-                state.replace(sender, balanceOfFrom.subtract(amount));
-                if (state.get(to) != null) {
-                    state.replace(to, state.get(to).add(amount));
-                } else {
-                    state.put(to, amount);
-                }
+                senderTable.setMyBalance(senderBalance.subtract(amount));
+
+                addBalanceTo(to, amount);
+
                 txReceipt.setStatus(TransactionReceipt.SUCCESS);
-                log.info(
-                        "\nBalance of From : " + state.get(sender)
-                                + "\nBalance of To   : " + state.get(to));
+                log.info("\n[Transferred] Transfer " + amount + " from " + sender + "to " + sender);
+                log.info("\nBalance of From (" + sender + ") : " + state.get(sender).getMyBalance()
+                        + "\nBalance of To   (" + to + ") : " + state.get(to).getMyBalance());
             }
         } else {
             log.info("\n[ERR] " + sender + " has no balance!");
@@ -99,9 +106,34 @@ public class CoinStandardContract extends BaseContract<BigDecimal> implements Co
      */
     @Override
     public TransactionReceipt approve(JsonArray params) {
-        // Map<spender, Map<owner, Set<amount>>
+        log.info("\napprove :: params => " + params);
 
-        return null;
+        String spender = params.get(0).getAsJsonObject().get("spender").getAsString().toLowerCase();
+        BigDecimal amount = params.get(0).getAsJsonObject().get("amount").getAsBigDecimal();
+
+        TransactionReceipt txReceipt = new TransactionReceipt();
+        txReceipt.putLog("spender", spender);
+        txReceipt.putLog("amount", String.valueOf(amount));
+
+        if (state.get(sender) != null) {
+            CoinStandardStateTable senderTable = state.get(sender);
+            BigDecimal senderBalance = senderTable.getMyBalance();
+
+            if (senderBalance.subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
+                log.info("\n[ERR] " + sender + " has no enough balance!");
+            } else {
+                BigDecimal allowedAmountBySender = senderTable.getAllowedAmount(spender);
+                senderTable.setAllowance(spender, amount.add(allowedAmountBySender));
+
+                txReceipt.setStatus(TransactionReceipt.SUCCESS);
+                log.info("\n[Approved] Approve " + spender + " to "
+                        + state.get(sender).getAllowedAmount(spender) + " from " + sender);
+            }
+        } else {
+            log.info("\n[ERR] " + sender + " has no balance!");
+        }
+
+        return txReceipt;
     }
 
     /**
@@ -114,7 +146,8 @@ public class CoinStandardContract extends BaseContract<BigDecimal> implements Co
      */
     @Override
     public TransactionReceipt transferfrom(JsonArray params) {
-        log.info("\n transferfrom :: params => " + params);
+        log.info("\ntransferfrom :: params => " + params);
+
         String from = params.get(0).getAsJsonObject().get("from").getAsString().toLowerCase();
         String to = params.get(0).getAsJsonObject().get("to").getAsString().toLowerCase();
         BigDecimal amount = params.get(0).getAsJsonObject().get("amount").getAsBigDecimal();
@@ -123,7 +156,32 @@ public class CoinStandardContract extends BaseContract<BigDecimal> implements Co
         txReceipt.putLog("from", from);
         txReceipt.putLog("to", to);
         txReceipt.putLog("amount", String.valueOf(amount));
-        return null;
+
+        if (state.get(from) != null) {
+            CoinStandardStateTable senderTable = state.get(from);
+            BigDecimal senderBalance = senderTable.getMyBalance();
+
+            if (senderBalance.subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
+                log.info("\n[ERR] " + from + " has no enough balance!");
+            } else {
+                BigDecimal allowedAmountBySender = senderTable.getAllowedAmount(to);
+                if (allowedAmountBySender.subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
+                    log.info("\n[ERR] " + from + "has no enough amount allowed by from");
+                } else {
+                    senderTable.setMyBalance(senderBalance.subtract(amount));
+                    senderTable.setAllowance(to, allowedAmountBySender.subtract(amount));
+
+                    addBalanceTo(to, amount);
+                }
+                txReceipt.setStatus(TransactionReceipt.SUCCESS);
+                log.info("\n[Transferred] Transfer " + amount + " from " + from + " to " + to);
+                log.info("\nBalance of From (" + from + ") : " + state.get(from).getMyBalance()
+                        + "\nBalance of To   (" + to + ") : " + state.get(to).getMyBalance());
+            }
+        } else {
+            log.info("\n[ERR] " + sender + " has no balance!");
+        }
+        return txReceipt;
     }
 
     /**
@@ -134,21 +192,47 @@ public class CoinStandardContract extends BaseContract<BigDecimal> implements Co
      * @return TransactionReceipt
      */
     public TransactionReceipt genesis(JsonArray params) {
+        log.info("\ngenesis :: params => " + params);
+
         TransactionReceipt txReceipt = new TransactionReceipt();
-        if (state.getState().size() == 0) {
-            log.info("\n genesis :: params => " + params);
-            for (int i = 0; i < params.size(); i++) {
-                JsonObject jsonObject = params.get(i).getAsJsonObject();
-                String frontier = jsonObject.get("frontier").getAsString();
-                BigDecimal balance = jsonObject.get("balance").getAsBigDecimal();
-                txReceipt.putLog(String.format("frontier[%d]", i), frontier);
-                txReceipt.putLog(String.format("balance[%d]", i), balance);
-                state.put(frontier, balance);
-                txReceipt.setStatus(TransactionReceipt.SUCCESS);
-                log.info("\nAddress of Frontier : " + frontier
-                        + "\nBalance of Frontier : " + balance);
-            }
+        if (state.getState().size() > 0) {
+            return txReceipt;
         }
+
+        //totalSupply 는 alloc 의 balance 를 모두 더한 값으로 세팅
+        BigDecimal totalSupply = BigDecimal.ZERO;
+        JsonObject json = params.get(0).getAsJsonObject();
+        JsonObject alloc = json.get("alloc").getAsJsonObject();
+        for (Map.Entry<String, JsonElement> entry : alloc.entrySet()) {
+            String frontier = entry.getKey();
+            JsonObject value = entry.getValue().getAsJsonObject();
+            BigDecimal balance = value.get("balance").getAsBigDecimal();
+            totalSupply = totalSupply.add(balance);
+            CoinStandardStateTable frontierTable = new CoinStandardStateTable();
+            frontierTable.setMyBalance(balance);
+            state.put(frontier, frontierTable);
+
+            txReceipt.putLog(frontier, balance);
+            txReceipt.setStatus(TransactionReceipt.SUCCESS);
+            log.info("\nAddress of Frontier : " + frontier
+                    + "\nBalance of Frontier : " + state.get(frontier).getMyBalance());
+        }
+        state.setTotalSupply(totalSupply);
+        txReceipt.putLog("TotalSupply", totalSupply);
+        log.info("\n[Genesis]\nTotalSupply : " + state.getTotalSupply());
+
         return txReceipt;
+    }
+
+    private void addBalanceTo(String to, BigDecimal amount) {
+        if (state.get(to) != null) {
+            CoinStandardStateTable toTable = state.get(to);
+            BigDecimal toBalance = toTable.getMyBalance();
+            toTable.setMyBalance(toBalance.add(amount));
+        } else {
+            CoinStandardStateTable toTable = new CoinStandardStateTable();
+            toTable.setMyBalance(amount);
+            state.put(to, toTable);
+        }
     }
 }
