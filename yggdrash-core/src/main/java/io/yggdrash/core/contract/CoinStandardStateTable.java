@@ -8,16 +8,16 @@ public class CoinStandardStateTable {
     private BigDecimal myBalance;
     private Map<String, BigDecimal> allowance;
 
-    CoinStandardStateTable() {
+    public CoinStandardStateTable() {
         this.myBalance = BigDecimal.ZERO;
         this.allowance = new HashMap<>();
     }
 
-    BigDecimal getMyBalance() {
+    public BigDecimal getMyBalance() {
         return myBalance;
     }
 
-    void setMyBalance(BigDecimal myBalance) {
+    public void setMyBalance(BigDecimal myBalance) {
         this.myBalance = myBalance;
     }
 
@@ -25,14 +25,14 @@ public class CoinStandardStateTable {
         return allowance;
     }
 
-    BigDecimal getAllowedAmount(String allowedTo) {
+    public BigDecimal getAllowedAmount(String allowedTo) {
         if (allowance.containsKey(allowedTo)) {
             return allowance.get(allowedTo);
         }
         return BigDecimal.ZERO;
     }
 
-    void setAllowance(String allowedTo, BigDecimal amount) {
+    public void setAllowance(String allowedTo, BigDecimal amount) {
         if (allowance.get(allowedTo) != null) {
             allowance.replace(allowedTo, amount);
         } else {
@@ -40,7 +40,7 @@ public class CoinStandardStateTable {
         }
     }
 
-    void setAllowance(Map<String, BigDecimal> allowance) {
+    public void setAllowance(Map<String, BigDecimal> allowance) {
         this.allowance = allowance;
     }
 }
