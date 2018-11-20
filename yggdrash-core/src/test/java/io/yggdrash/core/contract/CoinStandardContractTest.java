@@ -19,6 +19,7 @@ public class CoinStandardContractTest {
     private static final Logger log = LoggerFactory.getLogger(CoinStandardContractTest.class);
     private static final CoinStandardContract coinstandardContract = new CoinStandardContract();
 
+
     @Before
     public void setUp() {
         StateStore<CoinStandardStateTable> coinStandardContractStateStore = new StateStore<>();
@@ -27,20 +28,21 @@ public class CoinStandardContractTest {
     }
 
     public void genesis() {
-        String genesisStr = "{\"alloc\":{\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\":"
-                + "{\"balance\":\"1000000000\"},\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\":"
-                + "{\"balance\":\"1000000000\"}},\"totalSupply\" : \"100000000000000\"}";
+        String genesisStr = "{\"alloc\": {\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\":"
+                + " {\"balance\": \"1000000000\"},\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\":"
+                + " {\"balance\": \"1000000000\"},\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":"
+                + " {\"balance\": \"998000000000\"}}}";
 
         TransactionReceipt result = coinstandardContract.genesis(createParam(genesisStr));
 
         assertEquals(result.getStatus(), 1);
-        assertEquals(result.getTxLog().size(), 3);
+        assertEquals(result.getTxLog().size(), 4);
     }
 
     @Test
     public void totalSupply() {
         BigDecimal res = coinstandardContract.totalsupply(new JsonArray());
-        BigDecimal totalSupply = new BigDecimal("100000000000000");
+        BigDecimal totalSupply = new BigDecimal("1000000000000");
 
         assertEquals(totalSupply, res);
     }

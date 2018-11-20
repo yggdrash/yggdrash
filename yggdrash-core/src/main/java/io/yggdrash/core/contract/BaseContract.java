@@ -73,6 +73,8 @@ public abstract class BaseContract<T> implements Contract<T> {
         return result;
     }
 
+    // TODO interface method 생성 -> methodList (인터페이스 조회)
+
     private void dataFormatValidation(JsonObject data) {
         if (data.get("method").getAsString().length() < 0) {
             throw new FailedOperationException("Empty method");

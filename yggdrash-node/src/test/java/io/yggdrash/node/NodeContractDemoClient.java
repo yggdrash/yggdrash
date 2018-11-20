@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.Scanner;
 
@@ -133,7 +134,11 @@ public class NodeContractDemoClient {
         int times = getSendTimes();
         String serverAddress = getServerAddress();
         for (int i = 0; i < times; i++) {
-            TransactionHusk tx = ContractTx.createTx(TestUtils.YEED, wallet, address, amount);
+            JsonArray params = ContractTx.createTransferBody(
+                    "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigDecimal(amount));
+            TransactionHusk tx =
+                    ContractTx.createCoinContractTx(TestUtils.YEED, wallet, params);
+
             rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
         }
     }
@@ -186,13 +191,13 @@ public class NodeContractDemoClient {
         saveBranchAsFile(branchId, branch);
     }
 
-    private static void balance() {
+    private static void balance() throws Exception {
         System.out.println("조회할 주소를 적어주세요\n>");
-        JsonObject qry = ContractQry.createQuery(TestUtils.YEED.toString(), "balanceOf",
-                ContractQry.createParams("address", scan.nextLine()));
+        JsonObject qry = ContractQry.createQuery(TestUtils.YEED.toString(),
+                "balanceOf", ContractQry.createParams("address", scan.nextLine()));
 
         String serverAddress = getServerAddress();
-        rpc.accountApi(serverAddress).balanceOf(qry.toString());
+        rpc.contractApi(serverAddress).query(qry.toString());
     }
 
     private static JsonObject getBranch() {

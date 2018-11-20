@@ -3,7 +3,7 @@
   "symbol": "ERC20",
   "property": "currency",
   "description": "ERC20 Token Standard Coin",
-  "contractId": "e1ad137016ac61a7ffbab2f3e6b631fe0cff97c8",
+  "contractId": "dedad1b859dc86d94c0c5312865d3cfa257e1130",
   "genesis": {
     "alloc": {
       "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94": {
@@ -15,7 +15,6 @@
       "cee3d4755e47055b530deeba062c5bd0c17eb00f": {
         "balance": "998000000000"
       }
-    },
-    "totalSupply": "1000000000000"
+    }
   }
 }
