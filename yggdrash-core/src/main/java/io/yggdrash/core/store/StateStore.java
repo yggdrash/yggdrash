@@ -16,10 +16,12 @@ public class StateStore<T> implements Store<String, T> {
 
     private final Map<String, T> state;
     private final Map<String, Map<Object, Set<Object>>> subState;
+    private final Map<String, Map<String, Map<JsonObject, JsonObject>>> assetState;
 
     public StateStore() {
         this.state = new ConcurrentHashMap<>();
         this.subState = new HashMap<>();
+        this.assetState = new HashMap<>();
     }
 
     public Map<String, T> getState() {
@@ -138,5 +140,60 @@ public class StateStore<T> implements Store<String, T> {
     public void close() {
         state.clear();
         subState.clear();
+        assetState.clear();
     }
+
+    public Map<String, Map<JsonObject, JsonObject>> getAssetState(String db) {
+        return this.assetState.get(db);
+    }
+
+    public Map<JsonObject, JsonObject> getAssetState(String db, String table) {
+        return this.assetState.get(db).get(table);
+    }
+
+    public JsonObject getAssetState(
+            String db, String table, JsonObject keyObject) {
+        return this.assetState.get(db).get(table).get(keyObject);
+    }
+
+    public boolean putAssetState(
+            String db, String table, JsonObject keyObject, JsonObject recordObject) {
+        if (db == null || table == null || keyObject == null || recordObject == null) {
+            return false;
+        }
+
+        try {
+            if (assetState.get(db).get(table).get(keyObject) != null) {
+                return false;
+            }
+        } catch (NullPointerException e) {
+            // Null point exception.
+        }
+
+        Map<JsonObject, JsonObject> fieldState = new HashMap<>();
+        fieldState.put(keyObject, recordObject);
+
+        Map<String, Map<JsonObject, JsonObject>> tableState = new HashMap<>();
+        tableState.put(table, fieldState);
+        assetState.put(db, tableState);
+
+        return true;
+    }
+
+    private boolean updateAssetState(
+            String db, String table, JsonObject keyObject, JsonObject recordObject) {
+        if (db == null || table == null || keyObject == null || recordObject == null) {
+            return false;
+        }
+
+        Map<JsonObject, JsonObject> fieldState = new HashMap<>();
+        fieldState.put(keyObject, recordObject);
+
+        Map<String, Map<JsonObject, JsonObject>> tableState = new HashMap<>();
+        tableState.put(table, fieldState);
+        assetState.replace(db, tableState);
+
+        return true;
+    }
+
 }
