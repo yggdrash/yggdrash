@@ -97,17 +97,13 @@ public class TransactionApiImpl implements TransactionApi {
 
     @Override
     public byte[] sendRawTransaction(byte[] bytes) {
-        try {
-            Transaction tx = new Transaction(bytes);
-            TransactionHusk transaction = new TransactionHusk(tx);
-            if (branchGroup.getBranch(transaction.getBranchId()) != null) {
-                TransactionHusk addedTx = branchGroup.addTransaction(transaction);
-                return addedTx.getHash().getBytes();
-            } else {
-                return "No branch existed".getBytes();
-            }
-        } catch (Exception e) {
-            return "Error".getBytes();
+        Transaction tx = new Transaction(bytes);
+        TransactionHusk transaction = new TransactionHusk(tx);
+        if (branchGroup.getBranch(transaction.getBranchId()) != null) {
+            TransactionHusk addedTx = branchGroup.addTransaction(transaction);
+            return addedTx.getHash().getBytes();
+        } else {
+            return "No branch existed".getBytes();
         }
     }
 

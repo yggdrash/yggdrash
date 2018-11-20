@@ -114,8 +114,8 @@ public class BranchJson {
 
         String signature = jsonObjectBranch.remove("signature").getAsString();
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(Hex.decode(signature));
-        byte[] rawForsing = jsonObjectBranch.toString().getBytes(StandardCharsets.UTF_8);
-        byte[] hashedHeader = new Sha3Hash(rawForsing).getBytes();
+        byte[] rawForSign = jsonObjectBranch.toString().getBytes(StandardCharsets.UTF_8);
+        byte[] hashedHeader = new Sha3Hash(rawForSign).getBytes();
         jsonObjectBranch.addProperty("signature", signature);
 
         try {
