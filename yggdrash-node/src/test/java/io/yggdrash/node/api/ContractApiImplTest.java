@@ -30,7 +30,7 @@ public class ContractApiImplTest {
         if (isStemTest) {
             beforeStemTest();
         } else {
-            branchId = BranchId.of("dc81f012284b3f3bdfff7e390a7639dc351f5bc4");
+            branchId = BranchId.of("314a10c02c52b626d637374d73d0cc7b4d6c04fc");
         }
     }
 

@@ -199,17 +199,15 @@ public class CoinStandardContract extends BaseContract<CoinStandardStateTable>
             return txReceipt;
         }
 
+        //totalSupply 는 alloc 의 balance 를 모두 더한 값으로 세팅
+        BigDecimal totalSupply = BigDecimal.ZERO;
         JsonObject json = params.get(0).getAsJsonObject();
-        BigDecimal totalSupply = json.get("totalSupply").getAsBigDecimal();
-        state.setTotalSupply(totalSupply);
-        txReceipt.putLog("TotalSupply", totalSupply);
-        log.info("\n[Genesis]\nTotalSupply : " + state.getTotalSupply());
-
         JsonObject alloc = json.get("alloc").getAsJsonObject();
         for (Map.Entry<String, JsonElement> entry : alloc.entrySet()) {
             String frontier = entry.getKey();
             JsonObject value = entry.getValue().getAsJsonObject();
             BigDecimal balance = value.get("balance").getAsBigDecimal();
+            totalSupply = totalSupply.add(balance);
             CoinStandardStateTable frontierTable = new CoinStandardStateTable();
             frontierTable.setMyBalance(balance);
             state.put(frontier, frontierTable);
@@ -219,6 +217,10 @@ public class CoinStandardContract extends BaseContract<CoinStandardStateTable>
             log.info("\nAddress of Frontier : " + frontier
                     + "\nBalance of Frontier : " + state.get(frontier).getMyBalance());
         }
+        state.setTotalSupply(totalSupply);
+        txReceipt.putLog("TotalSupply", totalSupply);
+        log.info("\n[Genesis]\nTotalSupply : " + state.getTotalSupply());
+
         return txReceipt;
     }
 
