@@ -45,7 +45,6 @@ public class BranchLoader {
             File branchFile = new File(branchDir, BRANCH_FILE);
             try (FileInputStream is = new FileInputStream(branchFile)) {
                 BranchJson branchJson = BranchJson.toBranchJson(is);
-                branchJson.verify();
                 genesisBlockList.add(new GenesisBlock(branchJson));
             } catch (Exception e) {
                 log.error(e.getMessage());
