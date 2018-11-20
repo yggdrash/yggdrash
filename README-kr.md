@@ -62,7 +62,7 @@ cd yggdrash
 아래는 도커로 쉽고 빠르게 단일노드를 실행하고 컨테이너 종료시 삭제되는 명령입니다.
 
 ```
-docker --rm -p 8080:8080 -p 32918:32918 -h yggdrash-node1 --name yggdrash-node1 yggdrash/yggdrash-node
+docker run --rm -p 8080:8080 -v $HOME/.yggdrash:/.yggdrash yggdrash/yggdrash-node
 ```
 
 이 경우 `localhost` 주소의 `8080`(기본값) 포트로 RESTful API 와 JSON RPC를 호출 가능하고, `32918`(기본값)은 노드간 gRPC 통신용 포트로 사용됩니다.
@@ -85,11 +85,13 @@ yggdrash-node/build/libs/*.jar
 
 다음과 같은 옵션을 사용해서 노드 jar 를 실행 가능합니다. (예: yggdrash-node.jar --server.port=8081)
 
-- `--server.address=value` JSON RPC 및 RESTful API 서비스용 호스트 주소
-- `--server.port=value` JSON RPC 및 RESTful API 서비스용 포트
-- `--yggdrash.node.grpc.host=value` gRPC 서비스용 호스트 주소
-- `--yggdrash.node.grpc.port=value` gRPC 서비스용 포트
-- `--yggdrash.node.max-peers=value` 노드에서 연결할 최대 피어 수(기본값: 25)
+- `--spring.profiles.active=value` 활성화하려는 환경 profile 이름 (기본값: default, 도커 기본값: prod-운영모드) 
+- `--server.address=value` JSON RPC 및 RESTful API 서비스용 호스트 주소 (기본값: localhost)
+- `--server.port=value` JSON RPC 및 RESTful API 서비스용 포트 (기본값: 8080)
+- `--yggdrash.node.grpc.host=value` gRPC 서비스용 호스트 주소 (기본값: localhost)
+- `--yggdrash.node.grpc.port=value` gRPC 서비스용 포트 (기본값: 32918)
+- `--yggdrash.node.max-peers=value` 노드에서 연결할 최대 피어 수 (기본값: 25)
+- `--yggdrash.branch.default.active=true|false` 기본 브랜치 활성 및 비활성화 (기본값: true)
 
 ### 테스트
 단위 테스트를 실행합니다.
