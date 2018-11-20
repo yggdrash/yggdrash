@@ -58,7 +58,7 @@ public class AssetContractTest {
 
     @Before
     public void setUp() {
-        StateStore<JsonObject> stateStore = new StateStore<>();
+        StateStore<JsonArray> stateStore = new StateStore<>();
         TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
 
         assetContract = new AssetContract();
@@ -68,10 +68,6 @@ public class AssetContractTest {
     @Test
     public void createDatabaseTest() {
 
-        TransactionBody txBody;
-        TransactionHeader txHeader;
-        TransactionSignature txSig;
-        Transaction tx;
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "createDatabase");
@@ -89,25 +85,242 @@ public class AssetContractTest {
 
         log.info(txBodyArray.toString());
 
-        txBody = new TransactionBody(txBodyArray);
-        txHeader = new TransactionHeader(
+        TransactionBody txBody = new TransactionBody(txBodyArray);
+        TransactionHeader txHeader = new TransactionHeader(
                 branchId,
                 new byte[8],
                 new byte[8],
                 TimeUtils.time(),
                 txBody);
-        txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-        tx = new Transaction(txHeader, txSig.getSignature(), txBody);
+        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
+        Transaction tx = new Transaction(txHeader, txSig.getSignature(), txBody);
+
+        boolean result = assetContract.invoke(new TransactionHusk(tx));
+        assertThat(result).isTrue();
+    }
+
+    private void createTableUserTestModule() {
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "createTable");
+
+        // paramsObject
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", "assetManagement");
+        paramsObject.addProperty("table", "user");
+
+        // keyObject
+        JsonObject keyObject = new JsonObject();
+        keyObject.addProperty("number", "1");
+        paramsObject.add("key", keyObject);
+
+        // recordObject
+        JsonObject recordObject = new JsonObject();
+        recordObject.addProperty("name", "");
+        recordObject.addProperty("gender", "");
+        recordObject.addProperty("age", "");
+        recordObject.addProperty("department", "");
+
+        paramsObject.add("record", recordObject);
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonArray txBodyArray = new JsonArray();
+        txBodyArray.add(bodyObject);
+
+        log.info(txBodyArray.toString());
+
+        TransactionBody txBody = new TransactionBody(txBodyArray);
+        TransactionHeader txHeader = new TransactionHeader(
+                branchId,
+                new byte[8],
+                new byte[8],
+                TimeUtils.time(),
+                txBody);
+        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
+        Transaction tx = new Transaction(txHeader, txSig.getSignature(), txBody);
+
+        boolean result = assetContract.invoke(new TransactionHusk(tx));
+        assertThat(result).isTrue();
+    }
+
+    private void createTableAssetTestModule() {
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "createTable");
+
+        // paramsObject
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", "assetManagement");
+        paramsObject.addProperty("table", "asset");
+
+        // keyObject
+        JsonObject keyObject = new JsonObject();
+        keyObject.addProperty("number", "1");
+        keyObject.addProperty("code", "0000-0000");
+        paramsObject.add("key", keyObject);
+
+        // recordObject
+        JsonObject recordObject = new JsonObject();
+        recordObject.addProperty("type", "");
+        recordObject.addProperty("information", "");
+        recordObject.addProperty("price", "0");
+        recordObject.addProperty("registrationDate", "0000-00-0000");
+        recordObject.addProperty("disuseDate", "0000-00-0000");
+
+        JsonObject userObject = new JsonObject();
+        userObject.addProperty("table", "user");
+
+        JsonObject userkeyObject = new JsonObject();
+        userkeyObject.addProperty("number", "1");
+
+        userObject.add("key", userkeyObject);
+
+        recordObject.add("user", userObject);
+
+        paramsObject.add("record", recordObject);
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonArray txBodyArray = new JsonArray();
+        txBodyArray.add(bodyObject);
+
+        log.info(txBodyArray.toString());
+
+        TransactionBody txBody = new TransactionBody(txBodyArray);
+        TransactionHeader txHeader = new TransactionHeader(
+                branchId,
+                new byte[8],
+                new byte[8],
+                TimeUtils.time(),
+                txBody);
+        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
+        Transaction tx = new Transaction(txHeader, txSig.getSignature(), txBody);
 
         boolean result = assetContract.invoke(new TransactionHusk(tx));
         assertThat(result).isTrue();
     }
 
 
+    @Test
+    public void createTableTest() {
+        createDatabaseTest();
+        createTableUserTestModule();
+        createTableAssetTestModule();
+    }
 
 
+    private void insertRecordUserTest1() {
 
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "insert");
 
+        // paramsObject
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", "assetManagement");
+        paramsObject.addProperty("table", "user");
+
+        // keyObject
+        JsonObject keyObject = new JsonObject();
+        keyObject.addProperty("number", "1");
+        paramsObject.add("key", keyObject);
+
+        // recordObject
+        JsonObject recordObject = new JsonObject();
+        recordObject.addProperty("name", "Jaes Park");
+        recordObject.addProperty("gender", "mail");
+        recordObject.addProperty("age", "20");
+        recordObject.addProperty("department", "development");
+
+        paramsObject.add("record", recordObject);
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonArray txBodyArray = new JsonArray();
+        txBodyArray.add(bodyObject);
+
+        log.info(txBodyArray.toString());
+
+        TransactionBody txBody = new TransactionBody(txBodyArray);
+        TransactionHeader txHeader = new TransactionHeader(
+                branchId,
+                new byte[8],
+                new byte[8],
+                TimeUtils.time(),
+                txBody);
+        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
+        Transaction tx = new Transaction(txHeader, txSig.getSignature(), txBody);
+
+        boolean result = assetContract.invoke(new TransactionHusk(tx));
+        assertThat(result).isTrue();
+    }
+
+    private void insertRecordUserTest2() {
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "insert");
+
+        // paramsObject
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", "assetManagement");
+        paramsObject.addProperty("table", "user");
+
+        // keyObject
+        JsonObject keyObject = new JsonObject();
+        keyObject.addProperty("number", "2");
+        paramsObject.add("key", keyObject);
+
+        // recordObject
+        JsonObject recordObject = new JsonObject();
+        recordObject.addProperty("name", "Rachael Hong");
+        recordObject.addProperty("gender", "femail");
+        recordObject.addProperty("age", "21");
+        recordObject.addProperty("department", "development");
+
+        paramsObject.add("record", recordObject);
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonArray txBodyArray = new JsonArray();
+        txBodyArray.add(bodyObject);
+
+        log.info(txBodyArray.toString());
+
+        TransactionBody txBody = new TransactionBody(txBodyArray);
+        TransactionHeader txHeader = new TransactionHeader(
+                branchId,
+                new byte[8],
+                new byte[8],
+                TimeUtils.time(),
+                txBody);
+        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
+        Transaction tx = new Transaction(txHeader, txSig.getSignature(), txBody);
+
+        boolean result = assetContract.invoke(new TransactionHusk(tx));
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    public void insertUserRecordTest() {
+        createDatabaseTest();
+        createTableUserTestModule();
+        insertRecordUserTest1();
+        insertRecordUserTest2();
+
+        log.info(assetContract.state.getAssetState("assetManagement", "user").toString());
+    }
 
 }
 
