@@ -180,9 +180,17 @@ public class StateStore<T> implements Store<String, T> {
         return true;
     }
 
-    private boolean updateAssetState(
+    public boolean updateAssetState(
             String db, String table, JsonObject keyObject, JsonObject recordObject) {
         if (db == null || table == null || keyObject == null || recordObject == null) {
+            return false;
+        }
+
+        try {
+            if (assetState.get(db).get(table).get(keyObject) == null) {
+                return false;
+            }
+        } catch (NullPointerException e) {
             return false;
         }
 
