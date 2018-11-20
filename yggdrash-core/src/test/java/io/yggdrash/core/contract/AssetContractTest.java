@@ -322,5 +322,62 @@ public class AssetContractTest {
         log.info(assetContract.state.getAssetState("assetManagement", "user").toString());
     }
 
+    private void updateRecordUserTest1() {
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "update");
+
+        // paramsObject
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", "assetManagement");
+        paramsObject.addProperty("table", "user");
+
+        // keyObject
+        JsonObject keyObject = new JsonObject();
+        keyObject.addProperty("number", "1");
+        paramsObject.add("key", keyObject);
+
+        // recordObject
+        JsonObject recordObject = new JsonObject();
+        recordObject.addProperty("name", "Jaes Park");
+        recordObject.addProperty("gender", "mail");
+        recordObject.addProperty("age", "22");
+        recordObject.addProperty("department", "development");
+
+        paramsObject.add("record", recordObject);
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonArray txBodyArray = new JsonArray();
+        txBodyArray.add(bodyObject);
+
+        log.info(txBodyArray.toString());
+
+        TransactionBody txBody = new TransactionBody(txBodyArray);
+        TransactionHeader txHeader = new TransactionHeader(
+                branchId,
+                new byte[8],
+                new byte[8],
+                TimeUtils.time(),
+                txBody);
+        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
+        Transaction tx = new Transaction(txHeader, txSig.getSignature(), txBody);
+
+        boolean result = assetContract.invoke(new TransactionHusk(tx));
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    public void updateUserRecordTest() {
+        createDatabaseTest();
+        createTableUserTestModule();
+        insertRecordUserTest1();
+        updateRecordUserTest1();
+
+        log.info(assetContract.state.getAssetState("assetManagement", "user").toString());
+    }
 }
 
