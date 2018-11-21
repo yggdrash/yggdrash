@@ -17,9 +17,9 @@
 package io.yggdrash.common.crypto.jce;
 
 import org.junit.Test;
-import sun.security.provider.Sun;
 
 import java.security.NoSuchProviderException;
+import java.security.Provider;
 
 public class ECKeyAgreementTest {
 
@@ -30,7 +30,8 @@ public class ECKeyAgreementTest {
 
     @Test(expected = AssertionError.class)
     public void getInstanceByProvider() {
-        ECKeyAgreement.getInstance(new Sun());
+        ECKeyAgreement.getInstance(new Provider("SunPKCS11-Dummy", 1.8D, "SunPKCS11-Dummy") {
+        });
     }
 
     @Test(expected = NoSuchProviderException.class)

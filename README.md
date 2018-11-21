@@ -37,6 +37,8 @@ This is the implementation written in Java and runs on Linux, OSX and Windows.
 
 Yggdrash requires `JAVA` 1.8+ compiler to build. To install Java, follow this [link](http://www.oracle.com/technetwork/java/javase/overview/index.html).
 
+Open JDK or Oracle JDK 1.8 to 11 are supported.
+
 ### Getting the source
 
 Clone the yggdrash repo:
