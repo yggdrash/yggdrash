@@ -134,7 +134,7 @@ public class BranchConfiguration {
                     .setStoreBuilder(storeBuilder)
                     .build();
             branch.addListener(sender);
-            branchGroup.addBranch(branch.getBranchId(), branch, peerGroup);
+            branchGroup.addBranch(branch, peerGroup);
             PeerStore peerStore = storeBuilder.buildPeerStore(branch.getBranchId());
             peerGroup.addPeerTable(branch.getBranchId(), peerStore);
             return branch;

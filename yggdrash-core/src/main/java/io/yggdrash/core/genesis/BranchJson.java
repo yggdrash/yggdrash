@@ -22,10 +22,12 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import org.apache.commons.io.IOUtils;
 import org.spongycastle.util.encoders.Hex;
@@ -33,6 +35,7 @@ import org.spongycastle.util.encoders.Hex;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.security.SignatureException;
 import java.util.Map;
 
 public class BranchJson {
@@ -48,7 +51,7 @@ public class BranchJson {
     public String property;
     public String description;
     public String contractId;
-    public Map<String, Map<String, Map<String, String>>> genesis;
+    public Map<String, Object> genesis;
     public String timestamp;
     public String owner;
     public String signature;
@@ -70,18 +73,6 @@ public class BranchJson {
         return symbol != null && "STEM".equals(symbol);
     }
 
-    public static BranchJson toBranchJson(JsonObject jsonObjectBranch) throws IOException {
-        return MAPPER.readValue(jsonObjectBranch.toString(), BranchJson.class);
-    }
-
-    public static BranchJson toBranchJson(InputStream branch) throws IOException {
-        String branchString = IOUtils.toString(branch, StandardCharsets.UTF_8);
-        JsonObject jsonObjectBranch = Utils.parseJsonObject(branchString);
-        BranchJson branchJson = MAPPER.readValue(branchString, BranchJson.class);
-        branchJson.branchId = BranchId.of(jsonObjectBranch).toString();
-        return branchJson;
-    }
-
     JsonObject toJsonObject() {
         try {
             String jsonString = MAPPER.writeValueAsString(this);
@@ -89,6 +80,21 @@ public class BranchJson {
         } catch (JsonProcessingException e) {
             throw new NotValidateException(e);
         }
+    }
+
+    public static BranchJson toBranchJson(JsonObject jsonObjectBranch) throws IOException {
+        return MAPPER.readValue(jsonObjectBranch.toString(), BranchJson.class);
+    }
+
+    public static BranchJson toBranchJson(InputStream branch) throws IOException {
+        String branchString = IOUtils.toString(branch, StandardCharsets.UTF_8);
+        JsonObject jsonObjectBranch = Utils.parseJsonObject(branchString);
+        if (!verify(jsonObjectBranch)) {
+            throw new InvalidSignatureException();
+        }
+        BranchJson branchJson = MAPPER.readValue(branchString, BranchJson.class);
+        branchJson.branchId = BranchId.of(jsonObjectBranch).toString();
+        return branchJson;
     }
 
     public static JsonObject signBranch(Wallet wallet, JsonObject raw) {
@@ -101,7 +107,27 @@ public class BranchJson {
         return raw;
     }
 
-    boolean verify() {
-        return true;
+    private static boolean verify(JsonObject jsonObjectBranch) {
+        if (!jsonObjectBranch.has("signature") || !jsonObjectBranch.has("owner")) {
+            return false;
+        }
+
+        String signature = jsonObjectBranch.remove("signature").getAsString();
+        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(Hex.decode(signature));
+        byte[] rawForSign = jsonObjectBranch.toString().getBytes(StandardCharsets.UTF_8);
+        byte[] hashedHeader = new Sha3Hash(rawForSign).getBytes();
+        jsonObjectBranch.addProperty("signature", signature);
+
+        try {
+            ECKey ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
+            if (ecKeyPub.verify(hashedHeader, ecdsaSignature)) {
+                String owner = jsonObjectBranch.get("owner").getAsString();
+                return Hex.toHexString(ecKeyPub.getAddress()).equals(owner);
+            } else {
+                return false;
+            }
+        } catch (SignatureException e) {
+            throw new InvalidSignatureException(e);
+        }
     }
 }

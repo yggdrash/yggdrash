@@ -44,7 +44,6 @@ public class Transaction implements Cloneable {
         this.header = header;
         this.signature = signature;
         this.body = body;
-        verify();
     }
 
     /**
@@ -95,7 +94,6 @@ public class Transaction implements Cloneable {
         if (position != txBytes.length) {
             throw new NotValidateException();
         }
-        verify();
     }
 
     /**
@@ -213,13 +211,16 @@ public class Transaction implements Cloneable {
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
         byte[] hashedHeader = this.header.getHashForSigning();
         ECKey ecKeyPub;
+
         try {
             ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
+
         } catch (SignatureException e) {
             throw new InvalidSignatureException(e);
         }
 
         return ecKeyPub.verify(hashedHeader, ecdsaSignature);
+
     }
 
     private boolean verifyCheckLengthNotNull(byte[] data, int length, String msg) {
@@ -351,7 +352,7 @@ public class Transaction implements Cloneable {
         return protoTransaction;
     }
 
-    static Transaction toTransaction(Proto.Transaction protoTransaction) {
+    public static Transaction toTransaction(Proto.Transaction protoTransaction) {
         // todo: move at TransactionHusk
 
         TransactionHeader txHeader = new TransactionHeader(

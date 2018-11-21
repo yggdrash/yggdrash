@@ -25,156 +25,45 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class BlockDto {
+    private static final int MAX_TX_BODY = 100;
 
-    private byte[] chain;
-    private byte[] version;
-    private byte[] type;
-    private byte[] prevBlockHash;
-    private long index;
-    private long timestamp;
-    private byte[] merkleRoot;
-    private long bodyLength;
-    private byte[] signature;
-    private List<TransactionDto> body;
-    private String author;
-    private byte[] hash;
-
-    public String getChain() {
-        return Hex.toHexString(chain);
-    }
-
-    public void setChain(byte[] chain) {
-        this.chain = chain;
-    }
-
-    public String getType() {
-        return Hex.toHexString(type);
-    }
-
-    public void setType(byte[] type) {
-        this.type = type;
-    }
-
-    public void setType(String type) {
-        this.type = Hex.decode(type);
-    }
-
-    public String getVersion() {
-        return Hex.toHexString(version);
-    }
-
-    public void setVersion(byte[] version) {
-        this.version = version;
-    }
-
-    public void setVersion(String version) {
-        this.version = Hex.decode(version);
-    }
-
-    public long getIndex() {
-        return index;
-    }
-
-    public void setIndex(long index) {
-        this.index = index;
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    public String getPrevBlockHash() {
-        return Hex.toHexString(prevBlockHash);
-    }
-
-    public void setPrevBlockHash(byte[] prevBlockHash) {
-        this.prevBlockHash = prevBlockHash;
-    }
-
-    public void setPrevBlockHash(String prevBlockHash) {
-        this.prevBlockHash = Hex.decode(prevBlockHash);
-    }
-
-    public String getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(String author) {
-        this.author = author;
-    }
-
-    public String getMerkleRoot() {
-        return Hex.toHexString(merkleRoot);
-    }
-
-    public void setMerkleRoot(byte[] merkleRoot) {
-        this.merkleRoot = merkleRoot;
-    }
-
-    public void setMerkleRoot(String merkleRoot) {
-        this.merkleRoot = Hex.decode(merkleRoot);
-    }
-
-    public long getBodyLength() {
-        return bodyLength;
-    }
-
-    public void setBodyLength(long bodyLength) {
-        this.bodyLength = bodyLength;
-    }
-
-    public String getSignature() {
-        return Hex.toHexString(signature);
-    }
-
-    public void setSignature(byte[] signature) {
-        this.signature = signature;
-    }
-
-    public void setSignature(String signature) {
-        this.signature = Hex.decode(signature);
-    }
-
-    public List<TransactionDto> getBody() {
-        return body;
-    }
-
-    public void setBody(List<TransactionDto> body) {
-        this.body = body;
-    }
-
-    public String getHash() {
-        return Hex.toHexString(hash);
-    }
-
-    public void setHash(byte[] hash) {
-        this.hash = hash;
-    }
-
-    public void setHash(String hash) {
-        this.hash = Hex.decode(hash);
-    }
+    public String chain;
+    public String version;
+    public String type;
+    public String prevBlockHash;
+    public long index;
+    public String timestamp;
+    public String merkleRoot;
+    public long bodyLength;
+    public long txSize;
+    public String signature;
+    public List<TransactionDto> body;
+    public String author;
+    public String hash;
 
     public static BlockDto createBy(BlockHusk block) {
+        return createBy(block, block.getBodySize() < MAX_TX_BODY);
+    }
+
+    private static BlockDto createBy(BlockHusk block, boolean withBody) {
         BlockDto blockDto = new BlockDto();
         Proto.Block.Header header = block.getInstance().getHeader();
-        blockDto.setChain(header.getChain().toByteArray());
-        blockDto.setVersion(header.getVersion().toByteArray());
-        blockDto.setType(header.getType().toByteArray());
-        blockDto.setPrevBlockHash(block.getPrevHash().getBytes());
-        blockDto.setIndex(block.getIndex());
-        blockDto.setTimestamp(ByteUtil.byteArrayToLong(header.getTimestamp().toByteArray()));
-        blockDto.setMerkleRoot(header.getMerkleRoot().toByteArray());
-        blockDto.setBodyLength(ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray()));
-        blockDto.setSignature(block.getInstance().getSignature().toByteArray());
-        blockDto.setBody(block.getBody().stream().map(TransactionDto::createBy)
-                .collect(Collectors.toList()));
-        blockDto.setAuthor(block.getAddress().toString());
-        blockDto.setHash(block.getHash().getBytes());
+        blockDto.chain = Hex.toHexString(header.getChain().toByteArray());
+        blockDto.version = Hex.toHexString(header.getVersion().toByteArray());
+        blockDto.type = Hex.toHexString(header.getType().toByteArray());
+        blockDto.prevBlockHash = Hex.toHexString(block.getPrevHash().getBytes());
+        blockDto.index = block.getIndex();
+        blockDto.timestamp = Hex.toHexString(header.getTimestamp().toByteArray());
+        blockDto.merkleRoot = Hex.toHexString(header.getMerkleRoot().toByteArray());
+        blockDto.bodyLength = ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray());
+        blockDto.signature = Hex.toHexString(block.getInstance().getSignature().toByteArray());
+        blockDto.txSize = block.getBodySize();
+        if (withBody) {
+            blockDto.body = block.getBody().stream().map(TransactionDto::createBy)
+                    .collect(Collectors.toList());
+        }
+        blockDto.author = block.getAddress().toString();
+        blockDto.hash = block.getHash().toString();
         return blockDto;
     }
 

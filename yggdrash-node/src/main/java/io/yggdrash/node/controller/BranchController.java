@@ -16,8 +16,6 @@
 
 package io.yggdrash.node.controller;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -45,13 +43,8 @@ import java.util.Map;
 @RequestMapping("branches")
 public class BranchController {
     private static final Logger log = LoggerFactory.getLogger(BranchController.class);
-    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final BranchGroup branchGroup;
-
-    static {
-        MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    }
 
     @Autowired
     public BranchController(BranchGroup branchGroup) {
@@ -102,7 +95,10 @@ public class BranchController {
                 log.warn("Genesis tx does not contains branch property.");
             } else {
                 JsonObject branchJson = firstTx.getAsJsonObject().get("branch").getAsJsonObject();
-                return MAPPER.readValue(branchJson.toString(), BranchJson.class);
+                JsonElement genesis
+                        = firstTx.getAsJsonObject().get("params").getAsJsonArray().get(0);
+                branchJson.add("genesis", genesis);
+                return BranchJson.toBranchJson(branchJson);
             }
         } catch (IOException e) {
             log.warn(e.getMessage());
