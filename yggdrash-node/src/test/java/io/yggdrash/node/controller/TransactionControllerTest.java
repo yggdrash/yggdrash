@@ -89,7 +89,7 @@ public class TransactionControllerTest {
                 .andReturn().getResponse();
 
         assertThat(postResponse.getContentAsString()).contains("create");
-        String postTxHash = json.parseObject(postResponse.getContentAsString()).getHash();
+        String postTxHash = json.parseObject(postResponse.getContentAsString()).hash;
 
         MockHttpServletResponse getResponse = mockMvc.perform(get(basePath + "/" + postTxHash))
                 .andExpect(status().isOk())

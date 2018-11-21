@@ -168,8 +168,12 @@ public class TestUtils {
     }
 
     public static Transaction sampleTransferTx() {
+        return sampleTransferTx(100);
+    }
+
+    public static Transaction sampleTransferTx(int amount) {
         JsonObject createYeedTxJson =
-                ContractTx.createTx(YEED, wallet, TRANSFER_TO, 100).toJsonObject();
+                ContractTx.createTx(YEED, wallet, TRANSFER_TO, amount).toJsonObject();
         return new Transaction(createYeedTxJson);
     }
 

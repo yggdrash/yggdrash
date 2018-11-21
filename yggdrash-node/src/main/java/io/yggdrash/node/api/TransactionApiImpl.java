@@ -87,7 +87,7 @@ public class TransactionApiImpl implements TransactionApi {
     /* send */
     @Override
     public String sendTransaction(TransactionDto tx) {
-        if (branchGroup.getBranch(BranchId.of(tx.getChainHex())) != null) {
+        if (branchGroup.getBranch(BranchId.of(tx.chain)) != null) {
             TransactionHusk addedTx = branchGroup.addTransaction(TransactionDto.of(tx));
             return addedTx.getHash().toString();
         } else {

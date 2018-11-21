@@ -84,7 +84,7 @@ public class TransactionMockitoTest {
         when(branchGroupMock.getTxByHash(tx.getBranchId(), hashOfTx)).thenReturn(tx);
         TransactionDto res = txApiImpl.getTransactionByHash(tx.getBranchId().toString(), hashOfTx);
         assertThat(res).isNotNull();
-        assertEquals(res.getHash(), hashOfTx);
+        assertEquals(res.hash, hashOfTx);
     }
 
     @Test
@@ -92,7 +92,7 @@ public class TransactionMockitoTest {
         when(branchGroupMock.getBlockByHash(tx.getBranchId(), hashOfBlock)).thenReturn(block);
         TransactionDto res = txApiImpl.getTransactionByBlockHash(
                 tx.getBranchId().toString(), hashOfBlock, 0);
-        assertEquals(res.getHash(), hashOfTx);
+        assertEquals(res.hash, hashOfTx);
     }
 
     @Test
@@ -103,7 +103,7 @@ public class TransactionMockitoTest {
                 branchId.toString(), 0, 0);
         TransactionDto res2 = txApiImpl.getTransactionByBlockNumber(
                 branchId.toString(), "latest", 0);
-        assertEquals(res.getHash(), res2.getHash());
+        assertEquals(res.hash, res2.hash);
     }
 
     @Test
