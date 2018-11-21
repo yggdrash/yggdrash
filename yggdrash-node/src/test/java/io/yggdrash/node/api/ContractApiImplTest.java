@@ -13,6 +13,8 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -186,6 +188,23 @@ public class ContractApiImplTest {
             BigDecimal result = new BigDecimal(jsonObject.get("result").getAsString());
 
             assertEquals(result, BigDecimal.ZERO);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void specification() {
+        try {
+            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
+                    "specification", new JsonArray());
+            JsonParser jsonParser = new JsonParser();
+            JsonObject jsonObject = (JsonObject) jsonParser.parse(
+                    contractApi.query(queryObj.toString()));
+            List<String> methods =
+                    Collections.singletonList(jsonObject.get("result").getAsString());
+
+            assertThat(methods.size()).isNotZero();
         } catch (Exception e) {
             e.printStackTrace();
         }

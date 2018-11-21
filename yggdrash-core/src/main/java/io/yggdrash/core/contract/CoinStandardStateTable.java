@@ -1,5 +1,7 @@
 package io.yggdrash.core.contract;
 
+import io.yggdrash.common.util.Utils;
+
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
@@ -42,5 +44,10 @@ public class CoinStandardStateTable {
 
     public void setAllowance(Map<String, BigDecimal> allowance) {
         this.allowance = allowance;
+    }
+
+    @Override
+    public String toString() {
+        return Utils.convertObjToString(this);
     }
 }

@@ -85,7 +85,7 @@ public class TransactionSpeedTest {
         log.info(" Transaction:Contructor(Header,sig,body) nanoTime:" + averageTime);
     }
 
-    @Test (timeout = 5000L)
+    @Test(timeout = 7000L)
     public void testSpeedTransactionConstructor_2() {
 
         long startTime;
