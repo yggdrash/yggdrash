@@ -82,7 +82,7 @@ public class TransactionSpeedTest {
         }
 
         long averageTime = totalTime / MAX;
-        log.info(" Transaction:Contructor(Header,sig,body) nanoTime:" + averageTime);
+        log.info(" Transaction:Constructor(Header,sig,body) nanoTime:" + averageTime);
     }
 
     @Test(timeout = 7000L)
@@ -108,7 +108,7 @@ public class TransactionSpeedTest {
         }
 
         long averageTime = totalTime / MAX;
-        log.info(" Transaction:Contructor(Header,wallet,body) nanoTime:" + averageTime);
+        log.info(" Transaction:Constructor(Header,wallet,body) nanoTime:" + averageTime);
     }
 
     @Test (timeout = 1000L)
@@ -134,7 +134,7 @@ public class TransactionSpeedTest {
         }
 
         long averageTime = totalTime / MAX;
-        log.info(" Transaction:Contructor(jsonObject) nanoTime:" + averageTime);
+        log.info(" Transaction:Constructor(jsonObject) nanoTime:" + averageTime);
     }
 
     @Test (timeout = 1000L)
@@ -160,7 +160,7 @@ public class TransactionSpeedTest {
         }
 
         long averageTime = totalTime / MAX;
-        log.info(" Transaction:Contructor(byte[]) nanoTime:" + averageTime);
+        log.info(" Transaction:Constructor(byte[]) nanoTime:" + averageTime);
     }
 
     @Test(timeout = 7000L)

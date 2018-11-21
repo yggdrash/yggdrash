@@ -30,6 +30,7 @@ import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.genesis.BranchJson;
 
 import java.math.BigDecimal;
+import java.util.Map;
 
 public class ContractTx {
 
@@ -46,7 +47,7 @@ public class ContractTx {
         return createTx(wallet, TestUtils.STEM, txBody);
     }
 
-    private static TransactionHusk createTx(Wallet wallet, BranchId txBranchId, JsonArray txBody) {
+    public static TransactionHusk createTx(Wallet wallet, BranchId txBranchId, JsonArray txBody) {
         return new TransactionHusk(txBodyJson(wallet, txBranchId, txBody));
     }
 
@@ -67,9 +68,16 @@ public class ContractTx {
         return txBodyJson(params, "transfer");
     }
 
-    public static TransactionHusk createCoinContractTx(
-            BranchId branchId, Wallet wallet, JsonArray params) {
-        return createTx(wallet, branchId, params);
+    public static JsonArray createTxBody(String method, Map<String, String> keyValue) {
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        if (!keyValue.isEmpty()) {
+            for (String key : keyValue.keySet()) {
+                param.addProperty(key, keyValue.get(key));
+            }
+        }
+        params.add(param);
+        return txBodyJson(params, method);
     }
 
     static JsonArray createStemParams(BranchId branchId, JsonObject branch) {
