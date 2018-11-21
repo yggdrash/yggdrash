@@ -18,6 +18,7 @@
 
 package io.yggdrash.common.util;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -284,7 +285,16 @@ public class Utils {
         try {
             return mapper.readValue(json.toString(), HashMap.class);
         } catch (IOException e) {
-            log.warn("convert fail json to map err={}", json);
+            log.warn("convert fail json to map err={}", e);
+            return null;
+        }
+    }
+
+    public static String convertObjToString(Object obj) {
+        try {
+            return mapper.writeValueAsString(obj);
+        } catch (JsonProcessingException e) {
+            log.warn("convert fail obj to string err={}", e);
             return null;
         }
     }
@@ -300,4 +310,5 @@ public class Utils {
     public static JsonObject parseJsonObject(Reader json) {
         return (JsonObject) jsonParser.parse(json);
     }
+
 }

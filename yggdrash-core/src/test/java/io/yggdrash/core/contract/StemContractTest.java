@@ -27,7 +27,11 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 public class StemContractTest {
 
@@ -49,6 +53,14 @@ public class StemContractTest {
         branchId = BranchId.of(jsonObjectBranch);
         JsonArray params = ContractTx.createStemParams(branchId, jsonObjectBranch);
         stemContract.create(params);
+    }
+
+    @Test
+    public void specification() {
+        List<String> methods = stemContract.specification(new JsonArray());
+
+        assertTrue(!methods.isEmpty());
+        assertEquals(methods.size(), 8);
     }
 
     @Test

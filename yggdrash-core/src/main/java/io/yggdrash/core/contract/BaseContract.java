@@ -10,7 +10,11 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public abstract class BaseContract<T> implements Contract<T> {
     protected static final Logger log = LoggerFactory.getLogger(BaseContract.class);
@@ -73,7 +77,16 @@ public abstract class BaseContract<T> implements Contract<T> {
         return result;
     }
 
-    // TODO interface method 생성 -> methodList (인터페이스 조회)
+
+    public List<String> specification(JsonArray params) {
+        List<String> methods = new ArrayList<>();
+        for (Method method : getClass().getDeclaredMethods()) {
+            if (Modifier.isPublic(method.getModifiers())) {
+                methods.add(method.toString());
+            }
+        }
+        return methods;
+    }
 
     private void dataFormatValidation(JsonObject data) {
         if (data.get("method").getAsString().length() < 0) {
