@@ -866,10 +866,6 @@ public class AssetContractTest {
 
     @Test
     public void queryTableTest() {
-        String dbName = "assetManagement";
-        String tableName1 = "user1";
-        String tableName2 = "user2";
-
         // keyObject1
         JsonObject keyObject1 = new JsonObject();
         keyObject1.addProperty("number", "");
@@ -893,10 +889,9 @@ public class AssetContractTest {
         recordObject2.addProperty("department", "");
         recordObject2.addProperty("address", "");
 
-        JsonObject tableSchema = new JsonObject();
-        tableSchema.addProperty("table", tableName2);
-        tableSchema.add("key", keyObject2);
-        tableSchema.add("record", recordObject2);
+        String dbName = "assetManagement";
+        String tableName1 = "user1";
+        String tableName2 = "user2";
 
         createDatabaseTest(dbName);
         createTableUserTest(dbName, tableName1, keyObject1, recordObject1);
@@ -914,6 +909,11 @@ public class AssetContractTest {
 
         bodyObject.add("params", paramsArray);
 
+        JsonObject tableSchema = new JsonObject();
+        tableSchema.addProperty("table", tableName2);
+        tableSchema.add("key", keyObject2);
+        tableSchema.add("record", recordObject2);
+
         JsonObject result = assetContract.query(bodyObject);
         if (!result.equals(tableSchema)) {
             throw new AssertionError();
@@ -924,9 +924,6 @@ public class AssetContractTest {
 
     @Test
     public void queryRecordWithKeyModuleTest() {
-
-        String dbName = "assetManagement";
-        String tableName = "user";
 
         // keyObject1
         JsonObject keyObject1 = new JsonObject();
@@ -949,6 +946,9 @@ public class AssetContractTest {
         recordObject2.addProperty("gender", "femail");
         recordObject2.addProperty("age", "21");
         recordObject2.addProperty("department", "development");
+
+        String dbName = "assetManagement";
+        String tableName = "user";
 
         createDatabaseTest(dbName);
         createTableUserTest(tableName);
@@ -979,9 +979,6 @@ public class AssetContractTest {
     @Test
     public void queryRecordWithKeyTest() {
 
-        String dbName = "assetManagement";
-        String tableName = "user";
-
         // keyObject1
         JsonObject keyObject1 = new JsonObject();
         keyObject1.addProperty("number", "1");
@@ -1003,6 +1000,9 @@ public class AssetContractTest {
         recordObject2.addProperty("gender", "femail");
         recordObject2.addProperty("age", "21");
         recordObject2.addProperty("department", "development");
+
+        String dbName = "assetManagement";
+        String tableName = "user";
 
         createDatabaseTest(dbName);
         createTableUserTest(tableName);
