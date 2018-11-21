@@ -300,5 +300,40 @@ public class AssetContract extends BaseContract<JsonArray> {
         return true;
     }
 
+    @Override
+    public JsonObject query(JsonObject query) {
+        dataFormatValidation(query);
+
+        String method = query.get("method").getAsString();
+        JsonArray params = query.get("params").getAsJsonArray();
+
+        JsonObject result = null;
+        try {
+            result = (JsonObject)getClass().getMethod(method, JsonArray.class).invoke(this, params);
+
+        } catch (Exception e) {
+            throw new FailedOperationException(e);
+        }
+        return result;
+    }
+
+    public JsonObject queryAllDatabases(JsonArray params) {
+
+        JsonObject result = new JsonObject();
+        JsonArray dbArray = new JsonArray();
+
+        for(Object dbName : state.getAllKey()) {
+            dbArray.add(dbName.toString());
+        }
+
+        result.add("db", dbArray);
+
+        return result;
+    }
+
+
+
+
+
 
 }

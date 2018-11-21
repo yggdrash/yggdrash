@@ -165,6 +165,38 @@ public class AssetContractTest {
         assertThat(result).isTrue();
     }
 
+    private boolean createDatabaseTest(String dbName) {
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "createDatabase");
+
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", dbName);
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonArray txBodyArray = new JsonArray();
+        txBodyArray.add(bodyObject);
+
+        log.info(txBodyArray.toString());
+
+        // Transaction Test
+        TransactionBody txBody = new TransactionBody(txBodyArray);
+        TransactionHeader txHeader = new TransactionHeader(
+                branchId,
+                new byte[8],
+                new byte[8],
+                TimeUtils.time(),
+                txBody);
+        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
+        Transaction tx = new Transaction(txHeader, txSig.getSignature(), txBody);
+
+        return assetContract.invoke(new TransactionHusk(tx));
+    }
+
     @Test
     public void createTableUserModuleTest() {
 
@@ -581,6 +613,46 @@ public class AssetContractTest {
         updateRecordUserTest1();
 
         log.info(assetContract.state.getAssetState("assetManagement", "user").toString());
+    }
+
+    @Test
+    public void queryAllDatabasesModuleTest() {
+        createDatabaseTest();
+        createDatabaseTest("testDb");
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "queryAllDatabases");
+
+        JsonArray paramsArray = new JsonArray();
+        bodyObject.add("params", paramsArray);
+
+        JsonObject result = assetContract.queryAllDatabases(paramsArray);
+
+        log.info(result.toString());
+
+        if (result.get("db").getAsJsonArray().size() != 2) {
+            throw new AssertionError();
+        }
+    }
+
+    @Test
+    public void queryAllDatabasesTest() {
+        createDatabaseTest();
+        createDatabaseTest("testDb");
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "queryAllDatabases");
+
+        JsonArray paramsArray = new JsonArray();
+        bodyObject.add("params", paramsArray);
+
+        JsonObject result = assetContract.query(bodyObject);
+
+        log.info(result.toString());
+
+        if (result.get("db").getAsJsonArray().size() != 2) {
+            throw new AssertionError();
+        }
     }
 }
 
