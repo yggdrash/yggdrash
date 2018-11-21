@@ -322,7 +322,7 @@ public class AssetContract extends BaseContract<JsonArray> {
         JsonObject result = new JsonObject();
         JsonArray dbArray = new JsonArray();
 
-        for(Object dbName : state.getAllKey()) {
+        for (Object dbName : state.getAllKey()) {
             dbArray.add(dbName.toString());
         }
 
@@ -331,9 +331,41 @@ public class AssetContract extends BaseContract<JsonArray> {
         return result;
     }
 
+    public JsonObject queryAllTables(JsonArray params) {
 
+        String db = params.get(0).getAsJsonObject().get("db").getAsString();
 
+        JsonObject result = new JsonObject();
+        JsonArray tableNames = new JsonArray();
 
+        JsonArray tableStates = (JsonArray)state.get(db);
 
+        for (JsonElement table : tableStates) {
+            tableNames.add(table.getAsJsonObject().get("table").getAsString());
+        }
+
+        result.add("table", tableNames);
+
+        return result;
+    }
+
+    public JsonObject queryTable(JsonArray params) {
+
+        String dbName = params.get(0).getAsJsonObject().get("db").getAsString();
+        String tableName = params.get(0).getAsJsonObject().get("table").getAsString();
+
+        JsonObject result = null;
+
+        JsonArray tableStates = (JsonArray)state.get(dbName);
+
+        for (JsonElement table : tableStates) {
+            if (table.getAsJsonObject().get("table").getAsString().equals(tableName)) {
+                result = (JsonObject)table;
+                break;
+            }
+        }
+
+        return result;
+    }
 
 }

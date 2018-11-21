@@ -290,6 +290,54 @@ public class AssetContractTest {
         assertThat(result).isTrue();
     }
 
+    private void createTableUserTest(String tableName) {
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "createTable");
+
+        // paramsObject
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", "assetManagement");
+        paramsObject.addProperty("table", tableName);
+
+        // keyObject
+        JsonObject keyObject = new JsonObject();
+        keyObject.addProperty("number", "1");
+        paramsObject.add("key", keyObject);
+
+        // recordObject
+        JsonObject recordObject = new JsonObject();
+        recordObject.addProperty("name", "");
+        recordObject.addProperty("gender", "");
+        recordObject.addProperty("age", "");
+        recordObject.addProperty("department", "");
+
+        paramsObject.add("record", recordObject);
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonArray txBodyArray = new JsonArray();
+        txBodyArray.add(bodyObject);
+
+        log.info(txBodyArray.toString());
+
+        TransactionBody txBody = new TransactionBody(txBodyArray);
+        TransactionHeader txHeader = new TransactionHeader(
+                branchId,
+                new byte[8],
+                new byte[8],
+                TimeUtils.time(),
+                txBody);
+        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
+        Transaction tx = new Transaction(txHeader, txSig.getSignature(), txBody);
+
+        boolean result = assetContract.invoke(new TransactionHusk(tx));
+        assertThat(result).isTrue();
+    }
+
     private void createTableAssetTest() {
 
         JsonObject bodyObject = new JsonObject();
@@ -637,8 +685,8 @@ public class AssetContractTest {
 
     @Test
     public void queryAllDatabasesTest() {
-        createDatabaseTest();
-        createDatabaseTest("testDb");
+        createDatabaseTest("testdb1");
+        createDatabaseTest("testDb2");
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryAllDatabases");
@@ -654,5 +702,114 @@ public class AssetContractTest {
             throw new AssertionError();
         }
     }
+
+    @Test
+    public void queryAllTablesModuleTest() {
+        createDatabaseTest("assetManagement");
+        createTableUserTest("user1");
+        createTableUserTest("user2");
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "queryAllTables");
+
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", "assetManagement");
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonObject result = assetContract.queryAllTables(paramsArray);
+
+        log.info(result.toString());
+
+        if (result.get("table").getAsJsonArray().size() != 2) {
+            throw new AssertionError();
+        }
+    }
+
+    @Test
+    public void queryAllTablesTest() {
+        createDatabaseTest("assetManagement");
+        createTableUserTest("user1");
+        createTableUserTest("user2");
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "queryAllTables");
+
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", "assetManagement");
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonObject result = assetContract.query(bodyObject);
+
+        log.info(result.toString());
+
+        if (result.get("table").getAsJsonArray().size() != 2) {
+            throw new AssertionError();
+        }
+    }
+
+    @Test
+    public void queryTableModuleTest() {
+        createDatabaseTest("assetManagement");
+        createTableUserTest("user1");
+        createTableUserTest("user2");
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "queryTable");
+
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", "assetManagement");
+        paramsObject.addProperty("table", "user2");
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonObject result = assetContract.queryTable(paramsArray);
+
+        if (result == null) {
+            throw new AssertionError();
+        }
+
+        log.info(result.toString());
+    }
+
+    @Test
+    public void queryTableTest() {
+        createDatabaseTest("assetManagement");
+        createTableUserTest("user1");
+        createTableUserTest("user2");
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "queryTable");
+
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", "assetManagement");
+        paramsObject.addProperty("table", "user2");
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonObject result = assetContract.query(bodyObject);
+
+        if (result == null) {
+            throw new AssertionError();
+        }
+
+        log.info(result.toString());
+    }
+
+
+
 }
 
