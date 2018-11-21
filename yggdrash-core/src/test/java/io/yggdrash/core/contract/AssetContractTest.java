@@ -72,15 +72,14 @@ public class AssetContractTest {
     public void createAssetBranchTest() {
 
         try {
-            String frontier = new StringBuilder()
-                    .append("{ \"alloc\": {\n")
-                    .append("      \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\": {\n")
-                    .append("        \"balance\": \"1000000000\"\n")
-                    .append("      },\n")
-                    .append("      \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\": {\n")
-                    .append("        \"balance\": \"1000000000\"\n")
-                    .append("      }\n")
-                    .append("    }}").toString();
+            String frontier = "{\"alloc\":{\n"
+                    + "\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\": {\n"
+                    + "\"balance\": \"1000000000\"\n"
+                    + "},\n"
+                    + "\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\": {\n"
+                    + "\"balance\": \"1000000000\"\n"
+                    + "}\n"
+                    + "}}";
 
             JsonObject genesis = new Gson().fromJson(frontier, JsonObject.class);
 
@@ -1029,7 +1028,6 @@ public class AssetContractTest {
 
         log.info(result.toString());
     }
-
 
 }
 

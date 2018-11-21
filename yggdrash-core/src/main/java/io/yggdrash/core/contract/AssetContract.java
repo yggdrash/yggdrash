@@ -27,7 +27,6 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collection;
 import java.util.Map;
 
 public class AssetContract extends BaseContract<JsonArray> {
@@ -307,7 +306,7 @@ public class AssetContract extends BaseContract<JsonArray> {
         String method = query.get("method").getAsString();
         JsonArray params = query.get("params").getAsJsonArray();
 
-        JsonObject result = null;
+        JsonObject result;
         try {
             result = (JsonObject)getClass().getMethod(method, JsonArray.class).invoke(this, params);
 
@@ -375,9 +374,5 @@ public class AssetContract extends BaseContract<JsonArray> {
 
         return state.getAssetState(dbName, tableName, keyObject);
     }
-
-
-
-
 
 }
