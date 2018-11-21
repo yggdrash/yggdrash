@@ -16,8 +16,11 @@
 
 package io.yggdrash.core.contract;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.TestUtils;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.Transaction;
@@ -26,6 +29,7 @@ import io.yggdrash.core.TransactionHeader;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.core.TransactionSignature;
 import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.genesis.BranchJson;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.junit.Before;
@@ -64,6 +68,42 @@ public class AssetContractTest {
         assetContract = new AssetContract();
         assetContract.init(stateStore, txReceiptStore);
     }
+
+    @Test
+    public void createAssetBranch() {
+
+        try {
+            String frontier = new StringBuilder()
+                    .append("{ \"alloc\": {\n")
+                    .append("      \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\": {\n")
+                    .append("        \"balance\": \"1000000000\"\n")
+                    .append("      },\n")
+                    .append("      \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\": {\n")
+                    .append("        \"balance\": \"1000000000\"\n")
+                    .append("      }\n")
+                    .append("    }}").toString();
+
+            JsonObject genesis = new Gson().fromJson(frontier, JsonObject.class);
+
+            JsonObject branch = new JsonObject();
+            branch.addProperty("name", "ASSET");
+            branch.addProperty("symbol", "AST");
+            branch.addProperty("property", "currency");
+            branch.addProperty("type", "");
+            branch.addProperty("description", "ASSET is the contract for managing assets.");
+            branch.addProperty("contractId", "00fbbccfacd572b102351961c048104f4f21a008");
+            branch.add("genesis", genesis);
+            branch.addProperty("timestamp", "00000166c837f0c9");
+            BranchJson.signBranch(wallet, branch);
+
+            log.info(new GsonBuilder().setPrettyPrinting().create().toJson(branch));
+
+        } catch (Exception e) {
+            assert false;
+        }
+
+    }
+
 
     @Test
     public void createDatabaseTest() {
