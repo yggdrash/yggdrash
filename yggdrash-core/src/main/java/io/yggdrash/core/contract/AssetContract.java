@@ -174,8 +174,6 @@ public class AssetContract extends BaseContract<JsonArray> {
                 break;
             }
 
-            JsonArray dbStateArray = (JsonArray) state.get(dbName);
-
             // check db & table
             JsonObject tableObject = null;
             for (JsonElement dbElement : (JsonArray) state.get(dbName)) {
@@ -226,8 +224,6 @@ public class AssetContract extends BaseContract<JsonArray> {
                         params.toString() + " This data is not valid.");
                 break;
             }
-
-            JsonArray dbStateArray = (JsonArray) state.get(dbName);
 
             // check db & table
             JsonObject tableObject = null;

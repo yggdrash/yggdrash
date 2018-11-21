@@ -20,7 +20,6 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.TestUtils;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.Transaction;
@@ -70,7 +69,7 @@ public class AssetContractTest {
     }
 
     @Test
-    public void createAssetBranch() {
+    public void createAssetBranchTest() {
 
         try {
             String frontier = new StringBuilder()
@@ -104,10 +103,8 @@ public class AssetContractTest {
 
     }
 
-
     @Test
-    public void createDatabaseTest() {
-
+    public void createDatabaseModuleTest() {
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "createDatabase");
@@ -125,6 +122,35 @@ public class AssetContractTest {
 
         log.info(txBodyArray.toString());
 
+        // Module Test
+        TransactionReceipt receipt = assetContract.createDatabase(paramsArray);
+        log.info(receipt.toString());
+        if ((receipt.getStatus() != 1)) {
+            throw new AssertionError();
+        }
+
+    }
+
+    @Test
+    public void createDatabaseTest() {
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "createDatabase");
+
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", "assetManagement");
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonArray txBodyArray = new JsonArray();
+        txBodyArray.add(bodyObject);
+
+        log.info(txBodyArray.toString());
+
+        // Transaction Test
         TransactionBody txBody = new TransactionBody(txBodyArray);
         TransactionHeader txHeader = new TransactionHeader(
                 branchId,
@@ -139,7 +165,52 @@ public class AssetContractTest {
         assertThat(result).isTrue();
     }
 
-    private void createTableUserTestModule() {
+    @Test
+    public void createTableUserModuleTest() {
+
+        createDatabaseTest();
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "createTable");
+
+        // paramsObject
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", "assetManagement");
+        paramsObject.addProperty("table", "user");
+
+        // keyObject
+        JsonObject keyObject = new JsonObject();
+        keyObject.addProperty("number", "1");
+        paramsObject.add("key", keyObject);
+
+        // recordObject
+        JsonObject recordObject = new JsonObject();
+        recordObject.addProperty("name", "");
+        recordObject.addProperty("gender", "");
+        recordObject.addProperty("age", "");
+        recordObject.addProperty("department", "");
+
+        paramsObject.add("record", recordObject);
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonArray txBodyArray = new JsonArray();
+        txBodyArray.add(bodyObject);
+
+        log.info(txBodyArray.toString());
+
+        // Module Test
+        TransactionReceipt receipt = assetContract.createTable(paramsArray);
+        log.info(receipt.toString());
+        if ((receipt.getStatus() != 1)) {
+            throw new AssertionError();
+        }
+    }
+
+    private void createTableUserTest() {
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "createTable");
@@ -187,7 +258,7 @@ public class AssetContractTest {
         assertThat(result).isTrue();
     }
 
-    private void createTableAssetTestModule() {
+    private void createTableAssetTest() {
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "createTable");
@@ -251,10 +322,55 @@ public class AssetContractTest {
     @Test
     public void createTableTest() {
         createDatabaseTest();
-        createTableUserTestModule();
-        createTableAssetTestModule();
+        createTableUserTest();
+        createTableAssetTest();
     }
 
+    @Test
+    public void insertRecordUserModuleTest() {
+
+        createDatabaseTest();
+        createTableUserTest();
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "insert");
+
+        // paramsObject
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", "assetManagement");
+        paramsObject.addProperty("table", "user");
+
+        // keyObject
+        JsonObject keyObject = new JsonObject();
+        keyObject.addProperty("number", "1");
+        paramsObject.add("key", keyObject);
+
+        // recordObject
+        JsonObject recordObject = new JsonObject();
+        recordObject.addProperty("name", "Jaes Park");
+        recordObject.addProperty("gender", "mail");
+        recordObject.addProperty("age", "20");
+        recordObject.addProperty("department", "development");
+
+        paramsObject.add("record", recordObject);
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonArray txBodyArray = new JsonArray();
+        txBodyArray.add(bodyObject);
+
+        log.info(txBodyArray.toString());
+
+        // Module Test
+        TransactionReceipt receipt = assetContract.insert(paramsArray);
+        log.info(receipt.toString());
+        if ((receipt.getStatus() != 1)) {
+            throw new AssertionError();
+        }
+    }
 
     private void insertRecordUserTest1() {
 
@@ -355,11 +471,58 @@ public class AssetContractTest {
     @Test
     public void insertUserRecordTest() {
         createDatabaseTest();
-        createTableUserTestModule();
+        createTableUserTest();
         insertRecordUserTest1();
         insertRecordUserTest2();
 
         log.info(assetContract.state.getAssetState("assetManagement", "user").toString());
+    }
+
+    @Test
+    public void updateRecordUserModuleTest() {
+
+        createDatabaseTest();
+        createTableUserTest();
+        insertRecordUserTest1();
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "update");
+
+        // paramsObject
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", "assetManagement");
+        paramsObject.addProperty("table", "user");
+
+        // keyObject
+        JsonObject keyObject = new JsonObject();
+        keyObject.addProperty("number", "1");
+        paramsObject.add("key", keyObject);
+
+        // recordObject
+        JsonObject recordObject = new JsonObject();
+        recordObject.addProperty("name", "Jaes Park");
+        recordObject.addProperty("gender", "mail");
+        recordObject.addProperty("age", "22");
+        recordObject.addProperty("department", "development");
+
+        paramsObject.add("record", recordObject);
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonArray txBodyArray = new JsonArray();
+        txBodyArray.add(bodyObject);
+
+        log.info(txBodyArray.toString());
+
+        // Module Test
+        TransactionReceipt receipt = assetContract.update(paramsArray);
+        log.info(receipt.toString());
+        if ((receipt.getStatus() != 1)) {
+            throw new AssertionError();
+        }
     }
 
     private void updateRecordUserTest1() {
@@ -413,7 +576,7 @@ public class AssetContractTest {
     @Test
     public void updateUserRecordTest() {
         createDatabaseTest();
-        createTableUserTestModule();
+        createTableUserTest();
         insertRecordUserTest1();
         updateRecordUserTest1();
 
