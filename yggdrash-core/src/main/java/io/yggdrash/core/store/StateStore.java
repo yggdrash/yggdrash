@@ -185,9 +185,17 @@ public class StateStore<T> implements Store<String, T> {
         Map<JsonObject, JsonObject> fieldState = new HashMap<>();
         fieldState.put(keyObject, recordObject);
 
-        Map<String, Map<JsonObject, JsonObject>> tableState = new HashMap<>();
-        tableState.put(table, fieldState);
-        assetState.put(db, tableState);
+        if (assetState.get(db) == null) {
+            Map<String, Map<JsonObject, JsonObject>> tableState = new HashMap<>();
+            tableState.put(table, fieldState);
+            assetState.put(db, tableState);
+        } else {
+            if (assetState.get(db).get(table) == null) {
+                assetState.get(db).put(table, fieldState);
+            } else {
+                assetState.get(db).get(table).put(keyObject, recordObject);
+            }
+        }
 
         return true;
     }

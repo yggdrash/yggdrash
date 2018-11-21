@@ -368,4 +368,16 @@ public class AssetContract extends BaseContract<JsonArray> {
         return result;
     }
 
+    public JsonObject queryRecordWithKey(JsonArray params) {
+        String dbName = params.get(0).getAsJsonObject().get("db").getAsString();
+        String tableName = params.get(0).getAsJsonObject().get("table").getAsString();
+        JsonObject keyObject = params.get(0).getAsJsonObject().get("key").getAsJsonObject();
+
+        return state.getAssetState(dbName, tableName, keyObject);
+    }
+
+
+
+
+
 }
