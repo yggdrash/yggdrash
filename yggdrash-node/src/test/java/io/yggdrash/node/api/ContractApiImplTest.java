@@ -14,7 +14,9 @@ import org.junit.Test;
 
 import java.math.BigDecimal;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -146,7 +148,7 @@ public class ContractApiImplTest {
     public void totalSupply() {
         try {
             JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
-                    "totalSupply", new JsonArray());
+                    "totalSupply", ContractQry.createParams(new HashMap<>()));
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(
                     contractApi.query(queryObj.toString()));
@@ -161,9 +163,11 @@ public class ContractApiImplTest {
     @Test
     public void balanceOf() {
         try {
+            Map<String, String> properties = new HashMap<>();
+            properties.put("address", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
+
             JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
-                    "balanceOf", ContractQry.createParams(
-                            "address", "cee3d4755e47055b530deeba062c5bd0c17eb00f"));
+                    "balanceOf", ContractQry.createParams(properties));
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(
                     contractApi.query(queryObj.toString()));
@@ -178,10 +182,12 @@ public class ContractApiImplTest {
     @Test
     public void allowance() {
         try {
+            Map<String, String> properties = new HashMap<>();
+            properties.put("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
+            properties.put("spender", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
+
             JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
-                    "allowance", ContractQry.createParams(
-                            "owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f",
-                            "spender", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e"));
+                    "allowance", ContractQry.createParams(properties));
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(
                     contractApi.query(queryObj.toString()));
@@ -197,7 +203,7 @@ public class ContractApiImplTest {
     public void specification() {
         try {
             JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
-                    "specification", new JsonArray());
+                    "specification", ContractQry.createParams(new HashMap<>()));
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(
                     contractApi.query(queryObj.toString()));
@@ -216,7 +222,7 @@ public class ContractApiImplTest {
             JsonArray params = ContractTx.createTransferBody(
                     "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigDecimal("1000"));
             TransactionHusk tx =
-                    ContractTx.createCoinContractTx(branchId, TestUtils.wallet(), params);
+                    ContractTx.createTx(TestUtils.wallet(), branchId, params);
 
             txApi.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {
@@ -230,7 +236,7 @@ public class ContractApiImplTest {
             JsonArray params = ContractTx.createApproveBody(
                     "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigDecimal("1000"));
             TransactionHusk tx =
-                    ContractTx.createCoinContractTx(branchId, TestUtils.wallet(), params);
+                    ContractTx.createTx(TestUtils.wallet(), branchId, params);
             txApi.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {
             e.printStackTrace();
@@ -245,7 +251,7 @@ public class ContractApiImplTest {
                     "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
                     new BigDecimal("1000"));
             TransactionHusk tx =
-                    ContractTx.createCoinContractTx(branchId, TestUtils.wallet(), params);
+                    ContractTx.createTx(TestUtils.wallet(), branchId, params);
             txApi.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {
             e.printStackTrace();
