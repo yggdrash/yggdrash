@@ -30,9 +30,9 @@ public class DefaultConfigTest {
     public void defaultConfigTest() {
         log.debug(defaultConfig.toString());
 
-        assertThat(defaultConfig.getString("java.version")).startsWith("1.8");
-        log.debug("DefaultConfig java.version: "
-                + defaultConfig.getString("java.version"));
+        assertThat(defaultConfig.getString("java.vm.version")).isNotEmpty();
+        log.debug("DefaultConfig java.vm.version: "
+                + defaultConfig.getString("java.vm.version"));
 
         assertThat(defaultConfig.getString("node.name")).isEqualTo("yggdrash");
         log.debug("DefaultConfig node.name: "

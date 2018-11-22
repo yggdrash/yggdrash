@@ -17,9 +17,9 @@
 package io.yggdrash.common.crypto.jce;
 
 import org.junit.Test;
-import sun.security.provider.Sun;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.Provider;
 import java.security.SecureRandom;
 
 public class ECKeyPairGeneratorTest {
@@ -36,6 +36,7 @@ public class ECKeyPairGeneratorTest {
 
     @Test(expected = NoSuchAlgorithmException.class)
     public void getInstanceByProvider() throws NoSuchAlgorithmException {
-        ECKeyPairGenerator.getInstance(new Sun(), SecureRandom.getInstance("EC"));
+        ECKeyPairGenerator.getInstance(new Provider("SunPKCS11-Dummy", 1.8D, "SunPKCS11-Dummy") {
+        }, SecureRandom.getInstance("EC"));
     }
 }

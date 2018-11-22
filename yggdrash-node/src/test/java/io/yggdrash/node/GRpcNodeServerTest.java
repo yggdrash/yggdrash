@@ -51,12 +51,15 @@ public class GRpcNodeServerTest {
 
     @Rule
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
+
     @Mock
     private PeerGroup peerGroupMock;
+
     @Mock
     private BranchGroup branchGroupMock;
+
     @Mock
-    private NodeStatus nodeStatus;
+    public NodeStatus nodeStatus;
 
     private TransactionHusk tx;
     private BlockHusk block;
