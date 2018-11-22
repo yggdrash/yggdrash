@@ -6,11 +6,11 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 
-public class CoinStandardStateTable {
+public class CoinStateTable {
     private BigDecimal myBalance;
     private Map<String, BigDecimal> allowance;
 
-    public CoinStandardStateTable() {
+    public CoinStateTable() {
         this.myBalance = BigDecimal.ZERO;
         this.allowance = new HashMap<>();
     }

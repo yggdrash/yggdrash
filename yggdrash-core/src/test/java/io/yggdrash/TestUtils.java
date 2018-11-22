@@ -51,7 +51,7 @@ import java.util.Random;
 
 public class TestUtils {
     public static final BranchId STEM = BranchId.of("b4e639d48bea1c26b7c72a9db94371c376779694");
-    public static final BranchId YEED = BranchId.of("96550eca8544ac0b91365697b05b607ed785f0bb");
+    public static final BranchId YEED = BranchId.of("2fac76dbaa4fe73ca67c813e918ac3fdea8b6ab9");
 
     public static final String YGG_HOME = "testOutput";
     public static final String TRANSFER_TO = "e1980adeafbb9ac6c9be60955484ab1547ab0b76";

@@ -31,17 +31,16 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RuntimeTest {
     private static final Logger log = LoggerFactory.getLogger(RuntimeTest.class);
     private final TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
-    private final Contract<BigDecimal> coinContract = new CoinContract();
+    private final Contract<CoinStateTable> coinContract = new CoinContract();
     private final Contract<JsonObject> stemContract = new StemContract();
     private io.yggdrash.core.contract.Runtime<JsonObject> stemRuntime;
-    private io.yggdrash.core.contract.Runtime<BigDecimal> yeedRuntime;
+    private io.yggdrash.core.contract.Runtime<CoinStateTable> yeedRuntime;
     private Wallet wallet;
     private BranchId branchId;
 
