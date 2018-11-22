@@ -87,7 +87,7 @@ public class CoinContract extends BaseContract<CoinStateTable>
                 addBalanceTo(to, amount);
 
                 txReceipt.setStatus(TransactionReceipt.SUCCESS);
-                log.info("\n[Transferred] Transfer " + amount + " from " + sender + "to " + sender);
+                log.info("\n[Transferred] Transfer " + amount + " from " + sender + " to " + to);
                 log.info("\nBalance of From (" + sender + ") : " + state.get(sender).getMyBalance()
                         + "\nBalance of To   (" + to + ") : " + state.get(to).getMyBalance());
             }

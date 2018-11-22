@@ -80,10 +80,19 @@ public abstract class BaseContract<T> implements Contract<T> {
 
     public List<String> specification(JsonArray params) {
         List<String> methods = new ArrayList<>();
-        for (Method method : getClass().getDeclaredMethods()) {
-            if (Modifier.isPublic(method.getModifiers())) {
-                methods.add(method.toString());
+        getMethods(getClass(), methods);
+
+        return methods;
+    }
+
+    public List<String> getMethods(Class<?> currentClass, List<String> methods) {
+        if (!currentClass.equals(BaseContract.class)) {
+            for (Method method : currentClass.getDeclaredMethods()) {
+                if (Modifier.isPublic(method.getModifiers())) {
+                    methods.add(method.toString());
+                }
             }
+            getMethods(currentClass.getSuperclass(), methods);
         }
         return methods;
     }
