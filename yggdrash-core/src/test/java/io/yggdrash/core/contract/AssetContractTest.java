@@ -696,9 +696,26 @@ public class AssetContractTest {
         }
     }
 
+    private JsonObject queryTableModuleTest(String dbName, String tableName) {
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "queryTable");
+
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", dbName);
+        paramsObject.addProperty("table", tableName);
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        return assetContract.queryTable(paramsArray);
+    }
+
     @Test
-    public void queryTableModuleTest() {
+    public void queryTableModuleTests() {
         createDatabaseModuleTest(DBNAME);
+
         createTableModuleTest(
                 DBNAME, TABLENAME_USER1, keyObjectUserSchema, recordObjectUserSchema);
         createTableModuleTest(
@@ -708,192 +725,228 @@ public class AssetContractTest {
         createTableModuleTest(
                 DBNAME, TABLENAME_ASSET2, keyObjectAssetSchema, recordObjectAssetSchema);
 
+        JsonObject result = queryTableModuleTest(DBNAME, TABLENAME_USER1);
+        log.info(result.toString());
+        {
+            JsonObject tableObjectSchema = new JsonObject();
+            tableObjectSchema.addProperty("table", TABLENAME_USER1);
+            tableObjectSchema.add("key", keyObjectUserSchema);
+            tableObjectSchema.add("record", recordObjectUserSchema);
+
+            assertEquals(result, tableObjectSchema);
+        }
+
+        result = queryTableModuleTest(DBNAME, TABLENAME_USER2);
+        log.info(result.toString());
+        {
+            JsonObject tableObjectSchema = new JsonObject();
+            tableObjectSchema.addProperty("table", TABLENAME_USER2);
+            tableObjectSchema.add("key", keyObjectUserSchema);
+            tableObjectSchema.add("record", recordObjectUserSchema);
+
+            assertEquals(result, tableObjectSchema);
+        }
+
+        result = queryTableModuleTest(DBNAME, TABLENAME_ASSET1);
+        log.info(result.toString());
+        {
+            JsonObject tableObjectSchema = new JsonObject();
+            tableObjectSchema.addProperty("table", TABLENAME_ASSET1);
+            tableObjectSchema.add("key", keyObjectAssetSchema);
+            tableObjectSchema.add("record", recordObjectAssetSchema);
+
+            assertEquals(result, tableObjectSchema);
+        }
+
+        result = queryTableModuleTest(DBNAME, TABLENAME_ASSET2);
+        log.info(result.toString());
+        {
+            JsonObject tableObjectSchema = new JsonObject();
+            tableObjectSchema.addProperty("table", TABLENAME_ASSET2);
+            tableObjectSchema.add("key", keyObjectAssetSchema);
+            tableObjectSchema.add("record", recordObjectAssetSchema);
+
+            assertEquals(result, tableObjectSchema);
+        }
+    }
+
+    private JsonObject queryTableTxTest(String dbName, String tableName) {
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryTable");
 
         JsonObject paramsObject = new JsonObject();
-        paramsObject.addProperty("db", "assetManagement");
-        paramsObject.addProperty("table", "user2");
+        paramsObject.addProperty("db", dbName);
+        paramsObject.addProperty("table", tableName);
 
         JsonArray paramsArray = new JsonArray();
         paramsArray.add(paramsObject);
-
         bodyObject.add("params", paramsArray);
 
-        JsonObject result = assetContract.queryTable(paramsArray);
-
-        if (result == null) {
-            throw new AssertionError();
-        }
-
-        log.info(result.toString());
+        return assetContract.query(bodyObject);
     }
 
     @Test
-    public void queryTableTest() {
-        // keyObject1
-        JsonObject keyObject1 = new JsonObject();
-        keyObject1.addProperty("number", "");
-
-        // recordObjectUser1
-        JsonObject recordObject1 = new JsonObject();
-        recordObject1.addProperty("name", "");
-        recordObject1.addProperty("gender", "");
-        recordObject1.addProperty("age", "");
-        recordObject1.addProperty("department", "");
-
-        // keyObject2
-        JsonObject keyObject2 = new JsonObject();
-        keyObject2.addProperty("number", "");
-
-        // recordObjectUser2
-        JsonObject recordObject2 = new JsonObject();
-        recordObject2.addProperty("name", "");
-        recordObject2.addProperty("gender", "");
-        recordObject2.addProperty("age", "");
-        recordObject2.addProperty("department", "");
-        recordObject2.addProperty("address", "");
-
-        String dbName = "assetManagement";
-        String tableName1 = "user1";
-        String tableName2 = "user2";
-
+    public void queryTableTxTests() {
         createDatabaseTxTest(DBNAME);
-        //createTableUserTest(dbName, tableName1, keyObject1, recordObject1);
-        //createTableUserTest(dbName, tableName2, keyObject2, recordObject2);
 
-        JsonObject bodyObject = new JsonObject();
-        bodyObject.addProperty("method", "queryTable");
+        createTableTxTest(
+                DBNAME, TABLENAME_USER1, keyObjectUserSchema, recordObjectUserSchema);
+        createTableTxTest(
+                DBNAME, TABLENAME_USER2, keyObjectUserSchema, recordObjectUserSchema);
+        createTableTxTest(
+                DBNAME, TABLENAME_ASSET1, keyObjectAssetSchema, recordObjectAssetSchema);
+        createTableTxTest(
+                DBNAME, TABLENAME_ASSET2, keyObjectAssetSchema, recordObjectAssetSchema);
 
-        JsonObject paramsObject = new JsonObject();
-        paramsObject.addProperty("db", dbName);
-        paramsObject.addProperty("table", tableName2);
+        JsonObject result = queryTableTxTest(DBNAME, TABLENAME_USER1);
+        log.info(result.toString());
+        {
+            JsonObject tableObjectSchema = new JsonObject();
+            tableObjectSchema.addProperty("table", TABLENAME_USER1);
+            tableObjectSchema.add("key", keyObjectUserSchema);
+            tableObjectSchema.add("record", recordObjectUserSchema);
 
-        JsonArray paramsArray = new JsonArray();
-        paramsArray.add(paramsObject);
-
-        bodyObject.add("params", paramsArray);
-
-        JsonObject tableSchema = new JsonObject();
-        tableSchema.addProperty("table", tableName2);
-        tableSchema.add("key", keyObject2);
-        tableSchema.add("record", recordObject2);
-
-        JsonObject result = assetContract.query(bodyObject);
-        if (!result.equals(tableSchema)) {
-            throw new AssertionError();
+            assertEquals(result, tableObjectSchema);
         }
 
+        result = queryTableTxTest(DBNAME, TABLENAME_USER2);
         log.info(result.toString());
+        {
+            JsonObject tableObjectSchema = new JsonObject();
+            tableObjectSchema.addProperty("table", TABLENAME_USER2);
+            tableObjectSchema.add("key", keyObjectUserSchema);
+            tableObjectSchema.add("record", recordObjectUserSchema);
+
+            assertEquals(result, tableObjectSchema);
+        }
+
+        result = queryTableTxTest(DBNAME, TABLENAME_ASSET1);
+        log.info(result.toString());
+        {
+            JsonObject tableObjectSchema = new JsonObject();
+            tableObjectSchema.addProperty("table", TABLENAME_ASSET1);
+            tableObjectSchema.add("key", keyObjectAssetSchema);
+            tableObjectSchema.add("record", recordObjectAssetSchema);
+
+            assertEquals(result, tableObjectSchema);
+        }
+
+        result = queryTableTxTest(DBNAME, TABLENAME_ASSET2);
+        log.info(result.toString());
+        {
+            JsonObject tableObjectSchema = new JsonObject();
+            tableObjectSchema.addProperty("table", TABLENAME_ASSET2);
+            tableObjectSchema.add("key", keyObjectAssetSchema);
+            tableObjectSchema.add("record", recordObjectAssetSchema);
+
+            assertEquals(result, tableObjectSchema);
+        }
     }
 
-    @Test
-    public void queryRecordWithKeyModuleTest() {
-
-        // keyObject1
-        JsonObject keyObject1 = new JsonObject();
-        keyObject1.addProperty("number", "1");
-
-        // recordObjectUser1
-        JsonObject recordObject1 = new JsonObject();
-        recordObject1.addProperty("name", "Jaes Park");
-        recordObject1.addProperty("gender", "mail");
-        recordObject1.addProperty("age", "22");
-        recordObject1.addProperty("department", "development");
-
-        // keyObject2
-        JsonObject keyObject2 = new JsonObject();
-        keyObject2.addProperty("number", "2");
-
-        // recordObjectUser2
-        JsonObject recordObject2 = new JsonObject();
-        recordObject2.addProperty("name", "Rachael Hong");
-        recordObject2.addProperty("gender", "femail");
-        recordObject2.addProperty("age", "21");
-        recordObject2.addProperty("department", "development");
-
-        String dbName = "assetManagement";
-        String tableName = "user";
-
-        createDatabaseModuleTest(DBNAME);
-        //createTableUserTest(dbName, tableName);
-//        insertRecordUserTest(dbName, tableName, keyObject1, recordObject1);
-//        insertRecordUserTest(dbName, tableName, keyObject2, recordObject2);
-
+    private JsonObject queryRecordWithKeyModuleTest(
+            String dbName, String tableName, JsonObject keyObject) {
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryRecordWithKey");
 
         JsonObject paramsObject = new JsonObject();
         paramsObject.addProperty("db", dbName);
         paramsObject.addProperty("table", tableName);
-        paramsObject.add("key", keyObject2);
+        paramsObject.add("key", keyObject);
 
         JsonArray paramsArray = new JsonArray();
         paramsArray.add(paramsObject);
 
-        bodyObject.add("params", paramsArray);
-
-        JsonObject result = assetContract.queryRecordWithKey(paramsArray);
-        if (!result.equals(recordObject2)) {
-            throw new AssertionError();
-        }
-
-        log.info(result.toString());
+        return assetContract.queryRecordWithKey(paramsArray);
     }
 
     @Test
-    public void queryRecordWithKeyTest() {
-
-        // keyObject1
-        JsonObject keyObject1 = new JsonObject();
-        keyObject1.addProperty("number", "1");
-
-        // recordObjectUser1
-        JsonObject recordObject1 = new JsonObject();
-        recordObject1.addProperty("name", "Jaes Park");
-        recordObject1.addProperty("gender", "mail");
-        recordObject1.addProperty("age", "22");
-        recordObject1.addProperty("department", "development");
-
-        // keyObject2
-        JsonObject keyObject2 = new JsonObject();
-        keyObject2.addProperty("number", "2");
-
-        // recordObjectUser2
-        JsonObject recordObject2 = new JsonObject();
-        recordObject2.addProperty("name", "Rachael Hong");
-        recordObject2.addProperty("gender", "femail");
-        recordObject2.addProperty("age", "21");
-        recordObject2.addProperty("department", "development");
-
-        String dbName = "assetManagement";
-        String tableName = "user";
-
+    public void queryRecordWithKeyModuleTests() {
         createDatabaseModuleTest(DBNAME);
-        //createTableUserTest(dbName, tableName);
-//        insertRecordUserTest(dbName, tableName, keyObject1, recordObject1);
-//        insertRecordUserTest(dbName, tableName, keyObject2, recordObject2);
 
+        createTableModuleTest(
+                DBNAME, TABLENAME_USER1, keyObjectUserSchema, recordObjectUserSchema);
+        createTableModuleTest(
+                DBNAME, TABLENAME_USER2, keyObjectUserSchema, recordObjectUserSchema);
+        createTableModuleTest(
+                DBNAME, TABLENAME_ASSET1, keyObjectAssetSchema, recordObjectAssetSchema);
+        createTableModuleTest(
+                DBNAME, TABLENAME_ASSET2, keyObjectAssetSchema, recordObjectAssetSchema);
+
+        insertTxTest(DBNAME, TABLENAME_USER1, keyObjectUser1, recordObjectUser1);
+        insertTxTest(DBNAME, TABLENAME_USER2, keyObjectUser2, recordObjectUser2);
+        insertTxTest(DBNAME, TABLENAME_ASSET1, keyObjectAsset1, recordObjectAsset1);
+        insertTxTest(DBNAME, TABLENAME_ASSET2, keyObjectAsset2, recordObjectAsset2);
+
+        JsonObject result = queryRecordWithKeyModuleTest(DBNAME, TABLENAME_USER1, keyObjectUser1);
+        log.info(result.toString());
+        assertEquals(result, recordObjectUser1);
+
+        result = queryRecordWithKeyModuleTest(DBNAME, TABLENAME_USER2, keyObjectUser2);
+        log.info(result.toString());
+        assertEquals(result, recordObjectUser2);
+
+        result = queryRecordWithKeyModuleTest(DBNAME, TABLENAME_ASSET1, keyObjectAsset1);
+        log.info(result.toString());
+        assertEquals(result, recordObjectAsset1);
+
+        result = queryRecordWithKeyModuleTest(DBNAME, TABLENAME_ASSET2, keyObjectAsset2);
+        log.info(result.toString());
+        assertEquals(result, recordObjectAsset2);
+    }
+
+    private JsonObject queryRecordWithKeyTxTest(
+            String dbName, String tableName, JsonObject keyObject) {
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryRecordWithKey");
 
         JsonObject paramsObject = new JsonObject();
         paramsObject.addProperty("db", dbName);
         paramsObject.addProperty("table", tableName);
-        paramsObject.add("key", keyObject2);
+        paramsObject.add("key", keyObject);
 
         JsonArray paramsArray = new JsonArray();
         paramsArray.add(paramsObject);
 
         bodyObject.add("params", paramsArray);
 
-        JsonObject result = assetContract.query(bodyObject);
-        if (!result.equals(recordObject2)) {
-            throw new AssertionError();
-        }
-
-        log.info(result.toString());
+        return assetContract.query(bodyObject);
     }
+
+    @Test
+    public void queryRecordWithKeyTxTests() {
+        createDatabaseTxTest(DBNAME);
+
+        createTableTxTest(
+                DBNAME, TABLENAME_USER1, keyObjectUserSchema, recordObjectUserSchema);
+        createTableTxTest(
+                DBNAME, TABLENAME_USER2, keyObjectUserSchema, recordObjectUserSchema);
+        createTableTxTest(
+                DBNAME, TABLENAME_ASSET1, keyObjectAssetSchema, recordObjectAssetSchema);
+        createTableTxTest(
+                DBNAME, TABLENAME_ASSET2, keyObjectAssetSchema, recordObjectAssetSchema);
+
+        insertTxTest(DBNAME, TABLENAME_USER1, keyObjectUser1, recordObjectUser1);
+        insertTxTest(DBNAME, TABLENAME_USER2, keyObjectUser2, recordObjectUser2);
+        insertTxTest(DBNAME, TABLENAME_ASSET1, keyObjectAsset1, recordObjectAsset1);
+        insertTxTest(DBNAME, TABLENAME_ASSET2, keyObjectAsset2, recordObjectAsset2);
+
+        JsonObject result = queryRecordWithKeyTxTest(DBNAME, TABLENAME_USER1, keyObjectUser1);
+        log.info(result.toString());
+        assertEquals(result, recordObjectUser1);
+
+        result = queryRecordWithKeyTxTest(DBNAME, TABLENAME_USER2, keyObjectUser2);
+        log.info(result.toString());
+        assertEquals(result, recordObjectUser2);
+
+        result = queryRecordWithKeyTxTest(DBNAME, TABLENAME_ASSET1, keyObjectAsset1);
+        log.info(result.toString());
+        assertEquals(result, recordObjectAsset1);
+
+        result = queryRecordWithKeyTxTest(DBNAME, TABLENAME_ASSET2, keyObjectAsset2);
+        log.info(result.toString());
+        assertEquals(result, recordObjectAsset2);
+    }
+    
 
     @Test
     public void deleteRecordWithKeyModuleTest() {
