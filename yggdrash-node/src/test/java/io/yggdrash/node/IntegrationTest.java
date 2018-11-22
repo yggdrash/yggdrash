@@ -52,7 +52,7 @@ public class IntegrationTest {
         byte[] kdf = Password.generateKeyDerivation(password.getBytes(), 32);
 
         byte[] plain = "0123456789".getBytes();
-        byte[] plainBytes = new byte[100000000];
+        byte[] plainBytes = new byte[10000000];
         for (int i = 0; i < plainBytes.length / plain.length; i++) {
             System.arraycopy(plain, 0, plainBytes, i * plain.length, plain.length);
         }

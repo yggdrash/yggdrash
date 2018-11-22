@@ -36,6 +36,8 @@
 
 소스코드를 빌드하기 위해서는 최소 1.8 이상의 `JDK` 를 설치해야 합니다. [다운받기](http://www.oracle.com/technetwork/java/javase/overview/index.html)
 
+현재 오라클 JDK 또는 Open JDK 1.8 ~ 11 버전을 지원합니다.
+
 ### 소스받기
 
 yggdrash 레파지토리를 클론합니다.

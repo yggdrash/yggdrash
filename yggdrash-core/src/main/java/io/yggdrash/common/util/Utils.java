@@ -148,6 +148,11 @@ public class Utils {
         if (version.equals("0")) {
             return 0;
         }
+        // 12-ea
+        if (version.contains("-")) {
+            int indexOfDash = version.indexOf("-");
+            return Double.parseDouble(version.substring(0, indexOfDash));
+        }
         if (!version.contains(".")) {
             return Double.parseDouble(version);
         }
