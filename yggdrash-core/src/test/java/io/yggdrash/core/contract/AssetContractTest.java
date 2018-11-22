@@ -391,8 +391,10 @@ public class AssetContractTest {
     @Test
     public void insertModuleTests() {
         createDatabaseModuleTest(DBNAME);
-        createTableModuleTest(DBNAME, TABLENAME_USER, keyObjectUserSchema, recordObjectUserSchema);
-        createTableModuleTest(DBNAME, TABLENAME_ASSET, keyObjectAssetSchema, recordObjectAssetSchema);
+        createTableModuleTest(
+                DBNAME, TABLENAME_USER, keyObjectUserSchema, recordObjectUserSchema);
+        createTableModuleTest(
+                DBNAME, TABLENAME_ASSET, keyObjectAssetSchema, recordObjectAssetSchema);
 
         if (insertModuleTest(
                 DBNAME, TABLENAME_USER, keyObjectUser1, recordObjectUser1)
@@ -402,6 +404,16 @@ public class AssetContractTest {
                 DBNAME, TABLENAME_ASSET, keyObjectAsset1, recordObjectAsset1)
                 && insertModuleTest(
                 DBNAME, TABLENAME_ASSET, keyObjectAsset2, recordObjectAsset2)) {
+            assertEquals(assetContract.state.getAssetState(DBNAME, TABLENAME_USER, keyObjectUser1),
+                    recordObjectUser1);
+            assertEquals(assetContract.state.getAssetState(DBNAME, TABLENAME_USER, keyObjectUser2),
+                    recordObjectUser2);
+            assertEquals(
+                    assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET, keyObjectAsset1),
+                    recordObjectAsset1);
+            assertEquals(
+                    assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET, keyObjectAsset2),
+                    recordObjectAsset2);
             log.info(assetContract.state.get(DBNAME).toString());
             log.info(assetContract.state.getAssetState(DBNAME, TABLENAME_USER).toString());
         } else {
@@ -447,6 +459,16 @@ public class AssetContractTest {
                 DBNAME, TABLENAME_ASSET, keyObjectAsset1, recordObjectAsset1)
                 && insertTxTest(
                 DBNAME, TABLENAME_ASSET, keyObjectAsset2, recordObjectAsset2)) {
+            assertEquals(assetContract.state.getAssetState(DBNAME, TABLENAME_USER, keyObjectUser1),
+                    recordObjectUser1);
+            assertEquals(assetContract.state.getAssetState(DBNAME, TABLENAME_USER, keyObjectUser2),
+                    recordObjectUser2);
+            assertEquals(
+                    assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET, keyObjectAsset1),
+                    recordObjectAsset1);
+            assertEquals(
+                    assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET, keyObjectAsset2),
+                    recordObjectAsset2);
             log.info(assetContract.state.get(DBNAME).toString());
             log.info(assetContract.state.getAssetState(DBNAME, TABLENAME_USER).toString());
         } else {
@@ -480,8 +502,10 @@ public class AssetContractTest {
     @Test
     public void updateModuleTests() {
         createDatabaseModuleTest(DBNAME);
-        createTableModuleTest(DBNAME, TABLENAME_USER, keyObjectUserSchema, recordObjectUserSchema);
-        createTableModuleTest(DBNAME, TABLENAME_ASSET, keyObjectAssetSchema, recordObjectAssetSchema);
+        createTableModuleTest(
+                DBNAME, TABLENAME_USER, keyObjectUserSchema, recordObjectUserSchema);
+        createTableModuleTest(
+                DBNAME, TABLENAME_ASSET, keyObjectAssetSchema, recordObjectAssetSchema);
 
         insertModuleTest(DBNAME, TABLENAME_USER, keyObjectUser1, recordObjectUser1);
         insertModuleTest(DBNAME, TABLENAME_USER, keyObjectUser2, recordObjectUser2);
@@ -500,9 +524,11 @@ public class AssetContractTest {
                     recordObjectUser2);
             assertEquals(assetContract.state.getAssetState(DBNAME, TABLENAME_USER, keyObjectUser2),
                     recordObjectUser1);
-            assertEquals(assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET, keyObjectAsset1),
+            assertEquals(
+                    assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET, keyObjectAsset1),
                     recordObjectAsset2);
-            assertEquals(assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET, keyObjectAsset2),
+            assertEquals(
+                    assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET, keyObjectAsset2),
                     recordObjectAsset1);
             log.info(assetContract.state.get(DBNAME).toString());
             log.info(assetContract.state.getAssetState(DBNAME, TABLENAME_USER).toString());
@@ -511,41 +537,102 @@ public class AssetContractTest {
         }
     }
 
-    @Test
-    public void queryAllDatabasesModuleTest() {
-        createDatabaseModuleTest(DBNAME);
-        createDatabaseModuleTest(DBNAME1);
+
+    private boolean updateTxTest(
+            String dbName, String tableName, JsonObject keyObject, JsonObject recordObject) {
 
         JsonObject bodyObject = new JsonObject();
-        bodyObject.addProperty("method", "queryAllDatabases");
+        bodyObject.addProperty("method", "update");
+
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", dbName);
+        paramsObject.addProperty("table", tableName);
+
+        paramsObject.add("key", keyObject);
+        paramsObject.add("record", recordObject);
 
         JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
         bodyObject.add("params", paramsArray);
+        
+        JsonArray txBodyArray = new JsonArray();
+        txBodyArray.add(bodyObject);
 
-        JsonObject result = assetContract.queryAllDatabases(paramsArray);
+        return assetContract.invoke(makeTransaction(txBodyArray));
+    }
 
+
+    @Test
+    public void updateTxTests() {
+        createDatabaseTxTest(DBNAME);
+        createTableTxTest(DBNAME, TABLENAME_USER, keyObjectUserSchema, recordObjectUserSchema);
+        createTableTxTest(DBNAME, TABLENAME_ASSET, keyObjectAssetSchema, recordObjectAssetSchema);
+
+        insertTxTest(DBNAME, TABLENAME_USER, keyObjectUser1, recordObjectUser1);
+        insertTxTest(DBNAME, TABLENAME_USER, keyObjectUser2, recordObjectUser2);
+        insertTxTest(DBNAME, TABLENAME_ASSET, keyObjectAsset1, recordObjectAsset1);
+        insertTxTest(DBNAME, TABLENAME_ASSET, keyObjectAsset2, recordObjectAsset2);
+
+        if (updateTxTest(
+                DBNAME, TABLENAME_USER, keyObjectUser1, recordObjectUser2)
+                && updateTxTest(
+                DBNAME, TABLENAME_USER, keyObjectUser2, recordObjectUser1)
+                && updateTxTest(
+                DBNAME, TABLENAME_ASSET, keyObjectAsset1, recordObjectAsset2)
+                && updateTxTest(
+                DBNAME, TABLENAME_ASSET, keyObjectAsset2, recordObjectAsset1)) {
+            assertEquals(assetContract.state.getAssetState(DBNAME, TABLENAME_USER, keyObjectUser1),
+                    recordObjectUser2);
+            assertEquals(assetContract.state.getAssetState(DBNAME, TABLENAME_USER, keyObjectUser2),
+                    recordObjectUser1);
+            assertEquals(
+                    assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET, keyObjectAsset1),
+                    recordObjectAsset2);
+            assertEquals(
+                    assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET, keyObjectAsset2),
+                    recordObjectAsset1);
+            log.info(assetContract.state.get(DBNAME).toString());
+            log.info(assetContract.state.getAssetState(DBNAME, TABLENAME_USER).toString());
+        } else {
+            assert false;
+        }
+    }
+
+    private JsonObject queryAllDatabasesModuleTest() {
+        JsonArray paramsArray = new JsonArray();
+        return assetContract.queryAllDatabases(paramsArray);
+    }
+
+    @Test
+    public void queryAllDatabasesModuleTests() {
+        createDatabaseModuleTest(DBNAME1);
+        createDatabaseModuleTest(DBNAME2);
+
+        JsonObject result = queryAllDatabasesModuleTest();
         log.info(result.toString());
-
         if (result.get("db").getAsJsonArray().size() != 2) {
             throw new AssertionError();
         }
     }
 
-    @Test
-    public void queryAllDatabasesTest() {
-        createDatabaseTxTest(DBNAME1);
-        createDatabaseTxTest(DBNAME2);
-
+    private JsonObject queryAllDatabasesTxTest() {
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryAllDatabases");
 
         JsonArray paramsArray = new JsonArray();
         bodyObject.add("params", paramsArray);
 
-        JsonObject result = assetContract.query(bodyObject);
+        return assetContract.query(bodyObject);
+    }
 
+    @Test
+    public void queryAllDatabasesTxTests() {
+        createDatabaseTxTest(DBNAME1);
+        createDatabaseTxTest(DBNAME2);
+
+        JsonObject result = queryAllDatabasesTxTest();
         log.info(result.toString());
-
         if (result.get("db").getAsJsonArray().size() != 2) {
             throw new AssertionError();
         }
@@ -554,60 +641,72 @@ public class AssetContractTest {
     @Test
     public void queryAllTablesModuleTest() {
         createDatabaseModuleTest(DBNAME);
-        //createTableUserTest("assetManagement", "user1");
-        //createTableUserTest("assetManagement", "user2");
+        createTableModuleTest(
+                DBNAME, TABLENAME_USER1, keyObjectUserSchema, recordObjectUserSchema);
+        createTableModuleTest(
+                DBNAME, TABLENAME_USER2, keyObjectUserSchema, recordObjectUserSchema);
+        createTableModuleTest(
+                DBNAME, TABLENAME_ASSET1, keyObjectAssetSchema, recordObjectAssetSchema);
+        createTableModuleTest(
+                DBNAME, TABLENAME_ASSET2, keyObjectAssetSchema, recordObjectAssetSchema);
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryAllTables");
 
         JsonObject paramsObject = new JsonObject();
-        paramsObject.addProperty("db", "assetManagement");
+        paramsObject.addProperty("db", DBNAME);
 
         JsonArray paramsArray = new JsonArray();
         paramsArray.add(paramsObject);
-
         bodyObject.add("params", paramsArray);
 
         JsonObject result = assetContract.queryAllTables(paramsArray);
-
         log.info(result.toString());
-
-        if (result.get("table").getAsJsonArray().size() != 2) {
+        if (result.get("table").getAsJsonArray().size() != 4) {
             throw new AssertionError();
         }
     }
 
     @Test
-    public void queryAllTablesTest() {
+    public void queryAllTablesTxTest() {
         createDatabaseTxTest(DBNAME);
-        //createTableUserTest("assetManagement", "user1");
-        //createTableUserTest("assetManagement", "user2");
+        createTableTxTest(
+                DBNAME, TABLENAME_USER1, keyObjectUserSchema, recordObjectUserSchema);
+        createTableTxTest(
+                DBNAME, TABLENAME_USER2, keyObjectUserSchema, recordObjectUserSchema);
+        createTableTxTest(
+                DBNAME, TABLENAME_ASSET1, keyObjectAssetSchema, recordObjectAssetSchema);
+        createTableTxTest(
+                DBNAME, TABLENAME_ASSET2, keyObjectAssetSchema, recordObjectAssetSchema);
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryAllTables");
 
         JsonObject paramsObject = new JsonObject();
-        paramsObject.addProperty("db", "assetManagement");
+        paramsObject.addProperty("db", DBNAME);
 
         JsonArray paramsArray = new JsonArray();
         paramsArray.add(paramsObject);
-
         bodyObject.add("params", paramsArray);
 
         JsonObject result = assetContract.query(bodyObject);
-
         log.info(result.toString());
-
-        if (result.get("table").getAsJsonArray().size() != 2) {
+        if (result.get("table").getAsJsonArray().size() != 4) {
             throw new AssertionError();
         }
     }
 
     @Test
     public void queryTableModuleTest() {
-        createDatabaseTxTest(DBNAME);
-        //createTableUserTest("assetManagement", "user1");
-        //createTableUserTest("assetManagement", "user2");
+        createDatabaseModuleTest(DBNAME);
+        createTableModuleTest(
+                DBNAME, TABLENAME_USER1, keyObjectUserSchema, recordObjectUserSchema);
+        createTableModuleTest(
+                DBNAME, TABLENAME_USER2, keyObjectUserSchema, recordObjectUserSchema);
+        createTableModuleTest(
+                DBNAME, TABLENAME_ASSET1, keyObjectAssetSchema, recordObjectAssetSchema);
+        createTableModuleTest(
+                DBNAME, TABLENAME_ASSET2, keyObjectAssetSchema, recordObjectAssetSchema);
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryTable");
