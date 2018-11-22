@@ -34,7 +34,7 @@ public class ContractApiImplTest {
         if (isStemTest) {
             beforeStemTest();
         } else {
-            branchId = BranchId.of("96550eca8544ac0b91365697b05b607ed785f0bb");
+            branchId = BranchId.of("2fac76dbaa4fe73ca67c813e918ac3fdea8b6ab9");
         }
     }
 
@@ -143,7 +143,7 @@ public class ContractApiImplTest {
         }
     }
 
-    /* CoinStandardContract Test */
+    /* CoinContract Test */
     @Test
     public void totalSupply() {
         try {

@@ -84,8 +84,8 @@ public class BranchConfigurationTest {
     @Test
     public void addYeedBranchTest() throws IOException {
         BranchGroup branchGroup = getBranchGroup();
-        branchConfig.stemResource = loader.getResource("classpath:/branch-yeed.json");
-        BlockChain blockChain = branchConfig.stem(peerGroup, branchGroup, sender);
+        branchConfig.yeedResource = loader.getResource("classpath:/branch-yeed.json");
+        BlockChain blockChain = branchConfig.yeed(peerGroup, branchGroup, sender);
         assert blockChain.getBranchId().equals(TestUtils.YEED);
         assert branchGroup.getBranchSize() == 1;
     }
