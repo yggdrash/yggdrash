@@ -214,12 +214,16 @@ public class StateStore<T> implements Store<String, T> {
             return false;
         }
 
-        Map<JsonObject, JsonObject> fieldState = new HashMap<>();
-        fieldState.put(keyObject, recordObject);
 
-        Map<String, Map<JsonObject, JsonObject>> tableState = new HashMap<>();
-        tableState.put(table, fieldState);
-        assetState.replace(db, tableState);
+        if (assetState.get(db) == null) {
+            return false;
+        } else {
+            if (assetState.get(db).get(table) == null) {
+                return false;
+            } else {
+                assetState.get(db).get(table).put(keyObject, recordObject);
+            }
+        }
 
         return true;
     }
