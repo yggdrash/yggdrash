@@ -30,7 +30,7 @@ public class DefaultConfigTest {
     public void defaultConfigTest() {
         log.debug(defaultConfig.toString());
 
-        assertThat(defaultConfig.getString("java.vm.version")).contains(".");
+        assertThat(defaultConfig.getString("java.vm.version")).isNotEmpty();
         log.debug("DefaultConfig java.vm.version: "
                 + defaultConfig.getString("java.vm.version"));
 
