@@ -1093,6 +1093,72 @@ public class AssetContractTest {
         log.info(assetContract.state.getAssetState(dbName, tableName1).toString());
     }
 
+    @Test
+    public void deleteRecordWithKeyTest() {
+        // keyObject1
+        JsonObject keyObject1 = new JsonObject();
+        keyObject1.addProperty("number", "");
+
+        // recordObjectUser1
+        JsonObject recordObject1 = new JsonObject();
+        recordObject1.addProperty("name", "1");
+        recordObject1.addProperty("gender", "");
+        recordObject1.addProperty("age", "");
+        recordObject1.addProperty("department", "");
+
+        // keyObject2
+        JsonObject keyObject2 = new JsonObject();
+        keyObject2.addProperty("number", "2");
+
+        // recordObjectUser2
+        JsonObject recordObject2 = new JsonObject();
+        recordObject2.addProperty("name", "");
+        recordObject2.addProperty("gender", "");
+        recordObject2.addProperty("age", "");
+        recordObject2.addProperty("department", "");
+
+        String dbName = "assetManagement";
+        String tableName1 = "user1";
+
+        createDatabaseTest(dbName);
+        createTableUserTest(dbName, tableName1, keyObject1, recordObject1);
+        insertRecordUserTest(dbName, tableName1, keyObject1, recordObject1);
+        insertRecordUserTest(dbName, tableName1, keyObject2, recordObject2);
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "deleteRecordWithKey");
+
+        // paramsObject
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", dbName);
+        paramsObject.addProperty("table", tableName1);
+
+        // keyObject
+        paramsObject.add("key", keyObject1);
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonArray txBodyArray = new JsonArray();
+        txBodyArray.add(bodyObject);
+
+        log.info(txBodyArray.toString());
+
+        TransactionBody txBody = new TransactionBody(txBodyArray);
+        TransactionHeader txHeader = new TransactionHeader(
+                branchId,
+                new byte[8],
+                new byte[8],
+                TimeUtils.time(),
+                txBody);
+        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
+        Transaction tx = new Transaction(txHeader, txSig.getSignature(), txBody);
+
+        boolean result = assetContract.invoke(new TransactionHusk(tx));
+        assertThat(result).isTrue();
+    }
 
 }
 
