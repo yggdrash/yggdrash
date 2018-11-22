@@ -40,8 +40,8 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 
 public class AssetContractTest {
@@ -177,7 +177,6 @@ public class AssetContractTest {
 
     @Test
     public void createAssetBranchTest() {
-
         try {
             String frontier = "{\"alloc\":{\n"
                     + "\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\": {\n"
@@ -206,7 +205,6 @@ public class AssetContractTest {
         } catch (Exception e) {
             assert false;
         }
-
     }
 
     private  TransactionHusk makeTransaction(JsonArray txBodyArray) {
@@ -224,7 +222,6 @@ public class AssetContractTest {
     }
 
     private boolean createDatabaseTxTest(String dbName) {
-
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "createDatabase");
 
@@ -281,7 +278,6 @@ public class AssetContractTest {
 
     private boolean createTableModuleTest(
             String dbName, String tableName, JsonObject keyObject, JsonObject recordObject) {
-
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "createTable");
 
@@ -325,7 +321,6 @@ public class AssetContractTest {
 
     private boolean createTableTxTest(
             String dbName, String tableName, JsonObject keyObject, JsonObject recordObject) {
-
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "createTable");
 
@@ -369,7 +364,6 @@ public class AssetContractTest {
 
     private boolean insertModuleTest(
             String dbName, String tableName, JsonObject keyObject, JsonObject recordObject) {
-
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "insert");
 
@@ -423,7 +417,6 @@ public class AssetContractTest {
 
     private boolean insertTxTest(
             String dbName, String tableName, JsonObject keyObject, JsonObject recordObject) {
-
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "insert");
 
@@ -474,12 +467,10 @@ public class AssetContractTest {
         } else {
             assert false;
         }
-
     }
 
     private boolean updateModuleTest(
             String dbName, String tableName, JsonObject keyObject, JsonObject recordObject) {
-
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "update");
 
@@ -537,10 +528,8 @@ public class AssetContractTest {
         }
     }
 
-
     private boolean updateTxTest(
             String dbName, String tableName, JsonObject keyObject, JsonObject recordObject) {
-
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "update");
 
@@ -561,7 +550,6 @@ public class AssetContractTest {
 
         return assetContract.invoke(makeTransaction(txBodyArray));
     }
-
 
     @Test
     public void updateTxTests() {
@@ -946,114 +934,72 @@ public class AssetContractTest {
         log.info(result.toString());
         assertEquals(result, recordObjectAsset2);
     }
-    
 
-    @Test
-    public void deleteRecordWithKeyModuleTest() {
-
-        // keyObject1
-        JsonObject keyObject1 = new JsonObject();
-        keyObject1.addProperty("number", "");
-
-        // recordObjectUser1
-        JsonObject recordObject1 = new JsonObject();
-        recordObject1.addProperty("name", "1");
-        recordObject1.addProperty("gender", "");
-        recordObject1.addProperty("age", "");
-        recordObject1.addProperty("department", "");
-
-        // keyObject2
-        JsonObject keyObject2 = new JsonObject();
-        keyObject2.addProperty("number", "2");
-
-        // recordObjectUser2
-        JsonObject recordObject2 = new JsonObject();
-        recordObject2.addProperty("name", "");
-        recordObject2.addProperty("gender", "");
-        recordObject2.addProperty("age", "");
-        recordObject2.addProperty("department", "");
-
-        String dbName = "assetManagement";
-        String tableName1 = "user1";
-
-        createDatabaseModuleTest(DBNAME);
-        //createTableUserTest(dbName, tableName1, keyObject1, recordObject1);
-//        insertRecordUserTest(dbName, tableName1, keyObject1, recordObject1);
-//        insertRecordUserTest(dbName, tableName1, keyObject2, recordObject2);
+    private boolean deleteRecordWithKeyModuleTest(
+            String dbName, String tableName, JsonObject keyObject) {
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "deleteRecordWithKey");
 
-        // paramsObject
         JsonObject paramsObject = new JsonObject();
         paramsObject.addProperty("db", dbName);
-        paramsObject.addProperty("table", tableName1);
-
-        // keyObject
-        paramsObject.add("key", keyObject1);
+        paramsObject.addProperty("table", tableName);
+        paramsObject.add("key", keyObject);
 
         JsonArray paramsArray = new JsonArray();
         paramsArray.add(paramsObject);
 
-        bodyObject.add("params", paramsArray);
-
-        JsonArray txBodyArray = new JsonArray();
-        txBodyArray.add(bodyObject);
-
-        log.info(txBodyArray.toString());
-
-        // Module Test
         TransactionReceipt receipt = assetContract.deleteRecordWithKey(paramsArray);
         log.info(receipt.toString());
-        if ((receipt.getStatus() != 1)) {
-            throw new AssertionError();
-        }
-
-        log.info(assetContract.state.getAssetState(dbName, tableName1).toString());
+        return (receipt.getStatus() == 1);
     }
 
     @Test
-    public void deleteRecordWithKeyTest() {
-        // keyObject1
-        JsonObject keyObject1 = new JsonObject();
-        keyObject1.addProperty("number", "");
+    public void deleteRecordWithKeyModuleTests() {
+        createDatabaseModuleTest(DBNAME);
 
-        // recordObjectUser1
-        JsonObject recordObject1 = new JsonObject();
-        recordObject1.addProperty("name", "1");
-        recordObject1.addProperty("gender", "");
-        recordObject1.addProperty("age", "");
-        recordObject1.addProperty("department", "");
+        createTableModuleTest(
+                DBNAME, TABLENAME_USER1, keyObjectUserSchema, recordObjectUserSchema);
+        createTableModuleTest(
+                DBNAME, TABLENAME_USER2, keyObjectUserSchema, recordObjectUserSchema);
+        createTableModuleTest(
+                DBNAME, TABLENAME_ASSET1, keyObjectAssetSchema, recordObjectAssetSchema);
+        createTableModuleTest(
+                DBNAME, TABLENAME_ASSET2, keyObjectAssetSchema, recordObjectAssetSchema);
 
-        // keyObject2
-        JsonObject keyObject2 = new JsonObject();
-        keyObject2.addProperty("number", "2");
+        insertTxTest(DBNAME, TABLENAME_USER1, keyObjectUser1, recordObjectUser1);
+        insertTxTest(DBNAME, TABLENAME_USER2, keyObjectUser2, recordObjectUser2);
+        insertTxTest(DBNAME, TABLENAME_ASSET1, keyObjectAsset1, recordObjectAsset1);
+        insertTxTest(DBNAME, TABLENAME_ASSET1, keyObjectAsset2, recordObjectAsset2);
 
-        // recordObjectUser2
-        JsonObject recordObject2 = new JsonObject();
-        recordObject2.addProperty("name", "");
-        recordObject2.addProperty("gender", "");
-        recordObject2.addProperty("age", "");
-        recordObject2.addProperty("department", "");
+        if (deleteRecordWithKeyModuleTest(DBNAME, TABLENAME_USER1, keyObjectUser1)
+                && deleteRecordWithKeyModuleTest(DBNAME, TABLENAME_USER2, keyObjectUser2)
+                && deleteRecordWithKeyModuleTest(DBNAME, TABLENAME_ASSET1, keyObjectAsset1)
+                && deleteRecordWithKeyModuleTest(DBNAME, TABLENAME_ASSET1, keyObjectAsset2)) {
+            assertNull(assetContract.state.getAssetState(DBNAME, TABLENAME_USER1, keyObjectUser1));
+            assertNull(assetContract.state.getAssetState(DBNAME, TABLENAME_USER2, keyObjectUser2));
+            assertNull(
+                    assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET1, keyObjectAsset1));
+            assertNull(
+                    assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET1, keyObjectAsset2));
+            log.info(assetContract.state.get(DBNAME).toString());
+            log.info(assetContract.state.getAssetState(DBNAME, TABLENAME_USER1).toString());
+            log.info(assetContract.state.getAssetState(DBNAME, TABLENAME_USER2).toString());
+            log.info(assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET1).toString());
+        } else {
+            assert false;
+        }
+    }
 
-        String dbName = "assetManagement";
-        String tableName1 = "user1";
-
-        createDatabaseTxTest(DBNAME);
-        //createTableUserTest(dbName, tableName1, keyObject1, recordObject1);
-//        insertRecordUserTest(dbName, tableName1, keyObject1, recordObject1);
-//        insertRecordUserTest(dbName, tableName1, keyObject2, recordObject2);
-
+    private boolean deleteRecordWithKeyTxTest(
+            String dbName, String tableName, JsonObject keyObject) {
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "deleteRecordWithKey");
 
-        // paramsObject
         JsonObject paramsObject = new JsonObject();
         paramsObject.addProperty("db", dbName);
-        paramsObject.addProperty("table", tableName1);
-
-        // keyObject
-        paramsObject.add("key", keyObject1);
+        paramsObject.addProperty("table", tableName);
+        paramsObject.add("key", keyObject);
 
         JsonArray paramsArray = new JsonArray();
         paramsArray.add(paramsObject);
@@ -1063,21 +1009,44 @@ public class AssetContractTest {
         JsonArray txBodyArray = new JsonArray();
         txBodyArray.add(bodyObject);
 
-        log.info(txBodyArray.toString());
-
-        TransactionBody txBody = new TransactionBody(txBodyArray);
-        TransactionHeader txHeader = new TransactionHeader(
-                branchId,
-                new byte[8],
-                new byte[8],
-                TimeUtils.time(),
-                txBody);
-        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-        Transaction tx = new Transaction(txHeader, txSig.getSignature(), txBody);
-
-        boolean result = assetContract.invoke(new TransactionHusk(tx));
-        assertThat(result).isTrue();
+        return assetContract.invoke(makeTransaction(txBodyArray));
     }
 
+    @Test
+    public void deleteRecordWithKeyTxTests() {
+        createDatabaseTxTest(DBNAME);
+
+        createTableTxTest(
+                DBNAME, TABLENAME_USER1, keyObjectUserSchema, recordObjectUserSchema);
+        createTableTxTest(
+                DBNAME, TABLENAME_USER2, keyObjectUserSchema, recordObjectUserSchema);
+        createTableTxTest(
+                DBNAME, TABLENAME_ASSET1, keyObjectAssetSchema, recordObjectAssetSchema);
+        createTableTxTest(
+                DBNAME, TABLENAME_ASSET2, keyObjectAssetSchema, recordObjectAssetSchema);
+
+        insertTxTest(DBNAME, TABLENAME_USER1, keyObjectUser1, recordObjectUser1);
+        insertTxTest(DBNAME, TABLENAME_USER2, keyObjectUser2, recordObjectUser2);
+        insertTxTest(DBNAME, TABLENAME_ASSET1, keyObjectAsset1, recordObjectAsset1);
+        insertTxTest(DBNAME, TABLENAME_ASSET1, keyObjectAsset2, recordObjectAsset2);
+
+        if (deleteRecordWithKeyTxTest(DBNAME, TABLENAME_USER1, keyObjectUser1)
+                && deleteRecordWithKeyTxTest(DBNAME, TABLENAME_USER2, keyObjectUser2)
+                && deleteRecordWithKeyTxTest(DBNAME, TABLENAME_ASSET1, keyObjectAsset1)
+                && deleteRecordWithKeyTxTest(DBNAME, TABLENAME_ASSET1, keyObjectAsset2)) {
+            assertNull(assetContract.state.getAssetState(DBNAME, TABLENAME_USER1, keyObjectUser1));
+            assertNull(assetContract.state.getAssetState(DBNAME, TABLENAME_USER2, keyObjectUser2));
+            assertNull(
+                    assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET1, keyObjectAsset1));
+            assertNull(
+                    assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET1, keyObjectAsset2));
+            log.info(assetContract.state.get(DBNAME).toString());
+            log.info(assetContract.state.getAssetState(DBNAME, TABLENAME_USER1).toString());
+            log.info(assetContract.state.getAssetState(DBNAME, TABLENAME_USER2).toString());
+            log.info(assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET1).toString());
+        } else {
+            assert false;
+        }
+    }
 }
 

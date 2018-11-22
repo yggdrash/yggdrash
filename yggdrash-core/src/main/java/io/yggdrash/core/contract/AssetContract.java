@@ -95,7 +95,6 @@ public class AssetContract extends BaseContract<JsonArray> {
         }
 
         log.debug(txReceipt.toString());
-
         return txReceipt;
     }
 
@@ -147,7 +146,6 @@ public class AssetContract extends BaseContract<JsonArray> {
         }
 
         log.debug(txReceipt.toString());
-
         return txReceipt;
     }
 
@@ -197,6 +195,7 @@ public class AssetContract extends BaseContract<JsonArray> {
             }
         }
 
+        txReceipt.putLog("insert", params.toString());
         log.debug(txReceipt.toString());
 
         return txReceipt;
@@ -248,6 +247,7 @@ public class AssetContract extends BaseContract<JsonArray> {
             }
         }
 
+        txReceipt.putLog("update", params.toString());
         log.debug(txReceipt.toString());
 
         return txReceipt;
@@ -422,6 +422,7 @@ public class AssetContract extends BaseContract<JsonArray> {
 
         }
 
+        txReceipt.putLog("deleteRecordWithKey", params.toString());
         log.debug(txReceipt.toString());
 
         return txReceipt;
