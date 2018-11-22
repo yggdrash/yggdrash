@@ -33,6 +33,7 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.math.BigInteger;
 import java.security.KeyPairGenerator;
+import java.security.PrivateKey;
 import java.security.Provider;
 import java.security.SecureRandom;
 import java.security.Security;
@@ -47,7 +48,6 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
 public class ECKeyTest {
     private static final Logger log = LoggerFactory.getLogger(ECKeyTest.class);
@@ -56,8 +56,6 @@ public class ECKeyTest {
 
     private final String privString = "c85ef7d79691fe79573b1a7064c19c1a9819ebdbd1faaab1a8ec92344438aaf4";
     private final BigInteger privateKey = new BigInteger(privString, 16);
-
-    private final String privString2 = "35919d465e7704bcd97379f436fa38293151ebf728d23ddf7b6acf26dac13702";
 
     private final String pubString = "040947751e3022ecf3016be03ec77ab0ce3c2662b4843898cb068d74f698ccc8ad75aa17564ae80a20bb044ee7a6d903e8e8df624b089c95d66a0570f051e5a05b";
     private final String compressedPubString = "030947751e3022ecf3016be03ec77ab0ce3c2662b4843898cb068d74f698ccc8ad";
@@ -94,17 +92,18 @@ public class ECKeyTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testPrivatePublicKeyBytesNoArg() {
+        // Expecting an IllegalArgumentException for using only null-parameters
         new ECKey((BigInteger) null, null);
-        fail("Expecting an IllegalArgumentException for using only null-parameters");
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void testInvalidPrivateKey() throws Exception {
+        // Expecting an IllegalArgumentException for using an non EC private key
+        PrivateKey privateKey = KeyPairGenerator.getInstance("DSA").generateKeyPair().getPrivate();
         new ECKey(
                 Security.getProvider("SunEC"),
-                KeyPairGenerator.getInstance("RSA").generateKeyPair().getPrivate(),
+                privateKey,
                 ECKey.fromPublicOnly(pubKey).getPubKeyPoint());
-        fail("Expecting an IllegalArgumentException for using an non EC private key");
     }
 
     @Test
@@ -117,33 +116,33 @@ public class ECKeyTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void testSignIncorrectInputSize() {
+        // Expecting an IllegalArgumentException for a non 32-byte input
         ECKey key = new ECKey();
         String message = "The quick brown fox jumps over the lazy dog.";
         key.doSign(message.getBytes());
-        fail("Expecting an IllegalArgumentException for a non 32-byte input");
     }
 
     @Test(expected = ECKey.MissingPrivateKeyException.class)
     public void testSignWithPubKeyOnly() {
+        // Expecting an MissingPrivateKeyException for a public only ECKey
         ECKey key = ECKey.fromPublicOnly(pubKey);
         String message = "The quick brown fox jumps over the lazy dog.";
         byte[] input = HashUtil.sha3(message.getBytes());
         key.doSign(input);
-        fail("Expecting an MissingPrivateKeyException for a public only ECKey");
     }
 
     @Test(expected = SignatureException.class)
     public void testBadBase64Sig() throws SignatureException {
+        // Expecting a SignatureException for invalid Base64
         byte[] messageHash = new byte[32];
         ECKey.signatureToKey(messageHash, "This is not valid Base64!");
-        fail("Expecting a SignatureException for invalid Base64");
     }
 
     @Test(expected = SignatureException.class)
     public void testInvalidSignatureLength() throws SignatureException {
+        // Expecting a SignatureException for invalid signature length
         byte[] messageHash = new byte[32];
         ECKey.signatureToKey(messageHash, "abcdefg");
-        fail("Expecting a SignatureException for invalid signature length");
     }
 
     @Test

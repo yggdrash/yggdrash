@@ -17,6 +17,10 @@
 package io.yggdrash.node;
 
 import io.yggdrash.TestUtils;
+import io.yggdrash.common.crypto.AESEncrypt;
+import io.yggdrash.common.crypto.ECKey;
+import io.yggdrash.common.crypto.Password;
+import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchEventListener;
@@ -27,11 +31,17 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.InvalidCipherTextException;
+import org.spongycastle.util.encoders.Hex;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.StopWatch;
 
 import java.util.concurrent.TimeUnit;
+
+import static io.yggdrash.common.crypto.HashUtil.sha3;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(SpringRunner.class)
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
@@ -43,7 +53,7 @@ public class PerformanceTest {
      * test generate block with large tx.
      */
     @Test
-    public void generate100BlockTest() {
+    public void generateBlockTest() {
         BranchGroup branchGroup = new BranchGroup();
         BlockChain blockChain = TestUtils.createBlockChain(false);
         branchGroup.addBranch(blockChain, new BranchEventListener() {
@@ -74,6 +84,49 @@ public class PerformanceTest {
 
         Assertions.assertThat(watch.getTotalTimeMillis())
                 .isLessThan(TimeUnit.SECONDS.toMillis(3));
+    }
+
+    /**
+     * test encryption/decryption with large data 100 MByte.
+     * <p>
+     * throws InvalidCipherTextException
+     */
+    @Test
+    public void encryptDecryptTest() throws InvalidCipherTextException {
+
+        // password generation using KDF
+        String password = "Aa1234567890#";
+        byte[] kdf = Password.generateKeyDerivation(password.getBytes(), 32);
+
+        byte[] plain = "0123456789".getBytes();
+        byte[] plainBytes = new byte[10000000];
+        for (int i = 0; i < plainBytes.length / plain.length; i++) {
+            System.arraycopy(plain, 0, plainBytes, i * plain.length, plain.length);
+        }
+
+        byte[] encData = AESEncrypt.encrypt(plainBytes, kdf);
+        byte[] plainData = AESEncrypt.decrypt(encData, kdf);
+
+        assertArrayEquals(plainBytes, plainData);
+
+    }
+
+    @Test   /* performance test */
+    public void getEcKeyFromPrivateTest() {
+
+        long firstTime = System.currentTimeMillis();
+        byte[] horseBytes = sha3("horse".getBytes());
+        for (int i = 0; i < 1000; ++i) {
+
+            ECKey ecKey = ECKey.fromPrivate(horseBytes);
+            byte[] addr = ecKey.getAddress();
+            assertEquals("13978AEE95F38490E9769C39B2773ED763D9CD5F",
+                    Hex.toHexString(addr).toUpperCase());
+        }
+
+        long secondTime = System.currentTimeMillis();
+        log.debug(Hex.toHexString(ByteUtil.longToBytes(secondTime - firstTime)) + " millisec");
+        // 1) result: ~52 address calculation every second
     }
 
 }
