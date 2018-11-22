@@ -289,14 +289,14 @@ public class AssetContractTest {
         assertThat(result).isTrue();
     }
 
-    private void createTableUserTest(String tableName) {
+    private void createTableUserTest(String dbName, String tableName) {
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "createTable");
 
         // paramsObject
         JsonObject paramsObject = new JsonObject();
-        paramsObject.addProperty("db", "assetManagement");
+        paramsObject.addProperty("db", dbName);
         paramsObject.addProperty("table", tableName);
 
         // keyObject
@@ -787,8 +787,8 @@ public class AssetContractTest {
     @Test
     public void queryAllTablesModuleTest() {
         createDatabaseTest("assetManagement");
-        createTableUserTest("user1");
-        createTableUserTest("user2");
+        createTableUserTest("assetManagement", "user1");
+        createTableUserTest("assetManagement", "user2");
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryAllTables");
@@ -813,8 +813,8 @@ public class AssetContractTest {
     @Test
     public void queryAllTablesTest() {
         createDatabaseTest("assetManagement");
-        createTableUserTest("user1");
-        createTableUserTest("user2");
+        createTableUserTest("assetManagement", "user1");
+        createTableUserTest("assetManagement", "user2");
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryAllTables");
@@ -839,8 +839,8 @@ public class AssetContractTest {
     @Test
     public void queryTableModuleTest() {
         createDatabaseTest("assetManagement");
-        createTableUserTest("user1");
-        createTableUserTest("user2");
+        createTableUserTest("assetManagement", "user1");
+        createTableUserTest("assetManagement", "user2");
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryTable");
@@ -950,7 +950,7 @@ public class AssetContractTest {
         String tableName = "user";
 
         createDatabaseTest(dbName);
-        createTableUserTest(tableName);
+        createTableUserTest(dbName, tableName);
         insertRecordUserTest(dbName, tableName, keyObject1, recordObject1);
         insertRecordUserTest(dbName, tableName, keyObject2, recordObject2);
 
@@ -1004,7 +1004,7 @@ public class AssetContractTest {
         String tableName = "user";
 
         createDatabaseTest(dbName);
-        createTableUserTest(tableName);
+        createTableUserTest(dbName, tableName);
         insertRecordUserTest(dbName, tableName, keyObject1, recordObject1);
         insertRecordUserTest(dbName, tableName, keyObject2, recordObject2);
 
@@ -1028,6 +1028,71 @@ public class AssetContractTest {
 
         log.info(result.toString());
     }
+
+    @Test
+    public void deleteRecordWithKeyModuleTest() {
+
+        // keyObject1
+        JsonObject keyObject1 = new JsonObject();
+        keyObject1.addProperty("number", "");
+
+        // recordObjectUser1
+        JsonObject recordObject1 = new JsonObject();
+        recordObject1.addProperty("name", "1");
+        recordObject1.addProperty("gender", "");
+        recordObject1.addProperty("age", "");
+        recordObject1.addProperty("department", "");
+
+        // keyObject2
+        JsonObject keyObject2 = new JsonObject();
+        keyObject2.addProperty("number", "2");
+
+        // recordObjectUser2
+        JsonObject recordObject2 = new JsonObject();
+        recordObject2.addProperty("name", "");
+        recordObject2.addProperty("gender", "");
+        recordObject2.addProperty("age", "");
+        recordObject2.addProperty("department", "");
+
+        String dbName = "assetManagement";
+        String tableName1 = "user1";
+
+        createDatabaseTest(dbName);
+        createTableUserTest(dbName, tableName1, keyObject1, recordObject1);
+        insertRecordUserTest(dbName, tableName1, keyObject1, recordObject1);
+        insertRecordUserTest(dbName, tableName1, keyObject2, recordObject2);
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "deleteRecordWithKey");
+
+        // paramsObject
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", dbName);
+        paramsObject.addProperty("table", tableName1);
+
+        // keyObject
+        paramsObject.add("key", keyObject1);
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonArray txBodyArray = new JsonArray();
+        txBodyArray.add(bodyObject);
+
+        log.info(txBodyArray.toString());
+
+        // Module Test
+        TransactionReceipt receipt = assetContract.deleteRecordWithKey(paramsArray);
+        log.info(receipt.toString());
+        if ((receipt.getStatus() != 1)) {
+            throw new AssertionError();
+        }
+
+        log.info(assetContract.state.getAssetState(dbName, tableName1).toString());
+    }
+
 
 }
 

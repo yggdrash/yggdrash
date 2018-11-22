@@ -375,4 +375,56 @@ public class AssetContract extends BaseContract<JsonArray> {
         return state.getAssetState(dbName, tableName, keyObject);
     }
 
+    public TransactionReceipt deleteRecordWithKey(JsonArray params) {
+        log.debug("delete :: params => " + params);
+
+        TransactionReceipt txReceipt = new TransactionReceipt();
+        txReceipt.setStatus(TransactionReceipt.SUCCESS);
+
+        for (JsonElement element : params) {
+            String dbName = element.getAsJsonObject().get("db").getAsString();
+            String tableName = element.getAsJsonObject().get("table").getAsString();
+            JsonObject keyObject = element.getAsJsonObject().get("key").getAsJsonObject();
+
+            if (dbName == null || dbName.equals("")
+                    || tableName == null || tableName.equals("")
+                    || keyObject == null || keyObject.size() == 0) {
+                txReceipt.setStatus(TransactionReceipt.FALSE);
+                txReceipt.putLog("delete",
+                        params.toString() + " This data is not valid.");
+                break;
+            }
+
+            // check db & table
+            JsonObject tableObject = null;
+            for (JsonElement dbElement : (JsonArray) state.get(dbName)) {
+                if (dbElement.getAsJsonObject().get("table").getAsString().equals(tableName)) {
+                    tableObject = dbElement.getAsJsonObject();
+                }
+            }
+
+            if (tableObject == null) {
+                txReceipt.setStatus(TransactionReceipt.FALSE);
+                txReceipt.putLog("delete",
+                        params.toString() + " This table is not valid.");
+                break;
+            }
+
+            // delete record
+            try {
+                state.getAssetState(dbName, tableName).remove(keyObject);
+            } catch (Exception e) {
+                txReceipt.setStatus(TransactionReceipt.FALSE);
+                txReceipt.putLog("delete",
+                        params.toString() + " This record is not valid.");
+                break;
+            }
+
+        }
+
+        log.debug(txReceipt.toString());
+
+        return txReceipt;
+    }
+
 }
