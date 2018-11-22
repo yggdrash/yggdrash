@@ -54,9 +54,115 @@ public class AssetContractTest {
     private DefaultConfig defaultConfig;
     private Wallet wallet;
 
+    private static final String DBNAME = "assetManagement";
+    private static final String DBNAME1 = "assetManagement1";
+    private static final String DBNAME2 = "assetManagement2";
+    
+    // user table
+    private static final String TABLENAME_USER = "user";
+    private static final String TABLENAME_USER1 = "user1";
+    private static final String TABLENAME_USER2 = "user2";
+    private JsonObject keyObjectUserSchema;
+    private JsonObject recordObjectUserSchema;
+    private JsonObject keyObjectUser1;
+    private JsonObject recordObjectUser1;
+    private JsonObject keyObjectUser2;
+    private JsonObject recordObjectUser2;
+
+    // asset table
+    private static final String TABLENAME_ASSET = "asset";
+    private static final String TABLENAME_ASSET1 = "asset1";
+    private static final String TABLENAME_ASSET2 = "asset2";
+    private JsonObject keyObjectAssetSchema;
+    private JsonObject recordObjectAssetSchema;
+    private JsonObject keyObjectAsset1;
+    private JsonObject recordObjectAsset1;
+    private JsonObject keyObjectAsset2;
+    private JsonObject recordObjectAsset2;
+    
     public AssetContractTest() throws IOException, InvalidCipherTextException {
         defaultConfig = new DefaultConfig();
         wallet = new Wallet(defaultConfig);
+
+        // user table
+        keyObjectUserSchema = new JsonObject();
+        keyObjectUserSchema.addProperty("number", "");
+        recordObjectUserSchema = new JsonObject();
+        recordObjectUserSchema.addProperty("name", "");
+        recordObjectUserSchema.addProperty("gender", "");
+        recordObjectUserSchema.addProperty("age", "");
+        recordObjectUserSchema.addProperty("department", "");
+
+        keyObjectUser1 = new JsonObject();
+        keyObjectUser1.addProperty("number", "1");
+        recordObjectUser1 = new JsonObject();
+        recordObjectUser1.addProperty("name", "Jaes Park");
+        recordObjectUser1.addProperty("gender", "mail");
+        recordObjectUser1.addProperty("age", "20");
+        recordObjectUser1.addProperty("department", "development");
+
+        keyObjectUser2 = new JsonObject();
+        keyObjectUser2.addProperty("number", "2");
+        recordObjectUser2 = new JsonObject();
+        recordObjectUser2.addProperty("name", "Racheal Hong");
+        recordObjectUser2.addProperty("gender", "femail");
+        recordObjectUser2.addProperty("age", "21");
+        recordObjectUser2.addProperty("department", "development");
+
+        // asset table
+        keyObjectAssetSchema = new JsonObject();
+        keyObjectAssetSchema.addProperty("number", "");
+        keyObjectAssetSchema.addProperty("code", "");
+        recordObjectAssetSchema = new JsonObject();
+        recordObjectAssetSchema.addProperty("type", "");
+        recordObjectAssetSchema.addProperty("information", "");
+        recordObjectAssetSchema.addProperty("price", "");
+        recordObjectAssetSchema.addProperty("registrationDate", "");
+        recordObjectAssetSchema.addProperty("disuseDate", "");
+        {
+            JsonObject userObject = new JsonObject();
+            userObject.addProperty("table", TABLENAME_USER1);
+            JsonObject userkeyObject = new JsonObject();
+            userkeyObject.addProperty("number", "1");
+            userObject.add("key", userkeyObject);
+            recordObjectAssetSchema.add("user", userObject);
+        }
+
+        keyObjectAsset1 = new JsonObject();
+        keyObjectAsset1.addProperty("number", "1");
+        keyObjectAsset1.addProperty("code", "2018-00001");
+        recordObjectAsset1 = new JsonObject();
+        recordObjectAsset1.addProperty("type", "Notebook");
+        recordObjectAsset1.addProperty("information", "MacBookPro15(A1707)");
+        recordObjectAsset1.addProperty("price", "3000000");
+        recordObjectAsset1.addProperty("registrationDate", "2018-11-14");
+        recordObjectAsset1.addProperty("disuseDate", "0000-00-00");
+        {
+            JsonObject userObject = new JsonObject();
+            userObject.addProperty("table", TABLENAME_USER1);
+            JsonObject userkeyObject = new JsonObject();
+            userkeyObject.addProperty("number", "1");
+            userObject.add("key", userkeyObject);
+            recordObjectAsset1.add("user", userObject);
+        }
+
+        keyObjectAsset2 = new JsonObject();
+        keyObjectAsset2.addProperty("number", "2");
+        keyObjectAsset2.addProperty("code", "2018-00002");
+        recordObjectAsset2 = new JsonObject();
+        recordObjectAsset2.addProperty("type", "Monitor");
+        recordObjectAsset2.addProperty("information", "BENQ(PD2700Q)");
+        recordObjectAsset2.addProperty("price", "400000");
+        recordObjectAsset2.addProperty("registrationDate", "2018-11-15");
+        recordObjectAsset2.addProperty("disuseDate", "0000-00-00");
+        {
+            JsonObject userObject = new JsonObject();
+            userObject.addProperty("table", TABLENAME_USER1);
+            JsonObject userkeyObject = new JsonObject();
+            userkeyObject.addProperty("number", "2");
+            userObject.add("key", userkeyObject);
+            recordObjectAsset1.add("user", userObject);
+        }
     }
 
     @Before
