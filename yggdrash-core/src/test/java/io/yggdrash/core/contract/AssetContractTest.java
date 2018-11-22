@@ -208,14 +208,27 @@ public class AssetContractTest {
 
     }
 
-    @Test
-    public void createDatabaseModuleTest() {
+    private  TransactionHusk makeTransaction(JsonArray txBodyArray) {
+        TransactionBody txBody = new TransactionBody(txBodyArray);
+        TransactionHeader txHeader = new TransactionHeader(
+                branchId,
+                new byte[8],
+                new byte[8],
+                TimeUtils.time(),
+                txBody);
+        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
+        Transaction tx = new Transaction(txHeader, txSig.getSignature(), txBody);
+
+        return new TransactionHusk(tx);
+    }
+
+    private boolean createDatabaseTxTest(String dbName) {
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "createDatabase");
 
         JsonObject paramsObject = new JsonObject();
-        paramsObject.addProperty("db", "assetManagement");
+        paramsObject.addProperty("db", dbName);
 
         JsonArray paramsArray = new JsonArray();
         paramsArray.add(paramsObject);
@@ -225,239 +238,103 @@ public class AssetContractTest {
         JsonArray txBodyArray = new JsonArray();
         txBodyArray.add(bodyObject);
 
-        log.info(txBodyArray.toString());
+        return assetContract.invoke(makeTransaction(txBodyArray));
+    }
 
-        // Module Test
+    private boolean createDatabaseModuleTest(String dbName) {
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "createDatabase");
+
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", dbName);
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
         TransactionReceipt receipt = assetContract.createDatabase(paramsArray);
         log.info(receipt.toString());
-        if ((receipt.getStatus() != 1)) {
-            throw new AssertionError();
-        }
-
+        return (receipt.getStatus() == 1);
     }
 
     @Test
-    public void createDatabaseTest() {
-
-        JsonObject bodyObject = new JsonObject();
-        bodyObject.addProperty("method", "createDatabase");
-
-        JsonObject paramsObject = new JsonObject();
-        paramsObject.addProperty("db", "assetManagement");
-
-        JsonArray paramsArray = new JsonArray();
-        paramsArray.add(paramsObject);
-
-        bodyObject.add("params", paramsArray);
-
-        JsonArray txBodyArray = new JsonArray();
-        txBodyArray.add(bodyObject);
-
-        log.info(txBodyArray.toString());
-
-        // Transaction Test
-        TransactionBody txBody = new TransactionBody(txBodyArray);
-        TransactionHeader txHeader = new TransactionHeader(
-                branchId,
-                new byte[8],
-                new byte[8],
-                TimeUtils.time(),
-                txBody);
-        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-        Transaction tx = new Transaction(txHeader, txSig.getSignature(), txBody);
-
-        boolean result = assetContract.invoke(new TransactionHusk(tx));
-        assertThat(result).isTrue();
-    }
-
-    private boolean createDatabaseTest(String dbName) {
-
-        JsonObject bodyObject = new JsonObject();
-        bodyObject.addProperty("method", "createDatabase");
-
-        JsonObject paramsObject = new JsonObject();
-        paramsObject.addProperty("db", dbName);
-
-        JsonArray paramsArray = new JsonArray();
-        paramsArray.add(paramsObject);
-
-        bodyObject.add("params", paramsArray);
-
-        JsonArray txBodyArray = new JsonArray();
-        txBodyArray.add(bodyObject);
-
-        log.info(txBodyArray.toString());
-
-        // Transaction Test
-        TransactionBody txBody = new TransactionBody(txBodyArray);
-        TransactionHeader txHeader = new TransactionHeader(
-                branchId,
-                new byte[8],
-                new byte[8],
-                TimeUtils.time(),
-                txBody);
-        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-        Transaction tx = new Transaction(txHeader, txSig.getSignature(), txBody);
-
-        return assetContract.invoke(new TransactionHusk(tx));
-    }
-
-    @Test
-    public void createTableUserModuleTest() {
-
-        createDatabaseTest();
-
-        JsonObject bodyObject = new JsonObject();
-        bodyObject.addProperty("method", "createTable");
-
-        // paramsObject
-        JsonObject paramsObject = new JsonObject();
-        paramsObject.addProperty("db", "assetManagement");
-        paramsObject.addProperty("table", "user");
-
-        // keyObject
-        JsonObject keyObject = new JsonObject();
-        keyObject.addProperty("number", "1");
-        paramsObject.add("key", keyObject);
-
-        // recordObject
-        JsonObject recordObject = new JsonObject();
-        recordObject.addProperty("name", "");
-        recordObject.addProperty("gender", "");
-        recordObject.addProperty("age", "");
-        recordObject.addProperty("department", "");
-
-        paramsObject.add("record", recordObject);
-
-        JsonArray paramsArray = new JsonArray();
-        paramsArray.add(paramsObject);
-
-        bodyObject.add("params", paramsArray);
-
-        JsonArray txBodyArray = new JsonArray();
-        txBodyArray.add(bodyObject);
-
-        log.info(txBodyArray.toString());
-
-        // Module Test
-        TransactionReceipt receipt = assetContract.createTable(paramsArray);
-        log.info(receipt.toString());
-        if ((receipt.getStatus() != 1)) {
-            throw new AssertionError();
+    public void createDatabaseModuleTests() {
+        if (createDatabaseModuleTest(DBNAME)
+                && createDatabaseModuleTest(DBNAME1)
+                && createDatabaseModuleTest(DBNAME2)) {
+            log.info(assetContract.state.getAllKey().toString());
+        } else {
+            assert false;
         }
     }
 
-    private void createTableUserTest() {
-
-        JsonObject bodyObject = new JsonObject();
-        bodyObject.addProperty("method", "createTable");
-
-        // paramsObject
-        JsonObject paramsObject = new JsonObject();
-        paramsObject.addProperty("db", "assetManagement");
-        paramsObject.addProperty("table", "user");
-
-        // keyObject
-        JsonObject keyObject = new JsonObject();
-        keyObject.addProperty("number", "1");
-        paramsObject.add("key", keyObject);
-
-        // recordObject
-        JsonObject recordObject = new JsonObject();
-        recordObject.addProperty("name", "");
-        recordObject.addProperty("gender", "");
-        recordObject.addProperty("age", "");
-        recordObject.addProperty("department", "");
-
-        paramsObject.add("record", recordObject);
-
-        JsonArray paramsArray = new JsonArray();
-        paramsArray.add(paramsObject);
-
-        bodyObject.add("params", paramsArray);
-
-        JsonArray txBodyArray = new JsonArray();
-        txBodyArray.add(bodyObject);
-
-        log.info(txBodyArray.toString());
-
-        TransactionBody txBody = new TransactionBody(txBodyArray);
-        TransactionHeader txHeader = new TransactionHeader(
-                branchId,
-                new byte[8],
-                new byte[8],
-                TimeUtils.time(),
-                txBody);
-        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-        Transaction tx = new Transaction(txHeader, txSig.getSignature(), txBody);
-
-        boolean result = assetContract.invoke(new TransactionHusk(tx));
-        assertThat(result).isTrue();
+    @Test
+    public void createDatabaseTxTests() {
+        if (createDatabaseTxTest(DBNAME)
+                && createDatabaseTxTest(DBNAME1)
+                && createDatabaseTxTest(DBNAME2)) {
+            log.info(assetContract.state.getAllKey().toString());
+        } else {
+            assert false;
+        }
     }
 
-    private void createTableUserTest(String dbName, String tableName) {
-
-        JsonObject bodyObject = new JsonObject();
-        bodyObject.addProperty("method", "createTable");
-
-        // paramsObject
-        JsonObject paramsObject = new JsonObject();
-        paramsObject.addProperty("db", dbName);
-        paramsObject.addProperty("table", tableName);
-
-        // keyObject
-        JsonObject keyObject = new JsonObject();
-        keyObject.addProperty("number", "1");
-        paramsObject.add("key", keyObject);
-
-        // recordObject
-        JsonObject recordObject = new JsonObject();
-        recordObject.addProperty("name", "");
-        recordObject.addProperty("gender", "");
-        recordObject.addProperty("age", "");
-        recordObject.addProperty("department", "");
-
-        paramsObject.add("record", recordObject);
-
-        JsonArray paramsArray = new JsonArray();
-        paramsArray.add(paramsObject);
-
-        bodyObject.add("params", paramsArray);
-
-        JsonArray txBodyArray = new JsonArray();
-        txBodyArray.add(bodyObject);
-
-        log.info(txBodyArray.toString());
-
-        TransactionBody txBody = new TransactionBody(txBodyArray);
-        TransactionHeader txHeader = new TransactionHeader(
-                branchId,
-                new byte[8],
-                new byte[8],
-                TimeUtils.time(),
-                txBody);
-        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-        Transaction tx = new Transaction(txHeader, txSig.getSignature(), txBody);
-
-        boolean result = assetContract.invoke(new TransactionHusk(tx));
-        assertThat(result).isTrue();
-    }
-
-    private void createTableUserTest(
+    private boolean createTableModuleTest(
             String dbName, String tableName, JsonObject keyObject, JsonObject recordObject) {
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "createTable");
 
-        // paramsObject
         JsonObject paramsObject = new JsonObject();
         paramsObject.addProperty("db", dbName);
         paramsObject.addProperty("table", tableName);
 
-        // keyObject
         paramsObject.add("key", keyObject);
 
-        // recordObject
+        paramsObject.add("record", recordObject);
+
+        JsonArray paramsArray = new JsonArray();
+        paramsArray.add(paramsObject);
+
+        bodyObject.add("params", paramsArray);
+
+        JsonArray txBodyArray = new JsonArray();
+        txBodyArray.add(bodyObject);
+
+        TransactionReceipt receipt = assetContract.createTable(paramsArray);
+        log.info(receipt.toString());
+        return (receipt.getStatus() == 1);
+    }
+
+    @Test
+    public void createTableModuleTests() {
+        createDatabaseTxTest(DBNAME);
+
+        if (createTableModuleTest(
+                DBNAME, TABLENAME_USER, keyObjectUserSchema, recordObjectUserSchema)
+                && createTableModuleTest(
+                DBNAME, TABLENAME_ASSET, keyObjectAssetSchema, recordObjectAssetSchema)
+                && createTableModuleTest(
+                DBNAME, TABLENAME_USER1, keyObjectUserSchema, recordObjectUserSchema)
+                && createTableModuleTest(
+                DBNAME, TABLENAME_USER2, keyObjectUserSchema, recordObjectUserSchema)) {
+            log.info(assetContract.state.get(DBNAME).toString());
+        } else {
+            assert false;
+        }
+    }
+
+    private boolean createTableTxTest(
+            String dbName, String tableName, JsonObject keyObject, JsonObject recordObject) {
+
+        JsonObject bodyObject = new JsonObject();
+        bodyObject.addProperty("method", "createTable");
+
+        JsonObject paramsObject = new JsonObject();
+        paramsObject.addProperty("db", dbName);
+        paramsObject.addProperty("table", tableName);
+
+        paramsObject.add("key", keyObject);
+
         paramsObject.add("record", recordObject);
 
         JsonArray paramsArray = new JsonArray();
@@ -470,19 +347,31 @@ public class AssetContractTest {
 
         log.info(txBodyArray.toString());
 
-        TransactionBody txBody = new TransactionBody(txBodyArray);
-        TransactionHeader txHeader = new TransactionHeader(
-                branchId,
-                new byte[8],
-                new byte[8],
-                TimeUtils.time(),
-                txBody);
-        TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-        Transaction tx = new Transaction(txHeader, txSig.getSignature(), txBody);
-
-        boolean result = assetContract.invoke(new TransactionHusk(tx));
-        assertThat(result).isTrue();
+        return assetContract.invoke(makeTransaction(txBodyArray));
     }
+
+    @Test
+    public void createTableTxTests() {
+        createDatabaseTxTest(DBNAME);
+
+        if (createTableTxTest(
+                DBNAME, TABLENAME_USER, keyObjectUserSchema, recordObjectUserSchema)
+                && createTableTxTest(
+                        DBNAME, TABLENAME_ASSET, keyObjectAssetSchema, recordObjectAssetSchema)
+                && createTableTxTest(
+                        DBNAME, TABLENAME_USER1, keyObjectUserSchema, recordObjectUserSchema)
+                && createTableTxTest(
+                        DBNAME, TABLENAME_USER2, keyObjectUserSchema, recordObjectUserSchema)
+            ) {
+            log.info(assetContract.state.get(DBNAME).toString());
+        } else {
+            assert false;
+        }
+    }
+
+
+
+
 
     private void createTableAssetTest() {
 
@@ -547,16 +436,16 @@ public class AssetContractTest {
 
     @Test
     public void createTableTest() {
-        createDatabaseTest();
-        createTableUserTest();
+        createDatabaseTxTest(DBNAME);
+        //createTableUserTest();
         createTableAssetTest();
     }
 
     @Test
     public void insertRecordUserModuleTest() {
 
-        createDatabaseTest();
-        createTableUserTest();
+        createDatabaseModuleTest(DBNAME);
+        //createTableUserTest();
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "insert");
@@ -737,8 +626,8 @@ public class AssetContractTest {
 
     @Test
     public void insertUserRecordTest() {
-        createDatabaseTest();
-        createTableUserTest();
+        createDatabaseTxTest(DBNAME);
+        //createTableUserTest();
         insertRecordUserTest1();
         insertRecordUserTest2();
 
@@ -748,8 +637,8 @@ public class AssetContractTest {
     @Test
     public void updateRecordUserModuleTest() {
 
-        createDatabaseTest();
-        createTableUserTest();
+        createDatabaseModuleTest(DBNAME);
+        //createTableUserTest();
         insertRecordUserTest1();
 
         JsonObject bodyObject = new JsonObject();
@@ -842,8 +731,8 @@ public class AssetContractTest {
 
     @Test
     public void updateUserRecordTest() {
-        createDatabaseTest();
-        createTableUserTest();
+        createDatabaseTxTest(DBNAME);
+        //createTableUserTest();
         insertRecordUserTest1();
         updateRecordUserTest1();
 
@@ -852,8 +741,8 @@ public class AssetContractTest {
 
     @Test
     public void queryAllDatabasesModuleTest() {
-        createDatabaseTest();
-        createDatabaseTest("testDb");
+        createDatabaseModuleTest(DBNAME);
+        createDatabaseModuleTest(DBNAME1);
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryAllDatabases");
@@ -872,8 +761,8 @@ public class AssetContractTest {
 
     @Test
     public void queryAllDatabasesTest() {
-        createDatabaseTest("testdb1");
-        createDatabaseTest("testDb2");
+        createDatabaseTxTest(DBNAME1);
+        createDatabaseTxTest(DBNAME2);
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryAllDatabases");
@@ -892,9 +781,9 @@ public class AssetContractTest {
 
     @Test
     public void queryAllTablesModuleTest() {
-        createDatabaseTest("assetManagement");
-        createTableUserTest("assetManagement", "user1");
-        createTableUserTest("assetManagement", "user2");
+        createDatabaseModuleTest(DBNAME);
+        //createTableUserTest("assetManagement", "user1");
+        //createTableUserTest("assetManagement", "user2");
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryAllTables");
@@ -918,9 +807,9 @@ public class AssetContractTest {
 
     @Test
     public void queryAllTablesTest() {
-        createDatabaseTest("assetManagement");
-        createTableUserTest("assetManagement", "user1");
-        createTableUserTest("assetManagement", "user2");
+        createDatabaseTxTest(DBNAME);
+        //createTableUserTest("assetManagement", "user1");
+        //createTableUserTest("assetManagement", "user2");
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryAllTables");
@@ -944,9 +833,9 @@ public class AssetContractTest {
 
     @Test
     public void queryTableModuleTest() {
-        createDatabaseTest("assetManagement");
-        createTableUserTest("assetManagement", "user1");
-        createTableUserTest("assetManagement", "user2");
+        createDatabaseTxTest(DBNAME);
+        //createTableUserTest("assetManagement", "user1");
+        //createTableUserTest("assetManagement", "user2");
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryTable");
@@ -998,9 +887,9 @@ public class AssetContractTest {
         String tableName1 = "user1";
         String tableName2 = "user2";
 
-        createDatabaseTest(dbName);
-        createTableUserTest(dbName, tableName1, keyObject1, recordObject1);
-        createTableUserTest(dbName, tableName2, keyObject2, recordObject2);
+        createDatabaseTxTest(DBNAME);
+        //createTableUserTest(dbName, tableName1, keyObject1, recordObject1);
+        //createTableUserTest(dbName, tableName2, keyObject2, recordObject2);
 
         JsonObject bodyObject = new JsonObject();
         bodyObject.addProperty("method", "queryTable");
@@ -1055,8 +944,8 @@ public class AssetContractTest {
         String dbName = "assetManagement";
         String tableName = "user";
 
-        createDatabaseTest(dbName);
-        createTableUserTest(dbName, tableName);
+        createDatabaseModuleTest(DBNAME);
+        //createTableUserTest(dbName, tableName);
         insertRecordUserTest(dbName, tableName, keyObject1, recordObject1);
         insertRecordUserTest(dbName, tableName, keyObject2, recordObject2);
 
@@ -1109,8 +998,8 @@ public class AssetContractTest {
         String dbName = "assetManagement";
         String tableName = "user";
 
-        createDatabaseTest(dbName);
-        createTableUserTest(dbName, tableName);
+        createDatabaseModuleTest(DBNAME);
+        //createTableUserTest(dbName, tableName);
         insertRecordUserTest(dbName, tableName, keyObject1, recordObject1);
         insertRecordUserTest(dbName, tableName, keyObject2, recordObject2);
 
@@ -1163,8 +1052,8 @@ public class AssetContractTest {
         String dbName = "assetManagement";
         String tableName1 = "user1";
 
-        createDatabaseTest(dbName);
-        createTableUserTest(dbName, tableName1, keyObject1, recordObject1);
+        createDatabaseModuleTest(DBNAME);
+        //createTableUserTest(dbName, tableName1, keyObject1, recordObject1);
         insertRecordUserTest(dbName, tableName1, keyObject1, recordObject1);
         insertRecordUserTest(dbName, tableName1, keyObject2, recordObject2);
 
@@ -1226,8 +1115,8 @@ public class AssetContractTest {
         String dbName = "assetManagement";
         String tableName1 = "user1";
 
-        createDatabaseTest(dbName);
-        createTableUserTest(dbName, tableName1, keyObject1, recordObject1);
+        createDatabaseTxTest(DBNAME);
+        //createTableUserTest(dbName, tableName1, keyObject1, recordObject1);
         insertRecordUserTest(dbName, tableName1, keyObject1, recordObject1);
         insertRecordUserTest(dbName, tableName1, keyObject2, recordObject2);
 
