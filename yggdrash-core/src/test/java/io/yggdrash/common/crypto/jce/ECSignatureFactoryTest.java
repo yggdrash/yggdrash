@@ -19,7 +19,7 @@ package io.yggdrash.common.crypto.jce;
 import org.junit.Test;
 
 import java.security.NoSuchProviderException;
-import java.security.Provider;
+import java.security.Security;
 
 public class ECSignatureFactoryTest {
 
@@ -33,9 +33,8 @@ public class ECSignatureFactoryTest {
         ECSignatureFactory.getRawInstance("test");
     }
 
-    @Test(expected = AssertionError.class)
+    @Test(expected = IllegalArgumentException.class)
     public void getRawInstanceByProvider() {
-        ECSignatureFactory.getRawInstance(new Provider("SunPKCS11-Dummy", 1.8D, "SunPKCS11-Dummy") {
-        });
+        ECSignatureFactory.getRawInstance(Security.getProvider("Provider"));
     }
 }

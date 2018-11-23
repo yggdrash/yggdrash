@@ -19,7 +19,7 @@ package io.yggdrash.common.crypto.jce;
 import org.junit.Test;
 
 import java.security.NoSuchProviderException;
-import java.security.Provider;
+import java.security.Security;
 
 public class ECKeyFactoryTest {
 
@@ -33,9 +33,8 @@ public class ECKeyFactoryTest {
         ECKeyFactory.getInstance("test");
     }
 
-    @Test(expected = AssertionError.class)
+    @Test(expected = IllegalArgumentException.class)
     public void getInstanceByProvider() {
-        ECKeyFactory.getInstance(new Provider("SunPKCS11-Dummy", 1.8D, "SunPKCS11-Dummy") {
-        });
+        ECKeyFactory.getInstance(Security.getProvider("Provider"));
     }
 }
