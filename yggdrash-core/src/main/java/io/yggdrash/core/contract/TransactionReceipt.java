@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class TransactionReceipt {
+    public static final int FALSE = 0;
     public static final int SUCCESS = 1;
 
     private String transactionHash =
