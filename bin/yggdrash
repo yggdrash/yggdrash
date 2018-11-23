@@ -34,7 +34,7 @@ status() {
     if [ -f $PID ]
     then
         echo "Pid file: $( cat $PID ) [$PID]"
-        ps -ef | grep -v grep | grep $( cat $PID ) | grep "java"
+        ps -ef | grep -v grep | grep "$( cat $PID )" | grep "java"
     else
         echo "YGGDRASH node is not started."
     fi
