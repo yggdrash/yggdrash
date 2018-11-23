@@ -42,7 +42,7 @@ public class PerformanceTest {
     /**
      * test generate block with large tx.
      */
-    @Test
+    @Test(timeout = 5000L)
     public void generate100BlockTest() {
         BranchGroup branchGroup = new BranchGroup();
         BlockChain blockChain = TestUtils.createBlockChain(false);
@@ -71,9 +71,6 @@ public class PerformanceTest {
         watch.stop();
 
         log.debug(watch.shortSummary());
-
-        Assertions.assertThat(watch.getTotalTimeMillis())
-                .isLessThan(TimeUnit.SECONDS.toMillis(3));
     }
 
 }
