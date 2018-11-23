@@ -17,9 +17,6 @@
 package io.yggdrash.core;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.genesis.GenesisBlock;
-import io.yggdrash.core.store.StoreBuilder;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -27,21 +24,16 @@ import static org.junit.Assert.assertEquals;
 public class BlockChainBuilderTest {
 
     @Test
-    public void buildBlockChainTest() {
-        GenesisBlock genesis = TestUtils.genesis();
-        BlockChain blockChain = BlockChainBuilder.Builder()
-                .setStoreBuilder(new StoreBuilder(new DefaultConfig()))
-                .addGenesis(genesis).build();
-        assertEquals(blockChain.getGenesisBlock().getHash(), genesis.getBlock().getHash());
-    }
-
-    @Test
     public void buildProductionBlockChainTest() {
 
         BlockChain bc1 = TestUtils.createBlockChain(false);
+        assertEquals(bc1.getGenesisBlock().getHash(), TestUtils.genesis().getBlock().getHash());
+
         BlockChain bc2 = TestUtils.createBlockChain(true);
         bc2.close();
+
         TestUtils.clearTestDb();
+
         assertEquals(bc1.getGenesisBlock().getHash(), bc2.getGenesisBlock().getHash());
     }
 }

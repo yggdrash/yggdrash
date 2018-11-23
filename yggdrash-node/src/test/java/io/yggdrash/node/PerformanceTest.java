@@ -22,7 +22,6 @@ import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchEventListener;
 import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.TransactionHusk;
-import org.assertj.core.api.Assertions;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -30,8 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.util.StopWatch;
-
-import java.util.concurrent.TimeUnit;
 
 @RunWith(SpringRunner.class)
 @IfProfileValue(name = "spring.profiles.active", value = "ci")

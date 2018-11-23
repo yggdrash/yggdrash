@@ -54,6 +54,9 @@ public class BranchConfiguration {
     @Value("classpath:/branch-sw.json")
     Resource swResource;
 
+    @Value("classpath:/branch-asset.json")
+    Resource assetResource;
+
     BranchConfiguration(StoreBuilder storeBuilder) {
         this.storeBuilder = storeBuilder;
     }
@@ -83,6 +86,14 @@ public class BranchConfiguration {
     BlockChain none(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
             throws IOException {
         return addBranch(swResource.getInputStream(), peerGroup, branchGroup,
+                websocketSender);
+    }
+
+    @Bean("asset")
+    @ConditionalOnProperty("yggdrash.branch.default.active")
+    BlockChain asset(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
+            throws IOException {
+        return addBranch(assetResource.getInputStream(), peerGroup, branchGroup,
                 websocketSender);
     }
 
