@@ -43,7 +43,16 @@ public class CoinContractTest {
 
     @Test
     public void specification() {
-        List<String> methods = coinContract.specification(new JsonArray());
+        StateStore<CoinStateTable> coinContractStateStore = new StateStore<>();
+        MetaCoinContract metaCoinContract = new MetaCoinContract();
+        metaCoinContract.init(coinContractStateStore, new TransactionReceiptStore());
+
+        List<String> methods = metaCoinContract.specification(new JsonArray());
+
+        assertTrue(!methods.isEmpty());
+        assertEquals(methods.size(), 8);
+
+        methods = coinContract.specification(new JsonArray());
 
         assertTrue(!methods.isEmpty());
         assertEquals(methods.size(), 7);
@@ -161,5 +170,15 @@ public class CoinContractTest {
         param.add(jsonObject);
 
         return param;
+    }
+
+    public class MetaCoinContract extends CoinContract {
+        public TransactionReceipt hello(JsonArray params) {
+            TransactionReceipt txReceipt = new TransactionReceipt();
+            txReceipt.putLog("hello", params.toString());
+            txReceipt.setStatus(TransactionReceipt.SUCCESS);
+            log.info(txReceipt.toString());
+            return txReceipt;
+        }
     }
 }
