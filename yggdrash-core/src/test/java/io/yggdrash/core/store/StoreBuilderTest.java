@@ -17,6 +17,7 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.TestUtils;
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
@@ -27,12 +28,12 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class StoreBuilderTest {
-    private static final BranchId BRANCH_ID = BranchId.stem();
+    private static final BranchId BRANCH_ID = BranchId.NULL;
     private StoreBuilder builder;
 
     @Before
     public void setUp() {
-        builder = new StoreBuilder(false);
+        builder = new StoreBuilder(new DefaultConfig());
     }
 
     @Test

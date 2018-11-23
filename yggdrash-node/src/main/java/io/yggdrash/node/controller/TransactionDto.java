@@ -16,145 +16,39 @@
 
 package io.yggdrash.node.controller;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.protobuf.ByteString;
+import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.TransactionHusk;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.util.ByteUtil;
 import org.spongycastle.util.encoders.Hex;
 
 public class TransactionDto {
 
-    private byte[] chain;
-    private byte[] version;
-    private byte[] type;
-    private long timestamp;
-    private byte[] bodyHash;
-    private long bodyLength;
-    private byte[] signature;
-    private String body;
-    private String author;
-    private String hash;
-
-    @JsonProperty("chain")
-    public String getChainHex() {
-        return Hex.toHexString(chain);
-    }
-
-    public void setChain(byte[] chain) {
-        this.chain = chain;
-    }
-
-    public void setChainHex(String chain) {
-        this.chain = Hex.decode(chain);
-    }
-
-    @JsonProperty("version")
-    public String getVersionHex() {
-        return Hex.toHexString(version);
-    }
-
-    public void setVersion(byte[] version) {
-        this.version = version;
-    }
-
-    public void setVersionHex(String version) {
-        this.version = Hex.decode(version);
-    }
-
-    @JsonProperty("type")
-    public String getTypeHex() {
-        return Hex.toHexString(type);
-    }
-
-    public void setType(byte[] type) {
-        this.type = type;
-    }
-
-    public void setTypeHex(String type) {
-        this.type = Hex.decode(type);
-    }
-
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(long timestamp) {
-        this.timestamp = timestamp;
-    }
-
-    @JsonProperty("bodyHash")
-    public String getBodyHashHex() {
-        return Hex.toHexString(bodyHash);
-    }
-
-    public void setBodyHash(byte[] bodyHash) {
-        this.bodyHash = bodyHash;
-    }
-
-    public void setBodyHashHex(String bodyHash) {
-        this.bodyHash = Hex.decode(bodyHash);
-    }
-
-    public long getBodyLength() {
-        return bodyLength;
-    }
-
-    public void setBodyLength(long bodyLength) {
-        this.bodyLength = bodyLength;
-    }
-
-    @JsonProperty("signature")
-    public String getSignatureHex() {
-        return Hex.toHexString(signature);
-    }
-
-    public void setSignature(byte[] signature) {
-        this.signature = signature;
-    }
-
-    public void setSignatureHex(String signature) {
-        this.signature = Hex.decode(signature);
-    }
-
-    public String getBody() {
-        return body;
-    }
-
-    public void setBody(String body) {
-        this.body = body;
-    }
-
-    public String getAuthor() {
-        return author;
-    }
-
-    public void setAuthor(String author) {
-        this.author = author;
-    }
-
-    public String getHash() {
-        return hash;
-    }
-
-    public void setHash(String hash) {
-        this.hash = hash;
-    }
+    public String chain;
+    public String version;
+    public String type;
+    public long timestamp;
+    public String bodyHash;
+    public long bodyLength;
+    public String signature;
+    public String body;
+    public String author;
+    public String hash;
 
     public static TransactionHusk of(TransactionDto dto) {
         Proto.Transaction.Header header = Proto.Transaction.Header.newBuilder()
-                .setChain(ByteString.copyFrom(Hex.decode(dto.getChainHex())))
-                .setVersion(ByteString.copyFrom(Hex.decode(dto.getVersionHex())))
-                .setType(ByteString.copyFrom(Hex.decode(dto.getTypeHex())))
-                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(dto.getTimestamp())))
-                .setBodyHash(ByteString.copyFrom(Hex.decode(dto.getBodyHashHex())))
-                .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(dto.getBodyLength())))
+                .setChain(ByteString.copyFrom(Hex.decode(dto.chain)))
+                .setVersion(ByteString.copyFrom(Hex.decode(dto.version)))
+                .setType(ByteString.copyFrom(Hex.decode(dto.type)))
+                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(dto.timestamp)))
+                .setBodyHash(ByteString.copyFrom(Hex.decode(dto.bodyHash)))
+                .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(dto.bodyLength)))
                 .build();
 
         Proto.Transaction tx = Proto.Transaction.newBuilder()
                 .setHeader(header)
-                .setSignature(ByteString.copyFrom(Hex.decode(dto.getSignatureHex())))
-                .setBody(ByteString.copyFromUtf8(dto.getBody()))
+                .setSignature(ByteString.copyFrom(Hex.decode(dto.signature)))
+                .setBody(ByteString.copyFromUtf8(dto.body))
                 .build();
         return new TransactionHusk(tx);
     }
@@ -163,18 +57,18 @@ public class TransactionDto {
         TransactionDto transactionDto = new TransactionDto();
         Proto.Transaction.Header header = tx.getInstance().getHeader();
 
-        transactionDto.setChain(header.getChain().toByteArray());
-        transactionDto.setVersion(header.getVersion().toByteArray());
-        transactionDto.setType(header.getType().toByteArray());
-        transactionDto.setTimestamp(
-                ByteUtil.byteArrayToLong(header.getTimestamp().toByteArray()));
-        transactionDto.setBodyHash(header.getBodyHash().toByteArray());
-        transactionDto.setBodyLength(
-                ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray()));
-        transactionDto.setSignature(tx.getInstance().getSignature().toByteArray());
-        transactionDto.setBody(tx.getBody());
-        transactionDto.setAuthor(tx.getAddress().toString());
-        transactionDto.setHash(tx.getHash().toString());
+        transactionDto.chain = Hex.toHexString(header.getChain().toByteArray());
+        transactionDto.version = Hex.toHexString(header.getVersion().toByteArray());
+        transactionDto.type = Hex.toHexString(header.getType().toByteArray());
+        transactionDto.timestamp =
+                ByteUtil.byteArrayToLong(header.getTimestamp().toByteArray());
+        transactionDto.bodyHash = Hex.toHexString(header.getBodyHash().toByteArray());
+        transactionDto.bodyLength =
+                ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray());
+        transactionDto.signature = Hex.toHexString(tx.getInstance().getSignature().toByteArray());
+        transactionDto.body = tx.getBody();
+        transactionDto.author = tx.getAddress().toString();
+        transactionDto.hash = tx.getHash().toString();
         return transactionDto;
     }
 }

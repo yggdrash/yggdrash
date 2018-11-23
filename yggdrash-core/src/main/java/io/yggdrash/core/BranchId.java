@@ -18,17 +18,15 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.crypto.HashUtil;
+import io.yggdrash.common.crypto.HashUtil;
 import org.spongycastle.util.encoders.Hex;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 public class BranchId {
 
-    public static final String STEM = "99232a38e12176ca08932bf2a37fa5f1c951fd4b";
-    public static final String YEED = "7afc09c2c3c72687a78fdf3f03bbe8d35980bc39";
+    public static BranchId NULL = new BranchId(new byte[20]);
+
     private final Sha3Hash id;
 
     public BranchId(Sha3Hash hash) {
@@ -81,27 +79,7 @@ public class BranchId {
         return new BranchId(branch);
     }
 
-    public static BranchId stem() {
-        return BranchId.of(STEM);
-    }
-
-    public static BranchId yeed() {
-        return BranchId.of(YEED);
-    }
-
     private static byte[] getRawBranch(JsonObject branch) {
-        ByteArrayOutputStream branchStream = new ByteArrayOutputStream();
-        try {
-            branchStream.write(branch.get("name").getAsString().getBytes());
-            branchStream.write(branch.get("property").getAsString().getBytes());
-            branchStream.write(branch.get("type").getAsString().getBytes());
-            branchStream.write(branch.get("timestamp").getAsString().getBytes());
-            branchStream.write(branch.get("version").getAsString().getBytes());
-            branchStream.write(branch.get("reference_address").getAsString().getBytes());
-            branchStream.write(branch.get("reserve_address").getAsString().getBytes());
-        } catch (IOException e) {
-            throw new NotValidateException(e);
-        }
-        return branchStream.toByteArray();
+        return branch.toString().getBytes(StandardCharsets.UTF_8);
     }
 }

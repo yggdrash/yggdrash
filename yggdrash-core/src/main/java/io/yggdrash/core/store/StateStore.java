@@ -1,9 +1,10 @@
 package io.yggdrash.core.store;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.exception.FailedOperationException;
-import io.yggdrash.util.Utils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -16,10 +17,23 @@ public class StateStore<T> implements Store<String, T> {
 
     private final Map<String, T> state;
     private final Map<String, Map<Object, Set<Object>>> subState;
+    private final Map<String, Map<String, Map<JsonObject, JsonObject>>> assetState;
+    private BigDecimal totalSupply = BigDecimal.ZERO;
 
     public StateStore() {
         this.state = new ConcurrentHashMap<>();
         this.subState = new HashMap<>();
+        this.assetState = new HashMap<>();
+    }
+
+    public void setTotalSupply(BigDecimal totalSupply) {
+        if (this.totalSupply.equals(BigDecimal.ZERO)) {
+            this.totalSupply = totalSupply;
+        }
+    }
+
+    public BigDecimal getTotalSupply() {
+        return totalSupply;
     }
 
     public Map<String, T> getState() {
@@ -138,5 +152,80 @@ public class StateStore<T> implements Store<String, T> {
     public void close() {
         state.clear();
         subState.clear();
+        assetState.clear();
     }
+
+    public Map<String, Map<JsonObject, JsonObject>> getAssetState(String db) {
+        return this.assetState.get(db);
+    }
+
+    public Map<JsonObject, JsonObject> getAssetState(String db, String table) {
+        return this.assetState.get(db).get(table);
+    }
+
+    public JsonObject getAssetState(
+            String db, String table, JsonObject keyObject) {
+        return this.assetState.get(db).get(table).get(keyObject);
+    }
+
+    public boolean putAssetState(
+            String db, String table, JsonObject keyObject, JsonObject recordObject) {
+        if (db == null || table == null || keyObject == null || recordObject == null) {
+            return false;
+        }
+
+        try {
+            if (assetState.get(db).get(table).get(keyObject) != null) {
+                return false;
+            }
+        } catch (NullPointerException e) {
+            // Null point exception.
+        }
+
+        Map<JsonObject, JsonObject> fieldState = new HashMap<>();
+        fieldState.put(keyObject, recordObject);
+
+        if (assetState.get(db) == null) {
+            Map<String, Map<JsonObject, JsonObject>> tableState = new HashMap<>();
+            tableState.put(table, fieldState);
+            assetState.put(db, tableState);
+        } else {
+            if (assetState.get(db).get(table) == null) {
+                assetState.get(db).put(table, fieldState);
+            } else {
+                assetState.get(db).get(table).put(keyObject, recordObject);
+            }
+        }
+
+        return true;
+    }
+
+    public boolean updateAssetState(
+            String db, String table, JsonObject keyObject, JsonObject recordObject) {
+        if (db == null || table == null || keyObject == null || recordObject == null) {
+            return false;
+        }
+
+        try {
+            if (assetState.get(db).get(table).get(keyObject) == null) {
+                return false;
+            }
+        } catch (NullPointerException e) {
+            return false;
+        }
+
+
+        if (assetState.get(db) == null) {
+            return false;
+        } else {
+            if (assetState.get(db).get(table) == null) {
+                return false;
+            } else {
+                assetState.get(db).get(table).put(keyObject, recordObject);
+            }
+        }
+
+        return true;
+    }
+
 }

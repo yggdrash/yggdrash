@@ -3,12 +3,13 @@ package io.yggdrash.core;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.common.crypto.ECKey;
+import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.crypto.ECKey;
-import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.util.ByteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
@@ -17,6 +18,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.security.SignatureException;
 import java.util.Arrays;
+
+import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 
 public class Transaction implements Cloneable {
 
@@ -41,7 +44,6 @@ public class Transaction implements Cloneable {
         this.header = header;
         this.signature = signature;
         this.body = body;
-        verify();
     }
 
     /**
@@ -92,7 +94,6 @@ public class Transaction implements Cloneable {
         if (position != txBytes.length) {
             throw new NotValidateException();
         }
-        verify();
     }
 
     /**
@@ -210,13 +211,16 @@ public class Transaction implements Cloneable {
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
         byte[] hashedHeader = this.header.getHashForSigning();
         ECKey ecKeyPub;
+
         try {
             ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
+
         } catch (SignatureException e) {
             throw new InvalidSignatureException(e);
         }
 
         return ecKeyPub.verify(hashedHeader, ecdsaSignature);
+
     }
 
     private boolean verifyCheckLengthNotNull(byte[] data, int length, String msg) {
@@ -245,7 +249,7 @@ public class Transaction implements Cloneable {
                 this.header.getVersion(), TransactionHeader.VERSION_LENGTH, "version");
         check &= verifyCheckLengthNotNull(
                 this.header.getType(), TransactionHeader.TYPE_LENGTH, "type");
-        check &= this.header.getTimestamp() > 0;
+        check &= this.header.getTimestamp() > TIMESTAMP_2018;
         check &= verifyCheckLengthNotNull(
                 this.header.getBodyHash(), TransactionHeader.BODYHASH_LENGTH, "bodyHash");
         check &= !(this.header.getBodyLength() <= 0
@@ -348,7 +352,7 @@ public class Transaction implements Cloneable {
         return protoTransaction;
     }
 
-    static Transaction toTransaction(Proto.Transaction protoTransaction) {
+    public static Transaction toTransaction(Proto.Transaction protoTransaction) {
         // todo: move at TransactionHusk
 
         TransactionHeader txHeader = new TransactionHeader(

@@ -16,11 +16,17 @@
 
 package io.yggdrash.core.net;
 
+import io.yggdrash.core.BranchId;
+
+import java.util.List;
+
 public interface NodeManager {
 
     String getNodeUri();
 
-    void generateBlock();
+    void generateBlock(BranchId branchId);
+
+    List<BranchId> getActiveBranchIdList();
 
     void bootstrapping();
 }

@@ -18,11 +18,12 @@ package io.yggdrash.node.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.BranchId;
+import io.yggdrash.core.BlockChain;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
@@ -48,7 +49,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
 public class TransactionControllerTest {
 
-    private static final String BASE_PATH = String.format("/branches/%s/txs", BranchId.STEM);
+    private String basePath;
+
+    @Autowired
+    @Qualifier("stem")
+    private BlockChain stem;
 
     @Autowired
     private MockMvc mockMvc;
@@ -57,16 +62,17 @@ public class TransactionControllerTest {
     @Before
     public void setUp() {
         JacksonTester.initFields(this, new ObjectMapper());
+        basePath = String.format("/branches/%s/txs", stem.getBranchId());
     }
 
     @Test
     public void shouldGetRecentTransaction() throws Exception {
-        mockMvc.perform(get(BASE_PATH))
+        mockMvc.perform(get(basePath))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.countOfTotal", is(1)))
                 .andExpect(jsonPath("$.txs", hasSize(1)))
-                .andExpect(jsonPath("$.txs[0].chain", is(BranchId.STEM)));
+                .andExpect(jsonPath("$.txs[0].chain", is(stem.getBranchId().toString())));
     }
 
     @Test
@@ -76,16 +82,16 @@ public class TransactionControllerTest {
         TransactionDto req =
                 TransactionDto.createBy(TestUtils.createBranchTxHusk(TestUtils.wallet()));
 
-        MockHttpServletResponse postResponse = mockMvc.perform(post(BASE_PATH)
+        MockHttpServletResponse postResponse = mockMvc.perform(post(basePath)
                 .contentType(MediaType.APPLICATION_JSON).content(json.write(req).getJson()))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andReturn().getResponse();
 
         assertThat(postResponse.getContentAsString()).contains("create");
-        String postTxHash = json.parseObject(postResponse.getContentAsString()).getHash();
+        String postTxHash = json.parseObject(postResponse.getContentAsString()).hash;
 
-        MockHttpServletResponse getResponse = mockMvc.perform(get(BASE_PATH + "/" + postTxHash))
+        MockHttpServletResponse getResponse = mockMvc.perform(get(basePath + "/" + postTxHash))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andReturn().getResponse();
@@ -95,7 +101,7 @@ public class TransactionControllerTest {
 
     @Test
     public void shouldGetAllTxs() throws Exception {
-        mockMvc.perform(get(BASE_PATH)).andDo(print()).andExpect(status().isOk());
+        mockMvc.perform(get(basePath)).andDo(print()).andExpect(status().isOk());
     }
 
 }

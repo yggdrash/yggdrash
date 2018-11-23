@@ -2,30 +2,53 @@ package io.yggdrash.node.api;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.yggdrash.TestUtils;
-import io.yggdrash.contract.ContractQry;
-import io.yggdrash.contract.ContractTx;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.Wallet;
+import io.yggdrash.core.contract.ContractQry;
+import io.yggdrash.core.contract.ContractTx;
 import io.yggdrash.node.controller.TransactionDto;
-import org.junit.BeforeClass;
+import org.junit.Before;
 import org.junit.Test;
 
+import java.math.BigDecimal;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
 public class ContractApiImplTest {
-    private static final String TEST_BRANCH = BranchId.STEM;
     private static final ContractApi contractApi = new JsonRpcConfig().contractApi();
     private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
-    private static Wallet wallet;
     private static JsonObject branch;
     private static BranchId branchId;
 
-    @BeforeClass
-    public static void beforeTest() throws Exception {
-        wallet = new Wallet();
-        create();
+    @Before
+    public void setUp() {
+        boolean isStemTest = false;
+
+        if (isStemTest) {
+            beforeStemTest();
+        } else {
+            branchId = BranchId.of("275830946a84bc13ac44cca1e48570002917a02d");
+        }
+    }
+
+    static void beforeStemTest() {
+        branch = TestUtils.getSampleBranch();
+        branchId = BranchId.of(branch);
+
+        try {
+            TransactionHusk tx = ContractTx.createStemTx(TestUtils.wallet(), branch, "create");
+            txApi.sendTransaction(TransactionDto.createBy(tx));
+            Thread.sleep(10000);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
@@ -38,29 +61,16 @@ public class ContractApiImplTest {
         assertThat(txApi).isNotNull();
     }
 
-    private static void create() {
-        branch = TestUtils.getSampleBranch1();
-        branchId = BranchId.of(branch);
 
-        try {
-            TransactionHusk tx = ContractTx.createStemTxBySeed(wallet, branch, "create");
-            txApi.sendTransaction(TransactionDto.createBy(tx));
-            Thread.sleep(10000);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
+    /* StemContract Test */
     @Test
     public void update() {
         try {
             String description = "hello world!";
-            String updatedVersion = "0xf4312kjise099qw0nene76555484ab1547av8b9e";
-            JsonObject updatedBranch = TestUtils.updateBranch(description, updatedVersion,
-                    branch, 0);
+            JsonObject updatedBranch = TestUtils.updateBranch(description, branch, 0);
 
-            TransactionHusk tx =  ContractTx.createStemTxBySeed(
-                    wallet, updatedBranch, "update");
+            TransactionHusk tx =
+                    ContractTx.createStemTx(TestUtils.wallet(), updatedBranch, "update");
             txApi.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {
             e.printStackTrace();
@@ -70,12 +80,12 @@ public class ContractApiImplTest {
     @Test
     public void search() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(TEST_BRANCH,
+            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
                     "search", ContractQry
                     .createParams("key", "type", "value", "immunity"));
             contractApi.query(queryObj.toString());
 
-            queryObj = ContractQry.createQuery(TEST_BRANCH,
+            queryObj = ContractQry.createQuery(branchId.toString(),
                     "search", ContractQry.createParams(
                     "key", "name", "value", "TEST1"));
             contractApi.query(queryObj.toString());
@@ -87,7 +97,7 @@ public class ContractApiImplTest {
     @Test
     public void view() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(TEST_BRANCH,
+            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
                     "view", ContractQry.createParams(
                     "branchId", branchId.toString()));
             contractApi.query(queryObj.toString());
@@ -99,7 +109,7 @@ public class ContractApiImplTest {
     @Test
     public void getCurrentVersion() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(TEST_BRANCH,
+            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
                     "getcurrentversion",
                     ContractQry.createParams("branchId", branchId.toString()));
 
@@ -112,7 +122,7 @@ public class ContractApiImplTest {
     @Test
     public void getVersionHistory() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(TEST_BRANCH,
+            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
                     "getversionhistory",
                     ContractQry.createParams("branchId", branchId.toString()));
             contractApi.query(queryObj.toString());
@@ -124,10 +134,125 @@ public class ContractApiImplTest {
     @Test
     public void getAllBranchId() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(TEST_BRANCH,
+            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
                     "getallbranchid",
                     new JsonArray());
             contractApi.query(queryObj.toString());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /* CoinContract Test */
+    @Test
+    public void totalSupply() {
+        try {
+            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
+                    "totalSupply", ContractQry.createParams(new HashMap<>()));
+            JsonParser jsonParser = new JsonParser();
+            JsonObject jsonObject = (JsonObject) jsonParser.parse(
+                    contractApi.query(queryObj.toString()));
+            BigDecimal result = new BigDecimal(jsonObject.get("result").getAsString());
+
+            assertEquals(result, new BigDecimal("1000000000000"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void balanceOf() {
+        try {
+            Map<String, String> properties = new HashMap<>();
+            properties.put("address", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
+
+            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
+                    "balanceOf", ContractQry.createParams(properties));
+            JsonParser jsonParser = new JsonParser();
+            JsonObject jsonObject = (JsonObject) jsonParser.parse(
+                    contractApi.query(queryObj.toString()));
+            BigDecimal result = new BigDecimal(jsonObject.get("result").getAsString());
+
+            assertEquals(result, new BigDecimal("998000000000"));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void allowance() {
+        try {
+            Map<String, String> properties = new HashMap<>();
+            properties.put("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
+            properties.put("spender", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
+
+            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
+                    "allowance", ContractQry.createParams(properties));
+            JsonParser jsonParser = new JsonParser();
+            JsonObject jsonObject = (JsonObject) jsonParser.parse(
+                    contractApi.query(queryObj.toString()));
+            BigDecimal result = new BigDecimal(jsonObject.get("result").getAsString());
+
+            assertEquals(result, BigDecimal.ZERO);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void specification() {
+        try {
+            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
+                    "specification", ContractQry.createParams(new HashMap<>()));
+            JsonParser jsonParser = new JsonParser();
+            JsonObject jsonObject = (JsonObject) jsonParser.parse(
+                    contractApi.query(queryObj.toString()));
+            List<String> methods =
+                    Collections.singletonList(jsonObject.get("result").getAsString());
+
+            assertThat(methods.size()).isNotZero();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void transfer() {
+        try {
+            JsonArray params = ContractTx.createTransferBody(
+                    "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigDecimal("1000"));
+            TransactionHusk tx =
+                    ContractTx.createTx(TestUtils.wallet(), branchId, params);
+
+            txApi.sendTransaction(TransactionDto.createBy(tx));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void approve() {
+        try {
+            JsonArray params = ContractTx.createApproveBody(
+                    "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigDecimal("1000"));
+            TransactionHusk tx =
+                    ContractTx.createTx(TestUtils.wallet(), branchId, params);
+            txApi.sendTransaction(TransactionDto.createBy(tx));
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void transferFrom() {
+        try {
+            JsonArray params = ContractTx.createTransferFromBody(
+                    "cee3d4755e47055b530deeba062c5bd0c17eb00f",
+                    "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
+                    new BigDecimal("1000"));
+            TransactionHusk tx =
+                    ContractTx.createTx(TestUtils.wallet(), branchId, params);
+            txApi.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {
             e.printStackTrace();
         }

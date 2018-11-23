@@ -17,10 +17,10 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.TestUtils;
+import io.yggdrash.common.util.FileUtil;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.util.FileUtil;
 import org.assertj.core.api.Assertions;
 import org.junit.AfterClass;
 import org.junit.Test;

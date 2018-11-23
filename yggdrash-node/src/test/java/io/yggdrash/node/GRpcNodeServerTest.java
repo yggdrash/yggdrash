@@ -17,8 +17,6 @@
 package io.yggdrash.node;
 
 import com.google.protobuf.ByteString;
-import io.grpc.internal.testing.StreamRecorder;
-import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.BlockHusk;
@@ -45,7 +43,6 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
@@ -54,15 +51,19 @@ public class GRpcNodeServerTest {
 
     @Rule
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
+
     @Mock
     private PeerGroup peerGroupMock;
+
     @Mock
     private BranchGroup branchGroupMock;
+
     @Mock
-    private NodeStatus nodeStatus;
+    public NodeStatus nodeStatus;
 
     private TransactionHusk tx;
     private BlockHusk block;
+    private BranchId branchId;
 
     @Before
     public void setUp() {
@@ -71,10 +72,11 @@ public class GRpcNodeServerTest {
                 peerGroupMock, branchGroupMock, nodeStatus)
         );
 
-        this.tx = TestUtils.createTransferTxHusk();
+        tx = TestUtils.createTransferTxHusk();
         when(branchGroupMock.addTransaction(any())).thenReturn(tx);
-        this.block = TestUtils.createGenesisBlockHusk();
-        when(branchGroupMock.addBlock(any())).thenReturn(block);
+        block = TestUtils.createGenesisBlockHusk();
+        //when(branchGroupMock.addBlock(any())).thenReturn(block);
+        branchId = block.getBranchId();
     }
 
     @Test
@@ -87,15 +89,31 @@ public class GRpcNodeServerTest {
     }
 
     @Test
-    public void syncBlock() throws InstantiationException, IllegalAccessException {
+    public void broadcastBlock() {
+        BlockChainGrpc.BlockChainBlockingStub blockChainBlockingStub
+                = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
+        NetProto.Empty empty = NetProto.Empty.newBuilder().build();
+        assertEquals(empty, blockChainBlockingStub.broadcastBlock(TestUtils.getBlockFixture()));
+    }
+
+    @Test
+    public void broadcastTransaction() {
+        BlockChainGrpc.BlockChainBlockingStub blockChainBlockingStub
+                = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
+        NetProto.Empty empty = NetProto.Empty.newBuilder().build();
+        assertEquals(empty, blockChainBlockingStub.broadcastTransaction(TestUtils.sampleTxs()[0]));
+    }
+
+    @Test
+    public void syncBlock() {
         Set<BlockHusk> blocks = new HashSet<>();
         blocks.add(block);
-        when(branchGroupMock.getBlockByIndex(BranchId.stem(), 0L)).thenReturn(block);
+        when(branchGroupMock.getBlockByIndex(branchId, 0L)).thenReturn(block);
         when(branchGroupMock.getBranch(any())).thenReturn(TestUtils.createBlockChain(false));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        ByteString branch = ByteString.copyFrom(BranchId.stem().getBytes());
+        ByteString branch = ByteString.copyFrom(branchId.getBytes());
         NetProto.SyncLimit syncLimit = NetProto.SyncLimit.newBuilder().setOffset(0).setLimit(10000)
                 .setBranch(branch).build();
         Proto.BlockList list = blockingStub.syncBlock(syncLimit);
@@ -104,18 +122,19 @@ public class GRpcNodeServerTest {
 
     @Test
     public void syncTransaction() {
-        when(branchGroupMock.getRecentTxs(BranchId.stem()))
+        when(branchGroupMock.getUnconfirmedTxs(branchId))
                 .thenReturn(Collections.singletonList(tx));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        ByteString branch = ByteString.copyFrom(BranchId.stem().getBytes());
+        ByteString branch = ByteString.copyFrom(branchId.getBytes());
         NetProto.SyncLimit syncLimit
                 = NetProto.SyncLimit.newBuilder().setBranch(branch).build();
         Proto.TransactionList list = blockingStub.syncTransaction(syncLimit);
         assertEquals(1, list.getTransactionsCount());
     }
 
+    /*
     @Test
     public void broadcastTransaction() throws Exception {
         BlockChainGrpc.BlockChainStub stub = BlockChainGrpc.newStub(grpcServerRule.getChannel());
@@ -143,4 +162,5 @@ public class GRpcNodeServerTest {
         NetProto.Empty firstResponse = responseObserver.firstValue().get();
         assertNotNull(firstResponse);
     }
+    */
 }

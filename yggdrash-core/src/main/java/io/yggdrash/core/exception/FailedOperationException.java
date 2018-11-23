@@ -10,4 +10,8 @@ public class FailedOperationException extends IllegalStateException {
     public FailedOperationException(Throwable e) {
         super(e);
     }
+
+    public FailedOperationException(String msg, Throwable e) {
+        super(msg, e);
+    }
 }

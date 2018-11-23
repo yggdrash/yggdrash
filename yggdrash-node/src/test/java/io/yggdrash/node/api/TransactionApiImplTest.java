@@ -2,12 +2,10 @@ package io.yggdrash.node.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.TestUtils;
-import io.yggdrash.contract.ContractTx;
-import io.yggdrash.core.Address;
-import io.yggdrash.core.Branch;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.Wallet;
+import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.contract.ContractTx;
 import io.yggdrash.node.controller.TransactionDto;
 import org.junit.Before;
 import org.junit.Test;
@@ -27,7 +25,8 @@ public class TransactionApiImplTest {
 
     private final int blockNumber = 3;
     private final int txIndexPosition = 2;
-    private final String branchId = BranchId.STEM;
+    private final BranchId stem = TestUtils.STEM;
+    private final BranchId yeed = TestUtils.YEED;
 
     @Before
     public void setUp() {
@@ -47,7 +46,7 @@ public class TransactionApiImplTest {
     @Test
     public void getBlockTransactionCountByHashTest() {
         try {
-            assertThat(txApi.getTransactionCountByBlockHash(branchId,
+            assertThat(txApi.getTransactionCountByBlockHash(stem.toString(),
                     "d52fffa14f5b88b141d05d8e28c90d8131db1aa63e076bfea9c28c3060049e12"))
                     .isNotZero();
         } catch (Exception exception) {
@@ -58,7 +57,8 @@ public class TransactionApiImplTest {
     @Test
     public void getBlockTransactionCountByNumberTest() {
         try {
-            assertThat(txApi.getTransactionCountByBlockNumber(branchId, blockNumber)).isNotZero();
+            assertThat(txApi.getTransactionCountByBlockNumber(stem.toString(), blockNumber))
+                    .isNotZero();
         } catch (Throwable exception) {
             log.debug("\n\ngetBlockTransactionCountByNumberTest :: exception => " + exception);
         }
@@ -69,7 +69,7 @@ public class TransactionApiImplTest {
         try {
             //TransactionHusk tx = TestUtils.createTxHusk();
             //txApi.sendTransaction(TransactionDto.createBy(tx));
-            assertThat(txApi.getTransactionByHash(branchId,
+            assertThat(txApi.getTransactionByHash(stem.toString(),
                     "f5912fde84c6a3a44b4e529077ca9bf28feccd847137e44a77cd17e9fb9c1353"))
                     .isNotNull();
         } catch (Exception exception) {
@@ -80,7 +80,7 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByBlockHashTest() {
         try {
-            assertThat(txApi.getTransactionByBlockHash(branchId,
+            assertThat(txApi.getTransactionByBlockHash(stem.toString(),
                     "5ef71a90c6d99c7bc13bfbcaffb50cb89210678e99ed6626c9d2f378700b392c",
                     2)).isNotNull();
         } catch (Exception exception) {
@@ -91,7 +91,8 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByBlockNumberTest() {
         try {
-            assertThat(txApi.getTransactionByBlockNumber(branchId, blockNumber, txIndexPosition))
+            assertThat(txApi.getTransactionByBlockNumber(
+                    stem.toString(), blockNumber, txIndexPosition))
                     .isNotNull();
         } catch (Exception e) {
             log.debug("\n\ngetTransactionByBlockNumberTest :: exception => " + e);
@@ -102,7 +103,7 @@ public class TransactionApiImplTest {
     public void getTransactionByBlockNumberWithTagTest() {
         try {
             String tag = "latest";
-            txApi.getTransactionByBlockNumber(branchId, tag, txIndexPosition);
+            txApi.getTransactionByBlockNumber(stem.toString(), tag, txIndexPosition);
         } catch (Exception e) {
             log.debug("\n\ngetTransactionByBlockNumberWithTagTest :: exception => " + e);
         }
@@ -119,8 +120,7 @@ public class TransactionApiImplTest {
     @Test
     public void sendTransactionTest() {
         Wallet wallet = TestUtils.wallet();
-        TransactionHusk tx = ContractTx.createYeedTx(
-                wallet, new Address(wallet.getAddress()), 100);
+        TransactionHusk tx = ContractTx.createTx(stem, wallet, wallet.getHexAddress(), 100);
 
         // Request Transaction with jsonStr
         try {
@@ -145,8 +145,10 @@ public class TransactionApiImplTest {
     @Test
     public void newPendingTransactionFilterTest() {
         try {
-            assertThat(txApi.newPendingTransactionFilter(Branch.STEM)).isGreaterThanOrEqualTo(0);
-            assertThat(txApi.newPendingTransactionFilter(Branch.YEED)).isGreaterThanOrEqualTo(0);
+            assertThat(txApi.newPendingTransactionFilter(stem.toString()))
+                    .isGreaterThanOrEqualTo(0);
+            assertThat(txApi.newPendingTransactionFilter(yeed.toString()))
+                    .isGreaterThanOrEqualTo(0);
         } catch (Exception e) {
             log.debug("\n\nnewPendingTransactionFilterTest :: exception => " + e);
         }
@@ -155,8 +157,8 @@ public class TransactionApiImplTest {
     @Test
     public void getAllTransactionReceiptTest() {
         try {
-            assertThat(txApi.getAllTransactionReceipt(Branch.STEM)).isNotEmpty();
-            assertThat(txApi.getAllTransactionReceipt(Branch.YEED)).isNotEmpty();
+            assertThat(txApi.getAllTransactionReceipt(stem.toString())).isNotEmpty();
+            assertThat(txApi.getAllTransactionReceipt(yeed.toString())).isNotEmpty();
         } catch (Exception e) {
             log.debug("\n\ngetAllTransactionReceiptTest :: exception => " + e);
         }

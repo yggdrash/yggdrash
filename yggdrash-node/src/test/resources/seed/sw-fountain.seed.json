@@ -1,11 +1,8 @@
 {
-  "name":"S.W Fountain",
-  "symbol":"SWF",
-  "property":"reputation",
-  "type":"immunity",
-  "description":"Reputation Score Creation Chain. Contribute your time and benefit the ecosystem to earn a higher reputation score.",
-  "tag":0.1,
-  "version":"0x1093595103e1799d495f9ffdc2a01277f8e52258bbc1cd7babe3a95c980e9966",
-  "reference_address":"",
-  "reserve_address":"0xcb5277cb0cecc4cf7c99fd3d5e3066a2266dec7f"
+  "name": "S.W Fountain",
+  "symbol": "SWF",
+  "property": "reputation",
+  "description": "Reputation Score Creation Chain. Contribute your time and benefit the ecosystem to earn a higher reputation score.",
+  "contractId": "91d64aa71525f24da7c1c63620705039b4fb93e9",
+  "genesis": {}
 }

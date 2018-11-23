@@ -37,6 +37,8 @@ This is the implementation written in Java and runs on Linux, OSX and Windows.
 
 Yggdrash requires `JAVA` 1.8+ compiler to build. To install Java, follow this [link](http://www.oracle.com/technetwork/java/javase/overview/index.html).
 
+Open JDK or Oracle JDK 1.8 to 11 are supported.
+
 ### Getting the source
 
 Clone the yggdrash repo:
@@ -63,7 +65,7 @@ You can fully dockerize the yggdrash node. For more information refer to [docker
 Docker is one quick way for running an yggdrash node:
 
 ```
-docker --rm -p 8080:8080 -p 32918:32918 -h yggdrash-node1 --name yggdrash-node1 yggdrash/yggdrash-node
+docker run --rm -p 8080:8080 -v $HOME/.yggdrash:/.yggdrash yggdrash/yggdrash-node
 ```
 
 Yggdrash node binds to `localhost` using `8080` for the RESTful API & JSON RPC, and `32918` for the gRPC by default.
@@ -85,12 +87,13 @@ yggdrash-node/build/libs/*.jar
 ```
 
 To find out usages of all command line options:
-
-- `--server.address=value` JSON RPC & RESTful API services listening address
-- `--server.port=value` JSON RPC & RESTful API services listening port
-- `--yggdrash.node.grpc.host=value` gRPC service listening address
-- `--yggdrash.node.grpc.port=value` gRPC service listening port
+- `--spring.profiles.active=value` Environment property to specify which profiles are active (default: default, docker default: prod-production mode)
+- `--server.address=value` JSON RPC & RESTful API services listening address (default: localhost)
+- `--server.port=value` JSON RPC & RESTful API services listening port (default: 8080)
+- `--yggdrash.node.grpc.host=value` gRPC service listening address (default: localhost)
+- `--yggdrash.node.grpc.port=value` gRPC service listening port (default: 32918)
 - `--yggdrash.node.max-peers=value` maximum number of P2P network peers (default: 25)
+- `--yggdrash.branch.default.active=true|false` activate default branches or not (default: true)
 
 ### Running Tests
 To launch yggdrash's tests, run:

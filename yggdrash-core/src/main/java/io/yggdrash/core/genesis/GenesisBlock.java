@@ -1,44 +1,32 @@
 package io.yggdrash.core.genesis;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.config.DefaultConfig;
 import io.yggdrash.core.Block;
 import io.yggdrash.core.BlockBody;
 import io.yggdrash.core.BlockHeader;
 import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionBody;
 import io.yggdrash.core.TransactionHeader;
-import io.yggdrash.core.Wallet;
-import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.util.ByteUtil;
-import io.yggdrash.util.TimeUtils;
-import org.spongycastle.crypto.InvalidCipherTextException;
-import org.spongycastle.util.encoders.Hex;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
 
 public class GenesisBlock {
-
     private final BlockInfo blockInfo;
     private final BlockHusk block;
+    private String contractId;
 
-    public GenesisBlock(InputStream branchInfoStream) {
-        try {
-            this.blockInfo = new ObjectMapper().readValue(branchInfoStream, BlockInfo.class);
-            this.block = new BlockHusk(toBlock().toProtoBlock());
-        } catch (Exception e) {
-            throw new NotValidateException(e);
-        }
+    /**
+     * Build genesis for dynamic branch.json
+     *
+     * @param branchJson dynamic loaded json
+     */
+    public GenesisBlock(BranchJson branchJson) throws IOException {
+        this.blockInfo = new BlockInfo();
+        this.contractId = branchJson.getContractId();
+        Block coreBlock = toBlock(branchJson);
+        this.block = new BlockHusk(coreBlock.toProtoBlock());
     }
 
     public BlockHusk getBlock() {
@@ -52,118 +40,87 @@ public class GenesisBlock {
                 return txInfo.body.get(0).contractId;
             }
         }
-        return null;
+        return contractId;
     }
 
-    private Block toBlock() {
-        BlockHeader blockHeader = new BlockHeader(
-                Hex.decode(blockInfo.header.chain),
-                Hex.decode(blockInfo.header.version),
-                Hex.decode(blockInfo.header.type),
-                Hex.decode(blockInfo.header.prevBlockHash),
-                ByteUtil.byteArrayToLong(Hex.decode(blockInfo.header.index)),
-                ByteUtil.byteArrayToLong(Hex.decode(blockInfo.header.timestamp)),
-                Hex.decode(blockInfo.header.merkleRoot),
-                ByteUtil.byteArrayToLong(Hex.decode(blockInfo.header.bodyLength))
-        );
+    private Block toBlock(BranchJson branchJson) throws IOException {
 
-        List<Transaction> txList = new ArrayList<>();
+        JsonObject jsonObjectBlock = toJsonObjectBlock(branchJson);
 
-        for (TransactionInfo txi : blockInfo.body) {
-            txList.add(toTransaction(txi));
-        }
-
-        BlockBody txBody = new BlockBody(txList);
-
-        return new Block(blockHeader, Hex.decode(blockInfo.signature), txBody);
+        return new Block(jsonObjectBlock);
     }
 
-    private Transaction toTransaction(TransactionInfo txi) {
+    private JsonObject toJsonObjectBlock(BranchJson branchJson) throws IOException {
+        JsonObject jsonObjectTx = toJsonObjectTx(branchJson);
+        JsonArray jsonArrayBlockBody = new JsonArray();
+        jsonArrayBlockBody.add(jsonObjectTx);
 
-        TransactionHeader txHeader = new TransactionHeader(
-                Hex.decode(txi.header.chain),
-                Hex.decode(txi.header.version),
-                Hex.decode(txi.header.type),
-                ByteUtil.byteArrayToLong(Hex.decode(txi.header.timestamp)),
-                Hex.decode(txi.header.bodyHash),
-                ByteUtil.byteArrayToLong(Hex.decode(txi.header.bodyLength))
-        );
-
-        TransactionBody txBody = new TransactionBody(new Gson().toJson(txi.body));
-
-        return new Transaction(txHeader, Hex.decode(txi.signature), txBody);
-    }
-
-    static String generate() throws IOException, InvalidCipherTextException {
-        //todo: change the method to serializing method
-
-        DefaultConfig defaultConfig = new DefaultConfig();
-        String transactionFileName = defaultConfig.getConfig().getString("genesis.contract");
-        JsonObject genesisObject = getJsonObjectFromFile(transactionFileName);
-
-        String delegatorListFileName = defaultConfig.getConfig().getString("genesis.delegator");
-        JsonObject delegatorListObject = getJsonObjectFromFile(delegatorListFileName);
-        genesisObject.add("delegator", delegatorListObject.get("delegator"));
-
-        String nodeListFileName = defaultConfig.getConfig().getString("genesis.node");
-        JsonObject nodeListObject = getJsonObjectFromFile(nodeListFileName);
-        genesisObject.add("node", nodeListObject.get("node"));
-
-        JsonArray jsonArrayTxBody = new JsonArray();
-        jsonArrayTxBody.add(genesisObject);
-
-        TransactionBody txBody = new TransactionBody(jsonArrayTxBody);
-
-        long timestamp = TimeUtils.time();
-
-        String branchId = genesisObject.get("branchId").getAsString();
-        byte[] chain = Hex.decode(branchId);
-
-        // todo: change values(version, type) using the configuration.
-        TransactionHeader txHeader = new TransactionHeader(
-                chain,
-                new byte[8],
-                new byte[8],
-                timestamp,
-                txBody);
-
-        Wallet wallet = new Wallet(defaultConfig);
-        Transaction tx = new Transaction(txHeader, wallet, txBody);
-        List<Transaction> txList = new ArrayList<>();
-        txList.add(tx);
-
-        BlockBody blockBody = new BlockBody(txList);
+        BlockBody blockBody = new BlockBody(jsonArrayBlockBody);
 
         // todo: change values(version, type) using the configuration.
         BlockHeader blockHeader = new BlockHeader(
-                chain,
+                branchJson.branchId().getBytes(),
                 new byte[8],
                 new byte[8],
                 new byte[32],
                 0L,
-                timestamp,
+                branchJson.longTimestamp(),
                 blockBody.getMerkleRoot(),
                 blockBody.length());
 
-        Block genesisBlock = new Block(blockHeader, wallet, blockBody);
-        JsonObject jsonObject = genesisBlock.toJsonObject();
-        return new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject);
+        JsonObject jsonObjectBlock = new JsonObject();
+        jsonObjectBlock.add("header", blockHeader.toJsonObject());
+        jsonObjectBlock.addProperty("signature", branchJson.signature);
+        jsonObjectBlock.add("body", jsonArrayBlockBody);
+
+        return jsonObjectBlock;
     }
 
-    private static JsonObject getJsonObjectFromFile(String fileName) throws IOException {
-        StringBuilder result = new StringBuilder();
-        ClassLoader classLoader = GenesisBlock.class.getClassLoader();
-        File file = new File(classLoader.getResource(fileName).getFile());
+    private JsonObject toJsonObjectTx(BranchJson branchJson) {
+        JsonArray jsonArrayTxBody = toJsonArrayTxBody(branchJson);
+        // todo: change values(version, type) using the configuration.
+        TransactionHeader txHeader = new TransactionHeader(
+                branchJson.branchId().getBytes(),
+                new byte[8],
+                new byte[8],
+                branchJson.longTimestamp(),
+                new TransactionBody(jsonArrayTxBody));
 
-        Scanner scanner = new Scanner(file);
+        JsonObject jsonObjectTx = new JsonObject();
+        jsonObjectTx.add("header", txHeader.toJsonObject());
+        jsonObjectTx.addProperty("signature", branchJson.signature);
+        jsonObjectTx.add("body", jsonArrayTxBody);
 
-        while (scanner.hasNextLine()) {
-            String line = scanner.nextLine();
-            result.append(line).append("\n");
+        return jsonObjectTx;
+    }
+
+    private JsonArray toJsonArrayTxBody(BranchJson branchJson) {
+        JsonArray jsonArrayTxBody = new JsonArray();
+        JsonObject jsonObjectTx = new JsonObject();
+        jsonArrayTxBody.add(jsonObjectTx);
+
+        JsonObject jsonObjectBranch = branchJson.toJsonObject();
+
+        JsonArray params = toGenesisParams(jsonObjectBranch, branchJson.isStem());
+        jsonObjectTx.add("params", params);
+
+        jsonObjectTx.addProperty("method", "genesis");
+        jsonObjectTx.add("branch", jsonObjectBranch);
+
+        return jsonArrayTxBody;
+    }
+
+    private JsonArray toGenesisParams(JsonObject jsonObjectBranch, boolean isStem) {
+        JsonElement jsonElementGenesis = jsonObjectBranch.remove("genesis");
+        JsonArray params = new JsonArray();
+        if (isStem) {
+            JsonObject param = new JsonObject();
+            param.add(jsonObjectBranch.get("branchId").getAsString(), jsonObjectBranch);
+            params.add(param);
+        } else {
+            params.add(jsonElementGenesis);
         }
 
-        scanner.close();
-
-        return new Gson().fromJson(result.toString(), JsonObject.class);
+        return params;
     }
 }

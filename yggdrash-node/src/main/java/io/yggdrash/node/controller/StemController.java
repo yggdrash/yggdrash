@@ -16,21 +16,36 @@
 
 package io.yggdrash.node.controller;
 
+import io.yggdrash.core.BlockChain;
 import io.yggdrash.core.BranchId;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 
 @Controller
 @RequestMapping("stem/**")
 public class StemController {
 
+    @Autowired(required = false)
+    @Qualifier("stem")
+    private BlockChain blockChain;
+
+    private BranchId stemBranchId;
+
+    @PostConstruct
+    public void init() {
+        this.stemBranchId = blockChain == null ? BranchId.NULL : blockChain.getBranchId();
+    }
+
     @GetMapping
     public String redirect(HttpServletRequest request) {
         String uri = request.getRequestURI();
         String query = request.getQueryString() == null ? "" : "?" + request.getQueryString();
-        return "forward:" + "/branches/" + BranchId.STEM + uri.substring("/stem".length()) + query;
+        return "forward:" + "/branches/" + stemBranchId + uri.substring("/stem".length()) + query;
     }
 }

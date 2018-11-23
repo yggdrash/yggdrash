@@ -4,13 +4,10 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.googlecode.jsonrpc4j.JsonRpcHttpClient;
 import com.googlecode.jsonrpc4j.ProxyUtil;
-import io.yggdrash.core.BranchId;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.net.DiscoveryClient;
 import io.yggdrash.core.net.KademliaOptions;
-import io.yggdrash.core.net.Peer;
 import io.yggdrash.node.api.PeerApi;
-import io.yggdrash.node.api.PeerDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -18,17 +15,15 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class JsonRpcDiscoverClient implements DiscoveryClient {
 
     private static final Logger log = LoggerFactory.getLogger(JsonRpcDiscoverClient.class);
 
     @Override
-    public List<String> findPeers(String host, int port, Peer owner) {
+    public List<String> getAllActivePeer(String host, int port) {
         PeerApi peerApi = peerApi(host, port);
-        return Optional.of(PeerDto.valueOf(BranchId.STEM, owner)).map(peerApi::getPeers)
-                .orElseThrow(() -> new FailedOperationException("Failed to connect to peer"));
+        return peerApi.getAllActivePeer();
     }
 
     private JsonRpcHttpClient jsonRpcHttpClient(URL endpoint) {

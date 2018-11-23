@@ -4,13 +4,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.yggdrash.core.Wallet;
-import io.yggdrash.crypto.HashUtil;
-import io.yggdrash.util.ByteUtil;
+import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.core.account.Wallet;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
@@ -21,12 +20,8 @@ public class AdminApiImplTest {
 
     private static final Logger log = LoggerFactory.getLogger(AdminApiImplTest.class);
 
-    private Wallet wallet;
-
     @Test
-    public void testJsonMessage() throws IOException, InvalidCipherTextException {
-
-        wallet = new Wallet();
+    public void testJsonMessage() throws IOException {
 
         String jsonMsg = "{"
                 + "\"header\": \"{\\\"timestamp\\\":\\\"00000166818E7D38\\\",\\\"nonce\\\":"
@@ -54,14 +49,10 @@ public class AdminApiImplTest {
         long bodyLength = ByteUtil.byteArrayToLong(
                 Hex.decode(header.get("bodyLength").getAsString()));
 
-        if (command.getBody().length() != bodyLength) {
-            assert false;
-        }
+        assert command.getBody().length() == bodyLength;
 
         // body message check
-        if (!body.get(0).getAsJsonObject().get("method").getAsString().equals("nodeHello")) {
-            assert false;
-        }
+        assert body.get(0).getAsJsonObject().get("method").getAsString().equals("nodeHello");
 
         // timestamp check (3 min)
         long timestamp = ByteUtil.byteArrayToLong(
@@ -81,7 +72,7 @@ public class AdminApiImplTest {
         // verify signature
         String signature = command.getSignature();
         byte[] dataToSign = header.toString().getBytes();
-        if (!wallet.verify(dataToSign, Hex.decode(signature), false)) {
+        if (!Wallet.verify(dataToSign, Hex.decode(signature), false)) {
             log.error("Signature is not valid.");
             //assert false;
         }

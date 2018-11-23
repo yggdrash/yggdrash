@@ -4,11 +4,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
-import io.yggdrash.config.DefaultConfig;
-import io.yggdrash.core.Wallet;
-import io.yggdrash.crypto.HashUtil;
-import io.yggdrash.util.ByteUtil;
-import io.yggdrash.util.FileUtil;
+import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.util.FileUtil;
+import io.yggdrash.core.account.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
@@ -34,6 +34,8 @@ public class AdminApiImpl implements AdminApi {
     private static int COMMAND_ACTIVE_TIME;
     private static int COMMAND_RAND_LENGTH = 8;
     private static int COMMAND_NONCE_LENGTH = 16;
+    private static final boolean IS_WINDOWS =
+            System.getProperty("os.name").toLowerCase().startsWith("windows");
 
     private String adminMode;
     private String adminIp;
@@ -63,11 +65,11 @@ public class AdminApiImpl implements AdminApi {
         this.request = request;
         this.restartEndpoint = restartEndpoint;
 
-        this.adminMode = defaultConfig.getConfig().getString("admin.mode");
-        this.adminIp = defaultConfig.getConfig().getString("admin.ip");
-        this.adminPubKey = Hex.decode(defaultConfig.getConfig().getString("admin.pubKey"));
+        this.adminMode = defaultConfig.getString("admin.mode");
+        this.adminIp = defaultConfig.getString("admin.ip");
+        this.adminPubKey = Hex.decode(defaultConfig.getString("admin.pubKey"));
 
-        COMMAND_ACTIVE_TIME = defaultConfig.getConfig().getInt("admin.commandTime") * 1000;
+        COMMAND_ACTIVE_TIME = defaultConfig.getInt("admin.commandTime") * 1000;
     }
 
     @Override
@@ -164,15 +166,13 @@ public class AdminApiImpl implements AdminApi {
 
         switch (methodCommand) {
             case "restart":
-                // todo: change CLI commander
                 restartSpringDaemon();
+
                 break;
             case "setConfig":
                 try {
 
-                    // todo: change to config file.
-                    String userDir = System.getProperty("user.dir") + "/.yggdrash";
-                    File file = new File(userDir, "admin.conf");
+                    File file = new File(defaultConfig.getYggDataPath(), "admin.conf");
                     Set<PosixFilePermission> perms = new HashSet<>();
 
                     if (file.exists()) {
@@ -194,7 +194,6 @@ public class AdminApiImpl implements AdminApi {
                 }
 
                 // restart
-                // todo: consider CLI restart.
                 restartSpringDaemon();
 
                 break;
@@ -316,7 +315,7 @@ public class AdminApiImpl implements AdminApi {
     }
 
     private void restartSpringDaemon() {
-        // todo: consider CLI restart.
+        // todo: change spring configs as springCloud.
         Thread restartThread = new Thread(this.restartEndpoint::restart);
         restartThread.setDaemon(false);
         restartThread.start();

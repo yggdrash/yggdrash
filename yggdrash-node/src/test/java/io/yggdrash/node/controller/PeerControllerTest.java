@@ -17,7 +17,6 @@
 package io.yggdrash.node.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.yggdrash.core.BranchId;
 import io.yggdrash.core.net.PeerGroup;
 import org.junit.Before;
 import org.junit.Test;
@@ -51,29 +50,6 @@ public class PeerControllerTest {
     @Before
     public void setUp() {
         JacksonTester.initFields(this, new ObjectMapper());
-    }
-
-    @Test
-    public void shouldGetPeers() throws Exception {
-        mockMvc
-                .perform(
-                        get("/peers")
-                                .param("branchId", BranchId.stem().toString())
-                                .param("peerId", "75bff16c")
-                                .param("ip", "127.0.0.1")
-                                .param("port", "32919"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(0)))
-                .andDo(print());
-
-        mockMvc
-                .perform(
-                        get("/peers")
-                                .param("branchId", BranchId.stem().toString())
-                                .param("peerId", "75bff16c"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)))
-                .andDo(print());
     }
 
     @Test

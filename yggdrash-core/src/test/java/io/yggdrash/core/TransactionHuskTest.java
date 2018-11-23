@@ -1,7 +1,9 @@
 package io.yggdrash.core;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.crypto.ECKey;
+import io.yggdrash.common.crypto.ECKey;
+import io.yggdrash.core.account.Account;
+import io.yggdrash.core.account.Wallet;
 import io.yggdrash.proto.Proto;
 import org.junit.Before;
 import org.junit.Test;

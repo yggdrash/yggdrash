@@ -1,55 +1,35 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.TestUtils;
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.BlockHusk;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.store.BlockStore;
-import io.yggdrash.mock.ChannelMock;
+import io.yggdrash.core.store.StoreBuilder;
 import org.junit.Before;
 import org.junit.Test;
-import org.mockito.Mock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 public class PeerGroupTest {
-    private static final Logger log = LoggerFactory.getLogger(BlockStore.class);
 
     private static final int MAX_PEERS = 25;
-    private static final BranchId BRANCH = BranchId.stem();
-    private static final BranchId OTHER_BRANCH = BranchId.yeed();
+    private static final BranchId BRANCH = TestUtils.STEM;
+    private static final BranchId OTHER_BRANCH = TestUtils.YEED;
     private static final Peer OWNER = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
+    private static final StoreBuilder storeBuilder = new StoreBuilder(new DefaultConfig());
 
     private PeerGroup peerGroup;
     private TransactionHusk tx;
-
-    @Mock
-    private DiscoveryClient discoveryClient;
 
     @Before
     public void setUp() {
         this.peerGroup = new PeerGroup(OWNER, MAX_PEERS);
         this.tx = TestUtils.createTransferTxHusk();
-        peerGroup.addPeerTable(BRANCH, false);
-        peerGroup.addPeerTable(OTHER_BRANCH, false);
-    }
-
-    @Test
-    public void bootstrappingTest() {
-        // SeedPeerList 가 아닌 peerTables 세팅 후 bootstrapping
-        Peer p1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        Peer p2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32919");
-        peerGroup.addPeer(BRANCH, p1);
-        peerGroup.addPeer(BRANCH, p2);
-        peerGroup.bootstrapping(discoveryClient);
-
-        assert peerGroup.getPeerTable(BRANCH).contains(p1);
-        assert peerGroup.getPeerTable(BRANCH).contains(p2);
-        assert peerGroup.getPeerTable(BRANCH).getPeersCount() == 3;
+        peerGroup.addPeerTable(BRANCH, storeBuilder.buildPeerStore(BRANCH));
+        peerGroup.addPeerTable(OTHER_BRANCH, storeBuilder.buildPeerStore(OTHER_BRANCH));
     }
 
     @Test

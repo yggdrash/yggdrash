@@ -18,8 +18,8 @@ package io.yggdrash.core;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.contract.Contract;
-import io.yggdrash.core.event.BranchEventListener;
+import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;
@@ -28,23 +28,28 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class BranchGroup {
     private final Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
 
-    public void addBranch(BranchId branchId, BlockChain blockChain,
+    public void addBranch(BlockChain blockChain,
                           BranchEventListener branchEventListener) {
+        BranchId branchId = blockChain.getBranchId();
         if (branches.containsKey(branchId)) {
             throw new DuplicatedException(branchId.toString() + " duplicated");
         }
         blockChain.addListener(branchEventListener);
-        blockChain.init();
         branches.put(branchId, blockChain);
     }
 
     public BlockChain getBranch(BranchId branchId) {
         return branches.get(branchId);
+    }
+
+    public Set<BranchId> getAllBranchId() {
+        return branches.keySet();
     }
 
     public Collection<BlockChain> getAllBranch() {
@@ -59,7 +64,10 @@ public class BranchGroup {
     }
 
     public long getLastIndex(BranchId id) {
-        return branches.get(id).getLastIndex();
+        if (branches.containsKey(id)) {
+            return branches.get(id).getLastIndex();
+        }
+        return 0L;
     }
 
     public Collection<TransactionHusk> getRecentTxs(BranchId branchId) {
@@ -74,15 +82,17 @@ public class BranchGroup {
         return branches.get(branchId).getTxByHash(hash);
     }
 
-    public void generateBlock(Wallet wallet) {
-        for (BlockChain blockChain : branches.values()) {
-            blockChain.generateBlock(wallet);
-        }
+    public void generateBlock(Wallet wallet, BranchId branchId) {
+        branches.get(branchId).generateBlock(wallet);
     }
 
-    public BlockHusk addBlock(BlockHusk block) {
+    BlockHusk addBlock(BlockHusk block) {
+        return addBlock(block, true);
+    }
+
+    public BlockHusk addBlock(BlockHusk block, boolean broadcast) {
         if (branches.containsKey(block.getBranchId())) {
-            return branches.get(block.getBranchId()).addBlock(block, true);
+            return branches.get(block.getBranchId()).addBlock(block, broadcast);
         }
         return block;
     }

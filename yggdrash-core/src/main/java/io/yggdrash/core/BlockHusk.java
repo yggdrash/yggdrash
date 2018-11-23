@@ -19,11 +19,13 @@ package io.yggdrash.core;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.trie.Trie;
+import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.core.account.Address;
+import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.trie.Trie;
-import io.yggdrash.util.ByteUtil;
-import io.yggdrash.util.TimeUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -36,6 +38,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
 
     private Proto.Block protoBlock;
     private Block coreBlock;
+    private List<TransactionHusk> body;
 
     public BlockHusk(byte[] bytes) {
         try {
@@ -56,7 +59,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     }
 
     public BlockHusk(Wallet wallet, List<TransactionHusk> body, BlockHusk prevBlock) {
-
+        this.body = body;
         if (wallet == null || body == null || prevBlock == null) {
             throw new NotValidateException();
         }
@@ -68,8 +71,10 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
 
         long length = 0;
 
+        Proto.TransactionList.Builder txBuilder = Proto.TransactionList.newBuilder();
         for (TransactionHusk txHusk: body) {
             length += txHusk.getCoreTransaction().length();
+            txBuilder.addTransactions(txHusk.getProtoTransaction());
         }
 
         Proto.Block.Header blockHeader = getHeader(
@@ -85,15 +90,10 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         try {
             byte[] hashDataForSign = BlockHeader.toBlockHeader(blockHeader).getHashForSigning();
 
-            Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
-            for (TransactionHusk tx : body) {
-                builder.addTransactions(tx.getProtoTransaction());
-            }
-
             Proto.Block protoBlock = Proto.Block.newBuilder()
                     .setHeader(blockHeader)
                     .setSignature(ByteString.copyFrom(wallet.signHashedData(hashDataForSign)))
-                    .setBody(builder.build())
+                    .setBody(txBuilder.build())
                     .build();
 
             this.protoBlock = protoBlock;
@@ -133,11 +133,18 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     }
 
     public List<TransactionHusk> getBody() {
-        List<TransactionHusk> result = new ArrayList<>();
-        for (Proto.Transaction tx : protoBlock.getBody().getTransactionsList()) {
-            result.add(new TransactionHusk(tx));
+        if (body != null) {
+            return body;
         }
-        return result;
+        this.body = new ArrayList<>();
+        for (Proto.Transaction tx : protoBlock.getBody().getTransactionsList()) {
+            body.add(new TransactionHusk(tx));
+        }
+        return body;
+    }
+
+    public int getBodySize() {
+        return protoBlock.getBody().getTransactionsCount();
     }
 
     @Override

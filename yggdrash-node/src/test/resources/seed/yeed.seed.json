@@ -1,11 +1,20 @@
 {
-  "name":"YEED",
-  "symbol":"YEED",
-  "property":"currency",
-  "type":"immunity",
-  "description":"YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.",
-  "tag":0.1,
-  "version":"0xeeabcaf6cf907e0fd27a0d1f305313e9c1069c5d7f8729d227110012c9b37025",
-  "reference_address":"",
-  "reserve_address":"d3e241ed0276cabc9cbcb0c2d3a0e1d94d7ffa85"
+  "name": "YEED",
+  "symbol": "YEED",
+  "property": "currency",
+  "description": "YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.",
+  "contractId": "548987dd9d3bed2ce296e1c73ebc0b9dc5c2aa9f",
+  "genesis": {
+    "alloc": {
+      "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94": {
+        "balance": "1000000000"
+      },
+      "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e": {
+        "balance": "1000000000"
+      },
+      "cee3d4755e47055b530deeba062c5bd0c17eb00f": {
+        "balance": "998000000000"
+      }
+    }
+  }
 }

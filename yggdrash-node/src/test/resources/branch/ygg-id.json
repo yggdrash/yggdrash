@@ -2,15 +2,10 @@
   "name": "YGG ID",
   "symbol": "YID",
   "property": "Service",
-  "type": "immunity",
   "description": "Fast and Easy access to all your favorite services with YGG ID",
-  "tag": 0.1,
-  "version": "0x423d00b30e041e7856c3dfb5003f6eae5893e4311ba1d5249ec4912d8431eef9",
-  "reference_address": "",
-  "reserve_address": "0xedefa0ec68832fceed1688a7c4e5f2a5183ca598",
-  "owner": "aaa2aaab0fb041c5cb2a60a12291cbc3097352bb",
-  "timestamp": 1537340434417,
-  "version_history": [
-    "0x423d00b30e041e7856c3dfb5003f6eae5893e4311ba1d5249ec4912d8431eef9"
-  ]
+  "contractId": "91d64aa71525f24da7c1c63620705039b4fb93e9",
+  "genesis": {},
+  "timestamp": "00000166c837f0c9",
+  "owner": "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
+  "signature": "1b571242de13285d93efc90807e9f51de3ee5a39c987efcc4d166f4f54fe4f980866acfa92f8b4d9d0eb0015a7c5a1c9256bf645d9bcdd2dd91bf7087e95517614"
 }

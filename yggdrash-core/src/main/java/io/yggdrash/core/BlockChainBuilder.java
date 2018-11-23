@@ -16,9 +16,11 @@
 
 package io.yggdrash.core;
 
-import io.yggdrash.contract.Contract;
-import io.yggdrash.contract.ContractClassLoader;
-import io.yggdrash.contract.ContractMeta;
+import io.yggdrash.core.contract.Contract;
+import io.yggdrash.core.contract.ContractClassLoader;
+import io.yggdrash.core.contract.ContractMeta;
+import io.yggdrash.core.contract.Runtime;
+import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.genesis.GenesisBlock;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
@@ -26,25 +28,26 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BlockChainBuilder {
+    private static final Logger log = LoggerFactory.getLogger(BlockChainBuilder.class);
 
     private GenesisBlock genesis;
-    private boolean productMode = false;
+    private StoreBuilder storeBuilder;
 
     public BlockChainBuilder addGenesis(GenesisBlock genesis) {
         this.genesis = genesis;
         return this;
     }
 
-    public BlockChainBuilder setProductMode(boolean productMode) {
-        this.productMode = productMode;
+    public BlockChainBuilder setStoreBuilder(StoreBuilder storeBuilder) {
+        this.storeBuilder = storeBuilder;
         return this;
     }
 
-    public BlockChain build() throws InstantiationException, IllegalAccessException {
-        StoreBuilder storeBuilder = new StoreBuilder(this.productMode);
-
+    public BlockChain build() {
         BlockHusk genesisBlock = genesis.getBlock();
         BlockStore blockStore = storeBuilder.buildBlockStore(genesisBlock.getBranchId());
         TransactionStore txStore = storeBuilder.buildTxStore(genesisBlock.getBranchId());
@@ -56,10 +59,14 @@ public class BlockChainBuilder {
         return new BlockChain(genesisBlock, blockStore, txStore, metaStore, contract, runtime);
     }
 
-    private Contract getContract()
-            throws IllegalAccessException, InstantiationException {
-        ContractMeta contractMeta = ContractClassLoader.loadContractById(genesis.getContractId());
-        return contractMeta.getContract().newInstance();
+    private Contract getContract() {
+        try {
+            ContractMeta contractMeta = ContractClassLoader.loadContractById(
+                    storeBuilder.getConfig().getContractPath(), genesis.getContractId());
+            return contractMeta.getContract().newInstance();
+        } catch (InstantiationException | IllegalAccessException e) {
+            throw new FailedOperationException(e);
+        }
     }
 
     private <T> Runtime<T> getRunTime(Class<T> clazz) {

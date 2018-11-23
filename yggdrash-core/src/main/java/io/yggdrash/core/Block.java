@@ -3,13 +3,14 @@ package io.yggdrash.core;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.common.crypto.ECKey;
+import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.trie.Trie;
+import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.InvalidSignatureException;
-import io.yggdrash.crypto.ECKey;
-import io.yggdrash.crypto.HashUtil;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.trie.Trie;
-import io.yggdrash.util.ByteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
@@ -20,6 +21,8 @@ import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 
 public class Block implements Cloneable {
 
@@ -150,7 +153,7 @@ public class Block implements Cloneable {
                 this.header.getMerkleRoot(), BlockHeader.MERKLEROOT_LENGTH, "merkleRootLength");
         check &= verifyCheckLengthNotNull(this.signature, SIGNATURE_LENGTH, "signature");
         check &= this.header.getIndex() >= 0;
-        check &= this.header.getTimestamp() > 0;
+        check &= this.header.getTimestamp() > TIMESTAMP_2018;
         check &= !(this.header.getBodyLength() <= 0
                 || this.header.getBodyLength() != this.getBody().length());
         check &= Arrays.equals(

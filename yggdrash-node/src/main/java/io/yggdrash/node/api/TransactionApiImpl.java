@@ -6,9 +6,11 @@ import io.yggdrash.core.BranchGroup;
 import io.yggdrash.core.BranchId;
 import io.yggdrash.core.Transaction;
 import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.TransactionReceipt;
+import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.node.controller.TransactionDto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +20,7 @@ import java.util.Map;
 @AutoJsonRpcServiceImpl
 public class TransactionApiImpl implements TransactionApi {
 
+    private static final Logger log = LoggerFactory.getLogger(TransactionApiImpl.class);
     private final BranchGroup branchGroup;
 
     @Autowired
@@ -84,7 +87,7 @@ public class TransactionApiImpl implements TransactionApi {
     /* send */
     @Override
     public String sendTransaction(TransactionDto tx) {
-        if (branchGroup.getBranch(BranchId.of(tx.getChainHex())) != null) {
+        if (branchGroup.getBranch(BranchId.of(tx.chain)) != null) {
             TransactionHusk addedTx = branchGroup.addTransaction(TransactionDto.of(tx));
             return addedTx.getHash().toString();
         } else {

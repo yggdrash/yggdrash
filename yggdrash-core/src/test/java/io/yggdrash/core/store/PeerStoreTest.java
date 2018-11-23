@@ -17,9 +17,9 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.TestUtils;
+import io.yggdrash.common.util.FileUtil;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
-import io.yggdrash.util.FileUtil;
 import org.junit.AfterClass;
 import org.junit.Test;
 
