@@ -51,7 +51,7 @@ class NodeScheduler {
 
     private final boolean isSeedPeer;
 
-    @Autowired(required = false)
+    @Autowired
     public NodeScheduler(PeerGroup peerGroup, NodeManager nodeManager, NodeStatus nodeStatus) {
         this.peerGroup = peerGroup;
         this.nodeManager = nodeManager;
