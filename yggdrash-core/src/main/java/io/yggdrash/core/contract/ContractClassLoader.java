@@ -31,7 +31,7 @@ import java.io.InputStream;
 public class ContractClassLoader extends ClassLoader {
     private static final Logger log = LoggerFactory.getLogger(ContractClassLoader.class);
     private static final Class[] CONTRACTS = {StemContract.class,
-            NoneContract.class, CoinContract.class};
+            NoneContract.class, CoinContract.class, AssetContract.class};
     private static final Long MAX_FILE_LENGTH = 5242880L; // default 5MB bytes
 
     static {

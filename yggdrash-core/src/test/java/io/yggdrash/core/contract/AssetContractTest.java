@@ -50,7 +50,7 @@ public class AssetContractTest {
 
     private AssetContract assetContract;
 
-    private byte[] branchId = Hex.decode("00fbbccfacd572b102351961c048104f4f21a008");
+    private byte[] branchId = Hex.decode("9f2ef14cb553b07866a9cd1293c3331dbace10f9");
 
     private DefaultConfig defaultConfig;
     private Wallet wallet;
@@ -195,7 +195,7 @@ public class AssetContractTest {
             branch.addProperty("property", "currency");
             branch.addProperty("type", "");
             branch.addProperty("description", "ASSET is the contract for managing assets.");
-            branch.addProperty("contractId", "00fbbccfacd572b102351961c048104f4f21a008");
+            branch.addProperty("contractId", "dadb74381eec75ec6d3f91c12dfc8e286d6e736f");
             branch.add("genesis", genesis);
             branch.addProperty("timestamp", "00000166c837f0c9");
             BranchJson.signBranch(wallet, branch);
