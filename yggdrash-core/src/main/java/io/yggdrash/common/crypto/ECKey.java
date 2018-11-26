@@ -546,7 +546,7 @@ public class ECKey implements Serializable {
     }
 
     /**
-     * Returns true if the given pubkey is canonical, i.e. the correct length taking into account compression.
+     * Returns true if the given pubkey is canonical, i.e. the correct length taking into wallet compression.
      *
      * @param pubkey -
      * @return -
@@ -926,7 +926,7 @@ public class ECKey implements Serializable {
     }
 
     /**
-     * Returns true if this pubkey is canonical, i.e. the correct length taking into account compression.
+     * Returns true if this pubkey is canonical, i.e. the correct length taking into wallet compression.
      *
      * @return -
      */

@@ -19,7 +19,7 @@ package io.yggdrash.node;
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.yggdrash.core.BranchId;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.proto.BlockChainGrpc;

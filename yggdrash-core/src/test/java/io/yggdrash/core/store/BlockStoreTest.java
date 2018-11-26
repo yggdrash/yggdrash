@@ -18,7 +18,7 @@ package io.yggdrash.core.store;
 
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.util.FileUtil;
-import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.proto.Proto;
 import org.assertj.core.api.Assertions;

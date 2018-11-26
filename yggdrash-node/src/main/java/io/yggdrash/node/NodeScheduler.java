@@ -16,7 +16,7 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.BranchId;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.net.KademliaOptions;
 import io.yggdrash.core.net.NodeManager;

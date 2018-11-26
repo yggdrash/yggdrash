@@ -17,7 +17,7 @@
 package io.yggdrash.common.util;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 

@@ -1,7 +1,7 @@
 package io.yggdrash.common.trie;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;

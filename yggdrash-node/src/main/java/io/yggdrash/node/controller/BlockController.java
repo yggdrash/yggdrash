@@ -16,9 +16,9 @@
 
 package io.yggdrash.node.controller;
 
-import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.BranchId;
+import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.BranchId;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

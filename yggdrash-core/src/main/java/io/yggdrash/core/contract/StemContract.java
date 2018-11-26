@@ -3,8 +3,8 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.core.BranchId;
-import io.yggdrash.core.genesis.BranchJson;
+import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.genesis.BranchJson;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

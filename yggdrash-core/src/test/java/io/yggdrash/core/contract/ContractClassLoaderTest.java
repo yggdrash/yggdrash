@@ -34,14 +34,14 @@ import static org.junit.Assert.assertNotNull;
 
 public class ContractClassLoaderTest {
     private static final Logger log = LoggerFactory.getLogger(ContractClassLoaderTest.class);
-    private static final String NONE_CONTRACT = "91d64aa71525f24da7c1c63620705039b4fb93e9";
+    private static final String NONE_CONTRACT = "3fccace3211be93c9a6372d8aa085e3914f08ca1";
 
     @Test
     public void testContract() throws  IllegalAccessException, InstantiationException,
             InvocationTargetException {
 
         File contractNone = ContractMeta.contractFile(".yggdrash/contract", NONE_CONTRACT);
-        assertEquals(".yggdrash/contract/91/" + NONE_CONTRACT + ".class",
+        assertEquals(".yggdrash/contract/3f/" + NONE_CONTRACT + ".class",
                 contractNone.getPath());
 
         ContractMeta noneContract = ContractClassLoader.loadContractClass(null, contractNone);

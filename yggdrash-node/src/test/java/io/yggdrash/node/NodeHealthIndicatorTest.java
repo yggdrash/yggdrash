@@ -18,7 +18,7 @@ package io.yggdrash.node;
 
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import org.junit.After;

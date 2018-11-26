@@ -3,9 +3,9 @@ package io.yggdrash.node.api;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
-import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.account.Account;
+import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.core.wallet.Account;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +31,7 @@ public class AccountApiImpl implements AccountApi {
             AccountDto response = AccountDto.createBy(account);
             return response.getAddress();
         } catch (Exception exception) {
-            throw new NonExistObjectException("account");
+            throw new NonExistObjectException("wallet");
         }
     }
 

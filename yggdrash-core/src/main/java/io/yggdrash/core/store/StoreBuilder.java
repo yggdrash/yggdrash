@@ -17,7 +17,7 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.BranchId;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;

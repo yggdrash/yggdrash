@@ -17,7 +17,7 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.BlockHusk;
+import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.store.datasource.DbSource;
 
