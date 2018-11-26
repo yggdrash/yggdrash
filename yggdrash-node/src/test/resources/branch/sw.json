@@ -3,9 +3,9 @@
   "symbol": "SW",
   "property": "reputation",
   "description": "Reputation Score Evaluation Chain. Contribute your time and benefit the ecosystem to earn a higher reputation score.",
-  "contractId": "91d64aa71525f24da7c1c63620705039b4fb93e9",
+  "contractId": "3fccace3211be93c9a6372d8aa085e3914f08ca1",
   "genesis": {},
-  "timestamp": "00000166c837f0c9",
+  "timestamp": "000001674dc661c3",
   "owner": "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
-  "signature": "1cafd4312e8ba394e7a01ed43aad3bc14eea7b3f1d669c052b7136045685386b511ee5248af85d5274767a235fd214888eb73a1a022fb1d0b5333fcb5ddb25daa4"
+  "signature": "1bceb3f4f6db0050c9d79c9f00a536cbd54430dee3db102852310d0344ca06a4394ef189eb92e6c3b701c43284ddde6edf4ed65d4c9a0c05e0760bf323497e84f0"
 }

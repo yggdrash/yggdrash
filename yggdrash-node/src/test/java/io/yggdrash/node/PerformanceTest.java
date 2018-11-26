@@ -17,11 +17,11 @@
 package io.yggdrash.node;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.BlockChain;
-import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.BranchEventListener;
-import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.BranchEventListener;
+import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;

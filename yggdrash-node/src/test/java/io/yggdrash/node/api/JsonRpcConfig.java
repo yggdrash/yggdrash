@@ -75,7 +75,7 @@ public class JsonRpcConfig {
 
     public AccountApi accountApi() {
         try {
-            URL url = new URL("http://localhost:8080/api/account");
+            URL url = new URL("http://localhost:8080/api/wallet");
             return ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     AccountApi.class, getJsonRpcHttpClient(url));
         } catch (MalformedURLException exception) {
@@ -86,7 +86,7 @@ public class JsonRpcConfig {
 
     public AccountApi accountApi(String server) {
         try {
-            URL url = new URL("http://" + server + ":8080/api/account");
+            URL url = new URL("http://" + server + ":8080/api/wallet");
             return ProxyUtil.createClientProxy(getClass().getClassLoader(),
                     AccountApi.class, getJsonRpcHttpClient(url));
         } catch (MalformedURLException exception) {

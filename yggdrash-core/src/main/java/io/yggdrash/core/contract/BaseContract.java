@@ -3,7 +3,7 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.Utils;
-import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;

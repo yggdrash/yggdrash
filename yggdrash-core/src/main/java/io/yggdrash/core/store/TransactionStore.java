@@ -18,7 +18,7 @@ package io.yggdrash.core.store;
 
 import com.google.common.collect.EvictingQueue;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.datasource.DbSource;
 import org.ehcache.Cache;

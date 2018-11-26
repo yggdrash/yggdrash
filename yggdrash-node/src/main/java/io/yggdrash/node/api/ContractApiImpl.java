@@ -3,7 +3,7 @@ package io.yggdrash.node.api;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
-import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.exception.NonExistObjectException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

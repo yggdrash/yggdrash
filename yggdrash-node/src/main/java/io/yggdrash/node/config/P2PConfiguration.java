@@ -16,9 +16,9 @@
 
 package io.yggdrash.node.config;
 
-import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.wallet.Wallet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

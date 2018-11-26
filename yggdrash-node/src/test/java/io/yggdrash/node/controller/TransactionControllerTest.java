@@ -18,7 +18,7 @@ package io.yggdrash.node.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.BlockChain;
+import io.yggdrash.core.blockchain.BlockChain;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

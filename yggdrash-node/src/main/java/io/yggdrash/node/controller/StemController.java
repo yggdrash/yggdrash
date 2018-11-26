@@ -16,8 +16,8 @@
 
 package io.yggdrash.node.controller;
 
-import io.yggdrash.core.BlockChain;
-import io.yggdrash.core.BranchId;
+import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BranchId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Controller;

@@ -18,7 +18,7 @@ package io.yggdrash.node.controller;
 
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;
 

@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.net;
 
-import io.yggdrash.core.BranchId;
+import io.yggdrash.core.blockchain.BranchId;
 
 import java.util.List;
 

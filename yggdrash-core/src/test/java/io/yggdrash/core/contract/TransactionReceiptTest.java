@@ -17,7 +17,7 @@
 package io.yggdrash.core.contract;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import org.junit.Before;
 import org.junit.Test;
 

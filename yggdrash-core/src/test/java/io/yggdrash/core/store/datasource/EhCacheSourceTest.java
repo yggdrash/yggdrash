@@ -17,7 +17,7 @@
 package io.yggdrash.core.store.datasource;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import org.ehcache.Cache;
 import org.ehcache.CacheManager;
 import org.ehcache.config.builders.CacheConfigurationBuilder;

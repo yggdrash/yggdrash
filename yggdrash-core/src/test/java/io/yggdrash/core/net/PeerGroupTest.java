@@ -2,9 +2,9 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.BranchId;
-import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.store.StoreBuilder;
 import org.junit.Before;
 import org.junit.Test;
