@@ -13,9 +13,8 @@ import io.yggdrash.core.blockchain.TransactionHeader;
 import java.io.IOException;
 
 public class GenesisBlock {
-    private final BlockInfo blockInfo;
     private final BlockHusk block;
-    private String contractId;
+    private final BranchJson branchJson;
 
     /**
      * Build genesis for dynamic branch.json
@@ -23,10 +22,8 @@ public class GenesisBlock {
      * @param branchJson dynamic loaded json
      */
     public GenesisBlock(BranchJson branchJson) throws IOException {
-        this.blockInfo = new BlockInfo();
-        this.contractId = branchJson.getContractId();
-        Block coreBlock = toBlock(branchJson);
-        this.block = new BlockHusk(coreBlock.toProtoBlock());
+        this.branchJson = branchJson;
+        this.block = toBlock();
     }
 
     public BlockHusk getBlock() {
@@ -34,28 +31,22 @@ public class GenesisBlock {
     }
 
     public String getContractId() {
-        if (blockInfo.body != null && !blockInfo.body.isEmpty()) {
-            TransactionInfo txInfo = blockInfo.body.get(0);
-            if (txInfo.body != null && !txInfo.body.isEmpty()) {
-                return txInfo.body.get(0).contractId;
-            }
-        }
-        return contractId;
+        return branchJson.contractId;
     }
 
-    private Block toBlock(BranchJson branchJson) throws IOException {
+    private BlockHusk toBlock() throws IOException {
+        JsonObject jsonObjectBlock = toJsonObjectBlock();
 
-        JsonObject jsonObjectBlock = toJsonObjectBlock(branchJson);
-
-        return new Block(jsonObjectBlock);
+        Block coreBlock = new Block(jsonObjectBlock);
+        return new BlockHusk(coreBlock.toProtoBlock());
     }
 
-    private JsonObject toJsonObjectBlock(BranchJson branchJson) throws IOException {
-        JsonObject jsonObjectTx = toJsonObjectTx(branchJson);
-        JsonArray jsonArrayBlockBody = new JsonArray();
-        jsonArrayBlockBody.add(jsonObjectTx);
+    private JsonObject toJsonObjectBlock() throws IOException {
+        JsonObject jsonObjectTx = toJsonObjectTx();
+        JsonArray jsonArrayBody = new JsonArray();
+        jsonArrayBody.add(jsonObjectTx);
 
-        BlockBody blockBody = new BlockBody(jsonArrayBlockBody);
+        BlockBody blockBody = new BlockBody(jsonArrayBody);
 
         // todo: change values(version, type) using the configuration.
         BlockHeader blockHeader = new BlockHeader(
@@ -71,30 +62,25 @@ public class GenesisBlock {
         JsonObject jsonObjectBlock = new JsonObject();
         jsonObjectBlock.add("header", blockHeader.toJsonObject());
         jsonObjectBlock.addProperty("signature", branchJson.signature);
-        jsonObjectBlock.add("body", jsonArrayBlockBody);
+        jsonObjectBlock.add("body", jsonArrayBody);
 
-        return jsonObjectBlock;
+        return toJsonObject(blockHeader.toJsonObject(), branchJson.signature, jsonArrayBody);
     }
 
-    private JsonObject toJsonObjectTx(BranchJson branchJson) {
-        JsonArray jsonArrayTxBody = toJsonArrayTxBody(branchJson);
+    private JsonObject toJsonObjectTx() {
+        JsonArray jsonArrayBody = toJsonArrayTxBody();
         // todo: change values(version, type) using the configuration.
         TransactionHeader txHeader = new TransactionHeader(
                 branchJson.branchId().getBytes(),
                 new byte[8],
                 new byte[8],
                 branchJson.longTimestamp(),
-                new TransactionBody(jsonArrayTxBody));
+                new TransactionBody(jsonArrayBody));
 
-        JsonObject jsonObjectTx = new JsonObject();
-        jsonObjectTx.add("header", txHeader.toJsonObject());
-        jsonObjectTx.addProperty("signature", branchJson.signature);
-        jsonObjectTx.add("body", jsonArrayTxBody);
-
-        return jsonObjectTx;
+        return toJsonObject(txHeader.toJsonObject(), branchJson.signature, jsonArrayBody);
     }
 
-    private JsonArray toJsonArrayTxBody(BranchJson branchJson) {
+    private JsonArray toJsonArrayTxBody() {
         JsonArray jsonArrayTxBody = new JsonArray();
         JsonObject jsonObjectTx = new JsonObject();
         jsonArrayTxBody.add(jsonObjectTx);
@@ -122,5 +108,13 @@ public class GenesisBlock {
         }
 
         return params;
+    }
+
+    private JsonObject toJsonObject(JsonObject header, String signature, JsonArray body) {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.add("header", header);
+        jsonObject.addProperty("signature", signature);
+        jsonObject.add("body", body);
+        return jsonObject;
     }
 }
