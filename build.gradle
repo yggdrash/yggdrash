@@ -81,6 +81,7 @@ project(':yggdrash-core') {
         compile("io.grpc:grpc-protobuf:${grpcVersion}")
         compile("io.grpc:grpc-stub:${grpcVersion}")
         compile("io.grpc:grpc-netty-shaded:${grpcVersion}")
+        compile("com.google.protobuf:protobuf-java:${protobufVersion}")
         compile("org.iq80.leveldb:leveldb:${levelDBVersion}")
         compile("org.ehcache:ehcache:${ehcacheVersion}")
         compile("com.madgag.spongycastle:prov:${scastleVersion}") // for SHA3 and SECP256K1
@@ -99,13 +100,13 @@ project(':yggdrash-core') {
     }
 
     protobuf {
-        protoc {
-            artifact = "com.google.protobuf:protoc:${protobufVersion}"
-        }
         plugins {
             grpc {
                 artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}"
             }
+        }
+        protoc {
+            artifact = "com.google.protobuf:protoc:${protobufVersion}"
         }
         generateProtoTasks {
             all()*.plugins {
