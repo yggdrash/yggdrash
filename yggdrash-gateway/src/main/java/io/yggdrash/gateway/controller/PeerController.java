@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.controller;
+package io.yggdrash.gateway.controller;
 
-import io.yggdrash.node.NodeHealthIndicator;
+import io.yggdrash.core.net.PeerGroup;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.actuate.health.Health;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("${management.endpoints.web.base-path:/actuator}")
-public class HealthIndicatorController {
+@RequestMapping("peers")
+class PeerController {
 
-    private final NodeHealthIndicator nodeHealthIndicator;
+    private final PeerGroup peerGroup;
 
     @Autowired
-    public HealthIndicatorController(NodeHealthIndicator nodeHealthIndicator) {
-        this.nodeHealthIndicator = nodeHealthIndicator;
+    public PeerController(PeerGroup peerGroup) {
+        this.peerGroup = peerGroup;
     }
 
-    @GetMapping("${management.endpoints.web.path-mapping.health:health}")
-    public Health health() {
-        return nodeHealthIndicator.health();
+    @GetMapping("/active")
+    public ResponseEntity getAllActivePeer() {
+        return ResponseEntity.ok(peerGroup.getActivePeerList());
     }
 }

@@ -1,4 +1,4 @@
-package io.yggdrash.node.controller;
+package io.yggdrash.gateway.controller;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;

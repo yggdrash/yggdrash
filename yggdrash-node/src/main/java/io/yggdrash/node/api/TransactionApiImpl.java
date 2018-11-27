@@ -8,7 +8,7 @@ import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.exception.NonExistObjectException;
-import io.yggdrash.node.controller.TransactionDto;
+import io.yggdrash.node.api.dto.TransactionDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

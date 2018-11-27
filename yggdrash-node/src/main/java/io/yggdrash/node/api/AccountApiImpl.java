@@ -6,6 +6,7 @@ import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.wallet.Account;
+import io.yggdrash.node.api.dto.AccountDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

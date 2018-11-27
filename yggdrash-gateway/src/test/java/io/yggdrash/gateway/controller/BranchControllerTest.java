@@ -14,51 +14,55 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.controller;
+package io.yggdrash.gateway.controller;
 
+import io.yggdrash.TestUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
 import org.springframework.context.annotation.Import;
-import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(HealthIndicatorController.class)
+@WebMvcTest(BranchController.class)
 @Import(RefreshEndpointAutoConfiguration.class)
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
-public class HealthIndicatorControllerTest {
+public class BranchControllerTest {
+
     @Autowired
     private MockMvc mockMvc;
 
-    @Value("${management.endpoints.web.base-path:/actuator}")
-    private String actuatorRoot;
-
-    @Value("${management.endpoints.web.path-mapping.health:health}")
-    private String healthPath;
-
     @Test
-    public void shouldGetHealth() throws Exception {
-
-        MockHttpServletResponse response = mockMvc.perform(get(getPath()))
-                .andExpect(status().isOk())
+    public void shouldGetBranches() throws Exception {
+        mockMvc.perform(get("/branches"))
                 .andDo(print())
+                .andExpect(status().isOk())
                 .andReturn().getResponse();
-
-        assertThat(response.getContentAsString()).contains("UP");
     }
 
-    private String getPath() {
-        return actuatorRoot + "/" + healthPath;
+    @Test
+    public void shouldGetActiveBranches() throws Exception {
+        mockMvc.perform(get("/branches/active"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+    }
+
+    @Test
+    public void shouldGetStemBrancheStates() throws Exception {
+        mockMvc.perform(get("/branches/" + TestUtils.STEM + "/states"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", hasSize(1)));
     }
 }

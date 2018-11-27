@@ -9,6 +9,7 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.FileUtil;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.node.api.dto.AdminDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;

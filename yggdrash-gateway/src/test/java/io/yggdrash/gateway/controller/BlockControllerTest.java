@@ -14,55 +14,79 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.controller;
+package io.yggdrash.gateway.controller;
 
-import io.yggdrash.TestUtils;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.node.api.dto.BlockDto;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
 import org.springframework.context.annotation.Import;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.hamcrest.Matchers.hasSize;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(BranchController.class)
+@WebMvcTest(BlockController.class)
 @Import(RefreshEndpointAutoConfiguration.class)
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
-public class BranchControllerTest {
+public class BlockControllerTest {
+
+    private String basePath;
+
+    @Autowired
+    @Qualifier("stem")
+    private BlockChain stem;
 
     @Autowired
     private MockMvc mockMvc;
 
-    @Test
-    public void shouldGetBranches() throws Exception {
-        mockMvc.perform(get("/branches"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn().getResponse();
+    private JacksonTester<BlockDto> json;
+
+    @Before
+    public void setUp() {
+        JacksonTester.initFields(this, new ObjectMapper());
+        basePath = String.format("/branches/%s/blocks", stem.getBranchId());
     }
 
     @Test
-    public void shouldGetActiveBranches() throws Exception {
-        mockMvc.perform(get("/branches/active"))
+    public void shouldGetBlock() throws Exception {
+        MockHttpServletResponse response = mockMvc.perform(get(basePath + "/0"))
+                .andExpect(status().isOk())
+                .andReturn().getResponse();
+
+        String contentAsString = response.getContentAsString();
+        String blockHash = json.parseObject(contentAsString).hash;
+
+        mockMvc.perform(get(basePath + "/" + blockHash))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
+
+        assertThat(response.getContentAsString()).contains(blockHash);
     }
 
     @Test
-    public void shouldGetStemBrancheStates() throws Exception {
-        mockMvc.perform(get("/branches/" + TestUtils.STEM + "/states"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$", hasSize(1)));
+    public void shouldGetAllBlocks() throws Exception {
+        mockMvc.perform(get(basePath)).andDo(print())
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    public void shouldGetLatest() throws Exception {
+        mockMvc.perform(get(basePath + "/latest")).andDo(print())
+                .andExpect(status().isOk());
     }
 }

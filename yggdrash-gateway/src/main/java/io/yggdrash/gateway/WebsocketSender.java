@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *    http://www.apache.org/licenses/LICENSE-2.0
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,31 +14,33 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.gateway;
 
+import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchEventListener;
+import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.node.controller.BlockDto;
-import io.yggdrash.node.controller.TransactionDto;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.yggdrash.node.api.dto.BlockDto;
+import io.yggdrash.node.api.dto.TransactionDto;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
+@DependsOn({"stem", "yeed"})
+@ConditionalOnProperty("yggdrash.branch.default.active")
 public class WebsocketSender implements BranchEventListener {
 
     private final SimpMessagingTemplate template;
-    private BranchId stemBranchId = BranchId.NULL;
 
-    @Autowired
-    public WebsocketSender(SimpMessagingTemplate template) {
+    public WebsocketSender(SimpMessagingTemplate template, BranchGroup branchGroup) {
         this.template = template;
-    }
-
-    public void setStemBranchId(BranchId stemBranchId) {
-        this.stemBranchId = stemBranchId;
+        for (BlockChain bc : branchGroup.getAllBranch()) {
+            bc.addListener(this);
+        }
     }
 
     @Override
@@ -47,9 +49,6 @@ public class WebsocketSender implements BranchEventListener {
         template.convertAndSend("/topic/blocks", BlockDto.createBy(block));
         template.convertAndSend("/topic/branches/" + branchId + "/blocks",
                 BlockDto.createBy(block));
-        if (block.getBranchId().equals(stemBranchId)) {
-            template.convertAndSend("/topic/stem/blocks", BlockDto.createBy(block));
-        }
     }
 
     @Override
@@ -58,8 +57,5 @@ public class WebsocketSender implements BranchEventListener {
         template.convertAndSend("/topic/txs", TransactionDto.createBy(tx));
         template.convertAndSend("/topic/branches/" + branchId + "/txs",
                 TransactionDto.createBy(tx));
-        if (tx.getBranchId().equals(stemBranchId)) {
-            template.convertAndSend("/topic/stem/txs", TransactionDto.createBy(tx));
-        }
     }
 }

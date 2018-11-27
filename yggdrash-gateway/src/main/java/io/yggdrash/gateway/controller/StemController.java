@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.controller;
+package io.yggdrash.gateway.controller;
 
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchId;

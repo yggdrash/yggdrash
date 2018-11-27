@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.controller;
+package io.yggdrash.gateway.controller;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;

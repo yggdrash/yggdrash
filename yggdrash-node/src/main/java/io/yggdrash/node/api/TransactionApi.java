@@ -8,7 +8,7 @@ import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.RejectedAccessException;
-import io.yggdrash.node.controller.TransactionDto;
+import io.yggdrash.node.api.dto.TransactionDto;
 
 import java.util.Map;
 

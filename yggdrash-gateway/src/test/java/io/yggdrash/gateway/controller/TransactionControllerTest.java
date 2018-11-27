@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.controller;
+package io.yggdrash.gateway.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.TestUtils;
 import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.node.api.dto.TransactionDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

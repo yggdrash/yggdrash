@@ -14,17 +14,13 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.controller;
+package io.yggdrash.gateway.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.yggdrash.core.blockchain.BlockChain;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
 import org.springframework.context.annotation.Import;
 import org.springframework.mock.web.MockHttpServletResponse;
@@ -38,54 +34,31 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@WebMvcTest(BlockController.class)
+@WebMvcTest(HealthIndicatorController.class)
 @Import(RefreshEndpointAutoConfiguration.class)
 @IfProfileValue(name = "spring.profiles.active", value = "ci")
-public class BlockControllerTest {
-
-    private String basePath;
-
-    @Autowired
-    @Qualifier("stem")
-    private BlockChain stem;
-
+public class HealthIndicatorControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    private JacksonTester<BlockDto> json;
+    @Value("${management.endpoints.web.base-path:/actuator}")
+    private String actuatorRoot;
 
-    @Before
-    public void setUp() {
-        JacksonTester.initFields(this, new ObjectMapper());
-        basePath = String.format("/branches/%s/blocks", stem.getBranchId());
-    }
+    @Value("${management.endpoints.web.path-mapping.health:health}")
+    private String healthPath;
 
     @Test
-    public void shouldGetBlock() throws Exception {
-        MockHttpServletResponse response = mockMvc.perform(get(basePath + "/0"))
+    public void shouldGetHealth() throws Exception {
+
+        MockHttpServletResponse response = mockMvc.perform(get(getPath()))
                 .andExpect(status().isOk())
-                .andReturn().getResponse();
-
-        String contentAsString = response.getContentAsString();
-        String blockHash = json.parseObject(contentAsString).hash;
-
-        mockMvc.perform(get(basePath + "/" + blockHash))
                 .andDo(print())
-                .andExpect(status().isOk())
                 .andReturn().getResponse();
 
-        assertThat(response.getContentAsString()).contains(blockHash);
+        assertThat(response.getContentAsString()).contains("UP");
     }
 
-    @Test
-    public void shouldGetAllBlocks() throws Exception {
-        mockMvc.perform(get(basePath)).andDo(print())
-                .andExpect(status().isOk());
-    }
-
-    @Test
-    public void shouldGetLatest() throws Exception {
-        mockMvc.perform(get(basePath + "/latest")).andDo(print())
-                .andExpect(status().isOk());
+    private String getPath() {
+        return actuatorRoot + "/" + healthPath;
     }
 }
