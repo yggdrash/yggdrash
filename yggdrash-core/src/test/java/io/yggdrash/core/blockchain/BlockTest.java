@@ -20,10 +20,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.util.TimeUtils;
-import io.yggdrash.core.blockchain.genesis.BranchJson;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.wallet.Wallet;
-import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -34,9 +32,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
-import static junit.framework.TestCase.assertTrue;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockTest {
 
@@ -105,11 +101,10 @@ public class BlockTest {
     public void shouldBeLoadedBranchJsonFile() throws IOException {
         ClassLoader loader = TestUtils.class.getClassLoader();
         InputStream is = loader.getResourceAsStream("branch-sample.json");
-        BranchJson branchJson = BranchJson.toBranchJson(is);
+        GenesisBlock genesisBlock = GenesisBlock.of(is);
 
-        GenesisBlock genesisBlock = new GenesisBlock(branchJson);
-        Assertions.assertThat(genesisBlock.getBlock()).isNotNull();
-        Assertions.assertThat(genesisBlock.getBlock().getIndex()).isEqualTo(0);
+        assertThat(genesisBlock.getBlock()).isNotNull();
+        assertThat(genesisBlock.getBlock().getIndex()).isEqualTo(0);
     }
 
     @Test
@@ -119,18 +114,18 @@ public class BlockTest {
         BlockSignature blockSig2 = new BlockSignature(wallet, blockHeader2.getHashForSigning());
         Block block2 = new Block(blockHeader2, blockSig2.getSignature(), blockBody2);
 
-        assertTrue(block2.verify());
-        assertEquals(block1.toJsonObject(), block2.toJsonObject());
+        assertThat(block2.verify()).isTrue();
+        assertThat(block1.toJsonObject()).isEqualTo(block2.toJsonObject());
 
         Block block3 = new Block(
                 blockHeader2.clone(), wallet, block2.getBody().clone());
 
-        assertTrue(block3.verify());
-        assertEquals(block1.toJsonObject(), block3.toJsonObject());
+        assertThat(block3.verify()).isTrue();
+        assertThat(block1.toJsonObject()).isEqualTo(block3.toJsonObject());
 
         Block block4 = new Block(block1.toJsonObject());
-        assertTrue(block4.verify());
-        assertEquals(block1.toJsonObject().toString(), block4.toJsonObject().toString());
+        assertThat(block4.verify()).isTrue();
+        assertThat(block1.toJsonObject().toString()).isEqualTo(block4.toJsonObject().toString());
     }
 
     @Test
@@ -138,9 +133,9 @@ public class BlockTest {
         Block block2 = block1.clone();
         log.debug("block2=" + block2.toJsonObject());
 
-        assertEquals(block1.getHashHexString(), block2.getHashHexString());
-        assertEquals(block1.toJsonObject().toString(), block2.toJsonObject().toString());
-        assertArrayEquals(block1.getSignature(), block2.getSignature());
+        assertThat(block1.getHashHexString()).isEqualTo(block2.getHashHexString());
+        assertThat(block1.toJsonObject().toString()).isEqualTo(block2.toJsonObject().toString());
+        assertThat(block1.getSignature()).isEqualTo(block2.getSignature());
     }
 
     @Test
@@ -148,16 +143,16 @@ public class BlockTest {
         Block block2 = block1.clone();
         log.debug("block2 pubKey=" + block2.getPubKeyHexString());
 
-        assertEquals(block1.getPubKeyHexString(), block2.getPubKeyHexString());
-        assertArrayEquals(block1.getPubKey(), block2.getPubKey());
-        assertArrayEquals(block1.getPubKey(), wallet.getPubicKey());
+        assertThat(block1.getPubKeyHexString()).isEqualTo(block2.getPubKeyHexString());
+        assertThat(block1.getPubKey()).isEqualTo(block2.getPubKey());
+        assertThat(block1.getPubKey()).isEqualTo(wallet.getPubicKey());
 
         log.debug("block1 author address=" + block1.getAddressHexString());
         log.debug("block2 author address=" + block2.getAddressHexString());
         log.debug("wallet address=" + wallet.getHexAddress());
-        assertEquals(block1.getAddressHexString(), block2.getAddressHexString());
-        assertEquals(block1.getAddressHexString(), wallet.getHexAddress());
-        assertTrue(block1.verify());
-        assertTrue(block2.verify());
+        assertThat(block1.getAddressHexString()).isEqualTo(block2.getAddressHexString());
+        assertThat(block1.getAddressHexString()).isEqualTo(wallet.getHexAddress());
+        assertThat(block1.verify()).isTrue();
+        assertThat(block2.verify()).isTrue();
     }
 }

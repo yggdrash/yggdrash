@@ -20,13 +20,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionHeader;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.TransactionSignature;
-import io.yggdrash.core.blockchain.genesis.BranchJson;
 import io.yggdrash.core.wallet.Wallet;
 
 import java.math.BigDecimal;
@@ -41,7 +41,7 @@ public class ContractTx {
         if (!branch.has("timestamp")) {
             branch.addProperty("timestamp", TimeUtils.hexTime());
         }
-        BranchJson.signBranch(wallet, branch);
+        Branch.signBranch(wallet, branch);
         BranchId branchId = BranchId.of(branch);
         JsonArray txBody = txBodyJson(createStemParams(branchId, branch), method);
         return createTx(wallet, TestUtils.STEM, txBody);

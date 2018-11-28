@@ -20,7 +20,6 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.blockchain.genesis.BranchJson;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.contract.ContractClassLoader;
@@ -111,9 +110,7 @@ public class BranchConfiguration {
 
     private BlockChain addBranch(InputStream is, PeerGroup peerGroup, BranchGroup branchGroup)
             throws IOException {
-        BranchJson branchJson = BranchJson.toBranchJson(is);
-        GenesisBlock genesis = new GenesisBlock(branchJson);
-
+        GenesisBlock genesis = GenesisBlock.of(is);
         return addBranch(genesis, peerGroup, branchGroup);
     }
 

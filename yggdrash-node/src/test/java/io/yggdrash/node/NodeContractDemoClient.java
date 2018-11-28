@@ -10,9 +10,9 @@ import io.yggdrash.TestUtils;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.util.Utils;
+import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.blockchain.genesis.BranchJson;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.contract.ContractQry;
 import io.yggdrash.core.contract.ContractTx;
@@ -351,18 +351,18 @@ public class NodeContractDemoClient {
     }
 
     private static void deployBranch() throws Exception {
-        JsonObject branch = getBranch();
+        JsonObject json = getBranch();
         System.out.print("Contract Id를 입력하세요\n> ");
         String contractId = scan.nextLine();
 
         if ("".equals(contractId)) {
-            contractId = branch.get("contractId").getAsString();
+            contractId = json.get("contractId").getAsString();
         }
-        branch.addProperty("contractId", contractId);
+        json.addProperty("contractId", contractId);
 
-        BranchJson.signBranch(wallet, branch);
-        BranchId branchId = BranchId.of(branch);
-        saveBranchAsFile(branchId, branch);
+        Branch.signBranch(wallet, json);
+        Branch branch = Branch.of(json);
+        saveBranchAsFile(branch);
     }
 
     private static void balance() throws Exception {
@@ -445,9 +445,9 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static void saveBranchAsFile(BranchId branchId, JsonObject branch) throws IOException {
-        String json = new GsonBuilder().setPrettyPrinting().create().toJson(branch);
-        saveFile(branchId, json);
+    private static void saveBranchAsFile(Branch branch) throws IOException {
+        String json = new GsonBuilder().setPrettyPrinting().create().toJson(branch.getJson());
+        saveFile(branch.getBranchId(), json);
     }
 
     private static void saveFile(BranchId branchId, String json)

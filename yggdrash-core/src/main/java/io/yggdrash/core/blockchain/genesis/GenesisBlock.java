@@ -1,28 +1,30 @@
 package io.yggdrash.core.blockchain.genesis;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionHeader;
+import io.yggdrash.core.contract.ContractId;
 
 import java.io.IOException;
+import java.io.InputStream;
 
 public class GenesisBlock {
     private final BlockHusk block;
-    private final BranchJson branchJson;
+    private final Branch branch;
 
     /**
      * Build genesis for dynamic branch.json
      *
-     * @param branchJson dynamic loaded json
+     * @param branch branch info
      */
-    public GenesisBlock(BranchJson branchJson) throws IOException {
-        this.branchJson = branchJson;
+    private GenesisBlock(Branch branch) throws IOException {
+        this.branch = branch;
         this.block = toBlock();
     }
 
@@ -30,8 +32,8 @@ public class GenesisBlock {
         return block;
     }
 
-    public String getContractId() {
-        return branchJson.contractId;
+    public ContractId getContractId() {
+        return branch.getContractId();
     }
 
     private BlockHusk toBlock() throws IOException {
@@ -50,34 +52,29 @@ public class GenesisBlock {
 
         // todo: change values(version, type) using the configuration.
         BlockHeader blockHeader = new BlockHeader(
-                branchJson.branchId().getBytes(),
+                branch.getBranchId().getBytes(),
                 new byte[8],
                 new byte[8],
                 new byte[32],
                 0L,
-                branchJson.longTimestamp(),
+                branch.getTimestamp(),
                 blockBody.getMerkleRoot(),
                 blockBody.length());
 
-        JsonObject jsonObjectBlock = new JsonObject();
-        jsonObjectBlock.add("header", blockHeader.toJsonObject());
-        jsonObjectBlock.addProperty("signature", branchJson.signature);
-        jsonObjectBlock.add("body", jsonArrayBody);
-
-        return toJsonObject(blockHeader.toJsonObject(), branchJson.signature, jsonArrayBody);
+        return toJsonObject(blockHeader.toJsonObject(), jsonArrayBody);
     }
 
     private JsonObject toJsonObjectTx() {
         JsonArray jsonArrayBody = toJsonArrayTxBody();
         // todo: change values(version, type) using the configuration.
         TransactionHeader txHeader = new TransactionHeader(
-                branchJson.branchId().getBytes(),
+                branch.getBranchId().getBytes(),
                 new byte[8],
                 new byte[8],
-                branchJson.longTimestamp(),
+                branch.getTimestamp(),
                 new TransactionBody(jsonArrayBody));
 
-        return toJsonObject(txHeader.toJsonObject(), branchJson.signature, jsonArrayBody);
+        return toJsonObject(txHeader.toJsonObject(), jsonArrayBody);
     }
 
     private JsonArray toJsonArrayTxBody() {
@@ -85,36 +82,38 @@ public class GenesisBlock {
         JsonObject jsonObjectTx = new JsonObject();
         jsonArrayTxBody.add(jsonObjectTx);
 
-        JsonObject jsonObjectBranch = branchJson.toJsonObject();
-
-        JsonArray params = toGenesisParams(jsonObjectBranch, branchJson.isStem());
-        jsonObjectTx.add("params", params);
-
         jsonObjectTx.addProperty("method", "genesis");
-        jsonObjectTx.add("branch", jsonObjectBranch);
+        JsonArray params = toGenesisParams();
+        jsonObjectTx.add("params", params);
+        jsonObjectTx.add("branch", branch.getJson());
 
         return jsonArrayTxBody;
     }
 
-    private JsonArray toGenesisParams(JsonObject jsonObjectBranch, boolean isStem) {
-        JsonElement jsonElementGenesis = jsonObjectBranch.remove("genesis");
+    private JsonArray toGenesisParams() {
         JsonArray params = new JsonArray();
-        if (isStem) {
+        if (branch.isStem()) {
             JsonObject param = new JsonObject();
-            param.add(jsonObjectBranch.get("branchId").getAsString(), jsonObjectBranch);
+            param.add(branch.getBranchId().toString(), branch.getJson());
             params.add(param);
         } else {
-            params.add(jsonElementGenesis);
+            params.add(branch.getJson().get("genesis"));
         }
 
         return params;
     }
 
-    private JsonObject toJsonObject(JsonObject header, String signature, JsonArray body) {
+    private JsonObject toJsonObject(JsonObject header, JsonArray body) {
         JsonObject jsonObject = new JsonObject();
         jsonObject.add("header", header);
-        jsonObject.addProperty("signature", signature);
+        jsonObject.addProperty("signature", branch.getSignature().toString());
         jsonObject.add("body", body);
         return jsonObject;
     }
+
+    public static GenesisBlock of(InputStream is) throws IOException {
+        Branch branch = Branch.of(is);
+        return new GenesisBlock(branch);
+    }
+
 }
