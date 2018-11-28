@@ -22,6 +22,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.Utils;
@@ -70,7 +71,7 @@ public class BranchJson {
     }
 
     boolean isStem() {
-        return symbol != null && "STEM".equals(symbol);
+        return symbol != null && Constants.STEM.equals(symbol);
     }
 
     JsonObject toJsonObject() {

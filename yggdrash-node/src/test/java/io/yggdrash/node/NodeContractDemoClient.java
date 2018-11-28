@@ -18,7 +18,7 @@ import io.yggdrash.core.contract.ContractQry;
 import io.yggdrash.core.contract.ContractTx;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.api.JsonRpcConfig;
-import io.yggdrash.node.controller.TransactionDto;
+import io.yggdrash.node.api.dto.TransactionDto;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 

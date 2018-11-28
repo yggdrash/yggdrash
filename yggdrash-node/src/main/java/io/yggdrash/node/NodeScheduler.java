@@ -51,7 +51,7 @@ class NodeScheduler {
 
     private final boolean isSeedPeer;
 
-    @Autowired(required = false)
+    @Autowired
     public NodeScheduler(PeerGroup peerGroup, NodeManager nodeManager, NodeStatus nodeStatus) {
         this.peerGroup = peerGroup;
         this.nodeManager = nodeManager;
@@ -114,6 +114,9 @@ class NodeScheduler {
     }
 
     private boolean isSeedPeer(List<String> seedPeerList) {
+        if (seedPeerList == null) {
+            return true;
+        }
         String nodeUriWithoutPubKey = nodeManager.getNodeUri();
         nodeUriWithoutPubKey = nodeUriWithoutPubKey.substring(nodeUriWithoutPubKey.indexOf("@"));
         for (String seedPeer : seedPeerList) {

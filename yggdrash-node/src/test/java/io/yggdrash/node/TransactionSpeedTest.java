@@ -43,6 +43,7 @@ public class TransactionSpeedTest {
     private static final Logger log = LoggerFactory.getLogger(TransactionSpeedTest.class);
 
     private static final long MAX = 100L;
+    private static final long TIMEOUT = 3000L;
 
     private TransactionBody txBody;
     private TransactionHeader txHeader;
@@ -83,7 +84,7 @@ public class TransactionSpeedTest {
         txBytes1 = tx1.toBinary();
     }
 
-    @Test (timeout = 1000L)
+    @Test (timeout = TIMEOUT)
     public void testSpeedTransactionConstructor_1() {
 
         long startTime;
@@ -109,7 +110,7 @@ public class TransactionSpeedTest {
         log.info(" Transaction:Constructor(Header,sig,body) nanoTime:" + averageTime);
     }
 
-    @Test(timeout = 1000L)
+    @Test(timeout = TIMEOUT)
     public void testSpeedTransactionConstructor_2() {
 
         long startTime;
@@ -135,7 +136,7 @@ public class TransactionSpeedTest {
         log.info(" Transaction:Constructor(Header,wallet,body) nanoTime:" + averageTime);
     }
 
-    @Test (timeout = 1000L)
+    @Test (timeout = TIMEOUT)
     public void testSpeedTransactionConstructor_3() {
 
         long startTime;
@@ -161,7 +162,7 @@ public class TransactionSpeedTest {
         log.info(" Transaction:Constructor(jsonObject) nanoTime:" + averageTime);
     }
 
-    @Test (timeout = 1000L)
+    @Test (timeout = TIMEOUT)
     public void testSpeedTransactionConstructor_4() {
 
         long startTime;
@@ -187,7 +188,7 @@ public class TransactionSpeedTest {
         log.info(" Transaction:Constructor(byte[]) nanoTime:" + averageTime);
     }
 
-    @Test(timeout = 2000L)
+    @Test(timeout = TIMEOUT)
     public void testSpeedTransactionVerify() {
 
         long startTime;

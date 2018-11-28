@@ -30,7 +30,6 @@ import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.StoreBuilder;
-import io.yggdrash.node.WebsocketSender;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -52,7 +51,6 @@ public class BranchConfigurationTest {
 
     private static final DefaultConfig config = new DefaultConfig();
     private static final Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-    private static final WebsocketSender sender = new WebsocketSender(null);
     private static final ResourceLoader loader = new DefaultResourceLoader();
 
     private PeerGroup peerGroup;
@@ -68,7 +66,7 @@ public class BranchConfigurationTest {
     public void addStemBranchTest() throws IOException {
         BranchGroup branchGroup = getBranchGroup();
         branchConfig.stemResource = loader.getResource("classpath:/branch-stem.json");
-        BlockChain blockChain = branchConfig.stem(peerGroup, branchGroup, sender);
+        BlockChain blockChain = branchConfig.stem(peerGroup, branchGroup);
         blockChain.close();
         assert blockChain.getBranchId().equals(TestUtils.STEM);
         assert branchGroup.getBranchSize() == 1;
@@ -85,7 +83,7 @@ public class BranchConfigurationTest {
     public void addYeedBranchTest() throws IOException {
         BranchGroup branchGroup = getBranchGroup();
         branchConfig.yeedResource = loader.getResource("classpath:/branch-yeed.json");
-        BlockChain blockChain = branchConfig.yeed(peerGroup, branchGroup, sender);
+        BlockChain blockChain = branchConfig.yeed(peerGroup, branchGroup);
         assert blockChain.getBranchId().equals(TestUtils.YEED);
         assert branchGroup.getBranchSize() == 1;
     }
@@ -108,7 +106,7 @@ public class BranchConfigurationTest {
 
     private BranchGroup getBranchGroup() {
         BranchLoader loader = branchConfig.branchLoader(config);
-        return branchConfig.branchGroup(loader, peerGroup, sender);
+        return branchConfig.branchGroup(loader, peerGroup);
     }
 
     private void assertTransaction(BlockChain branch) throws IOException {

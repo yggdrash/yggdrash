@@ -1,3 +1,4 @@
 rootProject.name = 'yggdrash'
 include 'yggdrash-core'
 include 'yggdrash-node'
+include 'yggdrash-gateway'

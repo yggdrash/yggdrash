@@ -27,7 +27,6 @@ import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.StoreBuilder;
-import io.yggdrash.node.WebsocketSender;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,46 +62,38 @@ public class BranchConfiguration {
 
     @Bean("stem")
     @ConditionalOnProperty("yggdrash.branch.default.active")
-    BlockChain stem(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
+    BlockChain stem(PeerGroup peerGroup, BranchGroup branchGroup)
             throws IOException {
-        BlockChain blockChain = addBranch(stemResource.getInputStream(), peerGroup, branchGroup,
-                websocketSender);
-        if (blockChain != null) {
-            websocketSender.setStemBranchId(blockChain.getBranchId());
-        }
-        return blockChain;
+        return addBranch(stemResource.getInputStream(), peerGroup, branchGroup);
     }
 
     @Bean("yeed")
     @ConditionalOnProperty("yggdrash.branch.default.active")
-    BlockChain yeed(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
+    BlockChain yeed(PeerGroup peerGroup, BranchGroup branchGroup)
             throws IOException {
-        return addBranch(yeedResource.getInputStream(), peerGroup, branchGroup,
-                websocketSender);
+        return addBranch(yeedResource.getInputStream(), peerGroup, branchGroup);
     }
 
     @Bean("sw")
     @ConditionalOnProperty("yggdrash.branch.default.active")
-    BlockChain none(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
+    BlockChain none(PeerGroup peerGroup, BranchGroup branchGroup)
             throws IOException {
-        return addBranch(swResource.getInputStream(), peerGroup, branchGroup,
-                websocketSender);
+        return addBranch(swResource.getInputStream(), peerGroup, branchGroup);
     }
 
     @Bean("asset")
     @ConditionalOnProperty("yggdrash.branch.default.active")
-    BlockChain asset(PeerGroup peerGroup, BranchGroup branchGroup, WebsocketSender websocketSender)
+    BlockChain asset(PeerGroup peerGroup, BranchGroup branchGroup)
             throws IOException {
-        return addBranch(assetResource.getInputStream(), peerGroup, branchGroup,
-                websocketSender);
+        return addBranch(assetResource.getInputStream(), peerGroup, branchGroup);
     }
 
     @Bean
-    BranchGroup branchGroup(BranchLoader loader, PeerGroup peerGroup, WebsocketSender sender) {
+    BranchGroup branchGroup(BranchLoader loader, PeerGroup peerGroup) {
         BranchGroup branchGroup = new BranchGroup();
         try {
             for (GenesisBlock genesis : loader.getGenesisBlockList()) {
-                addBranch(genesis, peerGroup, branchGroup, sender);
+                addBranch(genesis, peerGroup, branchGroup);
             }
         } catch (Exception e2) {
             log.warn(e2.getMessage(), e2);
@@ -118,22 +109,21 @@ public class BranchConfiguration {
         return new BranchLoader(defaultConfig.getBranchPath());
     }
 
-    private BlockChain addBranch(InputStream is, PeerGroup peerGroup, BranchGroup branchGroup,
-                                 WebsocketSender sender) throws IOException {
+    private BlockChain addBranch(InputStream is, PeerGroup peerGroup, BranchGroup branchGroup)
+            throws IOException {
         BranchJson branchJson = BranchJson.toBranchJson(is);
         GenesisBlock genesis = new GenesisBlock(branchJson);
 
-        return addBranch(genesis, peerGroup, branchGroup, sender);
+        return addBranch(genesis, peerGroup, branchGroup);
     }
 
-    private BlockChain addBranch(GenesisBlock genesis, PeerGroup peerGroup, BranchGroup branchGroup,
-                                 WebsocketSender sender) {
+    private BlockChain addBranch(GenesisBlock genesis, PeerGroup peerGroup,
+                                 BranchGroup branchGroup) {
         try {
             BlockChain branch = BlockChainBuilder.Builder()
                     .addGenesis(genesis)
                     .setStoreBuilder(storeBuilder)
                     .build();
-            branch.addListener(sender);
             branchGroup.addBranch(branch, peerGroup);
             PeerStore peerStore = storeBuilder.buildPeerStore(branch.getBranchId());
             peerGroup.addPeerTable(branch.getBranchId(), peerStore);

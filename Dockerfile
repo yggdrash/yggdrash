@@ -5,7 +5,7 @@ ADD . /yggdrash/
 RUN \
     cd /yggdrash && \
     ./gradlew clean build -x test && \
-    mv /yggdrash/yggdrash-node/build/libs/*.jar /app.jar
+    mv /yggdrash/yggdrash-node/build/libs/*node.jar /app.jar
 
 FROM openjdk:8-jre-alpine
 MAINTAINER YGGDRASH

@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.Provider;
 import java.security.Security;
 
 import static java.util.Arrays.copyOfRange;
@@ -33,35 +32,11 @@ public class HashUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(HashUtil.class);
 
-    private static final Provider CRYPTO_PROVIDER;
-
-    private static final String HASH_256_ALGORITHM_NAME;
-
-    private static final String HASH_SHA_1_ALGORITHM_NAME;
+    private static final String HASH_256_ALGORITHM_NAME = "KECCAK-256";
+    private static final String HASH_SHA_1_ALGORITHM_NAME = "SHA-1";
 
     static {
-
         Security.addProvider(SpongyCastleProvider.getInstance());
-
-        CRYPTO_PROVIDER = Security.getProvider("SC");
-        HASH_256_ALGORITHM_NAME = "ETH-KECCAK-256";
-        HASH_SHA_1_ALGORITHM_NAME = "SHA-1";
-    }
-
-    /**
-     * SHA256 Hash Method.
-     * @param input - data for hashing
-     * @return - sha256 hash of the data
-     * @deprecated Use hash()
-     */
-    public static byte[] sha256(byte[] input) {
-        try {
-            MessageDigest sha256digest = MessageDigest.getInstance("SHA-256");
-            return sha256digest.digest(input);
-        } catch (NoSuchAlgorithmException e) {
-            LOG.error("Can't find such algorithm", e);
-            throw new RuntimeException(e);
-        }
     }
 
     /**
@@ -69,35 +44,9 @@ public class HashUtil {
      *
      * @param input data
      * @return hashed data
-     * @deprecated Use hash()
      */
     public static byte[] sha3(byte[] input) {
-        MessageDigest digest;
-        try {
-            digest = MessageDigest.getInstance(HASH_256_ALGORITHM_NAME, CRYPTO_PROVIDER);
-            digest.update(input);
-            return digest.digest();
-        } catch (NoSuchAlgorithmException e) {
-            LOG.error("Can't find such algorithm", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * SHA1 Hash Method.
-     *
-     * @param input data
-     * @return hashed data
-     * @deprecated Use hash()
-     */
-    public static byte[] sha1(byte[] input) {
-        try {
-            MessageDigest sha256digest = MessageDigest.getInstance(HASH_SHA_1_ALGORITHM_NAME);
-            return sha256digest.digest(input);
-        } catch (NoSuchAlgorithmException e) {
-            LOG.error("Can't find such algorithm", e);
-            throw new RuntimeException(e);
-        }
+        return hash(input, HASH_256_ALGORITHM_NAME);
     }
 
     /**
@@ -113,10 +62,41 @@ public class HashUtil {
     }
 
     /**
+     * SHA1 Hash Method.
+     *
+     * @param input data
+     * @return hashed data
+     */
+    public static byte[] sha1(byte[] input) {
+        return hash(input, HASH_SHA_1_ALGORITHM_NAME);
+    }
+
+    /**
+     * SHA256 Hash Method.
+     *
+     * @param input - data for hashing
+     * @return - sha256 hash of the data
+     */
+    public static byte[] sha256(byte[] input) {
+        return hash(input, "SHA-256");
+    }
+
+    /**
+     * The hash method for supporting many algorithms.
+     *
+     * @param input     data for hashing.
+     * @param algorithm algorithm for hashing. ex) "KECCAK-256", "SHA-256", "SHA3-256", "SHA-1"
+     * @return hashed data.
+     */
+    public static byte[] hash(byte[] input, String algorithm) {
+        return hash(input, algorithm, false);
+    }
+
+    /**
      * The hash method for supporting many algorithms.
      *
      * @param input      data for hashing.
-     * @param algorithm  algorithm for hashing. ex) "SHA-256", "KECCAK-256", "SHA3-256", "SHA-1"
+     * @param algorithm  algorithm for hashing. ex) "KECCAK-256", "SHA-256", "SHA3-256", "SHA-1"
      * @param doubleHash whether double hash or not
      * @return hashed data.
      */
@@ -128,27 +108,6 @@ public class HashUtil {
             LOG.error("Can't find such algorithm", e);
             throw new RuntimeException(e);
         }
-    }
-
-    /**
-     * The hash method for supporting many algorithms.
-     *
-     * @param input     data for hashing.
-     * @param algorithm algorithm for hashing. ex) "SHA-256", "KECCAK-256", "SHA3-256", "SHA-1"
-     * @return hashed data.
-     */
-    public static byte[] hash(byte[] input, String algorithm) {
-        return hash(input, algorithm, false);
-    }
-
-    /**
-     * The hash method for KECCAK-256.
-     *
-     * @param input data for hashing.
-     * @return hashed data.
-     */
-    public static byte[] hash(byte[] input) {
-        return hash(input, "KECCAK-256");
     }
 
 }

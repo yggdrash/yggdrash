@@ -5,6 +5,7 @@ import com.googlecode.jsonrpc4j.JsonRpcErrors;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
 import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.node.api.dto.AdminDto;
 
 @JsonRpcService("/api/admin")
 public interface AdminApi {

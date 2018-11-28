@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-public class AssetContract extends BaseContract<JsonArray> {
+public class AssetContract implements Contract<JsonArray> {
 
     private static final Logger log = LoggerFactory.getLogger(AssetContract.class);
 
@@ -46,7 +46,6 @@ public class AssetContract extends BaseContract<JsonArray> {
     public boolean invoke(TransactionHusk txHusk) {
         TransactionReceipt txReceipt;
         try {
-            this.sender = txHusk.getAddress().toString();
             JsonObject txBody = Utils.parseJsonArray(txHusk.getBody()).get(0).getAsJsonObject();
 
             dataFormatValidation(txBody);
