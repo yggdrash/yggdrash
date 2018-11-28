@@ -56,8 +56,9 @@ public class ContractMeta {
         return contractBinary;
     }
 
-    static File contractFile(String rootPath, String contractId) {
-        String filePath = contractId.substring(0, 2) + File.separator + contractId + SUFFIX;
+    static File contractFile(String rootPath, ContractId contractId) {
+        String filePath = contractId.toString().substring(0, 2) + File.separator
+                + contractId + SUFFIX;
         return new File(rootPath + File.separator + filePath);
     }
 
