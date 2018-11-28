@@ -52,4 +52,8 @@ public class Address {
     public String toString() {
         return Hex.toHexString(data);
     }
+
+    public static Address of(String addr) {
+        return new Address(Hex.decode(addr));
+    }
 }
