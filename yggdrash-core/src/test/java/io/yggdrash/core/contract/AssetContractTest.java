@@ -22,12 +22,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionHeader;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.TransactionSignature;
-import io.yggdrash.core.blockchain.genesis.BranchJson;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.wallet.Wallet;
@@ -197,7 +197,7 @@ public class AssetContractTest {
         branch.addProperty("contractId", "dadb74381eec75ec6d3f91c12dfc8e286d6e736f");
         branch.add("genesis", genesis);
         branch.addProperty("timestamp", "00000166c837f0c9");
-        BranchJson.signBranch(wallet, branch);
+        Branch.signBranch(wallet, branch);
 
         log.info(new GsonBuilder().setPrettyPrinting().create().toJson(branch));
     }

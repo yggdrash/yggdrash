@@ -31,7 +31,6 @@ public class BranchLoader {
     private final File branchRoot;
     private final List<GenesisBlock> genesisBlockList = new ArrayList<>();
 
-
     public BranchLoader(String branchPath) {
         this.branchRoot = new File(branchPath);
         if (!branchRoot.exists()) {
@@ -44,8 +43,8 @@ public class BranchLoader {
         for (File branchDir : branchRoot.listFiles()) {
             File branchFile = new File(branchDir, BRANCH_FILE);
             try (FileInputStream is = new FileInputStream(branchFile)) {
-                BranchJson branchJson = BranchJson.toBranchJson(is);
-                genesisBlockList.add(new GenesisBlock(branchJson));
+                GenesisBlock genesisBlock = GenesisBlock.of(is);
+                genesisBlockList.add(genesisBlock);
             } catch (Exception e) {
                 log.error(e.getMessage());
             }

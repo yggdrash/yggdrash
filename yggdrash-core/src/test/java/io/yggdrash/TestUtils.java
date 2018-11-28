@@ -31,10 +31,10 @@ import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BlockSignature;
+import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.blockchain.genesis.BranchJson;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.contract.ContractTx;
 import io.yggdrash.core.exception.InvalidSignatureException;
@@ -64,9 +64,7 @@ public class TestUtils {
         ClassLoader loader = TestUtils.class.getClassLoader();
         try (InputStream is = loader.getResourceAsStream("branch-sample.json")) {
             wallet = new Wallet();
-
-            BranchJson branchJson = BranchJson.toBranchJson(is);
-            genesis = new GenesisBlock(branchJson);
+            genesis = GenesisBlock.of(is);
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
@@ -193,7 +191,7 @@ public class TestUtils {
                         + "It is also an aggregate and a blockchain containing information "
                         + "of all Branch Chains.";
         String contractId = "d399cd6d34288d04ba9e68ddfda9f5fe99dd778e";
-        return createBranch(name, symbol, property, type, description, contractId);
+        return createBranch(name, symbol, property, type, description, contractId, null);
     }
 
     private static Transaction sampleCreateBranchTx(Wallet wallet) {
@@ -206,7 +204,8 @@ public class TestUtils {
                                           String property,
                                           String type,
                                           String description,
-                                          String contractId) {
+                                          String contractId,
+                                          String timestamp) {
         JsonObject branch = new JsonObject();
         branch.addProperty("name", name);
         branch.addProperty("symbol", symbol);
@@ -215,8 +214,12 @@ public class TestUtils {
         branch.addProperty("description", description);
         branch.addProperty("contractId", contractId);
         branch.add("genesis", new JsonObject());
-        branch.addProperty("timestamp", "00000166c837f0c9");
-        BranchJson.signBranch(wallet, branch);
+        if (timestamp == null) {
+            branch.addProperty("timestamp", "00000166c837f0c9");
+        } else {
+            branch.addProperty("timestamp", timestamp);
+        }
+        Branch.signBranch(wallet, branch);
         return branch;
     }
 

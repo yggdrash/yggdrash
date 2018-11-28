@@ -176,6 +176,6 @@ public class StemContractTest {
         String type = "immunity";
         String description = "ETH TO YEED";
         String contractId = "b5790adeafbb9ac6c9be60955484ab1547ab0b76";
-        return TestUtils.createBranch(name, symbol, property, type, description, contractId);
+        return TestUtils.createBranch(name, symbol, property, type, description, contractId, null);
     }
 }

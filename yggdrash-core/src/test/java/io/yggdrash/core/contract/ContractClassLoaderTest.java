@@ -40,7 +40,8 @@ public class ContractClassLoaderTest {
     public void testContract() throws  IllegalAccessException, InstantiationException,
             InvocationTargetException {
 
-        File contractNone = ContractMeta.contractFile(".yggdrash/contract", NONE_CONTRACT);
+        ContractId noneContractId = ContractId.of(NONE_CONTRACT);
+        File contractNone = ContractMeta.contractFile(".yggdrash/contract", noneContractId);
         assertEquals(".yggdrash/contract/3f/" + NONE_CONTRACT + ".class",
                 contractNone.getPath());
 
