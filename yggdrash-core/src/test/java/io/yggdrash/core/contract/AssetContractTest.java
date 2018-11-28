@@ -58,7 +58,7 @@ public class AssetContractTest {
     private static final String DBNAME = "assetManagement";
     private static final String DBNAME1 = "assetManagement1";
     private static final String DBNAME2 = "assetManagement2";
-    
+
     // user table
     private static final String TABLENAME_USER = "user";
     private static final String TABLENAME_USER1 = "user1";
@@ -80,7 +80,7 @@ public class AssetContractTest {
     private JsonObject recordObjectAsset1;
     private JsonObject keyObjectAsset2;
     private JsonObject recordObjectAsset2;
-    
+
     public AssetContractTest() throws IOException, InvalidCipherTextException {
         defaultConfig = new DefaultConfig();
         wallet = new Wallet(defaultConfig);
@@ -199,7 +199,9 @@ public class AssetContractTest {
         branch.addProperty("timestamp", "00000166c837f0c9");
         Branch.signBranch(wallet, branch);
 
-        log.info(new GsonBuilder().setPrettyPrinting().create().toJson(branch));
+        String branchJsonString = new GsonBuilder().setPrettyPrinting().create().toJson(branch);
+        assert branchJsonString.contains("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        assert branchJsonString.contains("signature");
     }
 
     private  TransactionHusk makeTransaction(JsonArray txBodyArray) {
@@ -519,7 +521,7 @@ public class AssetContractTest {
         paramsArray.add(paramsObject);
 
         bodyObject.add("params", paramsArray);
-        
+
         JsonArray txBodyArray = new JsonArray();
         txBodyArray.add(bodyObject);
 
