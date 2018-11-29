@@ -41,9 +41,9 @@ public class ContractTx {
             json.addProperty("timestamp", TimeUtils.hexTime());
         }
         TestUtils.signBranch(wallet, json);
-        StemBranch branch = StemBranch.of(json);
-        JsonArray txBody =
-                txBodyJson(createStemParams(branch.getBranchId(), branch.getJson()), method);
+        StemContractStateValue stateValue = StemContractStateValue.of(json);
+        JsonArray params = createStemParams(stateValue.getBranchId(), stateValue.getJson());
+        JsonArray txBody = txBodyJson(params, method);
         return createTx(wallet, TestUtils.STEM, txBody);
     }
 

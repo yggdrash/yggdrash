@@ -38,8 +38,8 @@ public class RuntimeTest {
     private static final Logger log = LoggerFactory.getLogger(RuntimeTest.class);
     private final TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
     private final Contract<CoinStateTable> coinContract = new CoinContract();
-    private final Contract<StemBranch> stemContract = new StemContract();
-    private io.yggdrash.core.contract.Runtime<StemBranch> stemRuntime;
+    private final Contract<StemContractStateValue> stemContract = new StemContract();
+    private io.yggdrash.core.contract.Runtime<StemContractStateValue> stemRuntime;
     private io.yggdrash.core.contract.Runtime<CoinStateTable> yeedRuntime;
     private Wallet wallet;
     private BranchId branchId;

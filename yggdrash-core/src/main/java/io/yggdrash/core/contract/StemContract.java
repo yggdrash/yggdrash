@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class StemContract extends BaseContract<StemBranch> {
+public class StemContract extends BaseContract<StemContractStateValue> {
 
     private static final Logger log = LoggerFactory.getLogger(StemContract.class);
 
@@ -40,16 +40,16 @@ public class StemContract extends BaseContract<StemBranch> {
             BranchId branchId = BranchId.of(entry.getKey());
             JsonObject json = entry.getValue().getAsJsonObject();
             txReceipt.putLog(branchId.toString(), json);
-            StemBranch branch;
+            StemContractStateValue stateValue;
             try {
-                branch = StemBranch.of(json);
+                stateValue = StemContractStateValue.of(json);
             } catch (Exception e) {
                 log.warn("Failed to convert Branch = {}", json);
                 continue;
             }
-            if (getBranch(branchId) == null && isBranchIdValid(branchId, branch)) {
-                branch.init();
-                state.put(branchId.toString(), branch);
+            if (getStateValue(branchId) == null && isBranchIdValid(branchId, stateValue)) {
+                stateValue.init();
+                state.put(branchId.toString(), stateValue);
                 setSubState(branchId.toString(), json);
 
                 txReceipt.setStatus(TransactionReceipt.SUCCESS);
@@ -74,9 +74,9 @@ public class StemContract extends BaseContract<StemBranch> {
             BranchId branchId = BranchId.of(entry.getKey());
             JsonObject json = entry.getValue().getAsJsonObject();
             txReceipt.putLog(branchId.toString(), json);
-            StemBranch branch = getBranch(branchId);
-            if (branch != null && isOwnerValid(json.get("owner").getAsString())) {
-                updateBranch(branch, json);
+            StemContractStateValue stateValue = getStateValue(branchId);
+            if (stateValue != null && isOwnerValid(json.get("owner").getAsString())) {
+                updateBranch(stateValue, json);
                 txReceipt.setStatus(TransactionReceipt.SUCCESS);
                 log.info("[StemContract | update] branchId => " + branchId);
                 log.info("[StemContract | update] branch => " + json);
@@ -85,17 +85,17 @@ public class StemContract extends BaseContract<StemBranch> {
         return txReceipt;
     }
 
-    private void updateBranch(StemBranch branch, JsonObject json) {
+    private void updateBranch(StemContractStateValue stateValue, JsonObject json) {
         if (json.has("tag")) {
-            branch.setTag(json.get("tag").getAsString());
+            stateValue.setTag(json.get("tag").getAsString());
         }
         if (json.has("description")) {
-            branch.setDescription(json.get("description").getAsString());
+            stateValue.setDescription(json.get("description").getAsString());
         }
         if (json.has("type")) {
-            branch.setType(json.get("type").getAsString());
+            stateValue.setType(json.get("type").getAsString());
         }
-        branch.updateContract(json.get("contractId").getAsString());
+        stateValue.updateContract(json.get("contractId").getAsString());
     }
 
     /**
@@ -124,7 +124,7 @@ public class StemContract extends BaseContract<StemBranch> {
         String branchId = params.get(0).getAsJsonObject().get("branchId")
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
-            return getBranch(BranchId.of(branchId)).getJson();
+            return getStateValue(BranchId.of(branchId)).getJson();
         }
         return new JsonObject();
     }
@@ -138,7 +138,7 @@ public class StemContract extends BaseContract<StemBranch> {
         String branchId = params.get(0).getAsJsonObject().get("branchId")
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
-            return getBranch(BranchId.of(branchId)).getContractId();
+            return getStateValue(BranchId.of(branchId)).getContractId();
         }
         return null;
     }
@@ -152,7 +152,7 @@ public class StemContract extends BaseContract<StemBranch> {
         String branchId = params.get(0).getAsJsonObject().get("branchId")
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
-            return getBranch(BranchId.of(branchId)).getContractHistory();
+            return getStateValue(BranchId.of(branchId)).getContractHistory();
         }
         return Collections.emptyList();
     }
@@ -179,7 +179,7 @@ public class StemContract extends BaseContract<StemBranch> {
         return branchId.equals(branch.getBranchId());
     }
 
-    private StemBranch getBranch(BranchId branchId) {
+    private StemContractStateValue getStateValue(BranchId branchId) {
         return state.get(branchId.toString());
     }
 

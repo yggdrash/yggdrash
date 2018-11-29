@@ -38,19 +38,19 @@ public class StemContractTest {
     private static final Logger log = LoggerFactory.getLogger(StemContractTest.class);
 
     private StemContract stemContract;
-    private StemBranch stemBranch;
+    private StemContractStateValue stateValue;
 
     @Before
     public void setUp() {
-        StateStore<StemBranch> stateStore = new StateStore<>();
+        StateStore<StemContractStateValue> stateStore = new StateStore<>();
         TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
 
         stemContract = new StemContract();
         stemContract.init(stateStore, txReceiptStore);
-        stemBranch = StemBranch.of(TestUtils.createSampleBranchJson());
-        stemContract.sender = stemBranch.getOwner().toString();
+        stateValue = StemContractStateValue.of(TestUtils.createSampleBranchJson());
+        stemContract.sender = stateValue.getOwner().toString();
         JsonArray params =
-                ContractTx.createStemParams(stemBranch.getBranchId(), stemBranch.getJson());
+                ContractTx.createStemParams(stateValue.getBranchId(), stateValue.getJson());
         stemContract.genesis(params);
     }
 
@@ -70,7 +70,7 @@ public class StemContractTest {
         TransactionReceipt receipt = stemContract.create(params);
         assertThat(receipt.isSuccess()).isTrue();
 
-        StemBranch saved = stemContract.state.get(branch.getBranchId().toString());
+        StemContractStateValue saved = stemContract.state.get(branch.getBranchId().toString());
         assertThat(saved).isNotNull();
         assertThat(saved.getDescription()).isEqualTo(description);
     }
@@ -79,7 +79,7 @@ public class StemContractTest {
     public void updateTest() {
         String description = "Hello World!";
         JsonObject json = TestUtils.createSampleBranchJson(description);
-        JsonArray params = ContractTx.createStemParams(stemBranch.getBranchId(), json);
+        JsonArray params = ContractTx.createStemParams(stateValue.getBranchId(), json);
         assertThat(stemContract.update(params).isSuccess()).isTrue();
 
         stemBranchViewTest(description);
@@ -148,26 +148,26 @@ public class StemContractTest {
     public void getCurrentVersionTest() {
         JsonArray params = getQueryParams();
         ContractId current = stemContract.getcurrentversion(params); // No owner validation
-        assertThat(current).isEqualTo(stemBranch.getContractId());
+        assertThat(current).isEqualTo(stateValue.getContractId());
     }
 
     @Test
     public void getContractHistoryTest() {
         JsonArray params = getQueryParams();
         List<ContractId> contractHistory = stemContract.getcontracthistory(params);
-        assertThat(contractHistory).containsOnly(stemBranch.getContractId());
+        assertThat(contractHistory).containsOnly(stateValue.getContractId());
     }
 
     @Test
     public void getAllBranchIdTest() {
         List<String> branchIdList = stemContract.getallbranchid(null);
-        assertThat(branchIdList).containsOnly(stemBranch.getBranchId().toString());
+        assertThat(branchIdList).containsOnly(stateValue.getBranchId().toString());
     }
 
     private JsonArray getQueryParams() {
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.addProperty("branchId", stemBranch.getBranchId().toString());
+        param.addProperty("branchId", stateValue.getBranchId().toString());
         params.add(param);
         return params;
     }

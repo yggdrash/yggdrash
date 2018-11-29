@@ -27,13 +27,13 @@ import java.util.List;
  * updatable branch of stem contract
  *
  */
-public class StemBranch extends Branch {
+public class StemContractStateValue extends Branch {
 
     private BranchType type;
     private String tag;
     private final List<ContractId> contractHistory = new ArrayList<>();
 
-    private StemBranch(JsonObject json) {
+    private StemContractStateValue(JsonObject json) {
         super(json);
     }
 
@@ -95,7 +95,7 @@ public class StemBranch extends Branch {
         getJson().getAsJsonArray("contractHistory").add(newContractId.toString());
     }
 
-    public static StemBranch of(JsonObject json) {
-        return new StemBranch(json);
+    public static StemContractStateValue of(JsonObject json) {
+        return new StemContractStateValue(json);
     }
 }
