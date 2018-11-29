@@ -24,7 +24,7 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.blockchain.genesis.BranchJson;
+import io.yggdrash.node.api.dto.BranchDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,11 +52,11 @@ public class BranchController {
     }
 
     @GetMapping
-    public ResponseEntity<Map<String, BranchJson>> getBranches() {
-        Map<String, BranchJson> branchMap = new HashMap<>();
+    public ResponseEntity<Map<String, BranchDto>> getBranches() {
+        Map<String, BranchDto> branchMap = new HashMap<>();
         for (BlockChain branch : branchGroup.getAllBranch()) {
             BlockHusk genesis = branch.getBlockByIndex(0);
-            BranchJson branchJson = getBranchJson(genesis);
+            BranchDto branchJson = getBranchJson(genesis);
             branchMap.put(branch.getBranchId().toString(), branchJson);
         }
         return ResponseEntity.ok(branchMap);
@@ -76,17 +76,17 @@ public class BranchController {
         return ResponseEntity.ok(state);
     }
 
-    private BranchJson getBranchJson(BlockHusk genesis) {
+    private BranchDto getBranchJson(BlockHusk genesis) {
         for (TransactionHusk tx : genesis.getBody()) {
             JsonArray txBody = tx.toJsonObject().getAsJsonArray("body");
             if (txBody.size() != 0) {
                 return getBranchJson(txBody);
             }
         }
-        return new BranchJson();
+        return new BranchDto();
     }
 
-    private BranchJson getBranchJson(JsonArray txBody) {
+    private BranchDto getBranchJson(JsonArray txBody) {
         try {
             JsonElement firstTx = txBody.get(0);
             if (!firstTx.isJsonObject()) {
@@ -98,11 +98,11 @@ public class BranchController {
                 JsonElement genesis
                         = firstTx.getAsJsonObject().get("params").getAsJsonArray().get(0);
                 branchJson.add("genesis", genesis);
-                return BranchJson.toBranchJson(branchJson);
+                return BranchDto.of(branchJson);
             }
         } catch (IOException e) {
             log.warn(e.getMessage());
         }
-        return new BranchJson();
+        return new BranchDto();
     }
 }

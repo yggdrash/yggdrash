@@ -9,7 +9,6 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionHeader;
-import io.yggdrash.core.contract.ContractId;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -32,8 +31,8 @@ public class GenesisBlock {
         return block;
     }
 
-    public ContractId getContractId() {
-        return branch.getContractId();
+    public Branch getBranch() {
+        return branch;
     }
 
     private BlockHusk toBlock() throws IOException {

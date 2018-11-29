@@ -31,7 +31,6 @@ import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BlockSignature;
-import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionHusk;
@@ -42,8 +41,10 @@ import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -181,36 +182,37 @@ public class TestUtils {
                 Transaction.toProtoTransaction(sampleTransferTx())};
     }
 
-    public static JsonObject getSampleBranch() {
-        String name = "STEM";
-        String symbol = "STEM";
-        String property = "ecosystem";
-        String type = "immunity";
+    public static JsonObject createSampleBranchJson() {
         String description =
                 "The Basis of the YGGDRASH Ecosystem. "
                         + "It is also an aggregate and a blockchain containing information "
                         + "of all Branch Chains.";
+        return createSampleBranchJson(description);
+    }
+
+    public static JsonObject createSampleBranchJson(String description) {
+        String name = "STEM";
+        String symbol = "STEM";
+        String property = "ecosystem";
         String contractId = "d399cd6d34288d04ba9e68ddfda9f5fe99dd778e";
-        return createBranch(name, symbol, property, type, description, contractId, null);
+        return createBranchJson(name, symbol, property, description, contractId, null);
     }
 
     private static Transaction sampleCreateBranchTx(Wallet wallet) {
-        TransactionHusk tx = ContractTx.createStemTx(wallet, getSampleBranch(), "create");
+        TransactionHusk tx = ContractTx.createStemTx(wallet, createSampleBranchJson(), "create");
         return new Transaction(tx.toJsonObject());
     }
 
-    public static JsonObject createBranch(String name,
-                                          String symbol,
-                                          String property,
-                                          String type,
-                                          String description,
-                                          String contractId,
-                                          String timestamp) {
+    public static JsonObject createBranchJson(String name,
+                                              String symbol,
+                                              String property,
+                                              String description,
+                                              String contractId,
+                                              String timestamp) {
         JsonObject branch = new JsonObject();
         branch.addProperty("name", name);
         branch.addProperty("symbol", symbol);
         branch.addProperty("property", property);
-        branch.addProperty("type", type);
         branch.addProperty("description", description);
         branch.addProperty("contractId", contractId);
         branch.add("genesis", new JsonObject());
@@ -219,25 +221,8 @@ public class TestUtils {
         } else {
             branch.addProperty("timestamp", timestamp);
         }
-        Branch.signBranch(wallet, branch);
+        signBranch(wallet, branch);
         return branch;
-    }
-
-    public static JsonObject updateBranch(String description, JsonObject branch,
-                                          Integer checkSum) {
-        JsonObject updatedBranch = new JsonObject();
-        updatedBranch.addProperty(
-                "name", checkSum == 0 ? branch.get("name").getAsString() : "HELLO");
-        updatedBranch.addProperty("symbol", branch.get("symbol").getAsString());
-        updatedBranch.addProperty("property", branch.get("property").getAsString());
-        updatedBranch.addProperty("type", branch.get("type").getAsString());
-        updatedBranch.addProperty("description", description);
-        updatedBranch.addProperty("contractId", branch.get("contractId").getAsString());
-        updatedBranch.add("genesis", branch.get("genesis"));
-        updatedBranch.addProperty("timestamp", branch.get("timestamp").getAsString());
-        updatedBranch.addProperty("owner", branch.get("owner").getAsString());
-        updatedBranch.addProperty("signature", branch.get("signature").getAsString());
-        return updatedBranch;
     }
 
     public static JsonObject createQuery(String method, JsonArray params) {
@@ -246,6 +231,16 @@ public class TestUtils {
         query.addProperty("method", method);
         query.add("params", params);
         return query;
+    }
+
+    public static JsonObject signBranch(Wallet wallet, JsonObject raw) {
+        if (!raw.has("signature")) {
+            raw.addProperty("owner", wallet.getHexAddress());
+            Sha3Hash hashForSign = new Sha3Hash(raw.toString().getBytes(StandardCharsets.UTF_8));
+            byte[] signature = wallet.signHashedData(hashForSign.getBytes());
+            raw.addProperty("signature", Hex.toHexString(signature));
+        }
+        return raw;
     }
 
     public static StoreBuilder getProdMockBuilder() {
