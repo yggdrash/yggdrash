@@ -46,6 +46,6 @@ public class WebConfiguration implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/yggdrash-websocket").withSockJS();
+        registry.addEndpoint("/yggdrash-websocket").setAllowedOrigins("*").withSockJS();
     }
 }
