@@ -1,6 +1,7 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.TransactionHusk;
@@ -66,7 +67,9 @@ public abstract class BaseContract<T> implements Contract<T> {
         JsonObject result = new JsonObject();
         try {
             Object res = getClass().getMethod(method, JsonArray.class).invoke(this, params);
-            if (res instanceof Collection) {
+            if (res instanceof JsonElement) {
+                result.add("result", (JsonElement)res);
+            } else if (res instanceof Collection) {
                 result.addProperty("result", collectionToString((Collection<Object>) res));
             } else {
                 result.addProperty("result", res.toString());

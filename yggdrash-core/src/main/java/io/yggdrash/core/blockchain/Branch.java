@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
@@ -26,7 +25,6 @@ import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.contract.ContractId;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Address;
-import io.yggdrash.core.wallet.Wallet;
 import org.apache.commons.io.IOUtils;
 import org.spongycastle.util.encoders.Hex;
 
@@ -42,29 +40,27 @@ public class Branch {
     private final String name;
     private final String symbol;
     private final String property;
-    private final BranchType type;
-    private final String description;
-    private final ContractId contractId;
     private final long timestamp;
     private final Address owner;
     private final Sha3Hash rawForSign;
     private final Sha3Hash signature;
     private final JsonObject json;
+    protected ContractId contractId;
+    protected String description;
 
-    private Branch(JsonObject json) {
+    protected Branch(JsonObject json) {
         this.json = json;
         this.branchId = BranchId.of(json);
         this.name = json.get("name").getAsString();
         this.symbol = json.get("symbol").getAsString();
         this.property = json.get("property").getAsString();
-        this.type = branchType();
-        this.description = json.get("description").getAsString();
-        this.contractId = ContractId.of(json.get("contractId").getAsString());
         String timestampHex = json.get("timestamp").getAsString();
         this.timestamp = ByteUtil.byteArrayToLong(Hex.decode(timestampHex));
         this.rawForSign = rawHashForSign();
         this.signature = Sha3Hash.createByHashed(Hex.decode(json.get("signature").getAsString()));
         this.owner = Address.of(json.get("owner").getAsString());
+        this.contractId = ContractId.of(json.get("contractId").getAsString());
+        this.description = json.get("description").getAsString();
     }
 
     public BranchId getBranchId() {
@@ -81,10 +77,6 @@ public class Branch {
 
     public String getProperty() {
         return property;
-    }
-
-    public BranchType getType() {
-        return type;
     }
 
     public String getDescription() {
@@ -129,30 +121,11 @@ public class Branch {
         }
     }
 
-    private BranchType branchType() {
-        JsonElement type = json.get("type");
-        if (type == null || "".equals(type.getAsString())) {
-            return BranchType.TEST;
-        } else {
-            return BranchType.of(type.getAsString());
-        }
-    }
-
     private Sha3Hash rawHashForSign() {
         String signatureHex = json.remove("signature").getAsString();
         byte[] raw = json.toString().getBytes(StandardCharsets.UTF_8);
         json.addProperty("signature", signatureHex);
         return new Sha3Hash(raw);
-    }
-
-    public static JsonObject signBranch(Wallet wallet, JsonObject raw) {
-        if (!raw.has("signature")) {
-            raw.addProperty("owner", wallet.getHexAddress());
-            Sha3Hash hashForSign = new Sha3Hash(raw.toString().getBytes(StandardCharsets.UTF_8));
-            byte[] signature = wallet.signHashedData(hashForSign.getBytes());
-            raw.addProperty("signature", Hex.toHexString(signature));
-        }
-        return raw;
     }
 
     public static Branch of(InputStream is) throws IOException {
@@ -168,7 +141,7 @@ public class Branch {
     public enum BranchType {
         IMMUNITY, MUTABLE, INSTANT, PRIVATE, TEST;
 
-        static BranchType of(String val) {
+        public static BranchType of(String val) {
             return Arrays.stream(BranchType.values())
                     .filter(e -> e.toString().toLowerCase().equals(val))
                     .findFirst()

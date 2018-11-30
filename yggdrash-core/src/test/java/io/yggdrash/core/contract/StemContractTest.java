@@ -19,7 +19,7 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.junit.Before;
@@ -38,21 +38,20 @@ public class StemContractTest {
     private static final Logger log = LoggerFactory.getLogger(StemContractTest.class);
 
     private StemContract stemContract;
-    private JsonObject jsonObjectBranch;
-    private BranchId branchId;
+    private StemContractStateValue stateValue;
 
     @Before
     public void setUp() {
-        StateStore<JsonObject> stateStore = new StateStore<>();
+        StateStore<StemContractStateValue> stateStore = new StateStore<>();
         TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
 
         stemContract = new StemContract();
         stemContract.init(stateStore, txReceiptStore);
-        jsonObjectBranch = TestUtils.getSampleBranch();
-        stemContract.sender = jsonObjectBranch.get("owner").getAsString();
-        branchId = BranchId.of(jsonObjectBranch);
-        JsonArray params = ContractTx.createStemParams(branchId, jsonObjectBranch);
-        stemContract.create(params);
+        stateValue = StemContractStateValue.of(TestUtils.createSampleBranchJson());
+        stemContract.sender = stateValue.getOwner().toString();
+        JsonArray params =
+                ContractTx.createStemParams(stateValue.getBranchId(), stateValue.getJson());
+        stemContract.genesis(params);
     }
 
     @Test
@@ -65,27 +64,31 @@ public class StemContractTest {
 
     @Test
     public void createTest() {
-        JsonObject newBranch = getYeedBranch();
-        BranchId newBranchId = BranchId.of(newBranch);
-        JsonArray params = ContractTx.createStemParams(newBranchId, newBranch);
+        String description = "ETH TO YEED";
+        Branch branch = getEthToYeedBranch(description);
+        JsonArray params = ContractTx.createStemParams(branch.getBranchId(), branch.getJson());
+        TransactionReceipt receipt = stemContract.create(params);
+        assertThat(receipt.isSuccess()).isTrue();
 
-        assertThat(stemContract.create(params)).isNotNull();
+        StemContractStateValue saved = stemContract.state.get(branch.getBranchId().toString());
+        assertThat(saved).isNotNull();
+        assertThat(saved.getDescription()).isEqualTo(description);
     }
 
     @Test
     public void updateTest() {
         String description = "Hello World!";
-        JsonObject updatedBranch = TestUtils.updateBranch(description, jsonObjectBranch, 0);
-        JsonArray params = ContractTx.createStemParams(branchId, updatedBranch);
+        JsonObject json = TestUtils.createSampleBranchJson(description);
+        JsonArray params = ContractTx.createStemParams(stateValue.getBranchId(), json);
         assertThat(stemContract.update(params).isSuccess()).isTrue();
-        viewTest(description);
+
+        stemBranchViewTest(description);
     }
 
-    private void viewTest(String description) {
+    private void stemBranchViewTest(String description) {
         JsonArray params = getQueryParams();
-        String json = stemContract.view(params);
-        assertThat(json).contains(description); // No owner validation
-        log.debug(stemContract.view(params));
+        JsonObject result = stemContract.view(params);
+        assertThat(result.get("description").getAsString()).isEqualTo(description);
     }
 
     @Test
@@ -144,38 +147,38 @@ public class StemContractTest {
     @Test
     public void getCurrentVersionTest() {
         JsonArray params = getQueryParams();
-        String current = stemContract.getcurrentversion(params); // No owner validation
-        String contractId = jsonObjectBranch.get("contractId").getAsString();
-        assertThat(current).isEqualTo(contractId);
-        log.debug(stemContract.getcurrentversion(params));
+        ContractId current = stemContract.getcurrentversion(params); // No owner validation
+        assertThat(current).isEqualTo(stateValue.getContractId());
     }
 
     @Test
-    public void getVersionHistoryTest() {
+    public void getContractHistoryTest() {
         JsonArray params = getQueryParams();
-        assertThat(stemContract.getversionhistory(params).size()).isEqualTo(1);
+        List<ContractId> contractHistory = stemContract.getcontracthistory(params);
+        assertThat(contractHistory).containsOnly(stateValue.getContractId());
     }
 
     @Test
     public void getAllBranchIdTest() {
-        assertThat(stemContract.getallbranchid(null).size()).isEqualTo(1);
+        List<String> branchIdList = stemContract.getallbranchid(null);
+        assertThat(branchIdList).containsOnly(stateValue.getBranchId().toString());
     }
 
     private JsonArray getQueryParams() {
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.addProperty("branchId", branchId.toString());
+        param.addProperty("branchId", stateValue.getBranchId().toString());
         params.add(param);
         return params;
     }
 
-    private static JsonObject getYeedBranch() {
+    private static Branch getEthToYeedBranch(String description) {
         String name = "Ethereum TO YEED";
         String symbol = "ETH TO YEED";
         String property = "exchange";
-        String type = "immunity";
-        String description = "ETH TO YEED";
         String contractId = "b5790adeafbb9ac6c9be60955484ab1547ab0b76";
-        return TestUtils.createBranch(name, symbol, property, type, description, contractId, null);
+        JsonObject json =
+                TestUtils.createBranchJson(name, symbol, property, description, contractId, null);
+        return Branch.of(json);
     }
 }

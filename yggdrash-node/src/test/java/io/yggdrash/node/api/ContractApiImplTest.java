@@ -20,6 +20,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.TestUtils;
+import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.ContractQry;
@@ -40,7 +41,7 @@ import static org.junit.Assert.assertEquals;
 public class ContractApiImplTest {
     private static final ContractApi contractApi = new JsonRpcConfig().contractApi();
     private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
-    private static JsonObject branch;
+    private static Branch branch;
     private static BranchId branchId;
 
     @Before
@@ -54,12 +55,13 @@ public class ContractApiImplTest {
         }
     }
 
-    static void beforeStemTest() {
-        branch = TestUtils.getSampleBranch();
-        branchId = BranchId.of(branch);
+    private static void beforeStemTest() {
+        branch = Branch.of(TestUtils.createSampleBranchJson());
+        branchId = branch.getBranchId();
 
         try {
-            TransactionHusk tx = ContractTx.createStemTx(TestUtils.wallet(), branch, "create");
+            TransactionHusk tx =
+                    ContractTx.createStemTx(TestUtils.wallet(), branch.getJson(), "create");
             txApi.sendTransaction(TransactionDto.createBy(tx));
             Thread.sleep(10000);
         } catch (Exception e) {
@@ -77,13 +79,12 @@ public class ContractApiImplTest {
         assertThat(txApi).isNotNull();
     }
 
-
     /* StemContract Test */
     @Test
     public void update() {
         try {
             String description = "hello world!";
-            JsonObject updatedBranch = TestUtils.updateBranch(description, branch, 0);
+            JsonObject updatedBranch = TestUtils.createSampleBranchJson(description);
 
             TransactionHusk tx =
                     ContractTx.createStemTx(TestUtils.wallet(), updatedBranch, "update");

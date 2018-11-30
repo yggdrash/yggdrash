@@ -44,6 +44,7 @@ public class BlockChain {
     private static final Logger log = LoggerFactory.getLogger(BlockChain.class);
 
     // <Variable>
+    private final Branch branch;
     private final BlockHusk genesisBlock;
     private final List<BranchEventListener> listenerList = new ArrayList<>();
 
@@ -57,9 +58,10 @@ public class BlockChain {
     private BlockHusk prevBlock;
     private final Map<Long, Sha3Hash> blockIndex = new HashMap<>();
 
-    public BlockChain(BlockHusk genesisBlock, BlockStore blockStore,
+    public BlockChain(Branch branch, BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, MetaStore metaStore,
                       Contract contract, Runtime runtime) {
+        this.branch = branch;
         this.genesisBlock = genesisBlock;
         this.blockStore = blockStore;
         this.transactionStore = transactionStore;
@@ -140,8 +142,12 @@ public class BlockChain {
         return transactionStore.countOfTxs();
     }
 
+    public Branch getBranch() {
+        return branch;
+    }
+
     public BranchId getBranchId() {
-        return genesisBlock.getBranchId();
+        return branch.getBranchId();
     }
 
     BlockHusk getGenesisBlock() {
@@ -189,7 +195,7 @@ public class BlockChain {
             listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
         }
         log.debug("Added idx=[{}], tx={}, branch={}, blockHash={}", nextBlock.getIndex(),
-                nextBlock.getBodySize(), getBranchId().toString(), nextBlock.getHash());
+                nextBlock.getBodySize(), getBranchId(), nextBlock.getHash());
         return nextBlock;
     }
 

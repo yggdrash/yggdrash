@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.blockchain.genesis;
+package io.yggdrash.node.api.dto;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Deserialized Branch object from jsonFile
  */
-public class BranchJson {
+public class BranchDto {
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     static {
@@ -48,7 +48,7 @@ public class BranchJson {
     public String branchId;
     public Branch branch;
 
-    public static BranchJson toBranchJson(JsonObject jsonObjectBranch) throws IOException {
-        return MAPPER.readValue(jsonObjectBranch.toString(), BranchJson.class);
+    public static BranchDto of(JsonObject jsonObjectBranch) throws IOException {
+        return MAPPER.readValue(jsonObjectBranch.toString(), BranchDto.class);
     }
 }

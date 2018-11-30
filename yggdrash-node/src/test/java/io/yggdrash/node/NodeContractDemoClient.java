@@ -360,7 +360,7 @@ public class NodeContractDemoClient {
         }
         json.addProperty("contractId", contractId);
 
-        Branch.signBranch(wallet, json);
+        TestUtils.signBranch(wallet, json);
         Branch branch = Branch.of(json);
         saveBranchAsFile(branch);
     }

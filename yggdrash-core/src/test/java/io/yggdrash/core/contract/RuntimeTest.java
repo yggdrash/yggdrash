@@ -38,8 +38,8 @@ public class RuntimeTest {
     private static final Logger log = LoggerFactory.getLogger(RuntimeTest.class);
     private final TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
     private final Contract<CoinStateTable> coinContract = new CoinContract();
-    private final Contract<JsonObject> stemContract = new StemContract();
-    private io.yggdrash.core.contract.Runtime<JsonObject> stemRuntime;
+    private final Contract<StemContractStateValue> stemContract = new StemContract();
+    private io.yggdrash.core.contract.Runtime<StemContractStateValue> stemRuntime;
     private io.yggdrash.core.contract.Runtime<CoinStateTable> yeedRuntime;
     private Wallet wallet;
     private BranchId branchId;
@@ -60,14 +60,14 @@ public class RuntimeTest {
 
     @Test
     public void invokeFromStemTest() {
-        JsonObject branch = TestUtils.getSampleBranch();
+        JsonObject branch = TestUtils.createSampleBranchJson();
         branchId = BranchId.of(branch);
 
         TransactionHusk tx = ContractTx.createStemTx(wallet, branch, "create");
         stemRuntime.invoke(stemContract, tx);
 
         String description = "hello world!";
-        JsonObject updatedBranch = TestUtils.updateBranch(description, branch, 0);
+        JsonObject updatedBranch = TestUtils.createSampleBranchJson(description);
 
         tx = ContractTx.createStemTx(wallet, updatedBranch, "update");
         stemRuntime.invoke(stemContract, tx);
@@ -99,9 +99,9 @@ public class RuntimeTest {
                 TestUtils.createQuery("getCurrentVersion", params)));
 
         assertThat(stemRuntime.query(stemContract,
-                TestUtils.createQuery("getVersionHistory", params))).isNotNull();
+                TestUtils.createQuery("getContractHistory", params))).isNotNull();
         log.debug("[getVersionHistory] res => " + stemRuntime.query(stemContract,
-                TestUtils.createQuery("getVersionHistory", params)));
+                TestUtils.createQuery("getContractHistory", params)));
 
         assertThat(stemRuntime.query(stemContract,
                 TestUtils.createQuery("getAllBranchId", new JsonArray()))).isNotNull();

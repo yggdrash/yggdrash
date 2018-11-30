@@ -22,7 +22,6 @@ import org.spongycastle.util.encoders.Hex;
 import java.util.Arrays;
 
 public class ContractId {
-
     private final byte[] data;
 
     private ContractId(byte[] data) {

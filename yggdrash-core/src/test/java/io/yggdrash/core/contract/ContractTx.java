@@ -20,7 +20,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
 import io.yggdrash.common.util.TimeUtils;
-import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBody;
@@ -34,16 +33,17 @@ import java.util.Map;
 
 public class ContractTx {
 
-    public static TransactionHusk createStemTx(Wallet wallet, JsonObject branch, String method) {
-        if (!branch.has("genesis")) {
-            branch.add("genesis", new JsonObject());
+    public static TransactionHusk createStemTx(Wallet wallet, JsonObject json, String method) {
+        if (!json.has("genesis")) {
+            json.add("genesis", new JsonObject());
         }
-        if (!branch.has("timestamp")) {
-            branch.addProperty("timestamp", TimeUtils.hexTime());
+        if (!json.has("timestamp")) {
+            json.addProperty("timestamp", TimeUtils.hexTime());
         }
-        Branch.signBranch(wallet, branch);
-        BranchId branchId = BranchId.of(branch);
-        JsonArray txBody = txBodyJson(createStemParams(branchId, branch), method);
+        TestUtils.signBranch(wallet, json);
+        StemContractStateValue stateValue = StemContractStateValue.of(json);
+        JsonArray params = createStemParams(stateValue.getBranchId(), stateValue.getJson());
+        JsonArray txBody = txBodyJson(params, method);
         return createTx(wallet, TestUtils.STEM, txBody);
     }
 
@@ -80,10 +80,10 @@ public class ContractTx {
         return txBodyJson(params, method);
     }
 
-    static JsonArray createStemParams(BranchId branchId, JsonObject branch) {
+    static JsonArray createStemParams(BranchId branchId, JsonObject json) {
         JsonArray params = new JsonArray();
         JsonObject param = new JsonObject();
-        param.add(branchId.toString(), branch);
+        param.add(branchId.toString(), json);
         params.add(param);
 
         return params;
@@ -157,6 +157,5 @@ public class ContractTx {
         } catch (Exception e) {
             return null;
         }
-
     }
 }
