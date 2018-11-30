@@ -50,8 +50,9 @@ public class BranchController {
     }
 
     @GetMapping("/{branchId}/states")
-    public ResponseEntity<List> getBranchStates(@PathVariable(name = "branchId") String branchId) {
-        List state = branchGroup.getStateStore(BranchId.of(branchId)).getStateList();
+    public ResponseEntity<List<Map>> getBranchStates(
+            @PathVariable(name = "branchId") String branchId) {
+        List<Map> state = branchGroup.getStateStore(BranchId.of(branchId)).getStateList();
         return ResponseEntity.ok(state);
     }
 }

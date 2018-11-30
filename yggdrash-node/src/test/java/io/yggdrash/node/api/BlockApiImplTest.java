@@ -27,24 +27,24 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 
+import static io.yggdrash.node.api.JsonRpcConfig.BLOCK_API;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 
 public class BlockApiImplTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockApiImplTest.class);
-    private final BlockApi blockApi = new JsonRpcConfig().blockApi();
     private final String branchId = TestUtils.STEM.toString();
 
     @Test
     public void blockApiIsNotNull() {
-        assertThat(blockApi).isNotNull();
+        assertThat(BLOCK_API).isNotNull();
     }
 
     @Test
     public void blockNumberTest() {
         try {
-            assertThat(blockApi.blockNumber(branchId)).isNotNull();
+            assertThat(BLOCK_API.blockNumber(branchId)).isNotNull();
         } catch (Exception exception) {
             log.debug("blockNumberTest :: exception : " + exception);
         }
@@ -53,7 +53,7 @@ public class BlockApiImplTest {
     @Test
     public void getBlockByHashTest() {
         try {
-            assertThat(blockApi.getBlockByHash(branchId,
+            assertThat(BLOCK_API.getBlockByHash(branchId,
                     "ad7dd0552336ebf3b2f4f648c4a87d7c35ed74382219e2954047ad9138a247c5",
                     true)).isNotNull();
         } catch (Exception exception) {
@@ -64,7 +64,7 @@ public class BlockApiImplTest {
     @Test
     public void getBlockByNumberTest() {
         try {
-            assertThat(blockApi.getBlockByNumber(branchId, 0, true)).isNotNull();
+            assertThat(BLOCK_API.getBlockByNumber(branchId, 0, true)).isNotNull();
         } catch (Exception exception) {
             log.debug("getBlockByNumberTest :: exception : " + exception);
         }
@@ -73,7 +73,7 @@ public class BlockApiImplTest {
     @Test
     public void newBlockFilter() {
         try {
-            assertThat(blockApi.newBlockFilter()).isZero();
+            assertThat(BLOCK_API.newBlockFilter()).isZero();
         } catch (Exception exception) {
             log.debug("newBlockFilter :: exception : " + exception);
         }

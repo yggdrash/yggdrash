@@ -10,13 +10,12 @@ import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
 
+import static io.yggdrash.node.api.JsonRpcConfig.PEER_API;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class PeerApiMockitoTest {
-
-    private static final PeerApi peerApiRpc = new JsonRpcConfig().peerApi();
 
     @Mock
     private PeerGroup peerGroup;
@@ -39,7 +38,7 @@ public class PeerApiMockitoTest {
     @Test
     public void getAllActivePeerRpcTest() {
         try {
-            peerApiRpc.getAllActivePeer();
+            PEER_API.getAllActivePeer();
         } catch (Exception e) {
             e.printStackTrace();
         }
