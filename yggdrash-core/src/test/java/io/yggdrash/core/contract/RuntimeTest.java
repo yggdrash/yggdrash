@@ -37,10 +37,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class RuntimeTest {
     private static final Logger log = LoggerFactory.getLogger(RuntimeTest.class);
     private final TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
-    private final Contract<CoinStateTable> coinContract = new CoinContract();
+    private final Contract<CoinContractStateValue> coinContract = new CoinContract();
     private final Contract<StemContractStateValue> stemContract = new StemContract();
     private io.yggdrash.core.contract.Runtime<StemContractStateValue> stemRuntime;
-    private io.yggdrash.core.contract.Runtime<CoinStateTable> yeedRuntime;
+    private io.yggdrash.core.contract.Runtime<CoinContractStateValue> yeedRuntime;
     private Wallet wallet;
     private BranchId branchId;
 

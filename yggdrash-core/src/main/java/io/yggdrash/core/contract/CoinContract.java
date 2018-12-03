@@ -7,7 +7,7 @@ import com.google.gson.JsonObject;
 import java.math.BigDecimal;
 import java.util.Map;
 
-public class CoinContract extends BaseContract<CoinStateTable>
+public class CoinContract extends BaseContract<CoinContractStateValue>
         implements CoinStandard {
 
     /**
@@ -31,8 +31,8 @@ public class CoinContract extends BaseContract<CoinStateTable>
 
         String address = params.get(0).getAsJsonObject().get("address").getAsString().toLowerCase();
         if (state.get(address) != null) {
-            CoinStateTable table = state.get(address);
-            return table.getMyBalance();
+            CoinContractStateValue value = state.get(address);
+            return value.getBalance();
         }
         return BigDecimal.ZERO;
     }
@@ -75,24 +75,22 @@ public class CoinContract extends BaseContract<CoinStateTable>
         txReceipt.putLog("to", to);
         txReceipt.putLog("amount", String.valueOf(amount));
 
-        if (state.get(sender) != null) {
-            CoinStateTable senderTable = state.get(sender);
-            BigDecimal senderBalance = senderTable.getMyBalance();
-
-            if (senderBalance.subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
-                log.info("\n[ERR] " + sender + " has no enough balance!");
-            } else {
-                senderTable.setMyBalance(senderBalance.subtract(amount));
-
-                addBalanceTo(to, amount);
-
-                txReceipt.setStatus(TransactionReceipt.SUCCESS);
-                log.info("\n[Transferred] Transfer " + amount + " from " + sender + " to " + to);
-                log.info("\nBalance of From (" + sender + ") : " + state.get(sender).getMyBalance()
-                        + "\nBalance of To   (" + to + ") : " + state.get(to).getMyBalance());
-            }
-        } else {
+        if (!state.contains(sender)) {
             log.info("\n[ERR] " + sender + " has no balance!");
+            return txReceipt;
+        }
+
+        CoinContractStateValue senderValue = state.get(sender);
+
+        if (senderValue.isTransferable(amount)) {
+            senderValue.subtractBalance(amount);
+            addBalanceTo(to, amount);
+            txReceipt.setStatus(TransactionReceipt.SUCCESS);
+            log.info("\n[Transferred] Transfer " + amount + " from " + sender + " to " + to);
+            log.info("\nBalance of From (" + sender + ") : " + senderValue.getBalance()
+                    + "\nBalance of To   (" + to + ") : " + state.get(to).getBalance());
+        } else {
+            log.info("\n[ERR] " + sender + " has no enough balance!");
         }
         return txReceipt;
     }
@@ -115,22 +113,20 @@ public class CoinContract extends BaseContract<CoinStateTable>
         txReceipt.putLog("spender", spender);
         txReceipt.putLog("amount", String.valueOf(amount));
 
-        if (state.get(sender) != null) {
-            CoinStateTable senderTable = state.get(sender);
-            BigDecimal senderBalance = senderTable.getMyBalance();
-
-            if (senderBalance.subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
-                log.info("\n[ERR] " + sender + " has no enough balance!");
-            } else {
-                BigDecimal allowedAmountBySender = senderTable.getAllowedAmount(spender);
-                senderTable.setAllowance(spender, amount.add(allowedAmountBySender));
-
-                txReceipt.setStatus(TransactionReceipt.SUCCESS);
-                log.info("\n[Approved] Approve " + spender + " to "
-                        + state.get(sender).getAllowedAmount(spender) + " from " + sender);
-            }
-        } else {
+        if (!state.contains(sender)) {
             log.info("\n[ERR] " + sender + " has no balance!");
+            return txReceipt;
+        }
+
+        CoinContractStateValue senderValue = state.get(sender);
+
+        if (senderValue.isTransferable(amount)) {
+            senderValue.addAllowedAmount(spender, amount);
+            txReceipt.setStatus(TransactionReceipt.SUCCESS);
+            log.info("\n[Approved] Approve " + spender + " to "
+                    + senderValue.getAllowedAmount(spender) + " from " + sender);
+        } else {
+            log.info("\n[ERR] " + sender + " has no enough balance!");
         }
 
         return txReceipt;
@@ -157,29 +153,29 @@ public class CoinContract extends BaseContract<CoinStateTable>
         txReceipt.putLog("to", to);
         txReceipt.putLog("amount", String.valueOf(amount));
 
-        if (state.get(from) != null) {
-            CoinStateTable senderTable = state.get(from);
-            BigDecimal senderBalance = senderTable.getMyBalance();
+        if (!state.contains(from)) {
+            log.info("\n[ERR] " + from + " has no balance!");
+            return txReceipt;
+        }
 
-            if (senderBalance.subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
-                log.info("\n[ERR] " + from + " has no enough balance!");
-            } else {
-                BigDecimal allowedAmountBySender = senderTable.getAllowedAmount(to);
-                if (allowedAmountBySender.subtract(amount).compareTo(BigDecimal.ZERO) < 0) {
-                    log.info("\n[ERR] " + from + "has no enough amount allowed by from");
-                } else {
-                    senderTable.setMyBalance(senderBalance.subtract(amount));
-                    senderTable.setAllowance(to, allowedAmountBySender.subtract(amount));
+        CoinContractStateValue fromValue = state.get(from);
 
-                    addBalanceTo(to, amount);
-                }
+        if (fromValue.isTransferable(amount)) {
+            if (fromValue.isEnoughAllowedAmount(sender, amount)) {
+                fromValue.subtractBalance(amount);
+                fromValue.subtractAllowedAmount(sender, amount);
+                addBalanceTo(to, amount);
                 txReceipt.setStatus(TransactionReceipt.SUCCESS);
                 log.info("\n[Transferred] Transfer " + amount + " from " + from + " to " + to);
-                log.info("\nBalance of From (" + from + ") : " + state.get(from).getMyBalance()
-                        + "\nBalance of To   (" + to + ") : " + state.get(to).getMyBalance());
+                log.info("\nAllowed amount of Sender (" + sender + ") : "
+                        + fromValue.getAllowedAmount(sender));
+                log.info("\nBalance of From (" + from + ") : " + fromValue.getBalance()
+                        + "\nBalance of To   (" + to + ") : " + state.get(to).getBalance());
+            } else {
+                log.info("\n[ERR] " + from + " has no enough amount allowed by from to sender");
             }
         } else {
-            log.info("\n[ERR] " + sender + " has no balance!");
+            log.info("\n[ERR] " + from + " has no enough balance!");
         }
         return txReceipt;
     }
@@ -208,14 +204,12 @@ public class CoinContract extends BaseContract<CoinStateTable>
             JsonObject value = entry.getValue().getAsJsonObject();
             BigDecimal balance = value.get("balance").getAsBigDecimal();
             totalSupply = totalSupply.add(balance);
-            CoinStateTable frontierTable = new CoinStateTable();
-            frontierTable.setMyBalance(balance);
-            state.put(frontier, frontierTable);
+            addBalanceTo(frontier, balance);
 
             txReceipt.putLog(frontier, balance);
             txReceipt.setStatus(TransactionReceipt.SUCCESS);
             log.info("\nAddress of Frontier : " + frontier
-                    + "\nBalance of Frontier : " + state.get(frontier).getMyBalance());
+                    + "\nBalance of Frontier : " + state.get(frontier).getBalance());
         }
         state.setTotalSupply(totalSupply);
         txReceipt.putLog("TotalSupply", totalSupply);
@@ -225,14 +219,11 @@ public class CoinContract extends BaseContract<CoinStateTable>
     }
 
     private void addBalanceTo(String to, BigDecimal amount) {
-        if (state.get(to) != null) {
-            CoinStateTable toTable = state.get(to);
-            BigDecimal toBalance = toTable.getMyBalance();
-            toTable.setMyBalance(toBalance.add(amount));
-        } else {
-            CoinStateTable toTable = new CoinStateTable();
-            toTable.setMyBalance(amount);
-            state.put(to, toTable);
+        CoinContractStateValue toValue = state.get(to);
+        if (toValue == null) {
+            toValue = new CoinContractStateValue();
+            state.put(to, toValue);
         }
+        toValue.addBalance(amount);
     }
 }

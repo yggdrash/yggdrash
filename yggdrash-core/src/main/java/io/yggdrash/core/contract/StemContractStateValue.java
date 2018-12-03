@@ -19,6 +19,7 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.Branch;
+import io.yggdrash.core.store.VisibleStateValue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +28,7 @@ import java.util.List;
  * updatable branch of stem contract
  *
  */
-public class StemContractStateValue extends Branch {
+public class StemContractStateValue extends Branch implements VisibleStateValue {
 
     private BranchType type;
     private String tag;
@@ -96,8 +97,8 @@ public class StemContractStateValue extends Branch {
     }
 
     @Override
-    public String toString() {
-        return getJson().toString();
+    public JsonObject getValue() {
+        return getJson();
     }
 
     public static StemContractStateValue of(JsonObject json) {
