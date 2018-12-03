@@ -30,14 +30,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
+import static io.yggdrash.node.api.JsonRpcConfig.BLOCK_API;
+import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class TransactionApiImplTest {
 
-    private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
-    private static final BlockApi blockApi = new JsonRpcConfig().blockApi();
-    private static final TransactionApi txApi = new JsonRpcConfig().transactionApi();
+    private static final Logger log = LoggerFactory.getLogger(TransactionApiImplTest.class);
 
     private final int blockNumber = 3;
     private final int txIndexPosition = 2;
@@ -51,18 +51,18 @@ public class TransactionApiImplTest {
 
     @Test
     public void blockApiIsNotNull() {
-        assertThat(blockApi).isNotNull();
+        assertThat(BLOCK_API).isNotNull();
     }
 
     @Test
     public void txApiIsNotNull() {
-        assertThat(txApi).isNotNull();
+        assertThat(TX_API).isNotNull();
     }
 
     @Test
     public void getBlockTransactionCountByHashTest() {
         try {
-            assertThat(txApi.getTransactionCountByBlockHash(stem.toString(),
+            assertThat(TX_API.getTransactionCountByBlockHash(stem.toString(),
                     "d52fffa14f5b88b141d05d8e28c90d8131db1aa63e076bfea9c28c3060049e12"))
                     .isNotZero();
         } catch (Exception exception) {
@@ -73,7 +73,7 @@ public class TransactionApiImplTest {
     @Test
     public void getBlockTransactionCountByNumberTest() {
         try {
-            assertThat(txApi.getTransactionCountByBlockNumber(stem.toString(), blockNumber))
+            assertThat(TX_API.getTransactionCountByBlockNumber(stem.toString(), blockNumber))
                     .isNotZero();
         } catch (Throwable exception) {
             log.debug("\n\ngetBlockTransactionCountByNumberTest :: exception => " + exception);
@@ -85,7 +85,7 @@ public class TransactionApiImplTest {
         try {
             //TransactionHusk tx = TestUtils.createTxHusk();
             //txApi.sendTransaction(TransactionDto.createBy(tx));
-            assertThat(txApi.getTransactionByHash(stem.toString(),
+            assertThat(TX_API.getTransactionByHash(stem.toString(),
                     "f5912fde84c6a3a44b4e529077ca9bf28feccd847137e44a77cd17e9fb9c1353"))
                     .isNotNull();
         } catch (Exception exception) {
@@ -96,7 +96,7 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByBlockHashTest() {
         try {
-            assertThat(txApi.getTransactionByBlockHash(stem.toString(),
+            assertThat(TX_API.getTransactionByBlockHash(stem.toString(),
                     "5ef71a90c6d99c7bc13bfbcaffb50cb89210678e99ed6626c9d2f378700b392c",
                     2)).isNotNull();
         } catch (Exception exception) {
@@ -107,7 +107,7 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByBlockNumberTest() {
         try {
-            assertThat(txApi.getTransactionByBlockNumber(
+            assertThat(TX_API.getTransactionByBlockNumber(
                     stem.toString(), blockNumber, txIndexPosition))
                     .isNotNull();
         } catch (Exception e) {
@@ -119,7 +119,7 @@ public class TransactionApiImplTest {
     public void getTransactionByBlockNumberWithTagTest() {
         try {
             String tag = "latest";
-            txApi.getTransactionByBlockNumber(stem.toString(), tag, txIndexPosition);
+            TX_API.getTransactionByBlockNumber(stem.toString(), tag, txIndexPosition);
         } catch (Exception e) {
             log.debug("\n\ngetTransactionByBlockNumberWithTagTest :: exception => " + e);
         }
@@ -140,7 +140,7 @@ public class TransactionApiImplTest {
 
         // Request Transaction with jsonStr
         try {
-            assertThat(txApi.sendTransaction(TransactionDto.createBy(tx))).isNotEmpty();
+            assertThat(TX_API.sendTransaction(TransactionDto.createBy(tx))).isNotEmpty();
         } catch (Exception exception) {
             log.debug("\n\nsendTransactionTest :: exception => " + exception);
         }
@@ -152,7 +152,7 @@ public class TransactionApiImplTest {
         try {
             byte[] input = TestUtils.createTransferTxHusk().toBinary();
             // Convert byteArray to Transaction
-            assertThat(txApi.sendRawTransaction(input)).isNotEmpty();
+            assertThat(TX_API.sendRawTransaction(input)).isNotEmpty();
         } catch (Exception e) {
             log.debug(e.getMessage());
         }
@@ -161,9 +161,9 @@ public class TransactionApiImplTest {
     @Test
     public void newPendingTransactionFilterTest() {
         try {
-            assertThat(txApi.newPendingTransactionFilter(stem.toString()))
+            assertThat(TX_API.newPendingTransactionFilter(stem.toString()))
                     .isGreaterThanOrEqualTo(0);
-            assertThat(txApi.newPendingTransactionFilter(yeed.toString()))
+            assertThat(TX_API.newPendingTransactionFilter(yeed.toString()))
                     .isGreaterThanOrEqualTo(0);
         } catch (Exception e) {
             log.debug("\n\nnewPendingTransactionFilterTest :: exception => " + e);
@@ -173,8 +173,8 @@ public class TransactionApiImplTest {
     @Test
     public void getAllTransactionReceiptTest() {
         try {
-            assertThat(txApi.getAllTransactionReceipt(stem.toString())).isNotEmpty();
-            assertThat(txApi.getAllTransactionReceipt(yeed.toString())).isNotEmpty();
+            assertThat(TX_API.getAllTransactionReceipt(stem.toString())).isNotEmpty();
+            assertThat(TX_API.getAllTransactionReceipt(yeed.toString())).isNotEmpty();
         } catch (Exception e) {
             log.debug("\n\ngetAllTransactionReceiptTest :: exception => " + e);
         }

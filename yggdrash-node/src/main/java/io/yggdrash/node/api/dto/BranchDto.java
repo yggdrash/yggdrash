@@ -20,9 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
-import io.yggdrash.core.blockchain.Branch;
 
-import java.io.IOException;
 import java.util.Map;
 
 /**
@@ -33,22 +31,25 @@ public class BranchDto {
 
     static {
         MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     }
 
     public String name;
     public String symbol;
     public String property;
+    @JsonInclude(JsonInclude.Include.NON_NULL)
+    public String type;
     public String description;
     public String contractId;
     public Map<String, Object> genesis;
     public String timestamp;
     public String owner;
     public String signature;
-    public String branchId;
-    public Branch branch;
 
-    public static BranchDto of(JsonObject jsonObjectBranch) throws IOException {
-        return MAPPER.readValue(jsonObjectBranch.toString(), BranchDto.class);
+    public static BranchDto of(JsonObject json) {
+        try {
+            return MAPPER.readValue(json.toString(), BranchDto.class);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

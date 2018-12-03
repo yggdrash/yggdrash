@@ -95,6 +95,11 @@ public class StemContractStateValue extends Branch {
         getJson().getAsJsonArray("contractHistory").add(newContractId.toString());
     }
 
+    @Override
+    public String toString() {
+        return getJson().toString();
+    }
+
     public static StemContractStateValue of(JsonObject json) {
         return new StemContractStateValue(json);
     }

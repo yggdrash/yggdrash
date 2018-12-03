@@ -16,17 +16,22 @@
 
 package io.yggdrash.gateway.controller;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.TestUtils;
+import io.yggdrash.common.util.Utils;
+import io.yggdrash.core.blockchain.Branch;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
 import org.springframework.context.annotation.Import;
+import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -44,18 +49,17 @@ public class BranchControllerTest {
 
     @Test
     public void shouldGetBranches() throws Exception {
-        mockMvc.perform(get("/branches"))
+        MockHttpServletResponse response = mockMvc.perform(get("/branches"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
-    }
+        String contentAsString = response.getContentAsString();
+        JsonObject branchJson = Utils.parseJsonObject(contentAsString);
+        for (String key : branchJson.keySet()) {
+            Branch branch = Branch.of(branchJson.getAsJsonObject(key));
+            assertThat(branch.getBranchId().toString()).isEqualTo(key);
+        }
 
-    @Test
-    public void shouldGetActiveBranches() throws Exception {
-        mockMvc.perform(get("/branches/active"))
-                .andDo(print())
-                .andExpect(status().isOk())
-                .andReturn().getResponse();
     }
 
     @Test

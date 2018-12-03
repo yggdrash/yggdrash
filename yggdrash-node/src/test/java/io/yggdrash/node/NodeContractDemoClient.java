@@ -17,7 +17,10 @@ import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.contract.ContractQry;
 import io.yggdrash.core.contract.ContractTx;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.node.api.BranchApi;
+import io.yggdrash.node.api.ContractApi;
 import io.yggdrash.node.api.JsonRpcConfig;
+import io.yggdrash.node.api.TransactionApi;
 import io.yggdrash.node.api.dto.TransactionDto;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
@@ -56,8 +59,8 @@ public class NodeContractDemoClient {
 
     private static void run() throws Exception {
         System.out.print("===============\n");
-        System.out.print("[1] 트랜잭션 전송\n[2] 트랜잭션 조회\n[3] 브랜치 배포\n[4] 브랜치 수정\n"
-                + "[5] 브랜치 조회\n[6] 발란스 조회\n[9] 종료\n>");
+        System.out.print("[1] 트랜잭션 전송\n[2] 트랜잭션 조회\n[3] 브랜치 배포\n[4] 브랜치 목록\n"
+                        + "[5] 브랜치 수정\n[6] 브랜치 조회\n[7] 발란스 조회\n[9] 종료\n>");
 
         String num = scan.nextLine();
 
@@ -69,12 +72,15 @@ public class NodeContractDemoClient {
                 deployBranch();
                 break;
             case "4":
-                update();
+                getBranches();
                 break;
             case "5":
-                view();
+                update();
                 break;
             case "6":
+                view();
+                break;
+            case "7":
                 balance();
                 break;
             case "9":
@@ -116,7 +122,8 @@ public class NodeContractDemoClient {
         String serverAddress = getServerAddress();
         for (int i = 0; i < times; i++) {
             TransactionHusk tx = ContractTx.createStemTx(wallet, branch, method);
-            rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
+            rpc.proxyOf(serverAddress, TransactionApi.class)
+                    .sendTransaction(TransactionDto.createBy(tx));
         }
     }
 
@@ -127,7 +134,8 @@ public class NodeContractDemoClient {
         int amount = 1;
         for (int i = 0; i < times; i++) {
             TransactionHusk tx = ContractTx.createTx(BranchId.of(branchId), wallet, "", amount);
-            rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
+            rpc.proxyOf(serverAddress, TransactionApi.class)
+                    .sendTransaction(TransactionDto.createBy(tx));
         }
     }
 
@@ -143,11 +151,12 @@ public class NodeContractDemoClient {
         if (methodList.get(index).contains("TransactionReceipt")) {
             TransactionHusk tx = createTx(branchId, selectedMethod);
             System.out.println("tx => " + tx);
-            rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
+            rpc.proxyOf(serverAddress, TransactionApi.class)
+                    .sendTransaction(TransactionDto.createBy(tx));
         } else {
             JsonObject query = createQueryObj(branchId, selectedMethod);
             System.out.println("query => " + query);
-            rpc.contractApi(serverAddress).query(query.toString());
+            rpc.proxyOf(serverAddress, ContractApi.class).query(query.toString());
         }
     }
 
@@ -158,7 +167,7 @@ public class NodeContractDemoClient {
         try {
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(
-                    rpc.contractApi(serverAddress).query(queryObj.toString()));
+                    rpc.proxyOf(serverAddress, ContractApi.class).query(queryObj.toString()));
             String result = jsonObject.get("result").getAsString();
 
             methods = Arrays.asList(result.split(","));
@@ -248,7 +257,7 @@ public class NodeContractDemoClient {
         if (scan.nextLine().equals("Y")) {
             try {
                 System.out.println("=> ");
-                Map<String, String> properties = new HashMap<>();
+                Map<String, String> properties;
                 ObjectMapper objectMapper = new ObjectMapper();
                 String input = scan.nextLine();
                 properties = objectMapper.readValue(
@@ -313,7 +322,8 @@ public class NodeContractDemoClient {
             TransactionHusk tx =
                     ContractTx.createTx(wallet, TestUtils.YEED, txBody);
 
-            rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
+            rpc.proxyOf(serverAddress, TransactionApi.class)
+                    .sendTransaction(TransactionDto.createBy(tx));
         }
     }
 
@@ -323,7 +333,7 @@ public class NodeContractDemoClient {
         JsonObject qry = ContractQry.createQuery(TestUtils.STEM.toString(), "view", params);
 
         String serverAddress = getServerAddress();
-        rpc.contractApi(serverAddress).query(qry.toString());
+        rpc.proxyOf(serverAddress, ContractApi.class).query(qry.toString());
     }
 
     private static void update() {
@@ -347,7 +357,7 @@ public class NodeContractDemoClient {
         String txHash = scan.nextLine();
 
         String serverAddress = getServerAddress();
-        rpc.transactionApi(serverAddress).getTransactionReceipt(branchId, txHash);
+        rpc.proxyOf(serverAddress, TransactionApi.class).getTransactionReceipt(branchId, txHash);
     }
 
     private static void deployBranch() throws Exception {
@@ -365,13 +375,18 @@ public class NodeContractDemoClient {
         saveBranchAsFile(branch);
     }
 
+    private static void getBranches() {
+        String serverAddress = getServerAddress();
+        rpc.proxyOf(serverAddress, BranchApi.class).getBranches();
+    }
+
     private static void balance() throws Exception {
         System.out.println("조회할 주소를 적어주세요\n>");
         JsonObject qry = ContractQry.createQuery(TestUtils.YEED.toString(),
                 "balanceOf", ContractQry.createParams("address", scan.nextLine()));
 
         String serverAddress = getServerAddress();
-        rpc.contractApi(serverAddress).query(qry.toString());
+        rpc.proxyOf(serverAddress, ContractApi.class).query(qry.toString());
     }
 
     private static JsonObject getBranch() {

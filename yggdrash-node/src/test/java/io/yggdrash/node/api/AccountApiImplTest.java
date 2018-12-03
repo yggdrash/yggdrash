@@ -7,17 +7,17 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static io.yggdrash.node.api.JsonRpcConfig.ACCOUNT_API;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AccountApiImplTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
-    private static final AccountApi accountApi = new JsonRpcConfig().accountApi();
 
     @Test
     public void createAccountTest() {
         try {
-            assertThat(accountApi.createAccount()).isNotEmpty();
+            assertThat(ACCOUNT_API.createAccount()).isNotEmpty();
         } catch (Exception exception) {
             log.debug("\n\ncreateAccountTest :: exception : " + exception);
         }
@@ -26,7 +26,7 @@ public class AccountApiImplTest {
     @Test
     public void accountsTest() {
         try {
-            assertThat(accountApi.accounts()).isNotEmpty();
+            assertThat(ACCOUNT_API.accounts()).isNotEmpty();
         } catch (Exception exception) {
             log.debug("accountsTest :: exception : " + exception);
         }
@@ -39,7 +39,7 @@ public class AccountApiImplTest {
                     ContractQry.createParams("address",
                             "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94"));
 
-            assertThat(accountApi.balanceOf(qry.toString())).isNotEmpty();
+            assertThat(ACCOUNT_API.balanceOf(qry.toString())).isNotEmpty();
         } catch (Exception e) {
             log.debug("\nbalanceOfTest :: exception : " + e);
         }
@@ -48,9 +48,9 @@ public class AccountApiImplTest {
     @Test
     public void getBalanceTest() {
         try {
-            assertThat(accountApi.getBalance("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
+            assertThat(ACCOUNT_API.getBalance("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
                     "latest")).isNotZero();
-            assertThat(accountApi.getBalance("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
+            assertThat(ACCOUNT_API.getBalance("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
                     "1023")).isNotZero();
         } catch (Exception e) {
             log.debug("getBalanceTest :: exception : " + e);
