@@ -21,6 +21,12 @@ package io.yggdrash.common.crypto;
 import io.yggdrash.common.crypto.jce.SpongyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.CipherParameters;
+import org.spongycastle.crypto.Digest;
+import org.spongycastle.crypto.digests.KeccakDigest;
+import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
+import org.spongycastle.crypto.params.KeyParameter;
+import org.spongycastle.crypto.util.DigestFactory;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -33,6 +39,10 @@ public class HashUtil {
     private static final Logger LOG = LoggerFactory.getLogger(HashUtil.class);
 
     private static final String HASH_256_ALGORITHM_NAME = "KECCAK-256";
+    private static final String HASH_SHA_256_ALGORITHM_NAME = "SHA-256";
+    private static final String HASH_SHA_512_ALGORITHM_NAME = "SHA-512";
+    private static final String HASH_SHA3_256_ALGORITHM_NAME = "SHA3-256";
+    private static final String HASH_SHA3_512_ALGORITHM_NAME = "SHA3-512";
     private static final String HASH_SHA_1_ALGORITHM_NAME = "SHA-1";
 
     static {
@@ -108,6 +118,60 @@ public class HashUtil {
             LOG.error("Can't find such algorithm", e);
             throw new RuntimeException(e);
         }
+    }
+
+    /**
+     * Get pbkdf2's hash encrypted output(key).
+     *
+     * @param input input data ex) password
+     * @param salt random bytes
+     * @param iteration iteration
+     * @param outLen output length(bytes) ex) hash encrypted password
+     * @param algorithm hash algorithm
+     *                  ex) "KECCAK-256", "SHA-256", "SHA-512", "SHA3-256", "SHA3-512", "SHA-1"
+     * @return encrypted output(key)
+     */
+    public static byte[] pbkdf2(
+            byte[] input, byte[] salt, int iteration, int outLen, String algorithm) {
+
+        Digest digest;
+
+        switch (algorithm) {
+
+            case HASH_256_ALGORITHM_NAME:
+                digest = new KeccakDigest(256);
+                break;
+
+            case HASH_SHA_256_ALGORITHM_NAME:
+                digest = DigestFactory.createSHA256();
+                break;
+
+            case HASH_SHA_512_ALGORITHM_NAME:
+                digest = DigestFactory.createSHA512();
+                break;
+
+            case HASH_SHA3_256_ALGORITHM_NAME:
+                digest = DigestFactory.createSHA3_256();
+                break;
+
+            case HASH_SHA3_512_ALGORITHM_NAME:
+                digest = DigestFactory.createSHA3_512();
+                break;
+
+            case HASH_SHA_1_ALGORITHM_NAME:
+                digest = DigestFactory.createSHA1();
+                break;
+
+
+            default:
+                throw new IllegalStateException("unknown digest for PBKDF2");
+        }
+
+        PKCS5S2ParametersGenerator gen = new PKCS5S2ParametersGenerator(digest);
+        gen.init(input, salt, iteration);
+        int keyLengthInBits = outLen * 8;
+        CipherParameters p = gen.generateDerivedParameters(keyLengthInBits);
+        return ((KeyParameter) p).getKey();
     }
 
 }
