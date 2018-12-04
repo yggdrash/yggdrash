@@ -67,37 +67,7 @@ public class Wallet {
     public Wallet(ECKey key, String keyPath, String keyName, String password)
             throws IOException, InvalidCipherTextException {
 
-        if (!Password.passwordValid(password)) {
-            logger.error("Invalid Password");
-            throw new IOException("Invalid Password");
-        }
-
-        if (key == null) {
-            key = new ECKey();
-        }
-
-        this.key = key;
-        this.keyPath = keyPath;
-        this.keyName = keyName;
-        this.address = key.getAddress();
-        this.publicKey = key.getPubKey();
-
-        byte[] kdfPass = Password.generateKeyDerivation(password.getBytes(), 32);
-        byte[] encData = AESEncrypt.encrypt(key.getPrivKeyBytes(), kdfPass);
-
-        File file = new File(this.keyPath, this.keyName);
-        Set<PosixFilePermission> perms = new HashSet<>();
-
-        if (file.exists()) {
-            perms.add(PosixFilePermission.OWNER_WRITE);
-            Files.setPosixFilePermissions(file.toPath(), perms);
-        }
-
-        FileUtil.writeFile(file, encData);
-
-        perms = new HashSet<>();
-        perms.add(PosixFilePermission.OWNER_READ);
-        Files.setPosixFilePermissions(file.toPath(), perms);
+        generateKeyFile(key, keyPath, keyName, password);
     }
 
     /**
@@ -112,16 +82,7 @@ public class Wallet {
     public Wallet(String keyPath, String keyName, String password)
             throws IOException, InvalidCipherTextException {
 
-        byte[] encData = FileUtil.readFile(keyPath, keyName);
-        byte[] kdfPass = Password.generateKeyDerivation(password.getBytes(), 32);
-
-        byte[] priKey = AESEncrypt.decrypt(encData, kdfPass);
-        this.key = ECKey.fromPrivate(priKey);
-        this.keyPath = keyPath;
-        this.keyName = keyName;
-        this.address = key.getAddress();
-        this.publicKey = key.getPubKey();
-
+        loadFromKeyFile(keyPath, keyName, password);
     }
 
     /**
@@ -162,67 +123,84 @@ public class Wallet {
         String keyPassword = config.getKeyPassword();
 
         if (Strings.isNullOrEmpty(keyFilePathName) || Strings.isNullOrEmpty(keyPassword)) {
-            logger.error("Invalid keyPath or keyPassword");
-            throw new IOException("Invalid keyPath or keyPassword");
+            logger.error("Empty keyPath or keyPassword");
+            throw new IllegalArgumentException("Empty keyPath or keyPassword");
         } else {
-            // check password validation
-            if (!Password.passwordValid(keyPassword)) {
-                logger.error("Invalid keyPassword format"
-                        + "(length:12-32, 1 more lower/upper/digit/special");
-                throw new IOException("Invalid keyPassword format");
-            }
-
             Path path = Paths.get(keyFilePathName);
             String keyPath = path.getParent().toString();
             String keyName = path.getFileName().toString();
 
             try {
-                byte[] encData = FileUtil.readFile(keyPath, keyName);
-                byte[] kdfPass = Password.generateKeyDerivation(keyPassword.getBytes(), 32);
-                byte[] priKey = AESEncrypt.decrypt(encData, kdfPass);
-
-                this.key = ECKey.fromPrivate(priKey);
-                this.keyPath = keyPath;
-                this.keyName = keyName;
-                this.address = key.getAddress();
-                this.publicKey = key.getPubKey();
+                loadFromKeyFile(keyPath, keyName, keyPassword);
+            } catch (InvalidCipherTextException ice) {
+                logger.warn("Invalid cipherText");
+                throw ice;
             } catch (Exception e) {
-                logger.debug("Key file is not exist. Create New key file.");
-
-                try {
-                    this.key = new ECKey();
-                    this.keyPath = keyPath;
-                    this.keyName = keyName;
-                    this.address = key.getAddress();
-                    this.publicKey = key.getPubKey();
-
-                    byte[] kdfPass = Password.generateKeyDerivation(keyPassword.getBytes(), 32);
-                    byte[] encData = AESEncrypt.encrypt(key.getPrivKeyBytes(), kdfPass);
-
-                    File file = new File(this.keyPath, this.keyName);
-                    Set<PosixFilePermission> perms = new HashSet<>();
-
-                    if (file.exists()) {
-                        perms.add(PosixFilePermission.OWNER_WRITE);
-                        Files.setPosixFilePermissions(file.toPath(), perms);
-                    }
-
-                    FileUtil.writeFile(file, encData);
-
-                    perms = new HashSet<>();
-                    perms.add(PosixFilePermission.OWNER_READ);
-                    Files.setPosixFilePermissions(file.toPath(), perms);
-
-                } catch (IOException ioe) {
-                    logger.error("Cannot generate the Key file at " + keyPath + keyName);
-                    throw new IOException("Cannot generate the Key file");
-                } catch (InvalidCipherTextException ice) {
-                    logger.error("Error InvalidCipherTextException: " + keyPath + keyName);
-                    throw new InvalidCipherTextException("Error InvalidCipherTextException");
-                }
+                logger.warn("Key file is not exist.");
+                generateKeyFile(new ECKey(), keyPath, keyName, keyPassword);
             }
         }
+    }
 
+    private void generateKeyFile(ECKey key, String keyPath, String keyName, String password)
+            throws IOException, InvalidCipherTextException {
+        // check password validation
+        if (!Password.passwordValid(password)) {
+            logger.error("Invalid keyPassword format"
+                    + "(length:12-32, 1 more lower/upper/digit/special");
+            throw new IllegalArgumentException("Invalid keyPassword format");
+        }
+
+        if (key == null) {
+            key = new ECKey();
+        }
+
+        try {
+            byte[] kdfPass = Password.generateKeyDerivation(password.getBytes(), 32);
+            byte[] encData = AESEncrypt.encrypt(key.getPrivKeyBytes(), kdfPass);
+
+            File file = new File(keyPath, keyName);
+            Set<PosixFilePermission> perms = new HashSet<>();
+
+            if (file.exists()) {
+                perms.add(PosixFilePermission.OWNER_WRITE);
+                Files.setPosixFilePermissions(file.toPath(), perms);
+            }
+
+            FileUtil.writeFile(file, encData);
+
+            perms = new HashSet<>();
+            perms.add(PosixFilePermission.OWNER_READ);
+            Files.setPosixFilePermissions(file.toPath(), perms);
+            logger.info("Created a new key file at " + file.getAbsolutePath());
+
+            setKeyFileInfo(encData, kdfPass, keyPath, keyName);
+        } catch (IOException ioe) {
+            logger.error("Cannot generate the Key file at " + keyPath + File.separator + keyName);
+            throw new IOException("Cannot generate the Key file");
+        } catch (InvalidCipherTextException ice) {
+            logger.error("Error InvalidCipherTextException: " + keyPath + File.separator + keyName);
+            throw new InvalidCipherTextException("Error InvalidCipherTextException");
+        }
+    }
+
+    private void loadFromKeyFile(String keyPath, String keyName, String password)
+            throws IOException, InvalidCipherTextException {
+
+        byte[] encData = FileUtil.readFile(keyPath, keyName);
+        byte[] kdfPass = Password.generateKeyDerivation(password.getBytes(), 32);
+
+        setKeyFileInfo(encData, kdfPass, keyPath, keyName);
+    }
+
+    private void setKeyFileInfo(byte[] encData, byte[] kdfPass, String keyPath, String keyName)
+            throws InvalidCipherTextException {
+        byte[] priKey = AESEncrypt.decrypt(encData, kdfPass);
+        this.key = ECKey.fromPrivate(priKey);
+        this.keyPath = keyPath;
+        this.keyName = keyName;
+        this.address = key.getAddress();
+        this.publicKey = key.getPubKey();
     }
 
     /**
