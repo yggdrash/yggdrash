@@ -6,8 +6,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
+import java.security.SecureRandom;
+
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 
 public class HashUtilTest {
 
@@ -245,7 +248,6 @@ public class HashUtilTest {
         assertArrayEquals(Hex.decode("2761ad467ba3d88c8c331e93829ec5ce912048037c50c8d5faeb4af87bbeb102"), pbkdf2Password);
     }
 
-
     @Test
     public void PBKDF2_SHA3512_Test() {
         String password = "testpassword";
@@ -257,4 +259,21 @@ public class HashUtilTest {
         log.info(Hex.toHexString(pbkdf2Password));
         assertArrayEquals(Hex.decode("2cf80c8e19136485eb79eba7349c8f334582f3b7f22e48e07124c4b5a85631c7"), pbkdf2Password);
     }
+
+    @Test
+    public void PBKDF2_SHA256_Random_Test() {
+        String password = "testpassword";
+        int iterations = 262144;
+        int len = 32;
+
+        byte[] salt = new byte[32];
+        SecureRandom prng = new SecureRandom();
+        prng.nextBytes(salt);
+        log.info("salt= {}", Hex.toHexString(salt));
+
+        byte[] pbkdf2Password = HashUtil.pbkdf2(password.getBytes(), salt, iterations, len, "SHA-256");
+        log.info(Hex.toHexString(pbkdf2Password));
+        assertNotNull(pbkdf2Password);
+    }
+
 }

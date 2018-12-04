@@ -133,11 +133,9 @@ public class HashUtil {
      */
     public static byte[] pbkdf2(
             byte[] input, byte[] salt, int iteration, int outLen, String algorithm) {
-
         Digest digest;
 
         switch (algorithm) {
-
             case HASH_256_ALGORITHM_NAME:
                 digest = new KeccakDigest(256);
                 break;
@@ -162,7 +160,6 @@ public class HashUtil {
                 digest = DigestFactory.createSHA1();
                 break;
 
-
             default:
                 throw new IllegalStateException("unknown digest for PBKDF2");
         }
@@ -173,5 +170,4 @@ public class HashUtil {
         CipherParameters p = gen.generateDerivedParameters(keyLengthInBits);
         return ((KeyParameter) p).getKey();
     }
-
 }
