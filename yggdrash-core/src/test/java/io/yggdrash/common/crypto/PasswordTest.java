@@ -86,7 +86,6 @@ public class PasswordTest {
 
     }
 
-
     @Test
     public void testGenerateKeyDerivation() {
         byte[] kdfData;
@@ -94,6 +93,4 @@ public class PasswordTest {
         log.debug(ByteUtil.toHexString(kdfData));
         assertArrayEquals(kdfData, ByteUtil.hexStringToBytes("0cc2fac56bbf672b4f6922d8938d62a0eb590efe9acfac00bd0fa771f2bf42c7"));
     }
-
-
 }

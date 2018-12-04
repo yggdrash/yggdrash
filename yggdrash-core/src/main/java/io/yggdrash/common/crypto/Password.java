@@ -52,6 +52,7 @@ public class Password {
      * @param input     input data
      * @param outLength output length
      * @return the derivation key by the password
+     * @deprecated
      */
     public static byte[] generateKeyDerivation(byte[] input, int outLength) {
         //todo: checking safety ( IV & ...)
