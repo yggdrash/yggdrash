@@ -304,11 +304,6 @@ public class Utils {
         }
     }
 
-    public static JsonObject convertObjToJsonObject(Object obj) {
-        String string = convertObjToString(obj);
-        return parseJsonObject(string);
-    }
-
     public static JsonArray parseJsonArray(String data) {
         return (JsonArray) jsonParser.parse(data);
     }

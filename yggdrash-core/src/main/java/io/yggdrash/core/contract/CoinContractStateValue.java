@@ -1,15 +1,12 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.store.VisibleStateValue;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
 
 public class CoinContractStateValue implements VisibleStateValue {
-    private final Map<String, BigDecimal> allowance = new HashMap<>();
+    private final JsonObject allowance = new JsonObject();
     private BigDecimal balance = BigDecimal.ZERO;
 
     public BigDecimal getBalance() {
@@ -25,28 +22,20 @@ public class CoinContractStateValue implements VisibleStateValue {
     }
 
     public BigDecimal getAllowedAmount(String allowedTo) {
-        if (allowance.containsKey(allowedTo)) {
-            return allowance.get(allowedTo);
+        if (allowance.has(allowedTo)) {
+            return allowance.get(allowedTo).getAsBigDecimal();
         }
         return BigDecimal.ZERO;
     }
 
     public void addAllowedAmount(String allowedTo, BigDecimal amount) {
         BigDecimal allowedToValue = getAllowedAmount(allowedTo);
-        updateAllowedAmount(allowedTo, allowedToValue.add(amount));
+        allowance.addProperty(allowedTo, allowedToValue.add(amount));
     }
 
     public void subtractAllowedAmount(String allowedTo, BigDecimal amount) {
         BigDecimal allowedToValue = getAllowedAmount(allowedTo);
-        updateAllowedAmount(allowedTo, allowedToValue.subtract(amount));
-    }
-
-    private void updateAllowedAmount(String allowedTo, BigDecimal amount) {
-        if (allowance.get(allowedTo) != null) {
-            allowance.replace(allowedTo, amount);
-        } else {
-            allowance.put(allowedTo, amount);
-        }
+        allowance.addProperty(allowedTo, allowedToValue.subtract(amount));
     }
 
     public boolean isEnoughAllowedAmount(String allowedTo, BigDecimal amount) {
@@ -60,6 +49,12 @@ public class CoinContractStateValue implements VisibleStateValue {
 
     @Override
     public JsonObject getValue() {
-        return Utils.convertObjToJsonObject(this);
+        JsonObject value = new JsonObject();
+        value.addProperty("balance", balance);
+        value.add("allowance", allowance);
+
+        JsonObject json = new JsonObject();
+        json.add("value", value);
+        return json;
     }
 }
