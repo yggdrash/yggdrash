@@ -60,4 +60,24 @@ public class AESEncryptTest {
         assertArrayEquals(plainBytes, plainData);
 
     }
+
+    @Test
+    public void testEncryptDecrypt3() throws InvalidCipherTextException {
+
+        // password generation using KDF
+        String password = "Aa1234567890#";
+        byte[] kdf = new byte[16];
+        byte[] iv = new byte[16];
+
+        byte[] plainBytes = "01234567890123450123456789012345345".getBytes();
+        log.info("plain: {}", Hex.toHexString(plainBytes));
+
+        byte[] encData = AESEncrypt.encrypt(plainBytes, kdf, iv);
+        log.info("encrypt: {}", Hex.toHexString(encData));
+
+        byte[] plainData = AESEncrypt.decrypt(encData, kdf, iv);
+        log.info("decrypt: {}", Hex.toHexString(plainData));
+
+        assertArrayEquals(plainBytes, plainData);
+    }
 }
