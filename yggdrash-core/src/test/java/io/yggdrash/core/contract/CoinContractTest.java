@@ -7,24 +7,21 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 public class CoinContractTest {
 
-    private static final Logger log = LoggerFactory.getLogger(CoinContract.class);
     private static final CoinContract coinContract = new CoinContract();
-
 
     @Before
     public void setUp() {
-        StateStore<CoinStateTable> coinContractStateStore = new StateStore<>();
+        StateStore<CoinContractStateValue> coinContractStateStore = new StateStore<>();
         coinContract.init(coinContractStateStore, new TransactionReceiptStore());
         genesis();
     }
@@ -37,33 +34,32 @@ public class CoinContractTest {
 
         TransactionReceipt result = coinContract.genesis(createParam(genesisStr));
 
-        assertEquals(result.getStatus(), 1);
-        assertEquals(result.getTxLog().size(), 4);
+        assertTrue(result.isSuccess());
+        assertEquals(4, result.getTxLog().size());
     }
 
     @Test
     public void specification() {
-        StateStore<CoinStateTable> coinContractStateStore = new StateStore<>();
+        StateStore<CoinContractStateValue> coinContractStateStore = new StateStore<>();
         MetaCoinContract metaCoinContract = new MetaCoinContract();
         metaCoinContract.init(coinContractStateStore, new TransactionReceiptStore());
 
         List<String> methods = metaCoinContract.specification(new JsonArray());
 
-        assertTrue(!methods.isEmpty());
-        assertEquals(methods.size(), 8);
+        assertFalse(methods.isEmpty());
+        assertEquals(8, methods.size());
 
-        methods = coinContract.specification(new JsonArray());
+        methods = coinContract.specification(null);
 
-        assertTrue(!methods.isEmpty());
-        assertEquals(methods.size(), 7);
+        assertFalse(methods.isEmpty());
+        assertEquals(7, methods.size());
     }
 
     @Test
     public void totalSupply() {
         BigDecimal res = coinContract.totalsupply(new JsonArray());
-        BigDecimal totalSupply = new BigDecimal("1000000000000");
 
-        assertEquals(totalSupply, res);
+        assertEquals(BigDecimal.valueOf(1000000000000L), res);
     }
 
     @Test
@@ -71,9 +67,8 @@ public class CoinContractTest {
         String paramStr = "{\"address\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}";
 
         BigDecimal res = coinContract.balanceof(createParam(paramStr));
-        BigDecimal balanceOfFrontier = new BigDecimal("1000000000");
 
-        assertEquals(balanceOfFrontier, res);
+        assertEquals(BigDecimal.valueOf(1000000000), res);
     }
 
     @Test
@@ -82,9 +77,8 @@ public class CoinContractTest {
                 + "\"spender\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\"}";
 
         BigDecimal res = coinContract.allowance(createParam(paramStr));
-        BigDecimal allowedBalance = BigDecimal.ZERO;
 
-        assertEquals(allowedBalance, res);
+        assertEquals(BigDecimal.ZERO, res);
     }
 
     @Test
@@ -96,71 +90,79 @@ public class CoinContractTest {
         coinContract.sender = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
         TransactionReceipt result = coinContract.transfer(createParam(paramStr));
 
-        assertEquals(result.getStatus(), 1);
+        assertTrue(result.isSuccess());
 
         String paramStr2 = "{\"address\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\"}";
         String paramStr3 = "{\"address\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}";
 
-        assertEquals(coinContract.balanceof(createParam(paramStr2)),
-                new BigDecimal("1000000010"));
-        assertEquals(coinContract.balanceof(createParam(paramStr3)),
-                new BigDecimal("999999990"));
-    }
-
-    @Test
-    public void approve() {
-        String paramStr = "{\"spender\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\","
-                + "\"amount\" : \"1000\"}";
-
-        coinContract.sender = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
-        TransactionReceipt result = coinContract.approve(createParam(paramStr));
-
-        assertEquals(result.getStatus(), 1);
-
-        String paramStr2 = "{\"address\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\"}";
-        String paramStr3 = "{\"address\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}";
-
-        assertEquals(coinContract.balanceof(createParam(paramStr2)),
-                new BigDecimal("1000000000"));
-        assertEquals(coinContract.balanceof(createParam(paramStr3)),
-                new BigDecimal("1000000000"));
-
-        String paramStr4 = "{\"owner\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\","
-                + "\"spender\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\"}";
-
-        assertEquals(coinContract.allowance(createParam(paramStr4)),
-                new BigDecimal("1000"));
+        assertEquals(BigDecimal.valueOf(1000000010),
+                coinContract.balanceof(createParam(paramStr2)));
+        assertEquals(BigDecimal.valueOf(999999990),
+                coinContract.balanceof(createParam(paramStr3)));
     }
 
     @Test
     public void transferFrom() {
-        approve();
+        String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+        String spender = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e";
+        approveByOwner(owner, spender, "1000");
 
-        String paramStr = "{\"from\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\","
-                + "\"to\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\",\"amount\" : \"500\"}";
-        TransactionReceipt result = coinContract.transferfrom(createParam(paramStr));
+        String to = "cee3d4755e47055b530deeba062c5bd0c17eb00f";
+        String transferParam = "{\"from\" : \"" + owner + "\","
+                + "\"to\" : \"" + to + "\",\"amount\" : \"700\"}";
 
-        assertEquals(result.getStatus(), 1);
+        coinContract.sender = spender;
+        TransactionReceipt result = coinContract.transferfrom(createParam(transferParam));
+        assertTrue(result.isSuccess());
+        assertTransferFrom(to, owner, spender);
 
-        String paramStr2 = "{\"address\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\"}";
-        String paramStr3 = "{\"address\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}";
+        TransactionReceipt result2 = coinContract.transferfrom(createParam(transferParam));
+        // not enough amount allowed
+        assertFalse(result2.isSuccess());
+        assertTransferFrom(to, owner, spender);
+    }
 
-        assertEquals(coinContract.balanceof(createParam(paramStr2)),
-                new BigDecimal("1000000500"));
-        assertEquals(coinContract.balanceof(createParam(paramStr3)),
-                new BigDecimal("999999500"));
+    private void approveByOwner(String owner, String spender, String amount) {
+        String approveParam = "{\"spender\" : \"" + spender + "\","
+                + "\"amount\" : \"" + amount + "\"}";
 
-        String paramStr4 = "{\"from\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\","
-                + "\"to\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\",\"amount\" : \"600\"}";
-        TransactionReceipt result2 = coinContract.transferfrom(createParam(paramStr4));
+        coinContract.sender = owner;
+        TransactionReceipt result = coinContract.approve(createParam(approveParam));
 
-        // tx 실행은 성공하지만 allowance 보다 많은 amount 전송은 실패 (이체 불가)
-        assertEquals(result2.getStatus(), 1);
+        assertTrue(result.isSuccess());
 
-        assertEquals(coinContract.balanceof(createParam(paramStr2)),
-                new BigDecimal("1000000500"));
-        assertEquals(coinContract.balanceof(createParam(paramStr3)),
-                new BigDecimal("999999500"));
+        String spenderParam = "{\"address\" : \"" + spender + "\"}";
+        String senderParam = "{\"address\" : \"" + owner + "\"}";
+
+        assertEquals(BigDecimal.valueOf(1000000000),
+                coinContract.balanceof(createParam(spenderParam)));
+        assertEquals(BigDecimal.valueOf(1000000000),
+                coinContract.balanceof(createParam(senderParam)));
+
+        String allowanceParam = "{\"owner\" : \"" + owner + "\","
+                + "\"spender\" : \"" + spender + "\"}";
+
+        assertEquals(new BigDecimal(amount), coinContract.allowance(createParam(allowanceParam)));
+    }
+
+    private void assertTransferFrom(String to, String owner, String spender) {
+
+        String allowanceParam = "{\"owner\" : \"" + owner + "\","
+                + "\"spender\" : \"" + spender + "\"}";
+        assertEquals(BigDecimal.valueOf(300),
+                coinContract.allowance(createParam(allowanceParam)));
+
+        String toParam = "{\"address\" : \"" + to + "\"}";
+        assertEquals(BigDecimal.valueOf(998000000700L),
+                coinContract.balanceof(createParam(toParam)));
+
+        String fromParam = "{\"address\" : \"" + owner + "\"}";
+        assertEquals(BigDecimal.valueOf(999999300),
+                coinContract.balanceof(createParam(fromParam)));
+
+        String spenderParam = "{\"address\" : \"" + spender + "\"}";
+        assertEquals(BigDecimal.valueOf(1000000000),
+                coinContract.balanceof(createParam(spenderParam)));
     }
 
     private JsonArray createParam(String paramStr) {
