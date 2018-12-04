@@ -17,11 +17,15 @@
 package io.yggdrash.core.wallet;
 
 import com.google.common.base.Strings;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.AESEncrypt;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.Password;
+import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.FileUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +38,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.PosixFilePermission;
+import java.security.SecureRandom;
 import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -47,6 +52,14 @@ public class Wallet {
     // todo: check security
 
     private static final Logger logger = LoggerFactory.getLogger(Wallet.class);
+
+    private static final String WALLET_PBKDF2_NAME = "pbkdf2";
+    private static final int WALLET_PBKDF2_ITERATION = 262144;
+    private static final int WALLET_PBKDF2_DKLEN = 32;
+    private static final String WALLET_PBKDF2_PRF = "hmac-sha256";
+    private static final String WALLET_PBKDF2_HMAC_HASH = "KECCAK-256";
+    private static final String WALLET_PBKDF2_ALGORITHM = "SHA-256";
+    private static final String WALLET_KEY_ENCRYPT_ALGORITHM = "aes-128-cbc";
 
     private ECKey key;
     private String keyPath;
@@ -66,12 +79,15 @@ public class Wallet {
      */
     public Wallet(ECKey key, String keyPath, String keyName, String password)
             throws IOException, InvalidCipherTextException {
-
         if (!Password.passwordValid(password)) {
             logger.error("Invalid Password");
             throw new IOException("Invalid Password");
         }
+        encryptKeyFileInit(key, keyPath, keyName, password);
+    }
 
+    private void encryptKeyFileInit(ECKey key, String keyPath, String keyName, String password)
+            throws IOException, InvalidCipherTextException {
         if (key == null) {
             key = new ECKey();
         }
@@ -82,9 +98,33 @@ public class Wallet {
         this.address = key.getAddress();
         this.publicKey = key.getPubKey();
 
-        byte[] kdfPass = Password.generateKeyDerivation(password.getBytes(), 32);
-        byte[] encData = AESEncrypt.encrypt(key.getPrivKeyBytes(), kdfPass);
+        byte[] iv = new byte[16];
+        byte[] salt = new byte[32];
+        SecureRandom prng = new SecureRandom();
+        prng.nextBytes(iv);
+        prng.nextBytes(salt);
 
+        byte[] kdfPass = HashUtil.pbkdf2(
+                password.getBytes(),
+                salt,
+                WALLET_PBKDF2_ITERATION,
+                WALLET_PBKDF2_DKLEN,
+                WALLET_PBKDF2_ALGORITHM);
+        byte[] encData = AESEncrypt.encrypt(
+                key.getPrivKeyBytes(),
+                ByteUtil.parseBytes(kdfPass, 0, 16),
+                iv);
+        byte[] mac = HashUtil.hash(
+                ByteUtil.merge(ByteUtil.parseBytes(kdfPass, 16, 16), encData),
+                WALLET_PBKDF2_HMAC_HASH);
+
+        JsonObject keyJsonObject = makeKeyJsonObject(Hex.toHexString(this.address),
+                Hex.toHexString(iv),
+                Hex.toHexString(encData),
+                Hex.toHexString(salt),
+                Hex.toHexString(mac));
+
+        // file permission
         File file = new File(this.keyPath, this.keyName);
         Set<PosixFilePermission> perms = new HashSet<>();
 
@@ -93,11 +133,40 @@ public class Wallet {
             Files.setPosixFilePermissions(file.toPath(), perms);
         }
 
-        FileUtil.writeFile(file, encData);
+        FileUtil.writeFile(file,
+                new GsonBuilder().setPrettyPrinting().create().toJson(keyJsonObject).getBytes());
 
         perms = new HashSet<>();
         perms.add(PosixFilePermission.OWNER_READ);
         Files.setPosixFilePermissions(file.toPath(), perms);
+    }
+
+    private JsonObject makeKeyJsonObject(
+            String address, String iv, String encData, String salt, String mac) {
+        JsonObject keyJsonObject = new JsonObject();
+        keyJsonObject.addProperty("address", address);
+
+        JsonObject cryptoJsonObject = new JsonObject();
+        cryptoJsonObject.addProperty("cipher", WALLET_KEY_ENCRYPT_ALGORITHM);
+
+        JsonObject ivJsonObject = new JsonObject();
+        ivJsonObject.addProperty("iv", iv);
+
+        cryptoJsonObject.add("cipherparams", ivJsonObject);
+        cryptoJsonObject.addProperty("ciphertext", encData);
+        cryptoJsonObject.addProperty("kdf", WALLET_PBKDF2_NAME);
+
+        JsonObject kdfparamsJsonObject = new JsonObject();
+        kdfparamsJsonObject.addProperty("c", WALLET_PBKDF2_ITERATION);
+        kdfparamsJsonObject.addProperty("dklen", WALLET_PBKDF2_DKLEN);
+        kdfparamsJsonObject.addProperty("prf", WALLET_PBKDF2_PRF);
+        kdfparamsJsonObject.addProperty("salt", salt);
+
+        cryptoJsonObject.add("kdfparams", kdfparamsJsonObject);
+        cryptoJsonObject.addProperty("mac", mac);
+        keyJsonObject.add("crypto", cryptoJsonObject);
+
+        return keyJsonObject;
     }
 
     /**
@@ -111,17 +180,40 @@ public class Wallet {
      */
     public Wallet(String keyPath, String keyName, String password)
             throws IOException, InvalidCipherTextException {
+        decryptKeyFileInit(keyPath, keyName, password);
+    }
 
-        byte[] encData = FileUtil.readFile(keyPath, keyName);
-        byte[] kdfPass = Password.generateKeyDerivation(password.getBytes(), 32);
+    private void decryptKeyFileInit(String keyPath, String keyName, String password)
+            throws IOException, InvalidCipherTextException {
+        File keyFile = FileUtil.getFile(keyPath, keyName);
+        JsonObject keyJsonObject =
+                new Gson().fromJson(FileUtil.readFileToString(keyFile), JsonObject.class);
 
-        byte[] priKey = AESEncrypt.decrypt(encData, kdfPass);
+        byte[] salt = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
+                .getAsJsonObject("kdfparams")
+                .get("salt")
+                .getAsString());
+        byte[] encData = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
+                .get("ciphertext")
+                .getAsString());
+        byte[] kdfPass = HashUtil.pbkdf2(
+                password.getBytes(),
+                salt,
+                WALLET_PBKDF2_ITERATION,
+                WALLET_PBKDF2_DKLEN,
+                WALLET_PBKDF2_ALGORITHM);
+        byte[] iv = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
+                .getAsJsonObject("cipherparams")
+                .get("iv")
+                .getAsString());
+
+        byte[] priKey = AESEncrypt.decrypt(
+                encData, ByteUtil.parseBytes(kdfPass, 0, 16), iv);
         this.key = ECKey.fromPrivate(priKey);
         this.keyPath = keyPath;
         this.keyName = keyName;
         this.address = key.getAddress();
         this.publicKey = key.getPubKey();
-
     }
 
     /**
@@ -177,42 +269,12 @@ public class Wallet {
             String keyName = path.getFileName().toString();
 
             try {
-                byte[] encData = FileUtil.readFile(keyPath, keyName);
-                byte[] kdfPass = Password.generateKeyDerivation(keyPassword.getBytes(), 32);
-                byte[] priKey = AESEncrypt.decrypt(encData, kdfPass);
-
-                this.key = ECKey.fromPrivate(priKey);
-                this.keyPath = keyPath;
-                this.keyName = keyName;
-                this.address = key.getAddress();
-                this.publicKey = key.getPubKey();
+                decryptKeyFileInit(keyPath, keyName, keyPassword);
             } catch (Exception e) {
                 logger.debug("Key file is not exist. Create New key file.");
 
                 try {
-                    this.key = new ECKey();
-                    this.keyPath = keyPath;
-                    this.keyName = keyName;
-                    this.address = key.getAddress();
-                    this.publicKey = key.getPubKey();
-
-                    byte[] kdfPass = Password.generateKeyDerivation(keyPassword.getBytes(), 32);
-                    byte[] encData = AESEncrypt.encrypt(key.getPrivKeyBytes(), kdfPass);
-
-                    File file = new File(this.keyPath, this.keyName);
-                    Set<PosixFilePermission> perms = new HashSet<>();
-
-                    if (file.exists()) {
-                        perms.add(PosixFilePermission.OWNER_WRITE);
-                        Files.setPosixFilePermissions(file.toPath(), perms);
-                    }
-
-                    FileUtil.writeFile(file, encData);
-
-                    perms = new HashSet<>();
-                    perms.add(PosixFilePermission.OWNER_READ);
-                    Files.setPosixFilePermissions(file.toPath(), perms);
-
+                    encryptKeyFileInit(key, keyPath, keyName, keyPassword);
                 } catch (IOException ioe) {
                     logger.error("Cannot generate the Key file at " + keyPath + keyName);
                     throw new IOException("Cannot generate the Key file");
