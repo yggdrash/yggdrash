@@ -45,127 +45,11 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
-/**
- * This is the test class for managing the node's wallet(key).
- */
 public class WalletTest {
     private static final Logger log = LoggerFactory.getLogger(WalletTest.class);
 
-    private static final int AES_KEY_LENGTH = 128;
-
-    // key encryption with random iv
-    @Test
-    public void testKeyEncryption2() {
-        // password generation using KDF
-        String password = "Aa1234567890#";
-        byte[] kdf = Password.generateKeyDerivation(password.getBytes(), 32);
-        byte[] keyBytes = ByteUtil.parseBytes(kdf, 0, 32);
-
-        // generate iv
-        byte[] ivBytes = new byte[AES_KEY_LENGTH / 8];
-        SecureRandom prng = new SecureRandom();
-        prng.nextBytes(ivBytes);
-
-        byte[] plainBytes = "01234567890123456789".getBytes();
-        log.debug("plain: {}", Hex.toHexString(plainBytes));
-
-        KeyParameter key = new KeyParameter(keyBytes);
-        ParametersWithIV params = new ParametersWithIV(key, ivBytes);
-
-        AESEngine engine = new AESEngine();
-        SICBlockCipher ctrEngine = new SICBlockCipher(engine);
-
-        ctrEngine.init(true, params);
-
-        // encrypt
-        byte[] cipher = new byte[plainBytes.length];
-        ctrEngine.processBytes(plainBytes, 0, plainBytes.length, cipher, 0);
-        log.debug("cipher: {}", Hex.toHexString(cipher));
-
-        // decrypt
-        byte[] output = new byte[cipher.length];
-        ctrEngine.init(false, params);
-        ctrEngine.processBytes(cipher, 0, cipher.length, output, 0);
-        log.debug("plain: {}", Hex.toHexString(output));
-
-        assertArrayEquals(plainBytes, output);
-    }
-
-    // key encryption
-    @Test
-    public void testKeyEncryption3() {
-        // password generation using KDF
-        String password = "Aa1234567890#";
-        byte[] kdf = Password.generateKeyDerivation(password.getBytes(), 32);
-        byte[] keyBytes = ByteUtil.parseBytes(kdf, 0, 32);
-
-        // generate iv
-        byte[] ivBytes = new byte[AES_KEY_LENGTH / 8];
-        SecureRandom prng = new SecureRandom();
-        prng.nextBytes(ivBytes);
-
-        byte[] plainBytes = "01234567890123456789".getBytes();
-        log.debug("plain: {}", Hex.toHexString(plainBytes));
-
-        KeyParameter key = new KeyParameter(keyBytes);
-        ParametersWithIV params = new ParametersWithIV(key, ivBytes);
-
-        AESEngine engine = new AESEngine();
-        SICBlockCipher ctrEngine = new SICBlockCipher(engine);
-
-        ctrEngine.init(true, params);
-
-        // encrypt
-        byte[] cipher = new byte[plainBytes.length];
-        ctrEngine.processBytes(plainBytes, 0, plainBytes.length, cipher, 0);
-        log.debug("cipher: {}", Hex.toHexString(cipher));
-
-        // final encrypt data : iv+encData
-        byte[] finalData = new byte[ivBytes.length + cipher.length];
-        System.arraycopy(ivBytes, 0, finalData, 0, ivBytes.length);
-        System.arraycopy(cipher, 0, finalData, ivBytes.length, cipher.length);
-
-        // decrypt
-        byte[] ivNew = new byte[AES_KEY_LENGTH / 8];
-        System.arraycopy(finalData, 0, ivNew, 0, ivNew.length);
-        byte[] encData = new byte[finalData.length - ivNew.length];
-        System.arraycopy(finalData, ivNew.length, encData, 0, encData.length);
-
-        ParametersWithIV params2 = new ParametersWithIV(key, ivNew);
-        AESEngine engine2 = new AESEngine();
-        SICBlockCipher ctrEngine2 = new SICBlockCipher(engine2);
-
-        byte[] output = new byte[encData.length];
-        ctrEngine2.init(false, params2);
-        ctrEngine2.processBytes(encData, 0, encData.length, output, 0);
-        log.debug("plain: {}", Hex.toHexString(output));
-
-        assertArrayEquals(plainBytes, output);
-    }
-
-    // encrypt test
-    @Test
-    public void testAesEncryption() throws InvalidCipherTextException {
-
-        // password generation using KDF
-        String password = "Aa1234567890#";
-        byte[] kdf = Password.generateKeyDerivation(password.getBytes(), 32);
-
-        byte[] plainBytes = "01234567890123450123456789012345345".getBytes();
-        log.debug("plain: {}", Hex.toHexString(plainBytes));
-
-        byte[] encData = AESEncrypt.encrypt(plainBytes, kdf);
-        log.debug("encrypt: {}", Hex.toHexString(encData));
-
-        byte[] plainData = AESEncrypt.decrypt(encData, kdf);
-        log.debug("decrypt: {}", Hex.toHexString(plainData));
-
-    }
-
-    // save the encKey as file
     @Test
     public void testKeySave() throws IOException, InvalidCipherTextException {
-
         // generate key & save a file
         Wallet wt = new Wallet(null, "/tmp/", "nodePri.key", "Password1234!");
 
@@ -181,16 +65,13 @@ public class WalletTest {
         assertArrayEquals(wt.getPubicKey(), wt2.getPubicKey());
     }
 
-
     /**
-     * This is a test method for checking the generation of wallets with config file or not.
+     * Check a wallet generation with filepath & filename.
      */
     @Test
     public void testWalletGeneration() {
-
         DefaultConfig defaultConfig = new DefaultConfig();
         String keyFilePath = defaultConfig.getString("key.path");
-        // TODO: change as cli interface
         String password = defaultConfig.getString("key.password");
 
         assertFalse("Check yggdrash.conf(key.path & key.password)",
@@ -201,7 +82,6 @@ public class WalletTest {
         // check password validation
         boolean validPassword = Password.passwordValid(password);
         assertTrue("Password is not valid", validPassword);
-
         log.debug("Password is valid");
 
         // check whether the key file exists
@@ -227,14 +107,12 @@ public class WalletTest {
     }
 
     /**
-     * This is a test method for checking the generation of wallets with config file or not.
+     * Check a wallet generation with filePathName.
      */
     @Test
     public void testWalletGenerationWithFilePath() {
-
         DefaultConfig defaultConfig = new DefaultConfig();
         String keyFilePath = defaultConfig.getString("key.path");
-        //TODO change as cli interface
         String password = defaultConfig.getString("key.password");
 
         assertFalse("Check yggdrash.conf(key.path & key.password)",
@@ -270,12 +148,8 @@ public class WalletTest {
         log.debug("wallet= " + wallet.toString());
     }
 
-    /**
-     * This is a test method for checking sign & verify method in Wallet class.
-     */
     @Test
     public void testWalletSignAndVerify() throws IOException, InvalidCipherTextException {
-
         Wallet wallet = new Wallet(null, "tmp/temp", "temp.key", "Aa1234567890!");
 
         byte[] plain = "test data 1111".getBytes();
@@ -303,12 +177,8 @@ public class WalletTest {
         verifyResult = Wallet.verify(plain, signature, false, wallet.getPubicKey());
         log.debug("Verify Result: " + verifyResult);
         assertTrue(verifyResult);
-
     }
 
-    /**
-     * This is a test method for generating Wallet constructor.
-     */
     @Test
     public void testWalletConstructor() throws IOException, InvalidCipherTextException {
         DefaultConfig config = new DefaultConfig();
