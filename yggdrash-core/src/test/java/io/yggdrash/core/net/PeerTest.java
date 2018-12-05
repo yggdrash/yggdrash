@@ -18,8 +18,8 @@ public class PeerTest {
 
     @Test
     public void createPeerWithNodeIdTest() {
-        Peer peer = Peer.valueOf("75bff16c", "yggdrash-node1", 32918);
-        assertThat(peer.getYnodeUri()).isEqualTo("ynode://75bff16c@yggdrash-node1:32918");
+        Peer peer1 = Peer.valueOf("75bff16c", "yggdrash-node1", 32918);
+        assertThat(peer1.getYnodeUri()).isEqualTo("ynode://75bff16c@yggdrash-node1:32918");
     }
 
     @Test(expected = NotValidateException.class)
@@ -30,7 +30,16 @@ public class PeerTest {
     @Test
     public void equalsTest() {
         Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        assertThat(peer1).isEqualTo(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
+
         Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32919");
-        assert !peer1.equals(peer2);
+        assertThat(peer1).isNotEqualTo(peer2);
+    }
+
+    @Test
+    public void isLocalTest() {
+        assertThat(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918").isLocal()).isTrue();
+        assertThat(Peer.valueOf("ynode://75bff16c@localhost:32918").isLocal()).isTrue();
+        assertThat(Peer.valueOf("ynode://75bff16c@yggdrash-node1:32918").isLocal()).isFalse();
     }
 }

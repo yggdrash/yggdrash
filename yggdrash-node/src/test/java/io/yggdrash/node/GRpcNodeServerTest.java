@@ -122,7 +122,6 @@ public class GRpcNodeServerTest {
 
     @Test
     public void syncTransaction() {
-        when(branchGroupMock.getBranch(any())).thenReturn(TestUtils.createBlockChain(false));
         when(branchGroupMock.getUnconfirmedTxs(branchId))
                 .thenReturn(Collections.singletonList(tx));
 
@@ -134,34 +133,4 @@ public class GRpcNodeServerTest {
         Proto.TransactionList list = blockingStub.syncTransaction(syncLimit);
         assertEquals(1, list.getTransactionsCount());
     }
-
-    /*
-    @Test
-    public void broadcastTransaction() throws Exception {
-        BlockChainGrpc.BlockChainStub stub = BlockChainGrpc.newStub(grpcServerRule.getChannel());
-        StreamRecorder<NetProto.Empty> responseObserver = StreamRecorder.create();
-        StreamObserver<Proto.Transaction> requestObserver
-                = stub.broadcastTransaction(responseObserver);
-
-        requestObserver.onNext(tx.getInstance());
-        requestObserver.onCompleted();
-        assertNotNull(responseObserver.firstValue().get());
-    }
-
-    @Test
-    public void broadcastBlock() throws Exception {
-        when(nodeStatus.isUpStatus()).thenReturn(true);
-        when(branchGroupMock.getBranch(any())).thenReturn(TestUtils.createBlockChain(false));
-        BlockChainGrpc.BlockChainStub stub = BlockChainGrpc.newStub(grpcServerRule.getChannel());
-        StreamRecorder<NetProto.Empty> responseObserver = StreamRecorder.create();
-        StreamObserver<Proto.Block> requestObserver
-                = stub.broadcastBlock(responseObserver);
-
-        requestObserver.onNext(block.getInstance());
-        requestObserver.onCompleted();
-
-        NetProto.Empty firstResponse = responseObserver.firstValue().get();
-        assertNotNull(firstResponse);
-    }
-    */
 }

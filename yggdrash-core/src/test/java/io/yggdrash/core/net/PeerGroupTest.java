@@ -49,7 +49,7 @@ public class PeerGroupTest {
     public void getPeerTest() {
         Peer requester = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
         Collection<String> peerListWithoutRequester = peerGroup.getPeers(BRANCH, requester);
-        assert peerListWithoutRequester.isEmpty();
+        assert peerListWithoutRequester.size() == 1;
         // requester 가 peer 목록 조회 후에는 peerTable 에 등록되어 있다
         assert peerGroup.containsPeer(BRANCH, requester);
     }
@@ -79,8 +79,8 @@ public class PeerGroupTest {
 
     @Test
     public void getPeerUriListTest() {
-        assert peerGroup.getPeerUriList(BRANCH).isEmpty();
-        assert peerGroup.getPeerUriList(OTHER_BRANCH).isEmpty();
+        assert peerGroup.getPeerUriList(BRANCH).size() == 1;
+        assert peerGroup.getPeerUriList(OTHER_BRANCH).size() == 1;
         peerGroup.addPeer(BRANCH, Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
         peerGroup.addPeer(OTHER_BRANCH, Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
         assert peerGroup.getPeerUriList(BRANCH).contains("ynode://75bff16c@127.0.0.1:32918");

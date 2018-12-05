@@ -17,7 +17,6 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.net.NodeManager;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerGroup;
@@ -55,18 +54,13 @@ class NodeScheduler {
         this.isSeedPeer = nodeManager.isSeedPeer();
     }
 
-    @Scheduled(cron = cronValue)
+    //@Scheduled(cron = cronValue)
     public void healthCheck() {
         if (!nodeStatus.isUpStatus()) {
             return;
         }
 
-        try {
-            //peerGroup.healthCheck();
-        } catch (NonExistObjectException e) {
-            // 저장된 모든 노드가 접속 불가하면 부트스트랩 노드로부터 디스커버리 한다.
-            //nodeManager.bootstrapping();
-        }
+        peerGroup.healthCheck();
     }
 
     @Scheduled(cron = cronValue)
@@ -114,21 +108,4 @@ class NodeScheduler {
         }
         */
     }
-
-    /*
-    private boolean isSeedPeer(List<String> seedPeerList) {
-        if (seedPeerList == null) {
-            return true;
-        }
-        String nodeUriWithoutPubKey = nodeManager.getNodeUri();
-        nodeUriWithoutPubKey = nodeUriWithoutPubKey.substring(nodeUriWithoutPubKey.indexOf("@"));
-        for (String seedPeer : seedPeerList) {
-            if (seedPeer.contains(nodeUriWithoutPubKey)) {
-                log.info("* I'm the SeedPeer!");
-                return true;
-            }
-        }
-        return false;
-    }
-    */
 }

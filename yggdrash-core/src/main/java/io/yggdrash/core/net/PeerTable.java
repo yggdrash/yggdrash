@@ -40,6 +40,7 @@ public class PeerTable {
         }
         if (!peerStore.contains(p.getPeerId())) {
             peerStore.put(p.getPeerId(), p);
+            log.debug("Added size={}, peer={}", getPeersCount(), p.toAddress());
         }
         return null;
     }
@@ -94,23 +95,20 @@ public class PeerTable {
         List<Peer> peers = new ArrayList<>();
 
         for (PeerBucket b : buckets) {
-            for (Peer p : b.getPeers()) {
-                if (!p.equals(owner)) {
-                    peers.add(p);
-                }
-            }
+            peers.addAll(b.getPeers());
         }
         return peers;
     }
 
     synchronized List<Peer> getClosestPeers(byte[] targetId) {
         List<Peer> closestEntries = getAllPeers();
+        closestEntries.remove(owner);
         closestEntries.sort(new DistanceComparator(targetId));
         if (closestEntries.size() > KademliaOptions.BUCKET_SIZE) {
             closestEntries = closestEntries.subList(0, KademliaOptions.BUCKET_SIZE);
         }
 
-        return new ArrayList<>(closestEntries);
+        return closestEntries;
     }
 
     synchronized boolean isPeerStoreEmpty() {

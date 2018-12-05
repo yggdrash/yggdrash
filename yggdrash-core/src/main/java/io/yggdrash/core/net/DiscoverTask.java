@@ -1,6 +1,5 @@
 package io.yggdrash.core.net;
 
-import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.proto.NodeInfo;
 import org.slf4j.Logger;
@@ -27,41 +26,43 @@ public abstract class DiscoverTask implements Runnable {
 
     @Override
     public void run() {
+        int peerCount = peerGroup.count(branchId) - 1;
+        log.info("Start discover! peerCount={}, branchId={}", peerCount, branchId);
         discover(0, new ArrayList<>());
     }
 
     public abstract PeerClientChannel getClient(Peer peer);
 
     private synchronized void discover(int round, List<Peer> prevTried) {
+        PeerTable peerTable = peerGroup.getPeerTable(branchId);
+
         try {
             if (round == KademliaOptions.MAX_STEPS) {
-                log.debug("Peer table contains [{}] peers", peerGroup.count(branchId));
                 log.debug("{}", String.format("(KademliaOptions.MAX_STEPS) Terminating discover"
                         + "after %d rounds.", round));
                 log.trace("{}\n{}",
-                        String.format("Peers discovered %d", peerGroup.count(branchId)),
+                        String.format("Peers discovered %d", peerTable.getPeersCount() - 1),
                         peerGroup.getPeerUriList(branchId));
                 return;
             }
 
-            Optional<PeerTable> peerTable
-                    = Optional.ofNullable(peerGroup.getPeerTable(branchId));
-            List<Peer> closest = peerTable
-                    .map(pt -> pt.getClosestPeers(ownerId)).orElse(new ArrayList<>());
+            List<Peer> closest = peerTable.getClosestPeers(ownerId);
             List<Peer> tried = new ArrayList<>();
 
             for (Peer p : closest) {
                 if (!tried.contains(p) && !prevTried.contains(p)) {
+                    PeerClientChannel clientChannel = getClient(p);
                     try {
                         Optional<List<NodeInfo>> list = Optional.ofNullable(
-                                getClient(p).findPeers(branchId, owner));
+                                clientChannel.findPeers(branchId, owner));
                         list.ifPresent(nodeInfo -> nodeInfo.forEach(
                                 n -> peerGroup.addPeerByYnodeUri(branchId, n.getUrl())));
 
                         tried.add(p);
-                        Utils.sleep(50);
                     } catch (Exception e) {
-                        //log.error("Unexpected Exception " + e, e);
+                        log.warn(e.getMessage());
+                    } finally {
+                        clientChannel.stop();
                     }
                 }
                 if (tried.size() == KademliaOptions.ALPHA) {
@@ -70,10 +71,10 @@ public abstract class DiscoverTask implements Runnable {
             }
 
             if (tried.isEmpty()) {
+                log.debug("Terminating discover after {} rounds.", round);
                 log.trace("{}\n{}",
                         String.format("Peers discovered %d", peerGroup.count(branchId)),
                         peerGroup.getPeerUriList(branchId));
-
                 return;
             }
 

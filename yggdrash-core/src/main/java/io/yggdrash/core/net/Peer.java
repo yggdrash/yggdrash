@@ -90,6 +90,10 @@ public class Peer {
         this.distance = owner.peerId.distanceTo(peerId.getBytes());
     }
 
+    public boolean isLocal() {
+        return host.equals("127.0.0.1") || host.equals("localhost");
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -107,6 +111,10 @@ public class Peer {
     @Override
     public String toString() {
         return ynodeUri;
+    }
+
+    public String toAddress() {
+        return host + ":" + port;
     }
 
     void touch() {
