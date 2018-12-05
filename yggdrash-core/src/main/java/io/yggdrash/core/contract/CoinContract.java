@@ -3,9 +3,12 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-
+import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.util.ByteUtil;
+import org.spongycastle.util.encoders.Hex;
 import java.math.BigDecimal;
 import java.util.Map;
+
 
 public class CoinContract extends BaseContract<CoinContractStateValue>
         implements CoinStandard {
@@ -53,9 +56,10 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
 
         String owner = params.get(0).getAsJsonObject().get("owner").getAsString().toLowerCase();
         String spender = params.get(0).getAsJsonObject().get("spender").getAsString().toLowerCase();
+        String approveKey = approveKey(owner, spender);
 
-        if (state.get(owner) != null) {
-            return state.get(owner).getAllowedAmount(spender);
+        if (state.get(owner) != null && state.get(approveKey) != null) {
+            return state.get(approveKey).getBalance();
         }
         return BigDecimal.ZERO;
     }
@@ -124,10 +128,14 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
         CoinContractStateValue senderValue = state.get(sender);
 
         if (senderValue.isTransferable(amount)) {
-            senderValue.addAllowedAmount(spender, amount);
+            String approveKey = approveKey(sender, spender);
+            CoinContractStateValue approve = new CoinContractStateValue();
+            approve.addBalance(amount);
+            state.put(approveKey, approve);
+            log.debug("approve Key : " + approveKey);
             txReceipt.setStatus(TransactionReceipt.SUCCESS);
             log.info("\n[Approved] Approve " + spender + " to "
-                    + senderValue.getAllowedAmount(spender) + " from " + sender);
+                    + approve.getBalance() + " from " + sender);
         } else {
             log.info("\n[ERR] " + sender + " has no enough balance!");
         }
@@ -156,27 +164,27 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
         txReceipt.putLog("to", to);
         txReceipt.putLog("amount", String.valueOf(amount));
 
-        if (!state.contains(from)) {
+        String approveKey = approveKey(from, sender);
+        log.debug("approve Key : " + approveKey);
+        if (!state.contains(approveKey)) {
             log.info("\n[ERR] " + from + " has no balance!");
             return txReceipt;
         }
-
+        // check from amount
         CoinContractStateValue fromValue = state.get(from);
+        CoinContractStateValue approveValue = state.get(approveKey);
 
-        if (fromValue.isTransferable(amount)) {
-            if (fromValue.isEnoughAllowedAmount(sender, amount)) {
-                fromValue.subtractBalance(amount);
-                fromValue.subtractAllowedAmount(sender, amount);
-                addBalanceTo(to, amount);
-                txReceipt.setStatus(TransactionReceipt.SUCCESS);
-                log.info("\n[Transferred] Transfer " + amount + " from " + from + " to " + to);
-                log.info("\nAllowed amount of Sender (" + sender + ") : "
-                        + fromValue.getAllowedAmount(sender));
-                log.info("\nBalance of From (" + from + ") : " + fromValue.getBalance()
-                        + "\nBalance of To   (" + to + ") : " + state.get(to).getBalance());
-            } else {
-                log.info("\n[ERR] " + from + " has no enough amount allowed by from to sender");
-            }
+        if (fromValue.isTransferable(amount) && approveValue.isTransferable(amount)) {
+            fromValue.subtractBalance(amount);
+            approveValue.subtractBalance(amount);
+
+            addBalanceTo(to, amount);
+            txReceipt.setStatus(TransactionReceipt.SUCCESS);
+            log.info("\n[Transferred] Transfer " + amount + " from " + from + " to " + to);
+            log.debug("\nAllowed amount of Sender (" + sender + ") : "
+                    + approveValue.getBalance());
+            log.debug("\nBalance of From (" + from + ") : " + fromValue.getBalance()
+                    + "\nBalance of To   (" + to + ") : " + state.get(to).getBalance());
         } else {
             log.info("\n[ERR] " + from + " has no enough balance!");
         }
@@ -218,7 +226,6 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
         totalSupplyValue.addBalance(totalSupply);
         state.put(totalSupplyKey, totalSupplyValue);
         txReceipt.putLog("TotalSupply", totalSupply);
-        //log.info("\n[Genesis]\nTotalSupply : " + state.getTotalSupply());
 
         return txReceipt;
     }
@@ -230,5 +237,11 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
             state.put(to, toValue);
         }
         toValue.addBalance(amount);
+    }
+
+    private String approveKey(String sender, String spender) {
+        byte[] approveKeyByteArray = ByteUtil.merge(sender.getBytes(), spender.getBytes());
+        byte[] approveKey = HashUtil.sha3(approveKeyByteArray);
+        return Hex.toHexString(approveKey);
     }
 }
