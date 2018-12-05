@@ -2,7 +2,8 @@ package io.yggdrash.core.store;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.Utils;
-import io.yggdrash.core.exception.FailedOperationException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -14,6 +15,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class StateStore<T> implements Store<String, T> {
+    private static final Logger log = LoggerFactory.getLogger(StateStore.class);
 
     private final Map<String, T> state;
     private final Map<String, Map<Object, Set<Object>>> subState;
@@ -45,43 +47,17 @@ public class StateStore<T> implements Store<String, T> {
         try {
             for (Map.Entry entry : state.entrySet()) {
                 Object value = entry.getValue();
-                JsonObject jsonObject;
-                if (value instanceof JsonObject) {
-                    jsonObject = ((JsonObject) value);
+                if (value instanceof VisibleStateValue) {
+                    JsonObject jsonObject = ((VisibleStateValue) value).getValue();
                     jsonObject.addProperty("id", entry.getKey().toString());
-                } else {
-                    jsonObject = new JsonObject();
-                    jsonObject.addProperty("id", entry.getKey().toString());
-                    jsonObject.addProperty("value", "" + entry.getValue());
-                }
-                HashMap map = Utils.convertJsonToMap(jsonObject);
-                if (map != null) {
-                    result.add(map);
-                }
-            }
-        } catch (Exception e) {
-            throw new FailedOperationException(e.getMessage());
-        }
-        return result;
-    }
-
-    public Map<String, Object> getStateMap() {
-        Map<String, Object> result = new HashMap<>();
-        try {
-            for (Map.Entry entry : state.entrySet()) {
-                Object value = entry.getValue();
-                if (value instanceof JsonObject) {
-                    JsonObject jsonObject = ((JsonObject) value);
                     HashMap map = Utils.convertJsonToMap(jsonObject);
-                    if (map != null) {
-                        result.put(entry.getKey().toString(), map);
-                    }
+                    result.add(map);
                 } else {
-                    result.put(entry.getKey().toString(), entry.getValue());
+                    return result;
                 }
             }
         } catch (Exception e) {
-            throw new FailedOperationException(e.getMessage());
+            log.warn(e.getMessage(), e);
         }
         return result;
     }
