@@ -18,11 +18,8 @@ package io.yggdrash.node;
 
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.exception.NonExistObjectException;
-import io.yggdrash.core.net.KademliaOptions;
 import io.yggdrash.core.net.NodeManager;
 import io.yggdrash.core.net.NodeStatus;
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +28,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -56,20 +52,20 @@ class NodeScheduler {
         this.peerGroup = peerGroup;
         this.nodeManager = nodeManager;
         this.nodeStatus = nodeStatus;
-        this.isSeedPeer = isSeedPeer(peerGroup.getSeedPeerList());
+        this.isSeedPeer = nodeManager.isSeedPeer();
     }
 
-    @Scheduled(fixedRate = KademliaOptions.BUCKET_REFRESH * 10)
+    @Scheduled(cron = cronValue)
     public void healthCheck() {
         if (!nodeStatus.isUpStatus()) {
             return;
         }
 
         try {
-            peerGroup.healthCheck();
+            //peerGroup.healthCheck();
         } catch (NonExistObjectException e) {
             // 저장된 모든 노드가 접속 불가하면 부트스트랩 노드로부터 디스커버리 한다.
-            nodeManager.bootstrapping();
+            //nodeManager.bootstrapping();
         }
     }
 
@@ -84,12 +80,17 @@ class NodeScheduler {
             return;
         }
 
+        // 시드피어 혼자 블록을 생성한다
         List<BranchId> branchIdList = nodeManager.getActiveBranchIdList();
         for (BranchId branchId : branchIdList) {
-            /*
-            자신의 노드가 Seed 피어인지 확인한다.
-            현재 버전의 컨센서스 : Seed 피어면 피어를 지정하고, Seed 피어가 아니면 블록만 생성한다.
-            */
+            nodeManager.generateBlock(branchId);
+        }
+
+        /*
+        for (BranchId branchId : branchIdList) {
+            //자신의 노드가 Seed 피어인지 확인한다.
+            //현재 버전의 컨센서스 : Seed 피어면 피어를 지정하고, Seed 피어가 아니면 블록만 생성한다.
+
             if (nodeQueue.isEmpty()) {
                 // Seed 피어는 nodeQueue 에 포함되지 않는다.
                 nodeQueue.addAll(peerGroup.getPeerUriList(branchId));
@@ -111,8 +112,10 @@ class NodeScheduler {
                 nodeManager.generateBlock(branchId);
             }
         }
+        */
     }
 
+    /*
     private boolean isSeedPeer(List<String> seedPeerList) {
         if (seedPeerList == null) {
             return true;
@@ -127,4 +130,5 @@ class NodeScheduler {
         }
         return false;
     }
+    */
 }

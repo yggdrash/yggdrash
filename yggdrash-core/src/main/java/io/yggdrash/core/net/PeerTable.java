@@ -1,11 +1,15 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.core.store.PeerStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class PeerTable {
+    private static final Logger log = LoggerFactory.getLogger(PeerTable.class);
+
     private final Peer owner;  // our node
     private transient PeerBucket[] buckets;
     private transient PeerStore peerStore;

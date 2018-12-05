@@ -25,12 +25,7 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.proto.BlockChainGrpc;
-import io.yggdrash.proto.NetProto;
-import io.yggdrash.proto.Ping;
-import io.yggdrash.proto.PingPongGrpc;
-import io.yggdrash.proto.Pong;
-import io.yggdrash.proto.Proto;
+import io.yggdrash.proto.*;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -122,6 +117,7 @@ public class GRpcNodeServerTest {
 
     @Test
     public void syncTransaction() {
+        when(branchGroupMock.getBranch(any())).thenReturn(TestUtils.createBlockChain(false));
         when(branchGroupMock.getUnconfirmedTxs(branchId))
                 .thenReturn(Collections.singletonList(tx));
 

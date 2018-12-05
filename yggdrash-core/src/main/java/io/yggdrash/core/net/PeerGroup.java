@@ -27,12 +27,7 @@ import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -53,6 +48,9 @@ public class PeerGroup implements BranchEventListener {
 
     public PeerGroup(Peer owner, int maxPeers) {
         this.owner = owner;
+        if (maxPeers > 25) {
+            KademliaOptions.BUCKET_SIZE = maxPeers;
+        }
         this.maxPeers = maxPeers;
     }
 
@@ -98,7 +96,6 @@ public class PeerGroup implements BranchEventListener {
     void addPeer(BranchId branchId, Peer peer) {
         log.info("Add peer => " + peer.getHost() + ":" + peer.getPort()
                 + ", BranchId => " + branchId);
-
         if (peerTables.containsKey(branchId)) {
             getPeerTable(branchId).addPeer(peer);
         } else {
@@ -238,7 +235,11 @@ public class PeerGroup implements BranchEventListener {
         Proto.Block[] blocks = new Proto.Block[] {block.getInstance()};
         if (peerTableChannels.containsKey(block.getBranchId())) {
             for (PeerClientChannel client : peerTableChannels.get(block.getBranchId()).values()) {
-                client.broadcastBlock(blocks);
+                try {
+                    client.broadcastBlock(blocks);
+                } catch (Exception e) {
+                    peerTableChannels.get(block.getBranchId()).remove(client.getPeer().getPeerId());
+                }
             }
         }
     }
@@ -262,7 +263,6 @@ public class PeerGroup implements BranchEventListener {
             // TODO validation peer
             if (pong.getPong().equals("Pong")) {
                 // 접속 성공 시
-                log.info("Added channel={}", peer);
                 if (peerTableChannels.containsKey(branchId)) {
                     peerTableChannels.get(branchId).put(peer.getPeerId(), client);
                 } else {

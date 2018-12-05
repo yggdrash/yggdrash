@@ -20,29 +20,10 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.net.DiscoverTask;
-import io.yggdrash.core.net.NodeManager;
-import io.yggdrash.core.net.NodeServer;
-import io.yggdrash.core.net.NodeStatus;
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerClientChannel;
-import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.blockchain.*;
+import io.yggdrash.core.net.*;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.proto.BlockChainGrpc;
-import io.yggdrash.proto.NetProto;
-import io.yggdrash.proto.NodeInfo;
-import io.yggdrash.proto.PeerGrpc;
-import io.yggdrash.proto.PeerList;
-import io.yggdrash.proto.Ping;
-import io.yggdrash.proto.PingPongGrpc;
-import io.yggdrash.proto.Pong;
-import io.yggdrash.proto.Proto;
-import io.yggdrash.proto.RequestPeer;
+import io.yggdrash.proto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -193,6 +174,19 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         }
     }
 
+    public boolean isSeedPeer() {
+        List<String> seedPeerList = peerGroup.getSeedPeerList();
+        String nodeUriWithoutPubKey = getNodeUri();
+        nodeUriWithoutPubKey = nodeUriWithoutPubKey.substring(nodeUriWithoutPubKey.indexOf("@"));
+        for (String seedPeer : seedPeerList) {
+            if (seedPeer.contains(nodeUriWithoutPubKey)) {
+                log.info("* I'm the SeedPeer!");
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void addPeerChannel(BranchId branchId, Peer peer) {
         if (peer == null || peerGroup.getOwner().equals(peer)) {
             return;
@@ -276,9 +270,14 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         public void syncTransaction(NetProto.SyncLimit syncLimit,
                                     StreamObserver<Proto.TransactionList> responseObserver) {
             log.debug("Synchronize tx request");
-
             BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
             Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
+            if (branchGroup.getBranch(branchId) == null) {
+                log.warn("Invalid request for branchId={}", branchId);
+                responseObserver.onNext(builder.build());
+                responseObserver.onCompleted();
+                return;
+            }
             for (TransactionHusk husk : branchGroup.getUnconfirmedTxs(branchId)) {
                 builder.addTransactions(husk.getInstance());
             }
@@ -392,7 +391,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             log.debug("Received block id=[{}], hash={}", id, block.getHash());
             if (isBlockValid(block)) {
                 try {
-                    branchGroup.addBlock(block, false);
+                    branchGroup.addBlock(block, true);
                 } catch (Exception e) {
                     log.warn(e.getMessage());
                 }
@@ -449,9 +448,16 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             log.debug("Request Peer => "
                     + request.getPubKey() + "@" + request.getIp() + ":" + request.getPort());
             Peer peer = Peer.valueOf(request.getPubKey(), request.getIp(), request.getPort());
-            peerGroup.newPeerChannel(
-                    BranchId.of(request.getBranchId()), new GRpcClientChannel(peer));
-            List<String> list = peerGroup.getPeers(BranchId.of(request.getBranchId()), peer);
+
+            List<String> list = new ArrayList<>();
+
+            if (branchGroup.getAllBranchId().contains(BranchId.of(request.getBranchId()))) {
+                peerGroup.getPeers(BranchId.of(request.getBranchId()), peer);
+                list.add(peerGroup.getOwner().toString());
+                peerGroup.newPeerChannel(
+                        BranchId.of(request.getBranchId()), new GRpcClientChannel(peer));
+            }
+
             PeerList.Builder peerListBuilder = PeerList.newBuilder();
             for (String url : list) {
                 peerListBuilder.addNodes(NodeInfo.newBuilder().setUrl(url).build());

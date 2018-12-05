@@ -26,7 +26,7 @@ import java.util.List;
 public class NodeProperties {
     private final Grpc grpc = new Grpc();
     private List<String> seedPeerList;
-    private int maxPeers = 25;
+    private int maxPeers;
 
     public Grpc getGrpc() {
         return grpc;

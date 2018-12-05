@@ -22,15 +22,8 @@ import io.grpc.ManagedChannelBuilder;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
-import io.yggdrash.proto.BlockChainGrpc;
+import io.yggdrash.proto.*;
 import io.yggdrash.proto.NetProto.SyncLimit;
-import io.yggdrash.proto.NodeInfo;
-import io.yggdrash.proto.PeerGrpc;
-import io.yggdrash.proto.Ping;
-import io.yggdrash.proto.PingPongGrpc;
-import io.yggdrash.proto.Pong;
-import io.yggdrash.proto.Proto;
-import io.yggdrash.proto.RequestPeer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
