@@ -193,15 +193,26 @@ public class Wallet {
                 .getAsJsonObject("kdfparams")
                 .get("salt")
                 .getAsString());
-        byte[] encData = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
-                .get("ciphertext")
-                .getAsString());
         byte[] kdfPass = HashUtil.pbkdf2(
                 password.getBytes(),
                 salt,
                 WALLET_PBKDF2_ITERATION,
                 WALLET_PBKDF2_DKLEN,
                 WALLET_PBKDF2_ALGORITHM);
+        byte[] encData = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
+                .get("ciphertext")
+                .getAsString());
+
+        byte[] newMac = HashUtil.hash(
+                ByteUtil.merge(ByteUtil.parseBytes(kdfPass, 16, 16), encData),
+                WALLET_PBKDF2_HMAC_HASH);
+        byte[] mac = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
+                .get("mac")
+                .getAsString());
+        if (!Arrays.equals(newMac, mac)) {
+            throw new InvalidCipherTextException("mac is not valid");
+        }
+
         byte[] iv = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
                 .getAsJsonObject("cipherparams")
                 .get("iv")
