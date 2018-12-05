@@ -1,8 +1,5 @@
 package io.yggdrash.common.crypto;
 
-import org.spongycastle.crypto.digests.SHA256Digest;
-import org.spongycastle.crypto.params.KDFParameters;
-
 public class Password {
 
     /**
@@ -43,25 +40,5 @@ public class Password {
 
         // 1 more special symbol(ASCII character)
         return password.matches("(.*[\\x21-\\x2F\\x3A-\\x40\\x5B-\\x60\\x7B-\\x7E].*$)");
-    }
-
-
-    /**
-     * generate KDF value.
-     *
-     * @param input     input data
-     * @param outLength output length
-     * @return the derivation key by the password
-     * @deprecated
-     */
-    public static byte[] generateKeyDerivation(byte[] input, int outLength) {
-        //todo: checking safety ( IV & ...)
-
-        ConcatKDFBytesGenerator kdf = new ConcatKDFBytesGenerator(new SHA256Digest());
-        kdf.init(new KDFParameters(input, HashUtil.sha3(input)));
-        byte[] bytes = new byte[outLength];
-        kdf.generateBytes(bytes, 0, bytes.length);
-
-        return bytes;
     }
 }
