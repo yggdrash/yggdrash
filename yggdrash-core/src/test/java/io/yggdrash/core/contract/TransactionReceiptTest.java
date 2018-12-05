@@ -52,12 +52,6 @@ public class TransactionReceiptTest {
     }
 
     @Test
-    public void getBlockHashTest() {
-        assert txReceipt.getBlockHash().equals(
-                "0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b");
-    }
-
-    @Test
     public void getYeedUsedTest() {
         assert txReceipt.getYeedUsed() == 30000;
         assert txReceipt.toString().contains("yeedUsed=30000");
