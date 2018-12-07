@@ -24,6 +24,8 @@ public interface NodeManager {
 
     String getNodeUri();
 
+    boolean isSeedPeer();
+
     void generateBlock(BranchId branchId);
 
     List<BranchId> getActiveBranchIdList();

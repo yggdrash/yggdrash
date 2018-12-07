@@ -26,6 +26,7 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.wallet.Wallet;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -46,6 +47,10 @@ public class BranchGroup {
 
     public BlockChain getBranch(BranchId branchId) {
         return branches.get(branchId);
+    }
+
+    public boolean containsBranch(BranchId branchId) {
+        return branches.containsKey(branchId);
     }
 
     public Set<BranchId> getAllBranchId() {
@@ -118,7 +123,11 @@ public class BranchGroup {
     }
 
     public List<TransactionHusk> getUnconfirmedTxs(BranchId branchId) {
-        return branches.get(branchId).getUnconfirmedTxs();
+        if (branches.containsKey(branchId)) {
+            return branches.get(branchId).getUnconfirmedTxs();
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     Contract getContract(BranchId branchId) {

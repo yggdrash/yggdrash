@@ -45,6 +45,7 @@ public class BranchGroupTest {
         BlockChain blockChain = TestUtils.createBlockChain(false);
         addBranch(blockChain);
         assertThat(branchGroup.getBranchSize()).isEqualTo(1);
+        assertThat(branchGroup.containsBranch(blockChain.getBranchId())).isTrue();
         tx = TestUtils.createBranchTxHusk(wallet);
         block = new BlockHusk(wallet, Collections.singletonList(tx), blockChain.getPrevBlock());
     }

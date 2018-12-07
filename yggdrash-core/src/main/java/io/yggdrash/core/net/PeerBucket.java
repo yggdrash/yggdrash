@@ -23,7 +23,6 @@ public class PeerBucket {
                 peers.add(p);
             }
         }
-
         return null;
     }
 

@@ -32,6 +32,7 @@ import org.junit.Test;
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,16 +44,13 @@ import static org.junit.Assert.assertEquals;
 public class ContractApiImplTest {
     private static Branch branch;
     private static BranchId branchId;
+    private static BranchId stem = TestUtils.STEM;
+    private static BranchId yeed = TestUtils.YEED;
+
 
     @Before
     public void setUp() {
-        boolean isStemTest = false;
-
-        if (isStemTest) {
-            beforeStemTest();
-        } else {
-            branchId = BranchId.of("275830946a84bc13ac44cca1e48570002917a02d");
-        }
+        beforeStemTest();
     }
 
     private static void beforeStemTest() {
@@ -97,14 +95,12 @@ public class ContractApiImplTest {
     @Test
     public void search() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
-                    "search", ContractQry
-                    .createParams("key", "type", "value", "immunity"));
-            CONTRACT_API.query(queryObj.toString());
+            Map<String, String> properties = new LinkedHashMap<>();
+            properties.put("key", "symbol");
+            properties.put("value", "STEM");
+            JsonObject queryObj = ContractQry.createQuery(stem.toString(),
+                    "search", ContractQry.createParams(properties));
 
-            queryObj = ContractQry.createQuery(branchId.toString(),
-                    "search", ContractQry.createParams(
-                    "key", "name", "value", "TEST1"));
             CONTRACT_API.query(queryObj.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -114,9 +110,11 @@ public class ContractApiImplTest {
     @Test
     public void view() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
-                    "view", ContractQry.createParams(
-                    "branchId", branchId.toString()));
+            Map<String, String> properties = new LinkedHashMap<>();
+            properties.put("branchId", branchId.toString());
+            JsonObject queryObj = ContractQry.createQuery(stem.toString(),
+                    "view", ContractQry.createParams(properties));
+
             CONTRACT_API.query(queryObj.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -126,9 +124,10 @@ public class ContractApiImplTest {
     @Test
     public void getCurrentVersion() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
-                    "getcurrentversion",
-                    ContractQry.createParams("branchId", branchId.toString()));
+            Map<String, String> properties = new LinkedHashMap<>();
+            properties.put("branchId", branchId.toString());
+            JsonObject queryObj = ContractQry.createQuery(stem.toString(),
+                    "getcurrentversion", ContractQry.createParams(properties));
 
             CONTRACT_API.query(queryObj.toString());
         } catch (Exception e) {
@@ -139,9 +138,11 @@ public class ContractApiImplTest {
     @Test
     public void getVersionHistory() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
-                    "getversionhistory",
-                    ContractQry.createParams("branchId", branchId.toString()));
+            Map<String, String> properties = new LinkedHashMap<>();
+            properties.put("branchId", branchId.toString());
+            JsonObject queryObj = ContractQry.createQuery(stem.toString(),
+                    "getversionhistory", ContractQry.createParams(properties));
+
             CONTRACT_API.query(queryObj.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -151,9 +152,8 @@ public class ContractApiImplTest {
     @Test
     public void getAllBranchId() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
-                    "getallbranchid",
-                    new JsonArray());
+            JsonObject queryObj = ContractQry.createQuery(stem.toString(),
+                    "getallbranchid", new JsonArray());
             CONTRACT_API.query(queryObj.toString());
         } catch (Exception e) {
             e.printStackTrace();
@@ -164,7 +164,7 @@ public class ContractApiImplTest {
     @Test
     public void totalSupply() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
+            JsonObject queryObj = ContractQry.createQuery(yeed.toString(),
                     "totalSupply", ContractQry.createParams(new HashMap<>()));
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(
@@ -183,7 +183,7 @@ public class ContractApiImplTest {
             Map<String, String> properties = new HashMap<>();
             properties.put("address", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
 
-            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
+            JsonObject queryObj = ContractQry.createQuery(yeed.toString(),
                     "balanceOf", ContractQry.createParams(properties));
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(
@@ -203,7 +203,7 @@ public class ContractApiImplTest {
             properties.put("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
             properties.put("spender", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
 
-            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
+            JsonObject queryObj = ContractQry.createQuery(yeed.toString(),
                     "allowance", ContractQry.createParams(properties));
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(
@@ -219,7 +219,7 @@ public class ContractApiImplTest {
     @Test
     public void specification() {
         try {
-            JsonObject queryObj = ContractQry.createQuery(branchId.toString(),
+            JsonObject queryObj = ContractQry.createQuery(yeed.toString(),
                     "specification", ContractQry.createParams(new HashMap<>()));
             JsonParser jsonParser = new JsonParser();
             JsonObject jsonObject = (JsonObject) jsonParser.parse(
@@ -239,7 +239,7 @@ public class ContractApiImplTest {
             JsonArray params = ContractTx.createTransferBody(
                     "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigDecimal("1000"));
             TransactionHusk tx =
-                    ContractTx.createTx(TestUtils.wallet(), branchId, params);
+                    ContractTx.createTx(TestUtils.wallet(), yeed, params);
 
             TX_API.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {
@@ -253,7 +253,7 @@ public class ContractApiImplTest {
             JsonArray params = ContractTx.createApproveBody(
                     "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigDecimal("1000"));
             TransactionHusk tx =
-                    ContractTx.createTx(TestUtils.wallet(), branchId, params);
+                    ContractTx.createTx(TestUtils.wallet(), yeed, params);
             TX_API.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {
             e.printStackTrace();
@@ -268,7 +268,7 @@ public class ContractApiImplTest {
                     "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
                     new BigDecimal("1000"));
             TransactionHusk tx =
-                    ContractTx.createTx(TestUtils.wallet(), branchId, params);
+                    ContractTx.createTx(TestUtils.wallet(), yeed, params);
             TX_API.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {
             e.printStackTrace();
