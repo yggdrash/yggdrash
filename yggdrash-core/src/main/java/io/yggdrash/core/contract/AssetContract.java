@@ -19,77 +19,32 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.Utils;
-import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.exception.FailedOperationException;
-import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-public class AssetContract implements Contract<JsonArray> {
+public class AssetContract extends BaseContract<JsonArray> {
 
     private static final Logger log = LoggerFactory.getLogger(AssetContract.class);
 
-    protected TransactionReceiptStore txReceiptStore;
-    protected StateStore state;
-
-    @Override
-    public void init(StateStore stateStore, TransactionReceiptStore txReceiptStore) {
-        this.state = stateStore;
-        this.txReceiptStore = txReceiptStore;
-    }
-
-    @Override
-    public boolean invoke(TransactionHusk txHusk) {
-        TransactionReceipt txReceipt;
-        try {
-            JsonObject txBody = Utils.parseJsonArray(txHusk.getBody()).get(0).getAsJsonObject();
-
-            dataFormatValidation(txBody);
-
-            String method = txBody.get("method").getAsString();
-            JsonArray params = txBody.get("params").getAsJsonArray();
-
-            txReceipt = (TransactionReceipt) this.getClass()
-                    .getMethod(method, JsonArray.class)
-                    .invoke(this, params);
-            txReceipt.putLog("method", method);
-            txReceipt.setTransactionHash(txHusk.getHash().toString());
-            txReceiptStore.put(txReceipt.getTransactionHash(), txReceipt);
-        } catch (Throwable e) {
-            txReceipt = new TransactionReceipt();
-            txReceipt.setTransactionHash(txHusk.getHash().toString());
-            txReceipt.setStatus(0);
-            txReceipt.putLog("Error", e);
-            txReceiptStore.put(txHusk.getHash().toString(), txReceipt);
-        }
-        return txReceipt.isSuccess();
-    }
-
-    public TransactionReceipt createDatabase(JsonArray params) {
-        log.debug("createDatabase :: params => " + params);
+    public TransactionReceipt createdatabase(JsonObject param) {
+        log.debug("createDatabase :: param => " + param);
 
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.setStatus(TransactionReceipt.SUCCESS);
 
-        for (JsonElement element : params) {
-            String dbName = element.getAsJsonObject().get("db").getAsString();
-            if (dbName == null || dbName.equals("")) {
-                txReceipt.setStatus(TransactionReceipt.FALSE);
-                txReceipt.putLog("createDatabase", "This dbName is not valid.");
-                break;
+        String dbName = param.get("db").getAsString();
+        if (dbName == null || dbName.equals("")) {
+            txReceipt.setStatus(TransactionReceipt.FALSE);
+            txReceipt.putLog("createDatabase", "This dbName is not valid.");
+        } else {
+            if (state.get(dbName) == null) {
+                state.put(dbName, new JsonArray());
+                txReceipt.putLog("createDatabase", dbName);
             } else {
-                if (state.get(dbName) == null) {
-                    state.put(dbName, new JsonArray());
-                    txReceipt.putLog("createDatabase", dbName);
-                } else {
-                    txReceipt.setStatus(TransactionReceipt.FALSE);
-                    txReceipt.putLog("createDatabase", "This dbName is already exist.");
-                    break;
-                }
+                txReceipt.setStatus(TransactionReceipt.FALSE);
+                txReceipt.putLog("createDatabase", "This dbName is already exist.");
             }
         }
 
@@ -97,171 +52,140 @@ public class AssetContract implements Contract<JsonArray> {
         return txReceipt;
     }
 
-    public TransactionReceipt createTable(JsonArray params) {
-        log.debug("createTable :: params => " + params);
+    public TransactionReceipt createtable(JsonObject param) {
+        log.debug("createTable :: param => " + param);
 
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.setStatus(TransactionReceipt.SUCCESS);
 
-        for (JsonElement element : params) {
-            String dbName = element.getAsJsonObject().get("db").getAsString();
-            String tableName = element.getAsJsonObject().get("table").getAsString();
-            JsonObject keyObject = element.getAsJsonObject().get("key").getAsJsonObject();
-            JsonObject recordObject = element.getAsJsonObject().get("record").getAsJsonObject();
+        String dbName = param.get("db").getAsString();
+        String tableName = param.get("table").getAsString();
+        JsonObject keyObject = param.getAsJsonObject("key");
+        JsonObject recordObject = param.getAsJsonObject("record");
 
-            if (dbName == null || dbName.equals("")
-                    || tableName == null || tableName.equals("")
-                    || keyObject == null || keyObject.size() == 0
-                    || recordObject == null) {
-                txReceipt.setStatus(TransactionReceipt.FALSE);
-                txReceipt.putLog("createTable",
-                        params.toString() + " This table is not valid.");
-                break;
-            } else {
-                JsonObject tableObject = element.getAsJsonObject();
-                tableObject.remove("db");
+        if (dbName == null || dbName.equals("")
+                || tableName == null || tableName.equals("")
+                || keyObject == null || keyObject.size() == 0
+                || recordObject == null) {
+            txReceipt.setStatus(TransactionReceipt.FALSE);
+            txReceipt.putLog("createTable", param.toString() + " This table is not valid.");
+        } else {
+            param.remove("db");
 
-                for (JsonElement dbElement : (JsonArray)state.get(dbName)) {
-                    if (dbElement.getAsJsonObject().get("table").getAsString().equals(tableName)) {
-                        txReceipt.setStatus(TransactionReceipt.FALSE);
-                        txReceipt.putLog("createTable",
-                                params.toString() + " This table is already exist.");
-                        break;
-                    }
-                }
-
-                JsonArray stateArray = ((JsonArray) state.get(dbName)).getAsJsonArray();
-                if (stateArray != null) {
-                    stateArray.add(tableObject);
-                    state.replace(dbName, stateArray);
-                    txReceipt.putLog("createTable", tableObject);
-                } else {
+            for (JsonElement dbElement : state.get(dbName)) {
+                if (dbElement.getAsJsonObject().get("table").getAsString().equals(tableName)) {
                     txReceipt.setStatus(TransactionReceipt.FALSE);
                     txReceipt.putLog("createTable",
-                            params.toString() + " This table is already exist.");
+                            param.toString() + " This table is already exist.");
                     break;
                 }
             }
+
+            JsonArray stateArray = state.get(dbName);
+            if (stateArray != null) {
+                stateArray.add(param);
+                state.replace(dbName, stateArray);
+                txReceipt.putLog("createTable", param);
+            } else {
+                txReceipt.setStatus(TransactionReceipt.FALSE);
+                txReceipt.putLog("createTable", param.toString() + " This table is already exist.");
+            }
         }
 
         log.debug(txReceipt.toString());
         return txReceipt;
     }
 
-    public TransactionReceipt insert(JsonArray params) {
-        log.debug("insert :: params => " + params);
+    public TransactionReceipt insert(JsonObject param) {
+        log.debug("insert :: param => " + param);
 
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.setStatus(TransactionReceipt.SUCCESS);
 
-        for (JsonElement element : params) {
-            String dbName = element.getAsJsonObject().get("db").getAsString();
-            String tableName = element.getAsJsonObject().get("table").getAsString();
-            JsonObject keyObject = element.getAsJsonObject().get("key").getAsJsonObject();
-            JsonObject recordObject = element.getAsJsonObject().get("record").getAsJsonObject();
+        String dbName = param.get("db").getAsString();
+        String tableName = param.get("table").getAsString();
+        JsonObject keyObject = param.getAsJsonObject("key");
+        JsonObject recordObject = param.getAsJsonObject("record");
 
-            if (dbName == null || dbName.equals("")
-                    || tableName == null || tableName.equals("")
-                    || keyObject == null || keyObject.size() == 0
-                    || recordObject == null || recordObject.size() == 0) {
-                txReceipt.setStatus(TransactionReceipt.FALSE);
-                txReceipt.putLog("insert",
-                        params.toString() + " This data is not valid.");
-                break;
-            }
+        if (dbName == null || dbName.equals("")
+                || tableName == null || tableName.equals("")
+                || keyObject == null || keyObject.size() == 0
+                || recordObject == null || recordObject.size() == 0) {
+            txReceipt.setStatus(TransactionReceipt.FALSE);
+            txReceipt.putLog("insert", param.toString() + " This data is not valid.");
+        }
 
-            // check db & table
-            JsonObject tableObject = null;
-            for (JsonElement dbElement : (JsonArray) state.get(dbName)) {
-                if (dbElement.getAsJsonObject().get("table").getAsString().equals(tableName)) {
-                    tableObject = dbElement.getAsJsonObject();
-                }
-            }
-
-            if (tableObject == null || !checkParams(tableObject, (JsonObject) element)) {
-                txReceipt.setStatus(TransactionReceipt.FALSE);
-                txReceipt.putLog("insert",
-                        params.toString() + " This table is not valid.");
-                break;
-            }
-
-            // insert record
-            if (!state.putAssetState(dbName, tableName, keyObject, recordObject)) {
-                txReceipt.setStatus(TransactionReceipt.FALSE);
-                txReceipt.putLog("insert",
-                        params.toString() + " This record is not valid.");
-                break;
+        // check db & table
+        JsonObject tableObject = null;
+        for (JsonElement dbElement : state.get(dbName)) {
+            if (dbElement.getAsJsonObject().get("table").getAsString().equals(tableName)) {
+                tableObject = dbElement.getAsJsonObject();
             }
         }
 
-        txReceipt.putLog("insert", params.toString());
+        if (tableObject == null || !checkParam(tableObject, param)) {
+            txReceipt.setStatus(TransactionReceipt.FALSE);
+            txReceipt.putLog("insert",
+                    param.toString() + " This table is not valid.");
+        }
+
+        // insert record
+        if (!state.putAssetState(dbName, tableName, keyObject, recordObject)) {
+            txReceipt.setStatus(TransactionReceipt.FALSE);
+            txReceipt.putLog("insert", param.toString() + " This record is not valid.");
+        }
+
+        txReceipt.putLog("insert", param.toString());
         log.debug(txReceipt.toString());
 
         return txReceipt;
     }
 
-    public TransactionReceipt update(JsonArray params) {
-        log.debug("update :: params => " + params);
+    public TransactionReceipt update(JsonObject param) {
+        log.debug("update :: param => " + param);
 
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.setStatus(TransactionReceipt.SUCCESS);
 
-        for (JsonElement element : params) {
-            String dbName = element.getAsJsonObject().get("db").getAsString();
-            String tableName = element.getAsJsonObject().get("table").getAsString();
-            JsonObject keyObject = element.getAsJsonObject().get("key").getAsJsonObject();
-            JsonObject recordObject = element.getAsJsonObject().get("record").getAsJsonObject();
+        String dbName = param.get("db").getAsString();
+        String tableName = param.get("table").getAsString();
+        JsonObject keyObject = param.getAsJsonObject("key");
+        JsonObject recordObject = param.getAsJsonObject("record");
 
-            if (dbName == null || dbName.equals("")
-                    || tableName == null || tableName.equals("")
-                    || keyObject == null || keyObject.size() == 0
-                    || recordObject == null || recordObject.size() == 0) {
-                txReceipt.setStatus(TransactionReceipt.FALSE);
-                txReceipt.putLog("update",
-                        params.toString() + " This data is not valid.");
-                break;
-            }
+        if (dbName == null || dbName.equals("")
+                || tableName == null || tableName.equals("")
+                || keyObject == null || keyObject.size() == 0
+                || recordObject == null || recordObject.size() == 0) {
+            txReceipt.setStatus(TransactionReceipt.FALSE);
+            txReceipt.putLog("update", param.toString() + " This data is not valid.");
+        }
 
-            // check db & table
-            JsonObject tableObject = null;
-            for (JsonElement dbElement : (JsonArray) state.get(dbName)) {
-                if (dbElement.getAsJsonObject().get("table").getAsString().equals(tableName)) {
-                    tableObject = dbElement.getAsJsonObject();
-                }
-            }
-
-            if (tableObject == null || !checkParams(tableObject, (JsonObject) element)) {
-                txReceipt.setStatus(TransactionReceipt.FALSE);
-                txReceipt.putLog("update",
-                        params.toString() + " This table is not valid.");
-                break;
-            }
-
-            // update record
-            if (!state.updateAssetState(dbName, tableName, keyObject, recordObject)) {
-                txReceipt.setStatus(TransactionReceipt.FALSE);
-                txReceipt.putLog("update",
-                        params.toString() + " This record is not valid.");
-                break;
+        // check db & table
+        JsonObject tableObject = null;
+        for (JsonElement dbElement : state.get(dbName)) {
+            if (dbElement.getAsJsonObject().get("table").getAsString().equals(tableName)) {
+                tableObject = dbElement.getAsJsonObject();
             }
         }
 
-        txReceipt.putLog("update", params.toString());
+        if (tableObject == null || !checkParam(tableObject, param)) {
+            txReceipt.setStatus(TransactionReceipt.FALSE);
+            txReceipt.putLog("update", param.toString() + " This table is not valid.");
+        }
+
+        // update record
+        if (!state.updateAssetState(dbName, tableName, keyObject, recordObject)) {
+            txReceipt.setStatus(TransactionReceipt.FALSE);
+            txReceipt.putLog("update", param.toString() + " This record is not valid.");
+        }
+
+        txReceipt.putLog("update", param.toString());
         log.debug(txReceipt.toString());
 
         return txReceipt;
     }
 
-    private void dataFormatValidation(JsonObject data) {
-        if (data.get("method").getAsString().length() < 0) {
-            throw new FailedOperationException("Empty method");
-        }
-        if (!data.get("params").isJsonArray()) {
-            throw new FailedOperationException("Params must be JsonArray");
-        }
-    }
-
-    private boolean checkParams(JsonObject table, JsonObject record) {
+    private boolean checkParam(JsonObject table, JsonObject record) {
 
         String tableObjectName = table.get("table").getAsString();
         String recordObjectName = record.get("table").getAsString();
@@ -270,8 +194,8 @@ public class AssetContract implements Contract<JsonArray> {
             return false;
         }
 
-        JsonObject tableKeyObject = table.get("key").getAsJsonObject();
-        JsonObject recordKeyObject = record.get("key").getAsJsonObject();
+        JsonObject tableKeyObject = table.getAsJsonObject("key");
+        JsonObject recordKeyObject = record.getAsJsonObject("key");
 
         // check key size
         if (tableKeyObject.size() != recordKeyObject.size()) {
@@ -285,8 +209,8 @@ public class AssetContract implements Contract<JsonArray> {
             }
         }
 
-        JsonObject tableRecordObject = table.get("record").getAsJsonObject();
-        JsonObject recordRecordObject = record.get("record").getAsJsonObject();
+        JsonObject tableRecordObject = table.getAsJsonObject("record");
+        JsonObject recordRecordObject = record.getAsJsonObject("record");
 
         // check record
         for (Map.Entry<String, JsonElement> entry : recordRecordObject.entrySet()) {
@@ -298,24 +222,7 @@ public class AssetContract implements Contract<JsonArray> {
         return true;
     }
 
-    @Override
-    public JsonObject query(JsonObject query) {
-        dataFormatValidation(query);
-
-        String method = query.get("method").getAsString();
-        JsonArray params = query.get("params").getAsJsonArray();
-
-        JsonObject result;
-        try {
-            result = (JsonObject)getClass().getMethod(method, JsonArray.class).invoke(this, params);
-
-        } catch (Exception e) {
-            throw new FailedOperationException(e);
-        }
-        return result;
-    }
-
-    public JsonObject queryAllDatabases(JsonArray params) {
+    public JsonObject queryalldatabases(JsonObject param) {
 
         JsonObject result = new JsonObject();
         JsonArray dbArray = new JsonArray();
@@ -329,14 +236,14 @@ public class AssetContract implements Contract<JsonArray> {
         return result;
     }
 
-    public JsonObject queryAllTables(JsonArray params) {
+    public JsonObject queryalltables(JsonObject param) {
 
-        String db = params.get(0).getAsJsonObject().get("db").getAsString();
+        String db = param.get("db").getAsString();
 
         JsonObject result = new JsonObject();
         JsonArray tableNames = new JsonArray();
 
-        JsonArray tableStates = (JsonArray)state.get(db);
+        JsonArray tableStates = state.get(db);
 
         for (JsonElement table : tableStates) {
             tableNames.add(table.getAsJsonObject().get("table").getAsString());
@@ -347,14 +254,14 @@ public class AssetContract implements Contract<JsonArray> {
         return result;
     }
 
-    public JsonObject queryTable(JsonArray params) {
+    public JsonObject querytable(JsonObject param) {
 
-        String dbName = params.get(0).getAsJsonObject().get("db").getAsString();
-        String tableName = params.get(0).getAsJsonObject().get("table").getAsString();
+        String dbName = param.get("db").getAsString();
+        String tableName = param.get("table").getAsString();
 
         JsonObject result = null;
 
-        JsonArray tableStates = (JsonArray)state.get(dbName);
+        JsonArray tableStates = state.get(dbName);
 
         for (JsonElement table : tableStates) {
             if (table.getAsJsonObject().get("table").getAsString().equals(tableName)) {
@@ -366,62 +273,53 @@ public class AssetContract implements Contract<JsonArray> {
         return result;
     }
 
-    public JsonObject queryRecordWithKey(JsonArray params) {
-        String dbName = params.get(0).getAsJsonObject().get("db").getAsString();
-        String tableName = params.get(0).getAsJsonObject().get("table").getAsString();
-        JsonObject keyObject = params.get(0).getAsJsonObject().get("key").getAsJsonObject();
+    public JsonObject queryrecordwithkey(JsonObject param) {
+        String dbName = param.get("db").getAsString();
+        String tableName = param.get("table").getAsString();
+        JsonObject keyObject = param.getAsJsonObject("key");
 
         return state.getAssetState(dbName, tableName, keyObject);
     }
 
-    public TransactionReceipt deleteRecordWithKey(JsonArray params) {
-        log.debug("delete :: params => " + params);
+    public TransactionReceipt deleterecordwithkey(JsonObject param) {
+        log.debug("delete :: param => " + param);
 
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.setStatus(TransactionReceipt.SUCCESS);
 
-        for (JsonElement element : params) {
-            String dbName = element.getAsJsonObject().get("db").getAsString();
-            String tableName = element.getAsJsonObject().get("table").getAsString();
-            JsonObject keyObject = element.getAsJsonObject().get("key").getAsJsonObject();
+        String dbName = param.get("db").getAsString();
+        String tableName = param.get("table").getAsString();
+        JsonObject keyObject = param.getAsJsonObject("key");
 
-            if (dbName == null || dbName.equals("")
-                    || tableName == null || tableName.equals("")
-                    || keyObject == null || keyObject.size() == 0) {
-                txReceipt.setStatus(TransactionReceipt.FALSE);
-                txReceipt.putLog("delete",
-                        params.toString() + " This data is not valid.");
-                break;
-            }
-
-            // check db & table
-            JsonObject tableObject = null;
-            for (JsonElement dbElement : (JsonArray) state.get(dbName)) {
-                if (dbElement.getAsJsonObject().get("table").getAsString().equals(tableName)) {
-                    tableObject = dbElement.getAsJsonObject();
-                }
-            }
-
-            if (tableObject == null) {
-                txReceipt.setStatus(TransactionReceipt.FALSE);
-                txReceipt.putLog("delete",
-                        params.toString() + " This table is not valid.");
-                break;
-            }
-
-            // delete record
-            try {
-                state.getAssetState(dbName, tableName).remove(keyObject);
-            } catch (Exception e) {
-                txReceipt.setStatus(TransactionReceipt.FALSE);
-                txReceipt.putLog("delete",
-                        params.toString() + " This record is not valid.");
-                break;
-            }
-
+        if (dbName == null || dbName.equals("")
+                || tableName == null || tableName.equals("")
+                || keyObject == null || keyObject.size() == 0) {
+            txReceipt.setStatus(TransactionReceipt.FALSE);
+            txReceipt.putLog("delete", param.toString() + " This data is not valid.");
         }
 
-        txReceipt.putLog("deleteRecordWithKey", params.toString());
+        // check db & table
+        JsonObject tableObject = null;
+        for (JsonElement dbElement : state.get(dbName)) {
+            if (dbElement.getAsJsonObject().get("table").getAsString().equals(tableName)) {
+                tableObject = dbElement.getAsJsonObject();
+            }
+        }
+
+        if (tableObject == null) {
+            txReceipt.setStatus(TransactionReceipt.FALSE);
+            txReceipt.putLog("delete", param.toString() + " This table is not valid.");
+        }
+
+        // delete record
+        try {
+            state.getAssetState(dbName, tableName).remove(keyObject);
+        } catch (Exception e) {
+            txReceipt.setStatus(TransactionReceipt.FALSE);
+            txReceipt.putLog("delete", param.toString() + " This record is not valid.");
+        }
+
+        txReceipt.putLog("deleteRecordWithKey", param.toString());
         log.debug(txReceipt.toString());
 
         return txReceipt;

@@ -16,7 +16,10 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.TestUtils;
+import com.google.gson.JsonArray;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.ContractTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchEventListener;
@@ -42,7 +45,7 @@ public class PerformanceTest {
     @Test(timeout = 5000L)
     public void generate100BlockTest() {
         BranchGroup branchGroup = new BranchGroup();
-        BlockChain blockChain = TestUtils.createBlockChain(false);
+        BlockChain blockChain = BlockChainTestUtils.createBlockChain(false);
         branchGroup.addBranch(blockChain, new BranchEventListener() {
             @Override
             public void chainedBlock(BlockHusk block) {
@@ -57,17 +60,22 @@ public class PerformanceTest {
 
         watch.start("txStart");
         for (int i = 0; i < 100; i++) {
-            blockChain.addTransaction(new TransactionHusk(TestUtils.sampleTransferTx(i)));
+            TransactionHusk tx = createTx(i);
+            blockChain.addTransaction(tx);
         }
         watch.stop();
 
         log.debug(watch.shortSummary());
 
         watch.start("addBlock");
-        branchGroup.generateBlock(TestUtils.wallet(), blockChain.getBranchId());
+        branchGroup.generateBlock(TestConstants.wallet(), blockChain.getBranchId());
         watch.stop();
 
         log.debug(watch.shortSummary());
     }
 
+    private TransactionHusk createTx(int amount) {
+        JsonArray txBody = ContractTestUtils.transferTxBodyJson(TestConstants.TRANSFER_TO, amount);
+        return BlockChainTestUtils.createTxHusk(TestConstants.YEED, txBody);
+    }
 }

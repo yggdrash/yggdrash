@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.store;
 
-import io.yggdrash.TestUtils;
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
@@ -38,7 +38,7 @@ public class TransactionStoreTest {
     public void setUp() {
         ts = new TransactionStore(new HashMapDbSource());
         assertThat(ts).isNotNull();
-        tx = TestUtils.createTransferTxHusk();
+        tx = BlockChainTestUtils.createTransferTxHusk();
     }
 
     @Test
@@ -48,7 +48,7 @@ public class TransactionStoreTest {
 
         // 캐시 사이즈보다 하나 더 입력
         for (int i = 0; i < cacheSize + 1; i++) {
-            tx = TestUtils.createTransferTxHusk();
+            tx = BlockChainTestUtils.createTransferTxHusk();
             ts.put(tx.getHash(), tx);
         }
 

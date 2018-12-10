@@ -16,49 +16,48 @@
 
 package io.yggdrash.core.store;
 
-import io.yggdrash.TestUtils;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.StoreTestUtils;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.common.util.FileUtil;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Test;
 
-import java.nio.file.Paths;
-
 public class MetaStoreTest {
     private MetaStore ms;
 
     @After
     public void tearDown() {
-        FileUtil.recursiveDelete(Paths.get(TestUtils.YGG_HOME));
+        StoreTestUtils.clearTestDb();
     }
 
     @Test
     public void shouldBeLoaded() {
-        ms = new MetaStore(new LevelDbDataSource(getPath(), "meta"));
-        BlockHusk blockHusk = new BlockHusk(TestUtils.getBlockFixture());
+        ms = createMetaStore();
+        BlockHusk blockHusk = BlockChainTestUtils.genesisBlock();
         ms.put(MetaStore.MetaInfo.BEST_BLOCK, blockHusk.getHash());
         Sha3Hash sha3Hash = ms.get(MetaStore.MetaInfo.BEST_BLOCK);
         Assertions.assertThat(sha3Hash).isEqualTo(blockHusk.getHash());
 
         ms.close();
-        ms = new MetaStore(new LevelDbDataSource(getPath(), "meta"));
+        ms = createMetaStore();
         Sha3Hash sha3HashAgain = ms.get(MetaStore.MetaInfo.BEST_BLOCK);
         Assertions.assertThat(sha3HashAgain).isEqualTo(sha3Hash);
     }
 
     @Test
     public void shouldBePutMeta() {
-        ms = new MetaStore(new LevelDbDataSource(getPath(), "meta"));
-        BlockHusk blockHusk = new BlockHusk(TestUtils.getBlockFixture());
+        ms = createMetaStore();
+        BlockHusk blockHusk = BlockChainTestUtils.genesisBlock();
         ms.put(MetaStore.MetaInfo.BEST_BLOCK, blockHusk.getHash());
         Sha3Hash sha3Hash = ms.get(MetaStore.MetaInfo.BEST_BLOCK);
         Assertions.assertThat(sha3Hash).isEqualTo(blockHusk.getHash());
     }
 
-    private String getPath() {
-        return Paths.get(TestUtils.YGG_HOME, "store").toString();
+    private MetaStore createMetaStore() {
+        LevelDbDataSource ds = new LevelDbDataSource(StoreTestUtils.getTestPath(), "meta");
+        return new MetaStore(ds);
     }
 }

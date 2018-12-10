@@ -1,11 +1,11 @@
 package io.yggdrash.core.contract;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.ByteUtil;
 import org.spongycastle.util.encoders.Hex;
+
 import java.math.BigDecimal;
 import java.util.Map;
 
@@ -20,8 +20,8 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
      * @return Total amount of coin in existence
      */
     @Override
-    public BigDecimal totalsupply(JsonArray params) {
-        log.info("\ntotalsupply :: params => " + params);
+    public BigDecimal totalsupply(JsonObject param) {
+        log.info("\ntotalsupply :: param => " + param);
         return state.get(totalSupplyKey).getBalance();
     }
 
@@ -32,10 +32,10 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
      * @return A BigDecimal representing the amount owned by the passed address
      */
     @Override
-    public BigDecimal balanceof(JsonArray params) {
-        log.info("\nbalanceof :: params => " + params);
+    public BigDecimal balanceof(JsonObject param) {
+        log.info("\nbalanceof :: param => " + param);
 
-        String address = params.get(0).getAsJsonObject().get("address").getAsString().toLowerCase();
+        String address = param.get("address").getAsString().toLowerCase();
         if (state.get(address) != null) {
             CoinContractStateValue value = state.get(address);
             return value.getBalance();
@@ -51,11 +51,11 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
      * @return A BigDecimal specifying the amount of coin still available for the spender
      */
     @Override
-    public BigDecimal allowance(JsonArray params) {
-        log.info("\nallowance :: params => " + params);
+    public BigDecimal allowance(JsonObject param) {
+        log.info("\nallowance :: param => " + param);
 
-        String owner = params.get(0).getAsJsonObject().get("owner").getAsString().toLowerCase();
-        String spender = params.get(0).getAsJsonObject().get("spender").getAsString().toLowerCase();
+        String owner = param.get("owner").getAsString().toLowerCase();
+        String spender = param.get("spender").getAsString().toLowerCase();
         String approveKey = approveKey(owner, spender);
 
         if (state.get(owner) != null && state.get(approveKey) != null) {
@@ -72,11 +72,11 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
      * @return TransactionReceipt
      */
     @Override
-    public TransactionReceipt transfer(JsonArray params) {
-        log.info("\ntransfer :: params => " + params);
+    public TransactionReceipt transfer(JsonObject param) {
+        log.info("\ntransfer :: param => " + param);
 
-        String to = params.get(0).getAsJsonObject().get("to").getAsString().toLowerCase();
-        BigDecimal amount = params.get(0).getAsJsonObject().get("amount").getAsBigDecimal();
+        String to = param.get("to").getAsString().toLowerCase();
+        BigDecimal amount = param.get("amount").getAsBigDecimal();
 
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.putLog("to", to);
@@ -110,11 +110,11 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
      * @return TransactionReceipt
      */
     @Override
-    public TransactionReceipt approve(JsonArray params) {
-        log.info("\napprove :: params => " + params);
+    public TransactionReceipt approve(JsonObject param) {
+        log.info("\napprove :: param => " + param);
 
-        String spender = params.get(0).getAsJsonObject().get("spender").getAsString().toLowerCase();
-        BigDecimal amount = params.get(0).getAsJsonObject().get("amount").getAsBigDecimal();
+        String spender = param.get("spender").getAsString().toLowerCase();
+        BigDecimal amount = param.get("amount").getAsBigDecimal();
 
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.putLog("spender", spender);
@@ -152,12 +152,12 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
      * @return TransactionReceipt
      */
     @Override
-    public TransactionReceipt transferfrom(JsonArray params) {
-        log.info("\ntransferfrom :: params => " + params);
+    public TransactionReceipt transferfrom(JsonObject param) {
+        log.info("\ntransferfrom :: param => " + param);
 
-        String from = params.get(0).getAsJsonObject().get("from").getAsString().toLowerCase();
-        String to = params.get(0).getAsJsonObject().get("to").getAsString().toLowerCase();
-        BigDecimal amount = params.get(0).getAsJsonObject().get("amount").getAsBigDecimal();
+        String from = param.get("from").getAsString().toLowerCase();
+        String to = param.get("to").getAsString().toLowerCase();
+        BigDecimal amount = param.get("amount").getAsBigDecimal();
 
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.putLog("from", from);
@@ -198,8 +198,8 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
      *
      * @return TransactionReceipt
      */
-    public TransactionReceipt genesis(JsonArray params) {
-        log.info("\ngenesis :: params => " + params);
+    public TransactionReceipt genesis(JsonObject param) {
+        log.info("\ngenesis :: param => " + param);
 
         TransactionReceipt txReceipt = new TransactionReceipt();
         if (state.getState().size() > 0) {
@@ -208,8 +208,7 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
 
         //totalSupply 는 alloc 의 balance 를 모두 더한 값으로 세팅
         BigDecimal totalSupply = BigDecimal.ZERO;
-        JsonObject json = params.get(0).getAsJsonObject();
-        JsonObject alloc = json.get("alloc").getAsJsonObject();
+        JsonObject alloc = param.get("alloc").getAsJsonObject();
         for (Map.Entry<String, JsonElement> entry : alloc.entrySet()) {
             String frontier = entry.getKey();
             JsonObject value = entry.getValue().getAsJsonObject();

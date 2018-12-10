@@ -59,17 +59,19 @@ public class ContractClassLoader extends ClassLoader {
         return loadContract(contractFullName, classData);
     }
 
+    @SuppressWarnings("unchecked")
     private ContractMeta loadContract(String contractFullName, byte[] b) {
         Class contract = defineClass(contractFullName, b, 0, b.length);
         return new ContractMeta(b, contract);
     }
 
+    @SuppressWarnings("unchecked")
     public static void copyResourcesToContractPath(String contractPath) {
         File targetDir = new File(contractPath);
         if (!targetDir.exists() && !targetDir.mkdirs()) {
             throw new RuntimeException("Failed to create=" + targetDir.getAbsolutePath());
         }
-        for (Class contract : CONTRACTS) {
+        for (Class<? extends Contract> contract : CONTRACTS) {
             log.debug("copyResourcesToContractPath :: contract => " + contract);
             ContractMeta contractMeta = loadContractClass(contract);
             ContractId contractId = contractMeta.getContractId();

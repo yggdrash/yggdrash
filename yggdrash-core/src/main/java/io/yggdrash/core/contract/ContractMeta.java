@@ -20,6 +20,7 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 
 import java.io.File;
+import java.lang.reflect.InvocationTargetException;
 
 public class ContractMeta {
     private static final String SUFFIX = ".class";
@@ -37,9 +38,10 @@ public class ContractMeta {
     }
 
     public Contract newInstance(StateStore store, TransactionReceiptStore txReceiptStore)
-            throws IllegalAccessException, InstantiationException {
+            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
+            InstantiationException {
         // contract init
-        Contract c = contract.newInstance();
+        Contract c = contract.getDeclaredConstructor().newInstance();
         c.init(store, txReceiptStore);
         return c;
     }

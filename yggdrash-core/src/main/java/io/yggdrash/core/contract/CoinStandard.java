@@ -1,23 +1,23 @@
 package io.yggdrash.core.contract;
 
-import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 import java.math.BigDecimal;
 
 public interface CoinStandard {
 
     // Query
-    BigDecimal totalsupply(JsonArray params);
+    BigDecimal totalsupply(JsonObject param);
 
-    BigDecimal balanceof(JsonArray params);
+    BigDecimal balanceof(JsonObject param);
 
-    BigDecimal allowance(JsonArray params);
+    BigDecimal allowance(JsonObject param);
 
 
     // Transaction
-    TransactionReceipt transfer(JsonArray params);
+    TransactionReceipt transfer(JsonObject param);
 
-    TransactionReceipt approve(JsonArray params);
+    TransactionReceipt approve(JsonObject param);
 
-    TransactionReceipt transferfrom(JsonArray params);
+    TransactionReceipt transferfrom(JsonObject param);
 }

@@ -1,7 +1,8 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.TestUtils;
+import io.yggdrash.ContractTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import org.junit.Test;
@@ -22,8 +23,9 @@ public class BranchTest {
                         + "of all Branch Chains.";
         String contractId = "d399cd6d34288d04ba9e68ddfda9f5fe99dd778e";
         String timestamp = "00000166c837f0c9";
-        JsonObject json = TestUtils.createBranchJson(
-                name, symbol, property, description, contractId, timestamp);
+        JsonObject genesis = new JsonObject();
+        JsonObject json = ContractTestUtils.createBranchJson(name, symbol, property,
+                description, contractId, timestamp, genesis);
 
         Branch branch = Branch.of(json);
 
@@ -34,14 +36,14 @@ public class BranchTest {
         assertThat(branch.getContractId().toString()).isEqualTo(contractId);
         assertThat(branch.getTimestamp())
                 .isEqualTo(ByteUtil.byteArrayToLong(Hex.decode(timestamp)));
-        assertThat(branch.getOwner().toString()).isEqualTo(TestUtils.wallet().getHexAddress());
+        assertThat(branch.getOwner().toString()).isEqualTo(TestConstants.wallet().getHexAddress());
         assertThat(branch.isStem()).isTrue();
         assertThat(branch.verify()).isTrue();
     }
 
     @Test
     public void notVerifiedTest() {
-        JsonObject json = TestUtils.createSampleBranchJson();
+        JsonObject json = ContractTestUtils.createSampleBranchJson();
         String invalidSig = "1cb1f610ecfb3a8a49988a17ac1a4cd846dece0bcf797c701a8049d16b88faff9d63df"
                 + "601000a2f2afebb5a19c058bf388c6b7506763badb68cbedbd85732bd9a0";
         json.addProperty("signature", invalidSig);
@@ -51,7 +53,7 @@ public class BranchTest {
 
     @Test(expected = InvalidSignatureException.class)
     public void inValidSignatureTest() {
-        JsonObject json = TestUtils.createSampleBranchJson();
+        JsonObject json = ContractTestUtils.createSampleBranchJson();
         json.addProperty("signature", "00");
         Branch.of(json).verify();
     }

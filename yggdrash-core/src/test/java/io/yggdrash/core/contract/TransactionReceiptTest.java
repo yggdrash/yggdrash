@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.contract;
 
-import io.yggdrash.TestUtils;
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import org.junit.Before;
 import org.junit.Test;
@@ -45,7 +45,7 @@ public class TransactionReceiptTest {
 
     @Test
     public void transactionHashTest() {
-        TransactionHusk tx = TestUtils.createTransferTxHusk();
+        TransactionHusk tx = BlockChainTestUtils.createTransferTxHusk();
         String hashOfTx = tx.getHash().toString();
         txReceipt.setTransactionHash(hashOfTx);
         assert txReceipt.getTransactionHash().equals(hashOfTx);

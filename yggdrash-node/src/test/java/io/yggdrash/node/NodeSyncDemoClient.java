@@ -16,7 +16,6 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.TestUtils;
 import io.yggdrash.core.net.Peer;
 
 /**
@@ -32,6 +31,6 @@ public class NodeSyncDemoClient {
         GRpcClientChannel client =
                 new GRpcClientChannel(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
         client.ping("Ping");
-        client.broadcastTransaction(TestUtils.sampleTxs());
+        client.broadcastTransaction(GRpcClientChannelTest.sampleTxs());
     }
 }

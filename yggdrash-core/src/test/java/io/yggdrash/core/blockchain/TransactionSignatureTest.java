@@ -19,7 +19,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.TestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.TimeUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -57,7 +57,7 @@ public class TransactionSignatureTest {
         long timestamp = TimeUtils.time();
 
         TransactionHeader txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
-        txSig1 = new TransactionSignature(TestUtils.wallet(), txHeader.getHashForSigning());
+        txSig1 = new TransactionSignature(TestConstants.wallet(), txHeader.getHashForSigning());
     }
 
     @Test

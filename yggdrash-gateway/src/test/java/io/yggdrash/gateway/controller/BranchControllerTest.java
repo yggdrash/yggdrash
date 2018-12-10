@@ -17,7 +17,7 @@
 package io.yggdrash.gateway.controller;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.TestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.Branch;
 import org.junit.Test;
@@ -64,7 +64,7 @@ public class BranchControllerTest {
 
     @Test
     public void shouldGetStemBrancheStates() throws Exception {
-        mockMvc.perform(get("/branches/" + TestUtils.STEM + "/states"))
+        mockMvc.perform(get("/branches/" + TestConstants.STEM + "/states"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$", hasSize(1)));

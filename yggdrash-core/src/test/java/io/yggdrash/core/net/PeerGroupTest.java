@@ -1,10 +1,10 @@
 package io.yggdrash.core.net;
 
-import io.yggdrash.TestUtils;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.store.StoreBuilder;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,18 +16,16 @@ import java.util.List;
 public class PeerGroupTest {
 
     private static final int MAX_PEERS = 25;
-    private static final BranchId BRANCH = TestUtils.STEM;
-    private static final BranchId OTHER_BRANCH = TestUtils.YEED;
+    private static final BranchId BRANCH = TestConstants.STEM;
+    private static final BranchId OTHER_BRANCH = TestConstants.YEED;
     private static final Peer OWNER = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
     private static final StoreBuilder storeBuilder = new StoreBuilder(new DefaultConfig());
 
     private PeerGroup peerGroup;
-    private TransactionHusk tx;
 
     @Before
     public void setUp() {
         this.peerGroup = new PeerGroup(OWNER, MAX_PEERS);
-        this.tx = TestUtils.createTransferTxHusk();
         peerGroup.addPeerTable(BRANCH, storeBuilder.buildPeerStore(BRANCH));
         peerGroup.addPeerTable(OTHER_BRANCH, storeBuilder.buildPeerStore(OTHER_BRANCH));
     }
@@ -118,7 +116,7 @@ public class PeerGroupTest {
     @Test
     public void syncTransaction() {
         addPeerChannel();
-        peerGroup.receivedTransaction(tx);
+        peerGroup.receivedTransaction(BlockChainTestUtils.createTransferTxHusk());
         assert !peerGroup.syncTransaction(BRANCH).isEmpty();
     }
 

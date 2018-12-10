@@ -1,12 +1,10 @@
 package io.yggdrash.node.api;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.exception.NonExistObjectException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +12,6 @@ import org.springframework.stereotype.Service;
 @AutoJsonRpcServiceImpl
 public class ContractApiImpl implements ContractApi {
 
-    private static final Logger log = LoggerFactory.getLogger(ContractApiImpl.class);
     private final BranchGroup branchGroup;
 
     @Autowired
@@ -24,8 +21,7 @@ public class ContractApiImpl implements ContractApi {
 
     @Override
     public String query(String data) {
-        JsonParser jsonParser = new JsonParser();
-        JsonObject query = (JsonObject) jsonParser.parse(data);
+        JsonObject query = Utils.parseJsonObject(data);
         if (!query.has("address")) {
             throw new NonExistObjectException("Address (BranchId) is required");
         }

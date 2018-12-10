@@ -2,7 +2,7 @@ package io.yggdrash.core.contract;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.TestUtils;
+import io.yggdrash.ContractTestUtils;
 import io.yggdrash.core.blockchain.Branch;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,7 +15,7 @@ public class StemContractStateValueTest {
 
     @Before
     public void setUp() {
-        JsonObject json = TestUtils.createSampleBranchJson();
+        JsonObject json = ContractTestUtils.createSampleBranchJson();
         this.stateValue = StemContractStateValue.of(json);
     }
 
@@ -41,7 +41,7 @@ public class StemContractStateValueTest {
 
     @Test(expected = IllegalStateException.class)
     public void inValidTypeTest() {
-        JsonObject json = TestUtils.createSampleBranchJson();
+        JsonObject json = ContractTestUtils.createSampleBranchJson();
         StemContractStateValue branch = StemContractStateValue.of(json);
         branch.setType("unknown");
     }

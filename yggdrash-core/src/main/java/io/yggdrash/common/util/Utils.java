@@ -304,8 +304,8 @@ public class Utils {
         }
     }
 
-    public static JsonArray parseJsonArray(String data) {
-        return (JsonArray) jsonParser.parse(data);
+    public static JsonArray parseJsonArray(String json) {
+        return (JsonArray) jsonParser.parse(json);
     }
 
     public static JsonObject parseJsonObject(String json) {

@@ -16,7 +16,7 @@
 
 package io.yggdrash.node.api;
 
-import io.yggdrash.TestUtils;
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
@@ -51,7 +51,7 @@ public class BlockMockitoTest {
     @Before
     public void setUp() {
         blockApiImpl = new BlockApiImpl(branchGroupMock);
-        block = TestUtils.createGenesisBlockHusk();
+        block = BlockChainTestUtils.genesisBlock();
         branchId = block.getBranchId();
         hashOfBlock = block.getHash().toString();
         blockList.add(block);
