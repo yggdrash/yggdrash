@@ -22,6 +22,7 @@ import io.yggdrash.TestUtils;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -42,8 +43,8 @@ public class StemContractTest {
 
     @Before
     public void setUp() {
-        StateStore<StemContractStateValue> stateStore = new StateStore<>();
-        TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
+        StateStore<StemContractStateValue> stateStore = new StateStore<>(new HashMapDbSource());
+        TransactionReceiptStore txReceiptStore = TestUtils.testReceipt();
 
         stemContract = new StemContract();
         stemContract.init(stateStore, txReceiptStore);

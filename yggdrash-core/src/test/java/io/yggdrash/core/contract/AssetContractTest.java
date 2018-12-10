@@ -30,6 +30,7 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.TransactionSignature;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.core.wallet.Wallet;
 import org.junit.Before;
 import org.junit.Test;
@@ -168,8 +169,8 @@ public class AssetContractTest {
 
     @Before
     public void setUp() {
-        StateStore<JsonArray> stateStore = new StateStore<>();
-        TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
+        StateStore<JsonArray> stateStore = new StateStore<>(new HashMapDbSource());
+        TransactionReceiptStore txReceiptStore = TestUtils.testReceipt();
 
         assetContract = new AssetContract();
         assetContract.init(stateStore, txReceiptStore);

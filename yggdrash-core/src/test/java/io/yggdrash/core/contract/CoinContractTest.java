@@ -5,9 +5,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Before;
 import org.junit.Test;
-
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -21,8 +21,10 @@ public class CoinContractTest {
 
     @Before
     public void setUp() {
-        StateStore<CoinContractStateValue> coinContractStateStore = new StateStore<>();
-        coinContract.init(coinContractStateStore, new TransactionReceiptStore());
+        StateStore<CoinContractStateValue> coinContractStateStore = null;
+        coinContractStateStore = new StateStore<>(new HashMapDbSource());
+        TransactionReceiptStore txReceip = new TransactionReceiptStore(new HashMapDbSource());
+        coinContract.init(coinContractStateStore, txReceip);
         genesis();
     }
 
@@ -40,9 +42,11 @@ public class CoinContractTest {
 
     @Test
     public void specification() {
-        StateStore<CoinContractStateValue> coinContractStateStore = new StateStore<>();
+        StateStore<CoinContractStateValue> coinContractStateStore;
+        coinContractStateStore = new StateStore<>(new HashMapDbSource());
         MetaCoinContract metaCoinContract = new MetaCoinContract();
-        metaCoinContract.init(coinContractStateStore, new TransactionReceiptStore());
+        TransactionReceiptStore txReceip = new TransactionReceiptStore(new HashMapDbSource());
+        metaCoinContract.init(coinContractStateStore, txReceip);
 
         List<String> methods = metaCoinContract.specification(new JsonArray());
 

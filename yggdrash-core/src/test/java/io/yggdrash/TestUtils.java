@@ -28,6 +28,7 @@ import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
+import io.yggdrash.core.blockchain.BlockChainTest;
 import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BlockSignature;
@@ -39,8 +40,12 @@ import io.yggdrash.core.contract.ContractTx;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.StoreBuilder;
+import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.InputStream;
@@ -51,6 +56,8 @@ import java.util.List;
 import java.util.Random;
 
 public class TestUtils {
+    private static final Logger log = LoggerFactory.getLogger(BlockChainTest.class);
+
     public static final BranchId STEM = BranchId.of("91b29a1453258d72ca6fbbcabb8dca10cca944fb");
     public static final BranchId YEED = BranchId.of("d872b5a338b824dc56abc6015543496670d81c1b");
 
@@ -81,6 +88,7 @@ public class TestUtils {
 
     public static void clearTestDb() {
         String dbPath = new DefaultConfig().getDatabasePath();
+        log.debug(dbPath);
         FileUtil.recursiveDelete(Paths.get(dbPath));
     }
 
@@ -278,5 +286,9 @@ public class TestUtils {
             super();
             this.productionMode = true;
         }
+    }
+
+    public static TransactionReceiptStore testReceipt() {
+        return new TransactionReceiptStore(new HashMapDbSource());
     }
 }

@@ -2,6 +2,7 @@ package io.yggdrash.core.store;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.Utils;
+import io.yggdrash.core.store.datasource.DbSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,13 +17,16 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class StateStore<T> implements Store<String, T> {
     private static final Logger log = LoggerFactory.getLogger(StateStore.class);
+    private final DbSource<byte[], byte[]> db;
+
 
     private final Map<String, T> state;
     private final Map<String, Map<Object, Set<Object>>> subState;
     private final Map<String, Map<String, Map<JsonObject, JsonObject>>> assetState;
     private BigDecimal totalSupply = BigDecimal.ZERO;
 
-    public StateStore() {
+    public StateStore(DbSource<byte[], byte[]> dbSource) {
+        this.db = dbSource.init();
         this.state = new ConcurrentHashMap<>();
         this.subState = new HashMap<>();
         this.assetState = new HashMap<>();
@@ -126,6 +130,7 @@ public class StateStore<T> implements Store<String, T> {
 
     @Override
     public void close() {
+        db.close();
         state.clear();
         subState.clear();
         assetState.clear();

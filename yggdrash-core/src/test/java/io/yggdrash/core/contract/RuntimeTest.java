@@ -23,6 +23,7 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.core.wallet.Wallet;
 import org.junit.Before;
 import org.junit.Test;
@@ -36,7 +37,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class RuntimeTest {
     private static final Logger log = LoggerFactory.getLogger(RuntimeTest.class);
-    private final TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
+    private TransactionReceiptStore txReceip = new TransactionReceiptStore(new HashMapDbSource());
+    private final TransactionReceiptStore txReceiptStore = txReceip;
     private final Contract<CoinContractStateValue> coinContract = new CoinContract();
     private final Contract<StemContractStateValue> stemContract = new StemContract();
     private io.yggdrash.core.contract.Runtime<StemContractStateValue> stemRuntime;
@@ -46,8 +48,9 @@ public class RuntimeTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        stemRuntime = new io.yggdrash.core.contract.Runtime<>(new StateStore<>(), txReceiptStore);
-        yeedRuntime = new io.yggdrash.core.contract.Runtime<>(new StateStore<>(), txReceiptStore);
+        StateStore stateStore = new StateStore<>(new HashMapDbSource());
+        stemRuntime = new io.yggdrash.core.contract.Runtime<>(stateStore, txReceiptStore);
+        yeedRuntime = new io.yggdrash.core.contract.Runtime<>(stateStore, txReceiptStore);
         wallet = new Wallet();
     }
 

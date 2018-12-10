@@ -17,16 +17,15 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.TestUtils;
-import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.core.blockchain.BranchEventListener;
-import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.exception.NotValidateException;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockChainTest {
+    private static final Logger log = LoggerFactory.getLogger(BlockChainTest.class);
 
     @Test
     public void shouldBeGetBlockByHash() {
@@ -72,6 +71,7 @@ public class BlockChainTest {
 
     @Test
     public void shouldBeLoadedStoredBlocks() {
+        TestUtils.clearTestDb();
         BlockChain blockChain1 = TestUtils.createBlockChain(true);
         BlockHusk genesisBlock = blockChain1.getGenesisBlock();
 
@@ -103,11 +103,14 @@ public class BlockChainTest {
 
     @Test
     public void shouldBeGeneratedAfterLoadedStoredBlocks() {
+        TestUtils.clearTestDb();
         BlockChain newDbBlockChain = TestUtils.createBlockChain(true);
+        log.debug("new Block index {}", newDbBlockChain.getLastIndex());
         BlockHusk genesisBlock = newDbBlockChain.getGenesisBlock();
-
+        log.debug("genesisBlock " + genesisBlock.getIndex());
         BlockHusk testBlock = new BlockHusk(
                 TestUtils.getBlockFixture(1L, genesisBlock.getHash()));
+        log.debug("testBlock " + testBlock.getIndex());
         newDbBlockChain.addBlock(testBlock, false);
         newDbBlockChain.generateBlock(TestUtils.wallet());
         assertThat(newDbBlockChain.getLastIndex()).isEqualTo(2);
