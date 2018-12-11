@@ -36,6 +36,7 @@ import java.util.Arrays;
 
 import static junit.framework.TestCase.assertTrue;
 
+@RunWith(SpringRunner.class)
 @IfProfileValue(name = "spring.profiles.active", value = "performance")
 public class TransactionSpeedTest {
 
