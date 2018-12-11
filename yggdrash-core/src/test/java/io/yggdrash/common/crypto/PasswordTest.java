@@ -1,12 +1,9 @@
 package io.yggdrash.common.crypto;
 
-import io.yggdrash.common.util.ByteUtil;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static io.yggdrash.common.crypto.Password.generateKeyDerivation;
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -85,15 +82,4 @@ public class PasswordTest {
         }
 
     }
-
-
-    @Test
-    public void testGenerateKeyDerivation() {
-        byte[] kdfData;
-        kdfData = generateKeyDerivation("testdata".getBytes(), 32);
-        log.debug(ByteUtil.toHexString(kdfData));
-        assertArrayEquals(kdfData, ByteUtil.hexStringToBytes("0cc2fac56bbf672b4f6922d8938d62a0eb590efe9acfac00bd0fa771f2bf42c7"));
-    }
-
-
 }
