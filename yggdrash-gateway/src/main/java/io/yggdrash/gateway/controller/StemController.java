@@ -42,7 +42,7 @@ public class StemController {
     }
 
     @GetMapping
-    public String redirect(HttpServletRequest request) {
+    public String forward(HttpServletRequest request) {
         String uri = request.getRequestURI();
         String query = request.getQueryString() == null ? "" : "?" + request.getQueryString();
         return "forward:" + "/branches/" + stemBranchId + uri.substring("/stem".length()) + query;
