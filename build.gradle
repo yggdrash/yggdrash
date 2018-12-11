@@ -1,5 +1,5 @@
 plugins {
-    id 'org.springframework.boot' version '2.1.0.RELEASE' apply false
+    id 'org.springframework.boot' version '2.1.1.RELEASE' apply false
     id 'com.google.protobuf' version '0.8.7'
     id "com.palantir.docker" version "0.20.1"
     id 'com.github.kt3k.coveralls' version '2.8.2'
@@ -11,18 +11,16 @@ apply plugin: 'idea'
 group = 'io.yggdrash'
 version = '0.0.1-SNAPSHOT'
 
-sourceCompatibility = 1.8
-
 defaultTasks ':yggdrash-node:bootRun'
 
 ext {
-    grpcVersion         = '1.16.1'
+    grpcVersion         = '1.17.0'
     protobufVersion     = '3.6.1'
     levelDBVersion      = '0.10'
-    ehcacheVersion      = '3.6.1'
+    ehcacheVersion      = '3.6.2'
     scastleVersion      = '1.58.0.0'
     commonsCodecVersion = '1.11'
-    commonsIOVersion    = '2.4'
+    commonsIOVersion    = '2.6'
     gsonVersion         = '2.8.5'
     jsonSimpleVersion   = '1.1'
     jacksonVersion      = '2.9.7'
@@ -52,9 +50,21 @@ subprojects {
 
     checkstyle {
         ignoreFailures = false
-        toolVersion = '8.14'
+        toolVersion = '8.15'
         maxWarnings = 0
         configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+    }
+
+    compileJava {
+        sourceCompatibility = 1.8  // can be switched to 11 for testing
+        targetCompatibility = 1.8
+        options.encoding = "UTF-8"
+        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    }
+
+    test {
+        failFast = true
+        systemProperty('spring.profiles.active', project.properties.get('springProfiles'))
     }
 }
 
@@ -143,18 +153,6 @@ project(':yggdrash-node') {
 
     bootJar {
         launchScript()
-    }
-
-    test {
-        systemProperty('spring.profiles.active', project.properties.get('springProfiles'))
-        testLogging {
-            afterSuite {desc, result ->
-                if (!desc.parent) { // will match the outermost suite
-                    print 'TEST:${result.resultType} (TOTAL:${result.testCount}, PASS:${result.successfulTestCount},'
-                    println ' FAIL:${result.failedTestCount}, SKIP:${result.skippedTestCount})'
-                }
-            }
-        }
     }
 }
 
