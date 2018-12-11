@@ -1,0 +1,218 @@
+<!--
+  ~ Copyright 2018 Akashic Foundation
+  ~ Licensed under the Apache License, Version 2.0 (the “License”);
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an “AS IS” BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License
+  -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <script src="http://d3js.org/d3.v2.min.js?2.9.3"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <title>Network Graph</title>
+</head>
+<style>
+    .link {
+        stroke: #aaa;
+    }
+
+    .node text {
+        stroke: #333;
+        cursos: pointer;
+    }
+
+    .node circle {
+        stroke: #fff;
+        stroke-width: 3px;
+        fill: #555;
+    }
+
+    #drawNetwork {
+        height: 50px;
+        width: 150px;
+        background-color: aquamarine;
+        font-size: larger;
+        margin-top: 0%;
+    }
+</style>
+<body>
+<button id="drawNetwork">Draw Network</button>
+<script>
+    var width = 1500,
+        height = 1500
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    var force = d3.layout.force()
+        .gravity(.05)
+        .distance(100)
+        .charge(-100)
+        .size([width, height]);
+
+    // data format
+    var nodes = [];
+    var links = [];
+    var graphFile = {
+        "nodes": nodes,
+        "links": links
+    };
+
+    var grpc = 32918;
+    var rest = 8080;
+    var branchId = "91b29a1453258d72ca6fbbcabb8dca10cca944fb";
+    var groups = ["91b29a1453258d72ca6fbbcabb8dca10cca944fb", "d872b5a338b824dc56abc6015543496670d81c1b"]; //todo later
+    function req(port, branchId) {
+        return "http://localhost:" + port + "/peers/" + branchId + "/channels";
+    }
+
+    var channels = [32918]; //32919, 32920...
+    var stack = [];
+    var table = [];
+
+    function submit(curChannels) {
+        stack.push(curChannels);
+
+        var curPort = curChannels - grpc + rest;
+        var curUrl = req(curPort, branchId);
+        //console.log("curPort => " + curPort + ", curUrl => " + curUrl);
+
+        $.getJSON(curUrl).done(function (data) {
+            //console.log(data);
+
+            if (curPort === 8080) {
+                data.forEach(function (value) {
+                    channels.push(value);
+                });
+                //console.log("channels => " + channels);
+            }
+
+            var key;
+            var values = [];
+            var row = {"key": key, "value": values};
+            row.key = curChannels;
+            row.value.push(data);
+            table.push(row);
+            //console.log(table);
+
+            //console.log("curChannels => " + curChannels + ", stack => " + stack);
+            while (channels.length !== 0) {
+                submit(channels.pop());
+            }
+        });
+    }
+
+    //submit(channels.pop());
+
+    function arrangeTable() {
+        var tmpNodes = [];
+
+        table.forEach(function (row) {
+            if (!tmpNodes.includes(row.key)) {
+                tmpNodes.push(row.key);
+            }
+        });
+        table.forEach(function (row) {
+            row.value.forEach(function (list) {
+                list.forEach(function (value) {
+                    if (!tmpNodes.includes(value)) {
+                        tmpNodes.push(value);
+                    }
+                })
+            })
+        });
+        //console.log("tmpNodes => " + tmpNodes);
+        tmpNodes.forEach(function (name) {
+            var node = {"name": name, "group": 0};
+            nodes.push(node);
+        });
+        //console.log(nodes);
+
+        table.forEach(function (row) {
+            var src = tmpNodes.indexOf(row.key);
+            row.value.forEach(function (list) {
+                list.forEach(function (value) {
+                    var tar = tmpNodes.indexOf(value);
+                    var link = {"source": src, "target": tar, "weight": 3};
+                    links.push(link);
+                })
+            })
+        });
+        //console.log(links);
+        graphFile.nodes = nodes;
+        graphFile.links = links;
+        //console.log(graphFile);
+        //var json = JSON.stringify(graphFile);
+        //console.log("json => " + json);
+    }
+
+    // setTimeout(function () {
+    //     arrangeTable();
+    //     draw();
+    // }, 3000);
+
+    function draw() {
+        force.nodes(graphFile.nodes).links(graphFile.links).start();
+        var link = svg.selectAll(".link")
+            .data(graphFile.links)
+            .enter().append("line")
+            .attr("class", "link")
+            .style("stroke-width", function (d) {
+                return Math.sqrt(d.weight);
+            });
+
+        var node = svg.selectAll(".node")
+            .data(graphFile.nodes)
+            .enter().append("g")
+            .attr("class", "node")
+            .call(force.drag);
+
+        node.append("circle")
+            .attr("r", "5");
+
+        node.append("text")
+            .attr("dx", 12)
+            .attr("dy", ".35em")
+            .text(function (d) {
+                return d.name
+            });
+
+        force.on("tick", function () {
+            link.attr("x1", function (d) {
+                return d.source.x;
+            })
+                .attr("y1", function (d) {
+                    return d.source.y;
+                })
+                .attr("x2", function (d) {
+                    return d.target.x;
+                })
+                .attr("y2", function (d) {
+                    return d.target.y;
+                });
+
+            node.attr("transform", function (d) {
+                return "translate(" + d.x + "," + d.y + ")";
+            });
+        });
+    }
+
+    $("#drawNetwork").click(function () {
+        submit(channels.pop());
+        setTimeout(function () {
+            arrangeTable();
+            draw();
+        }, 3000);
+    });
+</script>
+
+</body>
+</html>

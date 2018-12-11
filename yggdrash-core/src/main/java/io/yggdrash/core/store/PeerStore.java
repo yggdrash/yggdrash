@@ -20,6 +20,7 @@ import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerId;
 import io.yggdrash.core.store.datasource.DbSource;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -42,11 +43,18 @@ public class PeerStore implements Store<PeerId, Peer> {
 
     @Override
     public Peer get(PeerId key) {
+        byte[] foundedValue = db.get(key.getBytes());
+        if (foundedValue != null) {
+            return Peer.valueOf(foundedValue);
+        }
         return peers.get(key);
     }
 
     @Override
     public boolean contains(PeerId key) {
+        if (db.get(key.getBytes()) != null) {
+            return true;
+        }
         return peers.containsKey(key);
     }
 
@@ -60,10 +68,25 @@ public class PeerStore implements Store<PeerId, Peer> {
     }
 
     public List<String> getAll() {
+        try {
+            if (!db.getAll().isEmpty()) {
+                return db.getAll().stream().map(Peer::valueOf)
+                        .map(Peer::toString).collect(Collectors.toList());
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
         return peers.values().stream().map(Peer::toString).collect(Collectors.toList());
     }
 
     public int size() {
+        try {
+            if (!db.getAll().isEmpty()) {
+                return db.getAll().size();
+            }
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+        }
         return peers.size();
     }
 }
