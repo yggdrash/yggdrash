@@ -36,14 +36,14 @@ import java.util.Arrays;
 
 import static junit.framework.TestCase.assertTrue;
 
-@RunWith(SpringRunner.class)
-@IfProfileValue(name = "spring.profiles.active", value = "ci")
+@IfProfileValue(name = "spring.profiles.active", value = "performance")
 public class TransactionSpeedTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionSpeedTest.class);
 
     private static final long MAX = 100L;
-    private static final long TIMEOUT = 3000L;
+    private static final long CON_TIMEOUT = 1000L;
+    private static final long VERYFY_TIMEOUT = 2000L;
 
     private TransactionBody txBody;
     private TransactionHeader txHeader;
@@ -84,7 +84,7 @@ public class TransactionSpeedTest {
         txBytes1 = tx1.toBinary();
     }
 
-    @Test (timeout = TIMEOUT)
+    @Test (timeout = CON_TIMEOUT)
     public void testSpeedTransactionConstructor_1() {
 
         long startTime;
@@ -110,7 +110,7 @@ public class TransactionSpeedTest {
         log.info(" Transaction:Constructor(Header,sig,body) nanoTime:" + averageTime);
     }
 
-    @Test(timeout = TIMEOUT)
+    @Test(timeout = CON_TIMEOUT)
     public void testSpeedTransactionConstructor_2() {
 
         long startTime;
@@ -136,7 +136,7 @@ public class TransactionSpeedTest {
         log.info(" Transaction:Constructor(Header,wallet,body) nanoTime:" + averageTime);
     }
 
-    @Test (timeout = TIMEOUT)
+    @Test (timeout = CON_TIMEOUT)
     public void testSpeedTransactionConstructor_3() {
 
         long startTime;
@@ -162,7 +162,7 @@ public class TransactionSpeedTest {
         log.info(" Transaction:Constructor(jsonObject) nanoTime:" + averageTime);
     }
 
-    @Test (timeout = TIMEOUT)
+    @Test (timeout = CON_TIMEOUT)
     public void testSpeedTransactionConstructor_4() {
 
         long startTime;
@@ -188,7 +188,7 @@ public class TransactionSpeedTest {
         log.info(" Transaction:Constructor(byte[]) nanoTime:" + averageTime);
     }
 
-    @Test(timeout = TIMEOUT)
+    @Test(timeout = VERYFY_TIMEOUT)
     public void testSpeedTransactionVerify() {
 
         long startTime;
