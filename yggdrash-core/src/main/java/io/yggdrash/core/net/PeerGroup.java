@@ -81,7 +81,6 @@ public class PeerGroup implements BranchEventListener {
             throw new DuplicatedException(branchId.toString() + " branch duplicated");
         }
         PeerTable peerTable = new PeerTable(peerStore, owner);
-        System.out.println("PeerGroup :: addPeerTable : peerTable => " + peerTable.getAllPeers());
         peerTables.put(branchId, peerTable);
     }
 
@@ -288,7 +287,6 @@ public class PeerGroup implements BranchEventListener {
         } catch (Exception e) {
             log.warn("Fail to add to the peer channel err=" + e.getMessage());
         }
-        System.out.println("peergroup :: newPeerChannel => " + peerTableChannels.get(branchId));
     }
 
     public List<String> getActivePeerList() {

@@ -19,6 +19,8 @@ package io.yggdrash.core.store;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerId;
 import io.yggdrash.core.store.datasource.DbSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -28,6 +30,7 @@ import java.util.stream.Collectors;
 
 public class PeerStore implements Store<PeerId, Peer> {
 
+    private static final Logger log = LoggerFactory.getLogger(PeerStore.class);
     private final DbSource<byte[], byte[]> db;
     private transient Map<PeerId, Peer> peers = new HashMap<>();
 
@@ -74,7 +77,7 @@ public class PeerStore implements Store<PeerId, Peer> {
                         .map(Peer::toString).collect(Collectors.toList());
             }
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            log.error(e.getMessage());
         }
         return peers.values().stream().map(Peer::toString).collect(Collectors.toList());
     }
@@ -85,7 +88,7 @@ public class PeerStore implements Store<PeerId, Peer> {
                 return db.getAll().size();
             }
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            log.error(e.getMessage());
         }
         return peers.size();
     }
