@@ -16,11 +16,7 @@
 
 package io.yggdrash.core.contract;
 
-import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
-
 import java.io.File;
-import java.lang.reflect.InvocationTargetException;
 
 public class ContractMeta {
     private static final String SUFFIX = ".class";
@@ -35,15 +31,6 @@ public class ContractMeta {
         this.contract = contractClass;
         this.contractClassName = contractClass.getName();
         this.contractId = ContractId.of(contractBinary);
-    }
-
-    public Contract newInstance(StateStore store, TransactionReceiptStore txReceiptStore)
-            throws NoSuchMethodException, IllegalAccessException, InvocationTargetException,
-            InstantiationException {
-        // contract init
-        Contract c = contract.getDeclaredConstructor().newInstance();
-        c.init(store, txReceiptStore);
-        return c;
     }
 
     public Class<? extends Contract> getContract() {

@@ -55,6 +55,7 @@ public abstract class BaseContract<T> implements Contract<T> {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public JsonObject query(JsonObject query) {
         dataFormatValidation(query);
 

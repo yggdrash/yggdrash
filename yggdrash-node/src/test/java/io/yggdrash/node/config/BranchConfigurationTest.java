@@ -87,13 +87,14 @@ public class BranchConfigurationTest {
 
         saveFile(branchId, branchJson);
         BranchGroup branchGroup = getBranchGroup();
+        File branchDir = new File(config.getBranchPath(), branchId.toString());
+        FileUtils.deleteQuietly(branchDir);
+
         BlockChain branch = branchGroup.getBranch(branchId);
         assert branch != null;
         assert branch.getBranchId().equals(branchId);
         assertTransaction(branch);
 
-        File branchDir = new File(config.getBranchPath(), branchId.toString());
-        FileUtils.deleteQuietly(branchDir);
     }
 
     private BranchGroup getBranchGroup() {
