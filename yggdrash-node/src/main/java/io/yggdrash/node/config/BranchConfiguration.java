@@ -59,28 +59,28 @@ public class BranchConfiguration {
         this.storeBuilder = storeBuilder;
     }
 
-    @Bean("stem")
+    @Bean
     @ConditionalOnProperty("yggdrash.branch.default.active")
     BlockChain stem(PeerGroup peerGroup, BranchGroup branchGroup)
             throws IOException {
         return addBranch(stemResource.getInputStream(), peerGroup, branchGroup);
     }
 
-    @Bean("yeed")
+    @Bean
     @ConditionalOnProperty("yggdrash.branch.default.active")
     BlockChain yeed(PeerGroup peerGroup, BranchGroup branchGroup)
             throws IOException {
         return addBranch(yeedResource.getInputStream(), peerGroup, branchGroup);
     }
 
-    @Bean("sw")
+    @Bean
     @ConditionalOnProperty("yggdrash.branch.default.active")
-    BlockChain none(PeerGroup peerGroup, BranchGroup branchGroup)
+    BlockChain sw(PeerGroup peerGroup, BranchGroup branchGroup)
             throws IOException {
         return addBranch(swResource.getInputStream(), peerGroup, branchGroup);
     }
 
-    @Bean("asset")
+    @Bean
     @ConditionalOnProperty("yggdrash.branch.default.active")
     BlockChain asset(PeerGroup peerGroup, BranchGroup branchGroup)
             throws IOException {
