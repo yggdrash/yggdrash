@@ -300,11 +300,11 @@ public class PeerGroup implements BranchEventListener {
         return activePeerList;
     }
 
-    public List<Integer> getActivePeerListOf(BranchId branchId) {
+    public List<String> getActivePeerListOf(BranchId branchId) {
         return peerTableChannels.get(branchId)
                 .values()
                 .stream()
-                .map(c -> c.getPeer().getPort())
+                .map(c -> String.format("%s:%d",c.getPeer().getHost(), c.getPeer().getPort()))
                 .collect(Collectors.toList());
     }
 

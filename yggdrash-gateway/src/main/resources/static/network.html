@@ -54,7 +54,7 @@
 
     var force = d3.layout.force()
         .gravity(.05)
-        .distance(100)
+        .distance(300)
         .charge(-100)
         .size([width, height]);
 
@@ -70,20 +70,21 @@
     var rest = 8080;
     var branchId = "91b29a1453258d72ca6fbbcabb8dca10cca944fb";
     var groups = ["91b29a1453258d72ca6fbbcabb8dca10cca944fb", "d872b5a338b824dc56abc6015543496670d81c1b"]; //todo later
-    function req(port, branchId) {
-        return "http://localhost:" + port + "/peers/" + branchId + "/channels";
+    function req(host, port, branchId) {
+        return "http://" + host + port + "/peers/" + branchId + "/channels";
     }
 
-    var channels = [32918]; //32919, 32920...
+    var channels = ["172.16.10.110:32918"]; //32919, 32920...
     var stack = [];
     var table = [];
 
     function submit(curChannels) {
         stack.push(curChannels);
 
-        var curPort = curChannels - grpc + rest;
-        var curUrl = req(curPort, branchId);
-        //console.log("curPort => " + curPort + ", curUrl => " + curUrl);
+        var curHost = curChannels.substr(0, curChannels.length - 5);
+        var curPort = parseInt(curChannels.substr(curChannels.length -5 , curChannels.length)) - grpc + rest;
+        var curUrl = req(curHost, curPort, branchId);
+        //console.log("curUrl => " + curUrl);
 
         $.getJSON(curUrl).done(function (data) {
             //console.log(data);
@@ -94,7 +95,6 @@
                 });
                 //console.log("channels => " + channels);
             }
-
             var key;
             var values = [];
             var row = {"key": key, "value": values};
@@ -102,7 +102,6 @@
             row.value.push(data);
             table.push(row);
             //console.log(table);
-
             //console.log("curChannels => " + curChannels + ", stack => " + stack);
             while (channels.length !== 0) {
                 submit(channels.pop());
@@ -153,11 +152,6 @@
         //var json = JSON.stringify(graphFile);
         //console.log("json => " + json);
     }
-
-    // setTimeout(function () {
-    //     arrangeTable();
-    //     draw();
-    // }, 3000);
 
     function draw() {
         force.nodes(graphFile.nodes).links(graphFile.links).start();
