@@ -54,7 +54,7 @@
 
     var force = d3.layout.force()
         .gravity(.05)
-        .distance(300)
+        .distance(700)
         .charge(-100)
         .size([width, height]);
 
@@ -117,6 +117,7 @@
         table.forEach(function (row) {
             if (!tmpNodes.includes(row.key)) {
                 tmpNodes.push(row.key);
+                console.log("peer : " + row.key + ", number of connection : " + row.value[0].length);
             }
         });
         table.forEach(function (row) {
@@ -204,7 +205,7 @@
         setTimeout(function () {
             arrangeTable();
             draw();
-        }, 3000);
+        }, 4000);
     });
 </script>
 
