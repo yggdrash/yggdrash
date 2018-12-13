@@ -21,6 +21,7 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.wallet.Wallet;
@@ -136,8 +137,11 @@ public class BranchGroup {
 
     @SuppressWarnings("unchecked")
     public JsonObject query(JsonObject query) {
+        BranchId branchId = BranchId.of(query.get("address").getAsString());
+        if (!containsBranch(branchId)) {
+            throw new NonExistObjectException(branchId.toString() + " branch");
+        }
         try {
-            BranchId branchId = BranchId.of(query.get("address").getAsString());
             BlockChain chain = branches.get(branchId);
             return chain.getRuntime().query(chain.getContract(), query);
         } catch (Exception e) {
