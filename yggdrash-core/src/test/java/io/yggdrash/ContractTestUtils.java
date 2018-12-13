@@ -43,7 +43,7 @@ public class ContractTestUtils {
 
     public static JsonArray transferTxBodyJson(String to, long amount) {
         JsonObject param = new JsonObject();
-        param.addProperty("address", to);
+        param.addProperty("to", to);
         param.addProperty("amount", amount);
 
         return txBodyJson("transfer", param);

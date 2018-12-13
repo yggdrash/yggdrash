@@ -381,7 +381,7 @@ public class NodeContractDemoClient {
     }
 
     private static String getServerAddress() {
-        System.out.println(String.format("전송할 노드 : [1] 로컬 [2] 스테이지(%s) [3] 운영(%s) \n>",
+        System.out.println(String.format("전송할 노드 : [1] 로컬 [2] 스테이지(%s) [3] 운영(%s) [4] 직접 입력\n>",
                 SERVER_STG, SERVER_PROD));
 
         String num = scan.nextLine();
@@ -390,13 +390,16 @@ public class NodeContractDemoClient {
                 return SERVER_STG;
             case "3":
                 return SERVER_PROD;
+            case "4":
+                System.out.println("서버 주소 => ");
+                return scan.nextLine();
             default:
                 return "localhost";
         }
     }
 
     private static String getBranchId() {
-        System.out.println("트랜잭션의 브랜치 아이디 : [1] STEM [2] YEED [3] etc\n>");
+        System.out.println("트랜잭션의 브랜치 아이디 : [1] STEM [2] YEED [3] etc(직접 입력)\n>");
 
         String branchId = scan.nextLine();
         switch (branchId) {
@@ -404,6 +407,9 @@ public class NodeContractDemoClient {
                 return STEM.toString();
             case "2":
                 return YEED.toString();
+            case "3":
+                System.out.println("브랜치 아이디 => ");
+                return scan.nextLine();
             default:
                 return branchId;
         }
