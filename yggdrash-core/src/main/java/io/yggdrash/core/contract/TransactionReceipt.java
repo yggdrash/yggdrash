@@ -23,16 +23,12 @@ public class TransactionReceipt {
     public static final int FALSE = 0;
     public static final int SUCCESS = 1;
 
-    private String transactionHash =
-            "0xb903239f8543d04b5dc1ba6579132b143087c68db1b2168786408fcbce568238";
-    private final int transactionIndex = 1;
-    private final String blockHash =
-            "0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b";
+    private String transactionHash;
+    private String blockHash;
     private final int yeedUsed = 30000;
-    private final String branchAddress =
-            "0xb60e8dd61c5d32be8058bb8eb970870f07233155";
+    private String branchAddress;
     private final Map<String, Object> txLog = new HashMap<>();
-    private int status = 0;
+    private int status = FALSE;
 
     public void putLog(String key, Object value) {
         txLog.put(key, value);
@@ -52,10 +48,6 @@ public class TransactionReceipt {
 
     public String getTransactionHash() {
         return transactionHash;
-    }
-
-    public int getTransactionIndex() {
-        return transactionIndex;
     }
 
     public String getBlockHash() {
@@ -82,11 +74,18 @@ public class TransactionReceipt {
         return status == SUCCESS;
     }
 
+    public static TransactionReceipt errorReceipt(String transactionHash, Throwable e) {
+        TransactionReceipt txReceipt = new TransactionReceipt();
+        txReceipt.setTransactionHash(transactionHash);
+        txReceipt.setStatus(TransactionReceipt.FALSE);
+        txReceipt.putLog("Error", e);
+        return txReceipt;
+    }
+
     @Override
     public String toString() {
         return "TransactionReceipt{"
                 + "transactionHash='" + transactionHash + '\''
-                + ", transactionIndex=" + transactionIndex
                 + ", blockHash='" + blockHash + '\''
                 + ", yeedUsed=" + yeedUsed
                 + ", branchAddress='" + branchAddress + '\''

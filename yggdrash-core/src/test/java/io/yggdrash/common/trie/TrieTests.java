@@ -1,6 +1,6 @@
 package io.yggdrash.common.trie;
 
-import io.yggdrash.TestUtils;
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import org.junit.Before;
 import org.junit.Test;
@@ -25,8 +25,8 @@ public class TrieTests {
     @Before
     public void setUp() {
         // create sample tx
-        this.tx1 = TestUtils.createTransferTxHusk();
-        this.tx2 = TestUtils.createTransferTxHusk();
+        this.tx1 = BlockChainTestUtils.createTransferTxHusk();
+        this.tx2 = BlockChainTestUtils.createTransferTxHusk();
     }
 
     @Test

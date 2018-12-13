@@ -17,7 +17,8 @@
 package io.yggdrash.node.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.yggdrash.TestUtils;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.node.api.dto.BlockDto;
 import org.junit.Test;
@@ -34,7 +35,7 @@ import static org.junit.Assert.assertEquals;
 public class BlockApiImplTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockApiImplTest.class);
-    private final String branchId = TestUtils.STEM.toString();
+    private final String branchId = TestConstants.STEM.toString();
 
     @Test
     public void blockApiIsNotNull() {
@@ -81,10 +82,10 @@ public class BlockApiImplTest {
 
     @Test
     public void BlockDtoTest() throws IOException {
-        // Create Transaction
-        BlockHusk block = TestUtils.createGenesisBlockHusk();
+        // Create Block
+        BlockHusk block = BlockChainTestUtils.genesisBlock();
 
-        ObjectMapper mapper = TestUtils.getMapper();
+        ObjectMapper mapper = new ObjectMapper();
         String jsonStr = mapper.writeValueAsString(BlockDto.createBy(block));
 
         // Receive Transaction

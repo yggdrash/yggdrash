@@ -18,7 +18,7 @@ package io.yggdrash.node;
 
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
-import io.yggdrash.TestUtils;
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.proto.BlockChainGrpc;
@@ -109,7 +109,7 @@ public class GRpcClientChannelTest {
             return null;
         }).when(blockChainService).broadcastBlock(blockArgumentCaptor.capture(), any());
 
-        client.broadcastBlock(TestUtils.sampleBlocks());
+        client.broadcastBlock(sampleBlocks());
 
         verify(blockChainService, times(3))
                 .broadcastBlock(blockArgumentCaptor.capture(), any());
@@ -127,7 +127,7 @@ public class GRpcClientChannelTest {
             return null;
         }).when(blockChainService).broadcastTransaction(transactionArgumentCaptor.capture(), any());
 
-        client.broadcastTransaction(TestUtils.sampleTxs());
+        client.broadcastTransaction(sampleTxs());
 
         verify(blockChainService, times(3))
                 .broadcastTransaction(transactionArgumentCaptor.capture(), any());
@@ -170,17 +170,15 @@ public class GRpcClientChannelTest {
         assertEquals(BranchId.NULL, branch);
     }
 
-    /*
-    @Test
-    public void broadcastTransaction() {
-        client.broadcastTransaction(TestUtils.sampleTxs());
-        verify(blockChainService).broadcastTransaction(any(), any());
+    private Proto.Block[] sampleBlocks() {
+        return new Proto.Block[] {BlockChainTestUtils.genesisBlock().getInstance(),
+                BlockChainTestUtils.genesisBlock().getInstance(),
+                BlockChainTestUtils.genesisBlock().getInstance()};
     }
 
-    @Test
-    public void broadcastBlock() {
-        client.broadcastBlock(TestUtils.sampleBlocks());
-        verify(blockChainService).broadcastBlock(any(), any());
+    public static Proto.Transaction[] sampleTxs() {
+        return new Proto.Transaction[] {BlockChainTestUtils.createTransferTxHusk().getInstance(),
+                BlockChainTestUtils.createTransferTxHusk().getInstance(),
+                BlockChainTestUtils.createTransferTxHusk().getInstance()};
     }
-    */
 }

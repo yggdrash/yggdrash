@@ -5,8 +5,6 @@ import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.store.datasource.DbSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,23 +21,13 @@ public class StateStore<T> implements Store<String, T> {
     private final Map<String, T> state;
     private final Map<String, Map<Object, Set<Object>>> subState;
     private final Map<String, Map<String, Map<JsonObject, JsonObject>>> assetState;
-    private BigDecimal totalSupply = BigDecimal.ZERO;
 
     public StateStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
         this.state = new ConcurrentHashMap<>();
+        // TODO state is allways key-value store so sub, asset state is remove from contract
         this.subState = new HashMap<>();
         this.assetState = new HashMap<>();
-    }
-
-    public void setTotalSupply(BigDecimal totalSupply) {
-        if (this.totalSupply.equals(BigDecimal.ZERO)) {
-            this.totalSupply = totalSupply;
-        }
-    }
-
-    public BigDecimal getTotalSupply() {
-        return totalSupply;
     }
 
     public Map<String, T> getState() {
@@ -87,10 +75,8 @@ public class StateStore<T> implements Store<String, T> {
 
     private void updateSubState(String subStateKey, Object key, Object value) {
         if (subState.get(subStateKey).get(key) != null) {
-            //logger.debug(key + " exists in " + subStateKey);
             subState.get(subStateKey).get(key).add(value);
         } else {
-            //logger.debug("no " + key + " exists in " + subStateKey);
             Set<Object> newStateValue = new HashSet<>();
             newStateValue.add(value);
             subState.get(subStateKey).put(key, newStateValue);

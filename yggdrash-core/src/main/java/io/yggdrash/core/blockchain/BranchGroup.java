@@ -134,6 +134,7 @@ public class BranchGroup {
         return branches.get(branchId).getContract();
     }
 
+    @SuppressWarnings("unchecked")
     public JsonObject query(JsonObject query) {
         try {
             BranchId branchId = BranchId.of(query.get("address").getAsString());

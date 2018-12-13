@@ -1,6 +1,5 @@
 package io.yggdrash.core.contract;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.Branch;
@@ -18,10 +17,10 @@ public class StemContract extends BaseContract<StemContractStateValue> {
 
     private static final Logger log = LoggerFactory.getLogger(StemContract.class);
 
-    public TransactionReceipt genesis(JsonArray params) {
+    public TransactionReceipt genesis(JsonObject param) {
         if (state.getState().size() == 0) {
-            TransactionReceipt receipt = create(params);
-            log.info("[StemContract | genesis] SUCCESS! params => " + params);
+            TransactionReceipt receipt = create(param);
+            log.info("[StemContract | genesis] SUCCESS! param => " + param);
             return receipt;
         }
         return new TransactionReceipt();
@@ -30,13 +29,12 @@ public class StemContract extends BaseContract<StemContractStateValue> {
     /**
      * Returns the id of a registered branch
      *
-     * @param params branch   : The branch.json to register on the stem
+     * @param param branch   : The branch.json to register on the stem
      */
-    public TransactionReceipt create(JsonArray params) {
+    public TransactionReceipt create(JsonObject param) {
         TransactionReceipt txReceipt = new TransactionReceipt();
-        JsonObject branchObject = params.get(0).getAsJsonObject();
 
-        for (Map.Entry<String, JsonElement> entry : branchObject.entrySet()) {
+        for (Map.Entry<String, JsonElement> entry : param.entrySet()) {
             BranchId branchId = BranchId.of(entry.getKey());
             JsonObject json = entry.getValue().getAsJsonObject();
             txReceipt.putLog(branchId.toString(), json);
@@ -63,14 +61,13 @@ public class StemContract extends BaseContract<StemContractStateValue> {
     /**
      * Returns the id of a updated branch
      *
-     * @param params branchId The Id of the branch to update
+     * @param param branchId The Id of the branch to update
      *               branch   The branch.json to update on the stem
      */
-    public TransactionReceipt update(JsonArray params) {
+    public TransactionReceipt update(JsonObject param) {
         TransactionReceipt txReceipt = new TransactionReceipt();
-        JsonObject branchObject = params.get(0).getAsJsonObject();
 
-        for (Map.Entry<String, JsonElement> entry : branchObject.entrySet()) {
+        for (Map.Entry<String, JsonElement> entry : param.entrySet()) {
             BranchId branchId = BranchId.of(entry.getKey());
             JsonObject json = entry.getValue().getAsJsonObject();
             txReceipt.putLog(branchId.toString(), json);
@@ -104,9 +101,9 @@ public class StemContract extends BaseContract<StemContractStateValue> {
      * param key       type, name, property, owner, tag or symbol
      * param element   content of the key
      */
-    public Set<Object> search(JsonArray params) {
-        String subStateKey = params.get(0).getAsJsonObject().get("key").getAsString();
-        String key = params.get(0).getAsJsonObject().get("value").getAsString();
+    public Set<Object> search(JsonObject param) {
+        String subStateKey = param.get("key").getAsString();
+        String key = param.get("value").getAsString();
 
         if (state.getSubState(subStateKey) != null
                 && state.getSubState(subStateKey).get(key) != null) {
@@ -118,10 +115,10 @@ public class StemContract extends BaseContract<StemContractStateValue> {
     /**
      * Returns branch.json as JsonString (query)
      *
-     * @param params   branchId
+     * @param param   branchId
      */
-    public JsonObject view(JsonArray params) {
-        String branchId = params.get(0).getAsJsonObject().get("branchId")
+    public JsonObject view(JsonObject param) {
+        String branchId = param.get("branchId")
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
             return getStateValue(BranchId.of(branchId)).getJson();
@@ -130,12 +127,12 @@ public class StemContract extends BaseContract<StemContractStateValue> {
     }
 
     /**
-     * Returns current version of branch
+     * Returns current contract of branch
      *
-     * @param params   branchId
+     * @param param   branchId
      */
-    public ContractId getcurrentversion(JsonArray params) {
-        String branchId = params.get(0).getAsJsonObject().get("branchId")
+    public ContractId getcurrentcontract(JsonObject param) {
+        String branchId = param.get("branchId")
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
             return getStateValue(BranchId.of(branchId)).getContractId();
@@ -146,10 +143,10 @@ public class StemContract extends BaseContract<StemContractStateValue> {
     /**
      * Returns version history of branch
      *
-     * @param params   branchId
+     * @param param   branchId
      */
-    public List<ContractId> getcontracthistory(JsonArray params) {
-        String branchId = params.get(0).getAsJsonObject().get("branchId")
+    public List<ContractId> getcontracthistory(JsonObject param) {
+        String branchId = param.get("branchId")
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
             return getStateValue(BranchId.of(branchId)).getContractHistory();
@@ -160,10 +157,10 @@ public class StemContract extends BaseContract<StemContractStateValue> {
     /**
      * Returns a list contains all branch id
      *
-     * @param params none
+     * @param param none
      * @return list of all branch id
      */
-    public List<String> getallbranchid(JsonArray params) {
+    public List<String> getallbranchid(JsonObject param) {
         return state.getAllKey();
     }
 

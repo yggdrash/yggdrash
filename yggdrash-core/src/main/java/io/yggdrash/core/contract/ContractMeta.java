@@ -16,9 +16,6 @@
 
 package io.yggdrash.core.contract;
 
-import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
-
 import java.io.File;
 
 public class ContractMeta {
@@ -34,14 +31,6 @@ public class ContractMeta {
         this.contract = contractClass;
         this.contractClassName = contractClass.getName();
         this.contractId = ContractId.of(contractBinary);
-    }
-
-    public Contract newInstance(StateStore store, TransactionReceiptStore txReceiptStore)
-            throws IllegalAccessException, InstantiationException {
-        // contract init
-        Contract c = contract.newInstance();
-        c.init(store, txReceiptStore);
-        return c;
     }
 
     public Class<? extends Contract> getContract() {

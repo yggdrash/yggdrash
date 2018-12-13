@@ -121,13 +121,8 @@ public class BlockChainBuilder {
                         storeBuilder.getConfig().getContractPath(), branch.getContractId());
                 return contractMeta.getContract().getDeclaredConstructor().newInstance();
             }
-        } catch (InstantiationException | IllegalAccessException e) {
-            throw new FailedOperationException(e);
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-            throw new FailedOperationException(e);
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException
+                | InvocationTargetException e) {
             throw new FailedOperationException(e);
         }
     }

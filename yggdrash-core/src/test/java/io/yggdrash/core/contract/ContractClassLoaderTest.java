@@ -25,7 +25,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import static org.junit.Assert.assertEquals;
@@ -37,8 +36,7 @@ public class ContractClassLoaderTest {
     private static final String NONE_CONTRACT = "3fccace3211be93c9a6372d8aa085e3914f08ca1";
 
     @Test
-    public void testContract() throws  IllegalAccessException, InstantiationException,
-            InvocationTargetException {
+    public void testContract() throws Exception {
 
         ContractId noneContractId = ContractId.of(NONE_CONTRACT);
         File contractNone = ContractMeta.contractFile(".yggdrash/contract", noneContractId);
@@ -50,8 +48,8 @@ public class ContractClassLoaderTest {
 
         assertEquals(NONE_CONTRACT, noneContract.getContractId().toString());
         assertEquals("{}", invokeTest(none));
-        Contract a = none.newInstance();
-        Contract b = none.newInstance();
+        Contract a = none.getDeclaredConstructor().newInstance();
+        Contract b = none.getDeclaredConstructor().newInstance();
         assertNotEquals("Two Contract are not same instance.", a, b);
     }
 
@@ -86,9 +84,8 @@ public class ContractClassLoaderTest {
         assertEquals("io.yggdrash.core.contract.CoinContract", classMeta.getContract().getName());
     }
 
-    private String invokeTest(Class a) throws InvocationTargetException, IllegalAccessException,
-            InstantiationException {
-        Object t = a.newInstance();
+    private String invokeTest(Class<? extends Contract> a) throws Exception {
+        Object t = a.getDeclaredConstructor().newInstance();
         Method[] ms = a.getDeclaredMethods();
         for (Method m : ms) {
             if ("query".equals(m.getName())) {

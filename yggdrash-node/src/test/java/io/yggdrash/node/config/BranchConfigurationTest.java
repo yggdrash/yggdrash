@@ -18,7 +18,8 @@ package io.yggdrash.node.config;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.TestUtils;
+import io.yggdrash.StoreTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.BlockChain;
@@ -68,24 +69,15 @@ public class BranchConfigurationTest {
         branchConfig.stemResource = loader.getResource("classpath:/branch-stem.json");
         BlockChain blockChain = branchConfig.stem(peerGroup, branchGroup);
         blockChain.close();
-        assert blockChain.getBranchId().equals(TestUtils.STEM);
+        assert blockChain.getBranchId().equals(TestConstants.STEM);
         assert branchGroup.getBranchSize() == 1;
     }
 
     @Test
     public void addProductionStemBranchTest() throws IOException {
-        this.branchConfig = new BranchConfiguration(TestUtils.getProdMockBuilder());
+        this.branchConfig = new BranchConfiguration(StoreTestUtils.getProdMockBuilder());
         addStemBranchTest();
-        TestUtils.clearTestDb();
-    }
-
-    @Test
-    public void addYeedBranchTest() throws IOException {
-        BranchGroup branchGroup = getBranchGroup();
-        branchConfig.yeedResource = loader.getResource("classpath:/branch-yeed.json");
-        BlockChain blockChain = branchConfig.yeed(peerGroup, branchGroup);
-        assert blockChain.getBranchId().equals(TestUtils.YEED);
-        assert branchGroup.getBranchSize() == 1;
+        StoreTestUtils.clearDefaultConfigDb();
     }
 
     @Test
@@ -95,13 +87,14 @@ public class BranchConfigurationTest {
 
         saveFile(branchId, branchJson);
         BranchGroup branchGroup = getBranchGroup();
+        File branchDir = new File(config.getBranchPath(), branchId.toString());
+        FileUtils.deleteQuietly(branchDir);
+
         BlockChain branch = branchGroup.getBranch(branchId);
         assert branch != null;
         assert branch.getBranchId().equals(branchId);
         assertTransaction(branch);
 
-        File branchDir = new File(config.getBranchPath(), branchId.toString());
-        FileUtils.deleteQuietly(branchDir);
     }
 
     private BranchGroup getBranchGroup() {
@@ -117,12 +110,12 @@ public class BranchConfigurationTest {
         JsonObject branchJson = getBranchJson();
         assert txSignature.equals(branchJson.get("signature").getAsString());
 
-        JsonArray jsonArrayTxBody = genesisTx.toJsonObject().get("body").getAsJsonArray();
+        JsonArray jsonArrayTxBody = genesisTx.toJsonObject().getAsJsonArray("body");
         assert jsonArrayTxBody.size() == 1;
         JsonObject jsonObjectTxBody = jsonArrayTxBody.get(0).getAsJsonObject();
         assert jsonObjectTxBody.has("method");
         assert jsonObjectTxBody.has("branch");
-        assert jsonObjectTxBody.has("params");
+        assert jsonObjectTxBody.has("param");
     }
 
     private JsonObject getBranchJson() throws IOException {
@@ -138,7 +131,7 @@ public class BranchConfigurationTest {
             branchDir.mkdirs();
         }
         File file = new File(branchDir, BranchLoader.BRANCH_FILE);
-        FileUtils.writeStringToFile(file, branch.toString());
+        FileUtils.writeStringToFile(file, branch.toString(), StandardCharsets.UTF_8);
     }
 
 }

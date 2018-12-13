@@ -62,7 +62,7 @@ public class Block implements Cloneable {
     }
 
     public Block(JsonObject jsonObject) {
-        this(new BlockHeader(jsonObject.get("header").getAsJsonObject()),
+        this(new BlockHeader(jsonObject.getAsJsonObject("header")),
                 Hex.decode(jsonObject.get("signature").getAsString()),
                 new BlockBody(jsonObject.getAsJsonArray("body")));
     }

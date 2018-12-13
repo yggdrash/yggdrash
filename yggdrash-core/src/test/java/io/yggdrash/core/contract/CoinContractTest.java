@@ -1,8 +1,7 @@
 package io.yggdrash.core.contract;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
@@ -48,7 +47,7 @@ public class CoinContractTest {
         TransactionReceiptStore txReceip = new TransactionReceiptStore(new HashMapDbSource());
         metaCoinContract.init(coinContractStateStore, txReceip);
 
-        List<String> methods = metaCoinContract.specification(new JsonArray());
+        List<String> methods = metaCoinContract.specification(null);
 
         assertFalse(methods.isEmpty());
         assertEquals(8, methods.size());
@@ -61,7 +60,7 @@ public class CoinContractTest {
 
     @Test
     public void totalSupply() {
-        BigDecimal res = coinContract.totalsupply(new JsonArray());
+        BigDecimal res = coinContract.totalsupply(null);
 
         assertEquals(BigDecimal.valueOf(1000000000000L), res);
     }
@@ -169,19 +168,14 @@ public class CoinContractTest {
                 coinContract.balanceof(createParam(spenderParam)));
     }
 
-    private JsonArray createParam(String paramStr) {
-        JsonParser jsonParser = new JsonParser();
-        JsonObject jsonObject = (JsonObject) jsonParser.parse(paramStr);
-        JsonArray param = new JsonArray();
-        param.add(jsonObject);
-
-        return param;
+    private JsonObject createParam(String paramStr) {
+        return Utils.parseJsonObject(paramStr);
     }
 
     public class MetaCoinContract extends CoinContract {
-        public TransactionReceipt hello(JsonArray params) {
+        public TransactionReceipt hello(JsonObject param) {
             TransactionReceipt txReceipt = new TransactionReceipt();
-            txReceipt.putLog("hello", params.toString());
+            txReceipt.putLog("hello", param.toString());
             txReceipt.setStatus(TransactionReceipt.SUCCESS);
             log.info(txReceipt.toString());
             return txReceipt;

@@ -18,7 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.TestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.wallet.Wallet;
@@ -43,7 +43,7 @@ public class BlockTest {
     private final byte[] type = new byte[8];
     private final byte[] prevBlockHash = new byte[32];
 
-    private final Wallet wallet = TestUtils.wallet();
+    private final Wallet wallet = TestConstants.wallet();
     private Block block1;
 
     @Before
@@ -99,7 +99,7 @@ public class BlockTest {
 
     @Test
     public void shouldBeLoadedBranchJsonFile() throws IOException {
-        ClassLoader loader = TestUtils.class.getClassLoader();
+        ClassLoader loader = BlockTest.class.getClassLoader();
         InputStream is = loader.getResourceAsStream("branch-sample.json");
         GenesisBlock genesisBlock = GenesisBlock.of(is);
 

@@ -323,6 +323,7 @@ public class BlockChain {
         return txList.stream().map(this::executeTransaction).collect(Collectors.toList());
     }
 
+    @SuppressWarnings("unchecked")
     private boolean executeTransaction(TransactionHusk tx) {
         try {
             return runtime.invoke(contract, tx);

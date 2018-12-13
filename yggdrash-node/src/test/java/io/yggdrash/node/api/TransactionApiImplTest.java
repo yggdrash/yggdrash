@@ -17,11 +17,10 @@
 package io.yggdrash.node.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.yggdrash.TestUtils;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.contract.ContractTx;
-import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.api.dto.TransactionDto;
 import org.junit.Before;
 import org.junit.Test;
@@ -41,8 +40,8 @@ public class TransactionApiImplTest {
 
     private final int blockNumber = 3;
     private final int txIndexPosition = 2;
-    private final BranchId stem = TestUtils.STEM;
-    private final BranchId yeed = TestUtils.YEED;
+    private final BranchId stem = TestConstants.STEM;
+    private final BranchId yeed = TestConstants.YEED;
 
     @Before
     public void setUp() {
@@ -83,8 +82,6 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByHashTest() {
         try {
-            //TransactionHusk tx = TestUtils.createTxHusk();
-            //txApi.sendTransaction(TransactionDto.createBy(tx));
             assertThat(TX_API.getTransactionByHash(stem.toString(),
                     "f5912fde84c6a3a44b4e529077ca9bf28feccd847137e44a77cd17e9fb9c1353"))
                     .isNotNull();
@@ -127,16 +124,14 @@ public class TransactionApiImplTest {
 
     @Test
     public void checkTransactionJsonFormat() throws IOException {
-        TransactionHusk tx = TestUtils.createTransferTxHusk();
-        ObjectMapper objectMapper = TestUtils.getMapper();
+        TransactionHusk tx = createTx();
         log.debug("\n\nTransaction Format : "
-                + objectMapper.writeValueAsString(TransactionDto.createBy(tx)));
+                + new ObjectMapper().writeValueAsString(TransactionDto.createBy(tx)));
     }
 
     @Test
     public void sendTransactionTest() {
-        Wallet wallet = TestUtils.wallet();
-        TransactionHusk tx = ContractTx.createTx(stem, wallet, wallet.getHexAddress(), 100);
+        TransactionHusk tx = createTx();
 
         // Request Transaction with jsonStr
         try {
@@ -150,7 +145,7 @@ public class TransactionApiImplTest {
     public void sendRawTransactionTest() {
         // Request Transaction with byteArr
         try {
-            byte[] input = TestUtils.createTransferTxHusk().toBinary();
+            byte[] input = createTx().toBinary();
             // Convert byteArray to Transaction
             assertThat(TX_API.sendRawTransaction(input)).isNotEmpty();
         } catch (Exception e) {
@@ -183,9 +178,9 @@ public class TransactionApiImplTest {
     @Test
     public void txSigValidateTest() throws IOException {
         // Create Transaction
-        TransactionHusk tx = TestUtils.createTransferTxHusk();
+        TransactionHusk tx = createTx();
 
-        ObjectMapper mapper = TestUtils.getMapper();
+        ObjectMapper mapper = new ObjectMapper();
         String jsonStr = mapper.writeValueAsString(TransactionDto.createBy(tx));
 
         // Receive Transaction
@@ -195,4 +190,7 @@ public class TransactionApiImplTest {
         assertTrue(TransactionDto.of(resDto).verify());
     }
 
+    private TransactionHusk createTx() {
+        return BlockChainTestUtils.createTransferTxHusk();
+    }
 }

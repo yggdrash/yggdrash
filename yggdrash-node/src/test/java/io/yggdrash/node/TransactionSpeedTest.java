@@ -18,6 +18,7 @@ package io.yggdrash.node;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.ContractTestUtils;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBody;
@@ -56,18 +57,13 @@ public class TransactionSpeedTest {
     @Before
     public void setUp() throws Exception {
 
-        JsonObject jsonParams1 = new JsonObject();
-        jsonParams1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
-        jsonParams1.addProperty("amount", "10000000");
+        JsonObject param = new JsonObject();
+        param.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
+        param.addProperty("amount", "10000000");
 
-        JsonObject jsonObject1 = new JsonObject();
-        jsonObject1.addProperty("method", "transfer");
-        jsonObject1.add("params", jsonParams1);
+        JsonArray txArrayBody = ContractTestUtils.txBodyJson("tansfer", param);
 
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(jsonObject1);
-
-        txBody = new TransactionBody(jsonArray);
+        txBody = new TransactionBody(txArrayBody);
 
         byte[] chain = new byte[20];
         byte[] version = new byte[8];
