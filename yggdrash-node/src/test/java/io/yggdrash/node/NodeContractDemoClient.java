@@ -34,6 +34,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class NodeContractDemoClient {
 
@@ -49,7 +51,7 @@ public class NodeContractDemoClient {
     private static final int TRANSFER_AMOUNT = 1;
 
     public static void main(String[] args) throws Exception {
-        while (true) {
+        for (int i = 0; i < 10000; i++) {
             run();
         }
     }
@@ -146,7 +148,7 @@ public class NodeContractDemoClient {
         methodList.forEach(System.out::println);
 
         int index = getMethodIndex(methodList);
-        String selectedMethod = getMethodName(index, methodList);
+        String selectedMethod = MethodNameParser.parse(methodList.get(index));
         if (methodList.get(index).contains("TransactionReceipt")) {
             TransactionHusk tx = createTx(branchId, selectedMethod);
             System.out.println("tx => " + tx);
@@ -178,20 +180,12 @@ public class NodeContractDemoClient {
     private static int getMethodIndex(List<String> methodList) {
         System.out.println("\n실행할 메소드의 번호를 입력하세요.");
         for (int i = 0; i < methodList.size(); i++) {
-            System.out.println("[" + i + "] " + getMethodName(i, methodList));
+            System.out.println("[" + i + "] " + MethodNameParser.parse(methodList.get(i)));
         }
         System.out.println(">");
         String input = scan.nextLine();
 
         return input.length() > 0 ? Integer.parseInt(input) : 0;
-    }
-
-    private static String getMethodName(int index, List<String> methodList) {
-        String method = methodList.get(index);
-        String[] element = method.split(" ");
-        String[] func = element[2].split("\\.");
-
-        return func[5].substring(0, func[5].indexOf("("));
     }
 
     private static String createQueryObj(String branchId, String method) {
@@ -280,6 +274,8 @@ public class NodeContractDemoClient {
                     txBody = CoinContractTestUtils.createTransferFromBody(from, to, amount);
                     break;
                 default:
+                    System.err.println("unknown " + method);
+                    createTx(branchId, method);
                     break;
             }
         }
@@ -448,8 +444,9 @@ public class NodeContractDemoClient {
             throws IOException {
         String branchPath = new DefaultConfig().getBranchPath();
         File branchDir = new File(branchPath, branchId.toString());
-        if (!branchDir.exists()) {
-            branchDir.mkdirs();
+        if (!branchDir.exists() && !branchDir.mkdirs()) {
+            System.err.println("can't create branch dir at " + branchDir);
+            return;
         }
         File file = new File(branchDir, BranchLoader.BRANCH_FILE);
         FileWriter fileWriter = new FileWriter(file); //overwritten
@@ -472,5 +469,16 @@ public class NodeContractDemoClient {
         return BlockChainTestUtils.createTxHusk(branchId, txBody);
     }
 
+    static class MethodNameParser {
+        static final Pattern p = Pattern.compile(".*\\.([a-zA-Z]*)\\(.*\\)");
+
+        static String parse(String name) {
+            Matcher m = p.matcher(name);
+            if (m.matches()) {
+                return "" + m.group(1);
+            }
+            return "unknown";
+        }
+    }
 }
 
