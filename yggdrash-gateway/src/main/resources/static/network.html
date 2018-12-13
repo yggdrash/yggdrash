@@ -42,21 +42,13 @@
         margin-top: 0%;
     }
 </style>
-<body>
+<body onload="pageLoaded()">
 <button id="drawNetwork">Draw Network</button>
 <script>
-    var width = 1500,
-        height = 1500
-
-    var svg = d3.select("body").append("svg")
-        .attr("width", width)
-        .attr("height", height);
-
-    var force = d3.layout.force()
-        .gravity(.05)
-        .distance(700)
-        .charge(-100)
-        .size([width, height]);
+    var grpc = 32918;
+    var rest = 8080;
+    var branchId = "91b29a1453258d72ca6fbbcabb8dca10cca944fb";
+    var groups = ["91b29a1453258d72ca6fbbcabb8dca10cca944fb", "d872b5a338b824dc56abc6015543496670d81c1b"]; //todo later
 
     // data format
     var nodes = [];
@@ -66,87 +58,101 @@
         "links": links
     };
 
-    var grpc = 32918;
-    var rest = 8080;
-    var branchId = "91b29a1453258d72ca6fbbcabb8dca10cca944fb";
-    var groups = ["91b29a1453258d72ca6fbbcabb8dca10cca944fb", "d872b5a338b824dc56abc6015543496670d81c1b"]; //todo later
-    function req(host, port, branchId) {
-        return "http://" + host + port + "/peers/" + branchId + "/channels";
-    }
-
-    var channels = ["172.16.10.110:32918"]; //32919, 32920...
+    var channels = []; //32919, 32920...
     var stack = [];
     var table = [];
 
+    function pageLoaded() {
+        var url = document.URL;
+        var qAt = document.URL.indexOf("?");
+        var numOfNodes = parseInt(document.URL.substr(qAt + 1));
+        var host = getHost(url);
+
+        for (var port = numOfNodes + rest; port >= rest; port--) {
+            nodes.push(host + ":" + grpc++);
+            channels.push(getReqUrl(host, port, branchId));
+        }
+    }
+
+    function getReqUrl(host, port, branchId) {
+        return "http://" + host + ":" + port + "/peers/" + branchId + "/channels";
+    }
+
+    function getHost(str) {
+        return str.substr(7, str.lastIndexOf(":") - 7);
+    }
+
+    function getPort(str) {
+        return str.substr(str.lastIndexOf(":") + 1, 4);
+    }
+
+    function getGrpcPort(str) {
+        return 32918 + (parseInt(getPort(str)) - rest);
+    }
+
+    function getUrl(str) {
+        return getHost(str) + ":" + getGrpcPort(str);
+    }
+
     function submit(curChannels) {
         stack.push(curChannels);
+        console.log("curChannels => " + curChannels);
 
-        var curHost = curChannels.substr(0, curChannels.length - 5);
-        var curPort = parseInt(curChannels.substr(curChannels.length -5 , curChannels.length)) - grpc + rest;
-        var curUrl = req(curHost, curPort, branchId);
-        //console.log("curUrl => " + curUrl);
-
-        $.getJSON(curUrl).done(function (data) {
+        $.getJSON(curChannels).done(function (data) {
             //console.log(data);
 
-            if (curPort === 8080) {
-                data.forEach(function (value) {
-                    channels.push(value);
-                });
-                //console.log("channels => " + channels);
-            }
             var key;
             var values = [];
             var row = {"key": key, "value": values};
-            row.key = curChannels;
-            row.value.push(data);
+            row.key = getUrl(curChannels);
+            row.value = data;
             table.push(row);
-            //console.log(table);
-            //console.log("curChannels => " + curChannels + ", stack => " + stack);
+
             while (channels.length !== 0) {
                 submit(channels.pop());
             }
         });
     }
 
-    //submit(channels.pop());
-
     function arrangeTable() {
-        var tmpNodes = [];
 
         table.forEach(function (row) {
-            if (!tmpNodes.includes(row.key)) {
-                tmpNodes.push(row.key);
-                console.log("peer : " + row.key + ", number of connection : " + row.value[0].length);
+            console.log("peer : " + row.key + ", number of connection : " + row.value.length);
+            if (!nodes.includes(row.key)) {
+                nodes.push(row.key);
             }
         });
         table.forEach(function (row) {
-            row.value.forEach(function (list) {
-                list.forEach(function (value) {
-                    if (!tmpNodes.includes(value)) {
-                        tmpNodes.push(value);
-                    }
-                })
+            row.value.forEach(function (value) {
+                if (!nodes.includes(value)) {
+                    nodes.push(value);
+                }
             })
         });
-        //console.log("tmpNodes => " + tmpNodes);
-        tmpNodes.forEach(function (name) {
-            var node = {"name": name, "group": 0};
-            nodes.push(node);
+
+        nodes.forEach(function (name, i) {
+            nodes[i] = {"name": name, "group": 0};
         });
-        //console.log(nodes);
+        console.log(nodes);
 
         table.forEach(function (row) {
-            var src = tmpNodes.indexOf(row.key);
-            row.value.forEach(function (list) {
-                list.forEach(function (value) {
-                    var tar = tmpNodes.indexOf(value);
-                    var link = {"source": src, "target": tar, "weight": 3};
-                    links.push(link);
-                })
+            var src = 0;
+            nodes.forEach(function (value, index) {
+                if (value.name === row.key) {
+                    src = index;
+                }
+            });
+            row.value.forEach(function (value) {
+                var tar = 0;
+                nodes.forEach(function (value1, index) {
+                    if (value1.name === value) {
+                        tar = index;
+                    }
+                });
+                var link = {"source": src, "target": tar, "weight": 3};
+                links.push(link);
             })
         });
-        //console.log(links);
         graphFile.nodes = nodes;
         graphFile.links = links;
         //console.log(graphFile);
@@ -154,6 +160,18 @@
         //console.log("json => " + json);
     }
 
+    var width = 1500,
+        height = 1500
+
+    var svg = d3.select("body").append("svg")
+        .attr("width", width)
+        .attr("height", height);
+
+    var force = d3.layout.force()
+        .gravity(.04)
+        .distance(700)
+        .charge(-100)
+        .size([width, height]);
     function draw() {
         force.nodes(graphFile.nodes).links(graphFile.links).start();
         var link = svg.selectAll(".link")
@@ -205,8 +223,9 @@
         setTimeout(function () {
             arrangeTable();
             draw();
-        }, 4000);
+        }, 5000);
     });
+
 </script>
 
 </body>
