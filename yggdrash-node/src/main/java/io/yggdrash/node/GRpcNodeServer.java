@@ -163,6 +163,9 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             log.debug("bootstrapping :: branchId => " + branchId);
             nodeDiscovery(branchId);
             for (Peer peer : peerGroup.getClosestPeers(branchId)) {
+                if (peerGroup.isMaxChannel(branchId)) {
+                    break;
+                }
                 peerGroup.newPeerChannel(branchId, new GRpcClientChannel(peer));
             }
         }
@@ -355,24 +358,40 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         public void findPeers(RequestPeer request, StreamObserver<PeerList> responseObserver) {
             BranchId branchId = BranchId.of(request.getBranchId());
             PeerList.Builder peerListBuilder = PeerList.newBuilder();
+            if (!branchGroup.containsBranch(branchId)) {
+                PeerList peerList = peerListBuilder.build();
+                responseObserver.onNext(peerList);
+                responseObserver.onCompleted();
+                return;
+            }
+
             Peer peer = Peer.valueOf(request.getPubKey(), request.getIp(), request.getPort());
             log.debug("Received findPeers peer={}, branch={}", peer.toAddress(), branchId);
 
-            if (branchGroup.containsBranch(branchId)) {
-                try {
-                    peerGroup.newPeerChannel(branchId, new GRpcClientChannel(peer));
-                } catch (Exception e) {
-                    log.debug("Failed to connect {} -> {}", peerGroup.getOwner().toAddress(),
-                            peer.toAddress());
-                }
-                List<String> list = peerGroup.getPeers(BranchId.of(request.getBranchId()), peer);
-                for (String url : list) {
-                    peerListBuilder.addNodes(NodeInfo.newBuilder().setUrl(url).build());
-                }
+            List<String> list = peerGroup.getPeers(BranchId.of(request.getBranchId()), peer);
+            for (String url : list) {
+                peerListBuilder.addNodes(NodeInfo.newBuilder().setUrl(url).build());
             }
             PeerList peerList = peerListBuilder.build();
             responseObserver.onNext(peerList);
             responseObserver.onCompleted();
+
+            try {
+                if (!peerGroup.isMaxChannel(branchId)) {
+                    peerGroup.newPeerChannel(branchId, new GRpcClientChannel(peer));
+                }
+                /*
+                else {
+                    // TODO peerTableChannels 업데이트
+                    //List<Peer> closestPeers = peerGroup.getClosestPeers(branchId);
+                    // 채널 교체 작업
+                    // 현재 연결된 채널들의 버킷 아이디, 새로들어온 requestPeer의 버킷아이디 로그
+                }
+                */
+            } catch (Exception e) {
+                log.debug("Failed to connect {} -> {}", peerGroup.getOwner().toAddress(),
+                        peer.toAddress());
+            }
         }
 
         @Override

@@ -16,10 +16,12 @@
 
 package io.yggdrash.gateway.controller;
 
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.PeerGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,5 +39,10 @@ class PeerController {
     @GetMapping("/active")
     public ResponseEntity getAllActivePeer() {
         return ResponseEntity.ok(peerGroup.getActivePeerList());
+    }
+
+    @GetMapping("/{branchId}/channels")
+    public ResponseEntity getChannels(@PathVariable(name = "branchId") String branchId) {
+        return ResponseEntity.ok(peerGroup.getActivePeerListOf(BranchId.of(branchId)));
     }
 }

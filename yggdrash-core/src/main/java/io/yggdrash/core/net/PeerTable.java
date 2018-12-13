@@ -30,6 +30,10 @@ public class PeerTable {
         for (int i = 0; i < KademliaOptions.BINS; i++) {
             buckets[i] = new PeerBucket(i);
         }
+
+        if (this.peerStore.size() > 0) {
+            this.peerStore.getAll().forEach(s -> addPeer(Peer.valueOf(s)));
+        }
     }
 
     synchronized Peer addPeer(Peer p) {
