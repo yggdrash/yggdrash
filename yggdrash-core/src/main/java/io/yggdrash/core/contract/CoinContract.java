@@ -202,7 +202,7 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
         log.info("\ngenesis :: param => " + param);
 
         TransactionReceipt txReceipt = new TransactionReceipt();
-        if (state.getState().size() > 0) {
+        if (state.getStateSize() > 0L) {
             return txReceipt;
         }
 

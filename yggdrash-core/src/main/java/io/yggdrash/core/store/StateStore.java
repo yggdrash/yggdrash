@@ -13,27 +13,41 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+
 public class StateStore<T> implements Store<String, T> {
     private static final Logger log = LoggerFactory.getLogger(StateStore.class);
+    private byte[] stateValidate;
     private final DbSource<byte[], byte[]> db;
+    private long dbSize = 0L;
 
 
     private final Map<String, T> state;
+
+    // TODO remote subState and assetState
     private final Map<String, Map<Object, Set<Object>>> subState;
     private final Map<String, Map<String, Map<JsonObject, JsonObject>>> assetState;
 
     public StateStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
         this.state = new ConcurrentHashMap<>();
+        // must sha256 validator
+        this.stateValidate = new byte[256];
         // TODO state is allways key-value store so sub, asset state is remove from contract
         this.subState = new HashMap<>();
         this.assetState = new HashMap<>();
     }
 
-    public Map<String, T> getState() {
-        return this.state;
+    public T getState(String key) {
+        return  this.state.get(key);
+        //return this.state;
     }
 
+    public long getStateSize() {
+        return dbSize;
+    }
+
+
+    // TODO remove stateList
     public List<Map> getStateList() {
         List<Map> result = new ArrayList<>();
         try {
@@ -54,6 +68,7 @@ public class StateStore<T> implements Store<String, T> {
         return result;
     }
 
+    // TODO remove subState
     public  Map<Object, Set<Object>> getSubState(String key) {
         return this.subState.get(key);
     }
@@ -97,6 +112,7 @@ public class StateStore<T> implements Store<String, T> {
         return state.get(key);
     }
 
+    // TODO remove getAll
     public Set<T> getAll() {
         Set<T> res = new HashSet<>();
         for (String key : state.keySet()) {
@@ -105,6 +121,7 @@ public class StateStore<T> implements Store<String, T> {
         return res;
     }
 
+    // TODO remove getAllKey
     public List<String> getAllKey() {
         return new ArrayList<>(state.keySet());
     }
@@ -122,6 +139,7 @@ public class StateStore<T> implements Store<String, T> {
         assetState.clear();
     }
 
+    // TODO remove all assetState
     public Map<String, Map<JsonObject, JsonObject>> getAssetState(String db) {
         return this.assetState.get(db);
     }

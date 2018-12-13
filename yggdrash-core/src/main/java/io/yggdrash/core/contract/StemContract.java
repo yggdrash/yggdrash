@@ -18,7 +18,7 @@ public class StemContract extends BaseContract<StemContractStateValue> {
     private static final Logger log = LoggerFactory.getLogger(StemContract.class);
 
     public TransactionReceipt genesis(JsonObject param) {
-        if (state.getState().size() == 0) {
+        if (state.getStateSize() == 0L) {
             TransactionReceipt receipt = create(param);
             log.info("[StemContract | genesis] SUCCESS! param => " + param);
             return receipt;
