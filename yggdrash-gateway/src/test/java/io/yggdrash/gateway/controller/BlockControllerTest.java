@@ -68,14 +68,14 @@ public class BlockControllerTest {
                 .andReturn().getResponse();
 
         String contentAsString = response.getContentAsString();
-        String blockHash = json.parseObject(contentAsString).hash;
+        String blockId = json.parseObject(contentAsString).blockId;
 
-        response = mockMvc.perform(get(basePath + "/" + blockHash))
+        response = mockMvc.perform(get(basePath + "/" + blockId))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
 
-        assertThat(response.getContentAsString()).contains(blockHash);
+        assertThat(response.getContentAsString()).contains(blockId);
     }
 
     @Test
