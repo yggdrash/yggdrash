@@ -154,7 +154,7 @@ public class AssetContractTest {
 
     @Before
     public void setUp() {
-        StateStore<JsonArray> stateStore = new StateStore<>(new HashMapDbSource());
+        StateStore<JsonObject> stateStore = new StateStore<>(new HashMapDbSource());
         TransactionReceiptStore txReceiptStore = new TransactionReceiptStore(new HashMapDbSource());
 
         assetContract = new AssetContract();

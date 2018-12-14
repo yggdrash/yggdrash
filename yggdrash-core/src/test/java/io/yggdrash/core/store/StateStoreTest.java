@@ -16,9 +16,11 @@
 
 package io.yggdrash.core.store;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.After;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -40,24 +42,31 @@ public class StateStoreTest {
     }
 
     @Test
-    public void putState() {
+    public void putState() throws Exception {
         String stateKey = "State";
-        String stateValue = "value";
-        stateStore.put(stateKey, stateValue);
+        JsonObject obj = new JsonParser().parse("{\"value\":\"value\"}").getAsJsonObject();
+        stateStore.put(stateKey, obj);
+        assertTrue(stateStore.getStateSize() == 1L);
     }
 
     @Test
-    public void getState() {
+    public void getState() throws Exception {
         String stateKey = "State";
-        String stateValue = "value";
-        stateStore.put(stateKey, stateValue);
-        Object obj = stateStore.get(stateKey);
+        JsonObject obj = new JsonParser().parse("{\"value\":\"value\"}").getAsJsonObject();
+        stateStore.put(stateKey, obj);
+        JsonObject obj2 = stateStore.get(stateKey);
+        assertTrue(obj.equals(obj2));
         log.debug(obj.getClass().toString());
     }
 
     @Test
-    public void getStateSize() {
+    public void getStateSize() throws Exception {
+        // first is null
         assertTrue(this.stateStore.getStateSize() == 0L);
+        // add some state
+        this.stateStore.put("STATE", new JsonObject());
+        // state size is 1L
+        assertTrue(this.stateStore.getStateSize() == 1L);
     }
 
 

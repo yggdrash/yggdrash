@@ -41,7 +41,7 @@ public class StemContractTest {
 
     @Before
     public void setUp() {
-        StateStore<StemContractStateValue> stateStore = new StateStore<>(new HashMapDbSource());
+        StateStore<JsonObject> stateStore = new StateStore<>(new HashMapDbSource());
         TransactionReceiptStore txReceiptStore = new TransactionReceiptStore(new HashMapDbSource());
 
         stemContract = new StemContract();
@@ -73,9 +73,9 @@ public class StemContractTest {
         TransactionReceipt receipt = stemContract.create(param);
         assertThat(receipt.isSuccess()).isTrue();
 
-        StemContractStateValue saved = stemContract.state.get(branchId);
+        JsonObject saved = stemContract.state.get(branchId);
         assertThat(saved).isNotNull();
-        assertThat(saved.getDescription()).isEqualTo(description);
+        assertThat(saved.get("description")).isEqualTo(description);
     }
 
     @Test

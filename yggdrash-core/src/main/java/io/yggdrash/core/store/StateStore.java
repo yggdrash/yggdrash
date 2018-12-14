@@ -1,10 +1,10 @@
 package io.yggdrash.core.store;
 
+import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.store.datasource.DbSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,13 +12,16 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
-public class StateStore<T> implements Store<String, T> {
+public class StateStore<T> implements Store<String, JsonObject> {
     private static final Logger log = LoggerFactory.getLogger(StateStore.class);
-    private byte[] stateValidate;
+    private byte[] stateValidate = new byte[256];
     private final DbSource<byte[], byte[]> db;
     private long dbSize = 0L;
+    private final byte[] DATABASE_SIZE = "DATABASE_SIZE".getBytes();
 
 
     private final Map<String, T> state;
@@ -29,6 +32,12 @@ public class StateStore<T> implements Store<String, T> {
 
     public StateStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
+        // getState Size
+        if(db.get(DATABASE_SIZE) != null) {
+            dbSize = Longs.fromByteArray(db.get(DATABASE_SIZE));
+        }
+
+        // TODO state remove
         this.state = new ConcurrentHashMap<>();
         // must sha256 validator
         this.stateValidate = new byte[256];
@@ -98,27 +107,26 @@ public class StateStore<T> implements Store<String, T> {
         }
     }
 
-    public void replace(String key, T value) {
-        state.replace(key, value);
-    }
-
     @Override
-    public void put(String key, T value) {
-        state.put(key, value);
-    }
-
-    @Override
-    public T get(String key) {
-        return state.get(key);
-    }
-
-    // TODO remove getAll
-    public Set<T> getAll() {
-        Set<T> res = new HashSet<>();
-        for (String key : state.keySet()) {
-            res.add(state.get(key));
+    public void put(String key, JsonObject value) {
+        // Check exist
+        if(db.get(key.getBytes()) == null) {
+            this.dbSize++;
+            byte[] dbSizeByteArray = Longs.toByteArray(this.dbSize);
+            db.put(DATABASE_SIZE, dbSizeByteArray);
         }
-        return res;
+        byte[] tempValue = value.toString().getBytes();
+        db.put(key.getBytes(), tempValue);
+    }
+
+    @Override
+    public JsonObject get(String key) {
+        byte[] result = db.get(key.getBytes());
+        if(result == null) {
+            return new JsonObject();
+        }
+        JsonObject obj = new JsonParser().parse(new String(result)).getAsJsonObject();
+        return obj;
     }
 
     // TODO remove getAllKey

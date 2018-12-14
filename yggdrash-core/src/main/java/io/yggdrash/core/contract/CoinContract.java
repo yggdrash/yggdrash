@@ -10,7 +10,7 @@ import java.math.BigDecimal;
 import java.util.Map;
 
 
-public class CoinContract extends BaseContract<CoinContractStateValue>
+public class CoinContract extends BaseContract<JsonObject>
         implements CoinStandard {
 
 
@@ -22,7 +22,7 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
     @Override
     public BigDecimal totalsupply(JsonObject param) {
         log.info("\ntotalsupply :: param => " + param);
-        return state.get(totalSupplyKey).getBalance();
+        return getBalance(totalSupplyKey);
     }
 
     /**
@@ -37,8 +37,7 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
 
         String address = param.get("address").getAsString().toLowerCase();
         if (state.get(address) != null) {
-            CoinContractStateValue value = state.get(address);
-            return value.getBalance();
+            return getBalance(address);
         }
         return BigDecimal.ZERO;
     }
@@ -59,7 +58,7 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
         String approveKey = approveKey(owner, spender);
 
         if (state.get(owner) != null && state.get(approveKey) != null) {
-            return state.get(approveKey).getBalance();
+            return getBalance(approveKey);
         }
         return BigDecimal.ZERO;
     }
@@ -82,20 +81,21 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
         txReceipt.putLog("to", to);
         txReceipt.putLog("amount", String.valueOf(amount));
 
-        if (!state.contains(sender)) {
+        if (getBalance(sender).compareTo(BigDecimal.ZERO) == 0) {
             log.info("\n[ERR] " + sender + " has no balance!");
             return txReceipt;
         }
 
-        CoinContractStateValue senderValue = state.get(sender);
-
-        if (senderValue.isTransferable(amount)) {
-            senderValue.subtractBalance(amount);
+        BigDecimal senderBallance = getBalance(sender);
+        log.debug("sender : "+senderBallance);
+        if (isTransferable(senderBallance, amount)) {
+            senderBallance = senderBallance.subtract(amount);
             addBalanceTo(to, amount);
+            putBalance(sender, senderBallance);
             txReceipt.setStatus(TransactionReceipt.SUCCESS);
             log.info("\n[Transferred] Transfer " + amount + " from " + sender + " to " + to);
-            log.info("\nBalance of From (" + sender + ") : " + senderValue.getBalance()
-                    + "\nBalance of To   (" + to + ") : " + state.get(to).getBalance());
+            log.info("\nBalance of From (" + sender + ") : " + getBalance(sender)
+                    + "\nBalance of To   (" + to + ") : " + getBalance(to));
         } else {
             log.info("\n[ERR] " + sender + " has no enough balance!");
         }
@@ -120,22 +120,19 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
         txReceipt.putLog("spender", spender);
         txReceipt.putLog("amount", String.valueOf(amount));
 
-        if (!state.contains(sender)) {
+        if (getBalance(sender).compareTo(BigDecimal.ZERO) == 0) {
             log.info("\n[ERR] " + sender + " has no balance!");
             return txReceipt;
         }
 
-        CoinContractStateValue senderValue = state.get(sender);
-
-        if (senderValue.isTransferable(amount)) {
+        BigDecimal senderBalance = getBalance(sender);
+        if (isTransferable(senderBalance, amount)) {
             String approveKey = approveKey(sender, spender);
-            CoinContractStateValue approve = new CoinContractStateValue();
-            approve.addBalance(amount);
-            state.put(approveKey, approve);
+            putBalance(approveKey, amount);
             log.debug("approve Key : " + approveKey);
             txReceipt.setStatus(TransactionReceipt.SUCCESS);
             log.info("\n[Approved] Approve " + spender + " to "
-                    + approve.getBalance() + " from " + sender);
+                    + getBalance(approveKey) + " from " + sender);
         } else {
             log.info("\n[ERR] " + sender + " has no enough balance!");
         }
@@ -166,25 +163,27 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
 
         String approveKey = approveKey(from, sender);
         log.debug("approve Key : " + approveKey);
-        if (!state.contains(approveKey)) {
+        if (getBalance(approveKey).compareTo(BigDecimal.ZERO) == 0) {
             log.info("\n[ERR] " + from + " has no balance!");
             return txReceipt;
         }
         // check from amount
-        CoinContractStateValue fromValue = state.get(from);
-        CoinContractStateValue approveValue = state.get(approveKey);
+        BigDecimal fromValue = getBalance(from);
+        BigDecimal approveValue = getBalance(approveKey);
 
-        if (fromValue.isTransferable(amount) && approveValue.isTransferable(amount)) {
-            fromValue.subtractBalance(amount);
-            approveValue.subtractBalance(amount);
+        if (isTransferable(fromValue, amount) && isTransferable(approveValue, amount)) {
+            fromValue = fromValue.subtract(amount);
+            approveValue = approveValue.subtract(amount);
 
             addBalanceTo(to, amount);
+            putBalance(from, fromValue);
+            putBalance(approveKey, approveValue);
             txReceipt.setStatus(TransactionReceipt.SUCCESS);
             log.info("\n[Transferred] Transfer " + amount + " from " + from + " to " + to);
             log.debug("\nAllowed amount of Sender (" + sender + ") : "
-                    + approveValue.getBalance());
-            log.debug("\nBalance of From (" + from + ") : " + fromValue.getBalance()
-                    + "\nBalance of To   (" + to + ") : " + state.get(to).getBalance());
+                    + approveValue);
+            log.debug("\nBalance of From (" + from + ") : " + fromValue
+                    + "\nBalance of To   (" + to + ") : " + getBalance(to));
         } else {
             log.info("\n[ERR] " + from + " has no enough balance!");
         }
@@ -216,31 +215,60 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
             totalSupply = totalSupply.add(balance);
             addBalanceTo(frontier, balance);
 
+            putBalance(frontier, balance);
+
             txReceipt.putLog(frontier, balance);
             txReceipt.setStatus(TransactionReceipt.SUCCESS);
             log.info("\nAddress of Frontier : " + frontier
-                    + "\nBalance of Frontier : " + state.get(frontier).getBalance());
+                    + "\nBalance of Frontier : " + getBalance(frontier));
         }
-        CoinContractStateValue totalSupplyValue = new CoinContractStateValue();
-        totalSupplyValue.addBalance(totalSupply);
-        state.put(totalSupplyKey, totalSupplyValue);
+        // FIXME convert to Json or something
+        try {
+            putBalance(totalSupplyKey, totalSupply);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         txReceipt.putLog("TotalSupply", totalSupply);
 
         return txReceipt;
     }
 
     private void addBalanceTo(String to, BigDecimal amount) {
-        CoinContractStateValue toValue = state.get(to);
-        if (toValue == null) {
-            toValue = new CoinContractStateValue();
-            state.put(to, toValue);
+        BigDecimal balance = getBalance(to);
+        if (balance == BigDecimal.ZERO) {
+            putBalance(to, amount);
+        }else {
+            balance = balance.add(amount);
         }
-        toValue.addBalance(amount);
+        putBalance(to, balance);
     }
+
+    private BigDecimal getBalance(String key) {
+        JsonObject storeValue = state.get(key);
+        String balance = null;
+        if(storeValue.has("balance")) {
+            balance = storeValue.get("balance").getAsString();
+        }else{
+            balance = "0";
+        }
+        return new BigDecimal(balance);
+    }
+
+    private void putBalance(String key, BigDecimal value) {
+        JsonObject storeValue = new JsonObject();
+        storeValue.addProperty("balance", value);
+        state.put(key, storeValue);
+    }
+
 
     private String approveKey(String sender, String spender) {
         byte[] approveKeyByteArray = ByteUtil.merge(sender.getBytes(), spender.getBytes());
         byte[] approveKey = HashUtil.sha3(approveKeyByteArray);
         return Hex.toHexString(approveKey);
+    }
+
+    private boolean isTransferable(BigDecimal targetBalance, BigDecimal ammount) {
+        // same is  0, more is 1
+        return targetBalance.subtract(ammount).compareTo(BigDecimal.ZERO) >= 0;
     }
 }

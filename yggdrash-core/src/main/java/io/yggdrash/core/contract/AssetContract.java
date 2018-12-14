@@ -24,7 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Map;
 
-public class AssetContract extends BaseContract<JsonArray> {
+public class AssetContract extends BaseContract<JsonObject> {
 
     private static final Logger log = LoggerFactory.getLogger(AssetContract.class);
 
@@ -40,7 +40,12 @@ public class AssetContract extends BaseContract<JsonArray> {
             txReceipt.putLog("createDatabase", "This dbName is not valid.");
         } else {
             if (state.get(dbName) == null) {
-                state.put(dbName, new JsonArray());
+                try {
+                    state.put(dbName, new JsonObject());
+                } catch (Exception e) {
+                    txReceipt.setStatus(TransactionReceipt.FALSE);
+                    e.printStackTrace();
+                }
                 txReceipt.putLog("createDatabase", dbName);
             } else {
                 txReceipt.setStatus(TransactionReceipt.FALSE);
@@ -72,7 +77,7 @@ public class AssetContract extends BaseContract<JsonArray> {
         } else {
             param.remove("db");
 
-            for (JsonElement dbElement : state.get(dbName)) {
+            for (JsonElement dbElement : state.get(dbName).getAsJsonArray()) {
                 if (dbElement.getAsJsonObject().get("table").getAsString().equals(tableName)) {
                     txReceipt.setStatus(TransactionReceipt.FALSE);
                     txReceipt.putLog("createTable",
@@ -81,11 +86,16 @@ public class AssetContract extends BaseContract<JsonArray> {
                 }
             }
 
-            JsonArray stateArray = state.get(dbName);
+            JsonArray stateArray = state.get(dbName).getAsJsonArray();
             if (stateArray != null) {
                 stateArray.add(param);
-                state.replace(dbName, stateArray);
-                txReceipt.putLog("createTable", param);
+                try {
+                    state.put(dbName, stateArray.getAsJsonObject());
+                    txReceipt.putLog("createTable", param);
+                } catch (Exception e) {
+                    txReceipt.setStatus(TransactionReceipt.FALSE);
+                    e.printStackTrace();
+                }
             } else {
                 txReceipt.setStatus(TransactionReceipt.FALSE);
                 txReceipt.putLog("createTable", param.toString() + " This table is already exist.");
@@ -117,7 +127,7 @@ public class AssetContract extends BaseContract<JsonArray> {
 
         // check db & table
         JsonObject tableObject = null;
-        for (JsonElement dbElement : state.get(dbName)) {
+        for (JsonElement dbElement : state.get(dbName).getAsJsonArray()) {
             if (dbElement.getAsJsonObject().get("table").getAsString().equals(tableName)) {
                 tableObject = dbElement.getAsJsonObject();
             }
@@ -162,7 +172,7 @@ public class AssetContract extends BaseContract<JsonArray> {
 
         // check db & table
         JsonObject tableObject = null;
-        for (JsonElement dbElement : state.get(dbName)) {
+        for (JsonElement dbElement : state.get(dbName).getAsJsonArray()) {
             if (dbElement.getAsJsonObject().get("table").getAsString().equals(tableName)) {
                 tableObject = dbElement.getAsJsonObject();
             }
@@ -243,7 +253,7 @@ public class AssetContract extends BaseContract<JsonArray> {
         JsonObject result = new JsonObject();
         JsonArray tableNames = new JsonArray();
 
-        JsonArray tableStates = state.get(db);
+        JsonArray tableStates = state.get(db).getAsJsonArray();
 
         for (JsonElement table : tableStates) {
             tableNames.add(table.getAsJsonObject().get("table").getAsString());
@@ -261,7 +271,7 @@ public class AssetContract extends BaseContract<JsonArray> {
 
         JsonObject result = null;
 
-        JsonArray tableStates = state.get(dbName);
+        JsonArray tableStates = state.get(dbName).getAsJsonArray();
 
         for (JsonElement table : tableStates) {
             if (table.getAsJsonObject().get("table").getAsString().equals(tableName)) {
@@ -300,7 +310,7 @@ public class AssetContract extends BaseContract<JsonArray> {
 
         // check db & table
         JsonObject tableObject = null;
-        for (JsonElement dbElement : state.get(dbName)) {
+        for (JsonElement dbElement : state.get(dbName).getAsJsonArray()) {
             if (dbElement.getAsJsonObject().get("table").getAsString().equals(tableName)) {
                 tableObject = dbElement.getAsJsonObject();
             }

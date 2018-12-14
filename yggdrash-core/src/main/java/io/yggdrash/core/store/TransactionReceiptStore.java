@@ -8,7 +8,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class TransactionReceiptStore {
 
-    public TransactionReceiptStore(DbSource source) {
+    public TransactionReceiptStore(DbSource<byte[], byte[]> source) {
         this.db = source;
     }
 

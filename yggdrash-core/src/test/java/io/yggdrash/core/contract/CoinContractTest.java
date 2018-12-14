@@ -13,14 +13,17 @@ import java.util.List;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class CoinContractTest {
 
     private static final CoinContract coinContract = new CoinContract();
+    private static final Logger log = LoggerFactory.getLogger(AssetContractTest.class);
 
     @Before
     public void setUp() {
-        StateStore<CoinContractStateValue> coinContractStateStore = null;
+        StateStore<JsonObject> coinContractStateStore = null;
         coinContractStateStore = new StateStore<>(new HashMapDbSource());
         TransactionReceiptStore txReceip = new TransactionReceiptStore(new HashMapDbSource());
         coinContract.init(coinContractStateStore, txReceip);
@@ -41,7 +44,7 @@ public class CoinContractTest {
 
     @Test
     public void specification() {
-        StateStore<CoinContractStateValue> coinContractStateStore;
+        StateStore<JsonObject> coinContractStateStore;
         coinContractStateStore = new StateStore<>(new HashMapDbSource());
         MetaCoinContract metaCoinContract = new MetaCoinContract();
         TransactionReceiptStore txReceip = new TransactionReceiptStore(new HashMapDbSource());
@@ -70,7 +73,6 @@ public class CoinContractTest {
         String paramStr = "{\"address\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}";
 
         BigDecimal res = coinContract.balanceof(createParam(paramStr));
-
         assertEquals(BigDecimal.valueOf(1000000000), res);
     }
 
@@ -91,6 +93,13 @@ public class CoinContractTest {
 
         // tx 가 invoke 되지 않아 baseContract 에 sender 가 세팅되지 않아서 설정해줌
         coinContract.sender = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+        String balanceOf = "{\"address\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}";
+        String toBalnce = "{\"address\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\"}";
+
+        log.debug("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94 : " + coinContract.balanceof(createParam(balanceOf)).toString());
+        log.debug("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e : " + coinContract.balanceof(createParam(toBalnce)).toString());
+
+
         TransactionReceipt result = coinContract.transfer(createParam(paramStr));
 
         assertTrue(result.isSuccess());

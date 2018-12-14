@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class StemContract extends BaseContract<StemContractStateValue> {
+public class StemContract extends BaseContract<JsonObject> {
 
     private static final Logger log = LoggerFactory.getLogger(StemContract.class);
 
@@ -47,10 +47,15 @@ public class StemContract extends BaseContract<StemContractStateValue> {
             }
             if (getStateValue(branchId) == null && isBranchIdValid(branchId, stateValue)) {
                 stateValue.init();
-                state.put(branchId.toString(), stateValue);
-                setSubState(branchId.toString(), json);
+                try {
+                    state.put(branchId.toString(), stateValue.getJson());
+                    setSubState(branchId.toString(), json);
+                    txReceipt.setStatus(TransactionReceipt.SUCCESS);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    txReceipt.setStatus(TransactionReceipt.FALSE);
+                }
 
-                txReceipt.setStatus(TransactionReceipt.SUCCESS);
                 log.info("[StemContract | create] branchId => " + branchId);
                 log.info("[StemContract | create] branch => " + json);
             }
@@ -177,7 +182,8 @@ public class StemContract extends BaseContract<StemContractStateValue> {
     }
 
     private StemContractStateValue getStateValue(BranchId branchId) {
-        return state.get(branchId.toString());
+        StemContractStateValue value = new StemContractStateValue(state.get(branchId.toString()));
+        return value;
     }
 
     private void setSubState(String branchId, JsonObject branch) {
