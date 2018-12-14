@@ -251,8 +251,8 @@ Returns information about a block by hash.
 ```
 params: {
  		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
- 		"bool": true,
- 		"hashOfBlock": "ad7dd0552336ebf3b2f4f648c4a87d7c35ed74382219e2954047ad9138a247c5"
+ 		"blockId": "ad7dd0552336ebf3b2f4f648c4a87d7c35ed74382219e2954047ad9138a247c5",
+ 		"bool": true
 }
 ```
 
@@ -271,8 +271,8 @@ params: {
  	"method": "getBlockByHash",
  	"params": {
  		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
- 		"bool": true,
- 		"hashOfBlock": "ad7dd0552336ebf3b2f4f648c4a87d7c35ed74382219e2954047ad9138a247c5"
+ 		"blockId": "ad7dd0552336ebf3b2f4f648c4a87d7c35ed74382219e2954047ad9138a247c5",
+ 		"bool": true
  	}
  }
  
@@ -423,7 +423,7 @@ Returns the number of transactions in a block from a block matching the given bl
 	"method": "getTransactionCountByBlockHash",
 	"params": {
 		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"hashOfBlock": "d52fffa14f5b88b141d05d8e28c90d8131db1aa63e076bfea9c28c3060049e12"
+		"blockId": "d52fffa14f5b88b141d05d8e28c90d8131db1aa63e076bfea9c28c3060049e12"
 	}
 }
 
@@ -559,7 +559,7 @@ Returns the information about a transaction requested by transaction hash.
 ```
 params: {
  		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
- 		"hashOfTx": "f5912fde84c6a3a44b4e529077ca9bf28feccd847137e44a77cd17e9fb9c1353"
+ 		"txId": "f5912fde84c6a3a44b4e529077ca9bf28feccd847137e44a77cd17e9fb9c1353"
 }
 ```
 
@@ -577,7 +577,7 @@ params: {
 	"method": "getTransactionByHash",
 	"params": {
 		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"hashOfTx": "f5912fde84c6a3a44b4e529077ca9bf28feccd847137e44a77cd17e9fb9c1353"
+		"txId": "f5912fde84c6a3a44b4e529077ca9bf28feccd847137e44a77cd17e9fb9c1353"
 	}
 }
 
@@ -633,7 +633,7 @@ See [getTransactionByHash]()
 	"params": {
 		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
 		"txIndexPosition": 2,
-		"hashOfBlock": "5ef71a90c6d99c7bc13bfbcaffb50cb89210678e99ed6626c9d2f378700b392c"
+		"blockId": "5ef71a90c6d99c7bc13bfbcaffb50cb89210678e99ed6626c9d2f378700b392c"
 	}
 }
 
@@ -847,7 +847,7 @@ Returns the TransactionReceipt of transaction hash.
 	"method": "getTransactionReceipt",
 	"params": {
 		"branchId": "fe7b7c93dd23f78e12ad42650595bc0f874c88f7",
-		"hashOfTx": "d7cf6612214effa4013ac6fee62894c1a0f9b47b1ddcffb2a62a6398b200ff31"
+		"txId": "d7cf6612214effa4013ac6fee62894c1a0f9b47b1ddcffb2a62a6398b200ff31"
 	}
 }
 
@@ -890,7 +890,7 @@ Returns the TransactionReceipt of transaction hash.
 	"method": "getTransactionReceipt",
 	"params": {
 		"branchId": "a08ee962cd8b2bd0edbfee989c1a9f7884d26532",
-		"hashOfTx": "a27cc5bd50672f04423110f76784d821536c24884b3f1425b25dba3831de3c56"
+		"txId": "a27cc5bd50672f04423110f76784d821536c24884b3f1425b25dba3831de3c56"
 	}
 }
 
@@ -939,7 +939,7 @@ None
   "jsonrpc": "2.0",
   "method": "getTransactionReceipt",
   "params": {
-    "hashOfTx": "2da7c6e0bbb35365a1b57c7cdb9b5a434a41c43b6374018d9303b87576c157a9"
+    "txId": "2da7c6e0bbb35365a1b57c7cdb9b5a434a41c43b6374018d9303b87576c157a9"
   }
 }
 

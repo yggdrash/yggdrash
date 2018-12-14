@@ -38,6 +38,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static io.yggdrash.common.config.Constants.CONTRACT_ID;
 
 public class NodeContractDemoClient {
 
@@ -344,9 +345,9 @@ public class NodeContractDemoClient {
         String contractId = scan.nextLine();
 
         if ("".equals(contractId)) {
-            contractId = json.get("contractId").getAsString();
+            contractId = json.get(CONTRACT_ID).getAsString();
         }
-        json.addProperty("contractId", contractId);
+        json.addProperty(CONTRACT_ID, contractId);
 
         ContractTestUtils.signBranch(TestConstants.wallet(), json);
         Branch branch = Branch.of(json);

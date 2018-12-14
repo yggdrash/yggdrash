@@ -12,7 +12,9 @@ import io.yggdrash.node.api.dto.TransactionDto;
 
 import java.util.Map;
 
+import static io.yggdrash.common.config.Constants.BLOCK_ID;
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static io.yggdrash.common.config.Constants.TX_ID;
 
 @JsonRpcService("/api/transaction")
 public interface TransactionApi {
@@ -21,13 +23,13 @@ public interface TransactionApi {
     /**
      * Returns the number of transactions in a block from a block matching the given block hash.
      *
-     * @param hashOfBlock hash of block
+     * @param blockId hash of block
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
     int getTransactionCountByBlockHash(@JsonRpcParam(value = BRANCH_ID) String branchId,
-                                       @JsonRpcParam(value = "hashOfBlock") String hashOfBlock);
+                                       @JsonRpcParam(value = BLOCK_ID) String blockId);
 
     /**
      * Returns the number of transactions in a block matching the given block number.
@@ -54,25 +56,25 @@ public interface TransactionApi {
     /**
      * Returns the information about a transaction requested by transaction hash.
      *
-     * @param hashOfTx hash of transaction
+     * @param txId hash of transaction
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
     TransactionDto getTransactionByHash(@JsonRpcParam(value = BRANCH_ID) String branchId,
-                                         @JsonRpcParam(value = "hashOfTx") String hashOfTx);
+                                         @JsonRpcParam(value = TX_ID) String txId);
 
     /**
      * Returns information about a transaction by block hash and transaction index position.
      *
-     * @param hashOfBlock     hash of block
+     * @param blockId     hash of block
      * @param txIndexPosition integer of the transaction index position.
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
     TransactionDto getTransactionByBlockHash(@JsonRpcParam(value = BRANCH_ID) String branchId,
-                                      @JsonRpcParam(value = "hashOfBlock") String hashOfBlock,
+                                      @JsonRpcParam(value = BLOCK_ID) String blockId,
                                       @JsonRpcParam(value = "txIndexPosition") int txIndexPosition);
 
     /**
@@ -146,11 +148,11 @@ public interface TransactionApi {
     /**
      * Returns the TransactionReceipt of transaction hash
      *
-     * @param hashOfTx  hash of transaction
+     * @param txId  hash of transaction
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
     TransactionReceipt getTransactionReceipt(@JsonRpcParam(value = BRANCH_ID) String branchId,
-                                             @JsonRpcParam(value = "hashOfTx") String hashOfTx);
+                                             @JsonRpcParam(value = TX_ID) String txId);
 }
