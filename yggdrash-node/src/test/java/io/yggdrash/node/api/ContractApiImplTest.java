@@ -21,7 +21,6 @@ import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.node.CoinContractTestUtils;
@@ -31,7 +30,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
-import java.util.Collections;
 import java.util.List;
 
 import static io.yggdrash.node.api.JsonRpcConfig.CONTRACT_API;
@@ -79,12 +77,8 @@ public class ContractApiImplTest {
         try {
             JsonObject query =
                     ContractTestUtils.createQuery(branchId, "specification", new JsonObject());
-            String result = CONTRACT_API.query(query.toString());
-            JsonObject jsonObject = Utils.parseJsonObject(result);
-            List<String> methods =
-                    Collections.singletonList(jsonObject.get("result").getAsString());
-
-            assertThat(methods.size()).isNotZero();
+            List<String> methods = (List<String>)CONTRACT_API.query(query.toString());
+            assertThat(methods).isNotEmpty();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
@@ -116,9 +110,7 @@ public class ContractApiImplTest {
     private void queryAndAssert(String method, JsonObject params, BigDecimal expected) {
         JsonObject query = ContractTestUtils.createQuery(branchId, method, params);
         try {
-            String result = CONTRACT_API.query(query.toString());
-            JsonObject jsonObject = Utils.parseJsonObject(result);
-            BigDecimal value = new BigDecimal(jsonObject.get("result").getAsString());
+            BigDecimal value = (BigDecimal)CONTRACT_API.query(query.toString());
             assertThat(value).isEqualTo(expected);
         } catch (Exception e) {
             log.error(e.getMessage(), e);

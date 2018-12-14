@@ -1,6 +1,5 @@
 package io.yggdrash.core.contract;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.TransactionHusk;
@@ -13,7 +12,6 @@ import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 public abstract class BaseContract<T> implements Contract<T> {
@@ -55,27 +53,17 @@ public abstract class BaseContract<T> implements Contract<T> {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public JsonObject query(JsonObject query) {
+    public Object query(JsonObject query) {
         dataFormatValidation(query);
 
         String method = query.get("method").getAsString().toLowerCase();
         JsonObject params = query.getAsJsonObject("params");
 
-        JsonObject result = new JsonObject();
         try {
-            Object res = getClass().getMethod(method, JsonObject.class).invoke(this, params);
-            if (res instanceof JsonElement) {
-                result.add("result", (JsonElement)res);
-            } else if (res instanceof Collection<?>) {
-                result.addProperty("result", collectionToString((Collection<Object>) res));
-            } else {
-                result.addProperty("result", res.toString());
-            }
+            return getClass().getMethod(method, JsonObject.class).invoke(this, params);
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
-        return result;
     }
 
     public List<String> specification(JsonObject params) {
@@ -104,18 +92,5 @@ public abstract class BaseContract<T> implements Contract<T> {
         if (!data.get("params").isJsonObject()) {
             throw new FailedOperationException("Param must be JsonObject");
         }
-    }
-
-    private String collectionToString(Collection<Object> collection) {
-        StringBuilder sb = new StringBuilder();
-        for (Object obj : collection) {
-            String str = obj.toString();
-            if (sb.length() != 0) {
-                sb.append(",");
-            }
-            sb.append(str);
-        }
-
-        return sb.toString();
     }
 }

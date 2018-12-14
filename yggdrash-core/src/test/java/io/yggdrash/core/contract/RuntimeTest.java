@@ -29,6 +29,7 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import org.junit.Test;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -55,9 +56,8 @@ public class RuntimeTest {
         JsonObject params = ContractTestUtils.createParams("address",
                 "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
         JsonObject query = createQuery(TestConstants.YEED, "balanceOf", params);
-        JsonObject result = runtime.query(contract, query);
-        assertThat(result.get("result").getAsBigDecimal())
-                .isEqualTo(BigDecimal.valueOf(1000000000));
+        BigDecimal result = (BigDecimal)runtime.query(contract, query);
+        assertThat(result).isEqualTo(BigDecimal.valueOf(1000000000));
     }
 
     @Test
@@ -72,8 +72,8 @@ public class RuntimeTest {
         assertThat(runtime.invoke(contract, createTx)).isTrue();
 
         JsonObject query = createQuery(branchId, "getAllBranchId", new JsonObject());
-        JsonObject result = runtime.query(contract, query);
-        assertThat(result.get("result").getAsString()).contains(branchId.toString());
+        List<String> result = (List<String>)runtime.query(contract, query);
+        assertThat(result).contains(branchId.toString());
     }
 
     private JsonObject createQuery(BranchId branchId, String method, JsonObject params) {

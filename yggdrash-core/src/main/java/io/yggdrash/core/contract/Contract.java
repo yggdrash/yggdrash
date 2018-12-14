@@ -10,5 +10,5 @@ public interface Contract<T> {
 
     boolean invoke(TransactionHusk tx);
 
-    JsonObject query(JsonObject query) throws Exception;
+    Object query(JsonObject query) throws Exception;
 }

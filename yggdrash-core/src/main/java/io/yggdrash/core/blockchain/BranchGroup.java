@@ -138,7 +138,7 @@ public class BranchGroup {
     }
 
     @SuppressWarnings("unchecked")
-    public JsonObject query(JsonObject query) {
+    public Object query(JsonObject query) {
         BranchId branchId = BranchId.of(query.get(BRANCH_ID).getAsString());
         if (!containsBranch(branchId)) {
             throw new NonExistObjectException(branchId.toString() + " branch");

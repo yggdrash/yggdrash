@@ -1,5 +1,6 @@
 package io.yggdrash.node.api;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.common.util.Utils;
@@ -22,11 +23,15 @@ public class ContractApiImpl implements ContractApi {
     }
 
     @Override
-    public String query(String data) {
+    public Object query(String data) {
         JsonObject query = Utils.parseJsonObject(data);
         if (!query.has(BRANCH_ID)) {
             throw new NonExistObjectException("BranchId is required");
         }
-        return branchGroup.query(query).toString();
+        Object result = branchGroup.query(query);
+        if (result instanceof JsonElement) {
+            return Utils.convertJsonToMap((JsonElement)result);
+        }
+        return result;
     }
 }

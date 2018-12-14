@@ -18,5 +18,5 @@ public interface ContractApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    String query(@JsonRpcParam(value = "data") String data) throws Exception;
+    Object query(@JsonRpcParam(value = "data") String data) throws Exception;
 }

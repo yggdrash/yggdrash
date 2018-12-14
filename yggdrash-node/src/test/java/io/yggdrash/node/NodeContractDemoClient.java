@@ -31,7 +31,6 @@ import java.io.Reader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
@@ -169,11 +168,7 @@ public class NodeContractDemoClient {
         List<String> methods = new ArrayList<>();
         try {
             System.out.println("query => " + query);
-            String json = rpc.proxyOf(serverAddress, ContractApi.class).query(query);
-            JsonObject jsonObject = Utils.parseJsonObject(json);
-            String result = jsonObject.get("result").getAsString();
-
-            methods = Arrays.asList(result.split(","));
+            methods = (List<String>)rpc.proxyOf(serverAddress, ContractApi.class).query(query);
         } catch (Exception e) {
             e.printStackTrace();
         }

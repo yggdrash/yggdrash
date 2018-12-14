@@ -18,6 +18,7 @@ package io.yggdrash.core.contract;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.common.util.Utils;
@@ -470,7 +471,7 @@ public class AssetContractTest {
     }
 
     private JsonObject queryAllDatabasesTxTest() {
-        return query("queryAllDatabases", new JsonObject()).getAsJsonObject("result");
+        return query("queryAllDatabases", new JsonObject());
     }
 
     @Test
@@ -515,7 +516,7 @@ public class AssetContractTest {
                 DBNAME, TABLENAME_ASSET2, keyObjectAssetSchema, recordObjectAssetSchema);
 
         JsonObject paramsObject = createDbParams();
-        JsonObject result = query("queryAllTables", paramsObject).getAsJsonObject("result");
+        JsonObject result = query("queryAllTables", paramsObject);
         assertEquals(4, result.getAsJsonArray("table").size());
     }
 
@@ -590,7 +591,7 @@ public class AssetContractTest {
         paramsObject.addProperty("db", dbName);
         paramsObject.addProperty("table", tableName);
 
-        return query("queryTable", paramsObject).getAsJsonObject("result");
+        return query("queryTable", paramsObject);
     }
 
     @Test
@@ -704,7 +705,7 @@ public class AssetContractTest {
         paramsObject.addProperty("table", tableName);
         paramsObject.add("key", keyObject);
 
-        return query("queryRecordWithKey", paramsObject).getAsJsonObject("result");
+        return query("queryRecordWithKey", paramsObject);
     }
 
     @Test
@@ -849,7 +850,8 @@ public class AssetContractTest {
 
     private JsonObject query(String method, JsonObject params) {
         JsonObject query = createQuery(method, params);
-        return assetContract.query(query);
+        Object result = assetContract.query(query);
+        return new JsonParser().parse(result.toString()).getAsJsonObject();
     }
 
     private JsonObject createQuery(String method, JsonObject params) {
