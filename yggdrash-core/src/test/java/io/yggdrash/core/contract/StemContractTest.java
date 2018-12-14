@@ -29,6 +29,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class StemContractTest {
@@ -155,7 +156,7 @@ public class StemContractTest {
     }
 
     private JsonObject createParams() {
-        return ContractTestUtils.createParams("branchId", stateValue.getBranchId().toString());
+        return ContractTestUtils.createParams(BRANCH_ID, stateValue.getBranchId().toString());
     }
 
     private JsonObject createParams(JsonElement json) {

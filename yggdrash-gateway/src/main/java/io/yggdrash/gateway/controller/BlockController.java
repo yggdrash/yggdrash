@@ -32,6 +32,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+
 @RestController
 @RequestMapping("branches/{branchId}/blocks")
 class BlockController {
@@ -44,7 +46,7 @@ class BlockController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity get(@PathVariable(name = "branchId") String branchId,
+    public ResponseEntity get(@PathVariable(name = BRANCH_ID) String branchId,
                               @PathVariable(name = "id") String id) {
         BlockHusk foundBlock;
         if (StringUtils.isNumeric(id)) {
@@ -61,7 +63,7 @@ class BlockController {
     }
 
     @GetMapping
-    public ResponseEntity getAll(@PathVariable(name = "branchId") String branchId,
+    public ResponseEntity getAll(@PathVariable(name = BRANCH_ID) String branchId,
                                  @RequestParam(value = "offset", required = false) Long offset,
                                  @RequestParam(value = "limit", defaultValue = "25") int limit) {
         List<BlockDto> blocks = new ArrayList<>();
@@ -83,7 +85,7 @@ class BlockController {
     }
 
     @GetMapping("/latest")
-    public ResponseEntity latest(@PathVariable(name = "branchId") String branchId) {
+    public ResponseEntity latest(@PathVariable(name = BRANCH_ID) String branchId) {
         BranchId id = BranchId.of(branchId);
         long latest = branchGroup.getLastIndex(id);
         return ResponseEntity.ok(BlockDto.createBy(branchGroup.getBlockByIndex(id, latest)));

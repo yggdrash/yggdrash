@@ -37,6 +37,8 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+
 public class NodeContractDemoClient {
 
     private static final BranchId STEM = TestConstants.STEM;
@@ -305,7 +307,7 @@ public class NodeContractDemoClient {
 
     private static void view() throws Exception {
         String branchId = getBranchId();
-        JsonObject params = createParams("branchId", branchId);
+        JsonObject params = createParams(BRANCH_ID, branchId);
         String query = createQueryString(STEM, "view", params);
 
         String serverAddress = getServerAddress();

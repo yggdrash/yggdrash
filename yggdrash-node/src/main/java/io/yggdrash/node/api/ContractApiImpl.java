@@ -8,6 +8,8 @@ import io.yggdrash.core.exception.NonExistObjectException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+
 @Service
 @AutoJsonRpcServiceImpl
 public class ContractApiImpl implements ContractApi {
@@ -22,8 +24,8 @@ public class ContractApiImpl implements ContractApi {
     @Override
     public String query(String data) {
         JsonObject query = Utils.parseJsonObject(data);
-        if (!query.has("address")) {
-            throw new NonExistObjectException("Address (BranchId) is required");
+        if (!query.has(BRANCH_ID)) {
+            throw new NonExistObjectException("BranchId is required");
         }
         return branchGroup.query(query).toString();
     }

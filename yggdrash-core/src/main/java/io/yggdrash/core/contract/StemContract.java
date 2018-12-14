@@ -13,6 +13,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+
 public class StemContract extends BaseContract<StemContractStateValue> {
 
     private static final Logger log = LoggerFactory.getLogger(StemContract.class);
@@ -118,8 +120,7 @@ public class StemContract extends BaseContract<StemContractStateValue> {
      * @param params   branchId
      */
     public JsonObject view(JsonObject params) {
-        String branchId = params.get("branchId")
-                .getAsString().toLowerCase();
+        String branchId = params.get(BRANCH_ID).getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
             return getStateValue(BranchId.of(branchId)).getJson();
         }
@@ -132,7 +133,7 @@ public class StemContract extends BaseContract<StemContractStateValue> {
      * @param params   branchId
      */
     public ContractId getcurrentcontract(JsonObject params) {
-        String branchId = params.get("branchId")
+        String branchId = params.get(BRANCH_ID)
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
             return getStateValue(BranchId.of(branchId)).getContractId();
@@ -146,7 +147,7 @@ public class StemContract extends BaseContract<StemContractStateValue> {
      * @param params   branchId
      */
     public List<ContractId> getcontracthistory(JsonObject params) {
-        String branchId = params.get("branchId")
+        String branchId = params.get(BRANCH_ID)
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
             return getStateValue(BranchId.of(branchId)).getContractHistory();

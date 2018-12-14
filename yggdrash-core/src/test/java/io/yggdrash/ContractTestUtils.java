@@ -25,6 +25,8 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;
 
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+
 public class ContractTestUtils {
 
     public static JsonObject createParams(String key, String value) {
@@ -35,7 +37,7 @@ public class ContractTestUtils {
 
     public static JsonObject createQuery(BranchId branchId, String method, JsonObject params) {
         JsonObject query = new JsonObject();
-        query.addProperty("branchId", branchId.toString());
+        query.addProperty(BRANCH_ID, branchId.toString());
         query.addProperty("method", method);
         query.add("params", params);
         return query;

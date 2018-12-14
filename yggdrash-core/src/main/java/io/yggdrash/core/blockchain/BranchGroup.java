@@ -33,6 +33,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+
 public class BranchGroup {
     private final Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
 
@@ -137,7 +139,7 @@ public class BranchGroup {
 
     @SuppressWarnings("unchecked")
     public JsonObject query(JsonObject query) {
-        BranchId branchId = BranchId.of(query.get("address").getAsString());
+        BranchId branchId = BranchId.of(query.get(BRANCH_ID).getAsString());
         if (!containsBranch(branchId)) {
             throw new NonExistObjectException(branchId.toString() + " branch");
         }
