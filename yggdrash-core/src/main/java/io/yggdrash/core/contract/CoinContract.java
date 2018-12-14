@@ -248,8 +248,8 @@ public class CoinContract extends BaseContract<JsonObject>
         String balance = null;
         if(storeValue.has("balance")) {
             balance = storeValue.get("balance").getAsString();
-        }else{
-            balance = "0";
+        } else {
+            return BigDecimal.ZERO;
         }
         return new BigDecimal(balance);
     }
