@@ -45,16 +45,16 @@ public class RuntimeTest {
                 + " {\"balance\": \"1000000000\"},\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":"
                 + " {\"balance\": \"998000000000\"}}}";
 
-        JsonObject genesisParam = Utils.parseJsonObject(genesisStr);
+        JsonObject genesisParams = Utils.parseJsonObject(genesisStr);
 
-        JsonArray txBody = ContractTestUtils.txBodyJson("genesis", genesisParam);
+        JsonArray txBody = ContractTestUtils.txBodyJson("genesis", genesisParams);
         BranchId branchId = TestConstants.YEED;
         TransactionHusk genesisTx = BlockChainTestUtils.createTxHusk(branchId, txBody);
         assertThat(runtime.invoke(contract, genesisTx)).isTrue();
 
-        JsonObject param = ContractTestUtils.createParam("address",
+        JsonObject params = ContractTestUtils.createParams("address",
                 "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
-        JsonObject query = createQuery(TestConstants.YEED, "balanceOf", param);
+        JsonObject query = createQuery(TestConstants.YEED, "balanceOf", params);
         JsonObject result = runtime.query(contract, query);
         assertThat(result.get("result").getAsBigDecimal())
                 .isEqualTo(BigDecimal.valueOf(1000000000));
@@ -76,8 +76,8 @@ public class RuntimeTest {
         assertThat(result.get("result").getAsString()).contains(branchId.toString());
     }
 
-    private JsonObject createQuery(BranchId branchId, String method, JsonObject param) {
-        return ContractTestUtils.createQuery(branchId, method, param);
+    private JsonObject createQuery(BranchId branchId, String method, JsonObject params) {
+        return ContractTestUtils.createQuery(branchId, method, params);
 
     }
 }

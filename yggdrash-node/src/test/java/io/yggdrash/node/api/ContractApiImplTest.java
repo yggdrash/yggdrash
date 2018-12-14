@@ -60,18 +60,18 @@ public class ContractApiImplTest {
 
     @Test
     public void balanceOf() {
-        JsonObject param = ContractTestUtils.createParam("address",
+        JsonObject params = ContractTestUtils.createParams("address",
                 "cee3d4755e47055b530deeba062c5bd0c17eb00f");
-        queryAndAssert("balanceOf", param, BigDecimal.valueOf(998000000000L));
+        queryAndAssert("balanceOf", params, BigDecimal.valueOf(998000000000L));
     }
 
     @Test
     public void allowance() {
-        JsonObject param = new JsonObject();
-        param.addProperty("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
-        param.addProperty("spender", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
+        JsonObject params = new JsonObject();
+        params.addProperty("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
+        params.addProperty("spender", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
 
-        queryAndAssert("allowance", param, BigDecimal.ZERO);
+        queryAndAssert("allowance", params, BigDecimal.ZERO);
     }
 
     @Test
@@ -113,8 +113,8 @@ public class ContractApiImplTest {
         sendTransaction(txBody);
     }
 
-    private void queryAndAssert(String method, JsonObject param, BigDecimal expected) {
-        JsonObject query = ContractTestUtils.createQuery(branchId, method, param);
+    private void queryAndAssert(String method, JsonObject params, BigDecimal expected) {
+        JsonObject query = ContractTestUtils.createQuery(branchId, method, params);
         try {
             String result = CONTRACT_API.query(query.toString());
             JsonObject jsonObject = Utils.parseJsonObject(result);

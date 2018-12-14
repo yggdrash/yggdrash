@@ -48,8 +48,8 @@ public class StemContractTest {
         JsonObject json = ContractTestUtils.createSampleBranchJson();
         stateValue = StemContractStateValue.of(json);
         stemContract.sender = stateValue.getOwner().toString();
-        JsonObject param = createParam(stateValue.getJson());
-        stemContract.genesis(param);
+        JsonObject params = createParams(stateValue.getJson());
+        stemContract.genesis(params);
     }
 
     @Test
@@ -66,10 +66,10 @@ public class StemContractTest {
         JsonObject branch = getEthToYeedBranch(description);
 
         String branchId = BranchId.of(branch).toString();
-        JsonObject param = new JsonObject();
-        param.add(branchId, branch);
+        JsonObject params = new JsonObject();
+        params.add(branchId, branch);
 
-        TransactionReceipt receipt = stemContract.create(param);
+        TransactionReceipt receipt = stemContract.create(params);
         assertThat(receipt.isSuccess()).isTrue();
 
         StemContractStateValue saved = stemContract.state.get(branchId);
@@ -81,70 +81,70 @@ public class StemContractTest {
     public void updateTest() {
         String description = "Hello World!";
         JsonObject json = ContractTestUtils.createSampleBranchJson(description);
-        JsonObject param = createParam(json);
-        assertThat(stemContract.update(param).isSuccess()).isTrue();
+        JsonObject params = createParams(json);
+        assertThat(stemContract.update(params).isSuccess()).isTrue();
 
         stemBranchViewTest(description);
     }
 
     private void stemBranchViewTest(String description) {
-        JsonObject param = createParam();
-        JsonObject result = stemContract.view(param);
+        JsonObject params = createParams();
+        JsonObject result = stemContract.view(params);
         assertThat(result.get("description").getAsString()).isEqualTo(description);
     }
 
     @Test
     public void searchTest() {
-        JsonObject param = new JsonObject();
-        param.addProperty("key", "type");
-        param.addProperty("value", "immunity");
+        JsonObject params = new JsonObject();
+        params.addProperty("key", "type");
+        params.addProperty("value", "immunity");
 
-        assertThat(stemContract.search(param)).isNotNull();
-        log.debug("Search [type | immunity] res => " + stemContract.search(param));
+        assertThat(stemContract.search(params)).isNotNull();
+        log.debug("Search [type | immunity] res => " + stemContract.search(params));
 
-        param.addProperty("key", "name");
-        param.addProperty("value", "TEST1");
+        params.addProperty("key", "name");
+        params.addProperty("value", "TEST1");
 
-        assertThat(stemContract.search(param)).isNotNull();
-        log.debug("Search [name | TEST1] res => " + stemContract.search(param));
+        assertThat(stemContract.search(params)).isNotNull();
+        log.debug("Search [name | TEST1] res => " + stemContract.search(params));
 
-        param.addProperty("key", "property");
-        param.addProperty("value", "dex");
+        params.addProperty("key", "property");
+        params.addProperty("value", "dex");
 
-        assertThat(stemContract.search(param)).isNotNull();
-        log.debug("Search [property | dex] res => " + stemContract.search(param));
+        assertThat(stemContract.search(params)).isNotNull();
+        log.debug("Search [property | dex] res => " + stemContract.search(params));
 
-        param.addProperty("key", "owner");
-        param.addProperty("value", "9e187f5264037ab77c87fcffcecd943702cd72c3");
+        params.addProperty("key", "owner");
+        params.addProperty("value", "9e187f5264037ab77c87fcffcecd943702cd72c3");
 
-        assertThat(stemContract.search(param)).isNotNull();
+        assertThat(stemContract.search(params)).isNotNull();
         log.debug("Search [owner | 9e187f5264037ab77c87fcffcecd943702cd72c3] res => "
-                + stemContract.search(param));
+                + stemContract.search(params));
 
-        param.addProperty("key", "symbol");
-        param.addProperty("value", "TEST1");
+        params.addProperty("key", "symbol");
+        params.addProperty("value", "TEST1");
 
-        assertThat(stemContract.search(param)).isNotNull();
-        log.debug("Search [symbol | TEST1] res => " + stemContract.search(param));
+        assertThat(stemContract.search(params)).isNotNull();
+        log.debug("Search [symbol | TEST1] res => " + stemContract.search(params));
 
-        param.addProperty("key", "tag");
-        param.addProperty("value", "0.1");
+        params.addProperty("key", "tag");
+        params.addProperty("value", "0.1");
 
-        assertThat(stemContract.search(param)).isNotNull();
-        log.debug("Search [tag | 0.1] res => " + stemContract.search(param));
+        assertThat(stemContract.search(params)).isNotNull();
+        log.debug("Search [tag | 0.1] res => " + stemContract.search(params));
     }
 
     @Test
     public void getCurrentContractTest() {
-        JsonObject param = createParam();
-        ContractId current = stemContract.getcurrentcontract(param); // No owner validation
+        JsonObject params = createParams();
+        ContractId current = stemContract.getcurrentcontract(params); // No owner validation
         assertThat(current).isEqualTo(stateValue.getContractId());
     }
 
     @Test
     public void getContractHistoryTest() {
-        JsonObject param = createParam();
-        List<ContractId> contractHistory = stemContract.getcontracthistory(param);
+        JsonObject params = createParams();
+        List<ContractId> contractHistory = stemContract.getcontracthistory(params);
         assertThat(contractHistory).containsOnly(stateValue.getContractId());
     }
 
@@ -154,14 +154,14 @@ public class StemContractTest {
         assertThat(branchIdList).containsOnly(stateValue.getBranchId().toString());
     }
 
-    private JsonObject createParam() {
-        return ContractTestUtils.createParam("branchId", stateValue.getBranchId().toString());
+    private JsonObject createParams() {
+        return ContractTestUtils.createParams("branchId", stateValue.getBranchId().toString());
     }
 
-    private JsonObject createParam(JsonElement json) {
-        JsonObject param = new JsonObject();
-        param.add(stateValue.getBranchId().toString(), json);
-        return param;
+    private JsonObject createParams(JsonElement json) {
+        JsonObject params = new JsonObject();
+        params.add(stateValue.getBranchId().toString(), json);
+        return params;
     }
 
     private static JsonObject getEthToYeedBranch(String description) {

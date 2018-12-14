@@ -120,10 +120,10 @@ public class BranchGroupTest {
 
     @Test
     public void query() {
-        JsonObject param = ContractTestUtils.createParam("branchId",
+        JsonObject params = ContractTestUtils.createParams("branchId",
                 "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
         JsonObject query =
-                ContractTestUtils.createQuery(block.getBranchId(), "view", param);
+                ContractTestUtils.createQuery(block.getBranchId(), "view", params);
         JsonObject result = branchGroup.query(query);
         assertThat(result.toString()).contains("result");
     }

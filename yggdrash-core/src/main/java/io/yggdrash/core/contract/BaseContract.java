@@ -39,11 +39,11 @@ public abstract class BaseContract<T> implements Contract<T> {
             dataFormatValidation(txBody);
 
             String method = txBody.get("method").getAsString().toLowerCase();
-            JsonObject param = txBody.get("param").getAsJsonObject();
+            JsonObject params = txBody.getAsJsonObject("params");
 
             txReceipt = (TransactionReceipt) this.getClass()
                     .getMethod(method, JsonObject.class)
-                    .invoke(this, param);
+                    .invoke(this, params);
             txReceipt.putLog("method", method);
             txReceipt.setTransactionHash(transactionHash);
             txReceiptStore.put(txReceipt.getTransactionHash(), txReceipt);
@@ -60,11 +60,11 @@ public abstract class BaseContract<T> implements Contract<T> {
         dataFormatValidation(query);
 
         String method = query.get("method").getAsString().toLowerCase();
-        JsonObject param = query.get("param").getAsJsonObject();
+        JsonObject params = query.getAsJsonObject("params");
 
         JsonObject result = new JsonObject();
         try {
-            Object res = getClass().getMethod(method, JsonObject.class).invoke(this, param);
+            Object res = getClass().getMethod(method, JsonObject.class).invoke(this, params);
             if (res instanceof JsonElement) {
                 result.add("result", (JsonElement)res);
             } else if (res instanceof Collection<?>) {
@@ -78,7 +78,7 @@ public abstract class BaseContract<T> implements Contract<T> {
         return result;
     }
 
-    public List<String> specification(JsonObject param) {
+    public List<String> specification(JsonObject params) {
         List<String> methods = new ArrayList<>();
         getMethods(getClass(), methods);
 
@@ -101,7 +101,7 @@ public abstract class BaseContract<T> implements Contract<T> {
         if (data.get("method").getAsString().length() < 0) {
             throw new FailedOperationException("Empty method");
         }
-        if (!data.get("param").isJsonObject()) {
+        if (!data.get("params").isJsonObject()) {
             throw new FailedOperationException("Param must be JsonObject");
         }
     }

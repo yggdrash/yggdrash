@@ -181,8 +181,8 @@ public class AdminApiImpl implements AdminApi {
                         perms.add(PosixFilePermission.OWNER_WRITE);
                         Files.setPosixFilePermissions(file.toPath(), perms);
                     }
-                    String param = body.get(0).getAsJsonObject().get("param").getAsString();
-                    FileUtil.writeStringToFile(file, param, StandardCharsets.UTF_8);
+                    String params = body.get(0).getAsJsonObject().get("params").getAsString();
+                    FileUtil.writeStringToFile(file, params, StandardCharsets.UTF_8);
 
                     perms = new HashSet<>();
                     perms.add(PosixFilePermission.OWNER_READ);

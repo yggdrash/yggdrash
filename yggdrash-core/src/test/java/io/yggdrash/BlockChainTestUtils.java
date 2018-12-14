@@ -67,10 +67,10 @@ public class BlockChainTestUtils {
     public static TransactionHusk createBranchTxHusk(BranchId branchId, String method,
                                                      JsonObject branch) {
 
-        JsonObject param = new JsonObject();
-        param.add(branchId.toString(), branch);
+        JsonObject params = new JsonObject();
+        params.add(branchId.toString(), branch);
 
-        JsonArray txBody = ContractTestUtils.txBodyJson(method, param);
+        JsonArray txBody = ContractTestUtils.txBodyJson(method, params);
         return createTxHusk(TestConstants.STEM, txBody);
     }
 

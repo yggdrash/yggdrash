@@ -187,13 +187,13 @@ public class AssetContractTest {
     }
 
     private boolean createDatabaseTxTest(String dbName) {
-        JsonObject param = createDbParam(dbName);
+        JsonObject params = createDbParams(dbName);
 
-        return invoke("createDatabase", param);
+        return invoke("createDatabase", params);
     }
 
     private boolean createDatabaseModuleTest(String dbName) {
-        JsonObject paramsObject = createDbParam(dbName);
+        JsonObject paramsObject = createDbParams(dbName);
         TransactionReceipt receipt = assetContract.createdatabase(paramsObject);
         log.info(receipt.toString());
         return receipt.isSuccess();
@@ -495,7 +495,7 @@ public class AssetContractTest {
         createTableModuleTest(
                 DBNAME, TABLENAME_ASSET2, keyObjectAssetSchema, recordObjectAssetSchema);
 
-        JsonObject paramsObject = createDbParam();
+        JsonObject paramsObject = createDbParams();
 
         JsonObject result = assetContract.queryalltables(paramsObject);
         log.info(result.toString());
@@ -514,7 +514,7 @@ public class AssetContractTest {
         createTableTxTest(
                 DBNAME, TABLENAME_ASSET2, keyObjectAssetSchema, recordObjectAssetSchema);
 
-        JsonObject paramsObject = createDbParam();
+        JsonObject paramsObject = createDbParams();
         JsonObject result = query("queryAllTables", paramsObject).getAsJsonObject("result");
         assertEquals(4, result.getAsJsonArray("table").size());
     }
@@ -833,29 +833,29 @@ public class AssetContractTest {
         log.info(assetContract.state.getAssetState(DBNAME, TABLENAME_ASSET1).toString());
     }
 
-    private JsonObject createDbParam() {
-        return createDbParam(DBNAME);
+    private JsonObject createDbParams() {
+        return createDbParams(DBNAME);
     }
 
-    private JsonObject createDbParam(String dbName) {
-        return ContractTestUtils.createParam("db", dbName);
+    private JsonObject createDbParams(String dbName) {
+        return ContractTestUtils.createParams("db", dbName);
     }
 
-    private boolean invoke(String method, JsonObject param) {
-        JsonArray txBody = ContractTestUtils.txBodyJson(method, param);
+    private boolean invoke(String method, JsonObject params) {
+        JsonArray txBody = ContractTestUtils.txBodyJson(method, params);
         TransactionHusk tx = BlockChainTestUtils.createTxHusk(branchId, txBody);
         return assetContract.invoke(tx);
     }
 
-    private JsonObject query(String method, JsonObject param) {
-        JsonObject query = createQuery(method, param);
+    private JsonObject query(String method, JsonObject params) {
+        JsonObject query = createQuery(method, params);
         return assetContract.query(query);
     }
 
-    private JsonObject createQuery(String method, JsonObject param) {
+    private JsonObject createQuery(String method, JsonObject params) {
         JsonObject query = new JsonObject();
         query.addProperty("method", method);
-        query.add("param", param);
+        query.add("params", params);
         return query;
     }
 

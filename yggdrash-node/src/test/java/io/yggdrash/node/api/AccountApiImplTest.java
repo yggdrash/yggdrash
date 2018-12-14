@@ -35,10 +35,10 @@ public class AccountApiImplTest {
     @Test
     public void balanceOfTest() {
         try {
-            JsonObject param = ContractTestUtils.createParam("address",
+            JsonObject params = ContractTestUtils.createParams("address",
                     "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
             JsonObject query = ContractTestUtils.createQuery(TestConstants.YEED,
-                    "balanceOf", param);
+                    "balanceOf", params);
 
             assertThat(ACCOUNT_API.balanceOf(query.toString())).isNotEmpty();
         } catch (Exception e) {

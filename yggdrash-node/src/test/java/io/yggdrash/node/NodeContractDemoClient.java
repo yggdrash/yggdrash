@@ -196,33 +196,33 @@ public class NodeContractDemoClient {
         System.out.println("[3] 직접 입력      {key : value, key : value ...}");
         System.out.println(">");
 
-        JsonObject param = new JsonObject();
+        JsonObject params = new JsonObject();
         switch (scan.nextLine()) {
             case "1":
                 System.out.println("key => ");
                 String key = scan.nextLine();
                 System.out.println("value => ");
                 String value = scan.nextLine();
-                param.addProperty(key, value);
+                params.addProperty(key, value);
                 break;
             case "2":
                 System.out.println("key1 => ");
                 String key1 = scan.nextLine();
                 System.out.println("value1 => ");
                 String value1 = scan.nextLine();
-                param.addProperty(key1, value1);
+                params.addProperty(key1, value1);
 
                 System.out.println("key2 => ");
                 String key2 = scan.nextLine();
                 System.out.println("value2 => ");
                 String value2 = scan.nextLine();
-                param.addProperty(key2, value2);
+                params.addProperty(key2, value2);
                 break;
             case "3":
                 try {
                     System.out.println("=> ");
                     String input = scan.nextLine();
-                    param = Utils.parseJsonObject(input);
+                    params = Utils.parseJsonObject(input);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -230,7 +230,7 @@ public class NodeContractDemoClient {
             default:
                 break;
         }
-        return createQueryString(BranchId.of(branchId), method, param);
+        return createQueryString(BranchId.of(branchId), method, params);
     }
 
     private static TransactionHusk createTx(String branchId, String method) {
@@ -242,9 +242,9 @@ public class NodeContractDemoClient {
 
         if (scan.nextLine().equals("Y")) {
             System.out.println("=> ");
-            JsonObject param = Utils.parseJsonObject(scan.nextLine());
+            JsonObject params = Utils.parseJsonObject(scan.nextLine());
 
-            txBody = ContractTestUtils.txBodyJson(method, param);
+            txBody = ContractTestUtils.txBodyJson(method, params);
         } else {
             switch (method) {
                 case "approve":
@@ -305,8 +305,8 @@ public class NodeContractDemoClient {
 
     private static void view() throws Exception {
         String branchId = getBranchId();
-        JsonObject param = createParam("branchId", branchId);
-        String query = createQueryString(STEM, "view", param);
+        JsonObject params = createParams("branchId", branchId);
+        String query = createQueryString(STEM, "view", params);
 
         String serverAddress = getServerAddress();
         rpc.proxyOf(serverAddress, ContractApi.class).query(query);
@@ -358,8 +358,8 @@ public class NodeContractDemoClient {
 
     private static void balance() throws Exception {
         System.out.println("조회할 주소를 적어주세요\n>");
-        JsonObject param = createParam("address", scan.nextLine());
-        String query = createQueryString(YEED, "balanceOf", param);
+        JsonObject params = createParams("address", scan.nextLine());
+        String query = createQueryString(YEED, "balanceOf", params);
 
         String serverAddress = getServerAddress();
         rpc.proxyOf(serverAddress, ContractApi.class).query(query);
@@ -463,12 +463,12 @@ public class NodeContractDemoClient {
         System.out.println("created at " + file.getAbsolutePath());
     }
 
-    private static JsonObject createParam(String key, String value) {
-        return ContractTestUtils.createParam(key, value);
+    private static JsonObject createParams(String key, String value) {
+        return ContractTestUtils.createParams(key, value);
     }
 
-    private static String createQueryString(BranchId branchId, String method, JsonObject param) {
-        return ContractTestUtils.createQuery(branchId, method, param).toString();
+    private static String createQueryString(BranchId branchId, String method, JsonObject params) {
+        return ContractTestUtils.createQuery(branchId, method, params).toString();
     }
 
     private static TransactionHusk createTxHusk(BranchId branchId, JsonArray txBody) {

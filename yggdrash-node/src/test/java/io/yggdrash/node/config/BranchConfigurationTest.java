@@ -115,7 +115,7 @@ public class BranchConfigurationTest {
         JsonObject jsonObjectTxBody = jsonArrayTxBody.get(0).getAsJsonObject();
         assert jsonObjectTxBody.has("method");
         assert jsonObjectTxBody.has("branch");
-        assert jsonObjectTxBody.has("param");
+        assert jsonObjectTxBody.has("params");
     }
 
     private JsonObject getBranchJson() throws IOException {

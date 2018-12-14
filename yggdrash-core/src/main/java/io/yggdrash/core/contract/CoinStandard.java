@@ -7,17 +7,17 @@ import java.math.BigDecimal;
 public interface CoinStandard {
 
     // Query
-    BigDecimal totalsupply(JsonObject param);
+    BigDecimal totalsupply(JsonObject params);
 
-    BigDecimal balanceof(JsonObject param);
+    BigDecimal balanceof(JsonObject params);
 
-    BigDecimal allowance(JsonObject param);
+    BigDecimal allowance(JsonObject params);
 
 
     // Transaction
-    TransactionReceipt transfer(JsonObject param);
+    TransactionReceipt transfer(JsonObject params);
 
-    TransactionReceipt approve(JsonObject param);
+    TransactionReceipt approve(JsonObject params);
 
-    TransactionReceipt transferfrom(JsonObject param);
+    TransactionReceipt transferfrom(JsonObject params);
 }
