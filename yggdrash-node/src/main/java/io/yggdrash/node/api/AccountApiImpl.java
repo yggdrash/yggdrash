@@ -1,8 +1,6 @@
 package io.yggdrash.node.api;
 
-import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
-import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.wallet.Account;
@@ -50,12 +48,6 @@ public class AccountApiImpl implements AccountApi {
         } catch (Exception exception) {
             throw new NonExistObjectException("accounts");
         }
-    }
-
-    @Override
-    public String balanceOf(String data) {
-        JsonObject query = Utils.parseJsonObject(data);
-        return branchGroup.query(query).toString();
     }
 
     @Override

@@ -37,6 +37,7 @@ import java.security.SecureRandom;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class Utils {
@@ -285,6 +286,11 @@ public class Utils {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    public static JsonObject convertMapToJson(Map map) {
+        String json = convertObjToString(map);
+        return parseJsonObject(json);
     }
 
     public static HashMap convertJsonToMap(JsonElement json) {

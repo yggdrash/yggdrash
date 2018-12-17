@@ -16,7 +16,7 @@ public class NoneContract implements Contract {
     }
 
     @Override
-    public Object query(JsonObject query) {
-        return new JsonObject();
+    public Object query(String method, JsonObject params) {
+        return null;
     }
 }

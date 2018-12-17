@@ -16,6 +16,7 @@ import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.node.api.BranchApi;
 import io.yggdrash.node.api.ContractApi;
+import io.yggdrash.node.api.ContractApiImplTest;
 import io.yggdrash.node.api.JsonRpcConfig;
 import io.yggdrash.node.api.TransactionApi;
 import io.yggdrash.node.api.dto.TransactionDto;
@@ -30,8 +31,9 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -145,7 +147,8 @@ public class NodeContractDemoClient {
     private static void sendGeneralTxOrQuery() throws Exception {
         String branchId = getBranchId();
         String serverAddress = getServerAddress();
-        List<String> methodList = specificationOf(branchId, serverAddress);
+        List<String> methodList = (List<String>)rpc.proxyOf(serverAddress, ContractApi.class)
+                .query(branchId, "specification", null);
         System.out.println("\n해당 컨트랙트의 메소드 스펙입니다.");
         methodList.forEach(System.out::println);
 
@@ -157,22 +160,9 @@ public class NodeContractDemoClient {
             rpc.proxyOf(serverAddress, TransactionApi.class)
                     .sendTransaction(TransactionDto.createBy(tx));
         } else {
-            String query = createQueryObj(branchId, selectedMethod);
-            System.out.println("query => " + query);
-            rpc.proxyOf(serverAddress, ContractApi.class).query(query);
+            Map params = createParams();
+            rpc.proxyOf(serverAddress, ContractApi.class).query(branchId, selectedMethod, params);
         }
-    }
-
-    private static List<String> specificationOf(String branchId, String serverAddress) {
-        String query = createQueryString(BranchId.of(branchId), "specification", new JsonObject());
-        List<String> methods = new ArrayList<>();
-        try {
-            System.out.println("query => " + query);
-            methods = (List<String>)rpc.proxyOf(serverAddress, ContractApi.class).query(query);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return methods;
     }
 
     private static int getMethodIndex(List<String> methodList) {
@@ -186,7 +176,7 @@ public class NodeContractDemoClient {
         return input.length() > 0 ? Integer.parseInt(input) : 0;
     }
 
-    private static String createQueryObj(String branchId, String method) {
+    private static Map createParams() {
         System.out.println("\n파라미터의 갯수를 선택해주세요.");
         System.out.println("[0] No parameter {}");
         System.out.println("[1] 1 parameter  {key : value}");
@@ -194,33 +184,33 @@ public class NodeContractDemoClient {
         System.out.println("[3] 직접 입력      {key : value, key : value ...}");
         System.out.println(">");
 
-        JsonObject params = new JsonObject();
+        Map params = new HashMap();
         switch (scan.nextLine()) {
             case "1":
                 System.out.println("key => ");
                 String key = scan.nextLine();
                 System.out.println("value => ");
                 String value = scan.nextLine();
-                params.addProperty(key, value);
+                params.put(key, value);
                 break;
             case "2":
                 System.out.println("key1 => ");
                 String key1 = scan.nextLine();
                 System.out.println("value1 => ");
                 String value1 = scan.nextLine();
-                params.addProperty(key1, value1);
+                params.put(key1, value1);
 
                 System.out.println("key2 => ");
                 String key2 = scan.nextLine();
                 System.out.println("value2 => ");
                 String value2 = scan.nextLine();
-                params.addProperty(key2, value2);
+                params.put(key2, value2);
                 break;
             case "3":
                 try {
                     System.out.println("=> ");
-                    String input = scan.nextLine();
-                    params = Utils.parseJsonObject(input);
+                    JsonObject json = Utils.parseJsonObject(scan.nextLine());
+                    params = Utils.convertJsonToMap(json);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -228,7 +218,8 @@ public class NodeContractDemoClient {
             default:
                 break;
         }
-        return createQueryString(BranchId.of(branchId), method, params);
+        System.out.println("params => " + params.toString());
+        return params;
     }
 
     private static TransactionHusk createTx(String branchId, String method) {
@@ -303,11 +294,10 @@ public class NodeContractDemoClient {
 
     private static void view() throws Exception {
         String branchId = getBranchId();
-        JsonObject params = createParams(BRANCH_ID, branchId);
-        String query = createQueryString(STEM, "view", params);
+        Map params = ContractApiImplTest.createParams(BRANCH_ID, branchId);
 
         String serverAddress = getServerAddress();
-        rpc.proxyOf(serverAddress, ContractApi.class).query(query);
+        rpc.proxyOf(serverAddress, ContractApi.class).query(branchId, "view", params);
     }
 
     private static void update() {
@@ -356,11 +346,11 @@ public class NodeContractDemoClient {
 
     private static void balance() throws Exception {
         System.out.println("조회할 주소를 적어주세요\n>");
-        JsonObject params = createParams("address", scan.nextLine());
-        String query = createQueryString(YEED, "balanceOf", params);
+        Map params = ContractApiImplTest.createParams("address", scan.nextLine());
 
         String serverAddress = getServerAddress();
-        rpc.proxyOf(serverAddress, ContractApi.class).query(query);
+        rpc.proxyOf(serverAddress, ContractApi.class)
+                .query(YEED.toString(), "balanceOf", params);
     }
 
     private static JsonObject getBranch() {
@@ -459,14 +449,6 @@ public class NodeContractDemoClient {
         fileWriter.flush();
         fileWriter.close();
         System.out.println("created at " + file.getAbsolutePath());
-    }
-
-    private static JsonObject createParams(String key, String value) {
-        return ContractTestUtils.createParams(key, value);
-    }
-
-    private static String createQueryString(BranchId branchId, String method, JsonObject params) {
-        return ContractTestUtils.createQuery(branchId, method, params).toString();
     }
 
     private static TransactionHusk createTxHusk(BranchId branchId, JsonArray txBody) {

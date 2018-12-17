@@ -18,7 +18,6 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.exception.DuplicatedException;
@@ -112,9 +111,7 @@ public class BranchGroupTest {
     public void getContract() throws Exception {
         Contract contract = branchGroup.getContract(block.getBranchId());
         assertThat(contract).isNotNull();
-        JsonObject query = ContractTestUtils.createQuery(block.getBranchId(),
-                "getAllBranchId", new JsonObject());
-        String result = contract.query(query).toString();
+        String result = contract.query("getAllBranchId", null).toString();
         assertThat(result).contains(block.getBranchId().toString());
     }
 
@@ -124,9 +121,7 @@ public class BranchGroupTest {
         params.addProperty("key", "symbol");
         params.addProperty("value", "STEM");
 
-        JsonObject query =
-                ContractTestUtils.createQuery(block.getBranchId(), "search", params);
-        Set<Object> result = (Set<Object>)branchGroup.query(query);
+        Set<Object> result = (Set<Object>)branchGroup.query(block.getBranchId(), "search", params);
         assertThat(result).isNotEmpty();
     }
 

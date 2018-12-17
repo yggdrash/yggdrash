@@ -30,16 +30,6 @@ public interface AccountApi {
     /**
      * Returns the balance of the wallet of given address.
      *
-     * @param data wallet address
-     */
-    @JsonRpcErrors({
-            @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
-    String balanceOf(@JsonRpcParam(value = "data") String data);
-
-    /**
-     * Returns the balance of the wallet of given address.
-     *
      * @param address     wallet address
      * @param blockNumber block number
      */

@@ -17,9 +17,7 @@
 package io.yggdrash.node.api;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
@@ -30,7 +28,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static io.yggdrash.node.api.JsonRpcConfig.CONTRACT_API;
 import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
@@ -53,21 +53,20 @@ public class ContractApiImplTest {
 
     @Test
     public void totalSupply() {
-        queryAndAssert("totalSupply", new JsonObject(), BigDecimal.valueOf(1000000000000L));
+        queryAndAssert("totalSupply", null, BigDecimal.valueOf(1000000000000L));
     }
 
     @Test
     public void balanceOf() {
-        JsonObject params = ContractTestUtils.createParams("address",
+        Map params = createParams("address",
                 "cee3d4755e47055b530deeba062c5bd0c17eb00f");
         queryAndAssert("balanceOf", params, BigDecimal.valueOf(998000000000L));
     }
 
     @Test
     public void allowance() {
-        JsonObject params = new JsonObject();
-        params.addProperty("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
-        params.addProperty("spender", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
+        Map params = createParams("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
+        params.put("spender", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
 
         queryAndAssert("allowance", params, BigDecimal.ZERO);
     }
@@ -75,9 +74,8 @@ public class ContractApiImplTest {
     @Test
     public void specification() {
         try {
-            JsonObject query =
-                    ContractTestUtils.createQuery(branchId, "specification", new JsonObject());
-            List<String> methods = (List<String>)CONTRACT_API.query(query.toString());
+            List<String> methods =
+                    (List<String>)CONTRACT_API.query(branchId.toString(), "specification", null);
             assertThat(methods).isNotEmpty();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -107,10 +105,9 @@ public class ContractApiImplTest {
         sendTransaction(txBody);
     }
 
-    private void queryAndAssert(String method, JsonObject params, BigDecimal expected) {
-        JsonObject query = ContractTestUtils.createQuery(branchId, method, params);
+    private void queryAndAssert(String method, Map params, BigDecimal expected) {
         try {
-            BigDecimal value = (BigDecimal)CONTRACT_API.query(query.toString());
+            BigDecimal value = (BigDecimal)CONTRACT_API.query(branchId.toString(), method, params);
             assertThat(value).isEqualTo(expected);
         } catch (Exception e) {
             log.error(e.getMessage(), e);
@@ -124,5 +121,11 @@ public class ContractApiImplTest {
         } catch (Exception e) {
             log.error(e.getMessage(), e);
         }
+    }
+
+    public static Map createParams(String key, String value) {
+        Map params = new HashMap();
+        params.put(key, value);
+        return params;
     }
 }

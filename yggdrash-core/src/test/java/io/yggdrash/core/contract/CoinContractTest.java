@@ -43,12 +43,12 @@ public class CoinContractTest {
         MetaCoinContract metaCoinContract = new MetaCoinContract();
         metaCoinContract.init(coinContractStateStore, new TransactionReceiptStore());
 
-        List<String> methods = metaCoinContract.specification(null);
+        List<String> methods = metaCoinContract.specification();
 
         assertFalse(methods.isEmpty());
         assertEquals(8, methods.size());
 
-        methods = coinContract.specification(null);
+        methods = coinContract.specification();
 
         assertFalse(methods.isEmpty());
         assertEquals(7, methods.size());
@@ -56,7 +56,7 @@ public class CoinContractTest {
 
     @Test
     public void totalSupply() {
-        BigDecimal res = coinContract.totalsupply(null);
+        BigDecimal res = coinContract.totalsupply();
 
         assertEquals(BigDecimal.valueOf(1000000000000L), res);
     }

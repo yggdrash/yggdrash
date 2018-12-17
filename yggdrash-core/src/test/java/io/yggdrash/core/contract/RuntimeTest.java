@@ -55,8 +55,7 @@ public class RuntimeTest {
 
         JsonObject params = ContractTestUtils.createParams("address",
                 "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
-        JsonObject query = createQuery(TestConstants.YEED, "balanceOf", params);
-        BigDecimal result = (BigDecimal)runtime.query(contract, query);
+        BigDecimal result = (BigDecimal)runtime.query(contract, "balanceOf", params);
         assertThat(result).isEqualTo(BigDecimal.valueOf(1000000000));
     }
 
@@ -71,13 +70,7 @@ public class RuntimeTest {
         TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId, "create", json);
         assertThat(runtime.invoke(contract, createTx)).isTrue();
 
-        JsonObject query = createQuery(branchId, "getAllBranchId", new JsonObject());
-        List<String> result = (List<String>)runtime.query(contract, query);
+        List<String> result = (List<String>)runtime.query(contract, "getAllBranchId", null);
         assertThat(result).contains(branchId.toString());
-    }
-
-    private JsonObject createQuery(BranchId branchId, String method, JsonObject params) {
-        return ContractTestUtils.createQuery(branchId, method, params);
-
     }
 }

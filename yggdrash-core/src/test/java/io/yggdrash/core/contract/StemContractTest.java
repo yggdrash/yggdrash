@@ -55,7 +55,7 @@ public class StemContractTest {
 
     @Test
     public void specification() {
-        List<String> methods = stemContract.specification(null);
+        List<String> methods = stemContract.specification();
 
         assertThat(methods.isEmpty()).isFalse();
         assertThat(methods.size()).isEqualTo(8);
@@ -151,7 +151,7 @@ public class StemContractTest {
 
     @Test
     public void getAllBranchIdTest() {
-        List<String> branchIdList = stemContract.getallbranchid(null);
+        List<String> branchIdList = stemContract.getallbranchid();
         assertThat(branchIdList).containsOnly(stateValue.getBranchId().toString());
     }
 

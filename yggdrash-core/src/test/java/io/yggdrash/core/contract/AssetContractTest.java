@@ -849,17 +849,8 @@ public class AssetContractTest {
     }
 
     private JsonObject query(String method, JsonObject params) {
-        JsonObject query = createQuery(method, params);
-        Object result = assetContract.query(query);
+        Object result = assetContract.query(method, params);
         return new JsonParser().parse(result.toString()).getAsJsonObject();
     }
-
-    private JsonObject createQuery(String method, JsonObject params) {
-        JsonObject query = new JsonObject();
-        query.addProperty("method", method);
-        query.add("params", params);
-        return query;
-    }
-
 }
 

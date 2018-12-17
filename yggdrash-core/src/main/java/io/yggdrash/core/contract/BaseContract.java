@@ -37,11 +37,14 @@ public abstract class BaseContract<T> implements Contract<T> {
             dataFormatValidation(txBody);
 
             String method = txBody.get("method").getAsString().toLowerCase();
-            JsonObject params = txBody.getAsJsonObject("params");
-
-            txReceipt = (TransactionReceipt) this.getClass()
-                    .getMethod(method, JsonObject.class)
-                    .invoke(this, params);
+            if (txBody.has("params")) {
+                JsonObject params = txBody.getAsJsonObject("params");
+                txReceipt = (TransactionReceipt) this.getClass().getMethod(method, JsonObject.class)
+                        .invoke(this, params);
+            } else {
+                txReceipt = (TransactionReceipt) this.getClass().getMethod(method)
+                        .invoke(this);
+            }
             txReceipt.putLog("method", method);
             txReceipt.setTransactionHash(transactionHash);
             txReceiptStore.put(txReceipt.getTransactionHash(), txReceipt);
@@ -53,20 +56,20 @@ public abstract class BaseContract<T> implements Contract<T> {
     }
 
     @Override
-    public Object query(JsonObject query) {
-        dataFormatValidation(query);
-
-        String method = query.get("method").getAsString().toLowerCase();
-        JsonObject params = query.getAsJsonObject("params");
-
+    public Object query(String method, JsonObject params) {
         try {
-            return getClass().getMethod(method, JsonObject.class).invoke(this, params);
+            if (params != null) {
+                return getClass().getMethod(method.toLowerCase(), JsonObject.class)
+                        .invoke(this, params);
+            } else {
+                return getClass().getMethod(method.toLowerCase()).invoke(this);
+            }
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
     }
 
-    public List<String> specification(JsonObject params) {
+    public List<String> specification() {
         List<String> methods = new ArrayList<>();
         getMethods(getClass(), methods);
 
