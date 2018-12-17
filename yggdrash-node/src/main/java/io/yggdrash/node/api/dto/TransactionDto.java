@@ -16,11 +16,15 @@
 
 package io.yggdrash.node.api.dto;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;
+
+import java.util.List;
 
 public class TransactionDto {
 
@@ -31,7 +35,7 @@ public class TransactionDto {
     public String bodyHash;
     public long bodyLength;
     public String signature;
-    public String body;
+    public List body;
     public String author;
     public String txId;
 
@@ -48,7 +52,7 @@ public class TransactionDto {
         Proto.Transaction tx = Proto.Transaction.newBuilder()
                 .setHeader(header)
                 .setSignature(ByteString.copyFrom(Hex.decode(dto.signature)))
-                .setBody(ByteString.copyFromUtf8(dto.body))
+                .setBody(ByteString.copyFromUtf8(Utils.convertObjToString(dto.body)))
                 .build();
         return new TransactionHusk(tx);
     }
@@ -66,7 +70,11 @@ public class TransactionDto {
         transactionDto.bodyLength =
                 ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray());
         transactionDto.signature = Hex.toHexString(tx.getInstance().getSignature().toByteArray());
-        transactionDto.body = tx.getBody();
+        try {
+            transactionDto.body = new ObjectMapper().readValue(tx.getBody(), List.class);
+        } catch (Exception e) {
+            transactionDto.body = null;
+        }
         transactionDto.author = tx.getAddress().toString();
         transactionDto.txId = tx.getHash().toString();
         return transactionDto;
