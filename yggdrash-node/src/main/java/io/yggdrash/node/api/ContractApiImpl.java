@@ -24,7 +24,10 @@ public class ContractApiImpl implements ContractApi {
 
     @Override
     public Object query(String branchId, String method, Map params) {
-        JsonObject jsonParams = Utils.convertMapToJson(params);
+        JsonObject jsonParams = null;
+        if (params != null && !params.isEmpty()) {
+            jsonParams = Utils.convertMapToJson(params);
+        }
         Object result = branchGroup.query(BranchId.of(branchId), method, jsonParams);
         if (result instanceof JsonElement) {
             return Utils.convertJsonToMap((JsonElement)result);
