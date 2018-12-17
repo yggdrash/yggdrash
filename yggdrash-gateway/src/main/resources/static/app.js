@@ -39,11 +39,11 @@ function disconnect() {
 }
 
 function showBlocks(block) {
-    $("#blocks").append("<tr><td>branch=" + block.chain + " hash=" + block.hash + "</td></tr>");
+    $("#blocks").append("<tr><td>branchId=" + block.branchId + " blockId=" + block.blockId + "</td></tr>");
 }
 
 function showTxs(tx) {
-    $("#txs").append("<tr><td>" + tx.txHash + "</td></tr>");
+    $("#txs").append("<tr><td>txId=" + tx.txId + "</td></tr>");
 }
 
 $(function () {

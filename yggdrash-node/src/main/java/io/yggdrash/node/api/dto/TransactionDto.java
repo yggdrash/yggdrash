@@ -24,7 +24,7 @@ import org.spongycastle.util.encoders.Hex;
 
 public class TransactionDto {
 
-    public String chain;
+    public String branchId;
     public String version;
     public String type;
     public long timestamp;
@@ -33,11 +33,11 @@ public class TransactionDto {
     public String signature;
     public String body;
     public String author;
-    public String hash;
+    public String txId;
 
     public static TransactionHusk of(TransactionDto dto) {
         Proto.Transaction.Header header = Proto.Transaction.Header.newBuilder()
-                .setChain(ByteString.copyFrom(Hex.decode(dto.chain)))
+                .setChain(ByteString.copyFrom(Hex.decode(dto.branchId)))
                 .setVersion(ByteString.copyFrom(Hex.decode(dto.version)))
                 .setType(ByteString.copyFrom(Hex.decode(dto.type)))
                 .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(dto.timestamp)))
@@ -57,7 +57,7 @@ public class TransactionDto {
         TransactionDto transactionDto = new TransactionDto();
         Proto.Transaction.Header header = tx.getInstance().getHeader();
 
-        transactionDto.chain = Hex.toHexString(header.getChain().toByteArray());
+        transactionDto.branchId = Hex.toHexString(header.getChain().toByteArray());
         transactionDto.version = Hex.toHexString(header.getVersion().toByteArray());
         transactionDto.type = Hex.toHexString(header.getType().toByteArray());
         transactionDto.timestamp =
@@ -68,7 +68,7 @@ public class TransactionDto {
         transactionDto.signature = Hex.toHexString(tx.getInstance().getSignature().toByteArray());
         transactionDto.body = tx.getBody();
         transactionDto.author = tx.getAddress().toString();
-        transactionDto.hash = tx.getHash().toString();
+        transactionDto.txId = tx.getHash().toString();
         return transactionDto;
     }
 }

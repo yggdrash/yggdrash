@@ -27,10 +27,10 @@ import java.util.stream.Collectors;
 public class BlockDto {
     private static final int MAX_TX_BODY = 100;
 
-    public String chain;
+    public String branchId;
     public String version;
     public String type;
-    public String prevBlockHash;
+    public String prevBlockId;
     public long index;
     public long timestamp;
     public String merkleRoot;
@@ -39,7 +39,7 @@ public class BlockDto {
     public String signature;
     public List<TransactionDto> body;
     public String author;
-    public String hash;
+    public String blockId;
 
     public static BlockDto createBy(BlockHusk block) {
         return createBy(block, block.getBodySize() < MAX_TX_BODY);
@@ -48,10 +48,10 @@ public class BlockDto {
     private static BlockDto createBy(BlockHusk block, boolean withBody) {
         BlockDto blockDto = new BlockDto();
         Proto.Block.Header header = block.getInstance().getHeader();
-        blockDto.chain = Hex.toHexString(header.getChain().toByteArray());
+        blockDto.branchId = Hex.toHexString(header.getChain().toByteArray());
         blockDto.version = Hex.toHexString(header.getVersion().toByteArray());
         blockDto.type = Hex.toHexString(header.getType().toByteArray());
-        blockDto.prevBlockHash = Hex.toHexString(block.getPrevHash().getBytes());
+        blockDto.prevBlockId = Hex.toHexString(block.getPrevHash().getBytes());
         blockDto.index = block.getIndex();
         blockDto.timestamp = ByteUtil.byteArrayToLong(header.getTimestamp().toByteArray());
         blockDto.merkleRoot = Hex.toHexString(header.getMerkleRoot().toByteArray());
@@ -63,7 +63,7 @@ public class BlockDto {
                     .collect(Collectors.toList());
         }
         blockDto.author = block.getAddress().toString();
-        blockDto.hash = block.getHash().toString();
+        blockDto.blockId = block.getHash().toString();
         return blockDto;
     }
 
