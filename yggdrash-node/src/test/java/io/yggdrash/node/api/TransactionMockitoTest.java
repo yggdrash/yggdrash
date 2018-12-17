@@ -75,7 +75,7 @@ public class TransactionMockitoTest {
         txList.add(tx);
         txList.add(tx);
         txReceipt = new TransactionReceipt();
-        txReceipt.setTransactionHash(txId);
+        txReceipt.setTxId(txId);
         txReceiptStore.put(txId, txReceipt);
         BlockHusk genesis = BlockChainTestUtils.genesisBlock();
         block = new BlockHusk(TestConstants.wallet(), txList, genesis);
@@ -126,7 +126,7 @@ public class TransactionMockitoTest {
     public void getTransactionReceiptTest() {
         when(txReceiptStoreMock.get(txId)).thenReturn(txReceipt);
         TransactionReceipt res = txApiImpl.getTransactionReceipt(branchId.toString(), txId);
-        assertEquals(res.getTransactionHash(), txId);
+        assertEquals(res.getTxId(), txId);
     }
 
     @Test

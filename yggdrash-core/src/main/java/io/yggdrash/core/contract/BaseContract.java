@@ -29,7 +29,7 @@ public abstract class BaseContract<T> implements Contract<T> {
     @Override
     public boolean invoke(TransactionHusk txHusk) {
         TransactionReceipt txReceipt;
-        String transactionHash = txHusk.getHash().toString();
+        String txId = txHusk.getHash().toString();
         try {
             this.sender = txHusk.getAddress().toString();
             JsonObject txBody = Utils.parseJsonArray(txHusk.getBody()).get(0).getAsJsonObject();
@@ -46,10 +46,10 @@ public abstract class BaseContract<T> implements Contract<T> {
                         .invoke(this);
             }
             txReceipt.putLog("method", method);
-            txReceipt.setTransactionHash(transactionHash);
-            txReceiptStore.put(txReceipt.getTransactionHash(), txReceipt);
+            txReceipt.setTxId(txId);
+            txReceiptStore.put(txReceipt.getTxId(), txReceipt);
         } catch (Throwable e) {
-            txReceipt = TransactionReceipt.errorReceipt(transactionHash, e);
+            txReceipt = TransactionReceipt.errorReceipt(txId, e);
             txReceiptStore.put(txHusk.getHash().toString(), txReceipt);
         }
         return txReceipt.isSuccess();
