@@ -17,6 +17,7 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,6 +37,7 @@ public class ContractClassLoaderTest {
     private static final String NONE_CONTRACT = "3fccace3211be93c9a6372d8aa085e3914f08ca1";
 
     @Test
+    @Ignore
     public void testContract() throws Exception {
 
         ContractId noneContractId = ContractId.of(NONE_CONTRACT);
