@@ -1,7 +1,7 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.junit.Before;
@@ -165,7 +165,7 @@ public class CoinContractTest {
     }
 
     private JsonObject createParams(String paramStr) {
-        return Utils.parseJsonObject(paramStr);
+        return JsonUtil.parseJsonObject(paramStr);
     }
 
     public class MetaCoinContract extends CoinContract {

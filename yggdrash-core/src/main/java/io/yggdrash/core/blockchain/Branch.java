@@ -21,7 +21,7 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.contract.ContractId;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Address;
@@ -130,7 +130,7 @@ public class Branch {
 
     public static Branch of(InputStream is) throws IOException {
         String branchString = IOUtils.toString(is, StandardCharsets.UTF_8);
-        JsonObject json = Utils.parseJsonObject(branchString);
+        JsonObject json = JsonUtil.parseJsonObject(branchString);
         return of(json);
     }
 

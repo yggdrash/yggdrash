@@ -21,7 +21,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.api.dto.AdminDto;
 import org.junit.Test;
@@ -54,10 +54,10 @@ public class AdminApiImplTest {
 
         AdminDto command = new ObjectMapper().readValue(jsonMsg, AdminDto.class);
 
-        JsonObject header = Utils.parseJsonObject(command.getHeader());
+        JsonObject header = JsonUtil.parseJsonObject(command.getHeader());
         log.debug(header.toString());
 
-        JsonArray body = Utils.parseJsonArray(command.getBody());
+        JsonArray body = JsonUtil.parseJsonArray(command.getBody());
         log.debug(body.toString());
 
         String method = body.get(0).getAsJsonObject().get("method").getAsString();

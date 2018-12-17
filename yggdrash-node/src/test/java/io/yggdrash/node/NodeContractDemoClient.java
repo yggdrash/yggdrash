@@ -7,8 +7,8 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.common.util.TimeUtils;
-import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
@@ -209,8 +209,8 @@ public class NodeContractDemoClient {
             case "3":
                 try {
                     System.out.println("=> ");
-                    JsonObject json = Utils.parseJsonObject(scan.nextLine());
-                    params = Utils.convertJsonToMap(json);
+                    JsonObject json = JsonUtil.parseJsonObject(scan.nextLine());
+                    params = JsonUtil.convertJsonToMap(json);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -231,7 +231,7 @@ public class NodeContractDemoClient {
 
         if (scan.nextLine().equals("Y")) {
             System.out.println("=> ");
-            JsonObject params = Utils.parseJsonObject(scan.nextLine());
+            JsonObject params = JsonUtil.parseJsonObject(scan.nextLine());
 
             txBody = ContractTestUtils.txBodyJson(method, params);
         } else {
@@ -419,7 +419,7 @@ public class NodeContractDemoClient {
         Resource resource = new DefaultResourceLoader().getResource(seedPath);
         try (InputStream is = resource.getInputStream()) {
             Reader json = new InputStreamReader(is, StandardCharsets.UTF_8);
-            JsonObject jsonObject = Utils.parseJsonObject(json);
+            JsonObject jsonObject = JsonUtil.parseJsonObject(json);
             if (!jsonObject.has("timestamp")) {
                 jsonObject.addProperty("timestamp", TimeUtils.hexTime());
             }

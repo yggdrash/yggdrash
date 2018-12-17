@@ -19,7 +19,7 @@ package io.yggdrash.node.api.dto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;
@@ -52,7 +52,7 @@ public class TransactionDto {
         Proto.Transaction tx = Proto.Transaction.newBuilder()
                 .setHeader(header)
                 .setSignature(ByteString.copyFrom(Hex.decode(dto.signature)))
-                .setBody(ByteString.copyFromUtf8(Utils.convertObjToString(dto.body)))
+                .setBody(ByteString.copyFromUtf8(JsonUtil.convertObjToString(dto.body)))
                 .build();
         return new TransactionHusk(tx);
     }

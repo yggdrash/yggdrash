@@ -1,9 +1,10 @@
 package io.yggdrash.core.store;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,7 +39,7 @@ public class StateStore<T> implements Store<String, T> {
                 if (value instanceof VisibleStateValue) {
                     JsonObject jsonObject = ((VisibleStateValue) value).getValue();
                     jsonObject.addProperty("id", entry.getKey().toString());
-                    HashMap map = Utils.convertJsonToMap(jsonObject);
+                    HashMap map = JsonUtil.convertJsonToMap(jsonObject);
                     result.add(map);
                 } else {
                     return result;

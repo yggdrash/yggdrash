@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.contract;
 
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -86,6 +86,6 @@ public class TransactionReceipt {
 
     @Override
     public String toString() {
-        return Utils.convertObjToString(this);
+        return JsonUtil.convertObjToString(this);
     }
 }

@@ -26,7 +26,7 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.Password;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.FileUtil;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -188,7 +188,7 @@ public class Wallet {
             throws IOException, InvalidCipherTextException {
         File keyFile = FileUtil.getFile(keyPath, keyName);
         String json = FileUtil.readFileToString(keyFile, StandardCharsets.UTF_8);
-        JsonObject keyJsonObject = Utils.parseJsonObject(json);
+        JsonObject keyJsonObject = JsonUtil.parseJsonObject(json);
 
         byte[] salt = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
                 .getAsJsonObject("kdfparams")

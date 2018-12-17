@@ -1,7 +1,7 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;
@@ -32,7 +32,7 @@ public abstract class BaseContract<T> implements Contract<T> {
         String txId = txHusk.getHash().toString();
         try {
             this.sender = txHusk.getAddress().toString();
-            JsonObject txBody = Utils.parseJsonArray(txHusk.getBody()).get(0).getAsJsonObject();
+            JsonObject txBody = JsonUtil.parseJsonArray(txHusk.getBody()).get(0).getAsJsonObject();
 
             dataFormatValidation(txBody);
 

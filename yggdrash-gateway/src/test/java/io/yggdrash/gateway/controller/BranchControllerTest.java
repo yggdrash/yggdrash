@@ -18,7 +18,7 @@ package io.yggdrash.gateway.controller;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.TestConstants;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.Branch;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -54,7 +54,7 @@ public class BranchControllerTest {
                 .andExpect(status().isOk())
                 .andReturn().getResponse();
         String contentAsString = response.getContentAsString();
-        JsonObject branchJson = Utils.parseJsonObject(contentAsString);
+        JsonObject branchJson = JsonUtil.parseJsonObject(contentAsString);
         for (String key : branchJson.keySet()) {
             Branch branch = Branch.of(branchJson.getAsJsonObject(key));
             assertThat(branch.getBranchId().toString()).isEqualTo(key);

@@ -7,7 +7,7 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.FileUtil;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.api.dto.AdminDto;
 import org.slf4j.Logger;
@@ -254,9 +254,9 @@ public class AdminApiImpl implements AdminApi {
             return false;
         }
 
-        this.header = Utils.parseJsonObject(command.getHeader());
+        this.header = JsonUtil.parseJsonObject(command.getHeader());
         this.signature = command.getSignature();
-        this.body = Utils.parseJsonArray(command.getBody());
+        this.body = JsonUtil.parseJsonArray(command.getBody());
 
         // body length check
         long bodyLength = ByteUtil.byteArrayToLong(
