@@ -3,10 +3,9 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import org.junit.Test;
-import org.spongycastle.util.encoders.Hex;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -35,7 +34,7 @@ public class BranchTest {
         assertThat(branch.getDescription()).isEqualTo(description);
         assertThat(branch.getContractId().toString()).isEqualTo(contractId);
         assertThat(branch.getTimestamp())
-                .isEqualTo(ByteUtil.byteArrayToLong(Hex.decode(timestamp)));
+                .isEqualTo(HexUtil.hexStringToLong(timestamp));
         assertThat(branch.getOwner().toString()).isEqualTo(TestConstants.wallet().getHexAddress());
         assertThat(branch.isStem()).isTrue();
         assertThat(branch.verify()).isTrue();

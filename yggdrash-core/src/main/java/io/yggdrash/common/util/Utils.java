@@ -19,36 +19,15 @@
 package io.yggdrash.common.util;
 
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.DecoderException;
-import org.spongycastle.util.encoders.Hex;
 
 import java.lang.reflect.Array;
 import java.math.BigInteger;
 import java.security.SecureRandom;
 import java.util.Arrays;
-import java.util.List;
-import java.util.regex.Pattern;
 
 public class Utils {
     private static final BigInteger _1000_ = new BigInteger("1000");
     private static final SecureRandom random = new SecureRandom();
-
-    /**
-     * @param number should be in form '0x34fabd34....'
-     * @return String
-     */
-    public static BigInteger unifiedNumericToBigInteger(String number) {
-
-        boolean match = Pattern.matches("0[xX][0-9a-fA-F]+", number);
-        if (!match) {
-            return (new BigInteger(number));
-        } else {
-            number = number.substring(2);
-            number = number.length() % 2 != 0 ? "0".concat(number) : number;
-            byte[] numberBytes = Hex.decode(number);
-            return (new BigInteger(1, numberBytes));
-        }
-    }
 
     public static String longToTimePeriod(long msec) {
         if (msec < 1000) {
@@ -86,45 +65,6 @@ public class Utils {
         return result.toString() + "\u00b7(" + "10^" + pow + ")";
     }
 
-    /**
-     * Decodes a hex string to address bytes and checks validity
-     *
-     * @param hex - a hex string of the address, e.g., 6c386a4b26f73c802f34673f7248bb118f97424a
-     * @return - decode and validated address byte[]
-     */
-    public static byte[] addressStringToBytes(String hex) {
-        final byte[] addr;
-        try {
-            addr = Hex.decode(hex);
-        } catch (DecoderException addressIsNotValid) {
-            return null;
-        }
-
-        if (isValidAddress(addr)) {
-            return addr;
-        }
-        return null;
-    }
-
-    public static boolean isValidAddress(byte[] addr) {
-        return addr != null && addr.length == 20;
-    }
-
-    /**
-     * @param addr length should be 20
-     * @return short string represent 1f21c...
-     */
-    public static String getAddressShortString(byte[] addr) {
-
-        if (!isValidAddress(addr)) {
-            throw new Error("not an address");
-        }
-
-        String addrShort = Hex.toHexString(addr, 0, 3);
-
-        return addrShort + "...";
-    }
-
     public static SecureRandom getRandom() {
         return random;
     }
@@ -151,17 +91,6 @@ public class Utils {
             }
         }
         return Double.parseDouble(version.substring(0, pos - 1));
-    }
-
-    public static String getHashListShort(List<byte[]> blockHashes) {
-        if (blockHashes.isEmpty()) {
-            return "[]";
-        }
-
-        StringBuilder sb = new StringBuilder();
-        String firstHash = Hex.toHexString(blockHashes.get(0));
-        String lastHash = Hex.toHexString(blockHashes.get(blockHashes.size() - 1));
-        return sb.append(" ").append(firstHash).append("...").append(lastHash).toString();
     }
 
     public static String getNodeIdShort(String nodeId) {
@@ -272,5 +201,9 @@ public class Utils {
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    public static long time() {
+        return System.currentTimeMillis();
     }
 }

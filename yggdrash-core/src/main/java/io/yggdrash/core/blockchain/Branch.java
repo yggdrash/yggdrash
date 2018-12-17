@@ -20,7 +20,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
-import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.contract.ContractId;
 import io.yggdrash.core.exception.InvalidSignatureException;
@@ -55,7 +55,7 @@ public class Branch {
         this.symbol = json.get("symbol").getAsString();
         this.property = json.get("property").getAsString();
         String timestampHex = json.get("timestamp").getAsString();
-        this.timestamp = ByteUtil.byteArrayToLong(Hex.decode(timestampHex));
+        this.timestamp = HexUtil.hexStringToLong(timestampHex);
         this.rawForSign = rawHashForSign();
         this.signature = Sha3Hash.createByHashed(Hex.decode(json.get("signature").getAsString()));
         this.owner = Address.of(json.get("owner").getAsString());

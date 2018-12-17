@@ -7,6 +7,7 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Branch;
@@ -421,7 +422,8 @@ public class NodeContractDemoClient {
             Reader json = new InputStreamReader(is, StandardCharsets.UTF_8);
             JsonObject jsonObject = JsonUtil.parseJsonObject(json);
             if (!jsonObject.has("timestamp")) {
-                jsonObject.addProperty("timestamp", TimeUtils.hexTime());
+                long timestamp = TimeUtils.time();
+                jsonObject.addProperty("timestamp", HexUtil.toHexString(timestamp));
             }
             return jsonObject;
         } catch (Exception e) {
