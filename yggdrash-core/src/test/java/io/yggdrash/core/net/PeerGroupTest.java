@@ -133,6 +133,12 @@ public class PeerGroupTest {
         assert MAX_PEERS == peerGroup.getActivePeerList().size();
     }
 
+    @Test
+    public void getAllPeersFromBucketOf() {
+        assert peerGroup.getAllPeersFromBucketOf(BRANCH).size() == 1;
+        assert peerGroup.getAllPeersFromBucketOf(OTHER_BRANCH).size() == 1;
+    }
+
     private void addPeerChannel() {
         assert peerGroup.isChannelEmpty(BRANCH);
         peerGroup.newPeerChannel(BRANCH, ChannelMock.dummy());

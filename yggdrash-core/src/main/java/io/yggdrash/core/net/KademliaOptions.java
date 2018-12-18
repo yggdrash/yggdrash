@@ -3,7 +3,7 @@ package io.yggdrash.core.net;
 public class KademliaOptions {
     public static int BUCKET_SIZE = 16;
     public static final int ALPHA = 3;
-    public static final int BINS = 256;
+    public static final int BINS = 160;
     public static final int MAX_STEPS = 8;
 
     public static final long REQ_TIMEOUT = 7000;

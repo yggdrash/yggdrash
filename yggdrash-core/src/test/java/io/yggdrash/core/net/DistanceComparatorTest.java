@@ -62,21 +62,21 @@ public class DistanceComparatorTest {
         });
 
         assert peerArrayList.get(0).getPort() == 32933;
-        assert result.get(String.valueOf(32933)).equals(248);
+        assert result.get(String.valueOf(32933)).equals(152);
 
         assert peerArrayList.get(1).getPort() == 32925;
-        assert result.get(String.valueOf(32925)).equals(252);
+        assert result.get(String.valueOf(32925)).equals(156);
 
         assert peerArrayList.get(2).getPort() == 32932;
-        assert result.get(String.valueOf(32932)).equals(252);
+        assert result.get(String.valueOf(32932)).equals(156);
 
         assert peerArrayList.get(3).getPort() == 32927;
-        assert result.get(String.valueOf(32927)).equals(254);
+        assert result.get(String.valueOf(32927)).equals(158);
 
         assert peerArrayList.get(4).getPort() == 32928;
-        assert result.get(String.valueOf(32928)).equals(254);
+        assert result.get(String.valueOf(32928)).equals(158);
 
         assert peerArrayList.get(5).getPort() == 32919;
-        assert result.get(String.valueOf(32919)).equals(255);
+        assert result.get(String.valueOf(32919)).equals(159);
     }
 }
