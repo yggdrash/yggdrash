@@ -48,7 +48,7 @@
     var curBlockHeight = 0;
     var grpc = 32918;
     var rest = 8080;
-    var branchId = "6249351f133b72c5723a0490dae8031d5e923031";
+    var branchId = "91b29a1453258d72ca6fbbcabb8dca10cca944fb";
     var groups = ["91b29a1453258d72ca6fbbcabb8dca10cca944fb", "d872b5a338b824dc56abc6015543496670d81c1b"]; //todo later
 
     // data format
@@ -65,10 +65,19 @@
 
     function pageLoaded() {
         var url = document.URL;
-        var qAt = document.URL.indexOf("?");
-        var numOfNodes = parseInt(document.URL.substr(qAt + 1));
-        var host = getHost(url);
+        var qAt = url.indexOf("?");
+        var pAt = url.indexOf("&");
+        var numOfNodes = 100;
+        if (qAt > 0 && !isNaN(parseInt(url.substr(qAt + 1)))) {
+            numOfNodes = parseInt(url.substr(qAt + 1));
+        }
+        if (pAt > 0 && url.substr(pAt + 1) !== "") {
+            branchId = url.substr(pAt + 1);
+        }
 
+        console.log("numOfNodes => " + numOfNodes);
+        console.log("branchId => " + branchId);
+        var host = getHost(url);
         for (var port = numOfNodes + rest; port >= rest; port--) {
             nodes.push(host + ":" + grpc++);
             channels.push(getReqPeersUrl(host, port, branchId));
@@ -151,7 +160,7 @@
         });
 
         nodes.forEach(function (name, i) {
-            nodes[i] = {"name": name, "group": groups.indexOf(branchId)};
+            nodes[i] = {"name": name, "group": 0};
         });
         console.log(nodes);
 
