@@ -149,12 +149,6 @@ public class StemContractTest {
         assertThat(contractHistory).containsOnly(stateValue.getContractId());
     }
 
-    @Test
-    public void getAllBranchIdTest() {
-        List<String> branchIdList = stemContract.getallbranchid(null);
-        assertThat(branchIdList).containsOnly(stateValue.getBranchId().toString());
-    }
-
     private JsonObject createParam() {
         return ContractTestUtils.createParam("branchId", stateValue.getBranchId().toString());
     }

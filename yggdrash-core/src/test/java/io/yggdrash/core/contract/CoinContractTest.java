@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
 public class CoinContractTest {
 
     private static final CoinContract coinContract = new CoinContract();
-    private static final Logger log = LoggerFactory.getLogger(AssetContractTest.class);
+    private static final Logger log = LoggerFactory.getLogger(CoinContractTest.class);
 
     @Before
     public void setUp() {

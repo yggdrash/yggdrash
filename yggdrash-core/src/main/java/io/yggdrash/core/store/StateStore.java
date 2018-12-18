@@ -123,7 +123,7 @@ public class StateStore<T> implements Store<String, JsonObject> {
     public JsonObject get(String key) {
         byte[] result = db.get(key.getBytes());
         if(result == null) {
-            return new JsonObject();
+            return null;
         }
         JsonObject obj = new JsonParser().parse(new String(result)).getAsJsonObject();
         return obj;

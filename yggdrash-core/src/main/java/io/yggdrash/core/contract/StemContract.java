@@ -165,6 +165,7 @@ public class StemContract extends BaseContract<JsonObject> {
      * @param param none
      * @return list of all branch id
      */
+    // TODO REMOVE getAllBranchID
     public List<String> getallbranchid(JsonObject param) {
         return state.getAllKey();
     }
@@ -182,8 +183,11 @@ public class StemContract extends BaseContract<JsonObject> {
     }
 
     private StemContractStateValue getStateValue(BranchId branchId) {
-        StemContractStateValue value = new StemContractStateValue(state.get(branchId.toString()));
-        return value;
+        if(!isBranchExist(branchId.toString())) {
+            return null;
+        }else{
+            return new StemContractStateValue(state.get(branchId.toString()));
+        }
     }
 
     private void setSubState(String branchId, JsonObject branch) {
