@@ -366,7 +366,10 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             }
 
             Peer peer = Peer.valueOf(request.getPubKey(), request.getIp(), request.getPort());
-            log.debug("Received findPeers peer={}, branch={}", peer.toAddress(), branchId);
+            // 현재 연결된 채널들의 버킷 아이디, 새로들어온 requestPeer 의 버킷아이디 로그
+            log.debug("Received findPeers peer={}, branch={}, bucketId={}",
+                    peer.toAddress(), branchId, peerGroup.logBucketIdOf(branchId, peer));
+            peerGroup.logBucketIdOf(branchId);
 
             List<String> list = peerGroup.getPeers(BranchId.of(request.getBranchId()), peer);
             for (String url : list) {
@@ -379,15 +382,12 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             try {
                 if (!peerGroup.isMaxChannel(branchId)) {
                     peerGroup.newPeerChannel(branchId, new GRpcClientChannel(peer));
+                } else {
+                    // maxPeer 를 넘은경우부터 거리 계산된 peerTable 을 기반으로 peerChannel 업데이트
+                    if (peerGroup.isClosePeer(branchId, peer)) {
+                        peerGroup.reloadPeerChannel(branchId, new GRpcClientChannel(peer));
+                    }
                 }
-                /*
-                else {
-                    // TODO peerTableChannels 업데이트
-                    //List<Peer> closestPeers = peerGroup.getClosestPeers(branchId);
-                    // 채널 교체 작업
-                    // 현재 연결된 채널들의 버킷 아이디, 새로들어온 requestPeer의 버킷아이디 로그
-                }
-                */
             } catch (Exception e) {
                 log.debug("Failed to connect {} -> {}", peerGroup.getOwner().toAddress(),
                         peer.toAddress());

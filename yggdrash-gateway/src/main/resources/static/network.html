@@ -31,7 +31,7 @@
     .node circle {
         stroke: #fff;
         stroke-width: 3px;
-        fill: #555;
+        fill: #d46979;
     }
 
     #drawNetwork {
@@ -45,6 +45,7 @@
 <body onload="pageLoaded()">
 <button id="drawNetwork">Draw Network</button>
 <script>
+    var curBlockHeight = 0;
     var grpc = 32918;
     var rest = 8080;
     var branchId = "91b29a1453258d72ca6fbbcabb8dca10cca944fb";
@@ -58,24 +59,39 @@
         "links": links
     };
 
-    var channels = []; //32919, 32920...
+    var channels = [];
     var stack = [];
     var table = [];
 
     function pageLoaded() {
         var url = document.URL;
-        var qAt = document.URL.indexOf("?");
-        var numOfNodes = parseInt(document.URL.substr(qAt + 1));
-        var host = getHost(url);
+        var qAt = url.indexOf("?");
+        var pAt = url.indexOf("&");
+        var numOfNodes = 100;
+        if (qAt > 0 && !isNaN(parseInt(url.substr(qAt + 1)))) {
+            numOfNodes = parseInt(url.substr(qAt + 1));
+        }
+        if (pAt > 0 && url.substr(pAt + 1) !== "") {
+            branchId = url.substr(pAt + 1);
+        }
 
+        console.log("numOfNodes => " + numOfNodes);
+        console.log("branchId => " + branchId);
+        var host = getHost(url);
         for (var port = numOfNodes + rest; port >= rest; port--) {
             nodes.push(host + ":" + grpc++);
-            channels.push(getReqUrl(host, port, branchId));
+            channels.push(getReqPeersUrl(host, port, branchId));
         }
+        getBlockHeightReqUrl(convertGrpcToRestUrl(nodes[0]), branchId);
+        setBlockHeight(getBlockHeightReqUrl(convertGrpcToRestUrl(nodes[0]), branchId));
     }
 
-    function getReqUrl(host, port, branchId) {
+    function getReqPeersUrl(host, port, branchId) {
         return "http://" + host + ":" + port + "/peers/" + branchId + "/channels";
+    }
+
+    function getBlockHeightReqUrl(ip, branchId) {
+        return "http://" + ip + "/branches/" + branchId + "/blocks?limit=1";
     }
 
     function getHost(str) {
@@ -83,15 +99,28 @@
     }
 
     function getPort(str) {
-        return str.substr(str.lastIndexOf(":") + 1, 4);
+        if (str.length > 20) {
+            return str.substr(str.lastIndexOf(":") + 1, 4);
+        }
+        return str.substr(str.lastIndexOf(":") + 1, 5);
     }
 
     function getGrpcPort(str) {
         return 32918 + (parseInt(getPort(str)) - rest);
     }
 
+    function getRestPort(str) {
+        return (parseInt(getPort(str)) - 32918) + rest;
+    }
+
     function getUrl(str) {
         return getHost(str) + ":" + getGrpcPort(str);
+    }
+
+    function convertGrpcToRestUrl(str) {
+        var port = getRestPort(str);
+        var host = str.substr(0, str.indexOf(":"));
+        return host + ":" + port;
     }
 
     function submit(curChannels) {
@@ -99,7 +128,7 @@
         console.log("curChannels => " + curChannels);
 
         $.getJSON(curChannels).done(function (data) {
-            //console.log(data);
+            console.log(data);
 
             var key;
             var values = [];
@@ -173,6 +202,7 @@
         .charge(-100)
         .size([width, height]);
     function draw() {
+
         force.nodes(graphFile.nodes).links(graphFile.links).start();
         var link = svg.selectAll(".link")
             .data(graphFile.links)
@@ -189,13 +219,16 @@
             .call(force.drag);
 
         node.append("circle")
-            .attr("r", "5");
+            .attr("r", "10")
+            .attr("class", function (d, i) {
+                return graphFile.nodes[i].name;
+            });
 
         node.append("text")
             .attr("dx", 12)
             .attr("dy", ".35em")
             .text(function (d) {
-                return d.name
+                return d.name;
             });
 
         force.on("tick", function () {
@@ -215,6 +248,37 @@
             node.attr("transform", function (d) {
                 return "translate(" + d.x + "," + d.y + ")";
             });
+        });
+        console.log(links);
+        nodes.forEach(function (node) {
+            var className = node.name.replace(/[.]/g, '\\\.');
+            className = className.replace(/[:]/g, '\\\:');
+            var curNode = $("." + className);
+            links.forEach(function (link) {
+                if (link.target.name === node.name) {
+                    curNode.css('fill', '#7ce47a');
+                }
+            });
+            var url = getBlockHeightReqUrl(convertGrpcToRestUrl(node.name), branchId);
+            appendBlockHeight(url, curNode);
+        });
+    }
+
+    function appendBlockHeight(url, curNode) {
+        $.getJSON(url).done(function (data) {
+            var blockHeight = data[0].index;
+            if (blockHeight < 1 || blockHeight < curBlockHeight) {
+                curNode.css("fill", "#d46979");
+            } else {
+                curNode.css("fill", "#7ce47a");
+            }
+            curNode.next().append("[" + blockHeight + "]");
+        });
+    }
+
+    function setBlockHeight(url) {
+        $.getJSON(url).done(function (data) {
+            curBlockHeight = data[0].index;
         });
     }
 

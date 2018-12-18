@@ -118,7 +118,6 @@ public class PeerGroup implements BranchEventListener {
         PeerTable peerTable = peerTables.get(branchId);
         peerTable.getAllPeers().forEach(p -> peerList.add(p.toString()));
         peerTable.addPeer(peer);
-
         return peerList;
     }
 
@@ -283,6 +282,43 @@ public class PeerGroup implements BranchEventListener {
         } catch (Exception e) {
             log.warn("Fail to add to the peer channel err=" + e.getMessage());
         }
+    }
+
+    public boolean isClosePeer(BranchId branchId, Peer requestPeer) {
+        return getClosestPeers(branchId).subList(0, maxPeers).contains(requestPeer);
+    }
+
+    public void reloadPeerChannel(BranchId branchId, PeerClientChannel client) {
+        PeerId requestPeerId = client.getPeer().getPeerId();
+        if (peerTableChannels.get(branchId).containsKey(requestPeerId)) {
+            peerTableChannels.get(branchId).put(requestPeerId, client);
+        } else {
+            Map<PeerId, PeerClientChannel> peerChannelList = peerTableChannels.get(branchId);
+            List<PeerId> newClosestPeers = getClosestPeers(branchId).subList(0, maxPeers)
+                    .stream().map(Peer::getPeerId).collect(Collectors.toList());
+            newClosestPeers.remove(requestPeerId);
+
+            for (PeerId key : peerChannelList.keySet()) {
+                if (!newClosestPeers.contains(key)) {
+                    peerChannelList.remove(key);
+                }
+            }
+
+            PeerId lastPeerId = newClosestPeers.get(maxPeers - 1);
+            peerChannelList.remove(lastPeerId);
+        }
+    }
+
+    public int logBucketIdOf(BranchId branchId, Peer peer) {
+        PeerTable peerTable = getPeerTable(branchId);
+        return peerTable.getTmpBucketId(peer);
+    }
+
+    public void logBucketIdOf(BranchId branchId) {
+        peerTableChannels.get(branchId).values().forEach(
+                peerClientChannel -> log.debug("Current peerClientChannel => peer={}, bucketId={}",
+                        peerClientChannel.getPeer().getHost(),
+                        getPeerTable(branchId).getTmpBucketId(peerClientChannel.getPeer())));
     }
 
     public List<String> getActivePeerList() {

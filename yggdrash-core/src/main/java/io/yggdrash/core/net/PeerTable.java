@@ -91,6 +91,12 @@ public class PeerTable {
         return id < 0 ? 0 : id;
     }
 
+    public int getTmpBucketId(Peer p) {
+        p.setDistance(owner);
+        int id = p.getDistance() - 1;
+        return id < 0 ? 0 : id;
+    }
+
     synchronized int getPeersCount() {
         return peerStore.size();
     }
