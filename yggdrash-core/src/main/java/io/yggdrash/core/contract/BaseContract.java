@@ -1,6 +1,5 @@
 package io.yggdrash.core.contract;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.Utils;
@@ -32,6 +31,7 @@ public abstract class BaseContract<T> implements Contract<T> {
     @Override
     public boolean invoke(TransactionHusk txHusk) {
         TransactionReceipt txReceipt;
+        String transactionHash = txHusk.getHash().toString();
         try {
             this.sender = txHusk.getAddress().toString();
             JsonObject txBody = Utils.parseJsonArray(txHusk.getBody()).get(0).getAsJsonObject();
@@ -39,37 +39,35 @@ public abstract class BaseContract<T> implements Contract<T> {
             dataFormatValidation(txBody);
 
             String method = txBody.get("method").getAsString().toLowerCase();
-            JsonArray params = txBody.get("params").getAsJsonArray();
+            JsonObject params = txBody.getAsJsonObject("params");
 
             txReceipt = (TransactionReceipt) this.getClass()
-                    .getMethod(method, JsonArray.class)
+                    .getMethod(method, JsonObject.class)
                     .invoke(this, params);
             txReceipt.putLog("method", method);
-            txReceipt.setTransactionHash(txHusk.getHash().toString());
+            txReceipt.setTransactionHash(transactionHash);
             txReceiptStore.put(txReceipt.getTransactionHash(), txReceipt);
         } catch (Throwable e) {
-            txReceipt = new TransactionReceipt();
-            txReceipt.setTransactionHash(txHusk.getHash().toString());
-            txReceipt.setStatus(0);
-            txReceipt.putLog("Error", e);
+            txReceipt = TransactionReceipt.errorReceipt(transactionHash, e);
             txReceiptStore.put(txHusk.getHash().toString(), txReceipt);
         }
         return txReceipt.isSuccess();
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public JsonObject query(JsonObject query) {
         dataFormatValidation(query);
 
         String method = query.get("method").getAsString().toLowerCase();
-        JsonArray params = query.get("params").getAsJsonArray();
+        JsonObject params = query.getAsJsonObject("params");
 
         JsonObject result = new JsonObject();
         try {
-            Object res = getClass().getMethod(method, JsonArray.class).invoke(this, params);
+            Object res = getClass().getMethod(method, JsonObject.class).invoke(this, params);
             if (res instanceof JsonElement) {
                 result.add("result", (JsonElement)res);
-            } else if (res instanceof Collection) {
+            } else if (res instanceof Collection<?>) {
                 result.addProperty("result", collectionToString((Collection<Object>) res));
             } else {
                 result.addProperty("result", res.toString());
@@ -80,15 +78,14 @@ public abstract class BaseContract<T> implements Contract<T> {
         return result;
     }
 
-
-    public List<String> specification(JsonArray params) {
+    public List<String> specification(JsonObject params) {
         List<String> methods = new ArrayList<>();
         getMethods(getClass(), methods);
 
         return methods;
     }
 
-    public List<String> getMethods(Class<?> currentClass, List<String> methods) {
+    private List<String> getMethods(Class<?> currentClass, List<String> methods) {
         if (!currentClass.equals(BaseContract.class)) {
             for (Method method : currentClass.getDeclaredMethods()) {
                 if (Modifier.isPublic(method.getModifiers())) {
@@ -104,8 +101,8 @@ public abstract class BaseContract<T> implements Contract<T> {
         if (data.get("method").getAsString().length() < 0) {
             throw new FailedOperationException("Empty method");
         }
-        if (!data.get("params").isJsonArray()) {
-            throw new FailedOperationException("Params must be JsonArray");
+        if (!data.get("params").isJsonObject()) {
+            throw new FailedOperationException("Param must be JsonObject");
         }
     }
 

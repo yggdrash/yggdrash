@@ -25,6 +25,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+
 @RestController
 @RequestMapping("peers")
 class PeerController {
@@ -42,7 +44,7 @@ class PeerController {
     }
 
     @GetMapping("/{branchId}/channels")
-    public ResponseEntity getChannels(@PathVariable(name = "branchId") String branchId) {
+    public ResponseEntity getChannels(@PathVariable(name = BRANCH_ID) String branchId) {
         return ResponseEntity.ok(peerGroup.getActivePeerListOf(BranchId.of(branchId)));
     }
 }

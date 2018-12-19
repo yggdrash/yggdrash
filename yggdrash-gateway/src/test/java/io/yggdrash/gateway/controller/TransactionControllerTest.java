@@ -17,7 +17,7 @@
 package io.yggdrash.gateway.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import io.yggdrash.TestUtils;
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.node.api.dto.TransactionDto;
 import org.junit.Before;
@@ -81,7 +81,7 @@ public class TransactionControllerTest {
 
         // 트랜잭션 풀에 있는 트랜잭션을 조회 후 블록 내 트랜잭션 조회 로직 추가 필요.
         TransactionDto req =
-                TransactionDto.createBy(TestUtils.createBranchTxHusk(TestUtils.wallet()));
+                TransactionDto.createBy(BlockChainTestUtils.createBranchTxHusk());
 
         MockHttpServletResponse postResponse = mockMvc.perform(post(basePath)
                 .contentType(MediaType.APPLICATION_JSON).content(json.write(req).getJson()))

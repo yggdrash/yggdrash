@@ -17,7 +17,6 @@
 package io.yggdrash.core.wallet;
 
 import com.google.common.base.Strings;
-import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
@@ -27,6 +26,7 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.Password;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.FileUtil;
+import io.yggdrash.common.util.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -34,6 +34,7 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -186,8 +187,8 @@ public class Wallet {
     private void decryptKeyFileInit(String keyPath, String keyName, String password)
             throws IOException, InvalidCipherTextException {
         File keyFile = FileUtil.getFile(keyPath, keyName);
-        JsonObject keyJsonObject =
-                new Gson().fromJson(FileUtil.readFileToString(keyFile), JsonObject.class);
+        String json = FileUtil.readFileToString(keyFile, StandardCharsets.UTF_8);
+        JsonObject keyJsonObject = Utils.parseJsonObject(json);
 
         byte[] salt = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
                 .getAsJsonObject("kdfparams")

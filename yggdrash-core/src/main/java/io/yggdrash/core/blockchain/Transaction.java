@@ -79,7 +79,7 @@ public class Transaction implements Cloneable {
      * @param jsonObject jsonObject transaction.
      */
     public Transaction(JsonObject jsonObject) {
-        this(new TransactionHeader(jsonObject.get("header").getAsJsonObject()),
+        this(new TransactionHeader(jsonObject.getAsJsonObject("header")),
                 Hex.decode(jsonObject.get("signature").getAsString()),
                 new TransactionBody(jsonObject.getAsJsonArray("body")));
     }
@@ -307,7 +307,7 @@ public class Transaction implements Cloneable {
     /**
      * Print transaction to pretty JsonObject.
      */
-    public String toStringPretty() {
+    String toStringPretty() {
         return new GsonBuilder().setPrettyPrinting().create().toJson(this.toJsonObject());
     }
 
@@ -344,7 +344,7 @@ public class Transaction implements Cloneable {
         return tx;
     }
 
-    public static Proto.Transaction toProtoTransaction(Transaction tx) {
+    static Proto.Transaction toProtoTransaction(Transaction tx) {
         // todo: move at TransactionHusk
 
         Proto.Transaction.Header protoHeader;
@@ -368,7 +368,7 @@ public class Transaction implements Cloneable {
         return protoTransaction;
     }
 
-    public static Transaction toTransaction(Proto.Transaction protoTransaction) {
+    static Transaction toTransaction(Proto.Transaction protoTransaction) {
         // todo: move at TransactionHusk
 
         TransactionHeader txHeader = new TransactionHeader(

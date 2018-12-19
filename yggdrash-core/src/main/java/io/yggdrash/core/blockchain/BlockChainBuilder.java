@@ -30,6 +30,8 @@ import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 
+import java.lang.reflect.InvocationTargetException;
+
 public class BlockChainBuilder {
 
     private GenesisBlock genesis;
@@ -67,9 +69,10 @@ public class BlockChainBuilder {
             } else {
                 ContractMeta contractMeta = ContractClassLoader.loadContractById(
                         storeBuilder.getConfig().getContractPath(), branch.getContractId());
-                return contractMeta.getContract().newInstance();
+                return contractMeta.getContract().getDeclaredConstructor().newInstance();
             }
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException
+                | InvocationTargetException e) {
             throw new FailedOperationException(e);
         }
     }

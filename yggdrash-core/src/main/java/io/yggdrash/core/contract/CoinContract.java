@@ -1,35 +1,41 @@
 package io.yggdrash.core.contract;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.util.ByteUtil;
+import org.spongycastle.util.encoders.Hex;
 
 import java.math.BigDecimal;
 import java.util.Map;
 
+
 public class CoinContract extends BaseContract<CoinContractStateValue>
         implements CoinStandard {
+
+
+    private final String totalSupplyKey = "TOTAL_SUPPLY";
 
     /**
      * @return Total amount of coin in existence
      */
     @Override
-    public BigDecimal totalsupply(JsonArray params) {
+    public BigDecimal totalsupply(JsonObject params) {
         log.info("\ntotalsupply :: params => " + params);
-        return state.getTotalSupply();
+        return state.get(totalSupplyKey).getBalance();
     }
 
     /**
      * Gets the balance of the specified address
-     * param owner   The address to query the balance of
+     * params owner   The address to query the balance of
      *
      * @return A BigDecimal representing the amount owned by the passed address
      */
     @Override
-    public BigDecimal balanceof(JsonArray params) {
+    public BigDecimal balanceof(JsonObject params) {
         log.info("\nbalanceof :: params => " + params);
 
-        String address = params.get(0).getAsJsonObject().get("address").getAsString().toLowerCase();
+        String address = params.get("address").getAsString().toLowerCase();
         if (state.get(address) != null) {
             CoinContractStateValue value = state.get(address);
             return value.getBalance();
@@ -39,37 +45,38 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
 
     /**
      * Function to check the amount of coin that an owner allowed to a spender
-     * param owner    The address which owns the funds.
-     * param spender  The address which will spend the funds
+     * params owner    The address which owns the funds.
+     * params spender  The address which will spend the funds
      *
      * @return A BigDecimal specifying the amount of coin still available for the spender
      */
     @Override
-    public BigDecimal allowance(JsonArray params) {
+    public BigDecimal allowance(JsonObject params) {
         log.info("\nallowance :: params => " + params);
 
-        String owner = params.get(0).getAsJsonObject().get("owner").getAsString().toLowerCase();
-        String spender = params.get(0).getAsJsonObject().get("spender").getAsString().toLowerCase();
+        String owner = params.get("owner").getAsString().toLowerCase();
+        String spender = params.get("spender").getAsString().toLowerCase();
+        String approveKey = approveKey(owner, spender);
 
-        if (state.get(owner) != null) {
-            return state.get(owner).getAllowedAmount(spender);
+        if (state.get(owner) != null && state.get(approveKey) != null) {
+            return state.get(approveKey).getBalance();
         }
         return BigDecimal.ZERO;
     }
 
     /**
      * Transfer token for a specified address
-     * param to      The address to transfer to
-     * param amount  The amount to be transferred
+     * params to      The address to transfer to
+     * params amount  The amount to be transferred
      *
      * @return TransactionReceipt
      */
     @Override
-    public TransactionReceipt transfer(JsonArray params) {
+    public TransactionReceipt transfer(JsonObject params) {
         log.info("\ntransfer :: params => " + params);
 
-        String to = params.get(0).getAsJsonObject().get("to").getAsString().toLowerCase();
-        BigDecimal amount = params.get(0).getAsJsonObject().get("amount").getAsBigDecimal();
+        String to = params.get("to").getAsString().toLowerCase();
+        BigDecimal amount = params.get("amount").getAsBigDecimal();
 
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.putLog("to", to);
@@ -97,17 +104,17 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
 
     /**
      * Approve the passed address to spend the specified amount of tokens on behalf of tx.sender
-     * param spender  The address which will spend the funds
-     * param amount   The amount of tokens to be spent
+     * params spender  The address which will spend the funds
+     * params amount   The amount of tokens to be spent
      *
      * @return TransactionReceipt
      */
     @Override
-    public TransactionReceipt approve(JsonArray params) {
+    public TransactionReceipt approve(JsonObject params) {
         log.info("\napprove :: params => " + params);
 
-        String spender = params.get(0).getAsJsonObject().get("spender").getAsString().toLowerCase();
-        BigDecimal amount = params.get(0).getAsJsonObject().get("amount").getAsBigDecimal();
+        String spender = params.get("spender").getAsString().toLowerCase();
+        BigDecimal amount = params.get("amount").getAsBigDecimal();
 
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.putLog("spender", spender);
@@ -121,10 +128,14 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
         CoinContractStateValue senderValue = state.get(sender);
 
         if (senderValue.isTransferable(amount)) {
-            senderValue.addAllowedAmount(spender, amount);
+            String approveKey = approveKey(sender, spender);
+            CoinContractStateValue approve = new CoinContractStateValue();
+            approve.addBalance(amount);
+            state.put(approveKey, approve);
+            log.debug("approve Key : " + approveKey);
             txReceipt.setStatus(TransactionReceipt.SUCCESS);
             log.info("\n[Approved] Approve " + spender + " to "
-                    + senderValue.getAllowedAmount(spender) + " from " + sender);
+                    + approve.getBalance() + " from " + sender);
         } else {
             log.info("\n[ERR] " + sender + " has no enough balance!");
         }
@@ -134,46 +145,46 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
 
     /**
      * Transfer tokens from one address to another
-     * param from    The address which you want to send tokens from
-     * param to      The address which you want to transfer to
-     * param amount  The amount of tokens to be transferred
+     * params from    The address which you want to send tokens from
+     * params to      The address which you want to transfer to
+     * params amount  The amount of tokens to be transferred
      *
      * @return TransactionReceipt
      */
     @Override
-    public TransactionReceipt transferfrom(JsonArray params) {
+    public TransactionReceipt transferfrom(JsonObject params) {
         log.info("\ntransferfrom :: params => " + params);
 
-        String from = params.get(0).getAsJsonObject().get("from").getAsString().toLowerCase();
-        String to = params.get(0).getAsJsonObject().get("to").getAsString().toLowerCase();
-        BigDecimal amount = params.get(0).getAsJsonObject().get("amount").getAsBigDecimal();
+        String from = params.get("from").getAsString().toLowerCase();
+        String to = params.get("to").getAsString().toLowerCase();
+        BigDecimal amount = params.get("amount").getAsBigDecimal();
 
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.putLog("from", from);
         txReceipt.putLog("to", to);
         txReceipt.putLog("amount", String.valueOf(amount));
 
-        if (!state.contains(from)) {
+        String approveKey = approveKey(from, sender);
+        log.debug("approve Key : " + approveKey);
+        if (!state.contains(approveKey)) {
             log.info("\n[ERR] " + from + " has no balance!");
             return txReceipt;
         }
-
+        // check from amount
         CoinContractStateValue fromValue = state.get(from);
+        CoinContractStateValue approveValue = state.get(approveKey);
 
-        if (fromValue.isTransferable(amount)) {
-            if (fromValue.isEnoughAllowedAmount(sender, amount)) {
-                fromValue.subtractBalance(amount);
-                fromValue.subtractAllowedAmount(sender, amount);
-                addBalanceTo(to, amount);
-                txReceipt.setStatus(TransactionReceipt.SUCCESS);
-                log.info("\n[Transferred] Transfer " + amount + " from " + from + " to " + to);
-                log.info("\nAllowed amount of Sender (" + sender + ") : "
-                        + fromValue.getAllowedAmount(sender));
-                log.info("\nBalance of From (" + from + ") : " + fromValue.getBalance()
-                        + "\nBalance of To   (" + to + ") : " + state.get(to).getBalance());
-            } else {
-                log.info("\n[ERR] " + from + " has no enough amount allowed by from to sender");
-            }
+        if (fromValue.isTransferable(amount) && approveValue.isTransferable(amount)) {
+            fromValue.subtractBalance(amount);
+            approveValue.subtractBalance(amount);
+
+            addBalanceTo(to, amount);
+            txReceipt.setStatus(TransactionReceipt.SUCCESS);
+            log.info("\n[Transferred] Transfer " + amount + " from " + from + " to " + to);
+            log.debug("\nAllowed amount of Sender (" + sender + ") : "
+                    + approveValue.getBalance());
+            log.debug("\nBalance of From (" + from + ") : " + fromValue.getBalance()
+                    + "\nBalance of To   (" + to + ") : " + state.get(to).getBalance());
         } else {
             log.info("\n[ERR] " + from + " has no enough balance!");
         }
@@ -182,12 +193,12 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
 
     /**
      * Pre-allocate yeed to addresses
-     * param frontier The Frontier is the first live release of the Yggdrash network
-     * param balance  The balance of frontier
+     * params frontier The Frontier is the first live release of the Yggdrash network
+     * params balance  The balance of frontier
      *
      * @return TransactionReceipt
      */
-    public TransactionReceipt genesis(JsonArray params) {
+    public TransactionReceipt genesis(JsonObject params) {
         log.info("\ngenesis :: params => " + params);
 
         TransactionReceipt txReceipt = new TransactionReceipt();
@@ -197,8 +208,7 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
 
         //totalSupply 는 alloc 의 balance 를 모두 더한 값으로 세팅
         BigDecimal totalSupply = BigDecimal.ZERO;
-        JsonObject json = params.get(0).getAsJsonObject();
-        JsonObject alloc = json.get("alloc").getAsJsonObject();
+        JsonObject alloc = params.getAsJsonObject("alloc");
         for (Map.Entry<String, JsonElement> entry : alloc.entrySet()) {
             String frontier = entry.getKey();
             JsonObject value = entry.getValue().getAsJsonObject();
@@ -211,9 +221,10 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
             log.info("\nAddress of Frontier : " + frontier
                     + "\nBalance of Frontier : " + state.get(frontier).getBalance());
         }
-        state.setTotalSupply(totalSupply);
+        CoinContractStateValue totalSupplyValue = new CoinContractStateValue();
+        totalSupplyValue.addBalance(totalSupply);
+        state.put(totalSupplyKey, totalSupplyValue);
         txReceipt.putLog("TotalSupply", totalSupply);
-        log.info("\n[Genesis]\nTotalSupply : " + state.getTotalSupply());
 
         return txReceipt;
     }
@@ -225,5 +236,11 @@ public class CoinContract extends BaseContract<CoinContractStateValue>
             state.put(to, toValue);
         }
         toValue.addBalance(amount);
+    }
+
+    private String approveKey(String sender, String spender) {
+        byte[] approveKeyByteArray = ByteUtil.merge(sender.getBytes(), spender.getBytes());
+        byte[] approveKey = HashUtil.sha3(approveKeyByteArray);
+        return Hex.toHexString(approveKey);
     }
 }

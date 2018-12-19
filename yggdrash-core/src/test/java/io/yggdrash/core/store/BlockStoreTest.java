@@ -16,50 +16,25 @@
 
 package io.yggdrash.core.store;
 
-import io.yggdrash.TestUtils;
-import io.yggdrash.common.util.FileUtil;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.StoreTestUtils;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
-import io.yggdrash.proto.Proto;
 import org.assertj.core.api.Assertions;
-import org.junit.AfterClass;
 import org.junit.Test;
 
-import java.nio.file.Paths;
-
 public class BlockStoreTest {
-    private BlockStore blockStore;
-
-    @AfterClass
-    public static void destroy() {
-        FileUtil.recursiveDelete(Paths.get(TestUtils.YGG_HOME));
-    }
 
     @Test
     public void shouldBeGotBlock() {
-        blockStore = new BlockStore(
-                new LevelDbDataSource(getPath(), "get-test"));
-        BlockHusk blockHuskFixture = getBlockHuskFixture();
+        LevelDbDataSource ds =
+                new LevelDbDataSource(StoreTestUtils.getTestPath(), "block-store-test");
+        BlockStore blockStore = new BlockStore(ds);
+        BlockHusk blockHuskFixture = BlockChainTestUtils.genesisBlock();
         blockStore.put(blockHuskFixture.getHash(), blockHuskFixture);
         BlockHusk foundBlockHusk = blockStore.get(blockHuskFixture.getHash());
+        StoreTestUtils.clearTestDb();
         Assertions.assertThat(foundBlockHusk).isEqualTo(blockHuskFixture);
         Assertions.assertThat(blockStore.get(foundBlockHusk.getHash())).isEqualTo(foundBlockHusk);
-    }
-
-    @Test
-    public void shouldBePutBlock() {
-        blockStore = new BlockStore(
-                new LevelDbDataSource(getPath(), "put-test"));
-        BlockHusk blockHusk = getBlockHuskFixture();
-        blockStore.put(blockHusk.getHash(), blockHusk);
-    }
-
-    private BlockHusk getBlockHuskFixture() {
-        Proto.Block blockFixture = TestUtils.getBlockFixture();
-        return new BlockHusk(blockFixture);
-    }
-
-    private String getPath() {
-        return Paths.get(TestUtils.YGG_HOME, "store").toString();
     }
 }

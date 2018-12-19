@@ -16,6 +16,13 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.TestConstants;
+import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.net.NodeServer;
+import io.yggdrash.core.net.NodeStatus;
+import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.net.PeerGroup;
+
 import java.io.IOException;
 
 /**
@@ -30,8 +37,35 @@ public class NodeDemoServer {
      * @throws InterruptedException the interrupted exception
      */
     public static void main(String[] args) throws IOException, InterruptedException {
-        GRpcNodeServer server = new GRpcNodeServer();
-        server.start("localhost", 32918);
+        String host = "localhost";
+        int port = 32918;
+        NodeServer server = createNodeServer(host, port);
+        server.start(host, port);
         server.blockUntilShutdown();
+    }
+
+    private static NodeServer createNodeServer(String host, int port) {
+        GRpcNodeServer server = new GRpcNodeServer();
+        Peer owner = Peer.valueOf("75bff16c", host, port);
+        server.setPeerGroup(new PeerGroup(owner, 25));
+        server.setBranchGroup(new BranchGroup());
+        server.setWallet(TestConstants.wallet());
+        server.setNodeStatus(new NodeStatus() {
+            @Override
+            public boolean isUpStatus() {
+                return false;
+            }
+
+            @Override
+            public void up() {
+
+            }
+
+            @Override
+            public void sync() {
+
+            }
+        });
+        return server;
     }
 }
