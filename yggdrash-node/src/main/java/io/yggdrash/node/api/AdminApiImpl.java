@@ -1,6 +1,5 @@
 package io.yggdrash.node.api;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
@@ -8,6 +7,7 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.FileUtil;
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.api.dto.AdminDto;
 import org.slf4j.Logger;
@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.attribute.PosixFilePermission;
 import java.security.SecureRandom;
@@ -180,9 +181,8 @@ public class AdminApiImpl implements AdminApi {
                         perms.add(PosixFilePermission.OWNER_WRITE);
                         Files.setPosixFilePermissions(file.toPath(), perms);
                     }
-
-                    FileUtil.writeStringToFile(file,
-                            body.get(0).getAsJsonObject().get("params").getAsString());
+                    String params = body.get(0).getAsJsonObject().get("params").getAsString();
+                    FileUtil.writeStringToFile(file, params, StandardCharsets.UTF_8);
 
                     perms = new HashSet<>();
                     perms.add(PosixFilePermission.OWNER_READ);
@@ -254,9 +254,9 @@ public class AdminApiImpl implements AdminApi {
             return false;
         }
 
-        this.header = new Gson().fromJson(command.getHeader(), JsonObject.class);
+        this.header = Utils.parseJsonObject(command.getHeader());
         this.signature = command.getSignature();
-        this.body = new Gson().fromJson(command.getBody(), JsonArray.class);
+        this.body = Utils.parseJsonArray(command.getBody());
 
         // body length check
         long bodyLength = ByteUtil.byteArrayToLong(

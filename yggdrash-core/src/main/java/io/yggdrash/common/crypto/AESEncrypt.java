@@ -26,7 +26,7 @@ public class AESEncrypt {
      * @return encrypted data
      * @throws InvalidCipherTextException InvalidCipherTextException
      */
-    public static byte[] encrypt(byte[] plain, byte[] key) throws InvalidCipherTextException {
+    static byte[] encrypt(byte[] plain, byte[] key) throws InvalidCipherTextException {
         PaddedBufferedBlockCipher bbc = new PaddedBufferedBlockCipher(
                 new CBCBlockCipher(new AESEngine()), new PKCS7Padding());
         KeyParameter kp = new KeyParameter(key);
@@ -80,7 +80,7 @@ public class AESEncrypt {
      * @return plain data
      * @throws InvalidCipherTextException InvalidCipherTextException
      */
-    public static byte[] decrypt(byte[] ivEncData, byte[] key) throws InvalidCipherTextException {
+    static byte[] decrypt(byte[] ivEncData, byte[] key) throws InvalidCipherTextException {
 
         //todo: exception catch for security
         PaddedBufferedBlockCipher bbc = new PaddedBufferedBlockCipher(

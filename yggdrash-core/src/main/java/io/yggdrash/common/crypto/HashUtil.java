@@ -87,8 +87,8 @@ public class HashUtil {
      * @param input - data for hashing
      * @return - sha256 hash of the data
      */
-    public static byte[] sha256(byte[] input) {
-        return hash(input, "SHA-256");
+    static byte[] sha256(byte[] input) {
+        return hash(input, HASH_SHA_256_ALGORITHM_NAME);
     }
 
     /**

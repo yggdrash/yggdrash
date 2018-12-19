@@ -30,6 +30,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+
 @RestController
 @RequestMapping("branches")
 public class BranchController {
@@ -51,7 +53,7 @@ public class BranchController {
 
     @GetMapping("/{branchId}/states")
     public ResponseEntity<List<Map>> getBranchStates(
-            @PathVariable(name = "branchId") String branchId) {
+            @PathVariable(name = BRANCH_ID) String branchId) {
         List<Map> state = branchGroup.getStateStore(BranchId.of(branchId)).getStateList();
         return ResponseEntity.ok(state);
     }

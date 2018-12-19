@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.blockchain;
 
-import io.yggdrash.TestUtils;
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.proto.Proto;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +31,7 @@ public class BlockHuskTest {
 
     @Before
     public void setUp() {
-        this.block = TestUtils.createGenesisBlockHusk();
+        this.block = BlockChainTestUtils.genesisBlock();
     }
 
     @Test

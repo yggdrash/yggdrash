@@ -23,8 +23,8 @@ import org.junit.Test;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Random;
 
-import static io.yggdrash.TestUtils.randomBytes;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class LevelDbDataSourceTest {
@@ -95,5 +95,11 @@ public class LevelDbDataSourceTest {
 
         assertThat(ds).isNotNull();
         assertThat(FileUtil.isExists(Paths.get(dbPath, dbName))).isTrue();
+    }
+
+    private byte[] randomBytes(int length) {
+        byte[] result = new byte[length];
+        new Random().nextBytes(result);
+        return result;
     }
 }

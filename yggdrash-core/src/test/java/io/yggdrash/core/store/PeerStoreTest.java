@@ -16,14 +16,11 @@
 
 package io.yggdrash.core.store;
 
-import io.yggdrash.TestUtils;
-import io.yggdrash.common.util.FileUtil;
+import io.yggdrash.StoreTestUtils;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import org.junit.AfterClass;
 import org.junit.Test;
-
-import java.nio.file.Paths;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -32,12 +29,12 @@ public class PeerStoreTest {
 
     @AfterClass
     public static void destroy() {
-        FileUtil.recursiveDelete(Paths.get(TestUtils.YGG_HOME));
+        StoreTestUtils.clearTestDb();
     }
 
     @Test
     public void shouldBeGotPeer() {
-        peerStore = new PeerStore(new LevelDbDataSource(getPath(), "peers"));
+        peerStore = new PeerStore(new LevelDbDataSource(StoreTestUtils.getTestPath(), "peers"));
 
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
         peerStore.put(peer.getPeerId(), peer);
@@ -46,9 +43,5 @@ public class PeerStoreTest {
 
         Peer foundPeer = peerStore.get(peer.getPeerId());
         assertThat(foundPeer).isEqualTo(peer);
-    }
-
-    private String getPath() {
-        return Paths.get(TestUtils.YGG_HOME, "store").toString();
     }
 }

@@ -19,9 +19,9 @@ package io.yggdrash.node.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.api.dto.AdminDto;
 import org.junit.Test;
@@ -54,10 +54,10 @@ public class AdminApiImplTest {
 
         AdminDto command = new ObjectMapper().readValue(jsonMsg, AdminDto.class);
 
-        JsonObject header = new JsonParser().parse(command.getHeader()).getAsJsonObject();
+        JsonObject header = Utils.parseJsonObject(command.getHeader());
         log.debug(header.toString());
 
-        JsonArray body = new JsonParser().parse(command.getBody()).getAsJsonArray();
+        JsonArray body = Utils.parseJsonArray(command.getBody());
         log.debug(body.toString());
 
         String method = body.get(0).getAsJsonObject().get("method").getAsString();

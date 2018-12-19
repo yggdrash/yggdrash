@@ -37,6 +37,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+
 @RestController
 @RequestMapping("branches/{branchId}/txs")
 public class TransactionController {
@@ -49,7 +51,7 @@ public class TransactionController {
     }
 
     @PostMapping
-    public ResponseEntity add(@PathVariable(name = "branchId") String branchId,
+    public ResponseEntity add(@PathVariable(name = BRANCH_ID) String branchId,
                               @RequestBody TransactionDto request) {
         TransactionHusk tx = TransactionDto.of(request);
         if (BranchId.of(branchId).equals(tx.getBranchId())) {
@@ -61,7 +63,7 @@ public class TransactionController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity get(@PathVariable(name = "branchId") String branchId,
+    public ResponseEntity get(@PathVariable(name = BRANCH_ID) String branchId,
                               @PathVariable String id) {
         TransactionHusk tx = branchGroup.getTxByHash(BranchId.of(branchId), id);
 
@@ -73,7 +75,7 @@ public class TransactionController {
     }
 
     @GetMapping
-    public ResponseEntity getAll(@PathVariable(name = "branchId") String branchId) {
+    public ResponseEntity getAll(@PathVariable(name = BRANCH_ID) String branchId) {
         long countOfTotal = branchGroup.countOfTxs(BranchId.of(branchId));
         List<TransactionHusk> txs =
                 new ArrayList<>(branchGroup.getRecentTxs(BranchId.of(branchId)));

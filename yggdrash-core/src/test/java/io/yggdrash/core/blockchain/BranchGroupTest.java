@@ -16,24 +16,22 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.TestUtils;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.ContractTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.core.contract.Contract;
-import io.yggdrash.core.contract.ContractQry;
 import io.yggdrash.core.exception.DuplicatedException;
-import io.yggdrash.core.wallet.Wallet;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collections;
+import java.util.List;
 
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BranchGroupTest {
-
-    private final Wallet wallet = TestUtils.wallet();
 
     private BranchGroup branchGroup;
     private TransactionHusk tx;
@@ -42,22 +40,17 @@ public class BranchGroupTest {
     @Before
     public void setUp() {
         branchGroup = new BranchGroup();
-        BlockChain blockChain = TestUtils.createBlockChain(false);
+        BlockChain blockChain = BlockChainTestUtils.createBlockChain(false);
         addBranch(blockChain);
         assertThat(branchGroup.getBranchSize()).isEqualTo(1);
         assertThat(branchGroup.containsBranch(blockChain.getBranchId())).isTrue();
-        tx = TestUtils.createBranchTxHusk(wallet);
-        block = new BlockHusk(wallet, Collections.singletonList(tx), blockChain.getPrevBlock());
-    }
-
-    @After
-    public void tearDown() {
-        TestUtils.clearTestDb();
+        tx = BlockChainTestUtils.createBranchTxHusk();
+        block = newBlock(Collections.singletonList(tx), blockChain.getPrevBlock());
     }
 
     @Test(expected = DuplicatedException.class)
     public void addExistedBranch() {
-        addBranch(TestUtils.createBlockChain(false));
+        addBranch(BlockChainTestUtils.createBlockChain(false));
     }
 
     @Test
@@ -81,7 +74,7 @@ public class BranchGroupTest {
     @Test
     public void generateBlock() {
         branchGroup.addTransaction(tx);
-        branchGroup.generateBlock(wallet, tx.getBranchId());
+        branchGroup.generateBlock(TestConstants.wallet(), tx.getBranchId());
         long latest = branchGroup.getLastIndex(tx.getBranchId());
         BlockHusk chainedBlock = branchGroup.getBlockByIndex(tx.getBranchId(), latest);
         assertThat(latest).isEqualTo(1);
@@ -95,7 +88,7 @@ public class BranchGroupTest {
         branchGroup.addTransaction(tx);
         branchGroup.addBlock(block);
 
-        BlockHusk newBlock = new BlockHusk(wallet, Collections.singletonList(tx), block);
+        BlockHusk newBlock = newBlock(Collections.singletonList(tx), block);
         branchGroup.addBlock(newBlock);
 
         assertThat(branchGroup.getLastIndex(newBlock.getBranchId())).isEqualTo(2);
@@ -119,8 +112,8 @@ public class BranchGroupTest {
     public void getContract() throws Exception {
         Contract contract = branchGroup.getContract(block.getBranchId());
         assertThat(contract).isNotNull();
-        JsonObject query = ContractQry.createQuery(null, "getAllBranchId",
-                new JsonArray());
+        JsonObject query = ContractTestUtils.createQuery(block.getBranchId(),
+                "getAllBranchId", new JsonObject());
         JsonObject resultObject = contract.query(query);
         String result = resultObject.get("result").getAsString();
         assertThat(result).contains(block.getBranchId().toString());
@@ -128,11 +121,16 @@ public class BranchGroupTest {
 
     @Test
     public void query() {
-        JsonArray params = ContractQry.createParams(
-                "branchId", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        JsonObject query = ContractQry.createQuery(block.getBranchId().toString(), "view", params);
+        JsonObject params = ContractTestUtils.createParams(BRANCH_ID,
+                "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        JsonObject query =
+                ContractTestUtils.createQuery(block.getBranchId(), "view", params);
         JsonObject result = branchGroup.query(query);
         assertThat(result.toString()).contains("result");
+    }
+
+    private BlockHusk newBlock(List<TransactionHusk> body, BlockHusk prevBlock) {
+        return new BlockHusk(TestConstants.wallet(), body, prevBlock);
     }
 
     private void addBranch(BlockChain blockChain) {

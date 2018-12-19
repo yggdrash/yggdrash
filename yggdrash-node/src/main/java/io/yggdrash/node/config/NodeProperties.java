@@ -17,11 +17,9 @@
 package io.yggdrash.node.config;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
 import java.util.List;
 
-@Configuration
 @ConfigurationProperties(prefix = "yggdrash.node", ignoreUnknownFields = false)
 public class NodeProperties {
     private final Grpc grpc = new Grpc();

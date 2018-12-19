@@ -45,7 +45,7 @@ public class DistanceComparatorTest {
         ArrayList<Peer> peerArrayList = new ArrayList<>();
 
         for (int i = seedPort + 1; i < seedPort + 20; i++) {
-            Peer peer = Peer.valueOf(uri + String.valueOf(i));
+            Peer peer = Peer.valueOf(uri + i);
             peerArrayList.add(peer);
             int distance = seedPeer.getPeerId().distanceTo(peer.getPeerId().getBytes()) - 1;
             result.put(String.valueOf(peer.getPort()), distance);
@@ -56,10 +56,8 @@ public class DistanceComparatorTest {
                 new DistanceComparator(seedPeer.getPeerId().getBytes());
 
         peerArrayList.sort(distanceComparator);
-        peerArrayList.forEach(peer -> {
-            log.debug("[Sorted] Peer port => " + peer.getPort() + ", Distance => "
-                    + result.get(String.valueOf(peer.getPort())));
-        });
+        peerArrayList.forEach(peer -> log.debug("[Sorted] Peer port => " + peer.getPort()
+                + ", Distance => " + result.get(String.valueOf(peer.getPort()))));
 
         assert peerArrayList.get(0).getPort() == 32933;
         assert result.get(String.valueOf(32933)).equals(152);

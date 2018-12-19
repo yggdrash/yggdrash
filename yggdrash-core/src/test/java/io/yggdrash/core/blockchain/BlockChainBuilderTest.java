@@ -16,7 +16,9 @@
 
 package io.yggdrash.core.blockchain;
 
-import io.yggdrash.TestUtils;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.StoreTestUtils;
+import io.yggdrash.common.Sha3Hash;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
@@ -26,13 +28,14 @@ public class BlockChainBuilderTest {
     @Test
     public void buildProductionBlockChainTest() {
 
-        BlockChain bc1 = TestUtils.createBlockChain(false);
-        assertEquals(bc1.getGenesisBlock().getHash(), TestUtils.genesis().getBlock().getHash());
+        Sha3Hash genesisHash = BlockChainTestUtils.genesisBlock().getHash();
+        BlockChain bc1 = BlockChainTestUtils.createBlockChain(false);
+        assertEquals(genesisHash, bc1.getGenesisBlock().getHash());
 
-        BlockChain bc2 = TestUtils.createBlockChain(true);
+        BlockChain bc2 = BlockChainTestUtils.createBlockChain(true);
         bc2.close();
 
-        TestUtils.clearTestDb();
+        StoreTestUtils.clearDefaultConfigDb();
 
         assertEquals(bc1.getGenesisBlock().getHash(), bc2.getGenesisBlock().getHash());
     }

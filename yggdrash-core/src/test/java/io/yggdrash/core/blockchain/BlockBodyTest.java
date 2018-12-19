@@ -18,7 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.TestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.TimeUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -43,21 +43,21 @@ public class BlockBodyTest {
     @Before
     public void setUp() throws Exception {
 
-        JsonObject jsonParams1 = new JsonObject();
-        jsonParams1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
-        jsonParams1.addProperty("amount", "10000000");
+        JsonObject jsonParam1 = new JsonObject();
+        jsonParam1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
+        jsonParam1.addProperty("amount", "10000000");
 
         JsonObject jsonObject1 = new JsonObject();
         jsonObject1.addProperty("method", "transfer");
-        jsonObject1.add("params", jsonParams1);
+        jsonObject1.add("params", jsonParam1);
 
-        JsonObject jsonParams2 = new JsonObject();
-        jsonParams2.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2001");
-        jsonParams2.addProperty("amount", "5000000");
+        JsonObject jsonParam2 = new JsonObject();
+        jsonParam2.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2001");
+        jsonParam2.addProperty("amount", "5000000");
 
         JsonObject jsonObject2 = new JsonObject();
         jsonObject2.addProperty("method", "transfer");
-        jsonObject2.add("params", jsonParams2);
+        jsonObject2.add("params", jsonParam2);
 
         JsonArray jsonArray = new JsonArray();
         jsonArray.add(jsonObject1);
@@ -72,7 +72,7 @@ public class BlockBodyTest {
         TransactionHeader txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
         TransactionSignature txSig =
-                new TransactionSignature(TestUtils.wallet(), txHeader.getHashForSigning());
+                new TransactionSignature(TestConstants.wallet(), txHeader.getHashForSigning());
 
         tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
         tx2 = tx1.clone();

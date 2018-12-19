@@ -16,12 +16,13 @@
 
 package io.yggdrash.core.blockchain;
 
-import io.yggdrash.TestUtils;
+import com.google.gson.JsonArray;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.core.wallet.Account;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
-import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,61 +33,42 @@ import java.io.IOException;
 import java.security.SignatureException;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 public class TransactionHuskTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHuskTest.class);
 
-    private TransactionHusk txHusk;
-
-    @Before
-    public void setUp() {
-        this.txHusk = TestUtils.createTransferTxHusk();
-
-        log.debug("Before Transaction: " + txHusk.toString());
-        log.debug("Before Transaction address: " + txHusk.getAddress().toString() + "\n");
-    }
-
     @Test
-    public void shouldBeEquals() {
-        TransactionHusk tx1 = TestUtils.createTransferTxHusk();
-        TransactionHusk tx2 = TestUtils.createTransferTxHusk();
+    public void shouldBeNotEquals() {
+        TransactionHusk tx1 = createTransferTx();
+        TransactionHusk tx2 = createTransferTx();
         assertThat(tx1).isNotEqualTo(tx2);
     }
 
     @Test
     public void transactionTest() {
-        assertThat(txHusk).isNotNull();
-        assert txHusk.getHash() != null;
+        TransactionHusk tx1 = createTransferTx();
+        assertThat(tx1).isNotNull();
+        assertThat(tx1.getHash()).isNotNull();
     }
 
     @Test
     public void deserializeTransactionFromProtoTest() {
-        Proto.Transaction protoTx = txHusk.getInstance();
+        TransactionHusk tx1 = createTransferTx();
+        Proto.Transaction protoTx = tx1.getInstance();
         TransactionHusk deserializeTx = new TransactionHusk(protoTx);
-        assert txHusk.getHash().equals(deserializeTx.getHash());
-    }
-
-    @Test
-    public void testMakeTransaction() {
-        TransactionHusk txHusk2 = TestUtils.createTransferTxHusk();
-
-        log.debug("Transaction 2: " + txHusk2.toString());
-        log.debug("Transaction 2 address: " + txHusk2.getAddress().toString());
-
-        assertEquals(txHusk.getAddress().toString(), txHusk2.getAddress().toString());
+        assertThat(tx1.getHash()).isEqualTo(deserializeTx.getHash());
     }
 
     @Test
     public void testGetAddressWithWallet() {
-        TransactionHusk txHusk2 = TestUtils.createTransferTxHusk();
-        Wallet wallet = TestUtils.wallet();
-        assertArrayEquals(wallet.getAddress(), txHusk.getAddress().getBytes());
-        assertEquals(txHusk.getAddress(), txHusk2.getAddress());
-        assertArrayEquals(wallet.getAddress(), txHusk2.getAddress().getBytes());
+        TransactionHusk tx1 = createTransferTx();
+        TransactionHusk tx2 = createTransferTx();
+
+        assertThat(tx1.getAddress()).isEqualTo(tx2.getAddress());
+
+        Wallet wallet = TestConstants.wallet();
+        assertThat(wallet.getAddress()).isEqualTo(tx1.getAddress().getBytes());
     }
 
     @Test
@@ -99,24 +81,19 @@ public class TransactionHuskTest {
         log.debug("Wallet: " + wallet.toString());
         log.debug("Wallet.address: " + Hex.toHexString(wallet.getAddress()));
 
-        TransactionHusk txHusk1 = TestUtils.createBranchTxHusk(wallet);
-        TransactionHusk txHusk2 = TestUtils.createBranchTxHusk(wallet);
+        TransactionHusk tx1 = createTx(wallet);
+        TransactionHusk tx2 = createTx(wallet);
 
-        log.debug("Test Transaction1: " + txHusk1.toString());
-        log.debug("Test Transaction1 Address: " + txHusk1.getAddress());
+        log.debug("Test Transaction1: " + tx1.toString());
+        log.debug("Test Transaction1 Address: " + tx1.getAddress());
 
-        log.debug("Test Transaction2: " + txHusk2.toString());
-        log.debug("Test Transaction2 Address: " + txHusk2.getAddress());
+        log.debug("Test Transaction2: " + tx2.toString());
+        log.debug("Test Transaction2 Address: " + tx2.getAddress());
 
-        log.debug("Test Transaction1: " + txHusk1.toString());
-        log.debug("Test Transaction1 Address: " + txHusk1.getAddress());
 
-        log.debug("Test Transaction2: " + txHusk2.toString());
-        log.debug("Test Transaction2 Address: " + txHusk2.getAddress());
-
-        assertArrayEquals(wallet.getAddress(), account.getAddress());
-        assertEquals(txHusk1.getAddress(), txHusk2.getAddress());
-        assertArrayEquals(account.getAddress(), txHusk1.getAddress().getBytes());
+        assertThat(wallet.getAddress()).isEqualTo(account.getAddress());
+        assertThat(tx1.getAddress()).isEqualTo(tx2.getAddress());
+        assertThat(account.getAddress()).isEqualTo(tx1.getAddress().getBytes());
     }
 
     @Test
@@ -132,13 +109,13 @@ public class TransactionHuskTest {
         log.debug("Wallet.address: " + Hex.toHexString(wallet.getAddress()));
         log.debug("Wallet.pubKey: " + Hex.toHexString(wallet.getPubicKey()));
 
-        TransactionHusk txHusk1 = TestUtils.createBranchTxHusk(wallet);
+        TransactionHusk txHusk1 = createTx(wallet);
         log.debug("Test Transaction1: " + txHusk1.toString());
         log.debug("Test Transaction1 Address: " + txHusk1.getAddress());
 
-        assertTrue(txHusk1.verify());
-        assertArrayEquals(wallet.getAddress(), account.getAddress());
-        assertArrayEquals(wallet.getAddress(), txHusk1.getAddress().getBytes());
+        assertThat(txHusk1.verify()).isTrue();
+        assertThat(wallet.getAddress()).isEqualTo(account.getAddress());
+        assertThat(wallet.getAddress()).isEqualTo(txHusk1.getAddress().getBytes());
 
         byte[] hashedRawData = txHusk1.getHashForSigning().getBytes();
         log.debug("hashedRawData: " + Hex.toHexString(hashedRawData));
@@ -155,15 +132,25 @@ public class TransactionHuskTest {
         log.debug("address: " + Hex.toHexString(address));
         log.debug("pubKey: " + Hex.toHexString(pubKey));
 
-        assertArrayEquals(account.getAddress(), address);
-        assertArrayEquals(account.getKey().getPubKey(), pubKey);
+        assertThat(account.getAddress()).isEqualTo(address);
+        assertThat(account.getKey().getPubKey()).isEqualTo(pubKey);
     }
 
     @Test
     public void shouldBeSignedTransaction() {
-        txHusk.sign(TestUtils.wallet());
+        TransactionHusk tx1 = createTransferTx();
+        tx1.sign(TestConstants.wallet());
 
-        assertThat(txHusk.isSigned()).isTrue();
-        assertThat(txHusk.verify()).isTrue();
+        assertThat(tx1.isSigned()).isTrue();
+        assertThat(tx1.verify()).isTrue();
+    }
+
+    private TransactionHusk createTransferTx() {
+        return BlockChainTestUtils.createTransferTxHusk();
+    }
+
+    private TransactionHusk createTx(Wallet wallet) {
+        Transaction tx = BlockChainTestUtils.createTx(wallet, TestConstants.YEED, new JsonArray());
+        return new TransactionHusk(tx);
     }
 }

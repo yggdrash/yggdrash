@@ -82,24 +82,21 @@ public class GenesisBlock {
         jsonArrayTxBody.add(jsonObjectTx);
 
         jsonObjectTx.addProperty("method", "genesis");
-        JsonArray params = toGenesisParams();
+        JsonObject params = toGenesisParams();
         jsonObjectTx.add("params", params);
         jsonObjectTx.add("branch", branch.getJson());
 
         return jsonArrayTxBody;
     }
 
-    private JsonArray toGenesisParams() {
-        JsonArray params = new JsonArray();
+    private JsonObject toGenesisParams() {
         if (branch.isStem()) {
-            JsonObject param = new JsonObject();
-            param.add(branch.getBranchId().toString(), branch.getJson());
-            params.add(param);
+            JsonObject params = new JsonObject();
+            params.add(branch.getBranchId().toString(), branch.getJson());
+            return params;
         } else {
-            params.add(branch.getJson().get("genesis"));
+            return branch.getJson().getAsJsonObject("genesis");
         }
-
-        return params;
     }
 
     private JsonObject toJsonObject(JsonObject header, JsonArray body) {
