@@ -64,7 +64,7 @@ public class RuntimeTest {
                 .isEqualTo(BigDecimal.valueOf(1000000000));
     }
 
-    @Test
+//    @Test
 //    public void stemRuntimeTest() throws Exception {
 //        StemContract contract = new StemContract();
 //        Runtime<StemContractStateValue> runtime =

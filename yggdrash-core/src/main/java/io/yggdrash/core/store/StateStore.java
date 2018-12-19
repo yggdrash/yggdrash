@@ -2,9 +2,12 @@ package io.yggdrash.core.store;
 
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.store.datasource.DbSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,8 +15,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 
 public class StateStore<T> implements Store<String, JsonObject> {
@@ -115,7 +116,7 @@ public class StateStore<T> implements Store<String, JsonObject> {
             byte[] dbSizeByteArray = Longs.toByteArray(this.dbSize);
             db.put(DATABASE_SIZE, dbSizeByteArray);
         }
-        byte[] tempValue = value.toString().getBytes();
+        byte[] tempValue = value.toString().getBytes(StandardCharsets.UTF_8);
         db.put(key.getBytes(), tempValue);
     }
 
@@ -125,8 +126,8 @@ public class StateStore<T> implements Store<String, JsonObject> {
         if(result == null) {
             return null;
         }
-        JsonObject obj = new JsonParser().parse(new String(result)).getAsJsonObject();
-        return obj;
+        String tempValue = new String(result, StandardCharsets.UTF_8);
+        return Utils.parseJsonObject(tempValue);
     }
 
     // TODO remove getAllKey

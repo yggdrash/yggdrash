@@ -17,8 +17,10 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.Branch;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -34,6 +36,18 @@ public class StemContractStateValue extends Branch {
 
     public StemContractStateValue(JsonObject json) {
         super(json);
+
+        if (json.has("type")) {
+            this.type = BranchType.of(getJson().get("type").getAsString());
+        }
+        if (json.has("tag")) {
+            this.tag = getJson().get("tag").getAsString();
+        }
+        if (json.has("contractHistory")) {
+            for (JsonElement jsonElement : json.getAsJsonArray("contractHistory")) {
+                contractHistory.add(ContractId.of(jsonElement.getAsString()));
+            }
+        }
     }
 
     public void init() {
@@ -95,7 +109,7 @@ public class StemContractStateValue extends Branch {
     }
 
     public static StemContractStateValue of(JsonObject json) {
-        return new StemContractStateValue(json);
+        return new StemContractStateValue(json.deepCopy());
     }
 
 }

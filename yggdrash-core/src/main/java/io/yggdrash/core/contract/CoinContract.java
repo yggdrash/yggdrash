@@ -235,23 +235,16 @@ public class CoinContract extends BaseContract<JsonObject>
 
     private void addBalanceTo(String to, BigDecimal amount) {
         BigDecimal balance = getBalance(to);
-        if (balance == BigDecimal.ZERO) {
-            putBalance(to, amount);
-        }else {
-            balance = balance.add(amount);
-        }
-        putBalance(to, balance);
+        putBalance(to, balance.add(amount));
     }
 
     private BigDecimal getBalance(String key) {
         JsonObject storeValue = state.get(key);
-        String balance = null;
-        if(storeValue.has("balance")) {
-            balance = storeValue.get("balance").getAsString();
+        if (storeValue != null && storeValue.has("balance")) {
+            return storeValue.get("balance").getAsBigDecimal();
         } else {
             return BigDecimal.ZERO;
         }
-        return new BigDecimal(balance);
     }
 
     private void putBalance(String key, BigDecimal value) {

@@ -49,7 +49,7 @@ public class StemContractTest {
         JsonObject json = ContractTestUtils.createSampleBranchJson();
         stateValue = StemContractStateValue.of(json);
         stemContract.sender = stateValue.getOwner().toString();
-        JsonObject param = createParam(stateValue.getJson());
+        JsonObject param = createParam(json);
         stemContract.genesis(param);
     }
 
@@ -75,7 +75,7 @@ public class StemContractTest {
 
         JsonObject saved = stemContract.state.get(branchId);
         assertThat(saved).isNotNull();
-        assertThat(saved.get("description")).isEqualTo(description);
+        assertThat(saved.get("description").getAsString()).isEqualTo(description);
     }
 
     @Test
