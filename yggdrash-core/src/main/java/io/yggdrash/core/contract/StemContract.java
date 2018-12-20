@@ -51,12 +51,13 @@ public class StemContract extends BaseContract<JsonObject> {
                 log.warn("Failed to convert Branch = {}", json);
                 continue;
             }
-            if (state.get(branchId.toString()) == null && isBranchIdValid(branchId, stateValue)) {
+            if (!isBranchExist(branchId.toString()) && isBranchIdValid(branchId, stateValue)) {
                 try {
                     stateValue.init();
+                    // Branch ID 추가부터
+                    addBranchId(branchId);
                     state.put(branchId.toString(), stateValue.getJson());
                     setSubState(branchId.toString(), stateValue.getJson());
-                    addBranchId(branchId);
                     txReceipt.setStatus(TransactionReceipt.SUCCESS);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -172,7 +173,7 @@ public class StemContract extends BaseContract<JsonObject> {
      * @return list of all branch id
      */
     // TODO REMOVE getAllBranchID
-    public List<String> getallbranchid(JsonObject param) {
+    public List<String> getallbranchid() {
         JsonObject branchList = state.get(branchIdListKey);
         if (branchList == null) {
             return Collections.emptyList();
@@ -190,15 +191,17 @@ public class StemContract extends BaseContract<JsonObject> {
     }
 
     private void addBranchId(BranchId newBranchId) {
-        JsonArray branchIds = new JsonArray();
-        for (String branchId : getallbranchid(null)) {
-            branchIds.add(branchId);
-        }
+        if(!isBranchExist(newBranchId.toString())){
+            JsonArray branchIds = new JsonArray();
+            for (String branchId : getallbranchid()) {
+                branchIds.add(branchId);
+            }
+            JsonObject obj = new JsonObject();
+            branchIds.add(newBranchId.toString());
+            obj.add("branchIds", branchIds);
+            state.put(branchIdListKey, obj);
 
-        branchIds.add(newBranchId.toString());
-        JsonObject obj = new JsonObject();
-        obj.add("branchIds", branchIds);
-        state.put(branchIdListKey, obj);
+        }
     }
 
     private boolean isOwnerValid(String owner) {
