@@ -14,6 +14,7 @@ public class TransactionReceiptStore {
 
     private final DbSource<byte[], byte[]> db;
 
+    // TODO Remove txReceiptStore
     private final Map<String, TransactionReceipt> txReceiptStore = new ConcurrentHashMap<>();
 
     public void put(String txHash, TransactionReceipt txReceipt) {
@@ -30,5 +31,6 @@ public class TransactionReceiptStore {
 
     public void close() {
         this.db.close();
+        txReceiptStore.clear();
     }
 }
