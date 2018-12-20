@@ -158,10 +158,9 @@ public class StemContract extends BaseContract<StemContractStateValue> {
     /**
      * Returns a list contains all branch id
      *
-     * @param params none
      * @return list of all branch id
      */
-    public List<String> getallbranchid(JsonObject params) {
+    public List<String> getallbranchid() {
         return state.getAllKey();
     }
 

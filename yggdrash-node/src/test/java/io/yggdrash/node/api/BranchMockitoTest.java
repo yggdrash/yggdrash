@@ -18,7 +18,7 @@ package io.yggdrash.node.api;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchGroup;
@@ -46,8 +46,8 @@ public class BranchMockitoTest {
         BlockChain blockChain = BlockChainTestUtils.createBlockChain(false);
         when(branchGroupMock.getAllBranch()).thenReturn(Collections.singleton(blockChain));
         for (Map.Entry<String, BranchDto> entry : branchApiImpl.getBranches().entrySet()) {
-            String jsonString = Utils.convertObjToString(entry.getValue());
-            JsonObject json = Utils.parseJsonObject(jsonString);
+            String jsonString = JsonUtil.convertObjToString(entry.getValue());
+            JsonObject json = JsonUtil.parseJsonObject(jsonString);
             Branch branch = Branch.of(json);
             assertThat(entry.getKey()).isEqualTo(branch.getBranchId().toString());
         }

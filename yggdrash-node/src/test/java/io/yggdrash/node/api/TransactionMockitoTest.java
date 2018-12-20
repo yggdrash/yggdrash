@@ -75,7 +75,7 @@ public class TransactionMockitoTest {
         txList.add(tx);
         txList.add(tx);
         txReceipt = new TransactionReceipt();
-        txReceipt.setTransactionHash(txId);
+        txReceipt.setTxId(txId);
         txReceiptStore.put(txId, txReceipt);
         BlockHusk genesis = BlockChainTestUtils.genesisBlock();
         block = new BlockHusk(TestConstants.wallet(), txList, genesis);
@@ -100,7 +100,7 @@ public class TransactionMockitoTest {
         when(branchGroupMock.getTxByHash(tx.getBranchId(), txId)).thenReturn(tx);
         TransactionDto res = txApiImpl.getTransactionByHash(tx.getBranchId().toString(), txId);
         assertThat(res).isNotNull();
-        assertEquals(res.hash, txId);
+        assertEquals(res.txId, txId);
     }
 
     @Test
@@ -108,7 +108,7 @@ public class TransactionMockitoTest {
         when(branchGroupMock.getBlockByHash(tx.getBranchId(), blockId)).thenReturn(block);
         TransactionDto res = txApiImpl.getTransactionByBlockHash(
                 tx.getBranchId().toString(), blockId, 0);
-        assertEquals(res.hash, txId);
+        assertEquals(res.txId, txId);
     }
 
     @Test
@@ -119,14 +119,14 @@ public class TransactionMockitoTest {
                 branchId.toString(), 0, 0);
         TransactionDto res2 = txApiImpl.getTransactionByBlockNumber(
                 branchId.toString(), "latest", 0);
-        assertEquals(res.hash, res2.hash);
+        assertEquals(res.txId, res2.txId);
     }
 
     @Test
     public void getTransactionReceiptTest() {
         when(txReceiptStoreMock.get(txId)).thenReturn(txReceipt);
         TransactionReceipt res = txApiImpl.getTransactionReceipt(branchId.toString(), txId);
-        assertEquals(res.getTransactionHash(), txId);
+        assertEquals(res.getTxId(), txId);
     }
 
     @Test

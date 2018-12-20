@@ -16,6 +16,8 @@
 
 package io.yggdrash.core.contract;
 
+import io.yggdrash.common.util.JsonUtil;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,10 +25,10 @@ public class TransactionReceipt {
     public static final int FALSE = 0;
     public static final int SUCCESS = 1;
 
-    private String transactionHash;
-    private String blockHash;
+    private String txId;
+    private String blockId;
     private final int yeedUsed = 30000;
-    private String branchAddress;
+    private String branchId;
     private final Map<String, Object> txLog = new HashMap<>();
     private int status = FALSE;
 
@@ -42,24 +44,24 @@ public class TransactionReceipt {
         this.status = status;
     }
 
-    public void setTransactionHash(String transactionHash) {
-        this.transactionHash = transactionHash;
+    public void setTxId(String txId) {
+        this.txId = txId;
     }
 
-    public String getTransactionHash() {
-        return transactionHash;
+    public String getTxId() {
+        return txId;
     }
 
-    public String getBlockHash() {
-        return blockHash;
+    public String getBlockId() {
+        return blockId;
     }
 
     public int getYeedUsed() {
         return yeedUsed;
     }
 
-    public String getBranchAddress() {
-        return branchAddress;
+    public String getBranchId() {
+        return branchId;
     }
 
     public Map<String, Object> getTxLog() {
@@ -74,9 +76,9 @@ public class TransactionReceipt {
         return status == SUCCESS;
     }
 
-    public static TransactionReceipt errorReceipt(String transactionHash, Throwable e) {
+    public static TransactionReceipt errorReceipt(String txId, Throwable e) {
         TransactionReceipt txReceipt = new TransactionReceipt();
-        txReceipt.setTransactionHash(transactionHash);
+        txReceipt.setTxId(txId);
         txReceipt.setStatus(TransactionReceipt.FALSE);
         txReceipt.putLog("Error", e);
         return txReceipt;
@@ -84,13 +86,6 @@ public class TransactionReceipt {
 
     @Override
     public String toString() {
-        return "TransactionReceipt{"
-                + "transactionHash='" + transactionHash + '\''
-                + ", blockHash='" + blockHash + '\''
-                + ", yeedUsed=" + yeedUsed
-                + ", branchAddress='" + branchAddress + '\''
-                + ", txLog=" + txLog
-                + ", status=" + status
-                + '}';
+        return JsonUtil.convertObjToString(this);
     }
 }

@@ -73,7 +73,7 @@ public class TransactionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.countOfTotal", is(1)))
                 .andExpect(jsonPath("$.txs", hasSize(1)))
-                .andExpect(jsonPath("$.txs[0].chain", is(stem.getBranchId().toString())));
+                .andExpect(jsonPath("$.txs[0].branchId", is(stem.getBranchId().toString())));
     }
 
     @Test
@@ -90,9 +90,9 @@ public class TransactionControllerTest {
                 .andReturn().getResponse();
 
         assertThat(postResponse.getContentAsString()).contains("create");
-        String postTxHash = json.parseObject(postResponse.getContentAsString()).hash;
+        String txId = json.parseObject(postResponse.getContentAsString()).txId;
 
-        MockHttpServletResponse getResponse = mockMvc.perform(get(basePath + "/" + postTxHash))
+        MockHttpServletResponse getResponse = mockMvc.perform(get(basePath + "/" + txId))
                 .andExpect(status().isOk())
                 .andDo(print())
                 .andReturn().getResponse();

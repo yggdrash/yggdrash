@@ -5,9 +5,10 @@ import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.FileUtil;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.api.dto.AdminDto;
 import org.slf4j.Logger;
@@ -254,13 +255,12 @@ public class AdminApiImpl implements AdminApi {
             return false;
         }
 
-        this.header = Utils.parseJsonObject(command.getHeader());
+        this.header = JsonUtil.parseJsonObject(command.getHeader());
         this.signature = command.getSignature();
-        this.body = Utils.parseJsonArray(command.getBody());
+        this.body = JsonUtil.parseJsonArray(command.getBody());
 
         // body length check
-        long bodyLength = ByteUtil.byteArrayToLong(
-                Hex.decode(header.get("bodyLength").getAsString()));
+        long bodyLength = HexUtil.hexStringToLong(header.get("bodyLength").getAsString());
 
         if (body.toString().length() != bodyLength) {
             errorMsg.append(" BodyLength is not valid.");
@@ -268,8 +268,7 @@ public class AdminApiImpl implements AdminApi {
         }
 
         // timestamp check (3 min)
-        long timestamp = ByteUtil.byteArrayToLong(
-                Hex.decode(header.get("timestamp").getAsString()));
+        long timestamp = HexUtil.hexStringToLong(header.get("timestamp").getAsString());
         if (timestamp < System.currentTimeMillis() - (COMMAND_ACTIVE_TIME)) {
             log.error("Timestamp is not valid.");
             errorMsg.append(" Timestamp is not valid.");

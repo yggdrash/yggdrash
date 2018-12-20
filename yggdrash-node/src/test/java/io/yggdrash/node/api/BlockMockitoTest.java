@@ -75,7 +75,7 @@ public class BlockMockitoTest {
         when(branchGroupMock.getBlockByHash(branchId, blockId)).thenReturn(block);
         BlockDto res = blockApiImpl.getBlockByHash(branchId.toString(), blockId, true);
         assertThat(res).isNotNull();
-        assertEquals(res.hash, blockId);
+        assertEquals(res.blockId, blockId);
     }
 
     @Test
@@ -83,7 +83,7 @@ public class BlockMockitoTest {
         when(branchGroupMock.getBlockByIndex(branchId, numOfBlock)).thenReturn(block);
         BlockDto res = blockApiImpl.getBlockByNumber(branchId.toString(), numOfBlock, true);
         assertThat(res).isNotNull();
-        assertEquals(res.hash, blockId);
+        assertEquals(res.blockId, blockId);
     }
 
     @Test(expected = NonExistObjectException.class)

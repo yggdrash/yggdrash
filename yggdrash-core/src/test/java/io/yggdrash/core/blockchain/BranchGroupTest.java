@@ -18,7 +18,6 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.exception.DuplicatedException;
@@ -27,8 +26,8 @@ import org.junit.Test;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
-import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BranchGroupTest {
@@ -112,21 +111,18 @@ public class BranchGroupTest {
     public void getContract() throws Exception {
         Contract contract = branchGroup.getContract(block.getBranchId());
         assertThat(contract).isNotNull();
-        JsonObject query = ContractTestUtils.createQuery(block.getBranchId(),
-                "getAllBranchId", new JsonObject());
-        JsonObject resultObject = contract.query(query);
-        String result = resultObject.get("result").getAsString();
+        String result = contract.query("getAllBranchId", null).toString();
         assertThat(result).contains(block.getBranchId().toString());
     }
 
     @Test
     public void query() {
-        JsonObject params = ContractTestUtils.createParams(BRANCH_ID,
-                "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        JsonObject query =
-                ContractTestUtils.createQuery(block.getBranchId(), "view", params);
-        JsonObject result = branchGroup.query(query);
-        assertThat(result.toString()).contains("result");
+        JsonObject params = new JsonObject();
+        params.addProperty("key", "symbol");
+        params.addProperty("value", "STEM");
+
+        Set<Object> result = (Set<Object>)branchGroup.query(block.getBranchId(), "search", params);
+        assertThat(result).isNotEmpty();
     }
 
     private BlockHusk newBlock(List<TransactionHusk> body, BlockHusk prevBlock) {

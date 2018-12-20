@@ -7,7 +7,7 @@ import java.math.BigDecimal;
 public interface CoinStandard {
 
     // Query
-    BigDecimal totalsupply(JsonObject params);
+    BigDecimal totalsupply();
 
     BigDecimal balanceof(JsonObject params);
 
