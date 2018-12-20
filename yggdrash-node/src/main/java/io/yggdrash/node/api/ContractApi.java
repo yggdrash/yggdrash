@@ -6,17 +6,24 @@ import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
 import io.yggdrash.core.exception.NonExistObjectException;
 
+import java.util.Map;
+
 @JsonRpcService("/api/contract")
 public interface ContractApi {
 
     /**
      * Handles all queries that are dispatched to the contract
-     * @param data query string
+     *
+     * @param branchId branch id of contract
+     * @param method query method
+     * @param params query params
      * @return result of query
      * @throws Exception exception
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    String query(@JsonRpcParam(value = "data") String data) throws Exception;
+    Object query(@JsonRpcParam(value = "branchId") String branchId,
+                 @JsonRpcParam(value = "method") String method,
+                 @JsonRpcParam(value = "params") Map params) throws Exception;
 }

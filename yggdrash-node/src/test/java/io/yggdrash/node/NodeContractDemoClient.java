@@ -7,8 +7,9 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.common.util.TimeUtils;
-import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
@@ -16,6 +17,7 @@ import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.node.api.BranchApi;
 import io.yggdrash.node.api.ContractApi;
+import io.yggdrash.node.api.ContractApiImplTest;
 import io.yggdrash.node.api.JsonRpcConfig;
 import io.yggdrash.node.api.TransactionApi;
 import io.yggdrash.node.api.dto.TransactionDto;
@@ -30,10 +32,15 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static io.yggdrash.common.config.Constants.CONTRACT_ID;
 
 public class NodeContractDemoClient {
 
@@ -49,7 +56,7 @@ public class NodeContractDemoClient {
     private static final int TRANSFER_AMOUNT = 1;
 
     public static void main(String[] args) throws Exception {
-        while (true) {
+        for (int i = 0; i < 10000; i++) {
             run();
         }
     }
@@ -141,44 +148,28 @@ public class NodeContractDemoClient {
     private static void sendGeneralTxOrQuery() throws Exception {
         String branchId = getBranchId();
         String serverAddress = getServerAddress();
-        List<String> methodList = specificationOf(branchId, serverAddress);
+        List<String> methodList = (List<String>)rpc.proxyOf(serverAddress, ContractApi.class)
+                .query(branchId, "specification", null);
         System.out.println("\n해당 컨트랙트의 메소드 스펙입니다.");
         methodList.forEach(System.out::println);
 
         int index = getMethodIndex(methodList);
-        String selectedMethod = getMethodName(index, methodList);
+        String selectedMethod = MethodNameParser.parse(methodList.get(index));
         if (methodList.get(index).contains("TransactionReceipt")) {
             TransactionHusk tx = createTx(branchId, selectedMethod);
             System.out.println("tx => " + tx);
             rpc.proxyOf(serverAddress, TransactionApi.class)
                     .sendTransaction(TransactionDto.createBy(tx));
         } else {
-            String query = createQueryObj(branchId, selectedMethod);
-            System.out.println("query => " + query);
-            rpc.proxyOf(serverAddress, ContractApi.class).query(query);
+            Map params = createParams();
+            rpc.proxyOf(serverAddress, ContractApi.class).query(branchId, selectedMethod, params);
         }
-    }
-
-    private static List<String> specificationOf(String branchId, String serverAddress) {
-        String query = createQueryString(BranchId.of(branchId), "specification", new JsonObject());
-        List<String> methods = new ArrayList<>();
-        try {
-            System.out.println("query => " + query);
-            String json = rpc.proxyOf(serverAddress, ContractApi.class).query(query);
-            JsonObject jsonObject = Utils.parseJsonObject(json);
-            String result = jsonObject.get("result").getAsString();
-
-            methods = Arrays.asList(result.split(","));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return methods;
     }
 
     private static int getMethodIndex(List<String> methodList) {
         System.out.println("\n실행할 메소드의 번호를 입력하세요.");
         for (int i = 0; i < methodList.size(); i++) {
-            System.out.println("[" + i + "] " + getMethodName(i, methodList));
+            System.out.println("[" + i + "] " + MethodNameParser.parse(methodList.get(i)));
         }
         System.out.println(">");
         String input = scan.nextLine();
@@ -186,15 +177,7 @@ public class NodeContractDemoClient {
         return input.length() > 0 ? Integer.parseInt(input) : 0;
     }
 
-    private static String getMethodName(int index, List<String> methodList) {
-        String method = methodList.get(index);
-        String[] element = method.split(" ");
-        String[] func = element[2].split("\\.");
-
-        return func[5].substring(0, func[5].indexOf("("));
-    }
-
-    private static String createQueryObj(String branchId, String method) {
+    private static Map createParams() {
         System.out.println("\n파라미터의 갯수를 선택해주세요.");
         System.out.println("[0] No parameter {}");
         System.out.println("[1] 1 parameter  {key : value}");
@@ -202,33 +185,33 @@ public class NodeContractDemoClient {
         System.out.println("[3] 직접 입력      {key : value, key : value ...}");
         System.out.println(">");
 
-        JsonObject param = new JsonObject();
+        Map params = new HashMap();
         switch (scan.nextLine()) {
             case "1":
                 System.out.println("key => ");
                 String key = scan.nextLine();
                 System.out.println("value => ");
                 String value = scan.nextLine();
-                param.addProperty(key, value);
+                params.put(key, value);
                 break;
             case "2":
                 System.out.println("key1 => ");
                 String key1 = scan.nextLine();
                 System.out.println("value1 => ");
                 String value1 = scan.nextLine();
-                param.addProperty(key1, value1);
+                params.put(key1, value1);
 
                 System.out.println("key2 => ");
                 String key2 = scan.nextLine();
                 System.out.println("value2 => ");
                 String value2 = scan.nextLine();
-                param.addProperty(key2, value2);
+                params.put(key2, value2);
                 break;
             case "3":
                 try {
                     System.out.println("=> ");
-                    String input = scan.nextLine();
-                    param = Utils.parseJsonObject(input);
+                    JsonObject json = JsonUtil.parseJsonObject(scan.nextLine());
+                    params = JsonUtil.convertJsonToMap(json);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -236,7 +219,8 @@ public class NodeContractDemoClient {
             default:
                 break;
         }
-        return createQueryString(BranchId.of(branchId), method, param);
+        System.out.println("params => " + params.toString());
+        return params;
     }
 
     private static TransactionHusk createTx(String branchId, String method) {
@@ -248,9 +232,9 @@ public class NodeContractDemoClient {
 
         if (scan.nextLine().equals("Y")) {
             System.out.println("=> ");
-            JsonObject param = Utils.parseJsonObject(scan.nextLine());
+            JsonObject params = JsonUtil.parseJsonObject(scan.nextLine());
 
-            txBody = ContractTestUtils.txBodyJson(method, param);
+            txBody = ContractTestUtils.txBodyJson(method, params);
         } else {
             switch (method) {
                 case "approve":
@@ -280,6 +264,8 @@ public class NodeContractDemoClient {
                     txBody = CoinContractTestUtils.createTransferFromBody(from, to, amount);
                     break;
                 default:
+                    System.err.println("unknown " + method);
+                    createTx(branchId, method);
                     break;
             }
         }
@@ -309,11 +295,10 @@ public class NodeContractDemoClient {
 
     private static void view() throws Exception {
         String branchId = getBranchId();
-        JsonObject param = createParam("branchId", branchId);
-        String query = createQueryString(STEM, "view", param);
+        Map params = ContractApiImplTest.createParams(BRANCH_ID, branchId);
 
         String serverAddress = getServerAddress();
-        rpc.proxyOf(serverAddress, ContractApi.class).query(query);
+        rpc.proxyOf(serverAddress, ContractApi.class).query(branchId, "view", params);
     }
 
     private static void update() {
@@ -346,9 +331,9 @@ public class NodeContractDemoClient {
         String contractId = scan.nextLine();
 
         if ("".equals(contractId)) {
-            contractId = json.get("contractId").getAsString();
+            contractId = json.get(CONTRACT_ID).getAsString();
         }
-        json.addProperty("contractId", contractId);
+        json.addProperty(CONTRACT_ID, contractId);
 
         ContractTestUtils.signBranch(TestConstants.wallet(), json);
         Branch branch = Branch.of(json);
@@ -362,11 +347,11 @@ public class NodeContractDemoClient {
 
     private static void balance() throws Exception {
         System.out.println("조회할 주소를 적어주세요\n>");
-        JsonObject param = createParam("address", scan.nextLine());
-        String query = createQueryString(YEED, "balanceOf", param);
+        Map params = ContractApiImplTest.createParams("address", scan.nextLine());
 
         String serverAddress = getServerAddress();
-        rpc.proxyOf(serverAddress, ContractApi.class).query(query);
+        rpc.proxyOf(serverAddress, ContractApi.class)
+                .query(YEED.toString(), "balanceOf", params);
     }
 
     private static JsonObject getBranch() {
@@ -385,7 +370,7 @@ public class NodeContractDemoClient {
     }
 
     private static String getServerAddress() {
-        System.out.println(String.format("전송할 노드 : [1] 로컬 [2] 스테이지(%s) [3] 운영(%s) \n>",
+        System.out.println(String.format("전송할 노드 : [1] 로컬 [2] 스테이지(%s) [3] 운영(%s) [4] 직접 입력\n>",
                 SERVER_STG, SERVER_PROD));
 
         String num = scan.nextLine();
@@ -394,13 +379,16 @@ public class NodeContractDemoClient {
                 return SERVER_STG;
             case "3":
                 return SERVER_PROD;
+            case "4":
+                System.out.println("서버 주소 => ");
+                return scan.nextLine();
             default:
                 return "localhost";
         }
     }
 
     private static String getBranchId() {
-        System.out.println("트랜잭션의 브랜치 아이디 : [1] STEM [2] YEED [3] etc\n>");
+        System.out.println("트랜잭션의 브랜치 아이디 : [1] STEM [2] YEED [3] etc(직접 입력)\n>");
 
         String branchId = scan.nextLine();
         switch (branchId) {
@@ -408,6 +396,9 @@ public class NodeContractDemoClient {
                 return STEM.toString();
             case "2":
                 return YEED.toString();
+            case "3":
+                System.out.println("브랜치 아이디 => ");
+                return scan.nextLine();
             default:
                 return branchId;
         }
@@ -429,9 +420,10 @@ public class NodeContractDemoClient {
         Resource resource = new DefaultResourceLoader().getResource(seedPath);
         try (InputStream is = resource.getInputStream()) {
             Reader json = new InputStreamReader(is, StandardCharsets.UTF_8);
-            JsonObject jsonObject = Utils.parseJsonObject(json);
+            JsonObject jsonObject = JsonUtil.parseJsonObject(json);
             if (!jsonObject.has("timestamp")) {
-                jsonObject.addProperty("timestamp", TimeUtils.hexTime());
+                long timestamp = TimeUtils.time();
+                jsonObject.addProperty("timestamp", HexUtil.toHexString(timestamp));
             }
             return jsonObject;
         } catch (Exception e) {
@@ -448,8 +440,9 @@ public class NodeContractDemoClient {
             throws IOException {
         String branchPath = new DefaultConfig().getBranchPath();
         File branchDir = new File(branchPath, branchId.toString());
-        if (!branchDir.exists()) {
-            branchDir.mkdirs();
+        if (!branchDir.exists() && !branchDir.mkdirs()) {
+            System.err.println("can't create branch dir at " + branchDir);
+            return;
         }
         File file = new File(branchDir, BranchLoader.BRANCH_FILE);
         FileWriter fileWriter = new FileWriter(file); //overwritten
@@ -460,17 +453,20 @@ public class NodeContractDemoClient {
         System.out.println("created at " + file.getAbsolutePath());
     }
 
-    private static JsonObject createParam(String key, String value) {
-        return ContractTestUtils.createParam(key, value);
-    }
-
-    private static String createQueryString(BranchId branchId, String method, JsonObject param) {
-        return ContractTestUtils.createQuery(branchId, method, param).toString();
-    }
-
     private static TransactionHusk createTxHusk(BranchId branchId, JsonArray txBody) {
         return BlockChainTestUtils.createTxHusk(branchId, txBody);
     }
 
+    static class MethodNameParser {
+        static final Pattern p = Pattern.compile(".*\\.([a-zA-Z]*)\\(.*\\)");
+
+        static String parse(String name) {
+            Matcher m = p.matcher(name);
+            if (m.matches()) {
+                return "" + m.group(1);
+            }
+            return "unknown";
+        }
+    }
 }
 

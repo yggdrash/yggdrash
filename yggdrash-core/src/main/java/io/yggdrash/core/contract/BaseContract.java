@@ -1,8 +1,7 @@
 package io.yggdrash.core.contract;
 
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.StateStore;
@@ -10,7 +9,6 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,54 +28,47 @@ public abstract class BaseContract<T> implements Contract<T> {
     @Override
     public boolean invoke(TransactionHusk txHusk) {
         TransactionReceipt txReceipt;
-        String transactionHash = txHusk.getHash().toString();
+        String txId = txHusk.getHash().toString();
         try {
             this.sender = txHusk.getAddress().toString();
-            JsonObject txBody = Utils.parseJsonArray(txHusk.getBody()).get(0).getAsJsonObject();
+            JsonObject txBody = JsonUtil.parseJsonArray(txHusk.getBody()).get(0).getAsJsonObject();
 
             dataFormatValidation(txBody);
 
             String method = txBody.get("method").getAsString().toLowerCase();
-            JsonObject param = txBody.get("param").getAsJsonObject();
-
-            txReceipt = (TransactionReceipt) this.getClass()
-                    .getMethod(method, JsonObject.class)
-                    .invoke(this, param);
+            if (txBody.has("params")) {
+                JsonObject params = txBody.getAsJsonObject("params");
+                txReceipt = (TransactionReceipt) this.getClass().getMethod(method, JsonObject.class)
+                        .invoke(this, params);
+            } else {
+                txReceipt = (TransactionReceipt) this.getClass().getMethod(method)
+                        .invoke(this);
+            }
             txReceipt.putLog("method", method);
-            txReceipt.setTransactionHash(transactionHash);
-            txReceiptStore.put(txReceipt.getTransactionHash(), txReceipt);
+            txReceipt.setTxId(txId);
+            txReceiptStore.put(txReceipt.getTxId(), txReceipt);
         } catch (Throwable e) {
-            txReceipt = TransactionReceipt.errorReceipt(transactionHash, e);
+            txReceipt = TransactionReceipt.errorReceipt(txId, e);
             txReceiptStore.put(txHusk.getHash().toString(), txReceipt);
         }
         return txReceipt.isSuccess();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    public JsonObject query(JsonObject query) {
-        dataFormatValidation(query);
-
-        String method = query.get("method").getAsString().toLowerCase();
-        JsonObject param = query.get("param").getAsJsonObject();
-
-        JsonObject result = new JsonObject();
+    public Object query(String method, JsonObject params) {
         try {
-            Object res = getClass().getMethod(method, JsonObject.class).invoke(this, param);
-            if (res instanceof JsonElement) {
-                result.add("result", (JsonElement)res);
-            } else if (res instanceof Collection<?>) {
-                result.addProperty("result", collectionToString((Collection<Object>) res));
+            if (params != null) {
+                return getClass().getMethod(method.toLowerCase(), JsonObject.class)
+                        .invoke(this, params);
             } else {
-                result.addProperty("result", res.toString());
+                return getClass().getMethod(method.toLowerCase()).invoke(this);
             }
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
-        return result;
     }
 
-    public List<String> specification(JsonObject param) {
+    public List<String> specification() {
         List<String> methods = new ArrayList<>();
         getMethods(getClass(), methods);
 
@@ -100,21 +91,8 @@ public abstract class BaseContract<T> implements Contract<T> {
         if (data.get("method").getAsString().length() < 0) {
             throw new FailedOperationException("Empty method");
         }
-        if (!data.get("param").isJsonObject()) {
+        if (!data.get("params").isJsonObject()) {
             throw new FailedOperationException("Param must be JsonObject");
         }
-    }
-
-    private String collectionToString(Collection<Object> collection) {
-        StringBuilder sb = new StringBuilder();
-        for (Object obj : collection) {
-            String str = obj.toString();
-            if (sb.length() != 0) {
-                sb.append(",");
-            }
-            sb.append(str);
-        }
-
-        return sb.toString();
     }
 }

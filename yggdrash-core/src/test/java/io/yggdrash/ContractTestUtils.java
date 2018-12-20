@@ -19,7 +19,6 @@ package io.yggdrash;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.wallet.Wallet;
 import org.spongycastle.util.encoders.Hex;
 
@@ -27,32 +26,24 @@ import java.nio.charset.StandardCharsets;
 
 public class ContractTestUtils {
 
-    public static JsonObject createParam(String key, String value) {
-        JsonObject param = new JsonObject();
-        param.addProperty(key, value);
-        return param;
-    }
-
-    public static JsonObject createQuery(BranchId branchId, String method, JsonObject param) {
-        JsonObject query = new JsonObject();
-        query.addProperty("address", branchId.toString());
-        query.addProperty("method", method);
-        query.add("param", param);
-        return query;
+    public static JsonObject createParams(String key, String value) {
+        JsonObject params = new JsonObject();
+        params.addProperty(key, value);
+        return params;
     }
 
     public static JsonArray transferTxBodyJson(String to, long amount) {
-        JsonObject param = new JsonObject();
-        param.addProperty("address", to);
-        param.addProperty("amount", amount);
+        JsonObject params = new JsonObject();
+        params.addProperty("to", to);
+        params.addProperty("amount", amount);
 
-        return txBodyJson("transfer", param);
+        return txBodyJson("transfer", params);
     }
 
-    public static JsonArray txBodyJson(String method, JsonObject param) {
+    public static JsonArray txBodyJson(String method, JsonObject params) {
         JsonObject txObj = new JsonObject();
         txObj.addProperty("method", method);
-        txObj.add("param", param);
+        txObj.add("params", params);
 
         JsonArray txBody = new JsonArray();
         txBody.add(txObj);

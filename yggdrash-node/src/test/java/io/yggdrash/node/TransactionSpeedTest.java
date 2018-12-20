@@ -57,11 +57,11 @@ public class TransactionSpeedTest {
     @Before
     public void setUp() throws Exception {
 
-        JsonObject param = new JsonObject();
-        param.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
-        param.addProperty("amount", "10000000");
+        JsonObject params = new JsonObject();
+        params.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
+        params.addProperty("amount", "10000000");
 
-        JsonArray txArrayBody = ContractTestUtils.txBodyJson("tansfer", param);
+        JsonArray txArrayBody = ContractTestUtils.txBodyJson("tansfer", params);
 
         txBody = new TransactionBody(txArrayBody);
 

@@ -2,12 +2,13 @@ package io.yggdrash.core.store;
 
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.store.datasource.DbSource;
+
+import java.nio.charset.StandardCharsets;
+import io.yggdrash.common.util.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -48,7 +49,6 @@ public class StateStore<T> implements Store<String, JsonObject> {
     public long getStateSize() {
         return dbSize;
     }
-
 
     // TODO remove subState
     public  Map<Object, Set<Object>> getSubState(String key) {
@@ -99,7 +99,7 @@ public class StateStore<T> implements Store<String, JsonObject> {
             return null;
         }
         String tempValue = new String(result, StandardCharsets.UTF_8);
-        return Utils.parseJsonObject(tempValue);
+        return JsonUtil.parseJsonObject(tempValue);
     }
 
     // TODO remove getAllKey

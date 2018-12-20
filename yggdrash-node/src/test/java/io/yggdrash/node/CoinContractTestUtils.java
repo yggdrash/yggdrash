@@ -25,27 +25,27 @@ import java.math.BigDecimal;
 public class CoinContractTestUtils {
 
     public static JsonArray createTransferBody(String to, BigDecimal amount) {
-        JsonObject param = new JsonObject();
-        param.addProperty("to", to);
-        param.addProperty("amount", amount);
+        JsonObject params = new JsonObject();
+        params.addProperty("to", to);
+        params.addProperty("amount", amount);
 
-        return ContractTestUtils.txBodyJson("transfer", param);
+        return ContractTestUtils.txBodyJson("transfer", params);
     }
 
     public static JsonArray createApproveBody(String spender, BigDecimal amount) {
-        JsonObject param = new JsonObject();
-        param.addProperty("spender", spender);
-        param.addProperty("amount", amount);
+        JsonObject params = new JsonObject();
+        params.addProperty("spender", spender);
+        params.addProperty("amount", amount);
 
-        return ContractTestUtils.txBodyJson("approve", param);
+        return ContractTestUtils.txBodyJson("approve", params);
     }
 
     public static JsonArray createTransferFromBody(String from, String to, BigDecimal amount) {
-        JsonObject param = new JsonObject();
-        param.addProperty("from", from);
-        param.addProperty("to", to);
-        param.addProperty("amount", amount);
+        JsonObject params = new JsonObject();
+        params.addProperty("from", from);
+        params.addProperty("to", to);
+        params.addProperty("amount", amount);
 
-        return ContractTestUtils.txBodyJson("transferfrom", param);
+        return ContractTestUtils.txBodyJson("transferfrom", params);
     }
 }

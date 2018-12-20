@@ -30,6 +30,10 @@ public class PeerTable {
         for (int i = 0; i < KademliaOptions.BINS; i++) {
             buckets[i] = new PeerBucket(i);
         }
+
+        if (this.peerStore.size() > 0) {
+            this.peerStore.getAll().forEach(s -> addPeer(Peer.valueOf(s)));
+        }
     }
 
     synchronized Peer addPeer(Peer p) {
@@ -83,6 +87,12 @@ public class PeerTable {
     }
 
     private int getBucketId(Peer p) {
+        int id = p.getDistance() - 1;
+        return id < 0 ? 0 : id;
+    }
+
+    public int getTmpBucketId(Peer p) {
+        p.setDistance(owner);
         int id = p.getDistance() - 1;
         return id < 0 ? 0 : id;
     }

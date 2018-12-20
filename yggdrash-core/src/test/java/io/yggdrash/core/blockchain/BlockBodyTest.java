@@ -49,7 +49,7 @@ public class BlockBodyTest {
 
         JsonObject jsonObject1 = new JsonObject();
         jsonObject1.addProperty("method", "transfer");
-        jsonObject1.add("param", jsonParam1);
+        jsonObject1.add("params", jsonParam1);
 
         JsonObject jsonParam2 = new JsonObject();
         jsonParam2.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2001");
@@ -57,7 +57,7 @@ public class BlockBodyTest {
 
         JsonObject jsonObject2 = new JsonObject();
         jsonObject2.addProperty("method", "transfer");
-        jsonObject2.add("param", jsonParam2);
+        jsonObject2.add("params", jsonParam2);
 
         JsonArray jsonArray = new JsonArray();
         jsonArray.add(jsonObject1);

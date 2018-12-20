@@ -18,6 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NotValidateException;
@@ -75,11 +76,9 @@ public class TransactionHeader implements Cloneable {
         this.chain = Hex.decode(jsonObject.get("chain").getAsString());
         this.version = Hex.decode(jsonObject.get("version").getAsString());
         this.type = Hex.decode(jsonObject.get("type").getAsString());
-        this.timestamp = ByteUtil.byteArrayToLong(
-                Hex.decode(jsonObject.get("timestamp").getAsString()));
+        this.timestamp = HexUtil.hexStringToLong(jsonObject.get("timestamp").getAsString());
         this.bodyHash = Hex.decode(jsonObject.get("bodyHash").getAsString());
-        this.bodyLength = ByteUtil.byteArrayToLong(
-                Hex.decode(jsonObject.get("bodyLength").getAsString()));
+        this.bodyLength = HexUtil.hexStringToLong(jsonObject.get("bodyLength").getAsString());
     }
 
     public TransactionHeader(byte[] txHeaderBytes) {
@@ -138,7 +137,7 @@ public class TransactionHeader implements Cloneable {
         return this.timestamp;
     }
 
-    public byte[] getBodyHash() {
+    byte[] getBodyHash() {
         return this.bodyHash;
     }
 

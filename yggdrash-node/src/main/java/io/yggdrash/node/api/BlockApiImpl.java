@@ -34,9 +34,9 @@ public class BlockApiImpl implements BlockApi {
     }
 
     @Override
-    public BlockDto getBlockByHash(String branchId, String hashOfBlock, Boolean bool) {
+    public BlockDto getBlockByHash(String branchId, String blockId, Boolean bool) {
         try {
-            BlockHusk blockHusk = branchGroup.getBlockByHash(BranchId.of(branchId), hashOfBlock);
+            BlockHusk blockHusk = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
             return BlockDto.createBy(blockHusk);
         } catch (Exception exception) {
             throw new NonExistObjectException("block");

@@ -22,7 +22,7 @@ import io.yggdrash.core.wallet.Wallet;
 
 public class TestConstants {
     public static final BranchId STEM = BranchId.of("91b29a1453258d72ca6fbbcabb8dca10cca944fb");
-    public static final BranchId YEED = BranchId.of("d872b5a338b824dc56abc6015543496670d81c1b");
+    public static final BranchId YEED = BranchId.of("61dcf9cf6ed382f39f56a1094e2de4d9aa54bf94");
 
     public static final String TRANSFER_TO = "e1980adeafbb9ac6c9be60955484ab1547ab0b76";
     private static final Wallet wallet;

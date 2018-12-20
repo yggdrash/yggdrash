@@ -42,9 +42,9 @@ public class Runtime<T> {
         return contract.invoke(tx);
     }
 
-    public JsonObject query(Contract<T> contract, JsonObject query) throws Exception {
+    public Object query(Contract<T> contract, String method, JsonObject params) throws Exception {
         contract.init(stateStore, txReceiptStore);
-        return contract.query(query);
+        return contract.query(method, params);
     }
 
     public StateStore<T> getStateStore() {

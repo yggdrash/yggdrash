@@ -1,8 +1,5 @@
 package io.yggdrash.node.api;
 
-import com.google.gson.JsonObject;
-import io.yggdrash.ContractTestUtils;
-import io.yggdrash.TestConstants;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,20 +26,6 @@ public class AccountApiImplTest {
             assertThat(ACCOUNT_API.accounts()).isNotEmpty();
         } catch (Exception exception) {
             log.debug("accountsTest :: exception : " + exception);
-        }
-    }
-
-    @Test
-    public void balanceOfTest() {
-        try {
-            JsonObject param = ContractTestUtils.createParam("address",
-                    "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
-            JsonObject query = ContractTestUtils.createQuery(TestConstants.YEED,
-                    "balanceOf", param);
-
-            assertThat(ACCOUNT_API.balanceOf(query.toString())).isNotEmpty();
-        } catch (Exception e) {
-            log.debug("\nbalanceOfTest :: exception : " + e);
         }
     }
 

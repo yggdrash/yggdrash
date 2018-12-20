@@ -21,7 +21,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.store.StateStore;
@@ -30,6 +30,7 @@ import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Test;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -49,42 +50,32 @@ public class RuntimeTest {
                 + " {\"balance\": \"1000000000\"},\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":"
                 + " {\"balance\": \"998000000000\"}}}";
 
-        JsonObject genesisParam = Utils.parseJsonObject(genesisStr);
+        JsonObject genesisParams = JsonUtil.parseJsonObject(genesisStr);
 
-        JsonArray txBody = ContractTestUtils.txBodyJson("genesis", genesisParam);
+        JsonArray txBody = ContractTestUtils.txBodyJson("genesis", genesisParams);
         BranchId branchId = TestConstants.YEED;
         TransactionHusk genesisTx = BlockChainTestUtils.createTxHusk(branchId, txBody);
         assertThat(runtime.invoke(contract, genesisTx)).isTrue();
 
-        JsonObject param = ContractTestUtils.createParam("address",
+        JsonObject params = ContractTestUtils.createParams("address",
                 "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
-        JsonObject query = createQuery(TestConstants.YEED, "balanceOf", param);
-        JsonObject result = runtime.query(contract, query);
-        assertThat(result.get("result").getAsBigDecimal())
-                .isEqualTo(BigDecimal.valueOf(1000000000));
+        BigDecimal result = (BigDecimal)runtime.query(contract, "balanceOf", params);
+        assertThat(result).isEqualTo(BigDecimal.valueOf(1000000000));
     }
 
-//    @Test
-//    public void stemRuntimeTest() throws Exception {
-//        StemContract contract = new StemContract();
-//        Runtime<StemContractStateValue> runtime =
-//                new Runtime<>(
-//                        new StateStore<>(new HashMapDbSource()),
-//                        new TransactionReceiptStore(new HashMapDbSource())
-//                );
-//
-//        JsonObject json = ContractTestUtils.createSampleBranchJson();
-//        BranchId branchId = BranchId.of(json);
-//        TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId, "create", json);
-//        assertThat(runtime.invoke(contract, createTx)).isTrue();
-//
-//        JsonObject query = createQuery(branchId, "getAllBranchId", new JsonObject());
-//        JsonObject result = runtime.query(contract, query);
-//        assertThat(result.get("result").getAsString()).contains(branchId.toString());
-//    }
+    @Test
+    public void stemRuntimeTest() throws Exception {
+        StemContract contract = new StemContract();
+        Runtime<JsonObject> runtime =
+                new Runtime<>(new StateStore<>(new HashMapDbSource())
+                        , new TransactionReceiptStore(new HashMapDbSource()));
 
-    private JsonObject createQuery(BranchId branchId, String method, JsonObject param) {
-        return ContractTestUtils.createQuery(branchId, method, param);
+        JsonObject json = ContractTestUtils.createSampleBranchJson();
+        BranchId branchId = BranchId.of(json);
+        TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId, "create", json);
+        assertThat(runtime.invoke(contract, createTx)).isTrue();
 
+        List<String> result = (List<String>)runtime.query(contract, "getAllBranchId", null);
+        assertThat(result).contains(branchId.toString());
     }
 }

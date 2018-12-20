@@ -19,7 +19,10 @@ package io.yggdrash.core.store;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerId;
 import io.yggdrash.core.store.datasource.DbSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -27,6 +30,7 @@ import java.util.stream.Collectors;
 
 public class PeerStore implements Store<PeerId, Peer> {
 
+    private static final Logger log = LoggerFactory.getLogger(PeerStore.class);
     private final DbSource<byte[], byte[]> db;
     private transient Map<PeerId, Peer> peers = new HashMap<>();
 
@@ -42,11 +46,18 @@ public class PeerStore implements Store<PeerId, Peer> {
 
     @Override
     public Peer get(PeerId key) {
+        byte[] foundedValue = db.get(key.getBytes());
+        if (foundedValue != null) {
+            return Peer.valueOf(foundedValue);
+        }
         return peers.get(key);
     }
 
     @Override
     public boolean contains(PeerId key) {
+        if (db.get(key.getBytes()) != null) {
+            return true;
+        }
         return peers.containsKey(key);
     }
 
@@ -60,10 +71,25 @@ public class PeerStore implements Store<PeerId, Peer> {
     }
 
     public List<String> getAll() {
+        try {
+            if (!db.getAll().isEmpty()) {
+                return db.getAll().stream().map(Peer::valueOf)
+                        .map(Peer::toString).collect(Collectors.toList());
+            }
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
         return peers.values().stream().map(Peer::toString).collect(Collectors.toList());
     }
 
     public int size() {
+        try {
+            if (!db.getAll().isEmpty()) {
+                return db.getAll().size();
+            }
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
         return peers.size();
     }
 }

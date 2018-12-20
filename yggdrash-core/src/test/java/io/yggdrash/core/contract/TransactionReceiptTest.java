@@ -46,14 +46,14 @@ public class TransactionReceiptTest {
     @Test
     public void transactionHashTest() {
         TransactionHusk tx = BlockChainTestUtils.createTransferTxHusk();
-        String hashOfTx = tx.getHash().toString();
-        txReceipt.setTransactionHash(hashOfTx);
-        assert txReceipt.getTransactionHash().equals(hashOfTx);
+        String txId = tx.getHash().toString();
+        txReceipt.setTxId(txId);
+        assert txReceipt.getTxId().equals(txId);
     }
 
     @Test
     public void getYeedUsedTest() {
         assert txReceipt.getYeedUsed() == 30000;
-        assert txReceipt.toString().contains("yeedUsed=30000");
+        assert txReceipt.toString().contains("\"yeedUsed\":30000");
     }
 }
