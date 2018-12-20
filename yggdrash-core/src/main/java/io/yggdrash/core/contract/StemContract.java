@@ -172,7 +172,7 @@ public class StemContract extends BaseContract<JsonObject> {
      *
      * @return list of all branch id
      */
-    public Set<String> getAllBranchId() {
+    public Set<String> getallbranchid() {
         JsonObject branchList = state.get(branchIdListKey);
         if (branchList == null) {
             return Collections.emptySet();
@@ -192,7 +192,7 @@ public class StemContract extends BaseContract<JsonObject> {
     private void addBranchId(BranchId newBranchId) {
         if (!isBranchExist(newBranchId.toString())) {
             JsonArray branchIds = new JsonArray();
-            for (String branchId : getAllBranchId()) {
+            for (String branchId : getallbranchid()) {
                 branchIds.add(branchId);
             }
             JsonObject obj = new JsonObject();

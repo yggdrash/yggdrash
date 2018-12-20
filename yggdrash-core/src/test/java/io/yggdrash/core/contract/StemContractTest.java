@@ -153,7 +153,7 @@ public class StemContractTest {
 
     @Test
     public void getAllBranchIdTest() {
-        Set<String> branchIdList = stemContract.getAllBranchId();
+        Set<String> branchIdList = stemContract.getallbranchid();
         assertThat(branchIdList).containsOnly(stateValue.getBranchId().toString());
     }
 

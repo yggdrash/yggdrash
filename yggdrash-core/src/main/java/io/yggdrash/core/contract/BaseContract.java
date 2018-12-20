@@ -56,12 +56,13 @@ public abstract class BaseContract<T> implements Contract<T> {
 
     @Override
     public Object query(String method, JsonObject params) {
+        // TODO cli json rpc call module change (make LOWERCASE)
         try {
             if (params != null) {
-                return getClass().getMethod(method, JsonObject.class)
+                return getClass().getMethod(method.toLowerCase(), JsonObject.class)
                         .invoke(this, params);
             } else {
-                return getClass().getMethod(method).invoke(this);
+                return getClass().getMethod(method.toLowerCase()).invoke(this);
             }
         } catch (Exception e) {
             throw new FailedOperationException(e);

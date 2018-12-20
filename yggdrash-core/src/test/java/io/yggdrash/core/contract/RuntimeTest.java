@@ -74,7 +74,7 @@ public class RuntimeTest {
         TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId, "create", json);
         assertThat(runtime.invoke(contract, createTx)).isTrue();
 
-        Set<String> result = (Set<String>)runtime.query(contract, "getAllBranchId", null);
+        Set<String> result = (Set<String>)runtime.query(contract, "getallbranchid", null);
         assertThat(result).contains(branchId.toString());
     }
 }
