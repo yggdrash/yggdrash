@@ -19,6 +19,7 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NotValidateException;
@@ -69,7 +70,7 @@ public class BlockHeader implements Cloneable {
         this.bodyLength = bodyLength;
     }
 
-    public BlockHeader(
+    BlockHeader(
             byte[] chain,
             byte[] version,
             byte[] type,
@@ -86,12 +87,10 @@ public class BlockHeader implements Cloneable {
         this.version = Hex.decode(jsonObject.get("version").getAsString());
         this.type = Hex.decode(jsonObject.get("type").getAsString());
         this.prevBlockHash = Hex.decode(jsonObject.get("prevBlockHash").getAsString());
-        this.index = ByteUtil.byteArrayToLong(Hex.decode(jsonObject.get("index").getAsString()));
-        this.timestamp = ByteUtil.byteArrayToLong(
-                Hex.decode(jsonObject.get("timestamp").getAsString()));
+        this.index = HexUtil.hexStringToLong(jsonObject.get("index").getAsString());
+        this.timestamp = HexUtil.hexStringToLong(jsonObject.get("timestamp").getAsString());
         this.merkleRoot = Hex.decode(jsonObject.get("merkleRoot").getAsString());
-        this.bodyLength = ByteUtil.byteArrayToLong(
-                Hex.decode(jsonObject.get("bodyLength").getAsString()));
+        this.bodyLength = HexUtil.hexStringToLong(jsonObject.get("bodyLength").getAsString());
     }
 
     public BlockHeader(byte[] blockHeaderBytes) {
@@ -149,7 +148,7 @@ public class BlockHeader implements Cloneable {
         return type;
     }
 
-    public byte[] getPrevBlockHash() {
+    byte[] getPrevBlockHash() {
         return prevBlockHash;
     }
 

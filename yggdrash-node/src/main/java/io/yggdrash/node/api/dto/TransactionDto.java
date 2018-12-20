@@ -16,28 +16,32 @@
 
 package io.yggdrash.node.api.dto;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;
 
+import java.util.List;
+
 public class TransactionDto {
 
-    public String chain;
+    public String branchId;
     public String version;
     public String type;
     public long timestamp;
     public String bodyHash;
     public long bodyLength;
     public String signature;
-    public String body;
+    public List body;
     public String author;
-    public String hash;
+    public String txId;
 
     public static TransactionHusk of(TransactionDto dto) {
         Proto.Transaction.Header header = Proto.Transaction.Header.newBuilder()
-                .setChain(ByteString.copyFrom(Hex.decode(dto.chain)))
+                .setChain(ByteString.copyFrom(Hex.decode(dto.branchId)))
                 .setVersion(ByteString.copyFrom(Hex.decode(dto.version)))
                 .setType(ByteString.copyFrom(Hex.decode(dto.type)))
                 .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(dto.timestamp)))
@@ -48,7 +52,7 @@ public class TransactionDto {
         Proto.Transaction tx = Proto.Transaction.newBuilder()
                 .setHeader(header)
                 .setSignature(ByteString.copyFrom(Hex.decode(dto.signature)))
-                .setBody(ByteString.copyFromUtf8(dto.body))
+                .setBody(ByteString.copyFromUtf8(JsonUtil.convertObjToString(dto.body)))
                 .build();
         return new TransactionHusk(tx);
     }
@@ -57,7 +61,7 @@ public class TransactionDto {
         TransactionDto transactionDto = new TransactionDto();
         Proto.Transaction.Header header = tx.getInstance().getHeader();
 
-        transactionDto.chain = Hex.toHexString(header.getChain().toByteArray());
+        transactionDto.branchId = Hex.toHexString(header.getChain().toByteArray());
         transactionDto.version = Hex.toHexString(header.getVersion().toByteArray());
         transactionDto.type = Hex.toHexString(header.getType().toByteArray());
         transactionDto.timestamp =
@@ -66,9 +70,13 @@ public class TransactionDto {
         transactionDto.bodyLength =
                 ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray());
         transactionDto.signature = Hex.toHexString(tx.getInstance().getSignature().toByteArray());
-        transactionDto.body = tx.getBody();
+        try {
+            transactionDto.body = new ObjectMapper().readValue(tx.getBody(), List.class);
+        } catch (Exception e) {
+            transactionDto.body = null;
+        }
         transactionDto.author = tx.getAddress().toString();
-        transactionDto.hash = tx.getHash().toString();
+        transactionDto.txId = tx.getHash().toString();
         return transactionDto;
     }
 }

@@ -19,13 +19,10 @@ package io.yggdrash;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.wallet.Wallet;
 import org.spongycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;
-
-import static io.yggdrash.common.config.Constants.BRANCH_ID;
 
 public class ContractTestUtils {
 
@@ -33,14 +30,6 @@ public class ContractTestUtils {
         JsonObject params = new JsonObject();
         params.addProperty(key, value);
         return params;
-    }
-
-    public static JsonObject createQuery(BranchId branchId, String method, JsonObject params) {
-        JsonObject query = new JsonObject();
-        query.addProperty(BRANCH_ID, branchId.toString());
-        query.addProperty("method", method);
-        query.add("params", params);
-        return query;
     }
 
     public static JsonArray transferTxBodyJson(String to, long amount) {

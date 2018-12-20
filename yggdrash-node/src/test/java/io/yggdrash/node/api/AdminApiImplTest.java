@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.api.dto.AdminDto;
 import org.junit.Test;
@@ -54,17 +54,16 @@ public class AdminApiImplTest {
 
         AdminDto command = new ObjectMapper().readValue(jsonMsg, AdminDto.class);
 
-        JsonObject header = Utils.parseJsonObject(command.getHeader());
+        JsonObject header = JsonUtil.parseJsonObject(command.getHeader());
         log.debug(header.toString());
 
-        JsonArray body = Utils.parseJsonArray(command.getBody());
+        JsonArray body = JsonUtil.parseJsonArray(command.getBody());
         log.debug(body.toString());
 
         String method = body.get(0).getAsJsonObject().get("method").getAsString();
 
         // body length check
-        long bodyLength = ByteUtil.byteArrayToLong(
-                Hex.decode(header.get("bodyLength").getAsString()));
+        long bodyLength = HexUtil.hexStringToLong(header.get("bodyLength").getAsString());
 
         assert command.getBody().length() == bodyLength;
 
@@ -72,8 +71,7 @@ public class AdminApiImplTest {
         assert body.get(0).getAsJsonObject().get("method").getAsString().equals("nodeHello");
 
         // timestamp check (3 min)
-        long timestamp = ByteUtil.byteArrayToLong(
-                Hex.decode(header.get("timestamp").getAsString()));
+        long timestamp = HexUtil.hexStringToLong(header.get("timestamp").getAsString());
         if (timestamp < System.currentTimeMillis() - (COMMAND_ACTIVE_TIME)) {
             log.error("Timestamp is not valid.");
             //assert false;

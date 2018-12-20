@@ -18,7 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
 import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;
@@ -33,7 +33,7 @@ public class TransactionBody implements Cloneable {
     }
 
     public TransactionBody(String body) {
-        this.body = Utils.parseJsonArray(body);
+        this.body = JsonUtil.parseJsonArray(body);
     }
 
     public TransactionBody(byte[] bodyBytes) {

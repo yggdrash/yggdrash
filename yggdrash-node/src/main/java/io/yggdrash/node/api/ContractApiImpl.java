@@ -1,14 +1,15 @@
 package io.yggdrash.node.api;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.core.blockchain.BranchId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import java.util.Map;
 
 @Service
 @AutoJsonRpcServiceImpl
@@ -22,11 +23,15 @@ public class ContractApiImpl implements ContractApi {
     }
 
     @Override
-    public String query(String data) {
-        JsonObject query = Utils.parseJsonObject(data);
-        if (!query.has(BRANCH_ID)) {
-            throw new NonExistObjectException("BranchId is required");
+    public Object query(String branchId, String method, Map params) {
+        JsonObject jsonParams = null;
+        if (params != null && !params.isEmpty()) {
+            jsonParams = JsonUtil.convertMapToJson(params);
         }
-        return branchGroup.query(query).toString();
+        Object result = branchGroup.query(BranchId.of(branchId), method, jsonParams);
+        if (result instanceof JsonElement) {
+            return JsonUtil.convertJsonToMap((JsonElement)result);
+        }
+        return result;
     }
 }

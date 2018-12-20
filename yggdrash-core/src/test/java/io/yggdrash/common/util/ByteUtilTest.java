@@ -92,11 +92,6 @@ public class ByteUtilTest {
     }
 
     @Test
-    public void testToHexString() {
-        assertEquals("", ByteUtil.toHexString(null));
-    }
-
-    @Test
     public void testCalcPacketLength() {
         byte[] test = new byte[] {0x0f, 0x10, 0x43};
         byte[] expected = new byte[] {0x00, 0x00, 0x00, 0x03};
@@ -369,64 +364,6 @@ public class ByteUtilTest {
         assertArrayEquals(bytes, Hex.decode("0000000000000100"));
         bytes = ByteUtil.longToBytes(0);
         assertArrayEquals(bytes, Hex.decode("0000000000000000"));
-    }
-
-    @Test
-    public void testHexStringToBytes() {
-        {
-            String str = "0000";
-            byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = new byte[] {0, 0};
-            assertArrayEquals(expected, actuals);
-        }
-        {
-            String str = "0x0000";
-            byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = new byte[] {0, 0};
-            assertArrayEquals(expected, actuals);
-        }
-        {
-            String str = "0x45a6";
-            byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = new byte[] {69, -90};
-            assertArrayEquals(expected, actuals);
-        }
-        {
-            String str = "1963093cee500c081443e1045c40264b670517af";
-            byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = Hex.decode(str);
-            assertArrayEquals(expected, actuals);
-        }
-        {
-            String str = "0x"; // Empty
-            byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = new byte[] {};
-            assertArrayEquals(expected, actuals);
-        }
-        {
-            String str = "0"; // Same as 0x00
-            byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = new byte[] {0};
-            assertArrayEquals(expected, actuals);
-        }
-        {
-            String str = "0x00"; // This case shouldn't be empty array
-            byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = new byte[] {0};
-            assertArrayEquals(expected, actuals);
-        }
-        {
-            String str = "0xd"; // Should work with odd length, adding leading 0
-            byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = new byte[] {13};
-            assertArrayEquals(expected, actuals);
-        }
-        {
-            String str = "0xd0d"; // Should work with odd length, adding leading 0
-            byte[] actuals = ByteUtil.hexStringToBytes(str);
-            byte[] expected = new byte[] {13, 13};
-            assertArrayEquals(expected, actuals);
-        }
     }
 
     @Test

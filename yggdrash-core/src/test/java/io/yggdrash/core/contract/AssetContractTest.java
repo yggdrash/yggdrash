@@ -18,9 +18,10 @@ package io.yggdrash.core.contract;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
@@ -177,7 +178,7 @@ public class AssetContractTest {
                 + "\"balance\": \"1000000000\"\n"
                 + "}\n"
                 + "}}";
-        JsonObject genesis = Utils.parseJsonObject(frontier);
+        JsonObject genesis = JsonUtil.parseJsonObject(frontier);
 
         JsonObject json = ContractTestUtils.createBranchJson(name, symbol, property, description,
                 contractId, timestamp, genesis);
@@ -470,7 +471,7 @@ public class AssetContractTest {
     }
 
     private JsonObject queryAllDatabasesTxTest() {
-        return query("queryAllDatabases", new JsonObject()).getAsJsonObject("result");
+        return query("queryAllDatabases", new JsonObject());
     }
 
     @Test
@@ -515,7 +516,7 @@ public class AssetContractTest {
                 DBNAME, TABLENAME_ASSET2, keyObjectAssetSchema, recordObjectAssetSchema);
 
         JsonObject paramsObject = createDbParams();
-        JsonObject result = query("queryAllTables", paramsObject).getAsJsonObject("result");
+        JsonObject result = query("queryAllTables", paramsObject);
         assertEquals(4, result.getAsJsonArray("table").size());
     }
 
@@ -590,7 +591,7 @@ public class AssetContractTest {
         paramsObject.addProperty("db", dbName);
         paramsObject.addProperty("table", tableName);
 
-        return query("queryTable", paramsObject).getAsJsonObject("result");
+        return query("queryTable", paramsObject);
     }
 
     @Test
@@ -704,7 +705,7 @@ public class AssetContractTest {
         paramsObject.addProperty("table", tableName);
         paramsObject.add("key", keyObject);
 
-        return query("queryRecordWithKey", paramsObject).getAsJsonObject("result");
+        return query("queryRecordWithKey", paramsObject);
     }
 
     @Test
@@ -848,16 +849,8 @@ public class AssetContractTest {
     }
 
     private JsonObject query(String method, JsonObject params) {
-        JsonObject query = createQuery(method, params);
-        return assetContract.query(query);
+        Object result = assetContract.query(method, params);
+        return new JsonParser().parse(result.toString()).getAsJsonObject();
     }
-
-    private JsonObject createQuery(String method, JsonObject params) {
-        JsonObject query = new JsonObject();
-        query.addProperty("method", method);
-        query.add("params", params);
-        return query;
-    }
-
 }
 

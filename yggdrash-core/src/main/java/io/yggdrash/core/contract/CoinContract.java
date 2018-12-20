@@ -13,16 +13,16 @@ import java.util.Map;
 public class CoinContract extends BaseContract<CoinContractStateValue>
         implements CoinStandard {
 
-
     private final String totalSupplyKey = "TOTAL_SUPPLY";
 
     /**
      * @return Total amount of coin in existence
      */
     @Override
-    public BigDecimal totalsupply(JsonObject params) {
-        log.info("\ntotalsupply :: params => " + params);
-        return state.get(totalSupplyKey).getBalance();
+    public BigDecimal totalsupply() {
+        BigDecimal totalSupply = state.get(totalSupplyKey).getBalance();
+        log.info("\ntotalsupply : " + totalSupply);
+        return totalSupply;
     }
 
     /**

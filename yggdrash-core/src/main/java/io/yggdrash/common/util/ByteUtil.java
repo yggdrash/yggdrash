@@ -17,8 +17,6 @@
 
 package io.yggdrash.common.util;
 
-import org.spongycastle.util.encoders.Hex;
-
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -197,21 +195,6 @@ public class ByteUtil {
         }
 
         return result;
-    }
-
-
-    /**
-     * Convert a byte-array into a hex String.<br>
-     * Works similar to {@link Hex#toHexString}
-     * but allows for <code>null</code>
-     *
-     * @param data - byte-array to convert to a hex-string
-     * @return hex representation of the data.<br>
-     * Returns an empty String if the input is <code>null</code>
-     * @see Hex#toHexString
-     */
-    public static String toHexString(byte[] data) {
-        return data == null ? "" : Hex.toHexString(data);
     }
 
     /**
@@ -421,28 +404,6 @@ public class ByteUtil {
             result += (array == null) ? 0 : array.length;
         }
         return result;
-    }
-
-    /**
-     * Converts string hex representation to data bytes
-     * Accepts following hex:
-     * - with or without 0x prefix
-     * - with no leading 0, like 0xabc -> 0x0abc
-     *
-     * @param data String like '0xa5e..' or just 'a5e..'
-     * @return decoded bytes array
-     */
-    public static byte[] hexStringToBytes(String data) {
-        if (data == null) {
-            return EMPTY_BYTE_ARRAY;
-        }
-        if (data.startsWith("0x")) {
-            data = data.substring(2);
-        }
-        if (data.length() % 2 == 1) {
-            data = "0" + data;
-        }
-        return Hex.decode(data);
     }
 
     /**
