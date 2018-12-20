@@ -17,18 +17,14 @@
 package io.yggdrash.gateway.controller;
 
 import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.node.api.dto.BranchDto;
+import java.util.HashMap;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 @RestController
 @RequestMapping("branches")
@@ -49,10 +45,4 @@ public class BranchController {
         return ResponseEntity.ok(branchMap);
     }
 
-    @GetMapping("/{branchId}/states")
-    public ResponseEntity<List<Map>> getBranchStates(
-            @PathVariable(name = "branchId") String branchId) {
-        List<Map> state = branchGroup.getStateStore(BranchId.of(branchId)).getStateList();
-        return ResponseEntity.ok(state);
-    }
 }
