@@ -86,7 +86,7 @@ public class CoinContract extends BaseContract<JsonObject>
         }
 
         BigDecimal senderBallance = getBalance(sender);
-        log.debug("sender : "+senderBallance);
+        log.debug("sender : " + senderBallance);
         if (isTransferable(senderBallance, amount)) {
             senderBallance = senderBallance.subtract(amount);
             addBalanceTo(to, amount);

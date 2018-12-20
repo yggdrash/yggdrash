@@ -2,13 +2,12 @@ package io.yggdrash.core.store;
 
 import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
-import io.yggdrash.core.store.datasource.DbSource;
-
-import java.nio.charset.StandardCharsets;
 import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.core.store.datasource.DbSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -23,7 +22,7 @@ public class StateStore<T> implements Store<String, JsonObject> {
     private byte[] stateValidate = new byte[256];
     private final DbSource<byte[], byte[]> db;
     private long dbSize = 0L;
-    private final byte[] DATABASE_SIZE = "DATABASE_SIZE".getBytes();
+    private static final byte[] DATABASE_SIZE = "DATABASE_SIZE".getBytes();
 
 
     private final Map<String, T> state;
@@ -34,7 +33,7 @@ public class StateStore<T> implements Store<String, JsonObject> {
     public StateStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
         // getState Size
-        if(db.get(DATABASE_SIZE) != null) {
+        if (db.get(DATABASE_SIZE) != null) {
             dbSize = Longs.fromByteArray(db.get(DATABASE_SIZE));
         }
 
@@ -83,7 +82,7 @@ public class StateStore<T> implements Store<String, JsonObject> {
     @Override
     public void put(String key, JsonObject value) {
         // Check exist
-        if(db.get(key.getBytes()) == null) {
+        if (db.get(key.getBytes()) == null) {
             this.dbSize++;
             byte[] dbSizeByteArray = Longs.toByteArray(this.dbSize);
             db.put(DATABASE_SIZE, dbSizeByteArray);
@@ -95,7 +94,7 @@ public class StateStore<T> implements Store<String, JsonObject> {
     @Override
     public JsonObject get(String key) {
         byte[] result = db.get(key.getBytes());
-        if(result == null) {
+        if (result == null) {
             return null;
         }
         String tempValue = new String(result, StandardCharsets.UTF_8);

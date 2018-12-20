@@ -28,11 +28,10 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Test;
-
 import java.math.BigDecimal;
-import java.util.List;
-
+import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
+
 
 public class RuntimeTest {
 
@@ -67,15 +66,15 @@ public class RuntimeTest {
     public void stemRuntimeTest() throws Exception {
         StemContract contract = new StemContract();
         Runtime<JsonObject> runtime =
-                new Runtime<>(new StateStore<>(new HashMapDbSource())
-                        , new TransactionReceiptStore(new HashMapDbSource()));
+                new Runtime<>(new StateStore<>(new HashMapDbSource()),
+                        new TransactionReceiptStore(new HashMapDbSource()));
 
         JsonObject json = ContractTestUtils.createSampleBranchJson();
         BranchId branchId = BranchId.of(json);
         TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId, "create", json);
         assertThat(runtime.invoke(contract, createTx)).isTrue();
 
-        List<String> result = (List<String>)runtime.query(contract, "getAllBranchId", null);
+        Set<String> result = (Set<String>)runtime.query(contract, "getAllBranchId", null);
         assertThat(result).contains(branchId.toString());
     }
 }

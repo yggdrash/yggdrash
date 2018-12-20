@@ -7,14 +7,15 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.math.BigDecimal;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class CoinContractTest {
 
@@ -88,7 +89,7 @@ public class CoinContractTest {
 
     @Test
     public void transfer() {
-        String paramStr = "{\"to\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\","
+        final String paramStr = "{\"to\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\","
                 + "\"amount\" : \"10\"}";
 
         // tx 가 invoke 되지 않아 baseContract 에 sender 가 세팅되지 않아서 설정해줌
@@ -96,8 +97,10 @@ public class CoinContractTest {
         String balanceOf = "{\"address\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}";
         String toBalnce = "{\"address\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\"}";
 
-        log.debug("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94 : " + coinContract.balanceof(createParams(balanceOf)).toString());
-        log.debug("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e : " + coinContract.balanceof(createParams(toBalnce)).toString());
+        log.debug("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94 : "
+                + coinContract.balanceof(createParams(balanceOf)).toString());
+        log.debug("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e : "
+                + coinContract.balanceof(createParams(toBalnce)).toString());
 
         JsonObject param = createParams(paramStr);
         TransactionReceipt result = coinContract.transfer(param);
@@ -134,10 +137,10 @@ public class CoinContractTest {
         String transferParams = "{\"from\" : \"" + owner + "\","
                 + "\"to\" : \"" + to + "\",\"amount\" : \"700\"}";
 
-
         JsonObject transferFromObject = createParams(transferParams);
+
         coinContract.sender = spender;
-        TransactionReceipt result = coinContract.transferfrom(createParams(transferParams));
+        TransactionReceipt result = coinContract.transferfrom(transferFromObject);
         assertTrue(result.isSuccess());
         assertEquals(BigDecimal.valueOf(300), getAllowance(owner, spender));
         log.debug(to + ": " + getBalance(to).toString());
@@ -145,10 +148,10 @@ public class CoinContractTest {
         log.debug(spender + ": " + getBalance(spender).toString());
         log.debug("getAllowance : " + getAllowance(owner, spender));
 
-        TransactionReceipt result2 = coinContract.transferfrom(createParams(transferParams));
+        TransactionReceipt result2 = coinContract.transferfrom(transferFromObject);
         // not enough amount allowed
         assertFalse(result2.isSuccess());
-        //
+
         transferFromObject.addProperty("amount", getAllowance(owner, spender));
         result2 = coinContract.transferfrom(transferFromObject);
         assertTrue(result2.isSuccess());

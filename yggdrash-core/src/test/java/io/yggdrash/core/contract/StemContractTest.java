@@ -19,18 +19,20 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
-import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
-import java.util.List;
-import java.util.Set;
-import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Set;
+
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class StemContractTest {
 
