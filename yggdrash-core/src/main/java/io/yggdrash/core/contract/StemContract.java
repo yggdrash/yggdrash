@@ -3,18 +3,16 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StemContract extends BaseContract<JsonObject> {
 
@@ -172,18 +170,17 @@ public class StemContract extends BaseContract<JsonObject> {
      *
      * @return list of all branch id
      */
-    // TODO REMOVE getAllBranchID
-    public List<String> getallbranchid() {
+    public Set<String> getAllBranchId() {
         JsonObject branchList = state.get(branchIdListKey);
         if (branchList == null) {
-            return Collections.emptyList();
+            return Collections.emptySet();
         }
         JsonArray branchIds = branchList.getAsJsonArray("branchIds");
-        List<String> branchIdList = new ArrayList<>();
+        Set<String> branchIdSet = new HashSet<>();
         for (JsonElement branchId : branchIds) {
-            branchIdList.add(branchId.getAsString());
+            branchIdSet.add(branchId.getAsString());
         }
-        return branchIdList;
+        return branchIdSet;
     }
 
     private boolean isBranchExist(String branchId) {
@@ -193,7 +190,7 @@ public class StemContract extends BaseContract<JsonObject> {
     private void addBranchId(BranchId newBranchId) {
         if(!isBranchExist(newBranchId.toString())){
             JsonArray branchIds = new JsonArray();
-            for (String branchId : getallbranchid()) {
+            for (String branchId : getAllBranchId()) {
                 branchIds.add(branchId);
             }
             JsonObject obj = new JsonObject();
