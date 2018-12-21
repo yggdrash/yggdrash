@@ -316,9 +316,18 @@ public class PeerGroup implements BranchEventListener {
 
     public void logBucketIdOf(BranchId branchId) {
         peerTableChannels.get(branchId).values().forEach(
-                peerClientChannel -> log.debug("Current peerClientChannel => peer={}, bucketId={}",
+                peerClientChannel
+                        -> log.debug("Current peerClientChannel => peer={}:{}, bucketId={}",
                         peerClientChannel.getPeer().getHost(),
+                        peerClientChannel.getPeer().getPort(),
                         getPeerTable(branchId).getTmpBucketId(peerClientChannel.getPeer())));
+    }
+
+    public List<String> getAllPeersFromBucketOf(BranchId branchId) {
+        return peerTables.get(branchId).getAllPeers()
+                .stream()
+                .map(p -> String.format("%s:%d", p.getHost(), p.getPort()))
+                .collect(Collectors.toList());
     }
 
     public List<String> getActivePeerList() {
