@@ -16,13 +16,15 @@
 
 package io.yggdrash.core.net;
 
-import io.yggdrash.core.BranchId;
+import io.yggdrash.core.blockchain.BranchId;
 
 import java.util.List;
 
 public interface NodeManager {
 
     String getNodeUri();
+
+    boolean isSeedPeer();
 
     void generateBlock(BranchId branchId);
 

@@ -16,8 +16,8 @@
 
 package io.yggdrash.core.contract;
 
-import io.yggdrash.TestUtils;
-import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,21 +45,15 @@ public class TransactionReceiptTest {
 
     @Test
     public void transactionHashTest() {
-        TransactionHusk tx = TestUtils.createTransferTxHusk();
-        String hashOfTx = tx.getHash().toString();
-        txReceipt.setTransactionHash(hashOfTx);
-        assert txReceipt.getTransactionHash().equals(hashOfTx);
-    }
-
-    @Test
-    public void getBlockHashTest() {
-        assert txReceipt.getBlockHash().equals(
-                "0xc6ef2fc5426d6ad6fd9e2a26abeab0aa2411b7ab17f30a99d3cb96aed1d1055b");
+        TransactionHusk tx = BlockChainTestUtils.createTransferTxHusk();
+        String txId = tx.getHash().toString();
+        txReceipt.setTxId(txId);
+        assert txReceipt.getTxId().equals(txId);
     }
 
     @Test
     public void getYeedUsedTest() {
         assert txReceipt.getYeedUsed() == 30000;
-        assert txReceipt.toString().contains("yeedUsed=30000");
+        assert txReceipt.toString().contains("\"yeedUsed\":30000");
     }
 }

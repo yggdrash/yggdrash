@@ -20,12 +20,11 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.core.BlockChain;
-import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.BranchId;
-import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.net.DiscoverTask;
 import io.yggdrash.core.net.NodeManager;
 import io.yggdrash.core.net.NodeServer;
@@ -33,6 +32,7 @@ import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.NodeInfo;
@@ -52,8 +52,6 @@ import javax.annotation.PreDestroy;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 public class GRpcNodeServer implements NodeServer, NodeManager {
@@ -135,10 +133,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         log.info("Init node=" + peerGroup.getOwner());
         bootstrapping();
         nodeStatus.sync();
-        for (BlockChain blockChain : branchGroup.getAllBranch()) {
-            BranchId branchId = blockChain.getBranchId();
-            syncBlockAndTransaction(branchId);
-        }
+        syncBlockAndTransaction();
         nodeStatus.up();
     }
 
@@ -159,10 +154,20 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
 
     @Override
     public void bootstrapping() {
+        if (peerGroup.getOwner().isLocal()) {
+            log.info("Ignore bootstrapping peer={}", peerGroup.getOwner().toAddress());
+            return;
+        }
+
         for (BranchId branchId : branchGroup.getAllBranchId()) {
             log.debug("bootstrapping :: branchId => " + branchId);
             nodeDiscovery(branchId);
-            peerGroup.getClosestPeers(branchId).forEach(p -> addPeerChannel(branchId, p));
+            for (Peer peer : peerGroup.getClosestPeers(branchId)) {
+                if (peerGroup.isMaxChannel(branchId)) {
+                    break;
+                }
+                peerGroup.newPeerChannel(branchId, new GRpcClientChannel(peer));
+            }
         }
     }
 
@@ -186,6 +191,8 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             } catch (Exception e) {
                 log.error("Failed connecting to SEED peer = {}", peer);
                 continue;
+            } finally {
+                client.stop();
             }
             DiscoverTask discoverTask = new GrpcDiscoverTask(peerGroup, branchId);
             discoverTask.run();
@@ -193,19 +200,25 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         }
     }
 
-    private void addPeerChannel(BranchId branchId, Peer peer) {
-        if (peer == null || peerGroup.getOwner().equals(peer)) {
-            return;
+    public boolean isSeedPeer() {
+        List<String> seedPeerList = peerGroup.getSeedPeerList();
+        String nodeUriWithoutPubKey = getNodeUri();
+        nodeUriWithoutPubKey = nodeUriWithoutPubKey.substring(nodeUriWithoutPubKey.indexOf("@"));
+        for (String seedPeer : seedPeerList) {
+            if (seedPeer.contains(nodeUriWithoutPubKey)) {
+                log.info("* I'm the SeedPeer!");
+                return true;
+            }
         }
-        peerGroup.newPeerChannel(branchId, new GRpcClientChannel(peer));
+        return false;
     }
 
-    private void syncBlockAndTransaction(BranchId branchId) {
-        if (peerGroup.isChannelEmpty(branchId)) {
-            return;
-        }
+    private void syncBlockAndTransaction() {
         try {
             for (BlockChain blockChain : branchGroup.getAllBranch()) {
+                if (peerGroup.isChannelEmpty(blockChain.getBranchId())) {
+                    continue;
+                }
                 BlockChainSync.syncTransaction(blockChain, peerGroup);
                 BlockChainSync.syncBlock(blockChain, peerGroup);
             }
@@ -224,11 +237,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             this.branchGroup = branchGroup;
             this.nodeStatus = nodeStatus;
         }
-
-        private static final Set<StreamObserver<NetProto.Empty>> txObservers =
-                ConcurrentHashMap.newKeySet();
-        private static final Set<StreamObserver<NetProto.Empty>> blockObservers =
-                ConcurrentHashMap.newKeySet();
 
         /**
          * Sync block response
@@ -276,7 +284,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
         public void syncTransaction(NetProto.SyncLimit syncLimit,
                                     StreamObserver<Proto.TransactionList> responseObserver) {
             log.debug("Synchronize tx request");
-
             BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
             Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
             for (TransactionHusk husk : branchGroup.getUnconfirmedTxs(branchId)) {
@@ -285,103 +292,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             responseObserver.onNext(builder.build());
             responseObserver.onCompleted();
         }
-
-        /*
-        @Override
-        public StreamObserver<Proto.Transaction> broadcastTransaction(
-                StreamObserver<NetProto.Empty> responseObserver) {
-
-            txObservers.add(responseObserver);
-
-            return new StreamObserver<Proto.Transaction>() {
-                @Override
-                public void onNext(Proto.Transaction protoTx) {
-                    log.debug("Received transaction: {}", protoTx);
-                    TransactionHusk tx = new TransactionHusk(protoTx);
-                    try {
-                        branchGroup.addTransaction(tx);
-                    } catch (Exception e) {
-                        log.warn(e.getMessage());
-                    }
-                    for (StreamObserver<NetProto.Empty> observer : txObservers) {
-                        observer.onNext(EMPTY);
-                    }
-                }
-
-                @Override
-                public void onError(Throwable t) {
-                    log.warn("broadcastTransaction onError={}", t.getMessage());
-                    txObservers.remove(responseObserver);
-                    responseObserver.onError(t);
-                }
-
-                @Override
-                public void onCompleted() {
-                    log.warn("broadcastTransaction onCompleted. txObservers={}",
-                            txObservers.size());
-                    txObservers.remove(responseObserver);
-                    responseObserver.onCompleted();
-                }
-            };
-        }*/
-        /*
-        @Override
-        public StreamObserver<Proto.Block> broadcastBlock(
-                StreamObserver<NetProto.Empty> responseObserver) {
-
-            blockObservers.add(responseObserver);
-
-            return new StreamObserver<Proto.Block>() {
-                @Override
-                public void onNext(Proto.Block protoBlock) {
-                    long id = ByteUtil.byteArrayToLong(
-                            protoBlock.getHeader().getIndex().toByteArray());
-                    BlockHusk block = new BlockHusk(protoBlock);
-                    log.debug("Received block id=[{}], hash={}", id, block.getHash());
-                    if (isValid(block)) {
-                        try {
-                            branchGroup.addBlock(block,false);
-                        } catch (Exception e) {
-                            log.warn(e.getMessage());
-                        }
-                    }
-                    for (StreamObserver<NetProto.Empty> observer : blockObservers) {
-                        observer.onNext(EMPTY);
-                        observer.onCompleted();
-                    }
-                }
-
-                @Override
-                public void onError(Throwable t) {
-                    log.warn("BroadcastBlock onError={}", t.getMessage());
-                    blockObservers.remove(responseObserver);
-                    responseObserver.onError(t);
-                }
-
-                @Override
-                public void onCompleted() {
-                    blockObservers.remove(responseObserver);
-                    responseObserver.onCompleted();
-                }
-
-                private boolean isValid(BlockHusk block) {
-                    BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
-                    if (!nodeStatus.isUpStatus()) {
-                        log.trace("Ignore broadcast block");
-                        return false;
-                    } else if (blockChain == null) {
-                        return false;
-                    } else if (blockChain.getLastIndex() + 1 < block.getIndex()) {
-                        log.info("Sync request latest block id=[{}]", blockChain.getLastIndex());
-                        nodeStatus.sync();
-                        BlockChainSync.syncBlock(blockChain, peerGroup);
-                        nodeStatus.up();
-                        return false;
-                    }
-                    return true;
-                }
-            };
-        }*/
 
         @Override
         public void broadcastBlock(Proto.Block request,
@@ -392,7 +302,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             log.debug("Received block id=[{}], hash={}", id, block.getHash());
             if (isBlockValid(block)) {
                 try {
-                    branchGroup.addBlock(block, false);
+                    branchGroup.addBlock(block, true);
                 } catch (Exception e) {
                     log.warn(e.getMessage());
                 }
@@ -446,19 +356,42 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     class PeerImpl extends PeerGrpc.PeerImplBase {
         @Override
         public void findPeers(RequestPeer request, StreamObserver<PeerList> responseObserver) {
-            log.debug("Request Peer => "
-                    + request.getPubKey() + "@" + request.getIp() + ":" + request.getPort());
-            Peer peer = Peer.valueOf(request.getPubKey(), request.getIp(), request.getPort());
-            peerGroup.newPeerChannel(
-                    BranchId.of(request.getBranchId()), new GRpcClientChannel(peer));
-            List<String> list = peerGroup.getPeers(BranchId.of(request.getBranchId()), peer);
+            BranchId branchId = BranchId.of(request.getBranchId());
             PeerList.Builder peerListBuilder = PeerList.newBuilder();
+            if (!branchGroup.containsBranch(branchId)) {
+                PeerList peerList = peerListBuilder.build();
+                responseObserver.onNext(peerList);
+                responseObserver.onCompleted();
+                return;
+            }
+
+            Peer peer = Peer.valueOf(request.getPubKey(), request.getIp(), request.getPort());
+            // 현재 연결된 채널들의 버킷 아이디, 새로들어온 requestPeer 의 버킷아이디 로그
+            log.debug("Received findPeers peer={}, branch={}, bucketId={}",
+                    peer.toAddress(), branchId, peerGroup.logBucketIdOf(branchId, peer));
+            peerGroup.logBucketIdOf(branchId);
+
+            List<String> list = peerGroup.getPeers(BranchId.of(request.getBranchId()), peer);
             for (String url : list) {
                 peerListBuilder.addNodes(NodeInfo.newBuilder().setUrl(url).build());
             }
             PeerList peerList = peerListBuilder.build();
             responseObserver.onNext(peerList);
             responseObserver.onCompleted();
+
+            try {
+                if (!peerGroup.isMaxChannel(branchId)) {
+                    peerGroup.newPeerChannel(branchId, new GRpcClientChannel(peer));
+                } else {
+                    // maxPeer 를 넘은경우부터 거리 계산된 peerTable 을 기반으로 peerChannel 업데이트
+                    if (peerGroup.isClosePeer(branchId, peer)) {
+                        peerGroup.reloadPeerChannel(branchId, new GRpcClientChannel(peer));
+                    }
+                }
+            } catch (Exception e) {
+                log.debug("Failed to connect {} -> {}", peerGroup.getOwner().toAddress(),
+                        peer.toAddress());
+            }
         }
 
         @Override

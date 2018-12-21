@@ -3,9 +3,9 @@
   "symbol": "STEM",
   "property": "ecosystem",
   "description": "The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.",
-  "contractId": "6d7e3a369ace398da114b9a1d70174d20cd20df7",
+  "contractId": "1d35091e51a57a745eec67db3428893968869e32",
   "genesis": {},
-  "timestamp": "00000166c837f0c9",
+  "timestamp": "000001674dc56231",
   "owner": "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
-  "signature": "1bfc8f5931db6b8e0b98494e5f8b63c3626b7392658b82f49bf7c8b2df5494009402e27f6296217013f5d77607f2e6c420e42fa3a4c1168277da5e19c76de61e9b"
+  "signature": "1cb1f610ecfb3a8a49988a17ac1a4cd846dece0bcf797c701a8049d16b88faff9d63df601000a2f2afebb5a19c058bf388c6b7506763badb68cbedbd85732bd9a0"
 }

@@ -31,7 +31,7 @@ import java.io.InputStream;
 public class ContractClassLoader extends ClassLoader {
     private static final Logger log = LoggerFactory.getLogger(ContractClassLoader.class);
     private static final Class[] CONTRACTS = {StemContract.class,
-            NoneContract.class, CoinContract.class};
+            NoneContract.class, CoinContract.class, AssetContract.class};
     private static final Long MAX_FILE_LENGTH = 5242880L; // default 5MB bytes
 
     static {
@@ -59,20 +59,22 @@ public class ContractClassLoader extends ClassLoader {
         return loadContract(contractFullName, classData);
     }
 
+    @SuppressWarnings("unchecked")
     private ContractMeta loadContract(String contractFullName, byte[] b) {
         Class contract = defineClass(contractFullName, b, 0, b.length);
         return new ContractMeta(b, contract);
     }
 
+    @SuppressWarnings("unchecked")
     public static void copyResourcesToContractPath(String contractPath) {
         File targetDir = new File(contractPath);
         if (!targetDir.exists() && !targetDir.mkdirs()) {
             throw new RuntimeException("Failed to create=" + targetDir.getAbsolutePath());
         }
-        for (Class contract : CONTRACTS) {
+        for (Class<? extends Contract> contract : CONTRACTS) {
             log.debug("copyResourcesToContractPath :: contract => " + contract);
             ContractMeta contractMeta = loadContractClass(contract);
-            String contractId = contractMeta.getContractId().toString();
+            ContractId contractId = contractMeta.getContractId();
             log.debug("copyResourcesToContractPath :: contractId => " + contractId);
             File contractFile = ContractMeta.contractFile(contractPath, contractId);
             if (!contractFile.exists()) {
@@ -101,7 +103,7 @@ public class ContractClassLoader extends ClassLoader {
         return loader.loadContract(contractFullName, contractFile);
     }
 
-    public static ContractMeta loadContractById(String contractPath, String contractId) {
+    public static ContractMeta loadContractById(String contractPath, ContractId contractId) {
         File contractFile = ContractMeta.contractFile(contractPath, contractId);
         log.debug("Load contract={}", contractFile.getAbsolutePath());
         if (contractFile.exists()) {

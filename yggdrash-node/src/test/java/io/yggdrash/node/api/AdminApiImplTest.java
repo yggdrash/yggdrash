@@ -1,12 +1,29 @@
+/*
+ * Copyright 2018 Akashic Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *   http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.yggdrash.node.api;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.core.account.Wallet;
+import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.node.api.dto.AdminDto;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,17 +54,16 @@ public class AdminApiImplTest {
 
         AdminDto command = new ObjectMapper().readValue(jsonMsg, AdminDto.class);
 
-        JsonObject header = new JsonParser().parse(command.getHeader()).getAsJsonObject();
+        JsonObject header = JsonUtil.parseJsonObject(command.getHeader());
         log.debug(header.toString());
 
-        JsonArray body = new JsonParser().parse(command.getBody()).getAsJsonArray();
+        JsonArray body = JsonUtil.parseJsonArray(command.getBody());
         log.debug(body.toString());
 
         String method = body.get(0).getAsJsonObject().get("method").getAsString();
 
         // body length check
-        long bodyLength = ByteUtil.byteArrayToLong(
-                Hex.decode(header.get("bodyLength").getAsString()));
+        long bodyLength = HexUtil.hexStringToLong(header.get("bodyLength").getAsString());
 
         assert command.getBody().length() == bodyLength;
 
@@ -55,8 +71,7 @@ public class AdminApiImplTest {
         assert body.get(0).getAsJsonObject().get("method").getAsString().equals("nodeHello");
 
         // timestamp check (3 min)
-        long timestamp = ByteUtil.byteArrayToLong(
-                Hex.decode(header.get("timestamp").getAsString()));
+        long timestamp = HexUtil.hexStringToLong(header.get("timestamp").getAsString());
         if (timestamp < System.currentTimeMillis() - (COMMAND_ACTIVE_TIME)) {
             log.error("Timestamp is not valid.");
             //assert false;

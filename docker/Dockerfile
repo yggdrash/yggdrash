@@ -1,4 +1,4 @@
-FROM openjdk:11.0.1-jre-slim
+FROM openjdk:8-jre-alpine
 MAINTAINER YGGDRASH
 ENV SPRING_PROFILES_ACTIVE=prod \
     RUN_SLEEP=0 \

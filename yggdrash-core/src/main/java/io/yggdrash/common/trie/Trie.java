@@ -2,8 +2,8 @@ package io.yggdrash.common.trie;
 
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionHusk;
 
 import java.io.IOException;
 import java.util.ArrayList;

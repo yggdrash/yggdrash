@@ -18,12 +18,13 @@ package io.yggdrash.node;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.ContractTestUtils;
 import io.yggdrash.common.util.TimeUtils;
-import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionBody;
-import io.yggdrash.core.TransactionHeader;
-import io.yggdrash.core.TransactionSignature;
-import io.yggdrash.core.account.Wallet;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionBody;
+import io.yggdrash.core.blockchain.TransactionHeader;
+import io.yggdrash.core.blockchain.TransactionSignature;
+import io.yggdrash.core.wallet.Wallet;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,12 +38,14 @@ import java.util.Arrays;
 import static junit.framework.TestCase.assertTrue;
 
 @RunWith(SpringRunner.class)
-@IfProfileValue(name = "spring.profiles.active", value = "ci")
+@IfProfileValue(name = "spring.profiles.active", value = "performance")
 public class TransactionSpeedTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionSpeedTest.class);
 
     private static final long MAX = 100L;
+    private static final long CON_TIMEOUT = 1000L;
+    private static final long VERYFY_TIMEOUT = 2000L;
 
     private TransactionBody txBody;
     private TransactionHeader txHeader;
@@ -54,18 +57,13 @@ public class TransactionSpeedTest {
     @Before
     public void setUp() throws Exception {
 
-        JsonObject jsonParams1 = new JsonObject();
-        jsonParams1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
-        jsonParams1.addProperty("amount", "10000000");
+        JsonObject params = new JsonObject();
+        params.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
+        params.addProperty("amount", "10000000");
 
-        JsonObject jsonObject1 = new JsonObject();
-        jsonObject1.addProperty("method", "transfer");
-        jsonObject1.add("params", jsonParams1);
+        JsonArray txArrayBody = ContractTestUtils.txBodyJson("tansfer", params);
 
-        JsonArray jsonArray = new JsonArray();
-        jsonArray.add(jsonObject1);
-
-        txBody = new TransactionBody(jsonArray);
+        txBody = new TransactionBody(txArrayBody);
 
         byte[] chain = new byte[20];
         byte[] version = new byte[8];
@@ -83,7 +81,7 @@ public class TransactionSpeedTest {
         txBytes1 = tx1.toBinary();
     }
 
-    @Test (timeout = 1000L)
+    @Test (timeout = CON_TIMEOUT)
     public void testSpeedTransactionConstructor_1() {
 
         long startTime;
@@ -109,7 +107,7 @@ public class TransactionSpeedTest {
         log.info(" Transaction:Constructor(Header,sig,body) nanoTime:" + averageTime);
     }
 
-    @Test(timeout = 1000L)
+    @Test(timeout = CON_TIMEOUT)
     public void testSpeedTransactionConstructor_2() {
 
         long startTime;
@@ -135,7 +133,7 @@ public class TransactionSpeedTest {
         log.info(" Transaction:Constructor(Header,wallet,body) nanoTime:" + averageTime);
     }
 
-    @Test (timeout = 1000L)
+    @Test (timeout = CON_TIMEOUT)
     public void testSpeedTransactionConstructor_3() {
 
         long startTime;
@@ -161,7 +159,7 @@ public class TransactionSpeedTest {
         log.info(" Transaction:Constructor(jsonObject) nanoTime:" + averageTime);
     }
 
-    @Test (timeout = 1000L)
+    @Test (timeout = CON_TIMEOUT)
     public void testSpeedTransactionConstructor_4() {
 
         long startTime;
@@ -187,7 +185,7 @@ public class TransactionSpeedTest {
         log.info(" Transaction:Constructor(byte[]) nanoTime:" + averageTime);
     }
 
-    @Test(timeout = 2000L)
+    @Test(timeout = VERYFY_TIMEOUT)
     public void testSpeedTransactionVerify() {
 
         long startTime;

@@ -17,9 +17,9 @@
 package io.yggdrash.node;
 
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.BlockChain;
-import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.BranchId;
+import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerGroup;
 import org.slf4j.Logger;

@@ -1,20 +1,20 @@
 package io.yggdrash.node.api;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
-import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.exception.NonExistObjectException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.BranchId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.Map;
 
 @Service
 @AutoJsonRpcServiceImpl
 public class ContractApiImpl implements ContractApi {
 
-    private static final Logger log = LoggerFactory.getLogger(ContractApiImpl.class);
     private final BranchGroup branchGroup;
 
     @Autowired
@@ -23,12 +23,15 @@ public class ContractApiImpl implements ContractApi {
     }
 
     @Override
-    public String query(String data) {
-        JsonParser jsonParser = new JsonParser();
-        JsonObject query = (JsonObject) jsonParser.parse(data);
-        if (!query.has("address")) {
-            throw new NonExistObjectException("Address (BranchId) is required");
+    public Object query(String branchId, String method, Map params) {
+        JsonObject jsonParams = null;
+        if (params != null && !params.isEmpty()) {
+            jsonParams = JsonUtil.convertMapToJson(params);
         }
-        return branchGroup.query(query).toString();
+        Object result = branchGroup.query(BranchId.of(branchId), method, jsonParams);
+        if (result instanceof JsonElement) {
+            return JsonUtil.convertJsonToMap((JsonElement)result);
+        }
+        return result;
     }
 }

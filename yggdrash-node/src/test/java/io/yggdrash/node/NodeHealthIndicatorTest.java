@@ -16,12 +16,10 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.TestUtils;
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.BranchGroup;
+import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -48,11 +46,6 @@ public class NodeHealthIndicatorTest {
         PeerGroup peerGroup = new PeerGroup(owner, 1);
         this.nodeHealthIndicator = new NodeHealthIndicator(new DefaultConfig(), branchGroupMock,
                 peerGroup);
-    }
-
-    @After
-    public void tearDown() {
-        TestUtils.clearTestDb();
     }
 
     @Test

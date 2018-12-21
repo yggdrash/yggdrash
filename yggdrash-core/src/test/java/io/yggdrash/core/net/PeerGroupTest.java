@@ -1,10 +1,10 @@
 package io.yggdrash.core.net;
 
-import io.yggdrash.TestUtils;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.BranchId;
-import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.store.StoreBuilder;
 import org.junit.Before;
 import org.junit.Test;
@@ -16,18 +16,16 @@ import java.util.List;
 public class PeerGroupTest {
 
     private static final int MAX_PEERS = 25;
-    private static final BranchId BRANCH = TestUtils.STEM;
-    private static final BranchId OTHER_BRANCH = TestUtils.YEED;
+    private static final BranchId BRANCH = TestConstants.STEM;
+    private static final BranchId OTHER_BRANCH = TestConstants.YEED;
     private static final Peer OWNER = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
     private static final StoreBuilder storeBuilder = new StoreBuilder(new DefaultConfig());
 
     private PeerGroup peerGroup;
-    private TransactionHusk tx;
 
     @Before
     public void setUp() {
         this.peerGroup = new PeerGroup(OWNER, MAX_PEERS);
-        this.tx = TestUtils.createTransferTxHusk();
         peerGroup.addPeerTable(BRANCH, storeBuilder.buildPeerStore(BRANCH));
         peerGroup.addPeerTable(OTHER_BRANCH, storeBuilder.buildPeerStore(OTHER_BRANCH));
     }
@@ -49,7 +47,7 @@ public class PeerGroupTest {
     public void getPeerTest() {
         Peer requester = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
         Collection<String> peerListWithoutRequester = peerGroup.getPeers(BRANCH, requester);
-        assert peerListWithoutRequester.isEmpty();
+        assert peerListWithoutRequester.size() == 1;
         // requester 가 peer 목록 조회 후에는 peerTable 에 등록되어 있다
         assert peerGroup.containsPeer(BRANCH, requester);
     }
@@ -79,8 +77,8 @@ public class PeerGroupTest {
 
     @Test
     public void getPeerUriListTest() {
-        assert peerGroup.getPeerUriList(BRANCH).isEmpty();
-        assert peerGroup.getPeerUriList(OTHER_BRANCH).isEmpty();
+        assert peerGroup.getPeerUriList(BRANCH).size() == 1;
+        assert peerGroup.getPeerUriList(OTHER_BRANCH).size() == 1;
         peerGroup.addPeer(BRANCH, Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
         peerGroup.addPeer(OTHER_BRANCH, Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
         assert peerGroup.getPeerUriList(BRANCH).contains("ynode://75bff16c@127.0.0.1:32918");
@@ -118,7 +116,7 @@ public class PeerGroupTest {
     @Test
     public void syncTransaction() {
         addPeerChannel();
-        peerGroup.receivedTransaction(tx);
+        peerGroup.receivedTransaction(BlockChainTestUtils.createTransferTxHusk());
         assert !peerGroup.syncTransaction(BRANCH).isEmpty();
     }
 
@@ -131,6 +129,12 @@ public class PeerGroupTest {
             peerGroup.newPeerChannel(BRANCH, channel);
         }
         assert MAX_PEERS == peerGroup.getActivePeerList().size();
+    }
+
+    @Test
+    public void getAllPeersFromBucketOf() {
+        assert peerGroup.getAllPeersFromBucketOf(BRANCH).size() == 1;
+        assert peerGroup.getAllPeersFromBucketOf(OTHER_BRANCH).size() == 1;
     }
 
     private void addPeerChannel() {

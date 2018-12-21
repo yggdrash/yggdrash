@@ -16,11 +16,11 @@
 
 package io.yggdrash.core.store;
 
-import io.yggdrash.TestUtils;
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.BranchId;
-import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.net.Peer;
 import org.junit.Before;
 import org.junit.Test;
@@ -38,7 +38,7 @@ public class StoreBuilderTest {
 
     @Test
     public void shouldBeBuiltMetaStore() {
-        BlockHusk block = TestUtils.createGenesisBlockHusk();
+        BlockHusk block = BlockChainTestUtils.genesisBlock();
         MetaStore store = builder.buildMetaStore(BRANCH_ID);
         store.put(MetaStore.MetaInfo.BEST_BLOCK, block.getHash());
         assertThat(store.contains(MetaStore.MetaInfo.BEST_BLOCK)).isTrue();
@@ -47,7 +47,7 @@ public class StoreBuilderTest {
 
     @Test
     public void buildBlockStore() {
-        BlockHusk block = TestUtils.createGenesisBlockHusk();
+        BlockHusk block = BlockChainTestUtils.genesisBlock();
         BlockStore store = builder.buildBlockStore(BRANCH_ID);
         store.put(block.getHash(), block);
         assert store.contains(block.getHash());
@@ -56,7 +56,7 @@ public class StoreBuilderTest {
 
     @Test
     public void buildTxStore() {
-        TransactionHusk tx = TestUtils.createTransferTxHusk();
+        TransactionHusk tx = BlockChainTestUtils.createTransferTxHusk();
         TransactionStore store = builder.buildTxStore(BRANCH_ID);
         store.put(tx.getHash(), tx);
         assert store.contains(tx.getHash());

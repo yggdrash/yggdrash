@@ -1,14 +1,16 @@
 package io.yggdrash.node.api;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.FileUtil;
-import io.yggdrash.core.account.Wallet;
+import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.node.api.dto.AdminDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.attribute.PosixFilePermission;
 import java.security.SecureRandom;
@@ -179,9 +182,8 @@ public class AdminApiImpl implements AdminApi {
                         perms.add(PosixFilePermission.OWNER_WRITE);
                         Files.setPosixFilePermissions(file.toPath(), perms);
                     }
-
-                    FileUtil.writeStringToFile(file,
-                            body.get(0).getAsJsonObject().get("params").getAsString());
+                    String params = body.get(0).getAsJsonObject().get("params").getAsString();
+                    FileUtil.writeStringToFile(file, params, StandardCharsets.UTF_8);
 
                     perms = new HashSet<>();
                     perms.add(PosixFilePermission.OWNER_READ);
@@ -253,13 +255,12 @@ public class AdminApiImpl implements AdminApi {
             return false;
         }
 
-        this.header = new Gson().fromJson(command.getHeader(), JsonObject.class);
+        this.header = JsonUtil.parseJsonObject(command.getHeader());
         this.signature = command.getSignature();
-        this.body = new Gson().fromJson(command.getBody(), JsonArray.class);
+        this.body = JsonUtil.parseJsonArray(command.getBody());
 
         // body length check
-        long bodyLength = ByteUtil.byteArrayToLong(
-                Hex.decode(header.get("bodyLength").getAsString()));
+        long bodyLength = HexUtil.hexStringToLong(header.get("bodyLength").getAsString());
 
         if (body.toString().length() != bodyLength) {
             errorMsg.append(" BodyLength is not valid.");
@@ -267,8 +268,7 @@ public class AdminApiImpl implements AdminApi {
         }
 
         // timestamp check (3 min)
-        long timestamp = ByteUtil.byteArrayToLong(
-                Hex.decode(header.get("timestamp").getAsString()));
+        long timestamp = HexUtil.hexStringToLong(header.get("timestamp").getAsString());
         if (timestamp < System.currentTimeMillis() - (COMMAND_ACTIVE_TIME)) {
             log.error("Timestamp is not valid.");
             errorMsg.append(" Timestamp is not valid.");

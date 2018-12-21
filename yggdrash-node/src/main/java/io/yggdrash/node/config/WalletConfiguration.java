@@ -17,8 +17,8 @@
 package io.yggdrash.node.config;
 
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.account.Wallet;
 import io.yggdrash.core.store.StoreBuilder;
+import io.yggdrash.core.wallet.Wallet;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

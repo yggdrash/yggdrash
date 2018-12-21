@@ -1,11 +1,10 @@
 package io.yggdrash.node.api;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
-import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.account.Account;
+import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.core.wallet.Account;
+import io.yggdrash.node.api.dto.AccountDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -31,7 +30,7 @@ public class AccountApiImpl implements AccountApi {
             AccountDto response = AccountDto.createBy(account);
             return response.getAddress();
         } catch (Exception exception) {
-            throw new NonExistObjectException("account");
+            throw new NonExistObjectException("wallet");
         }
     }
 
@@ -49,13 +48,6 @@ public class AccountApiImpl implements AccountApi {
         } catch (Exception exception) {
             throw new NonExistObjectException("accounts");
         }
-    }
-
-    @Override
-    public String balanceOf(String data) {
-        JsonParser jsonParser = new JsonParser();
-        JsonObject query = (JsonObject) jsonParser.parse(data);
-        return branchGroup.query(query).toString();
     }
 
     @Override

@@ -8,11 +8,11 @@ import io.yggdrash.core.exception.NonExistObjectException;
 
 import java.util.ArrayList;
 
-@JsonRpcService("/api/account")
+@JsonRpcService("/api/wallet")
 public interface AccountApi {
 
     /**
-     * Create a new account
+     * Create a new wallet
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
@@ -28,19 +28,9 @@ public interface AccountApi {
     ArrayList<String> accounts();
 
     /**
-     * Returns the balance of the account of given address.
+     * Returns the balance of the wallet of given address.
      *
-     * @param data account address
-     */
-    @JsonRpcErrors({
-            @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
-    String balanceOf(@JsonRpcParam(value = "data") String data);
-
-    /**
-     * Returns the balance of the account of given address.
-     *
-     * @param address     account address
+     * @param address     wallet address
      * @param blockNumber block number
      */
     @JsonRpcErrors({
@@ -50,9 +40,9 @@ public interface AccountApi {
                    @JsonRpcParam(value = "blockNumber") int blockNumber);
 
     /**
-     * Returns the balance of the account of given address.
+     * Returns the balance of the wallet of given address.
      *
-     * @param address account address*
+     * @param address wallet address*
      * @param tag     "latest","earliest","pending"
      */
     @JsonRpcErrors({

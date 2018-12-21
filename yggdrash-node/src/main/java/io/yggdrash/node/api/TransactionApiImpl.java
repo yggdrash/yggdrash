@@ -1,16 +1,14 @@
 package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
-import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.BranchId;
-import io.yggdrash.core.Transaction;
-import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.exception.NonExistObjectException;
-import io.yggdrash.node.controller.TransactionDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.yggdrash.node.api.dto.TransactionDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +18,6 @@ import java.util.Map;
 @AutoJsonRpcServiceImpl
 public class TransactionApiImpl implements TransactionApi {
 
-    private static final Logger log = LoggerFactory.getLogger(TransactionApiImpl.class);
     private final BranchGroup branchGroup;
 
     @Autowired
@@ -30,8 +27,8 @@ public class TransactionApiImpl implements TransactionApi {
 
     /* get */
     @Override
-    public int getTransactionCountByBlockHash(String branchId, String hashOfBlock) {
-        BlockHusk block = branchGroup.getBlockByHash(BranchId.of(branchId), hashOfBlock);
+    public int getTransactionCountByBlockHash(String branchId, String blockId) {
+        BlockHusk block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
         return block.getBody().size();
     }
 
@@ -51,8 +48,8 @@ public class TransactionApiImpl implements TransactionApi {
     }
 
     @Override
-    public TransactionDto getTransactionByHash(String branchId, String hashOfTx) {
-        TransactionHusk tx = branchGroup.getTxByHash(BranchId.of(branchId), hashOfTx);
+    public TransactionDto getTransactionByHash(String branchId, String txId) {
+        TransactionHusk tx = branchGroup.getTxByHash(BranchId.of(branchId), txId);
         if (tx == null) {
             throw new NonExistObjectException("Transaction");
         }
@@ -60,9 +57,9 @@ public class TransactionApiImpl implements TransactionApi {
     }
 
     @Override
-    public TransactionDto getTransactionByBlockHash(String branchId, String hashOfBlock,
+    public TransactionDto getTransactionByBlockHash(String branchId, String blockId,
                                                      int txIndexPosition) {
-        BlockHusk block = branchGroup.getBlockByHash(BranchId.of(branchId), hashOfBlock);
+        BlockHusk block = branchGroup.getBlockByHash(BranchId.of(branchId), blockId);
         return TransactionDto.createBy(block.getBody().get(txIndexPosition));
     }
 
@@ -87,7 +84,7 @@ public class TransactionApiImpl implements TransactionApi {
     /* send */
     @Override
     public String sendTransaction(TransactionDto tx) {
-        if (branchGroup.getBranch(BranchId.of(tx.chain)) != null) {
+        if (branchGroup.getBranch(BranchId.of(tx.branchId)) != null) {
             TransactionHusk addedTx = branchGroup.addTransaction(TransactionDto.of(tx));
             return addedTx.getHash().toString();
         } else {
@@ -119,7 +116,7 @@ public class TransactionApiImpl implements TransactionApi {
     }
 
     @Override
-    public TransactionReceipt getTransactionReceipt(String branchId, String hashOfTx) {
-        return branchGroup.getTransactionReceiptStore(BranchId.of(branchId)).get(hashOfTx);
+    public TransactionReceipt getTransactionReceipt(String branchId, String txId) {
+        return branchGroup.getTransactionReceiptStore(BranchId.of(branchId)).get(txId);
     }
 }

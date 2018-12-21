@@ -16,11 +16,10 @@
 
 package io.yggdrash.core.net;
 
-import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.BranchEventListener;
-import io.yggdrash.core.BranchId;
-import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.exception.DuplicatedException;
+import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.BranchEventListener;
+import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
@@ -28,7 +27,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -63,11 +61,11 @@ public class PeerGroup implements BranchEventListener {
     public List<String> getBootstrappingSeedList(BranchId branchId) {
         List<String> seedPeerList;
 
-        if (peerTables.containsKey(branchId)
-                && !getPeerTable(branchId).isPeerStoreEmpty()) {
-            seedPeerList = getPeerTable(branchId).getAllFromPeerStore();
-        } else {
+        PeerTable table = getPeerTable(branchId);
+        if (table == null || table.isPeerStoreEmpty()) {
             seedPeerList = getSeedPeerList();
+        } else {
+            seedPeerList = getPeerTable(branchId).getAllFromPeerStore();
         }
 
         if (seedPeerList == null || seedPeerList.isEmpty()) {
@@ -78,11 +76,11 @@ public class PeerGroup implements BranchEventListener {
     }
 
     public void addPeerTable(BranchId branchId, PeerStore peerStore) {
-        if (peerTables.containsKey(branchId)) {
-            throw new DuplicatedException(branchId.toString() + " branch duplicated");
-        }
         PeerTable peerTable = new PeerTable(peerStore, owner);
         peerTables.put(branchId, peerTable);
+
+        Map<PeerId, PeerClientChannel> peerChannel = new ConcurrentHashMap<>();
+        peerTableChannels.put(branchId, peerChannel);
     }
 
     void addPeerByYnodeUri(BranchId branchId, List<String> peerList) {
@@ -96,8 +94,6 @@ public class PeerGroup implements BranchEventListener {
     }
 
     void addPeer(BranchId branchId, Peer peer) {
-        log.info("Add peer => " + peer.getHost() + ":" + peer.getPort()
-                + ", BranchId => " + branchId);
 
         if (peerTables.containsKey(branchId)) {
             getPeerTable(branchId).addPeer(peer);
@@ -112,25 +108,23 @@ public class PeerGroup implements BranchEventListener {
     }
 
     public List<String> getPeers(BranchId branchId, Peer peer) {
+        if (!peerTables.containsKey(branchId)) {
+            log.info("Ignore branchId => {}", branchId);
+            return Collections.emptyList();
+        }
+
         ArrayList<String> peerList = new ArrayList<>();
 
-        if (peerTables.containsKey(branchId)) {
-            log.debug(branchId + "'s peers size => " + peerTables.get(branchId).getPeersCount());
-            PeerTable peerTable = peerTables.get(branchId);
-            peerTable.getAllPeers().forEach(p -> peerList.add(p.toString()));
-            peerTable.addPeer(peer);
-            log.debug("Added peer => " + peer.getHost() + ":" + peer.getPort());
-            return peerList;
-        } else {
-            log.info("Ignore branchId => {}", branchId);
-            return new ArrayList<>();
-        }
+        PeerTable peerTable = peerTables.get(branchId);
+        peerTable.getAllPeers().forEach(p -> peerList.add(p.toString()));
+        peerTable.addPeer(peer);
+        return peerList;
     }
 
     public List<Peer> getClosestPeers(BranchId branchId) {
         return Optional.ofNullable(getPeerTable(branchId))
                 .map(o -> o.getClosestPeers(owner.getPeerId().getBytes()))
-                .orElse(new ArrayList<>());
+                .orElse(Collections.emptyList());
     }
 
     PeerTable getPeerTable(BranchId branchId) {
@@ -169,7 +163,7 @@ public class PeerGroup implements BranchEventListener {
         this.seedPeerList = seedPeerList;
     }
 
-    public List<String> getPeerUriList(BranchId branchId) {
+    List<String> getPeerUriList(BranchId branchId) {
         if (peerTables.containsKey(branchId)) {
             return peerTables.get(branchId).getAllPeers().stream()
                     .map(Peer::getYnodeUri).collect(Collectors.toList());
@@ -218,42 +212,57 @@ public class PeerGroup implements BranchEventListener {
 
     @Override
     public void receivedTransaction(TransactionHusk tx) {
-        if (peerTableChannels.isEmpty()) {
+        if (isChannelEmpty(tx.getBranchId())) {
             log.trace("Active peer is empty to broadcast transaction");
+            return;
         }
         Proto.Transaction[] txns = new Proto.Transaction[] {tx.getInstance()};
 
         if (peerTableChannels.containsKey(tx.getBranchId())) {
             for (PeerClientChannel client : peerTableChannels.get(tx.getBranchId()).values()) {
-                client.broadcastTransaction(txns);
+                try {
+                    client.broadcastTransaction(txns);
+                } catch (Exception e) {
+                    removePeerChannel(tx.getBranchId(), client);
+                }
             }
         }
     }
 
     @Override
     public void chainedBlock(BlockHusk block) {
-        if (peerTableChannels.isEmpty()) {
+        if (isChannelEmpty(block.getBranchId())) {
             log.trace("Active peer is empty to broadcast block");
+            return;
         }
         Proto.Block[] blocks = new Proto.Block[] {block.getInstance()};
-        if (peerTableChannels.containsKey(block.getBranchId())) {
-            for (PeerClientChannel client : peerTableChannels.get(block.getBranchId()).values()) {
+        for (PeerClientChannel client : peerTableChannels.get(block.getBranchId()).values()) {
+            try {
                 client.broadcastBlock(blocks);
+            } catch (Exception e) {
+                removePeerChannel(block.getBranchId(), client);
             }
         }
+    }
+
+    private void removePeerChannel(BranchId branchId, PeerClientChannel client) {
+        client.stop();
+        peerTableChannels.get(branchId).remove(client.getPeer().getPeerId());
+        peerTables.get(branchId).dropPeer(client.getPeer());
+        log.debug("Removed channel size={}, peer size={}", peerTableChannels.get(branchId).size(),
+                count(branchId));
+    }
+
+    public boolean isMaxChannel(BranchId branchId) {
+        return peerTableChannels.get(branchId).size() >= maxPeers;
     }
 
     public void newPeerChannel(BranchId branchId, PeerClientChannel client) {
         Peer peer = client.getPeer();
 
-        if (peerTableChannels.containsKey(branchId)) {
-            if (peerTableChannels.get(branchId).containsKey(peer.getPeerId())) {
-                return;
-            } else if (peerTableChannels.get(branchId).size() >= maxPeers) {
-                log.info("Maximum number of peer channel exceeded. count={}, peer={}",
-                        peerTableChannels.size(), peer.getYnodeUri());
-                return;
-            }
+        Map<PeerId, PeerClientChannel> peerChannelList = peerTableChannels.get(branchId);
+        if (peerChannelList.containsKey(peer.getPeerId())) {
+            return;
         }
 
         try {
@@ -262,13 +271,9 @@ public class PeerGroup implements BranchEventListener {
             // TODO validation peer
             if (pong.getPong().equals("Pong")) {
                 // 접속 성공 시
-                log.info("Added channel={}", peer);
-                if (peerTableChannels.containsKey(branchId)) {
-                    peerTableChannels.get(branchId).put(peer.getPeerId(), client);
-                } else {
-                    Map<PeerId, PeerClientChannel> peerChannelList = new ConcurrentHashMap<>();
+                if (!isMaxChannel(branchId)) {
                     peerChannelList.put(peer.getPeerId(), client);
-                    peerTableChannels.put(branchId, peerChannelList);
+                    log.info("Added size={}, channel={}", peerChannelList.size(), peer.toAddress());
                 }
             } else {
                 // 접속 실패 시 목록 및 버킷에서 제거
@@ -277,6 +282,52 @@ public class PeerGroup implements BranchEventListener {
         } catch (Exception e) {
             log.warn("Fail to add to the peer channel err=" + e.getMessage());
         }
+    }
+
+    public boolean isClosePeer(BranchId branchId, Peer requestPeer) {
+        return getClosestPeers(branchId).subList(0, maxPeers).contains(requestPeer);
+    }
+
+    public void reloadPeerChannel(BranchId branchId, PeerClientChannel client) {
+        PeerId requestPeerId = client.getPeer().getPeerId();
+        if (peerTableChannels.get(branchId).containsKey(requestPeerId)) {
+            peerTableChannels.get(branchId).put(requestPeerId, client);
+        } else {
+            Map<PeerId, PeerClientChannel> peerChannelList = peerTableChannels.get(branchId);
+            List<PeerId> newClosestPeers = getClosestPeers(branchId).subList(0, maxPeers)
+                    .stream().map(Peer::getPeerId).collect(Collectors.toList());
+            newClosestPeers.remove(requestPeerId);
+
+            for (PeerId key : peerChannelList.keySet()) {
+                if (!newClosestPeers.contains(key)) {
+                    peerChannelList.remove(key);
+                }
+            }
+
+            PeerId lastPeerId = newClosestPeers.get(maxPeers - 1);
+            peerChannelList.remove(lastPeerId);
+        }
+    }
+
+    public int logBucketIdOf(BranchId branchId, Peer peer) {
+        PeerTable peerTable = getPeerTable(branchId);
+        return peerTable.getTmpBucketId(peer);
+    }
+
+    public void logBucketIdOf(BranchId branchId) {
+        peerTableChannels.get(branchId).values().forEach(
+                peerClientChannel
+                        -> log.debug("Current peerClientChannel => peer={}:{}, bucketId={}",
+                        peerClientChannel.getPeer().getHost(),
+                        peerClientChannel.getPeer().getPort(),
+                        getPeerTable(branchId).getTmpBucketId(peerClientChannel.getPeer())));
+    }
+
+    public List<String> getAllPeersFromBucketOf(BranchId branchId) {
+        return peerTables.get(branchId).getAllPeers()
+                .stream()
+                .map(p -> String.format("%s:%d", p.getHost(), p.getPort()))
+                .collect(Collectors.toList());
     }
 
     public List<String> getActivePeerList() {
@@ -290,13 +341,12 @@ public class PeerGroup implements BranchEventListener {
         return activePeerList;
     }
 
-    public Collection<PeerClientChannel> getActivePeerListOf(BranchId branchId) {
-        Collection<PeerClientChannel> activePeerList = new ArrayList<>();
-
-        if (peerTableChannels.containsKey(branchId)) {
-            activePeerList = peerTableChannels.get(branchId).values();
-        }
-        return activePeerList;
+    public List<String> getActivePeerListOf(BranchId branchId) {
+        return peerTableChannels.get(branchId)
+                .values()
+                .stream()
+                .map(c -> String.format("%s:%d",c.getPeer().getHost(), c.getPeer().getPort()))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -306,7 +356,7 @@ public class PeerGroup implements BranchEventListener {
      * @return the block list
      */
     public List<BlockHusk> syncBlock(BranchId branchId, long offset) {
-        if (!peerTableChannels.containsKey(branchId)) {
+        if (isChannelEmpty(branchId)) {
             log.trace("Active peer is empty to sync block");
             return Collections.emptyList();
         }
@@ -330,7 +380,7 @@ public class PeerGroup implements BranchEventListener {
      * @return the transaction list
      */
     public List<TransactionHusk> syncTransaction(BranchId branchId) {
-        if (!peerTableChannels.containsKey(branchId)) {
+        if (isChannelEmpty(branchId)) {
             log.trace("Active peer is empty to sync transaction");
             return Collections.emptyList();
         }

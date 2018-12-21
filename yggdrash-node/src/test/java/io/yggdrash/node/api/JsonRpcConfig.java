@@ -18,89 +18,26 @@ public class JsonRpcConfig {
 
     private static final Logger log = LoggerFactory.getLogger(JsonRpcConfig.class);
 
-    public BlockApi blockApi() {
-        try {
-            URL url = new URL("http://localhost:8080/api/block");
-            return ProxyUtil.createClientProxy(getClass().getClassLoader(),
-                    BlockApi.class, getJsonRpcHttpClient(url));
-        } catch (MalformedURLException exception) {
-            exception.printStackTrace();
-            return null;
-        }
+    static final BlockApi BLOCK_API = new JsonRpcConfig().proxyOf(BlockApi.class);
+    static final TransactionApi TX_API = new JsonRpcConfig().proxyOf(TransactionApi.class);
+    static final ContractApi CONTRACT_API = new JsonRpcConfig().proxyOf(ContractApi.class);
+    static final AccountApi ACCOUNT_API = new JsonRpcConfig().proxyOf(AccountApi.class);
+    static final PeerApi PEER_API = new JsonRpcConfig().proxyOf(PeerApi.class);
+
+    public <T> T proxyOf(Class<T> proxyInterface) {
+        return proxyOf("localhost", proxyInterface);
     }
 
-    public ContractApi contractApi() {
+    public <T> T proxyOf(String server, Class<T> proxyInterface) {
         try {
-            URL url = new URL("http://localhost:8080/api/contract");
+            String apiPath = proxyInterface.getSimpleName().toLowerCase().replace("api", "");
+            if (proxyInterface.equals(AccountApi.class)) {
+                apiPath = "wallet";
+            }
+            URL url = new URL(String.format("http://%s:8080/api/%s", server, apiPath));
             return ProxyUtil.createClientProxy(getClass().getClassLoader(),
-                    ContractApi.class, getJsonRpcHttpClient(url));
+                    proxyInterface, getJsonRpcHttpClient(url));
         } catch (MalformedURLException exception) {
-            exception.printStackTrace();
-            return null;
-        }
-    }
-
-    public ContractApi contractApi(String server) {
-        try {
-            URL url = new URL("http://" + server + ":8080/api/contract");
-            return ProxyUtil.createClientProxy(getClass().getClassLoader(),
-                    ContractApi.class, getJsonRpcHttpClient(url));
-        } catch (MalformedURLException exception) {
-            exception.printStackTrace();
-            return null;
-        }
-    }
-
-    public TransactionApi transactionApi() {
-        try {
-            URL url = new URL("http://localhost:8080/api/transaction");
-            return ProxyUtil.createClientProxy(getClass().getClassLoader(),
-                    TransactionApi.class, getJsonRpcHttpClient(url));
-        } catch (MalformedURLException exception) {
-            exception.printStackTrace();
-            return null;
-        }
-    }
-
-    public TransactionApi transactionApi(String server) {
-        try {
-            URL url = new URL("http://" + server + ":8080/api/transaction");
-            return ProxyUtil.createClientProxy(getClass().getClassLoader(),
-                    TransactionApi.class, getJsonRpcHttpClient(url));
-        } catch (MalformedURLException exception) {
-            exception.printStackTrace();
-            return null;
-        }
-    }
-
-    public AccountApi accountApi() {
-        try {
-            URL url = new URL("http://localhost:8080/api/account");
-            return ProxyUtil.createClientProxy(getClass().getClassLoader(),
-                    AccountApi.class, getJsonRpcHttpClient(url));
-        } catch (MalformedURLException exception) {
-            exception.printStackTrace();
-            return null;
-        }
-    }
-
-    public AccountApi accountApi(String server) {
-        try {
-            URL url = new URL("http://" + server + ":8080/api/account");
-            return ProxyUtil.createClientProxy(getClass().getClassLoader(),
-                    AccountApi.class, getJsonRpcHttpClient(url));
-        } catch (MalformedURLException exception) {
-            exception.printStackTrace();
-            return null;
-        }
-    }
-
-    public PeerApi peerApi() {
-        try {
-            URL url = new URL("http://localhost:8080/api/peer");
-            return ProxyUtil.createClientProxy(getClass().getClassLoader(),
-                    PeerApi.class, getJsonRpcHttpClient(url));
-        } catch (Exception exception) {
             exception.printStackTrace();
             return null;
         }

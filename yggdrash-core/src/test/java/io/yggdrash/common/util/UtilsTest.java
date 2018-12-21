@@ -20,20 +20,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.math.BigInteger;
-import java.util.List;
 import java.util.Locale;
 
 public class UtilsTest {
-    private static final String VALID_ADDR = "6c386a4b26f73c802f34673f7248bb118f97424a";
 
     @Before
     public void setUp() {
         Locale.setDefault(Locale.KOREA);
-    }
-
-    @Test
-    public void unifiedNumericToBigInteger() {
-        assert Utils.unifiedNumericToBigInteger("1").intValue() == 1;
     }
 
     @Test
@@ -47,17 +40,6 @@ public class UtilsTest {
     }
 
     @Test
-    public void isValidAddress() {
-        assert Utils.isValidAddress(Utils.addressStringToBytes(VALID_ADDR));
-    }
-
-    @Test
-    public void getAddressShortString() {
-        assert Utils.getAddressShortString(Utils.addressStringToBytes(VALID_ADDR))
-                .equals("6c386a...");
-    }
-
-    @Test
     public void getRandom() {
         assert Utils.getRandom() != null;
     }
@@ -68,16 +50,9 @@ public class UtilsTest {
     }
 
     @Test
-    public void getHashListShort() {
-        List<byte[]> hashList = java.util.Arrays.asList("a".getBytes(), "b".getBytes());
-        assert Utils.getHashListShort(hashList).equals(" 61...62");
-    }
-
-    @Test
     public void getNodeIdShort() {
         assert Utils.getNodeIdShort("abcdefghijkl").equals("abcdefgh");
         assert Utils.getNodeIdShort(null).equals("<null>");
-
     }
 
     @Test

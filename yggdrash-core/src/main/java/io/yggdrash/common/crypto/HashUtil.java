@@ -21,10 +21,15 @@ package io.yggdrash.common.crypto;
 import io.yggdrash.common.crypto.jce.SpongyCastleProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.crypto.CipherParameters;
+import org.spongycastle.crypto.Digest;
+import org.spongycastle.crypto.digests.KeccakDigest;
+import org.spongycastle.crypto.generators.PKCS5S2ParametersGenerator;
+import org.spongycastle.crypto.params.KeyParameter;
+import org.spongycastle.crypto.util.DigestFactory;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.security.Provider;
 import java.security.Security;
 
 import static java.util.Arrays.copyOfRange;
@@ -33,35 +38,15 @@ public class HashUtil {
 
     private static final Logger LOG = LoggerFactory.getLogger(HashUtil.class);
 
-    private static final Provider CRYPTO_PROVIDER;
-
-    private static final String HASH_256_ALGORITHM_NAME;
-
-    private static final String HASH_SHA_1_ALGORITHM_NAME;
+    private static final String HASH_256_ALGORITHM_NAME = "KECCAK-256";
+    private static final String HASH_SHA_256_ALGORITHM_NAME = "SHA-256";
+    private static final String HASH_SHA_512_ALGORITHM_NAME = "SHA-512";
+    private static final String HASH_SHA3_256_ALGORITHM_NAME = "SHA3-256";
+    private static final String HASH_SHA3_512_ALGORITHM_NAME = "SHA3-512";
+    private static final String HASH_SHA_1_ALGORITHM_NAME = "SHA-1";
 
     static {
-
         Security.addProvider(SpongyCastleProvider.getInstance());
-
-        CRYPTO_PROVIDER = Security.getProvider("SC");
-        HASH_256_ALGORITHM_NAME = "ETH-KECCAK-256";
-        HASH_SHA_1_ALGORITHM_NAME = "SHA-1";
-    }
-
-    /**
-     * SHA256 Hash Method.
-     * @param input - data for hashing
-     * @return - sha256 hash of the data
-     * @deprecated Use hash()
-     */
-    public static byte[] sha256(byte[] input) {
-        try {
-            MessageDigest sha256digest = MessageDigest.getInstance("SHA-256");
-            return sha256digest.digest(input);
-        } catch (NoSuchAlgorithmException e) {
-            LOG.error("Can't find such algorithm", e);
-            throw new RuntimeException(e);
-        }
     }
 
     /**
@@ -69,35 +54,9 @@ public class HashUtil {
      *
      * @param input data
      * @return hashed data
-     * @deprecated Use hash()
      */
     public static byte[] sha3(byte[] input) {
-        MessageDigest digest;
-        try {
-            digest = MessageDigest.getInstance(HASH_256_ALGORITHM_NAME, CRYPTO_PROVIDER);
-            digest.update(input);
-            return digest.digest();
-        } catch (NoSuchAlgorithmException e) {
-            LOG.error("Can't find such algorithm", e);
-            throw new RuntimeException(e);
-        }
-    }
-
-    /**
-     * SHA1 Hash Method.
-     *
-     * @param input data
-     * @return hashed data
-     * @deprecated Use hash()
-     */
-    public static byte[] sha1(byte[] input) {
-        try {
-            MessageDigest sha256digest = MessageDigest.getInstance(HASH_SHA_1_ALGORITHM_NAME);
-            return sha256digest.digest(input);
-        } catch (NoSuchAlgorithmException e) {
-            LOG.error("Can't find such algorithm", e);
-            throw new RuntimeException(e);
-        }
+        return hash(input, HASH_256_ALGORITHM_NAME);
     }
 
     /**
@@ -113,10 +72,41 @@ public class HashUtil {
     }
 
     /**
+     * SHA1 Hash Method.
+     *
+     * @param input data
+     * @return hashed data
+     */
+    public static byte[] sha1(byte[] input) {
+        return hash(input, HASH_SHA_1_ALGORITHM_NAME);
+    }
+
+    /**
+     * SHA256 Hash Method.
+     *
+     * @param input - data for hashing
+     * @return - sha256 hash of the data
+     */
+    static byte[] sha256(byte[] input) {
+        return hash(input, HASH_SHA_256_ALGORITHM_NAME);
+    }
+
+    /**
+     * The hash method for supporting many algorithms.
+     *
+     * @param input     data for hashing.
+     * @param algorithm algorithm for hashing. ex) "KECCAK-256", "SHA-256", "SHA3-256", "SHA-1"
+     * @return hashed data.
+     */
+    public static byte[] hash(byte[] input, String algorithm) {
+        return hash(input, algorithm, false);
+    }
+
+    /**
      * The hash method for supporting many algorithms.
      *
      * @param input      data for hashing.
-     * @param algorithm  algorithm for hashing. ex) "SHA-256", "KECCAK-256", "SHA3-256", "SHA-1"
+     * @param algorithm  algorithm for hashing. ex) "KECCAK-256", "SHA-256", "SHA3-256", "SHA-1"
      * @param doubleHash whether double hash or not
      * @return hashed data.
      */
@@ -131,24 +121,53 @@ public class HashUtil {
     }
 
     /**
-     * The hash method for supporting many algorithms.
+     * Get pbkdf2's hash encrypted output(key).
      *
-     * @param input     data for hashing.
-     * @param algorithm algorithm for hashing. ex) "SHA-256", "KECCAK-256", "SHA3-256", "SHA-1"
-     * @return hashed data.
+     * @param input input data ex) password
+     * @param salt random bytes
+     * @param iteration iteration
+     * @param outLen output length(bytes) ex) hash encrypted password
+     * @param algorithm hash algorithm
+     *                  ex) "KECCAK-256", "SHA-256", "SHA-512", "SHA3-256", "SHA3-512", "SHA-1"
+     * @return encrypted output(key)
      */
-    public static byte[] hash(byte[] input, String algorithm) {
-        return hash(input, algorithm, false);
-    }
+    public static byte[] pbkdf2(
+            byte[] input, byte[] salt, int iteration, int outLen, String algorithm) {
+        Digest digest;
 
-    /**
-     * The hash method for KECCAK-256.
-     *
-     * @param input data for hashing.
-     * @return hashed data.
-     */
-    public static byte[] hash(byte[] input) {
-        return hash(input, "KECCAK-256");
-    }
+        switch (algorithm) {
+            case HASH_256_ALGORITHM_NAME:
+                digest = new KeccakDigest(256);
+                break;
 
+            case HASH_SHA_256_ALGORITHM_NAME:
+                digest = DigestFactory.createSHA256();
+                break;
+
+            case HASH_SHA_512_ALGORITHM_NAME:
+                digest = DigestFactory.createSHA512();
+                break;
+
+            case HASH_SHA3_256_ALGORITHM_NAME:
+                digest = DigestFactory.createSHA3_256();
+                break;
+
+            case HASH_SHA3_512_ALGORITHM_NAME:
+                digest = DigestFactory.createSHA3_512();
+                break;
+
+            case HASH_SHA_1_ALGORITHM_NAME:
+                digest = DigestFactory.createSHA1();
+                break;
+
+            default:
+                throw new IllegalStateException("unknown digest for PBKDF2");
+        }
+
+        PKCS5S2ParametersGenerator gen = new PKCS5S2ParametersGenerator(digest);
+        gen.init(input, salt, iteration);
+        int keyLengthInBits = outLen * 8;
+        CipherParameters p = gen.generateDerivedParameters(keyLengthInBits);
+        return ((KeyParameter) p).getKey();
+    }
 }

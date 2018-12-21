@@ -1,23 +1,8 @@
-buildscript {
-    ext {
-        springBootVersion      = '2.1.0.RELEASE'
-        protobufPluginVersion  = '0.8.7'
-        dockerPluginVersion    = '0.20.1'
-        coverallsPluginVersion = '2.8.2'
-    }
-    repositories {
-        mavenCentral()
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-        jcenter()
-    }
-    dependencies {
-        classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
-        classpath("com.google.protobuf:protobuf-gradle-plugin:${protobufPluginVersion}")
-        classpath("gradle.plugin.com.palantir.gradle.docker:gradle-docker:${dockerPluginVersion}")
-        classpath("org.kt3k.gradle.plugin:coveralls-gradle-plugin:${coverallsPluginVersion}")
-    }
+plugins {
+    id 'org.springframework.boot' version '2.1.1.RELEASE' apply false
+    id 'com.google.protobuf' version '0.8.7'
+    id "com.palantir.docker" version "0.20.1"
+    id 'com.github.kt3k.coveralls' version '2.8.2'
 }
 
 apply plugin: 'java'
@@ -26,18 +11,16 @@ apply plugin: 'idea'
 group = 'io.yggdrash'
 version = '0.0.1-SNAPSHOT'
 
-sourceCompatibility = 1.8
-
 defaultTasks ':yggdrash-node:bootRun'
 
 ext {
-    grpcVersion         = '1.16.1'
+    grpcVersion         = '1.17.0'
     protobufVersion     = '3.6.1'
     levelDBVersion      = '0.10'
-    ehcacheVersion      = '3.6.1'
+    ehcacheVersion      = '3.6.2'
     scastleVersion      = '1.58.0.0'
     commonsCodecVersion = '1.11'
-    commonsIOVersion    = '2.4'
+    commonsIOVersion    = '2.6'
     gsonVersion         = '2.8.5'
     jsonSimpleVersion   = '1.1'
     jacksonVersion      = '2.9.7'
@@ -55,7 +38,6 @@ allprojects {
 
     repositories {
         mavenCentral()
-        jcenter()
     }
 }
 
@@ -63,14 +45,26 @@ subprojects {
     apply plugin: 'java'
 
     jacoco {
-        toolVersion = "0.8.2"
+        toolVersion = '0.8.2'
     }
 
     checkstyle {
         ignoreFailures = false
-        toolVersion = '8.14'
+        toolVersion = '8.15'
         maxWarnings = 0
         configFile = rootProject.file('config/checkstyle/checkstyle.xml')
+    }
+
+    compileJava {
+        sourceCompatibility = 1.8  // can be switched to 11 for testing
+        targetCompatibility = 1.8
+        options.encoding = "UTF-8"
+        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    }
+
+    test {
+        failFast = true
+        systemProperty('spring.profiles.active', project.properties.get('springProfiles'))
     }
 }
 
@@ -78,34 +72,31 @@ project(':yggdrash-core') {
     apply plugin: 'com.google.protobuf'
 
     dependencies {
-        compile("io.grpc:grpc-protobuf:${grpcVersion}")
-        compile("io.grpc:grpc-stub:${grpcVersion}")
-        compile("io.grpc:grpc-netty-shaded:${grpcVersion}")
-        compile("org.iq80.leveldb:leveldb:${levelDBVersion}")
-        compile("org.ehcache:ehcache:${ehcacheVersion}")
-        compile("com.madgag.spongycastle:prov:${scastleVersion}") // for SHA3 and SECP256K1
-        compile("commons-codec:commons-codec:${commonsCodecVersion}")
-        compile("commons-io:commons-io:${commonsIOVersion}")
-        compile("com.google.code.gson:gson:${gsonVersion}")
-        compile("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
-        compile("com.typesafe:config:${typesafeVersion}")
-        compile("ch.qos.logback:logback-classic:${logbackVersion}")
-        compileOnly("javax.annotation:javax.annotation-api:${annotationVersion}")
-        testCompile("org.assertj:assertj-core:${assertjVersion}")
-    }
-
-    jar {
-        enabled = true
+        compile "io.grpc:grpc-protobuf:${grpcVersion}"
+        compile "io.grpc:grpc-stub:${grpcVersion}"
+        compile "io.grpc:grpc-netty-shaded:${grpcVersion}"
+        compile "com.google.protobuf:protobuf-java:${protobufVersion}"
+        compile "org.iq80.leveldb:leveldb:${levelDBVersion}"
+        compile "org.ehcache:ehcache:${ehcacheVersion}"
+        compile "com.madgag.spongycastle:prov:${scastleVersion}" // for SHA3 and SECP256K1
+        compile "commons-codec:commons-codec:${commonsCodecVersion}"
+        compile "commons-io:commons-io:${commonsIOVersion}"
+        compile "com.google.code.gson:gson:${gsonVersion}"
+        compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+        compile "com.typesafe:config:${typesafeVersion}"
+        compile "ch.qos.logback:logback-classic:${logbackVersion}"
+        compileOnly "javax.annotation:javax.annotation-api:${annotationVersion}"
+        testCompile "org.assertj:assertj-core:${assertjVersion}"
     }
 
     protobuf {
-        protoc {
-            artifact = "com.google.protobuf:protoc:${protobufVersion}"
-        }
         plugins {
             grpc {
                 artifact = "io.grpc:protoc-gen-grpc-java:${grpcVersion}"
             }
+        }
+        protoc {
+            artifact = "com.google.protobuf:protoc:${protobufVersion}"
         }
         generateProtoTasks {
             all()*.plugins {
@@ -125,30 +116,26 @@ project(':yggdrash-core') {
 }
 
 project(':yggdrash-node') {
-    apply plugin: 'com.palantir.docker'
-    apply plugin: 'io.spring.dependency-management'
     apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
 
     dependencies {
-        compile project(":yggdrash-core")
-        compile("org.springframework.boot:spring-boot-starter-undertow")
-        compile("org.springframework.boot:spring-boot-starter-actuator")
-        compile("org.springframework.boot:spring-boot-starter-websocket")
-        compile("org.springframework.cloud:spring-cloud-starter:2.0.0.RELEASE")
-        compile("com.github.briandilley.jsonrpc4j:jsonrpc4j:1.5.3")
-        compile("org.webjars:sockjs-client:1.1.2")
-        compile("org.webjars:stomp-websocket:2.3.3")
-        compile("org.webjars:bootstrap:3.3.7")
-        compile("org.webjars:webjars-locator-core")
-        annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-        runtime('org.springframework.boot:spring-boot-devtools')
-        testCompile('org.springframework.boot:spring-boot-starter-test')
-        testCompile("io.grpc:grpc-testing:${grpcVersion}")
-        testCompile project(":yggdrash-core").sourceSets.test.output
+        compile project(':yggdrash-core')
+        compile "org.springframework.boot:spring-boot-starter-web"
+        compile "org.springframework.boot:spring-boot-starter-undertow"
+        compile "org.springframework.boot:spring-boot-starter-actuator"
+        compile "org.springframework.cloud:spring-cloud-starter:2.0.0.RELEASE"
+        compile "com.github.briandilley.jsonrpc4j:jsonrpc4j:1.5.3"
+        annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
+        runtime "org.springframework.boot:spring-boot-devtools"
+        testCompile "org.springframework.boot:spring-boot-starter-test"
+        testCompile "io.grpc:grpc-testing:${grpcVersion}"
+        testCompile project(':yggdrash-core').sourceSets.test.output
     }
 
     configurations {
         compile.exclude module: 'spring-boot-starter-tomcat'
+        compile.exclude module: 'spring-security-rsa'
     }
 
     docker {
@@ -159,36 +146,54 @@ project(':yggdrash-node') {
         buildArgs(['JAR_FILE': "${bootJar.archiveName}"])
     }
 
+    jar {
+        classifier = 'classes'
+        enabled = true
+    }
+
     bootJar {
         launchScript()
     }
+}
 
-    test {
-        systemProperty("spring.profiles.active", project.properties.get("springProfiles"))
-        testLogging {
-            afterSuite {desc, result ->
-                if (!desc.parent) { // will match the outermost suite
-                    print "TEST:${result.resultType} (TOTAL:${result.testCount}, PASS:${result.successfulTestCount},"
-                    println " FAIL:${result.failedTestCount}, SKIP:${result.skippedTestCount})"
-                }
-            }
-        }
+project(':yggdrash-gateway') {
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    dependencies {
+        compile project(':yggdrash-node')
+        compile "org.springframework.boot:spring-boot-starter-undertow"
+        compile "org.springframework.boot:spring-boot-starter-websocket"
+        compile "org.webjars:sockjs-client:1.1.2"
+        compile "org.webjars:stomp-websocket:2.3.3"
+        compile "org.webjars:bootstrap:3.3.7"
+        compile "org.webjars:webjars-locator-core"
+        testCompile "org.springframework.boot:spring-boot-starter-test"
+        testCompile project(':yggdrash-core').sourceSets.test.output
+    }
+
+    configurations {
+        compile.exclude module: 'spring-boot-starter-tomcat'
+    }
+
+    bootJar {
+        launchScript()
     }
 }
 
 task jacocoRootReport(type: JacocoReport) {
     description = 'Generates an aggregate report from all subprojects'
     dependsOn = subprojects.test
-    sourceDirectories = files(subprojects.sourceSets.main.allSource.srcDirs)
-    classDirectories =  files(subprojects.sourceSets.main.output)
-    executionData = files(subprojects.jacocoTestReport.executionData)
+    sourceDirectories.from = subprojects.sourceSets.main.allSource.srcDirs
+    classDirectories.from =  subprojects.sourceSets.main.output
+    executionData.from = subprojects.jacocoTestReport.executionData
 
     afterEvaluate {
-        classDirectories = files(classDirectories.files.collect {
+        classDirectories.from = classDirectories.files.collect {
             fileTree(dir: it,
                 exclude: ['io/yggdrash/proto/**']
             )
-        })
+        }
     }
 
     reports {

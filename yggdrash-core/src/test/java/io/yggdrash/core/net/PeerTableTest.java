@@ -1,7 +1,7 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.BranchId;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.StoreBuilder;
 import org.junit.Before;

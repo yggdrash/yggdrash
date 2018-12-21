@@ -18,111 +18,59 @@ package io.yggdrash.core.contract;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.TestUtils;
-import io.yggdrash.core.BranchId;
-import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.account.Wallet;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.ContractTestUtils;
+import io.yggdrash.TestConstants;
+import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spongycastle.crypto.InvalidCipherTextException;
 
-import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class RuntimeTest {
-    private static final Logger log = LoggerFactory.getLogger(RuntimeTest.class);
-    private final TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
-    private final Contract<CoinStateTable> coinContract = new CoinContract();
-    private final Contract<JsonObject> stemContract = new StemContract();
-    private io.yggdrash.core.contract.Runtime<JsonObject> stemRuntime;
-    private io.yggdrash.core.contract.Runtime<CoinStateTable> yeedRuntime;
-    private Wallet wallet;
-    private BranchId branchId;
 
-    @Before
-    public void setUp() throws IOException, InvalidCipherTextException {
-        stemRuntime = new io.yggdrash.core.contract.Runtime<>(new StateStore<>(), txReceiptStore);
-        yeedRuntime = new io.yggdrash.core.contract.Runtime<>(new StateStore<>(), txReceiptStore);
-        wallet = new Wallet();
+    @Test
+    public void yeedRuntimeTest() throws Exception {
+        CoinContract contract = new CoinContract();
+        Runtime<CoinContractStateValue> runtime =
+                new Runtime<>(new StateStore<>(), new TransactionReceiptStore());
+
+        String genesisStr = "{\"alloc\": {\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\":"
+                + " {\"balance\": \"1000000000\"},\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\":"
+                + " {\"balance\": \"1000000000\"},\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":"
+                + " {\"balance\": \"998000000000\"}}}";
+
+        JsonObject genesisParams = JsonUtil.parseJsonObject(genesisStr);
+
+        JsonArray txBody = ContractTestUtils.txBodyJson("genesis", genesisParams);
+        BranchId branchId = TestConstants.YEED;
+        TransactionHusk genesisTx = BlockChainTestUtils.createTxHusk(branchId, txBody);
+        assertThat(runtime.invoke(contract, genesisTx)).isTrue();
+
+        JsonObject params = ContractTestUtils.createParams("address",
+                "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        BigDecimal result = (BigDecimal)runtime.query(contract, "balanceOf", params);
+        assertThat(result).isEqualTo(BigDecimal.valueOf(1000000000));
     }
 
     @Test
-    public void invokeFromYeedTest() {
-        TransactionHusk tx =
-                ContractTx.createTx(TestUtils.YEED, wallet, TestUtils.TRANSFER_TO, 100);
-        yeedRuntime.invoke(coinContract, tx);
-    }
+    public void stemRuntimeTest() throws Exception {
+        StemContract contract = new StemContract();
+        Runtime<StemContractStateValue> runtime =
+                new Runtime<>(new StateStore<>(), new TransactionReceiptStore());
 
-    @Test
-    public void invokeFromStemTest() {
-        JsonObject branch = TestUtils.getSampleBranch();
-        branchId = BranchId.of(branch);
+        JsonObject json = ContractTestUtils.createSampleBranchJson();
+        BranchId branchId = BranchId.of(json);
+        TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId, "create", json);
+        assertThat(runtime.invoke(contract, createTx)).isTrue();
 
-        TransactionHusk tx = ContractTx.createStemTx(wallet, branch, "create");
-        stemRuntime.invoke(stemContract, tx);
-
-        String description = "hello world!";
-        JsonObject updatedBranch = TestUtils.updateBranch(description, branch, 0);
-
-        tx = ContractTx.createStemTx(wallet, updatedBranch, "update");
-        stemRuntime.invoke(stemContract, tx);
-    }
-
-    @Test
-    public void queryToYeedTest() throws Exception {
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        params.add(param);
-
-        assertThat(yeedRuntime.query(coinContract,
-                TestUtils.createQuery("balanceOf", params))).isNotNull();
-    }
-
-    @Test
-    public void queryToStemTest() throws Exception {
-        invokeFromStemTest();
-
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("branchId", branchId.toString());
-        params.add(param);
-
-        assertThat(stemRuntime.query(stemContract,
-                TestUtils.createQuery("getCurrentVersion", params))).isNotNull();
-        log.debug("[getCurrentVersion] res => " + stemRuntime.query(stemContract,
-                TestUtils.createQuery("getCurrentVersion", params)));
-
-        assertThat(stemRuntime.query(stemContract,
-                TestUtils.createQuery("getVersionHistory", params))).isNotNull();
-        log.debug("[getVersionHistory] res => " + stemRuntime.query(stemContract,
-                TestUtils.createQuery("getVersionHistory", params)));
-
-        assertThat(stemRuntime.query(stemContract,
-                TestUtils.createQuery("getAllBranchId", new JsonArray()))).isNotNull();
-        log.debug("[getAllBranchId] res => " + stemRuntime.query(stemContract,
-                TestUtils.createQuery("getAllBranchId", params)));
-
-        params.remove(0);
-        param.remove("branchId");
-        param.addProperty("key", "type");
-        param.addProperty("value", "immunity");
-        params.add(param);
-        assertThat(stemRuntime.query(stemContract, TestUtils.createQuery("search", params)))
-                .isNotNull();
-        log.debug("[Search | type | immunity] res => "
-                + stemRuntime.query(stemContract, TestUtils.createQuery("search", params)));
-
-        param.addProperty("key", "name");
-        param.addProperty("value", "TEST1");
-        assertThat(stemRuntime.query(stemContract, TestUtils.createQuery("search", params)))
-                .isNotNull();
-        log.debug("[Search | name | TEST1] res => "
-                + stemRuntime.query(stemContract, TestUtils.createQuery("search", params)));
+        List<String> result = (List<String>)runtime.query(contract, "getAllBranchId", null);
+        assertThat(result).contains(branchId.toString());
     }
 }

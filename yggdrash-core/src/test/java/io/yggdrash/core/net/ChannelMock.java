@@ -16,9 +16,8 @@
 
 package io.yggdrash.core.net;
 
-import io.yggdrash.TestUtils;
-import io.yggdrash.core.BranchId;
-import io.yggdrash.core.Transaction;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.proto.NodeInfo;
 import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
@@ -62,12 +61,12 @@ public class ChannelMock implements PeerClientChannel {
 
     @Override
     public List<Proto.Block> syncBlock(BranchId branchId, long offset) {
-        return Collections.singletonList(TestUtils.sampleBlock().toProtoBlock());
+        return Collections.singletonList(BlockChainTestUtils.genesisBlock().getInstance());
     }
 
     @Override
     public List<Proto.Transaction> syncTransaction(BranchId branchId) {
-        Proto.Transaction protoTx = Transaction.toProtoTransaction(TestUtils.sampleTransferTx());
+        Proto.Transaction protoTx = BlockChainTestUtils.createTransferTxHusk().getInstance();
         return Collections.singletonList(protoTx);
     }
 

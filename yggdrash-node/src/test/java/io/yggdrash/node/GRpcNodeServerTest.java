@@ -18,11 +18,11 @@ package io.yggdrash.node;
 
 import com.google.protobuf.ByteString;
 import io.grpc.testing.GrpcServerRule;
-import io.yggdrash.TestUtils;
-import io.yggdrash.core.BlockHusk;
-import io.yggdrash.core.BranchGroup;
-import io.yggdrash.core.BranchId;
-import io.yggdrash.core.TransactionHusk;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.proto.BlockChainGrpc;
@@ -72,10 +72,9 @@ public class GRpcNodeServerTest {
                 peerGroupMock, branchGroupMock, nodeStatus)
         );
 
-        tx = TestUtils.createTransferTxHusk();
+        tx = BlockChainTestUtils.createTransferTxHusk();
         when(branchGroupMock.addTransaction(any())).thenReturn(tx);
-        block = TestUtils.createGenesisBlockHusk();
-        //when(branchGroupMock.addBlock(any())).thenReturn(block);
+        block = BlockChainTestUtils.genesisBlock();
         branchId = block.getBranchId();
     }
 
@@ -93,7 +92,8 @@ public class GRpcNodeServerTest {
         BlockChainGrpc.BlockChainBlockingStub blockChainBlockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
         NetProto.Empty empty = NetProto.Empty.newBuilder().build();
-        assertEquals(empty, blockChainBlockingStub.broadcastBlock(TestUtils.getBlockFixture()));
+        Proto.Block block = BlockChainTestUtils.genesisBlock().getInstance();
+        assertEquals(empty, blockChainBlockingStub.broadcastBlock(block));
     }
 
     @Test
@@ -101,7 +101,8 @@ public class GRpcNodeServerTest {
         BlockChainGrpc.BlockChainBlockingStub blockChainBlockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
         NetProto.Empty empty = NetProto.Empty.newBuilder().build();
-        assertEquals(empty, blockChainBlockingStub.broadcastTransaction(TestUtils.sampleTxs()[0]));
+        Proto.Transaction tx = BlockChainTestUtils.createTransferTxHusk().getInstance();
+        assertEquals(empty, blockChainBlockingStub.broadcastTransaction(tx));
     }
 
     @Test
@@ -109,7 +110,8 @@ public class GRpcNodeServerTest {
         Set<BlockHusk> blocks = new HashSet<>();
         blocks.add(block);
         when(branchGroupMock.getBlockByIndex(branchId, 0L)).thenReturn(block);
-        when(branchGroupMock.getBranch(any())).thenReturn(TestUtils.createBlockChain(false));
+        when(branchGroupMock.getBranch(any()))
+                .thenReturn(BlockChainTestUtils.createBlockChain(false));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
@@ -133,34 +135,4 @@ public class GRpcNodeServerTest {
         Proto.TransactionList list = blockingStub.syncTransaction(syncLimit);
         assertEquals(1, list.getTransactionsCount());
     }
-
-    /*
-    @Test
-    public void broadcastTransaction() throws Exception {
-        BlockChainGrpc.BlockChainStub stub = BlockChainGrpc.newStub(grpcServerRule.getChannel());
-        StreamRecorder<NetProto.Empty> responseObserver = StreamRecorder.create();
-        StreamObserver<Proto.Transaction> requestObserver
-                = stub.broadcastTransaction(responseObserver);
-
-        requestObserver.onNext(tx.getInstance());
-        requestObserver.onCompleted();
-        assertNotNull(responseObserver.firstValue().get());
-    }
-
-    @Test
-    public void broadcastBlock() throws Exception {
-        when(nodeStatus.isUpStatus()).thenReturn(true);
-        when(branchGroupMock.getBranch(any())).thenReturn(TestUtils.createBlockChain(false));
-        BlockChainGrpc.BlockChainStub stub = BlockChainGrpc.newStub(grpcServerRule.getChannel());
-        StreamRecorder<NetProto.Empty> responseObserver = StreamRecorder.create();
-        StreamObserver<Proto.Block> requestObserver
-                = stub.broadcastBlock(responseObserver);
-
-        requestObserver.onNext(block.getInstance());
-        requestObserver.onCompleted();
-
-        NetProto.Empty firstResponse = responseObserver.firstValue().get();
-        assertNotNull(firstResponse);
-    }
-    */
 }

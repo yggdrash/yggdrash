@@ -1,24 +1,26 @@
 package io.yggdrash.node;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import io.yggdrash.TestUtils;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.ContractTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.common.util.TimeUtils;
-import io.yggdrash.common.util.Utils;
-import io.yggdrash.core.BranchId;
-import io.yggdrash.core.TransactionHusk;
-import io.yggdrash.core.account.Wallet;
-import io.yggdrash.core.contract.ContractQry;
-import io.yggdrash.core.contract.ContractTx;
-import io.yggdrash.core.genesis.BranchJson;
-import io.yggdrash.core.genesis.BranchLoader;
+import io.yggdrash.core.blockchain.Branch;
+import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.genesis.BranchLoader;
+import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.node.api.BranchApi;
+import io.yggdrash.node.api.ContractApi;
+import io.yggdrash.node.api.ContractApiImplTest;
 import io.yggdrash.node.api.JsonRpcConfig;
-import io.yggdrash.node.controller.TransactionDto;
+import io.yggdrash.node.api.TransactionApi;
+import io.yggdrash.node.api.dto.TransactionDto;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 
@@ -30,17 +32,22 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static io.yggdrash.common.config.Constants.CONTRACT_ID;
 
 public class NodeContractDemoClient {
 
+    private static final BranchId STEM = TestConstants.STEM;
+    private static final BranchId YEED = TestConstants.YEED;
+
     private static final JsonRpcConfig rpc = new JsonRpcConfig();
-    private static final Wallet wallet = TestUtils.wallet();
     private static final Scanner scan = new Scanner(System.in);
 
     private static final String SERVER_PROD = "10.10.10.100";
@@ -49,15 +56,15 @@ public class NodeContractDemoClient {
     private static final int TRANSFER_AMOUNT = 1;
 
     public static void main(String[] args) throws Exception {
-        while (true) {
+        for (int i = 0; i < 10000; i++) {
             run();
         }
     }
 
     private static void run() throws Exception {
         System.out.print("===============\n");
-        System.out.print("[1] 트랜잭션 전송\n[2] 트랜잭션 조회\n[3] 브랜치 배포\n[4] 브랜치 수정\n"
-                + "[5] 브랜치 조회\n[6] 발란스 조회\n[9] 종료\n>");
+        System.out.print("[1] 트랜잭션 전송\n[2] 트랜잭션 조회\n[3] 브랜치 배포\n[4] 브랜치 목록\n"
+                        + "[5] 브랜치 수정\n[6] 브랜치 조회\n[7] 발란스 조회\n[9] 종료\n>");
 
         String num = scan.nextLine();
 
@@ -69,12 +76,15 @@ public class NodeContractDemoClient {
                 deployBranch();
                 break;
             case "4":
-                update();
+                getBranches();
                 break;
             case "5":
-                view();
+                update();
                 break;
             case "6":
+                view();
+                break;
+            case "7":
                 balance();
                 break;
             case "9":
@@ -114,9 +124,11 @@ public class NodeContractDemoClient {
     private static void sendStemTx(JsonObject branch, String method) {
         int times = getSendTimes();
         String serverAddress = getServerAddress();
+        BranchId branchId = BranchId.of(branch);
         for (int i = 0; i < times; i++) {
-            TransactionHusk tx = ContractTx.createStemTx(wallet, branch, method);
-            rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
+            TransactionHusk tx = BlockChainTestUtils.createBranchTxHusk(branchId, method, branch);
+            rpc.proxyOf(serverAddress, TransactionApi.class)
+                    .sendTransaction(TransactionDto.createBy(tx));
         }
     }
 
@@ -126,52 +138,38 @@ public class NodeContractDemoClient {
         String serverAddress = getServerAddress();
         int amount = 1;
         for (int i = 0; i < times; i++) {
-            TransactionHusk tx = ContractTx.createTx(BranchId.of(branchId), wallet, "", amount);
-            rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
+            JsonArray txBody = ContractTestUtils.transferTxBodyJson("", amount);
+            TransactionHusk tx = createTxHusk(BranchId.of(branchId), txBody);
+            rpc.proxyOf(serverAddress, TransactionApi.class)
+                    .sendTransaction(TransactionDto.createBy(tx));
         }
     }
 
     private static void sendGeneralTxOrQuery() throws Exception {
         String branchId = getBranchId();
         String serverAddress = getServerAddress();
-        List<String> methodList = specificationOf(branchId, serverAddress);
+        List<String> methodList = (List<String>)rpc.proxyOf(serverAddress, ContractApi.class)
+                .query(branchId, "specification", null);
         System.out.println("\n해당 컨트랙트의 메소드 스펙입니다.");
         methodList.forEach(System.out::println);
 
         int index = getMethodIndex(methodList);
-        String selectedMethod = getMethodName(index, methodList);
+        String selectedMethod = MethodNameParser.parse(methodList.get(index));
         if (methodList.get(index).contains("TransactionReceipt")) {
             TransactionHusk tx = createTx(branchId, selectedMethod);
             System.out.println("tx => " + tx);
-            rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
+            rpc.proxyOf(serverAddress, TransactionApi.class)
+                    .sendTransaction(TransactionDto.createBy(tx));
         } else {
-            JsonObject query = createQueryObj(branchId, selectedMethod);
-            System.out.println("query => " + query);
-            rpc.contractApi(serverAddress).query(query.toString());
+            Map params = createParams();
+            rpc.proxyOf(serverAddress, ContractApi.class).query(branchId, selectedMethod, params);
         }
-    }
-
-    private static List<String> specificationOf(String branchId, String serverAddress) {
-        JsonObject queryObj
-                = ContractQry.createQuery(branchId, "specification", new JsonArray());
-        List<String> methods = new ArrayList<>();
-        try {
-            JsonParser jsonParser = new JsonParser();
-            JsonObject jsonObject = (JsonObject) jsonParser.parse(
-                    rpc.contractApi(serverAddress).query(queryObj.toString()));
-            String result = jsonObject.get("result").getAsString();
-
-            methods = Arrays.asList(result.split(","));
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return methods;
     }
 
     private static int getMethodIndex(List<String> methodList) {
         System.out.println("\n실행할 메소드의 번호를 입력하세요.");
         for (int i = 0; i < methodList.size(); i++) {
-            System.out.println("[" + i + "] " + getMethodName(i, methodList));
+            System.out.println("[" + i + "] " + MethodNameParser.parse(methodList.get(i)));
         }
         System.out.println(">");
         String input = scan.nextLine();
@@ -179,15 +177,7 @@ public class NodeContractDemoClient {
         return input.length() > 0 ? Integer.parseInt(input) : 0;
     }
 
-    private static String getMethodName(int index, List<String> methodList) {
-        String method = methodList.get(index);
-        String[] element = method.split(" ");
-        String[] func = element[2].split("\\.");
-
-        return func[5].substring(0, func[5].indexOf("("));
-    }
-
-    private static JsonObject createQueryObj(String branchId, String method) {
+    private static Map createParams() {
         System.out.println("\n파라미터의 갯수를 선택해주세요.");
         System.out.println("[0] No parameter {}");
         System.out.println("[1] 1 parameter  {key : value}");
@@ -195,37 +185,33 @@ public class NodeContractDemoClient {
         System.out.println("[3] 직접 입력      {key : value, key : value ...}");
         System.out.println(">");
 
-        JsonObject queryObj;
-        Map<String, String> properties = new HashMap<>();
+        Map params = new HashMap();
         switch (scan.nextLine()) {
             case "1":
                 System.out.println("key => ");
                 String key = scan.nextLine();
                 System.out.println("value => ");
                 String value = scan.nextLine();
-                properties.put(key, value);
+                params.put(key, value);
                 break;
             case "2":
                 System.out.println("key1 => ");
                 String key1 = scan.nextLine();
                 System.out.println("value1 => ");
                 String value1 = scan.nextLine();
-                properties.put(key1, value1);
+                params.put(key1, value1);
 
                 System.out.println("key2 => ");
                 String key2 = scan.nextLine();
                 System.out.println("value2 => ");
                 String value2 = scan.nextLine();
-                properties.put(key2, value2);
+                params.put(key2, value2);
                 break;
             case "3":
                 try {
                     System.out.println("=> ");
-                    ObjectMapper objectMapper = new ObjectMapper();
-                    String input = scan.nextLine();
-                    properties = objectMapper.readValue(
-                            input, new TypeReference<HashMap<String, String>>() {
-                            });
+                    JsonObject json = JsonUtil.parseJsonObject(scan.nextLine());
+                    params = JsonUtil.convertJsonToMap(json);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -233,32 +219,22 @@ public class NodeContractDemoClient {
             default:
                 break;
         }
-        queryObj = ContractQry.createQuery(
-                branchId, method, ContractQry.createParams(properties));
-        return queryObj;
+        System.out.println("params => " + params.toString());
+        return params;
     }
 
     private static TransactionHusk createTx(String branchId, String method) {
         System.out.println("파라미터 직접 입력하시겠습니가? 예, {key : value, key : value ...} (Y/N)");
-        JsonArray txBody = new JsonArray();
+        JsonArray txBody = null;
         String from;
         String to;
         BigDecimal amount;
 
         if (scan.nextLine().equals("Y")) {
-            try {
-                System.out.println("=> ");
-                Map<String, String> properties = new HashMap<>();
-                ObjectMapper objectMapper = new ObjectMapper();
-                String input = scan.nextLine();
-                properties = objectMapper.readValue(
-                        input, new TypeReference<HashMap<String, String>>() {
-                        });
+            System.out.println("=> ");
+            JsonObject params = JsonUtil.parseJsonObject(scan.nextLine());
 
-                txBody = ContractTx.createTxBody(method, properties);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+            txBody = ContractTestUtils.txBodyJson(method, params);
         } else {
             switch (method) {
                 case "approve":
@@ -267,7 +243,7 @@ public class NodeContractDemoClient {
                     System.out.println("amount => ");
                     BigDecimal approvedAmount = new BigDecimal(scan.nextLine());
 
-                    txBody = ContractTx.createApproveBody(spender, approvedAmount);
+                    txBody = CoinContractTestUtils.createApproveBody(spender, approvedAmount);
                     break;
                 case "transfer":
                     System.out.println("to => ");
@@ -275,7 +251,7 @@ public class NodeContractDemoClient {
                     System.out.println("amount => ");
                     amount = new BigDecimal(scan.nextLine());
 
-                    txBody = ContractTx.createTransferBody(to, amount);
+                    txBody = CoinContractTestUtils.createTransferBody(to, amount);
                     break;
                 case "transferfrom":
                     System.out.println("from => ");
@@ -285,13 +261,15 @@ public class NodeContractDemoClient {
                     System.out.println("amount => ");
                     amount = new BigDecimal(scan.nextLine());
 
-                    txBody = ContractTx.createTransferFromBody(from, to, amount);
+                    txBody = CoinContractTestUtils.createTransferFromBody(from, to, amount);
                     break;
                 default:
+                    System.err.println("unknown " + method);
+                    createTx(branchId, method);
                     break;
             }
         }
-        return ContractTx.createTx(wallet, BranchId.of(branchId), txBody);
+        return createTxHusk(BranchId.of(branchId), txBody);
     }
 
     private static void sendYeedTx() {
@@ -304,26 +282,23 @@ public class NodeContractDemoClient {
         sendYeedTx(address, TRANSFER_AMOUNT);
     }
 
-    private static void sendYeedTx(String address, int amount) {
+    private static void sendYeedTx(String address, long amount) {
         int times = getSendTimes();
         String serverAddress = getServerAddress();
         for (int i = 0; i < times; i++) {
-            JsonArray txBody = ContractTx.createTransferBody(
-                    "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigDecimal(amount));
-            TransactionHusk tx =
-                    ContractTx.createTx(wallet, TestUtils.YEED, txBody);
-
-            rpc.transactionApi(serverAddress).sendTransaction(TransactionDto.createBy(tx));
+            JsonArray txBody = ContractTestUtils.transferTxBodyJson(address, amount);
+            TransactionHusk tx = createTxHusk(YEED, txBody);
+            rpc.proxyOf(serverAddress, TransactionApi.class)
+                    .sendTransaction(TransactionDto.createBy(tx));
         }
     }
 
     private static void view() throws Exception {
         String branchId = getBranchId();
-        JsonArray params = ContractQry.createParams("branchId", branchId);
-        JsonObject qry = ContractQry.createQuery(TestUtils.STEM.toString(), "view", params);
+        Map params = ContractApiImplTest.createParams(BRANCH_ID, branchId);
 
         String serverAddress = getServerAddress();
-        rpc.contractApi(serverAddress).query(qry.toString());
+        rpc.proxyOf(serverAddress, ContractApi.class).query(branchId, "view", params);
     }
 
     private static void update() {
@@ -347,31 +322,36 @@ public class NodeContractDemoClient {
         String txHash = scan.nextLine();
 
         String serverAddress = getServerAddress();
-        rpc.transactionApi(serverAddress).getTransactionReceipt(branchId, txHash);
+        rpc.proxyOf(serverAddress, TransactionApi.class).getTransactionReceipt(branchId, txHash);
     }
 
     private static void deployBranch() throws Exception {
-        JsonObject branch = getBranch();
+        JsonObject json = getBranch();
         System.out.print("Contract Id를 입력하세요\n> ");
         String contractId = scan.nextLine();
 
         if ("".equals(contractId)) {
-            contractId = branch.get("contractId").getAsString();
+            contractId = json.get(CONTRACT_ID).getAsString();
         }
-        branch.addProperty("contractId", contractId);
+        json.addProperty(CONTRACT_ID, contractId);
 
-        BranchJson.signBranch(wallet, branch);
-        BranchId branchId = BranchId.of(branch);
-        saveBranchAsFile(branchId, branch);
+        ContractTestUtils.signBranch(TestConstants.wallet(), json);
+        Branch branch = Branch.of(json);
+        saveBranchAsFile(branch);
+    }
+
+    private static void getBranches() {
+        String serverAddress = getServerAddress();
+        rpc.proxyOf(serverAddress, BranchApi.class).getBranches();
     }
 
     private static void balance() throws Exception {
         System.out.println("조회할 주소를 적어주세요\n>");
-        JsonObject qry = ContractQry.createQuery(TestUtils.YEED.toString(),
-                "balanceOf", ContractQry.createParams("address", scan.nextLine()));
+        Map params = ContractApiImplTest.createParams("address", scan.nextLine());
 
         String serverAddress = getServerAddress();
-        rpc.contractApi(serverAddress).query(qry.toString());
+        rpc.proxyOf(serverAddress, ContractApi.class)
+                .query(YEED.toString(), "balanceOf", params);
     }
 
     private static JsonObject getBranch() {
@@ -390,7 +370,7 @@ public class NodeContractDemoClient {
     }
 
     private static String getServerAddress() {
-        System.out.println(String.format("전송할 노드 : [1] 로컬 [2] 스테이지(%s) [3] 운영(%s) \n>",
+        System.out.println(String.format("전송할 노드 : [1] 로컬 [2] 스테이지(%s) [3] 운영(%s) [4] 직접 입력\n>",
                 SERVER_STG, SERVER_PROD));
 
         String num = scan.nextLine();
@@ -399,20 +379,26 @@ public class NodeContractDemoClient {
                 return SERVER_STG;
             case "3":
                 return SERVER_PROD;
+            case "4":
+                System.out.println("서버 주소 => ");
+                return scan.nextLine();
             default:
                 return "localhost";
         }
     }
 
     private static String getBranchId() {
-        System.out.println("트랜잭션의 브랜치 아이디 : [1] STEM [2] YEED [3] etc\n>");
+        System.out.println("트랜잭션의 브랜치 아이디 : [1] STEM [2] YEED [3] etc(직접 입력)\n>");
 
         String branchId = scan.nextLine();
         switch (branchId) {
             case "1":
-                return TestUtils.STEM.toString();
+                return STEM.toString();
             case "2":
-                return TestUtils.YEED.toString();
+                return YEED.toString();
+            case "3":
+                System.out.println("브랜치 아이디 => ");
+                return scan.nextLine();
             default:
                 return branchId;
         }
@@ -434,28 +420,29 @@ public class NodeContractDemoClient {
         Resource resource = new DefaultResourceLoader().getResource(seedPath);
         try (InputStream is = resource.getInputStream()) {
             Reader json = new InputStreamReader(is, StandardCharsets.UTF_8);
-            JsonObject jsonObject = Utils.parseJsonObject(json);
+            JsonObject jsonObject = JsonUtil.parseJsonObject(json);
             if (!jsonObject.has("timestamp")) {
-                jsonObject.addProperty("timestamp", TimeUtils.hexTime());
+                long timestamp = TimeUtils.time();
+                jsonObject.addProperty("timestamp", HexUtil.toHexString(timestamp));
             }
             return jsonObject;
         } catch (Exception e) {
-            e.printStackTrace();
-            return null;
+            throw new NonExistObjectException(seedPath);
         }
     }
 
-    private static void saveBranchAsFile(BranchId branchId, JsonObject branch) throws IOException {
-        String json = new GsonBuilder().setPrettyPrinting().create().toJson(branch);
-        saveFile(branchId, json);
+    private static void saveBranchAsFile(Branch branch) throws IOException {
+        String json = new GsonBuilder().setPrettyPrinting().create().toJson(branch.getJson());
+        saveFile(branch.getBranchId(), json);
     }
 
     private static void saveFile(BranchId branchId, String json)
             throws IOException {
         String branchPath = new DefaultConfig().getBranchPath();
         File branchDir = new File(branchPath, branchId.toString());
-        if (!branchDir.exists()) {
-            branchDir.mkdirs();
+        if (!branchDir.exists() && !branchDir.mkdirs()) {
+            System.err.println("can't create branch dir at " + branchDir);
+            return;
         }
         File file = new File(branchDir, BranchLoader.BRANCH_FILE);
         FileWriter fileWriter = new FileWriter(file); //overwritten
@@ -464,6 +451,22 @@ public class NodeContractDemoClient {
         fileWriter.flush();
         fileWriter.close();
         System.out.println("created at " + file.getAbsolutePath());
+    }
+
+    private static TransactionHusk createTxHusk(BranchId branchId, JsonArray txBody) {
+        return BlockChainTestUtils.createTxHusk(branchId, txBody);
+    }
+
+    static class MethodNameParser {
+        static final Pattern p = Pattern.compile(".*\\.([a-zA-Z]*)\\(.*\\)");
+
+        static String parse(String name) {
+            Matcher m = p.matcher(name);
+            if (m.matches()) {
+                return "" + m.group(1);
+            }
+            return "unknown";
+        }
     }
 }
 
