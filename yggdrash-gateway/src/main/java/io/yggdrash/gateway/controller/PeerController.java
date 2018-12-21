@@ -47,4 +47,9 @@ class PeerController {
     public ResponseEntity getChannels(@PathVariable(name = BRANCH_ID) String branchId) {
         return ResponseEntity.ok(peerGroup.getActivePeerListOf(BranchId.of(branchId)));
     }
+
+    @GetMapping("/{branchId}/buckets")
+    public ResponseEntity getBuckets(@PathVariable(name = "branchId") String branchId) {
+        return ResponseEntity.ok(peerGroup.getAllPeersFromBucketOf(BranchId.of(branchId)));
+    }
 }

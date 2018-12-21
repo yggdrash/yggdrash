@@ -63,78 +63,100 @@
     var stack = [];
     var table = [];
 
+    function setUp(ip, branchId) {
+
+        setNodesAndChannels(ip, branchId);
+        setBlockHeight(ip, branchId);
+    }
+
+    function setNodesAndChannels(ip, branchId) {
+        var url = getBucketsReqUrl(ip, branchId);
+
+        $.getJSON(url).done(function (allPeers) {
+            console.log("setNodesAndChannels :: allPeers => ", allPeers);
+
+            allPeers.forEach(function (grpcUrl) {
+                nodes.push(grpcUrl);
+                channels.push(getChannelsReqUrl(getRestUrl(grpcUrl), branchId));
+            });
+        });
+    }
+
+    function setBlockHeight(host, port, branchId) {
+        var url = getLatestBlockReqUrl(host, port, branchId);
+
+        $.getJSON(url).done(function (latestBlock) {
+            curBlockHeight = latestBlock.index;
+            console.log("curBlockHeight=> ", curBlockHeight);
+        });
+    }
+
     function pageLoaded() {
         var url = document.URL;
-        var qAt = url.indexOf("?");
+        var host = getHost(url);
+        var port = getPort(url);
         var pAt = url.indexOf("&");
-        var numOfNodes = 100;
-        if (qAt > 0 && !isNaN(parseInt(url.substr(qAt + 1)))) {
-            numOfNodes = parseInt(url.substr(qAt + 1));
-        }
         if (pAt > 0 && url.substr(pAt + 1) !== "") {
             branchId = url.substr(pAt + 1);
         }
-
-        console.log("numOfNodes => " + numOfNodes);
-        console.log("branchId => " + branchId);
-        var host = getHost(url);
-        for (var port = numOfNodes + rest; port >= rest; port--) {
-            nodes.push(host + ":" + grpc++);
-            channels.push(getReqPeersUrl(host, port, branchId));
-        }
-        getBlockHeightReqUrl(convertGrpcToRestUrl(nodes[0]), branchId);
-        setBlockHeight(getBlockHeightReqUrl(convertGrpcToRestUrl(nodes[0]), branchId));
-    }
-
-    function getReqPeersUrl(host, port, branchId) {
-        return "http://" + host + ":" + port + "/peers/" + branchId + "/channels";
-    }
-
-    function getBlockHeightReqUrl(ip, branchId) {
-        return "http://" + ip + "/branches/" + branchId + "/blocks?limit=1";
+        var ip = host + ":" + port;
+        setUp(ip, branchId);
     }
 
     function getHost(str) {
+        if (str.length < 20) {
+            return str.substr(0, str.indexOf(":"));
+        }
         return str.substr(7, str.lastIndexOf(":") - 7);
     }
 
     function getPort(str) {
-        if (str.length > 20) {
-            return str.substr(str.lastIndexOf(":") + 1, 4);
+        if (str.length < 20) {
+            return str.substr(str.lastIndexOf(":") + 1, 5);
         }
-        return str.substr(str.lastIndexOf(":") + 1, 5);
+        return str.substr(str.lastIndexOf(":") + 1, 4);
     }
 
-    function getGrpcPort(str) {
-        return 32918 + (parseInt(getPort(str)) - rest);
+    function getBucketsReqUrl(ip, branchId) {
+        return "http://" + ip + "/peers/" + branchId + "/buckets";
     }
 
-    function getRestPort(str) {
-        return (parseInt(getPort(str)) - 32918) + rest;
+    function getChannelsReqUrl(ip, branchId) {
+        return "http://" + ip + "/peers/" + branchId + "/channels";
     }
 
-    function getUrl(str) {
+    function getLatestBlockReqUrl(ip, branchId) {
+        return "http://" + ip + "/branches/" + branchId + "/blocks/latest";
+    }
+
+    function getGrpcUrl(str) { //Convert rest to grpc url
         return getHost(str) + ":" + getGrpcPort(str);
     }
 
-    function convertGrpcToRestUrl(str) {
-        var port = getRestPort(str);
-        var host = str.substr(0, str.indexOf(":"));
-        return host + ":" + port;
+    function getGrpcPort(str) {
+        return grpc + (parseInt(getPort(str)) - rest);
+    }
+
+    function getRestUrl(str) { //Convert grpc to rest url
+        return getHost(str) + ":" + getRestPort(str);
+    }
+
+    function getRestPort(str) {
+        return rest + (parseInt(getPort(str)) - grpc);
     }
 
     function submit(curChannels) {
         stack.push(curChannels);
         console.log("curChannels => " + curChannels);
 
-        $.getJSON(curChannels).done(function (data) {
-            console.log(data);
+        $.getJSON(curChannels).done(function (activePeerList) {
+            console.log("activePeerList", activePeerList);
 
             var key;
             var values = [];
             var row = {"key": key, "value": values};
-            row.key = getUrl(curChannels);
-            row.value = data;
+            row.key = getGrpcUrl(curChannels);
+            row.value = activePeerList;
             table.push(row);
 
             while (channels.length !== 0) {
@@ -144,13 +166,13 @@
     }
 
     function arrangeTable() {
-
         table.forEach(function (row) {
             console.log("peer : " + row.key + ", number of connection : " + row.value.length);
             if (!nodes.includes(row.key)) {
                 nodes.push(row.key);
             }
         });
+
         table.forEach(function (row) {
             row.value.forEach(function (value) {
                 if (!nodes.includes(value)) {
@@ -162,15 +184,17 @@
         nodes.forEach(function (name, i) {
             nodes[i] = {"name": name, "group": 0};
         });
-        console.log(nodes);
+        console.log("ArrangeTable :: nodes => ", nodes);
 
         table.forEach(function (row) {
             var src = 0;
+
             nodes.forEach(function (value, index) {
                 if (value.name === row.key) {
                     src = index;
                 }
             });
+
             row.value.forEach(function (value) {
                 var tar = 0;
                 nodes.forEach(function (value1, index) {
@@ -190,7 +214,7 @@
     }
 
     var width = 1500,
-        height = 1500
+        height = 1500;
 
     var svg = d3.select("body").append("svg")
         .attr("width", width)
@@ -201,9 +225,10 @@
         .distance(700)
         .charge(-100)
         .size([width, height]);
-    function draw() {
 
+    function draw() {
         force.nodes(graphFile.nodes).links(graphFile.links).start();
+
         var link = svg.selectAll(".link")
             .data(graphFile.links)
             .enter().append("line")
@@ -249,7 +274,8 @@
                 return "translate(" + d.x + "," + d.y + ")";
             });
         });
-        console.log(links);
+        console.log("draw :: links => ", links);
+
         nodes.forEach(function (node) {
             var className = node.name.replace(/[.]/g, '\\\.');
             className = className.replace(/[:]/g, '\\\:');
@@ -259,26 +285,21 @@
                     curNode.css('fill', '#7ce47a');
                 }
             });
-            var url = getBlockHeightReqUrl(convertGrpcToRestUrl(node.name), branchId);
-            appendBlockHeight(url, curNode);
+
+            appendBlockHeight(node.name, curNode);
         });
     }
 
-    function appendBlockHeight(url, curNode) {
+    function appendBlockHeight(grpcUrl, curNode) {
+        var url = getLatestBlockReqUrl(getRestUrl(grpcUrl), branchId);
         $.getJSON(url).done(function (data) {
-            var blockHeight = data[0].index;
+            var blockHeight = data.index;
             if (blockHeight < 1 || blockHeight < curBlockHeight) {
                 curNode.css("fill", "#d46979");
             } else {
                 curNode.css("fill", "#7ce47a");
             }
             curNode.next().append("[" + blockHeight + "]");
-        });
-    }
-
-    function setBlockHeight(url) {
-        $.getJSON(url).done(function (data) {
-            curBlockHeight = data[0].index;
         });
     }
 
@@ -289,7 +310,6 @@
             draw();
         }, 5000);
     });
-
 </script>
 
 </body>
