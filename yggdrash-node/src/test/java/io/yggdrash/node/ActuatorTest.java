@@ -16,6 +16,7 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.TestConstants;
 import io.yggdrash.node.config.NodeProperties;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -31,7 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-@IfProfileValue(name = "spring.profiles.active", value = "ci")
+@IfProfileValue(name = "spring.profiles.active", value = TestConstants.CI_TEST)
 public class ActuatorTest {
 
     @Autowired

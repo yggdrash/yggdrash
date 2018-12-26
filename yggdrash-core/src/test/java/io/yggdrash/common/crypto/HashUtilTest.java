@@ -1,5 +1,6 @@
 package io.yggdrash.common.crypto;
 
+import io.yggdrash.TestConstants.SlowTest;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -12,7 +13,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-public class HashUtilTest {
+public class HashUtilTest extends SlowTest {
 
     private static final Logger log = LoggerFactory.getLogger(HashUtilTest.class);
 

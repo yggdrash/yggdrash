@@ -19,6 +19,7 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonArray;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.TestConstants.SlowTest;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.core.wallet.Account;
 import io.yggdrash.core.wallet.Wallet;
@@ -34,7 +35,7 @@ import java.security.SignatureException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class TransactionHuskTest {
+public class TransactionHuskTest extends SlowTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHuskTest.class);
 

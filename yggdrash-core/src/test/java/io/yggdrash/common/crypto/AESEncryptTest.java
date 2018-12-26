@@ -1,5 +1,6 @@
 package io.yggdrash.common.crypto;
 
+import io.yggdrash.TestConstants.SlowTest;
 import io.yggdrash.common.util.ByteUtil;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -15,7 +16,7 @@ import java.security.SecureRandom;
 
 import static org.junit.Assert.assertArrayEquals;
 
-public class AESEncryptTest {
+public class AESEncryptTest extends SlowTest {
 
     private static final Logger log = LoggerFactory.getLogger(AESEncryptTest.class);
 
