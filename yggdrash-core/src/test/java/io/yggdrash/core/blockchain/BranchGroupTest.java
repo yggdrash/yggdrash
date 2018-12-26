@@ -92,7 +92,7 @@ public class BranchGroupTest {
      */
     @Test(timeout = 5000L)
     public void generateBlockPerformanceTest() {
-        PerformanceTest.beforeClass();
+        PerformanceTest.apply();
         BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
         for (int i = 0; i < 100; i++) {
             TransactionHusk tx = createTx(i);

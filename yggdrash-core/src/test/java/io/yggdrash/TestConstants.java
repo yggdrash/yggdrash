@@ -52,21 +52,21 @@ public class TestConstants {
 
     public static class SlowTest {
         @BeforeClass
-        public static void beforeClass() {
+        public static void apply() {
             Assume.assumeTrue(SLOW_TEST.equals(PROFILE));
         }
     }
 
     public static class PerformanceTest {
         @BeforeClass
-        public static void beforeClass() {
+        public static void apply() {
             Assume.assumeTrue(PERFORMANCE_TEST.equals(PROFILE));
         }
     }
 
     public static class CiTest {
         @BeforeClass
-        public static void beforeClass() {
+        public static void apply() {
             Assume.assumeTrue(CI_TEST.equals(PROFILE));
         }
     }
