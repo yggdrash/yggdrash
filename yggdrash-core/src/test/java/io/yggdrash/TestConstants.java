@@ -19,12 +19,21 @@ package io.yggdrash;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Wallet;
+import org.junit.Assume;
+import org.junit.BeforeClass;
 
 public class TestConstants {
+
     public static final BranchId STEM = BranchId.of("91b29a1453258d72ca6fbbcabb8dca10cca944fb");
     public static final BranchId YEED = BranchId.of("61dcf9cf6ed382f39f56a1094e2de4d9aa54bf94");
 
     public static final String TRANSFER_TO = "e1980adeafbb9ac6c9be60955484ab1547ab0b76";
+
+    public static final String CI_TEST = "ci";
+    private static final String SLOW_TEST = "slow";
+    private static final String PERFORMANCE_TEST = "performance";
+    private static final String PROFILE = System.getProperty("spring.profiles.active");
+
     private static final Wallet wallet;
 
     private TestConstants() {}
@@ -39,5 +48,26 @@ public class TestConstants {
 
     public static Wallet wallet() {
         return wallet;
+    }
+
+    public static class SlowTest {
+        @BeforeClass
+        public static void apply() {
+            Assume.assumeTrue(SLOW_TEST.equals(PROFILE));
+        }
+    }
+
+    public static class PerformanceTest {
+        @BeforeClass
+        public static void apply() {
+            Assume.assumeTrue(PERFORMANCE_TEST.equals(PROFILE));
+        }
+    }
+
+    public static class CiTest {
+        @BeforeClass
+        public static void apply() {
+            Assume.assumeTrue(CI_TEST.equals(PROFILE));
+        }
     }
 }

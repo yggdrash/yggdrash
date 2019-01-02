@@ -21,6 +21,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
+import io.yggdrash.TestConstants.SlowTest;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
@@ -36,7 +37,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 
 
-public class AssetContractTest {
+public class AssetContractTest extends SlowTest {
 
     private static final Logger log = LoggerFactory.getLogger(AssetContractTest.class);
 

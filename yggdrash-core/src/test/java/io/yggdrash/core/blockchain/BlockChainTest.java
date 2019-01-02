@@ -19,6 +19,7 @@ package io.yggdrash.core.blockchain;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.TestConstants.CiTest;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.exception.NotValidateException;
@@ -26,7 +27,7 @@ import org.junit.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class BlockChainTest {
+public class BlockChainTest extends CiTest {
 
     @Test
     public void shouldBeGetBlockByHash() {

@@ -14,32 +14,24 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
+import io.yggdrash.TestConstants.PerformanceTest;
 import io.yggdrash.common.util.TimeUtils;
-import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.blockchain.TransactionBody;
-import io.yggdrash.core.blockchain.TransactionHeader;
-import io.yggdrash.core.blockchain.TransactionSignature;
 import io.yggdrash.core.wallet.Wallet;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.test.annotation.IfProfileValue;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.Arrays;
 
 import static junit.framework.TestCase.assertTrue;
 
-@RunWith(SpringRunner.class)
-@IfProfileValue(name = "spring.profiles.active", value = "performance")
-public class TransactionSpeedTest {
+public class TransactionSpeedTest extends PerformanceTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionSpeedTest.class);
 

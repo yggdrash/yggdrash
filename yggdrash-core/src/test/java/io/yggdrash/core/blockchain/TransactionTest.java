@@ -18,6 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.TestConstants.SlowTest;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.wallet.Wallet;
@@ -33,7 +34,7 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 
-public class TransactionTest {
+public class TransactionTest extends SlowTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionTest.class);
 
