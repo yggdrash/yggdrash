@@ -17,6 +17,7 @@
 package io.yggdrash.gateway.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.node.api.dto.BlockDto;
 import org.junit.Before;
@@ -41,7 +42,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(BlockController.class)
 @Import(RefreshEndpointAutoConfiguration.class)
-@IfProfileValue(name = "spring.profiles.active", value = "ci")
+@IfProfileValue(name = "spring.profiles.active", value = TestConstants.CI_TEST)
 public class BlockControllerTest {
 
     private String basePath;

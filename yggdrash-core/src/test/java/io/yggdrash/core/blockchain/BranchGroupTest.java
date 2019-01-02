@@ -16,9 +16,10 @@
 
 package io.yggdrash.core.blockchain;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.TestConstants;
+import io.yggdrash.ContractTestUtils;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.exception.DuplicatedException;
 import org.junit.Before;
@@ -28,6 +29,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+import static io.yggdrash.TestConstants.PerformanceTest;
+import static io.yggdrash.TestConstants.TRANSFER_TO;
+import static io.yggdrash.TestConstants.YEED;
+import static io.yggdrash.TestConstants.wallet;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BranchGroupTest {
@@ -73,13 +78,28 @@ public class BranchGroupTest {
     @Test
     public void generateBlock() {
         branchGroup.addTransaction(tx);
-        branchGroup.generateBlock(TestConstants.wallet(), tx.getBranchId());
+        branchGroup.generateBlock(wallet(), tx.getBranchId());
         long latest = branchGroup.getLastIndex(tx.getBranchId());
         BlockHusk chainedBlock = branchGroup.getBlockByIndex(tx.getBranchId(), latest);
         assertThat(latest).isEqualTo(1);
         assertThat(chainedBlock.getBody().size()).isEqualTo(1);
         assertThat(branchGroup.getTxByHash(tx.getBranchId(), tx.getHash()).getHash())
                 .isEqualTo(tx.getHash());
+    }
+
+    /**
+     * test generate block with large tx.
+     */
+    @Test(timeout = 5000L)
+    public void generateBlockPerformanceTest() {
+        PerformanceTest.apply();
+        BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
+        for (int i = 0; i < 100; i++) {
+            TransactionHusk tx = createTx(i);
+            blockChain.addTransaction(tx);
+        }
+
+        branchGroup.generateBlock(wallet(), blockChain.getBranchId());
     }
 
     @Test
@@ -121,12 +141,17 @@ public class BranchGroupTest {
         params.addProperty("key", "symbol");
         params.addProperty("value", "STEM");
 
-        Set<Object> result = (Set<Object>)branchGroup.query(block.getBranchId(), "search", params);
-        assertThat(result).isNotEmpty();
+        Object result = branchGroup.query(block.getBranchId(), "search", params);
+        assertThat((Set)result).isNotEmpty();
+    }
+
+    private TransactionHusk createTx(int amount) {
+        JsonArray txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, amount);
+        return BlockChainTestUtils.createTxHusk(YEED, txBody);
     }
 
     private BlockHusk newBlock(List<TransactionHusk> body, BlockHusk prevBlock) {
-        return new BlockHusk(TestConstants.wallet(), body, prevBlock);
+        return new BlockHusk(wallet(), body, prevBlock);
     }
 
     private void addBranch(BlockChain blockChain) {

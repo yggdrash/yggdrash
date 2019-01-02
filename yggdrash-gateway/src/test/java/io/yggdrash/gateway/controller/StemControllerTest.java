@@ -1,5 +1,6 @@
 package io.yggdrash.gateway.controller;
 
+import io.yggdrash.TestConstants;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +18,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(StemController.class)
 @Import(RefreshEndpointAutoConfiguration.class)
-@IfProfileValue(name = "spring.profiles.active", value = "ci")
+@IfProfileValue(name = "spring.profiles.active", value = TestConstants.CI_TEST)
 public class StemControllerTest {
 
     @Autowired
