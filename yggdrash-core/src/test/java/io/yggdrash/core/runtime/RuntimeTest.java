@@ -1,11 +1,11 @@
 /*
- * Copyright 2018 Akashic Foundation
+ * Copyright 2019 Akashic Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *   http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.contract;
+package io.yggdrash.core.runtime;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -24,14 +24,16 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.contract.CoinContract;
+import io.yggdrash.core.contract.CoinContractStateValue;
+import io.yggdrash.core.contract.StemContract;
+import io.yggdrash.core.contract.StemContractStateValue;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import org.junit.Test;
-
 import java.math.BigDecimal;
 import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Test;
 
 public class RuntimeTest {
 

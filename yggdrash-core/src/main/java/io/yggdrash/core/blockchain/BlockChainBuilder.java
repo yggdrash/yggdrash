@@ -20,7 +20,7 @@ import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.contract.ContractMeta;
-import io.yggdrash.core.contract.Runtime;
+import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.BlockStore;
