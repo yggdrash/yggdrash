@@ -2,11 +2,12 @@ package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.runtime.annotation.ContractQuery;
+import io.yggdrash.core.runtime.annotation.InvokeTransction;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 
 public class NoneContract implements Contract {
-    @Override
     public void init(StateStore stateStore, TransactionReceiptStore txReceiptStore) {
     }
 
@@ -16,7 +17,18 @@ public class NoneContract implements Contract {
     }
 
     @Override
-    public Object query(String method, JsonObject params) {
+    public Object query(String method, JsonObject params) throws Exception {
         return null;
+    }
+
+    @InvokeTransction
+    public boolean doNothing(JsonObject param) {
+        // pass
+        return true;
+    }
+
+    @ContractQuery
+    public String someQuery() {
+        return "";
     }
 }

@@ -17,6 +17,7 @@
 package io.yggdrash.core.runtime;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
@@ -28,10 +29,14 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
+import java.util.Hashtable;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class Runtime<T> {
+    protected static final Logger log = LoggerFactory.getLogger(Runtime.class);
 
     private final StateStore<T> stateStore;
     private final TransactionReceiptStore txReceiptStore;
@@ -44,6 +49,9 @@ public class Runtime<T> {
     public Runtime(StateStore<T> stateStore, TransactionReceiptStore txReceiptStore) {
         this.stateStore = stateStore;
         this.txReceiptStore = txReceiptStore;
+        // init
+        queryMethod = new Hashtable<>();
+        invokeMethod = new Hashtable<>();
     }
 
     public void setContract(Contract<T> contract) {
@@ -56,6 +64,16 @@ public class Runtime<T> {
 
     }
 
+
+    public void invokeBlock(BlockHusk block) {
+        // TODO
+        block.getHash();
+        block.getBranchId();
+        block.getIndex();
+        block.getBody();
+    }
+
+
     public boolean invoke(TransactionHusk tx) {
         // TODO fix contract has not call init
         // Find invoke method and invoke
@@ -65,7 +83,17 @@ public class Runtime<T> {
 
     public Object query(String method, JsonObject params) throws Exception {
         // Find query method and query
-        return contract.query(method, params);
+        Method query = queryMethod.get(method.toLowerCase());
+        if (query != null) {
+            if (params == null) {
+                return query.invoke(contract);
+            } else {
+                return query.invoke(contract, params);
+            }
+
+        }
+        return null;
+
     }
 
     public StateStore<T> getStateStore() {
@@ -95,7 +123,8 @@ public class Runtime<T> {
 
     private Method getGenesisMethod() {
         Map<String, Method> genesisMethods = contractMethods(Genesis.class);
-        Map.Entry<String, Method> genesisEntry = genesisMethods.entrySet().iterator().next();
+        Map.Entry<String, Method> genesisEntry = genesisMethods.isEmpty()
+                ? null : genesisMethods.entrySet().iterator().next();
 
         if (genesisEntry != null) {
             return genesisEntry.getValue();

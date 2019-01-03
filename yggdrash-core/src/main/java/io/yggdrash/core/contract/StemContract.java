@@ -6,6 +6,9 @@ import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 
+import io.yggdrash.core.runtime.annotation.ContractQuery;
+import io.yggdrash.core.runtime.annotation.Genesis;
+import io.yggdrash.core.runtime.annotation.InvokeTransction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,11 +20,12 @@ import java.util.Set;
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
 
 public class StemContract extends BaseContract<JsonObject> {
-
+    // TODO remove extends
     private static final Logger log = LoggerFactory.getLogger(StemContract.class);
 
     private final String branchIdListKey = "BRANCH_ID_LIST";
 
+    @Genesis
     public TransactionReceipt genesis(JsonObject param) {
         if (state.getStateSize() == 0L) {
             TransactionReceipt receipt = create(param);
@@ -37,6 +41,7 @@ public class StemContract extends BaseContract<JsonObject> {
      *
      * @param params branch   : The branch.json to register on the stem
      */
+    @InvokeTransction
     public TransactionReceipt create(JsonObject params) {
         TransactionReceipt txReceipt = new TransactionReceipt();
 
@@ -77,6 +82,7 @@ public class StemContract extends BaseContract<JsonObject> {
      * @param params branchId The Id of the branch to update
      *               branch   The branch.json to update on the stem
      */
+    @InvokeTransction
     public TransactionReceipt update(JsonObject params) {
         TransactionReceipt txReceipt = new TransactionReceipt();
 
@@ -115,6 +121,7 @@ public class StemContract extends BaseContract<JsonObject> {
      * params key       type, name, property, owner, tag or symbol
      * params value   content of the key
      */
+    @ContractQuery
     public Set<Object> search(JsonObject params) {
         String subStateKey = params.get("key").getAsString();
         String key = params.get("value").getAsString();
@@ -131,6 +138,7 @@ public class StemContract extends BaseContract<JsonObject> {
      *
      * @param params   branchId
      */
+    @ContractQuery
     public JsonObject view(JsonObject params) {
         String branchId = params.get(BRANCH_ID).getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
@@ -144,6 +152,7 @@ public class StemContract extends BaseContract<JsonObject> {
      *
      * @param params   branchId
      */
+    @ContractQuery
     public ContractId getcurrentcontract(JsonObject params) {
         String branchId = params.get(BRANCH_ID)
                 .getAsString().toLowerCase();
@@ -158,6 +167,7 @@ public class StemContract extends BaseContract<JsonObject> {
      *
      * @param params   branchId
      */
+    @ContractQuery
     public List<ContractId> getcontracthistory(JsonObject params) {
         String branchId = params.get(BRANCH_ID)
                 .getAsString().toLowerCase();
@@ -172,6 +182,7 @@ public class StemContract extends BaseContract<JsonObject> {
      *
      * @return list of all branch id
      */
+    @ContractQuery
     public Set<String> getallbranchid() {
         JsonObject branchList = state.get(branchIdListKey);
         if (branchList == null) {
