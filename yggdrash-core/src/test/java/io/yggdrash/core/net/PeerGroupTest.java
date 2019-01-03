@@ -133,8 +133,8 @@ public class PeerGroupTest {
 
     @Test
     public void getAllPeersFromBucketOf() {
-        assert peerGroup.getAllPeersFromBucketOf(BRANCH).size() == 1;
-        assert peerGroup.getAllPeersFromBucketOf(OTHER_BRANCH).size() == 1;
+        assert peerGroup.getAllPeersFromBucketsOf(BRANCH).size() == 1;
+        assert peerGroup.getAllPeersFromBucketsOf(OTHER_BRANCH).size() == 1;
     }
 
     private void addPeerChannel() {

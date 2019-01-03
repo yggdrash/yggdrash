@@ -5,7 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PeerTable {
     private static final Logger log = LoggerFactory.getLogger(PeerTable.class);
@@ -80,6 +82,35 @@ public class PeerTable {
             }
         }
         return i;
+    }
+
+    public List<Peer> getLatestPeers(long reqTime) {
+        long limitTime = reqTime - 1000;
+        List<Peer> latestPeers = new ArrayList<>();
+
+        for (PeerBucket b : buckets) {
+            b.getPeers().forEach(peer -> {
+                if (peer.getModified() >= limitTime) {
+                    latestPeers.add(peer);
+                }
+            });
+        }
+
+        return latestPeers;
+    }
+
+    public Map<Integer, List<Peer>> getBucketIdAndPeerList() {
+        Map<Integer, List<Peer>> res = new LinkedHashMap<>();
+        if (getBucketsCount() > 0) {
+            int i = 0;
+            for (PeerBucket b : buckets) {
+                if (b.getPeersCount() > 0) {
+                    res.put(i, b.getPeers());
+                }
+                i++;
+            }
+        }
+        return res;
     }
 
     public synchronized PeerBucket[] getBuckets() {

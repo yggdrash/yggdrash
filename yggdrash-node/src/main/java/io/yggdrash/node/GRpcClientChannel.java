@@ -26,6 +26,7 @@ import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto.SyncLimit;
 import io.yggdrash.proto.NodeInfo;
 import io.yggdrash.proto.PeerGrpc;
+import io.yggdrash.proto.PeerInfo;
 import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
@@ -89,8 +90,13 @@ class GRpcClientChannel implements PeerClientChannel {
     }
 
     @Override
-    public Pong ping(String message) {
-        Ping request = Ping.newBuilder().setPing(message).build();
+    public Pong ping(String message, BranchId branchId, Peer peer) {
+        PeerInfo peerInfo = PeerInfo.newBuilder().setBranchId(branchId.toString())
+                .setPubKey(peer.getPubKey().toString())
+                .setIp(peer.getHost())
+                .setPort(peer.getPort())
+                .build();
+        Ping request = Ping.newBuilder().setPing(message).setPeer(peerInfo).build();
         return blockingPingPongStub.play(request);
     }
 

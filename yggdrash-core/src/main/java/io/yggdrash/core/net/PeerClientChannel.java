@@ -16,7 +16,7 @@ public interface PeerClientChannel {
 
     void stop();
 
-    Pong ping(String message);
+    Pong ping(String message, BranchId branchId, Peer peer);
 
     List<Proto.Block> syncBlock(BranchId branchId, long offset);
 
