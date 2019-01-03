@@ -17,6 +17,7 @@
 package io.yggdrash.gateway.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.yggdrash.TestConstants;
 import io.yggdrash.core.net.PeerGroup;
 import org.junit.Before;
 import org.junit.Test;
@@ -39,7 +40,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @RunWith(SpringRunner.class)
 @WebMvcTest(PeerController.class)
 @Import(RefreshEndpointAutoConfiguration.class)
-@IfProfileValue(name = "spring.profiles.active", value = "ci")
+@IfProfileValue(name = "spring.profiles.active", value = TestConstants.CI_TEST)
 public class PeerControllerTest {
     @Autowired
     private MockMvc mockMvc;

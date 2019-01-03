@@ -17,6 +17,7 @@
 package io.yggdrash.core.wallet;
 
 import com.google.common.base.Strings;
+import io.yggdrash.TestConstants.SlowTest;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.Password;
@@ -38,7 +39,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 
-public class WalletTest {
+public class WalletTest extends SlowTest {
     private static final Logger log = LoggerFactory.getLogger(WalletTest.class);
 
     @Test
