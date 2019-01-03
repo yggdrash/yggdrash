@@ -56,6 +56,7 @@ public class BlockChainBuilder {
 
         Contract contract = getContract(branch);
         Runtime<?> runtime = getRunTime(contract.getClass().getGenericSuperclass().getClass());
+        runtime.setContract(contract);
 
         return new BlockChain(branch, genesisBlock, blockStore, txStore, metaStore,
                 contract, runtime);

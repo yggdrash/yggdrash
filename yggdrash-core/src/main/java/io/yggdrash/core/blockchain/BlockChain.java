@@ -321,7 +321,7 @@ public class BlockChain {
     @SuppressWarnings("unchecked")
     private boolean executeTransaction(TransactionHusk tx) {
         try {
-            return runtime.invoke(contract, tx);
+            return runtime.invoke(tx);
         } catch (Exception e) {
             log.error("executeTransaction Error" + e);
             return false;

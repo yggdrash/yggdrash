@@ -26,6 +26,7 @@ public class Runtime<T> {
 
     private final StateStore<T> stateStore;
     private final TransactionReceiptStore txReceiptStore;
+    private Contract<T> contract;
 
     // FIX runtime run contract will init
     public Runtime(StateStore<T> stateStore, TransactionReceiptStore txReceiptStore) {
@@ -33,15 +34,21 @@ public class Runtime<T> {
         this.txReceiptStore = txReceiptStore;
     }
 
-    public boolean invoke(Contract<T> contract, TransactionHusk tx) {
-        contract.init(stateStore, txReceiptStore);
+    public void setContract(Contract<T> contract){
+        this.contract = contract;
+        this.contract.init(stateStore, txReceiptStore);
+    }
+
+    public boolean invoke(TransactionHusk tx) {
+        // TODO fix contract has not call init
+//        contract.init(stateStore, txReceiptStore);
         // Find invoke method and invoke
         // validation method
         return contract.invoke(tx);
     }
 
-    public Object query(Contract<T> contract, String method, JsonObject params) throws Exception {
-        contract.init(stateStore, txReceiptStore);
+    public Object query(String method, JsonObject params) throws Exception {
+//        contract.init(stateStore, txReceiptStore);
         // Find query method and query
         return contract.query(method, params);
     }

@@ -42,7 +42,7 @@ public class RuntimeTest {
         CoinContract contract = new CoinContract();
         Runtime<CoinContractStateValue> runtime =
                 new Runtime<>(new StateStore<>(), new TransactionReceiptStore());
-
+        runtime.setContract(contract);
         String genesisStr = "{\"alloc\": {\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\":"
                 + " {\"balance\": \"1000000000\"},\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\":"
                 + " {\"balance\": \"1000000000\"},\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":"
@@ -53,11 +53,11 @@ public class RuntimeTest {
         JsonArray txBody = ContractTestUtils.txBodyJson("genesis", genesisParams);
         BranchId branchId = TestConstants.YEED;
         TransactionHusk genesisTx = BlockChainTestUtils.createTxHusk(branchId, txBody);
-        assertThat(runtime.invoke(contract, genesisTx)).isTrue();
+        assertThat(runtime.invoke(genesisTx)).isTrue();
 
         JsonObject params = ContractTestUtils.createParams("address",
                 "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
-        BigDecimal result = (BigDecimal)runtime.query(contract, "balanceOf", params);
+        BigDecimal result = (BigDecimal)runtime.query("balanceOf", params);
         assertThat(result).isEqualTo(BigDecimal.valueOf(1000000000));
     }
 
@@ -66,13 +66,14 @@ public class RuntimeTest {
         StemContract contract = new StemContract();
         Runtime<StemContractStateValue> runtime =
                 new Runtime<>(new StateStore<>(), new TransactionReceiptStore());
+        runtime.setContract(contract);
 
         JsonObject json = ContractTestUtils.createSampleBranchJson();
         BranchId branchId = BranchId.of(json);
         TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId, "create", json);
-        assertThat(runtime.invoke(contract, createTx)).isTrue();
+        assertThat(runtime.invoke(createTx)).isTrue();
 
-        List<String> result = (List<String>)runtime.query(contract, "getAllBranchId", null);
+        List<String> result = (List<String>)runtime.query("getAllBranchId", null);
         assertThat(result).contains(branchId.toString());
     }
 }
