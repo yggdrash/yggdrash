@@ -181,7 +181,6 @@ public class PeerGroup implements BranchEventListener {
     public void healthCheck() {
         if (peerTableChannels.isEmpty()) {
             log.trace("Active peer is empty to health check peer");
-            //throw new NonExistObjectException("Active peer is empty to health check peer");
             return;
         }
         log.debug("peerTableChannel" + peerTableChannels);
@@ -194,7 +193,7 @@ public class PeerGroup implements BranchEventListener {
 
             for (PeerClientChannel client : peerChannelList) {
                 try {
-                    Pong pong = client.ping("Ping");
+                    Pong pong = client.ping("ping", branchId, owner);
                     if (pong.getPong().equals("Pong")) {
                         continue;
                     }
@@ -267,7 +266,7 @@ public class PeerGroup implements BranchEventListener {
 
         try {
             log.info("Connecting... peer {}:{}", peer.getHost(), peer.getPort());
-            Pong pong = client.ping("Ping");
+            Pong pong = client.ping("Ping", branchId, peer);
             // TODO validation peer
             if (pong.getPong().equals("Pong")) {
                 // 접속 성공 시
@@ -289,6 +288,8 @@ public class PeerGroup implements BranchEventListener {
     }
 
     public void reloadPeerChannel(BranchId branchId, PeerClientChannel client) {
+        log.info("reloadPeerChannel : branchId = {}, peer = {}", branchId, client.getPeer());
+
         PeerId requestPeerId = client.getPeer().getPeerId();
         if (peerTableChannels.get(branchId).containsKey(requestPeerId)) {
             peerTableChannels.get(branchId).put(requestPeerId, client);
@@ -309,6 +310,13 @@ public class PeerGroup implements BranchEventListener {
         }
     }
 
+    public List<Peer> getLatestPeers(BranchId branchId, long reqTime) {
+        if (peerTables.containsKey(branchId)) {
+            return peerTables.get(branchId).getLatestPeers(reqTime);
+        }
+        return new ArrayList<>();
+    }
+
     public int logBucketIdOf(BranchId branchId, Peer peer) {
         PeerTable peerTable = getPeerTable(branchId);
         return peerTable.getTmpBucketId(peer);
@@ -323,7 +331,11 @@ public class PeerGroup implements BranchEventListener {
                         getPeerTable(branchId).getTmpBucketId(peerClientChannel.getPeer())));
     }
 
-    public List<String> getAllPeersFromBucketOf(BranchId branchId) {
+    public Map<Integer, List<Peer>> getBucketsOf(BranchId branchId) {
+        return peerTables.get(branchId).getBucketIdAndPeerList();
+    }
+
+    public List<String> getAllPeersFromBucketsOf(BranchId branchId) {
         return peerTables.get(branchId).getAllPeers()
                 .stream()
                 .map(p -> String.format("%s:%d", p.getHost(), p.getPort()))
@@ -347,6 +359,12 @@ public class PeerGroup implements BranchEventListener {
                 .stream()
                 .map(c -> String.format("%s:%d",c.getPeer().getHost(), c.getPeer().getPort()))
                 .collect(Collectors.toList());
+    }
+
+    public void touchPeer(BranchId branchId, Peer peer) {
+        if (containsPeer(branchId, peer)) {
+            peerTables.get(branchId).touchPeer(peer);
+        }
     }
 
     /**

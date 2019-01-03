@@ -23,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
@@ -49,7 +50,18 @@ class PeerController {
     }
 
     @GetMapping("/{branchId}/buckets")
-    public ResponseEntity getBuckets(@PathVariable(name = "branchId") String branchId) {
-        return ResponseEntity.ok(peerGroup.getAllPeersFromBucketOf(BranchId.of(branchId)));
+    public ResponseEntity getBuckets(@PathVariable(name = BRANCH_ID) String branchId) {
+        return ResponseEntity.ok(peerGroup.getBucketsOf(BranchId.of(branchId)));
+    }
+
+    @GetMapping("/{branchId}/buckets/allPeers")
+    public ResponseEntity getPeersFromBuckets(@PathVariable(name = BRANCH_ID) String branchId) {
+        return ResponseEntity.ok(peerGroup.getAllPeersFromBucketsOf(BranchId.of(branchId)));
+    }
+
+    @GetMapping("/{branchId}/latestPeers")
+    public ResponseEntity getLatestPeers(@PathVariable(name = BRANCH_ID) String branchId,
+                                         @RequestParam(value = "reqTime") long reqTime) {
+        return ResponseEntity.ok(peerGroup.getLatestPeers(BranchId.of(branchId), reqTime));
     }
 }

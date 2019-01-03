@@ -24,11 +24,13 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.exception.NotValidateException;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockChainTest extends CiTest {
-
+    private static final Logger log = LoggerFactory.getLogger(BlockChainTest.class);
     @Test
     public void shouldBeGetBlockByHash() {
         BlockChain blockChain = generateTestBlockChain(false);

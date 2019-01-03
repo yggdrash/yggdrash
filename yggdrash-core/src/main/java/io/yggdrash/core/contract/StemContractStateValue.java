@@ -17,9 +17,9 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.Branch;
-import io.yggdrash.core.store.VisibleStateValue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,14 +28,26 @@ import java.util.List;
  * updatable branch of stem contract
  *
  */
-public class StemContractStateValue extends Branch implements VisibleStateValue {
+public class StemContractStateValue extends Branch {
 
     private BranchType type;
     private String tag;
     private final List<ContractId> contractHistory = new ArrayList<>();
 
-    private StemContractStateValue(JsonObject json) {
+    public StemContractStateValue(JsonObject json) {
         super(json);
+
+        if (json.has("type")) {
+            this.type = BranchType.of(getJson().get("type").getAsString());
+        }
+        if (json.has("tag")) {
+            this.tag = getJson().get("tag").getAsString();
+        }
+        if (json.has("contractHistory")) {
+            for (JsonElement jsonElement : json.getAsJsonArray("contractHistory")) {
+                contractHistory.add(ContractId.of(jsonElement.getAsString()));
+            }
+        }
     }
 
     public void init() {
@@ -96,12 +108,8 @@ public class StemContractStateValue extends Branch implements VisibleStateValue 
         getJson().getAsJsonArray("contractHistory").add(newContractId.toString());
     }
 
-    @Override
-    public JsonObject getValue() {
-        return getJson();
+    public static StemContractStateValue of(JsonObject json) {
+        return new StemContractStateValue(json.deepCopy());
     }
 
-    public static StemContractStateValue of(JsonObject json) {
-        return new StemContractStateValue(json);
-    }
 }

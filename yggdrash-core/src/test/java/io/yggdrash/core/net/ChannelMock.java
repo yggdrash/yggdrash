@@ -50,7 +50,7 @@ public class ChannelMock implements PeerClientChannel {
     }
 
     @Override
-    public Pong ping(String message) {
+    public Pong ping(String message, BranchId branchId, Peer peer) {
         if (pongResponse) {
             pongResponse = false;
             return pong;

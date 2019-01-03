@@ -50,6 +50,15 @@ public class StoreBuilder {
         return new MetaStore(getDbSource(branchId + "/meta"));
     }
 
+    public StateStore buildStateStore(BranchId branchId) {
+        return new StateStore(getDbSource(branchId + "/state"));
+    }
+
+    public TransactionReceiptStore buildTransactionReciptStore(BranchId branchId) {
+        return new TransactionReceiptStore(getDbSource(branchId + "/txreceipt"));
+    }
+
+
     private DbSource<byte[], byte[]> getDbSource(String name) {
         if (config.isProductionMode()) {
             return new LevelDbDataSource(config.getDatabasePath(), name);

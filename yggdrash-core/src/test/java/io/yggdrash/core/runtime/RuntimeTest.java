@@ -25,23 +25,29 @@ import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.CoinContract;
-import io.yggdrash.core.contract.CoinContractStateValue;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.contract.StemContractStateValue;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.store.datasource.HashMapDbSource;
+import org.junit.Test;
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
+
 
 public class RuntimeTest {
 
     @Test
     public void yeedRuntimeTest() throws Exception {
         CoinContract contract = new CoinContract();
-        Runtime<CoinContractStateValue> runtime =
-                new Runtime<>(new StateStore<>(), new TransactionReceiptStore());
+        Runtime runtime =
+                new Runtime<>(
+                        new StateStore<>(new HashMapDbSource()),
+                        new TransactionReceiptStore(new HashMapDbSource())
+                );
+
         runtime.setContract(contract);
         String genesisStr = "{\"alloc\": {\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\":"
                 + " {\"balance\": \"1000000000\"},\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\":"
@@ -64,8 +70,9 @@ public class RuntimeTest {
     @Test
     public void stemRuntimeTest() throws Exception {
         StemContract contract = new StemContract();
-        Runtime<StemContractStateValue> runtime =
-                new Runtime<>(new StateStore<>(), new TransactionReceiptStore());
+        Runtime<JsonObject> runtime =
+                new Runtime<>(new StateStore<>(new HashMapDbSource()),
+                        new TransactionReceiptStore(new HashMapDbSource()));
         runtime.setContract(contract);
 
         JsonObject json = ContractTestUtils.createSampleBranchJson();
@@ -73,7 +80,7 @@ public class RuntimeTest {
         TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId, "create", json);
         assertThat(runtime.invoke(createTx)).isTrue();
 
-        List<String> result = (List<String>)runtime.query("getAllBranchId", null);
+        Set<String> result = (Set<String>)runtime.query("getallbranchid", null);
         assertThat(result).contains(branchId.toString());
     }
 }
