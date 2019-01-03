@@ -24,11 +24,11 @@ import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
-import java.util.Optional;
-import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class Runtime<T> {
@@ -36,8 +36,8 @@ public class Runtime<T> {
     private final StateStore<T> stateStore;
     private final TransactionReceiptStore txReceiptStore;
     private Contract<T> contract;
-    private Set<Method> invokeMethod;
-    private Set<Method> queryMethod;
+    private Map<String, Method> invokeMethod;
+    private Map<String, Method> queryMethod;
     private Method genesis;
 
     // FIX runtime run contract will init
@@ -76,31 +76,40 @@ public class Runtime<T> {
         return this.txReceiptStore;
     }
 
-
-    private Set<Method> getInvokeMethods() {
-        return Arrays.stream(contract.getClass().getDeclaredMethods())
-                .filter(method -> method.isAnnotationPresent(InvokeTransction.class))
-                .filter(method -> Modifier.isPublic(method.getModifiers()))
-                .collect(Collectors.toSet());
+    /**
+     * Invoke Method filter
+     * @return Method map (method nams is lower case)
+     */
+    private Map<String,Method> getInvokeMethods() {
+        return contractMethods(InvokeTransction.class);
     }
 
-    private Set<Method> getQueryMethods() {
-        return Arrays.stream(contract.getClass().getDeclaredMethods())
-                .filter(method -> method.isAnnotationPresent(ContractQuery.class))
-                .filter(method -> Modifier.isPublic(method.getModifiers()))
-                .collect(Collectors.toSet());
+    /**
+     * Query Method filter
+     *
+     * @return Method map (method name is lower case)
+     */
+    private Map<String, Method> getQueryMethods() {
+        return contractMethods(ContractQuery.class);
     }
 
     private Method getGenesisMethod() {
-        Optional<Method> genesis = Arrays.stream(contract.getClass().getDeclaredMethods())
-                .filter(method -> method.isAnnotationPresent(Genesis.class))
-                .findFirst();
+        Map<String, Method> genesisMethods = contractMethods(Genesis.class);
+        Map.Entry<String, Method> genesisEntry = genesisMethods.entrySet().iterator().next();
 
-        if (genesis.isPresent()) {
-            return genesis.get();
-        } else {
-            return null;
+        if (genesisEntry != null) {
+            return genesisEntry.getValue();
         }
+        return null;
     }
+
+    private Map<String, Method> contractMethods(Class<? extends Annotation> annotationClass) {
+        return Arrays.stream(contract.getClass().getDeclaredMethods())
+                .filter(method -> method.isAnnotationPresent(annotationClass))
+                .filter(method -> Modifier.isPublic(method.getModifiers()))
+                .collect(Collectors.toMap(m -> m.getName().toLowerCase(), m-> m));
+    }
+
+
 
 }
