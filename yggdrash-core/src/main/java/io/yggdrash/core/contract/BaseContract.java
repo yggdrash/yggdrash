@@ -8,7 +8,6 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -57,6 +56,7 @@ public abstract class BaseContract<T> implements Contract<T> {
 
     @Override
     public Object query(String method, JsonObject params) {
+        // TODO cli json rpc call module change (make LOWERCASE)
         try {
             if (params != null) {
                 return getClass().getMethod(method.toLowerCase(), JsonObject.class)

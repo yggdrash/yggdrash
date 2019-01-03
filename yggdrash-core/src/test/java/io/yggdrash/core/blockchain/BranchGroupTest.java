@@ -131,7 +131,7 @@ public class BranchGroupTest {
     public void getContract() throws Exception {
         Contract contract = branchGroup.getContract(block.getBranchId());
         assertThat(contract).isNotNull();
-        String result = contract.query("getAllBranchId", null).toString();
+        String result = contract.query("getallbranchid", null).toString();
         assertThat(result).contains(block.getBranchId().toString());
     }
 

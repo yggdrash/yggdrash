@@ -25,10 +25,16 @@ public class Runtime<T> {
 
     private final StateStore<T> stateStore;
     private final TransactionReceiptStore txReceiptStore;
+    private Contract<T> contract;
+
 
     public Runtime(StateStore<T> stateStore, TransactionReceiptStore txReceiptStore) {
         this.stateStore = stateStore;
         this.txReceiptStore = txReceiptStore;
+    }
+
+    public boolean init(Contract<T> contract) {
+        return true;
     }
 
     public boolean invoke(Contract<T> contract, TransactionHusk tx) {
