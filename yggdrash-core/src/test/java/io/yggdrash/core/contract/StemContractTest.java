@@ -22,12 +22,14 @@ import io.yggdrash.ContractTestUtils;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -41,8 +43,8 @@ public class StemContractTest {
 
     @Before
     public void setUp() {
-        StateStore<StemContractStateValue> stateStore = new StateStore<>();
-        TransactionReceiptStore txReceiptStore = new TransactionReceiptStore();
+        StateStore<JsonObject> stateStore = new StateStore<>(new HashMapDbSource());
+        TransactionReceiptStore txReceiptStore = new TransactionReceiptStore(new HashMapDbSource());
 
         stemContract = new StemContract();
         stemContract.init(stateStore, txReceiptStore);
@@ -73,9 +75,9 @@ public class StemContractTest {
         TransactionReceipt receipt = stemContract.create(params);
         assertThat(receipt.isSuccess()).isTrue();
 
-        StemContractStateValue saved = stemContract.state.get(branchId);
+        JsonObject saved = stemContract.state.get(branchId);
         assertThat(saved).isNotNull();
-        assertThat(saved.getDescription()).isEqualTo(description);
+        assertThat(saved.get("description").getAsString()).isEqualTo(description);
     }
 
     @Test
@@ -151,7 +153,7 @@ public class StemContractTest {
 
     @Test
     public void getAllBranchIdTest() {
-        List<String> branchIdList = stemContract.getallbranchid();
+        Set<String> branchIdList = stemContract.getallbranchid();
         assertThat(branchIdList).containsOnly(stateValue.getBranchId().toString());
     }
 

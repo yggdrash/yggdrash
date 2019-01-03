@@ -29,13 +29,19 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
-
 import java.lang.reflect.InvocationTargetException;
 
 public class BlockChainBuilder {
 
     private GenesisBlock genesis;
     private StoreBuilder storeBuilder;
+    private Branch branch;
+    private TransactionStore transactionStore;
+    private MetaStore metaStore;
+    private BlockStore blockStore;
+    private StateStore stateStore;
+    private TransactionReceiptStore transactionReceiptStore;
+    private Runtime runtime;
 
     public BlockChainBuilder addGenesis(GenesisBlock genesis) {
         this.genesis = genesis;
@@ -47,17 +53,61 @@ public class BlockChainBuilder {
         return this;
     }
 
+    public BlockChainBuilder setTransactionStore(TransactionStore transactionStore) {
+        this.transactionStore = transactionStore;
+        return this;
+    }
+
+    public BlockChainBuilder setMetaStore(MetaStore metaStore) {
+        this.metaStore = metaStore;
+        return this;
+    }
+
+    public BlockChainBuilder setBlockStore(BlockStore blockStore) {
+        this.blockStore = blockStore;
+        return this;
+    }
+
+    public BlockChainBuilder setStateStore(StateStore stateStore) {
+        this.stateStore = stateStore;
+        return this;
+    }
+
+    public BlockChainBuilder setRuntime(Runtime runtime) {
+        this.runtime = runtime;
+        return this;
+    }
+
     public BlockChain build() {
         BlockHusk genesisBlock = genesis.getBlock();
-        Branch branch = genesis.getBranch();
-        BlockStore blockStore = storeBuilder.buildBlockStore(genesisBlock.getBranchId());
-        TransactionStore txStore = storeBuilder.buildTxStore(genesisBlock.getBranchId());
-        MetaStore metaStore = storeBuilder.buildMetaStore(genesisBlock.getBranchId());
+        if (branch == null) {
+            branch = genesis.getBranch();
+        }
+        if (blockStore == null) {
+            blockStore = storeBuilder.buildBlockStore(genesisBlock.getBranchId());
+        }
+        if (transactionStore == null) {
+            transactionStore = storeBuilder.buildTxStore(genesisBlock.getBranchId());
+        }
+        if (metaStore == null) {
+            metaStore = storeBuilder.buildMetaStore(genesisBlock.getBranchId());
+        }
+        if (stateStore == null) {
+            stateStore = storeBuilder.buildStateStore(genesisBlock.getBranchId());
+        }
+        if (transactionReceiptStore == null) {
+            transactionReceiptStore = storeBuilder.buildTransactionReciptStore(
+                    genesisBlock.getBranchId());
+        }
+
+        if (runtime == null) {
+            // TODO change Transaction Recipt Store
+            runtime = new Runtime<>(stateStore, transactionReceiptStore);
+        }
 
         Contract contract = getContract(branch);
-        Runtime<?> runtime = getRunTime(contract.getClass().getGenericSuperclass().getClass());
 
-        return new BlockChain(branch, genesisBlock, blockStore, txStore, metaStore,
+        return new BlockChain(branch, genesisBlock, blockStore, transactionStore, metaStore,
                 contract, runtime);
     }
 
@@ -77,9 +127,6 @@ public class BlockChainBuilder {
         }
     }
 
-    private <T> Runtime<T> getRunTime(Class<T> clazz) {
-        return new Runtime<>(new StateStore<>(), new TransactionReceiptStore());
-    }
 
     public static BlockChainBuilder Builder() {
         return new BlockChainBuilder();

@@ -49,7 +49,7 @@ subprojects {
     }
 
     checkstyle {
-        ignoreFailures = false
+        ignoreFailures = true
         toolVersion = '8.15'
         maxWarnings = 0
         configFile = rootProject.file('config/checkstyle/checkstyle.xml')

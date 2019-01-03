@@ -24,11 +24,12 @@ import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
+import io.yggdrash.core.store.StateStore;
+import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.wallet.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -51,6 +52,8 @@ public class BlockChain {
     private final BlockStore blockStore;
     private final TransactionStore transactionStore;
     private final MetaStore metaStore;
+    private final StateStore stateStore;
+    private final TransactionReceiptStore transactionReceiptStore;
 
     private final Contract contract;
     private final Runtime<?> runtime;
@@ -68,6 +71,8 @@ public class BlockChain {
         this.metaStore = metaStore;
         this.contract = contract;
         this.runtime = runtime;
+        this.stateStore = runtime.getStateStore();
+        this.transactionReceiptStore = runtime.getTransactionReceiptStore();
 
         // Empty blockChain
         if (!blockStore.contains(genesisBlock.getHash())) {
@@ -353,6 +358,10 @@ public class BlockChain {
         this.blockStore.close();
         this.transactionStore.close();
         this.metaStore.close();
+        // TODO refactoring
+        this.stateStore.close();
+        this.transactionReceiptStore.close();
+
     }
 
     public String toStringStatus() {
