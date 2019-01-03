@@ -37,6 +37,7 @@ import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.NodeInfo;
 import io.yggdrash.proto.PeerGrpc;
+import io.yggdrash.proto.PeerInfo;
 import io.yggdrash.proto.PeerList;
 import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
@@ -91,7 +92,7 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     @Override
     public void start(String host, int port) throws IOException {
         this.server = ServerBuilder.forPort(port)
-                .addService(new PingPongImpl())
+                .addService(new PingPongImpl(peerGroup))
                 .addService(new BlockChainImpl(peerGroup, branchGroup, nodeStatus))
                 .addService(new PeerImpl())
                 .build()
@@ -413,8 +414,19 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     }
 
     static class PingPongImpl extends PingPongGrpc.PingPongImplBase {
+        private final PeerGroup peerGroup;
+
+        PingPongImpl(PeerGroup peerGroup) {
+            this.peerGroup = peerGroup;
+        }
+
         @Override
         public void play(Ping request, StreamObserver<Pong> responseObserver) {
+            PeerInfo peerInfo = request.getPeer();
+            BranchId branchId = BranchId.of(peerInfo.getBranchId());
+            Peer peer = Peer.valueOf(peerInfo.getPubKey(), peerInfo.getIp(), peerInfo.getPort());
+            peerGroup.touchPeer(branchId, peer);
+
             log.debug("Received " + request.getPing());
             Pong pong = Pong.newBuilder().setPong("Pong").build();
             responseObserver.onNext(pong);

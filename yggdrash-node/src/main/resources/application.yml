@@ -9,7 +9,7 @@ yggdrash:
   node:
     grpc.host: "localhost"
     grpc.port: 32918
-    max-peers: 5
+    max-peers: 25
 
 management:
   endpoint.health.show-details: always

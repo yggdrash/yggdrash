@@ -29,8 +29,8 @@
     }
 
     .node circle {
-        stroke: #fff;
-        stroke-width: 3px;
+        stroke: #aaa;
+        stroke-width: 2px;
         fill: #d46979;
     }
 
@@ -41,10 +41,17 @@
         font-size: larger;
         margin-top: 0%;
     }
+
+    .tbContainer {
+        margin-bottom: 50px;
+    }
 </style>
 <body onload="pageLoaded()">
 <button id="drawNetwork">Draw Network</button>
+<!--button onclick="checkCurrentData()">Check Current Data</button-->
+<!--button onclick="resetCurrentData()">Rest Current Data</button-->
 <script>
+    var reqTime = $.now();
     var curBlockHeight = 0;
     var grpc = 32918;
     var rest = 8080;
@@ -62,19 +69,193 @@
     var channels = [];
     var stack = [];
     var table = [];
+    var ip = "";
+
+    function checkCurrentData() {
+        console.log("ip => ", ip);
+        console.log("curBlockHeight => ", curBlockHeight);
+        console.log("nodes => ", nodes);
+        console.log("links => ", links);
+        console.log("graphFile => ", graphFile);
+        console.log("channels => ", channels);
+        console.log("stack => ", stack);
+        console.log("table => ", table);
+    }
+
+    function resetCurrentData() {
+        reqTime = $.now();
+        nodes = [];
+        links = [];
+        graphFile = {};
+        channels = [];
+        stack = [];
+        table = [];
+
+        $(".tbName").each(function () {
+            if ($(this).text() !== getGrpcUrl(ip)) {
+                $(this).remove();
+            }
+        });
+        $("table").each(function () {
+            if ($(this).attr("id") !== getGrpcUrl(ip)) {
+                $(this).remove();
+            }
+        });
+        $("tbody").empty();
+        $("tfoot .activePeers").empty();
+        $("svg").empty();
+        setUp(ip, branchId);
+    }
 
     function setUp(ip, branchId) {
-
+        writeTableFooter(ip);
+        getBuckets(ip, branchId);
         setNodesAndChannels(ip, branchId);
         setBlockHeight(ip, branchId);
     }
 
-    function setNodesAndChannels(ip, branchId) {
+    function getBuckets(ip, branchId) {
         var url = getBucketsReqUrl(ip, branchId);
 
-        $.getJSON(url).done(function (allPeers) {
-            console.log("setNodesAndChannels :: allPeers => ", allPeers);
+        $.getJSON(url).done(function (buckets) {
+            //console.log("getBuckets :: buckets => ", buckets);
 
+            Object.keys(buckets).forEach(function (bucketId) {
+                var peerInfoElementList = [];
+                buckets[bucketId].forEach(function (peer, index) {
+                    var host = peer.host;
+                    var port = peer.port;
+                    var peerId = base64toHex(peer.peerId.bytes);
+                    var pubKey = base64toHex(peer.pubKey.bytes);
+                    var ynodeUri = peer.ynodeUri;
+
+                    peerInfoElementList.push(writePeerInfoData(index, host, port, peerId, pubKey, ynodeUri));
+                });
+                writeTableBody(ip, bucketId, peerInfoElementList);
+            });
+        });
+    }
+
+    function base64toHex(base64) {
+        var raw = atob(base64);
+        var HEX = '';
+        for (var i = 0; i < raw.length; i++) {
+            var _hex = raw.charCodeAt(i).toString(16);
+            HEX += (_hex.length === 2 ? _hex : '0' + _hex);
+        }
+        return HEX.toUpperCase();
+    }
+
+    function writePeerInfoData(index, host, port, peerId, pubKey, ynodeUri) {
+        var ip_txt = document.createTextNode("[" + index + "] " + host + ":" + port);
+        var host_txt = document.createTextNode("host : " + host);
+        var port_txt = document.createTextNode("port : " + port);
+        var peerId_txt = document.createTextNode("peerId : " + peerId);
+        var pubKey_txt = document.createTextNode("pubKey : " + pubKey);
+        var ynodeUri_txt = document.createTextNode("ynodeUri : " + ynodeUri);
+
+        var li1 = document.createElement("li");
+        var li2 = document.createElement("li");
+        var li3 = document.createElement("li");
+        var li4 = document.createElement("li");
+        var li5 = document.createElement("li");
+        var td = document.createElement("td");
+        var span = document.createElement("span");
+        var div = document.createElement("div");
+        var hr = document.createElement("hr");
+
+        span.className = "peerInfo";
+        span.style.cursor = "pointer";
+        span.addEventListener("click", function (e) {
+            if ($(this).next().css("display") === 'none') {
+                $(this).next().css("display", "");
+            } else {
+                $(this).next().css("display", "none");
+            }
+        });
+        div.style.display = "none";
+        td.style.borderBottom = "1px solid #888888";
+
+        span.appendChild(ip_txt);
+
+        li1.appendChild(host_txt);
+        li2.appendChild(port_txt);
+        li3.appendChild(peerId_txt);
+        li4.appendChild(pubKey_txt);
+        li5.appendChild(ynodeUri_txt);
+
+        div.appendChild(hr);
+        div.appendChild(li1);
+        div.appendChild(li2);
+        div.appendChild(li3);
+        div.appendChild(li4);
+        div.appendChild(li5);
+
+        td.append(span);
+        td.append(div);
+
+        return td;
+    }
+
+    function writeTableBody(ip, bucketId, peerInfoElementList) {
+        var index = peerInfoElementList.length;
+        var td = $("<td rowspan=" + index + ">[" + bucketId + "]</td>");
+        td.css({
+            "text-align": "center",
+            "background-color": "rgb(74,74,74)",
+            "border-right": "1px solid rgb(136,136,136)",
+            "border-bottom": "1px solid rgb(136, 136, 136)"
+        });
+
+        peerInfoElementList.forEach(function (ele, i) {
+            var tr = $("<tr></tr>");
+
+            if (i === 0) {
+                tr.append(td, ele);
+            }
+
+            tr.append(ele);
+            $("#" + convertUrlToElementName(getGrpcUrl(ip))).append(tr);
+        });
+    }
+
+    function appendTable(ip) {
+        var span = $("<span class='tbName'>" + ip + "</span>");
+        var table = $("<table class='darkTable' id=" + ip + "></table>");
+        var colgroup = "<colgroup><col width=\"10%\" /><col width=\"90%\" /></colgroup>";
+        var thead = "<thead><tr><th>Bucket Id</th><th>Peer Info</th></tr></thead>";
+        var tfoot = "<tfoot><tr><td style='text-align: center'>Active Peers</td><td class=activePeers></td></tr></tfoot>";
+        var tbody = $("<tbody></tbody>");
+
+        table.append(colgroup, thead, tfoot, tbody);
+        $(".tbContainer").append(span, table);
+    }
+
+    function convertUrlToElementName(ip) {
+        var eleName = ip.replace(/[.]/g, '\\\.');
+        eleName = eleName.replace(/[:]/g, '\\\:');
+        return eleName;
+    }
+
+    function writeTableFooter(id) {
+        var url = getChannelsReqUrl(id, this.branchId);
+
+        $.getJSON(url).done(function (channels) {
+            channels.forEach(function (channel) {
+                var li = document.createElement("li");
+                var li_txt = document.createTextNode(channel);
+                li.appendChild(li_txt);
+                $("#" + convertUrlToElementName(getGrpcUrl(id)) + " .activePeers").append(li);
+                //console.log("writeTableFooter :: channel => " + channel);
+            });
+        });
+    }
+
+    function setNodesAndChannels(ip, branchId) {
+        var url = getPeersFromBucketsReqUrl(ip, branchId);
+
+        $.getJSON(url).done(function (allPeers) {
+            //console.log("setNodesAndChannels :: allPeers => ", allPeers);
             allPeers.forEach(function (grpcUrl) {
                 nodes.push(grpcUrl);
                 channels.push(getChannelsReqUrl(getRestUrl(grpcUrl), branchId));
@@ -91,15 +272,29 @@
         });
     }
 
+    function findIsolatedPeer() {
+        this.nodes.forEach(function (node) {
+            var url = getLatestPeersReqUrl(getRestUrl(node.name), this.branchId, this.reqTime);
+            $.getJSON(url).done(function (latestPeers) {
+                console.log("node :: " + node.name);
+                console.log("latestPeers => ", latestPeers);
+                if (latestPeers.length < 1) {
+                    $(".node").children("." + convertUrlToElementName(node.name)).css("fill", "#d46979");
+                }
+            });
+        });
+    }
+
     function pageLoaded() {
         var url = document.URL;
         var host = getHost(url);
         var port = getPort(url);
-        var pAt = url.indexOf("&");
+        var pAt = url.indexOf("?");
         if (pAt > 0 && url.substr(pAt + 1) !== "") {
             branchId = url.substr(pAt + 1);
         }
-        var ip = host + ":" + port;
+        ip = host + ":" + port;
+        appendTable(getGrpcUrl(ip));
         setUp(ip, branchId);
     }
 
@@ -121,12 +316,20 @@
         return "http://" + ip + "/peers/" + branchId + "/buckets";
     }
 
+    function getPeersFromBucketsReqUrl(ip, branchId) {
+        return "http://" + ip + "/peers/" + branchId + "/buckets/allPeers";
+    }
+
     function getChannelsReqUrl(ip, branchId) {
         return "http://" + ip + "/peers/" + branchId + "/channels";
     }
 
     function getLatestBlockReqUrl(ip, branchId) {
         return "http://" + ip + "/branches/" + branchId + "/blocks/latest";
+    }
+
+    function getLatestPeersReqUrl(ip, branchId, reqTime) {
+        return "http://" + ip + "/peers/" + branchId + "/latestPeers?reqTime=" + reqTime;
     }
 
     function getGrpcUrl(str) { //Convert rest to grpc url
@@ -232,7 +435,11 @@
         var link = svg.selectAll(".link")
             .data(graphFile.links)
             .enter().append("line")
-            .attr("class", "link")
+            .attr({
+                "class": function (d) {
+                    return "link " + d.source.name;
+                }
+            })
             .style("stroke-width", function (d) {
                 return Math.sqrt(d.weight);
             });
@@ -277,9 +484,7 @@
         console.log("draw :: links => ", links);
 
         nodes.forEach(function (node) {
-            var className = node.name.replace(/[.]/g, '\\\.');
-            className = className.replace(/[:]/g, '\\\:');
-            var curNode = $("." + className);
+            var curNode = $("." + convertUrlToElementName(node.name));
             links.forEach(function (link) {
                 if (link.target.name === node.name) {
                     curNode.css('fill', '#7ce47a');
@@ -304,13 +509,217 @@
     }
 
     $("#drawNetwork").click(function () {
-        submit(channels.pop());
+        if ($("svg").children().length > 0) {
+            resetCurrentData();
+        }
+        setTimeout(function () {
+            submit(channels.pop());
+        }, 2000);
         setTimeout(function () {
             arrangeTable();
             draw();
-        }, 5000);
+            findIsolatedPeer();
+            nodeClickEventHandler();
+        }, 6000);
     });
-</script>
 
+    function nodeClickEventHandler() {
+        var node = $(".node");
+
+        node.click(function () {
+            var ip = $(this).children("circle").attr("class");
+            console.log("Click!! selected node ip => ", ip);
+            if ($("#" + convertUrlToElementName(ip)).length < 1) {
+                appendTable(ip);
+                writeTableFooter(getRestUrl(ip));
+                getBuckets(getRestUrl(ip), branchId);
+            }
+        });
+
+        node.mouseover(function () {
+            var ip = $(this).children("circle").attr("class");
+            animateOrangeLine(ip);
+        });
+
+        node.mouseout(function () {
+            var ip = $(this).children("circle").attr("class");
+            stopAnimate(ip);
+        });
+
+        node.dblclick(function () {
+            var ip = $(this).children("circle").attr("class");
+            animateBlueLine(ip);
+        });
+    }
+
+    function stopAnimate(selectedNodeIp) {
+        var grey = "rgb(170, 170, 170)";
+        var line = $("line .link, ." + convertUrlToElementName(selectedNodeIp));
+
+        line.css({
+            stroke: grey,
+            transition: '1s',
+            strokeWidth: '2px',
+            strokeDasharray: '',
+            animation: ''
+        });
+    }
+
+    function animateBlueLine(selectedNodeIp) {
+        var blue = "rgb(0, 184, 230)";
+
+        links.forEach(function (link) {
+            var line = $("line .link, ." + convertUrlToElementName(selectedNodeIp));
+            if (link.target.name === selectedNodeIp) {
+                line.css({
+                    stroke: blue,
+                    transition: '1s',
+                    strokeWidth: '15px',
+                    strokeDasharray: '20',
+                    strokeDashoffset: '0',
+                    animation: 'receive 5s infinite linear forwards'
+                });
+            }
+        });
+    }
+
+    function animateOrangeLine(selectedNodeIp) {
+        var orange = "rgb(255, 153, 51)";
+
+        links.forEach(function (link) {
+            var line = $("line .link, ." + convertUrlToElementName(selectedNodeIp));
+            if (link.source.name === selectedNodeIp) {
+                line.css({
+                    stroke: orange,
+                    transition: '1s',
+                    strokeWidth: '15px',
+                    strokeDasharray: '20',
+                    strokeDashoffset: '1000',
+                    animation: 'broadcast 5s infinite linear backwards'
+                });
+            }
+        });
+    }
+</script>
+<style>
+    span.tbName {
+        font-size: 18px;
+        color: #222;
+        margin-left: 10px;
+        font-family: Georgia, "Times New Roman", Times, serif;
+        font-weight: normal;
+        text-shadow: 2px 2px 2px #84e1e1;
+    }
+
+    div.tbContainer {
+        position: absolute;
+        bottom: 20px;
+        right: 10px;
+        width: 99%;
+        height: 150px;
+    }
+
+    table.darkTable {
+        position: relative;
+        #bottom: 20px;
+        margin-bottom: 10px;
+        #right: 10px;
+        font-family: "Courier New", Courier, monospace;
+        border: 2px solid #000000;
+        background-color: #4A4A4A;
+        #width: 99%;
+        width: 100%;
+        #height: 150px;
+        text-align: left;
+        border-collapse: collapse;
+    }
+
+    table.darkTable td, table.darkTable th {
+        border: 1px solid #4A4A4A;
+        padding: 3px 2px;
+    }
+
+    table.darkTable tbody td {
+        font-size: 13px;
+        color: #E6E6E6;
+    }
+
+    table.darkTable tr:nth-child(even) {
+        background: #888888;
+    }
+
+    table.darkTable thead {
+        background: #000000;
+        border-bottom: 3px solid #000000;
+    }
+
+    table.darkTable thead th {
+        font-size: 15px;
+        font-weight: bold;
+        color: #E6E6E6;
+        text-align: center;
+        border-left: 1px solid #4A4A4A;
+    }
+
+    table.darkTable thead th:first-child {
+        border-left: none;
+    }
+
+    table.darkTable tfoot {
+        font-size: 13px;
+        font-weight: bold;
+        color: #E6E6E6;
+        background: #000000;
+        background: -moz-linear-gradient(top, #404040 0%, #191919 66%, #000000 100%);
+        background: -webkit-linear-gradient(top, #404040 0%, #191919 66%, #000000 100%);
+        background: linear-gradient(to bottom, #404040 0%, #191919 66%, #000000 100%);
+        border-top: 1px solid #4A4A4A;
+    }
+
+    table.darkTable tfoot td {
+        font-size: 12px;
+    }
+
+    @keyframes broadcast {
+        to {
+            stroke-dashoffset: 0;
+        }
+    }
+
+    @keyframes receive {
+        to {
+            stroke-dashoffset: 1000;
+        }
+    }
+</style>
+<div class="tbContainer">
+    <!--
+    <table class="darkTable">
+        <colgroup>
+            <col width="10%" />
+            <col width="90%" />
+        </colgroup>
+        <thead>
+        <tr>
+            <th>Bucket Id</th>
+            <th>Peer Info</th>
+        </tr>
+        </thead>
+        <tfoot>
+        <tr>
+            <td style="text-align: center">Active Peers</td>
+            <td id="activePeers"></td>
+        </tr>
+        </tfoot>
+        <tbody>-->
+    <!-- row start -->
+    <!-- row end -->
+    <!--</tbody>
+</table>-->
+</div>
+<script>
+
+
+</script>
 </body>
 </html>

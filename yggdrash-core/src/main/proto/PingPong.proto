@@ -10,8 +10,16 @@ service PingPong {
 
 message Ping {
     string ping = 1;
+    PeerInfo peer = 2;
 }
 
 message Pong {
     string pong = 1;
+}
+
+message PeerInfo {
+    string branchId = 1;
+    string pubKey = 2;
+    string ip = 3;
+    int32 port = 4;
 }

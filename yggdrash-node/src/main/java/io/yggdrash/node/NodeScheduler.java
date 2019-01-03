@@ -54,13 +54,18 @@ class NodeScheduler {
         this.isSeedPeer = nodeManager.isSeedPeer();
     }
 
-    //@Scheduled(cron = cronValue)
+    @Scheduled(cron = cronValue)
     public void healthCheck() {
         if (!nodeStatus.isUpStatus()) {
             return;
         }
-
         peerGroup.healthCheck();
+    }
+
+    //TODO
+    @Scheduled(cron = cronValue)
+    public void channelRefresh() {
+
     }
 
     @Scheduled(cron = cronValue)

@@ -24,9 +24,11 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.net.NodeStatus;
+import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
+import io.yggdrash.proto.PeerInfo;
 import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Pong;
@@ -36,6 +38,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
@@ -67,7 +70,8 @@ public class GRpcNodeServerTest {
 
     @Before
     public void setUp() {
-        grpcServerRule.getServiceRegistry().addService(new GRpcNodeServer.PingPongImpl());
+        grpcServerRule.getServiceRegistry().addService(new GRpcNodeServer.PingPongImpl(
+                peerGroupMock));
         grpcServerRule.getServiceRegistry().addService(new GRpcNodeServer.BlockChainImpl(
                 peerGroupMock, branchGroupMock, nodeStatus)
         );
@@ -83,7 +87,19 @@ public class GRpcNodeServerTest {
         PingPongGrpc.PingPongBlockingStub blockingStub = PingPongGrpc.newBlockingStub(
                 grpcServerRule.getChannel());
 
-        Pong pong = blockingStub.play(Ping.newBuilder().setPing("Ping").build());
+        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        PeerInfo peerInfo = PeerInfo.newBuilder().setBranchId(branchId.toString())
+                .setPubKey(peer.getPubKey().toString())
+                .setIp(peer.getHost())
+                .setPort(peer.getPort())
+                .build();
+        Ping ping = Ping.newBuilder().setPing("Ping").setPeer(peerInfo).build();
+
+        Mockito.doCallRealMethod().when(peerGroupMock).touchPeer(
+                BranchId.of(peerInfo.getBranchId()), peer);
+
+        Pong pong = blockingStub.play(ping);
+
         assertEquals("Pong", pong.getPong());
     }
 

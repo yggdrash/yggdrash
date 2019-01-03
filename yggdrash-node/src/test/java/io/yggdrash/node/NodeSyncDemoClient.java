@@ -16,6 +16,7 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.Peer;
 
 /**
@@ -29,8 +30,10 @@ public class NodeSyncDemoClient {
      */
     public static void main(String[] args) {
         GRpcClientChannel client =
-                new GRpcClientChannel(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
-        client.ping("Ping");
+                new GRpcClientChannel(Peer.valueOf("ynode://75bff16c@127.0.0.1:32919"));
+        client.ping("Ping",
+                BranchId.of("91b29a1453258d72ca6fbbcabb8dca10cca944fb"),
+                Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
         client.broadcastTransaction(GRpcClientChannelTest.sampleTxs());
     }
 }
