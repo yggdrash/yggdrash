@@ -4,30 +4,34 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public abstract class BaseContract<T> implements Contract<T> {
     protected static final Logger log = LoggerFactory.getLogger(BaseContract.class);
-    protected TransactionReceiptStore txReceiptStore;
+//    protected TransactionReceiptStore txReceiptStore;
     protected StateStore<T> state;
     protected String sender;
+
+    @ContractTransactionReceipt
+    TransactionReceipt txReceipt;
 
     @Override
     public void init(StateStore<T> store, TransactionReceiptStore txReceiptStore) {
         this.state = store;
-        this.txReceiptStore = txReceiptStore;
+//        this.txReceiptStore = txReceiptStore;
     }
 
     @Override
     public boolean invoke(TransactionHusk txHusk) {
-        TransactionReceipt txReceipt;
+
         String txId = txHusk.getHash().toString();
         try {
             this.sender = txHusk.getAddress().toString();
@@ -46,10 +50,10 @@ public abstract class BaseContract<T> implements Contract<T> {
             }
             txReceipt.putLog("method", method);
             txReceipt.setTxId(txId);
-            txReceiptStore.put(txReceipt.getTxId(), txReceipt);
+//            txReceiptStore.put(txReceipt.getTxId(), txReceipt);
         } catch (Throwable e) {
             txReceipt = TransactionReceipt.errorReceipt(txId, e);
-            txReceiptStore.put(txHusk.getHash().toString(), txReceipt);
+//            txReceiptStore.put(txHusk.getHash().toString(), txReceipt);
         }
         return txReceipt.isSuccess();
     }

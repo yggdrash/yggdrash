@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
+import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
 import org.spongycastle.util.encoders.Hex;
@@ -15,6 +16,10 @@ import java.util.Map;
 
 public class CoinContract extends BaseContract<JsonObject>
         implements CoinStandard {
+
+    @ContractTransactionReceipt
+    TransactionReceipt txReceipt;
+
 
     private final String totalSupplyKey = "TOTAL_SUPPLY";
 
@@ -123,7 +128,7 @@ public class CoinContract extends BaseContract<JsonObject>
         String spender = params.get("spender").getAsString().toLowerCase();
         BigDecimal amount = params.get("amount").getAsBigDecimal();
 
-        TransactionReceipt txReceipt = new TransactionReceipt();
+//        TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.putLog("spender", spender);
         txReceipt.putLog("amount", String.valueOf(amount));
 
@@ -164,7 +169,7 @@ public class CoinContract extends BaseContract<JsonObject>
         String to = params.get("to").getAsString().toLowerCase();
         BigDecimal amount = params.get("amount").getAsBigDecimal();
 
-        TransactionReceipt txReceipt = new TransactionReceipt();
+//        TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.putLog("from", from);
         txReceipt.putLog("to", to);
         txReceipt.putLog("amount", String.valueOf(amount));
@@ -206,10 +211,11 @@ public class CoinContract extends BaseContract<JsonObject>
      * @return TransactionReceipt
      */
     @Genesis
+    @InvokeTransction
     public TransactionReceipt genesis(JsonObject params) {
         log.info("\ngenesis :: params => " + params);
 
-        TransactionReceipt txReceipt = new TransactionReceipt();
+//        TransactionReceipt txReceipt = new TransactionReceipt();
         if (state.getStateSize() > 0L) {
             return txReceipt;
         }

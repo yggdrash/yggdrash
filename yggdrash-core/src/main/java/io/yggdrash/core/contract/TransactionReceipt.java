@@ -27,10 +27,10 @@ public class TransactionReceipt {
 
     private String txId;
     private String blockId;
-    private final int yeedUsed = 30000;
     private String branchId;
     private final Map<String, Object> txLog = new HashMap<>();
     private int status = FALSE;
+    private String TransactionIssuer;
 
     public void putLog(String key, Object value) {
         txLog.put(key, value);
@@ -52,12 +52,12 @@ public class TransactionReceipt {
         return txId;
     }
 
-    public String getBlockId() {
-        return blockId;
+    public void setBlockId(String blockId) {
+        this.blockId = blockId;
     }
 
-    public int getYeedUsed() {
-        return yeedUsed;
+    public String getBlockId() {
+        return blockId;
     }
 
     public String getBranchId() {

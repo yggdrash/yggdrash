@@ -17,20 +17,26 @@
 package io.yggdrash.core.runtime;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.Contract;
+import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
+import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +50,7 @@ public class Runtime<T> {
     private Map<String, Method> invokeMethod;
     private Map<String, Method> queryMethod;
     private Method genesis;
+    private Field transactionReceipt;
 
     // FIX runtime run contract will init
     public Runtime(StateStore<T> stateStore, TransactionReceiptStore txReceiptStore) {
@@ -61,6 +68,11 @@ public class Runtime<T> {
         invokeMethod = getInvokeMethods();
         queryMethod = getQueryMethods();
         genesis = getGenesisMethod();
+        transactionReceipt = getTxReceipt();
+        if (transactionReceipt != null) {
+            // TODO contract inject txReceipt
+            transactionReceipt.setAccessible(true);
+        }
 
     }
 
@@ -71,14 +83,78 @@ public class Runtime<T> {
         block.getBranchId();
         block.getIndex();
         block.getBody();
+
+        // Block Data
+        // - Hash
+        // - BranchId
+        // - Index *(Height)
+        // Map String
+
     }
+
+    private void contractInjectMetaData() {
+
+    }
+
 
 
     public boolean invoke(TransactionHusk tx) {
         // TODO fix contract has not call init
         // Find invoke method and invoke
         // validation method
-        return contract.invoke(tx);
+
+        // Transaction Data
+        // - sender (issuer)
+        // - Transaction Hash
+
+        TransactionReceipt txReceipt = new TransactionReceipt();
+        String txId = tx.getHash().toString();
+        txReceipt.setTxId(txId);
+        // TODO insert txReceipt BlockID
+        //txReceipt.setBlockId("");
+        try {
+            if (transactionReceipt != null) {
+                transactionReceipt.set(contract, txReceipt);
+            }
+
+            // this.sender = tx.getAddress().toString();
+
+            JsonObject txBody = JsonUtil.parseJsonArray(tx.getBody()).get(0).getAsJsonObject();
+
+            //dataFormatValidation(txBody);
+
+            String methodName = txBody.get("method").getAsString().toLowerCase();
+            Method method = invokeMethod.get(methodName);
+            // TODO Inject Transction Receipt
+            if (method != null) {
+                if (txBody.has("params")) {
+                    JsonObject params = txBody.getAsJsonObject("params");
+                    // TODO how to make more simple
+                    Optional<Class<?>> m = Arrays.stream(method.getParameterTypes())
+                            .filter(p -> p == JsonObject.class).findFirst();
+                    if (method.getParameterCount() == 1 && m.isPresent()) {
+                        txReceipt = (TransactionReceipt) method.invoke(contract, params);
+                    } else {
+                      // Make Exception
+                    }
+                } else {
+                    txReceipt = (TransactionReceipt) method.invoke(contract);
+                }
+
+            } else {
+                // TODO Make Exception
+            }
+
+
+            txReceipt.putLog("method", methodName);
+            txReceipt.setTxId(txId);
+        } catch (Throwable e) {
+            txReceipt = TransactionReceipt.errorReceipt(txId, e);
+        }
+        // save Tranction Receipt
+        txReceiptStore.put(txReceipt.getTxId(), txReceipt);
+        return txReceipt.isSuccess();
+
     }
 
     public Object query(String method, JsonObject params) throws Exception {
@@ -131,6 +207,18 @@ public class Runtime<T> {
         }
         return null;
     }
+    private Field getTxReceipt() {
+        List<Field> txReceipt = Arrays.stream(contract.getClass().getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(ContractTransactionReceipt.class))
+                .collect(Collectors.toList());
+        if (txReceipt.isEmpty()) {
+            return null;
+        } else {
+            return txReceipt.get(0);
+        }
+
+    }
+
 
     private Map<String, Method> contractMethods(Class<? extends Annotation> annotationClass) {
         return Arrays.stream(contract.getClass().getDeclaredMethods())

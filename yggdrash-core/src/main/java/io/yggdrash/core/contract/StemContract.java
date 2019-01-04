@@ -7,6 +7,7 @@ import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 
 import io.yggdrash.core.runtime.annotation.ContractQuery;
+import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
 import org.slf4j.Logger;
@@ -25,7 +26,12 @@ public class StemContract extends BaseContract<JsonObject> {
 
     private final String branchIdListKey = "BRANCH_ID_LIST";
 
+    @ContractTransactionReceipt
+    TransactionReceipt txReceipt;
+
+
     @Genesis
+    @InvokeTransction
     public TransactionReceipt genesis(JsonObject param) {
         if (state.getStateSize() == 0L) {
             TransactionReceipt receipt = create(param);
