@@ -207,6 +207,7 @@ public class CoinContractTest {
         result.setIssuer(owner);
         try {
             txReceiptField.set(coinContract, result);
+            coinContract.sender = owner;
             coinContract.approve(createParams(approveParams));
         } catch (IllegalAccessException e) {
             e.printStackTrace();

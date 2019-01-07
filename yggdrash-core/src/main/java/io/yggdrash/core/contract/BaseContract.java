@@ -18,6 +18,8 @@ public abstract class BaseContract<T> implements Contract<T> {
     protected static final Logger log = LoggerFactory.getLogger(BaseContract.class);
 //    protected TransactionReceiptStore txReceiptStore;
     protected StateStore<T> state;
+
+    // TODO REMOVE sender ASSP
     protected String sender;
 
     @ContractTransactionReceipt
