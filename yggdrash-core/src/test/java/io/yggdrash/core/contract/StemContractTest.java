@@ -41,20 +41,21 @@ public class StemContractTest {
     private StemContract stemContract;
     private StemContractStateValue stateValue;
     private Field txReceiptField;
+    private StateStore<JsonObject> stateStore;
 
 
     @Before
     public void setUp() {
-        StateStore<JsonObject> stateStore = new StateStore<>(new HashMapDbSource());
+        stateStore = new StateStore<>(new HashMapDbSource());
 
         stemContract = new StemContract();
         stemContract.init(stateStore);
         JsonObject json = ContractTestUtils.createSampleBranchJson();
         stateValue = StemContractStateValue.of(json);
-        stemContract.sender = stateValue.getOwner().toString();
         JsonObject params = createParams(stateValue.getJson());
 
         TransactionReceipt receipt = new TransactionReceipt();
+        receipt.setIssuer(stateValue.getOwner().toString());
 
         List<Field> txReceipt = ContractUtils.txReceipt(stemContract);
         if (txReceipt.size() == 1) {
@@ -69,13 +70,6 @@ public class StemContractTest {
         }
     }
 
-    @Test
-    public void specification() {
-        List<String> methods = stemContract.specification();
-
-        assertThat(methods.isEmpty()).isFalse();
-        assertThat(methods.size()).isEqualTo(8);
-    }
 
     @Test
     public void createTest() {
@@ -87,7 +81,7 @@ public class StemContractTest {
         params.add(branchId, branch);
 
         TransactionReceipt receipt = new TransactionReceipt();
-
+        receipt.setIssuer(stateValue.getOwner().toString());
         try {
             txReceiptField.set(stemContract, receipt);
             receipt = stemContract.create(params);
@@ -97,7 +91,7 @@ public class StemContractTest {
 
         assertThat(receipt.isSuccess()).isTrue();
 
-        JsonObject saved = stemContract.state.get(branchId);
+        JsonObject saved = stateStore.get(branchId);
         assertThat(saved).isNotNull();
         assertThat(saved.get("description").getAsString()).isEqualTo(description);
     }
@@ -109,6 +103,7 @@ public class StemContractTest {
         JsonObject params = createParams(json);
 
         TransactionReceipt receipt = new TransactionReceipt();
+        receipt.setIssuer(stateValue.getOwner().toString());
 
         try {
             txReceiptField.set(stemContract, receipt);

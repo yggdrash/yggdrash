@@ -10,6 +10,7 @@ import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.store.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -20,14 +21,22 @@ import java.util.Map;
 import java.util.Set;
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
 
-public class StemContract extends BaseContract<JsonObject> {
-    // TODO remove extends
+public class StemContract implements Contract<JsonObject> {
+
     private static final Logger log = LoggerFactory.getLogger(StemContract.class);
 
     private final String branchIdListKey = "BRANCH_ID_LIST";
 
+    private StateStore<JsonObject> state;
+
+
     @ContractTransactionReceipt
     TransactionReceipt txReceipt;
+
+    @Override
+    public void init(StateStore<JsonObject> state) {
+        this.state = state;
+    }
 
 
     @Genesis
@@ -89,7 +98,6 @@ public class StemContract extends BaseContract<JsonObject> {
      */
     @InvokeTransction
     public TransactionReceipt update(JsonObject params) {
-        TransactionReceipt txReceipt = new TransactionReceipt();
 
         for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
             BranchId branchId = BranchId.of(entry.getKey());
@@ -220,6 +228,7 @@ public class StemContract extends BaseContract<JsonObject> {
     }
 
     private boolean isOwnerValid(String owner) {
+        String sender = this.txReceipt.getIssuer();
         return sender != null && sender.equals(owner);
     }
 
@@ -268,4 +277,5 @@ public class StemContract extends BaseContract<JsonObject> {
         log.trace("[StemContract | printSubState] symbolState => "
                 + state.getSubState("symbol").toString());
     }
+
 }

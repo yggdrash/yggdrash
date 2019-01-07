@@ -4,20 +4,17 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.util.List;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.math.BigDecimal;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
 public class CoinContractTest {
 
@@ -27,15 +24,13 @@ public class CoinContractTest {
 
     @Before
     public void setUp() {
-        StateStore<JsonObject> coinContractStateStore = null;
-        coinContractStateStore = new StateStore<>(new HashMapDbSource());
+        StateStore<JsonObject> coinContractStateStore = new StateStore<>(new HashMapDbSource());
         coinContract.init(coinContractStateStore);
 
         List<Field> txReceipt = ContractUtils.txReceipt(coinContract);
         if (txReceipt.size() == 1) {
             txReceiptField = txReceipt.get(0);
         }
-
 
         genesis();
     }
@@ -58,25 +53,6 @@ public class CoinContractTest {
 
         assertTrue(result.isSuccess());
         assertEquals(4, result.getTxLog().size());
-    }
-
-    @Test
-    public void specification() {
-        StateStore<JsonObject> coinContractStateStore;
-        coinContractStateStore = new StateStore<>(new HashMapDbSource());
-        MetaCoinContract metaCoinContract = new MetaCoinContract();
-        TransactionReceiptStore txReceip = new TransactionReceiptStore(new HashMapDbSource());
-        metaCoinContract.init(coinContractStateStore);
-
-        List<String> methods = metaCoinContract.specification();
-
-        assertFalse(methods.isEmpty());
-        assertEquals(8, methods.size());
-
-        methods = coinContract.specification();
-
-        assertFalse(methods.isEmpty());
-        assertEquals(7, methods.size());
     }
 
     @Test
@@ -110,7 +86,6 @@ public class CoinContractTest {
                 + "\"amount\" : \"10\"}";
 
         // tx 가 invoke 되지 않아 baseContract 에 sender 가 세팅되지 않아서 설정해줌
-        coinContract.sender = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
         String balanceOf = "{\"address\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}";
         String toBalnce = "{\"address\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\"}";
 
@@ -122,6 +97,7 @@ public class CoinContractTest {
         JsonObject param = createParams(paramStr);
 
         TransactionReceipt result = new TransactionReceipt();
+        result.setIssuer("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
         try {
             txReceiptField.set(coinContract, result);
             result = coinContract.transfer(param);
@@ -163,9 +139,8 @@ public class CoinContractTest {
 
         JsonObject transferFromObject = createParams(transferParams);
 
-        coinContract.sender = spender;
-
         TransactionReceipt result = new TransactionReceipt();
+        result.setIssuer(spender);
         try {
             txReceiptField.set(coinContract, result);
             result = coinContract.transferfrom(transferFromObject);
@@ -206,7 +181,6 @@ public class CoinContractTest {
         result.setIssuer(owner);
         try {
             txReceiptField.set(coinContract, result);
-            coinContract.sender = owner;
             coinContract.approve(createParams(approveParams));
         } catch (IllegalAccessException e) {
             e.printStackTrace();

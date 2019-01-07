@@ -8,20 +8,30 @@ import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
-import org.spongycastle.util.encoders.Hex;
-
+import io.yggdrash.core.store.StateStore;
 import java.math.BigDecimal;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 
-public class CoinContract extends BaseContract<JsonObject>
-        implements CoinStandard {
+public class CoinContract implements CoinStandard, Contract<JsonObject> {
+    protected static final Logger log = LoggerFactory.getLogger(CoinContract.class);
+
 
     @ContractTransactionReceipt
     TransactionReceipt txReceipt;
 
+    StateStore<JsonObject> store;
+
 
     private final String totalSupplyKey = "TOTAL_SUPPLY";
+
+    @Override
+    public void init(StateStore<JsonObject> store) {
+        this.store = store;
+    }
 
     /**
      * @return Total amount of coin in existence
@@ -45,7 +55,7 @@ public class CoinContract extends BaseContract<JsonObject>
         log.info("\nbalanceof :: params => " + params);
 
         String address = params.get("address").getAsString().toLowerCase();
-        if (state.get(address) != null) {
+        if (store.get(address) != null) {
             return getBalance(address);
         }
         return BigDecimal.ZERO;
@@ -67,7 +77,7 @@ public class CoinContract extends BaseContract<JsonObject>
         String spender = params.get("spender").getAsString().toLowerCase();
         String approveKey = approveKey(owner, spender);
 
-        if (state.get(owner) != null && state.get(approveKey) != null) {
+        if (store.get(owner) != null && store.get(approveKey) != null) {
             return getBalance(approveKey);
         }
         return BigDecimal.ZERO;
@@ -91,7 +101,7 @@ public class CoinContract extends BaseContract<JsonObject>
         TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.putLog("to", to);
         txReceipt.putLog("amount", String.valueOf(amount));
-
+        String sender = this.txReceipt.getIssuer();
         if (getBalance(sender).compareTo(BigDecimal.ZERO) == 0) {
             log.info("\n[ERR] " + sender + " has no balance!");
             return txReceipt;
@@ -128,7 +138,8 @@ public class CoinContract extends BaseContract<JsonObject>
         String spender = params.get("spender").getAsString().toLowerCase();
         BigDecimal amount = params.get("amount").getAsBigDecimal();
 
-//        TransactionReceipt txReceipt = new TransactionReceipt();
+        String sender = txReceipt.getIssuer();
+
         txReceipt.putLog("spender", spender);
         txReceipt.putLog("amount", String.valueOf(amount));
 
@@ -174,6 +185,7 @@ public class CoinContract extends BaseContract<JsonObject>
         txReceipt.putLog("to", to);
         txReceipt.putLog("amount", String.valueOf(amount));
 
+        String sender = txReceipt.getIssuer();
         String approveKey = approveKey(from, sender);
         log.debug("approve Key : " + approveKey);
         if (getBalance(approveKey).compareTo(BigDecimal.ZERO) == 0) {
@@ -215,8 +227,7 @@ public class CoinContract extends BaseContract<JsonObject>
     public TransactionReceipt genesis(JsonObject params) {
         log.info("\ngenesis :: params => " + params);
 
-//        TransactionReceipt txReceipt = new TransactionReceipt();
-        if (state.getStateSize() > 0L) {
+        if (store.getStateSize() > 0L) {
             return txReceipt;
         }
 
@@ -254,7 +265,7 @@ public class CoinContract extends BaseContract<JsonObject>
     }
 
     private BigDecimal getBalance(String key) {
-        JsonObject storeValue = state.get(key);
+        JsonObject storeValue = store.get(key);
         if (storeValue != null && storeValue.has("balance")) {
             return storeValue.get("balance").getAsBigDecimal();
         } else {
@@ -265,7 +276,7 @@ public class CoinContract extends BaseContract<JsonObject>
     private void putBalance(String key, BigDecimal value) {
         JsonObject storeValue = new JsonObject();
         storeValue.addProperty("balance", value);
-        state.put(key, storeValue);
+        store.put(key, storeValue);
     }
 
 
@@ -279,4 +290,6 @@ public class CoinContract extends BaseContract<JsonObject>
         // same is  0, more is 1
         return targetBalance.subtract(ammount).compareTo(BigDecimal.ZERO) >= 0;
     }
+
+
 }
