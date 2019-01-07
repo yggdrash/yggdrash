@@ -5,9 +5,11 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
+import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.YggdrashContract;
 import io.yggdrash.core.store.StateStore;
 import java.math.BigDecimal;
 import java.util.Map;
@@ -16,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 
+@YggdrashContract
 public class CoinContract implements CoinStandard, Contract<JsonObject> {
     protected static final Logger log = LoggerFactory.getLogger(CoinContract.class);
 
@@ -23,15 +26,11 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
     @ContractTransactionReceipt
     TransactionReceipt txReceipt;
 
+    @ContractStateStore
     StateStore<JsonObject> store;
 
 
     private final String totalSupplyKey = "TOTAL_SUPPLY";
-
-    @Override
-    public void init(StateStore<JsonObject> store) {
-        this.store = store;
-    }
 
     /**
      * @return Total amount of coin in existence

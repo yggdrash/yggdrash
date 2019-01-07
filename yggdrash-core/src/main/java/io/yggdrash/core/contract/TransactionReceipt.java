@@ -32,6 +32,7 @@ public class TransactionReceipt {
     private final Map<String, Object> txLog = new HashMap<>();
     private int status = FALSE;
     private String issuer;
+    private Long blockHeight;
 
     public void putLog(String key, Object value) {
         txLog.put(key, value);
@@ -61,8 +62,20 @@ public class TransactionReceipt {
         return blockId;
     }
 
+    public Long getBlockHeight() {
+        return blockHeight;
+    }
+
+    public void setBlockHeight(Long blockHeight) {
+        this.blockHeight = blockHeight;
+    }
+
     public String getBranchId() {
         return branchId;
+    }
+
+    public void setBranchId(String branchId) {
+        this.branchId = branchId;
     }
 
     public Map<String, Object> getTxLog() {
@@ -97,4 +110,5 @@ public class TransactionReceipt {
     public void setIssuer(String issuer) {
         this.issuer = issuer;
     }
+
 }

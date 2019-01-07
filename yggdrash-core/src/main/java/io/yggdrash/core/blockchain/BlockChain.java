@@ -18,18 +18,16 @@ package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.contract.Contract;
-import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.wallet.Wallet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -37,8 +35,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
-import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BlockChain {
 
@@ -106,12 +104,13 @@ public class BlockChain {
 
     private void loadTransaction() {
         for (long i = 0; i < blockIndex.size(); i++) {
-            List<TransactionHusk> blockBody = blockStore.get(blockIndex.get(i)).getBody();
-            transactionStore.updateCache(blockBody);
-            executeAllTx(new TreeSet<>(blockBody));
+            BlockHusk block = blockStore.get(blockIndex.get(i));
+            transactionStore.updateCache(block.getBody());
+            executeBlock(block);
+
             log.debug("Load idx=[{}], tx={}, branch={}, blockHash={}",
                     blockStore.get(blockIndex.get(i)).getIndex(),
-                    blockBody.size(),
+                    block.getBody().size(),
                     blockStore.get(blockIndex.get(i)).getBranchId(),
                     blockStore.get(blockIndex.get(i)).getHash());
         }
@@ -188,8 +187,9 @@ public class BlockChain {
         if (!isValidNewBlock(prevBlock, nextBlock)) {
             throw new NotValidateException("Invalid to chain");
         }
-        Set<TransactionHusk> sorted = new TreeSet<>(nextBlock.getBody());
-        executeAllTx(sorted);
+        // run Block Transactions
+        executeBlock(nextBlock);
+
 
         this.blockStore.put(nextBlock.getHash(), nextBlock);
         this.blockIndex.put(nextBlock.getIndex(), nextBlock.getHash());
@@ -318,11 +318,6 @@ public class BlockChain {
         return (this.prevBlock == null);
     }
 
-    // TODO execute All Transaction
-    private List<Boolean> executeAllTx(Set<TransactionHusk> txList) {
-        return txList.stream().map(this::executeTransaction).collect(Collectors.toList());
-    }
-
     @SuppressWarnings("unchecked")
     private boolean executeTransaction(TransactionHusk tx) {
         try {
@@ -331,6 +326,10 @@ public class BlockChain {
             log.error("executeTransaction Error" + e);
             return false;
         }
+    }
+
+    private Map<Sha3Hash, Boolean> executeBlock(BlockHusk block) {
+        return runtime.invokeBlock(block);
     }
 
     private void batchTxs(BlockHusk block) {

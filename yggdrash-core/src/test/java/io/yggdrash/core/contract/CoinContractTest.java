@@ -3,6 +3,7 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import java.lang.reflect.Field;
@@ -23,13 +24,16 @@ public class CoinContractTest {
     private Field txReceiptField;
 
     @Before
-    public void setUp() {
+    public void setUp() throws IllegalAccessException {
         StateStore<JsonObject> coinContractStateStore = new StateStore<>(new HashMapDbSource());
-        coinContract.init(coinContractStateStore);
 
         List<Field> txReceipt = ContractUtils.txReceipt(coinContract);
         if (txReceipt.size() == 1) {
             txReceiptField = txReceipt.get(0);
+        }
+        for(Field f : ContractUtils.contractFields(coinContract, ContractStateStore.class)) {
+            f.setAccessible(true);
+            f.set(coinContract, coinContractStateStore);
         }
 
         genesis();

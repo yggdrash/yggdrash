@@ -100,14 +100,21 @@ public class BlockChainBuilder {
                     genesisBlock.getBranchId());
         }
 
-        if (runtime == null) {
-            // TODO change Transaction Recipt Store
-            runtime = new Runtime<>(stateStore, transactionReceiptStore);
-        }
-
         Contract contract = getContract(branch);
 
-        runtime.setContract(contract);
+        if (contract == null) {
+            throw new FailedOperationException("Contract not exist");
+        }
+
+        if (runtime == null) {
+            // TODO change Transaction Recipt Store
+            runtime = new Runtime(contract,
+                    stateStore,
+                    transactionReceiptStore
+
+            );
+        }
+
         return new BlockChain(branch, genesisBlock, blockStore, transactionStore, metaStore,
                 contract, runtime);
     }

@@ -22,6 +22,7 @@ import io.yggdrash.ContractTestUtils;
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import java.lang.reflect.Field;
@@ -45,11 +46,11 @@ public class StemContractTest {
 
 
     @Before
-    public void setUp() {
+    public void setUp() throws IllegalAccessException {
         stateStore = new StateStore<>(new HashMapDbSource());
 
         stemContract = new StemContract();
-        stemContract.init(stateStore);
+
         JsonObject json = ContractTestUtils.createSampleBranchJson();
         stateValue = StemContractStateValue.of(json);
         JsonObject params = createParams(stateValue.getJson());
@@ -61,6 +62,11 @@ public class StemContractTest {
         if (txReceipt.size() == 1) {
             txReceiptField = txReceipt.get(0);
         }
+        for(Field f : ContractUtils.contractFields(stemContract, ContractStateStore.class)) {
+            f.setAccessible(true);
+            f.set(stemContract, stateStore);
+        }
+
 
         try {
             txReceiptField.set(stemContract, receipt);

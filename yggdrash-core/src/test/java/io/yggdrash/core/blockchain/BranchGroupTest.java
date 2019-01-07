@@ -135,7 +135,7 @@ public class BranchGroupTest {
         assertThat(contract).isNotNull();
         Map<String, Method> queryMethod = ContractUtils.contractMethods(contract, ContractQuery.class);
         Method getAllBranchid = queryMethod.get("getallbranchid");
-        String result = getAllBranchid.invoke(contract, null).toString();
+        String result = getAllBranchid.invoke(contract).toString();
         assertThat(result).contains(block.getBranchId().toString());
     }
 

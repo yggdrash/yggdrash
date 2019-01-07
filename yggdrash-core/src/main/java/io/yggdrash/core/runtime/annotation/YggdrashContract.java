@@ -16,5 +16,12 @@
 
 package io.yggdrash.core.runtime.annotation;
 
-public class ContractTransaction {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
+public @interface YggdrashContract {
 }

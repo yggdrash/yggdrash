@@ -42,11 +42,12 @@ public class RuntimeTest {
         CoinContract contract = new CoinContract();
         Runtime runtime =
                 new Runtime<>(
+                        contract,
                         new StateStore<>(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource())
                 );
 
-        runtime.setContract(contract);
+//        runtime.setContract(contract);
         String genesisStr = "{\"alloc\": {\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\":"
                 + " {\"balance\": \"1000000000\"},\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\":"
                 + " {\"balance\": \"1000000000\"},\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":"
@@ -69,9 +70,10 @@ public class RuntimeTest {
     public void stemRuntimeTest() throws Exception {
         StemContract contract = new StemContract();
         Runtime<JsonObject> runtime =
-                new Runtime<>(new StateStore<>(new HashMapDbSource()),
+                new Runtime<>(
+                        contract,
+                        new StateStore<>(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource()));
-        runtime.setContract(contract);
 
         JsonObject json = ContractTestUtils.createSampleBranchJson();
         BranchId branchId = BranchId.of(json);

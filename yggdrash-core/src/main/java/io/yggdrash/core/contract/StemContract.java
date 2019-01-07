@@ -7,6 +7,7 @@ import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 
 import io.yggdrash.core.runtime.annotation.ContractQuery;
+import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
@@ -27,17 +28,12 @@ public class StemContract implements Contract<JsonObject> {
 
     private final String branchIdListKey = "BRANCH_ID_LIST";
 
-    private StateStore<JsonObject> state;
+    @ContractStateStore
+    StateStore<JsonObject> state;
 
 
     @ContractTransactionReceipt
     TransactionReceipt txReceipt;
-
-    @Override
-    public void init(StateStore<JsonObject> state) {
-        this.state = state;
-    }
-
 
     @Genesis
     @InvokeTransction
