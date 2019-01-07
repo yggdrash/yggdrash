@@ -39,12 +39,12 @@ public class StemContract implements Contract<JsonObject> {
     @InvokeTransction
     public TransactionReceipt genesis(JsonObject param) {
         if (state.getStateSize() == 0L) {
-            TransactionReceipt receipt = create(param);
+            txReceipt = create(param);
             log.info("[StemContract | genesis] SUCCESS! param => " + param);
 
-            return receipt;
+            return txReceipt;
         }
-        return new TransactionReceipt();
+        return txReceipt;
     }
 
     /**

@@ -174,7 +174,7 @@ public class Runtime<T> {
             txReceipt = TransactionReceipt.errorReceipt(txReceipt.getTxId(), e);
         }
         // save Tranction Receipt
-        txReceiptStore.put(txReceipt.getTxId(), txReceipt);
+        txReceiptStore.put(tx.getHash().toString(), txReceipt);
         return txReceipt.isSuccess();
 
     }
