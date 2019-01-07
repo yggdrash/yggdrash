@@ -1,8 +1,6 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.JsonUtil;
-import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.store.StateStore;
@@ -26,48 +24,6 @@ public abstract class BaseContract<T> implements Contract<T> {
     @Override
     public void init(StateStore<T> store) {
         this.state = store;
-    }
-
-    @Override
-    public boolean invoke(TransactionHusk txHusk) {
-
-        String txId = txHusk.getHash().toString();
-        try {
-            this.sender = txHusk.getAddress().toString();
-            JsonObject txBody = JsonUtil.parseJsonArray(txHusk.getBody()).get(0).getAsJsonObject();
-
-            dataFormatValidation(txBody);
-
-            String method = txBody.get("method").getAsString().toLowerCase();
-            if (txBody.has("params")) {
-                JsonObject params = txBody.getAsJsonObject("params");
-                txReceipt = (TransactionReceipt) this.getClass().getMethod(method, JsonObject.class)
-                        .invoke(this, params);
-            } else {
-                txReceipt = (TransactionReceipt) this.getClass().getMethod(method)
-                        .invoke(this);
-            }
-            txReceipt.putLog("method", method);
-            txReceipt.setTxId(txId);
-        } catch (Throwable e) {
-            txReceipt = TransactionReceipt.errorReceipt(txId, e);
-        }
-        return txReceipt.isSuccess();
-    }
-
-    @Override
-    public Object query(String method, JsonObject params) {
-        // TODO cli json rpc call module change (make LOWERCASE)
-        try {
-            if (params != null) {
-                return getClass().getMethod(method.toLowerCase(), JsonObject.class)
-                        .invoke(this, params);
-            } else {
-                return getClass().getMethod(method.toLowerCase()).invoke(this);
-            }
-        } catch (Exception e) {
-            throw new FailedOperationException(e);
-        }
     }
 
     public List<String> specification() {
