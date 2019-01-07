@@ -1,10 +1,12 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
+import java.lang.reflect.Field;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -21,6 +23,7 @@ public class CoinContractTest {
 
     private static final CoinContract coinContract = new CoinContract();
     private static final Logger log = LoggerFactory.getLogger(CoinContractTest.class);
+    private Field txReceiptField;
 
     @Before
     public void setUp() {
@@ -28,6 +31,13 @@ public class CoinContractTest {
         coinContractStateStore = new StateStore<>(new HashMapDbSource());
         TransactionReceiptStore txReceip = new TransactionReceiptStore(new HashMapDbSource());
         coinContract.init(coinContractStateStore, txReceip);
+
+        List<Field> txReceipt = ContractUtils.txReceipt(coinContract);
+        if (txReceipt.size() == 1) {
+            txReceiptField = txReceipt.get(0);
+        }
+
+
         genesis();
     }
 
@@ -37,7 +47,15 @@ public class CoinContractTest {
                 + " {\"balance\": \"1000000000\"},\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":"
                 + " {\"balance\": \"998000000000\"}}}";
 
-        TransactionReceipt result = coinContract.genesis(createParams(genesisStr));
+        TransactionReceipt result = new TransactionReceipt();
+
+        try {
+            txReceiptField.set(coinContract, result);
+            coinContract.genesis(createParams(genesisStr));
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
 
         assertTrue(result.isSuccess());
         assertEquals(4, result.getTxLog().size());
@@ -103,7 +121,14 @@ public class CoinContractTest {
                 + coinContract.balanceof(createParams(toBalnce)).toString());
 
         JsonObject param = createParams(paramStr);
-        TransactionReceipt result = coinContract.transfer(param);
+
+        TransactionReceipt result = new TransactionReceipt();
+        try {
+            txReceiptField.set(coinContract, result);
+            result = coinContract.transfer(param);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
 
         assertTrue(result.isSuccess());
 
@@ -140,7 +165,15 @@ public class CoinContractTest {
         JsonObject transferFromObject = createParams(transferParams);
 
         coinContract.sender = spender;
-        TransactionReceipt result = coinContract.transferfrom(transferFromObject);
+
+        TransactionReceipt result = new TransactionReceipt();
+        try {
+            txReceiptField.set(coinContract, result);
+            result = coinContract.transferfrom(transferFromObject);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
         assertTrue(result.isSuccess());
         assertEquals(BigDecimal.valueOf(300), getAllowance(owner, spender));
         log.debug(to + ": " + getBalance(to).toString());
@@ -148,7 +181,14 @@ public class CoinContractTest {
         log.debug(spender + ": " + getBalance(spender).toString());
         log.debug("getAllowance : " + getAllowance(owner, spender));
 
-        TransactionReceipt result2 = coinContract.transferfrom(transferFromObject);
+        TransactionReceipt result2 = new TransactionReceipt();
+        try {
+            txReceiptField.set(coinContract, result);
+            coinContract.transferfrom(transferFromObject);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
         // not enough amount allowed
         assertFalse(result2.isSuccess());
 
@@ -163,8 +203,14 @@ public class CoinContractTest {
         String approveParams = "{\"spender\" : \"" + spender + "\","
                 + "\"amount\" : \"" + amount + "\"}";
 
-        coinContract.sender = owner;
-        TransactionReceipt result = coinContract.approve(createParams(approveParams));
+        TransactionReceipt result = new TransactionReceipt();
+        result.setIssuer(owner);
+        try {
+            txReceiptField.set(coinContract, result);
+            coinContract.approve(createParams(approveParams));
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
 
         assertTrue(result.isSuccess());
 

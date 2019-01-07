@@ -30,7 +30,7 @@ public class TransactionReceipt {
     private String branchId;
     private final Map<String, Object> txLog = new HashMap<>();
     private int status = FALSE;
-    private String TransactionIssuer;
+    private String issuer;
 
     public void putLog(String key, Object value) {
         txLog.put(key, value);
@@ -87,5 +87,13 @@ public class TransactionReceipt {
     @Override
     public String toString() {
         return JsonUtil.convertObjToString(this);
+    }
+
+    public String getIssuer() {
+        return issuer;
+    }
+
+    public void setIssuer(String issuer) {
+        this.issuer = issuer;
     }
 }

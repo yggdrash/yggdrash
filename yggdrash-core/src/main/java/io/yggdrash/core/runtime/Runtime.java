@@ -17,27 +17,24 @@
 package io.yggdrash.core.runtime;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
-import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,8 +65,9 @@ public class Runtime<T> {
         invokeMethod = getInvokeMethods();
         queryMethod = getQueryMethods();
         genesis = getGenesisMethod();
-        transactionReceipt = getTxReceipt();
-        if (transactionReceipt != null) {
+        List<Field> txReceiptList = ContractUtils.txReceipt(contract);
+        if (txReceiptList.size() == 1) {
+            transactionReceipt = txReceiptList.get(0);
             // TODO contract inject txReceipt
             transactionReceipt.setAccessible(true);
         }
@@ -185,7 +183,7 @@ public class Runtime<T> {
      * @return Method map (method nams is lower case)
      */
     private Map<String,Method> getInvokeMethods() {
-        return contractMethods(InvokeTransction.class);
+        return ContractUtils.contractMethods(contract, InvokeTransction.class);
     }
 
     /**
@@ -194,11 +192,11 @@ public class Runtime<T> {
      * @return Method map (method name is lower case)
      */
     private Map<String, Method> getQueryMethods() {
-        return contractMethods(ContractQuery.class);
+        return ContractUtils.contractMethods(contract, ContractQuery.class);
     }
 
     private Method getGenesisMethod() {
-        Map<String, Method> genesisMethods = contractMethods(Genesis.class);
+        Map<String, Method> genesisMethods = ContractUtils.contractMethods(contract, Genesis.class);
         Map.Entry<String, Method> genesisEntry = genesisMethods.isEmpty()
                 ? null : genesisMethods.entrySet().iterator().next();
 
@@ -207,26 +205,5 @@ public class Runtime<T> {
         }
         return null;
     }
-    private Field getTxReceipt() {
-        List<Field> txReceipt = Arrays.stream(contract.getClass().getDeclaredFields())
-                .filter(field -> field.isAnnotationPresent(ContractTransactionReceipt.class))
-                .collect(Collectors.toList());
-        if (txReceipt.isEmpty()) {
-            return null;
-        } else {
-            return txReceipt.get(0);
-        }
-
-    }
-
-
-    private Map<String, Method> contractMethods(Class<? extends Annotation> annotationClass) {
-        return Arrays.stream(contract.getClass().getDeclaredMethods())
-                .filter(method -> method.isAnnotationPresent(annotationClass))
-                .filter(method -> Modifier.isPublic(method.getModifiers()))
-                .collect(Collectors.toMap(m -> m.getName().toLowerCase(), m-> m));
-    }
-
-
 
 }
