@@ -23,7 +23,6 @@ import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import java.lang.reflect.Field;
 import java.util.List;
@@ -47,10 +46,9 @@ public class StemContractTest {
     @Before
     public void setUp() {
         StateStore<JsonObject> stateStore = new StateStore<>(new HashMapDbSource());
-        TransactionReceiptStore txReceiptStore = new TransactionReceiptStore(new HashMapDbSource());
 
         stemContract = new StemContract();
-        stemContract.init(stateStore, txReceiptStore);
+        stemContract.init(stateStore);
         JsonObject json = ContractTestUtils.createSampleBranchJson();
         stateValue = StemContractStateValue.of(json);
         stemContract.sender = stateValue.getOwner().toString();

@@ -60,7 +60,7 @@ public class Runtime<T> {
 
     public void setContract(Contract<T> contract) {
         this.contract = contract;
-        this.contract.init(stateStore, txReceiptStore);
+        this.contract.init(stateStore);
         // load invoke Method
         invokeMethod = getInvokeMethods();
         queryMethod = getQueryMethods();

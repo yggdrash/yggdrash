@@ -6,7 +6,6 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -16,7 +15,6 @@ import org.slf4j.LoggerFactory;
 
 public abstract class BaseContract<T> implements Contract<T> {
     protected static final Logger log = LoggerFactory.getLogger(BaseContract.class);
-//    protected TransactionReceiptStore txReceiptStore;
     protected StateStore<T> state;
 
     // TODO REMOVE sender ASSP
@@ -26,9 +24,8 @@ public abstract class BaseContract<T> implements Contract<T> {
     TransactionReceipt txReceipt;
 
     @Override
-    public void init(StateStore<T> store, TransactionReceiptStore txReceiptStore) {
+    public void init(StateStore<T> store) {
         this.state = store;
-//        this.txReceiptStore = txReceiptStore;
     }
 
     @Override
@@ -52,10 +49,8 @@ public abstract class BaseContract<T> implements Contract<T> {
             }
             txReceipt.putLog("method", method);
             txReceipt.setTxId(txId);
-//            txReceiptStore.put(txReceipt.getTxId(), txReceipt);
         } catch (Throwable e) {
             txReceipt = TransactionReceipt.errorReceipt(txId, e);
-//            txReceiptStore.put(txHusk.getHash().toString(), txReceipt);
         }
         return txReceipt.isSuccess();
     }

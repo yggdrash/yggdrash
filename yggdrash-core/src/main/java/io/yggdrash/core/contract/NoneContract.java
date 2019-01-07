@@ -5,10 +5,9 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
 import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
 
 public class NoneContract implements Contract {
-    public void init(StateStore stateStore, TransactionReceiptStore txReceiptStore) {
+    public void init(StateStore stateStore) {
     }
 
     @Override

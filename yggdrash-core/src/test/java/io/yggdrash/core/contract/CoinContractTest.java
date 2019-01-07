@@ -29,8 +29,7 @@ public class CoinContractTest {
     public void setUp() {
         StateStore<JsonObject> coinContractStateStore = null;
         coinContractStateStore = new StateStore<>(new HashMapDbSource());
-        TransactionReceiptStore txReceip = new TransactionReceiptStore(new HashMapDbSource());
-        coinContract.init(coinContractStateStore, txReceip);
+        coinContract.init(coinContractStateStore);
 
         List<Field> txReceipt = ContractUtils.txReceipt(coinContract);
         if (txReceipt.size() == 1) {
@@ -67,7 +66,7 @@ public class CoinContractTest {
         coinContractStateStore = new StateStore<>(new HashMapDbSource());
         MetaCoinContract metaCoinContract = new MetaCoinContract();
         TransactionReceiptStore txReceip = new TransactionReceiptStore(new HashMapDbSource());
-        metaCoinContract.init(coinContractStateStore, txReceip);
+        metaCoinContract.init(coinContractStateStore);
 
         List<String> methods = metaCoinContract.specification();
 
