@@ -76,7 +76,7 @@ public class Runtime<T> {
 
 
     public void invokeBlock(BlockHusk block) {
-        // TODO
+        // TODO Blockchain excute by block
         block.getHash();
         block.getBranchId();
         block.getIndex();
@@ -88,12 +88,19 @@ public class Runtime<T> {
         // - Index *(Height)
         // Map String
 
+        if (block.getIndex() == 0) {
+            // TODO first transaction is genesis
+            // TODO genesis method don't call any more
+        }
+
+        // TODO Transaction invoke here and temp store
+        // store mode is temp
+
+
+        // TODO all Transaction excute complite
+        // TODO temp store value save state store
+
     }
-
-    private void contractInjectMetaData() {
-
-    }
-
 
 
     public boolean invoke(TransactionHusk tx) {
@@ -108,6 +115,7 @@ public class Runtime<T> {
         TransactionReceipt txReceipt = new TransactionReceipt();
         String txId = tx.getHash().toString();
         txReceipt.setTxId(txId);
+        txReceipt.setIssuer(tx.getAddress().toString());
         // TODO insert txReceipt BlockID
         //txReceipt.setBlockId("");
         try {

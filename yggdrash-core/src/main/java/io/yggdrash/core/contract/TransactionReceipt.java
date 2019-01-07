@@ -21,6 +21,7 @@ import io.yggdrash.common.util.JsonUtil;
 import java.util.HashMap;
 import java.util.Map;
 
+// TODO TransactionReceipt to interface
 public class TransactionReceipt {
     public static final int FALSE = 0;
     public static final int SUCCESS = 1;

@@ -49,7 +49,6 @@ public class StemContract extends BaseContract<JsonObject> {
      */
     @InvokeTransction
     public TransactionReceipt create(JsonObject params) {
-        TransactionReceipt txReceipt = new TransactionReceipt();
 
         for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
             BranchId branchId = BranchId.of(entry.getKey());

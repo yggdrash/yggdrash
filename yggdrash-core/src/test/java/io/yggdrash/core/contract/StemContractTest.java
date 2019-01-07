@@ -19,20 +19,21 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.Set;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Set;
-
-import static io.yggdrash.common.config.Constants.BRANCH_ID;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class StemContractTest {
 
@@ -40,6 +41,8 @@ public class StemContractTest {
 
     private StemContract stemContract;
     private StemContractStateValue stateValue;
+    private Field txReceiptField;
+
 
     @Before
     public void setUp() {
@@ -52,7 +55,20 @@ public class StemContractTest {
         stateValue = StemContractStateValue.of(json);
         stemContract.sender = stateValue.getOwner().toString();
         JsonObject params = createParams(stateValue.getJson());
-        stemContract.genesis(params);
+
+        TransactionReceipt receipt = new TransactionReceipt();
+
+        List<Field> txReceipt = ContractUtils.txReceipt(stemContract);
+        if (txReceipt.size() == 1) {
+            txReceiptField = txReceipt.get(0);
+        }
+
+        try {
+            txReceiptField.set(stemContract, receipt);
+            stemContract.genesis(params);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
     }
 
     @Test
@@ -72,7 +88,15 @@ public class StemContractTest {
         JsonObject params = new JsonObject();
         params.add(branchId, branch);
 
-        TransactionReceipt receipt = stemContract.create(params);
+        TransactionReceipt receipt = new TransactionReceipt();
+
+        try {
+            txReceiptField.set(stemContract, receipt);
+            receipt = stemContract.create(params);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
         assertThat(receipt.isSuccess()).isTrue();
 
         JsonObject saved = stemContract.state.get(branchId);
@@ -85,7 +109,17 @@ public class StemContractTest {
         String description = "Hello World!";
         JsonObject json = ContractTestUtils.createSampleBranchJson(description);
         JsonObject params = createParams(json);
-        assertThat(stemContract.update(params).isSuccess()).isTrue();
+
+        TransactionReceipt receipt = new TransactionReceipt();
+
+        try {
+            txReceiptField.set(stemContract, receipt);
+            receipt = stemContract.update(params);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        assertTrue(receipt.isSuccess());
 
         stemBranchViewTest(description);
     }
