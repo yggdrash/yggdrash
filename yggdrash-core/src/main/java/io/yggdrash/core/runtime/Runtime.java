@@ -55,7 +55,8 @@ public class Runtime<T> {
 
     // FIX runtime run contract will init
     public Runtime(Contract<T> contract,
-                   StateStore<T> stateStore, TransactionReceiptStore txReceiptStore) {
+                   StateStore<T> stateStore,
+                   TransactionReceiptStore txReceiptStore) {
         this.stateStore = stateStore;
         this.txReceiptStore = txReceiptStore;
         // init

@@ -16,10 +16,12 @@
 
 package io.yggdrash.core.store;
 
+import com.google.common.primitives.Longs;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.blockchain.BlockchainMetaInfo;
 import io.yggdrash.core.store.datasource.DbSource;
 
-public class MetaStore implements Store<MetaStore.MetaInfo, Sha3Hash> {
+public class MetaStore implements Store<String, Sha3Hash> {
     private final DbSource<byte[], byte[]> db;
 
     MetaStore(DbSource<byte[], byte[]> dbSource) {
@@ -27,18 +29,18 @@ public class MetaStore implements Store<MetaStore.MetaInfo, Sha3Hash> {
     }
 
     @Override
-    public void put(MetaInfo key, Sha3Hash value) {
-        db.put(key.name().getBytes(), value.getBytes());
+    public void put(String key, Sha3Hash value) {
+        db.put(key.getBytes(), value.getBytes());
     }
 
     @Override
-    public Sha3Hash get(MetaInfo key) {
-        return Sha3Hash.createByHashed(db.get(key.name().getBytes()));
+    public Sha3Hash get(String key) {
+        return Sha3Hash.createByHashed(db.get(key.getBytes()));
     }
 
     @Override
-    public boolean contains(MetaInfo key) {
-        return db.get(key.name().getBytes()) != null;
+    public boolean contains(String key) {
+        return db.get(key.getBytes()) != null;
     }
 
     @Override
@@ -46,7 +48,37 @@ public class MetaStore implements Store<MetaStore.MetaInfo, Sha3Hash> {
         db.close();
     }
 
-    public enum MetaInfo {
-        BEST_BLOCK
+
+    public Long getBestBlock() {
+        byte[] bestBlock = db.get(BlockchainMetaInfo.BEST_BLOCK_INDEX.toString().getBytes());
+        if (bestBlock == null) {
+            return 0L;
+        }
+        Long bestBlockIndex = Longs.fromByteArray(bestBlock);
+        return bestBlockIndex;
     }
+
+    public void setBestBlock(Long index) {
+        byte[] bestBlock = Longs.toByteArray(index);
+        db.put(BlockchainMetaInfo.BEST_BLOCK_INDEX.toString().getBytes(), bestBlock);
+    }
+
+    public Sha3Hash bestBlockHash() {
+        byte[] bestBlockHashArray = db.get(BlockchainMetaInfo.BEST_BLOCK.toString().getBytes());
+        Sha3Hash bestBlockHash = null;
+        if (bestBlockHashArray != null) {
+            bestBlockHash = Sha3Hash.createByHashed(bestBlockHashArray);
+        }
+        return bestBlockHash;
+    }
+
+    public void setBestBlockHash(Sha3Hash hash) {
+        byte[] bestBlockHash = hash.getBytes();
+        db.put(BlockchainMetaInfo.BEST_BLOCK.toString().getBytes(), bestBlockHash);
+    }
+
+
+
+
+
 }
