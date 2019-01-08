@@ -39,7 +39,7 @@ public class TransactionReceiptStoreTest {
     }
 
     @Test
-    public void putTransctionReceipt() {
+    public void testPutTransctionReceipt() {
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setTxId("TEST_TRANSACTION");
         receipt.setStatus(ExecuteStatus.SUCCESS);
@@ -48,7 +48,7 @@ public class TransactionReceiptStoreTest {
     }
 
     @Test
-    public void getTransctionReceipt() {
+    public void testTransctionReceipt() {
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setTxId("TEST_TRANSACTION_1234512345");
         receipt.setStatus(ExecuteStatus.SUCCESS);
@@ -60,6 +60,20 @@ public class TransactionReceiptStoreTest {
         assert receipt.getStatus() == receipt2.getStatus();
 
     }
+
+    @Test
+    public void blockAndTranction() {
+        TransactionReceipt receipt = new TransactionReceiptImpl();
+        receipt.setTxId("TEST_TRANSACTION_123451234512345");
+        receipt.setBranchId("0x00000000000000000000000");
+        receipt.setBlockId("0x1231231231234234234234234");
+
+        // TODO make event
+//        receipt.putLog();
+
+
+    }
+
 
 
 }

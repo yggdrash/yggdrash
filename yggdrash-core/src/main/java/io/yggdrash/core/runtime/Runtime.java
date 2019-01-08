@@ -174,7 +174,7 @@ public class Runtime<T> {
             txReceipt.putLog("method", methodName);
         } catch (Throwable e) {
             txReceipt.setStatus(ExecuteStatus.ERROR);
-            txReceipt.putLog("ERROR", e);
+            txReceipt.putLog("ERROR", e.getMessage());
         }
         // save Tranction Receipt
         txReceiptStore.put(txReceipt);

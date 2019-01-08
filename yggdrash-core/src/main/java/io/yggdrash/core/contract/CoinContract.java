@@ -242,7 +242,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
 
             putBalance(frontier, balance);
 
-            txReceipt.putLog(frontier, balance);
+            txReceipt.putLog(frontier, balance.toString());
             txReceipt.setStatus(ExecuteStatus.SUCCESS);
             log.info("\nAddress of Frontier : " + frontier
                     + "\nBalance of Frontier : " + getBalance(frontier));
@@ -253,7 +253,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        txReceipt.putLog("TotalSupply", totalSupply);
+        txReceipt.putLog("TotalSupply", totalSupply.toString());
 
         return txReceipt;
     }

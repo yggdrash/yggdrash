@@ -20,9 +20,9 @@ import java.util.Map;
 
 public interface TransactionReceipt {
 
-    void putLog(String key, Object value);
+    void putLog(String key, String value);
 
-    Object getLog(String key);
+    String getLog(String key);
 
     ExecuteStatus getStatus();
 
@@ -44,7 +44,7 @@ public interface TransactionReceipt {
 
     void setBranchId(String branchId);
 
-    Map<String, Object> getTxLog();
+    Map<String, String> getTxLog();
 
     boolean isSuccess();
 

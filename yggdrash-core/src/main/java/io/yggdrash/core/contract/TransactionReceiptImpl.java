@@ -25,16 +25,16 @@ public class TransactionReceiptImpl implements TransactionReceipt {
     private String txId;
     private String blockId;
     private String branchId;
-    private final Map<String, Object> txLog = new HashMap<>();
+    private final Map<String, String> txLog = new HashMap<>();
     private ExecuteStatus status = ExecuteStatus.FALSE;
     private String issuer;
     private Long blockHeight;
 
-    public Object getLog(String key) {
+    public String getLog(String key) {
         return txLog.get(key);
     }
 
-    public void putLog(String key, Object value) {
+    public void putLog(String key, String value) {
         txLog.put(key, value);
     }
 
@@ -78,7 +78,7 @@ public class TransactionReceiptImpl implements TransactionReceipt {
         this.branchId = branchId;
     }
 
-    public Map<String, Object> getTxLog() {
+    public Map<String, String> getTxLog() {
         return txLog;
     }
 
