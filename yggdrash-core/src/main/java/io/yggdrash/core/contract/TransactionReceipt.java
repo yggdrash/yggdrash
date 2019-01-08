@@ -20,36 +20,36 @@ import java.util.Map;
 
 public interface TransactionReceipt {
 
-    public void putLog(String key, Object value);
+    void putLog(String key, Object value);
 
-    public Object getLog(String key);
+    Object getLog(String key);
 
-    public ExecuteStatus getStatus();
+    ExecuteStatus getStatus();
 
-    public void setStatus(ExecuteStatus status);
+    void setStatus(ExecuteStatus status);
 
-    public String getTxId();
+    String getTxId();
 
-    public void setTxId(String txId);
+    void setTxId(String txId);
 
-    public String getBlockId();
+    String getBlockId();
 
-    public void setBlockId(String blockId);
+    void setBlockId(String blockId);
 
-    public Long getBlockHeight();
+    Long getBlockHeight();
 
-    public void setBlockHeight(Long blockHeight);
+    void setBlockHeight(Long blockHeight);
 
-    public String getBranchId();
+    String getBranchId();
 
-    public void setBranchId(String branchId);
+    void setBranchId(String branchId);
 
-    public Map<String, Object> getTxLog();
+    Map<String, Object> getTxLog();
 
-    public boolean isSuccess();
+    boolean isSuccess();
 
-    public String getIssuer();
+    String getIssuer();
 
-    public void setIssuer(String issuer);
+    void setIssuer(String issuer);
 
 }

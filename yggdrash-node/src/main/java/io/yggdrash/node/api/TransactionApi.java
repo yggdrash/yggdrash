@@ -4,17 +4,14 @@ import com.googlecode.jsonrpc4j.JsonRpcError;
 import com.googlecode.jsonrpc4j.JsonRpcErrors;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
+import static io.yggdrash.common.config.Constants.BLOCK_ID;
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static io.yggdrash.common.config.Constants.TX_ID;
 import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.RejectedAccessException;
 import io.yggdrash.node.api.dto.TransactionDto;
-
-import java.util.Map;
-
-import static io.yggdrash.common.config.Constants.BLOCK_ID;
-import static io.yggdrash.common.config.Constants.BRANCH_ID;
-import static io.yggdrash.common.config.Constants.TX_ID;
 
 @JsonRpcService("/api/transaction")
 public interface TransactionApi {
@@ -134,15 +131,6 @@ public interface TransactionApi {
             @JsonRpcError(exception = RejectedAccessException.class,
                     code = RejectedAccessException.code)})
     int newPendingTransactionFilter(
-            @JsonRpcParam(value = BRANCH_ID) String branchId);
-
-    /**
-     * Returns all TransactionReceipts
-     */
-    @JsonRpcErrors({
-            @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
-    Map<String, TransactionReceipt> getAllTransactionReceipt(
             @JsonRpcParam(value = BRANCH_ID) String branchId);
 
     /**

@@ -166,16 +166,6 @@ public class TransactionApiImplTest {
     }
 
     @Test
-    public void getAllTransactionReceiptTest() {
-        try {
-            assertThat(TX_API.getAllTransactionReceipt(stem.toString())).isNotEmpty();
-            assertThat(TX_API.getAllTransactionReceipt(yeed.toString())).isNotEmpty();
-        } catch (Exception e) {
-            log.debug("\n\ngetAllTransactionReceiptTest :: exception => " + e);
-        }
-    }
-
-    @Test
     public void txSigValidateTest() throws IOException {
         // Create Transaction
         TransactionHusk tx = createTx();
