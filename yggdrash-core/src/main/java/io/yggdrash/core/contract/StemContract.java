@@ -73,10 +73,10 @@ public class StemContract implements Contract<JsonObject> {
                     addBranchId(branchId);
                     state.put(branchId.toString(), stateValue.getJson());
                     setSubState(branchId.toString(), stateValue.getJson());
-                    txReceipt.setStatus(TransactionReceipt.SUCCESS);
+                    txReceipt.setStatus(ExecuteStatus.SUCCESS);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    txReceipt.setStatus(TransactionReceipt.FALSE);
+                    txReceipt.setStatus(ExecuteStatus.FALSE);
                 }
 
                 log.info("[StemContract | create] branchId => " + branchId);
@@ -103,7 +103,7 @@ public class StemContract implements Contract<JsonObject> {
             if (stateValue != null && isOwnerValid(json.get("owner").getAsString())) {
                 updateBranch(stateValue, json);
                 state.put(branchId.toString(), stateValue.getJson());
-                txReceipt.setStatus(TransactionReceipt.SUCCESS);
+                txReceipt.setStatus(ExecuteStatus.SUCCESS);
                 log.info("[StemContract | update] branchId => " + branchId);
                 log.info("[StemContract | update] branch => " + stateValue.getJson());
             }

@@ -29,10 +29,10 @@ import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
+import org.junit.Test;
 import java.math.BigDecimal;
 import java.util.Set;
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
 
 
 public class RuntimeTest {
@@ -47,7 +47,6 @@ public class RuntimeTest {
                         new TransactionReceiptStore(new HashMapDbSource())
                 );
 
-//        runtime.setContract(contract);
         String genesisStr = "{\"alloc\": {\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\":"
                 + " {\"balance\": \"1000000000\"},\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\":"
                 + " {\"balance\": \"1000000000\"},\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":"

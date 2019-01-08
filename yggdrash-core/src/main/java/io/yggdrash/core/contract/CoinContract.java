@@ -97,7 +97,6 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
         String to = params.get("to").getAsString().toLowerCase();
         BigDecimal amount = params.get("amount").getAsBigDecimal();
 
-        TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.putLog("to", to);
         txReceipt.putLog("amount", String.valueOf(amount));
         String sender = this.txReceipt.getIssuer();
@@ -112,12 +111,13 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
             senderBallance = senderBallance.subtract(amount);
             addBalanceTo(to, amount);
             putBalance(sender, senderBallance);
-            txReceipt.setStatus(TransactionReceipt.SUCCESS);
+            txReceipt.setStatus(ExecuteStatus.SUCCESS);
             log.info("\n[Transferred] Transfer " + amount + " from " + sender + " to " + to);
             log.info("\nBalance of From (" + sender + ") : " + getBalance(sender)
                     + "\nBalance of To   (" + to + ") : " + getBalance(to));
         } else {
             log.info("\n[ERR] " + sender + " has no enough balance!");
+            txReceipt.setStatus(ExecuteStatus.ERROR);
         }
         return txReceipt;
     }
@@ -152,7 +152,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
             String approveKey = approveKey(sender, spender);
             putBalance(approveKey, amount);
             log.debug("approve Key : " + approveKey);
-            txReceipt.setStatus(TransactionReceipt.SUCCESS);
+            txReceipt.setStatus(ExecuteStatus.SUCCESS);
             log.info("\n[Approved] Approve " + spender + " to "
                     + getBalance(approveKey) + " from " + sender);
         } else {
@@ -202,7 +202,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
             addBalanceTo(to, amount);
             putBalance(from, fromValue);
             putBalance(approveKey, approveValue);
-            txReceipt.setStatus(TransactionReceipt.SUCCESS);
+            txReceipt.setStatus(ExecuteStatus.SUCCESS);
             log.info("\n[Transferred] Transfer " + amount + " from " + from + " to " + to);
             log.debug("\nAllowed amount of Sender (" + sender + ") : "
                     + approveValue);
@@ -243,7 +243,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
             putBalance(frontier, balance);
 
             txReceipt.putLog(frontier, balance);
-            txReceipt.setStatus(TransactionReceipt.SUCCESS);
+            txReceipt.setStatus(ExecuteStatus.SUCCESS);
             log.info("\nAddress of Frontier : " + frontier
                     + "\nBalance of Frontier : " + getBalance(frontier));
         }

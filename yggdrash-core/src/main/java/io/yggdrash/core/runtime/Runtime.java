@@ -23,7 +23,9 @@ import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.Contract;
+import io.yggdrash.core.contract.ExecuteStatus;
 import io.yggdrash.core.contract.TransactionReceipt;
+import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.Genesis;
@@ -100,7 +102,7 @@ public class Runtime<T> {
         Map<Sha3Hash, Boolean> result = new HashMap<>();
 
         for(TransactionHusk tx: block.getBody()) {
-            TransactionReceipt txReceipt = new TransactionReceipt();
+            TransactionReceipt txReceipt = new TransactionReceiptImpl();
             // set Block ID
             txReceipt.setBlockId(block.getHash().toString());
             txReceipt.setBlockHeight(block.getIndex());
@@ -121,7 +123,7 @@ public class Runtime<T> {
     }
 
     public boolean invoke(TransactionHusk tx) {
-        TransactionReceipt txReceipt = new TransactionReceipt();
+        TransactionReceipt txReceipt = new TransactionReceiptImpl();
 
         String txId = tx.getHash().toString();
         txReceipt.setTxId(txId);
@@ -171,7 +173,8 @@ public class Runtime<T> {
 
             txReceipt.putLog("method", methodName);
         } catch (Throwable e) {
-            txReceipt = TransactionReceipt.errorReceipt(txReceipt.getTxId(), e);
+            txReceipt.setStatus(ExecuteStatus.ERROR);
+            txReceipt.putLog("ERROR", e);
         }
         // save Tranction Receipt
         txReceiptStore.put(tx.getHash().toString(), txReceipt);

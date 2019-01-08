@@ -6,16 +6,18 @@ import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
-import java.lang.reflect.Field;
-import java.math.BigDecimal;
-import java.util.List;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class CoinContractTest {
 
@@ -31,7 +33,7 @@ public class CoinContractTest {
         if (txReceipt.size() == 1) {
             txReceiptField = txReceipt.get(0);
         }
-        for(Field f : ContractUtils.contractFields(coinContract, ContractStateStore.class)) {
+        for (Field f : ContractUtils.contractFields(coinContract, ContractStateStore.class)) {
             f.setAccessible(true);
             f.set(coinContract, coinContractStateStore);
         }
@@ -45,7 +47,7 @@ public class CoinContractTest {
                 + " {\"balance\": \"1000000000\"},\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":"
                 + " {\"balance\": \"998000000000\"}}}";
 
-        TransactionReceipt result = new TransactionReceipt();
+        TransactionReceipt result = new TransactionReceiptImpl();
 
         try {
             txReceiptField.set(coinContract, result);
@@ -100,7 +102,7 @@ public class CoinContractTest {
 
         JsonObject param = createParams(paramStr);
 
-        TransactionReceipt result = new TransactionReceipt();
+        TransactionReceipt result = new TransactionReceiptImpl();
         result.setIssuer("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
         try {
             txReceiptField.set(coinContract, result);
@@ -143,7 +145,7 @@ public class CoinContractTest {
 
         JsonObject transferFromObject = createParams(transferParams);
 
-        TransactionReceipt result = new TransactionReceipt();
+        TransactionReceipt result = new TransactionReceiptImpl();
         result.setIssuer(spender);
         try {
             txReceiptField.set(coinContract, result);
@@ -159,7 +161,7 @@ public class CoinContractTest {
         log.debug(spender + ": " + getBalance(spender).toString());
         log.debug("getAllowance : " + getAllowance(owner, spender));
 
-        TransactionReceipt result2 = new TransactionReceipt();
+        TransactionReceipt result2 = new TransactionReceiptImpl();
         try {
             txReceiptField.set(coinContract, result);
             coinContract.transferfrom(transferFromObject);
@@ -181,7 +183,7 @@ public class CoinContractTest {
         String approveParams = "{\"spender\" : \"" + spender + "\","
                 + "\"amount\" : \"" + amount + "\"}";
 
-        TransactionReceipt result = new TransactionReceipt();
+        TransactionReceipt result = new TransactionReceiptImpl();
         result.setIssuer(owner);
         try {
             txReceiptField.set(coinContract, result);
@@ -232,9 +234,9 @@ public class CoinContractTest {
 
     public class MetaCoinContract extends CoinContract {
         public TransactionReceipt hello(JsonObject params) {
-            TransactionReceipt txReceipt = new TransactionReceipt();
+            TransactionReceipt txReceipt = new TransactionReceiptImpl();
             txReceipt.putLog("hello", params.toString());
-            txReceipt.setStatus(TransactionReceipt.SUCCESS);
+            txReceipt.setStatus(ExecuteStatus.SUCCESS);
             log.info(txReceipt.toString());
             return txReceipt;
         }
