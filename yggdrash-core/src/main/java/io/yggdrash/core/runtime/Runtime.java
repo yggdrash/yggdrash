@@ -177,7 +177,7 @@ public class Runtime<T> {
             txReceipt.putLog("ERROR", e);
         }
         // save Tranction Receipt
-        txReceiptStore.put(tx.getHash().toString(), txReceipt);
+        txReceiptStore.put(txReceipt);
         return txReceipt.isSuccess();
 
     }
