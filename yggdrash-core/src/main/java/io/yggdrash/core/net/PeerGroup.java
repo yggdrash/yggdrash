@@ -284,7 +284,11 @@ public class PeerGroup implements BranchEventListener {
     }
 
     public boolean isClosePeer(BranchId branchId, Peer requestPeer) {
-        return getClosestPeers(branchId).subList(0, maxPeers).contains(requestPeer);
+        List<Peer> peerList = getClosestPeers(branchId);
+        if (peerList.size() < maxPeers) {
+            return peerList.contains(requestPeer);
+        }
+        return peerList.subList(0, maxPeers).contains(requestPeer);
     }
 
     public void reloadPeerChannel(BranchId branchId, PeerClientChannel client) {
@@ -295,8 +299,13 @@ public class PeerGroup implements BranchEventListener {
             peerTableChannels.get(branchId).put(requestPeerId, client);
         } else {
             Map<PeerId, PeerClientChannel> peerChannelList = peerTableChannels.get(branchId);
-            List<PeerId> newClosestPeers = getClosestPeers(branchId).subList(0, maxPeers)
-                    .stream().map(Peer::getPeerId).collect(Collectors.toList());
+            List<Peer> peerList = getClosestPeers(branchId);
+            if (peerList.size() > maxPeers) {
+                peerList = peerList.subList(0, maxPeers);
+            }
+            List<PeerId> newClosestPeers = peerList.stream()
+                    .map(Peer::getPeerId)
+                    .collect(Collectors.toList());
             newClosestPeers.remove(requestPeerId);
 
             for (PeerId key : peerChannelList.keySet()) {
@@ -305,8 +314,12 @@ public class PeerGroup implements BranchEventListener {
                 }
             }
 
-            PeerId lastPeerId = newClosestPeers.get(maxPeers - 1);
-            peerChannelList.remove(lastPeerId);
+            if (newClosestPeers.size() >= maxPeers - 1) {
+                PeerId lastPeerId = newClosestPeers.get(maxPeers - 1);
+                peerChannelList.remove(lastPeerId);
+            } else {
+                log.warn("newClosestPeers size=" + newClosestPeers.size());
+            }
         }
     }
 
