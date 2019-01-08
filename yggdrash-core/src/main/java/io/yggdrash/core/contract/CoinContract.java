@@ -179,7 +179,6 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
         String to = params.get("to").getAsString().toLowerCase();
         BigDecimal amount = params.get("amount").getAsBigDecimal();
 
-//        TransactionReceipt txReceipt = new TransactionReceipt();
         txReceipt.putLog("from", from);
         txReceipt.putLog("to", to);
         txReceipt.putLog("amount", String.valueOf(amount));

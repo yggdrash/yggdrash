@@ -58,7 +58,7 @@ public class StemContract implements Contract<JsonObject> {
         for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
             BranchId branchId = BranchId.of(entry.getKey());
             JsonObject json = entry.getValue().getAsJsonObject();
-            txReceipt.putLog(branchId.toString(), json);
+            txReceipt.putLog(branchId.toString(), json.toString());
             StemContractStateValue stateValue;
             try {
                 stateValue = StemContractStateValue.of(json);
@@ -98,7 +98,7 @@ public class StemContract implements Contract<JsonObject> {
         for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
             BranchId branchId = BranchId.of(entry.getKey());
             JsonObject json = entry.getValue().getAsJsonObject();
-            txReceipt.putLog(branchId.toString(), json);
+            txReceipt.putLog(branchId.toString(), json.toString());
             StemContractStateValue stateValue = getStateValue(branchId.toString());
             if (stateValue != null && isOwnerValid(json.get("owner").getAsString())) {
                 updateBranch(stateValue, json);
