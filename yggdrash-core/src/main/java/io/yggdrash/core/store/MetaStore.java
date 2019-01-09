@@ -18,10 +18,11 @@ package io.yggdrash.core.store;
 
 import com.google.common.primitives.Longs;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BlockchainMetaInfo;
 import io.yggdrash.core.store.datasource.DbSource;
 
-public class MetaStore implements Store<String, Sha3Hash> {
+public class MetaStore implements Store<String, String> {
     private final DbSource<byte[], byte[]> db;
 
     MetaStore(DbSource<byte[], byte[]> dbSource) {
@@ -29,13 +30,13 @@ public class MetaStore implements Store<String, Sha3Hash> {
     }
 
     @Override
-    public void put(String key, Sha3Hash value) {
+    public void put(String key, String value) {
         db.put(key.getBytes(), value.getBytes());
     }
 
     @Override
-    public Sha3Hash get(String key) {
-        return Sha3Hash.createByHashed(db.get(key.getBytes()));
+    public String get(String key) {
+        return new String(db.get(key.getBytes()));
     }
 
     @Override
@@ -63,7 +64,7 @@ public class MetaStore implements Store<String, Sha3Hash> {
         db.put(BlockchainMetaInfo.BEST_BLOCK_INDEX.toString().getBytes(), bestBlock);
     }
 
-    public Sha3Hash bestBlockHash() {
+    public Sha3Hash getBestBlockHash() {
         byte[] bestBlockHashArray = db.get(BlockchainMetaInfo.BEST_BLOCK.toString().getBytes());
         Sha3Hash bestBlockHash = null;
         if (bestBlockHashArray != null) {
@@ -75,6 +76,11 @@ public class MetaStore implements Store<String, Sha3Hash> {
     public void setBestBlockHash(Sha3Hash hash) {
         byte[] bestBlockHash = hash.getBytes();
         db.put(BlockchainMetaInfo.BEST_BLOCK.toString().getBytes(), bestBlockHash);
+    }
+
+    public void setBestBlock(BlockHusk block) {
+        setBestBlockHash(block.getHash());
+        setBestBlock(block.getIndex());
     }
 
 

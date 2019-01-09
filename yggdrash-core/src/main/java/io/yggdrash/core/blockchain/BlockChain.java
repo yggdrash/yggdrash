@@ -89,7 +89,7 @@ public class BlockChain {
     }
 
     private void indexing() {
-        Sha3Hash storedBestBlockHash = metaStore.bestBlockHash();
+        Sha3Hash storedBestBlockHash = metaStore.getBestBlockHash();
         Sha3Hash previousBlockHash = storedBestBlockHash;
         BlockHusk currentBlock;
 
@@ -109,7 +109,7 @@ public class BlockChain {
             for (long i = bestblock+1; i < blockIndex.size(); i++) {
                 BlockHusk block = blockStore.get(blockIndex.get(i));
                 // Genesis or check prevBlockHash
-                if(block.getIndex() == 0 || block.getPrevHash().equals(metaStore.bestBlockHash())) {
+                if(block.getIndex() == 0 || block.getPrevHash().equals(metaStore.getBestBlockHash())) {
                     transactionStore.updateCache(block.getBody());
                     executeBlock(block);
                     log.debug("Load idx=[{}], tx={}, branch={}, blockHash={}",
@@ -118,8 +118,7 @@ public class BlockChain {
                             blockStore.get(blockIndex.get(i)).getBranchId(),
                             blockStore.get(blockIndex.get(i)).getHash());
                     // save best block
-                    metaStore.setBestBlock(i);
-                    metaStore.setBestBlockHash(block.getHash());
+                    metaStore.setBestBlock(block);
                 } else {
                     // prev Block hash is not equal
                     // so do not run any transactions
