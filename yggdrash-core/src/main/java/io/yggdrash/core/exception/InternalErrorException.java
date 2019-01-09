@@ -11,8 +11,4 @@ public class InternalErrorException extends InternalError {
     public InternalErrorException(String message) {
         super(message);
     }
-
-    public InternalErrorException(String message, Throwable cause) {
-        super(message, cause);
-    }
 }

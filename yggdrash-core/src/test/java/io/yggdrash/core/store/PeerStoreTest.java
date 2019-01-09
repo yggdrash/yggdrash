@@ -18,6 +18,7 @@ package io.yggdrash.core.store;
 
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.store.datasource.HashMapDbSource;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import org.junit.AfterClass;
 import org.junit.Test;
@@ -43,5 +44,14 @@ public class PeerStoreTest {
 
         Peer foundPeer = peerStore.get(peer.getPeerId());
         assertThat(foundPeer).isEqualTo(peer);
+    }
+
+    @Test
+    public void shouldBeGotAllPeer() {
+        peerStore = new PeerStore(new HashMapDbSource());
+
+        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        peerStore.put(peer.getPeerId(), peer);
+        assertThat(peerStore.getAll().size()).isEqualTo(1);
     }
 }

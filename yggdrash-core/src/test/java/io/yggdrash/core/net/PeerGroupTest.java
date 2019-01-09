@@ -137,6 +137,57 @@ public class PeerGroupTest {
         assert peerGroup.getAllPeersFromBucketsOf(OTHER_BRANCH).size() == 1;
     }
 
+    @Test
+    public void getBootstrappingSeedList() {
+        assert peerGroup.getBootstrappingSeedList(BRANCH).size() == 0;
+    }
+
+    @Test
+    public void getClosestPeers() {
+        assert peerGroup.getClosestPeers(BRANCH).size() == 0;
+    }
+
+    @Test
+    public void destroy() {
+        peerGroup.destroy();
+    }
+
+    @Test
+    public void chainedBlock() {
+        peerGroup.chainedBlock(BlockChainTestUtils.genesisBlock());
+    }
+
+    @Test
+    public void isClosePeer() {
+        assert !peerGroup.isClosePeer(BRANCH, Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
+    }
+
+    @Test
+    public void reloadPeerChannel() {
+        peerGroup.reloadPeerChannel(BRANCH, ChannelMock.dummy());
+    }
+
+    @Test
+    public void getLatestPeers() {
+        assert peerGroup.getLatestPeers(BRANCH, 1000).size() == 1;
+    }
+
+    @Test
+    public void logBucketIdOf() {
+        peerGroup.logBucketIdOf(BRANCH);
+        peerGroup.logBucketIdOf(BRANCH, OWNER);
+    }
+
+    @Test
+    public void getActivePeerListOf() {
+        assert peerGroup.getActivePeerListOf(BRANCH).size() == 0;
+    }
+
+    @Test
+    public void touchPeer() {
+        peerGroup.touchPeer(BRANCH, OWNER);
+    }
+
     private void addPeerChannel() {
         assert peerGroup.isChannelEmpty(BRANCH);
         peerGroup.newPeerChannel(BRANCH, ChannelMock.dummy());

@@ -136,6 +136,12 @@ public class TransactionTest extends SlowTest {
     }
 
     @Test
+    public void testTransactionRawConstructor() throws Exception {
+        Transaction tx2 = new Transaction(tx1.toBinary());
+        assertArrayEquals(tx1.toBinary(), tx2.toBinary());
+    }
+
+    @Test
     public void testTransactionClone() throws Exception {
         Transaction tx2 = tx1.clone();
         log.debug("tx2=" + tx2.toJsonObject());
