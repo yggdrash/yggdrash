@@ -318,16 +318,6 @@ public class BlockChain {
         return (this.prevBlock == null);
     }
 
-    @SuppressWarnings("unchecked")
-    private boolean executeTransaction(TransactionHusk tx) {
-        try {
-            return runtime.invoke(tx);
-        } catch (Exception e) {
-            log.error("executeTransaction Error" + e);
-            return false;
-        }
-    }
-
     private Map<Sha3Hash, Boolean> executeBlock(BlockHusk block) {
         return runtime.invokeBlock(block);
     }
@@ -344,15 +334,6 @@ public class BlockChain {
         transactionStore.batch(keys);
     }
 
-    @Override
-    public String toString() {
-        return "BlockChain{"
-                + "genesisBlock=" + genesisBlock
-                + ", prevBlock=" + prevBlock
-                + ", height=" + this.getLastIndex()
-                + '}';
-    }
-
     public void close() {
         this.blockStore.close();
         this.transactionStore.close();
@@ -363,31 +344,4 @@ public class BlockChain {
 
     }
 
-    public String toStringStatus() {
-        StringBuilder builder = new StringBuilder();
-
-        builder.append("[BlockChain Status]\n")
-                .append("genesisBlock=")
-                .append(genesisBlock.getHash()).append("\n").append("currentBlock=" + "[")
-                .append(prevBlock.getIndex()).append("]").append(prevBlock.getHash()).append("\n");
-
-        String prevBlockHash = this.prevBlock.getPrevHash().toString();
-        if (prevBlockHash == null) {
-            prevBlockHash = "";
-        }
-
-        do {
-            builder.append("<-- " + "[")
-                    .append(blockStore.get(new Sha3Hash(prevBlockHash)).getIndex())
-                    .append("]").append(prevBlockHash).append("\n");
-
-            prevBlockHash = blockStore.get(new Sha3Hash(prevBlockHash)).getPrevHash().toString();
-
-        } while (prevBlockHash != null
-                && !prevBlockHash.equals(
-                    "0000000000000000000000000000000000000000000000000000000000000000"));
-
-        return builder.toString();
-
-    }
 }

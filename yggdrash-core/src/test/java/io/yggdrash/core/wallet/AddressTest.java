@@ -15,6 +15,8 @@ public class AddressTest {
     public void equalsTest() {
         assertThat(Address.of("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94"))
                 .isEqualTo(Address.of(ADDRESS_HEX));
+
+        assertThat(Address.of("00")).isNotEqualTo(Address.of(ADDRESS_HEX));
     }
 
     @Test
