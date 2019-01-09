@@ -25,13 +25,13 @@ import io.yggdrash.core.store.datasource.DbSource;
 
 public class BlockStore implements Store<Sha3Hash, BlockHusk> {
     private final DbSource<byte[], byte[]> db;
-    private Long transctionSize = 0L;
+    private Long transactionSize = 0L;
 
 
     BlockStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
-        // get Transction Size
-        transctionSize = getBlockchainTransactionSize();
+        // get Transaction Size
+        transactionSize = getBlockchainTransactionSize();
     }
 
     @Override
@@ -45,7 +45,6 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
         if (foundValue != null) {
             return new BlockHusk(foundValue);
         }
-
         throw new NonExistObjectException("Not Found [" + key + "]");
     }
 
@@ -62,39 +61,43 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
     public void addBlock(BlockHusk block) {
         // Add BlockIndex and Add Block Data
         long index = block.getIndex();
-        String block_index_key = "BLOCK_INDEX_"+Long.toString(index);
-        byte[] indexKey = HashUtil.sha3(block_index_key.getBytes());
+        // TODO change Block index prefix
+        String blockIndexKey = "BLOCK_INDEX_" + Long.toString(index);
+        byte[] indexKey = HashUtil.sha3(blockIndexKey.getBytes());
         // store block index
         db.put(indexKey, block.getHash().getBytes());
         // store block data
         db.put(block.getHash().getBytes(), block.getData());
         // add block Transaction size
-        transctionSize += block.getBodySize();
-        db.put("TRANSACTION_SIZE".getBytes(), Longs.toByteArray(transctionSize));
-
-
-
+        transactionSize += block.getBodySize();
+        db.put("TRANSACTION_SIZE".getBytes(), Longs.toByteArray(transactionSize));
     }
 
     public BlockHusk getBlockByIndex(long index) {
-        String block_index_key = "BLOCK_INDEX_"+Long.toString(index);
-        byte[] indexKey = HashUtil.sha3(block_index_key.getBytes());
-        byte[] block_hash = db.get(indexKey);
-        byte[] block_data = db.get(block_hash);
-
-        if (block_data != null) {
-            return new BlockHusk(block_data);
+        String blockIndexKey = "BLOCK_INDEX_" + Long.toString(index);
+        byte[] indexKey = HashUtil.sha3(blockIndexKey.getBytes());
+        byte[] blockHash = db.get(indexKey);
+        if (blockHash == null) {
+            return null;
         }
-        return null;
+        byte[] blockData = db.get(blockHash);
+        if (blockData == null) {
+            return null;
+        }
+        return new BlockHusk(blockData);
     }
 
     public long getBlockchainTransactionSize() {
-        byte[] txSize = db.get("TRANSACTION_SIZE".getBytes());
-        if (txSize != null) {
-            return Longs.fromByteArray(txSize);
-        } else {
-            return 0L;
+        // loading db is just first
+        if (transactionSize == 0L) {
+            byte[] txSize = db.get("TRANSACTION_SIZE".getBytes());
+            if (txSize != null) {
+                transactionSize = Longs.fromByteArray(txSize);
+            } else {
+                return 0L;
+            }
         }
+        return transactionSize;
 
     }
 
