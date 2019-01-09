@@ -221,7 +221,7 @@ public class Block implements Cloneable {
         return toProtoBlock(this);
     }
 
-    private Proto.Block toProtoBlock(Block block) {
+    public static Proto.Block toProtoBlock(Block block) {
         Proto.Block.Header protoHeader;
         protoHeader = Proto.Block.Header.newBuilder()
             .setChain(ByteString.copyFrom(block.getHeader().getChain()))

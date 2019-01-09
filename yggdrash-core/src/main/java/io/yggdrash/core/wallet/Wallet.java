@@ -350,7 +350,7 @@ public class Wallet {
      * @param data plain data
      * @return signature as byte[65]
      */
-    byte[] sign(byte[] data) {
+    public byte[] sign(byte[] data) {
         return key.sign(HashUtil.sha3(data)).toBinary();
     }
 
@@ -432,6 +432,25 @@ public class Wallet {
         }
 
         return ecKeyPub.verify(hashedData, ecdsaSignature);
+    }
+
+    public static byte[] calculatePubKey(byte[] data, byte[] signature, boolean hashed) {
+        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signature);
+        byte[] hashedData = hashed ? data : HashUtil.sha3(data);
+        ECKey ecKeyPub;
+        try {
+            ecKeyPub = ECKey.signatureToKey(hashedData, ecdsaSignature);
+        } catch (SignatureException e) {
+            logger.debug("Invalid signature" + e.getMessage());
+            return null;
+        }
+
+        return ecKeyPub.getPubKey();
+    }
+
+    public static byte[] calculateAddress(byte[] publicKey) {
+        return HashUtil.sha3omit12(
+                Arrays.copyOfRange(publicKey, 1, publicKey.length));
     }
 
     /**

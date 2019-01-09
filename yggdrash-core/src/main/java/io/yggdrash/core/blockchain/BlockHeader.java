@@ -70,7 +70,7 @@ public class BlockHeader implements Cloneable {
         this.bodyLength = bodyLength;
     }
 
-    BlockHeader(
+    public BlockHeader(
             byte[] chain,
             byte[] version,
             byte[] type,
