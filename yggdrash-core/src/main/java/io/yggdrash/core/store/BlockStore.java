@@ -16,16 +16,22 @@
 
 package io.yggdrash.core.store;
 
+import com.google.common.primitives.Longs;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.store.datasource.DbSource;
 
 public class BlockStore implements Store<Sha3Hash, BlockHusk> {
     private final DbSource<byte[], byte[]> db;
+    private Long transctionSize = 0L;
+
 
     BlockStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
+        // get Transction Size
+        transctionSize = getBlockchainTransactionSize();
     }
 
     @Override
@@ -51,4 +57,45 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
     public void close() {
         this.db.close();
     }
+
+
+    public void addBlock(BlockHusk block) {
+        // Add BlockIndex and Add Block Data
+        long index = block.getIndex();
+        String block_index_key = "BLOCK_INDEX_"+Long.toString(index);
+        byte[] indexKey = HashUtil.sha3(block_index_key.getBytes());
+        // store block index
+        db.put(indexKey, block.getHash().getBytes());
+        // store block data
+        db.put(block.getHash().getBytes(), block.getData());
+        // add block Transaction size
+        transctionSize += block.getBodySize();
+        db.put("TRANSACTION_SIZE".getBytes(), Longs.toByteArray(transctionSize));
+
+
+
+    }
+
+    public BlockHusk getBlockByIndex(long index) {
+        String block_index_key = "BLOCK_INDEX_"+Long.toString(index);
+        byte[] indexKey = HashUtil.sha3(block_index_key.getBytes());
+        byte[] block_hash = db.get(indexKey);
+        byte[] block_data = db.get(block_hash);
+
+        if (block_data != null) {
+            return new BlockHusk(block_data);
+        }
+        return null;
+    }
+
+    public long getBlockchainTransactionSize() {
+        byte[] txSize = db.get("TRANSACTION_SIZE".getBytes());
+        if (txSize != null) {
+            return Longs.fromByteArray(txSize);
+        } else {
+            return 0L;
+        }
+
+    }
+
 }
