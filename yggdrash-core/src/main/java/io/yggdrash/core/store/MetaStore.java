@@ -53,7 +53,7 @@ public class MetaStore implements Store<String, String> {
     public Long getBestBlock() {
         byte[] bestBlock = db.get(BlockchainMetaInfo.BEST_BLOCK_INDEX.toString().getBytes());
         if (bestBlock == null) {
-            return 0L;
+            return -1L;
         }
         Long bestBlockIndex = Longs.fromByteArray(bestBlock);
         return bestBlockIndex;
