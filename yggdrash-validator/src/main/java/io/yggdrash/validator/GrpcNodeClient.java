@@ -51,7 +51,8 @@ public class GrpcNodeClient {
     }
 
     public long pingPongTime(long timestamp) {
-        EbftProto.PingTime pingTime= EbftProto.PingTime.newBuilder().setTimestamp(timestamp).build();
+        EbftProto.PingTime pingTime =
+                EbftProto.PingTime.newBuilder().setTimestamp(timestamp).build();
         EbftProto.PongTime pongTime;
         try {
             pongTime = blockingStub
@@ -73,7 +74,8 @@ public class GrpcNodeClient {
                 new NodeStatus(blockingStub
                         .withDeadlineAfter(3, TimeUnit.SECONDS)
                         .getNodeStatus(EbftProto.Chain.newBuilder()
-                                .setChain(ByteString.copyFrom(new byte[32])) //todo: change real chain info
+                                .setChain(ByteString.copyFrom(new byte[32]))
+                                //todo: change real chain info
                                 .build()));
         return this.nodeStatus;
     }
@@ -160,7 +162,7 @@ public class GrpcNodeClient {
 
     @Override
     public String toString() {
-        return this.pubKey + "@" + this.host + ":" + Integer.toString(this.port);
+        return this.pubKey + "@" + this.host + ":" + this.port;
     }
 
 }
