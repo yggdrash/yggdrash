@@ -142,7 +142,7 @@ public class BranchGroup {
         }
         try {
             BlockChain chain = branches.get(branchId);
-            return chain.getRuntime().query(chain.getContract(), method, params);
+            return chain.getRuntime().query(method, params);
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }

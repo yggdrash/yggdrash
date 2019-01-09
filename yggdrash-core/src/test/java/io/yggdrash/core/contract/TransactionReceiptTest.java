@@ -51,9 +51,4 @@ public class TransactionReceiptTest {
         assert txReceipt.getTxId().equals(txId);
     }
 
-    @Test
-    public void getYeedUsedTest() {
-        assert txReceipt.getYeedUsed() == 30000;
-        assert txReceipt.toString().contains("\"yeedUsed\":30000");
-    }
 }

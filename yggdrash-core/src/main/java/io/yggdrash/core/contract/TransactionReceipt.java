@@ -21,16 +21,18 @@ import io.yggdrash.common.util.JsonUtil;
 import java.util.HashMap;
 import java.util.Map;
 
+// TODO TransactionReceipt to interface
 public class TransactionReceipt {
     public static final int FALSE = 0;
     public static final int SUCCESS = 1;
 
     private String txId;
     private String blockId;
-    private final int yeedUsed = 30000;
     private String branchId;
     private final Map<String, Object> txLog = new HashMap<>();
     private int status = FALSE;
+    private String issuer;
+    private Long blockHeight;
 
     public void putLog(String key, Object value) {
         txLog.put(key, value);
@@ -52,16 +54,28 @@ public class TransactionReceipt {
         return txId;
     }
 
+    public void setBlockId(String blockId) {
+        this.blockId = blockId;
+    }
+
     public String getBlockId() {
         return blockId;
     }
 
-    public int getYeedUsed() {
-        return yeedUsed;
+    public Long getBlockHeight() {
+        return blockHeight;
+    }
+
+    public void setBlockHeight(Long blockHeight) {
+        this.blockHeight = blockHeight;
     }
 
     public String getBranchId() {
         return branchId;
+    }
+
+    public void setBranchId(String branchId) {
+        this.branchId = branchId;
     }
 
     public Map<String, Object> getTxLog() {
@@ -88,4 +102,13 @@ public class TransactionReceipt {
     public String toString() {
         return JsonUtil.convertObjToString(this);
     }
+
+    public String getIssuer() {
+        return issuer;
+    }
+
+    public void setIssuer(String issuer) {
+        this.issuer = issuer;
+    }
+
 }
