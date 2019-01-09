@@ -122,6 +122,14 @@ public class Runtime<T> {
 
             // Transaction invoke here
             boolean transactionResult = invoke(tx, txReceipt);
+            if (transactionResult) {
+                // stateStore revert values
+                submitTxState();
+            } else {
+                // all Change is revert
+                tmpTxStateStore.close();
+            }
+
             result.put(tx.getHash(), transactionResult);
         }
 
@@ -131,13 +139,14 @@ public class Runtime<T> {
         return result;
     }
 
+    // This invoke is temp run Transaction
     public boolean invoke(TransactionHusk tx) {
         TransactionReceipt txReceipt = new TransactionReceiptImpl();
 
         String txId = tx.getHash().toString();
         txReceipt.setTxId(txId);
         txReceipt.setIssuer(tx.getAddress().toString());
-
+        tmpTxStateStore.close();
         return invoke(tx, txReceipt);
     }
 
@@ -186,14 +195,6 @@ public class Runtime<T> {
         } catch (Throwable e) {
             txReceipt.setStatus(ExecuteStatus.ERROR);
             txReceipt.putLog("ERROR", e.getMessage());
-        }
-
-        if (txReceipt.getStatus() == ExecuteStatus.SUCCESS) {
-            // stateStore revert values
-            submitTxState();
-        } else {
-            // all Change is revert
-            tmpTxStateStore.close();
         }
 
         // save Tranction Receipt
