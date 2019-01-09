@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.runtime;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.util.ContractUtils;
@@ -31,14 +32,17 @@ import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
 import io.yggdrash.core.store.StateStore;
+import io.yggdrash.core.store.TempStateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +56,8 @@ public class Runtime<T> {
     private Map<String, Method> queryMethod;
     private Method genesis;
     private Field transactionReceipt;
+    private TempStateStore tmpTxStateStore;
+    private TempStateStore tmpBlockStateStore;
 
     // FIX runtime run contract will init
     public Runtime(Contract<T> contract,
@@ -73,19 +79,20 @@ public class Runtime<T> {
             transactionReceipt = f;
             f.setAccessible(true);
         }
-
+        // Block Temp State Store
+        tmpBlockStateStore = new TempStateStore(stateStore);
+        // Transaction Temp State Store
+        tmpTxStateStore = new TempStateStore(tmpBlockStateStore);
 
         // init state Store
         for(Field f : ContractUtils.contractFields(contract, ContractStateStore.class)) {
             try {
                 f.setAccessible(true);
-                f.set(contract, stateStore);
+                f.set(contract, tmpTxStateStore);
             } catch (IllegalAccessException e) {
                 e.printStackTrace();
             }
         }
-
-
     }
 
 
@@ -109,17 +116,18 @@ public class Runtime<T> {
             txReceipt.setBlockHeight(block.getIndex());
             txReceipt.setBranchId(block.getBranchId().toString());
 
-            // set Transction ID
+            // set Transaction ID
             txReceipt.setTxId(tx.getHash().toString());
             txReceipt.setIssuer(tx.getAddress().toString());
 
             // Transaction invoke here
-            boolean transctionResult = invoke(tx, txReceipt);
-            result.put(tx.getHash(), transctionResult);
+            boolean transactionResult = invoke(tx, txReceipt);
+            result.put(tx.getHash(), transactionResult);
         }
 
         // all Transaction run complete
         // TODO temp store value save state store
+        submitBlockState();
         return result;
     }
 
@@ -135,7 +143,6 @@ public class Runtime<T> {
 
 
     public boolean invoke(TransactionHusk tx, TransactionReceipt txReceipt) {
-        // TODO fix contract has not call init
         // Find invoke method and invoke
         // validation method
 
@@ -145,38 +152,50 @@ public class Runtime<T> {
                 // inject Transaction receipt
                 transactionReceipt.set(contract, txReceipt);
             }
-            // TODO transaction is multiple method
-            JsonObject txBody = JsonUtil.parseJsonArray(tx.getBody()).get(0).getAsJsonObject();
-
-            //dataFormatValidation(txBody);
-
-            String methodName = txBody.get("method").getAsString().toLowerCase();
-            Method method = invokeMethod.get(methodName);
-            if (method != null) {
-                if (txBody.has("params")) {
-                    JsonObject params = txBody.getAsJsonObject("params");
-                    // TODO how to make more simple
-                    Optional<Class<?>> m = Arrays.stream(method.getParameterTypes())
-                            .filter(p -> p == JsonObject.class).findFirst();
-                    if (method.getParameterCount() == 1 && m.isPresent()) {
-                        txReceipt = (TransactionReceipt) method.invoke(contract, params);
+            // transaction is multiple method
+            for (JsonElement trasnsaction: JsonUtil.parseJsonArray(tx.getBody())) {
+                JsonObject txBody = trasnsaction.getAsJsonObject();
+                String methodName = txBody.get("method").getAsString().toLowerCase();
+                Method method = invokeMethod.get(methodName);
+                TransactionReceipt resultReceipt = null;
+                if (method != null) {
+                    if (txBody.has("params")) {
+                        JsonObject params = txBody.getAsJsonObject("params");
+                        // TODO how to make more simple
+                        Optional<Class<?>> m = Arrays.stream(method.getParameterTypes())
+                                .filter(p -> p == JsonObject.class).findFirst();
+                        if (method.getParameterCount() == 1 && m.isPresent()) {
+                            resultReceipt = (TransactionReceipt) method.invoke(contract, params);
+                        } else {
+                            // Make Exception
+                        }
                     } else {
-                      // Make Exception
+                        resultReceipt = (TransactionReceipt) method.invoke(contract);
                     }
+
                 } else {
-                    txReceipt = (TransactionReceipt) method.invoke(contract);
+                    // TODO Make Exception
+                }
+                if (txReceipt.getStatus() != ExecuteStatus.SUCCESS) {
+                    txReceipt.setStatus(resultReceipt.getStatus());
                 }
 
-            } else {
-                // TODO Make Exception
+                txReceipt.putLog("method", methodName);
             }
 
-
-            txReceipt.putLog("method", methodName);
         } catch (Throwable e) {
             txReceipt.setStatus(ExecuteStatus.ERROR);
             txReceipt.putLog("ERROR", e.getMessage());
         }
+
+        if (txReceipt.getStatus() == ExecuteStatus.SUCCESS) {
+            // stateStore revert values
+            submitTxState();
+        } else {
+            // all Change is revert
+            tmpTxStateStore.close();
+        }
+
         // save Tranction Receipt
         txReceiptStore.put(txReceipt);
         return txReceipt.isSuccess();
@@ -232,6 +251,28 @@ public class Runtime<T> {
             return genesisEntry.getValue();
         }
         return null;
+    }
+
+    private void submitTxState() {
+        Set<Map.Entry<String, JsonObject>> changeValues = this.tmpTxStateStore.changeValues();
+        Iterator<Map.Entry<String, JsonObject>> it = changeValues.iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, JsonObject> keyValue = it.next();
+            tmpBlockStateStore.put(keyValue.getKey(), keyValue.getValue());
+        }
+        // Submit State and clear all data
+        tmpTxStateStore.close();
+    }
+
+    private void submitBlockState() {
+        Set<Map.Entry<String, JsonObject>> changeValues = this.tmpBlockStateStore.changeValues();
+        Iterator<Map.Entry<String, JsonObject>> it = changeValues.iterator();
+        while (it.hasNext()) {
+            Map.Entry<String, JsonObject> keyValue = it.next();
+            stateStore.put(keyValue.getKey(), keyValue.getValue());
+        }
+        // Submit State and clear all data
+        tmpBlockStateStore.close();
     }
 
 }
