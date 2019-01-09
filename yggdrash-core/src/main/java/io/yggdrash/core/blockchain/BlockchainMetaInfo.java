@@ -20,5 +20,6 @@ public enum  BlockchainMetaInfo {
     BEST_BLOCK,
     BEST_BLOCK_INDEX,
     LAST_EXECUTE_BLOCK,
+    LAST_EXECUTE_BLOCK_INDEX,
     BRANCH
 }

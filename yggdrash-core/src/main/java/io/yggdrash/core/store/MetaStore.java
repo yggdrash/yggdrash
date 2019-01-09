@@ -49,19 +49,12 @@ public class MetaStore implements Store<String, String> {
         db.close();
     }
 
-
     public Long getBestBlock() {
-        byte[] bestBlock = db.get(BlockchainMetaInfo.BEST_BLOCK_INDEX.toString().getBytes());
-        if (bestBlock == null) {
-            return -1L;
-        }
-        Long bestBlockIndex = Longs.fromByteArray(bestBlock);
-        return bestBlockIndex;
+        return reStoreToLong(BlockchainMetaInfo.BEST_BLOCK_INDEX.toString(), -1);
     }
 
     public void setBestBlock(Long index) {
-        byte[] bestBlock = Longs.toByteArray(index);
-        db.put(BlockchainMetaInfo.BEST_BLOCK_INDEX.toString().getBytes(), bestBlock);
+        storeLongValue(BlockchainMetaInfo.BEST_BLOCK_INDEX.toString(), index);
     }
 
     public Sha3Hash getBestBlockHash() {
@@ -83,7 +76,38 @@ public class MetaStore implements Store<String, String> {
         setBestBlock(block.getIndex());
     }
 
+    public Long getLastExecuteBlockIndex() {
+        return reStoreToLong(BlockchainMetaInfo.LAST_EXECUTE_BLOCK_INDEX.toString(), -1);
+    }
 
+    public Sha3Hash getLastExecuteBlockHash() {
+        byte[] lastBlockBytes = db.get(BlockchainMetaInfo.LAST_EXECUTE_BLOCK.toString().getBytes());
+        Sha3Hash lastBlockHash = null;
+        if (lastBlockBytes != null) {
+            lastBlockHash = Sha3Hash.createByHashed(lastBlockBytes);
+        }
+        return lastBlockHash;
+    }
+
+    public  void setLastExecuteBlock(BlockHusk block) {
+        storeLongValue(BlockchainMetaInfo.LAST_EXECUTE_BLOCK_INDEX.toString(), block.getIndex());
+        byte[] executeBlockHash = block.getHash().getBytes();
+        db.put(BlockchainMetaInfo.LAST_EXECUTE_BLOCK.toString().getBytes(), executeBlockHash);
+    }
+
+    private Long reStoreToLong(String key, long defaultValue) {
+        byte[] longByteArray = db.get(key.getBytes());
+        if (longByteArray == null) {
+            return defaultValue;
+        } else {
+            return Longs.fromByteArray(longByteArray);
+        }
+    }
+
+    private void storeLongValue(String key, long value) {
+        byte[] longValue = Longs.toByteArray(value);
+        db.put(key.getBytes(), longValue);
+    }
 
 
 

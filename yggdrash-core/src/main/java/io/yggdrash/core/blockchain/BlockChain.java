@@ -28,6 +28,9 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.wallet.Wallet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -35,8 +38,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class BlockChain {
 
@@ -104,12 +105,13 @@ public class BlockChain {
 
     private void loadTransaction() {
         // Start Block and End Block
-        Long bestblock = metaStore.getBestBlock();
-        if (blockIndex.size() > bestblock) {
-            for (long i = bestblock+1; i < blockIndex.size(); i++) {
+        Long lastExecute = metaStore.getLastExecuteBlockIndex();
+        if (blockIndex.size() > lastExecute) {
+            for (long i = lastExecute + 1; i < blockIndex.size(); i++) {
                 BlockHusk block = blockStore.get(blockIndex.get(i));
                 // Genesis or check prevBlockHash
-                if(block.getIndex() == 0 || block.getPrevHash().equals(metaStore.getBestBlockHash())) {
+                if (block.getIndex() == 0
+                        || block.getPrevHash().equals(metaStore.getLastExecuteBlockHash())) {
                     transactionStore.updateCache(block.getBody());
                     executeBlock(block);
                     log.debug("Load idx=[{}], tx={}, branch={}, blockHash={}",
@@ -118,7 +120,7 @@ public class BlockChain {
                             blockStore.get(blockIndex.get(i)).getBranchId(),
                             blockStore.get(blockIndex.get(i)).getHash());
                     // save best block
-                    metaStore.setBestBlock(block);
+                    metaStore.setLastExecuteBlock(block);
                 } else {
                     // prev Block hash is not equal
                     // so do not run any transactions
@@ -199,13 +201,14 @@ public class BlockChain {
         if (!isValidNewBlock(prevBlock, nextBlock)) {
             throw new NotValidateException("Invalid to chain");
         }
+        // add best Block
+        metaStore.setBestBlock(nextBlock);
+
         // run Block Transactions
-
-        if (nextBlock.getIndex() > metaStore.getBestBlock()) {
+        // TODO run block execute move to other process (or thread)
+        if (nextBlock.getIndex() > metaStore.getLastExecuteBlockIndex()) {
             executeBlock(nextBlock);
-            this.metaStore.setBestBlock(nextBlock.getIndex());
-            this.metaStore.setBestBlockHash(nextBlock.getHash());
-
+            metaStore.setLastExecuteBlock(nextBlock);
         }
 
         this.blockStore.put(nextBlock.getHash(), nextBlock);
