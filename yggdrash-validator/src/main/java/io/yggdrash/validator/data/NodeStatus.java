@@ -1,10 +1,10 @@
 package io.yggdrash.validator.data;
 
 import com.google.protobuf.ByteString;
-import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.proto.EbftProto;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.proto.EbftProto;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -43,14 +43,16 @@ public class NodeStatus {
     public NodeStatus(List<String> activeNodeList,
                       BlockCon lastConfirmedBlockCon,
                       List<BlockCon> unConfirmedBlockConList) {
-        this(activeNodeList, lastConfirmedBlockCon, unConfirmedBlockConList, TimeUtils.time(), null);
+        this (activeNodeList,
+                lastConfirmedBlockCon, unConfirmedBlockConList, TimeUtils.time(), null);
     }
 
     public NodeStatus(EbftProto.NodeStatus nodeStatus) {
         this.chain = nodeStatus.getChain().toByteArray();
         this.activeNodeList = nodeStatus.getActiveNodeList().getNodeListList();
         this.lastConfirmedBlockCon = new BlockCon(nodeStatus.getLastConfirmedBlockCon());
-        for (EbftProto.BlockCon blockCon : nodeStatus.getUnConfirmedBlockConList().getBlockConListList()) {
+        for (EbftProto.BlockCon blockCon :
+                nodeStatus.getUnConfirmedBlockConList().getBlockConListList()) {
             this.unConfirmedBlockConList.add(new BlockCon(blockCon));
         }
         this.timestamp = nodeStatus.getTimestamp();
@@ -108,10 +110,8 @@ public class NodeStatus {
 
     public static boolean verify(NodeStatus nodeStatus) {
         if (nodeStatus != null) {
-            if (Wallet.verify(
-                    nodeStatus.getDataForSignning(), nodeStatus.getSignature(), false)) {
-                return true;
-            }
+            return Wallet.verify(
+                    nodeStatus.getDataForSignning(), nodeStatus.getSignature(), false);
         }
 
         return false;

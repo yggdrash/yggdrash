@@ -1,6 +1,5 @@
 package io.yggdrash.validator;
 
-import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.FileUtil;
 import org.junit.Before;
 import org.junit.Test;

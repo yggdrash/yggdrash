@@ -33,7 +33,7 @@ public class NodeConfiguration {
     BlockHusk genesisBlock() throws IOException {
         ClassLoader classLoader = getClass().getClassLoader();
 
-        String genesisString = "";
+        String genesisString;
         ClassPathResource cpr = new ClassPathResource("genesis/genesis.json");
         try {
             byte[] bdata = FileCopyUtils.copyToByteArray(cpr.getInputStream());

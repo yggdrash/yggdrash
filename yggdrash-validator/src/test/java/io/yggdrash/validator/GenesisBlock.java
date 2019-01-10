@@ -19,13 +19,13 @@ import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class GenesisBlock {
 
-    private final DefaultConfig defaultConfig = new DefaultConfig();
     private Block genesisBlock;
 
     public GenesisBlock() throws IOException, InvalidCipherTextException {
@@ -70,6 +70,7 @@ public class GenesisBlock {
                 timestamp,
                 txBody);
 
+        DefaultConfig defaultConfig = new DefaultConfig();
         Wallet wallet = new Wallet(defaultConfig);
         Transaction tx = new Transaction(txHeader, wallet, txBody);
         List<Transaction> txList = new ArrayList<>();
@@ -122,7 +123,7 @@ public class GenesisBlock {
         File genesisFile = new File(classLoader.getResource("./genesis/genesis.json").getFile());
 
         FileUtil.writeStringToFile(genesisFile,
-                new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject));
+                new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject), StandardCharsets.UTF_8, false);
     }
 
 }

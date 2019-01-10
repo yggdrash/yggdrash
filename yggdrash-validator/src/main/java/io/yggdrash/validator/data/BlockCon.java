@@ -149,13 +149,13 @@ public class BlockCon {
     }
 
     public static EbftProto.BlockConList toProtoList(Collection<BlockCon> collection) {
-        EbftProto.BlockConListOrBuilder builder = EbftProto.BlockConList.newBuilder();
+        EbftProto.BlockConList.Builder builder = EbftProto.BlockConList.newBuilder();
 
         for (BlockCon blockCon : collection) {
-            ((EbftProto.BlockConList.Builder) builder).addBlockConList(BlockCon.toProto(blockCon));
+            builder.addBlockConList(BlockCon.toProto(blockCon));
         }
 
-        return ((EbftProto.BlockConList.Builder) builder).build();
+        return builder.build();
     }
 
     public boolean equals(BlockCon blockCon) {

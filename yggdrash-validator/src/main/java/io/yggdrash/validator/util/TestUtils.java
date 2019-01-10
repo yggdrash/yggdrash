@@ -4,19 +4,15 @@ package io.yggdrash.validator.util;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.BlockHusk;
-//import io.yggdrash.core.blockchain.BlockHuskBuilder;
-//import io.yggdrash.core.blockchain.BlockSignature;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionHeader;
 import io.yggdrash.core.blockchain.TransactionHusk;
-//import io.yggdrash.core.blockchain.TransactionSignature;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.common.crypto.HashUtil;
@@ -279,9 +275,11 @@ public class TestUtils {
         return branch;
     }
 
-    public static JsonObject updateBranch(String description, String version, JsonObject branch, Integer checkSum) {
+    public static JsonObject updateBranch(String description,
+                                          String version, JsonObject branch, Integer checkSum) {
         JsonObject updatedBranch = new JsonObject();
-        updatedBranch.addProperty("name", checkSum == 0 ? branch.get("name").getAsString() : "HELLO");
+        updatedBranch.addProperty("name",
+                checkSum == 0 ? branch.get("name").getAsString() : "HELLO");
         updatedBranch.addProperty("owner", branch.get("owner").getAsString());
         updatedBranch.addProperty("symbol", branch.get("symbol").getAsString());
         updatedBranch.addProperty("property", branch.get("property").getAsString());
@@ -291,8 +289,10 @@ public class TestUtils {
         updatedBranch.addProperty("tag", branch.get("tag").getAsFloat());
         updatedBranch.addProperty("version", version);
         updatedBranch.add("versionHistory", branch.get("versionHistory").getAsJsonArray());
-        updatedBranch.addProperty("reference_address", branch.get("reference_address").getAsString());
-        updatedBranch.addProperty("reserve_address", branch.get("reserve_address").getAsString());
+        updatedBranch.addProperty("reference_address",
+                branch.get("reference_address").getAsString());
+        updatedBranch.addProperty("reserve_address",
+                branch.get("reserve_address").getAsString());
 
         return updatedBranch;
     }
@@ -350,7 +350,7 @@ public class TestUtils {
         BlockBody blockBody = new BlockBody(txs1);
 
         long timestamp = TimeUtils.time();
-        BlockHeader blockHeader = null;
+        BlockHeader blockHeader;
         try {
             blockHeader = new BlockHeader(
                     new byte[20], new byte[8], new byte[8], prevBlockHash, index, timestamp,
@@ -375,7 +375,7 @@ public class TestUtils {
 
         long index = 0;
         long timestamp = TimeUtils.time();
-        BlockHeader blockHeader = null;
+        BlockHeader blockHeader;
         try {
             blockHeader = new BlockHeader(
                     new byte[20], new byte[8], new byte[8], new byte[32], index, timestamp,

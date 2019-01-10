@@ -37,7 +37,7 @@ public class GrpcNodeClient {
         this.pubKey = pubKey;
         this.host = host;
         this.port = port;
-        this.id = this.pubKey + "@" + this.host + ":" + Integer.toString(this.port);
+        this.id = this.pubKey + "@" + this.host + ":" + this.port;
         this.isRunning = false;
 
         this.channel = ManagedChannelBuilder.forAddress(host, port)

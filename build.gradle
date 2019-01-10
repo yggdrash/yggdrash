@@ -187,40 +187,19 @@ project(':yggdrash-validator') {
 
     dependencies {
         compile project(':yggdrash-core')
-        compile "org.springframework.boot:spring-boot-starter-web"
-        compile "org.springframework.boot:spring-boot-starter-undertow"
-//        compile "org.springframework.boot:spring-boot-starter-actuator"
-        compile "io.github.lognet:grpc-spring-boot-starter:3.0.0"
-        compile "org.springframework.cloud:spring-cloud-starter:2.0.0.RELEASE"
-//        compile "com.github.briandilley.jsonrpc4j:jsonrpc4j:1.5.3"
-        annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
-//        runtime "org.springframework.boot:spring-boot-devtools"
-        testCompile "org.springframework.boot:spring-boot-starter-test"
-        testCompile "io.grpc:grpc-testing:${grpcVersion}"
         testCompile project(':yggdrash-core').sourceSets.test.output
+        
+        compile "io.github.lognet:grpc-spring-boot-starter:3.0.0"
     }
 
-    configurations {
-        compile.exclude module: 'spring-boot-starter-tomcat'
-        compile.exclude module: 'spring-security-rsa'
-    }
-
-    docker {
-        dependsOn build
-        dockerfile rootProject.file('docker/Dockerfile')
-        name "yggdrash/${bootJar.baseName}"
-        files bootJar.archivePath
-        buildArgs(['JAR_FILE': "${bootJar.archiveName}"])
-    }
-
-    jar {
-        classifier = 'classes'
-        enabled = true
-    }
-
-    bootJar {
-        launchScript()
-    }
+//    jar {
+//        classifier = 'classes'
+//        enabled = true
+//    }
+//
+//    bootJar {
+//        launchScript()
+//    }
 }
 
 task jacocoRootReport(type: JacocoReport) {
