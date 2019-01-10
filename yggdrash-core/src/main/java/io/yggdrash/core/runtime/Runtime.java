@@ -255,6 +255,7 @@ public class Runtime<T> {
     }
 
     private void submitTxState() {
+        // TODO calculate transaction state root
         Set<Map.Entry<String, JsonObject>> changeValues = this.tmpTxStateStore.changeValues();
         Iterator<Map.Entry<String, JsonObject>> it = changeValues.iterator();
         while (it.hasNext()) {
@@ -266,6 +267,7 @@ public class Runtime<T> {
     }
 
     private void submitBlockState() {
+        // TODO calculate block state root
         Set<Map.Entry<String, JsonObject>> changeValues = this.tmpBlockStateStore.changeValues();
         Iterator<Map.Entry<String, JsonObject>> it = changeValues.iterator();
         while (it.hasNext()) {
