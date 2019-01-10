@@ -26,6 +26,9 @@ import java.util.List;
 
 public class BlockBody implements Cloneable {
 
+    private static final int TX_HEADER_LENGTH = 84;
+    private static final int SIGNATURE_LENGTH = 65;
+
     private List<Transaction> body;
 
     /**
@@ -49,8 +52,8 @@ public class BlockBody implements Cloneable {
 
     public BlockBody(byte[] bodyBytes) {
         int pos = 0;
-        byte[] txHeaderBytes = new byte[84];
-        byte[] txSigBytes = new byte[65];
+        byte[] txHeaderBytes = new byte[TX_HEADER_LENGTH];
+        byte[] txSigBytes = new byte[SIGNATURE_LENGTH];
         byte[] txBodyBytes;
 
         TransactionHeader txHeader;
@@ -73,7 +76,7 @@ public class BlockBody implements Cloneable {
             txBody = new TransactionBody(txBodyBytes);
 
             txList.add(new Transaction(txHeader, txSigBytes, txBody));
-        } while (pos >= bodyBytes.length);
+        } while (pos < bodyBytes.length);
 
         this.body = txList;
     }

@@ -126,6 +126,10 @@ public class BlockTest {
         Block block4 = new Block(block1.toJsonObject());
         assertThat(block4.verify()).isTrue();
         assertThat(block1.toJsonObject().toString()).isEqualTo(block4.toJsonObject().toString());
+
+        Block block5 = new Block(block1.toBinary());
+        assertThat(block5.verify()).isTrue();
+        assertThat(block1.toJsonObject().toString()).isEqualTo(block5.toJsonObject().toString());
     }
 
     @Test

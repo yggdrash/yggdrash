@@ -102,7 +102,8 @@ public class Transaction implements Cloneable {
         position += sigBytes.length;
         this.signature = sigBytes;
 
-        byte[] bodyBytes = new byte[txBytes.length - headerBytes.length - sigBytes.length];
+        long bodyLength = this.header.getBodyLength();
+        byte[] bodyBytes = new byte[(int)bodyLength];
         System.arraycopy(txBytes, position, bodyBytes, 0, bodyBytes.length);
         position += bodyBytes.length;
         this.body = new TransactionBody(bodyBytes);

@@ -25,6 +25,7 @@ import io.yggdrash.common.trie.Trie;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.InvalidSignatureException;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
@@ -44,6 +45,7 @@ public class Block implements Cloneable {
 
     private static final Logger log = LoggerFactory.getLogger(Block.class);
 
+    private static final int HEADER_LENGTH = 124;
     private static final int SIGNATURE_LENGTH = 65;
 
     private BlockHeader header;
@@ -65,6 +67,30 @@ public class Block implements Cloneable {
         this(new BlockHeader(jsonObject.getAsJsonObject("header")),
                 Hex.decode(jsonObject.get("signature").getAsString()),
                 new BlockBody(jsonObject.getAsJsonArray("body")));
+    }
+
+    public Block(byte[] blockBytes) {
+        int position = 0;
+
+        byte[] headerBytes = new byte[HEADER_LENGTH];
+        System.arraycopy(blockBytes, 0, headerBytes, 0, headerBytes.length);
+        this.header = new BlockHeader(headerBytes);
+        position += headerBytes.length;
+
+        byte[] sigBytes = new byte[SIGNATURE_LENGTH];
+        System.arraycopy(blockBytes, position, sigBytes, 0, sigBytes.length);
+        position += sigBytes.length;
+        this.signature = sigBytes;
+
+        long bodyLength = this.header.getBodyLength();
+        byte[] bodyBytes = new byte[(int)bodyLength];
+        System.arraycopy(blockBytes, position, bodyBytes, 0, bodyBytes.length);
+        position += bodyBytes.length;
+        this.body = new BlockBody(bodyBytes);
+
+        if (position != blockBytes.length) {
+            throw new NotValidateException();
+        }
     }
 
     public BlockHeader getHeader() {
