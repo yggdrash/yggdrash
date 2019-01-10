@@ -16,7 +16,6 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.net.NodeServer;
 import io.yggdrash.core.net.NodeStatus;
@@ -49,7 +48,6 @@ public class NodeDemoServer {
         Peer owner = Peer.valueOf("75bff16c", host, port);
         server.setPeerGroup(new PeerGroup(owner, 25));
         server.setBranchGroup(new BranchGroup());
-        server.setWallet(TestConstants.wallet());
         server.setNodeStatus(new NodeStatus() {
             @Override
             public boolean isUpStatus() {

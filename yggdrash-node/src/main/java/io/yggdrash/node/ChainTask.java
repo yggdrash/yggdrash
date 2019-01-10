@@ -16,15 +16,14 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.net.NodeManager;
 import io.yggdrash.core.net.NodeStatus;
+import io.yggdrash.core.wallet.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
-
-import java.util.List;
 
 public class ChainTask {
     private static final Logger log = LoggerFactory.getLogger(ChainTask.class);
@@ -34,7 +33,10 @@ public class ChainTask {
     private NodeStatus nodeStatus;
 
     @Autowired
-    private NodeManager nodeManager;
+    private BranchGroup branchGroup;
+
+    @Autowired
+    private Wallet wallet;
 
     @Scheduled(cron = cronValue)
     public void generateBlock() {
@@ -43,9 +45,8 @@ public class ChainTask {
             return;
         }
 
-        List<BranchId> branchIdList = nodeManager.getActiveBranchIdList();
-        for (BranchId branchId : branchIdList) {
-            nodeManager.generateBlock(branchId);
+        for (BranchId branchId : branchGroup.getAllBranchId()) {
+            branchGroup.generateBlock(wallet, branchId);
         }
     }
 }
