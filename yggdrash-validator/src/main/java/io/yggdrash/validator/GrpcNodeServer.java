@@ -1,5 +1,6 @@
 package io.yggdrash.validator;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.grpc.stub.StreamObserver;
@@ -18,10 +19,16 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.util.FileCopyUtils;
 
+import java.io.IOException;
 import java.net.InetAddress;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,6 +46,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         implements CommandLineRunner {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(GrpcNodeServer.class);
+    private static final ResourceLoader loader = new DefaultResourceLoader();
 
     private final int CONSENUS_COUNT;
 
@@ -62,7 +70,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         this.wallet = wallet;
         this.blockConChain = blockConChain;
         this.myNode = initMyNode();
-        this.totalValidatorMap = initTotalValidator(blockConChain.getRootBlockCon().getBlock());
+        this.totalValidatorMap = initTotalValidator();
         this.isValidator = initValidator();
         this.isActive = false;
         this.CONSENUS_COUNT = totalValidatorMap.size() / 2 + 1;
@@ -562,14 +570,22 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         log.info("isValidator: " + this.isValidator);
     }
 
-    private Map<String, GrpcNodeClient> initTotalValidator(BlockHusk blockHusk) {
-        Map<String, GrpcNodeClient> nodeMap = new ConcurrentHashMap<>();
-        JsonObject validatorJsonObject =
-                blockHusk.getBody()
-                        .get(0).toJsonObject().get("body").getAsJsonArray()
-                        .get(0).getAsJsonObject().get("validator").getAsJsonObject();
+    private Map<String, GrpcNodeClient> initTotalValidator() {
+        String jsonString;
+        ClassPathResource cpr = new ClassPathResource("validator.json");
+        try {
+            byte[] bdata = FileCopyUtils.copyToByteArray(cpr.getInputStream());
+            jsonString = new String(bdata, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            log.debug("Error validator.json");
+            return null;
+        }
 
-        Set<Map.Entry<String, JsonElement>> entrySet = validatorJsonObject.entrySet();
+        JsonObject validatorJsonObject = new Gson().fromJson(jsonString, JsonObject.class);
+        Map<String, GrpcNodeClient> nodeMap = new ConcurrentHashMap<>();
+
+        Set<Map.Entry<String, JsonElement>> entrySet =
+                validatorJsonObject.get("validator").getAsJsonObject().entrySet();
         for (Map.Entry<String, JsonElement> entry : entrySet) {
             GrpcNodeClient client = new GrpcNodeClient(entry.getKey(),
                     entry.getValue().getAsJsonObject().get("host").getAsString(),
@@ -584,6 +600,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         log.debug("isValidator" + validatorJsonObject.toString());
         return nodeMap;
     }
+
 
     private GrpcNodeClient initMyNode() {
         byte[] realPubKey = new byte[64];
