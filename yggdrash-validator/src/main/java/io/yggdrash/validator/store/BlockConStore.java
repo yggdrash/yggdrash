@@ -15,13 +15,13 @@ public class BlockConStore implements Store<byte[], BlockCon> {
 
     @Override
     public void put(byte[] key, BlockCon value) {
-//        db.put(key, value.getBinary());
+        db.put(key, value.toBinary());
     }
 
     @Override
     public BlockCon get(byte[] key) {
         if (key != null) {
-//            return new BlockCon(key);
+            return new BlockCon(key);
         }
         throw new NonExistObjectException("Not Found [" + Hex.toHexString(key) + "]");
     }

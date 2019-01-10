@@ -17,6 +17,7 @@
 package io.yggdrash.validator.data;
 
 import com.google.protobuf.ByteString;
+import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
@@ -174,6 +175,17 @@ public class BlockCon {
 
     public BlockCon clone() {
         return new BlockCon(this.index, this.parentId, this.block, this.consensusList);
+    }
+
+    public byte[] toBinary() {
+        int pos = 0;
+        byte[] consensusList = new byte[SIGNATURE_LENGTH * this.consensusList.size()];
+        for (String consensus : this.consensusList) {
+            System.arraycopy(Hex.decode(consensus), 0, consensusList, pos, SIGNATURE_LENGTH);
+            pos += SIGNATURE_LENGTH;
+        }
+
+        return ByteUtil.merge(this.block.getData(), consensusList);
     }
 
     public static EbftProto.BlockCon toProto(BlockCon blockCon) {
