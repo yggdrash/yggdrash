@@ -35,9 +35,6 @@ public class GenesisBlock {
         JsonObject frontierObject = getJsonObjectFromFile("./genesis/frontier.json");
         genesisObject.add("frontier", frontierObject.get("frontier"));
 
-        JsonObject validatorListObject = getJsonObjectFromFile("genesis/validator.json");
-        genesisObject.add("validator", validatorListObject.get("validator"));
-
         JsonObject nodeListObject = getJsonObjectFromFile("./genesis/node.json");
         genesisObject.add("node", nodeListObject.get("node"));
 

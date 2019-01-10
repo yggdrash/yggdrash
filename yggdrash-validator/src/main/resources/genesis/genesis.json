@@ -1,26 +1,26 @@
 {
   "header": {
-    "chain": "2137b63558d5b407385d00e626583fe937e06aa7",
+    "chain": "97e63ad2d2028005b70d0ede1f6fe0a4b0e7602c",
     "version": "0000000000000000",
     "type": "0000000000000000",
     "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
     "index": "0000000000000000",
-    "timestamp": "0000016836511700",
-    "merkleRoot": "67f6c40ca08d0c2d78abfb1c11cfb385e5adb5072ad5d6be6835b7c539a074bc",
-    "bodyLength": "00000000000012df"
+    "timestamp": "000001683662003e",
+    "merkleRoot": "33ca73cf2e417f49fe88290279494c1c55f7e2fb1c6539af7ea37cd6cc2fe015",
+    "bodyLength": "000000000000051e"
   },
-  "signature": "1bb02bd981424924d138294a3a8329abe68a17925d451b9622924484ee8ee63a986f7168390323e3754c12b1316c665dea53695133f9451b71f8d7be4f36caa280",
+  "signature": "1c912251c38bdb0f29ff4f58d2a3933d55eb4ac0f54e75f3ba55911cb7e010e6e336f1567ec2bcc6dea7c26359dcf4b7108f918acbb883c0c33e89b87580be185d",
   "body": [
     {
       "header": {
-        "chain": "2137b63558d5b407385d00e626583fe937e06aa7",
+        "chain": "97e63ad2d2028005b70d0ede1f6fe0a4b0e7602c",
         "version": "0000000000000000",
         "type": "0000000000000000",
-        "timestamp": "0000016836511700",
-        "bodyHash": "16cd0ed5b1a6b2f1661fb1009cb91a8810ebcaf271e5d9423c8216782b26fff1",
-        "bodyLength": "000000000000124a"
+        "timestamp": "000001683662003e",
+        "bodyHash": "0a30918b9b16b2449d55b1d37f22faebfdf00c383d7518b8411218f5d6ea21e8",
+        "bodyLength": "0000000000000489"
       },
-      "signature": "1ba9252463eca570621965d28adcf52be1a6dba484428168924e9e1de57eb5c0bc6466e0e7ef38485ac7cdbc559c11e91bd5ed67596fa155415e1744929850da46",
+      "signature": "1b355e5db599528bc18671768e2279dcd69a61b72f27357646ba31e59fe3ccf1356149e7857552ddfe770fe91204b69b837712511d9f9e3d6cec1e11f697b0eae2",
       "body": [
         {
           "operator": "GENESIS",
@@ -55,92 +55,6 @@
             },
             "5db10750e8caff27f906b41c71b3471057dd2009": {
               "balance": "1000000000"
-            }
-          },
-          "validator": {
-            "527e5997e79cc0935d9d86a444380a11cdc296b6bcce2c6df5e5439a3cd7bffb945e77aacf881f36a668284984b628063f5d18a214002ac7ad308e04b67bcad8": {
-              "host": "127.0.0.1",
-              "port": "32911"
-            },
-            "e12133df65a2e7dec4310f3511b1fa6b35599770e900ffb50f795f2a49d0a22b63e013a393affe971ea4db08cc491118a8a93719c3c1f55f2a12af21886d294d": {
-              "host": "127.0.0.1",
-              "port": "32912"
-            },
-            "8d69860332aa6202df489581fd618fc085a6a5af89964d9e556a398d232816c9618fe15e90015d0a2d15037c91587b79465106f145c0f4db6d18b105659d2bc8": {
-              "host": "127.0.0.1",
-              "port": "32913"
-            },
-            "b49fbee055a4b3bd2123a60b24f29d69bc0947e45a75eb4880fe9c5b07904c650729e5edcdaff2523c8839889925079963186bd38c22c96433bdbf4465960527": {
-              "host": "127.0.0.1",
-              "port": "32914"
-            },
-            "56afe2b04b1ce435f57dcb50640b54fe5f10fcfd17284c9aa002ead0ff5959187ea203cfe67bbfde5a90408c21d4349d17d37d95d33acd4137ba41e45a149281": {
-              "host": "127.0.0.1",
-              "port": "32915"
-            },
-            "f0a94a80a7eedf3c55140b0b965ba9ee19172680621b558d4c7724726c4b63cdb334f54f36eece0fbfd4acc490fe1411fb9e36b615dd6401761599d6d73228a8": {
-              "host": "127.0.0.1",
-              "port": "32916"
-            },
-            "97b3457645f135b83de13940226c14a326d81965ba9f021c643b547c1676622340cc01003afc417ba259e4654c5472ae33875d2ed22dd4acc8e6ea8c8f14e740": {
-              "host": "127.0.0.1",
-              "port": "32917"
-            },
-            "18b751c075d7b544226a95202681669c70be8614b48416e0a6d3025f6cfd619615d184e3c8ce858c214806fd2692e65afe134ab2d600c25161a8f891de6dd235": {
-              "host": "127.0.0.1",
-              "port": "32918"
-            },
-            "0d1b2a1463078dfc467a4975f090ea059825ca354400220de0c8be1c99e2939299f363e7d1c258d80533ecc68d936eb6ec990da426f18b5b1d27550251d674d2": {
-              "host": "127.0.0.1",
-              "port": "32919"
-            },
-            "05add6c6033c854f401e2b4e3598b256cefa5b1c8e2b87f7a9fd510863a245b1d5236ac0547c3421cd71d431490ae0cc40d3af2270d5afdc2f2c4501e9747916": {
-              "host": "127.0.0.1",
-              "port": "32920"
-            },
-            "37d3af2628767a73a6637877571513c761125c2015c0d5cc09b39cfe1db037a9858d26a385dc791d990e782abb2120d712e019f19f33c0e7f1e51beef8962c3c": {
-              "host": "127.0.0.1",
-              "port": "32921"
-            },
-            "0fc02e0d7f85c25cea398f749d2ac30cafc4db72be05f687a51b6b3bb624685f93c4d9c1e0206d130bf46f8b92a49cfa6f1ae2f006ea73af38bffbc1a53b609c": {
-              "host": "127.0.0.1",
-              "port": "32922"
-            },
-            "ec1c23fc83c7240e472dd4f0d703cac55ec6e888f2903aa18c15a6f1d23c65141f00e6aa083006b94654c35099711e26b27f1db1e55e0d453e6e3ba8ecab69ac": {
-              "host": "127.0.0.1",
-              "port": "32923"
-            },
-            "a5e8f0e4df3bb95216c73eb4e2bf4cab6fd6762694db118c733dd03f4cd504caf7be9a4cbd18e9a63d49fc0f166e89abc0303da0b41993098d342bddcab1d033": {
-              "host": "127.0.0.1",
-              "port": "32924"
-            },
-            "7feec43a3b19bfd72dd411b41df874dc8bf42d675006f74a18d2df1418c1b2439c5d627476b1aab2bb47ca4fa93e7752163b49726f428d5942db1fbb70c902c5": {
-              "host": "127.0.0.1",
-              "port": "32925"
-            },
-            "32c2f03133a2cf1abad6cb45f6f98ef64e168d8c62195d92b3f675d5dd5eb78443418c9712dbe820ba0849baa584febed9b0e2d69b43e9950079b6c28cbb4a35": {
-              "host": "127.0.0.1",
-              "port": "32926"
-            },
-            "4fb2dafa86630412023cdbb87576cdaca9c20580b1c0f106ae9272d0c775e67fd9dbd32592e3b9ccb13d023aed0786433bb85b5cf023b46139b9c57d958a14cf": {
-              "host": "127.0.0.1",
-              "port": "32927"
-            },
-            "40dfb2aa23dfaa04fe5d8291dcd4e0f75fd6940222f479c8060434eb55529769216986bc81e6ab789455766bd292161336f56d2967e4b68525e14bb77bced618": {
-              "host": "127.0.0.1",
-              "port": "32928"
-            },
-            "a6d999f737f0cf56885e15750bf76ab9087284c86c731bdde97564eaa788b4700818a710d8987897e82ba8a5c77e3df3ea2e6bd3ec5d07d5299705620558700b": {
-              "host": "127.0.0.1",
-              "port": "32929"
-            },
-            "52497d1dd2c424519f5c10736b84837e3188564989cb71428e436ea503eb25deb1fa81f45fb0971a17075c0ca83c808319fa90f177bc110e1ddc220f9c18c30b": {
-              "host": "127.0.0.1",
-              "port": "32930"
-            },
-            "001d8ae59611e8f8f1d56b9d42bafb0bad8729fe1794ca7c817049a03fd8121234b2097b8415ef04b680ddcf30128b3ed8bc78df1d2e9c0536f53c88cd403c2e": {
-              "host": "127.0.0.1",
-              "port": "32931"
             }
           },
           "node": {
