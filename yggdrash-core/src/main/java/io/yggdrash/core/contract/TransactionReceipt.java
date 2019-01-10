@@ -16,99 +16,40 @@
 
 package io.yggdrash.core.contract;
 
-import io.yggdrash.common.util.JsonUtil;
-
-import java.util.HashMap;
 import java.util.Map;
 
-// TODO TransactionReceipt to interface
-public class TransactionReceipt {
-    public static final int FALSE = 0;
-    public static final int SUCCESS = 1;
+public interface TransactionReceipt {
 
-    private String txId;
-    private String blockId;
-    private String branchId;
-    private final Map<String, Object> txLog = new HashMap<>();
-    private int status = FALSE;
-    private String issuer;
-    private Long blockHeight;
+    void putLog(String key, String value);
 
-    public void putLog(String key, Object value) {
-        txLog.put(key, value);
-    }
+    String getLog(String key);
 
-    public Object getLog(String key) {
-        return txLog.get(key);
-    }
+    ExecuteStatus getStatus();
 
-    public void setStatus(int status) {
-        this.status = status;
-    }
+    void setStatus(ExecuteStatus status);
 
-    public void setTxId(String txId) {
-        this.txId = txId;
-    }
+    String getTxId();
 
-    public String getTxId() {
-        return txId;
-    }
+    void setTxId(String txId);
 
-    public void setBlockId(String blockId) {
-        this.blockId = blockId;
-    }
+    String getBlockId();
 
-    public String getBlockId() {
-        return blockId;
-    }
+    void setBlockId(String blockId);
 
-    public Long getBlockHeight() {
-        return blockHeight;
-    }
+    Long getBlockHeight();
 
-    public void setBlockHeight(Long blockHeight) {
-        this.blockHeight = blockHeight;
-    }
+    void setBlockHeight(Long blockHeight);
 
-    public String getBranchId() {
-        return branchId;
-    }
+    String getBranchId();
 
-    public void setBranchId(String branchId) {
-        this.branchId = branchId;
-    }
+    void setBranchId(String branchId);
 
-    public Map<String, Object> getTxLog() {
-        return txLog;
-    }
+    Map<String, String> getTxLog();
 
-    public int getStatus() {
-        return status;
-    }
+    boolean isSuccess();
 
-    public boolean isSuccess() {
-        return status == SUCCESS;
-    }
+    String getIssuer();
 
-    public static TransactionReceipt errorReceipt(String txId, Throwable e) {
-        TransactionReceipt txReceipt = new TransactionReceipt();
-        txReceipt.setTxId(txId);
-        txReceipt.setStatus(TransactionReceipt.FALSE);
-        txReceipt.putLog("Error", e);
-        return txReceipt;
-    }
-
-    @Override
-    public String toString() {
-        return JsonUtil.convertObjToString(this);
-    }
-
-    public String getIssuer() {
-        return issuer;
-    }
-
-    public void setIssuer(String issuer) {
-        this.issuer = issuer;
-    }
+    void setIssuer(String issuer);
 
 }

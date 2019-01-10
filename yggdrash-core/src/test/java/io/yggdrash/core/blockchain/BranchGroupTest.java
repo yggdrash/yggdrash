@@ -20,22 +20,24 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
-import static io.yggdrash.TestConstants.PerformanceTest;
-import static io.yggdrash.TestConstants.TRANSFER_TO;
-import static io.yggdrash.TestConstants.YEED;
-import static io.yggdrash.TestConstants.wallet;
 import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
+import org.junit.Before;
+import org.junit.Test;
+
 import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static io.yggdrash.TestConstants.PerformanceTest;
+import static io.yggdrash.TestConstants.TRANSFER_TO;
+import static io.yggdrash.TestConstants.YEED;
+import static io.yggdrash.TestConstants.wallet;
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Before;
-import org.junit.Test;
 
 public class BranchGroupTest {
 
@@ -133,7 +135,8 @@ public class BranchGroupTest {
     public void getContract() throws Exception {
         Contract contract = branchGroup.getContract(block.getBranchId());
         assertThat(contract).isNotNull();
-        Map<String, Method> queryMethod = ContractUtils.contractMethods(contract, ContractQuery.class);
+        Map<String, Method> queryMethod = ContractUtils
+                .contractMethods(contract, ContractQuery.class);
         Method getAllBranchid = queryMethod.get("getallbranchid");
         String result = getAllBranchid.invoke(contract).toString();
         assertThat(result).contains(block.getBranchId().toString());

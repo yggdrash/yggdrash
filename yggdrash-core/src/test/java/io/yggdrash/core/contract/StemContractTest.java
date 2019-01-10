@@ -19,21 +19,24 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
-import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
-import java.lang.reflect.Field;
-import java.util.List;
-import java.util.Set;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.lang.reflect.Field;
+import java.util.List;
+import java.util.Set;
+
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
+
 
 public class StemContractTest {
 
@@ -55,14 +58,14 @@ public class StemContractTest {
         stateValue = StemContractStateValue.of(json);
         JsonObject params = createParams(stateValue.getJson());
 
-        TransactionReceipt receipt = new TransactionReceipt();
+        TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer(stateValue.getOwner().toString());
 
         List<Field> txReceipt = ContractUtils.txReceipt(stemContract);
         if (txReceipt.size() == 1) {
             txReceiptField = txReceipt.get(0);
         }
-        for(Field f : ContractUtils.contractFields(stemContract, ContractStateStore.class)) {
+        for (Field f : ContractUtils.contractFields(stemContract, ContractStateStore.class)) {
             f.setAccessible(true);
             f.set(stemContract, stateStore);
         }
@@ -86,7 +89,7 @@ public class StemContractTest {
         JsonObject params = new JsonObject();
         params.add(branchId, branch);
 
-        TransactionReceipt receipt = new TransactionReceipt();
+        TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer(stateValue.getOwner().toString());
         try {
             txReceiptField.set(stemContract, receipt);
@@ -108,7 +111,7 @@ public class StemContractTest {
         JsonObject json = ContractTestUtils.createSampleBranchJson(description);
         JsonObject params = createParams(json);
 
-        TransactionReceipt receipt = new TransactionReceipt();
+        TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer(stateValue.getOwner().toString());
 
         try {

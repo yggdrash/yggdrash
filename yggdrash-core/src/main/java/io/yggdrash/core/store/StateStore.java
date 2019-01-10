@@ -4,28 +4,21 @@ import com.google.common.primitives.Longs;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.store.datasource.DbSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class StateStore<T> implements Store<String, JsonObject> {
     private static final Logger log = LoggerFactory.getLogger(StateStore.class);
-    private byte[] stateValidate = new byte[256];
     private final DbSource<byte[], byte[]> db;
     private long dbSize = 0L;
     private static final byte[] DATABASE_SIZE = "DATABASE_SIZE".getBytes();
 
-
-    private final Map<String, T> state;
 
     // TODO remote subState and assetState
     private final Map<String, Map<Object, Set<Object>>> subState;
@@ -37,10 +30,6 @@ public class StateStore<T> implements Store<String, JsonObject> {
             dbSize = Longs.fromByteArray(db.get(DATABASE_SIZE));
         }
 
-        // TODO state remove
-        this.state = new ConcurrentHashMap<>();
-        // must sha256 validator
-        this.stateValidate = new byte[256];
         // TODO state is allways key-value store so sub, asset state is remove from contract
         this.subState = new HashMap<>();
     }
@@ -101,11 +90,6 @@ public class StateStore<T> implements Store<String, JsonObject> {
         return JsonUtil.parseJsonObject(tempValue);
     }
 
-    // TODO remove getAllKey
-    public List<String> getAllKey() {
-        return new ArrayList<>(state.keySet());
-    }
-
     @Override
     public boolean contains(String key) {
         return db.get(key.getBytes()) != null;
@@ -114,7 +98,6 @@ public class StateStore<T> implements Store<String, JsonObject> {
     @Override
     public void close() {
         db.close();
-        state.clear();
         subState.clear();
     }
 
