@@ -44,12 +44,11 @@ public class BlockCon {
     private BlockHusk block;
     private final List<String> consensusList = new ArrayList<>();
 
-    public BlockCon (byte[] blockConBytes) {
+    public BlockCon(byte[] blockConBytes) {
         int position = 0;
 
         byte[] headerBytes = new byte[BLOCK_HEADER_LENGTH];
         System.arraycopy(blockConBytes, 0, headerBytes, 0, headerBytes.length);
-        BlockHeader blockHeader = new BlockHeader(headerBytes);
         position += headerBytes.length;
 
         byte[] signature = new byte[SIGNATURE_LENGTH];
@@ -59,7 +58,6 @@ public class BlockCon {
         byte[] bodyBytes = new byte[blockConBytes.length - headerBytes.length - signature.length];
         System.arraycopy(blockConBytes, position, bodyBytes, 0, bodyBytes.length);
         position += bodyBytes.length;
-        BlockBody blockBody = new BlockBody(bodyBytes);
 
         if ((bodyBytes.length - position) % SIGNATURE_LENGTH != 0) {
             throw new NotValidateException();
@@ -72,7 +70,8 @@ public class BlockCon {
             this.consensusList.add(Hex.toHexString(consensus));
         }
 
-        this.block = new BlockHusk(new Block(blockHeader, signature, blockBody));
+        this.block = new BlockHusk(
+                new Block(new BlockHeader(headerBytes), signature, new BlockBody(bodyBytes)));
         this.id = this.block.getHash().getBytes();
         this.chain = this.block.getBranchId().getBytes();
         this.index = this.block.getIndex();

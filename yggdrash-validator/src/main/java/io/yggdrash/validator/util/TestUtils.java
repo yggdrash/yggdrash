@@ -1,10 +1,12 @@
 package io.yggdrash.validator.util;
 
-
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.util.FileUtil;
+import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
@@ -13,12 +15,9 @@ import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionHeader;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.common.util.FileUtil;
-import io.yggdrash.common.util.TimeUtils;
 import org.apache.commons.codec.binary.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -157,19 +156,6 @@ public class TestUtils {
 
     }
 
-    public static JsonObject sampleBalanceOfQueryJson() {
-        JsonArray params = new JsonArray();
-        JsonObject param = new JsonObject();
-        param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        params.add(param);
-
-        JsonObject query = new JsonObject();
-        query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
-        query.addProperty("method", "balanceOf");
-        query.add("params", params);
-        return query;
-    }
-
     public JsonObject sampleTxObject(Wallet newWallet, JsonObject body) {
 
         Wallet nodeWallet;
@@ -206,6 +192,19 @@ public class TestUtils {
             return null;
         }
 
+    }
+
+    public static JsonObject sampleBalanceOfQueryJson() {
+        JsonArray params = new JsonArray();
+        JsonObject param = new JsonObject();
+        param.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        params.add(param);
+
+        JsonObject query = new JsonObject();
+        query.addProperty("address", "0xe1980adeafbb9ac6c9be60955484ab1547ab0b76");
+        query.addProperty("method", "balanceOf");
+        query.add("params", params);
+        return query;
     }
 
     public static JsonObject getSampleBranch1() {
@@ -330,6 +329,7 @@ public class TestUtils {
         query.add("params", params);
         return query;
     }
+
     public Transaction sampleTx() {
         return new Transaction(sampleTxObject(wallet));
     }
