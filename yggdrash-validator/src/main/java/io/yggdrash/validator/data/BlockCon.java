@@ -17,7 +17,11 @@
 package io.yggdrash.validator.data;
 
 import com.google.protobuf.ByteString;
+import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockBody;
+import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.EbftProto;
 import org.spongycastle.util.encoders.Hex;
 
@@ -29,6 +33,8 @@ import java.util.List;
 
 public class BlockCon {
     private static final boolean TEST_NO_VERIFY = false;
+    private static final int BLOCK_HEADER_LENGTH = 124;
+    private static final int SIGNATURE_LENGTH = 65;
 
     private byte[] id;
     private byte[] chain;
@@ -36,6 +42,41 @@ public class BlockCon {
     private byte[] parentId;
     private BlockHusk block;
     private final List<String> consensusList = new ArrayList<>();
+
+    public BlockCon (byte[] blockConBytes) {
+        int position = 0;
+
+        byte[] headerBytes = new byte[BLOCK_HEADER_LENGTH];
+        System.arraycopy(blockConBytes, 0, headerBytes, 0, headerBytes.length);
+        BlockHeader blockHeader = new BlockHeader(headerBytes);
+        position += headerBytes.length;
+
+        byte[] signature = new byte[SIGNATURE_LENGTH];
+        System.arraycopy(blockConBytes, position, signature, 0, signature.length);
+        position += signature.length;
+
+        byte[] bodyBytes = new byte[blockConBytes.length - headerBytes.length - signature.length];
+        System.arraycopy(blockConBytes, position, bodyBytes, 0, bodyBytes.length);
+        position += bodyBytes.length;
+        BlockBody blockBody = new BlockBody(bodyBytes);
+
+        if ((bodyBytes.length - position) % SIGNATURE_LENGTH != 0) {
+            throw new NotValidateException();
+        }
+
+        byte[] consensus = new byte[SIGNATURE_LENGTH];
+        while (position >= blockConBytes.length) {
+            System.arraycopy(blockConBytes, position, consensus, 0, consensus.length);
+            position += consensus.length;
+            this.consensusList.add(Hex.toHexString(consensus));
+        }
+
+        this.block = new BlockHusk(new Block(blockHeader, signature, blockBody));
+        this.id = this.block.getHash().getBytes();
+        this.chain = this.block.getBranchId().getBytes();
+        this.index = this.block.getIndex();
+        this.parentId = this.block.getPrevHash().getBytes();
+    }
 
     public BlockCon(long index, byte[] parentId, BlockHusk block) {
         this(index, parentId, block, null);
