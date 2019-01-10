@@ -40,6 +40,20 @@ public class BlockHuskTest {
     public void blockTest() {
         assert block.getInstance() != null;
         assert block.getIndex() == 0;
+        assert block.verify();
+    }
+
+    @Test
+    public void blockCloneTest() {
+        BlockHusk cloned = new BlockHusk(block.getInstance());
+        assert cloned.hashCode() == block.hashCode();
+        assert cloned.compareTo(block) == 0;
+    }
+
+    @Test
+    public void blockAddressTest() {
+        assertThat(block.getAddress().toString())
+                .isEqualTo("2b8d3ec39e8b8d86a6fcdf5f5fe375f30a6e6c06");
     }
 
     @Test
