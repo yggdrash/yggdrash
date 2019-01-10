@@ -30,18 +30,14 @@ public class GenesisBlock {
 
     public GenesisBlock() throws IOException, InvalidCipherTextException {
 
-        //String transactionFileName = defaultConfig.getString("genesis.config");
         JsonObject genesisObject = getJsonObjectFromFile("./genesis/config.json");
 
-        //String frontierFileName = defaultConfig.getString("genesis.frontier");
         JsonObject frontierObject = getJsonObjectFromFile("./genesis/frontier.json");
         genesisObject.add("frontier", frontierObject.get("frontier"));
 
-        //String delegatorListFileName = defaultConfig.getString("genesis.delegator");
-        JsonObject delegatorListObject = getJsonObjectFromFile("./genesis/delegator.json");
-        genesisObject.add("delegator", delegatorListObject.get("delegator"));
+        JsonObject validatorListObject = getJsonObjectFromFile("genesis/validator.json");
+        genesisObject.add("validator", validatorListObject.get("validator"));
 
-        //String nodeListFileName = defaultConfig.getString("genesis.node");
         JsonObject nodeListObject = getJsonObjectFromFile("./genesis/node.json");
         genesisObject.add("node", nodeListObject.get("node"));
 

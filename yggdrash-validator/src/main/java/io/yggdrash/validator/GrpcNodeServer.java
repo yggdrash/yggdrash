@@ -46,8 +46,8 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
     private final Wallet wallet;
     private final BlockConChain blockConChain;
     private final GrpcNodeClient myNode;
-    private final Map<String, GrpcNodeClient> totalDelegatorMap;
-    private final boolean isDelegator;
+    private final Map<String, GrpcNodeClient> totalValidatorMap;
+    private final boolean isValidator;
     private boolean isActive;
     private boolean isSynced;
     private ReentrantLock lock = new ReentrantLock();
@@ -62,10 +62,10 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         this.wallet = wallet;
         this.blockConChain = blockConChain;
         this.myNode = initMyNode();
-        this.totalDelegatorMap = initTotalDelegator(blockConChain.getRootBlockCon().getBlock());
-        this.isDelegator = initDelegator();
+        this.totalValidatorMap = initTotalValidator(blockConChain.getRootBlockCon().getBlock());
+        this.isValidator = initValidator();
         this.isActive = false;
-        this.CONSENUS_COUNT = totalDelegatorMap.size() / 2 + 1;
+        this.CONSENUS_COUNT = totalValidatorMap.size() / 2 + 1;
     }
 
     @Override
@@ -105,8 +105,8 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
     }
 
     private void checkNode() {
-        for (String key : totalDelegatorMap.keySet()) {
-            GrpcNodeClient client = totalDelegatorMap.get(key);
+        for (String key : totalValidatorMap.keySet()) {
+            GrpcNodeClient client = totalValidatorMap.get(key);
             if (client.isMyclient()) {
                 continue;
             }
@@ -156,7 +156,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
     }
 
     private void blockConSyncing(String nodeId, long index) {
-        GrpcNodeClient client = totalDelegatorMap.get(nodeId);
+        GrpcNodeClient client = totalValidatorMap.get(nodeId);
         BlockCon blockCon;
         if (client.isRunning()) {
             List<BlockCon> blockConList = client.getBlockConList(
@@ -185,7 +185,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
     }
 
     public BlockCon makeProposedBlock() {
-        if (this.isDelegator
+        if (this.isValidator
                 && this.isActive
                 && !this.blockConChain.isProposed()
                 && this.isSynced) {
@@ -281,8 +281,8 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
             }
         }
 
-        for (String key : this.totalDelegatorMap.keySet()) {
-            GrpcNodeClient client = this.totalDelegatorMap.get(key);
+        for (String key : this.totalValidatorMap.keySet()) {
+            GrpcNodeClient client = this.totalValidatorMap.get(key);
             if (client.isRunning()) {
                 if (proposedPubkey.contains("04" + client.getPubKey())) {
                     // continue
@@ -426,8 +426,8 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
     }
 
     private void broadcast(BlockCon blockCon) {
-        for (String key : totalDelegatorMap.keySet()) {
-            GrpcNodeClient client = totalDelegatorMap.get(key);
+        for (String key : totalValidatorMap.keySet()) {
+            GrpcNodeClient client = totalValidatorMap.get(key);
             if (client.isMyclient()) {
                 continue;
             }
@@ -559,20 +559,20 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         log.info("Node Started");
         log.info("wallet address: " + wallet.getHexAddress());
         log.info("wallet pubKey: " + Hex.toHexString(wallet.getPubicKey()));
-        log.info("isDelegator: " + this.isDelegator);
+        log.info("isValidator: " + this.isValidator);
     }
 
-    private Map<String, GrpcNodeClient> initTotalDelegator(BlockHusk blockHusk) {
+    private Map<String, GrpcNodeClient> initTotalValidator(BlockHusk blockHusk) {
         Map<String, GrpcNodeClient> nodeMap = new ConcurrentHashMap<>();
-        JsonObject delegatorJsonObject =
+        JsonObject validatorJsonObject =
                 blockHusk.getBody()
                         .get(0).toJsonObject().get("body").getAsJsonArray()
-                        .get(0).getAsJsonObject().get("delegator").getAsJsonObject();
+                        .get(0).getAsJsonObject().get("validator").getAsJsonObject();
 
-        Set<Map.Entry<String, JsonElement>> entrySet = delegatorJsonObject.entrySet();
+        Set<Map.Entry<String, JsonElement>> entrySet = validatorJsonObject.entrySet();
         for (Map.Entry<String, JsonElement> entry : entrySet) {
             GrpcNodeClient client = new GrpcNodeClient(entry.getKey(),
-                    entry.getValue().getAsJsonObject().get("ip").getAsString(),
+                    entry.getValue().getAsJsonObject().get("host").getAsString(),
                     entry.getValue().getAsJsonObject().get("port").getAsInt());
             if (client.getId().equals(myNode.getId())) {
                 nodeMap.put(myNode.getId(), myNode);
@@ -581,7 +581,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
             }
         }
 
-        log.debug("isDelegator" + delegatorJsonObject.toString());
+        log.debug("isValidator" + validatorJsonObject.toString());
         return nodeMap;
     }
 
@@ -597,15 +597,15 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         return client;
     }
 
-    private boolean initDelegator() {
+    private boolean initValidator() {
         log.debug("MyNode ID: " + this.myNode.getId());
-        return totalDelegatorMap.containsKey(this.myNode.getId());
+        return totalValidatorMap.containsKey(this.myNode.getId());
     }
 
     private List<String> getActiveNodeList() {
         List<String> activeNodeList = new ArrayList<>();
-        for (String key : totalDelegatorMap.keySet()) {
-            GrpcNodeClient client = totalDelegatorMap.get(key);
+        for (String key : totalValidatorMap.keySet()) {
+            GrpcNodeClient client = totalValidatorMap.get(key);
             if (client.isMyclient()) {
                 continue;
             }
@@ -635,8 +635,8 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
 
     private int getActiveNodeCount() {
         int count = 0;
-        for (String key : totalDelegatorMap.keySet()) {
-            if (totalDelegatorMap.get(key).isRunning()) {
+        for (String key : totalValidatorMap.keySet()) {
+            if (totalValidatorMap.get(key).isRunning()) {
                 count++;
             }
         }
@@ -654,7 +654,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
 
         for (String signature : blockCon.getConsensusList()) {
             if (Wallet.verify(blockCon.getId(), Hex.decode(signature), true)) {
-                // todo: check delegator
+                // todo: check validator
                 // continue;
             } else {
                 return false;
