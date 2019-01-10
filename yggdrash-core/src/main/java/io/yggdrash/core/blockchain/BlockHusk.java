@@ -59,6 +59,15 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         }
     }
 
+    public BlockHusk(Block block) {
+        this.coreBlock = block;
+        this.protoBlock = Block.toProtoBlock(this.coreBlock);
+        this.body = new ArrayList<>();
+        for (Transaction tx : block.getBody().getBody()) {
+            this.body.add(new TransactionHusk(tx));
+        }
+    }
+
     public BlockHusk(Wallet wallet, List<TransactionHusk> body, BlockHusk prevBlock) {
         this.body = body;
         if (wallet == null || body == null || prevBlock == null) {

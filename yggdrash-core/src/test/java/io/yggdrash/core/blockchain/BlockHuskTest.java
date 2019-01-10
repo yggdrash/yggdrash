@@ -23,6 +23,8 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class BlockHuskTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockHuskTest.class);
@@ -52,5 +54,13 @@ public class BlockHuskTest {
         //todo: modify to checking jsonObject when the block data format change to JsonObject.
         log.debug(block.toJsonObject().toString());
     }
+
+    @Test
+    public void constuctorTest() {
+        BlockHusk block2 = new BlockHusk(new Block(block.toJsonObject()));
+        assertThat(block2.verify()).isTrue();
+        assertThat(block.toJsonObject().toString()).isEqualTo(block2.toJsonObject().toString());
+    }
+
 
 }
