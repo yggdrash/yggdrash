@@ -1,6 +1,6 @@
 package io.yggdrash.validator.data;
 
-import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.Block;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,9 +21,9 @@ public class BlockConChain {
     private boolean isConsensused;
 
     @Autowired
-    public BlockConChain(BlockHusk genesisBlock) {
+    public BlockConChain(Block genesisBlock) {
         //todo: check genesis block index, prevHash
-        this.rootBlockCon = new BlockCon(0, new byte[32], genesisBlock);
+        this.rootBlockCon = new BlockCon(0, genesisBlock.getHeader().getChain(), genesisBlock);
         this.lastConfirmedBlockCon = rootBlockCon;
         this.blockConMap.put(rootBlockCon.getIdHex(), rootBlockCon);
         this.blockConKey.put(0L, rootBlockCon.getIdHex());

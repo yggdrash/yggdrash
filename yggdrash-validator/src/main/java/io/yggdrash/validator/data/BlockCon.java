@@ -21,7 +21,6 @@ import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.EbftProto;
 import org.spongycastle.util.encoders.Hex;
@@ -37,11 +36,11 @@ public class BlockCon {
     private static final int BLOCK_HEADER_LENGTH = 124;
     private static final int SIGNATURE_LENGTH = 65;
 
-    private byte[] id;
+    private byte[] id; // todo: change name to blockConHash or something
     private byte[] chain;
     private long index;
     private byte[] parentId;
-    private BlockHusk block;
+    private Block block;
     private final List<String> consensusList = new ArrayList<>();
 
     public BlockCon(byte[] blockConBytes) {
@@ -59,46 +58,45 @@ public class BlockCon {
         System.arraycopy(blockConBytes, position, bodyBytes, 0, bodyBytes.length);
         position += bodyBytes.length;
 
-        if ((bodyBytes.length - position) % SIGNATURE_LENGTH != 0) {
+        if ((blockConBytes.length - position) % SIGNATURE_LENGTH != 0) {
             throw new NotValidateException();
         }
 
         byte[] consensus = new byte[SIGNATURE_LENGTH];
-        while (position >= blockConBytes.length) {
+        while (position > blockConBytes.length) {
             System.arraycopy(blockConBytes, position, consensus, 0, consensus.length);
             position += consensus.length;
             this.consensusList.add(Hex.toHexString(consensus));
         }
 
-        this.block = new BlockHusk(
-                new Block(new BlockHeader(headerBytes), signature, new BlockBody(bodyBytes)));
-        this.id = this.block.getHash().getBytes();
-        this.chain = this.block.getBranchId().getBytes();
-        this.index = this.block.getIndex();
-        this.parentId = this.block.getPrevHash().getBytes();
+        this.block = new Block(new BlockHeader(headerBytes), signature, new BlockBody(bodyBytes));
+        this.id = this.block.getHash();
+        this.chain = this.block.getHeader().getChain();
+        this.index = this.block.getHeader().getIndex();
+        this.parentId = this.block.getHeader().getPrevBlockHash();
     }
 
-    public BlockCon(long index, byte[] parentId, BlockHusk block) {
+    public BlockCon(long index, byte[] parentId, Block block) {
         this(index, parentId, block, null);
     }
 
-    public BlockCon(long index, byte[] parentId, BlockHusk block, List<String> consensusList) {
-        this.chain = block.getBranchId().getBytes();
+    public BlockCon(long index, byte[] parentId, Block block, List<String> consensusList) {
+        this.chain = block.getHeader().getChain();
         this.index = index;
         this.parentId = parentId;
         this.block = block;
-        this.id = block.getHash().getBytes();
+        this.id = block.getHash();
         if (consensusList != null) {
             this.consensusList.addAll(consensusList);
         }
     }
 
     public BlockCon(EbftProto.BlockCon blockCon) {
+        this.block = Block.toBlock(blockCon.getBlock());
         this.chain = blockCon.getChain().toByteArray();
         this.index = blockCon.getIndex();
         this.parentId = blockCon.getParentId().toByteArray();
-        this.block = new BlockHusk(blockCon.getBlock());
-        this.id = block.getHash().getBytes();
+        this.id = blockCon.getId().toByteArray();
         if (blockCon.getConsensusList().getConsensusListList() != null) {
             for (String consensus : blockCon.getConsensusList().getConsensusListList()) {
                 if (consensus != null) {
@@ -132,11 +130,11 @@ public class BlockCon {
         this.index = index;
     }
 
-    public BlockHusk getBlock() {
+    public Block getBlock() {
         return block;
     }
 
-    public void setBlock(BlockHusk block) {
+    public void setBlock(Block block) {
         this.block = block;
     }
 
@@ -161,10 +159,10 @@ public class BlockCon {
             return false;
         }
 
-        if (Arrays.equals(blockCon.getId(), blockCon.getBlock().getHash().getBytes())
-                && blockCon.getIndex() == blockCon.getBlock().getIndex()
+        if (Arrays.equals(blockCon.getId(), blockCon.getBlock().getHash())
+                && blockCon.getIndex() == blockCon.getBlock().getHeader().getIndex()
                 && Arrays.equals(blockCon.getParentId(),
-                        blockCon.getBlock().getPrevHash().getBytes())
+                        blockCon.getBlock().getHeader().getPrevBlockHash())
                 && blockCon.getBlock().verify()) {
             return true;
         }
@@ -184,7 +182,7 @@ public class BlockCon {
             pos += SIGNATURE_LENGTH;
         }
 
-        return ByteUtil.merge(this.block.getData(), consensusList);
+        return ByteUtil.merge(this.block.toBinary(), consensusList);
     }
 
     public static EbftProto.BlockCon toProto(BlockCon blockCon) {
@@ -194,7 +192,7 @@ public class BlockCon {
                 .setId(ByteString.copyFrom(blockCon.getId()))
                 .setIndex(blockCon.getIndex())
                 .setParentId(ByteString.copyFrom(blockCon.getParentId()))
-                .setBlock(blockCon.getBlock().getInstance())
+                .setBlock(blockCon.getBlock().toProtoBlock())
                 .setConsensusList(EbftProto.ConsensusList.newBuilder()
                         .addAllConsensusList(blockCon.getConsensusList()).build());
         return protoBlockCon.build();
@@ -211,15 +209,10 @@ public class BlockCon {
     }
 
     public boolean equals(BlockCon blockCon) {
-        if (this.index == blockCon.getIndex()
+        return this.index == blockCon.getIndex()
                 && Arrays.equals(this.chain, blockCon.getChain())
                 && Arrays.equals(this.id, blockCon.getId())
                 && Arrays.equals(this.parentId, blockCon.getParentId())
-                && Arrays.equals(this.block.getHash().getBytes(),
-                blockCon.getBlock().getHash().getBytes())) {
-            return true;
-        } else {
-            return false;
-        }
+                && this.block.equals(blockCon.getBlock());
     }
 }

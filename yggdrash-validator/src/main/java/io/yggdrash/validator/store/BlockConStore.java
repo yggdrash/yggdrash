@@ -21,7 +21,10 @@ public class BlockConStore implements Store<byte[], BlockCon> {
     @Override
     public BlockCon get(byte[] key) {
         if (key != null) {
-            return new BlockCon(key);
+            byte[] foundValue = db.get(key);
+            if (foundValue != null) {
+                return new BlockCon(foundValue);
+            }
         }
         throw new NonExistObjectException("Not Found [" + Hex.toHexString(key) + "]");
     }

@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.BlockConChain;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -30,9 +29,7 @@ public class NodeConfiguration {
     }
 
     @Bean
-    BlockHusk genesisBlock() throws IOException {
-        ClassLoader classLoader = getClass().getClassLoader();
-
+    Block genesisBlock() throws IOException {
         String genesisString;
         ClassPathResource cpr = new ClassPathResource("genesis/genesis.json");
         try {
@@ -42,13 +39,11 @@ public class NodeConfiguration {
             throw new IOException("Error genesisFile");
         }
 
-        return new BlockHusk(
-                new Block(new Gson().fromJson(genesisString,
-                        JsonObject.class)).toProtoBlock());
+        return new Block(new Gson().fromJson(genesisString, JsonObject.class));
     }
 
     @Bean
-    BlockConChain blockConChain(BlockHusk genesisBlock) {
+    BlockConChain blockConChain(Block genesisBlock) {
         return new BlockConChain(genesisBlock);
     }
 
