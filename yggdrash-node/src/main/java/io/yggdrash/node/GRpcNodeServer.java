@@ -204,7 +204,7 @@ public class GRpcNodeServer implements NodeServer {
             BlockChain blockChain = branchGroup.getBranch(branchId);
             Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
             if (blockChain == null) {
-                log.warn("Invalid request for branchId={}", branchId);
+                log.warn("Invalid syncBlock request for branchId={}", branchId);
                 responseObserver.onNext(builder.build());
                 responseObserver.onCompleted();
                 return;
@@ -213,7 +213,7 @@ public class GRpcNodeServer implements NodeServer {
                 offset = 0;
             }
             long limit = syncLimit.getLimit();
-            log.debug("Synchronize block request offset={}, limit={}", offset, limit);
+            log.debug("Received syncBlock request offset={}, limit={}", offset, limit);
 
             for (int i = 0; i < limit; i++) {
                 BlockHusk block = branchGroup.getBlockByIndex(branchId, offset++);
@@ -235,7 +235,7 @@ public class GRpcNodeServer implements NodeServer {
         @Override
         public void syncTransaction(NetProto.SyncLimit syncLimit,
                                     StreamObserver<Proto.TransactionList> responseObserver) {
-            log.debug("Synchronize tx request");
+            log.debug("Received syncTransaction request");
             BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
             Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
             for (TransactionHusk husk : branchGroup.getUnconfirmedTxs(branchId)) {
