@@ -59,6 +59,10 @@ public class Runtime<T> {
     private TempStateStore tmpTxStateStore;
     private TempStateStore tmpBlockStateStore;
 
+    // All block chain has state root
+    private byte[] stateRoot;
+
+
     // FIX runtime run contract will init
     public Runtime(Contract<T> contract,
                    StateStore<T> stateStore,
@@ -132,12 +136,16 @@ public class Runtime<T> {
 
             result.put(tx.getHash(), transactionResult);
         }
-
         // all Transaction run complete
-        // TODO temp store value save state store
-        submitBlockState();
+
         return result;
     }
+
+    public void submitBlock() {
+        // TODO temp store value save state store
+        submitBlockState();
+    }
+
 
     // This invoke is temp run Transaction
     public boolean invoke(TransactionHusk tx) {
