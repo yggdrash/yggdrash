@@ -26,6 +26,7 @@ import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.StoreBuilder;
+import io.yggdrash.node.ChainTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,11 +34,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 @Configuration
+@EnableScheduling
 public class BranchConfiguration {
     private static final Logger log = LoggerFactory.getLogger(BranchConfiguration.class);
 
@@ -129,5 +132,15 @@ public class BranchConfiguration {
             log.warn(e.getMessage());
             return null;
         }
+    }
+
+    /**
+     * Scheduling Beans
+     */
+
+    @Bean
+    @ConditionalOnProperty("yggdrash.node.chain.gen")
+    public ChainTask chainTask() {
+        return new ChainTask();
     }
 }
