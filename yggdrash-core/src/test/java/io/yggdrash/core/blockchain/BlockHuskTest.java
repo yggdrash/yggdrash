@@ -69,4 +69,12 @@ public class BlockHuskTest {
         log.debug(block.toJsonObject().toString());
     }
 
+    @Test
+    public void constuctorTest() {
+        BlockHusk block2 = new BlockHusk(new Block(block.toJsonObject()));
+        assertThat(block2.verify()).isTrue();
+        assertThat(block.toJsonObject().toString()).isEqualTo(block2.toJsonObject().toString());
+    }
+
+
 }

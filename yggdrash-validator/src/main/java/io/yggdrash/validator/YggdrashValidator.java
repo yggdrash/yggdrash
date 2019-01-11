@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.store;
+package io.yggdrash.validator;
 
-public interface Store<K, V> {
-    void put(K key, V value);
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 
-    V get(K key);
-
-    boolean contains(K key);
-
-    void close();
+@SpringBootApplication
+public class YggdrashValidator {
+    public static void main(String[] args) {
+        SpringApplication.run(YggdrashValidator.class, args);
+    }
 }

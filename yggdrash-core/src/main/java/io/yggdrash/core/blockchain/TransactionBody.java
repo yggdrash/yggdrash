@@ -52,7 +52,7 @@ public class TransactionBody implements Cloneable {
         return this.body.toString().length();
     }
 
-    byte[] getBodyHash() {
+    public byte[] getBodyHash() {
         return HashUtil.sha3(this.toBinary());
     }
 

@@ -1,0 +1,21 @@
+{
+  "name": "ASSET",
+  "symbol": "AST",
+  "property": "currency",
+  "type": "",
+  "description": "ASSET is the contract for managing assets.",
+  "contractId": "9f2ef14cb553b07866a9cd1293c3331dbace10f9",
+  "genesis": {
+    "alloc": {
+      "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94": {
+        "balance": "1000000000"
+      },
+      "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e": {
+        "balance": "1000000000"
+      }
+    }
+  },
+  "timestamp": "00000166c837f0c9",
+  "owner": "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
+  "signature": "1b70747875886ef88ef3d3aa11c64ede1baf3ae382335c574853fb7aab4949355e5073ab928da8d32a49b8c3e9fcf2a85265601f0c65ac25be2413b40315d10e93"
+}

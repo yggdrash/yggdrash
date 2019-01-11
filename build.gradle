@@ -181,6 +181,18 @@ project(':yggdrash-gateway') {
     }
 }
 
+project(':yggdrash-validator') {
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    dependencies {
+        compile project(':yggdrash-core')
+        testCompile project(':yggdrash-core').sourceSets.test.output
+        
+        compile "io.github.lognet:grpc-spring-boot-starter:3.0.0"
+    }
+}
+
 task jacocoRootReport(type: JacocoReport) {
     description = 'Generates an aggregate report from all subprojects'
     dependsOn = subprojects.test

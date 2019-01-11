@@ -87,6 +87,10 @@ public class BlockHeaderTest {
         BlockHeader blockHeader2 = blockHeader1.clone();
         assertEquals(blockHeader1.toJsonObject(), blockHeader2.toJsonObject());
         assertArrayEquals(blockHeader1.getHashForSigning(), blockHeader2.getHashForSigning());
+
+        BlockHeader blockHeader3 = new BlockHeader(blockHeader1.toBinary());
+        assertEquals(blockHeader1.toJsonObject(), blockHeader3.toJsonObject());
+        assertArrayEquals(blockHeader1.getHashForSigning(), blockHeader3.getHashForSigning());
     }
 
 }
