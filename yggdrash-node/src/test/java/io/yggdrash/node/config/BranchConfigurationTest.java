@@ -60,8 +60,9 @@ public class BranchConfigurationTest {
 
     @Before
     public void setUp() {
-        this.branchConfig = new BranchConfiguration(new StoreBuilder(config));
-        this.peerGroup = new PeerGroup(owner, 1);
+        StoreBuilder builder = new StoreBuilder(config);
+        this.branchConfig = new BranchConfiguration(builder);
+        this.peerGroup = new PeerGroup(owner, builder.buildPeerStore(), 1);
     }
 
     @Test

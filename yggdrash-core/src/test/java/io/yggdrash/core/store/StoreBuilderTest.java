@@ -66,7 +66,7 @@ public class StoreBuilderTest {
     @Test
     public void buildPeerStore() {
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        PeerStore store = builder.buildPeerStore(BRANCH_ID);
+        PeerStore store = builder.buildPeerStore();
         store.put(peer.getPeerId(), peer);
         assert store.contains(peer.getPeerId());
         assert store.get(peer.getPeerId()).equals(peer);

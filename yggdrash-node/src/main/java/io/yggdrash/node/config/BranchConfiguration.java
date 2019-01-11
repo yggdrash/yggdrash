@@ -24,11 +24,11 @@ import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -58,6 +58,7 @@ public class BranchConfiguration {
     @Value("classpath:/branch-asset.json")
     Resource assetResource;
 
+    @Autowired
     BranchConfiguration(StoreBuilder storeBuilder) {
         this.storeBuilder = storeBuilder;
     }
@@ -125,8 +126,6 @@ public class BranchConfiguration {
                     .setStoreBuilder(storeBuilder)
                     .build();
             branchGroup.addBranch(branch, peerGroup);
-            PeerStore peerStore = storeBuilder.buildPeerStore(branch.getBranchId());
-            peerGroup.addPeerTable(branch.getBranchId(), peerStore);
             return branch;
         } catch (Exception e) {
             log.warn(e.getMessage());

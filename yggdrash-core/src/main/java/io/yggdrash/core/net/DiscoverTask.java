@@ -1,6 +1,5 @@
 package io.yggdrash.core.net;
 
-import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.proto.NodeInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,39 +13,33 @@ public abstract class DiscoverTask implements Runnable {
 
     private final PeerGroup peerGroup;
     private final Peer owner;
-    private final byte[] ownerId;
-    private final BranchId branchId;
 
-    public DiscoverTask(PeerGroup peerGroup, BranchId branchId) {
+    public DiscoverTask(PeerGroup peerGroup) {
         this.peerGroup = peerGroup;
         this.owner = peerGroup.getOwner();
-        this.ownerId = owner.getPeerId().getBytes();
-        this.branchId = branchId;
     }
 
     @Override
     public void run() {
-        int peerCount = peerGroup.count(branchId) - 1;
-        log.info("Start discover! peerCount={}, branchId={}", peerCount, branchId);
+        int peerCount = peerGroup.count() - 1;
+        log.info("Start discover! peerCount={}", peerCount);
         discover(0, new ArrayList<>());
     }
 
     public abstract PeerClientChannel getClient(Peer peer);
 
     private synchronized void discover(int round, List<Peer> prevTried) {
-        PeerTable peerTable = peerGroup.getPeerTable(branchId);
-
         try {
             if (round == KademliaOptions.MAX_STEPS) {
                 log.debug("{}", String.format("(KademliaOptions.MAX_STEPS) Terminating discover"
                         + "after %d rounds.", round));
                 log.trace("{}\n{}",
-                        String.format("Peers discovered %d", peerTable.getPeersCount() - 1),
-                        peerGroup.getPeerUriList(branchId));
+                        String.format("Peers discovered %d", peerGroup.count() - 1),
+                        peerGroup.getPeerUriList());
                 return;
             }
 
-            List<Peer> closest = peerTable.getClosestPeers(ownerId);
+            List<Peer> closest = peerGroup.getClosestPeers();
             List<Peer> tried = new ArrayList<>();
 
             for (Peer p : closest) {
@@ -54,9 +47,9 @@ public abstract class DiscoverTask implements Runnable {
                     PeerClientChannel clientChannel = getClient(p);
                     try {
                         Optional<List<NodeInfo>> list = Optional.ofNullable(
-                                clientChannel.findPeers(branchId, owner));
+                                clientChannel.findPeers(owner));
                         list.ifPresent(nodeInfo -> nodeInfo.forEach(
-                                n -> peerGroup.addPeerByYnodeUri(branchId, n.getUrl())));
+                                n -> peerGroup.addPeerByYnodeUri(n.getUrl())));
 
                         tried.add(p);
                     } catch (Exception e) {
@@ -73,8 +66,8 @@ public abstract class DiscoverTask implements Runnable {
             if (tried.isEmpty()) {
                 log.debug("Terminating discover after {} rounds.", round);
                 log.trace("{}\n{}",
-                        String.format("Peers discovered %d", peerGroup.count(branchId)),
-                        peerGroup.getPeerUriList(branchId));
+                        String.format("Peers discovered %d", peerGroup.count()),
+                        peerGroup.getPeerUriList());
                 return;
             }
 
