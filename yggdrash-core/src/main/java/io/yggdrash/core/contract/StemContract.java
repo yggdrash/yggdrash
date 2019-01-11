@@ -3,24 +3,22 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
-
 import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
-import io.yggdrash.core.store.StateStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import io.yggdrash.core.store.Store;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StemContract implements Contract<JsonObject> {
 
@@ -29,21 +27,18 @@ public class StemContract implements Contract<JsonObject> {
     private final String branchIdListKey = "BRANCH_ID_LIST";
 
     @ContractStateStore
-    StateStore<JsonObject> state;
+    Store<String, JsonObject> state;
 
 
     @ContractTransactionReceipt
     TransactionReceipt txReceipt;
 
     @Genesis
-    @InvokeTransction
+    @InvokeTransction // TODO remove InvokeTransaction
     public TransactionReceipt genesis(JsonObject param) {
-        if (state.getStateSize() == 0L) {
-            txReceipt = create(param);
-            log.info("[StemContract | genesis] SUCCESS! param => " + param);
+        txReceipt = create(param);
+        log.info("[StemContract | genesis] SUCCESS! param => " + param);
 
-            return txReceipt;
-        }
         return txReceipt;
     }
 
@@ -131,15 +126,15 @@ public class StemContract implements Contract<JsonObject> {
      * params value   content of the key
      */
     @ContractQuery
-    public Set<Object> search(JsonObject params) {
+    public JsonElement search(JsonObject params) {
         String subStateKey = params.get("key").getAsString();
         String key = params.get("value").getAsString();
 
-        if (state.getSubState(subStateKey) != null
-                && state.getSubState(subStateKey).get(key) != null) {
-            return state.getSubState(subStateKey).get(key);
+        if (getSubState(subStateKey) != null
+                && getSubState(subStateKey).get(key) != null) {
+            return getSubState(subStateKey).get(key);
         }
-        return new HashSet<>();
+        return null;
     }
 
     /**
@@ -247,15 +242,15 @@ public class StemContract implements Contract<JsonObject> {
     }
 
     private void setSubState(String branchId, JsonObject branch) {
-        state.putSubState("type",
+        putSubState("type",
                 branch.get("type").getAsString(), branchId);
-        state.putSubState("name",
+        putSubState("name",
                 branch.get("name").getAsString(), branchId);
-        state.putSubState("property",
+        putSubState("property",
                 branch.get("property").getAsString(), branchId);
-        state.putSubState("owner",
+        putSubState("owner",
                 branch.get("owner").getAsString(), branchId);
-        state.putSubState("symbol",
+        putSubState("symbol",
                 branch.get("symbol").getAsString(), branchId);
 
         printSubState();
@@ -263,15 +258,55 @@ public class StemContract implements Contract<JsonObject> {
 
     private void printSubState() {
         log.trace("[StemContract | printSubState] typeState => "
-                + state.getSubState("type").toString());
+                + getSubState("type").toString());
         log.trace("[StemContract | printSubState] nameState => "
-                + state.getSubState("name").toString());
+                + getSubState("name").toString());
         log.trace("[StemContract | printSubState] propertyState => "
-                + state.getSubState("property").toString());
+                + getSubState("property").toString());
         log.trace("[StemContract | printSubState] ownerState => "
-                + state.getSubState("owner").toString());
+                + getSubState("owner").toString());
         log.trace("[StemContract | printSubState] symbolState => "
-                + state.getSubState("symbol").toString());
+                + getSubState("symbol").toString());
+    }
+
+
+    // TODO remove subState
+    public  JsonObject getSubState(String key) {
+        return this.state.get(key);
+    }
+    /*
+    public void putSubState(String subStateKey, String key, String value) {
+        if (state.get(subStateKey) != null) {
+            //logger.debug(subStateKey + "State exists");
+            updateSubState(subStateKey, key, value);
+        } else {
+            //logger.debug("no " + subStateKey + "State exists!");
+            Set<String> newStateValue = new HashSet<>();
+            newStateValue.add(value);
+            JsonObject obj =  new JsonObject();
+            Map<String, Set<String>> newState = new HashMap<>();
+            newState.put(key, newStateValue);
+
+            state.put(subStateKey, newState);
+            //logger.debug(subStateKey + " DB is created");
+        }
+    }
+    */
+
+    private void putSubState(String subStateKey, String key, String value) {
+        if (state.get(subStateKey) != null && state.get(subStateKey).get(key) != null) {
+            JsonObject obj = state.get(subStateKey);
+            JsonArray subArray = obj.getAsJsonArray(key);
+            subArray.add(value);
+            state.put(subStateKey, obj);
+        } else {
+            JsonObject obj = new JsonObject();
+            JsonArray subState = new JsonArray();
+            subState.add(value);
+            obj.add(key, subState);
+
+            state.put(subStateKey, obj);
+        }
     }
 
 }
