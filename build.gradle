@@ -191,15 +191,6 @@ project(':yggdrash-validator') {
         
         compile "io.github.lognet:grpc-spring-boot-starter:3.0.0"
     }
-
-//    jar {
-//        classifier = 'classes'
-//        enabled = true
-//    }
-//
-//    bootJar {
-//        launchScript()
-//    }
 }
 
 task jacocoRootReport(type: JacocoReport) {
