@@ -1,15 +1,17 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -21,13 +23,21 @@ public class CoinContractTest {
 
     private static final CoinContract coinContract = new CoinContract();
     private static final Logger log = LoggerFactory.getLogger(CoinContractTest.class);
+    private Field txReceiptField;
 
     @Before
-    public void setUp() {
-        StateStore<JsonObject> coinContractStateStore = null;
-        coinContractStateStore = new StateStore<>(new HashMapDbSource());
-        TransactionReceiptStore txReceip = new TransactionReceiptStore(new HashMapDbSource());
-        coinContract.init(coinContractStateStore, txReceip);
+    public void setUp() throws IllegalAccessException {
+        StateStore<JsonObject> coinContractStateStore = new StateStore<>(new HashMapDbSource());
+
+        List<Field> txReceipt = ContractUtils.txReceipt(coinContract);
+        if (txReceipt.size() == 1) {
+            txReceiptField = txReceipt.get(0);
+        }
+        for (Field f : ContractUtils.contractFields(coinContract, ContractStateStore.class)) {
+            f.setAccessible(true);
+            f.set(coinContract, coinContractStateStore);
+        }
+
         genesis();
     }
 
@@ -37,29 +47,18 @@ public class CoinContractTest {
                 + " {\"balance\": \"1000000000\"},\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":"
                 + " {\"balance\": \"998000000000\"}}}";
 
-        TransactionReceipt result = coinContract.genesis(createParams(genesisStr));
+        TransactionReceipt result = new TransactionReceiptImpl();
+
+        try {
+            txReceiptField.set(coinContract, result);
+            coinContract.genesis(createParams(genesisStr));
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
 
         assertTrue(result.isSuccess());
         assertEquals(4, result.getTxLog().size());
-    }
-
-    @Test
-    public void specification() {
-        StateStore<JsonObject> coinContractStateStore;
-        coinContractStateStore = new StateStore<>(new HashMapDbSource());
-        MetaCoinContract metaCoinContract = new MetaCoinContract();
-        TransactionReceiptStore txReceip = new TransactionReceiptStore(new HashMapDbSource());
-        metaCoinContract.init(coinContractStateStore, txReceip);
-
-        List<String> methods = metaCoinContract.specification();
-
-        assertFalse(methods.isEmpty());
-        assertEquals(8, methods.size());
-
-        methods = coinContract.specification();
-
-        assertFalse(methods.isEmpty());
-        assertEquals(7, methods.size());
     }
 
     @Test
@@ -93,7 +92,6 @@ public class CoinContractTest {
                 + "\"amount\" : \"10\"}";
 
         // tx 가 invoke 되지 않아 baseContract 에 sender 가 세팅되지 않아서 설정해줌
-        coinContract.sender = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
         String balanceOf = "{\"address\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}";
         String toBalnce = "{\"address\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\"}";
 
@@ -103,7 +101,15 @@ public class CoinContractTest {
                 + coinContract.balanceof(createParams(toBalnce)).toString());
 
         JsonObject param = createParams(paramStr);
-        TransactionReceipt result = coinContract.transfer(param);
+
+        TransactionReceipt result = new TransactionReceiptImpl();
+        result.setIssuer("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        try {
+            txReceiptField.set(coinContract, result);
+            result = coinContract.transfer(param);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
 
         assertTrue(result.isSuccess());
 
@@ -139,8 +145,15 @@ public class CoinContractTest {
 
         JsonObject transferFromObject = createParams(transferParams);
 
-        coinContract.sender = spender;
-        TransactionReceipt result = coinContract.transferfrom(transferFromObject);
+        TransactionReceipt result = new TransactionReceiptImpl();
+        result.setIssuer(spender);
+        try {
+            txReceiptField.set(coinContract, result);
+            result = coinContract.transferfrom(transferFromObject);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
         assertTrue(result.isSuccess());
         assertEquals(BigDecimal.valueOf(300), getAllowance(owner, spender));
         log.debug(to + ": " + getBalance(to).toString());
@@ -148,7 +161,14 @@ public class CoinContractTest {
         log.debug(spender + ": " + getBalance(spender).toString());
         log.debug("getAllowance : " + getAllowance(owner, spender));
 
-        TransactionReceipt result2 = coinContract.transferfrom(transferFromObject);
+        TransactionReceipt result2 = new TransactionReceiptImpl();
+        try {
+            txReceiptField.set(coinContract, result);
+            coinContract.transferfrom(transferFromObject);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
         // not enough amount allowed
         assertFalse(result2.isSuccess());
 
@@ -163,8 +183,14 @@ public class CoinContractTest {
         String approveParams = "{\"spender\" : \"" + spender + "\","
                 + "\"amount\" : \"" + amount + "\"}";
 
-        coinContract.sender = owner;
-        TransactionReceipt result = coinContract.approve(createParams(approveParams));
+        TransactionReceipt result = new TransactionReceiptImpl();
+        result.setIssuer(owner);
+        try {
+            txReceiptField.set(coinContract, result);
+            coinContract.approve(createParams(approveParams));
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
 
         assertTrue(result.isSuccess());
 
@@ -208,9 +234,9 @@ public class CoinContractTest {
 
     public class MetaCoinContract extends CoinContract {
         public TransactionReceipt hello(JsonObject params) {
-            TransactionReceipt txReceipt = new TransactionReceipt();
+            TransactionReceipt txReceipt = new TransactionReceiptImpl();
             txReceipt.putLog("hello", params.toString());
-            txReceipt.setStatus(TransactionReceipt.SUCCESS);
+            txReceipt.setStatus(ExecuteStatus.SUCCESS);
             log.info(txReceipt.toString());
             return txReceipt;
         }

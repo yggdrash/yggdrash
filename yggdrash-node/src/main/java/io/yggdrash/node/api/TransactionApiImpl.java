@@ -12,8 +12,6 @@ import io.yggdrash.node.api.dto.TransactionDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
-
 @Service
 @AutoJsonRpcServiceImpl
 public class TransactionApiImpl implements TransactionApi {
@@ -108,11 +106,6 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public int newPendingTransactionFilter(String branchId) {
         return branchGroup.getUnconfirmedTxs(BranchId.of(branchId)).size();
-    }
-
-    @Override
-    public Map<String, TransactionReceipt> getAllTransactionReceipt(String branchId) {
-        return branchGroup.getTransactionReceiptStore(BranchId.of(branchId)).getTxReceiptStore();
     }
 
     @Override

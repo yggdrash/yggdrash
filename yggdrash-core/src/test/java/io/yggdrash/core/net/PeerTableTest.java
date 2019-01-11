@@ -1,5 +1,6 @@
 package io.yggdrash.core.net;
 
+import io.yggdrash.TestConstants.SlowTest;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.store.PeerStore;
@@ -34,6 +35,7 @@ public class PeerTableTest {
 
     @Test
     public void getLatestPeers() {
+        SlowTest.apply();
         assertEquals(peerTable.getBucketsCount(), 1);
 
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");

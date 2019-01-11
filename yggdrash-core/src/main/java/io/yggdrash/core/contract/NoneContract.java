@@ -1,22 +1,24 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.runtime.annotation.ContractQuery;
+import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.YggdrashContract;
 import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.TransactionReceiptStore;
 
+@YggdrashContract
 public class NoneContract implements Contract {
-    @Override
-    public void init(StateStore stateStore, TransactionReceiptStore txReceiptStore) {
+    public void init(StateStore stateStore) {
     }
 
-    @Override
-    public boolean invoke(TransactionHusk tx) {
+    @InvokeTransction
+    public boolean doNothing(JsonObject param) {
+        // pass
         return true;
     }
 
-    @Override
-    public Object query(String method, JsonObject params) {
-        return null;
+    @ContractQuery
+    public String someQuery() {
+        return "";
     }
 }

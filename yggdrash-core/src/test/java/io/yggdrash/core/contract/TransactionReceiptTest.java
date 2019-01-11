@@ -27,7 +27,7 @@ public class TransactionReceiptTest {
 
     @Before
     public void setUp() {
-        txReceipt = new TransactionReceipt();
+        txReceipt = new TransactionReceiptImpl();
     }
 
     @Test
@@ -39,7 +39,7 @@ public class TransactionReceiptTest {
     @Test
     public void statusTest() {
         assert !txReceipt.isSuccess();
-        txReceipt.setStatus(TransactionReceipt.SUCCESS);
+        txReceipt.setStatus(ExecuteStatus.SUCCESS);
         assert txReceipt.isSuccess();
     }
 
@@ -51,9 +51,4 @@ public class TransactionReceiptTest {
         assert txReceipt.getTxId().equals(txId);
     }
 
-    @Test
-    public void getYeedUsedTest() {
-        assert txReceipt.getYeedUsed() == 30000;
-        assert txReceipt.toString().contains("\"yeedUsed\":30000");
-    }
 }

@@ -31,6 +31,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class BlockChainTest extends CiTest {
     private static final Logger log = LoggerFactory.getLogger(BlockChainTest.class);
+
     @Test
     public void shouldBeGetBlockByHash() {
         BlockChain blockChain = generateTestBlockChain(false);

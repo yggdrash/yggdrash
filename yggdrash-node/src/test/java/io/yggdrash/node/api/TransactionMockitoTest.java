@@ -23,26 +23,24 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.TransactionReceipt;
+import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.node.api.dto.TransactionDto;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import org.apache.commons.codec.binary.Hex;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
-import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TransactionMockitoTest {
@@ -74,7 +72,7 @@ public class TransactionMockitoTest {
         txList.add(tx);
         txList.add(tx);
         txList.add(tx);
-        txReceipt = new TransactionReceipt();
+        txReceipt = new TransactionReceiptImpl();
         txReceipt.setTxId(txId);
         txReceiptStore.put(txId, txReceipt);
         BlockHusk genesis = BlockChainTestUtils.genesisBlock();
@@ -127,14 +125,6 @@ public class TransactionMockitoTest {
         when(txReceiptStoreMock.get(txId)).thenReturn(txReceipt);
         TransactionReceipt res = txApiImpl.getTransactionReceipt(branchId.toString(), txId);
         assertEquals(res.getTxId(), txId);
-    }
-
-    @Test
-    public void getAllTransactionReceiptTest() {
-        when(txReceiptStoreMock.getTxReceiptStore()).thenReturn(txReceiptStore);
-        Map<String, TransactionReceipt> res =
-                txApiImpl.getAllTransactionReceipt(branchId.toString());
-        assertThat(res.containsKey(txId)).isTrue();
     }
 
     @Test

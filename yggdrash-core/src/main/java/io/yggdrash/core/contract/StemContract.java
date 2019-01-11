@@ -6,6 +6,12 @@ import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 
+import io.yggdrash.core.runtime.annotation.ContractQuery;
+import io.yggdrash.core.runtime.annotation.ContractStateStore;
+import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
+import io.yggdrash.core.runtime.annotation.Genesis;
+import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.store.StateStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,20 +22,29 @@ import java.util.Map;
 import java.util.Set;
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
 
-public class StemContract extends BaseContract<JsonObject> {
+public class StemContract implements Contract<JsonObject> {
 
     private static final Logger log = LoggerFactory.getLogger(StemContract.class);
 
     private final String branchIdListKey = "BRANCH_ID_LIST";
 
+    @ContractStateStore
+    StateStore<JsonObject> state;
+
+
+    @ContractTransactionReceipt
+    TransactionReceipt txReceipt;
+
+    @Genesis
+    @InvokeTransction
     public TransactionReceipt genesis(JsonObject param) {
         if (state.getStateSize() == 0L) {
-            TransactionReceipt receipt = create(param);
+            txReceipt = create(param);
             log.info("[StemContract | genesis] SUCCESS! param => " + param);
 
-            return receipt;
+            return txReceipt;
         }
-        return new TransactionReceipt();
+        return txReceipt;
     }
 
     /**
@@ -37,13 +52,13 @@ public class StemContract extends BaseContract<JsonObject> {
      *
      * @param params branch   : The branch.json to register on the stem
      */
+    @InvokeTransction
     public TransactionReceipt create(JsonObject params) {
-        TransactionReceipt txReceipt = new TransactionReceipt();
 
         for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
             BranchId branchId = BranchId.of(entry.getKey());
             JsonObject json = entry.getValue().getAsJsonObject();
-            txReceipt.putLog(branchId.toString(), json);
+            txReceipt.putLog(branchId.toString(), json.toString());
             StemContractStateValue stateValue;
             try {
                 stateValue = StemContractStateValue.of(json);
@@ -58,10 +73,10 @@ public class StemContract extends BaseContract<JsonObject> {
                     addBranchId(branchId);
                     state.put(branchId.toString(), stateValue.getJson());
                     setSubState(branchId.toString(), stateValue.getJson());
-                    txReceipt.setStatus(TransactionReceipt.SUCCESS);
+                    txReceipt.setStatus(ExecuteStatus.SUCCESS);
                 } catch (Exception e) {
                     e.printStackTrace();
-                    txReceipt.setStatus(TransactionReceipt.FALSE);
+                    txReceipt.setStatus(ExecuteStatus.FALSE);
                 }
 
                 log.info("[StemContract | create] branchId => " + branchId);
@@ -77,18 +92,18 @@ public class StemContract extends BaseContract<JsonObject> {
      * @param params branchId The Id of the branch to update
      *               branch   The branch.json to update on the stem
      */
+    @InvokeTransction
     public TransactionReceipt update(JsonObject params) {
-        TransactionReceipt txReceipt = new TransactionReceipt();
 
         for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
             BranchId branchId = BranchId.of(entry.getKey());
             JsonObject json = entry.getValue().getAsJsonObject();
-            txReceipt.putLog(branchId.toString(), json);
+            txReceipt.putLog(branchId.toString(), json.toString());
             StemContractStateValue stateValue = getStateValue(branchId.toString());
             if (stateValue != null && isOwnerValid(json.get("owner").getAsString())) {
                 updateBranch(stateValue, json);
                 state.put(branchId.toString(), stateValue.getJson());
-                txReceipt.setStatus(TransactionReceipt.SUCCESS);
+                txReceipt.setStatus(ExecuteStatus.SUCCESS);
                 log.info("[StemContract | update] branchId => " + branchId);
                 log.info("[StemContract | update] branch => " + stateValue.getJson());
             }
@@ -115,6 +130,7 @@ public class StemContract extends BaseContract<JsonObject> {
      * params key       type, name, property, owner, tag or symbol
      * params value   content of the key
      */
+    @ContractQuery
     public Set<Object> search(JsonObject params) {
         String subStateKey = params.get("key").getAsString();
         String key = params.get("value").getAsString();
@@ -131,6 +147,7 @@ public class StemContract extends BaseContract<JsonObject> {
      *
      * @param params   branchId
      */
+    @ContractQuery
     public JsonObject view(JsonObject params) {
         String branchId = params.get(BRANCH_ID).getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
@@ -144,6 +161,7 @@ public class StemContract extends BaseContract<JsonObject> {
      *
      * @param params   branchId
      */
+    @ContractQuery
     public ContractId getcurrentcontract(JsonObject params) {
         String branchId = params.get(BRANCH_ID)
                 .getAsString().toLowerCase();
@@ -158,6 +176,7 @@ public class StemContract extends BaseContract<JsonObject> {
      *
      * @param params   branchId
      */
+    @ContractQuery
     public List<ContractId> getcontracthistory(JsonObject params) {
         String branchId = params.get(BRANCH_ID)
                 .getAsString().toLowerCase();
@@ -172,6 +191,7 @@ public class StemContract extends BaseContract<JsonObject> {
      *
      * @return list of all branch id
      */
+    @ContractQuery
     public Set<String> getallbranchid() {
         JsonObject branchList = state.get(branchIdListKey);
         if (branchList == null) {
@@ -204,6 +224,7 @@ public class StemContract extends BaseContract<JsonObject> {
     }
 
     private boolean isOwnerValid(String owner) {
+        String sender = this.txReceipt.getIssuer();
         return sender != null && sender.equals(owner);
     }
 
@@ -252,4 +273,5 @@ public class StemContract extends BaseContract<JsonObject> {
         log.trace("[StemContract | printSubState] symbolState => "
                 + state.getSubState("symbol").toString());
     }
+
 }

@@ -20,7 +20,7 @@ import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.contract.ContractMeta;
-import io.yggdrash.core.contract.Runtime;
+import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.store.BlockStore;
@@ -100,12 +100,20 @@ public class BlockChainBuilder {
                     genesisBlock.getBranchId());
         }
 
-        if (runtime == null) {
-            // TODO change Transaction Recipt Store
-            runtime = new Runtime<>(stateStore, transactionReceiptStore);
+        Contract contract = getContract(branch);
+
+        if (contract == null) {
+            throw new FailedOperationException("Contract not exist");
         }
 
-        Contract contract = getContract(branch);
+        if (runtime == null) {
+            // TODO change Transaction Recipt Store
+            runtime = new Runtime(contract,
+                    stateStore,
+                    transactionReceiptStore
+
+            );
+        }
 
         return new BlockChain(branch, genesisBlock, blockStore, transactionStore, metaStore,
                 contract, runtime);

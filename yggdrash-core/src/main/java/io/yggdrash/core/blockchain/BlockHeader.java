@@ -70,7 +70,7 @@ public class BlockHeader implements Cloneable {
         this.bodyLength = bodyLength;
     }
 
-    BlockHeader(
+    public BlockHeader(
             byte[] chain,
             byte[] version,
             byte[] type,
@@ -82,7 +82,7 @@ public class BlockHeader implements Cloneable {
                 blockBody.getMerkleRoot(), blockBody.length());
     }
 
-    BlockHeader(JsonObject jsonObject) {
+    public BlockHeader(JsonObject jsonObject) {
         this.chain = Hex.decode(jsonObject.get("chain").getAsString());
         this.version = Hex.decode(jsonObject.get("version").getAsString());
         this.type = Hex.decode(jsonObject.get("type").getAsString());
@@ -219,23 +219,6 @@ public class BlockHeader implements Cloneable {
     @Override
     public BlockHeader clone() throws CloneNotSupportedException {
         return (BlockHeader) super.clone();
-    }
-
-    public static Proto.Block.Header toProtoBlockHeader(BlockHeader blockHeader) {
-        Proto.Block.Header protoHeader = Proto.Block.Header.newBuilder()
-                .setChain(ByteString.copyFrom(blockHeader.getChain()))
-                .setVersion(ByteString.copyFrom(blockHeader.getVersion()))
-                .setType(ByteString.copyFrom(blockHeader.getType()))
-                .setPrevBlockHash(ByteString.copyFrom(blockHeader.getPrevBlockHash()))
-                .setIndex(ByteString.copyFrom(ByteUtil.longToBytes(blockHeader.getIndex())))
-                .setTimestamp(ByteString.copyFrom(
-                        ByteUtil.longToBytes(blockHeader.getTimestamp())))
-                .setMerkleRoot(ByteString.copyFrom(blockHeader.getMerkleRoot()))
-                .setBodyLength(ByteString.copyFrom(
-                        ByteUtil.longToBytes(blockHeader.getBodyLength())))
-                .build();
-
-        return protoHeader;
     }
 
     static BlockHeader toBlockHeader(Proto.Block.Header protoBlockHeader) {

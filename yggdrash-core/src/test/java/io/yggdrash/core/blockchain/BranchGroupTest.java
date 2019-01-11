@@ -20,13 +20,17 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
+import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.exception.DuplicatedException;
+import io.yggdrash.core.runtime.annotation.ContractQuery;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import static io.yggdrash.TestConstants.PerformanceTest;
@@ -131,7 +135,10 @@ public class BranchGroupTest {
     public void getContract() throws Exception {
         Contract contract = branchGroup.getContract(block.getBranchId());
         assertThat(contract).isNotNull();
-        String result = contract.query("getallbranchid", null).toString();
+        Map<String, Method> queryMethod = ContractUtils
+                .contractMethods(contract, ContractQuery.class);
+        Method getAllBranchid = queryMethod.get("getallbranchid");
+        String result = getAllBranchid.invoke(contract).toString();
         assertThat(result).contains(block.getBranchId().toString());
     }
 

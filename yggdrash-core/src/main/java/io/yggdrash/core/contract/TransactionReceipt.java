@@ -16,76 +16,40 @@
 
 package io.yggdrash.core.contract;
 
-import io.yggdrash.common.util.JsonUtil;
-
-import java.util.HashMap;
 import java.util.Map;
 
-public class TransactionReceipt {
-    public static final int FALSE = 0;
-    public static final int SUCCESS = 1;
+public interface TransactionReceipt {
 
-    private String txId;
-    private String blockId;
-    private final int yeedUsed = 30000;
-    private String branchId;
-    private final Map<String, Object> txLog = new HashMap<>();
-    private int status = FALSE;
+    void putLog(String key, String value);
 
-    public void putLog(String key, Object value) {
-        txLog.put(key, value);
-    }
+    String getLog(String key);
 
-    public Object getLog(String key) {
-        return txLog.get(key);
-    }
+    ExecuteStatus getStatus();
 
-    public void setStatus(int status) {
-        this.status = status;
-    }
+    void setStatus(ExecuteStatus status);
 
-    public void setTxId(String txId) {
-        this.txId = txId;
-    }
+    String getTxId();
 
-    public String getTxId() {
-        return txId;
-    }
+    void setTxId(String txId);
 
-    public String getBlockId() {
-        return blockId;
-    }
+    String getBlockId();
 
-    public int getYeedUsed() {
-        return yeedUsed;
-    }
+    void setBlockId(String blockId);
 
-    public String getBranchId() {
-        return branchId;
-    }
+    Long getBlockHeight();
 
-    public Map<String, Object> getTxLog() {
-        return txLog;
-    }
+    void setBlockHeight(Long blockHeight);
 
-    public int getStatus() {
-        return status;
-    }
+    String getBranchId();
 
-    public boolean isSuccess() {
-        return status == SUCCESS;
-    }
+    void setBranchId(String branchId);
 
-    public static TransactionReceipt errorReceipt(String txId, Throwable e) {
-        TransactionReceipt txReceipt = new TransactionReceipt();
-        txReceipt.setTxId(txId);
-        txReceipt.setStatus(TransactionReceipt.FALSE);
-        txReceipt.putLog("Error", e);
-        return txReceipt;
-    }
+    Map<String, String> getTxLog();
 
-    @Override
-    public String toString() {
-        return JsonUtil.convertObjToString(this);
-    }
+    boolean isSuccess();
+
+    String getIssuer();
+
+    void setIssuer(String issuer);
+
 }

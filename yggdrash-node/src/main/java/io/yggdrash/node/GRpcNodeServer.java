@@ -330,7 +330,8 @@ public class GRpcNodeServer implements NodeServer {
                     // maxPeer 를 넘은경우부터 거리 계산된 peerTable 을 기반으로 peerChannel 업데이트
                     if (peerGroup.isClosePeer(peer)) {
                         log.warn("channel is max");
-                        peerGroup.reloadPeerChannel(new GRpcClientChannel(peer));
+                        // TODO apply after test
+                        //peerGroup.reloadPeerChannel(new GRpcClientChannel(peer));
                     }
                 }
             } catch (Exception e) {

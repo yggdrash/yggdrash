@@ -95,6 +95,57 @@ public class PeerGroupTest {
         assert peerGroup.getAllPeersFromBucketsOf().size() == 1;
     }
 
+    @Test
+    public void getBootstrappingSeedList() {
+        assert peerGroup.getBootstrappingSeedList().size() == 0;
+    }
+
+    @Test
+    public void getClosestPeers() {
+        assert peerGroup.getClosestPeers().size() == 0;
+    }
+
+    @Test
+    public void destroy() {
+        peerGroup.destroy();
+    }
+
+    @Test
+    public void chainedBlock() {
+        peerGroup.chainedBlock(BlockChainTestUtils.genesisBlock());
+    }
+
+    @Test
+    public void isClosePeer() {
+        assert !peerGroup.isClosePeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
+    }
+
+    @Test
+    public void reloadPeerChannel() {
+        peerGroup.reloadPeerChannel(ChannelMock.dummy());
+    }
+
+    @Test
+    public void getLatestPeers() {
+        assert peerGroup.getLatestPeers(1000).size() == 1;
+    }
+
+    @Test
+    public void logBucketIdOf() {
+        peerGroup.logBucketIdOf();
+        peerGroup.logBucketIdOf(OWNER);
+    }
+
+    @Test
+    public void getActivePeerListOf() {
+        assert peerGroup.getActivePeerListOf().size() == 0;
+    }
+
+    @Test
+    public void touchPeer() {
+        peerGroup.touchPeer(OWNER);
+    }
+
     private void addPeerChannel() {
         assert peerGroup.getActivePeerList().isEmpty();
         peerGroup.newPeerChannel(ChannelMock.dummy());

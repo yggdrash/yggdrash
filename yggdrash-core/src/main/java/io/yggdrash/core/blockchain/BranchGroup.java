@@ -50,7 +50,7 @@ public class BranchGroup {
         return branches.get(branchId);
     }
 
-    public boolean containsBranch(BranchId branchId) {
+    boolean containsBranch(BranchId branchId) {
         return branches.containsKey(branchId);
     }
 
@@ -135,14 +135,13 @@ public class BranchGroup {
         return branches.get(branchId).getContract();
     }
 
-    @SuppressWarnings("unchecked")
     public Object query(BranchId branchId, String method, JsonObject params) {
         if (!containsBranch(branchId)) {
             throw new NonExistObjectException(branchId.toString() + " branch");
         }
         try {
             BlockChain chain = branches.get(branchId);
-            return chain.getRuntime().query(chain.getContract(), method, params);
+            return chain.getRuntime().query(method, params);
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
