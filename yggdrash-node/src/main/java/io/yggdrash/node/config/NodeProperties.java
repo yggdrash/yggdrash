@@ -25,6 +25,10 @@ public class NodeProperties {
     private final Grpc grpc = new Grpc();
     private List<String> seedPeerList;
     private int maxPeers;
+    private boolean seed;
+    private final Chain chain = new Chain();
+
+    public Chain getChain() { return chain; }
 
     public Grpc getGrpc() {
         return grpc;
@@ -44,6 +48,35 @@ public class NodeProperties {
 
     public int getMaxPeers() {
         return maxPeers;
+    }
+
+    public boolean isSeed() {
+        return seed;
+    }
+
+    public void setSeed(boolean seed) {
+        this.seed = seed;
+    }
+
+    public static class Chain {
+        private boolean enabled;
+        private boolean gen;
+
+        public boolean isEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(boolean enabled) {
+            this.enabled = enabled;
+        }
+
+        public boolean isGen() {
+            return gen;
+        }
+
+        public void setGen(boolean gen) {
+            this.gen = gen;
+        }
     }
 
     public static class Grpc {

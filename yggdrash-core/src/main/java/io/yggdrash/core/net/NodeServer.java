@@ -24,5 +24,7 @@ public interface NodeServer {
 
     void blockUntilShutdown() throws InterruptedException;
 
+    void bootstrapping();
+
     void stop();
 }
