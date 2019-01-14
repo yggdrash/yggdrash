@@ -30,22 +30,22 @@ public class PeerGroupTest {
     public void getPeerTest() {
         Peer requester = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
         Collection<String> peerListWithoutRequester = peerGroup.getPeers(requester);
-        assert peerListWithoutRequester.size() == 1;
+        assert peerListWithoutRequester.size() == 0;
         // requester 가 peer 목록 조회 후에는 peerTable 에 등록되어 있다
         assert peerGroup.getPeerUriList().contains(requester.getYnodeUri());
     }
 
     @Test
     public void addPeerByYnodeUriTest() {
-        assert peerGroup.count() == 1;
+        assert peerGroup.count() == 0;
 
         peerGroup.addPeerByYnodeUri("ynode://75bff16c@127.0.0.1:32918");
         assert peerGroup.getPeerUriList().contains("ynode://75bff16c@127.0.0.1:32918");
-        assert peerGroup.count() == 2;
+        assert peerGroup.count() == 1;
 
         peerGroup.addPeerByYnodeUri("ynode://75bff16c@127.0.0.1:32919");
         assert peerGroup.getPeerUriList().contains("ynode://75bff16c@127.0.0.1:32919");
-        assert peerGroup.count() == 3;
+        assert peerGroup.count() == 2;
     }
 
     /**
@@ -92,7 +92,7 @@ public class PeerGroupTest {
 
     @Test
     public void getAllPeersFromBucketOf() {
-        assert peerGroup.getAllPeersFromBucketsOf().size() == 1;
+        assert peerGroup.getAllPeersFromBucketsOf().size() == 0;
     }
 
     @Test
@@ -127,6 +127,7 @@ public class PeerGroupTest {
 
     @Test
     public void getLatestPeers() {
+        peerGroup.addPeerByYnodeUri("ynode://75bff16c@127.0.0.1:32918");
         assert peerGroup.getLatestPeers(1000).size() == 1;
     }
 

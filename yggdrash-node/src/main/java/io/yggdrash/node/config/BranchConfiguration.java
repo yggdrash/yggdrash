@@ -64,28 +64,29 @@ public class BranchConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty("yggdrash.branch.default.active")
+    @ConditionalOnProperty(name = "yggdrash.node.seed",
+            havingValue = "false", matchIfMissing = true)
     BlockChain stem(PeerGroup peerGroup, BranchGroup branchGroup)
             throws IOException {
         return addBranch(stemResource.getInputStream(), peerGroup, branchGroup);
     }
 
     @Bean
-    @ConditionalOnProperty("yggdrash.branch.default.active")
+    @ConditionalOnProperty("yggdrash.node.chain.enabled")
     BlockChain yeed(PeerGroup peerGroup, BranchGroup branchGroup)
             throws IOException {
         return addBranch(yeedResource.getInputStream(), peerGroup, branchGroup);
     }
 
     @Bean
-    @ConditionalOnProperty("yggdrash.branch.default.active")
+    @ConditionalOnProperty("yggdrash.node.chain.enabled")
     BlockChain sw(PeerGroup peerGroup, BranchGroup branchGroup)
             throws IOException {
         return addBranch(swResource.getInputStream(), peerGroup, branchGroup);
     }
 
     @Bean
-    @ConditionalOnProperty("yggdrash.branch.default.active")
+    @ConditionalOnProperty("yggdrash.node.chain.enabled")
     BlockChain asset(PeerGroup peerGroup, BranchGroup branchGroup)
             throws IOException {
         return addBranch(assetResource.getInputStream(), peerGroup, branchGroup);

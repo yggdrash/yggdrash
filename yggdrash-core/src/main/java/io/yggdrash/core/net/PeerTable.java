@@ -20,14 +20,13 @@ public class PeerTable {
         this.owner = p;
         this.peerStore = peerStore;
         init();
-        addPeer(this.owner);
     }
 
     public Peer getPeer() {
         return owner;
     }
 
-    public final void init() {
+    private void init() {
         buckets = new PeerBucket[KademliaOptions.BINS];
         for (int i = 0; i < KademliaOptions.BINS; i++) {
             buckets[i] = new PeerBucket(i);
@@ -65,7 +64,7 @@ public class PeerTable {
         return false;
     }
 
-    public synchronized void touchPeer(Peer p) {
+    synchronized void touchPeer(Peer p) {
         for (PeerBucket b : buckets) {
             if (b.getPeers().contains(p)) {
                 b.getPeers().get(b.getPeers().indexOf(p)).touch();
@@ -74,7 +73,7 @@ public class PeerTable {
         }
     }
 
-    public int getBucketsCount() {
+    int getBucketsCount() {
         int i = 0;
         for (PeerBucket b : buckets) {
             if (b.getPeersCount() > 0) {
@@ -84,7 +83,7 @@ public class PeerTable {
         return i;
     }
 
-    public List<Peer> getLatestPeers(long reqTime) {
+    List<Peer> getLatestPeers(long reqTime) {
         long limitTime = reqTime - 1000;
         List<Peer> latestPeers = new ArrayList<>();
 
@@ -99,7 +98,7 @@ public class PeerTable {
         return latestPeers;
     }
 
-    public Map<Integer, List<Peer>> getBucketIdAndPeerList() {
+    Map<Integer, List<Peer>> getBucketIdAndPeerList() {
         Map<Integer, List<Peer>> res = new LinkedHashMap<>();
         if (getBucketsCount() > 0) {
             int i = 0;
@@ -122,7 +121,7 @@ public class PeerTable {
         return id < 0 ? 0 : id;
     }
 
-    public int getTmpBucketId(Peer p) {
+    int getTmpBucketId(Peer p) {
         p.setDistance(owner);
         int id = p.getDistance() - 1;
         return id < 0 ? 0 : id;
@@ -153,7 +152,7 @@ public class PeerTable {
     }
 
     synchronized boolean isPeerStoreEmpty() {
-        return peerStore.size() == 1 && peerStore.contains(owner.getPeerId());
+        return peerStore.size() == 0;
     }
 
     synchronized List<String> getAllFromPeerStore() {
