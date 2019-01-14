@@ -174,8 +174,8 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         long min = Math.min(index - 1 + count,
                 this.blockConChain.getLastConfirmedBlockCon().getIndex());
         for (long l = index; l <= min; l++) {
-            blockConList.add(this.blockConChain.getBlockConMap().get(
-                    this.blockConChain.getBlockConKey().get(l)));
+            blockConList.add(this.blockConChain.getBlockConStore().get(
+                    Hex.decode(this.blockConChain.getBlockConKey().get(l))));
         }
 
         responseObserver.onNext(BlockCon.toProtoList(blockConList));
@@ -258,7 +258,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
                     log.error("blockConSyncing Verify Fail");
                     continue;
                 }
-                this.blockConChain.getBlockConMap().put(blockCon.getHashHex(), blockCon);
+                this.blockConChain.getBlockConStore().put(blockCon.getHash(), blockCon);
                 this.blockConChain.getBlockConKey().put(blockCon.getIndex(), blockCon.getHashHex());
             }
             blockCon = blockConList.get(i - 1);
@@ -424,7 +424,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
 
     private void confirmedBlock(BlockCon blockCon) {
         // add newBlockCon into blockConMap
-        this.blockConChain.getBlockConMap().put(blockCon.getHashHex(), blockCon);
+        this.blockConChain.getBlockConStore().put(blockCon.getHash(), blockCon);
         this.blockConChain.getBlockConKey().put(blockCon.getIndex(), blockCon.getHashHex());
 
         changeLastConfirmedBlock(blockCon);
@@ -441,13 +441,13 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
                 + ")");
 
         // delete memory data for long term test
-        if (TEST_MEMORYFREE) {
-            long index = blockCon.getIndex() - 2;
-            if (index > 0) {
-                String hash = this.blockConChain.getBlockConKey().get(index);
-                this.blockConChain.getBlockConMap().remove(hash);
-            }
-        }
+//        if (TEST_MEMORYFREE) {
+//            long index = blockCon.getIndex() - 2;
+//            if (index > 0) {
+//                String hash = this.blockConChain.getBlockConKey().get(index);
+//                this.blockConChain.getBlockConMap().remove(hash);
+//            }
+//        }
     }
 
     private void changeLastConfirmedBlock(BlockCon blockCon) {
@@ -477,7 +477,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
                 + "]");
 
         if (log.isDebugEnabled()) {
-            log.debug("map size= " + this.blockConChain.getBlockConMap().size());
+            log.debug("map size= " + this.blockConChain.getBlockConStore().size());
             log.debug("key size= " + this.blockConChain.getBlockConKey().size());
             log.debug("proposedBlock size= "
                     + this.blockConChain.getUnConfirmedBlockConMap().size());
