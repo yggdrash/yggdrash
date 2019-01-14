@@ -19,7 +19,7 @@ public class BlockChainService  extends BlockChainGrpc.BlockChainImplBase {
 
     private final BranchGroup branchGroup;
 
-    BlockChainService(BranchGroup branchGroup) {
+    public BlockChainService(BranchGroup branchGroup) {
         this.branchGroup = branchGroup;
     }
 

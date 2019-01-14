@@ -16,37 +16,39 @@
 
 package io.yggdrash.node.service;
 
+import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.net.NodeServer;
-import io.yggdrash.core.net.PeerGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GRpcNodeServer implements NodeServer {
     private static final Logger log = LoggerFactory.getLogger(GRpcNodeServer.class);
 
-    @Autowired
-    PeerGroup peerGroup;
-
-    @Autowired
-    BranchGroup branchGroup;
+    private List<BindableService> bindableServiceList = new ArrayList<>();
 
     private Server server;
 
+    public void addService(BindableService bindableService) {
+        this.bindableServiceList.add(bindableService);
+    }
+
     @Override
-    public void start(String host, int port) throws IOException {
-        this.server = ServerBuilder.forPort(port)
-                .addService(new PeerService(peerGroup))
-                .addService(new PingPongService(peerGroup))
-                .addService(new BlockChainService(branchGroup))
-                .build()
-                .start();
+    public void start(String host, int port) {
+        ServerBuilder builder = ServerBuilder.forPort(port);
+        for (BindableService service : bindableServiceList) {
+            builder.addService(service);
+        }
+        try {
+            this.server = builder.build().start();
+        } catch (Exception e) {
+            throw new FailedOperationException(e);
+        }
 
         log.info("GRPC Server started, listening on " + port);
 

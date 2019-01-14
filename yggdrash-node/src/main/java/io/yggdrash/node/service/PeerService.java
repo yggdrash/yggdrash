@@ -18,7 +18,7 @@ public class PeerService extends PeerGrpc.PeerImplBase {
 
     private final PeerGroup peerGroup;
 
-    PeerService(PeerGroup peerGroup) {
+    public PeerService(PeerGroup peerGroup) {
         this.peerGroup = peerGroup;
     }
 

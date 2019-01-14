@@ -15,7 +15,7 @@ public class PingPongService extends PingPongGrpc.PingPongImplBase {
 
     private final PeerGroup peerGroup;
 
-    PingPongService(PeerGroup peerGroup) {
+    public PingPongService(PeerGroup peerGroup) {
         this.peerGroup = peerGroup;
     }
 

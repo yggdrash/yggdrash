@@ -16,6 +16,7 @@
 
 package io.yggdrash.node.config;
 
+import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.net.Discovery;
 import io.yggdrash.core.net.KademliaDiscovery;
 import io.yggdrash.core.net.NodeServer;
@@ -27,7 +28,10 @@ import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.GRpcClientChannel;
 import io.yggdrash.node.PeerTask;
+import io.yggdrash.node.service.BlockChainService;
 import io.yggdrash.node.service.GRpcNodeServer;
+import io.yggdrash.node.service.PeerService;
+import io.yggdrash.node.service.PingPongService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -59,17 +63,23 @@ public class P2PConfiguration {
 
     @Bean
     Discovery discovery(PeerGroup peerGroup) {
-        return new KademliaDiscovery(peerGroup) {
+        Discovery discovery = new KademliaDiscovery() {
             @Override
             public PeerClientChannel getClient(Peer peer) {
                 return new GRpcClientChannel(peer);
             }
         };
+        discovery.setPeerGroup(peerGroup);
+        return discovery;
     }
 
     @Bean
-    NodeServer nodeServer() {
-        return new GRpcNodeServer();
+    NodeServer nodeServer(PeerGroup peerGroup, BranchGroup branchGroup) {
+        GRpcNodeServer server = new GRpcNodeServer();
+        server.addService(new PingPongService(peerGroup));
+        server.addService(new PeerService(peerGroup));
+        server.addService(new BlockChainService(branchGroup));
+        return server;
     }
 
     /**
