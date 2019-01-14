@@ -161,15 +161,12 @@ public class BlockCon {
             return false;
         }
 
-        if (Arrays.equals(blockCon.getId(), blockCon.getBlock().getHash().getBytes())
+        return Arrays.equals(blockCon.getId(), blockCon.getBlock().getHash().getBytes())
                 && blockCon.getIndex() == blockCon.getBlock().getIndex()
                 && Arrays.equals(blockCon.getParentId(),
-                        blockCon.getBlock().getPrevHash().getBytes())
-                && blockCon.getBlock().verify()) {
-            return true;
-        }
+                blockCon.getBlock().getPrevHash().getBytes())
+                && blockCon.getBlock().verify();
 
-        return false;
     }
 
     public BlockCon clone() {
@@ -211,15 +208,11 @@ public class BlockCon {
     }
 
     public boolean equals(BlockCon blockCon) {
-        if (this.index == blockCon.getIndex()
+        return this.index == blockCon.getIndex()
                 && Arrays.equals(this.chain, blockCon.getChain())
                 && Arrays.equals(this.id, blockCon.getId())
                 && Arrays.equals(this.parentId, blockCon.getParentId())
                 && Arrays.equals(this.block.getHash().getBytes(),
-                blockCon.getBlock().getHash().getBytes())) {
-            return true;
-        } else {
-            return false;
-        }
+                blockCon.getBlock().getHash().getBytes());
     }
 }

@@ -92,10 +92,9 @@ public class GRpcClientChannelTest {
         }).when(pingPongService).play(pingRequestCaptor.capture(), any());
 
         String ping = "Ping";
-        BranchId branchId = BranchId.of("91b29a1453258d72ca6fbbcabb8dca10cca944fb");
         Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
 
-        client.ping(ping, branchId, owner);
+        client.ping(ping, owner);
 
         verify(pingPongService).play(pingRequestCaptor.capture(), any());
 

@@ -8,15 +8,13 @@ import io.yggdrash.proto.Proto;
 import java.util.List;
 
 public interface PeerClientChannel {
-    List<NodeInfo> findPeers(BranchId branchId, Peer peer);
-
-    void broadcastConsensus(BranchId branchId, Peer peer);
+    List<NodeInfo> findPeers(Peer peer);
 
     Peer getPeer();
 
     void stop();
 
-    Pong ping(String message, BranchId branchId, Peer peer);
+    Pong ping(String message, Peer peer);
 
     List<Proto.Block> syncBlock(BranchId branchId, long offset);
 

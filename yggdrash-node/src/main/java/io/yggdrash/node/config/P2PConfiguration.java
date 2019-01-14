@@ -18,6 +18,8 @@ package io.yggdrash.node.config;
 
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.store.PeerStore;
+import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.PeerTask;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,10 +41,12 @@ public class P2PConfiguration {
     }
 
     @Bean
-    PeerGroup peerGroup(Wallet wallet) {
+    PeerGroup peerGroup(Wallet wallet, StoreBuilder storeBuilder) {
         Peer owner = Peer.valueOf(wallet.getNodeId(), nodeProperties.getGrpc().getHost(),
                 nodeProperties.getGrpc().getPort());
-        PeerGroup peerGroup = new PeerGroup(owner, nodeProperties.getMaxPeers());
+
+        PeerStore peerStore = storeBuilder.buildPeerStore();
+        PeerGroup peerGroup = new PeerGroup(owner, peerStore, nodeProperties.getMaxPeers());
         peerGroup.setSeedPeerList(nodeProperties.getSeedPeerList());
         return peerGroup;
     }
