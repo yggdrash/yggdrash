@@ -8,6 +8,8 @@ import io.yggdrash.validator.data.BlockCon;
 import io.yggdrash.validator.util.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Hex;
 
@@ -15,7 +17,10 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+
 public class BlockConStoreTest {
+    private static final Logger log = LoggerFactory.getLogger(BlockConStoreTest.class);
 
     private Wallet wallet;
 
@@ -39,9 +44,13 @@ public class BlockConStoreTest {
         blockConStore.put(blockCon.getHash(), blockCon);
         BlockCon foundBlockCon = blockConStore.get(blockCon.getHash());
 
-        StoreTestUtils.clearTestDb();
-
         assert(blockCon.equals(foundBlockCon));
+        assert(blockConStore.contains(blockCon.getHash()));
+
+        log.debug("size: " + blockConStore.size());
+        assertEquals(blockConStore.size(), 1);
+
+        StoreTestUtils.clearTestDb();
     }
 
 }
