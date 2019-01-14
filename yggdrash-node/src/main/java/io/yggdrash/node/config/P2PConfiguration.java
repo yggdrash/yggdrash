@@ -16,12 +16,18 @@
 
 package io.yggdrash.node.config;
 
+import io.yggdrash.core.net.Discovery;
+import io.yggdrash.core.net.KademliaDiscovery;
+import io.yggdrash.core.net.NodeServer;
 import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.node.GRpcClientChannel;
 import io.yggdrash.node.PeerTask;
+import io.yggdrash.node.service.GRpcNodeServer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -49,6 +55,21 @@ public class P2PConfiguration {
         PeerGroup peerGroup = new PeerGroup(owner, peerStore, nodeProperties.getMaxPeers());
         peerGroup.setSeedPeerList(nodeProperties.getSeedPeerList());
         return peerGroup;
+    }
+
+    @Bean
+    Discovery discovery(PeerGroup peerGroup) {
+        return new KademliaDiscovery(peerGroup) {
+            @Override
+            public PeerClientChannel getClient(Peer peer) {
+                return new GRpcClientChannel(peer);
+            }
+        };
+    }
+
+    @Bean
+    NodeServer nodeServer() {
+        return new GRpcNodeServer();
     }
 
     /**

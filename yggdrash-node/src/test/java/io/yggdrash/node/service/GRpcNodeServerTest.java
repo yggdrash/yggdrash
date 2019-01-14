@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.node.service;
 
 import com.google.protobuf.ByteString;
 import io.grpc.testing.GrpcServerRule;
@@ -23,7 +23,6 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.proto.BlockChainGrpc;
@@ -60,19 +59,14 @@ public class GRpcNodeServerTest {
     @Mock
     private BranchGroup branchGroupMock;
 
-    @Mock
-    public NodeStatus nodeStatus;
-
     private TransactionHusk tx;
     private BlockHusk block;
     private BranchId branchId;
 
     @Before
     public void setUp() {
-        grpcServerRule.getServiceRegistry().addService(new GRpcNodeServer.PingPongImpl(
-                peerGroupMock));
-        grpcServerRule.getServiceRegistry().addService(new GRpcNodeServer.BlockChainImpl(
-                peerGroupMock, branchGroupMock, nodeStatus)
+        grpcServerRule.getServiceRegistry().addService(new PingPongService(peerGroupMock));
+        grpcServerRule.getServiceRegistry().addService(new BlockChainService(branchGroupMock)
         );
 
         tx = BlockChainTestUtils.createTransferTxHusk();
