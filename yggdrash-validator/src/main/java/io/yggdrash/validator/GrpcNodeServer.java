@@ -599,7 +599,6 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         return nodeMap;
     }
 
-
     private GrpcNodeClient initMyNode() {
         byte[] realPubKey = new byte[64];
         System.arraycopy(wallet.getPubicKey(), 1, realPubKey, 0, 64);

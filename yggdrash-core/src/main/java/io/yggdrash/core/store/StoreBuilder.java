@@ -61,8 +61,7 @@ public class StoreBuilder {
         return new TransactionReceiptStore(getDbSource(branchId + "/txreceipt"));
     }
 
-
-    private DbSource<byte[], byte[]> getDbSource(String name) {
+    protected DbSource<byte[], byte[]> getDbSource(String name) {
         if (config.isProductionMode()) {
             return new LevelDbDataSource(config.getDatabasePath(), name);
         } else {
