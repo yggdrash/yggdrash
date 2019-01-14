@@ -74,7 +74,7 @@ project(':yggdrash-core') {
     dependencies {
         compile "io.grpc:grpc-protobuf:${grpcVersion}"
         compile "io.grpc:grpc-stub:${grpcVersion}"
-        compile "io.grpc:grpc-netty-shaded:${grpcVersion}"
+        compile "io.grpc:grpc-netty:${grpcVersion}"
         compile "com.google.protobuf:protobuf-java:${protobufVersion}"
         compile "org.iq80.leveldb:leveldb:${levelDBVersion}"
         compile "org.ehcache:ehcache:${ehcacheVersion}"
