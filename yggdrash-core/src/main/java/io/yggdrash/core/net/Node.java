@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Akashic Foundation
+ * Copyright 2019 Akashic Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,7 @@
 
 package io.yggdrash.core.net;
 
-import java.io.IOException;
+public interface Node {
 
-public interface NodeServer {
-
-    void start(String host, int port) throws IOException;
-
-    void stop();
+    void bootstrapping();
 }
