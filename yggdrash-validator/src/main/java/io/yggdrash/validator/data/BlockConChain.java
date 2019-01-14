@@ -4,10 +4,12 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.validator.store.BlockConStore;
 import io.yggdrash.validator.store.BlockConStoreBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.Arrays;
@@ -29,7 +31,7 @@ public class BlockConChain {
     private boolean isConsensused;
 
     @Autowired
-    public BlockConChain(Block genesisBlock) {
+    public BlockConChain(Block genesisBlock, DefaultConfig defaultConfig) {
         if (genesisBlock.getHeader().getIndex() != 0
                 || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), new byte[32])) {
             log.error("BlockConChain() genesisBlock is not valid.");
@@ -38,22 +40,19 @@ public class BlockConChain {
 
         this.rootBlockCon = new BlockCon(0, genesisBlock.getHeader().getChain(), genesisBlock);
         this.lastConfirmedBlockCon = rootBlockCon;
-        //todo: delete blockConMap when working BlockConstore
-        //this.blockConMap.put(rootBlockCon.getHashHex(), rootBlockCon);
         this.blockConKey.put(0L, rootBlockCon.getHashHex());
 
-        this.blockConStore = new BlockConStoreBuilder(
-                new DefaultConfig()).buildBlockConStore(
-                new BranchId(genesisBlock.getHash()));
+        this.blockConStore =
+                new BlockConStore(
+                        new LevelDbDataSource(defaultConfig.getDatabasePath(),
+                                Hex.toHexString(genesisBlock.getHeader().getChain())
+                                        + "/blockcons"
+                                        + System.getProperty("grpc.port")));
     }
 
     public Map<Long, String> getBlockConKey() {
         return blockConKey;
     }
-
-//    public Map<String, BlockCon> getBlockConMap() {
-//        return blockConMap;
-//    }
 
     public BlockConStore getBlockConStore() {
         return blockConStore;

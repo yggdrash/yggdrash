@@ -1,10 +1,7 @@
-package io.yggdrash.validator.store;
+package io.yggdrash.validator.data;
 
-import io.yggdrash.StoreTestUtils;
 import io.yggdrash.core.blockchain.Block;
-import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.data.BlockCon;
 import io.yggdrash.validator.util.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -15,7 +12,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BlockConStoreTest {
+import static org.junit.Assert.assertTrue;
+
+public class BlockConTest {
 
     private Wallet wallet;
 
@@ -25,23 +24,17 @@ public class BlockConStoreTest {
     }
 
     @Test
-    public void BlockConStoreTest() {
-        LevelDbDataSource ds =
-                new LevelDbDataSource(StoreTestUtils.getTestPath(), "block-con-store-test");
-        BlockConStore blockConStore = new BlockConStore(ds);
+    public void ConstructorTest() {
         Block block = new TestUtils(wallet).sampleBlock();
         List<String> consensusList = new ArrayList<>();
         consensusList.add(Hex.toHexString(wallet.sign(block.getHash())));
 
-        BlockCon blockCon = new BlockCon(block.getHeader().getIndex(),
+        BlockCon blockCon1 = new BlockCon(block.getHeader().getIndex(),
                 block.getHeader().getPrevBlockHash(), block, consensusList);
+        assertTrue(BlockCon.verify(blockCon1));
 
-        blockConStore.put(blockCon.getHash(), blockCon);
-        BlockCon foundBlockCon = blockConStore.get(blockCon.getHash());
-
-        StoreTestUtils.clearTestDb();
-
-        assert(blockCon.equals(foundBlockCon));
+        BlockCon blockCon2 = new BlockCon(blockCon1.toBinary());
+        assertTrue(BlockCon.verify(blockCon2));
+        assertTrue(blockCon1.equals(blockCon2));
     }
-
 }

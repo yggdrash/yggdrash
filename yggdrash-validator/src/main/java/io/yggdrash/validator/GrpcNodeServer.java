@@ -167,15 +167,21 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
     @Override
     public void getBlockConList(io.yggdrash.proto.EbftProto.Offset request,
             io.grpc.stub.StreamObserver<EbftProto.BlockConList> responseObserver) {
-        long index = request.getIndex();
+        long start = request.getIndex();
         long count = request.getCount();
         List<BlockCon> blockConList = new ArrayList<>();
 
-        long min = Math.min(index - 1 + count,
+        long end = Math.min(start - 1 + count,
                 this.blockConChain.getLastConfirmedBlockCon().getIndex());
-        for (long l = index; l <= min; l++) {
-            blockConList.add(this.blockConChain.getBlockConStore().get(
-                    Hex.decode(this.blockConChain.getBlockConKey().get(l))));
+
+        log.debug("start: " + start);
+        log.debug("end: " + end);
+
+        if (start < end) {
+            for (long l = start; l <= end; l++) {
+                blockConList.add(this.blockConChain.getBlockConStore().get(
+                        Hex.decode(this.blockConChain.getBlockConKey().get(l))));
+            }
         }
 
         responseObserver.onNext(BlockCon.toProtoList(blockConList));
@@ -211,23 +217,46 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
     private void updateStatus(GrpcNodeClient client, NodeStatus nodeStatus) {
         if (NodeStatus.verify(nodeStatus)) {
             client.setIsRunning(true);
-            // if other lastConfirmedBlockCon != my lastConfirmedBlockCon
-            if (!nodeStatus.getLastConfirmedBlockCon().getHashHex()
-                    .equals(this.blockConChain.getLastConfirmedBlockCon().getHashHex())) {
-                // if other lastConfirmedBlockCon.index > my lastConfirmedBlockCon.index
-                if (nodeStatus.getLastConfirmedBlockCon().getIndex()
-                        > this.blockConChain.getLastConfirmedBlockCon().getIndex()) {
-                    // blockConSyncing
-                    this.isSynced = false;
-                    blockConSyncing(client.getId(),
-                            nodeStatus.getLastConfirmedBlockCon().getIndex());
-                }
-            } else { // else other lastConfirmedBlockCon == my lastConfirmedBlockCon
+
+            if (nodeStatus.getLastConfirmedBlockCon().getIndex()
+                    > this.blockConChain.getLastConfirmedBlockCon().getIndex()) {
+                log.debug("this Index: "
+                        + this.blockConChain.getLastConfirmedBlockCon().getIndex());
+                log.debug("client Index: " + nodeStatus.getLastConfirmedBlockCon().getIndex());
+                log.debug("client : " + client.getId());
+
+                // blockConSyncing
+                this.isSynced = false;
+                blockConSyncing(client.getId(),
+                        nodeStatus.getLastConfirmedBlockCon().getIndex());
+            } else if (nodeStatus.getLastConfirmedBlockCon().getIndex()
+                    == this.blockConChain.getLastConfirmedBlockCon().getIndex()) {
                 // unconfirmed block update
                 for (BlockCon blockCon : nodeStatus.getUnConfirmedBlockConList()) {
                     updateUnconfirmedBlock(blockCon);
                 }
             }
+
+//            // if other lastConfirmedBlockCon != my lastConfirmedBlockCon
+//            if (!nodeStatus.getLastConfirmedBlockCon().getHashHex()
+//                    .equals(this.blockConChain.getLastConfirmedBlockCon().getHashHex())) {
+//                // if other lastConfirmedBlockCon.index > my lastConfirmedBlockCon.index
+//                if (nodeStatus.getLastConfirmedBlockCon().getIndex()
+//                        > this.blockConChain.getLastConfirmedBlockCon().getIndex()) {
+//                    // blockConSyncing
+//                    this.isSynced = false;
+//                    blockConSyncing(client.getId(),
+//                            nodeStatus.getLastConfirmedBlockCon().getIndex());
+//                }
+//            } else { // else other lastConfirmedBlockCon == my lastConfirmedBlockCon
+//                // unconfirmed block update
+//                for (BlockCon blockCon : nodeStatus.getUnConfirmedBlockConList()) {
+//                    updateUnconfirmedBlock(blockCon);
+//                }
+//            }
+
+
+
         } else {
             client.setIsRunning(false);
         }
@@ -251,6 +280,15 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         if (client.isRunning()) {
             List<BlockCon> blockConList = client.getBlockConList(
                     this.blockConChain.getLastConfirmedBlockCon().getIndex() + 1);
+
+            log.debug("node: " + nodeId);
+            log.debug("index: " + index);
+            log.debug("blockConList size: " + blockConList.size());
+
+            if (blockConList == null || blockConList.size() == 0) {
+                return;
+            }
+
             int i = 0;
             for (; i < blockConList.size(); i++) {
                 blockCon = blockConList.get(i);
@@ -439,15 +477,6 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
                 + "("
                 + this.blockConChain.getLastConfirmedBlockCon().getConsensusList().size()
                 + ")");
-
-        // delete memory data for long term test
-//        if (TEST_MEMORYFREE) {
-//            long index = blockCon.getIndex() - 2;
-//            if (index > 0) {
-//                String hash = this.blockConChain.getBlockConKey().get(index);
-//                this.blockConChain.getBlockConMap().remove(hash);
-//            }
-//        }
     }
 
     private void changeLastConfirmedBlock(BlockCon blockCon) {

@@ -32,11 +32,11 @@ import java.util.Collections;
 import java.util.List;
 
 public class BlockCon {
-    private static final boolean TEST_NO_VERIFY = false;
+    private static final boolean TEST_NO_VERIFY = false; // todo: delete when testing is finished
     private static final int BLOCK_HEADER_LENGTH = 124;
     private static final int SIGNATURE_LENGTH = 65;
 
-    private byte[] hash; // todo: change name to blockConHash or something
+    private byte[] hash;
     private byte[] chain;
     private long index;
     private byte[] prevBlockHash;
@@ -49,12 +49,13 @@ public class BlockCon {
         byte[] headerBytes = new byte[BLOCK_HEADER_LENGTH];
         System.arraycopy(blockConBytes, 0, headerBytes, 0, headerBytes.length);
         position += headerBytes.length;
+        BlockHeader blockHeader = new BlockHeader(headerBytes);
 
         byte[] signature = new byte[SIGNATURE_LENGTH];
         System.arraycopy(blockConBytes, position, signature, 0, signature.length);
         position += signature.length;
 
-        byte[] bodyBytes = new byte[blockConBytes.length - headerBytes.length - signature.length];
+        byte[] bodyBytes = new byte[(int)blockHeader.getBodyLength()];
         System.arraycopy(blockConBytes, position, bodyBytes, 0, bodyBytes.length);
         position += bodyBytes.length;
 
@@ -63,13 +64,13 @@ public class BlockCon {
         }
 
         byte[] consensus = new byte[SIGNATURE_LENGTH];
-        while (position > blockConBytes.length) {
+        while (position < blockConBytes.length) {
             System.arraycopy(blockConBytes, position, consensus, 0, consensus.length);
             position += consensus.length;
             this.consensusList.add(Hex.toHexString(consensus));
         }
 
-        this.block = new Block(new BlockHeader(headerBytes), signature, new BlockBody(bodyBytes));
+        this.block = new Block(blockHeader, signature, new BlockBody(bodyBytes));
         this.hash = this.block.getHash();
         this.chain = this.block.getHeader().getChain();
         this.index = this.block.getHeader().getIndex();
@@ -213,6 +214,7 @@ public class BlockCon {
                 && Arrays.equals(this.chain, blockCon.getChain())
                 && Arrays.equals(this.hash, blockCon.getHash())
                 && Arrays.equals(this.prevBlockHash, blockCon.getPrevBlockHash())
-                && this.block.equals(blockCon.getBlock());
+                && this.block.equals(blockCon.getBlock())
+                && Arrays.equals(this.consensusList.toArray(), blockCon.consensusList.toArray());
     }
 }

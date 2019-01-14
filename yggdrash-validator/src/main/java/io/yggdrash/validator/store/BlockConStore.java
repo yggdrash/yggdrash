@@ -12,24 +12,33 @@ import org.spongycastle.util.encoders.Hex;
 import java.io.IOException;
 
 public class BlockConStore implements Store<byte[], BlockCon> {
-    private static final Logger log = LoggerFactory.getLogger(PeerStore.class);
+    private static final Logger log = LoggerFactory.getLogger(BlockConStore.class);
 
     private final DbSource<byte[], byte[]> db;
 
-    BlockConStore(DbSource<byte[], byte[]> dbSource) {
+    public BlockConStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
     }
 
     @Override
     public void put(byte[] key, BlockCon value) {
+        log.debug("BlockConStore put "
+                + "(key: " + Hex.toHexString(key) + ")"
+                + "(value length: " + value.toBinary().length + ")");
         db.put(key, value.toBinary());
     }
 
     @Override
     public BlockCon get(byte[] key) {
+        log.debug("BlockConStore get "
+                + "(" + Hex.toHexString(key) + ")");
+
         if (key != null) {
             byte[] foundValue = db.get(key);
             if (foundValue != null) {
+                log.debug("BlockConStore get size: "
+                        + foundValue.length);
+
                 return new BlockCon(foundValue);
             }
         }

@@ -44,7 +44,7 @@ public class NodeConfiguration {
 
     @Bean
     BlockConChain blockConChain(Block genesisBlock) {
-        return new BlockConChain(genesisBlock);
+        return new BlockConChain(genesisBlock, defaultConfig());
     }
 
 }
