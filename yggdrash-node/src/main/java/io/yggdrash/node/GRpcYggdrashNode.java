@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -47,11 +46,6 @@ public class GRpcYggdrashNode extends io.yggdrash.core.net.YggdrashNode
     private final NodeStatus nodeStatus;
 
     private final BranchGroup branchGroup;
-
-    @Autowired
-    public void setPeerGroup(PeerGroup peerGroup) {
-        this.peerGroup = peerGroup;
-    }
 
     @Autowired
     public void setNodeServer(NodeServer nodeServer) {
@@ -71,7 +65,7 @@ public class GRpcYggdrashNode extends io.yggdrash.core.net.YggdrashNode
     }
 
     @Override
-    public void run(String... args) throws Exception {
+    public void run(String... args) {
         String host = nodeProperties.getGrpc().getHost();
         int port = nodeProperties.getGrpc().getPort();
         start(host, port);
@@ -80,23 +74,14 @@ public class GRpcYggdrashNode extends io.yggdrash.core.net.YggdrashNode
 
     @Override
     public void destroy() {
-        log.info("Destroy node=" + peerGroup.getOwner());
-        peerGroup.destroy();
+        log.info("Destroy node=" + getPeerGroup().getOwner());
+        getPeerGroup().destroy();
         log.info("Shutting down gRPC server...");
         nodeServer.stop();
     }
 
-    @Override
-    public void start(String host, int port) throws IOException {
-        nodeServer.start(host, port);
-    }
-
-    /**
-     * Stop serving requests and shutdown resources.
-     */
-    @Override
-    public void stop() {
-        nodeServer.stop();
+    private PeerGroup getPeerGroup() {
+        return discovery.getPeerGroup();
     }
 
     @Override
@@ -106,7 +91,7 @@ public class GRpcYggdrashNode extends io.yggdrash.core.net.YggdrashNode
 
     @Override
     public void bootstrapping() {
-        log.info("Bootstrapping... node=" + peerGroup.getOwner());
+        log.info("Bootstrapping... node=" + getPeerGroup().getOwner());
         super.bootstrapping();
 
         if (nodeProperties.isSeed()) {
@@ -122,8 +107,8 @@ public class GRpcYggdrashNode extends io.yggdrash.core.net.YggdrashNode
     private void syncBlockAndTransaction() {
         try {
             for (BlockChain blockChain : branchGroup.getAllBranch()) {
-                BlockChainSync.syncTransaction(blockChain, peerGroup);
-                BlockChainSync.syncBlock(blockChain, peerGroup);
+                BlockChainSync.syncTransaction(blockChain, getPeerGroup());
+                BlockChainSync.syncBlock(blockChain, getPeerGroup());
             }
         } catch (Exception e) {
             log.warn(e.getMessage(), e);
