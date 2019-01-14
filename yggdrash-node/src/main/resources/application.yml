@@ -1,6 +1,4 @@
 yggdrash:
-  branch:
-    default.active: true
   node:
     seed: false
     grpc.host: "localhost"
@@ -82,7 +80,5 @@ yggdrash:
 spring.profiles: master
 
 yggdrash:
-  branch:
-    default.active: true
   node:
     chain.gen: true
