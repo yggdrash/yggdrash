@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Akashic Foundation
+ * Copyright 2019 Akashic Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,21 +14,12 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.net;
+package io.yggdrash.core.blockchain;
 
-import io.yggdrash.core.blockchain.BranchId;
-
-import java.util.List;
-
-public interface NodeManager {
-
-    String getNodeUri();
-
-    boolean isSeedPeer();
-
-    void generateBlock(BranchId branchId);
-
-    List<BranchId> getActiveBranchIdList();
-
-    void bootstrapping();
+public enum  BlockchainMetaInfo {
+    BEST_BLOCK,
+    BEST_BLOCK_INDEX,
+    LAST_EXECUTE_BLOCK,
+    LAST_EXECUTE_BLOCK_INDEX,
+    BRANCH
 }

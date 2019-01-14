@@ -19,13 +19,13 @@ package io.yggdrash.core.store;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.BlockchainMetaInfo;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.net.Peer;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class StoreBuilderTest {
     private static final BranchId BRANCH_ID = BranchId.NULL;
@@ -36,13 +36,16 @@ public class StoreBuilderTest {
         builder = new StoreBuilder(new DefaultConfig());
     }
 
+
     @Test
     public void shouldBeBuiltMetaStore() {
         BlockHusk block = BlockChainTestUtils.genesisBlock();
+        StoreBuilder builder = new StoreBuilder(new DefaultConfig());
         MetaStore store = builder.buildMetaStore(BRANCH_ID);
-        store.put(MetaStore.MetaInfo.BEST_BLOCK, block.getHash());
-        assertThat(store.contains(MetaStore.MetaInfo.BEST_BLOCK)).isTrue();
-        assertThat(store.get(MetaStore.MetaInfo.BEST_BLOCK)).isEqualTo(block.getHash());
+        store.setBestBlock(block);
+
+        assertThat(store.contains(BlockchainMetaInfo.BRANCH.toString())).isTrue();
+        assertThat(store.getBestBlockHash()).isEqualTo(block.getHash());
     }
 
     @Test

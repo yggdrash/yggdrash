@@ -26,13 +26,11 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.net.DiscoverTask;
-import io.yggdrash.core.net.NodeManager;
 import io.yggdrash.core.net.NodeServer;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.NodeInfo;
@@ -51,19 +49,16 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.PreDestroy;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
-public class GRpcNodeServer implements NodeServer, NodeManager {
+public class GRpcNodeServer implements NodeServer {
     private static final Logger log = LoggerFactory.getLogger(GRpcNodeServer.class);
     private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
 
     private BranchGroup branchGroup;
 
     private PeerGroup peerGroup;
-
-    private Wallet wallet;
 
     private NodeStatus nodeStatus;
 
@@ -77,11 +72,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     @Autowired
     public void setNodeStatus(NodeStatus nodeStatus) {
         this.nodeStatus = nodeStatus;
-    }
-
-    @Autowired
-    public void setWallet(Wallet wallet) {
-        this.wallet = wallet;
     }
 
     @Autowired
@@ -139,21 +129,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
     }
 
     @Override
-    public void generateBlock(BranchId branchId) {
-        branchGroup.generateBlock(wallet, branchId);
-    }
-
-    @Override
-    public List<BranchId> getActiveBranchIdList() {
-        return new ArrayList<>(branchGroup.getAllBranchId());
-    }
-
-    @Override
-    public String getNodeUri() {
-        return peerGroup.getOwner().getYnodeUri();
-    }
-
-    @Override
     public void bootstrapping() {
         if (peerGroup.getOwner().isLocal()) {
             log.info("Ignore bootstrapping peer={}", peerGroup.getOwner().toAddress());
@@ -199,19 +174,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             discoverTask.run();
             return;
         }
-    }
-
-    public boolean isSeedPeer() {
-        List<String> seedPeerList = peerGroup.getSeedPeerList();
-        String nodeUriWithoutPubKey = getNodeUri();
-        nodeUriWithoutPubKey = nodeUriWithoutPubKey.substring(nodeUriWithoutPubKey.indexOf("@"));
-        for (String seedPeer : seedPeerList) {
-            if (seedPeer.contains(nodeUriWithoutPubKey)) {
-                log.info("* I'm the SeedPeer!");
-                return true;
-            }
-        }
-        return false;
     }
 
     private void syncBlockAndTransaction() {
@@ -392,23 +354,6 @@ public class GRpcNodeServer implements NodeServer, NodeManager {
             } catch (Exception e) {
                 log.debug("Failed to connect {} -> {}", peerGroup.getOwner().toAddress(),
                         peer.toAddress());
-            }
-        }
-
-        @Override
-        public void broadcastConsensus(
-                RequestPeer request, StreamObserver<RequestPeer> responseObserver) {
-            responseObserver.onNext(request);
-            responseObserver.onCompleted();
-
-            // RequestPeer 는 블록을 생성할 피어 (네트워크 상에서 블록을 생성할 피어의 순서를 지정하기 위함)
-            String selectedPeer = Peer.valueOf(
-                    request.getPubKey(), request.getIp(), request.getPort()).getYnodeUri();
-            String owner = getNodeUri();
-
-            // owner 가 selectedPeer 인 경우 블록 생성
-            if (owner.equals(selectedPeer)) {
-                generateBlock(BranchId.of(request.getBranchId()));
             }
         }
     }
