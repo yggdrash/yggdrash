@@ -36,10 +36,10 @@ public class BlockCon {
     private static final int BLOCK_HEADER_LENGTH = 124;
     private static final int SIGNATURE_LENGTH = 65;
 
-    private byte[] id; // todo: change name to blockConHash or something
+    private byte[] hash; // todo: change name to blockConHash or something
     private byte[] chain;
     private long index;
-    private byte[] parentId;
+    private byte[] prevBlockHash;
     private Block block;
     private final List<String> consensusList = new ArrayList<>();
 
@@ -70,22 +70,22 @@ public class BlockCon {
         }
 
         this.block = new Block(new BlockHeader(headerBytes), signature, new BlockBody(bodyBytes));
-        this.id = this.block.getHash();
+        this.hash = this.block.getHash();
         this.chain = this.block.getHeader().getChain();
         this.index = this.block.getHeader().getIndex();
-        this.parentId = this.block.getHeader().getPrevBlockHash();
+        this.prevBlockHash = this.block.getHeader().getPrevBlockHash();
     }
 
-    public BlockCon(long index, byte[] parentId, Block block) {
-        this(index, parentId, block, null);
+    public BlockCon(long index, byte[] prevBlockHash, Block block) {
+        this(index, prevBlockHash, block, null);
     }
 
-    public BlockCon(long index, byte[] parentId, Block block, List<String> consensusList) {
+    public BlockCon(long index, byte[] prevBlockHash, Block block, List<String> consensusList) {
         this.chain = block.getHeader().getChain();
         this.index = index;
-        this.parentId = parentId;
+        this.prevBlockHash = prevBlockHash;
         this.block = block;
-        this.id = block.getHash();
+        this.hash = block.getHash();
         if (consensusList != null) {
             this.consensusList.addAll(consensusList);
         }
@@ -95,8 +95,8 @@ public class BlockCon {
         this.block = Block.toBlock(blockCon.getBlock());
         this.chain = blockCon.getChain().toByteArray();
         this.index = blockCon.getIndex();
-        this.parentId = blockCon.getParentId().toByteArray();
-        this.id = blockCon.getId().toByteArray();
+        this.prevBlockHash = blockCon.getPrevBlockHash().toByteArray();
+        this.hash = blockCon.getHash().toByteArray();
         if (blockCon.getConsensusList().getConsensusListList() != null) {
             for (String consensus : blockCon.getConsensusList().getConsensusListList()) {
                 if (consensus != null) {
@@ -106,20 +106,20 @@ public class BlockCon {
         }
     }
 
-    public byte[] getId() {
-        return id;
+    public byte[] getHash() {
+        return hash;
     }
 
     public byte[] getChain() {
         return chain;
     }
 
-    public String getIdHex() {
-        return Hex.toHexString(id);
+    public String getHashHex() {
+        return Hex.toHexString(hash);
     }
 
-    public void setId(byte[] id) {
-        this.id = id;
+    public void setHash(byte[] hash) {
+        this.hash = hash;
     }
 
     public long getIndex() {
@@ -138,12 +138,12 @@ public class BlockCon {
         this.block = block;
     }
 
-    public byte[] getParentId() {
-        return parentId;
+    public byte[] getPrevBlockHash() {
+        return prevBlockHash;
     }
 
-    private void setParentId(byte[] parentId) {
-        this.parentId = parentId;
+    private void setPrevBlockHash(byte[] prevBlockHash) {
+        this.prevBlockHash = prevBlockHash;
     }
 
     public List<String> getConsensusList() {
@@ -159,9 +159,9 @@ public class BlockCon {
             return false;
         }
 
-        if (Arrays.equals(blockCon.getId(), blockCon.getBlock().getHash())
+        if (Arrays.equals(blockCon.getHash(), blockCon.getBlock().getHash())
                 && blockCon.getIndex() == blockCon.getBlock().getHeader().getIndex()
-                && Arrays.equals(blockCon.getParentId(),
+                && Arrays.equals(blockCon.getPrevBlockHash(),
                         blockCon.getBlock().getHeader().getPrevBlockHash())
                 && blockCon.getBlock().verify()) {
             return true;
@@ -171,7 +171,7 @@ public class BlockCon {
     }
 
     public BlockCon clone() {
-        return new BlockCon(this.index, this.parentId, this.block, this.consensusList);
+        return new BlockCon(this.index, this.prevBlockHash, this.block, this.consensusList);
     }
 
     public byte[] toBinary() {
@@ -189,9 +189,9 @@ public class BlockCon {
         blockCon.getConsensusList().removeAll(Collections.singleton(null));
         EbftProto.BlockCon.Builder protoBlockCon = EbftProto.BlockCon.newBuilder()
                 .setChain(ByteString.copyFrom(blockCon.getChain()))
-                .setId(ByteString.copyFrom(blockCon.getId()))
+                .setHash(ByteString.copyFrom(blockCon.getHash()))
                 .setIndex(blockCon.getIndex())
-                .setParentId(ByteString.copyFrom(blockCon.getParentId()))
+                .setPrevBlockHash(ByteString.copyFrom(blockCon.getPrevBlockHash()))
                 .setBlock(blockCon.getBlock().toProtoBlock())
                 .setConsensusList(EbftProto.ConsensusList.newBuilder()
                         .addAllConsensusList(blockCon.getConsensusList()).build());
@@ -211,8 +211,8 @@ public class BlockCon {
     public boolean equals(BlockCon blockCon) {
         return this.index == blockCon.getIndex()
                 && Arrays.equals(this.chain, blockCon.getChain())
-                && Arrays.equals(this.id, blockCon.getId())
-                && Arrays.equals(this.parentId, blockCon.getParentId())
+                && Arrays.equals(this.hash, blockCon.getHash())
+                && Arrays.equals(this.prevBlockHash, blockCon.getPrevBlockHash())
                 && this.block.equals(blockCon.getBlock());
     }
 }

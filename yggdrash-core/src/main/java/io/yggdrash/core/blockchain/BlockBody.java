@@ -160,7 +160,7 @@ public class BlockBody implements Cloneable {
             return false;
         }
 
-        for (int i=0; i < newBlockBody.getBody().size(); i++) {
+        for (int i = 0; i < newBlockBody.getBody().size(); i++) {
             if (!Arrays.equals(this.getBody().get(i).getHash(),
                     newBlockBody.getBody().get(i).getHash())) {
                 return false;

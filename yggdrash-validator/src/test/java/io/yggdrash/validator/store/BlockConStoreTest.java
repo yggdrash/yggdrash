@@ -30,8 +30,8 @@ public class BlockConStoreTest {
         BlockCon blockCon = new BlockCon(block.getHeader().getIndex(),
                 block.getHeader().getPrevBlockHash(), block);
 
-        blockConStore.put(blockCon.getId(), blockCon);
-        BlockCon foundBlockCon = blockConStore.get(blockCon.getId());
+        blockConStore.put(blockCon.getHash(), blockCon);
+        BlockCon foundBlockCon = blockConStore.get(blockCon.getHash());
 
         StoreTestUtils.clearTestDb();
 

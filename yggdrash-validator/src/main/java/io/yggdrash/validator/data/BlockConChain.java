@@ -25,8 +25,8 @@ public class BlockConChain {
         //todo: check genesis block index, prevHash
         this.rootBlockCon = new BlockCon(0, genesisBlock.getHeader().getChain(), genesisBlock);
         this.lastConfirmedBlockCon = rootBlockCon;
-        this.blockConMap.put(rootBlockCon.getIdHex(), rootBlockCon);
-        this.blockConKey.put(0L, rootBlockCon.getIdHex());
+        this.blockConMap.put(rootBlockCon.getHashHex(), rootBlockCon);
+        this.blockConKey.put(0L, rootBlockCon.getHashHex());
     }
 
     public Map<Long, String> getBlockConKey() {

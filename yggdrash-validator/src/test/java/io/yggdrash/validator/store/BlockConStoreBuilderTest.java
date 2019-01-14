@@ -34,9 +34,9 @@ public class BlockConStoreBuilderTest {
     @Test
     public void buildBlockConStore() {
         BlockConStore store = builder.buildBlockConStore(branchId);
-        store.put(genesisBlockCon.getId(), genesisBlockCon);
-        assert store.contains(genesisBlockCon.getId());
-        assert store.get(genesisBlockCon.getId()).equals(genesisBlockCon);
+        store.put(genesisBlockCon.getHash(), genesisBlockCon);
+        assert store.contains(genesisBlockCon.getHash());
+        assert store.get(genesisBlockCon.getHash()).equals(genesisBlockCon);
     }
 
 }
