@@ -18,12 +18,12 @@ package io.yggdrash.core.net;
 
 public abstract class YggdrashNode implements Node, NodeServer {
 
-    protected PeerGroup peerGroup;
     protected Discovery discovery;
     protected NodeServer nodeServer;
 
     public void bootstrapping() {
         discovery.discover();
+        PeerGroup peerGroup = discovery.getPeerGroup();
         for (Peer peer : peerGroup.getClosestPeers()) {
             if (peerGroup.isMaxChannel()) {
                 break;
@@ -32,6 +32,13 @@ public abstract class YggdrashNode implements Node, NodeServer {
         }
     }
 
+    public void start(String host, int port) {
+        nodeServer.start(host, port);
+    }
+
+    /**
+     * Stop serving requests and shutdown resources.
+     */
     public void stop() {
         nodeServer.stop();
     }

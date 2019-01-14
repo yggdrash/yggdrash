@@ -1,27 +1,16 @@
 package io.yggdrash.core.net;
 
-import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.store.StoreBuilder;
 import org.junit.Before;
 import org.junit.Test;
 
 public class KademliaDiscoveryTest {
-    private static final int MAX_PEERS = 25;
-    private static final Peer OWNER = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
-    private static final StoreBuilder storeBuilder = new StoreBuilder(new DefaultConfig());
+    private static final Peer OWNER = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
 
     private KademliaDiscovery discovery;
 
     @Before
     public void setUp() {
-        PeerGroup peerGroup = new PeerGroup(OWNER, storeBuilder.buildPeerStore(), MAX_PEERS);
-        peerGroup.addPeerByYnodeUri("ynode://75bff16c@127.0.0.1:32918");
-        this.discovery = new KademliaDiscovery(peerGroup) {
-            @Override
-            public PeerClientChannel getClient(Peer peer) {
-                return ChannelMock.dummy();
-            }
-        };
+        this.discovery = new KademliaDiscoveryMock(OWNER);
     }
 
     @Test
@@ -33,5 +22,4 @@ public class KademliaDiscoveryTest {
     public void runTest() {
         discovery.discover();
     }
-
 }

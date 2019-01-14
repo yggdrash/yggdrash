@@ -11,12 +11,18 @@ import java.util.Optional;
 public abstract class KademliaDiscovery implements Discovery {
     private static final Logger log = LoggerFactory.getLogger(KademliaDiscovery.class);
 
-    private final PeerGroup peerGroup;
-    private final Peer owner;
+    private PeerGroup peerGroup;
+    private Peer owner;
 
-    protected KademliaDiscovery(PeerGroup peerGroup) {
+    @Override
+    public void setPeerGroup(PeerGroup peerGroup) {
         this.peerGroup = peerGroup;
         this.owner = peerGroup.getOwner();
+    }
+
+    @Override
+    public PeerGroup getPeerGroup() {
+        return peerGroup;
     }
 
     @Override
@@ -48,7 +54,7 @@ public abstract class KademliaDiscovery implements Discovery {
         findPeers(0, new ArrayList<>());
     }
 
-    public abstract PeerClientChannel getClient(Peer peer);
+    protected abstract PeerClientChannel getClient(Peer peer);
 
     private synchronized void findPeers(int round, List<Peer> prevTried) {
         try {
