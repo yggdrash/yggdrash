@@ -20,6 +20,7 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
@@ -27,6 +28,7 @@ import org.junit.Test;
 
 public class MetaStoreTest {
     private MetaStore ms;
+    private static final BranchId BRANCH_ID = BranchId.NULL;
 
     @After
     public void tearDown() {
@@ -37,13 +39,14 @@ public class MetaStoreTest {
     public void shouldBeLoaded() {
         ms = createMetaStore();
         BlockHusk blockHusk = BlockChainTestUtils.genesisBlock();
-        ms.put(MetaStore.MetaInfo.BEST_BLOCK, blockHusk.getHash());
-        Sha3Hash sha3Hash = ms.get(MetaStore.MetaInfo.BEST_BLOCK);
+        ms.setBestBlockHash(blockHusk.getHash());
+
+        Sha3Hash sha3Hash = ms.getBestBlockHash();
         Assertions.assertThat(sha3Hash).isEqualTo(blockHusk.getHash());
 
         ms.close();
         ms = createMetaStore();
-        Sha3Hash sha3HashAgain = ms.get(MetaStore.MetaInfo.BEST_BLOCK);
+        Sha3Hash sha3HashAgain = ms.getBestBlockHash();
         Assertions.assertThat(sha3HashAgain).isEqualTo(sha3Hash);
     }
 
@@ -51,9 +54,10 @@ public class MetaStoreTest {
     public void shouldBePutMeta() {
         ms = createMetaStore();
         BlockHusk blockHusk = BlockChainTestUtils.genesisBlock();
-        ms.put(MetaStore.MetaInfo.BEST_BLOCK, blockHusk.getHash());
-        Sha3Hash sha3Hash = ms.get(MetaStore.MetaInfo.BEST_BLOCK);
-        Assertions.assertThat(sha3Hash).isEqualTo(blockHusk.getHash());
+        ms.setBestBlock(blockHusk);
+        Long bestBlock = ms.getBestBlock();
+
+        Assertions.assertThat(bestBlock).isEqualTo(blockHusk.getIndex());
     }
 
     private MetaStore createMetaStore() {

@@ -90,7 +90,7 @@ public class BlockChain {
     }
 
     private void indexing() {
-        Sha3Hash storedBestBlockHash = metaStore.get(MetaStore.MetaInfo.BEST_BLOCK);
+        Sha3Hash storedBestBlockHash = metaStore.getBestBlockHash();
         Sha3Hash previousBlockHash = storedBestBlockHash;
         BlockHusk currentBlock;
 
@@ -104,17 +104,30 @@ public class BlockChain {
     }
 
     private void loadTransaction() {
-        for (long i = 0; i < blockIndex.size(); i++) {
-            BlockHusk block = blockStore.get(blockIndex.get(i));
-            transactionStore.updateCache(block.getBody());
-            executeBlock(block);
-
-            log.debug("Load idx=[{}], tx={}, branch={}, blockHash={}",
-                    blockStore.get(blockIndex.get(i)).getIndex(),
-                    block.getBody().size(),
-                    blockStore.get(blockIndex.get(i)).getBranchId(),
-                    blockStore.get(blockIndex.get(i)).getHash());
+        // Start Block and End Block
+        Long lastExecute = metaStore.getLastExecuteBlockIndex();
+        if (blockIndex.size() > lastExecute) {
+            for (long i = lastExecute + 1; i < blockIndex.size(); i++) {
+                BlockHusk block = blockStore.get(blockIndex.get(i));
+                // Genesis or check prevBlockHash
+                if (block.getIndex() == 0
+                        || block.getPrevHash().equals(metaStore.getLastExecuteBlockHash())) {
+                    transactionStore.updateCache(block.getBody());
+                    executeBlock(block);
+                    log.debug("Load idx=[{}], tx={}, branch={}, blockHash={}",
+                            blockStore.get(blockIndex.get(i)).getIndex(),
+                            block.getBody().size(),
+                            blockStore.get(blockIndex.get(i)).getBranchId(),
+                            blockStore.get(blockIndex.get(i)).getHash());
+                    // save best block
+                    metaStore.setLastExecuteBlock(block);
+                } else {
+                    // prev Block hash is not equal
+                    // so do not run any transactions
+                }
+            }
         }
+
     }
 
     public void addListener(BranchEventListener listener) {
@@ -188,13 +201,19 @@ public class BlockChain {
         if (!isValidNewBlock(prevBlock, nextBlock)) {
             throw new NotValidateException("Invalid to chain");
         }
-        // run Block Transactions
-        executeBlock(nextBlock);
+        // add best Block
+        metaStore.setBestBlock(nextBlock);
 
+        // run Block Transactions
+        // TODO run block execute move to other process (or thread)
+        if (nextBlock.getIndex() > metaStore.getLastExecuteBlockIndex()) {
+            executeBlock(nextBlock);
+            metaStore.setLastExecuteBlock(nextBlock);
+        }
 
         this.blockStore.put(nextBlock.getHash(), nextBlock);
         this.blockIndex.put(nextBlock.getIndex(), nextBlock.getHash());
-        this.metaStore.put(MetaStore.MetaInfo.BEST_BLOCK, nextBlock.getHash());
+
         this.prevBlock = nextBlock;
         batchTxs(nextBlock);
         if (!listenerList.isEmpty() && broadcast) {
