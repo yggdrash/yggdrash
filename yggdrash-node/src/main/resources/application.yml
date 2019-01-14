@@ -72,8 +72,6 @@ yggdrash:
 spring.profiles: bootstrap
 
 yggdrash:
-  branch:
-    default.active: false
   node:
     seed: true
     chain.enabled: false
