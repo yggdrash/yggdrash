@@ -67,7 +67,6 @@ public class StemContract implements Contract<JsonObject> {
                     // Branch ID 추가부터
                     addBranchId(branchId);
                     state.put(branchId.toString(), stateValue.getJson());
-                    setSubState(branchId.toString(), stateValue.getJson());
                     txReceipt.setStatus(ExecuteStatus.SUCCESS);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -117,26 +116,6 @@ public class StemContract implements Contract<JsonObject> {
             stateValue.setType(json.get("type").getAsString());
         }
         stateValue.updateContract(json.get("contractId").getAsString());
-    }
-
-    /**
-     * Returns a list of branch.json (query)
-     *
-     * params key       type, name, property, owner, tag or symbol
-     * params value   content of the key
-     */
-    @ContractQuery
-    public JsonElement search(JsonObject params) {
-        String subStateKey = params.get("key").getAsString();
-        String key = params.get("value").getAsString();
-
-        if (getSubState(subStateKey) != null){
-            JsonObject subState = getSubState(subStateKey);
-            JsonArray array = subState.getAsJsonArray(key);
-
-            return getSubState(subStateKey).get(key);
-        }
-        return null;
     }
 
     /**
@@ -246,72 +225,5 @@ public class StemContract implements Contract<JsonObject> {
         }
     }
 
-    private void setSubState(String branchId, JsonObject branch) {
-        putSubState("type",
-                branch.get("type").getAsString(), branchId);
-        putSubState("name",
-                branch.get("name").getAsString(), branchId);
-        putSubState("property",
-                branch.get("property").getAsString(), branchId);
-        putSubState("owner",
-                branch.get("owner").getAsString(), branchId);
-        putSubState("symbol",
-                branch.get("symbol").getAsString(), branchId);
-
-        printSubState();
-    }
-
-    private void printSubState() {
-        log.trace("[StemContract | printSubState] typeState => "
-                + getSubState("type").toString());
-        log.trace("[StemContract | printSubState] nameState => "
-                + getSubState("name").toString());
-        log.trace("[StemContract | printSubState] propertyState => "
-                + getSubState("property").toString());
-        log.trace("[StemContract | printSubState] ownerState => "
-                + getSubState("owner").toString());
-        log.trace("[StemContract | printSubState] symbolState => "
-                + getSubState("symbol").toString());
-    }
-
-
-    // TODO remove subState
-    public  JsonObject getSubState(String key) {
-        return this.state.get(key);
-    }
-    /*
-    public void putSubState(String subStateKey, String key, String value) {
-        if (state.get(subStateKey) != null) {
-            //logger.debug(subStateKey + "State exists");
-            updateSubState(subStateKey, key, value);
-        } else {
-            //logger.debug("no " + subStateKey + "State exists!");
-            Set<String> newStateValue = new HashSet<>();
-            newStateValue.add(value);
-            JsonObject obj =  new JsonObject();
-            Map<String, Set<String>> newState = new HashMap<>();
-            newState.put(key, newStateValue);
-
-            state.put(subStateKey, newState);
-            //logger.debug(subStateKey + " DB is created");
-        }
-    }
-    */
-
-    private void putSubState(String subStateKey, String key, String value) {
-        if (state.get(subStateKey) != null && state.get(subStateKey).get(key) != null) {
-            JsonObject obj = state.get(subStateKey);
-            JsonArray subArray = obj.getAsJsonArray(key);
-            subArray.add(value);
-            state.put(subStateKey, obj);
-        } else {
-            JsonObject obj = new JsonObject();
-            JsonArray subState = new JsonArray();
-            subState.add(value);
-            obj.add(key, subState);
-
-            state.put(subStateKey, obj);
-        }
-    }
 
 }
