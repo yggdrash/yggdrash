@@ -130,8 +130,10 @@ public class StemContract implements Contract<JsonObject> {
         String subStateKey = params.get("key").getAsString();
         String key = params.get("value").getAsString();
 
-        if (getSubState(subStateKey) != null
-                && getSubState(subStateKey).get(key) != null) {
+        if (getSubState(subStateKey) != null){
+            JsonObject subState = getSubState(subStateKey);
+            JsonArray array = subState.getAsJsonArray(key);
+
             return getSubState(subStateKey).get(key);
         }
         return null;
@@ -185,6 +187,7 @@ public class StemContract implements Contract<JsonObject> {
      * Returns a list contains all branch id
      *
      * @return list of all branch id
+     * // TODO REMOVE getAllBranchId
      */
     @ContractQuery
     public Set<String> getallbranchid() {
@@ -204,7 +207,9 @@ public class StemContract implements Contract<JsonObject> {
         return state.get(branchId) != null;
     }
 
+    // new branchId
     private void addBranchId(BranchId newBranchId) {
+        // check branch exist
         if (!isBranchExist(newBranchId.toString())) {
             JsonArray branchIds = new JsonArray();
             for (String branchId : getallbranchid()) {
