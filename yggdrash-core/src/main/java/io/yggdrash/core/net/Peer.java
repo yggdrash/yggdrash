@@ -21,6 +21,7 @@ import io.yggdrash.core.exception.NotValidateException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Set;
 
 public class Peer {
     private static final String YGGDRASH_NODE_SCHEMA = "ynode";
@@ -30,6 +31,7 @@ public class Peer {
     private String host;
     private int port;
     private String ynodeUri;
+    private Set<BestBlock> bestBlocks;
     private long modified;
     private int distance;
 
@@ -90,7 +92,7 @@ public class Peer {
         this.distance = owner.peerId.distanceTo(peerId.getBytes());
     }
 
-    public boolean isLocal() {
+    boolean isLocal() {
         return host.equals("127.0.0.1") || host.equals("localhost");
     }
 
@@ -119,6 +121,14 @@ public class Peer {
 
     void touch() {
         modified = System.currentTimeMillis();
+    }
+
+    Set<BestBlock> getBestBlocks() {
+        return bestBlocks;
+    }
+
+    void setBestBlocks(Set<BestBlock> bestBlocks) {
+        this.bestBlocks = bestBlocks;
     }
 
     long getModified() {

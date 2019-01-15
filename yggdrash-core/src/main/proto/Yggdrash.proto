@@ -51,9 +51,10 @@ message Transaction {
 }
 
 message RequestPeer {
-    string pubKey = 2;
-    string ip = 3;
-    int32 port = 4;
+    string pubKey = 1;
+    string ip = 2;
+    int32 port = 3;
+    repeated BestBlock bestBlocks = 4;
 }
 
 message PeerList {
@@ -66,7 +67,7 @@ message PeerInfo {
 
 message Ping {
     string ping = 1;
-    repeated NodeInfo nodes = 2;
+    PeerInfo peer = 2;
 }
 
 message Pong {
@@ -74,7 +75,13 @@ message Pong {
 }
 
 message NodeInfo {
-    string pubKey = 2;
-    string ip = 3;
-    int32 port = 4;
+    string pubKey = 1;
+    string ip = 2;
+    int32 port = 3;
+    repeated BestBlock bestBlocks = 4;
+}
+
+message BestBlock {
+    string branch = 1;
+    int64 index = 2;
 }
