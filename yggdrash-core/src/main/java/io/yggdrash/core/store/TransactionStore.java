@@ -50,7 +50,7 @@ public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
     private final Set<Sha3Hash> pendingKeys = new HashSet<>();
     private final DbSource<byte[], byte[]> db;
 
-    TransactionStore(DbSource<byte[], byte[]> db) {
+    public TransactionStore(DbSource<byte[], byte[]> db) {
         this.db = db.init();
         this.pendingPool = CacheManagerBuilder
                 .newCacheManagerBuilder().build(true)
