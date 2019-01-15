@@ -16,17 +16,38 @@
 
 package io.yggdrash.node.springboot.grpc;
 
+import io.grpc.stub.StreamObserver;
 import io.yggdrash.node.springboot.grpc.autoconfigure.GrpcAutoConfiguration;
+import io.yggdrash.proto.Ping;
+import io.yggdrash.proto.PingPongGrpc;
+import io.yggdrash.proto.Pong;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {GrpcAutoConfiguration.class})
+@SpringBootTest(classes = {GrpcAutoConfiguration.class, GrpcAutoConfigTest.TestConfig.class})
 public class GrpcAutoConfigTest {
-
     @Test
     public void testServerRun() {
+
+    }
+
+    @TestConfiguration
+    @ComponentScan    // When ComponentScan off, gRpcServer don't running
+    public static class TestConfig {
+
+        @GrpcService
+        public static class PingPongService extends PingPongGrpc.PingPongImplBase {
+
+            @Override
+            public void play(Ping request, StreamObserver<Pong> responseObserver) {
+                super.play(request, responseObserver);
+                responseObserver.onCompleted();
+            }
+        }
     }
 }
