@@ -17,6 +17,7 @@
 package io.yggdrash.node.springboot.grpc;
 
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.TestConstants;
 import io.yggdrash.node.springboot.grpc.autoconfigure.GrpcAutoConfiguration;
 import io.yggdrash.proto.Ping;
 import io.yggdrash.proto.PingPongGrpc;
@@ -26,10 +27,12 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.junit4.SpringRunner;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {GrpcAutoConfiguration.class, GrpcAutoConfigTest.TestConfig.class})
+@IfProfileValue(name = "spring.profiles.active", value = TestConstants.CI_TEST)
 public class GrpcAutoConfigTest {
     @Test
     public void testServerRun() {
