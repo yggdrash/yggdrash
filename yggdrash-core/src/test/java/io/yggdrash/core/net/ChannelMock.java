@@ -25,7 +25,6 @@ import java.util.List;
 
 public class ChannelMock implements PeerClientChannel {
     private final Peer peer;
-    private final Proto.Pong pong = Proto.Pong.newBuilder().setPong("Pong").build();
     private boolean pongResponse = true;
 
     ChannelMock(String ynodeUri) {
@@ -48,10 +47,10 @@ public class ChannelMock implements PeerClientChannel {
     }
 
     @Override
-    public Proto.Pong ping(String message, Peer peer) {
+    public String ping(String message, Peer peer) {
         if (pongResponse) {
             pongResponse = false;
-            return pong;
+            return "Pong";
         }
         pongResponse = true;
         return null;

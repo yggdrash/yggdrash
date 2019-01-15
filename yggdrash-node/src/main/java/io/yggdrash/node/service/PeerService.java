@@ -1,6 +1,7 @@
 package io.yggdrash.node.service;
 
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.core.net.BestBlock;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.node.GRpcClientChannel;
@@ -25,6 +26,8 @@ public class PeerService extends PeerGrpc.PeerImplBase {
     @Override
     public void findPeers(Proto.RequestPeer request, StreamObserver<Proto.PeerList> responseObserver) {
         Peer peer = Peer.valueOf(request.getPubKey(), request.getIp(), request.getPort());
+        // TODO update bestBlock
+        //for (Proto.BestBlock bestBlock : request.getBestBlocksList())
         List<String> list = peerGroup.getPeers(peer);
         Proto.PeerList.Builder peerListBuilder = Proto.PeerList.newBuilder();
         for (String url : list) {
@@ -34,6 +37,7 @@ public class PeerService extends PeerGrpc.PeerImplBase {
         responseObserver.onNext(peerList);
         responseObserver.onCompleted();
 
+        // TODO remove cross connection
         try {
             if (!peerGroup.isMaxChannel()) {
                 peerGroup.addChannel(new GRpcClientChannel(peer));
@@ -53,10 +57,9 @@ public class PeerService extends PeerGrpc.PeerImplBase {
 
     @Override
     public void play(Proto.Ping request, StreamObserver<Proto.Pong> responseObserver) {
-        for (Proto.NodeInfo nodeInfo : request.getNodesList()) {
-            Peer peer = Peer.valueOf(nodeInfo.getPubKey(), nodeInfo.getIp(), nodeInfo.getPort());
-            peerGroup.touchPeer(peer);
-        }
+        String url = request.getPeer().getUrl();
+        Peer peer = Peer.valueOf(url);
+        peerGroup.touchPeer(peer);
         log.debug("Received " + request.getPing());
         Proto.Pong pong = Proto.Pong.newBuilder().setPong("Pong").build();
         responseObserver.onNext(pong);

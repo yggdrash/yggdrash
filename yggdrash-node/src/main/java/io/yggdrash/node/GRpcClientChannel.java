@@ -79,13 +79,10 @@ public class GRpcClientChannel implements PeerClientChannel {
     }
 
     @Override
-    public Proto.Pong ping(String message, Peer peer) {
-        Proto.NodeInfo nodeInfo = Proto.NodeInfo.newBuilder().setPubKey(peer.getPubKey().toString())
-                .setIp(peer.getHost())
-                .setPort(peer.getPort())
-                .build();
-        Proto.Ping request = Proto.Ping.newBuilder().setPing(message).addNodes(nodeInfo).build();
-        return blockingPeerStub.play(request);
+    public String ping(String message, Peer peer) {
+        Proto.Ping request = Proto.Ping.newBuilder().setPing(message)
+                .setPeer(Proto.PeerInfo.newBuilder().setUrl(peer.getYnodeUri())).build();
+        return blockingPeerStub.play(request).getPong();
     }
 
     /**

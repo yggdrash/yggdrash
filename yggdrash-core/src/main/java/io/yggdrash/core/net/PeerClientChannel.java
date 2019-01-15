@@ -12,7 +12,7 @@ public interface PeerClientChannel {
 
     void stop();
 
-    Proto.Pong ping(String message, Peer peer);
+    String ping(String message, Peer peer);
 
     List<Proto.Block> syncBlock(BranchId branchId, long offset);
 

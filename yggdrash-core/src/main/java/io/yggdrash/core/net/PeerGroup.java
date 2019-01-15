@@ -119,8 +119,8 @@ public class PeerGroup implements BranchEventListener {
 
         for (PeerClientChannel client : channelMap.values()) {
             try {
-                Proto.Pong pong = client.ping("ping", owner);
-                if (pong.getPong().equals("Pong")) {
+                String pong = client.ping("Ping", owner);
+                if ("Pong".equals(pong)) {
                     continue;
                 }
             } catch (Exception e) {
@@ -188,9 +188,9 @@ public class PeerGroup implements BranchEventListener {
 
         try {
             log.info("Connecting... peer {}:{}", peer.getHost(), peer.getPort());
-            Proto.Pong pong = client.ping("Ping", peer);
+            String pong = client.ping("Ping", owner);
             // TODO validation peer
-            if (pong.getPong().equals("Pong")) {
+            if ("Pong".equals(pong)) {
                 // 접속 성공 시
                 if (!isMaxChannel()) {
                     channelMap.put(peer.getPeerId(), client);
