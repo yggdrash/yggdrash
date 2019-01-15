@@ -20,18 +20,24 @@ import io.grpc.ServerBuilder;
 import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
 import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
 import io.yggdrash.node.springboot.grpc.GrpcService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
 @AutoConfigureOrder
 @ConditionalOnBean(annotation = GrpcService.class)
+@EnableConfigurationProperties(GrpcServerProperties.class)
 public class GrpcAutoConfiguration {
+    @Autowired
+    private GrpcServerProperties grpcServerProperties;
 
     @Bean
     public GrpcServerRunner grpcServerRunner(GrpcServerBuilderConfigurer configurer) {
-        return new GrpcServerRunner(configurer, ServerBuilder.forPort(32918));
+        return new GrpcServerRunner(configurer,
+                ServerBuilder.forPort(grpcServerProperties.getPort()));
     }
 
     @Bean
