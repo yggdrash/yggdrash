@@ -20,8 +20,6 @@ import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.ResourceLoader;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.util.FileCopyUtils;
@@ -36,7 +34,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 import static io.yggdrash.common.util.Utils.sleep;
 
@@ -46,23 +43,22 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         implements CommandLineRunner {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(GrpcNodeServer.class);
-    private static final ResourceLoader loader = new DefaultResourceLoader();
+
+    private static final boolean TEST_OMIT_VERIFY = false;
+    private static final boolean ABNORMAL_TEST = false;
 
     private final int consenusCount;
-
-    private DefaultConfig defaultConfig;
+    private final boolean isValidator;
     private final Wallet wallet;
     private final BlockConChain blockConChain;
     private final GrpcNodeClient myNode;
     private final Map<String, GrpcNodeClient> totalValidatorMap;
-    private final boolean isValidator;
+
     private boolean isActive;
     private boolean isSynced;
-    private ReentrantLock lock = new ReentrantLock();
 
-    private static final boolean TEST_OMIT_VERIFY = true;
-    private static final boolean TEST_MEMORYFREE = false; // todo: this is only static node test
-    private static final boolean ABNORMAL_TEST = false;
+    private DefaultConfig defaultConfig;
+    private ReentrantLock lock = new ReentrantLock();
 
     @Autowired
     public GrpcNodeServer(DefaultConfig defaultConfig, Wallet wallet, BlockConChain blockConChain) {
@@ -263,14 +259,14 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         GrpcNodeClient client = totalValidatorMap.get(nodeId);
         BlockCon blockCon;
         if (client.isRunning()) {
-            List<BlockCon> blockConList = client.getBlockConList(
-                    this.blockConChain.getLastConfirmedBlockCon().getIndex());
+            List<BlockCon> blockConList = new ArrayList<>(client.getBlockConList(
+                    this.blockConChain.getLastConfirmedBlockCon().getIndex()));
 
             log.debug("node: " + nodeId);
             log.debug("index: " + index);
             log.debug("blockConList size: " + blockConList.size());
 
-            if (blockConList == null || blockConList.size() == 0) {
+            if (blockConList.size() == 0) {
                 return;
             }
 
@@ -298,7 +294,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         }
     }
 
-    public BlockCon makeProposedBlock() {
+    private BlockCon makeProposedBlock() {
         if (this.isValidator
                 && this.isActive
                 && !this.blockConChain.isProposed()
@@ -398,9 +394,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         for (String key : this.totalValidatorMap.keySet()) {
             GrpcNodeClient client = this.totalValidatorMap.get(key);
             if (client.isRunning()) {
-                if (proposedPubkey.contains("04" + client.getPubKey())) {
-                    continue;
-                } else {
+                if (!proposedPubkey.contains("04" + client.getPubKey())) {
                     return false;
                 }
             }
@@ -480,9 +474,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
 
     private void loggingNode() {
 
-        log.info("["
-                + this.blockConChain.getLastConfirmedBlockCon().getIndex()
-                + "]"
+        log.info("[" + this.blockConChain.getLastConfirmedBlockCon().getIndex() + "]"
                 + this.blockConChain.getLastConfirmedBlockCon().getHashHex()
                 + " ("
                 + this.blockConChain.getLastConfirmedBlockCon().getBlock().getAddressHexString()
@@ -570,8 +562,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
     private NodeStatus getMyNodeStatus() {
         NodeStatus newNodeStatus = new NodeStatus(this.getActiveNodeList(),
                 this.blockConChain.getLastConfirmedBlockCon(),
-                this.blockConChain.getUnConfirmedBlockConMap().values()
-                        .stream().collect(Collectors.toList()));
+                new ArrayList<>(this.blockConChain.getUnConfirmedBlockConMap().values()));
         newNodeStatus.setSignature(wallet.sign(newNodeStatus.getDataForSignning()));
         return newNodeStatus;
     }
@@ -682,13 +673,12 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         }
 
         for (String signature : blockCon.getConsensusList()) {
-            if (Wallet.verify(blockCon.getHash(), Hex.decode(signature), true)) {
-                // todo: check validator
-                continue;
-            } else {
+            if (!Wallet.verify(blockCon.getHash(), Hex.decode(signature), true)) {
                 return false;
             }
+            // todo: else, check validator
         }
+
         return true;
     }
 

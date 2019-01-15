@@ -52,11 +52,11 @@ public class BlockConChain {
         this.lastConfirmedBlockCon = rootBlockCon;
         this.blockConKeyStore = new BlockConKeyStore(
                 new LevelDbDataSource(defaultConfig.getDatabasePath(),
-                        this.host + "_" + this.port + "/"+ Hex.toHexString(this.chain)
+                        this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
                                 + "/blockconkey"));
         this.blockConStore = new BlockConStore(
                 new LevelDbDataSource(defaultConfig.getDatabasePath(),
-                        this.host + "_" + this.port + "/"+ Hex.toHexString(this.chain)
+                        this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
                                 + "/blockcon"));
 
         BlockCon blockCon = rootBlockCon;
@@ -86,7 +86,7 @@ public class BlockConChain {
 
         this.transactionStore = new TransactionStore(
                 new LevelDbDataSource(defaultConfig.getDatabasePath(),
-                        this.host + "_" + this.port + "/"+ Hex.toHexString(this.chain)
+                        this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
                                 + "/txs"));
 
     }
@@ -97,6 +97,10 @@ public class BlockConChain {
 
     public BlockConKeyStore getBlockConKeyStore() {
         return blockConKeyStore;
+    }
+
+    public TransactionStore getTransactionStore() {
+        return transactionStore;
     }
 
     public BlockCon getRootBlockCon() {
