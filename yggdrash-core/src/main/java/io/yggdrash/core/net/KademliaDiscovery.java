@@ -38,9 +38,9 @@ public abstract class KademliaDiscovery implements Discovery {
             log.info("Try connecting to SEED peer = {}", peer);
 
             try {
-                List<Proto.NodeInfo> foundedPeerList = client.findPeers(peerGroup.getOwner());
-                for (Proto.NodeInfo nodeInfo : foundedPeerList) {
-                    peerGroup.addPeerByYnodeUri(nodeInfo.getUrl());
+                List<Proto.PeerInfo> foundedPeerList = client.findPeers(peerGroup.getOwner());
+                for (Proto.PeerInfo peerInfo : foundedPeerList) {
+                    peerGroup.addPeerByYnodeUri(peerInfo.getUrl());
                 }
             } catch (Exception e) {
                 log.error("Failed connecting to SEED peer = {}", peer);
@@ -70,16 +70,16 @@ public abstract class KademliaDiscovery implements Discovery {
             List<Peer> closest = peerGroup.getClosestPeers();
             List<Peer> tried = new ArrayList<>();
 
-            for (Peer p : closest) {
-                if (!tried.contains(p) && !prevTried.contains(p)) {
-                    PeerClientChannel clientChannel = getClient(p);
+            for (Peer peer : closest) {
+                if (!tried.contains(peer) && !prevTried.contains(peer)) {
+                    PeerClientChannel clientChannel = getClient(peer);
                     try {
-                        Optional<List<Proto.NodeInfo>> list = Optional.ofNullable(
+                        Optional<List<Proto.PeerInfo>> list = Optional.ofNullable(
                                 clientChannel.findPeers(owner));
                         list.ifPresent(nodeInfo -> nodeInfo.forEach(
-                                n -> peerGroup.addPeerByYnodeUri(n.getUrl())));
+                                p -> peerGroup.addPeerByYnodeUri(p.getUrl())));
 
-                        tried.add(p);
+                        tried.add(peer);
                     } catch (Exception e) {
                         log.warn(e.getMessage());
                     } finally {

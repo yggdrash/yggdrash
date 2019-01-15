@@ -34,7 +34,7 @@ public class ChannelMock implements PeerClientChannel {
 
 
     @Override
-    public List<Proto.NodeInfo> findPeers(Peer peer) {
+    public List<Proto.PeerInfo> findPeers(Peer peer) {
         return null;
     }
 

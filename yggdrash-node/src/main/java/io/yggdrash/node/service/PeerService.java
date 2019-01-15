@@ -28,7 +28,7 @@ public class PeerService extends PeerGrpc.PeerImplBase {
         List<String> list = peerGroup.getPeers(peer);
         Proto.PeerList.Builder peerListBuilder = Proto.PeerList.newBuilder();
         for (String url : list) {
-            peerListBuilder.addNodes(Proto.NodeInfo.newBuilder().setUrl(url).build());
+            peerListBuilder.addPeers(Proto.PeerInfo.newBuilder().setUrl(url).build());
         }
         Proto.PeerList peerList = peerListBuilder.build();
         responseObserver.onNext(peerList);
@@ -53,10 +53,10 @@ public class PeerService extends PeerGrpc.PeerImplBase {
 
     @Override
     public void play(Proto.Ping request, StreamObserver<Proto.Pong> responseObserver) {
-        Proto.PeerInfo peerInfo = request.getPeer();
-        Peer peer = Peer.valueOf(peerInfo.getPubKey(), peerInfo.getIp(), peerInfo.getPort());
-        peerGroup.touchPeer(peer);
-
+        for (Proto.NodeInfo nodeInfo : request.getNodesList()) {
+            Peer peer = Peer.valueOf(nodeInfo.getPubKey(), nodeInfo.getIp(), nodeInfo.getPort());
+            peerGroup.touchPeer(peer);
+        }
         log.debug("Received " + request.getPing());
         Proto.Pong pong = Proto.Pong.newBuilder().setPong("Pong").build();
         responseObserver.onNext(pong);

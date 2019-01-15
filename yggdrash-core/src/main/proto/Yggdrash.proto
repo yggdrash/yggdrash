@@ -57,23 +57,23 @@ message RequestPeer {
 }
 
 message PeerList {
-    repeated NodeInfo nodes = 1;
+    repeated PeerInfo peers = 1;
 }
 
-message NodeInfo {
+message PeerInfo {
     string url = 1;
 }
 
 message Ping {
     string ping = 1;
-    PeerInfo peer = 2;
+    repeated NodeInfo nodes = 2;
 }
 
 message Pong {
     string pong = 1;
 }
 
-message PeerInfo {
+message NodeInfo {
     string pubKey = 2;
     string ip = 3;
     int32 port = 4;

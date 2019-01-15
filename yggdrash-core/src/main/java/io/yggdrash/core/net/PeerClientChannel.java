@@ -6,7 +6,7 @@ import io.yggdrash.proto.Proto;
 import java.util.List;
 
 public interface PeerClientChannel {
-    List<Proto.NodeInfo> findPeers(Peer peer);
+    List<Proto.PeerInfo> findPeers(Peer peer);
 
     Peer getPeer();
 

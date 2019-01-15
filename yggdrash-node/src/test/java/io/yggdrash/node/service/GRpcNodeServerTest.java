@@ -78,12 +78,12 @@ public class GRpcNodeServerTest {
                 grpcServerRule.getChannel());
 
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        Proto.PeerInfo peerInfo = Proto.PeerInfo.newBuilder()
+        Proto.NodeInfo nodeInfo = Proto.NodeInfo.newBuilder()
                 .setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
                 .setPort(peer.getPort())
                 .build();
-        Proto.Ping ping = Proto.Ping.newBuilder().setPing("Ping").setPeer(peerInfo).build();
+        Proto.Ping ping = Proto.Ping.newBuilder().setPing("Ping").addNodes(nodeInfo).build();
 
         Proto.Pong pong = blockingStub.play(ping);
 
