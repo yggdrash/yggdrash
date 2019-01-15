@@ -22,6 +22,7 @@ import io.yggdrash.common.trie.Trie;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class BlockBody implements Cloneable {
@@ -152,6 +153,21 @@ public class BlockBody implements Cloneable {
         bb.body = txs;
 
         return bb;
+    }
+
+    public boolean equals(BlockBody newBlockBody) {
+        if (this.body.size() != newBlockBody.getBody().size()) {
+            return false;
+        }
+
+        for (int i = 0; i < newBlockBody.getBody().size(); i++) {
+            if (!Arrays.equals(this.getBody().get(i).getHash(),
+                    newBlockBody.getBody().get(i).getHash())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 
