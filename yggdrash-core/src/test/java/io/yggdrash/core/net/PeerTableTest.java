@@ -3,7 +3,6 @@ package io.yggdrash.core.net;
 import io.yggdrash.TestConstants.SlowTest;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.Utils;
-import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.StoreBuilder;
 import org.junit.Before;
@@ -22,7 +21,7 @@ public class PeerTableTest {
     @Before
     public void setUp() {
         StoreBuilder storeBuilder = new StoreBuilder(new DefaultConfig());
-        PeerStore peerStore = storeBuilder.buildPeerStore(BranchId.NULL);
+        PeerStore peerStore = storeBuilder.buildPeerStore();
         peerTable = new PeerTable(peerStore, OWNER);
     }
 

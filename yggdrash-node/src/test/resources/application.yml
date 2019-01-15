@@ -1,6 +1,4 @@
 yggdrash:
-  branch:
-    default.active: true
   node:
     grpc.host: "localhost"
     grpc.port: 0

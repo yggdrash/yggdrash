@@ -47,7 +47,6 @@ class GRpcClientChannel implements PeerClientChannel {
     private final PingPongGrpc.PingPongBlockingStub blockingPingPongStub;
     private final BlockChainGrpc.BlockChainBlockingStub blockingBlockChainStub;
     private final BlockChainGrpc.BlockChainBlockingStub asyncBlockChainStub;
-    //private final BlockChainGrpc.BlockChainStub asyncBlockChainStub;
     private final Peer peer;
 
     GRpcClientChannel(Peer peer) {
@@ -62,13 +61,11 @@ class GRpcClientChannel implements PeerClientChannel {
         this.blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);
         this.blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
         this.asyncBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
-        //this.asyncBlockChainStub = BlockChainGrpc.newStub(channel);
     }
 
     @Override
-    public List<NodeInfo> findPeers(BranchId branchId, Peer peer) {
+    public List<NodeInfo> findPeers(Peer peer) {
         RequestPeer requestPeer = RequestPeer.newBuilder()
-                .setBranchId(branchId.toString())
                 .setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
                 .setPort(peer.getPort())
@@ -90,9 +87,8 @@ class GRpcClientChannel implements PeerClientChannel {
     }
 
     @Override
-    public Pong ping(String message, BranchId branchId, Peer peer) {
-        PeerInfo peerInfo = PeerInfo.newBuilder().setBranchId(branchId.toString())
-                .setPubKey(peer.getPubKey().toString())
+    public Pong ping(String message, Peer peer) {
+        PeerInfo peerInfo = PeerInfo.newBuilder().setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
                 .setPort(peer.getPort())
                 .build();
@@ -144,78 +140,4 @@ class GRpcClientChannel implements PeerClientChannel {
             asyncBlockChainStub.broadcastBlock(block);
         }
     }
-
-    @Override
-    public void broadcastConsensus(BranchId branchId, Peer peer) {
-        log.info("*** Broadcasting Consensus -> {}",
-                this.peer.getHost() + ":" + this.peer.getPort());
-        RequestPeer requestPeer = RequestPeer.newBuilder()
-                .setBranchId(branchId.toString())
-                .setPubKey(peer.getPubKey().toString())
-                .setIp(peer.getHost())
-                .setPort(peer.getPort())
-                .build();
-        blockingPeerStub.broadcastConsensus(requestPeer);
-    }
-
-    /*
-    @Override
-    public void broadcastTransaction(Proto.Transaction[] txs) {
-        log.info("*** Broadcasting tx...");
-        StreamObserver<Proto.Transaction> requestObserver =
-                asyncBlockChainStub.broadcastTransaction(new StreamObserver<Empty>() {
-                    @Override
-                    public void onNext(NetProto.Empty empty) {
-                        log.trace("Got response");
-                    }
-
-                    @Override
-                    public void onError(Throwable t) {
-                        log.warn("Broadcast transaction failed: {}",
-                                Status.fromThrowable(t).getCode());
-                    }
-
-                    @Override
-                    public void onCompleted() {
-                        log.trace("Finished broadcasting");
-                    }
-                });
-
-        for (Proto.Transaction tx : txs) {
-            log.trace("Sending transaction: {}", tx);
-            requestObserver.onNext(tx);
-        }
-
-        requestObserver.onCompleted();
-    }
-
-    @Override
-    public void broadcastBlock(Proto.Block[] blocks) {
-        log.info("*** Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
-        StreamObserver<Proto.Block> requestObserver =
-                asyncBlockChainStub.broadcastBlock(new StreamObserver<NetProto.Empty>() {
-                    @Override
-                    public void onNext(NetProto.Empty empty) {
-                        log.trace("Got response");
-                    }
-
-                    @Override
-                    public void onError(Throwable t) {
-                        log.warn("Broadcast block failed: {}", Status.fromThrowable(t).getCode());
-                    }
-
-                    @Override
-                    public void onCompleted() {
-                        log.trace("Finished broadcasting");
-                    }
-                });
-
-        for (Proto.Block block : blocks) {
-            log.trace("Sending block: {}", block);
-            requestObserver.onNext(block);
-        }
-
-        requestObserver.onCompleted();
-    }
-    */
 }

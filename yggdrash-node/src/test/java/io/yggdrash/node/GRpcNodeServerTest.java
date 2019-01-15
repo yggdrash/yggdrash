@@ -38,7 +38,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
@@ -88,15 +87,12 @@ public class GRpcNodeServerTest {
                 grpcServerRule.getChannel());
 
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        PeerInfo peerInfo = PeerInfo.newBuilder().setBranchId(branchId.toString())
+        PeerInfo peerInfo = PeerInfo.newBuilder()
                 .setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
                 .setPort(peer.getPort())
                 .build();
         Ping ping = Ping.newBuilder().setPing("Ping").setPeer(peerInfo).build();
-
-        Mockito.doCallRealMethod().when(peerGroupMock).touchPeer(
-                BranchId.of(peerInfo.getBranchId()), peer);
 
         Pong pong = blockingStub.play(ping);
 

@@ -10,14 +10,12 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public class PeerGroupTest {
 
     private static final int MAX_PEERS = 25;
     private static final BranchId BRANCH = TestConstants.STEM;
-    private static final BranchId OTHER_BRANCH = TestConstants.YEED;
     private static final Peer OWNER = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
     private static final StoreBuilder storeBuilder = new StoreBuilder(new DefaultConfig());
 
@@ -25,64 +23,29 @@ public class PeerGroupTest {
 
     @Before
     public void setUp() {
-        this.peerGroup = new PeerGroup(OWNER, MAX_PEERS);
-        peerGroup.addPeerTable(BRANCH, storeBuilder.buildPeerStore(BRANCH));
-        peerGroup.addPeerTable(OTHER_BRANCH, storeBuilder.buildPeerStore(OTHER_BRANCH));
-    }
-
-    @Test
-    public void addPeerTest() {
-        assert !peerGroup.isPeerEmpty(BRANCH);
-        assert peerGroup.getPeerTable(BRANCH).getPeersCount() == 1;
-        peerGroup.addPeer(BRANCH, Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
-        peerGroup.addPeer(BRANCH, Peer.valueOf("ynode://75bff16c@127.0.0.1:32919"));
-        peerGroup.addPeer(OTHER_BRANCH, Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
-        assert peerGroup.count(BRANCH) == 3; // addPeer 시 owner 추가됨
-        assert peerGroup.count(OTHER_BRANCH) == 2;
-        assert !peerGroup.getPeers(BRANCH, OWNER).isEmpty();
-        assert !peerGroup.isPeerEmpty(BRANCH);
+        this.peerGroup = new PeerGroup(OWNER, storeBuilder.buildPeerStore(), MAX_PEERS);
     }
 
     @Test
     public void getPeerTest() {
         Peer requester = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        Collection<String> peerListWithoutRequester = peerGroup.getPeers(BRANCH, requester);
-        assert peerListWithoutRequester.size() == 1;
+        Collection<String> peerListWithoutRequester = peerGroup.getPeers(requester);
+        assert peerListWithoutRequester.size() == 0;
         // requester 가 peer 목록 조회 후에는 peerTable 에 등록되어 있다
-        assert peerGroup.containsPeer(BRANCH, requester);
+        assert peerGroup.getPeerUriList().contains(requester.getYnodeUri());
     }
 
     @Test
     public void addPeerByYnodeUriTest() {
-        assert !peerGroup.isPeerEmpty(BRANCH);
-        assert peerGroup.getPeerTable(BRANCH).getPeersCount() == 1;
-        peerGroup.addPeerByYnodeUri(BRANCH, "ynode://75bff16c@127.0.0.1:32918");
-        peerGroup.addPeerByYnodeUri(OTHER_BRANCH, "ynode://75bff16c@127.0.0.1:32918");
-        assert peerGroup.count(BRANCH) == 2;
-        assert peerGroup.count(OTHER_BRANCH) == 2;
-        peerGroup.addPeerByYnodeUri(BRANCH,
-                Collections.singletonList("ynode://75bff16c@127.0.0.1:32919"));
-        peerGroup.addPeerByYnodeUri(OTHER_BRANCH,
-                Collections.singletonList("ynode://75bff16c@127.0.0.1:32919"));
-        assert peerGroup.count(BRANCH) == 3;
-        assert peerGroup.count(OTHER_BRANCH) == 3;
-    }
+        assert peerGroup.count() == 0;
 
-    @Test
-    public void getSeedPeerList() {
-        assert peerGroup.getSeedPeerList() == null;
-        peerGroup.setSeedPeerList(Collections.singletonList("ynode://75bff16c@127.0.0.1:8080"));
-        assert !peerGroup.getSeedPeerList().isEmpty();
-    }
+        peerGroup.addPeerByYnodeUri("ynode://75bff16c@127.0.0.1:32918");
+        assert peerGroup.getPeerUriList().contains("ynode://75bff16c@127.0.0.1:32918");
+        assert peerGroup.count() == 1;
 
-    @Test
-    public void getPeerUriListTest() {
-        assert peerGroup.getPeerUriList(BRANCH).size() == 1;
-        assert peerGroup.getPeerUriList(OTHER_BRANCH).size() == 1;
-        peerGroup.addPeer(BRANCH, Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
-        peerGroup.addPeer(OTHER_BRANCH, Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
-        assert peerGroup.getPeerUriList(BRANCH).contains("ynode://75bff16c@127.0.0.1:32918");
-        assert peerGroup.getPeerUriList(OTHER_BRANCH).contains("ynode://75bff16c@127.0.0.1:32918");
+        peerGroup.addPeerByYnodeUri("ynode://75bff16c@127.0.0.1:32919");
+        assert peerGroup.getPeerUriList().contains("ynode://75bff16c@127.0.0.1:32919");
+        assert peerGroup.count() == 2;
     }
 
     /**
@@ -94,16 +57,12 @@ public class PeerGroupTest {
     public void healthCheck() {
         PeerClientChannel peerClientChannel = ChannelMock.dummy();
 
-        peerGroup.newPeerChannel(BRANCH, peerClientChannel); // Pong 정상응답
-        assert !peerGroup.isChannelEmpty(BRANCH);
-
-        peerGroup.addPeer(BRANCH, peerClientChannel.getPeer());
-        assert peerGroup.containsPeer(BRANCH, peerClientChannel.getPeer());
+        peerGroup.newPeerChannel(peerClientChannel); // Pong 정상응답
+        assert !peerGroup.getActivePeerList().isEmpty();
 
         peerGroup.healthCheck(); // Pong null 응답
 
-        assert peerGroup.isChannelEmpty(BRANCH);
-        assert !peerGroup.containsPeer(BRANCH, peerClientChannel.getPeer());
+        assert peerGroup.getActivePeerList().isEmpty();
     }
 
     @Test
@@ -126,25 +85,24 @@ public class PeerGroupTest {
         for (int i = 0; i < testCount; i++) {
             int port = i + 32918;
             ChannelMock channel = new ChannelMock("ynode://75bff16c@localhost:" + port);
-            peerGroup.newPeerChannel(BRANCH, channel);
+            peerGroup.newPeerChannel(channel);
         }
         assert MAX_PEERS == peerGroup.getActivePeerList().size();
     }
 
     @Test
     public void getAllPeersFromBucketOf() {
-        assert peerGroup.getAllPeersFromBucketsOf(BRANCH).size() == 1;
-        assert peerGroup.getAllPeersFromBucketsOf(OTHER_BRANCH).size() == 1;
+        assert peerGroup.getAllPeersFromBucketsOf().size() == 0;
     }
 
     @Test
     public void getBootstrappingSeedList() {
-        assert peerGroup.getBootstrappingSeedList(BRANCH).size() == 0;
+        assert peerGroup.getBootstrappingSeedList().size() == 0;
     }
 
     @Test
     public void getClosestPeers() {
-        assert peerGroup.getClosestPeers(BRANCH).size() == 0;
+        assert peerGroup.getClosestPeers().size() == 0;
     }
 
     @Test
@@ -159,38 +117,39 @@ public class PeerGroupTest {
 
     @Test
     public void isClosePeer() {
-        assert !peerGroup.isClosePeer(BRANCH, Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
+        assert !peerGroup.isClosePeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
     }
 
     @Test
     public void reloadPeerChannel() {
-        peerGroup.reloadPeerChannel(BRANCH, ChannelMock.dummy());
+        peerGroup.reloadPeerChannel(ChannelMock.dummy());
     }
 
     @Test
     public void getLatestPeers() {
-        assert peerGroup.getLatestPeers(BRANCH, 1000).size() == 1;
+        peerGroup.addPeerByYnodeUri("ynode://75bff16c@127.0.0.1:32918");
+        assert peerGroup.getLatestPeers(1000).size() == 1;
     }
 
     @Test
     public void logBucketIdOf() {
-        peerGroup.logBucketIdOf(BRANCH);
-        peerGroup.logBucketIdOf(BRANCH, OWNER);
+        peerGroup.logBucketIdOf();
+        peerGroup.logBucketIdOf(OWNER);
     }
 
     @Test
     public void getActivePeerListOf() {
-        assert peerGroup.getActivePeerListOf(BRANCH).size() == 0;
+        assert peerGroup.getActivePeerListOf().size() == 0;
     }
 
     @Test
     public void touchPeer() {
-        peerGroup.touchPeer(BRANCH, OWNER);
+        peerGroup.touchPeer(OWNER);
     }
 
     private void addPeerChannel() {
-        assert peerGroup.isChannelEmpty(BRANCH);
-        peerGroup.newPeerChannel(BRANCH, ChannelMock.dummy());
-        assert !peerGroup.isChannelEmpty(BRANCH);
+        assert peerGroup.getActivePeerList().isEmpty();
+        peerGroup.newPeerChannel(ChannelMock.dummy());
+        assert !peerGroup.getActivePeerList().isEmpty();
     }
 }
