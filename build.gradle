@@ -74,7 +74,7 @@ project(':yggdrash-core') {
     dependencies {
         compile "io.grpc:grpc-protobuf:${grpcVersion}"
         compile "io.grpc:grpc-stub:${grpcVersion}"
-        compile "io.grpc:grpc-netty-shaded:${grpcVersion}"
+        compile "io.grpc:grpc-netty:${grpcVersion}"
         compile "com.google.protobuf:protobuf-java:${protobufVersion}"
         compile "org.iq80.leveldb:leveldb:${levelDBVersion}"
         compile "org.ehcache:ehcache:${ehcacheVersion}"
@@ -178,6 +178,18 @@ project(':yggdrash-gateway') {
 
     bootJar {
         launchScript()
+    }
+}
+
+project(':yggdrash-validator') {
+    apply plugin: 'org.springframework.boot'
+    apply plugin: 'io.spring.dependency-management'
+
+    dependencies {
+        compile project(':yggdrash-core')
+        testCompile project(':yggdrash-core').sourceSets.test.output
+        
+        compile "io.github.lognet:grpc-spring-boot-starter:3.0.0"
     }
 }
 

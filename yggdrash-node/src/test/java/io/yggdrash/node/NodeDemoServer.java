@@ -16,12 +16,13 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.net.NodeServer;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.store.StoreBuilder;
 
 import java.io.IOException;
 
@@ -47,9 +48,9 @@ public class NodeDemoServer {
     private static NodeServer createNodeServer(String host, int port) {
         GRpcNodeServer server = new GRpcNodeServer();
         Peer owner = Peer.valueOf("75bff16c", host, port);
-        server.setPeerGroup(new PeerGroup(owner, 25));
+        StoreBuilder builder = new StoreBuilder(new DefaultConfig());
+        server.setPeerGroup(new PeerGroup(owner, builder.buildPeerStore(), 25));
         server.setBranchGroup(new BranchGroup());
-        server.setWallet(TestConstants.wallet());
         server.setNodeStatus(new NodeStatus() {
             @Override
             public boolean isUpStatus() {

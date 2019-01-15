@@ -1,7 +1,0 @@
-
-yggdrash:
-  node:
-    seed-peer-list:
-    - "ynode://9ea9225f0b7db3c697c0a2e09cdd65046899058d16f73378c1559d61aa3e10cd5dc9337142728f5a02faadafab2b926e2998d5bc2b62c2183fab75ca996de2ce@localhost:32918"
-
-management.endpoints.web.exposure.include: "*"
