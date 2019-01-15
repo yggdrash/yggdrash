@@ -19,9 +19,12 @@ package io.yggdrash.node.springboot.grpc;
 import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
+import io.grpc.ServerInterceptor;
+import io.grpc.ServerInterceptors;
 import io.grpc.ServerServiceDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.CommandLineRunner;
@@ -30,7 +33,10 @@ import org.springframework.core.type.AnnotatedTypeMetadata;
 
 import java.io.IOException;
 import java.lang.annotation.Annotation;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class GrpcServerRunner implements CommandLineRunner {
@@ -53,6 +59,12 @@ public class GrpcServerRunner implements CommandLineRunner {
     public void run(String... args) throws IOException {
         log.info("Starting gRPC Server ...");
 
+        // find global Interceptors
+        List<ServerInterceptor> globalInterceptors =
+                getBeanNamesByTypeWithAnnotation(GrpcGlobalInterceptor.class, ServerInterceptor.class)
+                        .map(name -> applicationContext.getBeanFactory().getBean(name, ServerInterceptor.class))
+                        .collect(Collectors.toList());
+
         // find and register all GrpcService enabled beans
         getBeanNamesByTypeWithAnnotation(GrpcService.class, BindableService.class)
                 .forEach(name -> {
@@ -60,7 +72,11 @@ public class GrpcServerRunner implements CommandLineRunner {
                             .getBeanFactory().getBean(name, BindableService.class);
                     ServerServiceDefinition serviceDefinition = service.bindService();
 
-                    //TODO bind global interceptors
+                    //bind global and private interceptors
+                    GrpcService grpcServiceAnnotation =
+                            applicationContext.findAnnotationOnBean(name, GrpcService.class);
+                    serviceDefinition = bindInterceptors(
+                            serviceDefinition, grpcServiceAnnotation, globalInterceptors);
 
                     //TODO add service to healthStatusManager
 
@@ -73,6 +89,28 @@ public class GrpcServerRunner implements CommandLineRunner {
 
         log.info("gRPC Server started, listening on port {}.", server.getPort());
         startDaemonAwaitThread();
+    }
+
+    private ServerServiceDefinition bindInterceptors(
+            ServerServiceDefinition serviceDefinition, GrpcService grpcService,
+            Collection<ServerInterceptor> globalInterceptors) {
+
+        Stream<? extends ServerInterceptor> privateInterceptors =
+                Stream.of(grpcService.interceptors()).map(interceptorClass -> {
+                    try {
+                        return 0 < applicationContext.getBeanNamesForType(interceptorClass).length ?
+                                applicationContext.getBean(interceptorClass) :
+                                interceptorClass.newInstance();
+                    } catch (InstantiationException | IllegalAccessException e) {
+                        throw new BeanCreationException("Failed to create interceptor instance.", e);
+                    }
+                });
+
+        List<ServerInterceptor> interceptors = Stream.concat(grpcService.applyGlobalInterceptors() ?
+                globalInterceptors.stream() : Stream.empty(), privateInterceptors)
+                .distinct()
+                .collect(Collectors.toList());
+        return ServerInterceptors.intercept(serviceDefinition, interceptors);
     }
 
     private <T> Stream<String> getBeanNamesByTypeWithAnnotation(
