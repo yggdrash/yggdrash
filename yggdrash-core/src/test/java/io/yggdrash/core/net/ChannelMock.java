@@ -79,6 +79,11 @@ public class ChannelMock implements PeerClientChannel {
     }
 
     static PeerClientChannel dummy() {
-        return new ChannelMock("ynode://75bff16c@localhost:32918");
+        return dummy(Peer.valueOf("ynode://75bff16c@localhost:32918"));
     }
+
+    static PeerClientChannel dummy(Peer peer) {
+        return new ChannelMock(peer.getYnodeUri());
+    }
+
 }

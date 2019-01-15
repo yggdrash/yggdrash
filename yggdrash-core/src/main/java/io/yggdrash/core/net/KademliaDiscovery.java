@@ -8,33 +8,61 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class DiscoverTask implements Runnable {
-    private static final Logger log = LoggerFactory.getLogger(DiscoverTask.class);
+public abstract class KademliaDiscovery implements Discovery {
+    private static final Logger log = LoggerFactory.getLogger(KademliaDiscovery.class);
 
-    private final PeerGroup peerGroup;
-    private final Peer owner;
+    private PeerGroup peerGroup;
+    private Peer owner;
 
-    public DiscoverTask(PeerGroup peerGroup) {
+    @Override
+    public void setPeerGroup(PeerGroup peerGroup) {
         this.peerGroup = peerGroup;
         this.owner = peerGroup.getOwner();
     }
 
     @Override
-    public void run() {
-        int peerCount = peerGroup.count() - 1;
-        log.info("Start discover! peerCount={}", peerCount);
-        discover(0, new ArrayList<>());
+    public PeerGroup getPeerGroup() {
+        return peerGroup;
     }
 
-    public abstract PeerClientChannel getClient(Peer peer);
+    @Override
+    public void discover() {
+        for (String ynodeUri : peerGroup.getBootstrappingSeedList()) {
+            String ynodeUriWithoutPubKey = peerGroup.getOwner().getYnodeUri()
+                    .substring(ynodeUri.indexOf("@"));
+            if (ynodeUri.contains(ynodeUriWithoutPubKey)) {
+                continue;
+            }
+            Peer peer = Peer.valueOf(ynodeUri);
+            PeerClientChannel client = getClient(peer);
+            log.info("Try connecting to SEED peer = {}", peer);
 
-    private synchronized void discover(int round, List<Peer> prevTried) {
+            try {
+                List<NodeInfo> foundedPeerList = client.findPeers(peerGroup.getOwner());
+                for (NodeInfo nodeInfo : foundedPeerList) {
+                    peerGroup.addPeerByYnodeUri(nodeInfo.getUrl());
+                }
+            } catch (Exception e) {
+                log.error("Failed connecting to SEED peer = {}", peer);
+            } finally {
+                client.stop();
+            }
+        }
+
+        int peerCount = peerGroup.count();
+        log.info("Start discover! peerCount={}", peerCount);
+        findPeers(0, new ArrayList<>());
+    }
+
+    protected abstract PeerClientChannel getClient(Peer peer);
+
+    private synchronized void findPeers(int round, List<Peer> prevTried) {
         try {
             if (round == KademliaOptions.MAX_STEPS) {
                 log.debug("{}", String.format("(KademliaOptions.MAX_STEPS) Terminating discover"
                         + "after %d rounds.", round));
                 log.trace("{}\n{}",
-                        String.format("Peers discovered %d", peerGroup.count() - 1),
+                        String.format("Peers discovered %d", peerGroup.count()),
                         peerGroup.getPeerUriList());
                 return;
             }
@@ -72,7 +100,7 @@ public abstract class DiscoverTask implements Runnable {
             }
 
             tried.addAll(prevTried);
-            discover(round + 1, tried);
+            findPeers(round + 1, tried);
         } catch (Exception e) {
             log.info("{}", e);
         }
