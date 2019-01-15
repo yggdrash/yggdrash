@@ -21,7 +21,6 @@ import io.yggdrash.core.blockchain.BranchEventListener;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.store.PeerStore;
-import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -120,7 +119,7 @@ public class PeerGroup implements BranchEventListener {
 
         for (PeerClientChannel client : channelMap.values()) {
             try {
-                Pong pong = client.ping("ping", owner);
+                Proto.Pong pong = client.ping("ping", owner);
                 if (pong.getPong().equals("Pong")) {
                     continue;
                 }
@@ -189,7 +188,7 @@ public class PeerGroup implements BranchEventListener {
 
         try {
             log.info("Connecting... peer {}:{}", peer.getHost(), peer.getPort());
-            Pong pong = client.ping("Ping", peer);
+            Proto.Pong pong = client.ping("Ping", peer);
             // TODO validation peer
             if (pong.getPong().equals("Pong")) {
                 // 접속 성공 시

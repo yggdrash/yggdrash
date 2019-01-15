@@ -1,6 +1,6 @@
 package io.yggdrash.core.net;
 
-import io.yggdrash.proto.NodeInfo;
+import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -38,8 +38,8 @@ public abstract class KademliaDiscovery implements Discovery {
             log.info("Try connecting to SEED peer = {}", peer);
 
             try {
-                List<NodeInfo> foundedPeerList = client.findPeers(peerGroup.getOwner());
-                for (NodeInfo nodeInfo : foundedPeerList) {
+                List<Proto.NodeInfo> foundedPeerList = client.findPeers(peerGroup.getOwner());
+                for (Proto.NodeInfo nodeInfo : foundedPeerList) {
                     peerGroup.addPeerByYnodeUri(nodeInfo.getUrl());
                 }
             } catch (Exception e) {
@@ -74,7 +74,7 @@ public abstract class KademliaDiscovery implements Discovery {
                 if (!tried.contains(p) && !prevTried.contains(p)) {
                     PeerClientChannel clientChannel = getClient(p);
                     try {
-                        Optional<List<NodeInfo>> list = Optional.ofNullable(
+                        Optional<List<Proto.NodeInfo>> list = Optional.ofNullable(
                                 clientChannel.findPeers(owner));
                         list.ifPresent(nodeInfo -> nodeInfo.forEach(
                                 n -> peerGroup.addPeerByYnodeUri(n.getUrl())));

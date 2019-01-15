@@ -23,16 +23,9 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.proto.BlockChainGrpc;
-import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.NetProto.SyncLimit;
-import io.yggdrash.proto.NodeInfo;
 import io.yggdrash.proto.PeerGrpc;
-import io.yggdrash.proto.PeerInfo;
-import io.yggdrash.proto.Ping;
-import io.yggdrash.proto.PingPongGrpc;
-import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.proto.RequestPeer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +38,6 @@ public class GRpcClientChannel implements PeerClientChannel {
 
     private final ManagedChannel channel;
     private final PeerGrpc.PeerBlockingStub blockingPeerStub;
-    private final PingPongGrpc.PingPongBlockingStub blockingPingPongStub;
     private final BlockChainGrpc.BlockChainBlockingStub blockingBlockChainStub;
     private final BlockChainGrpc.BlockChainBlockingStub asyncBlockChainStub;
     private final Peer peer;
@@ -59,14 +51,13 @@ public class GRpcClientChannel implements PeerClientChannel {
         this.channel = channel;
         this.peer = peer;
         this.blockingPeerStub = PeerGrpc.newBlockingStub(channel);
-        this.blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);
         this.blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
         this.asyncBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
     }
 
     @Override
-    public List<NodeInfo> findPeers(Peer peer) {
-        RequestPeer requestPeer = RequestPeer.newBuilder()
+    public List<Proto.NodeInfo> findPeers(Peer peer) {
+        Proto.RequestPeer requestPeer = Proto.RequestPeer.newBuilder()
                 .setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
                 .setPort(peer.getPort())
@@ -88,13 +79,13 @@ public class GRpcClientChannel implements PeerClientChannel {
     }
 
     @Override
-    public Pong ping(String message, Peer peer) {
-        PeerInfo peerInfo = PeerInfo.newBuilder().setPubKey(peer.getPubKey().toString())
+    public Proto.Pong ping(String message, Peer peer) {
+        Proto.PeerInfo peerInfo = Proto.PeerInfo.newBuilder().setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
                 .setPort(peer.getPort())
                 .build();
-        Ping request = Ping.newBuilder().setPing(message).setPeer(peerInfo).build();
-        return blockingPingPongStub.play(request);
+        Proto.Ping request = Proto.Ping.newBuilder().setPing(message).setPeer(peerInfo).build();
+        return blockingPeerStub.play(request);
     }
 
     /**

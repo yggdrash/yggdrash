@@ -23,8 +23,7 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
-import io.yggdrash.proto.Ping;
-import io.yggdrash.proto.PingPongGrpc;
+import io.yggdrash.proto.PeerGrpc;
 import io.yggdrash.proto.Proto;
 import org.junit.Before;
 import org.junit.Rule;
@@ -48,13 +47,16 @@ public class GRpcClientChannelTest {
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
 
     @Spy
-    private PingPongGrpc.PingPongImplBase pingPongService;
+    private PeerGrpc.PeerImplBase peerService;
 
     @Spy
     private BlockChainGrpc.BlockChainImplBase blockChainService;
 
     @Captor
-    private ArgumentCaptor<Ping> pingRequestCaptor;
+    private ArgumentCaptor<Proto.Ping> pingRequestCaptor;
+
+    @Captor
+    private ArgumentCaptor<Proto.RequestPeer> findPeersRequestCaptor;
 
     @Captor
     private ArgumentCaptor<Proto.Block> blockArgumentCaptor;
@@ -71,7 +73,7 @@ public class GRpcClientChannelTest {
     public void setUp() {
         Peer peer = Peer.valueOf("ynode://75bff16c@localhost:9999");
         client = new GRpcClientChannel(grpcServerRule.getChannel(), peer);
-        grpcServerRule.getServiceRegistry().addService(pingPongService);
+        grpcServerRule.getServiceRegistry().addService(peerService);
         grpcServerRule.getServiceRegistry().addService(blockChainService);
     }
 
@@ -89,16 +91,35 @@ public class GRpcClientChannelTest {
             argument.onNext(null);
             argument.onCompleted();
             return null;
-        }).when(pingPongService).play(pingRequestCaptor.capture(), any());
+        }).when(peerService).play(pingRequestCaptor.capture(), any());
 
         String ping = "Ping";
         Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
 
         client.ping(ping, owner);
 
-        verify(pingPongService).play(pingRequestCaptor.capture(), any());
+        verify(peerService).play(pingRequestCaptor.capture(), any());
 
         assertEquals(ping, pingRequestCaptor.getValue().getPing());
+    }
+
+    @Test
+    public void findPeers() {
+        doAnswer((invocationOnMock) -> {
+            StreamObserver<Proto.BlockList> argument = invocationOnMock.getArgument(1);
+            argument.onNext(null);
+            argument.onCompleted();
+            return null;
+        }).when(peerService).findPeers(findPeersRequestCaptor.capture(), any());
+
+        Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+
+        client.findPeers(owner);
+
+        verify(peerService).findPeers(findPeersRequestCaptor.capture(), any());
+
+        assertEquals("127.0.0.1", findPeersRequestCaptor.getValue().getIp());
+        assertEquals(32918, findPeersRequestCaptor.getValue().getPort());
     }
 
     @Test

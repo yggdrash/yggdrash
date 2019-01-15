@@ -27,10 +27,7 @@ import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
-import io.yggdrash.proto.PeerInfo;
-import io.yggdrash.proto.Ping;
-import io.yggdrash.proto.PingPongGrpc;
-import io.yggdrash.proto.Pong;
+import io.yggdrash.proto.PeerGrpc;
 import io.yggdrash.proto.Proto;
 import org.junit.Before;
 import org.junit.Rule;
@@ -65,7 +62,7 @@ public class GRpcNodeServerTest {
 
     @Before
     public void setUp() {
-        grpcServerRule.getServiceRegistry().addService(new PingPongService(peerGroupMock));
+        grpcServerRule.getServiceRegistry().addService(new PeerService(peerGroupMock));
         grpcServerRule.getServiceRegistry().addService(new BlockChainService(branchGroupMock)
         );
 
@@ -77,18 +74,18 @@ public class GRpcNodeServerTest {
 
     @Test
     public void play() {
-        PingPongGrpc.PingPongBlockingStub blockingStub = PingPongGrpc.newBlockingStub(
+        PeerGrpc.PeerBlockingStub blockingStub = PeerGrpc.newBlockingStub(
                 grpcServerRule.getChannel());
 
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        PeerInfo peerInfo = PeerInfo.newBuilder()
+        Proto.PeerInfo peerInfo = Proto.PeerInfo.newBuilder()
                 .setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
                 .setPort(peer.getPort())
                 .build();
-        Ping ping = Ping.newBuilder().setPing("Ping").setPeer(peerInfo).build();
+        Proto.Ping ping = Proto.Ping.newBuilder().setPing("Ping").setPeer(peerInfo).build();
 
-        Pong pong = blockingStub.play(ping);
+        Proto.Pong pong = blockingStub.play(ping);
 
         assertEquals("Pong", pong.getPong());
     }
