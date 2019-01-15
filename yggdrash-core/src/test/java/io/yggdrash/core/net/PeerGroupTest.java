@@ -57,7 +57,7 @@ public class PeerGroupTest {
     public void healthCheck() {
         PeerClientChannel peerClientChannel = ChannelMock.dummy();
 
-        peerGroup.newPeerChannel(peerClientChannel); // Pong 정상응답
+        peerGroup.addChannel(peerClientChannel); // Pong 정상응답
         assert !peerGroup.getActivePeerList().isEmpty();
 
         peerGroup.healthCheck(); // Pong null 응답
@@ -85,7 +85,7 @@ public class PeerGroupTest {
         for (int i = 0; i < testCount; i++) {
             int port = i + 32918;
             ChannelMock channel = new ChannelMock("ynode://75bff16c@localhost:" + port);
-            peerGroup.newPeerChannel(channel);
+            peerGroup.addChannel(channel);
         }
         assert MAX_PEERS == peerGroup.getActivePeerList().size();
     }
@@ -132,12 +132,6 @@ public class PeerGroupTest {
     }
 
     @Test
-    public void logBucketIdOf() {
-        peerGroup.logBucketIdOf();
-        peerGroup.logBucketIdOf(OWNER);
-    }
-
-    @Test
     public void getActivePeerListOf() {
         assert peerGroup.getActivePeerListOf().size() == 0;
     }
@@ -149,7 +143,7 @@ public class PeerGroupTest {
 
     private void addPeerChannel() {
         assert peerGroup.getActivePeerList().isEmpty();
-        peerGroup.newPeerChannel(ChannelMock.dummy());
+        peerGroup.addChannel(ChannelMock.dummy());
         assert !peerGroup.getActivePeerList().isEmpty();
     }
 }
