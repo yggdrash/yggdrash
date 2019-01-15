@@ -60,7 +60,6 @@ public class BlockConChain {
                 blockCon = this.blockConStore.get(this.blockConKeyStore.get(l));
                 if (Arrays.equals(prevBlockCon.getHash(), blockCon.getPrevBlockHash())) {
                     prevBlockCon = blockCon;
-                    continue;
                 } else {
                     log.error("BlockConChain() blockConStore is not valid.");
                     throw new NotValidateException();
@@ -72,7 +71,6 @@ public class BlockConChain {
         } else {
             this.blockConKeyStore.put(0L, rootBlockCon.getHash());
             this.blockConStore.put(rootBlockCon.getHash(), rootBlockCon);
-            this.lastConfirmedBlockCon = rootBlockCon;
         }
 
     }

@@ -1,7 +1,6 @@
 package io.yggdrash.validator.store;
 
 import io.yggdrash.core.exception.NonExistObjectException;
-import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.validator.data.BlockCon;
@@ -33,14 +32,12 @@ public class BlockConStore implements Store<byte[], BlockCon> {
         log.debug("BlockConStore get "
                 + "(" + Hex.toHexString(key) + ")");
 
-        if (key != null) {
-            byte[] foundValue = db.get(key);
-            if (foundValue != null) {
-                log.debug("BlockConStore get size: "
-                        + foundValue.length);
+        byte[] foundValue = db.get(key);
+        if (foundValue != null) {
+            log.debug("BlockConStore get size: "
+                    + foundValue.length);
 
-                return new BlockCon(foundValue);
-            }
+            return new BlockCon(foundValue);
         }
         throw new NonExistObjectException("Not Found [" + Hex.toHexString(key) + "]");
     }

@@ -37,7 +37,6 @@ public class TestUtils {
     private static byte[] version =
             ByteBuffer.allocate(8).putInt(0).array();
 
-    @Autowired
     public TestUtils(Wallet wallet) {
         this.wallet = wallet;
     }

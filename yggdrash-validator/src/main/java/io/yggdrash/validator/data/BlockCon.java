@@ -160,15 +160,11 @@ public class BlockCon {
             return false;
         }
 
-        if (Arrays.equals(blockCon.getHash(), blockCon.getBlock().getHash())
+        return Arrays.equals(blockCon.getHash(), blockCon.getBlock().getHash())
                 && blockCon.getIndex() == blockCon.getBlock().getHeader().getIndex()
                 && Arrays.equals(blockCon.getPrevBlockHash(),
-                        blockCon.getBlock().getHeader().getPrevBlockHash())
-                && blockCon.getBlock().verify()) {
-            return true;
-        }
-
-        return false;
+                blockCon.getBlock().getHeader().getPrevBlockHash())
+                && blockCon.getBlock().verify();
     }
 
     public BlockCon clone() {

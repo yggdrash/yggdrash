@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.ConsensusEbftGrpc;
 import io.yggdrash.proto.EbftProto;
@@ -72,7 +73,12 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         this.totalValidatorMap = initTotalValidator();
         this.isValidator = initValidator();
         this.isActive = false;
-        this.consenusCount = totalValidatorMap.size() / 2 + 1;
+        if (totalValidatorMap != null) {
+            this.consenusCount = totalValidatorMap.size() / 2 + 1;
+        } else {
+            this.consenusCount = 0;
+            throw new NotValidateException();
+        }
     }
 
     @Override
@@ -393,7 +399,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
             GrpcNodeClient client = this.totalValidatorMap.get(key);
             if (client.isRunning()) {
                 if (proposedPubkey.contains("04" + client.getPubKey())) {
-                    // continue
+                    continue;
                 } else {
                     return false;
                 }
@@ -678,7 +684,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         for (String signature : blockCon.getConsensusList()) {
             if (Wallet.verify(blockCon.getHash(), Hex.decode(signature), true)) {
                 // todo: check validator
-                // continue;
+                continue;
             } else {
                 return false;
             }
@@ -700,7 +706,6 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
     }
 
     private void loggingMap(Map<String, BlockCon> map) {
-
         log.debug("[" + map.size() + "]");
         for (String key : map.keySet()) {
             BlockCon blockCon = map.get(key);
