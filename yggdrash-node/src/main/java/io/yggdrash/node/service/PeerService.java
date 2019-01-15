@@ -4,10 +4,10 @@ import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.node.GRpcClientChannel;
-import io.yggdrash.proto.NodeInfo;
 import io.yggdrash.proto.PeerGrpc;
-import io.yggdrash.proto.PeerList;
-import io.yggdrash.proto.RequestPeer;
+
+import io.yggdrash.proto.Proto;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,14 +23,14 @@ public class PeerService extends PeerGrpc.PeerImplBase {
     }
 
     @Override
-    public void findPeers(RequestPeer request, StreamObserver<PeerList> responseObserver) {
+    public void findPeers(Proto.RequestPeer request, StreamObserver<Proto.PeerList> responseObserver) {
         Peer peer = Peer.valueOf(request.getPubKey(), request.getIp(), request.getPort());
         List<String> list = peerGroup.getPeers(peer);
-        PeerList.Builder peerListBuilder = PeerList.newBuilder();
+        Proto.PeerList.Builder peerListBuilder = Proto.PeerList.newBuilder();
         for (String url : list) {
-            peerListBuilder.addNodes(NodeInfo.newBuilder().setUrl(url).build());
+            peerListBuilder.addNodes(Proto.NodeInfo.newBuilder().setUrl(url).build());
         }
-        PeerList peerList = peerListBuilder.build();
+        Proto.PeerList peerList = peerListBuilder.build();
         responseObserver.onNext(peerList);
         responseObserver.onCompleted();
 
@@ -50,4 +50,17 @@ public class PeerService extends PeerGrpc.PeerImplBase {
                     peer.toAddress());
         }
     }
+
+    @Override
+    public void play(Proto.Ping request, StreamObserver<Proto.Pong> responseObserver) {
+        Proto.PeerInfo peerInfo = request.getPeer();
+        Peer peer = Peer.valueOf(peerInfo.getPubKey(), peerInfo.getIp(), peerInfo.getPort());
+        peerGroup.touchPeer(peer);
+
+        log.debug("Received " + request.getPing());
+        Proto.Pong pong = Proto.Pong.newBuilder().setPong("Pong").build();
+        responseObserver.onNext(pong);
+        responseObserver.onCompleted();
+    }
+
 }
