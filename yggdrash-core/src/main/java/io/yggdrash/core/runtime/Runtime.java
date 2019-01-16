@@ -55,7 +55,7 @@ public class Runtime<T> {
     private Map<String, Method> invokeMethod;
     private Map<String, Method> queryMethod;
     private Method genesis;
-    private Field transactionReceipt;
+    private Field transactionReceiptField;
     private TempStateStore tmpTxStateStore;
     private TempStateStore tmpBlockStateStore;
 
@@ -80,7 +80,7 @@ public class Runtime<T> {
         queryMethod = getQueryMethods();
         genesis = getGenesisMethod();
         for(Field f : ContractUtils.txReceipt(contract)) {
-            transactionReceipt = f;
+            transactionReceiptField = f;
             f.setAccessible(true);
         }
         // Block Temp State Store
@@ -165,9 +165,9 @@ public class Runtime<T> {
 
         try {
 
-            if (transactionReceipt != null) {
+            if (transactionReceiptField != null) {
                 // inject Transaction receipt
-                transactionReceipt.set(contract, txReceipt);
+                transactionReceiptField.set(contract, txReceipt);
             }
             // transaction is multiple method
             for (JsonElement trasnsaction: JsonUtil.parseJsonArray(tx.getBody())) {
@@ -191,18 +191,23 @@ public class Runtime<T> {
                     }
 
                 } else {
-                    // TODO Make Exception
+                    txReceipt.setStatus(ExecuteStatus.ERROR);
+                    JsonObject errorLog = new JsonObject();
+                    errorLog.addProperty("error", "method is not exist");
+                    txReceipt.addLog(errorLog);
+                    break;
                 }
                 if (txReceipt.getStatus() != ExecuteStatus.SUCCESS) {
                     txReceipt.setStatus(resultReceipt.getStatus());
                 }
-
-                txReceipt.putLog("method", methodName);
+                // txReceipt.setTransactionMethod(methodName);
             }
 
         } catch (Throwable e) {
             txReceipt.setStatus(ExecuteStatus.ERROR);
-            txReceipt.putLog("ERROR", e.getMessage());
+            JsonObject errorLog = new JsonObject();
+            errorLog.addProperty("error", e.getMessage());
+            txReceipt.addLog(errorLog);
         }
 
         // save Tranction Receipt

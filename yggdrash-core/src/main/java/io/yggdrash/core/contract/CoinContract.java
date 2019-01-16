@@ -97,7 +97,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
         String to = params.get("to").getAsString().toLowerCase();
         BigDecimal amount = params.get("amount").getAsBigDecimal();
 
-        txReceipt.addLog("{to:"+ to+",amount :"+String.valueOf(amount));
+        txReceipt.addLog(params);
         String sender = this.txReceipt.getIssuer();
         if (getBalance(sender).compareTo(BigDecimal.ZERO) == 0) {
             log.info("\n[ERR] " + sender + " has no balance!");
@@ -138,7 +138,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
 
         String sender = txReceipt.getIssuer();
 
-        txReceipt.addLog("{ spender :"+spender+", amount: "+String.valueOf(amount));
+        txReceipt.addLog(params);
 
         if (getBalance(sender).compareTo(BigDecimal.ZERO) == 0) {
             log.info("\n[ERR] " + sender + " has no balance!");
@@ -177,7 +177,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
         String to = params.get("to").getAsString().toLowerCase();
         BigDecimal amount = params.get("amount").getAsBigDecimal();
 
-        txReceipt.addLog("{from :"+from+",to :"+to+", amount : "+String.valueOf(amount)+"}");
+        txReceipt.addLog(params);
 
         String sender = txReceipt.getIssuer();
         String approveKey = approveKey(from, sender);
@@ -233,8 +233,10 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
 
             putBalance(frontier, balance);
 
-            txReceipt.addLog("{ to:"+frontier+", balance:"+balance.toString()+"}");
-            txReceipt.setStatus(ExecuteStatus.SUCCESS);
+            JsonObject mintLog = new JsonObject();
+            mintLog.addProperty("to", frontier);
+            mintLog.addProperty("balance", balance.toString());
+            txReceipt.addLog(mintLog);
             log.info("\nAddress of Frontier : " + frontier
                     + "\nBalance of Frontier : " + getBalance(frontier));
         }
@@ -244,7 +246,10 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        txReceipt.addLog("{TotalSupply:"+totalSupply.toString()+"}");
+        txReceipt.setStatus(ExecuteStatus.SUCCESS);
+        JsonObject totalSupplyLog = new JsonObject();
+        totalSupplyLog.addProperty("totalSupply", totalSupply.toString());
+        txReceipt.addLog(totalSupplyLog);
 
         return txReceipt;
     }

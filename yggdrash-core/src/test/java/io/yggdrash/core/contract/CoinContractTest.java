@@ -235,7 +235,7 @@ public class CoinContractTest {
     public class MetaCoinContract extends CoinContract {
         public TransactionReceipt hello(JsonObject params) {
             TransactionReceipt txReceipt = new TransactionReceiptImpl();
-            txReceipt.putLog("hello", params.toString());
+            txReceipt.addLog(params);
             txReceipt.setStatus(ExecuteStatus.SUCCESS);
             log.info(txReceipt.toString());
             return txReceipt;

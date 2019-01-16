@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.contract;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.common.util.JsonUtil;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,14 +26,15 @@ public class TransactionReceiptImpl implements TransactionReceipt {
     private String txId;
     private String blockId;
     private String branchId;
-    private final List<String> txLog = new ArrayList<>();
+    private final List<JsonObject> txLog = new ArrayList<>();
     private ExecuteStatus status = ExecuteStatus.FALSE;
     private String issuer;
     private String contractId;
     private Long blockHeight;
+    private String methodName;
 
-    public void addLog(String value) {
-        txLog.add(value);
+    public void addLog(JsonObject log) {
+        txLog.add(log);
     }
 
     public ExecuteStatus getStatus() {
@@ -85,8 +87,17 @@ public class TransactionReceiptImpl implements TransactionReceipt {
         this.contractId = contractId;
     }
 
-    public List<String> getTxLog() {
+    public List<JsonObject> getTxLog() {
         return txLog;
+    }
+
+
+    public String transactionMethod() {
+        return methodName;
+    }
+
+    public void setTransactionMethod(String methodName) {
+        this.methodName = methodName;
     }
 
     public boolean isSuccess() {
