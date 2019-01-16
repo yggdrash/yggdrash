@@ -21,7 +21,7 @@ import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.core.net.YggdrashNode;
+import io.yggdrash.core.net.Node;
 import io.yggdrash.node.GRpcClientChannel;
 import io.yggdrash.node.service.GRpcNodeServer;
 import io.yggdrash.node.service.PeerService;
@@ -47,7 +47,7 @@ public class GRpcYggdrashNodeTest extends SlowTest {
         assert node3.getPeerGroup().getActivePeerList().size() == 1;
     }
 
-    private class NodeMock extends YggdrashNode {
+    private class NodeMock extends Node {
 
         NodeMock(int port) {
             Peer owner = Peer.valueOf(NODE_URI_PREFIX + port);
