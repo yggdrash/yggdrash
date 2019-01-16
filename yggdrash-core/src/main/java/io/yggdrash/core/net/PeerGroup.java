@@ -153,6 +153,7 @@ public class PeerGroup implements BranchEventListener {
 
     @Override
     public void chainedBlock(BlockHusk block) {
+        owner.updateBestBlock(BestBlock.of(block.getBranchId(), block.getIndex()));
         if (channelMap.isEmpty()) {
             log.trace("Active peer is empty to broadcast block");
             return;

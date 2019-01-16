@@ -112,7 +112,12 @@ public class PeerGroupTest {
 
     @Test
     public void chainedBlock() {
+        BlockHusk genesis = BlockChainTestUtils.genesisBlock();
         peerGroup.chainedBlock(BlockChainTestUtils.genesisBlock());
+        for (BestBlock bestBlock : peerGroup.getOwner().getBestBlocks()) {
+            assert !bestBlock.getBranchId().equals(genesis.getBranchId()) ||
+                    bestBlock.getIndex() == genesis.getIndex();
+        }
     }
 
     @Test
