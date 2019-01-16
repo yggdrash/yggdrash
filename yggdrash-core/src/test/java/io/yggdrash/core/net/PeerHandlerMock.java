@@ -17,7 +17,9 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.proto.Proto;
 
 import java.util.Collections;
@@ -59,14 +61,13 @@ public class PeerHandlerMock implements PeerHandler {
     }
 
     @Override
-    public List<Proto.Block> syncBlock(BranchId branchId, long offset) {
-        return Collections.singletonList(BlockChainTestUtils.genesisBlock().getInstance());
+    public List<BlockHusk> syncBlock(BranchId branchId, long offset) {
+        return Collections.singletonList(BlockChainTestUtils.genesisBlock());
     }
 
     @Override
-    public List<Proto.Transaction> syncTransaction(BranchId branchId) {
-        Proto.Transaction protoTx = BlockChainTestUtils.createTransferTxHusk().getInstance();
-        return Collections.singletonList(protoTx);
+    public List<TransactionHusk> syncTransaction(BranchId branchId) {
+        return Collections.singletonList(BlockChainTestUtils.createTransferTxHusk());
     }
 
     @Override

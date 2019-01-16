@@ -19,7 +19,9 @@ package io.yggdrash.node;
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.net.BestBlock;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerHandler;
@@ -109,12 +111,14 @@ public class GRpcPeerHandler implements PeerHandler {
      * @return the block list
      */
     @Override
-    public List<Proto.Block> syncBlock(BranchId branchId, long offset) {
+    public List<BlockHusk> syncBlock(BranchId branchId, long offset) {
         SyncLimit syncLimit = SyncLimit.newBuilder()
                 .setOffset(offset)
                 .setLimit(DEFAULT_LIMIT)
                 .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
-        return blockingBlockChainStub.syncBlock(syncLimit).getBlocksList();
+        return blockingBlockChainStub.syncBlock(syncLimit).getBlocksList().stream()
+                .map(BlockHusk::new)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -123,10 +127,12 @@ public class GRpcPeerHandler implements PeerHandler {
      * @return the transaction list
      */
     @Override
-    public List<Proto.Transaction> syncTransaction(BranchId branchId) {
+    public List<TransactionHusk> syncTransaction(BranchId branchId) {
         SyncLimit syncLimit = SyncLimit.newBuilder()
                 .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
-        return blockingBlockChainStub.syncTransaction(syncLimit).getTransactionsList();
+        return blockingBlockChainStub.syncTransaction(syncLimit).getTransactionsList().stream()
+                .map(TransactionHusk::new)
+                .collect(Collectors.toList());
     }
 
     @Override

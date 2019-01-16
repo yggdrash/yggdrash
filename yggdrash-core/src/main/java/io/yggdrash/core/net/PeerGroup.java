@@ -316,14 +316,10 @@ public class PeerGroup implements BranchEventListener {
         // TODO sync peer selection policy
         PeerId key = (PeerId) channelMap.keySet().toArray()[0];
         PeerHandler peerHandler = channelMap.get(key);
-        List<Proto.Block> blockList = peerHandler.syncBlock(branchId, offset);
+        List<BlockHusk> blockList = peerHandler.syncBlock(branchId, offset);
         log.debug("Synchronize block offset={} receivedSize={}, from={}", offset, blockList.size(),
                 peerHandler.getPeer());
-        List<BlockHusk> syncList = new ArrayList<>(blockList.size());
-        for (Proto.Block block : blockList) {
-            syncList.add(new BlockHusk(block));
-        }
-        return syncList;
+        return blockList;
     }
 
     /**
@@ -339,13 +335,9 @@ public class PeerGroup implements BranchEventListener {
         // TODO sync peer selection policy
         PeerId key = (PeerId) channelMap.keySet().toArray()[0];
         PeerHandler peerHandler = channelMap.get(key);
-        List<Proto.Transaction> txList = peerHandler.syncTransaction(branchId);
+        List<TransactionHusk> txList = peerHandler.syncTransaction(branchId);
         log.info("Synchronize transaction receivedSize={}, from={}", txList.size(),
                 peerHandler.getPeer());
-        List<TransactionHusk> syncList = new ArrayList<>(txList.size());
-        for (Proto.Transaction tx : txList) {
-            syncList.add(new TransactionHusk(tx));
-        }
-        return syncList;
+        return txList;
     }
 }
