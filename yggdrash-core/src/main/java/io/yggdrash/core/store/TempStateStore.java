@@ -17,6 +17,7 @@
 package io.yggdrash.core.store;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.Sha3Hash;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
@@ -25,6 +26,9 @@ public class TempStateStore implements Store<String, JsonObject> {
     private Store<String, JsonObject> stateStore;
     Map<String, JsonObject> tempStore = new HashMap<String, JsonObject>();
 
+    // TODO check State root
+    Sha3Hash stateRoot;
+
     public TempStateStore(Store originStore) {
         this.stateStore = originStore;
     }
@@ -32,6 +36,7 @@ public class TempStateStore implements Store<String, JsonObject> {
     @Override
     public void put(String key, JsonObject value) {
         tempStore.put(key, value);
+        // TODO calculate State Root
     }
 
     @Override

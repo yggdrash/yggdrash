@@ -18,7 +18,6 @@ message Pong {
 }
 
 message PeerInfo {
-    string branchId = 1;
     string pubKey = 2;
     string ip = 3;
     int32 port = 4;

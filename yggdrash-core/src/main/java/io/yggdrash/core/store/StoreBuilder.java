@@ -43,8 +43,8 @@ public class StoreBuilder {
         return new TransactionStore(getDbSource(branchId + "/txs"));
     }
 
-    public PeerStore buildPeerStore(BranchId branchId) {
-        return new PeerStore(getDbSource(branchId + "/peers"));
+    public PeerStore buildPeerStore() {
+        return new PeerStore(getDbSource("peers"));
     }
 
     public MetaStore buildMetaStore(BranchId branchId) {
@@ -61,8 +61,7 @@ public class StoreBuilder {
         return new TransactionReceiptStore(getDbSource(branchId + "/txreceipt"));
     }
 
-
-    private DbSource<byte[], byte[]> getDbSource(String name) {
+    protected DbSource<byte[], byte[]> getDbSource(String name) {
         if (config.isProductionMode()) {
             return new LevelDbDataSource(config.getDatabasePath(), name);
         } else {

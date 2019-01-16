@@ -16,15 +16,11 @@
 
 package io.yggdrash.core.net;
 
-import java.io.IOException;
+import io.yggdrash.core.exception.FailedOperationException;
 
 public interface NodeServer {
 
-    void start(String host, int port) throws IOException;
-
-    void blockUntilShutdown() throws InterruptedException;
-
-    void bootstrapping();
+    void start(String host, int port) throws FailedOperationException;
 
     void stop();
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.node.service;
 
 import com.google.protobuf.ByteString;
 import io.grpc.testing.GrpcServerRule;
@@ -23,7 +23,6 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.proto.BlockChainGrpc;
@@ -38,7 +37,6 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
@@ -61,19 +59,14 @@ public class GRpcNodeServerTest {
     @Mock
     private BranchGroup branchGroupMock;
 
-    @Mock
-    public NodeStatus nodeStatus;
-
     private TransactionHusk tx;
     private BlockHusk block;
     private BranchId branchId;
 
     @Before
     public void setUp() {
-        grpcServerRule.getServiceRegistry().addService(new GRpcNodeServer.PingPongImpl(
-                peerGroupMock));
-        grpcServerRule.getServiceRegistry().addService(new GRpcNodeServer.BlockChainImpl(
-                peerGroupMock, branchGroupMock, nodeStatus)
+        grpcServerRule.getServiceRegistry().addService(new PingPongService(peerGroupMock));
+        grpcServerRule.getServiceRegistry().addService(new BlockChainService(branchGroupMock)
         );
 
         tx = BlockChainTestUtils.createTransferTxHusk();
@@ -88,15 +81,12 @@ public class GRpcNodeServerTest {
                 grpcServerRule.getChannel());
 
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        PeerInfo peerInfo = PeerInfo.newBuilder().setBranchId(branchId.toString())
+        PeerInfo peerInfo = PeerInfo.newBuilder()
                 .setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
                 .setPort(peer.getPort())
                 .build();
         Ping ping = Ping.newBuilder().setPing("Ping").setPeer(peerInfo).build();
-
-        Mockito.doCallRealMethod().when(peerGroupMock).touchPeer(
-                BranchId.of(peerInfo.getBranchId()), peer);
 
         Pong pong = blockingStub.play(ping);
 

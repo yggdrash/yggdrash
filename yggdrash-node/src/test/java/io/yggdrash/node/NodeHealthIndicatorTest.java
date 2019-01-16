@@ -20,6 +20,7 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.store.StoreBuilder;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,8 +44,10 @@ public class NodeHealthIndicatorTest {
 
     @Before
     public void setUp() {
-        PeerGroup peerGroup = new PeerGroup(owner, 1);
-        this.nodeHealthIndicator = new NodeHealthIndicator(new DefaultConfig(), branchGroupMock,
+        DefaultConfig defaultConfig = new DefaultConfig();
+        StoreBuilder builder = new StoreBuilder(defaultConfig);
+        PeerGroup peerGroup = new PeerGroup(owner, builder.buildPeerStore(), 1);
+        this.nodeHealthIndicator = new NodeHealthIndicator(defaultConfig, branchGroupMock,
                 peerGroup);
     }
 

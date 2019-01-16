@@ -28,15 +28,13 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.wallet.Wallet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BlockChain {
 
@@ -175,10 +173,12 @@ public class BlockChain {
 
         // run Block Transactions
         // TODO run block execute move to other process (or thread)
+        /*
         if (nextBlock.getIndex() > metaStore.getLastExecuteBlockIndex()) {
             executeBlock(nextBlock);
             metaStore.setLastExecuteBlock(nextBlock);
         }
+        */
 
         // Store Block Index and Block Data
         this.blockStore.addBlock(nextBlock);
@@ -303,9 +303,12 @@ public class BlockChain {
         return (this.prevBlock == null);
     }
 
+    // TODO move to other process or thread
+    /*
     private Map<Sha3Hash, Boolean> executeBlock(BlockHusk block) {
         return runtime.invokeBlock(block);
     }
+    */
 
     private void batchTxs(BlockHusk block) {
         if (block == null || block.getBody() == null) {

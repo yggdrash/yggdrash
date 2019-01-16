@@ -27,6 +27,7 @@ import io.yggdrash.core.wallet.Address;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
 
+import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -55,6 +56,15 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
             this.coreBlock = Block.toBlock(this.protoBlock);
         } catch (Exception e) {
             throw new NotValidateException(e);
+        }
+    }
+
+    public BlockHusk(Block block) {
+        this.coreBlock = block;
+        this.protoBlock = Block.toProtoBlock(this.coreBlock);
+        this.body = new ArrayList<>();
+        for (Transaction tx : block.getBody().getBody()) {
+            this.body.add(new TransactionHusk(tx));
         }
     }
 
@@ -115,6 +125,10 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         } catch (Exception e) {
             throw new NotValidateException(e);
         }
+    }
+
+    public byte[] getPublicKey() {
+        return this.coreBlock.getPubKey();
     }
 
     public BranchId getBranchId() {

@@ -30,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -38,10 +37,9 @@ public class PeerGroup implements BranchEventListener {
 
     private static final Logger log = LoggerFactory.getLogger(PeerGroup.class);
 
-    private final Map<BranchId, PeerTable> peerTables = new ConcurrentHashMap<>();
+    private final PeerTable table;
 
-    private final Map<BranchId, Map<PeerId, PeerClientChannel>> peerTableChannels
-            = new ConcurrentHashMap<>();
+    private final Map<PeerId, PeerClientChannel> channelMap = new ConcurrentHashMap<>();
 
     private final int maxPeers;
 
@@ -49,8 +47,9 @@ public class PeerGroup implements BranchEventListener {
 
     private List<String> seedPeerList;
 
-    public PeerGroup(Peer owner, int maxPeers) {
+    public PeerGroup(Peer owner, PeerStore peerStore, int maxPeers) {
         this.owner = owner;
+        table = new PeerTable(peerStore, owner);
         this.maxPeers = maxPeers;
     }
 
@@ -58,14 +57,13 @@ public class PeerGroup implements BranchEventListener {
         return owner;
     }
 
-    public List<String> getBootstrappingSeedList(BranchId branchId) {
+    List<String> getBootstrappingSeedList() {
         List<String> seedPeerList;
 
-        PeerTable table = getPeerTable(branchId);
-        if (table == null || table.isPeerStoreEmpty()) {
-            seedPeerList = getSeedPeerList();
+        if (table.isPeerStoreEmpty()) {
+            seedPeerList = this.seedPeerList;
         } else {
-            seedPeerList = getPeerTable(branchId).getAllFromPeerStore();
+            seedPeerList = table.getAllFromPeerStore();
         }
 
         if (seedPeerList == null || seedPeerList.isEmpty()) {
@@ -75,308 +73,223 @@ public class PeerGroup implements BranchEventListener {
         return seedPeerList;
     }
 
-    public void addPeerTable(BranchId branchId, PeerStore peerStore) {
-        PeerTable peerTable = new PeerTable(peerStore, owner);
-        peerTables.put(branchId, peerTable);
-
-        Map<PeerId, PeerClientChannel> peerChannel = new ConcurrentHashMap<>();
-        peerTableChannels.put(branchId, peerChannel);
+    void addPeerByYnodeUri(String ynodeUri) {
+        table.addPeer(Peer.valueOf(ynodeUri));
     }
 
-    void addPeerByYnodeUri(BranchId branchId, List<String> peerList) {
-        for (String ynodeUri : peerList) {
-            addPeerByYnodeUri(branchId, ynodeUri);
-        }
+    int count() {
+        return table.getPeersCount();
     }
 
-    public void addPeerByYnodeUri(BranchId branchId, String ynodeUri) {
-        addPeer(branchId, Peer.valueOf(ynodeUri));
-    }
+    public List<String> getPeers(Peer peer) {
+        // 현재 연결된 채널들의 버킷 아이디, 새로들어온 requestPeer 의 버킷아이디 로그
+        log.debug("Received findPeers peer={}, bucketId={}",
+                peer.toAddress(), logBucketIdOf(peer));
+        logBucketIdOf();
 
-    void addPeer(BranchId branchId, Peer peer) {
-
-        if (peerTables.containsKey(branchId)) {
-            getPeerTable(branchId).addPeer(peer);
-        } else {
-            log.info("Ignore branchId => {}", branchId);
-        }
-    }
-
-    int count(BranchId branchId) {
-        Optional<PeerTable> peerTable = Optional.ofNullable(getPeerTable(branchId));
-        return peerTable.map(PeerTable::getPeersCount).orElse(0);
-    }
-
-    public List<String> getPeers(BranchId branchId, Peer peer) {
-        if (!peerTables.containsKey(branchId)) {
-            log.info("Ignore branchId => {}", branchId);
-            return Collections.emptyList();
-        }
 
         ArrayList<String> peerList = new ArrayList<>();
 
-        PeerTable peerTable = peerTables.get(branchId);
-        peerTable.getAllPeers().forEach(p -> peerList.add(p.toString()));
-        peerTable.addPeer(peer);
+        table.getAllPeers().forEach(p -> peerList.add(p.toString()));
+        table.addPeer(peer);
         return peerList;
     }
 
-    public List<Peer> getClosestPeers(BranchId branchId) {
-        return Optional.ofNullable(getPeerTable(branchId))
-                .map(o -> o.getClosestPeers(owner.getPeerId().getBytes()))
-                .orElse(Collections.emptyList());
-    }
-
-    PeerTable getPeerTable(BranchId branchId) {
-        return peerTables.getOrDefault(branchId, null);
-    }
-
-    boolean containsPeer(BranchId branchId, Peer peer) {
-        if (peerTables.containsKey(branchId)) {
-            return peerTables.get(branchId).contains(peer);
-        } else {
-            return false;
-        }
-    }
-
-    boolean isPeerEmpty(BranchId branchId) {
-        if (!peerTables.containsKey(branchId)) {
-            return true;
-        } else {
-            return peerTables.get(branchId).getPeersCount() == 0;
-        }
-    }
-
-    public boolean isChannelEmpty(BranchId branchId) {
-        if (peerTableChannels.containsKey(branchId)) {
-            return peerTableChannels.get(branchId).isEmpty();
-        } else {
-            return true;
-        }
-    }
-
-    public List<String> getSeedPeerList() {
-        return seedPeerList;
+    List<Peer> getClosestPeers() {
+        return table.getClosestPeers(owner.getPeerId().getBytes());
     }
 
     public void setSeedPeerList(List<String> seedPeerList) {
         this.seedPeerList = seedPeerList;
     }
 
-    List<String> getPeerUriList(BranchId branchId) {
-        if (peerTables.containsKey(branchId)) {
-            return peerTables.get(branchId).getAllPeers().stream()
-                    .map(Peer::getYnodeUri).collect(Collectors.toList());
-        } else {
-            return new ArrayList<>();
-        }
+    List<String> getPeerUriList() {
+        return table.getAllPeers().stream()
+                .map(Peer::getYnodeUri).collect(Collectors.toList());
     }
 
     public void destroy() {
-        for (Map<PeerId, PeerClientChannel> peerChannel : peerTableChannels.values()) {
-            peerChannel.values().forEach(PeerClientChannel::stop);
-        }
+        channelMap.values().forEach(PeerClientChannel::stop);
     }
 
     public void healthCheck() {
-        if (peerTableChannels.isEmpty()) {
+        if (channelMap.isEmpty()) {
             log.trace("Active peer is empty to health check peer");
             return;
         }
-        log.debug("peerTableChannel" + peerTableChannels);
 
-        for (Map.Entry<BranchId, Map<PeerId, PeerClientChannel>> entry
-                : peerTableChannels.entrySet()) {
-            BranchId branchId = entry.getKey();
-            List<PeerClientChannel> peerChannelList
-                    = new ArrayList<>(peerTableChannels.get(branchId).values());
-
-            for (PeerClientChannel client : peerChannelList) {
-                try {
-                    Pong pong = client.ping("ping", branchId, owner);
-                    if (pong.getPong().equals("Pong")) {
-                        continue;
-                    }
-                } catch (Exception e) {
-                    log.warn("Health check fail. peer=" + client.getPeer().getYnodeUri());
+        for (PeerClientChannel client : channelMap.values()) {
+            try {
+                Pong pong = client.ping("ping", owner);
+                if (pong.getPong().equals("Pong")) {
+                    continue;
                 }
-                Peer peer = client.getPeer();
-                peerTables.get(branchId).dropPeer(peer);
-                peerTableChannels.get(branchId).remove(peer.getPeerId());
-
-                client.stop();
+            } catch (Exception e) {
+                log.warn("Health check fail. peer=" + client.getPeer().getYnodeUri());
             }
+            Peer peer = client.getPeer();
+            table.dropPeer(peer);
+            channelMap.remove(peer.getPeerId());
+
+            client.stop();
         }
     }
 
     @Override
     public void receivedTransaction(TransactionHusk tx) {
-        if (isChannelEmpty(tx.getBranchId())) {
+        if (channelMap.isEmpty()) {
             log.trace("Active peer is empty to broadcast transaction");
             return;
         }
         Proto.Transaction[] txns = new Proto.Transaction[] {tx.getInstance()};
 
-        if (peerTableChannels.containsKey(tx.getBranchId())) {
-            for (PeerClientChannel client : peerTableChannels.get(tx.getBranchId()).values()) {
-                try {
-                    client.broadcastTransaction(txns);
-                } catch (Exception e) {
-                    removePeerChannel(tx.getBranchId(), client);
-                }
+        for (PeerClientChannel client : channelMap.values()) {
+            try {
+                client.broadcastTransaction(txns);
+            } catch (Exception e) {
+                removePeerChannel(client);
             }
         }
     }
 
     @Override
     public void chainedBlock(BlockHusk block) {
-        if (isChannelEmpty(block.getBranchId())) {
+        if (channelMap.isEmpty()) {
             log.trace("Active peer is empty to broadcast block");
             return;
         }
         Proto.Block[] blocks = new Proto.Block[] {block.getInstance()};
-        for (PeerClientChannel client : peerTableChannels.get(block.getBranchId()).values()) {
+        for (PeerClientChannel client : channelMap.values()) {
             try {
                 client.broadcastBlock(blocks);
             } catch (Exception e) {
-                removePeerChannel(block.getBranchId(), client);
+                removePeerChannel(client);
             }
         }
     }
 
-    private void removePeerChannel(BranchId branchId, PeerClientChannel client) {
+    private void removePeerChannel(PeerClientChannel client) {
         client.stop();
-        peerTableChannels.get(branchId).remove(client.getPeer().getPeerId());
-        peerTables.get(branchId).dropPeer(client.getPeer());
-        log.debug("Removed channel size={}, peer size={}", peerTableChannels.get(branchId).size(),
-                count(branchId));
+        channelMap.remove(client.getPeer().getPeerId());
+        table.dropPeer(client.getPeer());
+        log.debug("Removed channel size={}, peer size={}",
+                channelMap.size(), table.getPeersCount());
     }
 
-    public boolean isMaxChannel(BranchId branchId) {
-        return peerTableChannels.get(branchId).size() >= maxPeers;
+    public boolean isMaxChannel() {
+        return channelMap.size() >= maxPeers;
     }
 
-    public void newPeerChannel(BranchId branchId, PeerClientChannel client) {
+    public void addChannel(PeerClientChannel client) {
         Peer peer = client.getPeer();
 
-        Map<PeerId, PeerClientChannel> peerChannelList = peerTableChannels.get(branchId);
-        if (peerChannelList.containsKey(peer.getPeerId())) {
+        if (channelMap.containsKey(peer.getPeerId())) {
             return;
         }
 
         try {
             log.info("Connecting... peer {}:{}", peer.getHost(), peer.getPort());
-            Pong pong = client.ping("Ping", branchId, peer);
+            Pong pong = client.ping("Ping", peer);
             // TODO validation peer
             if (pong.getPong().equals("Pong")) {
                 // 접속 성공 시
-                if (!isMaxChannel(branchId)) {
-                    peerChannelList.put(peer.getPeerId(), client);
-                    log.info("Added size={}, channel={}", peerChannelList.size(), peer.toAddress());
+                if (!isMaxChannel()) {
+                    channelMap.put(peer.getPeerId(), client);
+                    log.info("Added size={}, channel={}", channelMap.size(), peer.toAddress());
                 }
             } else {
                 // 접속 실패 시 목록 및 버킷에서 제거
-                peerTables.get(branchId).dropPeer(peer);
+                table.dropPeer(peer);
             }
         } catch (Exception e) {
             log.warn("Fail to add to the peer channel err=" + e.getMessage());
         }
     }
 
-    public boolean isClosePeer(BranchId branchId, Peer requestPeer) {
-        List<Peer> peerList = getClosestPeers(branchId);
+    public boolean isClosePeer(Peer requestPeer) {
+        List<Peer> peerList = getClosestPeers();
         if (peerList.size() < maxPeers) {
             return peerList.contains(requestPeer);
         }
         return peerList.subList(0, maxPeers).contains(requestPeer);
     }
 
-    public void reloadPeerChannel(BranchId branchId, PeerClientChannel client) {
-        log.info("reloadPeerChannel : branchId = {}, peer = {}", branchId, client.getPeer());
+    void reloadPeerChannel(PeerClientChannel client) {
+        log.info("reloadPeerChannel : peer = {}", client.getPeer());
 
         PeerId requestPeerId = client.getPeer().getPeerId();
-        if (peerTableChannels.get(branchId).containsKey(requestPeerId)) {
-            peerTableChannels.get(branchId).put(requestPeerId, client);
+        if (channelMap.containsKey(requestPeerId)) {
+            channelMap.put(requestPeerId, client);
         } else {
-            Map<PeerId, PeerClientChannel> peerChannelList = peerTableChannels.get(branchId);
-            List<Peer> peerList = getClosestPeers(branchId);
+            List<Peer> peerList = getClosestPeers();
             if (peerList.size() > maxPeers) {
                 peerList = peerList.subList(0, maxPeers);
             }
             List<PeerId> newClosestPeers = peerList.stream()
-                    .map(Peer::getPeerId)
-                    .collect(Collectors.toList());
+                    .map(Peer::getPeerId).collect(Collectors.toList());
             newClosestPeers.remove(requestPeerId);
 
-            for (PeerId key : peerChannelList.keySet()) {
+            for (PeerId key : channelMap.keySet()) {
                 if (!newClosestPeers.contains(key)) {
-                    peerChannelList.remove(key);
+                    channelMap.remove(key);
                 }
             }
 
             if (newClosestPeers.size() >= maxPeers - 1) {
                 PeerId lastPeerId = newClosestPeers.get(maxPeers - 1);
-                peerChannelList.remove(lastPeerId);
+                channelMap.remove(lastPeerId);
             } else {
                 log.warn("newClosestPeers size=" + newClosestPeers.size());
             }
+
         }
     }
 
-    public List<Peer> getLatestPeers(BranchId branchId, long reqTime) {
-        if (peerTables.containsKey(branchId)) {
-            return peerTables.get(branchId).getLatestPeers(reqTime);
-        }
-        return new ArrayList<>();
+    public List<Peer> getLatestPeers(long reqTime) {
+        return table.getLatestPeers(reqTime);
     }
 
-    public int logBucketIdOf(BranchId branchId, Peer peer) {
-        PeerTable peerTable = getPeerTable(branchId);
-        return peerTable.getTmpBucketId(peer);
+    private int logBucketIdOf(Peer peer) {
+        return table.getTmpBucketId(peer);
     }
 
-    public void logBucketIdOf(BranchId branchId) {
-        peerTableChannels.get(branchId).values().forEach(
+    private void logBucketIdOf() {
+        channelMap.values().forEach(
                 peerClientChannel
                         -> log.debug("Current peerClientChannel => peer={}:{}, bucketId={}",
                         peerClientChannel.getPeer().getHost(),
                         peerClientChannel.getPeer().getPort(),
-                        getPeerTable(branchId).getTmpBucketId(peerClientChannel.getPeer())));
+                        table.getTmpBucketId(peerClientChannel.getPeer())));
     }
 
-    public Map<Integer, List<Peer>> getBucketsOf(BranchId branchId) {
-        return peerTables.get(branchId).getBucketIdAndPeerList();
+    public Map<Integer, List<Peer>> getBucketsOf() {
+        return table.getBucketIdAndPeerList();
     }
 
-    public List<String> getAllPeersFromBucketsOf(BranchId branchId) {
-        return peerTables.get(branchId).getAllPeers()
+    public List<String> getAllPeersFromBucketsOf() {
+        return table.getAllPeers()
                 .stream()
                 .map(p -> String.format("%s:%d", p.getHost(), p.getPort()))
                 .collect(Collectors.toList());
     }
 
     public List<String> getActivePeerList() {
-        List<String> activePeerList = new ArrayList<>();
-        for (Map<PeerId, PeerClientChannel> peerTableChannel : peerTableChannels.values()) {
-            List<String> branchChannelList = peerTableChannel.values().stream()
-                    .map(channel -> channel.getPeer().toString())
-                    .collect(Collectors.toList());
-            activePeerList.addAll(branchChannelList);
-        }
-        return activePeerList;
-    }
-
-    public List<String> getActivePeerListOf(BranchId branchId) {
-        return peerTableChannels.get(branchId)
-                .values()
-                .stream()
-                .map(c -> String.format("%s:%d",c.getPeer().getHost(), c.getPeer().getPort()))
+        return channelMap.values().stream()
+                .map(channel -> channel.getPeer().toString())
                 .collect(Collectors.toList());
     }
 
-    public void touchPeer(BranchId branchId, Peer peer) {
-        if (containsPeer(branchId, peer)) {
-            peerTables.get(branchId).touchPeer(peer);
+    public List<String> getActivePeerListOf() {
+        return channelMap
+                .values()
+                .stream()
+                .map(c -> String.format("%s:%d", c.getPeer().getHost(), c.getPeer().getPort()))
+                .collect(Collectors.toList());
+    }
+
+    public void touchPeer(Peer peer) {
+        if (table.contains(peer)) {
+            table.touchPeer(peer);
         }
     }
 
@@ -387,14 +300,13 @@ public class PeerGroup implements BranchEventListener {
      * @return the block list
      */
     public List<BlockHusk> syncBlock(BranchId branchId, long offset) {
-        if (isChannelEmpty(branchId)) {
+        if (channelMap.isEmpty()) {
             log.trace("Active peer is empty to sync block");
             return Collections.emptyList();
         }
         // TODO sync peer selection policy
-        Map<PeerId, PeerClientChannel> peerClientChannelMap = peerTableChannels.get(branchId);
-        PeerId key = (PeerId) peerClientChannelMap.keySet().toArray()[0];
-        PeerClientChannel client = peerClientChannelMap.get(key);
+        PeerId key = (PeerId) channelMap.keySet().toArray()[0];
+        PeerClientChannel client = channelMap.get(key);
         List<Proto.Block> blockList = client.syncBlock(branchId, offset);
         log.debug("Synchronize block offset={} receivedSize={}, from={}", offset, blockList.size(),
                 client.getPeer());
@@ -411,14 +323,13 @@ public class PeerGroup implements BranchEventListener {
      * @return the transaction list
      */
     public List<TransactionHusk> syncTransaction(BranchId branchId) {
-        if (isChannelEmpty(branchId)) {
+        if (channelMap.isEmpty()) {
             log.trace("Active peer is empty to sync transaction");
             return Collections.emptyList();
         }
         // TODO sync peer selection policy
-        Map<PeerId, PeerClientChannel> peerClientChannelMap = peerTableChannels.get(branchId);
-        PeerId key = (PeerId) peerClientChannelMap.keySet().toArray()[0];
-        PeerClientChannel client = peerClientChannelMap.get(key);
+        PeerId key = (PeerId) channelMap.keySet().toArray()[0];
+        PeerClientChannel client = channelMap.get(key);
         List<Proto.Transaction> txList = client.syncTransaction(branchId);
         log.info("Synchronize transaction receivedSize={}, from={}", txList.size(),
                 client.getPeer());

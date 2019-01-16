@@ -16,59 +16,60 @@
 
 package io.yggdrash.core.blockchain;
 
-import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
-import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class BlockExecutor implements Runnable {
+public class BlockExecutor {
     BlockStore store;
     MetaStore metaStore;
     Runtime runtime;
+    boolean runExecute;
 
-    public BlockExecutor(BlockStore store, Runtime runtime ) {
+
+    private static final Logger log = LoggerFactory.getLogger(BlockExecutor.class);
+
+    public BlockExecutor(BlockStore store, MetaStore metaStore, Runtime runtime) {
         this.store = store;
+        this.metaStore = metaStore;
         this.runtime = runtime;
     }
-    private Map<Sha3Hash, Boolean> executeBlock(BlockHusk block) {
-        return runtime.invokeBlock(block);
+
+    public boolean isRunExecute() {
+        return runExecute;
     }
 
-    public void executeBlocks() {
+    public void runExecuteBlocks() {
+        if(!runExecute) {
+            executeBlock();
+        }
+    }
+
+    private void executeBlock() {
         // Run Block
         // GET BEST BLOCK
         long bestBlock = metaStore.getBestBlock();
         long lastExecuteBlock = metaStore.getLastExecuteBlockIndex();
+        // TODO Validate Block will be stored
         if (bestBlock > lastExecuteBlock) {
+            runExecute = true;
             while (lastExecuteBlock < bestBlock) {
                 lastExecuteBlock++;
                 BlockHusk block = store.getBlockByIndex(lastExecuteBlock);
-
                 if (block == null) {
                     throw new FailedOperationException("Blockchain is not wired");
                 }
                 // Block Execute
-                executeBlock(block);
-
-                //
-
-
-                // GET Next ExecuteBlock
+                // TODO get block execute root state
+                runtime.invokeBlock(block);
+                // Set Next ExecuteBlock
                 metaStore.setLastExecuteBlock(block);
+                log.info("Block "+block.getIndex()+" Execute Complite");
             }
+            runExecute = false;
         }
-        try {
-            Thread.sleep(500);
-            executeBlocks();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    public void run() {
-        executeBlocks();
     }
 }

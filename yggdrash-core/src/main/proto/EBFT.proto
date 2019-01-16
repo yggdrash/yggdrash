@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+import "Yggdrash.proto";
+import "BlockChain.proto";
+
+option java_package = "io.yggdrash.proto";
+option java_outer_classname = "EbftProto";
+
+message PingTime {
+    int64 timestamp = 1;
+}
+
+message PongTime {
+    int64 timestamp = 1;
+}
+
+message NodeList {
+    repeated string nodeList = 1;
+}
+
+message BlockConList {
+    repeated BlockCon blockConList = 1;
+}
+
+message ConsensusList {
+    repeated string consensusList = 1;
+}
+
+message BlockCon {
+    bytes chain = 1;
+    bytes hash = 2;
+    int64 index = 3;
+    bytes prevBlockHash = 4;
+    Block block = 5;
+    ConsensusList consensusList = 6;
+}
+
+message NodeStatus {
+    bytes chain = 1;
+    NodeList activeNodeList = 2;
+    BlockCon lastConfirmedBlockCon = 3;
+    BlockConList unConfirmedBlockConList = 4;
+    int64 timestamp = 5;
+    bytes signature = 6;
+}
+
+message Offset {
+    bytes chain = 1;
+    int64 index = 2;
+    int64 count = 3;
+}
+
+message Chain {
+    bytes chain = 1;
+}
+
+service ConsensusEbft {
+    rpc PingPongTime (PingTime) returns (PongTime) {
+    }
+
+    rpc getNodeStatus (Chain) returns (NodeStatus) {
+    }
+
+    rpc exchangeNodeStatus (NodeStatus) returns (NodeStatus) {
+    }
+
+    rpc broadcastBlockCon (BlockCon) returns (Empty) {
+    }
+
+    rpc getBlockConList (Offset) returns (BlockConList) {
+    }
+
+    rpc exchangeBlockConList (BlockConList) returns (BlockConList) {
+    }
+}

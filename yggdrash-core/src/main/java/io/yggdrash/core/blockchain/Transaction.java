@@ -102,7 +102,8 @@ public class Transaction implements Cloneable {
         position += sigBytes.length;
         this.signature = sigBytes;
 
-        byte[] bodyBytes = new byte[txBytes.length - headerBytes.length - sigBytes.length];
+        long bodyLength = this.header.getBodyLength();
+        byte[] bodyBytes = new byte[(int)bodyLength];
         System.arraycopy(txBytes, position, bodyBytes, 0, bodyBytes.length);
         position += bodyBytes.length;
         this.body = new TransactionBody(bodyBytes);
@@ -144,11 +145,15 @@ public class Transaction implements Cloneable {
      *
      * @return transaction hash
      */
-    public byte[] getHash() throws IOException {
+    public byte[] getHash() {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
-
-        bao.write(this.header.toBinary());
-        bao.write(this.signature);
+        try {
+            bao.write(this.header.toBinary());
+            bao.write(this.signature);
+        } catch (IOException e) {
+            log.warn(e.getMessage());
+            return null;
+        }
 
         return HashUtil.sha3(bao.toByteArray());
     }
@@ -158,7 +163,7 @@ public class Transaction implements Cloneable {
      *
      * @return transaction hash(HexString)
      */
-    String getHashString() throws IOException {
+    String getHashString() {
         return Hex.toHexString(this.getHash());
     }
 
@@ -344,7 +349,7 @@ public class Transaction implements Cloneable {
         return tx;
     }
 
-    static Proto.Transaction toProtoTransaction(Transaction tx) {
+    public static Proto.Transaction toProtoTransaction(Transaction tx) {
         // todo: move at TransactionHusk
 
         Proto.Transaction.Header protoHeader;
@@ -368,7 +373,7 @@ public class Transaction implements Cloneable {
         return protoTransaction;
     }
 
-    static Transaction toTransaction(Proto.Transaction protoTransaction) {
+    public static Transaction toTransaction(Proto.Transaction protoTransaction) {
         // todo: move at TransactionHusk
 
         TransactionHeader txHeader = new TransactionHeader(

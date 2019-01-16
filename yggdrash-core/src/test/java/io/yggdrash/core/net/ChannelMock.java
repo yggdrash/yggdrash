@@ -36,7 +36,7 @@ public class ChannelMock implements PeerClientChannel {
 
 
     @Override
-    public List<NodeInfo> findPeers(BranchId branchId, Peer peer) {
+    public List<NodeInfo> findPeers(Peer peer) {
         return null;
     }
 
@@ -50,7 +50,7 @@ public class ChannelMock implements PeerClientChannel {
     }
 
     @Override
-    public Pong ping(String message, BranchId branchId, Peer peer) {
+    public Pong ping(String message, Peer peer) {
         if (pongResponse) {
             pongResponse = false;
             return pong;
@@ -78,11 +78,12 @@ public class ChannelMock implements PeerClientChannel {
     public void broadcastBlock(Proto.Block[] blocks) {
     }
 
-    @Override
-    public void broadcastConsensus(BranchId branchId, Peer peer) {
+    static PeerClientChannel dummy() {
+        return dummy(Peer.valueOf("ynode://75bff16c@localhost:32918"));
     }
 
-    static PeerClientChannel dummy() {
-        return new ChannelMock("ynode://75bff16c@localhost:32918");
+    static PeerClientChannel dummy(Peer peer) {
+        return new ChannelMock(peer.getYnodeUri());
     }
+
 }

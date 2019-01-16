@@ -10,7 +10,7 @@ import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
 import io.yggdrash.core.runtime.annotation.YggdrashContract;
-import io.yggdrash.core.store.StateStore;
+import io.yggdrash.core.store.Store;
 import java.math.BigDecimal;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -27,7 +27,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
     TransactionReceipt txReceipt;
 
     @ContractStateStore
-    StateStore<JsonObject> store;
+    Store<String, JsonObject> store;
 
 
     private final String totalSupplyKey = "TOTAL_SUPPLY";
@@ -224,10 +224,6 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
     @InvokeTransction
     public TransactionReceipt genesis(JsonObject params) {
         log.info("\ngenesis :: params => " + params);
-
-        if (store.getStateSize() > 0L) {
-            return txReceipt;
-        }
 
         //totalSupply 는 alloc 의 balance 를 모두 더한 값으로 세팅
         BigDecimal totalSupply = BigDecimal.ZERO;

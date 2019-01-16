@@ -56,7 +56,6 @@
     var grpc = 32918;
     var rest = 8080;
     var branchId = "91b29a1453258d72ca6fbbcabb8dca10cca944fb";
-    var groups = ["91b29a1453258d72ca6fbbcabb8dca10cca944fb", "d872b5a338b824dc56abc6015543496670d81c1b"]; //todo later
 
     // data format
     var nodes = [];
@@ -104,14 +103,14 @@
         $("tbody").empty();
         $("tfoot .activePeers").empty();
         $("svg").empty();
-        setUp(ip, branchId);
+        setUp(ip);
     }
 
-    function setUp(ip, branchId) {
+    function setUp(ip) {
         writeTableFooter(ip);
-        getBuckets(ip, branchId);
-        setNodesAndChannels(ip, branchId);
-        setBlockHeight(ip, branchId);
+        getBuckets(ip);
+        setNodesAndChannels(ip);
+        setBlockHeight(ip);
     }
 
     function getBuckets(ip, branchId) {
@@ -238,7 +237,7 @@
     }
 
     function writeTableFooter(id) {
-        var url = getChannelsReqUrl(id, this.branchId);
+        var url = getChannelsReqUrl(id);
 
         $.getJSON(url).done(function (channels) {
             channels.forEach(function (channel) {
@@ -251,20 +250,20 @@
         });
     }
 
-    function setNodesAndChannels(ip, branchId) {
-        var url = getPeersFromBucketsReqUrl(ip, branchId);
+    function setNodesAndChannels(ip) {
+        var url = getPeersFromBucketsReqUrl(ip);
 
         $.getJSON(url).done(function (allPeers) {
             //console.log("setNodesAndChannels :: allPeers => ", allPeers);
             allPeers.forEach(function (grpcUrl) {
                 nodes.push(grpcUrl);
-                channels.push(getChannelsReqUrl(getRestUrl(grpcUrl), branchId));
+                channels.push(getChannelsReqUrl(getRestUrl(grpcUrl)));
             });
         });
     }
 
-    function setBlockHeight(host, port, branchId) {
-        var url = getLatestBlockReqUrl(host, port, branchId);
+    function setBlockHeight(host, port) {
+        var url = getLatestBlockReqUrl(host, port);
 
         $.getJSON(url).done(function (latestBlock) {
             curBlockHeight = latestBlock.index;
@@ -274,7 +273,7 @@
 
     function findIsolatedPeer() {
         this.nodes.forEach(function (node) {
-            var url = getLatestPeersReqUrl(getRestUrl(node.name), this.branchId, this.reqTime);
+            var url = getLatestPeersReqUrl(getRestUrl(node.name), this.reqTime);
             $.getJSON(url).done(function (latestPeers) {
                 console.log("node :: " + node.name);
                 console.log("latestPeers => ", latestPeers);
@@ -295,7 +294,7 @@
         }
         ip = host + ":" + port;
         appendTable(getGrpcUrl(ip));
-        setUp(ip, branchId);
+        setUp(ip);
     }
 
     function getHost(str) {
@@ -312,24 +311,24 @@
         return str.substr(str.lastIndexOf(":") + 1, 4);
     }
 
-    function getBucketsReqUrl(ip, branchId) {
-        return "http://" + ip + "/peers/" + branchId + "/buckets";
+    function getBucketsReqUrl(ip) {
+        return "http://" + ip + "/peers/buckets";
     }
 
-    function getPeersFromBucketsReqUrl(ip, branchId) {
-        return "http://" + ip + "/peers/" + branchId + "/buckets/allPeers";
+    function getPeersFromBucketsReqUrl(ip) {
+        return "http://" + ip + "/peers/buckets/allPeers";
     }
 
-    function getChannelsReqUrl(ip, branchId) {
-        return "http://" + ip + "/peers/" + branchId + "/channels";
+    function getChannelsReqUrl(ip) {
+        return "http://" + ip + "/peers/channels";
     }
 
-    function getLatestBlockReqUrl(ip, branchId) {
+    function getLatestBlockReqUrl(ip) {
         return "http://" + ip + "/branches/" + branchId + "/blocks/latest";
     }
 
-    function getLatestPeersReqUrl(ip, branchId, reqTime) {
-        return "http://" + ip + "/peers/" + branchId + "/latestPeers?reqTime=" + reqTime;
+    function getLatestPeersReqUrl(ip, reqTime) {
+        return "http://" + ip + "/peers/latestPeers?reqTime=" + reqTime;
     }
 
     function getGrpcUrl(str) { //Convert rest to grpc url
@@ -532,7 +531,7 @@
             if ($("#" + convertUrlToElementName(ip)).length < 1) {
                 appendTable(ip);
                 writeTableFooter(getRestUrl(ip));
-                getBuckets(getRestUrl(ip), branchId);
+                getBuckets(getRestUrl(ip));
             }
         });
 
