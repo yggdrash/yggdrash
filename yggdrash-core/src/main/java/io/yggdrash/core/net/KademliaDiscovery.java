@@ -38,10 +38,10 @@ public class KademliaDiscovery implements Discovery {
             log.info("Try connecting to SEED peer = {}", peer);
 
             try {
-                List<Proto.PeerInfo> foundedPeerList = peerHandler.findPeers(peerGroup.getOwner());
-                for (Proto.PeerInfo peerInfo : foundedPeerList) {
-                    peerGroup.addPeerByYnodeUri(peerInfo.getUrl());
-                }
+                Optional<List<String>> list = Optional.ofNullable(
+                        peerHandler.findPeers(owner));
+                list.ifPresent(nodeInfo -> nodeInfo.forEach(
+                        uri -> peerGroup.addPeerByYnodeUri(uri)));
             } catch (Exception e) {
                 log.error("Failed connecting to SEED peer = {}", peer);
             } finally {
@@ -72,10 +72,10 @@ public class KademliaDiscovery implements Discovery {
                 if (!tried.contains(peer) && !prevTried.contains(peer)) {
                     PeerHandler peerHandler = peerGroup.getPeerHandlerFactory().create(peer);
                     try {
-                        Optional<List<Proto.PeerInfo>> list = Optional.ofNullable(
+                        Optional<List<String>> list = Optional.ofNullable(
                                 peerHandler.findPeers(owner));
                         list.ifPresent(nodeInfo -> nodeInfo.forEach(
-                                p -> peerGroup.addPeerByYnodeUri(p.getUrl())));
+                                uri -> peerGroup.addPeerByYnodeUri(uri)));
 
                         tried.add(peer);
                     } catch (Exception e) {

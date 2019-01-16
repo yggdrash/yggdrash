@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class GRpcPeerHandler implements PeerHandler {
 
@@ -44,7 +45,7 @@ public class GRpcPeerHandler implements PeerHandler {
     private final BlockChainGrpc.BlockChainBlockingStub asyncBlockChainStub;
     private final Peer peer;
 
-    public GRpcPeerHandler(Peer peer) {
+    GRpcPeerHandler(Peer peer) {
         this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
                 .build(), peer);
     }
@@ -58,14 +59,16 @@ public class GRpcPeerHandler implements PeerHandler {
     }
 
     @Override
-    public List<Proto.PeerInfo> findPeers(Peer peer) {
+    public List<String> findPeers(Peer peer) {
         Proto.RequestPeer requestPeer = Proto.RequestPeer.newBuilder()
                 .setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
                 .setPort(peer.getPort())
                 .addAllBestBlocks(bestBlocksByPeer(peer))
                 .build();
-        return blockingPeerStub.findPeers(requestPeer).getPeersList();
+        return blockingPeerStub.findPeers(requestPeer).getPeersList().stream()
+                .map(Proto.PeerInfo::getUrl)
+                .collect(Collectors.toList());
     }
 
     private List<Proto.BestBlock> bestBlocksByPeer(Peer peer) {

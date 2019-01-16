@@ -35,7 +35,7 @@ public class PeerHandlerMock implements PeerHandler {
 
 
     @Override
-    public List<Proto.PeerInfo> findPeers(Peer peer) {
+    public List<String> findPeers(Peer peer) {
         return null;
     }
 
