@@ -37,7 +37,7 @@ public class BlockConKeyStoreTest {
         byte[] foundKey = blockConKeyStore.get(block.getHeader().getIndex());
 
         assertArrayEquals(block.getHash(), foundKey);
-        assert(blockConKeyStore.contains(block.getHeader().getIndex()));
+        assert (blockConKeyStore.contains(block.getHeader().getIndex()));
 
         log.debug("size: " + blockConKeyStore.size());
         assertEquals(blockConKeyStore.size(), 1);

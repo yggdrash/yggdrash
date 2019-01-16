@@ -44,8 +44,8 @@ public class BlockConStoreTest {
         blockConStore.put(blockCon.getHash(), blockCon);
         BlockCon foundBlockCon = blockConStore.get(blockCon.getHash());
 
-        assert(blockCon.equals(foundBlockCon));
-        assert(blockConStore.contains(blockCon.getHash()));
+        assert (blockCon.equals(foundBlockCon));
+        assert (blockConStore.contains(blockCon.getHash()));
 
         log.debug("size: " + blockConStore.size());
         assertEquals(blockConStore.size(), 1);
