@@ -23,11 +23,11 @@ import io.yggdrash.proto.Proto;
 import java.util.Collections;
 import java.util.List;
 
-public class ChannelMock implements PeerClientChannel {
+public class PeerHandlerMock implements PeerHandler {
     private final Peer peer;
     private boolean pongResponse = true;
 
-    ChannelMock(String ynodeUri) {
+    PeerHandlerMock(String ynodeUri) {
         this.peer = Peer.valueOf(ynodeUri);
     }
 
@@ -75,12 +75,12 @@ public class ChannelMock implements PeerClientChannel {
     public void broadcastBlock(Proto.Block[] blocks) {
     }
 
-    static PeerClientChannel dummy() {
+    static PeerHandler dummy() {
         return dummy(Peer.valueOf("ynode://75bff16c@localhost:32918"));
     }
 
-    static PeerClientChannel dummy(Peer peer) {
-        return new ChannelMock(peer.getYnodeUri());
+    static PeerHandler dummy(Peer peer) {
+        return new PeerHandlerMock(peer.getYnodeUri());
     }
 
 }

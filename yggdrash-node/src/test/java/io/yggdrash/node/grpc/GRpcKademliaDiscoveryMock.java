@@ -2,8 +2,8 @@ package io.yggdrash.node.grpc;
 
 import io.yggdrash.core.net.KademliaDiscoveryMock;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerClientChannel;
-import io.yggdrash.node.GRpcClientChannel;
+import io.yggdrash.core.net.PeerHandler;
+import io.yggdrash.node.GRpcPeerHandler;
 
 public class GRpcKademliaDiscoveryMock extends KademliaDiscoveryMock {
 
@@ -12,7 +12,7 @@ public class GRpcKademliaDiscoveryMock extends KademliaDiscoveryMock {
     }
 
     @Override
-    public PeerClientChannel getClient(Peer peer) {
-        return new GRpcClientChannel(peer);
+    public PeerHandler getPeerHandler(Peer peer) {
+        return new GRpcPeerHandler(peer);
     }
 }

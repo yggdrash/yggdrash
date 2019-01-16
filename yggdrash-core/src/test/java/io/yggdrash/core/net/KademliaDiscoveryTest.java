@@ -14,8 +14,8 @@ public class KademliaDiscoveryTest {
     }
 
     @Test
-    public void getClientTest() {
-        assert discovery.getClient(OWNER).getPeer() != null;
+    public void getPeerHandlerTest() {
+        assert discovery.getPeerHandler(OWNER).getPeer() != null;
     }
 
     @Test

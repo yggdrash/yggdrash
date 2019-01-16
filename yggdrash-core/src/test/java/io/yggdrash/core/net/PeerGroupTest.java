@@ -49,15 +49,15 @@ public class PeerGroupTest {
     }
 
     /**
-     * ChannelMock 은 Pong 응답이 토클 됩니다.
+     * PeerHandlerMock 은 Pong 응답이 토클 됩니다.
      * 처음에는 정상적으로 Pong이 응답되서 안정적으로 채널에 추가시키기 위함
      * 이후 healthCheck 에서 null이 응답되어 피어 테이블과 채널에서 제거될 수 있게됨
      */
     @Test
     public void healthCheck() {
-        PeerClientChannel peerClientChannel = ChannelMock.dummy();
+        PeerHandler peerHandler = PeerHandlerMock.dummy();
 
-        peerGroup.addChannel(peerClientChannel); // Pong 정상응답
+        peerGroup.addHandler(peerHandler); // Pong 정상응답
         assert !peerGroup.getActivePeerList().isEmpty();
 
         peerGroup.healthCheck(); // Pong null 응답
@@ -67,14 +67,14 @@ public class PeerGroupTest {
 
     @Test
     public void syncBlock() {
-        addPeerChannel();
+        addPeerHandler();
         List<BlockHusk> blockHuskList = peerGroup.syncBlock(BRANCH, 0);
         assert !blockHuskList.isEmpty();
     }
 
     @Test
     public void syncTransaction() {
-        addPeerChannel();
+        addPeerHandler();
         peerGroup.receivedTransaction(BlockChainTestUtils.createTransferTxHusk());
         assert !peerGroup.syncTransaction(BRANCH).isEmpty();
     }
@@ -84,8 +84,8 @@ public class PeerGroupTest {
         int testCount = MAX_PEERS + 5;
         for (int i = 0; i < testCount; i++) {
             int port = i + 32918;
-            ChannelMock channel = new ChannelMock("ynode://75bff16c@localhost:" + port);
-            peerGroup.addChannel(channel);
+            PeerHandlerMock peerHandler = new PeerHandlerMock("ynode://75bff16c@localhost:" + port);
+            peerGroup.addHandler(peerHandler);
         }
         assert MAX_PEERS == peerGroup.getActivePeerList().size();
     }
@@ -126,8 +126,8 @@ public class PeerGroupTest {
     }
 
     @Test
-    public void reloadPeerChannel() {
-        peerGroup.reloadPeerChannel(ChannelMock.dummy());
+    public void reloadPeerHandler() {
+        peerGroup.reloadPeerHandler(PeerHandlerMock.dummy());
     }
 
     @Test
@@ -146,9 +146,9 @@ public class PeerGroupTest {
         peerGroup.touchPeer(OWNER);
     }
 
-    private void addPeerChannel() {
+    private void addPeerHandler() {
         assert peerGroup.getActivePeerList().isEmpty();
-        peerGroup.addChannel(ChannelMock.dummy());
+        peerGroup.addHandler(PeerHandlerMock.dummy());
         assert !peerGroup.getActivePeerList().isEmpty();
     }
 }

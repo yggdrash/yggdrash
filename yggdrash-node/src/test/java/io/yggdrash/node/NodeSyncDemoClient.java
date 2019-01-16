@@ -28,10 +28,10 @@ public class NodeSyncDemoClient {
      * @param args the input arguments
      */
     public static void main(String[] args) {
-        GRpcClientChannel client =
-                new GRpcClientChannel(Peer.valueOf("ynode://75bff16c@127.0.0.1:32919"));
-        client.ping("Ping",
+        GRpcPeerHandler getPeerHandler =
+                new GRpcPeerHandler(Peer.valueOf("ynode://75bff16c@127.0.0.1:32919"));
+        getPeerHandler.ping("Ping",
                 Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
-        client.broadcastTransaction(GRpcClientChannelTest.sampleTxs());
+        getPeerHandler.broadcastTransaction(GRpcPeerHandlerTest.sampleTxs());
     }
 }

@@ -5,7 +5,7 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.BestBlock;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.node.GRpcClientChannel;
+import io.yggdrash.node.GRpcPeerHandler;
 import io.yggdrash.proto.PeerGrpc;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
@@ -41,14 +41,14 @@ public class PeerService extends PeerGrpc.PeerImplBase {
 
         // TODO remove cross connection
         try {
-            if (!peerGroup.isMaxChannel()) {
-                peerGroup.addChannel(new GRpcClientChannel(peer));
+            if (!peerGroup.isMaxHandler()) {
+                peerGroup.addHandler(new GRpcPeerHandler(peer));
             } else {
                 // maxPeer 를 넘은경우부터 거리 계산된 peerTable 을 기반으로 peerChannel 업데이트
                 if (peerGroup.isClosePeer(peer)) {
                     log.warn("channel is max");
                     // TODO apply after test
-                    //peerGroup.reloadPeerChannel(new GRpcClientChannel(peer));
+                    //peerGroup.reloadPeerChannel(new GRpcPeerHandler(peer));
                 }
             }
         } catch (Exception e) {

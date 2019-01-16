@@ -21,12 +21,12 @@ import io.yggdrash.core.net.Discovery;
 import io.yggdrash.core.net.KademliaDiscovery;
 import io.yggdrash.core.net.PeerListener;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerClientChannel;
+import io.yggdrash.core.net.PeerHandler;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.node.GRpcClientChannel;
+import io.yggdrash.node.GRpcPeerHandler;
 import io.yggdrash.node.PeerTask;
 import io.yggdrash.node.service.BlockChainService;
 import io.yggdrash.node.service.GRpcPeerListener;
@@ -64,8 +64,8 @@ public class P2PConfiguration {
     Discovery discovery(PeerGroup peerGroup) {
         Discovery discovery = new KademliaDiscovery() {
             @Override
-            public PeerClientChannel getClient(Peer peer) {
-                return new GRpcClientChannel(peer);
+            public PeerHandler getPeerHandler(Peer peer) {
+                return new GRpcPeerHandler(peer);
             }
         };
         discovery.setPeerGroup(peerGroup);

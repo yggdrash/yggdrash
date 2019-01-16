@@ -25,7 +25,7 @@ import io.yggdrash.core.net.Node;
 import io.yggdrash.core.net.PeerListener;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerClientChannel;
+import io.yggdrash.core.net.PeerHandler;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.node.config.NodeProperties;
 import org.slf4j.Logger;
@@ -86,8 +86,8 @@ public class YggdrashNode extends Node
     }
 
     @Override
-    protected PeerClientChannel getChannel(Peer peer) {
-        return new GRpcClientChannel(peer);
+    protected PeerHandler getPeerHandler(Peer peer) {
+        return new GRpcPeerHandler(peer);
     }
 
     @Override

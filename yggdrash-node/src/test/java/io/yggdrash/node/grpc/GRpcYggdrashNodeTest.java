@@ -19,10 +19,10 @@ package io.yggdrash.node.grpc;
 import io.yggdrash.TestConstants.SlowTest;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerClientChannel;
+import io.yggdrash.core.net.PeerHandler;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.net.Node;
-import io.yggdrash.node.GRpcClientChannel;
+import io.yggdrash.node.GRpcPeerHandler;
 import io.yggdrash.node.service.GRpcPeerListener;
 import io.yggdrash.node.service.PeerService;
 import org.junit.Test;
@@ -62,8 +62,8 @@ public class GRpcYggdrashNodeTest extends SlowTest {
         }
 
         @Override
-        protected PeerClientChannel getChannel(Peer peer) {
-            return new GRpcClientChannel(peer);
+        protected PeerHandler getPeerHandler(Peer peer) {
+            return new GRpcPeerHandler(peer);
         }
 
         void setServer(PeerGroup peerGroup) {

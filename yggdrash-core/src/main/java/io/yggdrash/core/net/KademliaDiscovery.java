@@ -34,18 +34,18 @@ public abstract class KademliaDiscovery implements Discovery {
                 continue;
             }
             Peer peer = Peer.valueOf(ynodeUri);
-            PeerClientChannel client = getClient(peer);
+            PeerHandler peerHandler = getPeerHandler(peer);
             log.info("Try connecting to SEED peer = {}", peer);
 
             try {
-                List<Proto.PeerInfo> foundedPeerList = client.findPeers(peerGroup.getOwner());
+                List<Proto.PeerInfo> foundedPeerList = peerHandler.findPeers(peerGroup.getOwner());
                 for (Proto.PeerInfo peerInfo : foundedPeerList) {
                     peerGroup.addPeerByYnodeUri(peerInfo.getUrl());
                 }
             } catch (Exception e) {
                 log.error("Failed connecting to SEED peer = {}", peer);
             } finally {
-                client.stop();
+                peerHandler.stop();
             }
         }
 
@@ -54,7 +54,7 @@ public abstract class KademliaDiscovery implements Discovery {
         findPeers(0, new ArrayList<>());
     }
 
-    protected abstract PeerClientChannel getClient(Peer peer);
+    protected abstract PeerHandler getPeerHandler(Peer peer);
 
     private synchronized void findPeers(int round, List<Peer> prevTried) {
         try {
@@ -72,10 +72,10 @@ public abstract class KademliaDiscovery implements Discovery {
 
             for (Peer peer : closest) {
                 if (!tried.contains(peer) && !prevTried.contains(peer)) {
-                    PeerClientChannel clientChannel = getClient(peer);
+                    PeerHandler peerHandler = getPeerHandler(peer);
                     try {
                         Optional<List<Proto.PeerInfo>> list = Optional.ofNullable(
-                                clientChannel.findPeers(owner));
+                                peerHandler.findPeers(owner));
                         list.ifPresent(nodeInfo -> nodeInfo.forEach(
                                 p -> peerGroup.addPeerByYnodeUri(p.getUrl())));
 
@@ -83,7 +83,7 @@ public abstract class KademliaDiscovery implements Discovery {
                     } catch (Exception e) {
                         log.warn(e.getMessage());
                     } finally {
-                        clientChannel.stop();
+                        peerHandler.stop();
                     }
                 }
                 if (tried.size() == KademliaOptions.ALPHA) {

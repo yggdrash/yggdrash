@@ -22,8 +22,8 @@ public class YggdrashNodeTest {
         }
 
         @Override
-        protected PeerClientChannel getChannel(Peer peer) {
-            return ChannelMock.dummy(peer);
+        protected PeerHandler getPeerHandler(Peer peer) {
+            return PeerHandlerMock.dummy(peer);
         }
     }
 }

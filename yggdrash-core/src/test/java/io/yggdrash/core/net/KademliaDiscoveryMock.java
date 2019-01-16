@@ -12,7 +12,7 @@ public class KademliaDiscoveryMock extends KademliaDiscovery {
     }
 
     @Override
-    public PeerClientChannel getClient(Peer peer) {
-        return ChannelMock.dummy(peer);
+    public PeerHandler getPeerHandler(Peer peer) {
+        return PeerHandlerMock.dummy(peer);
     }
 }

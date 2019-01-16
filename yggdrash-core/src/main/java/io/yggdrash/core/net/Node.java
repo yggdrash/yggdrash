@@ -25,10 +25,10 @@ public abstract class Node implements BootStrap, PeerListener {
         discovery.discover();
         PeerGroup peerGroup = discovery.getPeerGroup();
         for (Peer peer : peerGroup.getClosestPeers()) {
-            if (peerGroup.isMaxChannel()) {
+            if (peerGroup.isMaxHandler()) {
                 break;
             }
-            peerGroup.addChannel(getChannel(peer));
+            peerGroup.addHandler(getPeerHandler(peer));
         }
     }
 
@@ -43,5 +43,5 @@ public abstract class Node implements BootStrap, PeerListener {
         peerListener.stop();
     }
 
-    protected abstract PeerClientChannel getChannel(Peer peer);
+    protected abstract PeerHandler getPeerHandler(Peer peer);
 }

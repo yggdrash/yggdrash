@@ -38,7 +38,7 @@ public class PeerGroup implements BranchEventListener {
 
     private final PeerTable table;
 
-    private final Map<PeerId, PeerClientChannel> channelMap = new ConcurrentHashMap<>();
+    private final Map<PeerId, PeerHandler> channelMap = new ConcurrentHashMap<>();
 
     private final int maxPeers;
 
@@ -108,7 +108,7 @@ public class PeerGroup implements BranchEventListener {
     }
 
     public void destroy() {
-        channelMap.values().forEach(PeerClientChannel::stop);
+        channelMap.values().forEach(PeerHandler::stop);
     }
 
     public void healthCheck() {
@@ -117,20 +117,20 @@ public class PeerGroup implements BranchEventListener {
             return;
         }
 
-        for (PeerClientChannel client : channelMap.values()) {
+        for (PeerHandler handler : channelMap.values()) {
             try {
-                String pong = client.ping("Ping", owner);
+                String pong = handler.ping("Ping", owner);
                 if ("Pong".equals(pong)) {
                     continue;
                 }
             } catch (Exception e) {
-                log.warn("Health check fail. peer=" + client.getPeer().getYnodeUri());
+                log.warn("Health check fail. peer=" + handler.getPeer().getYnodeUri());
             }
-            Peer peer = client.getPeer();
+            Peer peer = handler.getPeer();
             table.dropPeer(peer);
             channelMap.remove(peer.getPeerId());
 
-            client.stop();
+            handler.stop();
         }
     }
 
@@ -142,11 +142,11 @@ public class PeerGroup implements BranchEventListener {
         }
         Proto.Transaction[] txns = new Proto.Transaction[] {tx.getInstance()};
 
-        for (PeerClientChannel client : channelMap.values()) {
+        for (PeerHandler peerHandler : channelMap.values()) {
             try {
-                client.broadcastTransaction(txns);
+                peerHandler.broadcastTransaction(txns);
             } catch (Exception e) {
-                removePeerChannel(client);
+                removeHandler(peerHandler);
             }
         }
     }
@@ -159,29 +159,29 @@ public class PeerGroup implements BranchEventListener {
             return;
         }
         Proto.Block[] blocks = new Proto.Block[] {block.getInstance()};
-        for (PeerClientChannel client : channelMap.values()) {
+        for (PeerHandler peerHandler : channelMap.values()) {
             try {
-                client.broadcastBlock(blocks);
+                peerHandler.broadcastBlock(blocks);
             } catch (Exception e) {
-                removePeerChannel(client);
+                removeHandler(peerHandler);
             }
         }
     }
 
-    private void removePeerChannel(PeerClientChannel client) {
-        client.stop();
-        channelMap.remove(client.getPeer().getPeerId());
-        table.dropPeer(client.getPeer());
-        log.debug("Removed channel size={}, peer size={}",
+    private void removeHandler(PeerHandler peerHandler) {
+        peerHandler.stop();
+        channelMap.remove(peerHandler.getPeer().getPeerId());
+        table.dropPeer(peerHandler.getPeer());
+        log.debug("Removed handler size={}, peer size={}",
                 channelMap.size(), table.getPeersCount());
     }
 
-    public boolean isMaxChannel() {
+    public boolean isMaxHandler() {
         return channelMap.size() >= maxPeers;
     }
 
-    public void addChannel(PeerClientChannel client) {
-        Peer peer = client.getPeer();
+    public void addHandler(PeerHandler peerHandler) {
+        Peer peer = peerHandler.getPeer();
 
         if (channelMap.containsKey(peer.getPeerId())) {
             return;
@@ -189,20 +189,20 @@ public class PeerGroup implements BranchEventListener {
 
         try {
             log.info("Connecting... peer {}:{}", peer.getHost(), peer.getPort());
-            String pong = client.ping("Ping", owner);
+            String pong = peerHandler.ping("Ping", owner);
             // TODO validation peer
             if ("Pong".equals(pong)) {
                 // 접속 성공 시
-                if (!isMaxChannel()) {
-                    channelMap.put(peer.getPeerId(), client);
-                    log.info("Added size={}, channel={}", channelMap.size(), peer.toAddress());
+                if (!isMaxHandler()) {
+                    channelMap.put(peer.getPeerId(), peerHandler);
+                    log.info("Added size={}, handler={}", channelMap.size(), peer.toAddress());
                 }
             } else {
                 // 접속 실패 시 목록 및 버킷에서 제거
                 table.dropPeer(peer);
             }
         } catch (Exception e) {
-            log.warn("Fail to add to the peer channel err=" + e.getMessage());
+            log.warn("Fail to add to the peer handler err=" + e.getMessage());
         }
     }
 
@@ -214,12 +214,12 @@ public class PeerGroup implements BranchEventListener {
         return peerList.subList(0, maxPeers).contains(requestPeer);
     }
 
-    void reloadPeerChannel(PeerClientChannel client) {
-        log.info("reloadPeerChannel : peer = {}", client.getPeer());
+    void reloadPeerHandler(PeerHandler peerHandler) {
+        log.info("reloadPeerHandler : peer = {}", peerHandler.getPeer());
 
-        PeerId requestPeerId = client.getPeer().getPeerId();
+        PeerId requestPeerId = peerHandler.getPeer().getPeerId();
         if (channelMap.containsKey(requestPeerId)) {
-            channelMap.put(requestPeerId, client);
+            channelMap.put(requestPeerId, peerHandler);
         } else {
             List<Peer> peerList = getClosestPeers();
             if (peerList.size() > maxPeers) {
@@ -255,11 +255,11 @@ public class PeerGroup implements BranchEventListener {
 
     private void logBucketIdOf() {
         channelMap.values().forEach(
-                peerClientChannel
-                        -> log.debug("Current peerClientChannel => peer={}:{}, bucketId={}",
-                        peerClientChannel.getPeer().getHost(),
-                        peerClientChannel.getPeer().getPort(),
-                        table.getTmpBucketId(peerClientChannel.getPeer())));
+                peerHandler
+                        -> log.debug("Current peerHandler => peer={}:{}, bucketId={}",
+                        peerHandler.getPeer().getHost(),
+                        peerHandler.getPeer().getPort(),
+                        table.getTmpBucketId(peerHandler.getPeer())));
     }
 
     public Map<Integer, List<Peer>> getBucketsOf() {
@@ -306,10 +306,10 @@ public class PeerGroup implements BranchEventListener {
         }
         // TODO sync peer selection policy
         PeerId key = (PeerId) channelMap.keySet().toArray()[0];
-        PeerClientChannel client = channelMap.get(key);
-        List<Proto.Block> blockList = client.syncBlock(branchId, offset);
+        PeerHandler peerHandler = channelMap.get(key);
+        List<Proto.Block> blockList = peerHandler.syncBlock(branchId, offset);
         log.debug("Synchronize block offset={} receivedSize={}, from={}", offset, blockList.size(),
-                client.getPeer());
+                peerHandler.getPeer());
         List<BlockHusk> syncList = new ArrayList<>(blockList.size());
         for (Proto.Block block : blockList) {
             syncList.add(new BlockHusk(block));
@@ -329,10 +329,10 @@ public class PeerGroup implements BranchEventListener {
         }
         // TODO sync peer selection policy
         PeerId key = (PeerId) channelMap.keySet().toArray()[0];
-        PeerClientChannel client = channelMap.get(key);
-        List<Proto.Transaction> txList = client.syncTransaction(branchId);
+        PeerHandler peerHandler = channelMap.get(key);
+        List<Proto.Transaction> txList = peerHandler.syncTransaction(branchId);
         log.info("Synchronize transaction receivedSize={}, from={}", txList.size(),
-                client.getPeer());
+                peerHandler.getPeer());
         List<TransactionHusk> syncList = new ArrayList<>(txList.size());
         for (Proto.Transaction tx : txList) {
             syncList.add(new TransactionHusk(tx));
