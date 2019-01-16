@@ -28,9 +28,9 @@ message ConsensusList {
 
 message BlockCon {
     bytes chain = 1;
-    bytes id = 2;
+    bytes hash = 2;
     int64 index = 3;
-    bytes parentId = 4;
+    bytes prevBlockHash = 4;
     Block block = 5;
     ConsensusList consensusList = 6;
 }

@@ -5,6 +5,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.util.FileUtil;
+import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
@@ -12,9 +15,6 @@ import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionHeader;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.common.util.FileUtil;
-import io.yggdrash.common.util.TimeUtils;
 import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.File;
@@ -116,7 +116,8 @@ public class GenesisBlock {
         File genesisFile = new File(classLoader.getResource("./genesis/genesis.json").getFile());
 
         FileUtil.writeStringToFile(genesisFile,
-                new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject), StandardCharsets.UTF_8, false);
+                new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject),
+                StandardCharsets.UTF_8, false);
     }
 
 }

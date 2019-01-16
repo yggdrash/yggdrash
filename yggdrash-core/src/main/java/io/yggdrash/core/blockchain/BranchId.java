@@ -33,7 +33,7 @@ public class BranchId {
         this.id = hash;
     }
 
-    private BranchId(byte[] bytes) {
+    public BranchId(byte[] bytes) {
         this(Sha3Hash.createByHashed(bytes));
     }
 

@@ -19,7 +19,6 @@ import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
 import org.apache.commons.codec.binary.Hex;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
@@ -37,7 +36,6 @@ public class TestUtils {
     private static byte[] version =
             ByteBuffer.allocate(8).putInt(0).array();
 
-    @Autowired
     public TestUtils(Wallet wallet) {
         this.wallet = wallet;
     }

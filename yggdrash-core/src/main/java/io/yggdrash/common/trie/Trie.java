@@ -43,7 +43,7 @@ public class Trie {
      * @return merkle root value (byte[32]) <br>
      * null - if txs is null or txs.size is smaller than 1
      */
-    public static byte[] getMerkleRoot(List<Transaction> txs) throws IOException {
+    public static byte[] getMerkleRoot(List<Transaction> txs) {
 
         if (txs == null || txs.size() < 1 || txs.contains(null)) {
             return null;

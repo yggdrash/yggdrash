@@ -128,11 +128,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     }
 
     public byte[] getPublicKey() {
-        try {
-            return this.coreBlock.getPubKey();
-        } catch (SignatureException e) {
-            throw new NotValidateException(e);
-        }
+        return this.coreBlock.getPubKey();
     }
 
     public BranchId getBranchId() {
