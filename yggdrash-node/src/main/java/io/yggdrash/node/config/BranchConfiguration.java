@@ -23,9 +23,7 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.contract.ContractClassLoader;
-import io.yggdrash.core.contract.ContractLoader;
 import io.yggdrash.core.contract.ContractManager;
-import io.yggdrash.core.contract.ContractMeta;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.StoreBuilder;
@@ -115,11 +113,11 @@ public class BranchConfiguration {
     }
 
     @Bean
-    ContractLoader contractLoader(DefaultConfig defaultConfig) {
+    ContractManager contractManager(DefaultConfig defaultConfig) {
         if (defaultConfig.isProductionMode()) {
             ContractClassLoader.copyResourcesToContractPath(defaultConfig.getContractPath());
         }
-        return new ContractLoader(defaultConfig.getContractPath());
+        return new ContractManager(defaultConfig.getContractPath());
     }
 
     private BlockChain addBranch(InputStream is, PeerGroup peerGroup, BranchGroup branchGroup)
