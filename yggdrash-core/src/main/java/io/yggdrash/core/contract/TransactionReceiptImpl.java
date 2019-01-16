@@ -17,25 +17,22 @@
 package io.yggdrash.core.contract;
 
 import io.yggdrash.common.util.JsonUtil;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class TransactionReceiptImpl implements TransactionReceipt {
 
     private String txId;
     private String blockId;
     private String branchId;
-    private final Map<String, String> txLog = new HashMap<>();
+    private final List<String> txLog = new ArrayList<>();
     private ExecuteStatus status = ExecuteStatus.FALSE;
     private String issuer;
+    private String contractId;
     private Long blockHeight;
 
-    public String getLog(String key) {
-        return txLog.get(key);
-    }
-
-    public void putLog(String key, String value) {
-        txLog.put(key, value);
+    public void addLog(String value) {
+        txLog.add(value);
     }
 
     public ExecuteStatus getStatus() {
@@ -78,7 +75,17 @@ public class TransactionReceiptImpl implements TransactionReceipt {
         this.branchId = branchId;
     }
 
-    public Map<String, String> getTxLog() {
+    @Override
+    public String getContractId() {
+        return contractId;
+    }
+
+    @Override
+    public void setContractId(String contractId) {
+        this.contractId = contractId;
+    }
+
+    public List<String> getTxLog() {
         return txLog;
     }
 
