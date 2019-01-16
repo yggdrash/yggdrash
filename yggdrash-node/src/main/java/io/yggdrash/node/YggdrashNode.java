@@ -86,11 +86,6 @@ public class YggdrashNode extends Node
     }
 
     @Override
-    protected PeerHandler getPeerHandler(Peer peer) {
-        return new GRpcPeerHandler(peer);
-    }
-
-    @Override
     public void bootstrapping() {
         log.info("Bootstrapping... node=" + getPeerGroup().getOwner());
         super.bootstrapping();

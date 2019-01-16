@@ -18,11 +18,11 @@ package io.yggdrash.node.grpc;
 
 import io.yggdrash.TestConstants.SlowTest;
 import io.yggdrash.common.util.Utils;
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerHandler;
-import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.net.KademliaDiscoveryMock;
 import io.yggdrash.core.net.Node;
-import io.yggdrash.node.GRpcPeerHandler;
+import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.node.GRpcPeerHandlerFactory;
 import io.yggdrash.node.service.GRpcPeerListener;
 import io.yggdrash.node.service.PeerService;
 import org.junit.Test;
@@ -51,7 +51,7 @@ public class GRpcYggdrashNodeTest extends SlowTest {
 
         NodeMock(int port) {
             Peer owner = Peer.valueOf(NODE_URI_PREFIX + port);
-            this.discovery = new GRpcKademliaDiscoveryMock(owner);
+            this.discovery = new KademliaDiscoveryMock(owner);
 
             PeerGroup peerGroup = discovery.getPeerGroup();
             List<String> seedList = Collections.singletonList("ynode://75bff16c@127.0.0.1:32918");
@@ -61,12 +61,8 @@ public class GRpcYggdrashNodeTest extends SlowTest {
             peerListener.start("", port);
         }
 
-        @Override
-        protected PeerHandler getPeerHandler(Peer peer) {
-            return new GRpcPeerHandler(peer);
-        }
-
         void setServer(PeerGroup peerGroup) {
+            peerGroup.setPeerHandlerFactory(new GRpcPeerHandlerFactory());
             GRpcPeerListener peerListener = new GRpcPeerListener();
             peerListener.addService(new PeerService(peerGroup));
             this.peerListener = peerListener;
@@ -75,6 +71,5 @@ public class GRpcYggdrashNodeTest extends SlowTest {
         PeerGroup getPeerGroup() {
             return discovery.getPeerGroup();
         }
-
     }
 }

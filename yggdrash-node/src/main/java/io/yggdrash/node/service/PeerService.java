@@ -42,7 +42,7 @@ public class PeerService extends PeerGrpc.PeerImplBase {
         // TODO remove cross connection
         try {
             if (!peerGroup.isMaxHandler()) {
-                peerGroup.addHandler(new GRpcPeerHandler(peer));
+                peerGroup.addHandler(peer);
             } else {
                 // maxPeer 를 넘은경우부터 거리 계산된 peerTable 을 기반으로 peerChannel 업데이트
                 if (peerGroup.isClosePeer(peer)) {

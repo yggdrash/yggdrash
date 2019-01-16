@@ -19,14 +19,14 @@ package io.yggdrash.node.config;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.net.Discovery;
 import io.yggdrash.core.net.KademliaDiscovery;
-import io.yggdrash.core.net.PeerListener;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerHandler;
 import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.net.PeerHandlerFactory;
+import io.yggdrash.core.net.PeerListener;
 import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.node.GRpcPeerHandler;
+import io.yggdrash.node.GRpcPeerHandlerFactory;
 import io.yggdrash.node.PeerTask;
 import io.yggdrash.node.service.BlockChainService;
 import io.yggdrash.node.service.GRpcPeerListener;
@@ -50,24 +50,26 @@ public class P2PConfiguration {
     }
 
     @Bean
-    PeerGroup peerGroup(Wallet wallet, StoreBuilder storeBuilder) {
+    PeerHandlerFactory peerHandlerFactory() {
+        return new GRpcPeerHandlerFactory();
+    }
+
+    @Bean
+    PeerGroup peerGroup(Wallet wallet, StoreBuilder storeBuilder,
+                        PeerHandlerFactory peerHandlerFactory) {
         Peer owner = Peer.valueOf(wallet.getNodeId(), nodeProperties.getGrpc().getHost(),
                 nodeProperties.getGrpc().getPort());
 
         PeerStore peerStore = storeBuilder.buildPeerStore();
         PeerGroup peerGroup = new PeerGroup(owner, peerStore, nodeProperties.getMaxPeers());
         peerGroup.setSeedPeerList(nodeProperties.getSeedPeerList());
+        peerGroup.setPeerHandlerFactory(peerHandlerFactory);
         return peerGroup;
     }
 
     @Bean
     Discovery discovery(PeerGroup peerGroup) {
-        Discovery discovery = new KademliaDiscovery() {
-            @Override
-            public PeerHandler getPeerHandler(Peer peer) {
-                return new GRpcPeerHandler(peer);
-            }
-        };
+        Discovery discovery = new KademliaDiscovery();
         discovery.setPeerGroup(peerGroup);
         return discovery;
     }

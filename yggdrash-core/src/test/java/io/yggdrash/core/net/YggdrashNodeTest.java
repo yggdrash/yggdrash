@@ -17,13 +17,10 @@ public class YggdrashNodeTest {
 
         YggdrashTestNode(String ynodeUri) {
             this.discovery = new KademliaDiscoveryMock(Peer.valueOf(ynodeUri));
+            PeerGroup peerGroup = discovery.getPeerGroup();
+            peerGroup.setPeerHandlerFactory(PeerHandlerMock.factory);
             List<String> seedList = Collections.singletonList("ynode://75bff16c@127.0.0.1:32918");
             discovery.getPeerGroup().setSeedPeerList(seedList);
-        }
-
-        @Override
-        protected PeerHandler getPeerHandler(Peer peer) {
-            return PeerHandlerMock.dummy(peer);
         }
     }
 }

@@ -7,12 +7,9 @@ public class KademliaDiscoveryMock extends KademliaDiscovery {
     private static final int MAX_PEERS = 25;
     private static final StoreBuilder BUILDER = new StoreBuilder(new DefaultConfig());
 
-    protected KademliaDiscoveryMock(Peer owner) {
-        setPeerGroup(new PeerGroup(owner, BUILDER.buildPeerStore(), MAX_PEERS));
-    }
-
-    @Override
-    public PeerHandler getPeerHandler(Peer peer) {
-        return PeerHandlerMock.dummy(peer);
+    public KademliaDiscoveryMock(Peer owner) {
+        PeerGroup peerGroup = new PeerGroup(owner, BUILDER.buildPeerStore(), MAX_PEERS);
+        peerGroup.setPeerHandlerFactory(PeerHandlerMock.factory);
+        this.setPeerGroup(peerGroup);
     }
 }

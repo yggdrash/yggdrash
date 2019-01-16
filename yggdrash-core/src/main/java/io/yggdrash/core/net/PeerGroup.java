@@ -46,10 +46,20 @@ public class PeerGroup implements BranchEventListener {
 
     private List<String> seedPeerList;
 
+    private PeerHandlerFactory peerHandlerFactory;
+
     public PeerGroup(Peer owner, PeerStore peerStore, int maxPeers) {
         this.owner = owner;
         table = new PeerTable(peerStore, owner);
         this.maxPeers = maxPeers;
+    }
+
+    public void setPeerHandlerFactory(PeerHandlerFactory peerHandlerFactory) {
+        this.peerHandlerFactory = peerHandlerFactory;
+    }
+
+    PeerHandlerFactory getPeerHandlerFactory() {
+        return peerHandlerFactory;
     }
 
     public Peer getOwner() {
@@ -180,8 +190,8 @@ public class PeerGroup implements BranchEventListener {
         return channelMap.size() >= maxPeers;
     }
 
-    public void addHandler(PeerHandler peerHandler) {
-        Peer peer = peerHandler.getPeer();
+    public void addHandler(Peer peer) {
+        PeerHandler peerHandler =  peerHandlerFactory.create(peer);
 
         if (channelMap.containsKey(peer.getPeerId())) {
             return;
@@ -214,12 +224,12 @@ public class PeerGroup implements BranchEventListener {
         return peerList.subList(0, maxPeers).contains(requestPeer);
     }
 
-    void reloadPeerHandler(PeerHandler peerHandler) {
-        log.info("reloadPeerHandler : peer = {}", peerHandler.getPeer());
+    void reloadPeerHandler(Peer peer) {
+        log.info("reloadPeerHandler : peer = {}", peer);
 
-        PeerId requestPeerId = peerHandler.getPeer().getPeerId();
+        PeerId requestPeerId = peer.getPeerId();
         if (channelMap.containsKey(requestPeerId)) {
-            channelMap.put(requestPeerId, peerHandler);
+            channelMap.put(requestPeerId, peerHandlerFactory.create(peer));
         } else {
             List<Peer> peerList = getClosestPeers();
             if (peerList.size() > maxPeers) {
@@ -241,7 +251,6 @@ public class PeerGroup implements BranchEventListener {
             } else {
                 log.warn("newClosestPeers size=" + newClosestPeers.size());
             }
-
         }
     }
 

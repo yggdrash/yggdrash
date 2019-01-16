@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public abstract class KademliaDiscovery implements Discovery {
+public class KademliaDiscovery implements Discovery {
     private static final Logger log = LoggerFactory.getLogger(KademliaDiscovery.class);
 
     private PeerGroup peerGroup;
@@ -34,7 +34,7 @@ public abstract class KademliaDiscovery implements Discovery {
                 continue;
             }
             Peer peer = Peer.valueOf(ynodeUri);
-            PeerHandler peerHandler = getPeerHandler(peer);
+            PeerHandler peerHandler = peerGroup.getPeerHandlerFactory().create(peer);
             log.info("Try connecting to SEED peer = {}", peer);
 
             try {
@@ -54,8 +54,6 @@ public abstract class KademliaDiscovery implements Discovery {
         findPeers(0, new ArrayList<>());
     }
 
-    protected abstract PeerHandler getPeerHandler(Peer peer);
-
     private synchronized void findPeers(int round, List<Peer> prevTried) {
         try {
             if (round == KademliaOptions.MAX_STEPS) {
@@ -72,7 +70,7 @@ public abstract class KademliaDiscovery implements Discovery {
 
             for (Peer peer : closest) {
                 if (!tried.contains(peer) && !prevTried.contains(peer)) {
-                    PeerHandler peerHandler = getPeerHandler(peer);
+                    PeerHandler peerHandler = peerGroup.getPeerHandlerFactory().create(peer);
                     try {
                         Optional<List<Proto.PeerInfo>> list = Optional.ofNullable(
                                 peerHandler.findPeers(owner));

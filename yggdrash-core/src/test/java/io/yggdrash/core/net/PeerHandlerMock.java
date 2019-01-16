@@ -24,10 +24,12 @@ import java.util.Collections;
 import java.util.List;
 
 public class PeerHandlerMock implements PeerHandler {
+    public static final PeerHandlerFactory factory = PeerHandlerMock::dummy;
+
     private final Peer peer;
     private boolean pongResponse = true;
 
-    PeerHandlerMock(String ynodeUri) {
+    private PeerHandlerMock(String ynodeUri) {
         this.peer = Peer.valueOf(ynodeUri);
     }
 
@@ -75,12 +77,7 @@ public class PeerHandlerMock implements PeerHandler {
     public void broadcastBlock(Proto.Block[] blocks) {
     }
 
-    static PeerHandler dummy() {
-        return dummy(Peer.valueOf("ynode://75bff16c@localhost:32918"));
-    }
-
-    static PeerHandler dummy(Peer peer) {
+    private static PeerHandler dummy(Peer peer) {
         return new PeerHandlerMock(peer.getYnodeUri());
     }
-
 }

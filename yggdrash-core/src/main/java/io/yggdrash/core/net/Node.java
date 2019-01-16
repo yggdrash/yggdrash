@@ -28,7 +28,7 @@ public abstract class Node implements BootStrap, PeerListener {
             if (peerGroup.isMaxHandler()) {
                 break;
             }
-            peerGroup.addHandler(getPeerHandler(peer));
+            peerGroup.addHandler(peer);
         }
     }
 
@@ -43,5 +43,4 @@ public abstract class Node implements BootStrap, PeerListener {
         peerListener.stop();
     }
 
-    protected abstract PeerHandler getPeerHandler(Peer peer);
 }

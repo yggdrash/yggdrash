@@ -24,6 +24,7 @@ public class PeerGroupTest {
     @Before
     public void setUp() {
         this.peerGroup = new PeerGroup(OWNER, storeBuilder.buildPeerStore(), MAX_PEERS);
+        peerGroup.setPeerHandlerFactory(PeerHandlerMock.factory);
     }
 
     @Test
@@ -55,9 +56,8 @@ public class PeerGroupTest {
      */
     @Test
     public void healthCheck() {
-        PeerHandler peerHandler = PeerHandlerMock.dummy();
-
-        peerGroup.addHandler(peerHandler); // Pong 정상응답
+        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        peerGroup.addHandler(peer); // Pong 정상응답
         assert !peerGroup.getActivePeerList().isEmpty();
 
         peerGroup.healthCheck(); // Pong null 응답
@@ -84,8 +84,8 @@ public class PeerGroupTest {
         int testCount = MAX_PEERS + 5;
         for (int i = 0; i < testCount; i++) {
             int port = i + 32918;
-            PeerHandlerMock peerHandler = new PeerHandlerMock("ynode://75bff16c@localhost:" + port);
-            peerGroup.addHandler(peerHandler);
+            Peer peer = Peer.valueOf("ynode://75bff16c@localhost:" + port);
+            peerGroup.addHandler(peer);
         }
         assert MAX_PEERS == peerGroup.getActivePeerList().size();
     }
@@ -127,7 +127,7 @@ public class PeerGroupTest {
 
     @Test
     public void reloadPeerHandler() {
-        peerGroup.reloadPeerHandler(PeerHandlerMock.dummy());
+        peerGroup.reloadPeerHandler(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
     }
 
     @Test
@@ -148,7 +148,7 @@ public class PeerGroupTest {
 
     private void addPeerHandler() {
         assert peerGroup.getActivePeerList().isEmpty();
-        peerGroup.addHandler(PeerHandlerMock.dummy());
+        peerGroup.addHandler(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
         assert !peerGroup.getActivePeerList().isEmpty();
     }
 }
