@@ -45,7 +45,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GRpcNodeServerTest {
+public class GRpcPeerListenerTest {
 
     @Rule
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();

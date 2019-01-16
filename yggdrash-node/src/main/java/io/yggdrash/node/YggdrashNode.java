@@ -22,7 +22,7 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.net.Discovery;
 import io.yggdrash.core.net.Node;
-import io.yggdrash.core.net.NodeServer;
+import io.yggdrash.core.net.PeerListener;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
@@ -49,8 +49,8 @@ public class YggdrashNode extends Node
     private final BranchGroup branchGroup;
 
     @Autowired
-    public void setNodeServer(NodeServer nodeServer) {
-        this.nodeServer = nodeServer;
+    public void setPeerListener(PeerListener peerListener) {
+        this.peerListener = peerListener;
     }
 
     @Autowired
@@ -78,7 +78,7 @@ public class YggdrashNode extends Node
         log.info("Destroy node=" + getPeerGroup().getOwner());
         getPeerGroup().destroy();
         log.info("Shutting down gRPC server...");
-        nodeServer.stop();
+        peerListener.stop();
     }
 
     private PeerGroup getPeerGroup() {

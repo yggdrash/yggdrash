@@ -19,7 +19,7 @@ package io.yggdrash.node.config;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.net.Discovery;
 import io.yggdrash.core.net.KademliaDiscovery;
-import io.yggdrash.core.net.NodeServer;
+import io.yggdrash.core.net.PeerListener;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
@@ -29,7 +29,7 @@ import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.GRpcClientChannel;
 import io.yggdrash.node.PeerTask;
 import io.yggdrash.node.service.BlockChainService;
-import io.yggdrash.node.service.GRpcNodeServer;
+import io.yggdrash.node.service.GRpcPeerListener;
 import io.yggdrash.node.service.PeerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -73,8 +73,8 @@ public class P2PConfiguration {
     }
 
     @Bean
-    NodeServer nodeServer(PeerGroup peerGroup, BranchGroup branchGroup) {
-        GRpcNodeServer server = new GRpcNodeServer();
+    PeerListener peerListener(PeerGroup peerGroup, BranchGroup branchGroup) {
+        GRpcPeerListener server = new GRpcPeerListener();
         server.addService(new PeerService(peerGroup));
         server.addService(new BlockChainService(branchGroup));
         return server;

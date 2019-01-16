@@ -23,7 +23,7 @@ import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.net.Node;
 import io.yggdrash.node.GRpcClientChannel;
-import io.yggdrash.node.service.GRpcNodeServer;
+import io.yggdrash.node.service.GRpcPeerListener;
 import io.yggdrash.node.service.PeerService;
 import org.junit.Test;
 
@@ -58,7 +58,7 @@ public class GRpcYggdrashNodeTest extends SlowTest {
             peerGroup.setSeedPeerList(seedList);
             setServer(peerGroup);
 
-            nodeServer.start("", port);
+            peerListener.start("", port);
         }
 
         @Override
@@ -67,9 +67,9 @@ public class GRpcYggdrashNodeTest extends SlowTest {
         }
 
         void setServer(PeerGroup peerGroup) {
-            GRpcNodeServer nodeServer = new GRpcNodeServer();
-            nodeServer.addService(new PeerService(peerGroup));
-            this.nodeServer = nodeServer;
+            GRpcPeerListener peerListener = new GRpcPeerListener();
+            peerListener.addService(new PeerService(peerGroup));
+            this.peerListener = peerListener;
         }
 
         PeerGroup getPeerGroup() {

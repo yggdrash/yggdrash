@@ -18,7 +18,7 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.core.exception.FailedOperationException;
 
-public interface NodeServer {
+public interface PeerListener {
 
     void start(String host, int port) throws FailedOperationException;
 

@@ -16,10 +16,10 @@
 
 package io.yggdrash.core.net;
 
-public abstract class Node implements BootStrap, NodeServer {
+public abstract class Node implements BootStrap, PeerListener {
 
     protected Discovery discovery;
-    protected NodeServer nodeServer;
+    protected PeerListener peerListener;
 
     public void bootstrapping() {
         discovery.discover();
@@ -33,14 +33,14 @@ public abstract class Node implements BootStrap, NodeServer {
     }
 
     public void start(String host, int port) {
-        nodeServer.start(host, port);
+        peerListener.start(host, port);
     }
 
     /**
      * Stop serving requests and shutdown resources.
      */
     public void stop() {
-        nodeServer.stop();
+        peerListener.stop();
     }
 
     protected abstract PeerClientChannel getChannel(Peer peer);
