@@ -17,7 +17,6 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
-import com.google.protobuf.ByteString;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.ByteUtil;
@@ -78,7 +77,7 @@ public class BlockHeader implements Cloneable {
             byte[] prevBlockHash,
             long index,
             long timestamp,
-            BlockBody blockBody) throws IOException {
+            BlockBody blockBody) {
         this(chain, version, type, prevBlockHash, index, timestamp,
                 blockBody.getMerkleRoot(), blockBody.length());
     }

@@ -21,7 +21,7 @@ public class BlockConStore implements Store<byte[], BlockCon> {
 
     @Override
     public void put(byte[] key, BlockCon value) {
-        log.debug("BlockConStore put "
+        log.trace("BlockConStore put "
                 + "(key: " + Hex.toHexString(key) + ")"
                 + "(value length: " + value.toBinary().length + ")");
         db.put(key, value.toBinary());
@@ -29,12 +29,12 @@ public class BlockConStore implements Store<byte[], BlockCon> {
 
     @Override
     public BlockCon get(byte[] key) {
-        log.debug("BlockConStore get "
+        log.trace("BlockConStore get "
                 + "(" + Hex.toHexString(key) + ")");
 
         byte[] foundValue = db.get(key);
         if (foundValue != null) {
-            log.debug("BlockConStore get size: "
+            log.trace("BlockConStore get size: "
                     + foundValue.length);
 
             return new BlockCon(foundValue);

@@ -91,6 +91,18 @@ public class BlockConChain {
 
     }
 
+    public byte[] getChain() {
+        return chain;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
     public BlockConStore getBlockConStore() {
         return blockConStore;
     }

@@ -3,13 +3,17 @@ package io.yggdrash.validator;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.BlockBody;
+import io.yggdrash.core.blockchain.BlockHeader;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.BlockCon;
 import io.yggdrash.validator.data.BlockConChain;
 import io.yggdrash.validator.data.NodeStatus;
-import io.yggdrash.validator.util.TestUtils;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -206,8 +210,10 @@ public class GrpcNodeServer implements CommandLineRunner {
                 && this.isSynced) {
             long index = this.blockConChain.getLastConfirmedBlockCon().getIndex() + 1;
             byte[]  prevBlockHash = this.blockConChain.getLastConfirmedBlockCon().getHash();
-            Block newBlock
-                    = new TestUtils(wallet).sampleBlock(index, prevBlockHash);
+
+            Block newBlock = makeNewBlock(index, prevBlockHash);
+            log.trace("newBlock" + newBlock.toString());
+
             BlockCon newBlockCon
                     = new BlockCon(index, prevBlockHash, newBlock);
 
@@ -229,6 +235,26 @@ public class GrpcNodeServer implements CommandLineRunner {
         }
 
         return null;
+    }
+
+    private Block makeNewBlock(long index, byte[] prevBlockHash) {
+        List<Transaction> txs = new ArrayList<>();
+        List<TransactionHusk> txHusks = new ArrayList<>(
+                blockConChain.getTransactionStore().getUnconfirmedTxs());
+        for (TransactionHusk txHusk : txHusks) {
+            txs.add(txHusk.getCoreTransaction());
+        }
+
+        BlockBody newBlockBody = new BlockBody(txs);
+        BlockHeader newBlockHeader = new BlockHeader(
+                blockConChain.getChain(),
+                new byte[8],
+                new byte[8],
+                prevBlockHash,
+                index,
+                TimeUtils.time(),
+                newBlockBody);
+        return new Block(newBlockHeader, wallet, newBlockBody);
     }
 
     private BlockCon makeConsensus() {
