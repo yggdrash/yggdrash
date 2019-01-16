@@ -20,6 +20,7 @@ import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.net.BestBlock;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.proto.BlockChainGrpc;
@@ -29,6 +30,7 @@ import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GRpcClientChannel implements PeerClientChannel {
@@ -61,8 +63,20 @@ public class GRpcClientChannel implements PeerClientChannel {
                 .setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
                 .setPort(peer.getPort())
+                .addAllBestBlocks(bestBlocksByPeer(peer))
                 .build();
         return blockingPeerStub.findPeers(requestPeer).getPeersList();
+    }
+
+    private List<Proto.BestBlock> bestBlocksByPeer(Peer peer) {
+        List<Proto.BestBlock> bestBlocks = new ArrayList<>();
+        for (BestBlock bb : peer.getBestBlocks()) {
+            Proto.BestBlock bestBlock = Proto.BestBlock.newBuilder()
+                    .setBranch(ByteString.copyFrom(bb.getBranchId().getBytes()))
+                    .setIndex(bb.getIndex()).build();
+            bestBlocks.add(bestBlock);
+        }
+        return bestBlocks;
     }
 
     @Override

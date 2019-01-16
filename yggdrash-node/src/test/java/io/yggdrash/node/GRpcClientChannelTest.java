@@ -19,7 +19,9 @@ package io.yggdrash.node;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.net.BestBlock;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
@@ -34,6 +36,7 @@ import org.mockito.Captor;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -113,13 +116,16 @@ public class GRpcClientChannelTest {
         }).when(peerService).findPeers(findPeersRequestCaptor.capture(), any());
 
         Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-
+        owner.updateBestBlock(BestBlock.of(TestConstants.STEM, 0));
         client.findPeers(owner);
 
         verify(peerService).findPeers(findPeersRequestCaptor.capture(), any());
 
         assertEquals("127.0.0.1", findPeersRequestCaptor.getValue().getIp());
         assertEquals(32918, findPeersRequestCaptor.getValue().getPort());
+        Proto.BestBlock bestBlock = findPeersRequestCaptor.getValue().getBestBlocks(0);
+        assertArrayEquals(TestConstants.STEM.getBytes(), bestBlock.getBranch().toByteArray());
+        assertEquals(0, bestBlock.getIndex());
     }
 
     @Test

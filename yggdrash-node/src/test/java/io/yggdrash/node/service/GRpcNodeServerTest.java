@@ -23,6 +23,7 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
@@ -84,6 +85,28 @@ public class GRpcNodeServerTest {
         Proto.Pong pong = blockingStub.play(ping);
 
         assertEquals("Pong", pong.getPong());
+    }
+
+
+    @Test
+    public void findPeers() {
+        PeerGrpc.PeerBlockingStub blockingStub = PeerGrpc.newBlockingStub(
+                grpcServerRule.getChannel());
+
+        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        Proto.BestBlock bestBlock = Proto.BestBlock.newBuilder()
+                .setBranch(ByteString.copyFrom(branchId.getBytes()))
+                .setIndex(0).build();
+        Proto.RequestPeer requestPeer = Proto.RequestPeer.newBuilder()
+                .setPubKey(peer.getPubKey().toString())
+                .setIp(peer.getHost())
+                .setPort(peer.getPort())
+                .addBestBlocks(bestBlock)
+                .build();
+
+        Proto.PeerList peerList = blockingStub.findPeers(requestPeer);
+
+        assertEquals(0, peerList.getPeersCount());
     }
 
     @Test
