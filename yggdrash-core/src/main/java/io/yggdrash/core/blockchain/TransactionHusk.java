@@ -73,7 +73,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         return protoTransaction;
     }
 
-    Transaction getCoreTransaction() {
+    public Transaction getCoreTransaction() {
         return coreTransaction;
     }
 
