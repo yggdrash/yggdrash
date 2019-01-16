@@ -4,8 +4,6 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.core.exception.NotValidateException;
 import org.junit.Test;
 
-import java.util.Collections;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PeerTest {
@@ -53,7 +51,7 @@ public class PeerTest {
         BestBlock bb = BestBlock.of(TestConstants.STEM, 0);
 
         // act
-        peer.setBestBlocks(Collections.singleton(bb));
+        peer.updateBestBlock(bb);
 
         //assert
         assertThat(peer.getBestBlocks()).containsOnly(bb);

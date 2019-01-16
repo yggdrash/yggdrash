@@ -21,6 +21,8 @@ import io.yggdrash.core.exception.NotValidateException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 public class Peer {
@@ -31,7 +33,7 @@ public class Peer {
     private String host;
     private int port;
     private String ynodeUri;
-    private Set<BestBlock> bestBlocks;
+    private final Set<BestBlock> bestBlocks = new HashSet<>();
     private long modified;
     private int distance;
 
@@ -97,6 +99,11 @@ public class Peer {
     }
 
     @Override
+    public int hashCode() {
+        return Arrays.hashCode(peerId.getBytes());
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -123,12 +130,12 @@ public class Peer {
         modified = System.currentTimeMillis();
     }
 
-    Set<BestBlock> getBestBlocks() {
+    public Set<BestBlock> getBestBlocks() {
         return bestBlocks;
     }
 
-    void setBestBlocks(Set<BestBlock> bestBlocks) {
-        this.bestBlocks = bestBlocks;
+    public void updateBestBlock(BestBlock bestBlock) {
+        this.bestBlocks.add(bestBlock);
     }
 
     long getModified() {
