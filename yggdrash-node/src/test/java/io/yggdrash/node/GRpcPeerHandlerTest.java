@@ -40,7 +40,6 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
@@ -137,12 +136,11 @@ public class GRpcPeerHandlerTest {
             return null;
         }).when(blockChainService).broadcastBlock(blockArgumentCaptor.capture(), any());
 
-        peerHandler.broadcastBlock(sampleBlocks());
+        peerHandler.broadcastBlock(BlockChainTestUtils.genesisBlock());
 
-        verify(blockChainService, times(3))
-                .broadcastBlock(blockArgumentCaptor.capture(), any());
+        verify(blockChainService).broadcastBlock(blockArgumentCaptor.capture(), any());
 
-        assertEquals(6, blockArgumentCaptor.getAllValues().size());
+        assertEquals(2, blockArgumentCaptor.getAllValues().size());
     }
 
     @Test
@@ -155,12 +153,11 @@ public class GRpcPeerHandlerTest {
             return null;
         }).when(blockChainService).broadcastTransaction(transactionArgumentCaptor.capture(), any());
 
-        peerHandler.broadcastTransaction(sampleTxs());
+        peerHandler.broadcastTransaction(BlockChainTestUtils.createTransferTxHusk());
 
-        verify(blockChainService, times(3))
-                .broadcastTransaction(transactionArgumentCaptor.capture(), any());
+        verify(blockChainService).broadcastTransaction(transactionArgumentCaptor.capture(), any());
 
-        assertEquals(6, transactionArgumentCaptor.getAllValues().size());
+        assertEquals(2, transactionArgumentCaptor.getAllValues().size());
     }
 
     @Test
@@ -196,17 +193,5 @@ public class GRpcPeerHandlerTest {
 
         BranchId branch = BranchId.of(syncLimitRequestCaptor.getValue().getBranch().toByteArray());
         assertEquals(BranchId.NULL, branch);
-    }
-
-    private Proto.Block[] sampleBlocks() {
-        return new Proto.Block[] {BlockChainTestUtils.genesisBlock().getInstance(),
-                BlockChainTestUtils.genesisBlock().getInstance(),
-                BlockChainTestUtils.genesisBlock().getInstance()};
-    }
-
-    public static Proto.Transaction[] sampleTxs() {
-        return new Proto.Transaction[] {BlockChainTestUtils.createTransferTxHusk().getInstance(),
-                BlockChainTestUtils.createTransferTxHusk().getInstance(),
-                BlockChainTestUtils.createTransferTxHusk().getInstance()};
     }
 }

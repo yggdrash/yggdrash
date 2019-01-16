@@ -20,7 +20,6 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.proto.Proto;
 
 import java.util.Collections;
 import java.util.List;
@@ -71,11 +70,13 @@ public class PeerHandlerMock implements PeerHandler {
     }
 
     @Override
-    public void broadcastTransaction(Proto.Transaction[] txs) {
+    public void broadcastBlock(BlockHusk blockHusk) {
+
     }
 
     @Override
-    public void broadcastBlock(Proto.Block[] blocks) {
+    public void broadcastTransaction(TransactionHusk txHusk) {
+
     }
 
     private static PeerHandler dummy(Peer peer) {

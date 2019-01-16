@@ -136,20 +136,14 @@ public class GRpcPeerHandler implements PeerHandler {
     }
 
     @Override
-    public void broadcastTransaction(Proto.Transaction[] txs) {
+    public void broadcastTransaction(TransactionHusk tx) {
         log.info("*** Broadcasting txs...");
-        for (Proto.Transaction tx : txs) {
-            log.trace("Sending transaction: {}", tx);
-            asyncBlockChainStub.broadcastTransaction(tx);
-        }
+        asyncBlockChainStub.broadcastTransaction(tx.getInstance());
     }
 
     @Override
-    public void broadcastBlock(Proto.Block[] blocks) {
+    public void broadcastBlock(BlockHusk block) {
         log.info("*** Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
-        for (Proto.Block block : blocks) {
-            log.trace("Sending block: {}", block);
-            asyncBlockChainStub.broadcastBlock(block);
-        }
+        asyncBlockChainStub.broadcastBlock(block.getInstance());
     }
 }

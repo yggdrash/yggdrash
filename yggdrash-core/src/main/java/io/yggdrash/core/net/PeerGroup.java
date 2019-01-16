@@ -21,7 +21,6 @@ import io.yggdrash.core.blockchain.BranchEventListener;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.store.PeerStore;
-import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -150,11 +149,9 @@ public class PeerGroup implements BranchEventListener {
             log.trace("Active peer is empty to broadcast transaction");
             return;
         }
-        Proto.Transaction[] txns = new Proto.Transaction[] {tx.getInstance()};
-
         for (PeerHandler peerHandler : channelMap.values()) {
             try {
-                peerHandler.broadcastTransaction(txns);
+                peerHandler.broadcastTransaction(tx);
             } catch (Exception e) {
                 removeHandler(peerHandler);
             }
@@ -168,10 +165,9 @@ public class PeerGroup implements BranchEventListener {
             log.trace("Active peer is empty to broadcast block");
             return;
         }
-        Proto.Block[] blocks = new Proto.Block[] {block.getInstance()};
         for (PeerHandler peerHandler : channelMap.values()) {
             try {
-                peerHandler.broadcastBlock(blocks);
+                peerHandler.broadcastBlock(block);
             } catch (Exception e) {
                 removeHandler(peerHandler);
             }

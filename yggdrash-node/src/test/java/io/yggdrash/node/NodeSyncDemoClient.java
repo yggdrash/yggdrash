@@ -16,6 +16,7 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.net.Peer;
 
 /**
@@ -32,6 +33,6 @@ public class NodeSyncDemoClient {
                 new GRpcPeerHandler(Peer.valueOf("ynode://75bff16c@127.0.0.1:32919"));
         getPeerHandler.ping("Ping",
                 Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
-        getPeerHandler.broadcastTransaction(GRpcPeerHandlerTest.sampleTxs());
+        getPeerHandler.broadcastTransaction(BlockChainTestUtils.createTransferTxHusk());
     }
 }
