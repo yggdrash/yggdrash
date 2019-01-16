@@ -64,7 +64,9 @@ public class EbftService extends ConsensusEbftGrpc.ConsensusEbftImplBase {
               io.grpc.stub.StreamObserver<io.yggdrash.proto.NetProto.Empty> responseObserver) {
         BlockCon newBlockCon = new BlockCon(request);
         if (!BlockCon.verify(newBlockCon) || !grpcNodeServer.consensusVerify(newBlockCon)) {
-            log.error("Verify Fail");
+            log.warn("broadcast BlockCon Verify Fail");
+            responseObserver.onNext(io.yggdrash.proto.NetProto.Empty.newBuilder().build());
+            responseObserver.onCompleted();
             return;
         }
 
@@ -92,8 +94,8 @@ public class EbftService extends ConsensusEbftGrpc.ConsensusEbftImplBase {
         long end = Math.min(start - 1 + count,
                 this.blockConChain.getLastConfirmedBlockCon().getIndex());
 
-        log.debug("start: " + start);
-        log.debug("end: " + end);
+        log.trace("start: " + start);
+        log.trace("end: " + end);
 
         if (start < end) {
             for (long l = start; l <= end; l++) {
