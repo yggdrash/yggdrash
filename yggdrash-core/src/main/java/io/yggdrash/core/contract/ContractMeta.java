@@ -18,6 +18,7 @@ package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.ContractUtils;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
@@ -26,8 +27,7 @@ import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Hashtable;
-import java.util.Map;
+import java.util.*;
 
 public class ContractMeta {
     private static final String SUFFIX = ".class";
@@ -47,7 +47,6 @@ public class ContractMeta {
         this.contractId = ContractId.of(contractBinary);
         this.queryMethod = getQueryMethods();
         this.invokeMethod = getInvokeMethods();
-
     }
 
     public Class<? extends Contract> getContract() {
@@ -85,9 +84,38 @@ public class ContractMeta {
         return contract;
     }
 
+    public Map getMethods() {
+        Map<String, List<Map<String, String>>> methods = new HashMap<>();
+
+        List<Map<String, String>> invokeList = new ArrayList<>();
+        for (Method m : invokeMethod.values()) {
+            Map<String, String> methodInfo = new HashMap<>();
+            methodInfo.put("name", m.getName());
+            methodInfo.put("inputType", m.getParameterTypes()[0].getSimpleName());
+            System.out.println(JsonUtil.convertMapToJson(methodInfo).toString());
+            invokeList.add(methodInfo);
+        }
+        List<Map<String, String>> queryList = new ArrayList<>();
+        for (Method m : queryMethod.values()) {
+            Map<String, String> methodInfo = new HashMap<>();
+            methodInfo.put("name", m.getName());
+            if (m.getParameterTypes().length > 0) {
+                methodInfo.put("inputType", m.getParameterTypes()[0].getSimpleName());
+            }
+            methodInfo.put("outputType", m.getReturnType().getSimpleName());
+            invokeList.add(methodInfo);
+        }
+        methods.put("invoke", invokeList);
+        methods.put("query", queryList);
+        System.out.println(JsonUtil.convertMapToJson(methods).toString());
+
+        return methods;
+    }
+
     public Map<String, Method> getInvokeMethods() {
         return ContractUtils.contractMethods(getContractInstance(), InvokeTransction.class);
     }
+
 
     public Map<String, Method> getQueryMethods() {
         return ContractUtils.contractMethods(getContractInstance(), ContractQuery.class);

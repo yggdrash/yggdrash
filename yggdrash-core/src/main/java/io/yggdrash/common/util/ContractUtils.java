@@ -16,6 +16,7 @@
 
 package io.yggdrash.common.util;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import java.lang.annotation.Annotation;
@@ -46,11 +47,11 @@ public class ContractUtils {
     }
 
 
-    public static  Map<String, Method> contractMethods(Object contract, Class<? extends Annotation> annotationClass) {
+    public static Map<String, Method> contractMethods(Object contract, Class<? extends Annotation> annotationClass) {
         return Arrays.stream(contract.getClass().getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(annotationClass))
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
-                .collect(Collectors.toMap(m -> m.getName().toLowerCase(), m-> m));
+                .collect(Collectors.toMap(m -> m.getName(), m-> m));
     }
 
 }

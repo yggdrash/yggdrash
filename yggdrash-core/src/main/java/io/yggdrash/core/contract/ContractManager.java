@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.contract;
 
+import io.yggdrash.common.util.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,6 +36,7 @@ public class ContractManager<T> extends ClassLoader {
     private final List<ContractId> contractIds = new ArrayList<>();
     private final List<Object> contracts = new ArrayList<>();
     private Map<ContractId, Object> contractList = new Hashtable<>();
+    private List<Map> contractInfoList = new ArrayList<>();
 
     public ContractManager(String contractPath) {
         load(contractPath);
@@ -54,6 +56,14 @@ public class ContractManager<T> extends ClassLoader {
                     ContractMeta contractMeta = ContractClassLoader.loadContractById(
                             contractRoot, contractId);
 
+                    Map<String, Object> contractInfo = new HashMap<>();
+                    contractInfo.put("contractId", contractId.toString());
+                    contractInfo.put("name", contractMeta.getContract().getSimpleName());
+                    contractInfo.put("methods",  contractMeta.getMethods());
+                    System.out.println(JsonUtil.convertMapToJson(contractInfo).toString());
+
+                    contractInfoList.add(contractInfo);
+
                     if (Files.isRegularFile(contractPath)) {
                         contractIds.add(contractId);
                         contracts.add(contractMeta.getContract().getDeclaredConstructor().newInstance());
@@ -70,8 +80,8 @@ public class ContractManager<T> extends ClassLoader {
         }
     }
 
-    public List<ContractId> getContractList() {
-        return contractIds;
+    public List<Map> getContractInfoList() {
+        return contractInfoList;
     }
 
 }
