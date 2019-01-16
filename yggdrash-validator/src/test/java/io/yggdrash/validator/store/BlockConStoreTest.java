@@ -30,7 +30,7 @@ public class BlockConStoreTest {
     }
 
     @Test
-    public void BlockConStoreTest() {
+    public void blockConStoreTest() {
         LevelDbDataSource ds =
                 new LevelDbDataSource(StoreTestUtils.getTestPath(), "block-con-store-test");
         BlockConStore blockConStore = new BlockConStore(ds);

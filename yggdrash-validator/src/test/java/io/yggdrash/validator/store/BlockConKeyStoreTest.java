@@ -27,7 +27,7 @@ public class BlockConKeyStoreTest {
     }
 
     @Test
-    public void BlockConKeyStoreTest() {
+    public void blockConKeyStoreTest() {
         LevelDbDataSource ds =
                 new LevelDbDataSource(StoreTestUtils.getTestPath(), "block-con-key-store-test");
         BlockConKeyStore blockConKeyStore = new BlockConKeyStore(ds);
