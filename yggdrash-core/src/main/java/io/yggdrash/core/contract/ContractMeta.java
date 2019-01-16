@@ -16,30 +16,49 @@
 
 package io.yggdrash.core.contract;
 
+import com.google.gson.JsonObject;
+import io.yggdrash.common.util.ContractUtils;
+import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.core.runtime.annotation.ContractQuery;
+import io.yggdrash.core.runtime.annotation.InvokeTransction;
+
 import java.io.File;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Hashtable;
+import java.util.Map;
 
 public class ContractMeta {
     private static final String SUFFIX = ".class";
 
-    private final Class<? extends Contract> contract;
+    private final Class<? extends Contract> contractClass;
     private final byte[] contractBinary;
     private final String contractClassName;
     private final ContractId contractId;
+    private Map<String, Method> invokeMethod = new Hashtable<>();
+    private Map<String, Method> queryMethod = new Hashtable<>();
+    private Map<Class<? extends Annotation>, JsonObject> contractMethod = new Hashtable<>();
 
     ContractMeta(byte[] contractBinary, Class<? extends Contract> contractClass) {
         this.contractBinary = contractBinary;
-        this.contract = contractClass;
+        this.contractClass = contractClass;
         this.contractClassName = contractClass.getName();
         this.contractId = ContractId.of(contractBinary);
+        this.queryMethod = getQueryMethods();
+        this.invokeMethod = getInvokeMethods();
+
     }
 
     public Class<? extends Contract> getContract() {
-        return contract;
+        return contractClass;
     }
 
     ContractId getContractId() {
         return contractId;
     }
+
+    Map<String, Method> getInvoke() { return invokeMethod; }
 
     byte[] getContractBinary() {
         return contractBinary;
@@ -53,5 +72,24 @@ public class ContractMeta {
 
     static String classAsResourcePath(Class<? extends Contract> clazz) {
         return clazz.getName().replace(".", "/") + SUFFIX;
+    }
+
+    public Contract getContractInstance() {
+        Contract contract;
+        try {
+            contract = getContract().getDeclaredConstructor().newInstance();
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException
+                | InvocationTargetException e) {
+            throw new FailedOperationException(e);
+        }
+        return contract;
+    }
+
+    public Map<String, Method> getInvokeMethods() {
+        return ContractUtils.contractMethods(getContractInstance(), InvokeTransction.class);
+    }
+
+    public Map<String, Method> getQueryMethods() {
+        return ContractUtils.contractMethods(getContractInstance(), ContractQuery.class);
     }
 }

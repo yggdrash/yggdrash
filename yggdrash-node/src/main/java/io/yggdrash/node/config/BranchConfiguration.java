@@ -119,7 +119,7 @@ public class BranchConfiguration {
         if (defaultConfig.isProductionMode()) {
             ContractClassLoader.copyResourcesToContractPath(defaultConfig.getContractPath());
         }
-        return new ContractManager(defaultConfig.getContractPath());
+        return new ContractManager(storeBuilder.getConfig().getContractPath());
     }
 
     private BlockChain addBranch(InputStream is, PeerGroup peerGroup, BranchGroup branchGroup)
