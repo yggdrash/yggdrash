@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
-import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.ConsensusEbftGrpc;
 import io.yggdrash.proto.EbftProto;
@@ -73,7 +73,12 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         this.totalValidatorMap = initTotalValidator();
         this.isValidator = initValidator();
         this.isActive = false;
-        this.consenusCount = totalValidatorMap.size() / 2 + 1;
+        if (totalValidatorMap != null) {
+            this.consenusCount = totalValidatorMap.size() / 2 + 1;
+        } else {
+            this.consenusCount = 0;
+            throw new NotValidateException();
+        }
     }
 
     @Override
@@ -111,7 +116,6 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         loggingNode();
 
     }
-
 
     @Override
     public void pingPongTime(EbftProto.PingTime request,
@@ -158,7 +162,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         responseObserver.onCompleted();
 
         if (lastBlockCon.getIndex() == newBlockCon.getIndex() - 1
-                && Arrays.equals(lastBlockCon.getId(), newBlockCon.getParentId())) {
+                && Arrays.equals(lastBlockCon.getHash(), newBlockCon.getPrevBlockHash())) {
 
             lock.lock();
             updateUnconfirmedBlock(newBlockCon);
@@ -169,15 +173,21 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
     @Override
     public void getBlockConList(io.yggdrash.proto.EbftProto.Offset request,
             io.grpc.stub.StreamObserver<EbftProto.BlockConList> responseObserver) {
-        long index = request.getIndex();
+        long start = request.getIndex();
         long count = request.getCount();
         List<BlockCon> blockConList = new ArrayList<>();
 
-        long min = Math.min(index - 1 + count,
+        long end = Math.min(start - 1 + count,
                 this.blockConChain.getLastConfirmedBlockCon().getIndex());
-        for (long l = index; l <= min; l++) {
-            blockConList.add(this.blockConChain.getBlockConMap().get(
-                    this.blockConChain.getBlockConKey().get(l)));
+
+        log.debug("start: " + start);
+        log.debug("end: " + end);
+
+        if (start < end) {
+            for (long l = start; l <= end; l++) {
+                blockConList.add(this.blockConChain.getBlockConStore().get(
+                        this.blockConChain.getBlockConKeyStore().get(l)));
+            }
         }
 
         responseObserver.onNext(BlockCon.toProtoList(blockConList));
@@ -213,18 +223,20 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
     private void updateStatus(GrpcNodeClient client, NodeStatus nodeStatus) {
         if (NodeStatus.verify(nodeStatus)) {
             client.setIsRunning(true);
-            // if other lastConfirmedBlockCon != my lastConfirmedBlockCon
-            if (!nodeStatus.getLastConfirmedBlockCon().getIdHex()
-                    .equals(this.blockConChain.getLastConfirmedBlockCon().getIdHex())) {
-                // if other lastConfirmedBlockCon.index > my lastConfirmedBlockCon.index
-                if (nodeStatus.getLastConfirmedBlockCon().getIndex()
-                        > this.blockConChain.getLastConfirmedBlockCon().getIndex()) {
-                    // blockConSyncing
-                    this.isSynced = false;
-                    blockConSyncing(client.getId(),
-                            nodeStatus.getLastConfirmedBlockCon().getIndex());
-                }
-            } else { // else other lastConfirmedBlockCon == my lastConfirmedBlockCon
+
+            if (nodeStatus.getLastConfirmedBlockCon().getIndex()
+                    > this.blockConChain.getLastConfirmedBlockCon().getIndex()) {
+                log.debug("this Index: "
+                        + this.blockConChain.getLastConfirmedBlockCon().getIndex());
+                log.debug("client Index: " + nodeStatus.getLastConfirmedBlockCon().getIndex());
+                log.debug("client : " + client.getId());
+
+                // blockConSyncing
+                this.isSynced = false;
+                blockConSyncing(client.getId(),
+                        nodeStatus.getLastConfirmedBlockCon().getIndex());
+            } else if (nodeStatus.getLastConfirmedBlockCon().getIndex()
+                    == this.blockConChain.getLastConfirmedBlockCon().getIndex()) {
                 // unconfirmed block update
                 for (BlockCon blockCon : nodeStatus.getUnConfirmedBlockConList()) {
                     updateUnconfirmedBlock(blockCon);
@@ -252,7 +264,16 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         BlockCon blockCon;
         if (client.isRunning()) {
             List<BlockCon> blockConList = client.getBlockConList(
-                    this.blockConChain.getLastConfirmedBlockCon().getIndex() + 1);
+                    this.blockConChain.getLastConfirmedBlockCon().getIndex());
+
+            log.debug("node: " + nodeId);
+            log.debug("index: " + index);
+            log.debug("blockConList size: " + blockConList.size());
+
+            if (blockConList == null || blockConList.size() == 0) {
+                return;
+            }
+
             int i = 0;
             for (; i < blockConList.size(); i++) {
                 blockCon = blockConList.get(i);
@@ -260,8 +281,9 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
                     log.error("blockConSyncing Verify Fail");
                     continue;
                 }
-                this.blockConChain.getBlockConMap().put(blockCon.getIdHex(), blockCon);
-                this.blockConChain.getBlockConKey().put(blockCon.getIndex(), blockCon.getIdHex());
+                this.blockConChain.getBlockConStore().put(blockCon.getHash(), blockCon);
+                this.blockConChain.getBlockConKeyStore()
+                        .put(blockCon.getIndex(), blockCon.getHash());
             }
             blockCon = blockConList.get(i - 1);
             if (blockCon.getConsensusList().size() >= consenusCount) {
@@ -282,24 +304,24 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
                 && !this.blockConChain.isProposed()
                 && this.isSynced) {
             long index = this.blockConChain.getLastConfirmedBlockCon().getIndex() + 1;
-            byte[]  prevBlockHash = this.blockConChain.getLastConfirmedBlockCon().getId();
+            byte[]  prevBlockHash = this.blockConChain.getLastConfirmedBlockCon().getHash();
             Block newBlock
                     = new TestUtils(wallet).sampleBlock(index, prevBlockHash);
             BlockCon newBlockCon
-                    = new BlockCon(index, prevBlockHash, new BlockHusk(newBlock.toProtoBlock()));
+                    = new BlockCon(index, prevBlockHash, newBlock);
 
             // add in unconfirmed blockConMap & unconfirmed blockCon
             this.blockConChain.getUnConfirmedBlockConMap()
-                    .putIfAbsent(newBlockCon.getIdHex(), newBlockCon);
+                    .putIfAbsent(newBlockCon.getHashHex(), newBlockCon);
             this.blockConChain.setProposed(true);
 
             log.debug("make Proposed Block"
                     + "["
                     + newBlockCon.getIndex()
                     + "]"
-                    + newBlockCon.getIdHex()
+                    + newBlockCon.getHashHex()
                     + " ("
-                    + newBlockCon.getBlock().getAddress().toString()
+                    + newBlockCon.getBlock().getAddressHexString()
                     + ")");
 
             return newBlockCon;
@@ -343,7 +365,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
             }
 
             BlockCon blockCon = unConfirmedBlockConMap.get(minKey);
-            String consensus = Hex.toHexString(wallet.signHashedData(blockCon.getId()));
+            String consensus = Hex.toHexString(wallet.signHashedData(blockCon.getHash()));
             blockCon.getConsensusList().add(consensus);
             this.blockConChain.setConsensused(true);
 
@@ -351,7 +373,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
                     + "["
                     + blockCon.getIndex()
                     + "] "
-                    + blockCon.getIdHex()
+                    + blockCon.getHashHex()
                     + " ("
                     + consensus
                     + ")");
@@ -369,7 +391,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
             BlockCon proposedBlockCon = this.blockConChain.getUnConfirmedBlockConMap().get(key);
 
             if (proposedBlockCon.getIndex() == index) {
-                proposedPubkey.add(Hex.toHexString(proposedBlockCon.getBlock().getPublicKey()));
+                proposedPubkey.add(Hex.toHexString(proposedBlockCon.getBlock().getPubKey()));
             }
         }
 
@@ -377,7 +399,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
             GrpcNodeClient client = this.totalValidatorMap.get(key);
             if (client.isRunning()) {
                 if (proposedPubkey.contains("04" + client.getPubKey())) {
-                    // continue
+                    continue;
                 } else {
                     return false;
                 }
@@ -426,8 +448,8 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
 
     private void confirmedBlock(BlockCon blockCon) {
         // add newBlockCon into blockConMap
-        this.blockConChain.getBlockConMap().put(blockCon.getIdHex(), blockCon);
-        this.blockConChain.getBlockConKey().put(blockCon.getIndex(), blockCon.getIdHex());
+        this.blockConChain.getBlockConStore().put(blockCon.getHash(), blockCon);
+        this.blockConChain.getBlockConKeyStore().put(blockCon.getIndex(), blockCon.getHash());
 
         changeLastConfirmedBlock(blockCon);
         this.blockConChain.setProposed(false);
@@ -437,19 +459,10 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
                 + "["
                 + this.blockConChain.getLastConfirmedBlockCon().getIndex()
                 + "]"
-                + this.blockConChain.getLastConfirmedBlockCon().getIdHex()
+                + this.blockConChain.getLastConfirmedBlockCon().getHashHex()
                 + "("
                 + this.blockConChain.getLastConfirmedBlockCon().getConsensusList().size()
                 + ")");
-
-        // delete memory data for long term test
-        if (TEST_MEMORYFREE) {
-            long index = blockCon.getIndex() - 2;
-            if (index > 0) {
-                String id = this.blockConChain.getBlockConKey().get(index);
-                this.blockConChain.getBlockConMap().remove(id);
-            }
-        }
     }
 
     private void changeLastConfirmedBlock(BlockCon blockCon) {
@@ -470,17 +483,17 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         log.info("["
                 + this.blockConChain.getLastConfirmedBlockCon().getIndex()
                 + "]"
-                + this.blockConChain.getLastConfirmedBlockCon().getIdHex()
+                + this.blockConChain.getLastConfirmedBlockCon().getHashHex()
                 + " ("
-                + this.blockConChain.getLastConfirmedBlockCon().getBlock().getAddress().toString()
+                + this.blockConChain.getLastConfirmedBlockCon().getBlock().getAddressHexString()
                 + ") "
                 + "["
                 + this.blockConChain.getLastConfirmedBlockCon().getConsensusList().size()
                 + "]");
 
         if (log.isDebugEnabled()) {
-            log.debug("map size= " + this.blockConChain.getBlockConMap().size());
-            log.debug("key size= " + this.blockConChain.getBlockConKey().size());
+            log.debug("map size= " + this.blockConChain.getBlockConStore().size());
+            log.debug("key size= " + this.blockConChain.getBlockConKeyStore().size());
             log.debug("proposedBlock size= "
                     + this.blockConChain.getUnConfirmedBlockConMap().size());
             log.debug("isSynced= " + isSynced);
@@ -494,9 +507,9 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
                 log.debug("proposed ["
                         + blockCon.getIndex()
                         + "]"
-                        + blockCon.getIdHex()
+                        + blockCon.getHashHex()
                         + " ("
-                        + blockCon.getBlock().getAddress().toString()
+                        + blockCon.getBlock().getAddressHexString()
                         + ")");
                 for (int i = 0; i < blockCon.getConsensusList().size(); i++) {
                     if (blockCon.getConsensusList().get(i) != null) {
@@ -505,7 +518,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
                                 + Hex.toHexString(
                                 Wallet.calculateAddress(
                                         Wallet.calculatePubKey(
-                                                blockCon.getId(),
+                                                blockCon.getHash(),
                                                 Hex.decode(blockCon.getConsensusList().get(i)),
                                                 true)))
                                 + ")");
@@ -529,7 +542,7 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
                 } catch (Exception e) {
                     log.debug("broadcast exception: " + e.getMessage());
                     log.debug("client: " + client.getId());
-                    log.debug("blockCon: " + blockCon.getIdHex());
+                    log.debug("blockCon: " + blockCon.getHashHex());
                     // continue
                 }
             }
@@ -537,20 +550,20 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
     }
 
     private void updateUnconfirmedBlock(BlockCon blockCon) {
-        if (this.blockConChain.getUnConfirmedBlockConMap().containsKey(blockCon.getIdHex())) {
+        if (this.blockConChain.getUnConfirmedBlockConMap().containsKey(blockCon.getHashHex())) {
             // if exist, update consensus
             if (blockCon.getConsensusList().size() > 0) {
                 for (String consensus : blockCon.getConsensusList()) {
-                    if (!this.blockConChain.getUnConfirmedBlockConMap().get(blockCon.getIdHex())
+                    if (!this.blockConChain.getUnConfirmedBlockConMap().get(blockCon.getHashHex())
                             .getConsensusList().contains(consensus)) {
-                        this.blockConChain.getUnConfirmedBlockConMap().get(blockCon.getIdHex())
+                        this.blockConChain.getUnConfirmedBlockConMap().get(blockCon.getHashHex())
                                 .getConsensusList().add(consensus);
                     }
                 }
             }
         } else {
             // if not exist, add blockCon
-            this.blockConChain.getUnConfirmedBlockConMap().put(blockCon.getIdHex(), blockCon);
+            this.blockConChain.getUnConfirmedBlockConMap().put(blockCon.getHashHex(), blockCon);
         }
     }
 
@@ -600,7 +613,6 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         log.debug("isValidator" + validatorJsonObject.toString());
         return nodeMap;
     }
-
 
     private GrpcNodeClient initMyNode() {
         byte[] realPubKey = new byte[64];
@@ -670,9 +682,9 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
         }
 
         for (String signature : blockCon.getConsensusList()) {
-            if (Wallet.verify(blockCon.getId(), Hex.decode(signature), true)) {
+            if (Wallet.verify(blockCon.getHash(), Hex.decode(signature), true)) {
                 // todo: check validator
-                // continue;
+                continue;
             } else {
                 return false;
             }
@@ -694,16 +706,15 @@ public class GrpcNodeServer extends ConsensusEbftGrpc.ConsensusEbftImplBase
     }
 
     private void loggingMap(Map<String, BlockCon> map) {
-
         log.debug("[" + map.size() + "]");
         for (String key : map.keySet()) {
             BlockCon blockCon = map.get(key);
-            log.debug(blockCon.getBlock().getAddress().toString()
+            log.debug(blockCon.getBlock().getAddressHexString()
                     + " "
                     + "["
                     + blockCon.getIndex()
                     + "]"
-                    + blockCon.getIdHex());
+                    + blockCon.getHashHex());
         }
     }
 }

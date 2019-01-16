@@ -23,6 +23,7 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.proto.BlockChainGrpc;
+import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.NetProto.SyncLimit;
 import io.yggdrash.proto.NodeInfo;
 import io.yggdrash.proto.PeerGrpc;
@@ -37,7 +38,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-class GRpcClientChannel implements PeerClientChannel {
+public class GRpcClientChannel implements PeerClientChannel {
 
     private static final Logger log = LoggerFactory.getLogger(GRpcClientChannel.class);
     private static final int DEFAULT_LIMIT = 10000;
@@ -49,7 +50,7 @@ class GRpcClientChannel implements PeerClientChannel {
     private final BlockChainGrpc.BlockChainBlockingStub asyncBlockChainStub;
     private final Peer peer;
 
-    GRpcClientChannel(Peer peer) {
+    public GRpcClientChannel(Peer peer) {
         this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
                 .build(), peer);
     }

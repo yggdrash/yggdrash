@@ -96,10 +96,10 @@ public class NodeStatus {
             }
 
             for (BlockCon blockCon : unConfirmedBlockConList) {
-                dataForSignning.write(blockCon.getId());
+                dataForSignning.write(blockCon.getHash());
             }
 
-            dataForSignning.write(lastConfirmedBlockCon.getId());
+            dataForSignning.write(lastConfirmedBlockCon.getHash());
             dataForSignning.write(ByteUtil.longToBytes(timestamp));
         } catch (IOException e) {
             return null;

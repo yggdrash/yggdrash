@@ -57,7 +57,7 @@ public class PeerGroup implements BranchEventListener {
         return owner;
     }
 
-    public List<String> getBootstrappingSeedList() {
+    List<String> getBootstrappingSeedList() {
         List<String> seedPeerList;
 
         if (table.isPeerStoreEmpty()) {
@@ -73,7 +73,7 @@ public class PeerGroup implements BranchEventListener {
         return seedPeerList;
     }
 
-    public void addPeerByYnodeUri(String ynodeUri) {
+    void addPeerByYnodeUri(String ynodeUri) {
         table.addPeer(Peer.valueOf(ynodeUri));
     }
 
@@ -82,6 +82,12 @@ public class PeerGroup implements BranchEventListener {
     }
 
     public List<String> getPeers(Peer peer) {
+        // 현재 연결된 채널들의 버킷 아이디, 새로들어온 requestPeer 의 버킷아이디 로그
+        log.debug("Received findPeers peer={}, bucketId={}",
+                peer.toAddress(), logBucketIdOf(peer));
+        logBucketIdOf();
+
+
         ArrayList<String> peerList = new ArrayList<>();
 
         table.getAllPeers().forEach(p -> peerList.add(p.toString()));
@@ -89,7 +95,7 @@ public class PeerGroup implements BranchEventListener {
         return peerList;
     }
 
-    public List<Peer> getClosestPeers() {
+    List<Peer> getClosestPeers() {
         return table.getClosestPeers(owner.getPeerId().getBytes());
     }
 
@@ -174,7 +180,7 @@ public class PeerGroup implements BranchEventListener {
         return channelMap.size() >= maxPeers;
     }
 
-    public void newPeerChannel(PeerClientChannel client) {
+    public void addChannel(PeerClientChannel client) {
         Peer peer = client.getPeer();
 
         if (channelMap.containsKey(peer.getPeerId())) {
@@ -208,7 +214,7 @@ public class PeerGroup implements BranchEventListener {
         return peerList.subList(0, maxPeers).contains(requestPeer);
     }
 
-    public void reloadPeerChannel(PeerClientChannel client) {
+    void reloadPeerChannel(PeerClientChannel client) {
         log.info("reloadPeerChannel : peer = {}", client.getPeer());
 
         PeerId requestPeerId = client.getPeer().getPeerId();
@@ -243,11 +249,11 @@ public class PeerGroup implements BranchEventListener {
         return table.getLatestPeers(reqTime);
     }
 
-    public int logBucketIdOf(Peer peer) {
+    private int logBucketIdOf(Peer peer) {
         return table.getTmpBucketId(peer);
     }
 
-    public void logBucketIdOf() {
+    private void logBucketIdOf() {
         channelMap.values().forEach(
                 peerClientChannel
                         -> log.debug("Current peerClientChannel => peer={}:{}, bucketId={}",

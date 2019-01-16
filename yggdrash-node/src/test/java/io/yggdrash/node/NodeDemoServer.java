@@ -16,13 +16,7 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.net.NodeServer;
-import io.yggdrash.core.net.NodeStatus;
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.core.store.StoreBuilder;
+import io.yggdrash.node.service.GRpcNodeServer;
 
 import java.io.IOException;
 
@@ -35,38 +29,11 @@ public class NodeDemoServer {
      *
      * @param args the input arguments
      * @throws IOException          the io exception
-     * @throws InterruptedException the interrupted exception
      */
-    public static void main(String[] args) throws IOException, InterruptedException {
+    public static void main(String[] args) throws IOException {
         String host = "localhost";
         int port = 32918;
-        NodeServer server = createNodeServer(host, port);
-        server.start(host, port);
-        server.blockUntilShutdown();
-    }
-
-    private static NodeServer createNodeServer(String host, int port) {
         GRpcNodeServer server = new GRpcNodeServer();
-        Peer owner = Peer.valueOf("75bff16c", host, port);
-        StoreBuilder builder = new StoreBuilder(new DefaultConfig());
-        server.setPeerGroup(new PeerGroup(owner, builder.buildPeerStore(), 25));
-        server.setBranchGroup(new BranchGroup());
-        server.setNodeStatus(new NodeStatus() {
-            @Override
-            public boolean isUpStatus() {
-                return false;
-            }
-
-            @Override
-            public void up() {
-
-            }
-
-            @Override
-            public void sync() {
-
-            }
-        });
-        return server;
+        server.start(host, port);
     }
 }

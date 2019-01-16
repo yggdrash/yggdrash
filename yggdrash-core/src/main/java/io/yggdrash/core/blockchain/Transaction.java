@@ -145,11 +145,15 @@ public class Transaction implements Cloneable {
      *
      * @return transaction hash
      */
-    public byte[] getHash() throws IOException {
+    public byte[] getHash() {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
-
-        bao.write(this.header.toBinary());
-        bao.write(this.signature);
+        try {
+            bao.write(this.header.toBinary());
+            bao.write(this.signature);
+        } catch (IOException e) {
+            log.warn(e.getMessage());
+            return null;
+        }
 
         return HashUtil.sha3(bao.toByteArray());
     }
@@ -159,7 +163,7 @@ public class Transaction implements Cloneable {
      *
      * @return transaction hash(HexString)
      */
-    String getHashString() throws IOException {
+    String getHashString() {
         return Hex.toHexString(this.getHash());
     }
 

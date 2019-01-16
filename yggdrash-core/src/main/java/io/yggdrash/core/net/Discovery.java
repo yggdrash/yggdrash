@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Akashic Foundation
+ * Copyright 2019 Akashic Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-package io.yggdrash.validator;
+package io.yggdrash.core.net;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+public interface Discovery {
 
-@SpringBootApplication
-public class YggdrashValidator {
-    public static void main(String[] args) {
-        SpringApplication.run(YggdrashValidator.class, args);
-    }
+    void discover();
+
+    void setPeerGroup(PeerGroup peerGroup);
+
+    PeerGroup getPeerGroup();
 }

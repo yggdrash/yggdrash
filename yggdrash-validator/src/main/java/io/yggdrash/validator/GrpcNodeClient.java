@@ -99,7 +99,7 @@ public class GrpcNodeClient {
 
     public List<BlockCon> getBlockConList(long index) {
         EbftProto.BlockConList protoBlockConList = blockingStub
-                .withDeadlineAfter(5, TimeUnit.SECONDS)
+                .withDeadlineAfter(10, TimeUnit.SECONDS)
                 .getBlockConList(
                         EbftProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
 
