@@ -113,7 +113,9 @@ public class EbftService extends ConsensusEbftGrpc.ConsensusEbftImplBase {
                         <= this.blockConChain.getLastConfirmedBlockCon().getIndex()) {
                     continue;
                 }
-                grpcNodeServer.updateUnconfirmedBlock(blockCon); //todo: check lock
+                grpcNodeServer.getLock().lock();
+                grpcNodeServer.updateUnconfirmedBlock(blockCon);
+                grpcNodeServer.getLock().unlock();
             }
         }
     }
