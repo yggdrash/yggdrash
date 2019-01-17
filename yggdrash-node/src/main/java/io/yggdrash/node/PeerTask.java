@@ -17,13 +17,16 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.net.NodeStatus;
-import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.net.PeerHandlerGroup;
+import io.yggdrash.core.net.PeerTable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
 public class PeerTask {
     @Autowired
-    private PeerGroup peerGroup;
+    private PeerTable peerTable;
+    @Autowired
+    private PeerHandlerGroup peerHandlerGroup;
     @Autowired
     private NodeStatus nodeStatus;
 
@@ -32,6 +35,6 @@ public class PeerTask {
         if (!nodeStatus.isUpStatus()) {
             return;
         }
-        peerGroup.healthCheck();
+        peerHandlerGroup.healthCheck(peerTable.getOwner());
     }
 }

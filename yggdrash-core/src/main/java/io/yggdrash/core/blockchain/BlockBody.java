@@ -48,36 +48,38 @@ public class BlockBody implements Cloneable {
     }
 
     public BlockBody(byte[] bodyBytes) {
-        if (bodyBytes.length > TX_HEADER_LENGTH + SIGNATURE_LENGTH) {
-            int pos = 0;
-            byte[] txHeaderBytes = new byte[TX_HEADER_LENGTH];
-            byte[] txSigBytes = new byte[SIGNATURE_LENGTH];
-            byte[] txBodyBytes;
-
-            TransactionHeader txHeader;
-            TransactionBody txBody;
-            List<Transaction> txList = new ArrayList<>();
-
-            do {
-                System.arraycopy(bodyBytes, pos, txHeaderBytes, 0, txHeaderBytes.length);
-                pos += txHeaderBytes.length;
-                txHeader = new TransactionHeader(txHeaderBytes);
-
-                System.arraycopy(bodyBytes, pos, txSigBytes, 0, txSigBytes.length);
-                pos += txSigBytes.length;
-
-                //todo: change from int to long for body size.
-                txBodyBytes = new byte[(int) txHeader.getBodyLength()];
-                System.arraycopy(bodyBytes, pos, txBodyBytes, 0, txBodyBytes.length);
-                pos += txBodyBytes.length;
-
-                txBody = new TransactionBody(txBodyBytes);
-
-                txList.add(new Transaction(txHeader, txSigBytes, txBody));
-            } while (pos < bodyBytes.length);
-
-            this.body.addAll(txList);
+        if (bodyBytes.length <= TX_HEADER_LENGTH + SIGNATURE_LENGTH) {
+            return;
         }
+
+        int pos = 0;
+        byte[] txHeaderBytes = new byte[TX_HEADER_LENGTH];
+        byte[] txSigBytes = new byte[SIGNATURE_LENGTH];
+        byte[] txBodyBytes;
+
+        TransactionHeader txHeader;
+        TransactionBody txBody;
+        List<Transaction> txList = new ArrayList<>();
+
+        do {
+            System.arraycopy(bodyBytes, pos, txHeaderBytes, 0, txHeaderBytes.length);
+            pos += txHeaderBytes.length;
+            txHeader = new TransactionHeader(txHeaderBytes);
+
+            System.arraycopy(bodyBytes, pos, txSigBytes, 0, txSigBytes.length);
+            pos += txSigBytes.length;
+
+            //todo: change from int to long for body size.
+            txBodyBytes = new byte[(int) txHeader.getBodyLength()];
+            System.arraycopy(bodyBytes, pos, txBodyBytes, 0, txBodyBytes.length);
+            pos += txBodyBytes.length;
+
+            txBody = new TransactionBody(txBodyBytes);
+
+            txList.add(new Transaction(txHeader, txSigBytes, txBody));
+        } while (pos < bodyBytes.length);
+
+        this.body.addAll(txList);
     }
 
     public List<Transaction> getBody() {

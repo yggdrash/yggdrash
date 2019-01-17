@@ -1,29 +1,23 @@
 package io.yggdrash.core.net;
 
+import io.yggdrash.PeerTestUtils;
 import org.junit.Test;
-
-import java.util.Collections;
-import java.util.List;
 
 public class YggdrashNodeTest {
 
     @Test
     public void bootstrapping() {
-        YggDrashTestNode node1 = new YggDrashTestNode("ynode://75bff16c@127.0.0.1:32918");
-        node1.bootstrapping();
+        YggdrashTestNode node1 = new YggdrashTestNode();
+        node1.bootstrapping(node1.getDiscovery(), 1);
     }
 
-    private class YggDrashTestNode extends YggdrashNode {
-
-        YggDrashTestNode(String ynodeUri) {
-            this.discovery = new KademliaDiscoveryMock(Peer.valueOf(ynodeUri));
-            List<String> seedList = Collections.singletonList("ynode://75bff16c@127.0.0.1:32918");
-            discovery.getPeerGroup().setSeedPeerList(seedList);
+    private class YggdrashTestNode extends Node {
+        YggdrashTestNode() {
+            this.peerHandlerGroup = new PeerHandlerGroup(PeerHandlerMock.factory);
         }
 
-        @Override
-        protected PeerClientChannel getChannel(Peer peer) {
-            return ChannelMock.dummy(peer);
+        Discovery getDiscovery() {
+            return new KademliaDiscovery(PeerTestUtils.createPeerTable());
         }
     }
 }

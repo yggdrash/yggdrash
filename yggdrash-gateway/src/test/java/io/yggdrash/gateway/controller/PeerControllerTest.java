@@ -18,7 +18,6 @@ package io.yggdrash.gateway.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.TestConstants;
-import io.yggdrash.core.net.PeerGroup;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,9 +43,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 public class PeerControllerTest {
     @Autowired
     private MockMvc mockMvc;
-
-    @Autowired
-    private PeerGroup peerGroup;
 
     @Before
     public void setUp() {

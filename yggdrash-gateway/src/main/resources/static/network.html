@@ -126,9 +126,13 @@
                     var port = peer.port;
                     var peerId = base64toHex(peer.peerId.bytes);
                     var pubKey = base64toHex(peer.pubKey.bytes);
+                    var bestBlocks = [];
                     var ynodeUri = peer.ynodeUri;
-
-                    peerInfoElementList.push(writePeerInfoData(index, host, port, peerId, pubKey, ynodeUri));
+                    for(var i in peer.bestBlocks) {
+                        var bb = peer.bestBlocks[i];
+                        bestBlocks.push(base64toHex(bb.branchId.bytes) + ': ' + bb.index);
+                    }
+                    peerInfoElementList.push(writePeerInfoData(index, host, port, peerId, pubKey, ynodeUri, bestBlocks));
                 });
                 writeTableBody(ip, bucketId, peerInfoElementList);
             });
@@ -145,19 +149,21 @@
         return HEX.toUpperCase();
     }
 
-    function writePeerInfoData(index, host, port, peerId, pubKey, ynodeUri) {
+    function writePeerInfoData(index, host, port, peerId, pubKey, ynodeUri, bestBlocks) {
         var ip_txt = document.createTextNode("[" + index + "] " + host + ":" + port);
         var host_txt = document.createTextNode("host : " + host);
         var port_txt = document.createTextNode("port : " + port);
         var peerId_txt = document.createTextNode("peerId : " + peerId);
         var pubKey_txt = document.createTextNode("pubKey : " + pubKey);
         var ynodeUri_txt = document.createTextNode("ynodeUri : " + ynodeUri);
+        var bestBlocks_txt = document.createTextNode("bestBlocks : " + bestBlocks);
 
         var li1 = document.createElement("li");
         var li2 = document.createElement("li");
         var li3 = document.createElement("li");
         var li4 = document.createElement("li");
         var li5 = document.createElement("li");
+        var li6 = document.createElement("li");
         var td = document.createElement("td");
         var span = document.createElement("span");
         var div = document.createElement("div");
@@ -181,7 +187,8 @@
         li2.appendChild(port_txt);
         li3.appendChild(peerId_txt);
         li4.appendChild(pubKey_txt);
-        li5.appendChild(ynodeUri_txt);
+        li5.appendChild(bestBlocks_txt);
+        li6.appendChild(ynodeUri_txt);
 
         div.appendChild(hr);
         div.appendChild(li1);
@@ -189,6 +196,7 @@
         div.appendChild(li3);
         div.appendChild(li4);
         div.appendChild(li5);
+        div.appendChild(li6);
 
         td.append(span);
         td.append(div);

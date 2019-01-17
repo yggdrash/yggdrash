@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.service;
+package io.yggdrash.node;
 
 import com.google.protobuf.ByteString;
 import io.grpc.testing.GrpcServerRule;
@@ -24,13 +24,12 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.net.PeerTable;
+import io.yggdrash.node.service.BlockChainService;
+import io.yggdrash.node.service.PeerService;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
-import io.yggdrash.proto.PeerInfo;
-import io.yggdrash.proto.Ping;
-import io.yggdrash.proto.PingPongGrpc;
-import io.yggdrash.proto.Pong;
+import io.yggdrash.proto.PeerGrpc;
 import io.yggdrash.proto.Proto;
 import org.junit.Before;
 import org.junit.Rule;
@@ -48,13 +47,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GRpcNodeServerTest {
+public class GRpcPeerListenerTest {
 
     @Rule
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
 
     @Mock
-    private PeerGroup peerGroupMock;
+    private PeerTable peerTableMock;
 
     @Mock
     private BranchGroup branchGroupMock;
@@ -65,7 +64,7 @@ public class GRpcNodeServerTest {
 
     @Before
     public void setUp() {
-        grpcServerRule.getServiceRegistry().addService(new PingPongService(peerGroupMock));
+        grpcServerRule.getServiceRegistry().addService(new PeerService(peerTableMock));
         grpcServerRule.getServiceRegistry().addService(new BlockChainService(branchGroupMock)
         );
 
@@ -77,20 +76,39 @@ public class GRpcNodeServerTest {
 
     @Test
     public void play() {
-        PingPongGrpc.PingPongBlockingStub blockingStub = PingPongGrpc.newBlockingStub(
+        PeerGrpc.PeerBlockingStub blockingStub = PeerGrpc.newBlockingStub(
+                grpcServerRule.getChannel());
+
+        Proto.PeerInfo peerInfo = Proto.PeerInfo.newBuilder()
+                .setUrl("ynode://75bff16c@127.0.0.1:32918")
+                .build();
+        Proto.Ping ping = Proto.Ping.newBuilder().setPing("Ping").setPeer(peerInfo).build();
+
+        Proto.Pong pong = blockingStub.play(ping);
+
+        assertEquals("Pong", pong.getPong());
+    }
+
+
+    @Test
+    public void findPeers() {
+        PeerGrpc.PeerBlockingStub blockingStub = PeerGrpc.newBlockingStub(
                 grpcServerRule.getChannel());
 
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        PeerInfo peerInfo = PeerInfo.newBuilder()
+        Proto.BestBlock bestBlock = Proto.BestBlock.newBuilder()
+                .setBranch(ByteString.copyFrom(branchId.getBytes()))
+                .setIndex(0).build();
+        Proto.RequestPeer requestPeer = Proto.RequestPeer.newBuilder()
                 .setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
                 .setPort(peer.getPort())
+                .addBestBlocks(bestBlock)
                 .build();
-        Ping ping = Ping.newBuilder().setPing("Ping").setPeer(peerInfo).build();
 
-        Pong pong = blockingStub.play(ping);
+        Proto.PeerList peerList = blockingStub.findPeers(requestPeer);
 
-        assertEquals("Pong", pong.getPong());
+        assertEquals(0, peerList.getPeersCount());
     }
 
     @Test
