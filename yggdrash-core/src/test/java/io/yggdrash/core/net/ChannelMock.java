@@ -18,8 +18,6 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.proto.NodeInfo;
-import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
 
 import java.util.Collections;
@@ -27,7 +25,6 @@ import java.util.List;
 
 public class ChannelMock implements PeerClientChannel {
     private final Peer peer;
-    private final Pong pong = Pong.newBuilder().setPong("Pong").build();
     private boolean pongResponse = true;
 
     ChannelMock(String ynodeUri) {
@@ -36,7 +33,7 @@ public class ChannelMock implements PeerClientChannel {
 
 
     @Override
-    public List<NodeInfo> findPeers(Peer peer) {
+    public List<Proto.PeerInfo> findPeers(Peer peer) {
         return null;
     }
 
@@ -50,10 +47,10 @@ public class ChannelMock implements PeerClientChannel {
     }
 
     @Override
-    public Pong ping(String message, Peer peer) {
+    public String ping(String message, Peer peer) {
         if (pongResponse) {
             pongResponse = false;
-            return pong;
+            return "Pong";
         }
         pongResponse = true;
         return null;

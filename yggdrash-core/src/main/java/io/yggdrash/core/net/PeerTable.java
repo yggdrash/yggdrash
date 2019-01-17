@@ -66,8 +66,9 @@ public class PeerTable {
 
     synchronized void touchPeer(Peer p) {
         for (PeerBucket b : buckets) {
-            if (b.getPeers().contains(p)) {
-                b.getPeers().get(b.getPeers().indexOf(p)).touch();
+            Peer found = b.findByPeer(p);
+            if (found != null) {
+                found.touch();
                 break;
             }
         }
@@ -104,16 +105,12 @@ public class PeerTable {
             int i = 0;
             for (PeerBucket b : buckets) {
                 if (b.getPeersCount() > 0) {
-                    res.put(i, b.getPeers());
+                    res.put(i, new ArrayList<>(b.getPeers()));
                 }
                 i++;
             }
         }
         return res;
-    }
-
-    public synchronized PeerBucket[] getBuckets() {
-        return buckets;
     }
 
     private int getBucketId(Peer p) {

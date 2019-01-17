@@ -20,22 +20,17 @@ import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.net.BestBlock;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerClientChannel;
 import io.yggdrash.proto.BlockChainGrpc;
-import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.NetProto.SyncLimit;
-import io.yggdrash.proto.NodeInfo;
 import io.yggdrash.proto.PeerGrpc;
-import io.yggdrash.proto.PeerInfo;
-import io.yggdrash.proto.Ping;
-import io.yggdrash.proto.PingPongGrpc;
-import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.proto.RequestPeer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GRpcClientChannel implements PeerClientChannel {
@@ -45,7 +40,6 @@ public class GRpcClientChannel implements PeerClientChannel {
 
     private final ManagedChannel channel;
     private final PeerGrpc.PeerBlockingStub blockingPeerStub;
-    private final PingPongGrpc.PingPongBlockingStub blockingPingPongStub;
     private final BlockChainGrpc.BlockChainBlockingStub blockingBlockChainStub;
     private final BlockChainGrpc.BlockChainBlockingStub asyncBlockChainStub;
     private final Peer peer;
@@ -59,19 +53,30 @@ public class GRpcClientChannel implements PeerClientChannel {
         this.channel = channel;
         this.peer = peer;
         this.blockingPeerStub = PeerGrpc.newBlockingStub(channel);
-        this.blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);
         this.blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
         this.asyncBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
     }
 
     @Override
-    public List<NodeInfo> findPeers(Peer peer) {
-        RequestPeer requestPeer = RequestPeer.newBuilder()
+    public List<Proto.PeerInfo> findPeers(Peer peer) {
+        Proto.RequestPeer requestPeer = Proto.RequestPeer.newBuilder()
                 .setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
                 .setPort(peer.getPort())
+                .addAllBestBlocks(bestBlocksByPeer(peer))
                 .build();
-        return blockingPeerStub.findPeers(requestPeer).getNodesList();
+        return blockingPeerStub.findPeers(requestPeer).getPeersList();
+    }
+
+    private List<Proto.BestBlock> bestBlocksByPeer(Peer peer) {
+        List<Proto.BestBlock> bestBlocks = new ArrayList<>();
+        for (BestBlock bb : peer.getBestBlocks()) {
+            Proto.BestBlock bestBlock = Proto.BestBlock.newBuilder()
+                    .setBranch(ByteString.copyFrom(bb.getBranchId().getBytes()))
+                    .setIndex(bb.getIndex()).build();
+            bestBlocks.add(bestBlock);
+        }
+        return bestBlocks;
     }
 
     @Override
@@ -88,13 +93,10 @@ public class GRpcClientChannel implements PeerClientChannel {
     }
 
     @Override
-    public Pong ping(String message, Peer peer) {
-        PeerInfo peerInfo = PeerInfo.newBuilder().setPubKey(peer.getPubKey().toString())
-                .setIp(peer.getHost())
-                .setPort(peer.getPort())
-                .build();
-        Ping request = Ping.newBuilder().setPing(message).setPeer(peerInfo).build();
-        return blockingPingPongStub.play(request);
+    public String ping(String message, Peer peer) {
+        Proto.Ping request = Proto.Ping.newBuilder().setPing(message)
+                .setPeer(Proto.PeerInfo.newBuilder().setUrl(peer.getYnodeUri())).build();
+        return blockingPeerStub.play(request).getPong();
     }
 
     /**

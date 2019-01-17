@@ -31,7 +31,6 @@ import io.yggdrash.node.PeerTask;
 import io.yggdrash.node.service.BlockChainService;
 import io.yggdrash.node.service.GRpcNodeServer;
 import io.yggdrash.node.service.PeerService;
-import io.yggdrash.node.service.PingPongService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -76,7 +75,6 @@ public class P2PConfiguration {
     @Bean
     NodeServer nodeServer(PeerGroup peerGroup, BranchGroup branchGroup) {
         GRpcNodeServer server = new GRpcNodeServer();
-        server.addService(new PingPongService(peerGroup));
         server.addService(new PeerService(peerGroup));
         server.addService(new BlockChainService(branchGroup));
         return server;

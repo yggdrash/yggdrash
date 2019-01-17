@@ -23,6 +23,7 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.contract.ContractClassLoader;
+import io.yggdrash.core.net.BestBlock;
 import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
@@ -126,6 +127,8 @@ public class BranchConfiguration {
                     .addGenesis(genesis)
                     .setStoreBuilder(storeBuilder)
                     .build();
+            BestBlock bestBlock = BestBlock.of(branch.getBranchId(), branch.getLastIndex());
+            peerGroup.getOwner().updateBestBlock(bestBlock);
             branchGroup.addBranch(branch, peerGroup);
             return branch;
         } catch (Exception e) {

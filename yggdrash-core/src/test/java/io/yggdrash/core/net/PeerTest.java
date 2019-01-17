@@ -1,5 +1,6 @@
 package io.yggdrash.core.net;
 
+import io.yggdrash.TestConstants;
 import io.yggdrash.core.exception.NotValidateException;
 import org.junit.Test;
 
@@ -41,5 +42,18 @@ public class PeerTest {
         assertThat(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918").isLocal()).isTrue();
         assertThat(Peer.valueOf("ynode://75bff16c@localhost:32918").isLocal()).isTrue();
         assertThat(Peer.valueOf("ynode://75bff16c@yggdrash-node1:32918").isLocal()).isFalse();
+    }
+
+    @Test
+    public void testBestBlock() {
+        // arrange
+        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        BestBlock bb = BestBlock.of(TestConstants.STEM, 0);
+
+        // act
+        peer.updateBestBlock(bb);
+
+        //assert
+        assertThat(peer.getBestBlocks()).containsOnly(bb);
     }
 }

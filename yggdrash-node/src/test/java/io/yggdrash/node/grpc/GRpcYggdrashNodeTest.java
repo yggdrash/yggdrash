@@ -25,7 +25,6 @@ import io.yggdrash.core.net.YggdrashNode;
 import io.yggdrash.node.GRpcClientChannel;
 import io.yggdrash.node.service.GRpcNodeServer;
 import io.yggdrash.node.service.PeerService;
-import io.yggdrash.node.service.PingPongService;
 import org.junit.Test;
 
 import java.util.Collections;
@@ -70,7 +69,6 @@ public class GRpcYggdrashNodeTest extends SlowTest {
         void setServer(PeerGroup peerGroup) {
             GRpcNodeServer nodeServer = new GRpcNodeServer();
             nodeServer.addService(new PeerService(peerGroup));
-            nodeServer.addService(new PingPongService(peerGroup));
             this.nodeServer = nodeServer;
         }
 
