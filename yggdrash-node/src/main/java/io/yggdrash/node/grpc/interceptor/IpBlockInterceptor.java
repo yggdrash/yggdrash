@@ -25,6 +25,7 @@ import io.grpc.Status;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Arrays;
 import java.util.Iterator;
 
 public class IpBlockInterceptor implements ServerInterceptor {
@@ -44,25 +45,19 @@ public class IpBlockInterceptor implements ServerInterceptor {
                     Metadata.ASCII_STRING_MARSHALLER)));
         });
 
-
-        String remoteInetSocketString = getRemoteInetSocketString(call);
-        String host = remoteInetSocketString.substring(1, remoteInetSocketString.lastIndexOf(':'));
-        log.info("host:{}", host);
-        log.info("TRANSPORT_ATTR_REMOTE_ADDR:{}", remoteInetSocketString);
-
-        boolean isBlocked = false;
-        for (String ip : blackIps) {
-            log.info("Blocked Ips:{}", ip);
-            if (host.equals(ip)) {
-                isBlocked = true;
-            }
-        }
-
-        if (isBlocked) {
+        if (isBlocked(getRemoteHost(getRemoteInetSocketString(call)))) {
             call.close(Status.ABORTED, headers);
         }
 
         return next.startCall(call, headers);
+    }
+
+    private String getRemoteHost(String remoteInetSocketString) {
+        return remoteInetSocketString.substring(1, remoteInetSocketString.lastIndexOf(':'));
+    }
+
+    private boolean isBlocked(String host) {
+        return Arrays.asList(blackIps).contains(host);
     }
 
     private <ReqT, RespT> String getRemoteInetSocketString(ServerCall<ReqT, RespT> call) {

@@ -80,8 +80,7 @@ public class IpBlockInterceptorTest {
         @Bean(name = "ipBlockInterceptor")
         @GrpcGlobalInterceptor
         public ServerInterceptor ipBlockInterceptor() {
-            IpBlockInterceptor ipBlockInterceptor = new IpBlockInterceptor();
-            return ipBlockInterceptor;
+            return new IpBlockInterceptor();
         }
     }
 }
