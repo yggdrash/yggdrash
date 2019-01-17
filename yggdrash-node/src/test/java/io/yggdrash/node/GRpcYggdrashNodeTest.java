@@ -20,12 +20,13 @@ import io.yggdrash.PeerTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.net.Discovery;
+import io.yggdrash.core.net.DiscoveryConsumer;
+import io.yggdrash.core.net.DiscoveryServiceConsumer;
 import io.yggdrash.core.net.KademliaDiscovery;
 import io.yggdrash.core.net.Node;
 import io.yggdrash.core.net.PeerHandlerGroup;
 import io.yggdrash.core.net.PeerTable;
 import io.yggdrash.node.service.GRpcPeerListener;
-import io.yggdrash.node.service.PeerService;
 import org.junit.After;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -97,7 +98,8 @@ public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
 
         void setListener() {
             GRpcPeerListener peerListener = new GRpcPeerListener();
-            peerListener.addService(new PeerService(peerTable));
+            DiscoveryConsumer consumer = new DiscoveryServiceConsumer(peerTable);
+            peerListener.initConsumer(consumer, null);
             this.peerListener = peerListener;
         }
 

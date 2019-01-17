@@ -20,6 +20,8 @@ import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.core.net.BlockChainConsumer;
+import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.PeerListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,11 +34,16 @@ public class GRpcPeerListener implements PeerListener {
 
     private List<BindableService> bindableServiceList = new ArrayList<>();
 
-    private Server server;
-
-    public void addService(BindableService bindableService) {
-        this.bindableServiceList.add(bindableService);
+    @Override
+    public void initConsumer(DiscoveryConsumer discoveryConsumer,
+                             BlockChainConsumer blockChainConsumer) {
+        bindableServiceList.add(new GRpcBlockChainService(blockChainConsumer));
+        if (blockChainConsumer != null) {
+            bindableServiceList.add(new GRpcDiscoveryService(discoveryConsumer));
+        }
     }
+
+    private Server server;
 
     @Override
     public void start(String host, int port) {

@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.net;
 
-public abstract class Node implements BootStrap, PeerListener {
+public abstract class Node implements BootStrap {
 
     protected PeerListener peerListener;
     protected PeerHandlerGroup peerHandlerGroup;
