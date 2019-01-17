@@ -1,158 +1,47 @@
+/*
+ * Copyright 2018 Akashic Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.yggdrash.core.net;
 
-import io.yggdrash.core.store.PeerStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-public class PeerTable {
-    private static final Logger log = LoggerFactory.getLogger(PeerTable.class);
+public interface PeerTable extends PeerEventListener {
 
-    private final Peer owner;  // our node
-    private transient PeerBucket[] buckets;
-    private transient PeerStore peerStore;
+    Peer getOwner();
 
-    PeerTable(PeerStore peerStore, Peer p) {
-        this.owner = p;
-        this.peerStore = peerStore;
-        init();
-    }
+    List<String> getBootstrappingSeedList();
 
-    public Peer getPeer() {
-        return owner;
-    }
+    Peer addPeer(Peer peer);
 
-    private void init() {
-        buckets = new PeerBucket[KademliaOptions.BINS];
-        for (int i = 0; i < KademliaOptions.BINS; i++) {
-            buckets[i] = new PeerBucket(i);
-        }
+    int count();
 
-        if (this.peerStore.size() > 0) {
-            this.peerStore.getAll().forEach(s -> addPeer(Peer.valueOf(s)));
-        }
-    }
+    List<Peer> getClosestPeers();
 
-    synchronized Peer addPeer(Peer p) {
-        p.setDistance(owner);
-        Peer lastSeen = buckets[getBucketId(p)].addPeer(p);
-        if (lastSeen != null) {
-            return lastSeen;
-        }
-        if (!peerStore.contains(p.getPeerId())) {
-            peerStore.put(p.getPeerId(), p);
-            log.debug("Added size={}, peer={}", getPeersCount(), p.toAddress());
-        }
-        return null;
-    }
+    void setSeedPeerList(List<String> seedPeerList);
 
-    synchronized void dropPeer(Peer p) {
-        buckets[getBucketId(p)].dropPeer(p);
-        peerStore.remove(p.getPeerId());
-    }
+    List<String> getPeers(Peer peer);
 
-    public synchronized boolean contains(Peer p) {
-        for (PeerBucket b : buckets) {
-            if (b.getPeers().contains(p)) {
-                return true;
-            }
-        }
-        return false;
-    }
+    List<String> getPeerUriList();
 
-    synchronized void touchPeer(Peer p) {
-        for (PeerBucket b : buckets) {
-            Peer found = b.findByPeer(p);
-            if (found != null) {
-                found.touch();
-                break;
-            }
-        }
-    }
+    List<Peer> getLatestPeers(long reqTime);
 
-    int getBucketsCount() {
-        int i = 0;
-        for (PeerBucket b : buckets) {
-            if (b.getPeersCount() > 0) {
-                i++;
-            }
-        }
-        return i;
-    }
+    Map<Integer, List<Peer>> getBucketIdAndPeerList();
 
-    List<Peer> getLatestPeers(long reqTime) {
-        long limitTime = reqTime - 1000;
-        List<Peer> latestPeers = new ArrayList<>();
+    List<String> getAllPeersFromBucketsOf();
 
-        for (PeerBucket b : buckets) {
-            b.getPeers().forEach(peer -> {
-                if (peer.getModified() >= limitTime) {
-                    latestPeers.add(peer);
-                }
-            });
-        }
-
-        return latestPeers;
-    }
-
-    Map<Integer, List<Peer>> getBucketIdAndPeerList() {
-        Map<Integer, List<Peer>> res = new LinkedHashMap<>();
-        if (getBucketsCount() > 0) {
-            int i = 0;
-            for (PeerBucket b : buckets) {
-                if (b.getPeersCount() > 0) {
-                    res.put(i, new ArrayList<>(b.getPeers()));
-                }
-                i++;
-            }
-        }
-        return res;
-    }
-
-    private int getBucketId(Peer p) {
-        int id = p.getDistance() - 1;
-        return id < 0 ? 0 : id;
-    }
-
-    int getTmpBucketId(Peer p) {
-        p.setDistance(owner);
-        int id = p.getDistance() - 1;
-        return id < 0 ? 0 : id;
-    }
-
-    synchronized int getPeersCount() {
-        return peerStore.size();
-    }
-
-    synchronized List<Peer> getAllPeers() {
-        List<Peer> peers = new ArrayList<>();
-
-        for (PeerBucket b : buckets) {
-            peers.addAll(b.getPeers());
-        }
-        return peers;
-    }
-
-    synchronized List<Peer> getClosestPeers(byte[] targetId) {
-        List<Peer> closestEntries = getAllPeers();
-        closestEntries.remove(owner);
-        closestEntries.sort(new DistanceComparator(targetId));
-        if (closestEntries.size() > KademliaOptions.BUCKET_SIZE) {
-            closestEntries = closestEntries.subList(0, KademliaOptions.BUCKET_SIZE);
-        }
-
-        return closestEntries;
-    }
-
-    synchronized boolean isPeerStoreEmpty() {
-        return peerStore.size() == 0;
-    }
-
-    synchronized List<String> getAllFromPeerStore() {
-        return peerStore.getAll();
-    }
+    void touchPeer(Peer peer);
 }
