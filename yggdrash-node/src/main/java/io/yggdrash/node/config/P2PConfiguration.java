@@ -19,10 +19,12 @@ package io.yggdrash.node.config;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.net.Discovery;
 import io.yggdrash.core.net.KademliaDiscovery;
+import io.yggdrash.core.net.KademliaPeerTable;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.core.net.PeerHandlerFactory;
+import io.yggdrash.core.net.PeerHandlerGroup;
 import io.yggdrash.core.net.PeerListener;
+import io.yggdrash.core.net.PeerTable;
 import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
@@ -55,29 +57,32 @@ public class P2PConfiguration {
     }
 
     @Bean
-    PeerGroup peerGroup(Wallet wallet, StoreBuilder storeBuilder,
-                        PeerHandlerFactory peerHandlerFactory) {
+    PeerTable peerTable(Wallet wallet, StoreBuilder storeBuilder) {
         Peer owner = Peer.valueOf(wallet.getNodeId(), nodeProperties.getGrpc().getHost(),
                 nodeProperties.getGrpc().getPort());
 
         PeerStore peerStore = storeBuilder.buildPeerStore();
-        PeerGroup peerGroup = new PeerGroup(owner, peerStore, nodeProperties.getMaxPeers());
-        peerGroup.setSeedPeerList(nodeProperties.getSeedPeerList());
-        peerGroup.setPeerHandlerFactory(peerHandlerFactory);
-        return peerGroup;
+        PeerTable peerTable = new KademliaPeerTable(owner, peerStore);
+        peerTable.setSeedPeerList(nodeProperties.getSeedPeerList());
+        return peerTable;
     }
 
     @Bean
-    Discovery discovery(PeerGroup peerGroup) {
-        Discovery discovery = new KademliaDiscovery();
-        discovery.setPeerGroup(peerGroup);
-        return discovery;
+    PeerHandlerGroup peerHandlerGroup(PeerTable peerTable, PeerHandlerFactory peerHandlerFactory) {
+        PeerHandlerGroup peerHandlerGroup = new PeerHandlerGroup(peerHandlerFactory);
+        peerHandlerGroup.setPeerEventListener(peerTable);
+        return peerHandlerGroup;
     }
 
     @Bean
-    PeerListener peerListener(PeerGroup peerGroup, BranchGroup branchGroup) {
+    Discovery discovery(PeerTable peerTable) {
+        return new KademliaDiscovery(peerTable);
+    }
+
+    @Bean
+    PeerListener peerListener(PeerTable peerTable, BranchGroup branchGroup) {
         GRpcPeerListener server = new GRpcPeerListener();
-        server.addService(new PeerService(peerGroup));
+        server.addService(new PeerService(peerTable));
         server.addService(new BlockChainService(branchGroup));
         return server;
     }

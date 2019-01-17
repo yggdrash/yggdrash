@@ -4,8 +4,7 @@ import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.BestBlock;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerGroup;
-import io.yggdrash.node.GRpcPeerHandler;
+import io.yggdrash.core.net.PeerTable;
 import io.yggdrash.proto.PeerGrpc;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
@@ -16,10 +15,10 @@ import java.util.List;
 public class PeerService extends PeerGrpc.PeerImplBase {
     private static final Logger log = LoggerFactory.getLogger(PeerService.class);
 
-    private final PeerGroup peerGroup;
+    private final PeerTable peerTable;
 
-    public PeerService(PeerGroup peerGroup) {
-        this.peerGroup = peerGroup;
+    public PeerService(PeerTable peerTable) {
+        this.peerTable = peerTable;
     }
 
     @Override
@@ -30,7 +29,7 @@ public class PeerService extends PeerGrpc.PeerImplBase {
             BestBlock bb = toBestBlock(bestBlock);
             peer.updateBestBlock(bb);
         }
-        List<String> list = peerGroup.getPeers(peer);
+        List<String> list = peerTable.getPeers(peer);
         Proto.PeerList.Builder peerListBuilder = Proto.PeerList.newBuilder();
         for (String url : list) {
             peerListBuilder.addPeers(Proto.PeerInfo.newBuilder().setUrl(url).build());
@@ -40,28 +39,30 @@ public class PeerService extends PeerGrpc.PeerImplBase {
         responseObserver.onCompleted();
 
         // TODO remove cross connection
+        /*
         try {
-            if (!peerGroup.isMaxHandler()) {
-                peerGroup.addHandler(peer);
+            if (!peerTable.isMaxHandler()) {
+                peerTable.addHandler(peer);
             } else {
                 // maxPeer 를 넘은경우부터 거리 계산된 peerTable 을 기반으로 peerChannel 업데이트
-                if (peerGroup.isClosePeer(peer)) {
+                if (peerTable.isClosePeer(peer)) {
                     log.warn("channel is max");
                     // TODO apply after test
-                    //peerGroup.reloadPeerChannel(new GRpcPeerHandler(peer));
+                    //peerTable.reloadPeerChannel(new GRpcPeerHandler(peer));
                 }
             }
         } catch (Exception e) {
-            log.debug("Failed to connect {} -> {}", peerGroup.getOwner().toAddress(),
+            log.debug("Failed to connect {} -> {}", peerTable.getOwner().toAddress(),
                     peer.toAddress());
         }
+        */
     }
 
     @Override
     public void play(Proto.Ping request, StreamObserver<Proto.Pong> responseObserver) {
         String url = request.getPeer().getUrl();
         Peer peer = Peer.valueOf(url);
-        peerGroup.touchPeer(peer);
+        peerTable.touchPeer(peer);
         log.debug("Received " + request.getPing());
         Proto.Pong pong = Proto.Pong.newBuilder().setPong("Pong").build();
         responseObserver.onNext(pong);
