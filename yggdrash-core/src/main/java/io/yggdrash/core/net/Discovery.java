@@ -18,9 +18,5 @@ package io.yggdrash.core.net;
 
 public interface Discovery {
 
-    void discover();
-
-    void setPeerGroup(PeerGroup peerGroup);
-
-    PeerGroup getPeerGroup();
+    PeerTable discover(PeerHandlerFactory factory);
 }

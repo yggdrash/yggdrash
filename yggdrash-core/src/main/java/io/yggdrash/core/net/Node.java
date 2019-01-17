@@ -18,17 +18,16 @@ package io.yggdrash.core.net;
 
 public abstract class Node implements BootStrap, PeerListener {
 
-    protected Discovery discovery;
     protected PeerListener peerListener;
+    protected PeerHandlerGroup peerHandlerGroup;
 
-    public void bootstrapping() {
-        discovery.discover();
-        PeerGroup peerGroup = discovery.getPeerGroup();
-        for (Peer peer : peerGroup.getClosestPeers()) {
-            if (peerGroup.isMaxHandler()) {
+    public void bootstrapping(Discovery discovery, int maxPeer) {
+        PeerTable peerTable = discovery.discover(peerHandlerGroup.getPeerHandlerFactory());
+        for (Peer peer : peerTable.getClosestPeers()) {
+            if (peerHandlerGroup.handlerCount() >= maxPeer) {
                 break;
             }
-            peerGroup.addHandler(peer);
+            peerHandlerGroup.addHandler(peerTable.getOwner(), peer);
         }
     }
 

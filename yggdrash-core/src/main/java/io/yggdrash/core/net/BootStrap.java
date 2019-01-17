@@ -18,5 +18,5 @@ package io.yggdrash.core.net;
 
 public interface BootStrap {
 
-    void bootstrapping();
+    void bootstrapping(Discovery discovery, int maxPeer);
 }
