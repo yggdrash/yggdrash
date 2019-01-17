@@ -94,6 +94,10 @@ public class BlockChain {
             // recent block load and update Cache
             BlockHusk block = blockStore.getBlockByIndex(i);
             transactionStore.updateCache(block.getBody());
+            // set Last Best Block
+            if (i == bestBlock) {
+                this.prevBlock = block;
+            }
         }
     }
 

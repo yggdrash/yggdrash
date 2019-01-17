@@ -116,7 +116,8 @@ public class GenesisBlock {
         File genesisFile = new File(classLoader.getResource("./genesis/genesis.json").getFile());
 
         FileUtil.writeStringToFile(genesisFile,
-                new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject), StandardCharsets.UTF_8, false);
+                new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject),
+                StandardCharsets.UTF_8, false);
     }
 
 }

@@ -80,7 +80,6 @@ public class ContractMeta {
 
     public Map getMethods() {
         Map<String, List<Map<String, String>>> methods = new HashMap<>();
-
         methods.put("invoke", ContractUtils.methodInfo(invokeMethod));
         methods.put("query", ContractUtils.methodInfo(queryMethod));
         return methods;

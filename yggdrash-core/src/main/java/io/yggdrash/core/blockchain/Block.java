@@ -23,7 +23,6 @@ import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.trie.Trie;
 import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
@@ -156,12 +155,8 @@ public class Block implements Cloneable {
 
     public boolean verify() {
 
-        try {
-            if (!this.verifyData()) {
-                return false;
-            }
-        } catch (IOException e) {
-            throw new InternalErrorException("verifyData error");
+        if (!this.verifyData()) {
+            return false;
         }
 
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
@@ -192,7 +187,7 @@ public class Block implements Cloneable {
      *
      * @return true(success), false(fail)
      */
-    private boolean verifyData() throws IOException {
+    private boolean verifyData() {
         // TODO CheckByValidate Code
         boolean check = true;
         check &= verifyCheckLengthNotNull(
@@ -207,10 +202,12 @@ public class Block implements Cloneable {
         check &= verifyCheckLengthNotNull(this.signature, SIGNATURE_LENGTH, "signature");
         check &= this.header.getIndex() >= 0;
         check &= this.header.getTimestamp() > TIMESTAMP_2018;
-        check &= !(this.header.getBodyLength() <= 0
+        check &= !(this.header.getBodyLength() < 0
                 || this.header.getBodyLength() != this.getBody().length());
         check &= Arrays.equals(
-                this.header.getMerkleRoot(), Trie.getMerkleRoot(this.body.getBody()));
+                Arrays.equals(this.header.getMerkleRoot(),
+                        new byte[32]) ? null : this.header.getMerkleRoot(),
+                Trie.getMerkleRoot(this.body.getBody()));
 
         return check;
     }

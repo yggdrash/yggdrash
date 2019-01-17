@@ -3,6 +3,7 @@ package io.yggdrash.validator.data;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.validator.store.BlockConKeyStore;
 import io.yggdrash.validator.store.BlockConStore;
@@ -11,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -19,13 +21,20 @@ public class BlockConChain {
 
     private static final Logger log = LoggerFactory.getLogger(BlockConChain.class);
 
+    private boolean isProposed;
+    private boolean isConsensused;
+
+    private final byte[] chain;
+    private final String host;
+    private final int port;
+
     private final BlockConKeyStore blockConKeyStore;
     private final BlockConStore blockConStore;
     private final BlockCon rootBlockCon;
     private BlockCon lastConfirmedBlockCon;
     private final Map<String, BlockCon> unConfirmedBlockConMap = new ConcurrentHashMap<>();
-    private boolean isProposed;
-    private boolean isConsensused;
+
+    private final TransactionStore transactionStore;
 
     @Autowired
     public BlockConChain(Block genesisBlock, DefaultConfig defaultConfig) {
@@ -35,18 +44,20 @@ public class BlockConChain {
             throw new NotValidateException();
         }
 
-        this.rootBlockCon = new BlockCon(0, genesisBlock.getHeader().getChain(), genesisBlock);
+        this.chain = genesisBlock.getHeader().getChain();
+        this.host = InetAddress.getLoopbackAddress().getHostAddress();
+        this.port = Integer.parseInt(System.getProperty("grpc.port"));
+
+        this.rootBlockCon = new BlockCon(0, this.chain, genesisBlock);
         this.lastConfirmedBlockCon = rootBlockCon;
         this.blockConKeyStore = new BlockConKeyStore(
                 new LevelDbDataSource(defaultConfig.getDatabasePath(),
-                        Hex.toHexString(genesisBlock.getHeader().getChain())
-                                + "/blockconkey"
-                                + System.getProperty("grpc.port")));
+                        this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
+                                + "/blockconkey"));
         this.blockConStore = new BlockConStore(
                 new LevelDbDataSource(defaultConfig.getDatabasePath(),
-                        Hex.toHexString(genesisBlock.getHeader().getChain())
-                                + "/blockcon"
-                                + System.getProperty("grpc.port")));
+                        this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
+                                + "/blockcon"));
 
         BlockCon blockCon = rootBlockCon;
         if (this.blockConKeyStore.size() > 0) {
@@ -73,6 +84,23 @@ public class BlockConChain {
             this.blockConStore.put(rootBlockCon.getHash(), rootBlockCon);
         }
 
+        this.transactionStore = new TransactionStore(
+                new LevelDbDataSource(defaultConfig.getDatabasePath(),
+                        this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
+                                + "/txs"));
+
+    }
+
+    public byte[] getChain() {
+        return chain;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public int getPort() {
+        return port;
     }
 
     public BlockConStore getBlockConStore() {
@@ -81,6 +109,10 @@ public class BlockConChain {
 
     public BlockConKeyStore getBlockConKeyStore() {
         return blockConKeyStore;
+    }
+
+    public TransactionStore getTransactionStore() {
+        return transactionStore;
     }
 
     public BlockCon getRootBlockCon() {

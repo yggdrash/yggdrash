@@ -16,7 +16,6 @@
 
 package io.yggdrash.common.util;
 
-import com.google.gson.JsonObject;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import java.lang.annotation.Annotation;
@@ -53,20 +52,16 @@ public class ContractUtils {
     }
 
     public static List<Map<String, String>> methodInfo(Map<String, Method> method) {
-
         List<Map<String, String>> methodList = new ArrayList<>();
-
-        for (Method m : method.values()) {
+        for(Map.Entry<String, Method> elem : method.entrySet()){
             Map<String, String> methodInfo = new HashMap<>();
-            methodInfo.put("name", m.getName());
-            if (m.getParameterTypes().length > 0) {
-                methodInfo.put("inputType", m.getParameterTypes()[0].getSimpleName());
+            methodInfo.put("name", elem.getKey());
+            methodInfo.put("outputType", elem.getValue().getReturnType().getSimpleName());
+            if (elem.getValue().getParameterTypes().length > 0) {
+                methodInfo.put("inputType", elem.getValue().getParameterTypes()[0].getSimpleName());
             }
-            // TODO if query 일 경우에만
-            methodInfo.put("outputType", m.getReturnType().getSimpleName());
             methodList.add(methodInfo);
         }
-
         return methodList;
     }
 }

@@ -163,7 +163,7 @@ public class BlockCon {
         return Arrays.equals(blockCon.getHash(), blockCon.getBlock().getHash())
                 && blockCon.getIndex() == blockCon.getBlock().getHeader().getIndex()
                 && Arrays.equals(blockCon.getPrevBlockHash(),
-                blockCon.getBlock().getHeader().getPrevBlockHash())
+                        blockCon.getBlock().getHeader().getPrevBlockHash())
                 && blockCon.getBlock().verify();
     }
 
