@@ -17,7 +17,6 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
-import com.google.protobuf.ByteString;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.ByteUtil;
@@ -28,6 +27,7 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 
 public class BlockHeader implements Cloneable {
@@ -77,7 +77,7 @@ public class BlockHeader implements Cloneable {
             byte[] prevBlockHash,
             long index,
             long timestamp,
-            BlockBody blockBody) throws IOException {
+            BlockBody blockBody) {
         this(chain, version, type, prevBlockHash, index, timestamp,
                 blockBody.getMerkleRoot(), blockBody.length());
     }
@@ -148,7 +148,7 @@ public class BlockHeader implements Cloneable {
         return type;
     }
 
-    byte[] getPrevBlockHash() {
+    public byte[] getPrevBlockHash() {
         return prevBlockHash;
     }
 
@@ -219,6 +219,10 @@ public class BlockHeader implements Cloneable {
     @Override
     public BlockHeader clone() throws CloneNotSupportedException {
         return (BlockHeader) super.clone();
+    }
+
+    public boolean equals(BlockHeader newBlockHeader) {
+        return Arrays.equals(this.getHashForSigning(), newBlockHeader.getHashForSigning());
     }
 
     static BlockHeader toBlockHeader(Proto.Block.Header protoBlockHeader) {

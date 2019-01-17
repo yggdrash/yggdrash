@@ -22,6 +22,7 @@ import io.yggdrash.common.trie.Trie;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class BlockBody implements Cloneable {
@@ -29,7 +30,7 @@ public class BlockBody implements Cloneable {
     private static final int TX_HEADER_LENGTH = 84;
     private static final int SIGNATURE_LENGTH = 65;
 
-    private List<Transaction> body;
+    private List<Transaction> body = new ArrayList<>();
 
     /**
      * Constructor for BlockBody class.
@@ -37,48 +38,46 @@ public class BlockBody implements Cloneable {
      * @param transactionList the transaction list
      */
     public BlockBody(List<Transaction> transactionList) {
-
-        this.body = transactionList;
+        this.body.addAll(transactionList);
     }
 
     public BlockBody(JsonArray jsonArray) {
-
-        this.body = new ArrayList<>();
-
         for (int i = 0;  i < jsonArray.size(); i++) {
             this.body.add(new Transaction(jsonArray.get(i).getAsJsonObject()));
         }
     }
 
     public BlockBody(byte[] bodyBytes) {
-        int pos = 0;
-        byte[] txHeaderBytes = new byte[TX_HEADER_LENGTH];
-        byte[] txSigBytes = new byte[SIGNATURE_LENGTH];
-        byte[] txBodyBytes;
+        if (bodyBytes.length > TX_HEADER_LENGTH + SIGNATURE_LENGTH) {
+            int pos = 0;
+            byte[] txHeaderBytes = new byte[TX_HEADER_LENGTH];
+            byte[] txSigBytes = new byte[SIGNATURE_LENGTH];
+            byte[] txBodyBytes;
 
-        TransactionHeader txHeader;
-        TransactionBody txBody;
-        List<Transaction> txList = new ArrayList<>();
+            TransactionHeader txHeader;
+            TransactionBody txBody;
+            List<Transaction> txList = new ArrayList<>();
 
-        do {
-            System.arraycopy(bodyBytes, pos, txHeaderBytes, 0, txHeaderBytes.length);
-            pos += txHeaderBytes.length;
-            txHeader = new TransactionHeader(txHeaderBytes);
+            do {
+                System.arraycopy(bodyBytes, pos, txHeaderBytes, 0, txHeaderBytes.length);
+                pos += txHeaderBytes.length;
+                txHeader = new TransactionHeader(txHeaderBytes);
 
-            System.arraycopy(bodyBytes, pos, txSigBytes, 0, txSigBytes.length);
-            pos += txSigBytes.length;
+                System.arraycopy(bodyBytes, pos, txSigBytes, 0, txSigBytes.length);
+                pos += txSigBytes.length;
 
-            //todo: change from int to long for body size.
-            txBodyBytes = new byte[(int)txHeader.getBodyLength()];
-            System.arraycopy(bodyBytes, pos, txBodyBytes, 0, txBodyBytes.length);
-            pos += txBodyBytes.length;
+                //todo: change from int to long for body size.
+                txBodyBytes = new byte[(int) txHeader.getBodyLength()];
+                System.arraycopy(bodyBytes, pos, txBodyBytes, 0, txBodyBytes.length);
+                pos += txBodyBytes.length;
 
-            txBody = new TransactionBody(txBodyBytes);
+                txBody = new TransactionBody(txBodyBytes);
 
-            txList.add(new Transaction(txHeader, txSigBytes, txBody));
-        } while (pos < bodyBytes.length);
+                txList.add(new Transaction(txHeader, txSigBytes, txBody));
+            } while (pos < bodyBytes.length);
 
-        this.body = txList;
+            this.body.addAll(txList);
+        }
     }
 
     public List<Transaction> getBody() {
@@ -105,8 +104,9 @@ public class BlockBody implements Cloneable {
         return length;
     }
 
-    public byte[] getMerkleRoot() throws IOException {
-        return Trie.getMerkleRoot(this.body);
+    public byte[] getMerkleRoot() {
+        byte[] merkleRoot = Trie.getMerkleRoot(this.body);
+        return merkleRoot == null ? new byte[32] : merkleRoot;
     }
 
     /**
@@ -152,6 +152,21 @@ public class BlockBody implements Cloneable {
         bb.body = txs;
 
         return bb;
+    }
+
+    public boolean equals(BlockBody newBlockBody) {
+        if (this.body.size() != newBlockBody.getBody().size()) {
+            return false;
+        }
+
+        for (int i = 0; i < newBlockBody.getBody().size(); i++) {
+            if (!Arrays.equals(this.getBody().get(i).getHash(),
+                    newBlockBody.getBody().get(i).getHash())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }
 

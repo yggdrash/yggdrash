@@ -73,7 +73,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         return protoTransaction;
     }
 
-    Transaction getCoreTransaction() {
+    public Transaction getCoreTransaction() {
         return coreTransaction;
     }
 
@@ -100,11 +100,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
     }
 
     public Sha3Hash getHash() {
-        try {
-            return Sha3Hash.createByHashed(this.coreTransaction.getHash());
-        } catch (IOException e) {
-            throw new NotValidateException();
-        }
+        return Sha3Hash.createByHashed(this.coreTransaction.getHash());
     }
 
     public Sha3Hash getHashForSigning() {
