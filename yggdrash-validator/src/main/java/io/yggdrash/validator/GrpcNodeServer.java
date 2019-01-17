@@ -191,6 +191,8 @@ public class GrpcNodeServer implements CommandLineRunner {
                         .put(blockCon.getIndex(), blockCon.getHash());
             }
             blockCon = blockConList.get(i - 1);
+            //todo: if consensusCount(validator count) is different from previous count,
+            // cannot confirm prevBlockCon.
             if (blockCon.getConsensusList().size() >= consenusCount) {
                 changeLastConfirmedBlock(blockCon);
                 this.blockConChain.setProposed(false);
