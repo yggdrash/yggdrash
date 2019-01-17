@@ -16,9 +16,7 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.node.service.GRpcNodeServer;
-
-import java.io.IOException;
+import io.yggdrash.node.service.GRpcPeerListener;
 
 /**
  * The type Node sync demo server.
@@ -28,12 +26,11 @@ public class NodeDemoServer {
      * The entry point of application.
      *
      * @param args the input arguments
-     * @throws IOException          the io exception
      */
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) {
         String host = "localhost";
         int port = 32918;
-        GRpcNodeServer server = new GRpcNodeServer();
-        server.start(host, port);
+        GRpcPeerListener listener = new GRpcPeerListener();
+        listener.start(host, port);
     }
 }

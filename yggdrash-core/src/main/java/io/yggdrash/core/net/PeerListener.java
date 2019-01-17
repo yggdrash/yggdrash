@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Akashic Foundation
+ * Copyright 2018 Akashic Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,11 @@
 
 package io.yggdrash.core.net;
 
-public interface Discovery {
+import io.yggdrash.core.exception.FailedOperationException;
 
-    PeerTable discover(PeerHandlerFactory factory);
+public interface PeerListener {
+
+    void start(String host, int port) throws FailedOperationException;
+
+    void stop();
 }

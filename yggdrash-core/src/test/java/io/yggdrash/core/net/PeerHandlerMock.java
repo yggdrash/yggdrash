@@ -17,23 +17,26 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.proto.Proto;
+import io.yggdrash.core.blockchain.TransactionHusk;
 
 import java.util.Collections;
 import java.util.List;
 
-public class ChannelMock implements PeerClientChannel {
+public class PeerHandlerMock implements PeerHandler {
+    public static final PeerHandlerFactory factory = PeerHandlerMock::dummy;
+
     private final Peer peer;
     private boolean pongResponse = true;
 
-    ChannelMock(String ynodeUri) {
+    private PeerHandlerMock(String ynodeUri) {
         this.peer = Peer.valueOf(ynodeUri);
     }
 
 
     @Override
-    public List<Proto.PeerInfo> findPeers(Peer peer) {
+    public List<Peer> findPeers(Peer peer) {
         return null;
     }
 
@@ -57,30 +60,26 @@ public class ChannelMock implements PeerClientChannel {
     }
 
     @Override
-    public List<Proto.Block> syncBlock(BranchId branchId, long offset) {
-        return Collections.singletonList(BlockChainTestUtils.genesisBlock().getInstance());
+    public List<BlockHusk> syncBlock(BranchId branchId, long offset) {
+        return Collections.singletonList(BlockChainTestUtils.genesisBlock());
     }
 
     @Override
-    public List<Proto.Transaction> syncTransaction(BranchId branchId) {
-        Proto.Transaction protoTx = BlockChainTestUtils.createTransferTxHusk().getInstance();
-        return Collections.singletonList(protoTx);
+    public List<TransactionHusk> syncTransaction(BranchId branchId) {
+        return Collections.singletonList(BlockChainTestUtils.createTransferTxHusk());
     }
 
     @Override
-    public void broadcastTransaction(Proto.Transaction[] txs) {
+    public void broadcastBlock(BlockHusk blockHusk) {
+
     }
 
     @Override
-    public void broadcastBlock(Proto.Block[] blocks) {
+    public void broadcastTransaction(TransactionHusk txHusk) {
+
     }
 
-    static PeerClientChannel dummy() {
-        return dummy(Peer.valueOf("ynode://75bff16c@localhost:32918"));
+    private static PeerHandler dummy(Peer peer) {
+        return new PeerHandlerMock(peer.getYnodeUri());
     }
-
-    static PeerClientChannel dummy(Peer peer) {
-        return new ChannelMock(peer.getYnodeUri());
-    }
-
 }

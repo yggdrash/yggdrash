@@ -13,7 +13,7 @@ import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BlockChainService  extends BlockChainGrpc.BlockChainImplBase {
+public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
     private static final Logger log = LoggerFactory.getLogger(BlockChainService.class);
     private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
 

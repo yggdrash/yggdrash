@@ -1,7 +1,7 @@
 package io.yggdrash.node.api;
 
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.net.PeerHandlerGroup;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,19 +18,19 @@ import static org.mockito.Mockito.when;
 public class PeerApiMockitoTest {
 
     @Mock
-    private PeerGroup peerGroup;
+    private PeerHandlerGroup peerHandlerGroup;
     private Peer peer;
     private PeerApiImpl peerApi;
 
     @Before
     public void setUp() {
         this.peer = Peer.valueOf("ynode://65bff16c@127.0.0.1:32918");
-        peerApi = new PeerApiImpl(peerGroup);
+        peerApi = new PeerApiImpl(peerHandlerGroup);
     }
 
     @Test
     public void getAllActivePeerTest() {
-        when(peerGroup.getActivePeerList())
+        when(peerHandlerGroup.getActivePeerList())
                 .thenReturn(Collections.singletonList(peer.toString()));
         assertThat(peerApi.getAllActivePeer().size()).isEqualTo(1);
     }

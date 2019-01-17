@@ -40,11 +40,10 @@ import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GRpcClientChannelTest {
+public class GRpcPeerHandlerTest {
 
     @Rule
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
@@ -70,21 +69,21 @@ public class GRpcClientChannelTest {
     @Captor
     private ArgumentCaptor<NetProto.SyncLimit> syncLimitRequestCaptor;
 
-    private GRpcClientChannel client;
+    private GRpcPeerHandler peerHandler;
 
     @Before
     public void setUp() {
         Peer peer = Peer.valueOf("ynode://75bff16c@localhost:9999");
-        client = new GRpcClientChannel(grpcServerRule.getChannel(), peer);
+        peerHandler = new GRpcPeerHandler(grpcServerRule.getChannel(), peer);
         grpcServerRule.getServiceRegistry().addService(peerService);
         grpcServerRule.getServiceRegistry().addService(blockChainService);
     }
 
     @Test
     public void getPeerYnodeUriTest() {
-        GRpcClientChannel client =
-                new GRpcClientChannel(Peer.valueOf("ynode://75bff16c@localhost:32918"));
-        assertEquals("ynode://75bff16c@localhost:32918", client.getPeer().getYnodeUri());
+        GRpcPeerHandler peerHandler =
+                new GRpcPeerHandler(Peer.valueOf("ynode://75bff16c@localhost:32918"));
+        assertEquals("ynode://75bff16c@localhost:32918", peerHandler.getPeer().getYnodeUri());
     }
 
     @Test
@@ -99,7 +98,7 @@ public class GRpcClientChannelTest {
         String ping = "Ping";
         Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
 
-        client.ping(ping, owner);
+        peerHandler.ping(ping, owner);
 
         verify(peerService).play(pingRequestCaptor.capture(), any());
 
@@ -117,7 +116,7 @@ public class GRpcClientChannelTest {
 
         Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
         owner.updateBestBlock(BestBlock.of(TestConstants.STEM, 0));
-        client.findPeers(owner);
+        peerHandler.findPeers(owner);
 
         verify(peerService).findPeers(findPeersRequestCaptor.capture(), any());
 
@@ -137,12 +136,11 @@ public class GRpcClientChannelTest {
             return null;
         }).when(blockChainService).broadcastBlock(blockArgumentCaptor.capture(), any());
 
-        client.broadcastBlock(sampleBlocks());
+        peerHandler.broadcastBlock(BlockChainTestUtils.genesisBlock());
 
-        verify(blockChainService, times(3))
-                .broadcastBlock(blockArgumentCaptor.capture(), any());
+        verify(blockChainService).broadcastBlock(blockArgumentCaptor.capture(), any());
 
-        assertEquals(6, blockArgumentCaptor.getAllValues().size());
+        assertEquals(2, blockArgumentCaptor.getAllValues().size());
     }
 
     @Test
@@ -155,12 +153,11 @@ public class GRpcClientChannelTest {
             return null;
         }).when(blockChainService).broadcastTransaction(transactionArgumentCaptor.capture(), any());
 
-        client.broadcastTransaction(sampleTxs());
+        peerHandler.broadcastTransaction(BlockChainTestUtils.createTransferTxHusk());
 
-        verify(blockChainService, times(3))
-                .broadcastTransaction(transactionArgumentCaptor.capture(), any());
+        verify(blockChainService).broadcastTransaction(transactionArgumentCaptor.capture(), any());
 
-        assertEquals(6, transactionArgumentCaptor.getAllValues().size());
+        assertEquals(2, transactionArgumentCaptor.getAllValues().size());
     }
 
     @Test
@@ -174,7 +171,7 @@ public class GRpcClientChannelTest {
 
         long offset = 0;
 
-        client.syncBlock(BranchId.NULL, offset);
+        peerHandler.syncBlock(BranchId.NULL, offset);
 
         verify(blockChainService).syncBlock(syncLimitRequestCaptor.capture(), any());
 
@@ -190,23 +187,11 @@ public class GRpcClientChannelTest {
             return null;
         }).when(blockChainService).syncTransaction(syncLimitRequestCaptor.capture(), any());
 
-        client.syncTransaction(BranchId.NULL);
+        peerHandler.syncTransaction(BranchId.NULL);
 
         verify(blockChainService).syncTransaction(syncLimitRequestCaptor.capture(), any());
 
         BranchId branch = BranchId.of(syncLimitRequestCaptor.getValue().getBranch().toByteArray());
         assertEquals(BranchId.NULL, branch);
-    }
-
-    private Proto.Block[] sampleBlocks() {
-        return new Proto.Block[] {BlockChainTestUtils.genesisBlock().getInstance(),
-                BlockChainTestUtils.genesisBlock().getInstance(),
-                BlockChainTestUtils.genesisBlock().getInstance()};
-    }
-
-    public static Proto.Transaction[] sampleTxs() {
-        return new Proto.Transaction[] {BlockChainTestUtils.createTransferTxHusk().getInstance(),
-                BlockChainTestUtils.createTransferTxHusk().getInstance(),
-                BlockChainTestUtils.createTransferTxHusk().getInstance()};
     }
 }
