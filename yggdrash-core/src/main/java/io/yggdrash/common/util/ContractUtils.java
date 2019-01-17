@@ -23,9 +23,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ContractUtils {
@@ -54,4 +52,21 @@ public class ContractUtils {
                 .collect(Collectors.toMap(m -> m.getName(), m-> m));
     }
 
+    public static List<Map<String, String>> methodInfo(Map<String, Method> method) {
+
+        List<Map<String, String>> methodList = new ArrayList<>();
+
+        for (Method m : method.values()) {
+            Map<String, String> methodInfo = new HashMap<>();
+            methodInfo.put("name", m.getName());
+            if (m.getParameterTypes().length > 0) {
+                methodInfo.put("inputType", m.getParameterTypes()[0].getSimpleName());
+            }
+            // TODO if query 일 경우에만
+            methodInfo.put("outputType", m.getReturnType().getSimpleName());
+            methodList.add(methodInfo);
+        }
+
+        return methodList;
+    }
 }

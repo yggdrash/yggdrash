@@ -16,26 +16,21 @@
 
 package io.yggdrash.core.contract;
 
-import io.yggdrash.common.util.JsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class ContractManager<T> extends ClassLoader {
+public class ContractManager extends ClassLoader {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
 
-    private final List<ContractId> contractIds = new ArrayList<>();
-    private final List<Object> contracts = new ArrayList<>();
-    private Map<ContractId, Object> contractList = new Hashtable<>();
     private List<Map> contractInfoList = new ArrayList<>();
 
     public ContractManager(String contractPath) {
@@ -52,26 +47,14 @@ public class ContractManager<T> extends ClassLoader {
                     inputStream.read(contractBinary);
 
                     ContractId contractId = ContractId.of(contractBinary);
-
                     ContractMeta contractMeta = ContractClassLoader.loadContractById(
                             contractRoot, contractId);
 
-                    Map<String, Object> contractInfo = new HashMap<>();
-                    contractInfo.put("contractId", contractId.toString());
-                    contractInfo.put("name", contractMeta.getContract().getSimpleName());
-                    contractInfo.put("methods",  contractMeta.getMethods());
-                    System.out.println(JsonUtil.convertMapToJson(contractInfo).toString());
-
-                    contractInfoList.add(contractInfo);
-
                     if (Files.isRegularFile(contractPath)) {
-                        contractIds.add(contractId);
-                        contracts.add(contractMeta.getContract().getDeclaredConstructor().newInstance());
-                        contractList.put(contractMeta.getContractId(), contractMeta.getContract().getDeclaredConstructor().newInstance());
+                        contractInfoList.add(contractInfo(contractMeta, contractId));
                     }
 
-                } catch (IOException | NoSuchMethodException | InstantiationException | IllegalAccessException
-                        | InvocationTargetException e) {
+                } catch (IOException e) {
                     log.warn(e.getMessage());
                 }
             });
@@ -84,4 +67,11 @@ public class ContractManager<T> extends ClassLoader {
         return contractInfoList;
     }
 
+    private Map<String, Object> contractInfo(ContractMeta contractMeta, ContractId contractId) {
+        Map<String, Object> contractInfo = new HashMap<>();
+        contractInfo.put("contractId", contractId.toString());
+        contractInfo.put("name", contractMeta.getContract().getSimpleName());
+        contractInfo.put("methods",  contractMeta.getMethods());
+        return contractInfo;
+    }
 }

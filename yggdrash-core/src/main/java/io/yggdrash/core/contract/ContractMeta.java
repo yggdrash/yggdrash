@@ -16,15 +16,12 @@
 
 package io.yggdrash.core.contract;
 
-import com.google.gson.JsonObject;
 import io.yggdrash.common.util.ContractUtils;
-import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
 
 import java.io.File;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -36,9 +33,8 @@ public class ContractMeta {
     private final byte[] contractBinary;
     private final String contractClassName;
     private final ContractId contractId;
-    private Map<String, Method> invokeMethod = new Hashtable<>();
-    private Map<String, Method> queryMethod = new Hashtable<>();
-    private Map<Class<? extends Annotation>, JsonObject> contractMethod = new Hashtable<>();
+    private Map<String, Method> invokeMethod;
+    private Map<String, Method> queryMethod;
 
     ContractMeta(byte[] contractBinary, Class<? extends Contract> contractClass) {
         this.contractBinary = contractBinary;
@@ -56,8 +52,6 @@ public class ContractMeta {
     ContractId getContractId() {
         return contractId;
     }
-
-    Map<String, Method> getInvoke() { return invokeMethod; }
 
     byte[] getContractBinary() {
         return contractBinary;
@@ -87,28 +81,8 @@ public class ContractMeta {
     public Map getMethods() {
         Map<String, List<Map<String, String>>> methods = new HashMap<>();
 
-        List<Map<String, String>> invokeList = new ArrayList<>();
-        for (Method m : invokeMethod.values()) {
-            Map<String, String> methodInfo = new HashMap<>();
-            methodInfo.put("name", m.getName());
-            methodInfo.put("inputType", m.getParameterTypes()[0].getSimpleName());
-            System.out.println(JsonUtil.convertMapToJson(methodInfo).toString());
-            invokeList.add(methodInfo);
-        }
-        List<Map<String, String>> queryList = new ArrayList<>();
-        for (Method m : queryMethod.values()) {
-            Map<String, String> methodInfo = new HashMap<>();
-            methodInfo.put("name", m.getName());
-            if (m.getParameterTypes().length > 0) {
-                methodInfo.put("inputType", m.getParameterTypes()[0].getSimpleName());
-            }
-            methodInfo.put("outputType", m.getReturnType().getSimpleName());
-            invokeList.add(methodInfo);
-        }
-        methods.put("invoke", invokeList);
-        methods.put("query", queryList);
-        System.out.println(JsonUtil.convertMapToJson(methods).toString());
-
+        methods.put("invoke", ContractUtils.methodInfo(invokeMethod));
+        methods.put("query", ContractUtils.methodInfo(queryMethod));
         return methods;
     }
 
