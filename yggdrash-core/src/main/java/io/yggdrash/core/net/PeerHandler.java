@@ -7,7 +7,7 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import java.util.List;
 
 public interface PeerHandler {
-    List<String> findPeers(Peer peer);
+    List<Peer> findPeers(Peer requestPeer);
 
     Peer getPeer();
 
