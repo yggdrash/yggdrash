@@ -326,6 +326,10 @@ public class Wallet {
         return key.getPubKey();
     }
 
+    public String getPubicKeyHex() {
+        return Hex.toHexString(key.getPubKey());
+    }
+
     /**
      * Get address as byte[20]
      *

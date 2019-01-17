@@ -21,7 +21,7 @@ public class BlockConKeyStore implements Store<Long, byte[]> {
 
     @Override
     public void put(Long key, byte[] value) {
-        log.debug("BlockConKeyStore put "
+        log.trace("BlockConKeyStore put "
                 + "(key: " + key + ")"
                 + "(value : " + Hex.toHexString(value) + ")");
         db.put(ByteUtil.longToBytes(key), value);
@@ -29,12 +29,12 @@ public class BlockConKeyStore implements Store<Long, byte[]> {
 
     @Override
     public byte[] get(Long key) {
-        log.debug("BlockConKeyStore get " + "(" + key + ")");
+        log.trace("BlockConKeyStore get " + "(" + key + ")");
 
         if (key > -1) {
             byte[] foundValue = db.get(ByteUtil.longToBytes(key));
             if (foundValue != null) {
-                log.debug("BlockConKeyStore value: " + Hex.toHexString(foundValue));
+                log.trace("BlockConKeyStore value: " + Hex.toHexString(foundValue));
 
                 return foundValue;
             }

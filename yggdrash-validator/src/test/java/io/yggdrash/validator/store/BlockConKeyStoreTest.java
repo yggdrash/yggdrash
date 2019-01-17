@@ -27,7 +27,7 @@ public class BlockConKeyStoreTest {
     }
 
     @Test
-    public void BlockConKeyStoreTest() {
+    public void blockConKeyStoreTest() {
         LevelDbDataSource ds =
                 new LevelDbDataSource(StoreTestUtils.getTestPath(), "block-con-key-store-test");
         BlockConKeyStore blockConKeyStore = new BlockConKeyStore(ds);
@@ -37,7 +37,7 @@ public class BlockConKeyStoreTest {
         byte[] foundKey = blockConKeyStore.get(block.getHeader().getIndex());
 
         assertArrayEquals(block.getHash(), foundKey);
-        assert(blockConKeyStore.contains(block.getHeader().getIndex()));
+        assert (blockConKeyStore.contains(block.getHeader().getIndex()));
 
         log.debug("size: " + blockConKeyStore.size());
         assertEquals(blockConKeyStore.size(), 1);
