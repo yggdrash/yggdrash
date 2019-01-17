@@ -38,9 +38,9 @@ import static io.yggdrash.common.util.Utils.sleep;
 
 @Service
 @EnableScheduling
-public class GrpcNodeServer implements CommandLineRunner {
+public class EbftNodeServer implements CommandLineRunner {
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(GrpcNodeServer.class);
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(EbftNodeServer.class);
 
     private static final boolean ABNORMAL_TEST = false;
 
@@ -50,8 +50,8 @@ public class GrpcNodeServer implements CommandLineRunner {
     private final Wallet wallet;
     private final BlockConChain blockConChain;
 
-    private final GrpcNodeClient myNode;
-    private final Map<String, GrpcNodeClient> totalValidatorMap;
+    private final EbftNodeClient myNode;
+    private final Map<String, EbftNodeClient> totalValidatorMap;
 
     private boolean isActive;
     private boolean isSynced;
@@ -59,7 +59,7 @@ public class GrpcNodeServer implements CommandLineRunner {
     private ReentrantLock lock = new ReentrantLock();
 
     @Autowired
-    public GrpcNodeServer(Wallet wallet, BlockConChain blockConChain) {
+    public EbftNodeServer(Wallet wallet, BlockConChain blockConChain) {
         this.wallet = wallet;
         this.blockConChain = blockConChain;
         this.myNode = initMyNode();
@@ -113,7 +113,7 @@ public class GrpcNodeServer implements CommandLineRunner {
 
     private void checkNode() {
         for (String key : totalValidatorMap.keySet()) {
-            GrpcNodeClient client = totalValidatorMap.get(key);
+            EbftNodeClient client = totalValidatorMap.get(key);
             if (client.isMyclient()) {
                 continue;
             }
@@ -132,12 +132,12 @@ public class GrpcNodeServer implements CommandLineRunner {
         setActiveMode();
     }
 
-    private void checkNodeStatus(GrpcNodeClient client) {
+    private void checkNodeStatus(EbftNodeClient client) {
         NodeStatus nodeStatus = client.exchangeNodeStatus(NodeStatus.toProto(getMyNodeStatus()));
         updateStatus(client, nodeStatus);
     }
 
-    private void updateStatus(GrpcNodeClient client, NodeStatus nodeStatus) {
+    private void updateStatus(EbftNodeClient client, NodeStatus nodeStatus) {
         if (NodeStatus.verify(nodeStatus)) {
             client.setIsRunning(true);
 
@@ -165,7 +165,7 @@ public class GrpcNodeServer implements CommandLineRunner {
     }
 
     private void blockConSyncing(String nodeId, long index) {
-        GrpcNodeClient client = totalValidatorMap.get(nodeId);
+        EbftNodeClient client = totalValidatorMap.get(nodeId);
         BlockCon blockCon;
         if (client.isRunning()) {
             List<BlockCon> blockConList = new ArrayList<>(client.getBlockConList(
@@ -325,7 +325,7 @@ public class GrpcNodeServer implements CommandLineRunner {
         }
 
         for (String key : this.totalValidatorMap.keySet()) {
-            GrpcNodeClient client = this.totalValidatorMap.get(key);
+            EbftNodeClient client = this.totalValidatorMap.get(key);
             if (client.isRunning()) {
                 if (!proposedPubkey.contains("04" + client.getPubKey())) {
                     return false;
@@ -457,7 +457,7 @@ public class GrpcNodeServer implements CommandLineRunner {
 
     private void broadcast(BlockCon blockCon) {
         for (String key : totalValidatorMap.keySet()) {
-            GrpcNodeClient client = totalValidatorMap.get(key);
+            EbftNodeClient client = totalValidatorMap.get(key);
             if (client.isMyclient()) {
                 continue;
             }
@@ -507,7 +507,7 @@ public class GrpcNodeServer implements CommandLineRunner {
         log.info("isValidator: " + this.isValidator);
     }
 
-    private Map<String, GrpcNodeClient> initTotalValidator() {
+    private Map<String, EbftNodeClient> initTotalValidator() {
         String jsonString;
         ClassPathResource cpr = new ClassPathResource("validator.json");
         try {
@@ -519,12 +519,12 @@ public class GrpcNodeServer implements CommandLineRunner {
         }
 
         JsonObject validatorJsonObject = new Gson().fromJson(jsonString, JsonObject.class);
-        Map<String, GrpcNodeClient> nodeMap = new ConcurrentHashMap<>();
+        Map<String, EbftNodeClient> nodeMap = new ConcurrentHashMap<>();
 
         Set<Map.Entry<String, JsonElement>> entrySet =
                 validatorJsonObject.get("validator").getAsJsonObject().entrySet();
         for (Map.Entry<String, JsonElement> entry : entrySet) {
-            GrpcNodeClient client = new GrpcNodeClient(entry.getKey(),
+            EbftNodeClient client = new EbftNodeClient(entry.getKey(),
                     entry.getValue().getAsJsonObject().get("host").getAsString(),
                     entry.getValue().getAsJsonObject().get("port").getAsInt());
             if (client.getId().equals(myNode.getId())) {
@@ -538,8 +538,8 @@ public class GrpcNodeServer implements CommandLineRunner {
         return nodeMap;
     }
 
-    private GrpcNodeClient initMyNode() {
-        GrpcNodeClient client = new GrpcNodeClient(
+    private EbftNodeClient initMyNode() {
+        EbftNodeClient client = new EbftNodeClient(
                 wallet.getPubicKeyHex().substring(2),
                 InetAddress.getLoopbackAddress().getHostAddress(),
                 Integer.parseInt(System.getProperty("grpc.port")));
@@ -558,7 +558,7 @@ public class GrpcNodeServer implements CommandLineRunner {
     private List<String> getActiveNodeList() {
         List<String> activeNodeList = new ArrayList<>();
         for (String key : totalValidatorMap.keySet()) {
-            GrpcNodeClient client = totalValidatorMap.get(key);
+            EbftNodeClient client = totalValidatorMap.get(key);
             if (client.isMyclient()) {
                 continue;
             }

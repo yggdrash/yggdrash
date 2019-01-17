@@ -17,9 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class GrpcNodeClient {
+public class EbftNodeClient {
 
-    private static final Logger log = LoggerFactory.getLogger(GrpcNodeClient.class);
+    private static final Logger log = LoggerFactory.getLogger(EbftNodeClient.class);
 
     private boolean myclient;
     private String pubKey;
@@ -32,7 +32,7 @@ public class GrpcNodeClient {
     private ManagedChannel channel;
     private ConsensusEbftGrpc.ConsensusEbftBlockingStub blockingStub;
 
-    public GrpcNodeClient(String pubKey, String host, int port) {
+    public EbftNodeClient(String pubKey, String host, int port) {
         this.pubKey = pubKey;
         this.host = host;
         this.port = port;
