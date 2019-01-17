@@ -1,23 +1,52 @@
 package io.yggdrash.validator.service;
 
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.validator.data.BlockCon;
+import io.yggdrash.validator.data.BlockConChain;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @GRpcService
 public class NodeService extends BlockChainGrpc.BlockChainImplBase {
     private static final Logger log = LoggerFactory.getLogger(NodeService.class);
     private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
 
+    private final BlockConChain blockConChain;
+
+    @Autowired
+    public NodeService(BlockConChain blockConChain) {
+        this.blockConChain = blockConChain;
+    }
+
     @Override
     public void syncBlock(NetProto.SyncLimit syncLimit,
                           StreamObserver<Proto.BlockList> responseObserver) {
         log.debug("NodeService syncBlock");
-        responseObserver.onNext(Proto.BlockList.newBuilder().build());
+        long offset = syncLimit.getOffset();
+        long limit = syncLimit.getLimit();
+        log.trace("syncBlock() request offset={}, limit={}", offset, limit);
+
+        Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
+        if (Arrays.equals(syncLimit.getBranch().toByteArray(), blockConChain.getChain())
+                && offset >= 0
+                && offset <= blockConChain.getLastConfirmedBlockCon().getIndex()) {
+            List<BlockCon> blockConList = blockConChain.getBlockConList(offset, limit);
+            for (BlockCon blockCon : blockConList) {
+                builder.addBlocks(blockCon.getBlock().toProtoBlock());
+            }
+        }
+
+        responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
     }
 
@@ -25,14 +54,26 @@ public class NodeService extends BlockChainGrpc.BlockChainImplBase {
     public void syncTransaction(NetProto.SyncLimit syncLimit,
                                 StreamObserver<Proto.TransactionList> responseObserver) {
         log.debug("NodeService syncTransaction");
+        long offset = syncLimit.getOffset();
+        long limit = syncLimit.getLimit();
+        log.trace("syncTransaction() request offset={}, limit={}", offset, limit);
 
-        responseObserver.onNext(Proto.TransactionList.newBuilder().build());
+        Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
+        if (Arrays.equals(syncLimit.getBranch().toByteArray(), blockConChain.getChain())) {
+            for (TransactionHusk husk :
+                    new ArrayList<>(blockConChain.getTransactionStore().getUnconfirmedTxs())) {
+                builder.addTransactions(husk.getInstance());
+            }
+        }
+
+        responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
     }
 
     @Override
     public void broadcastBlock(Proto.Block request,
                                StreamObserver<NetProto.Empty> responseObserver) {
+        // Validator donot need to receive blocks from general node
         log.debug("NodeService broadcastBlock");
         responseObserver.onNext(EMPTY);
         responseObserver.onCompleted();
@@ -42,6 +83,12 @@ public class NodeService extends BlockChainGrpc.BlockChainImplBase {
     public void broadcastTransaction(Proto.Transaction request,
                                      StreamObserver<NetProto.Empty> responseObserver) {
         log.debug("NodeService broadcastTransaction");
+        log.debug("Received transaction: {}", request);
+        TransactionHusk tx = new TransactionHusk(request);
+        if (Arrays.equals(tx.getBranchId().getBytes(), blockConChain.getChain())) {
+            blockConChain.getTransactionStore().put(tx.getHash(), tx);
+        }
+
         responseObserver.onNext(EMPTY);
         responseObserver.onCompleted();
     }
