@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.service;
+package io.yggdrash.node;
 
 import com.google.protobuf.ByteString;
 import io.grpc.testing.GrpcServerRule;
@@ -24,7 +24,9 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.net.PeerTable;
+import io.yggdrash.node.service.BlockChainService;
+import io.yggdrash.node.service.PeerService;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.PeerGrpc;
@@ -51,7 +53,7 @@ public class GRpcPeerListenerTest {
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
 
     @Mock
-    private PeerGroup peerGroupMock;
+    private PeerTable peerTableMock;
 
     @Mock
     private BranchGroup branchGroupMock;
@@ -62,7 +64,7 @@ public class GRpcPeerListenerTest {
 
     @Before
     public void setUp() {
-        grpcServerRule.getServiceRegistry().addService(new PeerService(peerGroupMock));
+        grpcServerRule.getServiceRegistry().addService(new PeerService(peerTableMock));
         grpcServerRule.getServiceRegistry().addService(new BlockChainService(branchGroupMock)
         );
 
