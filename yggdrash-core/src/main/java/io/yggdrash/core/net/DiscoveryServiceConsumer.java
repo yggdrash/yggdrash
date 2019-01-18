@@ -27,7 +27,7 @@ public class DiscoveryServiceConsumer implements DiscoveryConsumer {
 
     @Override
     public List<String> findPeers(Peer requestPeer) {
-        return null;
+        return peerTable.getPeers(requestPeer);
     }
 
     @Override

@@ -23,7 +23,7 @@ public abstract class Node implements BootStrap {
 
     public void bootstrapping(Discovery discovery, int maxPeer) {
         PeerTable peerTable = discovery.discover(peerHandlerGroup.getPeerHandlerFactory());
-        for (Peer peer : peerTable.getClosestPeers()) {
+        for (Peer peer : peerTable.getClosestPeers(maxPeer)) {
             if (peerHandlerGroup.handlerCount() >= maxPeer) {
                 break;
             }

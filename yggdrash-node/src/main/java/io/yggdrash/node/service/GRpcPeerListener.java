@@ -37,10 +37,10 @@ public class GRpcPeerListener implements PeerListener {
     @Override
     public void initConsumer(DiscoveryConsumer discoveryConsumer,
                              BlockChainConsumer blockChainConsumer) {
-        bindableServiceList.add(new GRpcBlockChainService(blockChainConsumer));
         if (blockChainConsumer != null) {
-            bindableServiceList.add(new GRpcDiscoveryService(discoveryConsumer));
+            bindableServiceList.add(new GRpcBlockChainService(blockChainConsumer));
         }
+        bindableServiceList.add(new GRpcDiscoveryService(discoveryConsumer));
     }
 
     private Server server;

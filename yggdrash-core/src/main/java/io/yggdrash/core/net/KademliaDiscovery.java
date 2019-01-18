@@ -23,24 +23,25 @@ public class KademliaDiscovery implements Discovery {
         this.factory = factory;
 
         List<Peer> prevTried = new ArrayList<>();
-        for (String ynodeUri : peerTable.getBootstrappingSeedList()) {
+        for (Peer peer : peerTable.getBootstrappingSeedList()) {
             String ynodeUriWithoutPubKey = peerTable.getOwner().getYnodeUri()
-                    .substring(ynodeUri.indexOf("@"));
-            if (ynodeUri.contains(ynodeUriWithoutPubKey)) {
+                    .substring(peer.getYnodeUri().indexOf("@"));
+            if (peer.getYnodeUri().contains(ynodeUriWithoutPubKey)) {
                 continue;
             }
-            Peer seed = Peer.valueOf(ynodeUri);
-            prevTried.add(seed);
-            PeerHandler peerHandler = factory.create(seed);
-            log.info("Try connecting to SEED peer = {}", seed);
-
+            prevTried.add(peer);
+            PeerHandler peerHandler = null;
             try {
+                log.info("Try connecting to SEED peer = {}", peer);
+                peerHandler = factory.create(peer);
                 List<Peer> peerList = peerHandler.findPeers(owner);
                 peerList.forEach(peerTable::addPeer);
             } catch (Exception e) {
-                log.error("Failed connecting to SEED peer = {}", seed);
+                log.error("Failed connecting to SEED peer = {}", peer);
             } finally {
-                peerHandler.stop();
+                if (peerHandler != null) {
+                    peerHandler.stop();
+                }
             }
         }
 
@@ -61,7 +62,7 @@ public class KademliaDiscovery implements Discovery {
                 return;
             }
 
-            List<Peer> closest = peerTable.getClosestPeers();
+            List<Peer> closest = peerTable.getClosestPeers(KademliaOptions.BUCKET_SIZE);
             List<Peer> tried = new ArrayList<>();
 
             for (Peer peer : closest) {
