@@ -6,7 +6,6 @@ import io.grpc.ManagedChannelBuilder;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.PeerGrpc;
-import io.yggdrash.proto.PingPongGrpc;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +24,6 @@ public class NodeGrpcClient {
 
     private ManagedChannel channel;
     private final PeerGrpc.PeerBlockingStub blockingPeerStub;
-    private final PingPongGrpc.PingPongBlockingStub blockingPingPongStub;
     private final BlockChainGrpc.BlockChainBlockingStub blockingBlockChainStub;
     private final BlockChainGrpc.BlockChainBlockingStub asyncBlockChainStub;
 
@@ -37,7 +35,6 @@ public class NodeGrpcClient {
                 .usePlaintext()
                 .build();
         this.blockingPeerStub = PeerGrpc.newBlockingStub(channel);
-        this.blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);
         this.blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
         this.asyncBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
     }
@@ -60,10 +57,6 @@ public class NodeGrpcClient {
 
     public PeerGrpc.PeerBlockingStub getBlockingPeerStub() {
         return blockingPeerStub;
-    }
-
-    public PingPongGrpc.PingPongBlockingStub getBlockingPingPongStub() {
-        return blockingPingPongStub;
     }
 
     public BlockChainGrpc.BlockChainBlockingStub getBlockingBlockChainStub() {
