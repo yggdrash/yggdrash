@@ -3,6 +3,14 @@ syntax = "proto3";
 option java_package = "io.yggdrash.proto";
 option java_outer_classname = "Proto";
 
+
+service Peer {
+    rpc findPeers (RequestPeer) returns (PeerList) {
+    }
+    rpc play (Ping) returns (Pong) {
+    }
+}
+
 message BlockList {
     repeated Block blocks = 1;
 }
@@ -40,4 +48,33 @@ message Transaction {
     Header header = 1;
     bytes signature = 2;
     bytes body = 3;
+}
+
+message RequestPeer {
+    string pubKey = 1;
+    string ip = 2;
+    int32 port = 3;
+    repeated BestBlock bestBlocks = 4;
+}
+
+message PeerList {
+    repeated PeerInfo peers = 1;
+}
+
+message PeerInfo {
+    string url = 1;
+}
+
+message Ping {
+    string ping = 1;
+    PeerInfo peer = 2;
+}
+
+message Pong {
+    string pong = 1;
+}
+
+message BestBlock {
+    bytes branch = 1;
+    int64 index = 2;
 }

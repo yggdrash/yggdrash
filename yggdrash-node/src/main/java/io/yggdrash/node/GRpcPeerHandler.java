@@ -19,59 +19,69 @@ package io.yggdrash.node;
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.net.BestBlock;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerClientChannel;
+import io.yggdrash.core.net.PeerHandler;
 import io.yggdrash.proto.BlockChainGrpc;
-import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.NetProto.SyncLimit;
-import io.yggdrash.proto.NodeInfo;
 import io.yggdrash.proto.PeerGrpc;
-import io.yggdrash.proto.PeerInfo;
-import io.yggdrash.proto.Ping;
-import io.yggdrash.proto.PingPongGrpc;
-import io.yggdrash.proto.Pong;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.proto.RequestPeer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class GRpcClientChannel implements PeerClientChannel {
+public class GRpcPeerHandler implements PeerHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(GRpcClientChannel.class);
+    private static final Logger log = LoggerFactory.getLogger(GRpcPeerHandler.class);
     private static final int DEFAULT_LIMIT = 10000;
 
     private final ManagedChannel channel;
     private final PeerGrpc.PeerBlockingStub blockingPeerStub;
-    private final PingPongGrpc.PingPongBlockingStub blockingPingPongStub;
     private final BlockChainGrpc.BlockChainBlockingStub blockingBlockChainStub;
     private final BlockChainGrpc.BlockChainBlockingStub asyncBlockChainStub;
     private final Peer peer;
 
-    public GRpcClientChannel(Peer peer) {
+    GRpcPeerHandler(Peer peer) {
         this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
                 .build(), peer);
     }
 
-    GRpcClientChannel(ManagedChannel channel, Peer peer) {
+    GRpcPeerHandler(ManagedChannel channel, Peer peer) {
         this.channel = channel;
         this.peer = peer;
         this.blockingPeerStub = PeerGrpc.newBlockingStub(channel);
-        this.blockingPingPongStub = PingPongGrpc.newBlockingStub(channel);
         this.blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
         this.asyncBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
     }
 
     @Override
-    public List<NodeInfo> findPeers(Peer peer) {
-        RequestPeer requestPeer = RequestPeer.newBuilder()
+    public List<Peer> findPeers(Peer peer) {
+        Proto.RequestPeer requestPeer = Proto.RequestPeer.newBuilder()
                 .setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
                 .setPort(peer.getPort())
+                .addAllBestBlocks(bestBlocksByPeer(peer))
                 .build();
-        return blockingPeerStub.findPeers(requestPeer).getNodesList();
+        return blockingPeerStub.findPeers(requestPeer).getPeersList().stream()
+                .map(peerInfo -> Peer.valueOf(peerInfo.getUrl()))
+                .collect(Collectors.toList());
+    }
+
+    private List<Proto.BestBlock> bestBlocksByPeer(Peer peer) {
+        List<Proto.BestBlock> bestBlocks = new ArrayList<>();
+        for (BestBlock bb : peer.getBestBlocks()) {
+            Proto.BestBlock bestBlock = Proto.BestBlock.newBuilder()
+                    .setBranch(ByteString.copyFrom(bb.getBranchId().getBytes()))
+                    .setIndex(bb.getIndex()).build();
+            bestBlocks.add(bestBlock);
+        }
+        return bestBlocks;
     }
 
     @Override
@@ -88,13 +98,10 @@ public class GRpcClientChannel implements PeerClientChannel {
     }
 
     @Override
-    public Pong ping(String message, Peer peer) {
-        PeerInfo peerInfo = PeerInfo.newBuilder().setPubKey(peer.getPubKey().toString())
-                .setIp(peer.getHost())
-                .setPort(peer.getPort())
-                .build();
-        Ping request = Ping.newBuilder().setPing(message).setPeer(peerInfo).build();
-        return blockingPingPongStub.play(request);
+    public String ping(String message, Peer peer) {
+        Proto.Ping request = Proto.Ping.newBuilder().setPing(message)
+                .setPeer(Proto.PeerInfo.newBuilder().setUrl(peer.getYnodeUri())).build();
+        return blockingPeerStub.play(request).getPong();
     }
 
     /**
@@ -104,12 +111,14 @@ public class GRpcClientChannel implements PeerClientChannel {
      * @return the block list
      */
     @Override
-    public List<Proto.Block> syncBlock(BranchId branchId, long offset) {
+    public List<BlockHusk> syncBlock(BranchId branchId, long offset) {
         SyncLimit syncLimit = SyncLimit.newBuilder()
                 .setOffset(offset)
                 .setLimit(DEFAULT_LIMIT)
                 .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
-        return blockingBlockChainStub.syncBlock(syncLimit).getBlocksList();
+        return blockingBlockChainStub.syncBlock(syncLimit).getBlocksList().stream()
+                .map(BlockHusk::new)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -118,27 +127,23 @@ public class GRpcClientChannel implements PeerClientChannel {
      * @return the transaction list
      */
     @Override
-    public List<Proto.Transaction> syncTransaction(BranchId branchId) {
+    public List<TransactionHusk> syncTransaction(BranchId branchId) {
         SyncLimit syncLimit = SyncLimit.newBuilder()
                 .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
-        return blockingBlockChainStub.syncTransaction(syncLimit).getTransactionsList();
+        return blockingBlockChainStub.syncTransaction(syncLimit).getTransactionsList().stream()
+                .map(TransactionHusk::new)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public void broadcastTransaction(Proto.Transaction[] txs) {
+    public void broadcastTransaction(TransactionHusk tx) {
         log.info("*** Broadcasting txs...");
-        for (Proto.Transaction tx : txs) {
-            log.trace("Sending transaction: {}", tx);
-            asyncBlockChainStub.broadcastTransaction(tx);
-        }
+        asyncBlockChainStub.broadcastTransaction(tx.getInstance());
     }
 
     @Override
-    public void broadcastBlock(Proto.Block[] blocks) {
+    public void broadcastBlock(BlockHusk block) {
         log.info("*** Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
-        for (Proto.Block block : blocks) {
-            log.trace("Sending block: {}", block);
-            asyncBlockChainStub.broadcastBlock(block);
-        }
+        asyncBlockChainStub.broadcastBlock(block.getInstance());
     }
 }

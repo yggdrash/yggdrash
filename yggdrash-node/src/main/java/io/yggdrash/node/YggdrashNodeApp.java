@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.net;
+package io.yggdrash.node;
 
-import io.yggdrash.core.exception.FailedOperationException;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-public interface NodeServer {
-
-    void start(String host, int port) throws FailedOperationException;
-
-    void stop();
+@SpringBootApplication
+public class YggdrashNodeApp {
+    public static void main(String[] args) {
+        SpringApplication.run(YggdrashNodeApp.class, args);
+    }
 }

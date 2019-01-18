@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.net;
 
-public interface Discovery {
+public interface BootStrap {
 
-    PeerTable discover(PeerHandlerFactory factory);
+    void bootstrapping(Discovery discovery, int maxPeer);
 }
