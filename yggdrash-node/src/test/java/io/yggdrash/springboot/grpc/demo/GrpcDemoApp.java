@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.springboot.grpc.demo;
+package io.yggdrash.springboot.grpc.demo;
 
 import io.grpc.stub.StreamObserver;
-import io.yggdrash.node.springboot.grpc.GrpcService;
 import io.yggdrash.proto.PeerGrpc;
 import io.yggdrash.proto.Proto.Ping;
 import io.yggdrash.proto.Proto.Pong;
+import io.yggdrash.springboot.grpc.GrpcService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 

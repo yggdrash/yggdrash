@@ -14,19 +14,21 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.springboot.grpc.context;
+package io.yggdrash.springboot.grpc;
 
-import org.springframework.beans.factory.annotation.Value;
+import io.grpc.ServerInterceptor;
+import org.springframework.stereotype.Service;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target( {ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER,
-        ElementType.ANNOTATION_TYPE})
+@Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@Value("${" + LocalRunningGrpcPort.propertyName + "}")
-public @interface LocalRunningGrpcPort {
-    String propertyName = "local.grpc.port";
+@Service
+public @interface GrpcService {
+    Class<? extends ServerInterceptor>[] interceptors() default {};
+
+    boolean applyGlobalInterceptors() default true;
 }

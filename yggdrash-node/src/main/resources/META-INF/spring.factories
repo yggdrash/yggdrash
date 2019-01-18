@@ -1,4 +1,4 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-io.yggdrash.node.springboot.grpc.autoconfigure.GrpcAutoConfiguration
+io.yggdrash.springboot.grpc.autoconfigure.GrpcAutoConfiguration
 org.springframework.boot.env.EnvironmentPostProcessor=\
-io.yggdrash.node.springboot.grpc.context.GrpcServerEnvironment
+io.yggdrash.springboot.grpc.context.GrpcServerEnvironment

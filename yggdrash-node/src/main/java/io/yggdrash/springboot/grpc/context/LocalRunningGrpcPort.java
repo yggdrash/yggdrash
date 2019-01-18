@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.springboot.grpc;
+package io.yggdrash.springboot.grpc.context;
 
-import io.grpc.ServerBuilder;
+import org.springframework.beans.factory.annotation.Value;
 
-public class GrpcServerBuilderConfigurer {
-    public void configure(ServerBuilder<?> serverBuilder) {
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-    }
+@Target( {ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER,
+        ElementType.ANNOTATION_TYPE})
+@Retention(RetentionPolicy.RUNTIME)
+@Value("${" + LocalRunningGrpcPort.propertyName + "}")
+public @interface LocalRunningGrpcPort {
+    String propertyName = "local.grpc.port";
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.springboot.grpc;
+package io.yggdrash.springboot.grpc;
 
 import io.grpc.BindableService;
 import io.grpc.Server;

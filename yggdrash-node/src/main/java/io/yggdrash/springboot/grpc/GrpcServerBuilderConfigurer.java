@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.springboot.grpc;
+package io.yggdrash.springboot.grpc;
 
-import org.springframework.stereotype.Component;
+import io.grpc.ServerBuilder;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+public class GrpcServerBuilderConfigurer {
+    public void configure(ServerBuilder<?> serverBuilder) {
 
-@Target( {ElementType.TYPE, ElementType.METHOD})
-@Retention(RetentionPolicy.RUNTIME)
-@Component
-public @interface GrpcGlobalInterceptor {
+    }
 }

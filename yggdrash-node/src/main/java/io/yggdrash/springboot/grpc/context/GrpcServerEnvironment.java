@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.springboot.grpc.context;
+package io.yggdrash.springboot.grpc.context;
 
-import io.yggdrash.node.springboot.grpc.autoconfigure.GrpcServerProperties;
+import io.yggdrash.springboot.grpc.autoconfigure.GrpcServerProperties;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.env.EnvironmentPostProcessor;
 import org.springframework.core.env.ConfigurableEnvironment;

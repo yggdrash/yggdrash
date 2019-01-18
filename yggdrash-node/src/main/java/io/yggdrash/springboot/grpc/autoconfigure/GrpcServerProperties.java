@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.springboot.grpc.autoconfigure;
+package io.yggdrash.springboot.grpc.autoconfigure;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.springboot.grpc;
+package io.yggdrash.springboot.grpc;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -23,10 +23,10 @@ import io.grpc.ServerCall;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
 import io.yggdrash.TestConstants;
-import io.yggdrash.node.springboot.grpc.context.LocalRunningGrpcPort;
-import io.yggdrash.node.springboot.grpc.demo.GrpcDemoApp;
 import io.yggdrash.proto.PeerGrpc;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.springboot.grpc.context.LocalRunningGrpcPort;
+import io.yggdrash.springboot.grpc.demo.GrpcDemoApp;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;

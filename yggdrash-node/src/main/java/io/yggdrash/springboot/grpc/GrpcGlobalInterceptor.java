@@ -14,21 +14,17 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.springboot.grpc;
+package io.yggdrash.springboot.grpc;
 
-import io.grpc.ServerInterceptor;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.TYPE)
+@Target( {ElementType.TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@Service
-public @interface GrpcService {
-    Class<? extends ServerInterceptor>[] interceptors() default {};
-
-    boolean applyGlobalInterceptors() default true;
+@Component
+public @interface GrpcGlobalInterceptor {
 }

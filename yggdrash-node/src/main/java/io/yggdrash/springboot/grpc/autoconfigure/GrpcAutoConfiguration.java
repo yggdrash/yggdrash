@@ -14,16 +14,16 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.springboot.grpc.autoconfigure;
+package io.yggdrash.springboot.grpc.autoconfigure;
 
 import io.grpc.ServerBuilder;
 import io.grpc.ServerInterceptor;
 import io.yggdrash.node.grpc.interceptor.IpBlockInterceptor;
-import io.yggdrash.node.springboot.grpc.GrpcGlobalInterceptor;
-import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
-import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
-import io.yggdrash.node.springboot.grpc.GrpcService;
-import io.yggdrash.node.springboot.grpc.context.LocalRunningGrpcPort;
+import io.yggdrash.springboot.grpc.GrpcGlobalInterceptor;
+import io.yggdrash.springboot.grpc.GrpcServerBuilderConfigurer;
+import io.yggdrash.springboot.grpc.GrpcServerRunner;
+import io.yggdrash.springboot.grpc.GrpcService;
+import io.yggdrash.springboot.grpc.context.LocalRunningGrpcPort;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
