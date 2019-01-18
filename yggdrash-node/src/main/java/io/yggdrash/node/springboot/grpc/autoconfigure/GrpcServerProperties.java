@@ -23,6 +23,15 @@ public class GrpcServerProperties {
     public static final int DEFAULT_GRPC_PORT = 32918;
 
     private int port = DEFAULT_GRPC_PORT;
+    private String[] blackList;
+
+    public String[] getBlackList() {
+        return blackList;
+    }
+
+    public void setBlackList(String[] blackList) {
+        this.blackList = blackList;
+    }
 
     public int getPort() {
         return port;

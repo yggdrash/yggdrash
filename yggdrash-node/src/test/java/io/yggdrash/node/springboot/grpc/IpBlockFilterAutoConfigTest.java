@@ -14,15 +14,12 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.grpc;
+package io.yggdrash.node.springboot.grpc;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.ServerInterceptor;
 import io.grpc.StatusRuntimeException;
-import io.yggdrash.node.grpc.interceptor.IpBlockInterceptor;
-import io.yggdrash.node.springboot.grpc.GrpcGlobalInterceptor;
-import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
 import io.yggdrash.node.springboot.grpc.context.LocalRunningGrpcPort;
 import io.yggdrash.node.springboot.grpc.demo.GrpcDemoApp;
 import io.yggdrash.proto.PeerGrpc;
@@ -32,54 +29,33 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {GrpcDemoApp.class, IpBlockInterceptorTest.TestConfig.class})
-public class IpBlockInterceptorTest {
+@SpringBootTest(
+        classes = {GrpcDemoApp.class},
+        properties = "yggdrash.node.grpc.black-list=127.0.0.1")
+public class IpBlockFilterAutoConfigTest {
 
     @LocalRunningGrpcPort
     private int runningPort;
 
     @Autowired
-    private GrpcServerRunner grpcServerRunner;
-
-    @Autowired
-    @Qualifier("ipBlockInterceptor")
-    private ServerInterceptor ipBlockInterceptor;
+    @Qualifier("ipBlockFilter")
+    private ServerInterceptor ipBlockFilter;
 
     @Test(expected = StatusRuntimeException.class)
     public void testIpBlockInterceptor() {
-        assertThat(grpcServerRunner).isNotNull();
+        assertThat(ipBlockFilter).isNotNull();
 
         // Create channel
         ManagedChannel channel = ManagedChannelBuilder
                 .forAddress("localhost", runningPort)
                 .usePlaintext().build();
 
-        Proto.Pong reply = PeerGrpc.newBlockingStub(channel)
-                .play(Proto.Ping.newBuilder().setPing("ping").build());
-
-        reply.getPong();
-        assertThat(reply.getPong()).isEqualTo("Pong");
-
-        // Set ip for blocking
-        ((IpBlockInterceptor) ipBlockInterceptor).setBlackIps(new String[] {"127.0.0.1"});
-
         PeerGrpc.newBlockingStub(channel)
                 .play(Proto.Ping.newBuilder().setPing("ping").build());
-    }
-
-    @TestConfiguration
-    public static class TestConfig {
-        @Bean(name = "ipBlockInterceptor")
-        @GrpcGlobalInterceptor
-        public ServerInterceptor ipBlockInterceptor() {
-            return new IpBlockInterceptor();
-        }
     }
 }

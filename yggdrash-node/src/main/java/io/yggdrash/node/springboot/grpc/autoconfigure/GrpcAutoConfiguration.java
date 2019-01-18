@@ -17,13 +17,18 @@
 package io.yggdrash.node.springboot.grpc.autoconfigure;
 
 import io.grpc.ServerBuilder;
+import io.grpc.ServerInterceptor;
+import io.yggdrash.node.grpc.interceptor.IpBlockInterceptor;
+import io.yggdrash.node.springboot.grpc.GrpcGlobalInterceptor;
 import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
 import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
 import io.yggdrash.node.springboot.grpc.GrpcService;
 import io.yggdrash.node.springboot.grpc.context.LocalRunningGrpcPort;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 
@@ -33,6 +38,9 @@ import org.springframework.context.annotation.Bean;
 public class GrpcAutoConfiguration {
     @LocalRunningGrpcPort
     int runningPort;
+
+    @Autowired
+    GrpcServerProperties grpcServerProperties;
 
     @Bean
     public GrpcServerRunner grpcServerRunner(GrpcServerBuilderConfigurer configurer) {
@@ -44,5 +52,15 @@ public class GrpcAutoConfiguration {
     @ConditionalOnMissingBean(GrpcServerBuilderConfigurer.class)
     public GrpcServerBuilderConfigurer serverBuilderConfigurer() {
         return new GrpcServerBuilderConfigurer();
+    }
+
+    @Bean(name = "ipBlockFilter")
+    @ConditionalOnProperty("yggdrash.node.grpc.black-list")
+    @GrpcGlobalInterceptor
+    public ServerInterceptor ipBlockFilter() {
+        String[] blackList = grpcServerProperties.getBlackList();
+        IpBlockInterceptor ipBlockInterceptor = new IpBlockInterceptor();
+        ipBlockInterceptor.setBlackIps(blackList);
+        return ipBlockInterceptor;
     }
 }

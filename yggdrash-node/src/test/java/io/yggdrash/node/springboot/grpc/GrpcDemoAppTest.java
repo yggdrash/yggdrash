@@ -33,12 +33,14 @@ import org.mockito.Mockito;
 import org.mockito.stubbing.Answer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,11 +48,19 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(classes = {GrpcDemoApp.class, GrpcDemoAppTest.TestConfig.class})
 @IfProfileValue(name = "spring.profiles.active", value = TestConstants.CI_TEST)
+@SpringBootTest(
+        classes = {GrpcDemoApp.class, GrpcDemoAppTest.TestConfig.class},
+        properties = {"yggdrash.node.grpc.black-list=" + GrpcDemoAppTest.BLOCK_IPS})
+
 public class GrpcDemoAppTest {
+    static final String BLOCK_IPS = "127.0.0.2,127.0.0.3";
+
     @LocalRunningGrpcPort
     private int runningPort;
+
+    @Value("${yggdrash.node.grpc.black-list}")
+    private List<String> ips;
 
     @Autowired
     private GrpcServerRunner grpcServerRunner;
@@ -58,6 +68,11 @@ public class GrpcDemoAppTest {
     @Autowired
     @Qualifier("globalInterceptor")
     private ServerInterceptor globalInterceptor;
+
+    @Test
+    public void testSettingBlackListFromProperties() {
+        ips.forEach(ip -> assertThat(BLOCK_IPS).contains(ip));
+    }
 
     @Test
     public void testGlobalInterceptor() throws ExecutionException, InterruptedException {
