@@ -23,7 +23,7 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.contract.ContractClassLoader;
-import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.net.PeerHandlerGroup;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
 import org.slf4j.Logger;
@@ -66,38 +66,38 @@ public class BranchConfiguration {
     @Bean
     @ConditionalOnProperty(name = "yggdrash.node.seed",
             havingValue = "false", matchIfMissing = true)
-    BlockChain stem(PeerGroup peerGroup, BranchGroup branchGroup)
+    BlockChain stem(PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
             throws IOException {
-        return addBranch(stemResource.getInputStream(), peerGroup, branchGroup);
+        return addBranch(stemResource.getInputStream(), peerHandlerGroup, branchGroup);
     }
 
     @Bean
     @ConditionalOnProperty("yggdrash.node.chain.enabled")
-    BlockChain yeed(PeerGroup peerGroup, BranchGroup branchGroup)
+    BlockChain yeed(PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
             throws IOException {
-        return addBranch(yeedResource.getInputStream(), peerGroup, branchGroup);
+        return addBranch(yeedResource.getInputStream(), peerHandlerGroup, branchGroup);
     }
 
     @Bean
     @ConditionalOnProperty("yggdrash.node.chain.enabled")
-    BlockChain sw(PeerGroup peerGroup, BranchGroup branchGroup)
+    BlockChain sw(PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
             throws IOException {
-        return addBranch(swResource.getInputStream(), peerGroup, branchGroup);
+        return addBranch(swResource.getInputStream(), peerHandlerGroup, branchGroup);
     }
 
     @Bean
     @ConditionalOnProperty("yggdrash.node.chain.enabled")
-    BlockChain asset(PeerGroup peerGroup, BranchGroup branchGroup)
+    BlockChain asset(PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
             throws IOException {
-        return addBranch(assetResource.getInputStream(), peerGroup, branchGroup);
+        return addBranch(assetResource.getInputStream(), peerHandlerGroup, branchGroup);
     }
 
     @Bean
-    BranchGroup branchGroup(BranchLoader loader, PeerGroup peerGroup) {
+    BranchGroup branchGroup(BranchLoader loader, PeerHandlerGroup peerHandlerGroup) {
         BranchGroup branchGroup = new BranchGroup();
         try {
             for (GenesisBlock genesis : loader.getGenesisBlockList()) {
-                addBranch(genesis, peerGroup, branchGroup);
+                addBranch(genesis, peerHandlerGroup, branchGroup);
             }
         } catch (Exception e2) {
             log.warn(e2.getMessage(), e2);
@@ -113,20 +113,22 @@ public class BranchConfiguration {
         return new BranchLoader(defaultConfig.getBranchPath());
     }
 
-    private BlockChain addBranch(InputStream is, PeerGroup peerGroup, BranchGroup branchGroup)
+    private BlockChain addBranch(InputStream is, PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
             throws IOException {
         GenesisBlock genesis = GenesisBlock.of(is);
-        return addBranch(genesis, peerGroup, branchGroup);
+        return addBranch(genesis, peerHandlerGroup, branchGroup);
     }
 
-    private BlockChain addBranch(GenesisBlock genesis, PeerGroup peerGroup,
+    private BlockChain addBranch(GenesisBlock genesis, PeerHandlerGroup peerHandlerGroup,
                                  BranchGroup branchGroup) {
         try {
             BlockChain branch = BlockChainBuilder.Builder()
                     .addGenesis(genesis)
                     .setStoreBuilder(storeBuilder)
                     .build();
-            branchGroup.addBranch(branch, peerGroup);
+            //BestBlock bestBlock = BestBlock.of(branch.getBranchId(), branch.getLastIndex());
+            //peerTable.getOwner().updateBestBlock(bestBlock);
+            branchGroup.addBranch(branch, peerHandlerGroup);
             return branch;
         } catch (Exception e) {
             log.warn(e.getMessage());

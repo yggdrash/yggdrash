@@ -20,15 +20,15 @@ import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.yggdrash.core.exception.FailedOperationException;
-import io.yggdrash.core.net.NodeServer;
+import io.yggdrash.core.net.PeerListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class GRpcNodeServer implements NodeServer {
-    private static final Logger log = LoggerFactory.getLogger(GRpcNodeServer.class);
+public class GRpcPeerListener implements PeerListener {
+    private static final Logger log = LoggerFactory.getLogger(GRpcPeerListener.class);
 
     private List<BindableService> bindableServiceList = new ArrayList<>();
 

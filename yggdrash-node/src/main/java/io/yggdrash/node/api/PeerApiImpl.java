@@ -1,7 +1,7 @@
 package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
-import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.net.PeerHandlerGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -11,15 +11,15 @@ import java.util.List;
 @AutoJsonRpcServiceImpl
 public class PeerApiImpl implements PeerApi {
 
-    private final PeerGroup peerGroup;
+    private final PeerHandlerGroup peerHandlerGroup;
 
     @Autowired
-    public PeerApiImpl(PeerGroup peerGroup) {
-        this.peerGroup = peerGroup;
+    public PeerApiImpl(PeerHandlerGroup peerHandlerGroup) {
+        this.peerHandlerGroup = peerHandlerGroup;
     }
 
     @Override
     public List<String> getAllActivePeer() {
-        return peerGroup.getActivePeerList();
+        return peerHandlerGroup.getActivePeerList();
     }
 }

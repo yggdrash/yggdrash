@@ -21,7 +21,7 @@ import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.NodeStatus;
-import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.net.PeerHandlerGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,14 +42,14 @@ public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
     private final AtomicReference<Health> health = new AtomicReference<>(Health.down().build());
     private final DefaultConfig defaultConfig;
     private final BranchGroup branchGroup;
-    private final PeerGroup peerGroup;
+    private final PeerHandlerGroup peerHandlerGroup;
 
     @Autowired
     public NodeHealthIndicator(DefaultConfig defaultConfig, BranchGroup branchGroup,
-                               PeerGroup peerGroup) {
+                               PeerHandlerGroup peerHandlerGroup) {
         this.defaultConfig = defaultConfig;
         this.branchGroup = branchGroup;
-        this.peerGroup = peerGroup;
+        this.peerHandlerGroup = peerHandlerGroup;
     }
 
     @Override
@@ -87,7 +87,7 @@ public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
                 .collect(Collectors.toMap(BlockChain::getBranchId, BlockChain::getLastIndex));
         builder.withDetail("branches", branches);
 
-        builder.withDetail("activePeers", peerGroup.getActivePeerList().size());
+        builder.withDetail("activePeers", peerHandlerGroup.getActivePeerList().size());
         health.set(builder.build());
     }
 }
