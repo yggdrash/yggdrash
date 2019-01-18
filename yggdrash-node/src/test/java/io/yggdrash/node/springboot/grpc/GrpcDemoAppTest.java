@@ -22,10 +22,11 @@ import io.grpc.Metadata;
 import io.grpc.ServerCall;
 import io.grpc.ServerCallHandler;
 import io.grpc.ServerInterceptor;
+import io.yggdrash.TestConstants;
 import io.yggdrash.node.springboot.grpc.context.LocalRunningGrpcPort;
 import io.yggdrash.node.springboot.grpc.demo.GrpcDemoApp;
-import io.yggdrash.proto.Ping;
-import io.yggdrash.proto.PingPongGrpc;
+import io.yggdrash.proto.PeerGrpc;
+import io.yggdrash.proto.Proto;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mockito;
@@ -35,6 +36,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.concurrent.ExecutionException;
@@ -45,6 +47,7 @@ import static org.mockito.Mockito.mock;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = {GrpcDemoApp.class, GrpcDemoAppTest.TestConfig.class})
+@IfProfileValue(name = "spring.profiles.active", value = TestConstants.CI_TEST)
 public class GrpcDemoAppTest {
     @LocalRunningGrpcPort
     private int runningPort;
@@ -65,8 +68,8 @@ public class GrpcDemoAppTest {
                 .forAddress("localhost", runningPort)
                 .usePlaintext().build();
 
-        PingPongGrpc.newFutureStub(channel)
-                .play(Ping.newBuilder().setPing("ping").build()).get().getPong();
+        PeerGrpc.newFutureStub(channel)
+                .play(Proto.Ping.newBuilder().setPing("ping").build()).get().getPong();
 
         Mockito.verify(globalInterceptor, Mockito.times(1))
                 .interceptCall(Mockito.any(), Mockito.any(), Mockito.any());

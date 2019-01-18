@@ -16,7 +16,6 @@
 
 package io.yggdrash.node.springboot.grpc;
 
-
 import io.grpc.ServerInterceptor;
 import org.springframework.stereotype.Service;
 

@@ -98,16 +98,17 @@ public class GrpcServerRunner implements CommandLineRunner {
         Stream<? extends ServerInterceptor> privateInterceptors =
                 Stream.of(grpcService.interceptors()).map(interceptorClass -> {
                     try {
-                        return 0 < applicationContext.getBeanNamesForType(interceptorClass).length ?
-                                applicationContext.getBean(interceptorClass) :
+                        return 0 < applicationContext.getBeanNamesForType(interceptorClass).length
+                                ? applicationContext.getBean(interceptorClass) :
                                 interceptorClass.newInstance();
                     } catch (InstantiationException | IllegalAccessException e) {
                         throw new BeanCreationException("Failed to create interceptor instance.", e);
                     }
                 });
 
-        List<ServerInterceptor> interceptors = Stream.concat(grpcService.applyGlobalInterceptors() ?
-                globalInterceptors.stream() : Stream.empty(), privateInterceptors)
+        List<ServerInterceptor> interceptors = Stream.concat(
+                grpcService.applyGlobalInterceptors() ? globalInterceptors.stream() :
+                        Stream.empty(), privateInterceptors)
                 .distinct()
                 .collect(Collectors.toList());
         return ServerInterceptors.intercept(serviceDefinition, interceptors);

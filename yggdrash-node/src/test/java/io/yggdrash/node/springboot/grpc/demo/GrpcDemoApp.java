@@ -18,9 +18,9 @@ package io.yggdrash.node.springboot.grpc.demo;
 
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.node.springboot.grpc.GrpcService;
-import io.yggdrash.proto.Ping;
-import io.yggdrash.proto.PingPongGrpc;
-import io.yggdrash.proto.Pong;
+import io.yggdrash.proto.PeerGrpc;
+import io.yggdrash.proto.Proto.Ping;
+import io.yggdrash.proto.Proto.Pong;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
@@ -32,7 +32,7 @@ public class GrpcDemoApp {
     }
 
     @GrpcService
-    public static class PingPongService extends PingPongGrpc.PingPongImplBase {
+    public static class PingPongService extends PeerGrpc.PeerImplBase {
         @Override
         public void play(Ping request, StreamObserver<Pong> responseObserver) {
             System.out.println("In PingPongService");
