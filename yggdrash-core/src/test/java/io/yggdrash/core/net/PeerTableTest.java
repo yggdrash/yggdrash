@@ -64,7 +64,7 @@ public class PeerTableTest {
 
     @Test
     public void getClosestPeers() {
-        assert peerTable.getClosestPeers().size() == 0;
+        assert peerTable.getClosestPeers(KademliaOptions.BUCKET_SIZE).size() == 0;
     }
 
     @Test

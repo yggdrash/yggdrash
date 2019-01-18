@@ -16,14 +16,19 @@
 
 package io.yggdrash.core.net;
 
-import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.TransactionHusk;
 
-public interface PeerListener {
+import java.util.List;
 
-    void initConsumer(DiscoveryConsumer discoveryConsumer,
-                      BlockChainConsumer blockChainConsumer);
+public interface BlockChainConsumer {
 
-    void start(String host, int port) throws FailedOperationException;
+    List<BlockHusk> syncBlock(BranchId branchId, long offset, long limit);
 
-    void stop();
+    List<TransactionHusk> syncTransaction(BranchId branchId);
+
+    void broadcastBlock(BlockHusk block);
+
+    void broadcastTransaction(TransactionHusk tx);
 }

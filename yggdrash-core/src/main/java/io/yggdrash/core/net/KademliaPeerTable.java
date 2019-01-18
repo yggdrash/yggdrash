@@ -45,17 +45,16 @@ public class KademliaPeerTable implements PeerTable {
     }
 
     @Override
-    public List<String> getBootstrappingSeedList() {
-        List<String> seedPeerList;
+    public List<Peer> getBootstrappingSeedList() {
+        List<Peer> seedPeerList;
 
         if (peerStore.size() > 1) {
-            seedPeerList = getAllFromPeerStore();
+            seedPeerList = getClosestPeers(KademliaOptions.BUCKET_SIZE);
+        } else if (this.seedPeerList != null) {
+            seedPeerList = this.seedPeerList.stream().map(Peer::valueOf)
+                    .collect(Collectors.toList());
         } else {
-            seedPeerList = this.seedPeerList;
-        }
-
-        if (seedPeerList == null || seedPeerList.isEmpty()) {
-            return new ArrayList<>();
+            seedPeerList = new ArrayList<>();
         }
 
         return seedPeerList;
@@ -179,19 +178,15 @@ public class KademliaPeerTable implements PeerTable {
     }
 
     @Override
-    public synchronized List<Peer> getClosestPeers() {
+    public synchronized List<Peer> getClosestPeers(int maxPeers) {
         List<Peer> closestEntries = getAllPeers();
         closestEntries.remove(owner);
         closestEntries.sort(new DistanceComparator(owner.getPeerId().getBytes()));
-        if (closestEntries.size() > KademliaOptions.BUCKET_SIZE) {
-            closestEntries = closestEntries.subList(0, KademliaOptions.BUCKET_SIZE);
+        if (closestEntries.size() > maxPeers) {
+            closestEntries = closestEntries.subList(0, maxPeers);
         }
 
         return closestEntries;
-    }
-
-    private synchronized List<String> getAllFromPeerStore() {
-        return peerStore.getAll();
     }
 
     /**

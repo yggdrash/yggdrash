@@ -16,14 +16,13 @@
 
 package io.yggdrash.core.net;
 
-import io.yggdrash.core.exception.FailedOperationException;
+import java.util.List;
 
-public interface PeerListener {
+public interface DiscoveryConsumer {
 
-    void initConsumer(DiscoveryConsumer discoveryConsumer,
-                      BlockChainConsumer blockChainConsumer);
+    List<String> findPeers(Peer requestPeer);
 
-    void start(String host, int port) throws FailedOperationException;
+    void afterFindPeersResponse();
 
-    void stop();
+    String play(Peer from, String msg);
 }
