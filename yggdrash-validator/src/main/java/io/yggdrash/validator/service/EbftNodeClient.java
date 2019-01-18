@@ -1,4 +1,4 @@
-package io.yggdrash.validator;
+package io.yggdrash.validator.service;
 
 import io.grpc.Context;
 import io.grpc.ManagedChannel;

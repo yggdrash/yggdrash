@@ -3,7 +3,6 @@ package io.yggdrash.validator.service;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.proto.ConsensusEbftGrpc;
 import io.yggdrash.proto.EbftProto;
-import io.yggdrash.validator.EbftNodeServer;
 import io.yggdrash.validator.data.BlockCon;
 import io.yggdrash.validator.data.BlockConChain;
 import io.yggdrash.validator.data.NodeStatus;

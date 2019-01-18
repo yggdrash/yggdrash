@@ -1,4 +1,4 @@
-package io.yggdrash.validator;
+package io.yggdrash.validator.service;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -407,14 +407,17 @@ public class EbftNodeServer implements CommandLineRunner {
 
     private void loggingNode() {
 
-        log.info("[" + this.blockConChain.getLastConfirmedBlockCon().getIndex() + "]"
-                + this.blockConChain.getLastConfirmedBlockCon().getHashHex()
-                + " ("
-                + this.blockConChain.getLastConfirmedBlockCon().getBlock().getAddressHexString()
-                + ") "
-                + "["
-                + this.blockConChain.getLastConfirmedBlockCon().getConsensusList().size()
-                + "]");
+        BlockCon lastBlockCon = this.blockConChain.getLastConfirmedBlockCon().clone();
+        if (lastBlockCon != null) {
+            log.info("[" + lastBlockCon.getIndex() + "] "
+                    + lastBlockCon.getHashHex()
+                    + " ("
+                    + lastBlockCon.getBlock().getAddressHexString()
+                    + ") "
+                    + "("
+                    + lastBlockCon.getConsensusList().size()
+                    + ")");
+        }
 
         if (log.isDebugEnabled()) {
             log.debug("map size= " + this.blockConChain.getBlockConStore().size());

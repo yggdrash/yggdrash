@@ -17,14 +17,14 @@ import java.util.Arrays;
 import java.util.List;
 
 @GRpcService
-public class NodeService extends BlockChainGrpc.BlockChainImplBase {
-    private static final Logger log = LoggerFactory.getLogger(NodeService.class);
+public class NodeGrpcService extends BlockChainGrpc.BlockChainImplBase {
+    private static final Logger log = LoggerFactory.getLogger(NodeGrpcService.class);
     private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
 
     private final BlockConChain blockConChain;
 
     @Autowired
-    public NodeService(BlockConChain blockConChain) {
+    public NodeGrpcService(BlockConChain blockConChain) {
         this.blockConChain = blockConChain;
     }
 
@@ -34,7 +34,7 @@ public class NodeService extends BlockChainGrpc.BlockChainImplBase {
         log.debug("NodeService syncBlock");
         long offset = syncLimit.getOffset();
         long limit = syncLimit.getLimit();
-        log.trace("syncBlock() request offset={}, limit={}", offset, limit);
+        log.debug("syncBlock() request offset={}, limit={}", offset, limit);
 
         Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
         if (Arrays.equals(syncLimit.getBranch().toByteArray(), blockConChain.getChain())
@@ -56,7 +56,7 @@ public class NodeService extends BlockChainGrpc.BlockChainImplBase {
         log.debug("NodeService syncTransaction");
         long offset = syncLimit.getOffset();
         long limit = syncLimit.getLimit();
-        log.trace("syncTransaction() request offset={}, limit={}", offset, limit);
+        log.debug("syncTransaction() request offset={}, limit={}", offset, limit);
 
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
         if (Arrays.equals(syncLimit.getBranch().toByteArray(), blockConChain.getChain())) {
