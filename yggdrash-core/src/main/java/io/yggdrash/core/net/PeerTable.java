@@ -23,13 +23,13 @@ public interface PeerTable extends PeerEventListener {
 
     Peer getOwner();
 
-    List<String> getBootstrappingSeedList();
+    List<Peer> getBootstrappingSeedList();
 
     Peer addPeer(Peer peer);
 
     int count();
 
-    List<Peer> getClosestPeers();
+    List<Peer> getClosestPeers(int maxPeers); // getNeighbor
 
     void setSeedPeerList(List<String> seedPeerList);
 
@@ -39,9 +39,9 @@ public interface PeerTable extends PeerEventListener {
 
     List<Peer> getLatestPeers(long reqTime);
 
-    Map<Integer, List<Peer>> getBucketIdAndPeerList();
+    Map<Integer, List<Peer>> getBucketIdAndPeerList(); //for debugging
 
-    List<String> getAllPeersFromBucketsOf();
+    List<String> getAllPeersFromBucketsOf(); //for debugging
 
     void touchPeer(Peer peer);
 }

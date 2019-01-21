@@ -1,11 +1,11 @@
 /*
- * Copyright 2019 Akashic Foundation
+ * Copyright 2018 Akashic Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -14,16 +14,12 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.net;
+package io.yggdrash.node.springboot.grpc;
 
-import io.yggdrash.core.exception.FailedOperationException;
+import io.grpc.ServerBuilder;
 
-public interface PeerListener {
+public class GrpcServerBuilderConfigurer {
+    public void configure(ServerBuilder<?> serverBuilder) {
 
-    void initConsumer(DiscoveryConsumer discoveryConsumer,
-                      BlockChainConsumer blockChainConsumer);
-
-    void start(String host, int port) throws FailedOperationException;
-
-    void stop();
+    }
 }
