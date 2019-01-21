@@ -222,7 +222,7 @@ public class Runtime<T> {
 
     public Object query(String method, JsonObject params) throws Exception {
         // Find query method and query
-        Method query = queryMethod.get(method.toLowerCase());
+        Method query = queryMethod.get(method);
         if (query != null) {
             if (params == null) {
                 return query.invoke(contract);

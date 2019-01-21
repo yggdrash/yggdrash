@@ -17,10 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
-import io.yggdrash.core.contract.Contract;
-import io.yggdrash.core.contract.ContractClassLoader;
-import io.yggdrash.core.contract.ContractMeta;
-import io.yggdrash.core.contract.StemContract;
+import io.yggdrash.core.contract.*;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
@@ -125,7 +122,10 @@ public class BlockChainBuilder {
             // TODO remove this
             if (branch.isStem()) {
                 return new StemContract();
-            } else {
+            } else if (branch.isYeed()){
+                return new CoinContract();
+            }
+                else {
                 ContractMeta contractMeta = ContractClassLoader.loadContractById(
                         storeBuilder.getConfig().getContractPath(), branch.getContractId());
                 return contractMeta.getContract().getDeclaredConstructor().newInstance();

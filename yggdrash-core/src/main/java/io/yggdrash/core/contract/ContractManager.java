@@ -16,6 +16,11 @@
 
 package io.yggdrash.core.contract;
 
+import com.google.gson.JsonObject;
+import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.core.exception.NonExistObjectException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -63,8 +68,49 @@ public class ContractManager extends ClassLoader {
         }
     }
 
-    public List<Map> getContractInfoList() {
+    public List<Map> getContracts() {
         return contractInfoList;
+    }
+
+    public Map<String, Object> getContractById(JsonObject params) {
+        Iterator<Map> it = contractInfoList.iterator();
+        Map<String, Object> contract = new HashMap<>();
+
+        while(it.hasNext()) {
+            Map<String, Object> contractList = it.next();
+            if (contractList.get("contractId").equals(params.get("contractId").getAsString())) {
+                contract = contractList;
+            }
+        }
+        return contract;
+    }
+
+    public Map<String, String> getMethod(String method) {
+        return null;
+    }
+
+    public Boolean isContract(JsonObject params) {
+        Iterator<Map> it = contractInfoList.iterator();
+
+        while(it.hasNext()) {
+            Map<String, Object> contractList = it.next();
+            if (contractList.get("contractId").equals(params.get("contractId").getAsString())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public String getBranchById(ContractId contractId) {
+        return null;
+    }
+
+    public TransactionReceipt deploy() {
+        return null;
+    }
+
+    public Boolean selfdestruct() {
+        return null;
     }
 
     private Map<String, Object> contractInfo(ContractMeta contractMeta, ContractId contractId) {

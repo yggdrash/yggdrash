@@ -23,12 +23,8 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.contract.ContractClassLoader;
-<<<<<<< HEAD
 import io.yggdrash.core.contract.ContractManager;
-import io.yggdrash.core.net.PeerGroup;
-=======
 import io.yggdrash.core.net.PeerHandlerGroup;
->>>>>>> 87381039c362e0dc1b553816165548d1362e3552
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
 import org.slf4j.Logger;
@@ -118,19 +114,15 @@ public class BranchConfiguration {
         return new BranchLoader(defaultConfig.getBranchPath());
     }
 
-<<<<<<< HEAD
     @Bean
     ContractManager contractManager(DefaultConfig defaultConfig) {
         if (defaultConfig.isProductionMode()) {
             ContractClassLoader.copyResourcesToContractPath(defaultConfig.getContractPath());
         }
-        return new ContractManager(storeBuilder.getConfig().getContractPath());
+        return new ContractManager(defaultConfig.getContractPath());
     }
 
-    private BlockChain addBranch(InputStream is, PeerGroup peerGroup, BranchGroup branchGroup)
-=======
     private BlockChain addBranch(InputStream is, PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
->>>>>>> 87381039c362e0dc1b553816165548d1362e3552
             throws IOException {
         GenesisBlock genesis = GenesisBlock.of(is);
         return addBranch(genesis, peerHandlerGroup, branchGroup);

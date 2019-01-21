@@ -37,7 +37,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      */
     @ContractQuery
     @Override
-    public BigDecimal totalsupply() {
+    public BigDecimal totalSupply() {
         log.info("\ntotalsupply :: param => ");
         return getBalance(totalSupplyKey);
     }
@@ -50,7 +50,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      */
     @ContractQuery
     @Override
-    public BigDecimal balanceof(JsonObject params) {
+    public BigDecimal balanceOf(JsonObject params) {
         log.info("\nbalanceof :: params => " + params);
 
         String address = params.get("address").getAsString().toLowerCase();
@@ -170,7 +170,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      */
     @InvokeTransction
     @Override
-    public TransactionReceipt transferfrom(JsonObject params) {
+    public TransactionReceipt transferFrom(JsonObject params) {
         log.info("\ntransferfrom :: params => " + params);
 
         String from = params.get("from").getAsString().toLowerCase();

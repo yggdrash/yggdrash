@@ -63,7 +63,7 @@ public class CoinContractTest {
 
     @Test
     public void totalSupply() {
-        BigDecimal res = coinContract.totalsupply();
+        BigDecimal res = coinContract.totalSupply();
 
         assertEquals(BigDecimal.valueOf(1000000000000L), res);
     }
@@ -72,7 +72,7 @@ public class CoinContractTest {
     public void balanceOf() {
         String paramStr = "{\"address\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}";
 
-        BigDecimal res = coinContract.balanceof(createParams(paramStr));
+        BigDecimal res = coinContract.balanceOf(createParams(paramStr));
         assertEquals(BigDecimal.valueOf(1000000000), res);
     }
 
@@ -96,9 +96,9 @@ public class CoinContractTest {
         String toBalnce = "{\"address\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\"}";
 
         log.debug("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94 : "
-                + coinContract.balanceof(createParams(balanceOf)).toString());
+                + coinContract.balanceOf(createParams(balanceOf)).toString());
         log.debug("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e : "
-                + coinContract.balanceof(createParams(toBalnce)).toString());
+                + coinContract.balanceOf(createParams(toBalnce)).toString());
 
         JsonObject param = createParams(paramStr);
 
@@ -117,9 +117,9 @@ public class CoinContractTest {
         String paramStr3 = "{\"address\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}";
 
         assertEquals(BigDecimal.valueOf(1000000010),
-                coinContract.balanceof(createParams(paramStr2)));
+                coinContract.balanceOf(createParams(paramStr2)));
         assertEquals(BigDecimal.valueOf(999999990),
-                coinContract.balanceof(createParams(paramStr3)));
+                coinContract.balanceOf(createParams(paramStr3)));
 
         // To many amount
         param.addProperty("amount", BigDecimal.valueOf(1000000010));
@@ -149,7 +149,7 @@ public class CoinContractTest {
         result.setIssuer(spender);
         try {
             txReceiptField.set(coinContract, result);
-            result = coinContract.transferfrom(transferFromObject);
+            result = coinContract.transferFrom(transferFromObject);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
@@ -164,7 +164,7 @@ public class CoinContractTest {
         TransactionReceipt result2 = new TransactionReceiptImpl();
         try {
             txReceiptField.set(coinContract, result);
-            coinContract.transferfrom(transferFromObject);
+            coinContract.transferFrom(transferFromObject);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
@@ -173,7 +173,7 @@ public class CoinContractTest {
         assertFalse(result2.isSuccess());
 
         transferFromObject.addProperty("amount", getAllowance(owner, spender));
-        result2 = coinContract.transferfrom(transferFromObject);
+        result2 = coinContract.transferFrom(transferFromObject);
         assertTrue(result2.isSuccess());
         // reset
         assertEquals(BigDecimal.ZERO, getAllowance(owner, spender));
@@ -198,9 +198,9 @@ public class CoinContractTest {
         String senderParams = "{\"address\" : \"" + owner + "\"}";
 
         assertEquals(BigDecimal.valueOf(1000000000),
-                coinContract.balanceof(createParams(spenderParams)));
+                coinContract.balanceOf(createParams(spenderParams)));
         assertEquals(BigDecimal.valueOf(1000000000),
-                coinContract.balanceof(createParams(senderParams)));
+                coinContract.balanceOf(createParams(senderParams)));
 
         String allowanceParams = "{\"owner\" : \"" + owner + "\","
                 + "\"spender\" : \"" + spender + "\"}";
@@ -217,15 +217,15 @@ public class CoinContractTest {
 
         String toParams = "{\"address\" : \"" + to + "\"}";
         assertEquals(BigDecimal.valueOf(998000000700L),
-                coinContract.balanceof(createParams(toParams)));
+                coinContract.balanceOf(createParams(toParams)));
 
         String fromParams = "{\"address\" : \"" + owner + "\"}";
         assertEquals(BigDecimal.valueOf(999999300),
-                coinContract.balanceof(createParams(fromParams)));
+                coinContract.balanceOf(createParams(fromParams)));
 
         String spenderParams = "{\"address\" : \"" + spender + "\"}";
         assertEquals(BigDecimal.valueOf(1000000000),
-                coinContract.balanceof(createParams(spenderParams)));
+                coinContract.balanceOf(createParams(spenderParams)));
     }
 
     private JsonObject createParams(String paramStr) {
@@ -245,7 +245,7 @@ public class CoinContractTest {
     private BigDecimal getBalance(String  address) {
         JsonObject obj = new JsonObject();
         obj.addProperty("address", address);
-        return coinContract.balanceof(obj);
+        return coinContract.balanceOf(obj);
     }
 
     private BigDecimal getAllowance(String owner, String spender) {
