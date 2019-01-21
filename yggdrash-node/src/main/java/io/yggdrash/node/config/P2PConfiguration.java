@@ -17,21 +17,24 @@
 package io.yggdrash.node.config;
 
 import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.net.BlockChainConsumer;
+import io.yggdrash.core.net.BlockChainServiceConsumer;
 import io.yggdrash.core.net.Discovery;
+import io.yggdrash.core.net.DiscoveryConsumer;
+import io.yggdrash.core.net.DiscoveryServiceConsumer;
 import io.yggdrash.core.net.KademliaDiscovery;
-import io.yggdrash.core.net.NodeServer;
+import io.yggdrash.core.net.KademliaPeerTable;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerClientChannel;
-import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.net.PeerHandlerFactory;
+import io.yggdrash.core.net.PeerHandlerGroup;
+import io.yggdrash.core.net.PeerListener;
+import io.yggdrash.core.net.PeerTable;
 import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.node.GRpcClientChannel;
+import io.yggdrash.node.GRpcPeerHandlerFactory;
 import io.yggdrash.node.PeerTask;
-import io.yggdrash.node.service.BlockChainService;
-import io.yggdrash.node.service.GRpcNodeServer;
-import io.yggdrash.node.service.PeerService;
-import io.yggdrash.node.service.PingPongService;
+import io.yggdrash.node.service.GRpcPeerListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -51,35 +54,49 @@ public class P2PConfiguration {
     }
 
     @Bean
-    PeerGroup peerGroup(Wallet wallet, StoreBuilder storeBuilder) {
+    PeerHandlerFactory peerHandlerFactory() {
+        return new GRpcPeerHandlerFactory();
+    }
+
+    @Bean
+    PeerTable peerTable(Wallet wallet, StoreBuilder storeBuilder) {
         Peer owner = Peer.valueOf(wallet.getNodeId(), nodeProperties.getGrpc().getHost(),
                 nodeProperties.getGrpc().getPort());
 
         PeerStore peerStore = storeBuilder.buildPeerStore();
-        PeerGroup peerGroup = new PeerGroup(owner, peerStore, nodeProperties.getMaxPeers());
-        peerGroup.setSeedPeerList(nodeProperties.getSeedPeerList());
-        return peerGroup;
+        PeerTable peerTable = new KademliaPeerTable(owner, peerStore);
+        peerTable.setSeedPeerList(nodeProperties.getSeedPeerList());
+        return peerTable;
     }
 
     @Bean
-    Discovery discovery(PeerGroup peerGroup) {
-        Discovery discovery = new KademliaDiscovery() {
-            @Override
-            public PeerClientChannel getClient(Peer peer) {
-                return new GRpcClientChannel(peer);
-            }
-        };
-        discovery.setPeerGroup(peerGroup);
-        return discovery;
+    PeerHandlerGroup peerHandlerGroup(PeerTable peerTable, PeerHandlerFactory peerHandlerFactory) {
+        PeerHandlerGroup peerHandlerGroup = new PeerHandlerGroup(peerHandlerFactory);
+        peerHandlerGroup.setPeerEventListener(peerTable);
+        return peerHandlerGroup;
     }
 
     @Bean
-    NodeServer nodeServer(PeerGroup peerGroup, BranchGroup branchGroup) {
-        GRpcNodeServer server = new GRpcNodeServer();
-        server.addService(new PingPongService(peerGroup));
-        server.addService(new PeerService(peerGroup));
-        server.addService(new BlockChainService(branchGroup));
-        return server;
+    Discovery discovery(PeerTable peerTable) {
+        return new KademliaDiscovery(peerTable);
+    }
+
+    @Bean
+    DiscoveryConsumer discoveryConsumer(PeerTable peerTable) {
+        return new DiscoveryServiceConsumer(peerTable);
+    }
+
+    @Bean
+    BlockChainConsumer blockChainConsumer(BranchGroup branchGroup) {
+        return new BlockChainServiceConsumer(branchGroup);
+    }
+
+    @Bean
+    PeerListener peerListener(DiscoveryConsumer discoveryConsumer,
+                              BlockChainConsumer blockChainConsumer) {
+        PeerListener peerListener = new GRpcPeerListener();
+        peerListener.initConsumer(discoveryConsumer, blockChainConsumer);
+        return peerListener;
     }
 
     /**

@@ -20,17 +20,14 @@ import com.google.protobuf.ByteString;
 import io.grpc.testing.GrpcServerRule;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.net.BlockChainConsumer;
+import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerGroup;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
-import io.yggdrash.proto.PeerInfo;
-import io.yggdrash.proto.Ping;
-import io.yggdrash.proto.PingPongGrpc;
-import io.yggdrash.proto.Pong;
+import io.yggdrash.proto.PeerGrpc;
 import io.yggdrash.proto.Proto;
 import org.junit.Before;
 import org.junit.Rule;
@@ -44,20 +41,19 @@ import java.util.HashSet;
 import java.util.Set;
 
 import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GRpcNodeServerTest {
+public class GRpcPeerListenerTest {
 
     @Rule
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
 
     @Mock
-    private PeerGroup peerGroupMock;
+    private DiscoveryConsumer discoveryConsumerMock;
 
     @Mock
-    private BranchGroup branchGroupMock;
+    private BlockChainConsumer blockChainConsumerMock;
 
     private TransactionHusk tx;
     private BlockHusk block;
@@ -65,32 +61,54 @@ public class GRpcNodeServerTest {
 
     @Before
     public void setUp() {
-        grpcServerRule.getServiceRegistry().addService(new PingPongService(peerGroupMock));
-        grpcServerRule.getServiceRegistry().addService(new BlockChainService(branchGroupMock)
+        grpcServerRule.getServiceRegistry()
+                .addService(new GRpcDiscoveryService(discoveryConsumerMock));
+        grpcServerRule.getServiceRegistry()
+                .addService(new GRpcBlockChainService(blockChainConsumerMock)
         );
 
         tx = BlockChainTestUtils.createTransferTxHusk();
-        when(branchGroupMock.addTransaction(any())).thenReturn(tx);
         block = BlockChainTestUtils.genesisBlock();
         branchId = block.getBranchId();
     }
 
     @Test
     public void play() {
-        PingPongGrpc.PingPongBlockingStub blockingStub = PingPongGrpc.newBlockingStub(
+        PeerGrpc.PeerBlockingStub blockingStub = PeerGrpc.newBlockingStub(
+                grpcServerRule.getChannel());
+        Peer requestPeer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        when(discoveryConsumerMock.play(requestPeer, "Ping")).thenReturn("Pong");
+
+        Proto.PeerInfo peerInfo = Proto.PeerInfo.newBuilder()
+                .setUrl(requestPeer.getYnodeUri())
+                .build();
+
+        Proto.Ping ping = Proto.Ping.newBuilder().setPing("Ping").setPeer(peerInfo).build();
+
+        Proto.Pong pong = blockingStub.play(ping);
+
+        assertEquals("Pong", pong.getPong());
+    }
+
+    @Test
+    public void findPeers() {
+        PeerGrpc.PeerBlockingStub blockingStub = PeerGrpc.newBlockingStub(
                 grpcServerRule.getChannel());
 
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        PeerInfo peerInfo = PeerInfo.newBuilder()
+        Proto.BestBlock bestBlock = Proto.BestBlock.newBuilder()
+                .setBranch(ByteString.copyFrom(branchId.getBytes()))
+                .setIndex(0).build();
+        Proto.RequestPeer requestPeer = Proto.RequestPeer.newBuilder()
                 .setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
                 .setPort(peer.getPort())
+                .addBestBlocks(bestBlock)
                 .build();
-        Ping ping = Ping.newBuilder().setPing("Ping").setPeer(peerInfo).build();
 
-        Pong pong = blockingStub.play(ping);
+        Proto.PeerList peerList = blockingStub.findPeers(requestPeer);
 
-        assertEquals("Pong", pong.getPong());
+        assertEquals(0, peerList.getPeersCount());
     }
 
     @Test
@@ -115,14 +133,13 @@ public class GRpcNodeServerTest {
     public void syncBlock() {
         Set<BlockHusk> blocks = new HashSet<>();
         blocks.add(block);
-        when(branchGroupMock.getBlockByIndex(branchId, 0L)).thenReturn(block);
-        when(branchGroupMock.getBranch(any()))
-                .thenReturn(BlockChainTestUtils.createBlockChain(false));
+        when(blockChainConsumerMock.syncBlock(branchId, 0L, 100L))
+                .thenReturn(Collections.singletonList(block));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
         ByteString branch = ByteString.copyFrom(branchId.getBytes());
-        NetProto.SyncLimit syncLimit = NetProto.SyncLimit.newBuilder().setOffset(0).setLimit(10000)
+        NetProto.SyncLimit syncLimit = NetProto.SyncLimit.newBuilder().setOffset(0).setLimit(100)
                 .setBranch(branch).build();
         Proto.BlockList list = blockingStub.syncBlock(syncLimit);
         assertEquals(1, list.getBlocksCount());
@@ -130,7 +147,7 @@ public class GRpcNodeServerTest {
 
     @Test
     public void syncTransaction() {
-        when(branchGroupMock.getUnconfirmedTxs(branchId))
+        when(blockChainConsumerMock.syncTransaction(branchId))
                 .thenReturn(Collections.singletonList(tx));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub

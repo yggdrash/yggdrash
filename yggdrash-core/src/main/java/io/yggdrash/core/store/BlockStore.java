@@ -61,9 +61,7 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
     public void addBlock(BlockHusk block) {
         // Add BlockIndex and Add Block Data
         long index = block.getIndex();
-        // TODO change Block index prefix
-        String blockIndexKey = "BLOCK_INDEX_" + Long.toString(index);
-        byte[] indexKey = HashUtil.sha3(blockIndexKey.getBytes());
+        byte[] indexKey = blockIndexKey(index);
         // store block index
         db.put(indexKey, block.getHash().getBytes());
         // store block data
@@ -74,8 +72,7 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
     }
 
     public BlockHusk getBlockByIndex(long index) {
-        String blockIndexKey = "BLOCK_INDEX_" + Long.toString(index);
-        byte[] indexKey = HashUtil.sha3(blockIndexKey.getBytes());
+        byte[] indexKey = blockIndexKey(index);
         byte[] blockHash = db.get(indexKey);
         if (blockHash == null) {
             return null;
@@ -99,6 +96,11 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
         }
         return transactionSize;
 
+    }
+
+    private byte[] blockIndexKey(long index) {
+        String blockIndexKey = "BLOCK_INDEX_" + Long.toString(index);
+        return HashUtil.sha3(blockIndexKey.getBytes());
     }
 
 }

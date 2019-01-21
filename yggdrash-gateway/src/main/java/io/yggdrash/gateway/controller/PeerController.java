@@ -16,7 +16,8 @@
 
 package io.yggdrash.gateway.controller;
 
-import io.yggdrash.core.net.PeerGroup;
+import io.yggdrash.core.net.PeerHandlerGroup;
+import io.yggdrash.core.net.PeerTable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -28,35 +29,38 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("peers")
 class PeerController {
 
-    private final PeerGroup peerGroup;
+    private final PeerTable peerTable;
+
+    private final PeerHandlerGroup peerHandlerGroup;
 
     @Autowired
-    public PeerController(PeerGroup peerGroup) {
-        this.peerGroup = peerGroup;
+    public PeerController(PeerTable peerTable, PeerHandlerGroup peerHandlerGroup) {
+        this.peerTable = peerTable;
+        this.peerHandlerGroup = peerHandlerGroup;
     }
 
     @GetMapping("/active")
     public ResponseEntity getAllActivePeer() {
-        return ResponseEntity.ok(peerGroup.getActivePeerList());
+        return ResponseEntity.ok(peerHandlerGroup.getActivePeerList());
     }
 
     @GetMapping("/channels")
     public ResponseEntity getChannels() {
-        return ResponseEntity.ok(peerGroup.getActivePeerListOf());
+        return ResponseEntity.ok(peerHandlerGroup.getActivePeerListOf());
     }
 
     @GetMapping("/buckets")
     public ResponseEntity getBuckets() {
-        return ResponseEntity.ok(peerGroup.getBucketsOf());
+        return ResponseEntity.ok(peerTable.getBucketIdAndPeerList());
     }
 
     @GetMapping("/buckets/allPeers")
     public ResponseEntity getPeersFromBuckets() {
-        return ResponseEntity.ok(peerGroup.getAllPeersFromBucketsOf());
+        return ResponseEntity.ok(peerTable.getAllPeersFromBucketsOf());
     }
 
     @GetMapping("/latestPeers")
     public ResponseEntity getLatestPeers(@RequestParam(value = "reqTime") long reqTime) {
-        return ResponseEntity.ok(peerGroup.getLatestPeers(reqTime));
+        return ResponseEntity.ok(peerTable.getLatestPeers(reqTime));
     }
 }

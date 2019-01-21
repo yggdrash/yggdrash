@@ -20,23 +20,30 @@ import io.grpc.BindableService;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.yggdrash.core.exception.FailedOperationException;
-import io.yggdrash.core.net.NodeServer;
+import io.yggdrash.core.net.BlockChainConsumer;
+import io.yggdrash.core.net.DiscoveryConsumer;
+import io.yggdrash.core.net.PeerListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class GRpcNodeServer implements NodeServer {
-    private static final Logger log = LoggerFactory.getLogger(GRpcNodeServer.class);
+public class GRpcPeerListener implements PeerListener {
+    private static final Logger log = LoggerFactory.getLogger(GRpcPeerListener.class);
 
     private List<BindableService> bindableServiceList = new ArrayList<>();
 
-    private Server server;
-
-    public void addService(BindableService bindableService) {
-        this.bindableServiceList.add(bindableService);
+    @Override
+    public void initConsumer(DiscoveryConsumer discoveryConsumer,
+                             BlockChainConsumer blockChainConsumer) {
+        if (blockChainConsumer != null) {
+            bindableServiceList.add(new GRpcBlockChainService(blockChainConsumer));
+        }
+        bindableServiceList.add(new GRpcDiscoveryService(discoveryConsumer));
     }
+
+    private Server server;
 
     @Override
     public void start(String host, int port) {

@@ -57,7 +57,7 @@ public class RuntimeTest {
         JsonArray txBody = ContractTestUtils.txBodyJson("genesis", genesisParams);
         BranchId branchId = TestConstants.YEED;
         TransactionHusk genesisTx = BlockChainTestUtils.createTxHusk(branchId, txBody);
-        assertThat(runtime.invoke(genesisTx)).isTrue();
+        assertThat(runtime.invoke(genesisTx).isSuccess()).isTrue();
 
         JsonObject params = ContractTestUtils.createParams("address",
                 "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
@@ -77,7 +77,7 @@ public class RuntimeTest {
         JsonObject json = ContractTestUtils.createSampleBranchJson();
         BranchId branchId = BranchId.of(json);
         TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId, "create", json);
-        assertThat(runtime.invoke(createTx)).isTrue();
+        assertThat(runtime.invoke(createTx).isSuccess()).isTrue();
 
         Set<String> result = (Set<String>)runtime.query("getallbranchid", null);
         assertThat(result).contains(branchId.toString());

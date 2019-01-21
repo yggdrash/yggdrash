@@ -28,7 +28,9 @@ public class NodeProperties {
     private boolean seed;
     private final Chain chain = new Chain();
 
-    public Chain getChain() { return chain; }
+    public Chain getChain() {
+        return chain;
+    }
 
     public Grpc getGrpc() {
         return grpc;

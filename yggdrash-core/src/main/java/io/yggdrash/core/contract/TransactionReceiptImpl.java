@@ -18,6 +18,7 @@ package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +33,15 @@ public class TransactionReceiptImpl implements TransactionReceipt {
     private String contractId;
     private Long blockHeight;
     private String methodName;
+
+    public TransactionReceiptImpl() {
+        //init;
+    }
+
+    public TransactionReceiptImpl(TransactionHusk tx) {
+        this.txId = tx.getHash().toString();
+        this.issuer = tx.getAddress().toString();
+    }
 
     public void addLog(JsonObject log) {
         txLog.add(log);
