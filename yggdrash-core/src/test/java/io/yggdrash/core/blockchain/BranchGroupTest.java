@@ -17,27 +17,18 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
-import io.yggdrash.common.util.ContractUtils;
-import io.yggdrash.core.contract.Contract;
-import io.yggdrash.core.exception.DuplicatedException;
-import io.yggdrash.core.runtime.annotation.ContractQuery;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
 import static io.yggdrash.TestConstants.PerformanceTest;
 import static io.yggdrash.TestConstants.TRANSFER_TO;
 import static io.yggdrash.TestConstants.YEED;
 import static io.yggdrash.TestConstants.wallet;
+import io.yggdrash.core.exception.DuplicatedException;
+import java.util.Collections;
+import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Before;
+import org.junit.Test;
 
 public class BranchGroupTest {
 
@@ -131,26 +122,19 @@ public class BranchGroupTest {
         assertThat(branchGroup.getTransactionReceiptStore(tx.getBranchId())).isNotNull();
     }
 
-    @Test
-    public void getContract() throws Exception {
-        Contract contract = branchGroup.getContract(block.getBranchId());
-        assertThat(contract).isNotNull();
-        Map<String, Method> queryMethod = ContractUtils
-                .contractMethods(contract, ContractQuery.class);
-        Method getAllBranchid = queryMethod.get("getallbranchid");
-        String result = getAllBranchid.invoke(contract).toString();
-        assertThat(result).contains(block.getBranchId().toString());
-    }
+//    TODO StemContract 구조변경 및 데이터 모델 변경
+//    TODO getallbranchid 메소드 삭제
+//    @Test
+//    public void getContract() throws Exception {
+//        Contract contract = branchGroup.getContract(block.getBranchId());
+//        assertThat(contract).isNotNull();
+//        Map<String, Method> queryMethod = ContractUtils
+//                .contractMethods(contract, ContractQuery.class);
+//        Method getAllBranchid = queryMethod.get("getallbranchid");
+//        String result = getAllBranchid.invoke(contract).toString();
+//        assertThat(result).contains(block.getBranchId().toString());
+//    }
 
-    @Test
-    public void query() {
-        JsonObject params = new JsonObject();
-        params.addProperty("key", "symbol");
-        params.addProperty("value", "STEM");
-
-        Object result = branchGroup.query(block.getBranchId(), "search", params);
-        assertThat((Set)result).isNotEmpty();
-    }
 
     private TransactionHusk createTx(int amount) {
         JsonArray txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, amount);
