@@ -17,10 +17,6 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.exception.FailedOperationException;
-import io.yggdrash.core.exception.NonExistObjectException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +32,7 @@ import java.util.stream.Stream;
 public class ContractManager extends ClassLoader {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
 
-    private List<Map> contractInfoList = new ArrayList<>();
+    private Map<ContractId,ContractMeta> contractMap = new HashMap<>();
 
     public ContractManager(String contractPath) {
         load(contractPath);
@@ -56,7 +52,7 @@ public class ContractManager extends ClassLoader {
                             contractRoot, contractId);
 
                     if (Files.isRegularFile(contractPath)) {
-                        contractInfoList.add(contractInfo(contractMeta, contractId));
+                        contractMap.put(contractId, contractMeta);
                     }
 
                 } catch (IOException e) {
@@ -68,21 +64,13 @@ public class ContractManager extends ClassLoader {
         }
     }
 
-    public List<Map> getContracts() {
-        return contractInfoList;
+    public ContractMeta getContractById(ContractId cId) {
+        ContractMeta meta = contractMap.get(cId);
+        return  meta;
     }
 
-    public Map<String, Object> getContractById(JsonObject params) {
-        Iterator<Map> it = contractInfoList.iterator();
-        Map<String, Object> contract = new HashMap<>();
-
-        while(it.hasNext()) {
-            Map<String, Object> contractList = it.next();
-            if (contractList.get("contractId").equals(params.get("contractId").getAsString())) {
-                contract = contractList;
-            }
-        }
-        return contract;
+    public ContractMeta getContractById(JsonObject params) {
+        return getContractById(ContractId.of(params.get("contractId").getAsString()));
     }
 
     public Map<String, String> getMethod(String method) {
@@ -90,20 +78,10 @@ public class ContractManager extends ClassLoader {
     }
 
     public Boolean isContract(JsonObject params) {
-        Iterator<Map> it = contractInfoList.iterator();
-
-        while(it.hasNext()) {
-            Map<String, Object> contractList = it.next();
-            if (contractList.get("contractId").equals(params.get("contractId").getAsString())) {
-                return true;
-            }
-        }
-        return false;
+        ContractId contractId = ContractId.of(params.get("contractId").getAsString());
+        return contractMap.get(contractId) != null;
     }
 
-    public String getBranchById(ContractId contractId) {
-        return null;
-    }
 
     public TransactionReceipt deploy() {
         return null;
@@ -113,11 +91,4 @@ public class ContractManager extends ClassLoader {
         return null;
     }
 
-    private Map<String, Object> contractInfo(ContractMeta contractMeta, ContractId contractId) {
-        Map<String, Object> contractInfo = new HashMap<>();
-        contractInfo.put("contractId", contractId.toString());
-        contractInfo.put("name", contractMeta.getContract().getSimpleName());
-        contractInfo.put("methods",  contractMeta.getMethods());
-        return contractInfo;
-    }
 }
