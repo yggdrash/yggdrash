@@ -49,7 +49,7 @@ public class ContractMeta {
         return contractClass;
     }
 
-    ContractId getContractId() {
+    public ContractId getContractId() {
         return contractId;
     }
 

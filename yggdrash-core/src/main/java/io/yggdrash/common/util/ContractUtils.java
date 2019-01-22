@@ -16,6 +16,7 @@
 
 package io.yggdrash.common.util;
 
+import io.yggdrash.core.contract.ContractMeta;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import java.lang.annotation.Annotation;
@@ -64,4 +65,13 @@ public class ContractUtils {
         }
         return methodList;
     }
+
+    public static Map<String, Object> contractInfo(ContractMeta contractMeta) {
+        Map<String, Object> contractInfo = new HashMap<>();
+        contractInfo.put("contractId", contractMeta.getContractId());
+        contractInfo.put("name", contractMeta.getContract().getSimpleName());
+        contractInfo.put("methods",  contractMeta.getMethods());
+        return contractInfo;
+    }
+
 }

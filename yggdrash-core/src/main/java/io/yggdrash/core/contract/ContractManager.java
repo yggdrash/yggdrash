@@ -17,12 +17,14 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.util.ContractUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -32,7 +34,7 @@ import java.util.stream.Stream;
 public class ContractManager extends ClassLoader {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
 
-    private Map<ContractId,ContractMeta> contractMap = new HashMap<>();
+    private Map<ContractId, ContractMeta> contractMap = new HashMap<>();
 
     public ContractManager(String contractPath) {
         load(contractPath);
@@ -42,9 +44,7 @@ public class ContractManager extends ClassLoader {
         try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(contractRoot)))) {
             filePathStream.forEach(contractPath -> {
                 File contractFile = new File(String.valueOf(contractPath));
-                if(contractFile.isDirectory()) {
-                    return;
-                }
+                if(contractFile.isDirectory()) { return; }
                 byte[] contractBinary;
                 try (FileInputStream inputStream = new FileInputStream(contractFile)) {
                     contractBinary = new byte[Math.toIntExact(contractFile.length())];
@@ -67,31 +67,39 @@ public class ContractManager extends ClassLoader {
         }
     }
 
-    public ContractMeta getContractById(ContractId cId) {
-        ContractMeta meta = contractMap.get(cId);
-        return  meta;
+    public Map<String, Object> getContractList() {
+        //TODO return list all
+        ContractMeta contractMeta = null;
+        for(Map.Entry<ContractId, ContractMeta> elem : contractMap.entrySet()){
+            contractMeta = elem.getValue();
+        }
+        return ContractUtils.contractInfo(contractMeta);
     }
 
-    public ContractMeta getContractById(JsonObject params) {
-        return getContractById(ContractId.of(params.get("contractId").getAsString()));
+    public Map<String, Object> getContractById(JsonObject params) {
+        return ContractUtils.contractInfo(
+                contractMap.get(ContractId.of(params.get("contractId").getAsString())));
     }
 
-    public Map<String, String> getMethod(String method) {
-        return null;
+    public Object getMethod(JsonObject params) {
+        return contractMap.get(ContractId.of(
+                params.get("contractId").getAsString())).getMethods();
     }
+
+//    private Map<String, Object> getContract(String contractId) {
+//        Iterator<Map> it = contractInfoList.iterator();
+//        Map<String, Object> contract = new HashMap<>();
+//        while(it.hasNext()) {
+//            Map<String, Object> contractList = it.next();
+//            if (contractList.get("contractId").equals(contractId)) {
+//                contract = contractList;
+//            }
+//        }
+//        return contract;
+//    }
 
     public Boolean isContract(JsonObject params) {
         ContractId contractId = ContractId.of(params.get("contractId").getAsString());
         return contractMap.get(contractId) != null;
     }
-
-
-    public TransactionReceipt deploy() {
-        return null;
-    }
-
-    public Boolean selfdestruct() {
-        return null;
-    }
-
 }

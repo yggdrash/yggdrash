@@ -16,59 +16,71 @@
 
 package io.yggdrash.core.contract;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
+
+import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.core.store.StoreBuilder;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.junit.Assert.assertEquals;
+
 public class ContractManagerTest {
     Logger log = LoggerFactory.getLogger(ContractManagerTest.class);
 
-
+    public static DefaultConfig defaultConfig = new DefaultConfig();
+    public static ContractManager contractManager = new ContractManager(defaultConfig.getContractPath());
 
     @Test
     public void loadTest() {
-        DefaultConfig defaultConfig = new DefaultConfig();
-        log.debug(defaultConfig.getContractPath());
-        ContractManager manager = new ContractManager(defaultConfig.getContractPath());
-        Path sampleContract = contractSample();
-        if(sampleContract == null) {
-            return;
+        if (defaultConfig.isProductionMode()) {
+            ContractClassLoader.copyResourcesToContractPath(defaultConfig.getContractPath());
         }
-        String fileName = sampleContract.getFileName().toString();
-        fileName = fileName.replaceAll(".class","");
-
-        ContractId sample = ContractId.of(fileName);
-        ContractMeta meta = manager.getContractById(sample);
-        assert fileName.equals(meta.getContractId().toString());
-
-        log.debug(meta.getContract().getSimpleName());
-
+        new ContractManager(defaultConfig.getContractPath());
     }
 
-
-    private Path contractSample() {
-        DefaultConfig defaultConfig = new DefaultConfig();
-        log.debug(defaultConfig.getContractPath());
-        Path path = Paths.get(String.valueOf(defaultConfig.getContractPath()));
-        try (Stream<Path> filePathStream = Files.walk(path)) {
-            Optional<Path> file = filePathStream.filter(f -> {return !(new File(String.valueOf(f))).isDirectory();})
-                    .findFirst();
-            if(file.isPresent()) {
-                return file.get();
-            }
-
-        } catch (IOException e) {
-                e.printStackTrace();
-        }
-        return null;
+    @Test
+    public void getContractListTest() {
+        Map<String, Object> contract = contractManager.getContractList();
     }
 
+    @Test
+    public void getContractById() {
+        final String paramStr = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206261\"}";
+        contractManager.getContractById(createParams(paramStr));
+    }
+
+    @Test
+    public void getMethod() {
+        final String paramStr = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206261\"}";
+        contractManager.getMethod(createParams(paramStr));
+    }
+
+    @Test
+    public void isContract() {
+        final String t = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206261\"}";
+        final String f = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206262\"}";
+        Boolean is = contractManager.isContract(createParams(t));
+        Boolean isnt = contractManager.isContract(createParams(f));
+
+        assertEquals(true, is);
+        assertEquals(false, isnt);
+    }
+
+    private JsonObject createParams(String paramStr) {
+        return JsonUtil.parseJsonObject(paramStr);
+    }
 }
+
+
