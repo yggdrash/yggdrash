@@ -150,7 +150,7 @@ public class GrpcNodeServer implements CommandLineRunner {
 
                 // blockConSyncing
                 this.isSynced = false;
-                blockConSyncing(client.getId(),
+                blockConSyncing(client.getPubKey(),
                         nodeStatus.getLastConfirmedBlockCon().getIndex());
             } else if (nodeStatus.getLastConfirmedBlockCon().getIndex()
                     == this.blockConChain.getLastConfirmedBlockCon().getIndex()) {
@@ -164,14 +164,14 @@ public class GrpcNodeServer implements CommandLineRunner {
         }
     }
 
-    private void blockConSyncing(String nodeId, long index) {
-        GrpcNodeClient client = totalValidatorMap.get(nodeId);
+    private void blockConSyncing(String pubKey, long index) {
+        GrpcNodeClient client = totalValidatorMap.get(pubKey);
         BlockCon blockCon;
         if (client.isRunning()) {
             List<BlockCon> blockConList = new ArrayList<>(client.getBlockConList(
                     this.blockConChain.getLastConfirmedBlockCon().getIndex()));
 
-            log.debug("node: " + nodeId);
+            log.debug("node: " + client.getId());
             log.debug("index: " + index);
             log.debug("blockConList size: " + blockConList.size());
 
@@ -199,7 +199,7 @@ public class GrpcNodeServer implements CommandLineRunner {
         }
 
         if (this.blockConChain.getLastConfirmedBlockCon().getIndex() < index) {
-            blockConSyncing(nodeId, index);
+            blockConSyncing(pubKey, index);
         }
     }
 
@@ -477,8 +477,14 @@ public class GrpcNodeServer implements CommandLineRunner {
             // if exist, update consensus
             if (blockCon.getConsensusList().size() > 0) {
                 for (String consensus : blockCon.getConsensusList()) {
+                    String pubKey = Hex.toHexString(
+                            Wallet.calculatePubKey(
+                                    blockCon.getHash(),
+                                    Hex.decode(consensus),
+                                    true)).substring(2);
                     if (!this.blockConChain.getUnConfirmedBlockConMap().get(blockCon.getHashHex())
-                            .getConsensusList().contains(consensus)) {
+                            .getConsensusList().contains(consensus)
+                            && this.totalValidatorMap.containsKey(pubKey)) {
                         this.blockConChain.getUnConfirmedBlockConMap().get(blockCon.getHashHex())
                                 .getConsensusList().add(consensus);
                     }
@@ -526,9 +532,9 @@ public class GrpcNodeServer implements CommandLineRunner {
                     entry.getValue().getAsJsonObject().get("host").getAsString(),
                     entry.getValue().getAsJsonObject().get("port").getAsInt());
             if (client.getId().equals(myNode.getId())) {
-                nodeMap.put(myNode.getId(), myNode);
+                nodeMap.put(myNode.getPubKey(), myNode);
             } else {
-                nodeMap.put(client.getId(), client);
+                nodeMap.put(client.getPubKey(), client);
             }
         }
 
@@ -550,7 +556,7 @@ public class GrpcNodeServer implements CommandLineRunner {
 
     private boolean initValidator() {
         log.debug("MyNode ID: " + this.myNode.getId());
-        return totalValidatorMap.containsKey(this.myNode.getId());
+        return totalValidatorMap.containsKey(this.myNode.getPubKey());
     }
 
     private List<String> getActiveNodeList() {
