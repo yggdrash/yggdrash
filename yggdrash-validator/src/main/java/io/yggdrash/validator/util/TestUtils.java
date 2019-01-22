@@ -141,6 +141,10 @@ public class TestUtils {
     }
 
     public JsonObject sampleTxObject(Wallet newWallet) {
+        return sampleTxObject(newWallet, new byte[20]);
+    }
+
+    public JsonObject sampleTxObject(Wallet newWallet, byte[] chain) {
 
         JsonArray params = new JsonArray();
         JsonObject param1 = new JsonObject();
@@ -154,11 +158,14 @@ public class TestUtils {
         txObj.addProperty("method", "transfer");
         txObj.add("params", params);
 
-        return sampleTxObject(newWallet, txObj);
-
+        return sampleTxObject(newWallet, txObj, chain);
     }
 
     public JsonObject sampleTxObject(Wallet newWallet, JsonObject body) {
+        return sampleTxObject(newWallet, body, new byte[20]);
+    }
+
+    public JsonObject sampleTxObject(Wallet newWallet, JsonObject body, byte[] chain) {
 
         Wallet nodeWallet;
         byte[] txSig;
@@ -176,7 +183,6 @@ public class TestUtils {
         TransactionBody txBody;
         txBody = new TransactionBody(jsonArray);
 
-        byte[] chain = new byte[20];
         byte[] version = new byte[8];
         byte[] type = new byte[8];
         long timestamp = TimeUtils.time();
@@ -334,6 +340,10 @@ public class TestUtils {
 
     public Transaction sampleTx() {
         return new Transaction(sampleTxObject(wallet));
+    }
+
+    public Transaction sampleTx(byte[] chain) {
+        return new Transaction(sampleTxObject(wallet, chain));
     }
 
     public Transaction sampleTx(JsonObject body) {

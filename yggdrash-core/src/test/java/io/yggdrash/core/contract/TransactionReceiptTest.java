@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.contract;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import org.junit.Before;
@@ -32,8 +33,10 @@ public class TransactionReceiptTest {
 
     @Test
     public void logTest() {
-        txReceipt.putLog("key", "value");
-        assert String.valueOf(txReceipt.getLog("key")).equals("value");
+        JsonObject testLog = new JsonObject();
+        testLog.addProperty("key", "value");
+        txReceipt.addLog(testLog);
+        assert String.valueOf(txReceipt.getTxLog().get(0).toString()).equals("{\"key\":\"value\"}");
     }
 
     @Test

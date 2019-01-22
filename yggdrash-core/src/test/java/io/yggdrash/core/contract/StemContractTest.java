@@ -133,47 +133,6 @@ public class StemContractTest {
     }
 
     @Test
-    public void searchTest() {
-        JsonObject params = new JsonObject();
-        params.addProperty("key", "type");
-        params.addProperty("value", "immunity");
-
-        assertThat(stemContract.search(params)).isNotNull();
-        log.debug("Search [type | immunity] res => " + stemContract.search(params));
-
-        params.addProperty("key", "name");
-        params.addProperty("value", "TEST1");
-
-        assertThat(stemContract.search(params)).isNotNull();
-        log.debug("Search [name | TEST1] res => " + stemContract.search(params));
-
-        params.addProperty("key", "property");
-        params.addProperty("value", "dex");
-
-        assertThat(stemContract.search(params)).isNotNull();
-        log.debug("Search [property | dex] res => " + stemContract.search(params));
-
-        params.addProperty("key", "owner");
-        params.addProperty("value", "9e187f5264037ab77c87fcffcecd943702cd72c3");
-
-        assertThat(stemContract.search(params)).isNotNull();
-        log.debug("Search [owner | 9e187f5264037ab77c87fcffcecd943702cd72c3] res => "
-                + stemContract.search(params));
-
-        params.addProperty("key", "symbol");
-        params.addProperty("value", "TEST1");
-
-        assertThat(stemContract.search(params)).isNotNull();
-        log.debug("Search [symbol | TEST1] res => " + stemContract.search(params));
-
-        params.addProperty("key", "tag");
-        params.addProperty("value", "0.1");
-
-        assertThat(stemContract.search(params)).isNotNull();
-        log.debug("Search [tag | 0.1] res => " + stemContract.search(params));
-    }
-
-    @Test
     public void getCurrentContractTest() {
         JsonObject params = createParams();
         ContractId current = stemContract.getcurrentcontract(params); // No owner validation

@@ -28,16 +28,14 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.wallet.Wallet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BlockChain {
 
@@ -58,7 +56,6 @@ public class BlockChain {
     private final Runtime<?> runtime;
 
     private BlockHusk prevBlock;
-    private final Map<Long, Sha3Hash> blockIndex = new HashMap<>();
 
     public BlockChain(Branch branch, BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, MetaStore metaStore,
@@ -77,7 +74,6 @@ public class BlockChain {
         if (!blockStore.contains(genesisBlock.getHash())) {
             initGenesis();
         } else {
-            indexing();
             loadTransaction();
         }
     }
@@ -89,45 +85,21 @@ public class BlockChain {
         addBlock(genesisBlock, false);
     }
 
-    private void indexing() {
-        Sha3Hash storedBestBlockHash = metaStore.getBestBlockHash();
-        Sha3Hash previousBlockHash = storedBestBlockHash;
-        BlockHusk currentBlock;
-
-        while (!BlockHusk.EMPTY_HASH.equals(previousBlockHash)) {
-            currentBlock = blockStore.get(previousBlockHash);
-            blockIndex.put(currentBlock.getIndex(), currentBlock.getHash());
-            previousBlockHash = currentBlock.getPrevHash();
-        }
-
-        this.prevBlock = blockStore.get(storedBestBlockHash);
-    }
 
     private void loadTransaction() {
+        // load recent 1000 block
         // Start Block and End Block
-        Long lastExecute = metaStore.getLastExecuteBlockIndex();
-        if (blockIndex.size() > lastExecute) {
-            for (long i = lastExecute + 1; i < blockIndex.size(); i++) {
-                BlockHusk block = blockStore.get(blockIndex.get(i));
-                // Genesis or check prevBlockHash
-                if (block.getIndex() == 0
-                        || block.getPrevHash().equals(metaStore.getLastExecuteBlockHash())) {
-                    transactionStore.updateCache(block.getBody());
-                    executeBlock(block);
-                    log.debug("Load idx=[{}], tx={}, branch={}, blockHash={}",
-                            blockStore.get(blockIndex.get(i)).getIndex(),
-                            block.getBody().size(),
-                            blockStore.get(blockIndex.get(i)).getBranchId(),
-                            blockStore.get(blockIndex.get(i)).getHash());
-                    // save best block
-                    metaStore.setLastExecuteBlock(block);
-                } else {
-                    // prev Block hash is not equal
-                    // so do not run any transactions
-                }
+        Long bestBlock = metaStore.getBestBlock();
+        Long loadStart = bestBlock > 1000 ? bestBlock - 1000 : 0;
+        for (long i = loadStart; i <= bestBlock; i++) {
+            // recent block load and update Cache
+            BlockHusk block = blockStore.getBlockByIndex(i);
+            transactionStore.updateCache(block.getBody());
+            // set Last Best Block
+            if (i == bestBlock) {
+                this.prevBlock = block;
             }
         }
-
     }
 
     public void addListener(BranchEventListener listener) {
@@ -206,13 +178,14 @@ public class BlockChain {
 
         // run Block Transactions
         // TODO run block execute move to other process (or thread)
+
         if (nextBlock.getIndex() > metaStore.getLastExecuteBlockIndex()) {
             executeBlock(nextBlock);
             metaStore.setLastExecuteBlock(nextBlock);
         }
 
-        this.blockStore.put(nextBlock.getHash(), nextBlock);
-        this.blockIndex.put(nextBlock.getIndex(), nextBlock.getHash());
+        // Store Block Index and Block Data
+        this.blockStore.addBlock(nextBlock);
 
         this.prevBlock = nextBlock;
         batchTxs(nextBlock);
@@ -262,7 +235,7 @@ public class BlockChain {
     }
 
     public long size() {
-        return blockIndex.size();
+        return blockStore.getBlockchainTransactionSize();
     }
 
     /**
@@ -292,11 +265,7 @@ public class BlockChain {
     }
 
     public BlockHusk getBlockByIndex(long idx) {
-        Sha3Hash index = blockIndex.get(idx);
-        if (index == null) {
-            return null;
-        }
-        return blockStore.get(index);
+        return blockStore.getBlockByIndex(idx);
     }
 
     /**
@@ -338,6 +307,7 @@ public class BlockChain {
         return (this.prevBlock == null);
     }
 
+    // TODO move to other process or thread
     private Map<Sha3Hash, Boolean> executeBlock(BlockHusk block) {
         return runtime.invokeBlock(block);
     }
