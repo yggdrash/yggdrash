@@ -1,25 +1,19 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.core.blockchain.BranchId;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.List;
+public class SimplePeerHandlerGroupTest {
 
-public class PeerHandlerGroupTest {
-
-    private static final int MAX_PEERS = 25;
-    private static final BranchId BRANCH = TestConstants.STEM;
     private static final Peer OWNER = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
 
     private PeerHandlerGroup peerHandlerGroup;
 
     @Before
     public void setUp() {
-        this.peerHandlerGroup = new PeerHandlerGroup(PeerHandlerMock.factory);
+        this.peerHandlerGroup = new SimplePeerHandlerGroup(PeerHandlerMock.factory);
         peerHandlerGroup.setPeerEventListener(peer -> {
             assert peer != null;
         });
@@ -42,22 +36,9 @@ public class PeerHandlerGroupTest {
     }
 
     @Test
-    public void syncBlock() {
+    public void destroyAll() {
         addPeerHandler();
-        List<BlockHusk> blockHuskList = peerHandlerGroup.syncBlock(BRANCH, 0);
-        assert !blockHuskList.isEmpty();
-    }
-
-    @Test
-    public void syncTransaction() {
-        addPeerHandler();
-        peerHandlerGroup.receivedTransaction(BlockChainTestUtils.createTransferTxHusk());
-        assert !peerHandlerGroup.syncTransaction(BRANCH).isEmpty();
-    }
-
-    @Test
-    public void destroy() {
-        peerHandlerGroup.destroy();
+        peerHandlerGroup.destroyAll();
     }
 
     @Test
