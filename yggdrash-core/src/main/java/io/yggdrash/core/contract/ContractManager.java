@@ -67,13 +67,12 @@ public class ContractManager extends ClassLoader {
         }
     }
 
-    public Map<String, Object> getContractList() {
-        //TODO return list all
-        ContractMeta contractMeta = null;
+    public List<Map> getContracts() {
+        List<Map> contractList = new ArrayList<>();
         for(Map.Entry<ContractId, ContractMeta> elem : contractMap.entrySet()){
-            contractMeta = elem.getValue();
+            contractList.add(ContractUtils.contractInfo(elem.getValue()));
         }
-        return ContractUtils.contractInfo(contractMeta);
+        return contractList;
     }
 
     public Map<String, Object> getContractById(JsonObject params) {
@@ -85,18 +84,6 @@ public class ContractManager extends ClassLoader {
         return contractMap.get(ContractId.of(
                 params.get("contractId").getAsString())).getMethods();
     }
-
-//    private Map<String, Object> getContract(String contractId) {
-//        Iterator<Map> it = contractInfoList.iterator();
-//        Map<String, Object> contract = new HashMap<>();
-//        while(it.hasNext()) {
-//            Map<String, Object> contractList = it.next();
-//            if (contractList.get("contractId").equals(contractId)) {
-//                contract = contractList;
-//            }
-//        }
-//        return contract;
-//    }
 
     public Boolean isContract(JsonObject params) {
         ContractId contractId = ContractId.of(params.get("contractId").getAsString());
