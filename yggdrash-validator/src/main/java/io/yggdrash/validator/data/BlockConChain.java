@@ -13,7 +13,9 @@ import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.InetAddress;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -146,4 +148,32 @@ public class BlockConChain {
     public void setConsensused(boolean consensused) {
         isConsensused = consensused;
     }
+
+
+    /**
+     * Get BlockConList from BlockConStore with index, count.
+     * 0 <= index && 1 < count <= 100
+     *
+     * @param index index of block
+     * @param count count of blocks
+     * @return list of BlockCon
+     */
+    public List<BlockCon> getBlockConList(long index, long count) {
+        if (index < 0L || count < 1L || count > 100L) {
+            log.debug("getBlockConList() index or count is not valid");
+            return null;
+        }
+
+        byte[] key;
+        List<BlockCon> blockConList = new ArrayList<>();
+        for (long l = index; l < index + count; l++) {
+            key = blockConKeyStore.get(l);
+            if (key != null) {
+                blockConList.add(blockConStore.get(key));
+            }
+        }
+
+        return blockConList;
+    }
+
 }
