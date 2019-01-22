@@ -81,7 +81,7 @@ public class EbftNodeClient {
     }
 
     public void broadcastBlockCon(EbftProto.BlockCon blockCon) {
-        blockingStub.withDeadlineAfter(5, TimeUnit.SECONDS)
+        blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS)
                 .broadcastBlockCon(blockCon);
     }
 
