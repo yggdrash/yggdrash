@@ -63,7 +63,7 @@ public class BlockCon {
 
         int blockBodyLength = (int) blockHeader.getBodyLength();
         if (blockBodyLength < 0 || blockBodyLength > Constants.MAX_MEMORY) {
-            log.debug("BlockCon header length is not valid");
+            log.debug("BlockCon body length is not valid");
             throw new NotValidateException();
         }
 
