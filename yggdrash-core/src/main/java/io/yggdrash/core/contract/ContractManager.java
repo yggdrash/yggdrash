@@ -42,6 +42,9 @@ public class ContractManager extends ClassLoader {
         try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(contractRoot)))) {
             filePathStream.forEach(contractPath -> {
                 File contractFile = new File(String.valueOf(contractPath));
+                if(contractFile.isDirectory()) {
+                    return;
+                }
                 byte[] contractBinary;
                 try (FileInputStream inputStream = new FileInputStream(contractFile)) {
                     contractBinary = new byte[Math.toIntExact(contractFile.length())];

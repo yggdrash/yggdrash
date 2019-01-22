@@ -17,6 +17,13 @@
 package io.yggdrash.core.contract;
 
 import io.yggdrash.common.config.DefaultConfig;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Optional;
+import java.util.stream.Stream;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,13 +38,37 @@ public class ContractManagerTest {
         DefaultConfig defaultConfig = new DefaultConfig();
         log.debug(defaultConfig.getContractPath());
         ContractManager manager = new ContractManager(defaultConfig.getContractPath());
+        Path sampleContract = contractSample();
+        if(sampleContract == null) {
+            return;
+        }
+        String fileName = sampleContract.getFileName().toString();
+        fileName = fileName.replaceAll(".class","");
 
-        ContractMeta meta = manager.getContractById(
-                ContractId.of("1378d5ac6e6b7b536165a9a9225684dc93206261"));
-        assert "1378d5ac6e6b7b536165a9a9225684dc93206261".equals(meta.getContractId().toString());
+        ContractId sample = ContractId.of(fileName);
+        ContractMeta meta = manager.getContractById(sample);
+        assert fileName.equals(meta.getContractId().toString());
 
         log.debug(meta.getContract().getSimpleName());
 
+    }
+
+
+    private Path contractSample() {
+        DefaultConfig defaultConfig = new DefaultConfig();
+        log.debug(defaultConfig.getContractPath());
+        Path path = Paths.get(String.valueOf(defaultConfig.getContractPath()));
+        try (Stream<Path> filePathStream = Files.walk(path)) {
+            Optional<Path> file = filePathStream.filter(f -> {return !(new File(String.valueOf(f))).isDirectory();})
+                    .findFirst();
+            if(file.isPresent()) {
+                return file.get();
+            }
+
+        } catch (IOException e) {
+                e.printStackTrace();
+        }
+        return null;
     }
 
 }
