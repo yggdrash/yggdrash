@@ -13,7 +13,7 @@ public class YggdrashNodeTest {
 
     private class YggdrashTestNode extends Node {
         YggdrashTestNode() {
-            this.peerHandlerGroup = new PeerHandlerGroup(PeerHandlerMock.factory);
+            this.peerHandlerGroup = new SimplePeerHandlerGroup(PeerHandlerMock.factory);
         }
 
         Discovery getDiscovery() {
