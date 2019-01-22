@@ -87,7 +87,7 @@ public class EbftNodeClient {
 
     public List<BlockCon> getBlockConList(long index) {
         EbftProto.BlockConList protoBlockConList = blockingStub
-                .withDeadlineAfter(10, TimeUnit.SECONDS)
+                .withDeadlineAfter(3, TimeUnit.SECONDS)
                 .getBlockConList(
                         EbftProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
 

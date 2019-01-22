@@ -81,7 +81,7 @@ public class EbftNodeServer implements CommandLineRunner {
         printInitInfo();
     }
 
-    @Scheduled(cron = "*/5 * * * * *")
+    @Scheduled(cron = "*/2 * * * * *")
     public void mainScheduler() {
 
         checkNode();
@@ -93,7 +93,7 @@ public class EbftNodeServer implements CommandLineRunner {
             broadcast(proposedBlockCon.clone());
         }
 
-        sleep(1000);
+        sleep(500);
 
         lock.lock();
         BlockCon consensusedBlockCon = makeConsensus();
@@ -102,7 +102,7 @@ public class EbftNodeServer implements CommandLineRunner {
             broadcast(consensusedBlockCon.clone());
         }
 
-        sleep(1000);
+        sleep(500);
 
         lock.lock();
         confirmFinalBlock();
