@@ -24,7 +24,7 @@ public class BlockConTest {
     }
 
     @Test
-    public void ConstructorTest() {
+    public void constructorTest() {
         Block block = new TestUtils(wallet).sampleBlock();
         List<String> consensusList = new ArrayList<>();
         consensusList.add(Hex.toHexString(wallet.sign(block.getHash())));

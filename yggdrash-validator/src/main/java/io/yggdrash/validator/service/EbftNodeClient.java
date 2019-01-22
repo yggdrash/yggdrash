@@ -1,6 +1,5 @@
-package io.yggdrash.validator;
+package io.yggdrash.validator.service;
 
-import com.google.protobuf.ByteString;
 import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
@@ -18,9 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class GrpcNodeClient {
+public class EbftNodeClient {
 
-    private static final Logger log = LoggerFactory.getLogger(GrpcNodeClient.class);
+    private static final Logger log = LoggerFactory.getLogger(EbftNodeClient.class);
 
     private boolean myclient;
     private String pubKey;
@@ -33,7 +32,7 @@ public class GrpcNodeClient {
     private ManagedChannel channel;
     private ConsensusEbftGrpc.ConsensusEbftBlockingStub blockingStub;
 
-    public GrpcNodeClient(String pubKey, String host, int port) {
+    public EbftNodeClient(String pubKey, String host, int port) {
         this.pubKey = pubKey;
         this.host = host;
         this.port = port;
@@ -56,7 +55,7 @@ public class GrpcNodeClient {
         EbftProto.PongTime pongTime;
         try {
             pongTime = blockingStub
-                    .withDeadlineAfter(2, TimeUnit.SECONDS)
+                    .withDeadlineAfter(3, TimeUnit.SECONDS)
                     .pingPongTime(pingTime);
         } catch (StatusRuntimeException e) {
             return 0L;
@@ -69,21 +68,10 @@ public class GrpcNodeClient {
         return pongTime.getTimestamp();
     }
 
-    public NodeStatus getNodeStatus() {
-        this.nodeStatus =
-                new NodeStatus(blockingStub
-                        .withDeadlineAfter(3, TimeUnit.SECONDS)
-                        .getNodeStatus(EbftProto.Chain.newBuilder()
-                                .setChain(ByteString.copyFrom(new byte[32]))
-                                //todo: change real chain info
-                                .build()));
-        return this.nodeStatus;
-    }
-
     public NodeStatus exchangeNodeStatus(EbftProto.NodeStatus nodeStatus) {
         this.nodeStatus =
                 new NodeStatus(blockingStub
-                        .withDeadlineAfter(3, TimeUnit.SECONDS)
+                        .withDeadlineAfter(5, TimeUnit.SECONDS)
                         .exchangeNodeStatus(nodeStatus));
         if (Context.current().isCancelled()) {
             return null;
@@ -93,13 +81,13 @@ public class GrpcNodeClient {
     }
 
     public void broadcastBlockCon(EbftProto.BlockCon blockCon) {
-        blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS)
+        blockingStub.withDeadlineAfter(5, TimeUnit.SECONDS)
                 .broadcastBlockCon(blockCon);
     }
 
     public List<BlockCon> getBlockConList(long index) {
         EbftProto.BlockConList protoBlockConList = blockingStub
-                .withDeadlineAfter(10, TimeUnit.SECONDS)
+                .withDeadlineAfter(20, TimeUnit.SECONDS)
                 .getBlockConList(
                         EbftProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
 
