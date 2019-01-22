@@ -85,6 +85,13 @@ public class GRpcPeerHandler implements PeerHandler {
     }
 
     @Override
+    public String ping(String message, Peer peer) {
+        Proto.Ping request = Proto.Ping.newBuilder().setPing(message)
+                .setPeer(Proto.PeerInfo.newBuilder().setUrl(peer.getYnodeUri())).build();
+        return blockingPeerStub.ping(request).getPong();
+    }
+
+    @Override
     public Peer getPeer() {
         return peer;
     }
@@ -95,13 +102,6 @@ public class GRpcPeerHandler implements PeerHandler {
         if (channel != null) {
             channel.shutdown();
         }
-    }
-
-    @Override
-    public String ping(String message, Peer peer) {
-        Proto.Ping request = Proto.Ping.newBuilder().setPing(message)
-                .setPeer(Proto.PeerInfo.newBuilder().setUrl(peer.getYnodeUri())).build();
-        return blockingPeerStub.play(request).getPong();
     }
 
     /**
