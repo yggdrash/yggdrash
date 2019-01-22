@@ -166,7 +166,7 @@ public class EbftNodeServer implements CommandLineRunner {
     }
 
     private void blockConSyncing(String pubKey, long index) {
-        GrpcNodeClient client = totalValidatorMap.get(pubKey);
+        EbftNodeClient client = totalValidatorMap.get(pubKey);
         BlockCon blockCon;
         if (client.isRunning()) {
             List<BlockCon> blockConList = new ArrayList<>(client.getBlockConList(
