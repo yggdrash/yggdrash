@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -478,10 +479,9 @@ public class GrpcNodeServer implements CommandLineRunner {
             if (blockCon.getConsensusList().size() > 0) {
                 for (String consensus : blockCon.getConsensusList()) {
                     String pubKey = Hex.toHexString(
-                            Wallet.calculatePubKey(
-                                    blockCon.getHash(),
-                                    Hex.decode(consensus),
-                                    true)).substring(2);
+                            Objects.requireNonNull(Wallet.calculatePubKey(
+                                    blockCon.getHash(), Hex.decode(consensus), true)))
+                            .substring(2);
                     if (!this.blockConChain.getUnConfirmedBlockConMap().get(blockCon.getHashHex())
                             .getConsensusList().contains(consensus)
                             && this.totalValidatorMap.containsKey(pubKey)) {
