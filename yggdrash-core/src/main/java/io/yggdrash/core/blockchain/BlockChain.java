@@ -21,6 +21,7 @@ import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.runtime.BlockRuntimeResult;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
@@ -32,7 +33,6 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -180,7 +180,9 @@ public class BlockChain {
         // TODO run block execute move to other process (or thread)
 
         if (nextBlock.getIndex() > metaStore.getLastExecuteBlockIndex()) {
-            executeBlock(nextBlock);
+            BlockRuntimeResult result = runtime.invokeBlock(nextBlock);
+            // Save Result
+            runtime.commitBlockResult(result);
             metaStore.setLastExecuteBlock(nextBlock);
         }
 
@@ -307,10 +309,6 @@ public class BlockChain {
         return (this.prevBlock == null);
     }
 
-    // TODO move to other process or thread
-    private Map<Sha3Hash, Boolean> executeBlock(BlockHusk block) {
-        return runtime.invokeBlock(block);
-    }
 
     private void batchTxs(BlockHusk block) {
         if (block == null || block.getBody() == null) {

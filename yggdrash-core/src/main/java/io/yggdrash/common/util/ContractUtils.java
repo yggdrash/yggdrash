@@ -16,6 +16,8 @@
 
 package io.yggdrash.common.util;
 
+import io.yggdrash.core.contract.Contract;
+import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import java.lang.annotation.Annotation;
@@ -51,6 +53,16 @@ public class ContractUtils {
                 .filter(method -> method.isAnnotationPresent(annotationClass))
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
                 .collect(Collectors.toMap(m -> m.getName().toLowerCase(), m-> m));
+    }
+
+    public static Contract contractInstance(Contract contract) throws FailedOperationException {
+        try {
+            Contract instance = contract.getClass().getDeclaredConstructor().newInstance();
+            return instance;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new FailedOperationException("Contract instance");
+        }
     }
 
 }

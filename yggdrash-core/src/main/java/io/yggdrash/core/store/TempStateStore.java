@@ -62,6 +62,10 @@ public class TempStateStore implements Store<String, JsonObject> {
         tempStore.clear();
     }
 
+    public void putAll(Set<Map.Entry<String, JsonObject>> values) {
+        values.stream().forEach(entry -> {tempStore.put(entry.getKey(), entry.getValue()); });
+    }
+
     public Set<Map.Entry<String, JsonObject>> changeValues() {
         return this.tempStore.entrySet();
     }
