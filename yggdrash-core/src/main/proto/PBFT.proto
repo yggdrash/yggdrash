@@ -6,43 +6,33 @@ import "BlockChain.proto";
 option java_package = "io.yggdrash.proto";
 option java_outer_classname = "PbftProto";
 
-message Request {
-    Block block = 1;
-    int64 timestamp = 2;
-    bytes clientId = 3;
-    bytes signature = 4;
-}
-
 message PrePrepare {
     int64 viewNumber = 1;
     int64 seqNumber = 2;
-    bytes hashOfRequest = 3;
+    bytes blockHash = 3;
     bytes signature = 4;
-    Request request = 5;
+    Block block = 5;
 }
 
 message Prepare {
     int64 viewNumber = 1;
     int64 seqNumber = 2;
-    bytes hashOfRequest = 3;
-    bytes replicaId = 4;
-    bytes signature = 5;
+    bytes blockHash = 3;
+    bytes signature = 4;
 }
 
 message Commit {
     int64 viewNumber = 1;
     int64 seqNumber = 2;
-    bytes hashOfRequest = 3;
-    bytes replicaId = 4;
-    bytes signature = 5;
+    bytes blockHash = 3;
+    bytes signature = 4;
 }
 
 message Reply {
     int64 viewNumber = 1;
     int64 timestamp = 2;
     bytes clientId = 3;
-    bytes replicaId = 4;
-    bytes result = 5;
-    bytes signature = 6;
+    bytes result = 4;
+    bytes signature = 5;
 }
 
