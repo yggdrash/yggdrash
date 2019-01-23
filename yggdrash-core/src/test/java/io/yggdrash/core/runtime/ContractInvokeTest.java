@@ -38,7 +38,7 @@ public class ContractInvokeTest {
     @Test
     public void initTest() throws InvocationTargetException, IllegalAccessException {
         StemContract contract = new StemContract();
-        ContractInvoke invoke = new ContractInvoke(contract);
+        RuntimeInvoke invoke = new RuntimeInvoke(contract);
 
         Store tempStore = new StateStore<>(new HashMapDbSource());
 

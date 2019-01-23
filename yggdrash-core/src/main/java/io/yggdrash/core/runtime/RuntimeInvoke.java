@@ -21,35 +21,34 @@ import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.contract.ExecuteStatus;
 import io.yggdrash.core.contract.TransactionReceipt;
+import io.yggdrash.core.contract.methods.ContractMethod;
 import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.TempStateStore;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
-public class ContractInvoke<T> {
+public class RuntimeInvoke<T> {
     // This Class is Invoke Transaction for Contract
 
     // TODO contract change meta Class
     private Contract<T> contract;
 
-    private Map<String, InvokeMethod> invokeMethods;
-    private Method genesis;
+    private Map<String, ContractMethod> invokeMethods;
+    private ContractMethod genesis;
     private Field transactionReceiptField;
     private List<Field> stateField;
 
-    public ContractInvoke(Contract<T> contract) {
+    public RuntimeInvoke(Contract<T> contract) {
         // contract Instance
         // TODO change contract to contractMeta
         this.contract = ContractUtils.contractInstance(contract);
         invokeMethods = getInvokeMethods(contract);
         // Genesis
-        genesis = getGenesisMethod(contract);
+        //genesis = getGenesisMethod(contract);
         stateField = ContractUtils.stateStore(contract);
         transactionReceipt();
     }
@@ -76,18 +75,14 @@ public class ContractInvoke<T> {
 
     // TODO Change Meta info
     // TODO filter invoke jSonObject
-    private Map<String,InvokeMethod> getInvokeMethods(Contract<T> contract) {
-        Map<String, Method> methods = ContractUtils.contractMethods(contract, InvokeTransction.class);
-        Map<String,InvokeMethod> invokeMethods = methods.entrySet()
-                .stream()
-                .collect(Collectors.toMap(x -> x.getKey(), v -> new InvokeMethod(v.getValue())));
-        return invokeMethods;
+    private Map<String, ContractMethod> getInvokeMethods(Contract<T> contract) {
+        return ContractUtils.contractMethods(contract, InvokeTransction.class);
     }
 
     // TODO remove
-    private Method getGenesisMethod(Contract<T> contract) {
-        Map<String, Method> genesisMethods = ContractUtils.contractMethods(contract, Genesis.class);
-        Map.Entry<String, Method> genesisEntry = genesisMethods.isEmpty()
+    private ContractMethod getGenesisMethod(Contract<T> contract) {
+        Map<String, ContractMethod> genesisMethods = ContractUtils.contractMethods(contract, Genesis.class);
+        Map.Entry<String, ContractMethod> genesisEntry = genesisMethods.isEmpty()
                 ? null : genesisMethods.entrySet().iterator().next();
 
         if (genesisEntry != null) {
@@ -106,7 +101,7 @@ public class ContractInvoke<T> {
 
         // TODO Check Transaction has contractID
         String methodName = txBody.get("method").getAsString();
-        InvokeMethod method = invokeMethods.get(methodName);
+        ContractMethod method = invokeMethods.get(methodName);
         // filter method exist
         if(method == null) {
             txReceipt.setStatus(ExecuteStatus.ERROR);

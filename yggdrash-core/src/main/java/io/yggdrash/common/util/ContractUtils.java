@@ -17,12 +17,12 @@
 package io.yggdrash.common.util;
 
 import io.yggdrash.core.contract.Contract;
+import io.yggdrash.core.contract.methods.ContractMethod;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
@@ -48,11 +48,13 @@ public class ContractUtils {
     }
 
 
-    public static  Map<String, Method> contractMethods(Object contract, Class<? extends Annotation> annotationClass) {
+    public static  Map<String, ContractMethod> contractMethods(Object contract, Class<? extends Annotation> annotationClass) {
         return Arrays.stream(contract.getClass().getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(annotationClass))
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
-                .collect(Collectors.toMap(m -> m.getName().toLowerCase(), m-> m));
+                .collect(
+                        Collectors.toMap(m -> m.getName().toLowerCase(), m -> new ContractMethod(m))
+                );
     }
 
     public static Contract contractInstance(Contract contract) throws FailedOperationException {

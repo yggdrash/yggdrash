@@ -18,16 +18,14 @@ package io.yggdrash.core.runtime;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.Contract;
+import io.yggdrash.core.contract.ContractId;
 import io.yggdrash.core.contract.ExecuteStatus;
 import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
-import io.yggdrash.core.runtime.annotation.ContractQuery;
-import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.StateStore;
@@ -35,7 +33,7 @@ import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.TempStateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import java.lang.reflect.Method;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,9 +45,10 @@ public class Runtime<T> {
     private TransactionReceiptStore txReceiptStore;
     // TODO contract is map
     private Contract<T> contract;
-    private Map<String, Method> queryMethod;
+    private Map<ContractId, Contract> contracts = new HashMap<>();
     private Method genesis;
-    private ContractInvoke contractInvoke;
+    private RuntimeInvoke contractInvoke;
+    private RuntimeQuery runtimeQuery;
 
     // All block chain has state root
     private byte[] stateRoot;
@@ -62,11 +61,19 @@ public class Runtime<T> {
                    TransactionReceiptStore txReceiptStore) {
         this.stateStore = stateStore;
         this.txReceiptStore = txReceiptStore;
-        // init
-        queryMethod = new Hashtable<>();
         this.contract = contract;
 
-        contractInvoke = new ContractInvoke(contract);
+        contractInvoke = new RuntimeInvoke(contract);
+        runtimeQuery = new RuntimeQuery(contract, stateStore);
+    }
+
+    // TODO contract move to Map
+    public void addContract(ContractId contractId, Contract contract) {
+        this.contracts.put(contractId, contract);
+    }
+
+    public boolean hasContract(ContractId contractId) {
+        return this.contracts.containsKey(contractId);
     }
 
 
@@ -181,18 +188,8 @@ public class Runtime<T> {
     }
 
     public Object query(String method, JsonObject params) throws Exception {
-        // Find query method and query
-        Method query = queryMethod.get(method.toLowerCase());
-        if (query != null) {
-            if (params == null) {
-                return query.invoke(contract);
-            } else {
-                return query.invoke(contract, params);
-            }
-
-        }
-        return null;
-
+        // TODO runtimeQuery will move to ContractWrap
+        return runtimeQuery.query(method, params);
     }
 
     public StateStore<T> getStateStore() {
@@ -201,25 +198,5 @@ public class Runtime<T> {
 
     public TransactionReceiptStore getTransactionReceiptStore() {
         return this.txReceiptStore;
-    }
-
-    /**
-     * Query Method filter
-     *
-     * @return Method map (method name is lower case)
-     */
-    private Map<String, Method> getQueryMethods() {
-        return ContractUtils.contractMethods(contract, ContractQuery.class);
-    }
-
-    private Method getGenesisMethod() {
-        Map<String, Method> genesisMethods = ContractUtils.contractMethods(contract, Genesis.class);
-        Map.Entry<String, Method> genesisEntry = genesisMethods.isEmpty()
-                ? null : genesisMethods.entrySet().iterator().next();
-
-        if (genesisEntry != null) {
-            return genesisEntry.getValue();
-        }
-        return null;
     }
 }

@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.runtime;
+package io.yggdrash.core.contract.methods;
 
 import com.google.gson.JsonObject;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
 
-public class InvokeMethod {
-    Method invokeMethod = null;
+public class ContractMethod {
+    Method invokeMethod;
     boolean params = false;
 
-    public InvokeMethod(Method method) {
+    public ContractMethod(Method method) {
         Optional<Class<?>> m = Arrays.stream(method.getParameterTypes())
                 .filter(p -> p == JsonObject.class).findFirst();
         if(method.getParameterCount() == 1 && m.isPresent()) {
