@@ -122,10 +122,9 @@ public class BlockChainBuilder {
             // TODO remove this
             if (branch.isStem()) {
                 return new StemContract();
-            } else if (branch.isYeed()){
+            } else if (branch.isYeed()) {
                 return new CoinContract();
-            }
-                else {
+            } else {
                 ContractMeta contractMeta = ContractClassLoader.loadContractById(
                         storeBuilder.getConfig().getContractPath(), branch.getContractId());
                 return contractMeta.getContract().getDeclaredConstructor().newInstance();

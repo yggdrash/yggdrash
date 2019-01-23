@@ -33,7 +33,6 @@ import java.util.stream.Stream;
 
 public class ContractManager extends ClassLoader {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
-
     private Map<ContractId, ContractMeta> contractMap = new HashMap<>();
 
     public ContractManager(String contractPath) {
@@ -73,6 +72,14 @@ public class ContractManager extends ClassLoader {
             contractList.add(ContractUtils.contractInfo(elem.getValue()));
         }
         return contractList;
+    }
+
+    public List<String> getContractIds() {
+        List<String> contractIdList = new ArrayList<>();
+        for( ContractId key : contractMap.keySet() ){
+            contractIdList.add(key.toString());
+        }
+        return contractIdList;
     }
 
     public Map<String, Object> getContractById(JsonObject params) {

@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.store.StoreBuilder;
 import org.junit.Test;
@@ -52,31 +53,46 @@ public class ContractManagerTest {
     }
 
     @Test
-    public void getContractListTest() {
+    public void getContractsTest() {
         contractManager.getContracts();
     }
 
     @Test
+    public void getContractIds() {
+        contractManager.getContractIds();
+        log.debug(contractManager.getContractIds().toString());
+    }
+
+    @Test
     public void getContractById() {
-        final String paramStr = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206261\"}";
-        contractManager.getContractById(createParams(paramStr));
+        List<String> contractIdList = contractManager.getContractIds();
+        if (contractIdList != null) {
+            final String paramStr = "{\"contractId\" :" + contractIdList.get(0) +"}";
+            contractManager.getContractById(createParams(paramStr));
+        }
     }
 
     @Test
     public void getMethod() {
-        final String paramStr = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206261\"}";
-        contractManager.getMethod(createParams(paramStr));
+        List<String> contractIdList = contractManager.getContractIds();
+        if (contractIdList != null) {
+            final String paramStr = "{\"contractId\" :" + contractIdList.get(0) +"}";
+            contractManager.getMethod(createParams(paramStr));
+        }
     }
 
     @Test
     public void isContract() {
-        final String t = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206261\"}";
-        final String f = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206262\"}";
-        Boolean is = contractManager.isContract(createParams(t));
-        Boolean isnt = contractManager.isContract(createParams(f));
+        List<String> contractIdList = contractManager.getContractIds();
+        if (contractIdList != null) {
+            final String paramStr = "{\"contractId\" :" + contractIdList.get(0) +"}";
+            Boolean is = contractManager.isContract(createParams(paramStr));
+            assertEquals(true, is);
 
-        assertEquals(true, is);
-        assertEquals(false, isnt);
+            final String f = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206262\"}";
+            Boolean isnt = contractManager.isContract(createParams(f));
+            assertEquals(false, isnt);
+        }
     }
 
     private JsonObject createParams(String paramStr) {

@@ -67,7 +67,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      *
      * @return A BigDecimal specifying the amount of coin still available for the spender
      */
-    @InvokeTransction
+    @ContractQuery
     @Override
     public BigDecimal allowance(JsonObject params) {
         log.info("\nallowance :: params => " + params);

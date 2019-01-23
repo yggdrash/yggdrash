@@ -68,7 +68,7 @@ public class ContractUtils {
 
     public static Map<String, Object> contractInfo(ContractMeta contractMeta) {
         Map<String, Object> contractInfo = new HashMap<>();
-        contractInfo.put("contractId", contractMeta.getContractId());
+        contractInfo.put("contractId", contractMeta.getContractId().toString());
         contractInfo.put("name", contractMeta.getContract().getSimpleName());
         contractInfo.put("methods",  contractMeta.getMethods());
         return contractInfo;
