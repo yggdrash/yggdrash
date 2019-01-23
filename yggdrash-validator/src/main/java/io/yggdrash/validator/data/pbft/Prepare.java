@@ -6,16 +6,13 @@ public class Prepare implements Message {
 
     private final long viewNumber;
     private final long seqNumber;
-    private final byte[] hashOfRequest;
-    private final byte[] replicaId; // 20 bytes replica address
+    private final byte[] blockHash;
     private final byte[] signature;
 
-    public Prepare(long viewNumber, long seqNumber, byte[] hashOfRequest,
-                   byte[] replicaId, byte[] signature) {
+    public Prepare(long viewNumber, long seqNumber, byte[] blockHash, byte[] signature) {
         this.viewNumber = viewNumber;
         this.seqNumber = seqNumber;
-        this.hashOfRequest = hashOfRequest;
-        this.replicaId = replicaId;
+        this.blockHash = blockHash;
         this.signature = signature;
     }
 

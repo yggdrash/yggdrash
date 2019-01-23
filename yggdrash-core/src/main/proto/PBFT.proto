@@ -6,33 +6,40 @@ import "BlockChain.proto";
 option java_package = "io.yggdrash.proto";
 option java_outer_classname = "PbftProto";
 
-message PrePrepare {
-    int64 viewNumber = 1;
-    int64 seqNumber = 2;
-    bytes blockHash = 3;
-    bytes signature = 4;
-    Block block = 5;
+message PbftPingTime {
+    int64 timestamp = 1;
 }
 
-message Prepare {
-    int64 viewNumber = 1;
-    int64 seqNumber = 2;
-    bytes blockHash = 3;
-    bytes signature = 4;
+message PbftPongTime {
+    int64 timestamp = 1;
 }
 
-message Commit {
-    int64 viewNumber = 1;
-    int64 seqNumber = 2;
-    bytes blockHash = 3;
-    bytes signature = 4;
+message PbftMessage {
+    enum MessageType {
+        REQUEST = 0;
+        PRE_PREPARE = 1;
+        PREPARE = 2;
+        COMMIT = 3;
+        REPLY = 4;
+        VIEW_CHANGE = 5;
+        NEW_VIEW = 6;
+        CHECKPOINT = 7;
+    }
+
+    MessageType type = 1;
+    int64 viewNumber = 2;
+    int64 seqNumber = 3;
+    bytes blockHash = 4;
+    bytes clientId = 5;
+    bytes result = 6;
+    bytes signature = 7;
+    Block block = 8;
 }
 
-message Reply {
-    int64 viewNumber = 1;
-    int64 timestamp = 2;
-    bytes clientId = 3;
-    bytes result = 4;
-    bytes signature = 5;
-}
+service PbftService {
+    rpc PingPongTime (PbftPingTime) returns (PbftPongTime) {
+    }
 
+    rpc multicastPbftMessage (PbftMessage) returns (Empty) {
+    }
+}
