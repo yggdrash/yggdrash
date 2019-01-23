@@ -28,6 +28,8 @@ import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.runtime.annotation.Genesis;
+import io.yggdrash.core.runtime.result.BlockRuntimeResult;
+import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.TempStateStore;
@@ -101,17 +103,9 @@ public class Runtime<T> {
 
             result.addTxReceipt(txReceipt);
             // Save TxReceipt
-//            txReceiptStore.put(txReceipt);
-
-//            result.put(tx.getHash(), txReceipt.isSuccess());
         }
         // Save BlockStates
         result.setBlockResult(blockState.changeValues());
-//        blockState.changeValues().stream()
-//                .forEach(entry -> {stateStore.put(entry.getKey(), entry.getValue()); });
-
-        // submitBlockState();
-        // all Transaction run complete
 
         return result;
     }
@@ -122,7 +116,7 @@ public class Runtime<T> {
         result.getTxReceipts().stream().forEach(txr -> {
             txReceiptStore.put(txr);
         });
-        if(!changes.isEmpty()){
+        if (!changes.isEmpty()) {
             changes.entrySet().stream().forEach(r -> {
                 stateStore.put(r.getKey(), r.getValue());
             });

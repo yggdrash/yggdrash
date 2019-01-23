@@ -16,24 +16,45 @@
 
 package io.yggdrash.core.runtime;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.ContractTestUtils;
+import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.StemContract;
+import io.yggdrash.core.contract.TransactionReceipt;
+import io.yggdrash.core.contract.TransactionReceiptImpl;
+import io.yggdrash.core.store.StateStore;
+import io.yggdrash.core.store.Store;
+import io.yggdrash.core.store.TempStateStore;
+import io.yggdrash.core.store.datasource.HashMapDbSource;
+import java.lang.reflect.InvocationTargetException;
 import org.junit.Test;
 
 public class ContractInvokeTest {
 
     @Test
-    public void initTest() {
+    public void initTest() throws InvocationTargetException, IllegalAccessException {
         StemContract contract = new StemContract();
-
         ContractInvoke invoke = new ContractInvoke(contract);
 
+        Store tempStore = new StateStore<>(new HashMapDbSource());
 
+        JsonObject json = ContractTestUtils.createSampleBranchJson();
+        BranchId branchId = BranchId.of(json);
 
+        TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId,
+                "create", json);
+        TransactionReceipt receipt = new TransactionReceiptImpl(createTx);
 
-
-
-
-
+        for (JsonElement txEl: JsonUtil.parseJsonArray(createTx.getBody())) {
+            TempStateStore store = invoke.invokeTransaction(
+                    txEl.getAsJsonObject(), receipt, tempStore);
+            assert receipt.isSuccess();
+            assert store.changeValues().size() > 0;
+        }
     }
 
 

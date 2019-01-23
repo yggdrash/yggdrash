@@ -26,6 +26,7 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.CoinContract;
 import io.yggdrash.core.contract.StemContract;
+import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
@@ -37,7 +38,7 @@ import org.junit.Test;
 public class RuntimeTest {
 
     @Test
-    public void yeedRuntimeTest() throws Exception {
+    public void yeedRuntimeTest() {
         CoinContract contract = new CoinContract();
         Runtime runtime =
                 new Runtime<>(
@@ -66,7 +67,7 @@ public class RuntimeTest {
     }
 
     @Test
-    public void stemRuntimeTest() throws Exception {
+    public void stemRuntimeTest() {
         StemContract contract = new StemContract();
         Runtime<JsonObject> runtime =
                 new Runtime<>(

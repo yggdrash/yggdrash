@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.runtime;
+package io.yggdrash.core.runtime.result;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.TransactionHusk;

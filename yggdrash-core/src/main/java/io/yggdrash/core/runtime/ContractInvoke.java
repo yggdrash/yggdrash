@@ -66,7 +66,6 @@ public class ContractInvoke<T> {
         }
     }
 
-
     private void transactionReceipt() {
         // TODO transactionReceipt is required
         for(Field f : ContractUtils.txReceipt(contract)) {
@@ -74,7 +73,6 @@ public class ContractInvoke<T> {
             f.setAccessible(true);
         }
     }
-
 
     // TODO Change Meta info
     // TODO filter invoke jSonObject
@@ -102,6 +100,7 @@ public class ContractInvoke<T> {
             throws InvocationTargetException, IllegalAccessException {
         // set State Store
         TempStateStore store = new TempStateStore(origin);
+        // set store to contract
         updateStore(store);
         transactionReceiptField.set(contract, txReceipt);
 
@@ -112,20 +111,18 @@ public class ContractInvoke<T> {
         if(method == null) {
             txReceipt.setStatus(ExecuteStatus.ERROR);
             txReceipt.addLog(errorLog("method is not exist"));
-            return null;
+            return store;
         }
-        TransactionReceipt resultReceipt = null;
         // check exist params
         if(txBody.has("params") && method.isParams()) {
             JsonObject params = txBody.getAsJsonObject("params");
-            resultReceipt = (TransactionReceipt) method.getMethod().invoke(contract, params);
+            method.getMethod().invoke(contract, params);
+        } else if (!method.isParams()) {
+            method.getMethod().invoke(contract);
         } else {
             txReceipt.setStatus(ExecuteStatus.ERROR);
             txReceipt.addLog(errorLog("params is not exist"));
-            return null;
-        }
-        if (txReceipt.getStatus() != ExecuteStatus.SUCCESS) {
-            txReceipt.setStatus(resultReceipt.getStatus());
+            return store;
         }
         return store;
     }
