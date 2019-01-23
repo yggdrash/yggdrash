@@ -23,6 +23,8 @@ import io.yggdrash.core.contract.methods.ContractMethod;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.store.ReadOnlyStore;
 import io.yggdrash.core.store.Store;
+import java.lang.reflect.Field;
+import java.util.List;
 import java.util.Map;
 
 public class RuntimeQuery {
@@ -34,6 +36,9 @@ public class RuntimeQuery {
         this.contract = ContractUtils.contractInstance(contract);
         this.store = new ReadOnlyStore(store);
         queryMethods = getQueryMethods();
+
+        List<Field> stateField = ContractUtils.stateStore(contract);
+        ContractUtils.updateContractFields(this.contract, stateField, this.store);
     }
 
     public Object query(String method, JsonObject params) throws Exception {

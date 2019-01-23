@@ -39,6 +39,18 @@ public class ContractUtils {
         return ContractUtils.contractFields(contract, ContractStateStore.class);
     }
 
+    public static void updateContractFields(Contract contract, List<Field> fields, Object store) {
+        // init state Store
+        for(Field f : fields) {
+            try {
+                f.setAccessible(true);
+                f.set(contract, store);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
 
     public static List<Field> contractFields(Object contract, Class<? extends Annotation> annotationClass) {
         List<Field> txReceipt = Arrays.stream(contract.getClass().getDeclaredFields())

@@ -33,7 +33,7 @@ import io.yggdrash.core.store.datasource.HashMapDbSource;
 import java.lang.reflect.InvocationTargetException;
 import org.junit.Test;
 
-public class ContractInvokeTest {
+public class RuntimeInvokeTest {
 
     @Test
     public void initTest() throws InvocationTargetException, IllegalAccessException {

@@ -53,18 +53,6 @@ public class RuntimeInvoke<T> {
         transactionReceipt();
     }
 
-    private void updateStore(Store stateStore) {
-        // init state Store
-        for(Field f : stateField) {
-            try {
-                f.setAccessible(true);
-                f.set(contract, stateStore);
-            } catch (IllegalAccessException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
     private void transactionReceipt() {
         // TODO transactionReceipt is required
         for(Field f : ContractUtils.txReceipt(contract)) {
@@ -96,7 +84,7 @@ public class RuntimeInvoke<T> {
         // set State Store
         TempStateStore store = new TempStateStore(origin);
         // set store to contract
-        updateStore(store);
+        ContractUtils.updateContractFields(contract, stateField, store);
         transactionReceiptField.set(contract, txReceipt);
 
         // TODO Check Transaction has contractID

@@ -192,6 +192,7 @@ public class Runtime<T> {
         return runtimeQuery.query(method, params);
     }
 
+    // TODO Remove This
     public StateStore<T> getStateStore() {
         return this.stateStore;
     }
