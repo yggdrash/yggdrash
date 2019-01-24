@@ -61,16 +61,16 @@ public class ContractManagerTest {
     public void getContractIds() {
         List<String> contractIdList = contractManager.getContractIds();
         List<String> sampleContractIdList = contractSample();
+        if (!contractIdList.isEmpty() || !sampleContractIdList.isEmpty()){
+            contractIdList.sort(Comparator.naturalOrder());
+            sampleContractIdList.sort(Comparator.naturalOrder());
+            Boolean is = listEquals(contractIdList, sampleContractIdList);
+            assertEquals(true, is);
 
-        contractIdList.sort(Comparator.naturalOrder());
-        sampleContractIdList.sort(Comparator.naturalOrder());
-        Boolean is = listEquals(contractIdList, sampleContractIdList);
-        assertEquals(true, is);
-
-        contractIdList.add("1378d5ac6e6b7b536165a9a9225684dc93206262");
-        Boolean isnt = listEquals(contractIdList, sampleContractIdList);
-        assertEquals(false, isnt);
-
+            contractIdList.add("1378d5ac6e6b7b536165a9a9225684dc93206262");
+            Boolean isnt = listEquals(contractIdList, sampleContractIdList);
+            assertEquals(false, isnt);
+        }
     }
 
     @Test
