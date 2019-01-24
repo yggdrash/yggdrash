@@ -1,0 +1,39 @@
+{
+  "name": "YGGDRASH",
+  "symbol": "YGGDRASH",
+  "property": "platform",
+  "description": "The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.",
+  "contracts" :
+    [
+      {
+        "contractId": "1d35091e51a57a745eec67db3428893968869e32",
+        "genesis": {},
+        "description": "YGGDRASH STEM Contract",
+        "label":"STEM"
+      },
+      {
+        "contractId": "962b7b726ca696fe75ade58fa5b071fef6e387e7",
+        "genesis": {
+          "alloc": {
+            "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94": {
+              "balance": "1000000000"
+            },
+            "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95": {
+              "balance": "1000000000"
+            },
+            "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e": {
+              "balance": "1000000000"
+            },
+            "cee3d4755e47055b530deeba062c5bd0c17eb00f": {
+              "balance": "997000000000"
+            }
+          }
+        },
+        "description": "YGGDRASH YEED COIN Contracts",
+        "label":"YEED"
+      }
+    ],
+  "timestamp": "000001674dc56231",
+  "owner": "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94",
+  "signature": ""
+}
