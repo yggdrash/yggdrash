@@ -61,7 +61,7 @@ public class StemContractTest {
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer(stateValue.getOwner().toString());
 
-        List<Field> txReceipt = ContractUtils.txReceipt(stemContract);
+        List<Field> txReceipt = ContractUtils.txReceiptFields(stemContract);
         if (txReceipt.size() == 1) {
             txReceiptField = txReceipt.get(0);
         }
