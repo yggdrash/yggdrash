@@ -18,8 +18,7 @@ package io.yggdrash.node.springboot.grpc;
 
 import io.grpc.ServerBuilder;
 
-public class GrpcServerBuilderConfigurer {
-    public void configure(ServerBuilder<?> serverBuilder) {
-
-    }
+@FunctionalInterface
+public interface GrpcServerBuilderConfigurer {
+    void configure(ServerBuilder<?> serverBuilder);
 }
