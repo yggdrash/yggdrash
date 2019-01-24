@@ -37,7 +37,7 @@ public class RuntimeQuery {
         this.store = new ReadOnlyStore(store);
         queryMethods = getQueryMethods();
 
-        List<Field> stateField = ContractUtils.stateStore(contract);
+        List<Field> stateField = ContractUtils.stateStoreFields(contract);
         ContractUtils.updateContractFields(this.contract, stateField, this.store);
     }
 
@@ -47,7 +47,7 @@ public class RuntimeQuery {
         if (query != null) {
             if (params == null && !query.isParams()) {
                 return query.getMethod().invoke(contract);
-            } else {
+            } else if(params != null && query.isParams() ) {
                 return query.getMethod().invoke(contract, params);
             }
 

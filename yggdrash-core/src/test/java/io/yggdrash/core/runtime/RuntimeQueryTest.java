@@ -31,7 +31,8 @@ public class RuntimeQueryTest {
     public void querySomeContract() throws Exception {
         CoinContract contract = new CoinContract();
         Store<String,JsonObject> tempStore = new StateStore<>(new HashMapDbSource());
-        tempStore.put("TOTAL_SUPPLY", new JsonParser().parse("{\"balance\":10000}").getAsJsonObject());
+        tempStore.put("TOTAL_SUPPLY",
+                new JsonParser().parse("{\"balance\":10000}").getAsJsonObject());
         RuntimeQuery query = new RuntimeQuery(contract, tempStore);
 
         Object result = query.query("totalsupply", null);

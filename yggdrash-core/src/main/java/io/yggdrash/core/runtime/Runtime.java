@@ -88,7 +88,7 @@ public class Runtime<T> {
             // TODO first transaction is genesis
             // TODO genesis method don't call any more
         }
-//        Map<Sha3Hash, Boolean> result = new HashMap<>();
+
         BlockRuntimeResult result = new BlockRuntimeResult(block);
         TempStateStore blockState = new TempStateStore(stateStore);
         for(TransactionHusk tx: block.getBody()) {
@@ -100,11 +100,8 @@ public class Runtime<T> {
 
             // Transaction invoke here
             // save Tranction Receipt
-
             TempStateStore txResult = invoke(tx, txReceipt, blockState);
             if (txReceipt.isSuccess()) {
-                // stateStore revert values
-                //submitTxState();
                 blockState.putAll(txResult.changeValues());
             }
 
@@ -127,24 +124,9 @@ public class Runtime<T> {
             changes.entrySet().stream().forEach(r -> {
                 stateStore.put(r.getKey(), r.getValue());
             });
-        }
 
-        // print transaction receiptEvent
-        /*
-        if (log.isInfoEnabled()) {
-            // transction log print
-            log.info("{} Branch {} Block {} Transaction  Status : {} ",
-                    txReceipt.getBranchId(),
-                    txReceipt.getBlockId(),
-                    txReceipt.getTxId(),
-                    txReceipt.getStatus()
-            );
-            for (JsonObject txLog: txReceipt.getTxLog()) {
-                log.info("{} {}", txReceipt.getTxId(), txLog.toString());
-            }
         }
-        */
-        // confirms
+        // TODO make transction Receipt Event
 
     }
 

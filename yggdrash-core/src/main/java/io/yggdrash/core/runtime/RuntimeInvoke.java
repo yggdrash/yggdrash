@@ -49,13 +49,13 @@ public class RuntimeInvoke<T> {
         invokeMethods = getInvokeMethods(contract);
         // Genesis
         //genesis = getGenesisMethod(contract);
-        stateField = ContractUtils.stateStore(contract);
+        stateField = ContractUtils.stateStoreFields(contract);
         transactionReceipt();
     }
 
     private void transactionReceipt() {
         // TODO transactionReceipt is required
-        for(Field f : ContractUtils.txReceipt(contract)) {
+        for(Field f : ContractUtils.txReceiptFields(contract)) {
             transactionReceiptField = f;
             f.setAccessible(true);
         }

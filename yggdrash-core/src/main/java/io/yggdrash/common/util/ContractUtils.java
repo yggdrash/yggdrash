@@ -31,11 +31,11 @@ import java.util.stream.Collectors;
 
 public class ContractUtils {
 
-    public static List<Field> txReceipt(Object contract) {
+    public static List<Field> txReceiptFields(Object contract) {
         return ContractUtils.contractFields(contract, ContractTransactionReceipt.class);
     }
 
-    public static List<Field> stateStore(Object contract) {
+    public static List<Field> stateStoreFields(Object contract) {
         return ContractUtils.contractFields(contract, ContractStateStore.class);
     }
 
@@ -53,10 +53,10 @@ public class ContractUtils {
 
 
     public static List<Field> contractFields(Object contract, Class<? extends Annotation> annotationClass) {
-        List<Field> txReceipt = Arrays.stream(contract.getClass().getDeclaredFields())
+        List<Field> fields = Arrays.stream(contract.getClass().getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(annotationClass))
                 .collect(Collectors.toList());
-        return txReceipt;
+        return fields;
     }
 
 
@@ -75,7 +75,7 @@ public class ContractUtils {
             return instance;
         } catch (Exception e) {
             e.printStackTrace();
-            throw new FailedOperationException("Contract instance");
+            throw new FailedOperationException("Contract instance Fail");
         }
     }
 
