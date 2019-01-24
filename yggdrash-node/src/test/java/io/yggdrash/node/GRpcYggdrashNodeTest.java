@@ -24,8 +24,8 @@ import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.DiscoveryServiceConsumer;
 import io.yggdrash.core.net.KademliaDiscovery;
 import io.yggdrash.core.net.Node;
-import io.yggdrash.core.net.PeerHandlerGroup;
 import io.yggdrash.core.net.PeerTable;
+import io.yggdrash.core.net.SimplePeerHandlerGroup;
 import io.yggdrash.node.service.GRpcPeerListener;
 import org.junit.After;
 import org.junit.Test;
@@ -88,7 +88,7 @@ public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
         private int port;
 
         GRpcTestNode(int port) {
-            this.peerHandlerGroup = new PeerHandlerGroup(new GRpcPeerHandlerFactory());
+            this.peerHandlerGroup = new SimplePeerHandlerGroup(new GRpcPeerHandlerFactory());
             this.peerTable = PeerTestUtils.createPeerTable(port);
             this.port = port;
 

@@ -16,10 +16,13 @@
 
 package io.yggdrash.core.net;
 
+import io.yggdrash.core.akashic.SyncManager;
+
 public abstract class Node implements BootStrap {
 
     protected PeerListener peerListener;
     protected PeerHandlerGroup peerHandlerGroup;
+    protected SyncManager syncManager;
 
     public void bootstrapping(Discovery discovery, int maxPeer) {
         PeerTable peerTable = discovery.discover(peerHandlerGroup.getPeerHandlerFactory());
@@ -29,6 +32,18 @@ public abstract class Node implements BootStrap {
             }
             peerHandlerGroup.addHandler(peerTable.getOwner(), peer);
         }
+    }
+
+    public void setPeerListener(PeerListener peerListener) {
+        this.peerListener = peerListener;
+    }
+
+    public void setPeerHandlerGroup(PeerHandlerGroup peerHandlerGroup) {
+        this.peerHandlerGroup = peerHandlerGroup;
+    }
+
+    public void setSyncManager(SyncManager syncManager) {
+        this.syncManager = syncManager;
     }
 
     public void start(String host, int port) {
