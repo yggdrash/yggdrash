@@ -17,7 +17,7 @@ public class GRpcDiscoveryService extends PeerGrpc.PeerImplBase {
 
     private DiscoveryConsumer discoveryConsumer;
 
-    GRpcDiscoveryService(DiscoveryConsumer discoveryConsumer) {
+    public GRpcDiscoveryService(DiscoveryConsumer discoveryConsumer) {
         this.discoveryConsumer = discoveryConsumer;
     }
 
