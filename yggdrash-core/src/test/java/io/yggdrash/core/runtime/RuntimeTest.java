@@ -25,6 +25,7 @@ import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.CoinContract;
+import io.yggdrash.core.contract.ContractId;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.StateStore;
@@ -42,7 +43,6 @@ public class RuntimeTest {
         CoinContract contract = new CoinContract();
         Runtime runtime =
                 new Runtime<>(
-                        contract,
                         new StateStore<>(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource())
                 );
@@ -71,10 +71,10 @@ public class RuntimeTest {
         StemContract contract = new StemContract();
         Runtime<JsonObject> runtime =
                 new Runtime<>(
-                        contract,
                         new StateStore<>(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource()));
-
+        // TODO runtime Add Contract
+        runtime.addContract(ContractId.of("STEM"), contract);
         JsonObject json = ContractTestUtils.createSampleBranchJson();
         BranchId branchId = BranchId.of(json);
         TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId, "create", json);

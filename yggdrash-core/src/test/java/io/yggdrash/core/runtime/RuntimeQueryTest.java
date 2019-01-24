@@ -33,7 +33,8 @@ public class RuntimeQueryTest {
         Store<String,JsonObject> tempStore = new StateStore<>(new HashMapDbSource());
         tempStore.put("TOTAL_SUPPLY",
                 new JsonParser().parse("{\"balance\":10000}").getAsJsonObject());
-        RuntimeQuery query = new RuntimeQuery(contract, tempStore);
+        RuntimeQuery query = new RuntimeQuery(contract);
+        query.setStore(tempStore);
 
         Object result = query.query("totalsupply", null);
         assert BigDecimal.valueOf(10000).equals(result);
