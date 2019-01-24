@@ -16,10 +16,7 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.akashic.SyncManager;
 import io.yggdrash.core.net.Discovery;
 import io.yggdrash.core.net.Node;
 import io.yggdrash.core.net.NodeStatus;
@@ -33,8 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 public class YggdrashNode extends Node
         implements CommandLineRunner, DisposableBean {
@@ -44,25 +39,26 @@ public class YggdrashNode extends Node
 
     private final NodeStatus nodeStatus;
 
-    private final BranchGroup branchGroup;
-
     private final Discovery discovery;
 
     @Autowired
     public void setPeerListener(PeerListener peerListener) {
-        this.peerListener = peerListener;
+        super.setPeerListener(peerListener);
     }
 
     @Autowired
     public void setPeerHandlerGroup(PeerHandlerGroup peerHandlerGroup) {
-        this.peerHandlerGroup = peerHandlerGroup;
+        super.setPeerHandlerGroup(peerHandlerGroup);
     }
 
-    YggdrashNode(NodeProperties nodeProperties, NodeStatus nodeStatus, BranchGroup branchGroup,
-                 Discovery discovery) {
+    @Autowired
+    public void setSyncManager(SyncManager syncManager) {
+        super.setSyncManager(syncManager);
+    }
+
+    YggdrashNode(NodeProperties nodeProperties, NodeStatus nodeStatus, Discovery discovery) {
         this.nodeProperties = nodeProperties;
         this.nodeStatus = nodeStatus;
-        this.branchGroup = branchGroup;
         this.discovery = discovery;
     }
 
@@ -82,52 +78,15 @@ public class YggdrashNode extends Node
             return;
         }
         nodeStatus.sync();
-        syncBlockAndTransaction();
+        syncManager.syncBlockAndTransaction();
         nodeStatus.up();
     }
 
     @Override
     public void destroy() {
         log.info("Destroy handlerGroup");
-        peerHandlerGroup.destroy();
+        peerHandlerGroup.destroyAll();
         log.info("Shutting down gRPC server...");
         peerListener.stop();
-    }
-
-    private void syncBlockAndTransaction() {
-        try {
-            for (BlockChain blockChain : branchGroup.getAllBranch()) {
-                BlockChainSync.syncTransaction(blockChain, peerHandlerGroup);
-                BlockChainSync.syncBlock(blockChain, peerHandlerGroup);
-            }
-        } catch (Exception e) {
-            log.warn(e.getMessage(), e);
-        }
-    }
-
-    private static class BlockChainSync {
-
-        static void syncBlock(BlockChain blockChain, PeerHandlerGroup peerHandlerGroup) {
-            List<BlockHusk> blockList;
-            do {
-                blockList = peerHandlerGroup.syncBlock(blockChain.getBranchId(),
-                        blockChain.getLastIndex() + 1);
-                for (BlockHusk block : blockList) {
-                    blockChain.addBlock(block, false);
-                }
-            } while (!blockList.isEmpty());
-        }
-
-        static void syncTransaction(BlockChain blockChain, PeerHandlerGroup peerHandlerGroup) {
-            List<TransactionHusk> txList =
-                    peerHandlerGroup.syncTransaction(blockChain.getBranchId());
-            for (TransactionHusk tx : txList) {
-                try {
-                    blockChain.addTransaction(tx);
-                } catch (Exception e) {
-                    log.warn(e.getMessage());
-                }
-            }
-        }
     }
 }

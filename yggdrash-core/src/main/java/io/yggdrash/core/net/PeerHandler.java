@@ -9,11 +9,11 @@ import java.util.List;
 public interface PeerHandler {
     List<Peer> findPeers(Peer requestPeer);
 
+    String ping(String message, Peer peer);
+
     Peer getPeer();
 
     void stop();
-
-    String ping(String message, Peer peer);
 
     List<BlockHusk> syncBlock(BranchId branchId, long offset);
 

@@ -43,7 +43,7 @@ public class GRpcDiscoveryService extends PeerGrpc.PeerImplBase {
     }
 
     @Override
-    public void play(Proto.Ping request, StreamObserver<Proto.Pong> responseObserver) {
+    public void ping(Proto.Ping request, StreamObserver<Proto.Pong> responseObserver) {
         String url = request.getPeer().getUrl();
         Peer from = Peer.valueOf(url);
         log.debug("Received " + request.getPing());

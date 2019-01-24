@@ -55,7 +55,7 @@ public class EbftNodeClient {
         EbftProto.PongTime pongTime;
         try {
             pongTime = blockingStub
-                    .withDeadlineAfter(3, TimeUnit.SECONDS)
+                    .withDeadlineAfter(1, TimeUnit.SECONDS)
                     .pingPongTime(pingTime);
         } catch (StatusRuntimeException e) {
             return 0L;
@@ -71,7 +71,7 @@ public class EbftNodeClient {
     public NodeStatus exchangeNodeStatus(EbftProto.NodeStatus nodeStatus) {
         this.nodeStatus =
                 new NodeStatus(blockingStub
-                        .withDeadlineAfter(5, TimeUnit.SECONDS)
+                        .withDeadlineAfter(3, TimeUnit.SECONDS)
                         .exchangeNodeStatus(nodeStatus));
         if (Context.current().isCancelled()) {
             return null;
@@ -81,13 +81,13 @@ public class EbftNodeClient {
     }
 
     public void broadcastBlockCon(EbftProto.BlockCon blockCon) {
-        blockingStub.withDeadlineAfter(5, TimeUnit.SECONDS)
+        blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS)
                 .broadcastBlockCon(blockCon);
     }
 
     public List<BlockCon> getBlockConList(long index) {
         EbftProto.BlockConList protoBlockConList = blockingStub
-                .withDeadlineAfter(20, TimeUnit.SECONDS)
+                .withDeadlineAfter(3, TimeUnit.SECONDS)
                 .getBlockConList(
                         EbftProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
 

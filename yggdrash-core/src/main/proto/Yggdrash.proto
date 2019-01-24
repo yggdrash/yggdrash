@@ -7,7 +7,7 @@ option java_outer_classname = "Proto";
 service Peer {
     rpc findPeers (RequestPeer) returns (PeerList) {
     }
-    rpc play (Ping) returns (Pong) {
+    rpc ping (Ping) returns (Pong) {
     }
 }
 

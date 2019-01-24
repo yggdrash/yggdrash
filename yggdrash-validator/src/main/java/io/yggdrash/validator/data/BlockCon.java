@@ -17,12 +17,15 @@
 package io.yggdrash.validator.data;
 
 import com.google.protobuf.ByteString;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.EbftProto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.util.ArrayList;
@@ -32,9 +35,12 @@ import java.util.Collections;
 import java.util.List;
 
 public class BlockCon {
+    private static final Logger log = LoggerFactory.getLogger(BlockCon.class);
+
     private static final boolean TEST_NO_VERIFY = false; // todo: delete when testing is finished
     private static final int BLOCK_HEADER_LENGTH = 124;
     private static final int SIGNATURE_LENGTH = 65;
+    private static final int MAX_VALIDATOR_COUNT = 100;
 
     private byte[] hash;
     private byte[] chain;
@@ -55,7 +61,13 @@ public class BlockCon {
         System.arraycopy(blockConBytes, position, signature, 0, signature.length);
         position += signature.length;
 
-        byte[] bodyBytes = new byte[(int)blockHeader.getBodyLength()];
+        int blockBodyLength = (int) blockHeader.getBodyLength();
+        if (blockBodyLength < 0 || blockBodyLength > Constants.MAX_MEMORY) {
+            log.debug("BlockCon body length is not valid");
+            throw new NotValidateException();
+        }
+
+        byte[] bodyBytes = new byte[(int) blockBodyLength];
         System.arraycopy(blockConBytes, position, bodyBytes, 0, bodyBytes.length);
         position += bodyBytes.length;
 
@@ -173,7 +185,13 @@ public class BlockCon {
 
     public byte[] toBinary() {
         int pos = 0;
-        byte[] consensusList = new byte[SIGNATURE_LENGTH * this.consensusList.size()];
+
+        int consensusListSize = this.consensusList.size();
+        if (consensusListSize > MAX_VALIDATOR_COUNT) {
+            throw new NotValidateException();
+        }
+
+        byte[] consensusList = new byte[SIGNATURE_LENGTH * consensusListSize];
         for (String consensus : this.consensusList) {
             System.arraycopy(Hex.decode(consensus), 0, consensusList, pos, SIGNATURE_LENGTH);
             pos += SIGNATURE_LENGTH;

@@ -85,7 +85,7 @@ public class GRpcPeerListenerTest {
 
         Proto.Ping ping = Proto.Ping.newBuilder().setPing("Ping").setPeer(peerInfo).build();
 
-        Proto.Pong pong = blockingStub.play(ping);
+        Proto.Pong pong = blockingStub.ping(ping);
 
         assertEquals("Pong", pong.getPong());
     }
