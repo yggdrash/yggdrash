@@ -34,7 +34,7 @@ public class KademliaDiscovery implements Discovery {
             try {
                 log.info("Try connecting to SEED peer = {}", peer);
                 peerHandler = factory.create(peer);
-                List<Peer> peerList = peerHandler.findPeers(owner);
+                List<Peer> peerList = peerHandler.findPeers(owner); // self -> owner == target
                 peerList.forEach(peerTable::addPeer);
             } catch (Exception e) {
                 log.error("Failed connecting to SEED peer = {}", peer);
@@ -62,7 +62,8 @@ public class KademliaDiscovery implements Discovery {
                 return;
             }
 
-            List<Peer> closest = peerTable.getClosestPeers(KademliaOptions.BUCKET_SIZE);
+            // self -> owner == target
+            List<Peer> closest = peerTable.getClosestPeers(owner, KademliaOptions.BUCKET_SIZE);
             List<Peer> tried = new ArrayList<>();
 
             for (Peer peer : closest) {

@@ -80,6 +80,21 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
     }
 
     @Override
+    public boolean isPingSucceed(Peer owner, PeerId targetId) {
+        if (handlerMap.containsKey(targetId)) {
+            try {
+                String pong = handlerMap.get(targetId).ping("Ping", owner);
+                if ("Pong".equals(pong)) {
+                    return true;
+                }
+            } catch (Exception e) {
+                log.warn(e.getMessage());
+            }
+        }
+        return false;
+    }
+
+    @Override
     public void receivedTransaction(TransactionHusk tx) {
         if (handlerMap.isEmpty()) {
             log.trace("Active peer is empty to broadcast transaction");

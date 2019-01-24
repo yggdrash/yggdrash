@@ -36,6 +36,12 @@ public class SimplePeerHandlerGroupTest {
     }
 
     @Test
+    public void isPingSucceed() {
+        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        assert !peerHandlerGroup.isPingSucceed(OWNER, peer.getPeerId());
+    }
+
+    @Test
     public void destroyAll() {
         addPeerHandler();
         peerHandlerGroup.destroyAll();
@@ -46,8 +52,8 @@ public class SimplePeerHandlerGroupTest {
         BlockHusk genesis = BlockChainTestUtils.genesisBlock();
         peerHandlerGroup.chainedBlock(BlockChainTestUtils.genesisBlock());
         for (BestBlock bestBlock : OWNER.getBestBlocks()) {
-            assert !bestBlock.getBranchId().equals(genesis.getBranchId()) ||
-                    bestBlock.getIndex() == genesis.getIndex();
+            assert !bestBlock.getBranchId().equals(genesis.getBranchId())
+                    || bestBlock.getIndex() == genesis.getIndex();
         }
     }
 

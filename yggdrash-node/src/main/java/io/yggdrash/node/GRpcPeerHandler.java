@@ -62,6 +62,19 @@ public class GRpcPeerHandler implements PeerHandler {
 
     @Override
     public List<Peer> findPeers(Peer peer) {
+        Proto.TargetPeer targetPeer = Proto.TargetPeer.newBuilder()
+                .setPubKey(peer.getPubKey().toString())
+                .setIp(peer.getHost())
+                .setPort(peer.getPort())
+                .build();
+        return blockingPeerStub.findPeers(targetPeer).getPeersList().stream()
+                .map(peerInfo -> Peer.valueOf(peerInfo.getUrl()))
+                .collect(Collectors.toList());
+    }
+
+    /*
+    @Override
+    public List<Peer> findPeers(Peer peer) {
         Proto.RequestPeer requestPeer = Proto.RequestPeer.newBuilder()
                 .setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
@@ -72,6 +85,8 @@ public class GRpcPeerHandler implements PeerHandler {
                 .map(peerInfo -> Peer.valueOf(peerInfo.getUrl()))
                 .collect(Collectors.toList());
     }
+    */
+
 
     private List<Proto.BestBlock> bestBlocksByPeer(Peer peer) {
         List<Proto.BestBlock> bestBlocks = new ArrayList<>();

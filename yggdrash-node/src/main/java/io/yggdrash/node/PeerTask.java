@@ -16,11 +16,16 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.core.net.KademliaOptions;
 import io.yggdrash.core.net.NodeStatus;
+import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.net.PeerBucket;
 import io.yggdrash.core.net.PeerHandlerGroup;
 import io.yggdrash.core.net.PeerTable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
+
+import java.util.Random;
 
 public class PeerTask {
     @Autowired
@@ -36,5 +41,38 @@ public class PeerTask {
             return;
         }
         peerHandlerGroup.healthCheck(peerTable.getOwner());
+    }
+
+    // revalidate checks that the last node in a random bucket is still live
+    // and replaces or deletes the node if it isn't
+    @Scheduled(cron = "*/10 * * * * *")
+    public void revalidate() {
+        Peer last = peerToRevalidate();
+        if (last != null) {
+            // Ping the selected node and wait for a pong (set last.id to ping msg)
+            if (peerHandlerGroup.isPingSucceed(peerTable.getOwner(), last.getPeerId())) {
+                // The peer responded, move it to the front
+                peerTable.getBucketByPeer(last).bump(last);
+            } else {
+                // No reply received, pick a replacement or delete the node
+                // if there aren't any replacement
+                // (The list of replacement will be implemented later)
+                peerTable.getBucketByPeer(last).dropPeer(last);
+            }
+        }
+    }
+
+    // returns the last node in a random, non-empty bucket
+    private Peer peerToRevalidate() {
+        Random r = new Random();
+        PeerBucket bucket;
+        int cnt;
+
+        do {
+            bucket = peerTable.getBucketByIndex(r.nextInt(KademliaOptions.BUCKET_SIZE));
+            cnt = bucket.getPeersCount();
+        } while (cnt < 1);
+
+        return bucket.getLastPeer();
     }
 }

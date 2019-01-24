@@ -26,9 +26,16 @@ public class DiscoveryServiceConsumer implements DiscoveryConsumer {
     }
 
     @Override
+    public List<Peer> findPeers(Peer target) {
+        return peerTable.getClosestPeers(target, KademliaOptions.BUCKET_SIZE);
+    }
+
+    /*
+    @Override
     public List<String> findPeers(Peer requestPeer) {
         return peerTable.getPeers(requestPeer);
     }
+    */
 
     @Override
     public void afterFindPeersResponse() {

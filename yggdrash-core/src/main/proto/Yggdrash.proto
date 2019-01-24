@@ -5,7 +5,7 @@ option java_outer_classname = "Proto";
 
 
 service Peer {
-    rpc findPeers (RequestPeer) returns (PeerList) {
+    rpc findPeers (TargetPeer) returns (PeerList) {
     }
     rpc ping (Ping) returns (Pong) {
     }
@@ -50,6 +50,13 @@ message Transaction {
     bytes body = 3;
 }
 
+message TargetPeer {
+    string pubKey = 1;
+    string ip = 2;
+    int32 port = 3;
+    // Fields can be added (i.e.Expiration ...etc)
+}
+
 message RequestPeer {
     string pubKey = 1;
     string ip = 2;
@@ -72,6 +79,7 @@ message Ping {
 
 message Pong {
     string pong = 1;
+    PeerInfo from = 2;
 }
 
 message BestBlock {

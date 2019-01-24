@@ -64,8 +64,7 @@ public class GRpcPeerListenerTest {
         grpcServerRule.getServiceRegistry()
                 .addService(new GRpcDiscoveryService(discoveryConsumerMock));
         grpcServerRule.getServiceRegistry()
-                .addService(new GRpcBlockChainService(blockChainConsumerMock)
-        );
+                .addService(new GRpcBlockChainService(blockChainConsumerMock));
 
         tx = BlockChainTestUtils.createTransferTxHusk();
         block = BlockChainTestUtils.genesisBlock();
@@ -96,6 +95,8 @@ public class GRpcPeerListenerTest {
                 grpcServerRule.getChannel());
 
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+
+        /*
         Proto.BestBlock bestBlock = Proto.BestBlock.newBuilder()
                 .setBranch(ByteString.copyFrom(branchId.getBytes()))
                 .setIndex(0).build();
@@ -105,8 +106,15 @@ public class GRpcPeerListenerTest {
                 .setPort(peer.getPort())
                 .addBestBlocks(bestBlock)
                 .build();
+        */
 
-        Proto.PeerList peerList = blockingStub.findPeers(requestPeer);
+        Proto.TargetPeer targetPeer = Proto.TargetPeer.newBuilder()
+                .setPubKey(peer.getPubKey().toString())
+                .setIp(peer.getHost())
+                .setPort(peer.getPort())
+                .build();
+
+        Proto.PeerList peerList = blockingStub.findPeers(targetPeer);
 
         assertEquals(0, peerList.getPeersCount());
     }

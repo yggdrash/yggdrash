@@ -22,6 +22,26 @@ public class GRpcDiscoveryService extends PeerGrpc.PeerImplBase {
     }
 
     @Override
+    public void findPeers(Proto.TargetPeer target, StreamObserver<Proto.PeerList> responseObserver) {
+        Peer peer = Peer.valueOf(target.getPubKey(), target.getIp(), target.getPort());
+
+        List<Peer> list = discoveryConsumer.findPeers(peer); // peer -> target
+        Proto.PeerList.Builder peerListBuilder = Proto.PeerList.newBuilder();
+
+        for (Peer p : list) {
+            peerListBuilder.addPeers(Proto.PeerInfo.newBuilder().setUrl(p.getYnodeUri()).build());
+        }
+
+        Proto.PeerList peerList = peerListBuilder.build();
+
+        responseObserver.onNext(peerList);
+        responseObserver.onCompleted();
+
+        discoveryConsumer.afterFindPeersResponse();
+    }
+
+    /*
+    @Override
     public void findPeers(Proto.RequestPeer request, StreamObserver<Proto.PeerList> responseObserver) {
         Peer peer = Peer.valueOf(request.getPubKey(), request.getIp(), request.getPort());
 
@@ -41,6 +61,7 @@ public class GRpcDiscoveryService extends PeerGrpc.PeerImplBase {
 
         discoveryConsumer.afterFindPeersResponse();
     }
+    */
 
     @Override
     public void ping(Proto.Ping request, StreamObserver<Proto.Pong> responseObserver) {

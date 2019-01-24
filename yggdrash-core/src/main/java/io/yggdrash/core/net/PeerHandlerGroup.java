@@ -31,6 +31,8 @@ public interface PeerHandlerGroup extends BranchEventListener {
 
     void healthCheck(Peer owner);
 
+    boolean isPingSucceed(Peer owner, PeerId targetId);
+
     int handlerCount();
 
     void addHandler(Peer owner, Peer requestPeer);

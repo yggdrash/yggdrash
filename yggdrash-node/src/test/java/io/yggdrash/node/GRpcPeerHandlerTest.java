@@ -36,7 +36,6 @@ import org.mockito.Captor;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
@@ -57,8 +56,11 @@ public class GRpcPeerHandlerTest {
     @Captor
     private ArgumentCaptor<Proto.Ping> pingRequestCaptor;
 
+    //@Captor
+    //private ArgumentCaptor<Proto.RequestPeer> findPeersRequestCaptor;
+
     @Captor
-    private ArgumentCaptor<Proto.RequestPeer> findPeersRequestCaptor;
+    private ArgumentCaptor<Proto.TargetPeer> findPeersTargetCaptor;
 
     @Captor
     private ArgumentCaptor<Proto.Block> blockArgumentCaptor;
@@ -112,19 +114,20 @@ public class GRpcPeerHandlerTest {
             argument.onNext(null);
             argument.onCompleted();
             return null;
-        }).when(peerService).findPeers(findPeersRequestCaptor.capture(), any());
+        }).when(peerService).findPeers(findPeersTargetCaptor.capture(), any());
 
         Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
         owner.updateBestBlock(BestBlock.of(TestConstants.STEM, 0));
         peerHandler.findPeers(owner);
 
-        verify(peerService).findPeers(findPeersRequestCaptor.capture(), any());
+        verify(peerService).findPeers(findPeersTargetCaptor.capture(), any());
 
-        assertEquals("127.0.0.1", findPeersRequestCaptor.getValue().getIp());
-        assertEquals(32918, findPeersRequestCaptor.getValue().getPort());
-        Proto.BestBlock bestBlock = findPeersRequestCaptor.getValue().getBestBlocks(0);
-        assertArrayEquals(TestConstants.STEM.getBytes(), bestBlock.getBranch().toByteArray());
-        assertEquals(0, bestBlock.getIndex());
+        assertEquals("127.0.0.1", findPeersTargetCaptor.getValue().getIp());
+        assertEquals(32918, findPeersTargetCaptor.getValue().getPort());
+
+        //Proto.BestBlock bestBlock = findPeersRequestCaptor.getValue().getBestBlocks(0);
+        //assertArrayEquals(TestConstants.STEM.getBytes(), bestBlock.getBranch().toByteArray());
+        //assertEquals(0, bestBlock.getIndex());
     }
 
     @Test

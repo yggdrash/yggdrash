@@ -49,7 +49,7 @@ public class KademliaPeerTable implements PeerTable {
         List<Peer> seedPeerList;
 
         if (peerStore.size() > 1) {
-            seedPeerList = getClosestPeers(KademliaOptions.BUCKET_SIZE);
+            seedPeerList = getClosestPeers(owner, KademliaOptions.BUCKET_SIZE); // self -> owner == target
         } else if (this.seedPeerList != null) {
             seedPeerList = this.seedPeerList.stream().map(Peer::valueOf)
                     .collect(Collectors.toList());
@@ -60,18 +60,28 @@ public class KademliaPeerTable implements PeerTable {
         return seedPeerList;
     }
 
+    // addPeer attempts to add the given peer to its corresponding bucket.
+    // If the bucket has space available, adding the peer succeeds immediately.
+    // Otherwise, the node is added if the least recently active node in the bucket
+    // does not respond to a ping packet. (TODO managing replacements will be implemented)
     @Override
-    public synchronized Peer addPeer(Peer p) {
+    public synchronized void addPeer(Peer p) {
         p.setDistance(owner);
+        buckets[getBucketId(p)].addPeer(p);
+
+        /*
         Peer lastSeen = buckets[getBucketId(p)].addPeer(p);
         if (lastSeen != null) {
             return lastSeen;
         }
+        */
+
+        //TODO peer will be stored in db at specific time intervals
         if (!peerStore.contains(p.getPeerId())) {
             peerStore.put(p.getPeerId(), p);
             log.debug("Added peerStore size={}, peer={}", count(), p.toAddress());
         }
-        return null;
+        //return null;
     }
 
     public synchronized boolean contains(Peer p) {
@@ -95,6 +105,16 @@ public class KademliaPeerTable implements PeerTable {
                 break;
             }
         }
+    }
+
+    @Override
+    public synchronized PeerBucket getBucketByIndex(int i) {
+        return buckets[i];
+    }
+
+    @Override
+    public synchronized PeerBucket getBucketByPeer(Peer p) {
+        return buckets[getBucketId(p)];
     }
 
     private int getBucketsCount() {
@@ -158,7 +178,6 @@ public class KademliaPeerTable implements PeerTable {
     }
 
     public List<String> getPeers(Peer peer) {
-
         List<String> peerList = getPeerUriList();
         addPeer(peer);
         return peerList;
@@ -178,10 +197,10 @@ public class KademliaPeerTable implements PeerTable {
     }
 
     @Override
-    public synchronized List<Peer> getClosestPeers(int maxPeers) {
+    public synchronized List<Peer> getClosestPeers(Peer targetPeer, int maxPeers) {
         List<Peer> closestEntries = getAllPeers();
         closestEntries.remove(owner);
-        closestEntries.sort(new DistanceComparator(owner.getPeerId().getBytes()));
+        closestEntries.sort(new DistanceComparator(targetPeer.getPeerId().getBytes()));
         if (closestEntries.size() > maxPeers) {
             closestEntries = closestEntries.subList(0, maxPeers);
         }

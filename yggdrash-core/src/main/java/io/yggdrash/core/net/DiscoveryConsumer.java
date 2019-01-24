@@ -20,7 +20,7 @@ import java.util.List;
 
 public interface DiscoveryConsumer {
 
-    List<String> findPeers(Peer requestPeer);
+    List<Peer> findPeers(Peer target);
 
     void afterFindPeersResponse();
 
