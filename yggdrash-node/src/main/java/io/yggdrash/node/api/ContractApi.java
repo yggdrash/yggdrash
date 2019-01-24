@@ -33,7 +33,8 @@ public interface ContractApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    Object contract(@JsonRpcParam(value = "method") String method,
+    Object contract(@JsonRpcParam(value = "contractId") String contractId,
+                    @JsonRpcParam(value = "method") String method,
                     @JsonRpcParam(value = "params") Map params) throws Exception;
 
 }

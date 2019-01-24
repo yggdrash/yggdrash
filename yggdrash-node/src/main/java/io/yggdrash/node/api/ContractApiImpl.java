@@ -32,6 +32,9 @@ public class ContractApiImpl implements ContractApi {
     @Override
     public Object query(String branchId, String method, Map params) {
         JsonObject jsonParams = null;
+
+        contractManager.paramsValidation(method, params);
+
         if (params != null && !params.isEmpty()) {
             jsonParams = JsonUtil.convertMapToJson(params);
         }
@@ -43,7 +46,7 @@ public class ContractApiImpl implements ContractApi {
     }
 
     @Override
-    public Object contract(String method, Map params) {
+    public Object contract(String contractId, String method, Map params) {
         try {
             if (params.size() > 0) {
                 return contractManager.getClass().getMethod(method, JsonObject.class)

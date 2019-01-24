@@ -22,6 +22,7 @@ import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -35,6 +36,8 @@ public class ContractMeta {
     private final ContractId contractId;
     private Map<String, Method> invokeMethod;
     private Map<String, Method> queryMethod;
+    private Field transactionReceiptField;
+    private Field contractStateStoreFiled;
 
     ContractMeta(byte[] contractBinary, Class<? extends Contract> contractClass) {
         this.contractBinary = contractBinary;
@@ -83,6 +86,22 @@ public class ContractMeta {
         methods.put("invoke", ContractUtils.methodInfo(invokeMethod));
         methods.put("query", ContractUtils.methodInfo(queryMethod));
         return methods;
+    }
+
+    public Field getTxReceipt() {
+        for(Field f : ContractUtils.txReceipt(getContractInstance())) {
+            transactionReceiptField = f;
+            f.setAccessible(true);
+        }
+        return transactionReceiptField;
+    }
+
+    public Field getStateStore() {
+        for(Field f : ContractUtils.stateStore(getContractInstance())) {
+            contractStateStoreFiled = f;
+            f.setAccessible(true);
+        }
+        return contractStateStoreFiled;
     }
 
     public Map<String, Method> getInvokeMethods() {

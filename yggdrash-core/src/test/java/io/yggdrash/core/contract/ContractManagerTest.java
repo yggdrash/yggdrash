@@ -19,14 +19,14 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Stream;
 
 import io.yggdrash.common.util.ContractUtils;
@@ -59,8 +59,18 @@ public class ContractManagerTest {
 
     @Test
     public void getContractIds() {
-        contractManager.getContractIds();
-        log.debug(contractManager.getContractIds().toString());
+        List<String> contractIdList = contractManager.getContractIds();
+        List<String> sampleContractIdList = contractSample();
+
+        contractIdList.sort(Comparator.naturalOrder());
+        sampleContractIdList.sort(Comparator.naturalOrder());
+        Boolean is = listEquals(contractIdList, sampleContractIdList);
+        assertEquals(true, is);
+
+        contractIdList.add("1378d5ac6e6b7b536165a9a9225684dc93206262");
+        Boolean isnt = listEquals(contractIdList, sampleContractIdList);
+        assertEquals(false, isnt);
+
     }
 
     @Test
@@ -89,14 +99,69 @@ public class ContractManagerTest {
             Boolean is = contractManager.isContract(createParams(paramStr));
             assertEquals(true, is);
 
-            final String f = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206262\"}";
-            Boolean isnt = contractManager.isContract(createParams(f));
+            final String paramStr2 = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206262\"}";
+            Boolean isnt = contractManager.isContract(createParams(paramStr2));
             assertEquals(false, isnt);
         }
     }
 
+    @Test
+    public void contractValidation() {
+        Map params = createParams("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
+        params.put("spender", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
+        contractManager.paramsValidation("allowance", params);
+    }
+
+    private static Map createParams(String key, String value) {
+        Map params = new HashMap();
+        params.put(key, value);
+        return params;
+    }
+
     private JsonObject createParams(String paramStr) {
         return JsonUtil.parseJsonObject(paramStr);
+    }
+
+    private static boolean listEquals(List<String> list1, List<String> list2) {
+        if(list1.size() != list2.size())
+            return false;
+
+        for (String id : list1) {
+            if(!list2.contains(id))
+                return false;
+        }
+        return true;
+    }
+
+    private List<String> contractSample() {
+        DefaultConfig defaultConfig = new DefaultConfig();
+        List<String> cIds = new ArrayList<>();
+        try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(defaultConfig.getContractPath())))) {
+            filePathStream.forEach(contractPath -> {
+                File contractFile = new File(String.valueOf(contractPath));
+                if(contractFile.isDirectory()) return;
+                byte[] contractBinary;
+                try (FileInputStream inputStream = new FileInputStream(contractFile)) {
+                    contractBinary = new byte[Math.toIntExact(contractFile.length())];
+                    inputStream.read(contractBinary);
+
+                    ContractId contractId = ContractId.of(contractBinary);
+                    ContractMeta contractMeta = ContractClassLoader.loadContractById(
+                            defaultConfig.getContractPath(), contractId);
+
+                    if(contractMeta.getStateStore() !=null || contractMeta.getTxReceipt() !=null) {
+                        String id = contractId.toString();
+                        cIds.add(id);
+                    }
+                } catch (IOException e) {
+                    log.warn(e.getMessage());
+                }
+            });
+            return cIds;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }
 

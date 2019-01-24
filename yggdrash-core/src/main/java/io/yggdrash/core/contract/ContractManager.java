@@ -16,14 +16,20 @@
 
 package io.yggdrash.core.contract;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.ContractUtils;
+import io.yggdrash.core.runtime.annotation.ContractQuery;
+import io.yggdrash.core.runtime.annotation.Genesis;
+import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.ParamValidation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -43,7 +49,7 @@ public class ContractManager extends ClassLoader {
         try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(contractRoot)))) {
             filePathStream.forEach(contractPath -> {
                 File contractFile = new File(String.valueOf(contractPath));
-                if(contractFile.isDirectory()) { return; }
+                if(contractFile.isDirectory()) return;
                 byte[] contractBinary;
                 try (FileInputStream inputStream = new FileInputStream(contractFile)) {
                     contractBinary = new byte[Math.toIntExact(contractFile.length())];
@@ -54,7 +60,9 @@ public class ContractManager extends ClassLoader {
                             contractRoot, contractId);
 
                     if (Files.isRegularFile(contractPath)) {
-                        contractMap.put(contractId, contractMeta);
+                        if(contractMeta.getStateStore() !=null || contractMeta.getTxReceipt() !=null) {
+                            contractMap.put(contractId, contractMeta);
+                        }
                     }
 
                 } catch (IOException e) {
@@ -68,7 +76,7 @@ public class ContractManager extends ClassLoader {
 
     public List<Map> getContracts() {
         List<Map> contractList = new ArrayList<>();
-        for(Map.Entry<ContractId, ContractMeta> elem : contractMap.entrySet()){
+        for (Map.Entry<ContractId, ContractMeta> elem : contractMap.entrySet()) {
             contractList.add(ContractUtils.contractInfo(elem.getValue()));
         }
         return contractList;
@@ -76,7 +84,7 @@ public class ContractManager extends ClassLoader {
 
     public List<String> getContractIds() {
         List<String> contractIdList = new ArrayList<>();
-        for( ContractId key : contractMap.keySet() ){
+        for ( ContractId key : contractMap.keySet() ) {
             contractIdList.add(key.toString());
         }
         return contractIdList;
@@ -95,5 +103,23 @@ public class ContractManager extends ClassLoader {
     public Boolean isContract(JsonObject params) {
         ContractId contractId = ContractId.of(params.get("contractId").getAsString());
         return contractMap.get(contractId) != null;
+    }
+
+    //TODO validation
+    public Boolean paramsValidation(String method, Map params) {
+        // TODO runtime invoke 전에 인젝션
+        for (Map.Entry<ContractId, ContractMeta> elem : contractMap.entrySet()) {
+            Map<String, Method> invoke =  elem.getValue().getInvokeMethods();
+            Map<String, Method> query =  elem.getValue().getQueryMethods();
+
+            Map<String, Method> validationMethod = ContractUtils.contractMethods(
+                    elem.getValue().getContractInstance(), ParamValidation.class);
+        }
+        return true;
+    }
+
+    //TODO query to contract store
+    public void query(byte[] contract) {
+
     }
 }
