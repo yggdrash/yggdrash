@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -39,6 +40,7 @@ import static io.yggdrash.common.util.Utils.sleep;
 
 @Service
 @EnableScheduling
+@ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "ebft")
 public class EbftNodeServer implements CommandLineRunner {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(EbftNodeServer.class);

@@ -5,11 +5,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.data.BlockConChain;
+import io.yggdrash.validator.data.PbftBlockChain;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -28,6 +29,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @EnableScheduling
+@ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "pbft")
 public class PbftService implements CommandLineRunner {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftService.class);
@@ -38,7 +40,7 @@ public class PbftService implements CommandLineRunner {
     private final int consenusCount;
 
     private final Wallet wallet;
-    private final BlockConChain blockConChain;
+    private final PbftBlockChain pbftBlockChain;
 
     private final PbftClientStub myNode;
     private final Map<String, PbftClientStub> totalValidatorMap;
@@ -49,9 +51,9 @@ public class PbftService implements CommandLineRunner {
     private ReentrantLock lock = new ReentrantLock();
 
     @Autowired
-    public PbftService(Wallet wallet, BlockConChain blockConChain) {
+    public PbftService(Wallet wallet, PbftBlockChain pbftBlockChain) {
         this.wallet = wallet;
-        this.blockConChain = blockConChain;
+        this.pbftBlockChain = pbftBlockChain;
         this.myNode = initMyNode();
         this.totalValidatorMap = initTotalValidator();
         this.isValidator = initValidator();
