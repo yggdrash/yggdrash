@@ -82,6 +82,6 @@ public class RuntimeTest {
         assertThat(result.getReceipt().isSuccess()).isTrue();
         assert result.getChangeValues().get("BRANCH_ID_LIST")
                 .getAsJsonArray("branchIds")
-                .getAsString().contains("c10e873655becf550c4aece75a091f4553d6202d");
+                .getAsString().contains(branchId.toString());
     }
 }
