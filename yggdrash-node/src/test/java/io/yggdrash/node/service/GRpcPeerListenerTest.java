@@ -62,9 +62,9 @@ public class GRpcPeerListenerTest {
     @Before
     public void setUp() {
         grpcServerRule.getServiceRegistry()
-                .addService(new GRpcDiscoveryService(discoveryConsumerMock));
+                .addService(new DiscoveryService(discoveryConsumerMock));
         grpcServerRule.getServiceRegistry()
-                .addService(new GRpcBlockChainService(blockChainConsumerMock)
+                .addService(new BlockChainService(blockChainConsumerMock)
         );
 
         tx = BlockChainTestUtils.createTransferTxHusk();

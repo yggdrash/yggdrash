@@ -17,22 +17,21 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.akashic.SyncManager;
+import io.yggdrash.core.net.BootStrapNode;
 import io.yggdrash.core.net.Discovery;
-import io.yggdrash.core.net.Node;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerHandlerGroup;
-import io.yggdrash.core.net.PeerListener;
 import io.yggdrash.node.config.NodeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 @Service
-public class YggdrashNode extends Node
-        implements CommandLineRunner, DisposableBean {
+public class YggdrashNode extends BootStrapNode {
     private static final Logger log = LoggerFactory.getLogger(YggdrashNodeApp.class);
 
     private final NodeProperties nodeProperties;
@@ -40,11 +39,6 @@ public class YggdrashNode extends Node
     private final NodeStatus nodeStatus;
 
     private final Discovery discovery;
-
-    @Autowired
-    public void setPeerListener(PeerListener peerListener) {
-        super.setPeerListener(peerListener);
-    }
 
     @Autowired
     public void setPeerHandlerGroup(PeerHandlerGroup peerHandlerGroup) {
@@ -62,13 +56,8 @@ public class YggdrashNode extends Node
         this.discovery = discovery;
     }
 
-    @Override
-    public void run(String... args) {
-        String host = nodeProperties.getGrpc().getHost();
-        int port = nodeProperties.getGrpc().getPort();
-
-        start(host, port);
-
+    @PostConstruct
+    public void init() {
         log.info("Bootstrapping...");
         super.bootstrapping(discovery, nodeProperties.getMaxPeers());
 
@@ -82,11 +71,9 @@ public class YggdrashNode extends Node
         nodeStatus.up();
     }
 
-    @Override
+    @PreDestroy
     public void destroy() {
         log.info("Destroy handlerGroup");
-        peerHandlerGroup.destroyAll();
-        log.info("Shutting down gRPC server...");
-        peerListener.stop();
+        super.destroy();
     }
 }
