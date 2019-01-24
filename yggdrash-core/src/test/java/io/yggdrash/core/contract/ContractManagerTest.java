@@ -61,7 +61,8 @@ public class ContractManagerTest {
     public void getContractIds() {
         List<String> contractIdList = contractManager.getContractIds();
         List<String> sampleContractIdList = contractSample();
-        if (!contractIdList.isEmpty() || !sampleContractIdList.isEmpty()){
+        if (!contractIdList.isEmpty() && !sampleContractIdList.isEmpty()) {
+            if (contractIdList == null || sampleContractIdList == null) return;
             contractIdList.sort(Comparator.naturalOrder());
             sampleContractIdList.sort(Comparator.naturalOrder());
             Boolean is = listEquals(contractIdList, sampleContractIdList);
@@ -77,6 +78,7 @@ public class ContractManagerTest {
     public void getContractById() {
         List<String> contractIdList = contractManager.getContractIds();
         if (!contractIdList.isEmpty()) {
+            if (contractIdList == null) return;
             String id = contractIdList.get(0);
             String paramStr = "{\"contractId\" :" + "\"" + id + "\""  +"}";
             contractManager.getContractById(createParams(paramStr));
@@ -87,6 +89,7 @@ public class ContractManagerTest {
     public void getMethod() {
         List<String> contractIdList = contractManager.getContractIds();
         if (!contractIdList.isEmpty()) {
+            if (contractIdList == null) return;
             String id = contractIdList.get(0);
             String paramStr = "{\"contractId\" :" + "\"" + id + "\"" +"}";
             contractManager.getMethod(createParams(paramStr));
@@ -97,6 +100,7 @@ public class ContractManagerTest {
     public void isContract() {
         List<String> contractIdList = contractManager.getContractIds();
         if (!contractIdList.isEmpty()) {
+            if (contractIdList == null) return;
             String id = contractIdList.get(0);
             String paramStr = "{\"contractId\" :" + "\"" + id + "\""  +"}";
             Boolean is = contractManager.isContract(createParams(paramStr));
