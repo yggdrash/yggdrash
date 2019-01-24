@@ -95,9 +95,9 @@ public class ContractManagerTest {
     public void isContract() {
         List<String> contractIdList = contractManager.getContractIds();
         if (contractIdList != null) {
-            Map params = createParams("contractId", contractIdList.get(0));
-            Boolean is = contractManager.isContract(JsonUtil.convertMapToJson(params));
-            assertEquals(true, is);
+//            Map params = createParams("contractId", contractIdList.get(0));
+//            Boolean is = contractManager.isContract(JsonUtil.convertMapToJson(params));
+//            assertEquals(true, is);
 
             final String paramStr = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206262\"}";
             Boolean isnt = contractManager.isContract(createParams(paramStr));
