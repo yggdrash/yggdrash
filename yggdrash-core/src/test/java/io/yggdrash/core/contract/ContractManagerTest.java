@@ -95,12 +95,12 @@ public class ContractManagerTest {
     public void isContract() {
         List<String> contractIdList = contractManager.getContractIds();
         if (contractIdList != null) {
-            final String paramStr = "{\"contractId\" :" + contractIdList.get(0) +"}";
-            Boolean is = contractManager.isContract(createParams(paramStr));
+            Map params = createParams("contractId", contractIdList.get(0));
+            Boolean is = contractManager.isContract(JsonUtil.convertMapToJson(params));
             assertEquals(true, is);
 
-            final String paramStr2 = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206262\"}";
-            Boolean isnt = contractManager.isContract(createParams(paramStr2));
+            final String paramStr = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206262\"}";
+            Boolean isnt = contractManager.isContract(createParams(paramStr));
             assertEquals(false, isnt);
         }
     }
