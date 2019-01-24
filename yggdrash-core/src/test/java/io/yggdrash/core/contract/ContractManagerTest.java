@@ -77,7 +77,8 @@ public class ContractManagerTest {
     public void getContractById() {
         List<String> contractIdList = contractManager.getContractIds();
         if (contractIdList != null) {
-            final String paramStr = "{\"contractId\" :" + contractIdList.get(0) +"}";
+            String id = contractIdList.get(0);
+            String paramStr = "{\"contractId\" :" + "\"" + id + "\""  +"}";
             contractManager.getContractById(createParams(paramStr));
         }
     }
@@ -86,7 +87,8 @@ public class ContractManagerTest {
     public void getMethod() {
         List<String> contractIdList = contractManager.getContractIds();
         if (contractIdList != null) {
-            final String paramStr = "{\"contractId\" :" + contractIdList.get(0) +"}";
+            String id = contractIdList.get(0);
+            String paramStr = "{\"contractId\" :" + "\"" + id + "\"" +"}";
             contractManager.getMethod(createParams(paramStr));
         }
     }
@@ -95,12 +97,13 @@ public class ContractManagerTest {
     public void isContract() {
         List<String> contractIdList = contractManager.getContractIds();
         if (contractIdList != null) {
-//            Map params = createParams("contractId", contractIdList.get(0));
-//            Boolean is = contractManager.isContract(JsonUtil.convertMapToJson(params));
-//            assertEquals(true, is);
+            String id = contractIdList.get(0);
+            String paramStr = "{\"contractId\" :" + "\"" + id + "\""  +"}";
+            Boolean is = contractManager.isContract(createParams(paramStr));
+            assertEquals(true, is);
 
-            final String paramStr = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206262\"}";
-            Boolean isnt = contractManager.isContract(createParams(paramStr));
+            String paramStr2 = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206262\"}";
+            Boolean isnt = contractManager.isContract(createParams(paramStr2));
             assertEquals(false, isnt);
         }
     }
