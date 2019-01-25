@@ -45,7 +45,7 @@ public class KademliaDiscovery implements Discovery {
             }
         }
 
-        int peerCount = peerTable.count();
+        int peerCount = peerTable.getStoreCount();
         log.info("Start discover! peerCount={}", peerCount - 1);
         findPeers(0, prevTried);
         return peerTable;
@@ -57,7 +57,7 @@ public class KademliaDiscovery implements Discovery {
                 log.debug("{}", String.format("(KademliaOptions.MAX_STEPS) Terminating discover"
                         + "after %d rounds.", round));
                 log.trace("{}\n{}",
-                        String.format("Peers discovered %d", peerTable.count()),
+                        String.format("Peers discovered %d", peerTable.getStoreCount()),
                         peerTable.getPeerUriList());
                 return;
             }
@@ -87,7 +87,7 @@ public class KademliaDiscovery implements Discovery {
             if (tried.isEmpty()) {
                 log.debug("Terminating discover after {} rounds.", round);
                 log.trace("{}\n{}",
-                        String.format("Peers discovered %d", peerTable.count()),
+                        String.format("Peers discovered %d", peerTable.getStoreCount()),
                         peerTable.getPeerUriList());
                 return;
             }

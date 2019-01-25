@@ -28,7 +28,9 @@ public interface PeerTable extends PeerEventListener {
     //Peer addPeer(Peer peer);
     void addPeer(Peer peer);
 
-    int count();
+    int getStoreCount();
+
+    void copyLiveNode(long minTableTime);
 
     List<Peer> getClosestPeers(Peer peer, int maxPeers); // getNeighbor
 
@@ -39,6 +41,8 @@ public interface PeerTable extends PeerEventListener {
     List<String> getPeerUriList();
 
     List<Peer> getLatestPeers(long reqTime);
+
+    int getBucketsCount();
 
     Map<Integer, List<Peer>> getBucketIdAndPeerList(); //for debugging
 

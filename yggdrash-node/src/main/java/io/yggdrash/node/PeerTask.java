@@ -62,6 +62,14 @@ public class PeerTask {
         }
     }
 
+    // copyNode adds peers from the table to the database if they have been in the table
+    // longer then minTableTime.
+    @Scheduled(cron = "*/30 * * * * *")
+    public void copyNode() {
+        long minTableTime = 30000;      //30 seconds
+        peerTable.copyLiveNode(minTableTime);
+    }
+
     // returns the last node in a random, non-empty bucket
     private Peer peerToRevalidate() {
         Random r = new Random();

@@ -65,9 +65,9 @@ public class KademliaPeerTable implements PeerTable {
     // Otherwise, the node is added if the least recently active node in the bucket
     // does not respond to a ping packet. (TODO managing replacements will be implemented)
     @Override
-    public synchronized void addPeer(Peer p) {
-        p.setDistance(owner);
-        buckets[getBucketId(p)].addPeer(p);
+    public synchronized void addPeer(Peer peer) {
+        peer.setDistance(owner);
+        buckets[getBucketId(peer)].addPeer(peer);
 
         /*
         Peer lastSeen = buckets[getBucketId(p)].addPeer(p);
@@ -76,11 +76,8 @@ public class KademliaPeerTable implements PeerTable {
         }
         */
 
-        //TODO peer will be stored in db at specific time intervals
-        if (!peerStore.contains(p.getPeerId())) {
-            peerStore.put(p.getPeerId(), p);
-            log.debug("Added peerStore size={}, peer={}", count(), p.toAddress());
-        }
+        //peer will be stored in db at specific time intervals
+        //updatePeerStore(peer);
         //return null;
     }
 
@@ -91,6 +88,23 @@ public class KademliaPeerTable implements PeerTable {
             }
         }
         return false;
+    }
+
+    @Override
+    public void copyLiveNode(long minTableTime) {
+        for (Peer peer : getAllPeers()) {
+            if ((System.currentTimeMillis() - peer.getModified()) > minTableTime) {
+                updatePeerStore(peer);
+            }
+        }
+
+    }
+
+    private void updatePeerStore(Peer peer) {
+        if (!peerStore.contains(peer.getPeerId())) {
+            peerStore.put(peer.getPeerId(), peer);
+            log.debug("Added peerStore size={}, peer={}", getStoreCount(), peer.toAddress());
+        }
     }
 
     @Override
@@ -117,7 +131,8 @@ public class KademliaPeerTable implements PeerTable {
         return buckets[getBucketId(p)];
     }
 
-    private int getBucketsCount() {
+    @Override
+    public synchronized int getBucketsCount() {
         int i = 0;
         for (PeerBucket b : buckets) {
             if (b.getPeersCount() > 0) {
@@ -164,7 +179,7 @@ public class KademliaPeerTable implements PeerTable {
     }
 
     @Override
-    public synchronized int count() {
+    public synchronized int getStoreCount() {
         return peerStore.size();
     }
 

@@ -26,17 +26,17 @@ public class PeerTableTest {
     @Test
     public void getLatestPeers() {
         SlowTest.apply();
-        assert peerTable.count() == 0;
+        assert peerTable.getStoreCount() == 0;
 
         Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
         peerTable.addPeer(peer1);
-        assert peerTable.count() == 1;
+        assert peerTable.getStoreCount() == 1;
 
         Utils.sleep(2000);
 
         Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32922");
         peerTable.addPeer(peer2);
-        assert peerTable.count() == 2;
+        assert peerTable.getStoreCount() == 2;
 
         long touchedTime = peer2.getModified();
         List<Peer> latestPeerList = peerTable.getLatestPeers(touchedTime);
@@ -73,4 +73,26 @@ public class PeerTableTest {
         peerTable.touchPeer(peerTable.getOwner());
     }
 
+    @Test
+    public void copyLiveNode() {
+        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32919");
+        peerTable.addPeer(peer1);
+        peerTable.addPeer(peer2);
+
+        assertEquals(peerTable.getBucketsCount(), 3);
+        assertEquals(peerTable.getStoreCount(), 0);
+
+        Utils.sleep(200);
+
+        peerTable.copyLiveNode(100);
+
+        assertEquals(peerTable.getBucketsCount(), 3);
+        assertEquals(peerTable.getStoreCount(), 3);
+
+        peerTable.copyLiveNode(300);
+
+        assertEquals(peerTable.getBucketsCount(), 3);
+        assertEquals(peerTable.getStoreCount(), 3);
+    }
 }

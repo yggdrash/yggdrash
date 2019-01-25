@@ -77,8 +77,11 @@ public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
         // log debugging
         Utils.sleep(500);
         for (GRpcTestNode node : nodeList) {
-            log.info("{} => peerTable={}, active={}", node.peerTable.getOwner(),
-                    node.peerTable.count(), node.getActivePeerCount());
+            log.info("{} => peerStore={}, peerBucket={}, active={}",
+                    node.peerTable.getOwner(),
+                    node.peerTable.getStoreCount(),
+                    node.peerTable.getBucketsCount(),
+                    node.getActivePeerCount());
         }
     }
 
