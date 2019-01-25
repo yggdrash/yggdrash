@@ -25,6 +25,7 @@ import io.grpc.ServerServiceDefinition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanCreationException;
+import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.config.BeanDefinition;
 import org.springframework.boot.CommandLineRunner;
@@ -39,13 +40,12 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public class GrpcServerRunner implements CommandLineRunner {
+public class GrpcServerRunner implements CommandLineRunner, DisposableBean {
     private static final Logger log = LoggerFactory.getLogger(GrpcServerRunner.class);
 
     private final GrpcServerBuilderConfigurer configurer;
     private final ServerBuilder<?> serverBuilder;
 
-    @Autowired
     private AbstractApplicationContext applicationContext;
 
     private Server server;
@@ -53,6 +53,15 @@ public class GrpcServerRunner implements CommandLineRunner {
     public GrpcServerRunner(GrpcServerBuilderConfigurer configurer, ServerBuilder<?> serverBuilder) {
         this.configurer = configurer;
         this.serverBuilder = serverBuilder;
+    }
+
+    @Autowired
+    public void setApplicationContext(AbstractApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+
+    public Server getServer() {
+        return server;
     }
 
     @Override
@@ -145,5 +154,15 @@ public class GrpcServerRunner implements CommandLineRunner {
         });
         awaitThread.setDaemon(false);
         awaitThread.start();
+    }
+
+    /**
+     * Stop serving requests and shutdown resources.
+     */
+    @Override
+    public void destroy() {
+        if (server != null) {
+            server.shutdown();
+        }
     }
 }

@@ -16,25 +16,51 @@
 
 package io.yggdrash.node;
 
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
+import io.grpc.testing.GrpcCleanupRule;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.Utils;
+import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerHandlerFactory;
-import io.yggdrash.node.service.GRpcPeerListener;
-import org.junit.After;
+import io.yggdrash.node.service.DiscoveryService;
+import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
+import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@RunWith(JUnit4.class)
 public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
 
     private static final int SEED_PORT = 32918;
 
-    private final PeerHandlerFactory factory = new GRpcPeerHandlerFactory();
+    private final AbstractApplicationContext context = new GenericApplicationContext();
 
-    private List<GRpcTestNode> nodeList = new ArrayList<>();
+    private PeerHandlerFactory factory;
+
+    private List<GRpcTestNode> nodeList;
+
+    @Rule
+    public final GrpcCleanupRule gRpcCleanup = new GrpcCleanupRule();
+
+    @Before
+    public void setUp() {
+        context.refresh();
+        nodeList = new ArrayList<>();
+        setPeerHandlerFactory();
+    }
 
     @Test
     public void testDiscoveryLarge() {
@@ -64,19 +90,39 @@ public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
         assertThat(nodeList.get(2).getActivePeerCount()).isEqualTo(2);
     }
 
-    @After
-    public void tearDown() {
-        nodeList.forEach(GRpcTestNode::stop);
-        nodeList.clear();
+    private void setPeerHandlerFactory() {
+        this.factory = peer -> {
+            ManagedChannel managedChannel = createChannel(peer);
+            gRpcCleanup.register(managedChannel);
+            return new GRpcPeerHandler(managedChannel, peer);
+        };
+    }
+
+    protected ManagedChannel createChannel(Peer peer) {
+        return ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
+                .build();
     }
 
     private void createAndStartNode(int port) {
         GRpcTestNode node = new GRpcTestNode(factory, port);
         nodeList.add(node);
-        GRpcPeerListener peerListener = new GRpcPeerListener();
-        peerListener.initConsumer(node.consumer, null);
-        node.setPeerListener(peerListener);
-        peerListener.start("", node.port);
+        Server server = createServer(node);
+        gRpcCleanup.register(server);
         node.bootstrapping();
+    }
+
+    protected Server createServer(GRpcTestNode node) {
+        GrpcServerBuilderConfigurer configurer = builder ->
+                builder.addService(new DiscoveryService(node.consumer));
+
+        GrpcServerRunner runner = new GrpcServerRunner(configurer,
+                ServerBuilder.forPort(node.port));
+        runner.setApplicationContext(context);
+        try {
+            runner.run();
+            return runner.getServer();
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

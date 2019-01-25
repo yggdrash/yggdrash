@@ -51,7 +51,7 @@ public class GrpcAutoConfiguration {
     @Bean
     @ConditionalOnMissingBean(GrpcServerBuilderConfigurer.class)
     public GrpcServerBuilderConfigurer serverBuilderConfigurer() {
-        return new GrpcServerBuilderConfigurer();
+        return serverBuilder -> {};
     }
 
     @Bean(name = "ipBlockFilter")

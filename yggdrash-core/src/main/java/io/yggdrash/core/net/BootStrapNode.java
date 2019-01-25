@@ -18,9 +18,8 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.core.akashic.SyncManager;
 
-public abstract class Node implements BootStrap {
+public abstract class BootStrapNode implements BootStrap {
 
-    protected PeerListener peerListener;
     protected PeerHandlerGroup peerHandlerGroup;
     protected SyncManager syncManager;
 
@@ -34,10 +33,6 @@ public abstract class Node implements BootStrap {
         }
     }
 
-    public void setPeerListener(PeerListener peerListener) {
-        this.peerListener = peerListener;
-    }
-
     public void setPeerHandlerGroup(PeerHandlerGroup peerHandlerGroup) {
         this.peerHandlerGroup = peerHandlerGroup;
     }
@@ -46,15 +41,7 @@ public abstract class Node implements BootStrap {
         this.syncManager = syncManager;
     }
 
-    public void start(String host, int port) {
-        peerListener.start(host, port);
+    public void destroy() {
+        peerHandlerGroup.destroyAll();
     }
-
-    /**
-     * Stop serving requests and shutdown resources.
-     */
-    public void stop() {
-        peerListener.stop();
-    }
-
 }
