@@ -17,6 +17,7 @@
 package io.yggdrash.core.contract;
 
 import io.yggdrash.common.util.ContractUtils;
+import io.yggdrash.core.contract.methods.ContractMethod;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
@@ -34,8 +35,8 @@ public class ContractMeta {
     private final byte[] contractBinary;
     private final String contractClassName;
     private final ContractId contractId;
-    private Map<String, Method> invokeMethod;
-    private Map<String, Method> queryMethod;
+    private Map<String, ContractMethod> invokeMethod;
+    private Map<String, ContractMethod> queryMethod;
     private Field transactionReceiptField;
     private Field contractStateStoreFiled;
 
@@ -89,7 +90,7 @@ public class ContractMeta {
     }
 
     public Field getTxReceipt() {
-        for(Field f : ContractUtils.txReceipt(getContractInstance())) {
+        for(Field f : ContractUtils.txReceiptFields(getContractInstance())) {
             transactionReceiptField = f;
             f.setAccessible(true);
         }
@@ -97,19 +98,19 @@ public class ContractMeta {
     }
 
     public Field getStateStore() {
-        for(Field f : ContractUtils.stateStore(getContractInstance())) {
+        for(Field f : ContractUtils.stateStoreFields(getContractInstance())) {
             contractStateStoreFiled = f;
             f.setAccessible(true);
         }
         return contractStateStoreFiled;
     }
 
-    public Map<String, Method> getInvokeMethods() {
+    public Map<String, ContractMethod> getInvokeMethods() {
         return ContractUtils.contractMethods(getContractInstance(), InvokeTransction.class);
     }
 
 
-    public Map<String, Method> getQueryMethods() {
+    public Map<String, ContractMethod> getQueryMethods() {
         return ContractUtils.contractMethods(getContractInstance(), ContractQuery.class);
     }
 }

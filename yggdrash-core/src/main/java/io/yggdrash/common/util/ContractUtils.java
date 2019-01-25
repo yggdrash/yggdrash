@@ -17,6 +17,9 @@
 package io.yggdrash.common.util;
 
 import io.yggdrash.core.contract.ContractMeta;
+import io.yggdrash.core.contract.Contract;
+import io.yggdrash.core.contract.methods.ContractMethod;
+import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import java.lang.annotation.Annotation;
@@ -28,38 +31,61 @@ import java.util.stream.Collectors;
 
 public class ContractUtils {
 
-    public static List<Field> txReceipt(Object contract) {
+    public static List<Field> txReceiptFields(Object contract) {
         return ContractUtils.contractFields(contract, ContractTransactionReceipt.class);
     }
 
-    public static List<Field> stateStore(Object contract) {
+    public static List<Field> stateStoreFields(Object contract) {
         return ContractUtils.contractFields(contract, ContractStateStore.class);
     }
 
-
-    public static List<Field> contractFields(Object contract, Class<? extends Annotation> annotationClass) {
-        List<Field> txReceipt = Arrays.stream(contract.getClass().getDeclaredFields())
-                .filter(field -> field.isAnnotationPresent(annotationClass))
-                .collect(Collectors.toList());
-        return txReceipt;
+    public static void updateContractFields(Contract contract, List<Field> fields, Object store) {
+        // init state Store
+        for(Field f : fields) {
+            try {
+                f.setAccessible(true);
+                f.set(contract, store);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
+    public static List<Field> contractFields(Object contract, Class<? extends Annotation> annotationClass) {
+        List<Field> fields = Arrays.stream(contract.getClass().getDeclaredFields())
+                .filter(field -> field.isAnnotationPresent(annotationClass))
+                .collect(Collectors.toList());
+        return fields;
+    }
 
-    public static Map<String, Method> contractMethods(Object contract, Class<? extends Annotation> annotationClass) {
+    public static  Map<String, ContractMethod> contractMethods(Object contract, Class<? extends Annotation> annotationClass) {
         return Arrays.stream(contract.getClass().getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(annotationClass))
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
-                .collect(Collectors.toMap(m -> m.getName(), m-> m));
+                .collect(
+                        Collectors.toMap(m -> m.getName(), m -> new ContractMethod(m))
+                );
     }
 
-    public static List<Map<String, String>> methodInfo(Map<String, Method> method) {
+    public static Contract contractInstance(Contract contract) throws FailedOperationException {
+        try {
+            Contract instance = contract.getClass().getDeclaredConstructor().newInstance();
+            return instance;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new FailedOperationException("Contract instance Fail");
+        }
+    }
+
+    public static List<Map<String, String>> methodInfo(Map<String, ContractMethod> method) {
         List<Map<String, String>> methodList = new ArrayList<>();
-        for(Map.Entry<String, Method> elem : method.entrySet()){
+        for(Map.Entry<String, ContractMethod> elem : method.entrySet()){
             Map<String, String> methodInfo = new HashMap<>();
             methodInfo.put("name", elem.getKey());
-            methodInfo.put("outputType", elem.getValue().getReturnType().getSimpleName());
-            if (elem.getValue().getParameterTypes().length > 0) {
-                methodInfo.put("inputType", elem.getValue().getParameterTypes()[0].getSimpleName());
+            methodInfo.put("outputType", elem.getValue().getMethod().getReturnType().getSimpleName());
+            if (elem.getValue().isParams()) {
+                methodInfo.put("inputType", elem.getValue()
+                        .getMethod().getParameterTypes()[0].getSimpleName());
             }
             methodList.add(methodInfo);
         }
@@ -70,7 +96,7 @@ public class ContractUtils {
         Map<String, Object> contractInfo = new HashMap<>();
         contractInfo.put("contractId", contractMeta.getContractId().toString());
         contractInfo.put("name", contractMeta.getContract().getSimpleName());
-        contractInfo.put("methods",  contractMeta.getMethods());
+        contractInfo.put("methods", contractMeta.getMethods());
         return contractInfo;
     }
 

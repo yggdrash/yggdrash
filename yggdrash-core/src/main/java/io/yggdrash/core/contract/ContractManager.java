@@ -19,6 +19,7 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.ContractUtils;
+import io.yggdrash.core.contract.methods.ContractMethod;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
@@ -109,10 +110,10 @@ public class ContractManager extends ClassLoader {
     public Boolean paramsValidation(String method, Map params) {
         // TODO runtime invoke 전에 인젝션
         for (Map.Entry<ContractId, ContractMeta> elem : contractMap.entrySet()) {
-            Map<String, Method> invoke =  elem.getValue().getInvokeMethods();
-            Map<String, Method> query =  elem.getValue().getQueryMethods();
+//            Map<String, Method> invoke =  elem.getValue().getInvokeMethods();
+//            Map<String, Method> query =  elem.getValue().getQueryMethods();
 
-            Map<String, Method> validationMethod = ContractUtils.contractMethods(
+            Map<String, ContractMethod> validationMethod = ContractUtils.contractMethods(
                     elem.getValue().getContractInstance(), ParamValidation.class);
         }
         return true;

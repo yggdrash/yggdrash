@@ -56,6 +56,6 @@ public class IpBlockFilterAutoConfigTest {
                 .usePlaintext().build();
 
         PeerGrpc.newBlockingStub(channel)
-                .play(Proto.Ping.newBuilder().setPing("ping").build());
+                .ping(Proto.Ping.newBuilder().setPing("Ping").build());
     }
 }

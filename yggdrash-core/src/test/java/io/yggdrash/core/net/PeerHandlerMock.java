@@ -24,6 +24,8 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import java.util.Collections;
 import java.util.List;
 
+import static io.yggdrash.TestConstants.wallet;
+
 public class PeerHandlerMock implements PeerHandler {
     public static final PeerHandlerFactory factory = PeerHandlerMock::dummy;
 
@@ -61,7 +63,12 @@ public class PeerHandlerMock implements PeerHandler {
 
     @Override
     public List<BlockHusk> syncBlock(BranchId branchId, long offset) {
-        return Collections.singletonList(BlockChainTestUtils.genesisBlock());
+        if (offset == 1) {
+            BlockHusk prevBlock = BlockChainTestUtils.genesisBlock();
+            BlockHusk newBlock = new BlockHusk(wallet(), Collections.emptyList(), prevBlock);
+            return Collections.singletonList(newBlock);
+        }
+        return null;
     }
 
     @Override

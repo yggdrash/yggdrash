@@ -30,6 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
@@ -80,7 +81,7 @@ public class EbftNodeServer implements CommandLineRunner {
         printInitInfo();
     }
 
-    @Scheduled(cron = "*/5 * * * * *")
+    @Scheduled(cron = "*/2 * * * * *")
     public void mainScheduler() {
 
         checkNode();
@@ -92,7 +93,7 @@ public class EbftNodeServer implements CommandLineRunner {
             broadcast(proposedBlockCon.clone());
         }
 
-        sleep(1000);
+        sleep(500);
 
         lock.lock();
         BlockCon consensusedBlockCon = makeConsensus();
@@ -101,7 +102,7 @@ public class EbftNodeServer implements CommandLineRunner {
             broadcast(consensusedBlockCon.clone());
         }
 
-        sleep(1000);
+        sleep(500);
 
         lock.lock();
         confirmFinalBlock();
@@ -150,7 +151,7 @@ public class EbftNodeServer implements CommandLineRunner {
 
                 // blockConSyncing
                 this.isSynced = false;
-                blockConSyncing(client.getId(),
+                blockConSyncing(client.getPubKey(),
                         nodeStatus.getLastConfirmedBlockCon().getIndex());
             } else if (nodeStatus.getLastConfirmedBlockCon().getIndex()
                     == this.blockConChain.getLastConfirmedBlockCon().getIndex()) {
@@ -164,14 +165,14 @@ public class EbftNodeServer implements CommandLineRunner {
         }
     }
 
-    private void blockConSyncing(String nodeId, long index) {
-        EbftNodeClient client = totalValidatorMap.get(nodeId);
+    private void blockConSyncing(String pubKey, long index) {
+        EbftNodeClient client = totalValidatorMap.get(pubKey);
         BlockCon blockCon;
         if (client.isRunning()) {
             List<BlockCon> blockConList = new ArrayList<>(client.getBlockConList(
                     this.blockConChain.getLastConfirmedBlockCon().getIndex()));
 
-            log.debug("node: " + nodeId);
+            log.debug("node: " + client.getId());
             log.debug("index: " + index);
             log.debug("blockConList size: " + blockConList.size());
 
@@ -201,7 +202,7 @@ public class EbftNodeServer implements CommandLineRunner {
         }
 
         if (this.blockConChain.getLastConfirmedBlockCon().getIndex() < index) {
-            blockConSyncing(nodeId, index);
+            blockConSyncing(pubKey, index);
         }
     }
 
@@ -482,8 +483,13 @@ public class EbftNodeServer implements CommandLineRunner {
             // if exist, update consensus
             if (blockCon.getConsensusList().size() > 0) {
                 for (String consensus : blockCon.getConsensusList()) {
+                    String pubKey = Hex.toHexString(
+                            Objects.requireNonNull(Wallet.calculatePubKey(
+                                    blockCon.getHash(), Hex.decode(consensus), true)))
+                            .substring(2);
                     if (!this.blockConChain.getUnConfirmedBlockConMap().get(blockCon.getHashHex())
-                            .getConsensusList().contains(consensus)) {
+                            .getConsensusList().contains(consensus)
+                            && this.totalValidatorMap.containsKey(pubKey)) {
                         this.blockConChain.getUnConfirmedBlockConMap().get(blockCon.getHashHex())
                                 .getConsensusList().add(consensus);
                     }
@@ -531,9 +537,9 @@ public class EbftNodeServer implements CommandLineRunner {
                     entry.getValue().getAsJsonObject().get("host").getAsString(),
                     entry.getValue().getAsJsonObject().get("port").getAsInt());
             if (client.getId().equals(myNode.getId())) {
-                nodeMap.put(myNode.getId(), myNode);
+                nodeMap.put(myNode.getPubKey(), myNode);
             } else {
-                nodeMap.put(client.getId(), client);
+                nodeMap.put(client.getPubKey(), client);
             }
         }
 
@@ -555,7 +561,7 @@ public class EbftNodeServer implements CommandLineRunner {
 
     private boolean initValidator() {
         log.debug("MyNode ID: " + this.myNode.getId());
-        return totalValidatorMap.containsKey(this.myNode.getId());
+        return totalValidatorMap.containsKey(this.myNode.getPubKey());
     }
 
     private List<String> getActiveNodeList() {

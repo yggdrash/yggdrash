@@ -30,6 +30,7 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.net.PeerHandlerGroup;
 import io.yggdrash.core.net.PeerHandlerMock;
+import io.yggdrash.core.net.SimplePeerHandlerGroup;
 import io.yggdrash.core.store.StoreBuilder;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -61,7 +62,7 @@ public class BranchConfigurationTest {
     public void setUp() {
         StoreBuilder builder = new StoreBuilder(config);
         this.branchConfig = new BranchConfiguration(builder);
-        this.peerHandlerGroup = new PeerHandlerGroup(PeerHandlerMock.factory);
+        this.peerHandlerGroup = new SimplePeerHandlerGroup(PeerHandlerMock.factory);
     }
 
     @Test

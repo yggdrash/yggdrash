@@ -23,6 +23,8 @@ import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.BranchEventListener;
+import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBody;
@@ -33,6 +35,7 @@ import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
+
 import java.io.InputStream;
 
 public class BlockChainTestUtils {
@@ -116,6 +119,22 @@ public class BlockChainTestUtils {
                 .addGenesis(genesis)
                 .setStoreBuilder(storeBuilder)
                 .build();
+    }
+
+    public static BranchGroup createBranchGroup() {
+        BranchGroup branchGroup = new BranchGroup();
+        BlockChain blockChain = createBlockChain(false);
+        branchGroup.addBranch(blockChain,
+                new BranchEventListener() {
+                    @Override
+                    public void chainedBlock(BlockHusk block) {
+                    }
+
+                    @Override
+                    public void receivedTransaction(TransactionHusk tx) {
+                    }
+                });
+        return branchGroup;
     }
 
     private static Transaction createTransferTx() {

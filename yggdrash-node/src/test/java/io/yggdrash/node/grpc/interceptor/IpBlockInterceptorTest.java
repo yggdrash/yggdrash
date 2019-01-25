@@ -61,7 +61,7 @@ public class IpBlockInterceptorTest {
                 .usePlaintext().build();
 
         Proto.Pong reply = PeerGrpc.newBlockingStub(channel)
-                .play(Proto.Ping.newBuilder().setPing("ping").build());
+                .ping(Proto.Ping.newBuilder().setPing("Ping").build());
 
         reply.getPong();
         assertThat(reply.getPong()).isEqualTo("Pong");
@@ -70,7 +70,7 @@ public class IpBlockInterceptorTest {
         ((IpBlockInterceptor) ipBlockInterceptor).setBlackIps(new String[] {"127.0.0.1"});
 
         PeerGrpc.newBlockingStub(channel)
-                .play(Proto.Ping.newBuilder().setPing("ping").build());
+                .ping(Proto.Ping.newBuilder().setPing("Ping").build());
     }
 
     @TestConfiguration

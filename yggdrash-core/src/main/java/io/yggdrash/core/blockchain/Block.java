@@ -19,6 +19,7 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.trie.Trie;
@@ -82,6 +83,10 @@ public class Block implements Cloneable {
         this.signature = sigBytes;
 
         long bodyLength = this.header.getBodyLength();
+        if (bodyLength < 0 || bodyLength > Constants.MAX_MEMORY) {
+            log.debug("Block body length is not valid");
+            throw new NotValidateException();
+        }
         byte[] bodyBytes = new byte[(int)bodyLength];
         System.arraycopy(blockBytes, position, bodyBytes, 0, bodyBytes.length);
         position += bodyBytes.length;

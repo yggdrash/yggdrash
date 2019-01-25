@@ -16,6 +16,8 @@
 
 package io.yggdrash.node.config;
 
+import io.yggdrash.core.akashic.SimpleSyncManager;
+import io.yggdrash.core.akashic.SyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.net.BlockChainConsumer;
 import io.yggdrash.core.net.BlockChainServiceConsumer;
@@ -29,6 +31,7 @@ import io.yggdrash.core.net.PeerHandlerFactory;
 import io.yggdrash.core.net.PeerHandlerGroup;
 import io.yggdrash.core.net.PeerListener;
 import io.yggdrash.core.net.PeerTable;
+import io.yggdrash.core.net.SimplePeerHandlerGroup;
 import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
@@ -71,7 +74,7 @@ public class P2PConfiguration {
 
     @Bean
     PeerHandlerGroup peerHandlerGroup(PeerTable peerTable, PeerHandlerFactory peerHandlerFactory) {
-        PeerHandlerGroup peerHandlerGroup = new PeerHandlerGroup(peerHandlerFactory);
+        PeerHandlerGroup peerHandlerGroup = new SimplePeerHandlerGroup(peerHandlerFactory);
         peerHandlerGroup.setPeerEventListener(peerTable);
         return peerHandlerGroup;
     }
@@ -89,6 +92,11 @@ public class P2PConfiguration {
     @Bean
     BlockChainConsumer blockChainConsumer(BranchGroup branchGroup) {
         return new BlockChainServiceConsumer(branchGroup);
+    }
+
+    @Bean
+    SyncManager syncManager(BranchGroup branchGroup, PeerHandlerGroup peerHandlerGroup) {
+        return new SimpleSyncManager(branchGroup, peerHandlerGroup);
     }
 
     @Bean

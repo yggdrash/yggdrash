@@ -12,6 +12,7 @@ public class Constants {
     public static final String CONTRACT_ID = "contractId";
 
     public static final long TIMESTAMP_2018 = 1514764800000L;
+    public static final int MAX_MEMORY = 10000000;
 
     /**
      * Introduced in the Homestead release

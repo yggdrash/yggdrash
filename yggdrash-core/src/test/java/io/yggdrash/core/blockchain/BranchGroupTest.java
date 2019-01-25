@@ -19,16 +19,18 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonArray;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
+import io.yggdrash.core.exception.DuplicatedException;
+import org.junit.Before;
+import org.junit.Test;
+
+import java.util.Collections;
+import java.util.List;
+
 import static io.yggdrash.TestConstants.PerformanceTest;
 import static io.yggdrash.TestConstants.TRANSFER_TO;
 import static io.yggdrash.TestConstants.YEED;
 import static io.yggdrash.TestConstants.wallet;
-import io.yggdrash.core.exception.DuplicatedException;
-import java.util.Collections;
-import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Before;
-import org.junit.Test;
 
 public class BranchGroupTest {
 
@@ -38,18 +40,17 @@ public class BranchGroupTest {
 
     @Before
     public void setUp() {
-        branchGroup = new BranchGroup();
-        BlockChain blockChain = BlockChainTestUtils.createBlockChain(false);
-        addBranch(blockChain);
-        assertThat(branchGroup.getBranchSize()).isEqualTo(1);
-        assertThat(branchGroup.containsBranch(blockChain.getBranchId())).isTrue();
+        branchGroup = BlockChainTestUtils.createBranchGroup();
         tx = BlockChainTestUtils.createBranchTxHusk();
-        block = newBlock(Collections.singletonList(tx), blockChain.getPrevBlock());
+        assertThat(branchGroup.getBranchSize()).isEqualTo(1);
+        BlockChain bc = branchGroup.getBranch(tx.getBranchId());
+        block = newBlock(Collections.singletonList(tx), bc.getPrevBlock());
     }
 
     @Test(expected = DuplicatedException.class)
     public void addExistedBranch() {
-        addBranch(BlockChainTestUtils.createBlockChain(false));
+        BlockChain exist = BlockChainTestUtils.createBlockChain(false);
+        branchGroup.addBranch(exist, null);
     }
 
     @Test
@@ -143,18 +144,5 @@ public class BranchGroupTest {
 
     private BlockHusk newBlock(List<TransactionHusk> body, BlockHusk prevBlock) {
         return new BlockHusk(wallet(), body, prevBlock);
-    }
-
-    private void addBranch(BlockChain blockChain) {
-        branchGroup.addBranch(blockChain,
-                new BranchEventListener() {
-                    @Override
-                    public void chainedBlock(BlockHusk block) {
-                    }
-
-                    @Override
-                    public void receivedTransaction(TransactionHusk tx) {
-                    }
-                });
     }
 }
