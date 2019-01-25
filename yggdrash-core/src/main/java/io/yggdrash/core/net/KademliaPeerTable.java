@@ -17,6 +17,7 @@ public class KademliaPeerTable implements PeerTable {
     private transient PeerBucket[] buckets;
     private transient PeerStore peerStore;
     private List<String> seedPeerList;
+    private boolean initDone;
 
     public KademliaPeerTable(Peer owner, PeerStore peerStore) {
         this.owner = owner;
@@ -35,6 +36,18 @@ public class KademliaPeerTable implements PeerTable {
             this.peerStore.getAll().forEach(s -> addPeer(Peer.valueOf(s)));
         }
     }
+
+    // make sure the bootstrapping done.
+    // Currently, we use the term Bootstrapping instead of Refresh.
+    public boolean isInitDone() {
+        return initDone;
+    }
+
+    // It sets at the end of bootstrapping.
+    public void setInitDone(boolean status) {
+        this.initDone = status;
+    }
+
 
     public Peer getOwner() {
         return owner;
@@ -60,10 +73,27 @@ public class KademliaPeerTable implements PeerTable {
         return seedPeerList;
     }
 
+    // resolve searches for a specific peer with the given ID.
+    // It returns null if the node could not be found.
+    Peer resolve(Peer peer) {
+        // If the node is present in the local table, no network interaction is required.
+        List<Peer> closest = getClosestPeers(peer, 1);
+        if (closest.size() > 0 && closest.contains(peer)) {
+            return peer;
+        }
+
+        // Otherwise, do a network lookup (TODO network lookup implementation)
+        // (The current network lookup is the discovery task of kademliaDiscovery.)
+        // Set<Peer> res = lookup(peer);
+        // if (res.contains(peer)) { return peer; }
+
+        return null;
+    }
+
     // addPeer attempts to add the given peer to its corresponding bucket.
     // If the bucket has space available, adding the peer succeeds immediately.
     // Otherwise, the node is added if the least recently active node in the bucket
-    // does not respond to a ping packet. (TODO managing replacements will be implemented)
+    // does not respond to a ping packet. (TODO implementation of healthCheck by ping)
     @Override
     public synchronized void addPeer(Peer peer) {
         peer.setDistance(owner);
@@ -105,6 +135,11 @@ public class KademliaPeerTable implements PeerTable {
             peerStore.put(peer.getPeerId(), peer);
             log.debug("Added peerStore size={}, peer={}", getStoreCount(), peer.toAddress());
         }
+    }
+
+    @Override
+    public synchronized Peer pickReplacement(Peer peer) {
+        return getBucketByPeer(peer).replace(peer);
     }
 
     @Override

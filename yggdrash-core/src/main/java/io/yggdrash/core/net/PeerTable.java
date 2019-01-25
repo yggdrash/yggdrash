@@ -50,7 +50,9 @@ public interface PeerTable extends PeerEventListener {
 
     PeerBucket getBucketByIndex(int index);
 
-    PeerBucket getBucketByPeer(Peer p);
+    PeerBucket getBucketByPeer(Peer peer);
 
     void touchPeer(Peer peer);
+
+    Peer pickReplacement(Peer peer);
 }

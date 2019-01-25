@@ -24,7 +24,11 @@ public class PeerBucket {
     }
 
     public Peer getLastPeer() {
-        return peers.stream().skip(getPeersCount() - 1).findFirst().orElse(null);
+        return lastPeerOf(peers);
+    }
+
+    Peer lastPeerOf(Set<Peer> list) {
+        return list.stream().skip(getPeersCount() - 1).findFirst().orElse(null);
     }
 
     public synchronized void dropPeer(Peer peer) {
@@ -71,12 +75,32 @@ public class PeerBucket {
         }
 
         peers.add(peer);
-        // TODO delete peer from the replacements
         deleteReplacement(peer);
         peer.touch();
         return true;
     }
 
+    // replace removes peer from the replacement list and replaces 'last' with it if it is the
+    // last entry in the bucket. If 'last' isn't the last entry, it has either been replaced
+    // with someone else or became active.
+    synchronized Peer replace(Peer last) {
+        if (peers.size() == 0 || getLastPeer() != last) {
+            // Entry has moved, don't replace it
+            return null;
+        }
+
+        // Still the last entry
+        if (replacements.size() == 0) {
+            dropPeer(last);
+            return null;
+        }
+
+        // replaced dead node
+        Peer peerToBeReplaced = lastPeerOf(replacements);
+        deleteReplacement(peerToBeReplaced);
+        addPeer(peerToBeReplaced);
+        return peerToBeReplaced;
+    }
 
     private synchronized void addReplacement(Peer peer) {
         if (replacements.size() < maxReplacements) {

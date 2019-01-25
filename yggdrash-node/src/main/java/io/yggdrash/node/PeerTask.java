@@ -22,12 +22,17 @@ import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerBucket;
 import io.yggdrash.core.net.PeerHandlerGroup;
 import io.yggdrash.core.net.PeerTable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.Random;
 
 public class PeerTask {
+
+    private static final Logger log = LoggerFactory.getLogger(PeerTask.class);
+
     @Autowired
     private PeerTable peerTable;
     @Autowired
@@ -56,8 +61,12 @@ public class PeerTask {
             } else {
                 // No reply received, pick a replacement or delete the node
                 // if there aren't any replacement
-                // (The list of replacement will be implemented later)
-                peerTable.getBucketByPeer(last).dropPeer(last);
+                Peer result = peerTable.pickReplacement(last);
+                if (result != null) {
+                    log.debug("Replaced dead peer '{}' to '{}'", last.getPeerId(), result.getPeerId());
+                } else {
+                    log.debug("Removed dead peer '{}'", last.getPeerId());
+                }
             }
         }
     }

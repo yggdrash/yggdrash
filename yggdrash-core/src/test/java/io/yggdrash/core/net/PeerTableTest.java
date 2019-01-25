@@ -66,6 +66,18 @@ public class PeerTableTest {
     public void getClosestPeers() {
         assert peerTable.getClosestPeers(
                 peerTable.getOwner(), KademliaOptions.BUCKET_SIZE).size() == 0;
+
+        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:22909");
+        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32830");
+        Peer peer3 = Peer.valueOf("ynode://75bff16c@127.0.0.1:31340");
+        Peer peer4 = Peer.valueOf("ynode://75bff16c@127.0.0.1:20750");
+
+        peerTable.addPeer(peer1);
+        peerTable.addPeer(peer2);
+        peerTable.addPeer(peer3);
+        peerTable.addPeer(peer4);
+
+        assertTrue(peerTable.getClosestPeers(peer2, 1).contains(peer2));
     }
 
     @Test
