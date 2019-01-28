@@ -320,4 +320,18 @@ public class Block implements Cloneable {
         return new Block(blockHeader, protoBlock.getSignature().toByteArray(), txBody);
     }
 
+    public static long getBlockLengthInBytes(byte[] bytes) {
+        if (bytes == null || bytes.length <= HEADER_LENGTH + SIGNATURE_LENGTH) {
+            log.debug("Input bytes is not valid");
+            return 0L;
+        }
+
+        byte[] headerBytes = new byte[HEADER_LENGTH];
+        System.arraycopy(bytes, 0, headerBytes, 0, headerBytes.length);
+        BlockHeader header = new BlockHeader(headerBytes);
+        long bodyLength = header.getBodyLength();
+
+        return (long) HEADER_LENGTH + (long) SIGNATURE_LENGTH + bodyLength;
+    }
+
 }

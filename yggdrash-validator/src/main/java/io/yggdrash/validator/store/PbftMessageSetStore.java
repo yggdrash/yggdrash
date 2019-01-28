@@ -1,41 +1,43 @@
 package io.yggdrash.validator.store;
 
+import com.google.gson.JsonObject;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.datasource.DbSource;
-import io.yggdrash.validator.data.PbftBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
-public class PbftBlockStore implements Store<byte[], PbftBlock> {
-    private static final Logger log = LoggerFactory.getLogger(PbftBlockStore.class);
+public class PbftMessageSetStore implements Store<byte[], JsonObject> {
+    private static final Logger log = LoggerFactory.getLogger(PbftMessageSetStore.class);
 
     private final DbSource<byte[], byte[]> db;
 
-    public PbftBlockStore(DbSource<byte[], byte[]> dbSource) {
+    public PbftMessageSetStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
     }
 
     @Override
-    public void put(byte[] key, PbftBlock value) {
+    public void put(byte[] key, JsonObject value) {
         log.trace("put "
                 + "(key: " + Hex.toHexString(key) + ")"
-                + "(value length: " + value.toBinary().length + ")");
-        db.put(key, value.toBinary());
+                + "(value length: " + value.toString().length() + ")");
+        db.put(key, value.toString().getBytes(StandardCharsets.UTF_8));
     }
 
     @Override
-    public PbftBlock get(byte[] key) {
+    public JsonObject get(byte[] key) {
         byte[] foundValue = db.get(key);
         log.trace("get "
                 + "(" + Hex.toHexString(key) + ") "
                 + "value size: "
                 + foundValue.length);
         if (foundValue != null) {
-            return new PbftBlock(foundValue);
+            return JsonUtil.parseJsonObject(new String(foundValue, StandardCharsets.UTF_8));
         }
         throw new NonExistObjectException("Not Found [" + Hex.toHexString(key) + "]");
     }

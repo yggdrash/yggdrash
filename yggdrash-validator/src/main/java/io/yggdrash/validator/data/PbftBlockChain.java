@@ -32,6 +32,7 @@ public class PbftBlockChain {
 
     private final PbftBlockKeyStore pbftBlockKeyStore;
     private final PbftBlockStore pbftBlockStore;
+
     private final PbftBlock rootPbftBlock;
     private PbftBlock lastConfirmedBlock;
     private final Map<String, PbftBlock> unConfirmedPbftBlockMap = new ConcurrentHashMap<>();
@@ -50,7 +51,7 @@ public class PbftBlockChain {
         this.host = InetAddress.getLoopbackAddress().getHostAddress();
         this.port = Integer.parseInt(System.getProperty("grpc.port"));
 
-        this.rootPbftBlock = new PbftBlock(0, this.chain, genesisBlock);
+        this.rootPbftBlock = new PbftBlock(genesisBlock, null);
         this.lastConfirmedBlock = rootPbftBlock;
         this.pbftBlockKeyStore = new PbftBlockKeyStore(
                 new LevelDbDataSource(defaultConfig.getDatabasePath(),

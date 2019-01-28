@@ -1,33 +1,55 @@
 package io.yggdrash.validator.data.pbft;
 
-import io.yggdrash.core.blockchain.Block;
+import com.google.gson.JsonObject;
+import io.yggdrash.common.util.JsonUtil;
+import org.spongycastle.util.encoders.Hex;
+
+import java.nio.charset.StandardCharsets;
 
 public class PbftMessage {
-    private final MessageType type;
+    private final String type;
     private final long viewNumber;
     private final long seqNumber;
-    private final byte[] blockHash;
-    private final byte[] clientId;
+    private final byte[] hash;
     private final byte[] result;
     private final byte[] signature;
-    private final Block block;
 
-    public PbftMessage(MessageType type,
+    public PbftMessage(String type,
                        long viewNumber,
                        long seqNumber,
-                       byte[] blockHash,
-                       byte[] clientId,
+                       byte[] hash,
                        byte[] result,
-                       byte[] signature,
-                       Block block) {
+                       byte[] signature) {
         this.type = type;
         this.viewNumber = viewNumber;
         this.seqNumber = seqNumber;
-        this.blockHash = blockHash;
-        this.clientId = clientId;
+        this.hash = hash;
         this.result = result;
         this.signature = signature;
-        this.block = block;
     }
 
+    public PbftMessage(byte[] bytes) {
+        JsonObject jsonObject = JsonUtil.parseJsonObject(new String(bytes, StandardCharsets.UTF_8));
+        this.type = jsonObject.get("type").getAsString();
+        this.viewNumber = jsonObject.get("viewNumber").getAsLong();
+        this.seqNumber = jsonObject.get("seqNumber").getAsLong();
+        this.hash = Hex.decode(jsonObject.get("hash").getAsString());
+        this.result = Hex.decode(jsonObject.get("result").getAsString());
+        this.signature = Hex.decode(jsonObject.get("signature").getAsString());
+    }
+
+    public byte[] toBinary() {
+        return this.toJsonObject().toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    public JsonObject toJsonObject() {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("type", this.type);
+        jsonObject.addProperty("viewNumber", this.viewNumber);
+        jsonObject.addProperty("seqNumber", this.seqNumber);
+        jsonObject.addProperty("hash", Hex.toHexString(this.hash));
+        jsonObject.addProperty("result", Hex.toHexString(this.result));
+        jsonObject.addProperty("signature", Hex.toHexString(this.signature));
+        return jsonObject;
+    }
 }

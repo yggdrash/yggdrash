@@ -33,7 +33,23 @@ message PbftMessage {
     bytes clientId = 5;
     bytes result = 6;
     bytes signature = 7;
-    Block block = 8;
+}
+
+message PbftMessageSet {
+    PbftMessage prePrepare = 1;
+    repeated PbftMessage prepareList = 2;
+    repeated PbftMessage commitList = 3;
+}
+
+message PbftBlock {
+    Block block = 1;
+    PbftMessageSet pbftMessageSet = 2;
+}
+
+message PbftStatus {
+    PbftBlock lastConfirmedBlock = 1;
+    int64 timestamp = 2;
+    bytes signature = 3;
 }
 
 service PbftService {

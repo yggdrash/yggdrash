@@ -21,7 +21,7 @@ public class PbftBlockKeyStore implements Store<Long, byte[]> {
 
     @Override
     public void put(Long key, byte[] value) {
-        log.trace("PbftBlockKeyStore put "
+        log.trace("put "
                 + "(key: " + key + ")"
                 + "(value : " + Hex.toHexString(value) + ")");
         db.put(ByteUtil.longToBytes(key), value);
@@ -29,13 +29,11 @@ public class PbftBlockKeyStore implements Store<Long, byte[]> {
 
     @Override
     public byte[] get(Long key) {
-        log.trace("PbftBlockKeyStore get " + "(" + key + ")");
-
+        log.trace("get " + "(" + key + ")");
         if (key > -1) {
             byte[] foundValue = db.get(ByteUtil.longToBytes(key));
             if (foundValue != null) {
-                log.trace("PbftBlockKeyStore value: " + Hex.toHexString(foundValue));
-
+                log.trace("value: " + Hex.toHexString(foundValue));
                 return foundValue;
             }
         }
@@ -47,7 +45,6 @@ public class PbftBlockKeyStore implements Store<Long, byte[]> {
         if (key > -1) {
             return db.get(ByteUtil.longToBytes(key)) != null;
         }
-
         return false;
     }
 
@@ -57,7 +54,6 @@ public class PbftBlockKeyStore implements Store<Long, byte[]> {
         } catch (IOException e) {
             log.error(e.getMessage());
         }
-
         return 0;
     }
 

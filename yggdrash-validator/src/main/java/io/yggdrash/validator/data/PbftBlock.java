@@ -16,41 +16,34 @@
 
 package io.yggdrash.validator.data;
 
+import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.blockchain.Block;
-import io.yggdrash.proto.EbftProto;
+import io.yggdrash.validator.data.pbft.PbftMessageSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
 
 public class PbftBlock {
     private static final Logger log = LoggerFactory.getLogger(PbftBlock.class);
 
-    private static final boolean TEST_NO_VERIFY = false; // todo: delete when testing is finished
-    private static final int BLOCK_HEADER_LENGTH = 124;
-    private static final int SIGNATURE_LENGTH = 65;
-    private static final int MAX_VALIDATOR_COUNT = 100;
+    private final Block block;
+    private final PbftMessageSet pbftMessageSet;
 
-    private Block block;
-
-
-    public PbftBlock(byte[] blockBytes) {
+    public PbftBlock(Block block, PbftMessageSet pbftMessageSet) {
+        this.block = block;
+        this.pbftMessageSet = pbftMessageSet;
     }
 
-    public PbftBlock(long index, byte[] prevBlockHash, Block block) {
-        this(index, prevBlockHash, block, null);
-    }
-
-    public PbftBlock(long index, byte[] prevBlockHash, Block block, List<String> consensusList) {
-
-    }
-
-    public PbftBlock(EbftProto.BlockCon blockCon) {
-
+    public PbftBlock(byte[] bytes) {
+        this.block = new Block(ByteUtil.parseBytes(bytes, 0, (int) Block.getBlockLengthInBytes(bytes)));
+        this.pbftMessageSet = null;
     }
 
     public byte[] toBinary() {
-        return null;
+        if (this.pbftMessageSet != null) {
+            return ByteUtil.merge(this.block.toBinary(), this.pbftMessageSet.toBinary());
+        } else {
+            return this.block.toBinary();
+        }
     }
 
     public byte[] getHash() {
@@ -61,5 +54,11 @@ public class PbftBlock {
         return this.block.getHeader().getPrevBlockHash();
     }
 
+    public Block getBlock() {
+        return block;
+    }
 
+    public PbftMessageSet getPbftMessageSet() {
+        return pbftMessageSet;
+    }
 }

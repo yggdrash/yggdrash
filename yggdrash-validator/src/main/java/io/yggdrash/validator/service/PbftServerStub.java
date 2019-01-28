@@ -1,6 +1,8 @@
 package io.yggdrash.validator.service;
 
+import io.grpc.stub.StreamObserver;
 import io.yggdrash.proto.NetProto;
+import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.LoggerFactory;
@@ -26,4 +28,14 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         responseObserver.onCompleted();
     }
 
+
+    @Override
+    public void pingPongTime(PbftProto.PbftPingTime request,
+                             StreamObserver<PbftProto.PbftPongTime> responseObserver) {
+        long timestamp = System.currentTimeMillis();
+        PbftProto.PbftPongTime pongTime
+                = PbftProto.PbftPongTime.newBuilder().setTimestamp(timestamp).build();
+        responseObserver.onNext(pongTime);
+        responseObserver.onCompleted();
+    }
 }

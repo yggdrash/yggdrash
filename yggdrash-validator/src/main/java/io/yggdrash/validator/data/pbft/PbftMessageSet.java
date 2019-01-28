@@ -37,4 +37,8 @@ public class PbftMessageSet {
     public void setCommitList(List<PbftMessage> commitList) {
         this.commitList = commitList;
     }
+
+    public byte[] toBinary() {
+        return null;
+    }
 }
