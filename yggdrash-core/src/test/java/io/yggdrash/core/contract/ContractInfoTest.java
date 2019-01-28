@@ -5,7 +5,6 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
@@ -19,6 +18,7 @@ public class ContractInfoTest {
     @Test
     public void getContracts() {
         Map<ContractId, ContractMeta> contracts = contractManager.getContracts();
+        if (contracts.isEmpty()) return;
         ContractInfo info = new ContractInfo(contractManager);
         assertEquals(contracts.entrySet().size(), info.getContracts().size());
     }
@@ -41,6 +41,7 @@ public class ContractInfoTest {
     @Test
     public void getContractIds() {
         Map<ContractId, ContractMeta> contracts = contractManager.getContracts();
+        if (contracts.isEmpty()) return;
         ContractInfo info = new ContractInfo(contractManager);
         assertEquals(contracts.entrySet().size(), info.getContractIds().size());
     }
