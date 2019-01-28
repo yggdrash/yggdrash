@@ -49,6 +49,9 @@ service PbftService {
     rpc PingPongTime (PbftPingTime) returns (PbftPongTime) {
     }
 
+    rpc exchangePbftStatus (PbftStatus) returns (PbftStatus) {
+    }
+
     rpc multicastPbftMessage (PbftMessage) returns (Empty) {
     }
 }

@@ -3,9 +3,13 @@ package io.yggdrash.validator.service;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.validator.data.PbftBlock;
 import io.yggdrash.validator.data.PbftBlockChain;
+import io.yggdrash.validator.data.PbftStatus;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,10 +41,11 @@ public class PbftService implements CommandLineRunner {
     private static final boolean ABNORMAL_TEST = false;
 
     private final boolean isValidator;
+    private final int bftCount;
     private final int consenusCount;
 
     private final Wallet wallet;
-    private final PbftBlockChain pbftBlockChain;
+    private final PbftBlockChain blockChain;
 
     private final PbftClientStub myNode;
     private final Map<String, PbftClientStub> totalValidatorMap;
@@ -51,16 +56,17 @@ public class PbftService implements CommandLineRunner {
     private ReentrantLock lock = new ReentrantLock();
 
     @Autowired
-    public PbftService(Wallet wallet, PbftBlockChain pbftBlockChain) {
+    public PbftService(Wallet wallet, PbftBlockChain blockChain) {
         this.wallet = wallet;
-        this.pbftBlockChain = pbftBlockChain;
+        this.blockChain = blockChain;
         this.myNode = initMyNode();
         this.totalValidatorMap = initTotalValidator();
         this.isValidator = initValidator();
         this.isActive = false;
         this.isSynced = false;
         if (totalValidatorMap != null) {
-            this.consenusCount = totalValidatorMap.size() / 2 + 1;
+            this.bftCount = (totalValidatorMap.size() - 1) / 3;
+            this.consenusCount = bftCount * 2 + 1;
         } else {
             this.consenusCount = 0;
             throw new NotValidateException();
@@ -72,7 +78,7 @@ public class PbftService implements CommandLineRunner {
         printInitInfo();
     }
 
-    @Scheduled(cron = "*/10 * * * * *")
+    @Scheduled(cron = "*/5 * * * * *")
     public void mainScheduler() {
 
         checkNode();
@@ -101,7 +107,43 @@ public class PbftService implements CommandLineRunner {
     }
 
     private void checkNodeStatus(PbftClientStub client) {
+        PbftStatus pbftStatus = client.exchangePbftStatus(PbftStatus.toProto(getMyNodeStatus()));
+        updateStatus(client, pbftStatus);
+    }
 
+    private void updateStatus(PbftClientStub client, PbftStatus pbftStatus) {
+        if (PbftStatus.verify(pbftStatus)) {
+            client.setIsRunning(true);
+
+            if (pbftStatus.getLastConfirmedBlock().getBlock().getIndex()
+                    > this.blockChain.getLastConfirmedBlock().getIndex()) {
+                log.debug("this Index: "
+                        + this.blockChain.getLastConfirmedBlock().getIndex());
+                log.debug("client Index: " + pbftStatus.getLastConfirmedBlock().getIndex());
+                log.debug("client : " + client.getId());
+
+                this.isSynced = false;
+
+                //todo: syncing block
+//                blockSyncing(client.getPubKey(),
+//                        pbftStatus.getLastConfirmedBlock().getIndex());
+            } else if (pbftStatus.getLastConfirmedBlock().getIndex()
+                    == this.blockChain.getLastConfirmedBlock().getIndex()) {
+                // todo: update unconfirm pbftBlock
+
+            }
+        } else {
+            client.setIsRunning(false);
+        }
+    }
+
+    public PbftStatus getMyNodeStatus() {
+        PbftBlock lastPbftBlock = this.blockChain.getLastConfirmedBlock();
+        long timestamp = TimeUtils.time();
+        return new PbftStatus(lastPbftBlock,
+                timestamp,
+                wallet.sign(ByteUtil.merge(lastPbftBlock.getHash(),
+                        ByteUtil.longToBytes(timestamp))));
     }
 
     private void printInitInfo() {

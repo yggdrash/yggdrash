@@ -7,6 +7,7 @@ import io.grpc.StatusRuntimeException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
+import io.yggdrash.validator.data.PbftStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
@@ -23,6 +24,7 @@ public class PbftClientStub {
     private int port;
     private String id;
     private boolean isRunning;
+    private PbftStatus pbftStatus;
 
     private ManagedChannel channel;
     private PbftServiceGrpc.PbftServiceBlockingStub blockingStub;
@@ -62,6 +64,16 @@ public class PbftClientStub {
         }
 
         return pongTime.getTimestamp();
+    }
+
+    public PbftStatus exchangePbftStatus(PbftProto.PbftStatus pbftStatus) {
+        this.pbftStatus = new PbftStatus(blockingStub
+                .withDeadlineAfter(3, TimeUnit.SECONDS)
+                .exchangePbftStatus(pbftStatus));
+        if (Context.current().isCancelled()) {
+            return null;
+        }
+        return this.pbftStatus;
     }
 
     public void shutdown() throws InterruptedException {

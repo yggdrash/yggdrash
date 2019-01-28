@@ -51,11 +51,30 @@ public class PbftMessageSet {
     }
 
     public static PbftProto.PbftMessageSet toProto(PbftMessageSet pbftMessageSet) {
+
+        if (pbftMessageSet == null) {
+            return null;
+        }
+
+        PbftProto.PbftMessage protoPrePrepareMessage =
+                PbftMessage.toProto(pbftMessageSet.getPrePrepare());
+        PbftProto.PbftMessageList protoPrepareMessageList =
+                PbftMessage.toProtoList(pbftMessageSet.getPrepareList());
+        PbftProto.PbftMessageList protoCommitMessageList =
+                PbftMessage.toProtoList(pbftMessageSet.getCommitList());
+
         PbftProto.PbftMessageSet.Builder protoPbftMessageSetBuilder =
-                PbftProto.PbftMessageSet.newBuilder()
-                        .setPrePrepare(PbftMessage.toProto(pbftMessageSet.getPrePrepare()))
-                        .setPrepareList(PbftMessage.toProtoList(pbftMessageSet.getPrepareList()))
-                        .setCommitList(PbftMessage.toProtoList(pbftMessageSet.getCommitList()));
+                PbftProto.PbftMessageSet.newBuilder();
+        if (protoPrePrepareMessage != null) {
+            protoPbftMessageSetBuilder.setPrePrepare(protoPrePrepareMessage);
+        }
+        if (protoPrepareMessageList != null) {
+            protoPbftMessageSetBuilder.setPrepareList(protoPrepareMessageList);
+        }
+        if (protoCommitMessageList != null) {
+            protoPbftMessageSetBuilder.setCommitList(protoCommitMessageList);
+        }
+
         return protoPbftMessageSetBuilder.build();
     }
 

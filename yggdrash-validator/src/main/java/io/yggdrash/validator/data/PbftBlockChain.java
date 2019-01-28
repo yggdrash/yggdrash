@@ -94,6 +94,50 @@ public class PbftBlockChain {
 
     }
 
+    public boolean isProposed() {
+        return isProposed;
+    }
+
+    public boolean isConsensused() {
+        return isConsensused;
+    }
+
+    public byte[] getChain() {
+        return chain;
+    }
+
+    public String getHost() {
+        return host;
+    }
+
+    public int getPort() {
+        return port;
+    }
+
+    public PbftBlockKeyStore getPbftBlockKeyStore() {
+        return pbftBlockKeyStore;
+    }
+
+    public PbftBlockStore getPbftBlockStore() {
+        return pbftBlockStore;
+    }
+
+    public PbftBlock getRootPbftBlock() {
+        return rootPbftBlock;
+    }
+
+    public PbftBlock getLastConfirmedBlock() {
+        return lastConfirmedBlock;
+    }
+
+    public Map<String, PbftBlock> getUnConfirmedPbftBlockMap() {
+        return unConfirmedPbftBlockMap;
+    }
+
+    public TransactionStore getTransactionStore() {
+        return transactionStore;
+    }
+
     public List<PbftBlock> getPbftBlockList(long index, long count) {
         if (index < 0L || count < 1L || count > 100L) {
             log.debug("getPbftBlockList() index or count is not valid");

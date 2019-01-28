@@ -1,8 +1,13 @@
 package io.yggdrash.validator.data;
 
 import com.google.protobuf.ByteString;
+import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 public class PbftStatus {
     private PbftBlock lastConfirmedBlock;
@@ -39,6 +44,28 @@ public class PbftStatus {
 
     public byte[] getSignature() {
         return signature;
+    }
+
+    public byte[] getDataForSignning() {
+        ByteArrayOutputStream dataForSignning = new ByteArrayOutputStream();
+
+        try {
+            dataForSignning.write(lastConfirmedBlock.getHash());
+            dataForSignning.write(ByteUtil.longToBytes(timestamp));
+        } catch (IOException e) {
+            return null;
+        }
+
+        return dataForSignning.toByteArray();
+    }
+
+    public static boolean verify(PbftStatus status) {
+        if (status != null) {
+            return Wallet.verify(
+                    status.getDataForSignning(), status.getSignature(), false);
+        }
+
+        return false;
     }
 
     public static PbftProto.PbftStatus toProto(PbftStatus pbftStatus) {

@@ -109,6 +109,10 @@ public class Block implements Cloneable {
         return body;
     }
 
+    public long getIndex() {
+        return this.header.getIndex();
+    }
+
     public byte[] getHash() {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
