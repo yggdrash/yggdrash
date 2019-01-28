@@ -41,7 +41,7 @@ public class BlockExecutorTest {
                         new StateStore<>(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource())
                 );
-        runtime.addContract(ContractId.of("coinContract"), contract);
+        runtime.addContract(ContractId.of("c10e873655becf550c4aece75a091f4553d6202d"), contract);
 
         // Block Store
         // Blockchain Runtime

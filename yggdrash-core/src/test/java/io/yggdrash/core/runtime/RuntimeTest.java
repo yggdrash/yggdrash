@@ -16,13 +16,12 @@
 
 package io.yggdrash.core.runtime;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.CoinContract;
 import io.yggdrash.core.contract.ContractId;
@@ -34,13 +33,17 @@ import io.yggdrash.core.store.datasource.HashMapDbSource;
 import java.math.BigDecimal;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class RuntimeTest {
+    Logger log = LoggerFactory.getLogger(RuntimeTest.class);
 
     @Test
     public void yeedRuntimeTest() {
         CoinContract contract = new CoinContract();
+        ContractId coinContract = ContractId.of("c10e873655becf550c4aece75a091f4553d6202d");
         Runtime runtime =
                 new Runtime<>(
                         new StateStore<>(new HashMapDbSource()),
@@ -53,11 +56,17 @@ public class RuntimeTest {
                 + " {\"balance\": \"998000000000\"}}}";
 
         JsonObject genesisParams = JsonUtil.parseJsonObject(genesisStr);
+        runtime.addContract(coinContract, contract);
 
-        JsonArray txBody = ContractTestUtils.txBodyJson("genesis", genesisParams);
         BranchId branchId = TestConstants.YEED;
-        TransactionHusk genesisTx = BlockChainTestUtils.createTxHusk(branchId, txBody);
-        TransactionRuntimeResult result = runtime.invoke(genesisTx);
+
+        TransactionBuilder builder = new TransactionBuilder();
+        TransactionHusk testTx = builder.setBranchId(branchId)
+                .addTxBody(coinContract, "genesis", genesisParams)
+                .setWalet(TestConstants.wallet())
+                .build();
+
+        TransactionRuntimeResult result = runtime.invoke(testTx);
         assertThat(result.getReceipt().isSuccess()).isTrue();
 
         assertThat(result.getChangeValues()
@@ -68,18 +77,36 @@ public class RuntimeTest {
 
     @Test
     public void stemRuntimeTest() {
+        ContractId stemContract = ContractId.of("c10e873655becf550c4aece75a091f4553d6202d");
+
         StemContract contract = new StemContract();
         Runtime<JsonObject> runtime =
                 new Runtime<>(
                         new StateStore<>(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource()));
         // TODO runtime Add Contract
-        runtime.addContract(ContractId.of("STEM"), contract);
-        JsonObject json = ContractTestUtils.createSampleBranchJson();
-        BranchId branchId = BranchId.of(json);
-        TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId, "create", json);
-        TransactionRuntimeResult result = runtime.invoke(createTx);
+
+        runtime.addContract(stemContract, contract);
+
+        JsonObject branch = ContractTestUtils.createSampleBranchJson();
+
+        BranchId branchId = BranchId.of(branch);
+        JsonObject params = new JsonObject();
+        params.add(branchId.toString(), branch);
+
+        TransactionBuilder builder = new TransactionBuilder();
+        TransactionHusk testTx = builder.setBranchId(branchId)
+                .addTxBody(stemContract, "create", params)
+                .setWalet(TestConstants.wallet())
+                .build();
+
+        log.debug(testTx.toString());
+        TransactionRuntimeResult result = runtime.invoke(testTx);
+        result.getReceipt().getTxLog().stream().forEach(l -> log.debug(l.toString()));
+
         assertThat(result.getReceipt().isSuccess()).isTrue();
+        System.out.println(result.getChangeValues().get("BRANCH_ID_LIST"));
+
         assert result.getChangeValues().get("BRANCH_ID_LIST")
                 .getAsJsonArray("branchIds")
                 .getAsString().contains(branchId.toString());

@@ -49,7 +49,6 @@ public class StemContract implements Contract<JsonObject> {
      */
     @InvokeTransction
     public TransactionReceipt create(JsonObject params) {
-        txReceipt.addLog(params);
         for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
             BranchId branchId = BranchId.of(entry.getKey());
             JsonObject json = entry.getValue().getAsJsonObject();
