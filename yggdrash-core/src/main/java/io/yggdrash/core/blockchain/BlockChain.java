@@ -171,7 +171,7 @@ public class BlockChain {
 
         // run Block Transactions
         // TODO run block execute move to other process (or thread)
-
+        // TODO last excute block will invoke
         if (nextBlock.getIndex() > metaStore.getLastExecuteBlockIndex()) {
             BlockRuntimeResult result = runtime.invokeBlock(nextBlock);
             // Save Result

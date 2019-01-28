@@ -36,7 +36,6 @@ public class BranchTest {
         assertThat(branch.getTimestamp())
                 .isEqualTo(HexUtil.hexStringToLong(timestamp));
         assertThat(branch.getOwner().toString()).isEqualTo(TestConstants.wallet().getHexAddress());
-        assertThat(branch.isStem()).isTrue();
         assertThat(branch.verify()).isTrue();
     }
 

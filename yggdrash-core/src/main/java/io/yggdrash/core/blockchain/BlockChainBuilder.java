@@ -21,6 +21,7 @@ import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.contract.ContractId;
 import io.yggdrash.core.contract.ContractMeta;
+import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
@@ -106,7 +107,12 @@ public class BlockChainBuilder {
             runtime = new Runtime(stateStore, transactionReceiptStore);
             // TODO Change Branch Spec
             ContractId branchContractId = branch.getContractId();
-            Contract contract = getContract(branchContractId);
+            Contract contract;
+            if (branch.isStem()) { // TODO remove branch spec change
+                contract = new StemContract();
+            } else {
+                contract = getContract(branchContractId);
+            }
             runtime.addContract(branchContractId, contract);
 
             // Add System Contract
