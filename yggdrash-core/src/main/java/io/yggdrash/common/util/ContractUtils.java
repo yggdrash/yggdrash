@@ -22,6 +22,8 @@ import io.yggdrash.core.contract.methods.ContractMethod;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
+import io.yggdrash.core.runtime.annotation.ParamValidation;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -30,6 +32,13 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class ContractUtils {
+
+    public static Boolean contractValidation(Object contract) {
+        Map<String, ContractMethod> validationMethods =
+                ContractUtils.contractMethods(contract, ParamValidation.class);
+        if (validationMethods == null) return false;
+        return true;
+    }
 
     public static List<Field> txReceiptFields(Object contract) {
         return ContractUtils.contractFields(contract, ContractTransactionReceipt.class);
@@ -90,14 +99,6 @@ public class ContractUtils {
             methodList.add(methodInfo);
         }
         return methodList;
-    }
-
-    public static Map<String, Object> contractInfo(ContractMeta contractMeta) {
-        Map<String, Object> contractInfo = new HashMap<>();
-        contractInfo.put("contractId", contractMeta.getContractId().toString());
-        contractInfo.put("name", contractMeta.getContract().getSimpleName());
-        contractInfo.put("methods", contractMeta.getMethods());
-        return contractInfo;
     }
 
 }

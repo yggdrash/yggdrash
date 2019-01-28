@@ -16,22 +16,13 @@
 
 package io.yggdrash.core.contract;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import io.yggdrash.common.util.ContractUtils;
-import io.yggdrash.core.contract.methods.ContractMethod;
-import io.yggdrash.core.runtime.annotation.ContractQuery;
-import io.yggdrash.core.runtime.annotation.Genesis;
-import io.yggdrash.core.runtime.annotation.InvokeTransction;
-import io.yggdrash.core.runtime.annotation.ParamValidation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -40,7 +31,7 @@ import java.util.stream.Stream;
 
 public class ContractManager extends ClassLoader {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
-    private Map<ContractId, ContractMeta> contractMap = new HashMap<>();
+    private Map<ContractId, ContractMeta> contracts = new HashMap<>();
 
     public ContractManager(String contractPath) {
         load(contractPath);
@@ -62,7 +53,7 @@ public class ContractManager extends ClassLoader {
 
                     if (Files.isRegularFile(contractPath)) {
                         if(contractMeta.getStateStore() !=null || contractMeta.getTxReceipt() !=null) {
-                            contractMap.put(contractId, contractMeta);
+                            contracts.put(contractId, contractMeta);
                         }
                     }
 
@@ -75,46 +66,32 @@ public class ContractManager extends ClassLoader {
         }
     }
 
-    public List<Map> getContracts() {
-        List<Map> contractList = new ArrayList<>();
-        for (Map.Entry<ContractId, ContractMeta> elem : contractMap.entrySet()) {
-            contractList.add(ContractUtils.contractInfo(elem.getValue()));
-        }
-        return contractList;
+    public Map<ContractId, ContractMeta> getContracts() {
+        return contracts;
     }
 
-    public List<String> getContractIds() {
-        List<String> contractIdList = new ArrayList<>();
-        for ( ContractId key : contractMap.keySet() ) {
-            contractIdList.add(key.toString());
-        }
-        return contractIdList;
+    public ContractMeta getContractById(ContractId id) {
+        return contracts.get(id);
     }
 
-    public Map<String, Object> getContractById(JsonObject params) {
-        return ContractUtils.contractInfo(
-                contractMap.get(ContractId.of(params.get("contractId").getAsString())));
-    }
-
-    public Object getMethod(JsonObject params) {
-        return contractMap.get(ContractId.of(
-                params.get("contractId").getAsString())).getMethods();
-    }
-
-    public Boolean isContract(JsonObject params) {
-        ContractId contractId = ContractId.of(params.get("contractId").getAsString());
-        return contractMap.get(contractId) != null;
+    public Boolean isContract(ContractId id) {
+        return contracts.containsKey(id);
     }
 
     //TODO validation
-    public Boolean paramsValidation(String method, Map params) {
-        // TODO runtime invoke 전에 인젝션
-        for (Map.Entry<ContractId, ContractMeta> elem : contractMap.entrySet()) {
-//            Map<String, Method> invoke =  elem.getValue().getInvokeMethods();
-//            Map<String, Method> query =  elem.getValue().getQueryMethods();
+    public Boolean paramsValidation(String contractId, String method, Map params) {
+        // TODO params validation
+        ContractId id = ContractId.of(contractId);
+        Boolean validationMethods = ContractUtils.contractValidation(
+                contracts.get(id).getContractInstance());
 
-            Map<String, ContractMethod> validationMethod = ContractUtils.contractMethods(
-                    elem.getValue().getContractInstance(), ParamValidation.class);
+        if (!isContract(id)) {
+            //TODO add contract
+            return false;
+        } else {
+            if (validationMethods) {
+
+            }
         }
         return true;
     }

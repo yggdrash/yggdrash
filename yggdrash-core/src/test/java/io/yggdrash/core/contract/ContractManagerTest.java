@@ -16,22 +16,16 @@
 
 package io.yggdrash.core.contract;
 
-import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
 
-import io.yggdrash.common.util.ContractUtils;
-import io.yggdrash.common.util.JsonUtil;
-import io.yggdrash.core.store.StoreBuilder;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,8 +35,9 @@ import static org.junit.Assert.assertEquals;
 public class ContractManagerTest {
     Logger log = LoggerFactory.getLogger(ContractManagerTest.class);
 
-    public static DefaultConfig defaultConfig = new DefaultConfig();
-    public static ContractManager contractManager = new ContractManager(defaultConfig.getContractPath());
+    private static DefaultConfig defaultConfig = new DefaultConfig();
+    private static ContractManager contractManager = new ContractManager(defaultConfig.getContractPath());
+
 
     @Test
     public void loadTest() {
@@ -57,92 +52,31 @@ public class ContractManagerTest {
         contractManager.getContracts();
     }
 
-    @Test
-    public void getContractIds() {
-        List<String> contractIdList = contractManager.getContractIds();
-        List<String> sampleContractIdList = contractSample();
-        if (!contractIdList.isEmpty() && !sampleContractIdList.isEmpty()) {
-            if (contractIdList == null || sampleContractIdList == null) return;
-            contractIdList.sort(Comparator.naturalOrder());
-            sampleContractIdList.sort(Comparator.naturalOrder());
-            Boolean is = listEquals(contractIdList, sampleContractIdList);
-            assertEquals(true, is);
-
-            contractIdList.add("1378d5ac6e6b7b536165a9a9225684dc93206262");
-            Boolean isnt = listEquals(contractIdList, sampleContractIdList);
-            assertEquals(false, isnt);
-        }
-    }
 
     @Test
     public void getContractById() {
-        List<String> contractIdList = contractManager.getContractIds();
-        if (!contractIdList.isEmpty()) {
-            if (contractIdList == null) return;
-            String id = contractIdList.get(0);
-            String paramStr = "{\"contractId\" :" + "\"" + id + "\""  +"}";
-            contractManager.getContractById(createParams(paramStr));
-        }
-    }
-
-    @Test
-    public void getMethod() {
-        List<String> contractIdList = contractManager.getContractIds();
-        if (!contractIdList.isEmpty()) {
-            if (contractIdList == null) return;
-            String id = contractIdList.get(0);
-            String paramStr = "{\"contractId\" :" + "\"" + id + "\"" +"}";
-            contractManager.getMethod(createParams(paramStr));
-        }
+        List<ContractId> sampleContractIdList = contractSample();
+        Map<ContractId, ContractMeta> contracts = contractManager.getContracts();
+        sampleContractIdList.forEach((id) -> {
+            if (id.getBytes().length > 0) {
+                assertEquals(true, contracts.containsKey(id));
+            }
+        });
     }
 
     @Test
     public void isContract() {
-        List<String> contractIdList = contractManager.getContractIds();
-        if (!contractIdList.isEmpty()) {
-            if (contractIdList == null) return;
-            String id = contractIdList.get(0);
-            String paramStr = "{\"contractId\" :" + "\"" + id + "\""  +"}";
-            Boolean is = contractManager.isContract(createParams(paramStr));
-            assertEquals(true, is);
-
-            String paramStr2 = "{\"contractId\" : \"1378d5ac6e6b7b536165a9a9225684dc93206262\"}";
-            Boolean isnt = contractManager.isContract(createParams(paramStr2));
-            assertEquals(false, isnt);
+        Map<ContractId, ContractMeta> contracts = contractManager.getContracts();
+        for (Map.Entry<ContractId, ContractMeta> elem : contracts.entrySet()) {
+            if (elem.getKey() != null){
+                assertEquals(true, contractManager.isContract(elem.getKey()));
+            }
         }
     }
 
-    @Test
-    public void contractValidation() {
-        Map params = createParams("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
-        params.put("spender", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
-        contractManager.paramsValidation("allowance", params);
-    }
-
-    private static Map createParams(String key, String value) {
-        Map params = new HashMap();
-        params.put(key, value);
-        return params;
-    }
-
-    private JsonObject createParams(String paramStr) {
-        return JsonUtil.parseJsonObject(paramStr);
-    }
-
-    private static boolean listEquals(List<String> list1, List<String> list2) {
-        if(list1.size() != list2.size())
-            return false;
-
-        for (String id : list1) {
-            if(!list2.contains(id))
-                return false;
-        }
-        return true;
-    }
-
-    private List<String> contractSample() {
+    private List<ContractId> contractSample() {
         DefaultConfig defaultConfig = new DefaultConfig();
-        List<String> cIds = new ArrayList<>();
+        List<ContractId> cIds = new ArrayList<>();
         try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(defaultConfig.getContractPath())))) {
             filePathStream.forEach(contractPath -> {
                 File contractFile = new File(String.valueOf(contractPath));
@@ -157,8 +91,7 @@ public class ContractManagerTest {
                             defaultConfig.getContractPath(), contractId);
 
                     if(contractMeta.getStateStore() !=null || contractMeta.getTxReceipt() !=null) {
-                        String id = contractId.toString();
-                        cIds.add(id);
+                        cIds.add(contractId);
                     }
                 } catch (IOException e) {
                     log.warn(e.getMessage());

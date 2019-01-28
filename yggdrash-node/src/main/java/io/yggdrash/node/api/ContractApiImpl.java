@@ -6,9 +6,7 @@ import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.contract.ContractId;
-import io.yggdrash.core.contract.ContractManager;
-import io.yggdrash.core.contract.TransactionReceipt;
+import io.yggdrash.core.contract.*;
 import io.yggdrash.core.exception.FailedOperationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -33,8 +31,6 @@ public class ContractApiImpl implements ContractApi {
     public Object query(String branchId, String method, Map params) {
         JsonObject jsonParams = null;
 
-        contractManager.paramsValidation(method, params);
-
         if (params != null && !params.isEmpty()) {
             jsonParams = JsonUtil.convertMapToJson(params);
         }
@@ -46,17 +42,18 @@ public class ContractApiImpl implements ContractApi {
     }
 
     @Override
-    public Object contract(String contractId, String method, Map params) {
+    public Object contract(String contractId, String method) {
+        ContractInfo contractInfo = new ContractInfo(contractManager);
         try {
-            if (params.size() > 0) {
-                return contractManager.getClass().getMethod(method, JsonObject.class)
-                        .invoke(contractManager, JsonUtil.convertMapToJson(params));
+            if (contractId.getBytes().length > 0) {
+                if (!contractManager.isContract(ContractId.of(contractId))) return false;
+                return contractInfo.getClass().getMethod(method, ContractId.class)
+                        .invoke(contractInfo, ContractId.of(contractId));
             } else {
-                return contractManager.getClass().getMethod(method).invoke(contractManager);
+                return contractInfo.getClass().getMethod(method).invoke(contractInfo);
             }
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
     }
-
 }
