@@ -17,10 +17,12 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.contract.ContractId;
 import io.yggdrash.core.wallet.Wallet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -43,6 +45,17 @@ public class TransactionBuilder {
         this.txBody.add(txBody);
         return this;
     }
+
+    public TransactionBuilder addTransaction(JsonArray txBody) {
+        Iterator<JsonElement> el = txBody.iterator();
+        while (el.hasNext()) {
+            JsonObject tx = el.next().getAsJsonObject();
+            this.txBody.add(tx);
+        }
+        return this;
+    }
+
+
 
     public TransactionBuilder addTxBody(ContractId contractId, String method, JsonObject params) {
         JsonObject txObj = new JsonObject();

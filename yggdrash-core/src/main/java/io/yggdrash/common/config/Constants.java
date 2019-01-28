@@ -1,6 +1,9 @@
 package io.yggdrash.common.config;
 
+import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.core.contract.ContractId;
 import java.math.BigInteger;
+import org.spongycastle.util.encoders.Hex;
 
 public class Constants {
 
@@ -26,4 +29,9 @@ public class Constants {
     private Constants() {
 
     }
+
+    public static final byte[] STEM_CONTRACT = Hex.encode(STEM.getBytes());
+    public static final ContractId STEM_CONTRACT_ID = ContractId.of(HexUtil.toHexString(STEM_CONTRACT));
+    public static final byte[] YEED_CONTRACT = Hex.encode("YEED".getBytes());
+    public static final ContractId YEED_CONTRACT_ID = ContractId.of(HexUtil.toHexString(YEED_CONTRACT));
 }

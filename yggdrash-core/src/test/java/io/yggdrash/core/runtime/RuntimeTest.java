@@ -19,6 +19,7 @@ package io.yggdrash.core.runtime;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionBuilder;
@@ -43,7 +44,7 @@ public class RuntimeTest {
     @Test
     public void yeedRuntimeTest() {
         CoinContract contract = new CoinContract();
-        ContractId coinContract = ContractId.of("c10e873655becf550c4aece75a091f4553d6202d");
+        ContractId coinContract = Constants.YEED_CONTRACT_ID;
         Runtime runtime =
                 new Runtime<>(
                         new StateStore<>(new HashMapDbSource()),
@@ -77,15 +78,13 @@ public class RuntimeTest {
 
     @Test
     public void stemRuntimeTest() {
-        ContractId stemContract = ContractId.of("c10e873655becf550c4aece75a091f4553d6202d");
+        ContractId stemContract = Constants.STEM_CONTRACT_ID;
 
         StemContract contract = new StemContract();
         Runtime<JsonObject> runtime =
                 new Runtime<>(
                         new StateStore<>(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource()));
-        // TODO runtime Add Contract
-
         runtime.addContract(stemContract, contract);
 
         JsonObject branch = ContractTestUtils.createSampleBranchJson();
