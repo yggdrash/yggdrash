@@ -1,11 +1,14 @@
 package io.yggdrash.validator.data.pbft;
 
 import com.google.gson.JsonObject;
+import com.google.protobuf.ByteString;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.proto.PbftProto;
 import org.spongycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 public class PbftMessage {
     private final String type;
@@ -43,11 +46,34 @@ public class PbftMessage {
         this.type = protoPbftMessage.getType();
         this.viewNumber = protoPbftMessage.getViewNumber();
         this.seqNumber = protoPbftMessage.getSeqNumber();
-        this.hash = protoPbftMessage.getBlockHash().toByteArray();
+        this.hash = protoPbftMessage.getHash().toByteArray();
         this.result = protoPbftMessage.getResult().toByteArray();
         this.signature = protoPbftMessage.getSignature().toByteArray();
     }
 
+    public String getType() {
+        return type;
+    }
+
+    public long getViewNumber() {
+        return viewNumber;
+    }
+
+    public long getSeqNumber() {
+        return seqNumber;
+    }
+
+    public byte[] getHash() {
+        return hash;
+    }
+
+    public byte[] getResult() {
+        return result;
+    }
+
+    public byte[] getSignature() {
+        return signature;
+    }
 
     public byte[] toBinary() {
         return this.toJsonObject().toString().getBytes(StandardCharsets.UTF_8);
@@ -63,4 +89,35 @@ public class PbftMessage {
         jsonObject.addProperty("signature", Hex.toHexString(this.signature));
         return jsonObject;
     }
+
+    public static List<PbftMessage> toPbftMessageList(
+            PbftProto.PbftMessageList protoPbftMessageList) {
+        List<PbftMessage> pbftMessagesList = new ArrayList<>();
+        for (PbftProto.PbftMessage protoPbftMessage : protoPbftMessageList.getPbftMessageListList()) {
+            pbftMessagesList.add(new PbftMessage(protoPbftMessage));
+        }
+        return pbftMessagesList;
+    }
+
+    public static PbftProto.PbftMessage toProto(PbftMessage pbftMessage) {
+        PbftProto.PbftMessage.Builder protoPbftMessageBuilder = PbftProto.PbftMessage.newBuilder()
+                .setType(pbftMessage.getType())
+                .setViewNumber(pbftMessage.getViewNumber())
+                .setSeqNumber(pbftMessage.getSeqNumber())
+                .setHash(ByteString.copyFrom(pbftMessage.getHash()))
+                .setResult(ByteString.copyFrom(pbftMessage.getResult()))
+                .setSignature(ByteString.copyFrom(pbftMessage.getSignature()));
+        return protoPbftMessageBuilder.build();
+    }
+
+    public static PbftProto.PbftMessageList toProtoList(
+            List<PbftMessage> pbftMessageList) {
+        PbftProto.PbftMessageList.Builder protoPbftMessageListBuilder =
+                PbftProto.PbftMessageList.newBuilder();
+        for (PbftMessage pbftMessage : pbftMessageList) {
+            protoPbftMessageListBuilder.addPbftMessageList(PbftMessage.toProto(pbftMessage));
+        }
+        return protoPbftMessageListBuilder.build();
+    }
+
 }

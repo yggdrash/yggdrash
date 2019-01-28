@@ -18,6 +18,8 @@ public class PbftMessageSet {
 
     public PbftMessageSet(PbftProto.PbftMessageSet protoPbftMessageSet) {
         this.prePrepare = new PbftMessage(protoPbftMessageSet.getPrePrepare());
+        this.prepareList = PbftMessage.toPbftMessageList(protoPbftMessageSet.getPrepareList());
+        this.commitList = PbftMessage.toPbftMessageList(protoPbftMessageSet.getCommitList());
     }
 
     public PbftMessage getPrePrepare() {
@@ -47,4 +49,14 @@ public class PbftMessageSet {
     public byte[] toBinary() {
         return null;
     }
+
+    public static PbftProto.PbftMessageSet toProto(PbftMessageSet pbftMessageSet) {
+        PbftProto.PbftMessageSet.Builder protoPbftMessageSetBuilder =
+                PbftProto.PbftMessageSet.newBuilder()
+                        .setPrePrepare(PbftMessage.toProto(pbftMessageSet.getPrePrepare()))
+                        .setPrepareList(PbftMessage.toProtoList(pbftMessageSet.getPrepareList()))
+                        .setCommitList(PbftMessage.toProtoList(pbftMessageSet.getCommitList()));
+        return protoPbftMessageSetBuilder.build();
+    }
+
 }

@@ -41,8 +41,7 @@ public class PbftBlock {
 
     public PbftBlock(PbftProto.PbftBlock protoBlock) {
         this.block = Block.toBlock(protoBlock.getBlock());
-//        this.pbftMessageSet = PbftMessageSet.toPbftMessageSet(protoBlock.getPbftMessageSet());
-        this.pbftMessageSet = null;
+        this.pbftMessageSet = new PbftMessageSet(protoBlock.getPbftMessageSet());
     }
 
     public byte[] toBinary() {
@@ -71,8 +70,8 @@ public class PbftBlock {
 
     public static PbftProto.PbftBlock toProto(PbftBlock pbftBlock) {
         PbftProto.PbftBlock.Builder protoPbftBlock = PbftProto.PbftBlock.newBuilder()
-                .setBlock(pbftBlock.getBlock().toProtoBlock());
-//                .setPbftMessageSet(pbftBlock.getPbftMessageSet().toProto());
+                .setBlock(pbftBlock.getBlock().toProtoBlock())
+                .setPbftMessageSet(PbftMessageSet.toProto(pbftBlock.getPbftMessageSet()));
         return protoPbftBlock.build();
     }
 }
