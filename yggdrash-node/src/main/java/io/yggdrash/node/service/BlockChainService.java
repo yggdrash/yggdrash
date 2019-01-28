@@ -6,21 +6,25 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.net.BlockChainConsumer;
+import io.yggdrash.node.springboot.grpc.GrpcService;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-public class GRpcBlockChainService extends BlockChainGrpc.BlockChainImplBase {
-    private static final Logger log = LoggerFactory.getLogger(GRpcBlockChainService.class);
+@GrpcService
+public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
+    private static final Logger log = LoggerFactory.getLogger(BlockChainService.class);
     private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
 
     private BlockChainConsumer blockChainConsumer;
 
-    GRpcBlockChainService(BlockChainConsumer blockChainConsumer) {
+    @Autowired
+    BlockChainService(BlockChainConsumer blockChainConsumer) {
         this.blockChainConsumer = blockChainConsumer;
     }
 

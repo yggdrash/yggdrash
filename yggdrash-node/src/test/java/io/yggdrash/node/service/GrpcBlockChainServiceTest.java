@@ -23,11 +23,8 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.net.BlockChainConsumer;
-import io.yggdrash.core.net.DiscoveryConsumer;
-import io.yggdrash.core.net.Peer;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
-import io.yggdrash.proto.PeerGrpc;
 import io.yggdrash.proto.Proto;
 import org.junit.Before;
 import org.junit.Rule;
@@ -44,13 +41,10 @@ import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GRpcPeerListenerTest {
+public class GrpcBlockChainServiceTest {
 
     @Rule
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
-
-    @Mock
-    private DiscoveryConsumer discoveryConsumerMock;
 
     @Mock
     private BlockChainConsumer blockChainConsumerMock;
@@ -62,53 +56,12 @@ public class GRpcPeerListenerTest {
     @Before
     public void setUp() {
         grpcServerRule.getServiceRegistry()
-                .addService(new GRpcDiscoveryService(discoveryConsumerMock));
-        grpcServerRule.getServiceRegistry()
-                .addService(new GRpcBlockChainService(blockChainConsumerMock)
+                .addService(new BlockChainService(blockChainConsumerMock)
         );
 
         tx = BlockChainTestUtils.createTransferTxHusk();
         block = BlockChainTestUtils.genesisBlock();
         branchId = block.getBranchId();
-    }
-
-    @Test
-    public void play() {
-        PeerGrpc.PeerBlockingStub blockingStub = PeerGrpc.newBlockingStub(
-                grpcServerRule.getChannel());
-        Peer requestPeer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        when(discoveryConsumerMock.play(requestPeer, "Ping")).thenReturn("Pong");
-
-        Proto.PeerInfo peerInfo = Proto.PeerInfo.newBuilder()
-                .setUrl(requestPeer.getYnodeUri())
-                .build();
-
-        Proto.Ping ping = Proto.Ping.newBuilder().setPing("Ping").setPeer(peerInfo).build();
-
-        Proto.Pong pong = blockingStub.play(ping);
-
-        assertEquals("Pong", pong.getPong());
-    }
-
-    @Test
-    public void findPeers() {
-        PeerGrpc.PeerBlockingStub blockingStub = PeerGrpc.newBlockingStub(
-                grpcServerRule.getChannel());
-
-        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        Proto.BestBlock bestBlock = Proto.BestBlock.newBuilder()
-                .setBranch(ByteString.copyFrom(branchId.getBytes()))
-                .setIndex(0).build();
-        Proto.RequestPeer requestPeer = Proto.RequestPeer.newBuilder()
-                .setPubKey(peer.getPubKey().toString())
-                .setIp(peer.getHost())
-                .setPort(peer.getPort())
-                .addBestBlocks(bestBlock)
-                .build();
-
-        Proto.PeerList peerList = blockingStub.findPeers(requestPeer);
-
-        assertEquals(0, peerList.getPeersCount());
     }
 
     @Test

@@ -16,107 +16,113 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.PeerTestUtils;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.Server;
+import io.grpc.ServerBuilder;
+import io.grpc.testing.GrpcCleanupRule;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.Utils;
-import io.yggdrash.core.net.Discovery;
-import io.yggdrash.core.net.DiscoveryConsumer;
-import io.yggdrash.core.net.DiscoveryServiceConsumer;
-import io.yggdrash.core.net.KademliaDiscovery;
-import io.yggdrash.core.net.Node;
-import io.yggdrash.core.net.PeerHandlerGroup;
-import io.yggdrash.core.net.PeerTable;
-import io.yggdrash.node.service.GRpcPeerListener;
-import org.junit.After;
+import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.net.PeerHandlerFactory;
+import io.yggdrash.node.service.DiscoveryService;
+import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
+import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
+import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.junit.runner.RunWith;
+import org.junit.runners.JUnit4;
+import org.springframework.context.support.AbstractApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-
+@RunWith(JUnit4.class)
 public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
-    protected static final Logger log = LoggerFactory.getLogger(GRpcYggdrashNodeTest.class);
+
     private static final int SEED_PORT = 32918;
-    private List<GRpcTestNode> nodeList = new ArrayList<>();
 
-    @After
-    public void tearDown() {
-        nodeList.forEach(GRpcTestNode::stop);
-        nodeList.clear();
-    }
+    private final AbstractApplicationContext context = new GenericApplicationContext();
 
-    @Test
-    public void testDiscoverySmall() {
-        // act
-        GRpcTestNode node1 = new GRpcTestNode(SEED_PORT).start();
-        node1.bootstrapping();
-        GRpcTestNode node2 = new GRpcTestNode(32919).start();
-        node2.bootstrapping();
-        GRpcTestNode node3 = new GRpcTestNode(32920).start();
-        node3.bootstrapping();
+    private PeerHandlerFactory factory;
 
-        // assert
-        Utils.sleep(100);
-        assertThat(node1.getActivePeerCount()).isEqualTo(0);
-        assertThat(node2.getActivePeerCount()).isEqualTo(1);
-        assertThat(node3.getActivePeerCount()).isEqualTo(2);
+    private List<GRpcTestNode> nodeList;
+
+    @Rule
+    public final GrpcCleanupRule gRpcCleanup = new GrpcCleanupRule();
+
+    @Before
+    public void setUp() {
+        context.refresh();
+        nodeList = new ArrayList<>();
+        setPeerHandlerFactory();
     }
 
     @Test
     public void testDiscoveryLarge() {
         // act
-        for (int i = SEED_PORT; i < SEED_PORT + 50; i++) {
-            GRpcTestNode node = new GRpcTestNode(i).start();
-            node.bootstrapping();
+        for (int i = SEED_PORT; i < SEED_PORT + 100; i++) {
+            createAndStartNode(i);
         }
 
         // log debugging
         Utils.sleep(500);
         for (GRpcTestNode node : nodeList) {
-            log.info("{} => peerTable={}, active={}", node.peerTable.getOwner(),
-                    node.peerTable.count(), node.getActivePeerCount());
+            node.logDebugging();
         }
     }
 
-    private class GRpcTestNode extends Node {
-        private static final int MAX_PEERS = 25;
-        private PeerTable peerTable;
-        private int port;
+    @Test
+    public void testDiscoverySmall() {
+        // act
+        createAndStartNode(SEED_PORT);
+        createAndStartNode(SEED_PORT + 1);
+        createAndStartNode(SEED_PORT + 2);
 
-        GRpcTestNode(int port) {
-            this.peerHandlerGroup = new PeerHandlerGroup(new GRpcPeerHandlerFactory());
-            this.peerTable = PeerTestUtils.createPeerTable(port);
-            this.port = port;
+        // assert
+        Utils.sleep(100);
+        assertThat(nodeList.get(0).getActivePeerCount()).isEqualTo(0);
+        assertThat(nodeList.get(1).getActivePeerCount()).isEqualTo(1);
+        assertThat(nodeList.get(2).getActivePeerCount()).isEqualTo(2);
+    }
 
-            setListener();
-        }
+    private void setPeerHandlerFactory() {
+        this.factory = peer -> {
+            ManagedChannel managedChannel = createChannel(peer);
+            gRpcCleanup.register(managedChannel);
+            return new GRpcPeerHandler(managedChannel, peer);
+        };
+    }
 
-        GRpcTestNode start() {
-            log.debug("Start listener port={}", port);
-            peerListener.start("", port);
-            return this;
-        }
+    protected ManagedChannel createChannel(Peer peer) {
+        return ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
+                .build();
+    }
 
-        void setListener() {
-            GRpcPeerListener peerListener = new GRpcPeerListener();
-            DiscoveryConsumer consumer = new DiscoveryServiceConsumer(peerTable);
-            peerListener.initConsumer(consumer, null);
-            this.peerListener = peerListener;
-        }
+    private void createAndStartNode(int port) {
+        GRpcTestNode node = new GRpcTestNode(factory, port);
+        nodeList.add(node);
+        Server server = createServer(node);
+        gRpcCleanup.register(server);
+        node.bootstrapping();
+    }
 
-        void bootstrapping() {
-            Discovery discovery = new KademliaDiscovery(peerTable);
+    protected Server createServer(GRpcTestNode node) {
+        GrpcServerBuilderConfigurer configurer = builder ->
+                builder.addService(new DiscoveryService(node.consumer));
 
-            super.bootstrapping(discovery, MAX_PEERS);
-            nodeList.add(this);
-        }
-
-        int getActivePeerCount() {
-            return peerHandlerGroup.getActivePeerList().size();
+        GrpcServerRunner runner = new GrpcServerRunner(configurer,
+                ServerBuilder.forPort(node.port));
+        runner.setApplicationContext(context);
+        try {
+            runner.run();
+            return runner.getServer();
+        } catch (Exception e) {
+            return null;
         }
     }
 }

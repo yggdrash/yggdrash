@@ -34,7 +34,7 @@ public class GrpcDemoApp {
     @GrpcService
     public static class PingPongService extends PeerGrpc.PeerImplBase {
         @Override
-        public void play(Ping request, StreamObserver<Pong> responseObserver) {
+        public void ping(Ping request, StreamObserver<Pong> responseObserver) {
             System.out.println("In PingPongService");
             Pong pong = Pong.newBuilder().setPong("Pong").build();
             responseObserver.onNext(pong);

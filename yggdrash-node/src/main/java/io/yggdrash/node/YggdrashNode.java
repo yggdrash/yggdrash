@@ -16,63 +16,48 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.akashic.SyncManager;
+import io.yggdrash.core.net.BootStrapNode;
 import io.yggdrash.core.net.Discovery;
-import io.yggdrash.core.net.Node;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerHandlerGroup;
-import io.yggdrash.core.net.PeerListener;
 import io.yggdrash.node.config.NodeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
 @Service
-public class YggdrashNode extends Node
-        implements CommandLineRunner, DisposableBean {
+public class YggdrashNode extends BootStrapNode {
     private static final Logger log = LoggerFactory.getLogger(YggdrashNodeApp.class);
 
     private final NodeProperties nodeProperties;
 
     private final NodeStatus nodeStatus;
 
-    private final BranchGroup branchGroup;
-
     private final Discovery discovery;
 
     @Autowired
-    public void setPeerListener(PeerListener peerListener) {
-        this.peerListener = peerListener;
+    public void setPeerHandlerGroup(PeerHandlerGroup peerHandlerGroup) {
+        super.setPeerHandlerGroup(peerHandlerGroup);
     }
 
     @Autowired
-    public void setPeerHandlerGroup(PeerHandlerGroup peerHandlerGroup) {
-        this.peerHandlerGroup = peerHandlerGroup;
+    public void setSyncManager(SyncManager syncManager) {
+        super.setSyncManager(syncManager);
     }
 
-    YggdrashNode(NodeProperties nodeProperties, NodeStatus nodeStatus, BranchGroup branchGroup,
-                 Discovery discovery) {
+    YggdrashNode(NodeProperties nodeProperties, NodeStatus nodeStatus, Discovery discovery) {
         this.nodeProperties = nodeProperties;
         this.nodeStatus = nodeStatus;
-        this.branchGroup = branchGroup;
         this.discovery = discovery;
     }
 
-    @Override
-    public void run(String... args) {
-        String host = nodeProperties.getGrpc().getHost();
-        int port = nodeProperties.getGrpc().getPort();
-
-        start(host, port);
-
+    @PostConstruct
+    public void init() {
         log.info("Bootstrapping...");
         super.bootstrapping(discovery, nodeProperties.getMaxPeers());
 
@@ -82,52 +67,13 @@ public class YggdrashNode extends Node
             return;
         }
         nodeStatus.sync();
-        syncBlockAndTransaction();
+        syncManager.syncBlockAndTransaction();
         nodeStatus.up();
     }
 
-    @Override
+    @PreDestroy
     public void destroy() {
         log.info("Destroy handlerGroup");
-        peerHandlerGroup.destroy();
-        log.info("Shutting down gRPC server...");
-        peerListener.stop();
-    }
-
-    private void syncBlockAndTransaction() {
-        try {
-            for (BlockChain blockChain : branchGroup.getAllBranch()) {
-                BlockChainSync.syncTransaction(blockChain, peerHandlerGroup);
-                BlockChainSync.syncBlock(blockChain, peerHandlerGroup);
-            }
-        } catch (Exception e) {
-            log.warn(e.getMessage(), e);
-        }
-    }
-
-    private static class BlockChainSync {
-
-        static void syncBlock(BlockChain blockChain, PeerHandlerGroup peerHandlerGroup) {
-            List<BlockHusk> blockList;
-            do {
-                blockList = peerHandlerGroup.syncBlock(blockChain.getBranchId(),
-                        blockChain.getLastIndex() + 1);
-                for (BlockHusk block : blockList) {
-                    blockChain.addBlock(block, false);
-                }
-            } while (!blockList.isEmpty());
-        }
-
-        static void syncTransaction(BlockChain blockChain, PeerHandlerGroup peerHandlerGroup) {
-            List<TransactionHusk> txList =
-                    peerHandlerGroup.syncTransaction(blockChain.getBranchId());
-            for (TransactionHusk tx : txList) {
-                try {
-                    blockChain.addTransaction(tx);
-                } catch (Exception e) {
-                    log.warn(e.getMessage());
-                }
-            }
-        }
+        super.destroy();
     }
 }

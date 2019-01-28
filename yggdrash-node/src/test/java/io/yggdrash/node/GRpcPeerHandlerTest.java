@@ -93,14 +93,14 @@ public class GRpcPeerHandlerTest {
             argument.onNext(null);
             argument.onCompleted();
             return null;
-        }).when(peerService).play(pingRequestCaptor.capture(), any());
+        }).when(peerService).ping(pingRequestCaptor.capture(), any());
 
         String ping = "Ping";
         Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
 
         peerHandler.ping(ping, owner);
 
-        verify(peerService).play(pingRequestCaptor.capture(), any());
+        verify(peerService).ping(pingRequestCaptor.capture(), any());
 
         assertEquals(ping, pingRequestCaptor.getValue().getPing());
     }

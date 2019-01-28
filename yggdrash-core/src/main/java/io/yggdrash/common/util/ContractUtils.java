@@ -16,11 +16,13 @@
 
 package io.yggdrash.common.util;
 
+import io.yggdrash.core.contract.Contract;
+import io.yggdrash.core.contract.methods.ContractMethod;
+import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
@@ -29,28 +31,52 @@ import java.util.stream.Collectors;
 
 public class ContractUtils {
 
-    public static List<Field> txReceipt(Object contract) {
+    public static List<Field> txReceiptFields(Object contract) {
         return ContractUtils.contractFields(contract, ContractTransactionReceipt.class);
     }
 
-    public static List<Field> stateStore(Object contract) {
+    public static List<Field> stateStoreFields(Object contract) {
         return ContractUtils.contractFields(contract, ContractStateStore.class);
+    }
+
+    public static void updateContractFields(Contract contract, List<Field> fields, Object store) {
+        // init state Store
+        for(Field f : fields) {
+            try {
+                f.setAccessible(true);
+                f.set(contract, store);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
 
     public static List<Field> contractFields(Object contract, Class<? extends Annotation> annotationClass) {
-        List<Field> txReceipt = Arrays.stream(contract.getClass().getDeclaredFields())
+        List<Field> fields = Arrays.stream(contract.getClass().getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(annotationClass))
                 .collect(Collectors.toList());
-        return txReceipt;
+        return fields;
     }
 
 
-    public static  Map<String, Method> contractMethods(Object contract, Class<? extends Annotation> annotationClass) {
+    public static  Map<String, ContractMethod> contractMethods(Object contract, Class<? extends Annotation> annotationClass) {
         return Arrays.stream(contract.getClass().getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(annotationClass))
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
-                .collect(Collectors.toMap(m -> m.getName().toLowerCase(), m-> m));
+                .collect(
+                        Collectors.toMap(m -> m.getName().toLowerCase(), m -> new ContractMethod(m))
+                );
+    }
+
+    public static Contract contractInstance(Contract contract) throws FailedOperationException {
+        try {
+            Contract instance = contract.getClass().getDeclaredConstructor().newInstance();
+            return instance;
+        } catch (Exception e) {
+            e.printStackTrace();
+            throw new FailedOperationException("Contract instance Fail");
+        }
     }
 
 }

@@ -84,7 +84,7 @@ public class GrpcDemoAppTest {
                 .usePlaintext().build();
 
         PeerGrpc.newFutureStub(channel)
-                .play(Proto.Ping.newBuilder().setPing("ping").build()).get().getPong();
+                .ping(Proto.Ping.newBuilder().setPing("ping").build()).get().getPong();
 
         Mockito.verify(globalInterceptor, Mockito.times(1))
                 .interceptCall(Mockito.any(), Mockito.any(), Mockito.any());

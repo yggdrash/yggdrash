@@ -16,6 +16,8 @@
 
 package io.yggdrash.node.config;
 
+import io.yggdrash.core.akashic.SimpleSyncManager;
+import io.yggdrash.core.akashic.SyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.net.BlockChainConsumer;
 import io.yggdrash.core.net.BlockChainServiceConsumer;
@@ -27,14 +29,13 @@ import io.yggdrash.core.net.KademliaPeerTable;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerHandlerFactory;
 import io.yggdrash.core.net.PeerHandlerGroup;
-import io.yggdrash.core.net.PeerListener;
 import io.yggdrash.core.net.PeerTable;
+import io.yggdrash.core.net.SimplePeerHandlerGroup;
 import io.yggdrash.core.store.PeerStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.GRpcPeerHandlerFactory;
 import io.yggdrash.node.PeerTask;
-import io.yggdrash.node.service.GRpcPeerListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -71,7 +72,7 @@ public class P2PConfiguration {
 
     @Bean
     PeerHandlerGroup peerHandlerGroup(PeerTable peerTable, PeerHandlerFactory peerHandlerFactory) {
-        PeerHandlerGroup peerHandlerGroup = new PeerHandlerGroup(peerHandlerFactory);
+        PeerHandlerGroup peerHandlerGroup = new SimplePeerHandlerGroup(peerHandlerFactory);
         peerHandlerGroup.setPeerEventListener(peerTable);
         return peerHandlerGroup;
     }
@@ -92,11 +93,8 @@ public class P2PConfiguration {
     }
 
     @Bean
-    PeerListener peerListener(DiscoveryConsumer discoveryConsumer,
-                              BlockChainConsumer blockChainConsumer) {
-        PeerListener peerListener = new GRpcPeerListener();
-        peerListener.initConsumer(discoveryConsumer, blockChainConsumer);
-        return peerListener;
+    SyncManager syncManager(BranchGroup branchGroup, PeerHandlerGroup peerHandlerGroup) {
+        return new SimpleSyncManager(branchGroup, peerHandlerGroup);
     }
 
     /**
