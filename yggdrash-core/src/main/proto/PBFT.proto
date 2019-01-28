@@ -15,18 +15,7 @@ message PbftPongTime {
 }
 
 message PbftMessage {
-    enum MessageType {
-        REQUEST = 0;
-        PRE_PREPARE = 1;
-        PREPARE = 2;
-        COMMIT = 3;
-        REPLY = 4;
-        VIEW_CHANGE = 5;
-        NEW_VIEW = 6;
-        CHECKPOINT = 7;
-    }
-
-    MessageType type = 1;
+    string type = 1;
     int64 viewNumber = 2;
     int64 seqNumber = 3;
     bytes blockHash = 4;

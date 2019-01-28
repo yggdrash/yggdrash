@@ -2,6 +2,7 @@ package io.yggdrash.validator.data.pbft;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.proto.PbftProto;
 import org.spongycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;
@@ -37,6 +38,16 @@ public class PbftMessage {
         this.result = Hex.decode(jsonObject.get("result").getAsString());
         this.signature = Hex.decode(jsonObject.get("signature").getAsString());
     }
+
+    public PbftMessage(PbftProto.PbftMessage protoPbftMessage) {
+        this.type = protoPbftMessage.getType();
+        this.viewNumber = protoPbftMessage.getViewNumber();
+        this.seqNumber = protoPbftMessage.getSeqNumber();
+        this.hash = protoPbftMessage.getBlockHash().toByteArray();
+        this.result = protoPbftMessage.getResult().toByteArray();
+        this.signature = protoPbftMessage.getSignature().toByteArray();
+    }
+
 
     public byte[] toBinary() {
         return this.toJsonObject().toString().getBytes(StandardCharsets.UTF_8);

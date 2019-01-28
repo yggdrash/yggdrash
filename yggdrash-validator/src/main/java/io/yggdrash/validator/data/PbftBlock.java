@@ -18,6 +18,7 @@ package io.yggdrash.validator.data;
 
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.proto.PbftProto;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,6 +36,12 @@ public class PbftBlock {
 
     public PbftBlock(byte[] bytes) {
         this.block = new Block(ByteUtil.parseBytes(bytes, 0, (int) Block.getBlockLengthInBytes(bytes)));
+        this.pbftMessageSet = null;
+    }
+
+    public PbftBlock(PbftProto.PbftBlock protoBlock) {
+        this.block = Block.toBlock(protoBlock.getBlock());
+//        this.pbftMessageSet = PbftMessageSet.toPbftMessageSet(protoBlock.getPbftMessageSet());
         this.pbftMessageSet = null;
     }
 
@@ -60,5 +67,12 @@ public class PbftBlock {
 
     public PbftMessageSet getPbftMessageSet() {
         return pbftMessageSet;
+    }
+
+    public static PbftProto.PbftBlock toProto(PbftBlock pbftBlock) {
+        PbftProto.PbftBlock.Builder protoPbftBlock = PbftProto.PbftBlock.newBuilder()
+                .setBlock(pbftBlock.getBlock().toProtoBlock());
+//                .setPbftMessageSet(pbftBlock.getPbftMessageSet().toProto());
+        return protoPbftBlock.build();
     }
 }

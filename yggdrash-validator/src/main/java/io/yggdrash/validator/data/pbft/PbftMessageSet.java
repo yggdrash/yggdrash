@@ -1,5 +1,7 @@
 package io.yggdrash.validator.data.pbft;
 
+import io.yggdrash.proto.PbftProto;
+
 import java.util.List;
 
 public class PbftMessageSet {
@@ -12,6 +14,10 @@ public class PbftMessageSet {
         this.prePrepare = prePrepare;
         this.prepareList = prepareList;
         this.commitList = commitList;
+    }
+
+    public PbftMessageSet(PbftProto.PbftMessageSet protoPbftMessageSet) {
+        this.prePrepare = new PbftMessage(protoPbftMessageSet.getPrePrepare());
     }
 
     public PbftMessage getPrePrepare() {
