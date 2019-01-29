@@ -51,6 +51,11 @@ public class PbftClientStub {
                 .multicastPbftMessage(pbftMessage);
     }
 
+    public void multicastPbftBlock(PbftProto.PbftBlock pbftBlock) {
+        blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS)
+                .multicastPbftBlock(pbftBlock);
+    }
+
     public List<PbftBlock> getBlockList(long index) {
         PbftProto.PbftBlockList protoBlockList = blockingStub
                 .withDeadlineAfter(3, TimeUnit.SECONDS)

@@ -6,22 +6,29 @@ import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
+import io.yggdrash.validator.data.pbft.PbftMessage;
+import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class PbftStatus {
-    private PbftBlock lastConfirmedBlock;
-    private PbftBlock unConfirmedBlock;
+
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftStatus.class);
+
+    private long index;
+    private final Map<String, PbftMessage> pbftMessageMap = new TreeMap<>();
     private long timestamp;
     private byte[] signature;
 
-    public PbftStatus(PbftBlock lastConfirmedBlock,
-                      PbftBlock unConfirmedBlock,
+    public PbftStatus(long index,
+                      Map<String, PbftMessage> pbftMessageMap,
                       long timestamp,
                       byte[] signature) {
-        this.lastConfirmedBlock = lastConfirmedBlock;
-        this.unConfirmedBlock = unConfirmedBlock;
-
+        this.index = index;
+        this.pbftMessageMap.putAll(pbftMessageMap);
         if (timestamp == 0L) {
             this.timestamp = TimeUtils.time();
         } else {
@@ -32,18 +39,26 @@ public class PbftStatus {
     }
 
     public PbftStatus(PbftProto.PbftStatus pbftStatus) {
-        this.lastConfirmedBlock = new PbftBlock(pbftStatus.getLastConfirmedBlock());
-        this.unConfirmedBlock = new PbftBlock(pbftStatus.getUnConfirmedBlock());
+        this.index = pbftStatus.getIndex();
+        for (PbftProto.PbftMessage protoPbftMessage :
+                pbftStatus.getPbftMessageList().getPbftMessageListList()) {
+            String key = Hex.toHexString(protoPbftMessage.getSignature().toByteArray());
+            if (this.pbftMessageMap.containsKey(key)) {
+                // todo: update pbftmessge
+            } else {
+                this.pbftMessageMap.put(key, new PbftMessage(protoPbftMessage));
+            }
+        }
         this.timestamp = pbftStatus.getTimestamp();
         this.signature = pbftStatus.getSignature().toByteArray();
     }
 
-    public PbftBlock getLastConfirmedBlock() {
-        return lastConfirmedBlock;
+    public long getIndex() {
+        return index;
     }
 
-    public PbftBlock getUnConfirmedBlock() {
-        return unConfirmedBlock;
+    public Map<String, PbftMessage> getPbftMessageMap() {
+        return pbftMessageMap;
     }
 
     public long getTimestamp() {
@@ -58,14 +73,14 @@ public class PbftStatus {
         ByteArrayOutputStream dataForSignning = new ByteArrayOutputStream();
 
         try {
-            if (lastConfirmedBlock != null && lastConfirmedBlock.getBlock() != null) {
-                dataForSignning.write(lastConfirmedBlock.getHash());
-            }
-            if (unConfirmedBlock != null && unConfirmedBlock.getBlock() != null) {
-                dataForSignning.write(unConfirmedBlock.getHash());
+            dataForSignning.write(ByteUtil.longToBytes(index));
+            for (String key : this.pbftMessageMap.keySet()) {
+                PbftMessage pbftMessage = this.pbftMessageMap.get(key);
+                dataForSignning.write(pbftMessage.toBinary());
             }
             dataForSignning.write(ByteUtil.longToBytes(timestamp));
         } catch (Exception e) {
+            log.debug(e.getMessage());
             return null;
         }
 
@@ -73,7 +88,7 @@ public class PbftStatus {
     }
 
     public static boolean verify(PbftStatus status) {
-        if (status != null) {
+        if (status != null && status.getSignature() != null) {
             byte[] hashData = status.getHashForSignning();
             byte[] signature = status.getSignature();
             if (hashData == null || signature == null) {
@@ -86,19 +101,19 @@ public class PbftStatus {
     }
 
     public static PbftProto.PbftStatus toProto(PbftStatus pbftStatus) {
-        PbftProto.PbftStatus.Builder protoPbftStatusBuilder = PbftProto.PbftStatus.newBuilder();
-
-        PbftBlock lastConfirmedBlock = pbftStatus.getLastConfirmedBlock();
-        if (lastConfirmedBlock != null) {
-            protoPbftStatusBuilder.setLastConfirmedBlock(PbftBlock.toProto(lastConfirmedBlock));
+        if (pbftStatus == null) {
+            return null;
         }
 
-        PbftBlock unConfirmedBlock = pbftStatus.getUnConfirmedBlock();
-        if (unConfirmedBlock != null) {
-            protoPbftStatusBuilder.setUnConfirmedBlock(PbftBlock.toProto(unConfirmedBlock));
+        PbftProto.PbftMessageList.Builder protoPbftMessageListBuilder = PbftProto.PbftMessageList.newBuilder();
+        for (String key : pbftStatus.getPbftMessageMap().keySet()) {
+            PbftMessage pbftMessage = pbftStatus.getPbftMessageMap().get(key);
+            protoPbftMessageListBuilder.addPbftMessageList(PbftMessage.toProto(pbftMessage));
         }
 
-        protoPbftStatusBuilder
+        PbftProto.PbftStatus.Builder protoPbftStatusBuilder = PbftProto.PbftStatus.newBuilder()
+                .setIndex(pbftStatus.getIndex())
+                .setPbftMessageList(protoPbftMessageListBuilder.build())
                 .setTimestamp(pbftStatus.getTimestamp())
                 .setSignature(ByteString.copyFrom(pbftStatus.getSignature()));
         return protoPbftStatusBuilder.build();

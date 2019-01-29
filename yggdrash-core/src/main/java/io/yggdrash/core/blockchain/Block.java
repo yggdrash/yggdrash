@@ -127,7 +127,7 @@ public class Block implements Cloneable {
         return HashUtil.sha3(bao.toByteArray());
     }
 
-    public String getHashHexString() {
+    public String getHashHex() {
         return org.spongycastle.util.encoders.Hex.toHexString(this.getHash());
     }
 
@@ -154,7 +154,7 @@ public class Block implements Cloneable {
                 Arrays.copyOfRange(pubBytes, 1, pubBytes.length));
     }
 
-    public String getAddressHexString() {
+    public String getAddressHex() {
         return Hex.toHexString(getAddress());
     }
 

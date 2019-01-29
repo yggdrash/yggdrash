@@ -15,6 +15,7 @@ message PbftMessage {
     bytes clientId = 5;
     bytes result = 6;
     bytes signature = 7;
+    Block block = 8;
 }
 
 message PbftMessageList {
@@ -37,8 +38,8 @@ message PbftBlockList {
 }
 
 message PbftStatus {
-    PbftBlock lastConfirmedBlock = 1;
-    PbftBlock unConfirmedBlock = 2;
+    int64 index = 1;
+    PbftMessageList pbftMessageList = 2;
     int64 timestamp = 3;
     bytes signature = 4;
 }
@@ -55,4 +56,8 @@ service PbftService {
 
     rpc multicastPbftMessage (PbftMessage) returns (Empty) {
     }
+
+    rpc multicastPbftBlock (PbftBlock) returns (Empty) {
+    }
+
 }

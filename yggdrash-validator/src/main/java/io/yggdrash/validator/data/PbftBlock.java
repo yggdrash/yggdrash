@@ -23,6 +23,7 @@ import io.yggdrash.proto.Proto;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 
 public class PbftBlock {
     private static final Logger log = LoggerFactory.getLogger(PbftBlock.class);
@@ -59,6 +60,10 @@ public class PbftBlock {
 
     public byte[] getHash() {
         return this.block.getHash();
+    }
+
+    public String getHashHex() {
+        return Hex.toHexString(getHash());
     }
 
     public byte[] getPrevBlockHash() {

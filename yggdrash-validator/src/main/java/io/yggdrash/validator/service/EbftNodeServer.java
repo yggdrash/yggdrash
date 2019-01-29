@@ -233,7 +233,7 @@ public class EbftNodeServer implements CommandLineRunner {
                     + "]"
                     + newBlockCon.getHashHex()
                     + " ("
-                    + newBlockCon.getBlock().getAddressHexString()
+                    + newBlockCon.getBlock().getAddressHex()
                     + ")");
 
             return newBlockCon;
@@ -415,7 +415,7 @@ public class EbftNodeServer implements CommandLineRunner {
             log.info("[" + lastBlockCon.getIndex() + "] "
                     + lastBlockCon.getHashHex()
                     + " ("
-                    + lastBlockCon.getBlock().getAddressHexString()
+                    + lastBlockCon.getBlock().getAddressHex()
                     + ") "
                     + "("
                     + lastBlockCon.getConsensusList().size()
@@ -440,7 +440,7 @@ public class EbftNodeServer implements CommandLineRunner {
                         + "]"
                         + blockCon.getHashHex()
                         + " ("
-                        + blockCon.getBlock().getAddressHexString()
+                        + blockCon.getBlock().getAddressHex()
                         + ")");
                 for (int i = 0; i < blockCon.getConsensusList().size(); i++) {
                     if (blockCon.getConsensusList().get(i) != null) {

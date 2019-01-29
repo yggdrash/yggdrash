@@ -137,7 +137,7 @@ public class BlockTest {
         Block block2 = block1.clone();
         log.debug("block2=" + block2.toJsonObject());
 
-        assertThat(block1.getHashHexString()).isEqualTo(block2.getHashHexString());
+        assertThat(block1.getHashHex()).isEqualTo(block2.getHashHex());
         assertThat(block1.toJsonObject().toString()).isEqualTo(block2.toJsonObject().toString());
         assertThat(block1.getSignature()).isEqualTo(block2.getSignature());
     }
@@ -151,11 +151,11 @@ public class BlockTest {
         assertThat(block1.getPubKey()).isEqualTo(block2.getPubKey());
         assertThat(block1.getPubKey()).isEqualTo(wallet.getPubicKey());
 
-        log.debug("block1 author address=" + block1.getAddressHexString());
-        log.debug("block2 author address=" + block2.getAddressHexString());
+        log.debug("block1 author address=" + block1.getAddressHex());
+        log.debug("block2 author address=" + block2.getAddressHex());
         log.debug("wallet address=" + wallet.getHexAddress());
-        assertThat(block1.getAddressHexString()).isEqualTo(block2.getAddressHexString());
-        assertThat(block1.getAddressHexString()).isEqualTo(wallet.getHexAddress());
+        assertThat(block1.getAddressHex()).isEqualTo(block2.getAddressHex());
+        assertThat(block1.getAddressHex()).isEqualTo(wallet.getHexAddress());
         assertThat(block1.verify()).isTrue();
         assertThat(block2.verify()).isTrue();
     }

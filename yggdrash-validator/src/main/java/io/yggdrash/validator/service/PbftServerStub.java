@@ -4,12 +4,16 @@ import io.grpc.stub.StreamObserver;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.PbftServiceGrpc;
+import io.yggdrash.validator.data.PbftBlock;
 import io.yggdrash.validator.data.PbftBlockChain;
 import io.yggdrash.validator.data.PbftStatus;
+import io.yggdrash.validator.data.pbft.PbftMessage;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+
+import java.util.Arrays;
 
 @GRpcService
 @ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "pbft")
@@ -53,21 +57,73 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
     public void multicastPbftMessage(io.yggdrash.proto.PbftProto.PbftMessage request,
                                      io.grpc.stub.StreamObserver<io.yggdrash.proto.NetProto.Empty> responseObserver) {
 
+        log.trace("multicastPbftMessage");
+        PbftMessage pbftMessage = new PbftMessage(request);
+
+        if (!PbftMessage.verify(pbftMessage)) {
+            log.warn("Verify Fail");
+            responseObserver.onNext(EMPTY);
+            responseObserver.onCompleted();
+            return;
+        }
+
+        long lastIndex = this.blockChain.getLastConfirmedBlock().getIndex();
+        if (pbftMessage.getSeqNumber() <= lastIndex) {
+            responseObserver.onNext(EMPTY);
+            responseObserver.onCompleted();
+            return;
+        }
+
         responseObserver.onNext(EMPTY);
         responseObserver.onCompleted();
+
+        pbftService.getLock().lock();
+        pbftService.updateUnconfirmedMsg(pbftMessage);
+        pbftService.getLock().unlock();
+    }
+
+    @Override
+    public void multicastPbftBlock(io.yggdrash.proto.PbftProto.PbftBlock request,
+                                   io.grpc.stub.StreamObserver<io.yggdrash.proto.NetProto.Empty> responseObserver) {
+
+        log.trace("multicastPbftBlock");
+        PbftBlock newPbftBlock = new PbftBlock(request);
+
+        if (!PbftBlock.verify(newPbftBlock)) {
+            log.warn("Verify Fail");
+            responseObserver.onNext(io.yggdrash.proto.NetProto.Empty.newBuilder().build());
+            responseObserver.onCompleted();
+            return;
+        }
+
+        PbftBlock lastPbftBlock = this.blockChain.getLastConfirmedBlock();
+
+        responseObserver.onNext(io.yggdrash.proto.NetProto.Empty.newBuilder().build());
+        responseObserver.onCompleted();
+
+        if (lastPbftBlock.getIndex() == newPbftBlock.getIndex() - 1
+                && Arrays.equals(lastPbftBlock.getHash(), newPbftBlock.getPrevBlockHash())) {
+
+            pbftService.getLock().lock();
+            //pbftService.updateUnconfirmedBlock(newPbftBlock);
+            pbftService.getLock().unlock();
+        }
+
     }
 
     private void updateStatus(PbftStatus status) {
-        if (PbftStatus.verify(status)) {
-//            for (PbftBlock block : status.getUnConfirmedBlockList()) {
-//                if (block.getIndex()
-//                        <= this.blockChain.getLastConfirmedBlock().getIndex()) {
-//                    continue;
-//                }
-//                pbftService.getLock().lock();
-//                pbftService.updateUnconfirmedBlock(blockCon);
-//                pbftService.getLock().unlock();
-//            }
+        if (!PbftStatus.verify(status)) {
+            log.trace("PbftStatus verify fail.");
+            return;
         }
+
+        if (status.getIndex()
+                <= this.blockChain.getLastConfirmedBlock().getIndex()) {
+            return;
+        }
+
+        pbftService.getLock().lock();
+//        pbftService.updateUnconfirmedBlock(status.getPbftMessageSet());
+        pbftService.getLock().unlock();
     }
 }

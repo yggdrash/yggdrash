@@ -25,19 +25,38 @@ public class PbftMessage {
     private final byte[] hash;
     private final byte[] result;
     private final byte[] signature;
+    private final Block block;
 
     public PbftMessage(String type,
                        long viewNumber,
                        long seqNumber,
                        byte[] hash,
                        byte[] result,
-                       byte[] signature) {
+                       byte[] signature,
+                       Block block) {
         this.type = type;
         this.viewNumber = viewNumber;
         this.seqNumber = seqNumber;
         this.hash = hash;
         this.result = result;
         this.signature = signature;
+        this.block = block;
+    }
+
+    public PbftMessage(String type,
+                       long viewNumber,
+                       long seqNumber,
+                       byte[] hash,
+                       byte[] result,
+                       Wallet wallet,
+                       Block block) {
+        this.type = type;
+        this.viewNumber = viewNumber;
+        this.seqNumber = seqNumber;
+        this.hash = hash;
+        this.result = result;
+        this.signature = wallet.signHashedData(getHashForSignning());
+        this.block = block;
     }
 
     public PbftMessage(byte[] bytes) {
@@ -48,6 +67,7 @@ public class PbftMessage {
         this.hash = Hex.decode(jsonObject.get("hash").getAsString());
         this.result = Hex.decode(jsonObject.get("result").getAsString());
         this.signature = Hex.decode(jsonObject.get("signature").getAsString());
+        this.block = new Block(jsonObject.get("block").getAsJsonObject());
     }
 
     public PbftMessage(PbftProto.PbftMessage protoPbftMessage) {
@@ -57,6 +77,7 @@ public class PbftMessage {
         this.hash = protoPbftMessage.getHash().toByteArray();
         this.result = protoPbftMessage.getResult().toByteArray();
         this.signature = protoPbftMessage.getSignature().toByteArray();
+        this.block = Block.toBlock(protoPbftMessage.getBlock());
     }
 
     public String getType() {
@@ -75,12 +96,27 @@ public class PbftMessage {
         return hash;
     }
 
+    public String getHashHex() {
+        return Hex.toHexString(hash);
+    }
+
     public byte[] getResult() {
         return result;
     }
 
     public byte[] getSignature() {
         return signature;
+    }
+
+    public String getSignatureHex() {
+        if (signature == null) {
+            return null;
+        }
+        return Hex.toHexString(signature);
+    }
+
+    public Block getBlock() {
+        return block;
     }
 
     public byte[] toBinary() {
@@ -110,11 +146,11 @@ public class PbftMessage {
         return wallet.signHashedData(getHashForSignning());
     }
 
-    public static boolean verify(PbftMessage pbftMessage) {
-        return PbftMessage.verify(pbftMessage, null);
-    }
+//    public static boolean verify(PbftMessage pbftMessage) {
+//        return PbftMessage.verify(pbftMessage, null);
+//    }
 
-    public static boolean verify(PbftMessage pbftMessage, Block block) {
+    public static boolean verify(PbftMessage pbftMessage) {
         // todo: check validator
 
         if (pbftMessage == null) {
@@ -126,11 +162,11 @@ public class PbftMessage {
         }
 
         if (pbftMessage.type.equals("PREPREPA")) {
-            if (block == null) {
+            if (pbftMessage.getBlock() == null) {
                 return false;
             }
 
-            if (!Arrays.equals(pbftMessage.getHash(), block.getHash())) {
+            if (!Arrays.equals(pbftMessage.getHash(), pbftMessage.getBlock().getHash())) {
                 //todo: check viewNumber, seqNumber
                 return false;
             }
@@ -145,8 +181,13 @@ public class PbftMessage {
         jsonObject.addProperty("viewNumber", this.viewNumber);
         jsonObject.addProperty("seqNumber", this.seqNumber);
         jsonObject.addProperty("hash", Hex.toHexString(this.hash));
-        jsonObject.addProperty("result", Hex.toHexString(this.result));
+        if (this.result != null) {
+            jsonObject.addProperty("result", Hex.toHexString(this.result));
+        }
         jsonObject.addProperty("signature", Hex.toHexString(this.signature));
+        if (this.block != null) {
+            jsonObject.add("block", this.block.toJsonObject());
+        }
         return jsonObject;
     }
 
@@ -160,24 +201,49 @@ public class PbftMessage {
     }
 
     public static PbftProto.PbftMessage toProto(PbftMessage pbftMessage) {
-        PbftProto.PbftMessage.Builder protoPbftMessageBuilder = PbftProto.PbftMessage.newBuilder()
-                .setType(pbftMessage.getType())
-                .setViewNumber(pbftMessage.getViewNumber())
-                .setSeqNumber(pbftMessage.getSeqNumber())
-                .setHash(ByteString.copyFrom(pbftMessage.getHash()))
-                .setResult(ByteString.copyFrom(pbftMessage.getResult()))
-                .setSignature(ByteString.copyFrom(pbftMessage.getSignature()));
+        PbftProto.PbftMessage.Builder protoPbftMessageBuilder = PbftProto.PbftMessage.newBuilder();
+        protoPbftMessageBuilder.setType(pbftMessage.getType());
+        protoPbftMessageBuilder.setViewNumber(pbftMessage.getViewNumber());
+        protoPbftMessageBuilder.setSeqNumber(pbftMessage.getSeqNumber());
+        if (pbftMessage.getHash() != null) {
+            protoPbftMessageBuilder.setHash(ByteString.copyFrom(pbftMessage.getHash()));
+        }
+        if (pbftMessage.getResult() != null) {
+            protoPbftMessageBuilder.setResult(ByteString.copyFrom(pbftMessage.getResult()));
+        }
+        if (pbftMessage.getSignature() != null) {
+            protoPbftMessageBuilder.setSignature(ByteString.copyFrom(pbftMessage.getSignature()));
+        }
+        if (pbftMessage.getBlock() != null) {
+            protoPbftMessageBuilder.setBlock(pbftMessage.getBlock().toProtoBlock());
+        }
         return protoPbftMessageBuilder.build();
     }
 
     public static PbftProto.PbftMessageList toProtoList(
             List<PbftMessage> pbftMessageList) {
+        if (pbftMessageList == null) {
+            return null;
+        }
         PbftProto.PbftMessageList.Builder protoPbftMessageListBuilder =
                 PbftProto.PbftMessageList.newBuilder();
         for (PbftMessage pbftMessage : pbftMessageList) {
             protoPbftMessageListBuilder.addPbftMessageList(PbftMessage.toProto(pbftMessage));
         }
         return protoPbftMessageListBuilder.build();
+    }
+
+    public boolean equals(PbftMessage newPbftMessage) {
+        if (newPbftMessage == null) {
+            return false;
+        }
+
+        return this.type.equals(newPbftMessage.getType())
+                && this.viewNumber == newPbftMessage.getViewNumber()
+                && this.seqNumber == newPbftMessage.getSeqNumber()
+                && Arrays.equals(this.hash, newPbftMessage.getHash())
+                && Arrays.equals(this.result, newPbftMessage.getResult())
+                && Arrays.equals(this.signature, newPbftMessage.getSignature());
     }
 
 }

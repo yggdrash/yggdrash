@@ -5,6 +5,7 @@ import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
+import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.store.PbftBlockKeyStore;
 import io.yggdrash.validator.store.PbftBlockStore;
 import org.slf4j.Logger;
@@ -16,13 +17,12 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class PbftBlockChain {
 
     private static final Logger log = LoggerFactory.getLogger(PbftBlockChain.class);
-
-    private boolean isProposed;
-    private boolean isConsensused;
 
     private final byte[] chain;
     private final String host;
@@ -33,7 +33,7 @@ public class PbftBlockChain {
 
     private final PbftBlock rootBlock;
     private PbftBlock lastConfirmedBlock;
-    private PbftBlock unConfirmedBlock;
+    private final Map<String, PbftMessage> unConfirmedMsgMap = new ConcurrentHashMap<>();
 
     private final TransactionStore transactionStore;
 
@@ -92,14 +92,6 @@ public class PbftBlockChain {
 
     }
 
-    public boolean isProposed() {
-        return isProposed;
-    }
-
-    public boolean isConsensused() {
-        return isConsensused;
-    }
-
     public byte[] getChain() {
         return chain;
     }
@@ -128,8 +120,8 @@ public class PbftBlockChain {
         return lastConfirmedBlock;
     }
 
-    public PbftBlock getUnConfirmedBlock() {
-        return unConfirmedBlock;
+    public Map<String, PbftMessage> getUnConfirmedMsgMap() {
+        return unConfirmedMsgMap;
     }
 
     public TransactionStore getTransactionStore() {
