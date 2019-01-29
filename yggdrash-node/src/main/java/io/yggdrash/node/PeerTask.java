@@ -22,7 +22,6 @@ import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerBucket;
 import io.yggdrash.core.net.PeerHandlerGroup;
-import io.yggdrash.core.net.PeerTable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +79,7 @@ public class PeerTask {
         Peer last = peerToRevalidate();
         if (last != null) {
             // Ping the selected node and wait for a pong (set last.id to ping msg)
+            log.debug("[revalidate] last peerId => " + last.getPeerId());
             if (peerHandlerGroup.isPingSucceed(peerTable.getOwner(), last.getPeerId())) {
                 // The peer responded, move it to the front
                 peerTable.getBucketByPeer(last).bump(last);

@@ -40,6 +40,10 @@ public class KademliaPeerTable implements PeerTable, Dht {
 
     @Override
     public void refresh(Peer target) {
+        if (target == null) {
+            return;
+        }
+
         if (getClosestPeers(target, 1).size() < 1) {
             // The result set is empty, all peers were dropped, discover.
             // We actually wait for the discover to complete here.

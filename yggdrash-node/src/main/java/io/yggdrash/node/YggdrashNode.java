@@ -33,6 +33,7 @@ public class YggdrashNode extends BootStrapNode {
     private static final Logger log = LoggerFactory.getLogger(YggdrashNodeApp.class);
 
     private final NodeProperties nodeProperties;
+    private NodeStatus nodeStatus;
 
     @Autowired
     public void setDht(Dht peerTable) {
@@ -44,12 +45,14 @@ public class YggdrashNode extends BootStrapNode {
         super.setSyncManager(syncManager);
     }
 
-    YggdrashNode(NodeProperties nodeProperties) {
+    @Autowired
+    YggdrashNode(NodeProperties nodeProperties, NodeStatus nodeStatus) {
         this.nodeProperties = nodeProperties;
+        this.nodeStatus = nodeStatus;
     }
 
     @PostConstruct
-    public void init(NodeStatus nodeStatus) {
+    public void init() {
         log.info("Bootstrapping...");
         bootstrapping();
 
