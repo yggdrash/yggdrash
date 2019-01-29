@@ -159,9 +159,14 @@ public class Block implements Cloneable {
     }
 
     public boolean verify() {
-
+        // Block DAta Verify
         if (!this.verifyData()) {
             return false;
+        }
+
+        if (this.header.getIndex() == 0) { // Genesis
+            // Genesis Block has no signature
+            return true;
         }
 
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);

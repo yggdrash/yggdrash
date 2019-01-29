@@ -66,6 +66,7 @@ public class GenesisBlock {
     private JsonObject toJsonObjectTx() {
         JsonArray jsonArrayBody = toJsonArrayTxBody();
         // todo: change values(version, type) using the configuration.
+        // TODO jsonFormat convert to Transaction
         TransactionHeader txHeader = new TransactionHeader(
                 branch.getBranchId().getBytes(),
                 new byte[8],
@@ -102,7 +103,6 @@ public class GenesisBlock {
     private JsonObject toJsonObject(JsonObject header, JsonArray body) {
         JsonObject jsonObject = new JsonObject();
         jsonObject.add("header", header);
-        jsonObject.addProperty("signature", branch.getSignature().toString());
         jsonObject.add("body", body);
         return jsonObject;
     }
