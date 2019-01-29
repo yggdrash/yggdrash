@@ -182,39 +182,38 @@ public class PbftService implements CommandLineRunner {
     }
 
     private PbftMessage makePrePrepareMsg() {
-        if (this.isValidator
-                && this.isActive
-                && this.isSynced
-                && this.isPrimary
-                && !this.isPrePrepared) {
-
-            long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
-            byte[] prevBlockHash = this.blockChain.getLastConfirmedBlock().getHash();
-
-            Block newBlock = makeNewBlock(index, prevBlockHash);
-            log.trace("newBlock" + newBlock.toString());
-
-            PbftMessage prePrepare = new PbftMessage("PREPREPA", index, index, newBlock.getHash(), null, wallet, newBlock);
-            if (prePrepare == null) {
-                return null;
-            }
-
-            this.blockChain.getUnConfirmedMsgMap().put(prePrepare.getSignatureHex(), prePrepare);
-            this.isPrePrepared = true;
-
-            log.debug("PrePrepare Msg"
-                    + "["
-                    + newBlock.getIndex()
-                    + "]"
-                    + newBlock.getHashHex()
-                    + " ("
-                    + newBlock.getAddressHex()
-                    + ")");
-
-            return prePrepare;
+        if (!this.isValidator
+                || !this.isActive
+                || !this.isSynced
+                || !this.isPrimary
+                || this.isPrePrepared) {
+            return null;
         }
 
-        return null;
+        long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
+        byte[] prevBlockHash = this.blockChain.getLastConfirmedBlock().getHash();
+
+        Block newBlock = makeNewBlock(index, prevBlockHash);
+        log.trace("newBlock" + newBlock.toString());
+
+        PbftMessage prePrepare = new PbftMessage("PREPREPA", index, index, newBlock.getHash(), null, wallet, newBlock);
+        if (prePrepare == null) {
+            return null;
+        }
+
+        this.blockChain.getUnConfirmedMsgMap().put(prePrepare.getSignatureHex(), prePrepare);
+        this.isPrePrepared = true;
+
+        log.debug("make PrePrepare Msg"
+                + "["
+                + newBlock.getIndex()
+                + "]"
+                + newBlock.getHashHex()
+                + " ("
+                + newBlock.getAddressHex()
+                + ")");
+
+        return prePrepare;
     }
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
@@ -238,81 +237,90 @@ public class PbftService implements CommandLineRunner {
     }
 
     private PbftMessage makePrepareMsg() {
-        if (this.isValidator
-                && this.isActive
-                && this.isSynced
-                && this.isPrePrepared
-                && !this.isPrimary
-                && !this.isPrepared) {
-
-            long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
-            PbftMessage prePrepareMsg = getPrePrepareMsg(index);
-            if (prePrepareMsg == null) {
-                return null;
-            }
-
-            PbftMessage prepareMsg = new PbftMessage("PREPAREM", index, index, prePrepareMsg.getHash(), null, wallet, null);
-            if (prepareMsg == null) {
-                return null;
-            }
-
-            this.blockChain.getUnConfirmedMsgMap().put(prepareMsg.getSignatureHex(), prepareMsg);
-            this.isPrePrepared = true;
-
-            log.debug("PrePrepare Msg"
-                    + "["
-                    + prepareMsg.getViewNumber()
-                    + "]"
-                    + "["
-                    + prepareMsg.getSeqNumber()
-                    + "]"
-                    + prepareMsg.getHashHex());
-
-            return prepareMsg;
+        if (!this.isValidator
+                || !this.isActive
+                || !this.isSynced
+                || !this.isPrePrepared
+                || this.isPrepared) {
+            return null;
         }
 
-        return null;
+        long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
+        PbftMessage prePrepareMsg = getPrePrepareMsg(index);
+        if (prePrepareMsg == null) {
+            return null;
+        }
+
+        PbftMessage prepareMsg = new PbftMessage("PREPAREM", index, index, prePrepareMsg.getHash(), null, wallet, null);
+        if (prepareMsg.getSignature() == null) {
+            return null;
+        }
+
+        this.blockChain.getUnConfirmedMsgMap().put(prepareMsg.getSignatureHex(), prepareMsg);
+        this.isPrepared = true;
+
+        log.debug("make Prepare Msg"
+                + "["
+                + prepareMsg.getViewNumber()
+                + "]"
+                + "["
+                + prepareMsg.getSeqNumber()
+                + "]"
+                + prepareMsg.getHashHex());
+
+        return prepareMsg;
+
     }
 
     private PbftMessage makeCommitMsg() {
-//        if (checkPrepareMsg() < this.consenusCount) {
-//            return;
-//        }
 
-//        if (this.isValidator
-//                && this.isActive
-//                && this.isSynced
-//                && this.isPrePrepared
-//                && this.isPrepared
-//                && !this.isCommited) {
-//
-//            long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
-//            PbftMessage prePrepareMsg = getPrePrepareMsg(index);
-//            if (prePrepareMsg == null) {
-//                return null;
-//            }
-//
-//            PbftMessage prepareMsg = new PbftMessage("PREPAREM", index, index, prePrepareMsg.getHash(), null, wallet, null);
-//            if (prepareMsg == null) {
-//                return null;
-//            }
-//
-//            this.blockChain.getUnConfirmedMsgMap().put(prepareMsg.getSignatureHex(), prepareMsg);
-//            this.isPrePrepared = true;
-//
-//            log.debug("PrePrepare Msg"
-//                    + "["
-//                    + prepareMsg.getViewNumber()
-//                    + "]"
-//                    + "["
-//                    + prepareMsg.getSeqNumber()
-//                    + "]"
-//                    + prepareMsg.getHashHex());
-//
-//            return prepareMsg;
-//        }
+        if (!this.isValidator
+                || !this.isActive
+                || !this.isSynced
+                || !this.isPrePrepared
+                || !this.isPrepared
+                || this.isCommited) {
+            return null;
+        }
 
-        return null;
+        long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
+        Map<String, PbftMessage> prepareMsgMap = getPrepareMsgMap(index);
+        if (prepareMsgMap == null || prepareMsgMap.size() < consenusCount) {
+            return null;
+        }
+
+        PbftMessage commitMsg = new PbftMessage("COMMITMS", index, index,
+                ((PbftMessage) prepareMsgMap.values().toArray()[0]).getHash(), null, wallet, null);
+        if (commitMsg.getSignature() == null) {
+            return null;
+        }
+
+        this.blockChain.getUnConfirmedMsgMap().put(commitMsg.getSignatureHex(), commitMsg);
+        this.isCommited = true;
+
+        log.debug("make Commit Msg"
+                + "["
+                + commitMsg.getViewNumber()
+                + "]"
+                + "["
+                + commitMsg.getSeqNumber()
+                + "]"
+                + commitMsg.getHashHex());
+
+        return commitMsg;
+
+    }
+
+    private Map<String, PbftMessage> getPrepareMsgMap(long index) {
+        Map<String, PbftMessage> prepareMsgMap = new TreeMap<>();
+        for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
+            PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
+            if (pbftMessage.getSeqNumber() == index
+                    && pbftMessage.getType().equals("PREPAREM")) {
+                prepareMsgMap.put(key, pbftMessage);
+            }
+        }
+        return prepareMsgMap;
     }
 
     private PbftMessage getPrePrepareMsg(long index) {
