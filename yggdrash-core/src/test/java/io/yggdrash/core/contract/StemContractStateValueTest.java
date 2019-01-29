@@ -29,7 +29,7 @@ public class StemContractStateValueTest {
 
         assertThat(stateValue.getType()).isEqualTo(Branch.BranchType.TEST);
         assertThat(stateValue.getTag()).isNotEmpty();
-        assertThat(stateValue.getContractHistory()).contains(stateValue.getContractId());
+        assertThat(stateValue.getContractHistory()).contains(stateValue.getContractVersion());
     }
 
     @Test
@@ -65,26 +65,26 @@ public class StemContractStateValueTest {
     @Test
     public void updateContractIdTest() {
         stateValue.init();
-        assertThat(stateValue.getContractHistory()).containsOnly(stateValue.getContractId());
-        assertContractAndHistory(stateValue.getContractId(), 0);
+        assertThat(stateValue.getContractHistory()).containsOnly(stateValue.getContractVersion());
+        assertContractAndHistory(stateValue.getContractVersion(), 0);
 
-        // update exist contractId
-        stateValue.updateContract(stateValue.getContractId().toString());
-        assertThat(stateValue.getContractHistory()).containsOnly(stateValue.getContractId());
+        // update exist contractVersion
+        stateValue.updateContract(stateValue.getContractVersion().toString());
+        assertThat(stateValue.getContractHistory()).containsOnly(stateValue.getContractVersion());
 
-        ContractId newContractId = ContractId.of("00");
-        stateValue.updateContract(newContractId.toString());
-        assertContractAndHistory(newContractId, 1);
+        ContractVersion newContractVersion = ContractVersion.of("00");
+        stateValue.updateContract(newContractVersion.toString());
+        assertContractAndHistory(newContractVersion, 1);
     }
 
-    private void assertContractAndHistory(ContractId contractId, int contractHistoryIndex) {
-        assertThat(stateValue.getContractId()).isEqualTo(contractId);
-        assertThat(stateValue.getJson().get("contractId").getAsString())
-                .isEqualTo(contractId.toString());
+    private void assertContractAndHistory(ContractVersion contractVersion, int contractHistoryIndex) {
+        assertThat(stateValue.getContractVersion()).isEqualTo(contractVersion);
+        assertThat(stateValue.getJson().get("contractVersion").getAsString())
+                .isEqualTo(contractVersion.toString());
 
-        assertThat(stateValue.getContractHistory()).contains(contractId);
+        assertThat(stateValue.getContractHistory()).contains(contractVersion);
         JsonArray contractHistory = stateValue.getJson().getAsJsonArray("contractHistory");
         assertThat(contractHistory.get(contractHistoryIndex).getAsString())
-                .isEqualTo(contractId.toString());
+                .isEqualTo(contractVersion.toString());
     }
 }

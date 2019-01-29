@@ -32,7 +32,7 @@ public class StemContractStateValue extends Branch {
 
     private BranchType type;
     private String tag;
-    private final List<ContractId> contractHistory = new ArrayList<>();
+    private final List<ContractVersion> contractHistory = new ArrayList<>();
 
     public StemContractStateValue(JsonObject json) {
         super(json);
@@ -45,7 +45,7 @@ public class StemContractStateValue extends Branch {
         }
         if (json.has("contractHistory")) {
             for (JsonElement jsonElement : json.getAsJsonArray("contractHistory")) {
-                contractHistory.add(ContractId.of(jsonElement.getAsString()));
+                contractHistory.add(ContractVersion.of(jsonElement.getAsString()));
             }
         }
     }
@@ -53,7 +53,7 @@ public class StemContractStateValue extends Branch {
     public void init() {
         setType("test");
         setTag("0.1");
-        updateContractHistory(getContractId());
+        updateContractHistory(getContractVersion());
     }
 
     public BranchType getType() {
@@ -79,33 +79,33 @@ public class StemContractStateValue extends Branch {
         getJson().addProperty("description", description);
     }
 
-    List<ContractId> getContractHistory() {
+    List<ContractVersion> getContractHistory() {
         return contractHistory;
     }
 
     void updateContract(String id) {
-        ContractId newContractId = ContractId.of(id);
-        if (getContractId().toString().equals(id)) {
+        ContractVersion newContractVersion = ContractVersion.of(id);
+        if (getContractVersion().toString().equals(id)) {
             return;
         }
 
-        contractId = newContractId;
-        getJson().addProperty("contractId", id);
+        contractVersion = newContractVersion;
+        getJson().addProperty("contractVersion", id);
 
-        updateContractHistory(newContractId);
+        updateContractHistory(newContractVersion);
     }
 
-    private void updateContractHistory(ContractId newContractId) {
-        if (contractHistory.contains(newContractId)) {
+    private void updateContractHistory(ContractVersion newContractVersion) {
+        if (contractHistory.contains(newContractVersion)) {
             return;
         }
 
-        contractHistory.add(newContractId);
+        contractHistory.add(newContractVersion);
         if (!getJson().has("contractHistory")) {
             JsonArray contractHistory = new JsonArray();
             getJson().add("contractHistory", contractHistory);
         }
-        getJson().getAsJsonArray("contractHistory").add(newContractId.toString());
+        getJson().getAsJsonArray("contractHistory").add(newContractVersion.toString());
     }
 
     public static StemContractStateValue of(JsonObject json) {

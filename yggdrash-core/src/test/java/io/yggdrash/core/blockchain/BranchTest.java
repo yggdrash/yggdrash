@@ -32,7 +32,7 @@ public class BranchTest {
         assertThat(branch.getSymbol()).isEqualTo(symbol);
         assertThat(branch.getProperty()).isEqualTo(property);
         assertThat(branch.getDescription()).isEqualTo(description);
-        assertThat(branch.getContractId().toString()).isEqualTo(contractId);
+        assertThat(branch.getContractVersion().toString()).isEqualTo(contractId);
         assertThat(branch.getTimestamp())
                 .isEqualTo(HexUtil.hexStringToLong(timestamp));
         assertThat(branch.getOwner().toString()).isEqualTo(TestConstants.wallet().getHexAddress());

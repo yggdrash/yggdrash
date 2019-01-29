@@ -21,10 +21,10 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.util.Arrays;
 
-public class ContractId {
+public class ContractVersion {
     private final byte[] data;
 
-    private ContractId(byte[] data) {
+    private ContractVersion(byte[] data) {
         this.data = data;
     }
 
@@ -40,7 +40,7 @@ public class ContractId {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        ContractId address = (ContractId) o;
+        ContractVersion address = (ContractVersion) o;
         return Arrays.equals(data, address.data);
     }
 
@@ -54,11 +54,11 @@ public class ContractId {
         return Hex.toHexString(data);
     }
 
-    static ContractId of(byte[] contractBytes) {
-        return new ContractId(HashUtil.sha1(contractBytes));
+    static ContractVersion of(byte[] contractBytes) {
+        return new ContractVersion(HashUtil.sha1(contractBytes));
     }
 
-    public static ContractId of(String hexString) {
-        return new ContractId(Hex.decode(hexString));
+    public static ContractVersion of(String hexString) {
+        return new ContractVersion(Hex.decode(hexString));
     }
 }

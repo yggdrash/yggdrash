@@ -135,15 +135,15 @@ public class StemContractTest {
     @Test
     public void getCurrentContractTest() {
         JsonObject params = createParams();
-        ContractId current = stemContract.getcurrentcontract(params); // No owner validation
-        assertThat(current).isEqualTo(stateValue.getContractId());
+        ContractVersion current = stemContract.getcurrentcontract(params); // No owner validation
+        assertThat(current).isEqualTo(stateValue.getContractVersion());
     }
 
     @Test
     public void getContractHistoryTest() {
         JsonObject params = createParams();
-        List<ContractId> contractHistory = stemContract.getcontracthistory(params);
-        assertThat(contractHistory).containsOnly(stateValue.getContractId());
+        List<ContractVersion> contractHistory = stemContract.getcontracthistory(params);
+        assertThat(contractHistory).containsOnly(stateValue.getContractVersion());
     }
 
     @Test

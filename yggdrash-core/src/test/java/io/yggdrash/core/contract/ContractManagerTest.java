@@ -37,7 +37,7 @@ public class ContractManagerTest {
 
     private static DefaultConfig defaultConfig = new DefaultConfig();
     private static ContractManager contractManager = new ContractManager(defaultConfig.getContractPath());
-    private static Map<ContractId, ContractMeta> contracts;
+    private static Map<ContractVersion, ContractMeta> contracts;
 
 
     @Test
@@ -56,9 +56,9 @@ public class ContractManagerTest {
 
     @Test
     public void getContractById() {
-        List<ContractId> sampleContractIdList = contractSample();
-        if (sampleContractIdList == null || contracts == null) return;
-        sampleContractIdList.forEach((id) -> {
+        List<ContractVersion> sampleContractVersionList = contractSample();
+        if (sampleContractVersionList == null || contracts == null) return;
+        sampleContractVersionList.forEach((id) -> {
             if (id.getBytes().length > 0) {
                 assertEquals(true, contracts.containsKey(id));
             }
@@ -68,16 +68,16 @@ public class ContractManagerTest {
     @Test
     public void isContract() {
         if (contracts == null) return;
-        for (Map.Entry<ContractId, ContractMeta> elem : contracts.entrySet()) {
+        for (Map.Entry<ContractVersion, ContractMeta> elem : contracts.entrySet()) {
             if (elem.getKey() != null){
                 assertEquals(true, contractManager.isContract(elem.getKey()));
             }
         }
     }
 
-    private List<ContractId> contractSample() {
+    private List<ContractVersion> contractSample() {
         DefaultConfig defaultConfig = new DefaultConfig();
-        List<ContractId> cIds = new ArrayList<>();
+        List<ContractVersion> cIds = new ArrayList<>();
         try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(defaultConfig.getContractPath())))) {
             filePathStream.forEach(contractPath -> {
                 File contractFile = new File(String.valueOf(contractPath));
@@ -87,12 +87,12 @@ public class ContractManagerTest {
                     contractBinary = new byte[Math.toIntExact(contractFile.length())];
                     inputStream.read(contractBinary);
 
-                    ContractId contractId = ContractId.of(contractBinary);
+                    ContractVersion contractVersion = ContractVersion.of(contractBinary);
                     ContractMeta contractMeta = ContractClassLoader.loadContractById(
-                            defaultConfig.getContractPath(), contractId);
+                            defaultConfig.getContractPath(), contractVersion);
 
                     if(contractMeta.getStateStore() !=null || contractMeta.getTxReceipt() !=null) {
-                        cIds.add(contractId);
+                        cIds.add(contractVersion);
                     }
                 } catch (IOException e) {
                     log.warn(e.getMessage());

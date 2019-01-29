@@ -32,7 +32,7 @@ import java.util.stream.Stream;
 
 public class ContractManager extends ClassLoader {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
-    private Map<ContractId, ContractMeta> contracts = new HashMap<>();
+    private Map<ContractVersion, ContractMeta> contracts = new HashMap<>();
 
     public ContractManager(String contractPath) {
         load(contractPath);
@@ -48,13 +48,13 @@ public class ContractManager extends ClassLoader {
                     contractBinary = new byte[Math.toIntExact(contractFile.length())];
                     inputStream.read(contractBinary);
 
-                    ContractId contractId = ContractId.of(contractBinary);
+                    ContractVersion contractVersion = ContractVersion.of(contractBinary);
                     ContractMeta contractMeta = ContractClassLoader.loadContractById(
-                            contractRoot, contractId);
+                            contractRoot, contractVersion);
 
                     if (Files.isRegularFile(contractPath)) {
                         if(contractMeta.getStateStore() !=null || contractMeta.getTxReceipt() !=null) {
-                            contracts.put(contractId, contractMeta);
+                            contracts.put(contractVersion, contractMeta);
                         }
                     }
 
@@ -67,28 +67,28 @@ public class ContractManager extends ClassLoader {
         }
     }
 
-    public Map<ContractId, ContractMeta> getContracts() {
+    public Map<ContractVersion, ContractMeta> getContracts() {
         return contracts;
     }
 
-    public List<ContractId> getAllContractIds() {
+    public List<ContractVersion> getAllContractIds() {
         return this.contracts.entrySet().stream().map(set -> set.getKey())
                 .collect(Collectors.toList());
     }
 
 
-    public ContractMeta getContractById(ContractId id) {
+    public ContractMeta getContractByVersion(ContractVersion id) {
         return contracts.get(id);
     }
 
-    public Boolean isContract(ContractId id) {
+    public Boolean isContract(ContractVersion id) {
         return contracts.containsKey(id);
     }
 
     //TODO validation
     public Boolean paramsValidation(String contractId, String method, Map params) {
         // TODO params validation
-        ContractId id = ContractId.of(contractId);
+        ContractVersion id = ContractVersion.of(contractId);
         Boolean validationMethods = ContractUtils.contractValidation(
                 contracts.get(id).getContractInstance());
 

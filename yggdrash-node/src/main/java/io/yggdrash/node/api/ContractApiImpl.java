@@ -11,7 +11,6 @@ import io.yggdrash.core.exception.FailedOperationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -46,9 +45,9 @@ public class ContractApiImpl implements ContractApi {
         ContractInfo contractInfo = new ContractInfo(contractManager);
         try {
             if (contractId.getBytes().length > 0) {
-                if (!contractManager.isContract(ContractId.of(contractId))) return false;
-                return contractInfo.getClass().getMethod(method, ContractId.class)
-                        .invoke(contractInfo, ContractId.of(contractId));
+                if (!contractManager.isContract(ContractVersion.of(contractId))) return false;
+                return contractInfo.getClass().getMethod(method, ContractVersion.class)
+                        .invoke(contractInfo, ContractVersion.of(contractId));
             } else {
                 return contractInfo.getClass().getMethod(method).invoke(contractInfo);
             }

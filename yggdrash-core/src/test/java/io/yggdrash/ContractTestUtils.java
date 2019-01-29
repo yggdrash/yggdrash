@@ -20,7 +20,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
-import io.yggdrash.core.contract.ContractId;
+import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.wallet.Wallet;
 import org.spongycastle.util.encoders.Hex;
 
@@ -39,12 +39,12 @@ public class ContractTestUtils {
         params.addProperty("to", to);
         params.addProperty("amount", amount);
 
-        return txBodyJson(Constants.YEED_CONTRACT_ID,"transfer", params);
+        return txBodyJson(Constants.YEED_CONTRACT_VERSION,"transfer", params);
     }
 
-    public static JsonArray txBodyJson(ContractId contractId, String method, JsonObject params) {
+    public static JsonArray txBodyJson(ContractVersion contractVersion, String method, JsonObject params) {
         JsonObject txObj = new JsonObject();
-        txObj.addProperty("contractId", contractId.toString());
+        txObj.addProperty("contractVersion", contractVersion.toString());
         txObj.addProperty("method", method);
         txObj.add("params", params);
 
@@ -83,7 +83,7 @@ public class ContractTestUtils {
         branch.addProperty("symbol", symbol);
         branch.addProperty("property", property);
         branch.addProperty("description", description);
-        branch.addProperty("contractId", contractId);
+        branch.addProperty("contractVersion", contractId);
         branch.add("genesis", genesis);
         if (timestamp == null) {
             branch.addProperty("timestamp", "00000166c837f0c9");

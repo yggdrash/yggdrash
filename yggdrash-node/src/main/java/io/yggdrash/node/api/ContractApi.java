@@ -4,11 +4,8 @@ import com.googlecode.jsonrpc4j.JsonRpcError;
 import com.googlecode.jsonrpc4j.JsonRpcErrors;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
-import io.yggdrash.core.contract.ContractId;
-import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.exception.NonExistObjectException;
 
-import java.util.List;
 import java.util.Map;
 
 @JsonRpcService("/api/contract")
@@ -33,7 +30,7 @@ public interface ContractApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    Object contract(@JsonRpcParam(value = "contractId") String contractId,
+    Object contract(@JsonRpcParam(value = "contractVersion") String contractId,
                     @JsonRpcParam(value = "method") String method) throws Exception;
 
 }

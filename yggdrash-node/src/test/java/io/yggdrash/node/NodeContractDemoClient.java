@@ -235,7 +235,7 @@ public class NodeContractDemoClient {
             System.out.println("=> ");
             JsonObject params = JsonUtil.parseJsonObject(scan.nextLine());
 
-            txBody = ContractTestUtils.txBodyJson(Constants.YEED_CONTRACT_ID, method, params);
+            txBody = ContractTestUtils.txBodyJson(Constants.YEED_CONTRACT_VERSION, method, params);
         } else {
             switch (method) {
                 case "approve":

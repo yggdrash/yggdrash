@@ -20,7 +20,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.TimeUtils;
-import io.yggdrash.core.contract.ContractId;
+import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.wallet.Wallet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -57,9 +57,9 @@ public class TransactionBuilder {
 
 
 
-    public TransactionBuilder addTxBody(ContractId contractId, String method, JsonObject params) {
+    public TransactionBuilder addTxBody(ContractVersion contractVersion, String method, JsonObject params) {
         JsonObject txObj = new JsonObject();
-        txObj.addProperty("contractId", contractId.toString());
+        txObj.addProperty("contractVersion", contractVersion.toString());
         txObj.addProperty("method", method);
         txObj.add("params", params);
         return addTransaction(txObj);

@@ -18,7 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.contract.CoinContract;
-import io.yggdrash.core.contract.ContractId;
+import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
@@ -41,7 +41,7 @@ public class BlockExecutorTest {
                         new StateStore<>(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource())
                 );
-        runtime.addContract(ContractId.of("c10e873655becf550c4aece75a091f4553d6202d"), contract);
+        runtime.addContract(ContractVersion.of("c10e873655becf550c4aece75a091f4553d6202d"), contract);
 
         // Block Store
         // Blockchain Runtime

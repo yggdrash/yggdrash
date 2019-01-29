@@ -21,7 +21,7 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.contract.Contract;
-import io.yggdrash.core.contract.ContractId;
+import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.wallet.Address;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +39,7 @@ public class Branch {
     private final long timestamp;
     private final Address owner;
     private final JsonObject json;
-    protected ContractId contractId;
+    protected ContractVersion contractVersion;
     protected List<Contract> contracts;
     protected String description;
 
@@ -52,8 +52,8 @@ public class Branch {
         String timestampHex = json.get("timestamp").getAsString();
         this.timestamp = HexUtil.hexStringToLong(timestampHex);
         this.owner = Address.of(json.get("owner").getAsString());
-        // ContractId has multiple
-        this.contractId = ContractId.of(json.get("contractId").getAsString());
+        // ContractVersion has multiple
+        this.contractVersion = ContractVersion.of(json.get("contractVersion").getAsString());
         // Contracts
         this.description = json.get("description").getAsString();
     }
@@ -78,8 +78,8 @@ public class Branch {
         return description;
     }
 
-    public ContractId getContractId() {
-        return contractId;
+    public ContractVersion getContractVersion() {
+        return contractVersion;
     }
 
     public long getTimestamp() {

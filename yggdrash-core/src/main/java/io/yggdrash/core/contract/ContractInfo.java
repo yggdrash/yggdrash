@@ -14,19 +14,19 @@ public class ContractInfo {
 
     public List<Map> getContracts() {
         List<Map> contractList = new ArrayList<>();
-        for (Map.Entry<ContractId, ContractMeta> elem : contractManager.getContracts().entrySet()) {
+        for (Map.Entry<ContractVersion, ContractMeta> elem : contractManager.getContracts().entrySet()) {
             contractList.add(contractInfo(elem.getValue()));
         }
         return contractList;
     }
 
-    public Map<String, Object> getContractById(ContractId id) {
-        return contractInfo(contractManager.getContractById(id));
+    public Map<String, Object> getContractById(ContractVersion id) {
+        return contractInfo(contractManager.getContractByVersion(id));
     }
 
     public List<String> getContractIds() {
         List<String> contractIdList = new ArrayList<>();
-        for ( ContractId key : contractManager.getContracts().keySet() ) {
+        for ( ContractVersion key : contractManager.getContracts().keySet() ) {
             contractIdList.add(key.toString());
         }
         return contractIdList;
@@ -34,7 +34,7 @@ public class ContractInfo {
 
     private static Map<String, Object> contractInfo(ContractMeta contractMeta) {
         Map<String, Object> contractInfo = new HashMap<>();
-        contractInfo.put("contractId", contractMeta.getContractId().toString());
+        contractInfo.put("contractId", contractMeta.getContractVersion().toString());
         contractInfo.put("name", contractMeta.getContract().getSimpleName());
         contractInfo.put("methods", contractMeta.getMethods());
         return contractInfo;

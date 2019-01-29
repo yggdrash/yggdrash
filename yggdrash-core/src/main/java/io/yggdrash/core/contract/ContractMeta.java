@@ -18,6 +18,7 @@ package io.yggdrash.core.contract;
 
 import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.core.contract.methods.ContractMethod;
+import io.yggdrash.core.contract.methods.ContractMethodInfo;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
@@ -25,7 +26,6 @@ import io.yggdrash.core.runtime.annotation.InvokeTransction;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 
 public class ContractMeta {
@@ -34,7 +34,7 @@ public class ContractMeta {
     private final Class<? extends Contract> contractClass;
     private final byte[] contractBinary;
     private final String contractClassName;
-    private final ContractId contractId;
+    private final ContractVersion contractVersion;
     private Map<String, ContractMethod> invokeMethod;
     private Map<String, ContractMethod> queryMethod;
     private Field transactionReceiptField;
@@ -44,7 +44,7 @@ public class ContractMeta {
         this.contractBinary = contractBinary;
         this.contractClass = contractClass;
         this.contractClassName = contractClass.getName();
-        this.contractId = ContractId.of(contractBinary);
+        this.contractVersion = ContractVersion.of(contractBinary);
         this.queryMethod = getQueryMethods();
         this.invokeMethod = getInvokeMethods();
     }
@@ -53,17 +53,17 @@ public class ContractMeta {
         return contractClass;
     }
 
-    public ContractId getContractId() {
-        return contractId;
+    public ContractVersion getContractVersion() {
+        return contractVersion;
     }
 
     byte[] getContractBinary() {
         return contractBinary;
     }
 
-    static File contractFile(String rootPath, ContractId contractId) {
-        String filePath = contractId.toString().substring(0, 2) + File.separator
-                + contractId + SUFFIX;
+    static File contractFile(String rootPath, ContractVersion contractVersion) {
+        String filePath = contractVersion.toString().substring(0, 2) + File.separator
+                + contractVersion + SUFFIX;
         return new File(rootPath + File.separator + filePath);
     }
 
@@ -83,9 +83,9 @@ public class ContractMeta {
     }
 
     public Map getMethods() {
-        Map<String, List<Map<String, String>>> methods = new HashMap<>();
-        methods.put("invoke", ContractUtils.methodInfo(invokeMethod));
-        methods.put("query", ContractUtils.methodInfo(queryMethod));
+        Map<String, List<ContractMethodInfo>> methods = new HashMap<>();
+        methods.put("invoke", ContractUtils.allMethodInfo(invokeMethod));
+        methods.put("query", ContractUtils.allMethodInfo(queryMethod));
         return methods;
     }
 
