@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 @Service
@@ -48,7 +48,7 @@ public class PbftService implements CommandLineRunner {
     private final PbftBlockChain blockChain;
 
     private final PbftClientStub myNode;
-    private final Map<String, PbftClientStub> totalValidatorMap;
+    private final TreeMap<String, PbftClientStub> totalValidatorMap;
 
     private boolean isActive;
     private boolean isSynced;
@@ -82,6 +82,16 @@ public class PbftService implements CommandLineRunner {
     public void mainScheduler() {
 
         checkNode();
+
+        // get primary
+
+
+        // make PrePrepare msg, broadcast
+
+        // make Prepare msg
+
+        // make commit msg
+
 
     }
 
@@ -134,7 +144,6 @@ public class PbftService implements CommandLineRunner {
             client.setIsRunning(false);
         }
     }
-
 
     private void blockSyncing(String pubKey, long index) {
         PbftClientStub client = totalValidatorMap.get(pubKey);
@@ -205,7 +214,7 @@ public class PbftService implements CommandLineRunner {
         log.info("isValidator: " + this.isValidator);
     }
 
-    private Map<String, PbftClientStub> initTotalValidator() {
+    private TreeMap<String, PbftClientStub> initTotalValidator() {
         String jsonString;
         ClassPathResource cpr = new ClassPathResource("validator.json");
         try {
@@ -217,7 +226,7 @@ public class PbftService implements CommandLineRunner {
         }
 
         JsonObject validatorJsonObject = new Gson().fromJson(jsonString, JsonObject.class);
-        Map<String, PbftClientStub> nodeMap = new ConcurrentHashMap<>();
+        TreeMap<String, PbftClientStub> nodeMap = new TreeMap<>();
 
         Set<Map.Entry<String, JsonElement>> entrySet =
                 validatorJsonObject.get("validator").getAsJsonObject().entrySet();
