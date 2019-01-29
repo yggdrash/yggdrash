@@ -18,7 +18,7 @@ public class ContractInfoTest {
     @Test
     public void getContracts() {
         Map<ContractId, ContractMeta> contracts = contractManager.getContracts();
-        if (contracts.isEmpty()) return;
+        if (contracts == null) return;
         ContractInfo info = new ContractInfo(contractManager);
         assertEquals(contracts.entrySet().size(), info.getContracts().size());
     }
@@ -27,11 +27,9 @@ public class ContractInfoTest {
     public void getContractById() {
         Map<ContractId, ContractMeta> contracts = contractManager.getContracts();
         ContractInfo info = new ContractInfo(contractManager);
-        if (!contracts.isEmpty()) {
+        if (contracts != null) {
             for (Map.Entry<ContractId, ContractMeta> elem : contracts.entrySet()) {
                 if (elem.getKey() != null){
-                    elem.getValue().getMethods();
-                    info.getContractById(elem.getKey()).get("methods");
                     assertEquals(elem.getValue().getMethods(), info.getContractById(elem.getKey()).get("methods"));
                 }
             }
@@ -41,7 +39,7 @@ public class ContractInfoTest {
     @Test
     public void getContractIds() {
         Map<ContractId, ContractMeta> contracts = contractManager.getContracts();
-        if (contracts.isEmpty()) return;
+        if (contracts == null) return;
         ContractInfo info = new ContractInfo(contractManager);
         assertEquals(contracts.entrySet().size(), info.getContractIds().size());
     }
