@@ -585,7 +585,7 @@ public class EbftNodeServer implements CommandLineRunner {
         if (runningNodeCount >= consenusCount) {
             if (!this.isActive) {
                 this.isActive = true;
-                log.info("Node is activated. Start make a proposed Block.");
+                log.info("Node is activated.");
             }
         } else {
             if (this.isActive) {

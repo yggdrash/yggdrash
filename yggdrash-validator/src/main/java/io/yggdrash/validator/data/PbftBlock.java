@@ -73,6 +73,20 @@ public class PbftBlock {
         return pbftMessageSet;
     }
 
+    public static boolean verify(PbftBlock block) {
+        if (block == null) {
+            return false;
+        }
+
+        //todo : check 2f + 1 message count when ?
+        if (block.getBlock().verify()
+                && block.getPbftMessageSet().verify(block.getPbftMessageSet(), block.getBlock())) {
+            return true;
+        }
+
+        return false;
+    }
+
     public static PbftProto.PbftBlock toProto(PbftBlock pbftBlock) {
         Proto.Block protoBlock = pbftBlock.getBlock().toProtoBlock();
         PbftProto.PbftMessageSet protoPbftMessageSet =
@@ -88,4 +102,6 @@ public class PbftBlock {
 
         return protoPbftBlockBuilder.build();
     }
+
+
 }

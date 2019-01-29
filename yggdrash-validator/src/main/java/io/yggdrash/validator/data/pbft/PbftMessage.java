@@ -2,12 +2,20 @@ package io.yggdrash.validator.data.pbft;
 
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
 import org.spongycastle.util.encoders.Hex;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class PbftMessage {
@@ -77,6 +85,58 @@ public class PbftMessage {
 
     public byte[] toBinary() {
         return this.toJsonObject().toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    public byte[] getHashForSignning() {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+
+        try {
+            bao.write(this.type.getBytes());
+            bao.write(ByteUtil.longToBytes(this.viewNumber));
+            bao.write(ByteUtil.longToBytes(this.seqNumber));
+            bao.write(this.hash);
+        } catch (IOException e) {
+            throw new NotValidateException();
+        }
+
+        return HashUtil.sha3(bao.toByteArray());
+    }
+
+    public byte[] sign(Wallet wallet) {
+        if (wallet == null) {
+            throw new NotValidateException("walllet is null");
+        }
+
+        return wallet.signHashedData(getHashForSignning());
+    }
+
+    public static boolean verify(PbftMessage pbftMessage) {
+        return PbftMessage.verify(pbftMessage, null);
+    }
+
+    public static boolean verify(PbftMessage pbftMessage, Block block) {
+        // todo: check validator
+
+        if (pbftMessage == null) {
+            return false;
+        }
+
+        if (!Wallet.verify(pbftMessage.getHashForSignning(), pbftMessage.signature, true)) {
+            return false;
+        }
+
+        if (pbftMessage.type.equals("PREPREPA")) {
+            if (block == null) {
+                return false;
+            }
+
+            if (!Arrays.equals(pbftMessage.getHash(), block.getHash())) {
+                //todo: check viewNumber, seqNumber
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public JsonObject toJsonObject() {

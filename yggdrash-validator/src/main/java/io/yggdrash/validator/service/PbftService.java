@@ -123,10 +123,8 @@ public class PbftService implements CommandLineRunner {
                 log.debug("client : " + client.getId());
 
                 this.isSynced = false;
-
-                //todo: syncing block
-//                blockSyncing(client.getPubKey(),
-//                        pbftStatus.getLastConfirmedBlock().getIndex());
+                blockSyncing(client.getPubKey(),
+                        pbftStatus.getLastConfirmedBlock().getIndex());
             } else if (pbftStatus.getLastConfirmedBlock().getIndex()
                     == this.blockChain.getLastConfirmedBlock().getIndex()) {
                 // todo: update unconfirm pbftBlock
@@ -137,12 +135,66 @@ public class PbftService implements CommandLineRunner {
         }
     }
 
+
+    private void blockSyncing(String pubKey, long index) {
+        PbftClientStub client = totalValidatorMap.get(pubKey);
+        PbftBlock pbftBlock;
+        if (client.isRunning()) {
+            List<PbftBlock> pbftBlockList = new ArrayList<>(client.getBlockList(
+                    this.blockChain.getLastConfirmedBlock().getIndex()));
+
+            log.debug("node: " + client.getId());
+            log.debug("index: " + index);
+            log.debug("blockList size: " + pbftBlockList.size());
+
+            if (pbftBlockList.size() == 0) {
+                return;
+            }
+
+            int i = 0;
+            for (; i < pbftBlockList.size(); i++) {
+                pbftBlock = pbftBlockList.get(i);
+                if (!PbftBlock.verify(pbftBlock)) {
+                    log.error("blockConSyncing Verify Fail");
+                    continue;
+                }
+                this.blockChain.getBlockStore().put(pbftBlock.getHash(), pbftBlock);
+                this.blockChain.getBlockKeyStore()
+                        .put(pbftBlock.getIndex(), pbftBlock.getHash());
+            }
+            pbftBlock = pbftBlockList.get(i - 1);
+
+            // todo: update unconfirmed pbftMessage
+
+        }
+
+        if (this.blockChain.getLastConfirmedBlock().getIndex() < index) {
+            blockSyncing(pubKey, index);
+        }
+    }
+
+
     public PbftStatus getMyNodeStatus() {
-        PbftBlock lastPbftBlock = this.blockChain.getLastConfirmedBlock();
+        PbftBlock lastConfirmedBlock = this.blockChain.getLastConfirmedBlock();
+        PbftBlock unConfirmedBlock = this.blockChain.getUnConfirmedBlock();
+
+        byte[] lastConfirmedBlockHash = new byte[32];
+        if (lastConfirmedBlock != null) {
+            lastConfirmedBlockHash = lastConfirmedBlock.getHash();
+        }
+
+        byte[] unConfirmedBlockHash = new byte[32];
+        if (unConfirmedBlock != null) {
+            unConfirmedBlockHash = unConfirmedBlock.getHash();
+        }
+
         long timestamp = TimeUtils.time();
-        return new PbftStatus(lastPbftBlock,
+
+        return new PbftStatus(lastConfirmedBlock,
+                unConfirmedBlock,
                 timestamp,
-                wallet.sign(ByteUtil.merge(lastPbftBlock.getHash(),
+                wallet.sign(ByteUtil.merge(lastConfirmedBlockHash,
+                        unConfirmedBlockHash,
                         ByteUtil.longToBytes(timestamp))));
     }
 
@@ -220,7 +272,7 @@ public class PbftService implements CommandLineRunner {
         if (runningNodeCount >= consenusCount) {
             if (!this.isActive) {
                 this.isActive = true;
-                log.info("Node is activated. Start make a proposed Block.");
+                log.info("Node is activated.");
             }
         } else {
             if (this.isActive) {

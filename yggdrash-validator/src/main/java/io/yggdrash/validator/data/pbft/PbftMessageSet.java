@@ -1,5 +1,6 @@
 package io.yggdrash.validator.data.pbft;
 
+import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.proto.PbftProto;
 
 import java.util.List;
@@ -44,6 +45,36 @@ public class PbftMessageSet {
 
     public void setCommitList(List<PbftMessage> commitList) {
         this.commitList = commitList;
+    }
+
+    public static boolean verify(PbftMessageSet pbftMessageSet, Block block) {
+        PbftMessage prePrepare = pbftMessageSet.getPrePrepare();
+        List<PbftMessage> prepareList = pbftMessageSet.getPrepareList();
+        List<PbftMessage> commitList = pbftMessageSet.getCommitList();
+
+        if (prePrepare == null
+                || prepareList == null
+                || commitList == null) {
+            return false;
+        }
+
+        if (!PbftMessage.verify(prePrepare, block)) {
+            return false;
+        }
+
+        for (PbftMessage pbftMessage : prepareList) {
+            if (!PbftMessage.verify(pbftMessage)) {
+                return false;
+            }
+        }
+
+        for (PbftMessage pbftMessage : commitList) {
+            if (!PbftMessage.verify(pbftMessage)) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     public byte[] toBinary() {

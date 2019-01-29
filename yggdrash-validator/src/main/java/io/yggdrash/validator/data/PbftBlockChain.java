@@ -16,8 +16,6 @@ import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class PbftBlockChain {
 
@@ -30,12 +28,12 @@ public class PbftBlockChain {
     private final String host;
     private final int port;
 
-    private final PbftBlockKeyStore pbftBlockKeyStore;
-    private final PbftBlockStore pbftBlockStore;
+    private final PbftBlockKeyStore blockKeyStore;
+    private final PbftBlockStore blockStore;
 
-    private final PbftBlock rootPbftBlock;
+    private final PbftBlock rootBlock;
     private PbftBlock lastConfirmedBlock;
-    private final Map<String, PbftBlock> unConfirmedPbftBlockMap = new ConcurrentHashMap<>();
+    private PbftBlock unConfirmedBlock;
 
     private final TransactionStore transactionStore;
 
@@ -51,27 +49,27 @@ public class PbftBlockChain {
         this.host = InetAddress.getLoopbackAddress().getHostAddress();
         this.port = Integer.parseInt(System.getProperty("grpc.port"));
 
-        this.rootPbftBlock = new PbftBlock(genesisBlock, null);
-        this.lastConfirmedBlock = rootPbftBlock;
-        this.pbftBlockKeyStore = new PbftBlockKeyStore(
+        this.rootBlock = new PbftBlock(genesisBlock, null);
+        this.lastConfirmedBlock = rootBlock;
+        this.blockKeyStore = new PbftBlockKeyStore(
                 new LevelDbDataSource(defaultConfig.getDatabasePath(),
                         this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
                                 + "/pbftblockkey"));
-        this.pbftBlockStore = new PbftBlockStore(
+        this.blockStore = new PbftBlockStore(
                 new LevelDbDataSource(defaultConfig.getDatabasePath(),
                         this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
                                 + "/pbftblock"));
 
-        PbftBlock pbftBlock = rootPbftBlock;
-        if (this.pbftBlockKeyStore.size() > 0) {
-            if (!Arrays.equals(this.pbftBlockKeyStore.get(0L), rootPbftBlock.getHash())) {
+        PbftBlock pbftBlock = rootBlock;
+        if (this.blockKeyStore.size() > 0) {
+            if (!Arrays.equals(this.blockKeyStore.get(0L), rootBlock.getHash())) {
                 log.error("PbftBlockKeyStore is not valid.");
                 throw new NotValidateException();
             }
 
-            PbftBlock prevPbftBlock = rootPbftBlock;
-            for (long l = 1; l < this.pbftBlockKeyStore.size(); l++) {
-                pbftBlock = this.pbftBlockStore.get(this.pbftBlockKeyStore.get(l));
+            PbftBlock prevPbftBlock = rootBlock;
+            for (long l = 1; l < this.blockKeyStore.size(); l++) {
+                pbftBlock = this.blockStore.get(this.blockKeyStore.get(l));
                 if (Arrays.equals(prevPbftBlock.getHash(), pbftBlock.getPrevBlockHash())) {
                     prevPbftBlock = pbftBlock;
                 } else {
@@ -83,8 +81,8 @@ public class PbftBlockChain {
             this.lastConfirmedBlock = pbftBlock;
 
         } else {
-            this.pbftBlockKeyStore.put(0L, rootPbftBlock.getHash());
-            this.pbftBlockStore.put(rootPbftBlock.getHash(), rootPbftBlock);
+            this.blockKeyStore.put(0L, rootBlock.getHash());
+            this.blockStore.put(rootBlock.getHash(), rootBlock);
         }
 
         this.transactionStore = new TransactionStore(
@@ -114,24 +112,24 @@ public class PbftBlockChain {
         return port;
     }
 
-    public PbftBlockKeyStore getPbftBlockKeyStore() {
-        return pbftBlockKeyStore;
+    public PbftBlockKeyStore getBlockKeyStore() {
+        return blockKeyStore;
     }
 
-    public PbftBlockStore getPbftBlockStore() {
-        return pbftBlockStore;
+    public PbftBlockStore getBlockStore() {
+        return blockStore;
     }
 
-    public PbftBlock getRootPbftBlock() {
-        return rootPbftBlock;
+    public PbftBlock getRootBlock() {
+        return rootBlock;
     }
 
     public PbftBlock getLastConfirmedBlock() {
         return lastConfirmedBlock;
     }
 
-    public Map<String, PbftBlock> getUnConfirmedPbftBlockMap() {
-        return unConfirmedPbftBlockMap;
+    public PbftBlock getUnConfirmedBlock() {
+        return unConfirmedBlock;
     }
 
     public TransactionStore getTransactionStore() {
@@ -147,9 +145,9 @@ public class PbftBlockChain {
         byte[] key;
         List<PbftBlock> pbftBlockList = new ArrayList<>();
         for (long l = index; l < index + count; l++) {
-            key = pbftBlockKeyStore.get(l);
+            key = blockKeyStore.get(l);
             if (key != null) {
-                pbftBlockList.add(pbftBlockStore.get(key));
+                pbftBlockList.add(blockStore.get(key));
             }
         }
 

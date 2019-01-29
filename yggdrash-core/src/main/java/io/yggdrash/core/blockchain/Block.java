@@ -302,6 +302,10 @@ public class Block implements Cloneable {
     }
 
     public static Block toBlock(Proto.Block protoBlock) {
+        if (protoBlock == null || protoBlock.getSerializedSize() == 0) {
+            return null;
+        }
+
         BlockHeader blockHeader = new BlockHeader(
                 protoBlock.getHeader().getChain().toByteArray(),
                 protoBlock.getHeader().getVersion().toByteArray(),

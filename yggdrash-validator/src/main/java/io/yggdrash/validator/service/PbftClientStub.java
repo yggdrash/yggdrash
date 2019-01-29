@@ -5,13 +5,17 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.proto.EbftProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
+import io.yggdrash.validator.data.PbftBlock;
 import io.yggdrash.validator.data.PbftStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class PbftClientStub {
@@ -47,10 +51,28 @@ public class PbftClientStub {
                 .multicastPbftMessage(pbftMessage);
     }
 
+    public List<PbftBlock> getBlockList(long index) {
+        PbftProto.PbftBlockList protoBlockList = blockingStub
+                .withDeadlineAfter(3, TimeUnit.SECONDS)
+                .getBlockList(
+                        EbftProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
+
+        if (Context.current().isCancelled()) {
+            return null;
+        }
+
+        List<PbftBlock> newPbftBlockList = new ArrayList<>();
+        for (PbftProto.PbftBlock protoPbftBlock : protoBlockList.getPbftBlockList()) {
+            newPbftBlockList.add(new PbftBlock(protoPbftBlock));
+        }
+
+        return newPbftBlockList;
+    }
+
     public long pingPongTime(long timestamp) {
-        PbftProto.PbftPingTime pingTime =
-                PbftProto.PbftPingTime.newBuilder().setTimestamp(timestamp).build();
-        PbftProto.PbftPongTime pongTime;
+        EbftProto.PingTime pingTime =
+                EbftProto.PingTime.newBuilder().setTimestamp(timestamp).build();
+        EbftProto.PongTime pongTime;
         try {
             pongTime = blockingStub
                     .withDeadlineAfter(1, TimeUnit.SECONDS)
