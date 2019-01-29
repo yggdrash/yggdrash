@@ -35,8 +35,7 @@ public class RuntimeQueryTest {
                 new JsonParser().parse("{\"balance\":10000}").getAsJsonObject());
         RuntimeQuery query = new RuntimeQuery(contract, tempStore);
 
-        Object result = query.query("totalsupply", null);
+        Object result = query.query("totalSupply", null);
         assert BigDecimal.valueOf(10000).equals(result);
     }
-
 }
