@@ -17,6 +17,7 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.net.KademliaOptions;
+import io.yggdrash.core.net.KademliaPeerTable;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerBucket;
@@ -34,7 +35,7 @@ public class PeerTask {
     private static final Logger log = LoggerFactory.getLogger(PeerTask.class);
 
     @Autowired
-    private PeerTable peerTable;
+    private KademliaPeerTable peerTable;
     @Autowired
     private PeerHandlerGroup peerHandlerGroup;
     @Autowired
@@ -46,6 +47,30 @@ public class PeerTask {
             return;
         }
         peerHandlerGroup.healthCheck(peerTable.getOwner());
+    }
+
+    // refresh performs a lookup for a random target to keep buckets full.
+    // seed nodes are inserted if the table is empty (initial bootstrap or discarded faulty peers).
+    @Scheduled(cron = "*/30 * * * * *")
+    public void lookup() {
+        // Run self lookup to discover new neighbor nodes.
+
+
+        // The Kademlia paper specifies that the bucket refresh should perform a lookup
+        // in the least recently used bucket. We cannot adhere to this because
+        // the findnode target is a 512bit value (not hash-sized) and it is not easily possible
+        // to generate a sha3 preimage that falls into a chosen bucket.
+        // We perform a few lookups with a random target instead.
+        Peer randomTarget = randomTargetGeneration();
+        peerTable.refresh(randomTarget);
+    }
+
+    private Peer randomTargetGeneration() {
+        // TODO randomLookup
+        // Ethereum generates 3 random pubKeys to perform the lookup.
+        // Should we create random peers to do the same?
+        // Maybe it can relate to "resolve" function
+        return null;
     }
 
     // revalidate checks that the last node in a random bucket is still live
@@ -63,7 +88,8 @@ public class PeerTask {
                 // if there aren't any replacement
                 Peer result = peerTable.pickReplacement(last);
                 if (result != null) {
-                    log.debug("Replaced dead peer '{}' to '{}'", last.getPeerId(), result.getPeerId());
+                    log.debug("Replaced dead peer '{}' to '{}'",
+                            last.getPeerId(), result.getPeerId());
                 } else {
                     log.debug("Removed dead peer '{}'", last.getPeerId());
                 }

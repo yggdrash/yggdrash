@@ -5,6 +5,7 @@ import java.math.BigInteger;
 public class Constants {
 
     public static final String STEM = "STEM";
+    public static final String YEED = "YEED";
     public static final String BRANCH_ID = "branchId";
     public static final String TX_ID = "txId";
     public static final String BLOCK_ID = "blockId";

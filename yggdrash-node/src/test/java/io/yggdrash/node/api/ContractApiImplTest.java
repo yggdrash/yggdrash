@@ -72,17 +72,6 @@ public class ContractApiImplTest {
     }
 
     @Test
-    public void specification() {
-        try {
-            List<String> methods =
-                    (List<String>)CONTRACT_API.query(branchId.toString(), "specification", null);
-            assertThat(methods).isNotEmpty();
-        } catch (Exception e) {
-            log.error(e.getMessage(), e);
-        }
-    }
-
-    @Test
     public void transfer() {
         JsonArray txBody = CoinContractTestUtils.createTransferBody(
                 "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigDecimal("1000"));

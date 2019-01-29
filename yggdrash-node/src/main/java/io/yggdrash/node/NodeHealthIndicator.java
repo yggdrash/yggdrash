@@ -87,7 +87,7 @@ public class NodeHealthIndicator implements HealthIndicator, NodeStatus {
                 .collect(Collectors.toMap(BlockChain::getBranchId, BlockChain::getLastIndex));
         builder.withDetail("branches", branches);
 
-        builder.withDetail("activePeers", peerHandlerGroup.getActivePeerList().size());
+        builder.withDetail("activePeers", peerHandlerGroup.handlerCount());
         health.set(builder.build());
     }
 }

@@ -39,7 +39,7 @@ public interface PeerHandlerGroup extends BranchEventListener {
 
     List<String> getActivePeerList();
 
-    List<String> getActivePeerListOf();
+    List<String> getActiveAddressList();
 
     List<PeerHandler> getHandlerList(BranchId branchId);
 }

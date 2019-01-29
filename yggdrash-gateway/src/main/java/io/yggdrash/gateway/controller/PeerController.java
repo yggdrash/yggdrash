@@ -46,7 +46,7 @@ class PeerController {
 
     @GetMapping("/channels")
     public ResponseEntity getChannels() {
-        return ResponseEntity.ok(peerHandlerGroup.getActivePeerListOf());
+        return ResponseEntity.ok(peerHandlerGroup.getActiveAddressList());
     }
 
     @GetMapping("/buckets")
@@ -56,7 +56,7 @@ class PeerController {
 
     @GetMapping("/buckets/allPeers")
     public ResponseEntity getPeersFromBuckets() {
-        return ResponseEntity.ok(peerTable.getAllPeersFromBucketsOf());
+        return ResponseEntity.ok(peerTable.getAllPeerAddressList());
     }
 
     @GetMapping("/latestPeers")

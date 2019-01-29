@@ -33,7 +33,7 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
 
     private static final Logger log = LoggerFactory.getLogger(SimplePeerHandlerGroup.class);
 
-    private final Map<PeerId, PeerHandler> handlerMap = new ConcurrentHashMap<>();
+    private final Map<String, PeerHandler> handlerMap = new ConcurrentHashMap<>();
 
     private PeerHandlerFactory peerHandlerFactory;
 
@@ -126,7 +126,7 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
 
     private void removeHandler(PeerHandler peerHandler) {
         peerHandler.stop();
-        handlerMap.remove(peerHandler.getPeer().getPeerId());
+        handlerMap.remove(peerHandler.getPeer().toAddress());
         peerEventListener.peerDisconnected(peerHandler.getPeer());
         log.debug("Removed handler size={}", handlerMap.size());
     }
@@ -140,7 +140,7 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
     public void addHandler(Peer owner, Peer requestPeer) {
         PeerHandler peerHandler =  peerHandlerFactory.create(requestPeer);
 
-        if (handlerMap.containsKey(requestPeer.getPeerId())) {
+        if (handlerMap.containsKey(requestPeer.toAddress())) {
             return;
         }
 
@@ -149,7 +149,7 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
             String pong = peerHandler.ping("Ping", owner);
             // TODO validation peer
             if ("Pong".equals(pong)) {
-                handlerMap.put(requestPeer.getPeerId(), peerHandler);
+                handlerMap.put(requestPeer.toAddress(), peerHandler);
                 log.info("Added size={}, handler={}", handlerMap.size(), requestPeer.toAddress());
             } else {
                 // 접속 실패 시 목록 및 버킷에서 제거
@@ -168,12 +168,8 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
     }
 
     @Override
-    public List<String> getActivePeerListOf() {
-        return handlerMap
-                .values()
-                .stream()
-                .map(c -> String.format("%s:%d", c.getPeer().getHost(), c.getPeer().getPort()))
-                .collect(Collectors.toList());
+    public List<String> getActiveAddressList() {
+        return new ArrayList<>(handlerMap.keySet());
     }
 
     @Override
@@ -183,7 +179,7 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
             return Collections.emptyList();
         }
         // TODO sync peer selection policy
-        PeerId key = (PeerId) handlerMap.keySet().toArray()[0];
+        String key = (String) handlerMap.keySet().toArray()[0];
         PeerHandler peerHandler = handlerMap.get(key);
         return Collections.singletonList(peerHandler);
     }

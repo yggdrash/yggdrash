@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Akashic Foundation
+ * Copyright 2019 Akashic Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,11 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.core.net;
 
-import io.yggdrash.node.service.GRpcPeerListener;
+public interface Dht {
 
-/**
- * The type Node sync demo server.
- */
-public class NodeDemoServer {
-    /**
-     * The entry point of application.
-     *
-     * @param args the input arguments
-     */
-    public static void main(String[] args) {
-        String host = "localhost";
-        int port = 32918;
-        GRpcPeerListener listener = new GRpcPeerListener();
-        listener.start(host, port);
-    }
+    void refresh(Peer target);
+
+    void selfRefresh();
 }

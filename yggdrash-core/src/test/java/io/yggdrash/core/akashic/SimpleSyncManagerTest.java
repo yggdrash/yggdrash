@@ -3,6 +3,7 @@ package io.yggdrash.core.akashic;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerHandlerGroup;
 import io.yggdrash.core.net.PeerHandlerMock;
@@ -18,9 +19,28 @@ public class SimpleSyncManagerTest {
 
     private BranchGroup branchGroup;
     private PeerHandlerGroup peerHandlerGroup;
+    private NodeStatus nodeStatus;
 
     @Before
     public void setUp() {
+        this.nodeStatus = new NodeStatus() {
+            String status;
+
+            @Override
+            public boolean isUpStatus() {
+                return status.equals("up");
+            }
+
+            @Override
+            public void up() {
+                status = "up";
+            }
+
+            @Override
+            public void sync() {
+                status = "sync";
+            }
+        };
         this.branchGroup = BlockChainTestUtils.createBranchGroup();
         this.peerHandlerGroup = new SimplePeerHandlerGroup(PeerHandlerMock.factory);
         peerHandlerGroup.setPeerEventListener(peer -> {
@@ -34,7 +54,7 @@ public class SimpleSyncManagerTest {
     public void syncBlockAndTransaction() {
         // arrange
         BranchId branchId = (BranchId)branchGroup.getAllBranchId().toArray()[0];
-        SimpleSyncManager syncManager = new SimpleSyncManager(branchGroup, peerHandlerGroup);
+        SimpleSyncManager syncManager = new SimpleSyncManager(branchGroup, peerHandlerGroup, nodeStatus);
 
         // act
         syncManager.syncBlockAndTransaction();

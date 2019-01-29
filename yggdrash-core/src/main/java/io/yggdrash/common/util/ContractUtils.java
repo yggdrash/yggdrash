@@ -16,20 +16,29 @@
 
 package io.yggdrash.common.util;
 
+import io.yggdrash.core.contract.ContractMeta;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.contract.methods.ContractMethod;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
+import io.yggdrash.core.runtime.annotation.ParamValidation;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ContractUtils {
+
+    public static Boolean contractValidation(Object contract) {
+        Map<String, ContractMethod> validationMethods =
+                ContractUtils.contractMethods(contract, ParamValidation.class);
+        if (validationMethods == null) return false;
+        return true;
+    }
 
     public static List<Field> txReceiptFields(Object contract) {
         return ContractUtils.contractFields(contract, ContractTransactionReceipt.class);
@@ -51,7 +60,6 @@ public class ContractUtils {
         }
     }
 
-
     public static List<Field> contractFields(Object contract, Class<? extends Annotation> annotationClass) {
         List<Field> fields = Arrays.stream(contract.getClass().getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(annotationClass))
@@ -59,13 +67,12 @@ public class ContractUtils {
         return fields;
     }
 
-
     public static  Map<String, ContractMethod> contractMethods(Object contract, Class<? extends Annotation> annotationClass) {
         return Arrays.stream(contract.getClass().getDeclaredMethods())
                 .filter(method -> method.isAnnotationPresent(annotationClass))
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
                 .collect(
-                        Collectors.toMap(m -> m.getName().toLowerCase(), m -> new ContractMethod(m))
+                        Collectors.toMap(m -> m.getName(), m -> new ContractMethod(m))
                 );
     }
 
@@ -77,6 +84,21 @@ public class ContractUtils {
             e.printStackTrace();
             throw new FailedOperationException("Contract instance Fail");
         }
+    }
+
+    public static List<Map<String, String>> methodInfo(Map<String, ContractMethod> method) {
+        List<Map<String, String>> methodList = new ArrayList<>();
+        for(Map.Entry<String, ContractMethod> elem : method.entrySet()){
+            Map<String, String> methodInfo = new HashMap<>();
+            methodInfo.put("name", elem.getKey());
+            methodInfo.put("outputType", elem.getValue().getMethod().getReturnType().getSimpleName());
+            if (elem.getValue().isParams()) {
+                methodInfo.put("inputType", elem.getValue()
+                        .getMethod().getParameterTypes()[0].getSimpleName());
+            }
+            methodList.add(methodInfo);
+        }
+        return methodList;
     }
 
 }

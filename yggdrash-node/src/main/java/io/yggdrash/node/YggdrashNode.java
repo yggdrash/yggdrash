@@ -17,38 +17,26 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.akashic.SyncManager;
-import io.yggdrash.core.net.Discovery;
-import io.yggdrash.core.net.Node;
+import io.yggdrash.core.net.BootStrapNode;
+import io.yggdrash.core.net.Dht;
 import io.yggdrash.core.net.NodeStatus;
-import io.yggdrash.core.net.PeerHandlerGroup;
-import io.yggdrash.core.net.PeerListener;
 import io.yggdrash.node.config.NodeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+
 @Service
-public class YggdrashNode extends Node
-        implements CommandLineRunner, DisposableBean {
+public class YggdrashNode extends BootStrapNode {
     private static final Logger log = LoggerFactory.getLogger(YggdrashNodeApp.class);
 
     private final NodeProperties nodeProperties;
 
-    private final NodeStatus nodeStatus;
-
-    private final Discovery discovery;
-
     @Autowired
-    public void setPeerListener(PeerListener peerListener) {
-        super.setPeerListener(peerListener);
-    }
-
-    @Autowired
-    public void setPeerHandlerGroup(PeerHandlerGroup peerHandlerGroup) {
-        super.setPeerHandlerGroup(peerHandlerGroup);
+    public void setDht(Dht peerTable) {
+        super.setDht(peerTable);
     }
 
     @Autowired
@@ -56,37 +44,18 @@ public class YggdrashNode extends Node
         super.setSyncManager(syncManager);
     }
 
-    YggdrashNode(NodeProperties nodeProperties, NodeStatus nodeStatus, Discovery discovery) {
+    YggdrashNode(NodeProperties nodeProperties) {
         this.nodeProperties = nodeProperties;
-        this.nodeStatus = nodeStatus;
-        this.discovery = discovery;
     }
 
-    @Override
-    public void run(String... args) {
-        String host = nodeProperties.getGrpc().getHost();
-        int port = nodeProperties.getGrpc().getPort();
-
-        start(host, port);
-
+    @PostConstruct
+    public void init(NodeStatus nodeStatus) {
         log.info("Bootstrapping...");
-        super.bootstrapping(discovery, nodeProperties.getMaxPeers());
+        bootstrapping();
 
         if (nodeProperties.isSeed()) {
             log.info("I'm the Bootstrap Node.");
             nodeStatus.up();
-            return;
         }
-        nodeStatus.sync();
-        syncManager.syncBlockAndTransaction();
-        nodeStatus.up();
-    }
-
-    @Override
-    public void destroy() {
-        log.info("Destroy handlerGroup");
-        peerHandlerGroup.destroyAll();
-        log.info("Shutting down gRPC server...");
-        peerListener.stop();
     }
 }

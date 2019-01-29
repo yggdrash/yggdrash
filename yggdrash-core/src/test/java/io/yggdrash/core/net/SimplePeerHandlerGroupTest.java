@@ -59,7 +59,7 @@ public class SimplePeerHandlerGroupTest {
 
     @Test
     public void getActivePeerListOf() {
-        assert peerHandlerGroup.getActivePeerListOf().size() == 0;
+        assert peerHandlerGroup.getActiveAddressList().size() == 0;
     }
 
     private void addPeerHandler() {

@@ -18,14 +18,15 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.core.akashic.SyncManager;
 
-public abstract class Node implements BootStrap {
+public abstract class BootStrapNode implements BootStrap {
 
-    protected PeerListener peerListener;
-    protected PeerHandlerGroup peerHandlerGroup;
-    protected SyncManager syncManager;
+    //protected PeerHandlerGroup peerHandlerGroup;
+    private Dht dht;
+    private SyncManager syncManager;
 
-    public void bootstrapping(Discovery discovery, int maxPeer) {
-        PeerTable peerTable = discovery.discover(peerHandlerGroup.getPeerHandlerFactory());
+    /*
+    public void bootstrapping(Dht dht, int maxPeer) {
+        PeerTable peerTable = dht.discover(peerHandlerGroup.getPeerHandlerFactory());
         for (Peer peer : peerTable.getClosestPeers(peerTable.getOwner(), maxPeer)) {
             if (peerHandlerGroup.handlerCount() >= maxPeer) {
                 break;
@@ -34,27 +35,29 @@ public abstract class Node implements BootStrap {
         }
     }
 
-    public void setPeerListener(PeerListener peerListener) {
-        this.peerListener = peerListener;
-    }
-
     public void setPeerHandlerGroup(PeerHandlerGroup peerHandlerGroup) {
         this.peerHandlerGroup = peerHandlerGroup;
+    }
+
+    public void destroy() {
+        peerHandlerGroup.destroyAll();
+    }
+
+    */
+
+    @Override
+    public void bootstrapping() {
+        dht.selfRefresh();
+        if (syncManager != null) {
+            syncManager.syncBlockAndTransaction();
+        }
+    }
+
+    public void setDht(Dht dht) {
+        this.dht = dht;
     }
 
     public void setSyncManager(SyncManager syncManager) {
         this.syncManager = syncManager;
     }
-
-    public void start(String host, int port) {
-        peerListener.start(host, port);
-    }
-
-    /**
-     * Stop serving requests and shutdown resources.
-     */
-    public void stop() {
-        peerListener.stop();
-    }
-
 }

@@ -23,6 +23,7 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.contract.ContractClassLoader;
+import io.yggdrash.core.contract.ContractManager;
 import io.yggdrash.core.net.PeerHandlerGroup;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
@@ -111,6 +112,14 @@ public class BranchConfiguration {
             ContractClassLoader.copyResourcesToContractPath(defaultConfig.getContractPath());
         }
         return new BranchLoader(defaultConfig.getBranchPath());
+    }
+
+    @Bean
+    ContractManager contractManager(DefaultConfig defaultConfig) {
+        if (defaultConfig.isProductionMode()) {
+            ContractClassLoader.copyResourcesToContractPath(defaultConfig.getContractPath());
+        }
+        return new ContractManager(defaultConfig.getContractPath());
     }
 
     private BlockChain addBranch(InputStream is, PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
