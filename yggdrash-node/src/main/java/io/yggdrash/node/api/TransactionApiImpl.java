@@ -83,6 +83,7 @@ public class TransactionApiImpl implements TransactionApi {
     @Override
     public String sendTransaction(TransactionDto tx) {
         if (branchGroup.getBranch(BranchId.of(tx.branchId)) != null) {
+            // TODO Transaction Validate
             TransactionHusk addedTx = branchGroup.addTransaction(TransactionDto.of(tx));
             return addedTx.getHash().toString();
         } else {
@@ -95,6 +96,7 @@ public class TransactionApiImpl implements TransactionApi {
         Transaction tx = new Transaction(bytes);
         TransactionHusk transaction = new TransactionHusk(tx);
         if (branchGroup.getBranch(transaction.getBranchId()) != null) {
+            // TODO Transaction Validate
             TransactionHusk addedTx = branchGroup.addTransaction(transaction);
             return addedTx.getHash().getBytes();
         } else {

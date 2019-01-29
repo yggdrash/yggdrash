@@ -152,7 +152,7 @@ public class TransactionHuskTest  extends TestConstants.SlowTest {
     private TransactionHusk createTx(Wallet wallet) {
         JsonArray txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, 100);
         TransactionBuilder builder = new TransactionBuilder();
-        return builder.setWalet(wallet)
+        return builder.setWallet(wallet)
                 .setBranchId(TestConstants.YEED)
                 .addTransaction(txBody)
                 .build();

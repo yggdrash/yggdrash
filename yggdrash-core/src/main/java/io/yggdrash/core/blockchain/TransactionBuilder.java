@@ -36,8 +36,8 @@ public class TransactionBuilder {
         return this;
     }
 
-    public TransactionBuilder setWalet(Wallet walet) {
-        this.wallet = walet;
+    public TransactionBuilder setWallet(Wallet wallet) {
+        this.wallet = wallet;
         return this;
     }
 

@@ -63,7 +63,7 @@ public class BlockChainTestUtils {
 
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTxBody(Constants.STEM_CONTRACT_ID, "create", json)
-                .setWalet(TestConstants.wallet())
+                .setWallet(TestConstants.wallet())
                 .setBranchId(TestConstants.STEM)
                 .build();
     }
@@ -74,7 +74,7 @@ public class BlockChainTestUtils {
         params.add(branchId.toString(), branch);
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTxBody(Constants.STEM_CONTRACT_ID, method, params)
-                .setWalet(TestConstants.wallet())
+                .setWallet(TestConstants.wallet())
                 .setBranchId(TestConstants.STEM)
                 .build();
     }
@@ -82,7 +82,7 @@ public class BlockChainTestUtils {
     public static TransactionHusk createTxHusk(BranchId branchId, JsonArray txBody) {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTransaction(txBody)
-                .setWalet(TestConstants.wallet())
+                .setWallet(TestConstants.wallet())
                 .setBranchId(branchId)
                 .build();
     }
@@ -124,7 +124,7 @@ public class BlockChainTestUtils {
         JsonArray txBody = ContractTestUtils.transferTxBodyJson(to, amount);
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTransaction(txBody)
-                .setWalet(TestConstants.wallet())
+                .setWallet(TestConstants.wallet())
                 .setBranchId(TestConstants.STEM)
                 .build()
                 .getCoreTransaction()

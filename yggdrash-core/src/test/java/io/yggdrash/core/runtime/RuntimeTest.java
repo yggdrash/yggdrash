@@ -64,7 +64,7 @@ public class RuntimeTest {
         TransactionBuilder builder = new TransactionBuilder();
         TransactionHusk testTx = builder.setBranchId(branchId)
                 .addTxBody(coinContract, "genesis", genesisParams)
-                .setWalet(TestConstants.wallet())
+                .setWallet(TestConstants.wallet())
                 .build();
 
         TransactionRuntimeResult result = runtime.invoke(testTx);
@@ -96,7 +96,7 @@ public class RuntimeTest {
         TransactionBuilder builder = new TransactionBuilder();
         TransactionHusk testTx = builder.setBranchId(branchId)
                 .addTxBody(stemContract, "create", params)
-                .setWalet(TestConstants.wallet())
+                .setWallet(TestConstants.wallet())
                 .build();
 
         log.debug(testTx.toString());
