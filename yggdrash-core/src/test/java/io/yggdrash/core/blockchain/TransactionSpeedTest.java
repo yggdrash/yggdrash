@@ -20,6 +20,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants.PerformanceTest;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.wallet.Wallet;
 import org.junit.Before;
@@ -53,7 +54,8 @@ public class TransactionSpeedTest extends PerformanceTest {
         params.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
         params.addProperty("amount", "10000000");
 
-        JsonArray txArrayBody = ContractTestUtils.txBodyJson("tansfer", params);
+        JsonArray txArrayBody = ContractTestUtils.txBodyJson(Constants.STEM_CONTRACT_ID,
+                "tansfer", params);
 
         txBody = new TransactionBody(txArrayBody);
 

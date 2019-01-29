@@ -32,9 +32,9 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.TempStateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,12 +43,7 @@ public class Runtime<T> {
 
     private StateStore<T> stateStore;
     private TransactionReceiptStore txReceiptStore;
-    // TODO contract is map
-    private Contract<T> contract;
-    private Map<ContractId, Contract> contracts = new HashMap<>();
-    private Method genesis;
-    private RuntimeInvoke contractInvoke;
-    private RuntimeQuery runtimeQuery;
+    private Map<ContractId, RuntimeContractWrap> contracts = new HashMap<>();
 
     // All block chain has state root
     private byte[] stateRoot;
@@ -56,20 +51,22 @@ public class Runtime<T> {
 
     // FIX runtime run contract will init
     // TODO Runtime get multi Contract
-    public Runtime(Contract<T> contract,
-                   StateStore<T> stateStore,
+    public Runtime(StateStore<T> stateStore,
                    TransactionReceiptStore txReceiptStore) {
         this.stateStore = stateStore;
         this.txReceiptStore = txReceiptStore;
-        this.contract = contract;
 
-        contractInvoke = new RuntimeInvoke(contract);
-        runtimeQuery = new RuntimeQuery(contract, stateStore);
+    }
+
+    public Set<ContractId> executeAbleContract() {
+        return this.contracts.keySet();
     }
 
     // TODO contract move to Map
     public void addContract(ContractId contractId, Contract contract) {
-        this.contracts.put(contractId, contract);
+        RuntimeContractWrap wrap = new RuntimeContractWrap(contractId, contract);
+        wrap.setStore(stateStore);
+        this.contracts.put(contractId, wrap);
     }
 
     public boolean hasContract(ContractId contractId) {
@@ -115,7 +112,7 @@ public class Runtime<T> {
     }
 
     public void commitBlockResult(BlockRuntimeResult result) {
-        // store transaction
+        // TODO store transaction bybatch
         Map<String, JsonObject> changes = result.getBlockResult();
         result.getTxReceipts().stream().forEach(txr -> {
             txReceiptStore.put(txr);
@@ -126,7 +123,7 @@ public class Runtime<T> {
             });
 
         }
-        // TODO make transction Receipt Event
+        // TODO make transaction Receipt Event
 
     }
 
@@ -153,8 +150,9 @@ public class Runtime<T> {
             for (JsonElement transactionElement: JsonUtil.parseJsonArray(tx.getBody())) {
                 JsonObject txBody = transactionElement.getAsJsonObject();
                 // check contract Version
-                // txBody.get("contractId")
-                TempStateStore txElementState = contractInvoke.invokeTransaction(txBody, txReceipt, txState);
+                ContractId txContractId = ContractId.of(txBody.get("contractId").getAsString());
+                RuntimeContractWrap wrap = contracts.get(txContractId);
+                TempStateStore txElementState = wrap.invokeTransaction(txBody, txReceipt, txState);
                 if(txReceipt.isSuccess()) {
                     txState.putAll(txElementState.changeValues());
                 }
@@ -169,9 +167,9 @@ public class Runtime<T> {
         return txState;
     }
 
-    public Object query(String method, JsonObject params) throws Exception {
-        // TODO runtimeQuery will move to ContractWrap
-        return runtimeQuery.query(method, params);
+    public Object query(ContractId id, String method, JsonObject params) throws Exception {
+        RuntimeContractWrap contractWrap = this.contracts.get(id);
+        return contractWrap.query(method, params);
     }
 
     // TODO Remove This

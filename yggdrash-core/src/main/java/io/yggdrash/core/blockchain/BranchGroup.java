@@ -18,14 +18,13 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.contract.Contract;
+import io.yggdrash.core.contract.ContractId;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.wallet.Wallet;
-
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -131,17 +130,16 @@ public class BranchGroup {
         }
     }
 
-    Contract getContract(BranchId branchId) {
-        return branches.get(branchId).getContract();
-    }
-
     public Object query(BranchId branchId, String method, JsonObject params) {
         if (!containsBranch(branchId)) {
             throw new NonExistObjectException(branchId.toString() + " branch");
         }
         try {
             BlockChain chain = branches.get(branchId);
-            return chain.getRuntime().query(method, params);
+            // TODO change branch spec
+            // get runtime contract ID and execute
+            ContractId contractId = chain.getRuntime().executeAbleContract().iterator().next();
+            return chain.getRuntime().query(contractId,method, params);
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }

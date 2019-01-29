@@ -19,6 +19,8 @@ package io.yggdrash;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.config.Constants;
+import io.yggdrash.core.contract.ContractId;
 import io.yggdrash.core.wallet.Wallet;
 import org.spongycastle.util.encoders.Hex;
 
@@ -37,11 +39,12 @@ public class ContractTestUtils {
         params.addProperty("to", to);
         params.addProperty("amount", amount);
 
-        return txBodyJson("transfer", params);
+        return txBodyJson(Constants.YEED_CONTRACT_ID,"transfer", params);
     }
 
-    public static JsonArray txBodyJson(String method, JsonObject params) {
+    public static JsonArray txBodyJson(ContractId contractId, String method, JsonObject params) {
         JsonObject txObj = new JsonObject();
+        txObj.addProperty("contractId", contractId.toString());
         txObj.addProperty("method", method);
         txObj.add("params", params);
 
