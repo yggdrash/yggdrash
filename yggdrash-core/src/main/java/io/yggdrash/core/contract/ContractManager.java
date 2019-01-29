@@ -17,6 +17,7 @@
 package io.yggdrash.core.contract;
 
 import io.yggdrash.common.util.ContractUtils;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,6 +70,12 @@ public class ContractManager extends ClassLoader {
     public Map<ContractId, ContractMeta> getContracts() {
         return contracts;
     }
+
+    public List<ContractId> getAllContractIds() {
+        return this.contracts.entrySet().stream().map(set -> set.getKey())
+                .collect(Collectors.toList());
+    }
+
 
     public ContractMeta getContractById(ContractId id) {
         return contracts.get(id);

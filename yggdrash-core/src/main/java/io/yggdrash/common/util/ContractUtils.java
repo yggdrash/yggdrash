@@ -16,19 +16,21 @@
 
 package io.yggdrash.common.util;
 
-import io.yggdrash.core.contract.ContractMeta;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.contract.methods.ContractMethod;
+import io.yggdrash.core.contract.methods.ContractMethodInfo;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.ParamValidation;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ContractUtils {
@@ -86,19 +88,21 @@ public class ContractUtils {
         }
     }
 
-    public static List<Map<String, String>> methodInfo(Map<String, ContractMethod> method) {
-        List<Map<String, String>> methodList = new ArrayList<>();
-        for(Map.Entry<String, ContractMethod> elem : method.entrySet()){
-            Map<String, String> methodInfo = new HashMap<>();
-            methodInfo.put("name", elem.getKey());
-            methodInfo.put("outputType", elem.getValue().getMethod().getReturnType().getSimpleName());
-            if (elem.getValue().isParams()) {
-                methodInfo.put("inputType", elem.getValue()
-                        .getMethod().getParameterTypes()[0].getSimpleName());
-            }
-            methodList.add(methodInfo);
-        }
+    public static List<ContractMethodInfo> allMethodInfo(Map<String, ContractMethod> method) {
+        List<ContractMethodInfo> methodList = new ArrayList<>();
+        method.entrySet().stream().forEach(set -> methodList.add(methodInfo(set.getValue())));
         return methodList;
+    }
+
+    public static ContractMethodInfo methodInfo(ContractMethod method) {
+        ContractMethodInfo info = new ContractMethodInfo();
+        Method pureMethod = method.getMethod();
+        info.setName(pureMethod.getName());
+        info.setOutputType(pureMethod.getReturnType());
+        if (method.isParams()) {
+            info.setInpiutType(pureMethod.getParameterTypes());
+        }
+        return info;
     }
 
 }
