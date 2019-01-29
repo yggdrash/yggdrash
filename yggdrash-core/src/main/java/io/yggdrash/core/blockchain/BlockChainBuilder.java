@@ -17,6 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import io.yggdrash.core.contract.CoinContract;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.contract.ContractId;
@@ -108,8 +109,12 @@ public class BlockChainBuilder {
             // TODO Change Branch Spec
             ContractId branchContractId = branch.getContractId();
             Contract contract;
-            if (branch.isStem()) { // TODO remove branch spec change
+            // TODO remove branch spec change
+            // TODO Get ContractManager for Contract
+            if (branch.isStem()) {
                 contract = new StemContract();
+            } else if (branch.isYeed()) {
+                contract = new CoinContract();
             } else {
                 contract = getContract(branchContractId);
             }

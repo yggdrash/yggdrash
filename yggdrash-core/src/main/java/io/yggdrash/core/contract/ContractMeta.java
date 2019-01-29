@@ -16,28 +16,44 @@
 
 package io.yggdrash.core.contract;
 
+import io.yggdrash.common.util.ContractUtils;
+import io.yggdrash.core.contract.methods.ContractMethod;
+import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.core.runtime.annotation.ContractQuery;
+import io.yggdrash.core.runtime.annotation.InvokeTransction;
+
 import java.io.File;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.*;
 
 public class ContractMeta {
     private static final String SUFFIX = ".class";
 
-    private final Class<? extends Contract> contract;
+    private final Class<? extends Contract> contractClass;
     private final byte[] contractBinary;
     private final String contractClassName;
     private final ContractId contractId;
+    private Map<String, ContractMethod> invokeMethod;
+    private Map<String, ContractMethod> queryMethod;
+    private Field transactionReceiptField;
+    private Field contractStateStoreFiled;
 
     ContractMeta(byte[] contractBinary, Class<? extends Contract> contractClass) {
         this.contractBinary = contractBinary;
-        this.contract = contractClass;
+        this.contractClass = contractClass;
         this.contractClassName = contractClass.getName();
         this.contractId = ContractId.of(contractBinary);
+        this.queryMethod = getQueryMethods();
+        this.invokeMethod = getInvokeMethods();
     }
 
     public Class<? extends Contract> getContract() {
-        return contract;
+        return contractClass;
     }
 
-    ContractId getContractId() {
+    public ContractId getContractId() {
         return contractId;
     }
 
@@ -53,5 +69,48 @@ public class ContractMeta {
 
     static String classAsResourcePath(Class<? extends Contract> clazz) {
         return clazz.getName().replace(".", "/") + SUFFIX;
+    }
+
+    public Contract getContractInstance() {
+        Contract contract;
+        try {
+            contract = getContract().getDeclaredConstructor().newInstance();
+        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException
+                | InvocationTargetException e) {
+            throw new FailedOperationException(e);
+        }
+        return contract;
+    }
+
+    public Map getMethods() {
+        Map<String, List<Map<String, String>>> methods = new HashMap<>();
+        methods.put("invoke", ContractUtils.methodInfo(invokeMethod));
+        methods.put("query", ContractUtils.methodInfo(queryMethod));
+        return methods;
+    }
+
+    public Field getTxReceipt() {
+        for(Field f : ContractUtils.txReceiptFields(getContractInstance())) {
+            transactionReceiptField = f;
+            f.setAccessible(true);
+        }
+        return transactionReceiptField;
+    }
+
+    public Field getStateStore() {
+        for(Field f : ContractUtils.stateStoreFields(getContractInstance())) {
+            contractStateStoreFiled = f;
+            f.setAccessible(true);
+        }
+        return contractStateStoreFiled;
+    }
+
+    public Map<String, ContractMethod> getInvokeMethods() {
+        return ContractUtils.contractMethods(getContractInstance(), InvokeTransction.class);
+    }
+
+
+    public Map<String, ContractMethod> getQueryMethods() {
+        return ContractUtils.contractMethods(getContractInstance(), ContractQuery.class);
     }
 }

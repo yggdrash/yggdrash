@@ -5,19 +5,23 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.BestBlock;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.Peer;
+import io.yggdrash.node.springboot.grpc.GrpcService;
 import io.yggdrash.proto.PeerGrpc;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
-public class GRpcDiscoveryService extends PeerGrpc.PeerImplBase {
-    private static final Logger log = LoggerFactory.getLogger(GRpcDiscoveryService.class);
+@GrpcService
+public class DiscoveryService extends PeerGrpc.PeerImplBase {
+    private static final Logger log = LoggerFactory.getLogger(DiscoveryService.class);
 
     private DiscoveryConsumer discoveryConsumer;
 
-    GRpcDiscoveryService(DiscoveryConsumer discoveryConsumer) {
+    @Autowired
+    public DiscoveryService(DiscoveryConsumer discoveryConsumer) {
         this.discoveryConsumer = discoveryConsumer;
     }
 

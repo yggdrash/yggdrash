@@ -36,8 +36,7 @@ public class RuntimeQueryTest {
         RuntimeQuery query = new RuntimeQuery(contract);
         query.setStore(tempStore);
 
-        Object result = query.query("totalsupply", null);
+        Object result = query.query("totalSupply", null);
         assert BigDecimal.valueOf(10000).equals(result);
     }
-
 }

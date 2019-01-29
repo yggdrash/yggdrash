@@ -4,12 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.core.runtime.annotation.ContractQuery;
-import io.yggdrash.core.runtime.annotation.ContractStateStore;
-import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
-import io.yggdrash.core.runtime.annotation.Genesis;
-import io.yggdrash.core.runtime.annotation.InvokeTransction;
-import io.yggdrash.core.runtime.annotation.YggdrashContract;
+import io.yggdrash.core.runtime.annotation.*;
 import io.yggdrash.core.store.Store;
 import java.math.BigDecimal;
 import java.util.Map;
@@ -36,8 +31,9 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      * @return Total amount of coin in existence
      */
     @ContractQuery
+    @ParamValidation
     @Override
-    public BigDecimal totalsupply() {
+    public BigDecimal totalSupply() {
         log.info("\ntotalsupply :: param => ");
         return getBalance(totalSupplyKey);
     }
@@ -49,8 +45,9 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      * @return A BigDecimal representing the amount owned by the passed address
      */
     @ContractQuery
+    @ParamValidation
     @Override
-    public BigDecimal balanceof(JsonObject params) {
+    public BigDecimal balanceOf(JsonObject params) {
         log.info("\nbalanceof :: params => " + params);
 
         String address = params.get("address").getAsString().toLowerCase();
@@ -67,7 +64,8 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      *
      * @return A BigDecimal specifying the amount of coin still available for the spender
      */
-    @InvokeTransction
+    @ContractQuery
+    @ParamValidation
     @Override
     public BigDecimal allowance(JsonObject params) {
         log.info("\nallowance :: params => " + params);
@@ -90,6 +88,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      * @return TransactionReceipt
      */
     @InvokeTransction
+    @ParamValidation
     @Override
     public TransactionReceipt transfer(JsonObject params) {
         log.info("\ntransfer :: params => " + params);
@@ -129,6 +128,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      * @return TransactionReceipt
      */
     @InvokeTransction
+    @ParamValidation
     @Override
     public TransactionReceipt approve(JsonObject params) {
         log.info("\napprove :: params => " + params);
@@ -169,8 +169,9 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      * @return TransactionReceipt
      */
     @InvokeTransction
+    @ParamValidation
     @Override
-    public TransactionReceipt transferfrom(JsonObject params) {
+    public TransactionReceipt transferFrom(JsonObject params) {
         log.info("\ntransferfrom :: params => " + params);
 
         String from = params.get("from").getAsString().toLowerCase();
@@ -217,6 +218,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      * @return TransactionReceipt
      */
     @Genesis
+    @ParamValidation
     @InvokeTransction
     public TransactionReceipt genesis(JsonObject params) {
         log.info("\ngenesis :: params => " + params);

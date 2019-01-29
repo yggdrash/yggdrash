@@ -46,7 +46,7 @@ public class RuntimeQuery {
 
     public Object query(String method, JsonObject params) throws Exception {
         // Find query method and query
-        ContractMethod query = queryMethods.get(method.toLowerCase());
+        ContractMethod query = queryMethods.get(method);
         if (query != null) {
             if (params == null && !query.isParams()) {
                 return query.getMethod().invoke(contract);

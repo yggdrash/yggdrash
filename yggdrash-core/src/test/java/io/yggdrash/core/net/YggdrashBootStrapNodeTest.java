@@ -3,7 +3,7 @@ package io.yggdrash.core.net;
 import io.yggdrash.PeerTestUtils;
 import org.junit.Test;
 
-public class YggdrashNodeTest {
+public class YggdrashBootStrapNodeTest {
 
     @Test
     public void bootstrapping() {
@@ -11,7 +11,7 @@ public class YggdrashNodeTest {
         node1.bootstrapping(node1.getDiscovery(), 1);
     }
 
-    private class YggdrashTestNode extends Node {
+    private class YggdrashTestNode extends BootStrapNode {
         YggdrashTestNode() {
             this.peerHandlerGroup = new SimplePeerHandlerGroup(PeerHandlerMock.factory);
         }
