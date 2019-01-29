@@ -18,24 +18,23 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.TestConstants.SlowTest;
+import static io.yggdrash.TestConstants.TRANSFER_TO;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.core.wallet.Account;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
+import java.io.IOException;
+import java.security.SignatureException;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Hex;
 
-import java.io.IOException;
-import java.security.SignatureException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
-public class TransactionHuskTest extends SlowTest {
+public class TransactionHuskTest  extends TestConstants.SlowTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHuskTest.class);
 
@@ -151,7 +150,11 @@ public class TransactionHuskTest extends SlowTest {
     }
 
     private TransactionHusk createTx(Wallet wallet) {
-        Transaction tx = BlockChainTestUtils.createTx(wallet, TestConstants.YEED, new JsonArray());
-        return new TransactionHusk(tx);
+        JsonArray txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, 100);
+        TransactionBuilder builder = new TransactionBuilder();
+        return builder.setWallet(wallet)
+                .setBranchId(TestConstants.YEED)
+                .addTransaction(txBody)
+                .build();
     }
 }

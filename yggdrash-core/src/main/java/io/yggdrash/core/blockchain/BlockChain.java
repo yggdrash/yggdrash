@@ -17,12 +17,11 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.Runtime;
+import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.StateStore;
@@ -52,20 +51,18 @@ public class BlockChain {
     private final StateStore stateStore;
     private final TransactionReceiptStore transactionReceiptStore;
 
-    private final Contract contract;
     private final Runtime<?> runtime;
 
     private BlockHusk prevBlock;
 
     public BlockChain(Branch branch, BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, MetaStore metaStore,
-                      Contract contract, Runtime runtime) {
+                      Runtime runtime) {
         this.branch = branch;
         this.genesisBlock = genesisBlock;
         this.blockStore = blockStore;
         this.transactionStore = transactionStore;
         this.metaStore = metaStore;
-        this.contract = contract;
         this.runtime = runtime;
         this.stateStore = runtime.getStateStore();
         this.transactionReceiptStore = runtime.getTransactionReceiptStore();
@@ -104,10 +101,6 @@ public class BlockChain {
 
     public void addListener(BranchEventListener listener) {
         listenerList.add(listener);
-    }
-
-    public Contract getContract() {
-        return contract;
     }
 
     Runtime<?> getRuntime() {
@@ -178,7 +171,7 @@ public class BlockChain {
 
         // run Block Transactions
         // TODO run block execute move to other process (or thread)
-
+        // TODO last excute block will invoke
         if (nextBlock.getIndex() > metaStore.getLastExecuteBlockIndex()) {
             BlockRuntimeResult result = runtime.invokeBlock(nextBlock);
             // Save Result
