@@ -71,7 +71,7 @@ public class ContractManager extends ClassLoader {
         return contracts;
     }
 
-    public List<ContractVersion> getAllContractIds() {
+    public List<ContractVersion> getAllContractVersions() {
         return this.contracts.entrySet().stream().map(set -> set.getKey())
                 .collect(Collectors.toList());
     }

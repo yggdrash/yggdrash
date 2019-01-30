@@ -63,7 +63,7 @@ public class StemContractStateValueTest {
     }
 
     @Test
-    public void updateContractIdTest() {
+    public void updateContractVersionTest() {
         stateValue.init();
         assertThat(stateValue.getContractHistory()).containsOnly(stateValue.getContractVersion());
         assertContractAndHistory(stateValue.getContractVersion(), 0);

@@ -12,7 +12,7 @@ public class Constants {
     public static final String BRANCH_ID = "branchId";
     public static final String TX_ID = "txId";
     public static final String BLOCK_ID = "blockId";
-    public static final String CONTRACT_ID = "contractVersion";
+    public static final String CONTRACT_VERSION = "contractVersion";
 
     public static final long TIMESTAMP_2018 = 1514764800000L;
     public static final int MAX_MEMORY = 10000000;

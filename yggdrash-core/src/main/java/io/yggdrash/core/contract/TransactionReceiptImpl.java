@@ -88,7 +88,7 @@ public class TransactionReceiptImpl implements TransactionReceipt {
     }
 
     @Override
-    public String getContractId() {
+    public String getContractVersion() {
         return contractId;
     }
 

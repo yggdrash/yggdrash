@@ -20,11 +20,11 @@ public class ContractInfo {
         return contractList;
     }
 
-    public Map<String, Object> getContractById(ContractVersion id) {
-        return contractInfo(contractManager.getContractByVersion(id));
+    public Map<String, Object> getContractByVersion(ContractVersion version) {
+        return contractInfo(contractManager.getContractByVersion(version));
     }
 
-    public List<String> getContractIds() {
+    public List<String> getContractVersions() {
         List<String> contractIdList = new ArrayList<>();
         for ( ContractVersion key : contractManager.getContracts().keySet() ) {
             contractIdList.add(key.toString());

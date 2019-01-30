@@ -55,7 +55,7 @@ public class ContractManagerTest {
 
 
     @Test
-    public void getContractById() {
+    public void getContractByVersion() {
         List<ContractVersion> sampleContractVersionList = contractSample();
         if (sampleContractVersionList == null || contracts == null) return;
         sampleContractVersionList.forEach((id) -> {

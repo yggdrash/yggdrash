@@ -33,7 +33,7 @@ public class ContractInfoTest {
             for (Map.Entry<ContractVersion, ContractMeta> elem : contracts.entrySet()) {
                 if (elem.getKey() != null) {
                     assertEquals(elem.getValue().getMethods(),
-                            info.getContractById(elem.getKey()).get("methods"));
+                            info.getContractByVersion(elem.getKey()).get("methods"));
                 }
             }
         }
@@ -44,6 +44,6 @@ public class ContractInfoTest {
         Map<ContractVersion, ContractMeta> contracts = contractManager.getContracts();
         if (contracts == null) return;
         ContractInfo info = new ContractInfo(contractManager);
-        assertEquals(contracts.entrySet().size(), info.getContractIds().size());
+        assertEquals(contracts.entrySet().size(), info.getContractVersions().size());
     }
 }
