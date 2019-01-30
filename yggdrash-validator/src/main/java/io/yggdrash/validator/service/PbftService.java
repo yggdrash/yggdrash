@@ -95,7 +95,7 @@ public class PbftService implements CommandLineRunner {
         printInitInfo();
     }
 
-    @Scheduled(cron = "*/5 * * * * *")
+    @Scheduled(cron = "*/3 * * * * *")
     public void mainScheduler() {
 
         checkNode();
@@ -158,6 +158,14 @@ public class PbftService implements CommandLineRunner {
         }
 
         log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedMsgMap().size());
+
+        log.debug("blockStore size= " + this.blockChain.getBlockStore().size());
+        log.debug("blockKeyStore size= " + this.blockChain.getBlockKeyStore().size());
+
+        if (!this.blockChain.TEST_NONE_TXSTORE) {
+            log.debug("TxStore unConfirmed Tx.size= "
+                    + this.blockChain.getTransactionStore().getUnconfirmedTxs().size());
+        }
     }
 
     private void multicastBlock(PbftBlock block) {
@@ -235,8 +243,11 @@ public class PbftService implements CommandLineRunner {
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
         List<Transaction> txs = new ArrayList<>();
-        List<TransactionHusk> txHusks = new ArrayList<>(
-                blockChain.getTransactionStore().getUnconfirmedTxs());
+        List<TransactionHusk> txHusks = new ArrayList<>();
+        if (!this.blockChain.TEST_NONE_TXSTORE) {
+            txHusks.addAll(blockChain.getTransactionStore().getUnconfirmedTxs());
+        }
+
         for (TransactionHusk txHusk : txHusks) {
             txs.add(txHusk.getCoreTransaction());
         }

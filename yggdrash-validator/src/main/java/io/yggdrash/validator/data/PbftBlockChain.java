@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PbftBlockChain {
 
     private static final Logger log = LoggerFactory.getLogger(PbftBlockChain.class);
+    public static final boolean TEST_NONE_TXSTORE = true;
 
     private final byte[] chain;
     private final String host;
@@ -85,11 +86,14 @@ public class PbftBlockChain {
             this.blockStore.put(rootBlock.getHash(), rootBlock);
         }
 
-        this.transactionStore = new TransactionStore(
-                new LevelDbDataSource(defaultConfig.getDatabasePath(),
-                        this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
-                                + "/txs"));
-
+        if (TEST_NONE_TXSTORE) {
+            this.transactionStore = null;
+        } else {
+            this.transactionStore = new TransactionStore(
+                    new LevelDbDataSource(defaultConfig.getDatabasePath(),
+                            this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
+                                    + "/txs"));
+        }
     }
 
     public byte[] getChain() {
