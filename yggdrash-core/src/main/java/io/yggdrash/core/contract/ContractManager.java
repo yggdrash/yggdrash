@@ -16,14 +16,13 @@
 
 package io.yggdrash.core.contract;
 
-import io.yggdrash.common.util.ContractUtils;
+import java.io.*;
 import java.util.stream.Collectors;
+
+import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -33,8 +32,10 @@ import java.util.stream.Stream;
 public class ContractManager extends ClassLoader {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
     private Map<ContractId, ContractMeta> contracts = new HashMap<>();
+    private String contractPath;
 
     public ContractManager(String contractPath) {
+        this.contractPath = contractPath;
         load(contractPath);
     }
 
@@ -48,14 +49,12 @@ public class ContractManager extends ClassLoader {
                     contractBinary = new byte[Math.toIntExact(contractFile.length())];
                     inputStream.read(contractBinary);
 
-                    ContractId contractId = ContractId.of(contractBinary);
+                    ContractId contractVersion = ContractId.of(contractBinary);
                     ContractMeta contractMeta = ContractClassLoader.loadContractById(
-                            contractRoot, contractId);
+                            contractRoot, contractVersion);
 
-                    if (Files.isRegularFile(contractPath)) {
-                        if(contractMeta.getStateStore() !=null || contractMeta.getTxReceipt() !=null) {
-                            contracts.put(contractId, contractMeta);
-                        }
+                    if (Files.isRegularFile(contractPath) && validation(contractMeta)) {
+                        contracts.put(contractVersion, contractMeta);
                     }
 
                 } catch (IOException e) {
@@ -71,40 +70,96 @@ public class ContractManager extends ClassLoader {
         return contracts;
     }
 
-    public List<ContractId> getAllContractIds() {
+    public List<ContractId> getAllContractIdList() {
         return this.contracts.entrySet().stream().map(set -> set.getKey())
                 .collect(Collectors.toList());
     }
 
+    public List<ContractMeta> getAllContractList() {
+        return this.contracts.entrySet().stream().map(set -> set.getValue())
+                .collect(Collectors.toList());
+    }
 
     public ContractMeta getContractById(ContractId id) {
-        return contracts.get(id);
+        return this.contracts.get(id);
     }
 
     public Boolean isContract(ContractId id) {
         return contracts.containsKey(id);
     }
 
-    //TODO validation
-    public Boolean paramsValidation(String contractId, String method, Map params) {
-        // TODO params validation
-        ContractId id = ContractId.of(contractId);
-        Boolean validationMethods = ContractUtils.contractValidation(
-                contracts.get(id).getContractInstance());
-
-        if (!isContract(id)) {
-            //TODO add contract
+    /**
+     * Check the requirements required by the contract
+     */
+    public Boolean validation(ContractMeta contractMeta) {
+        if(contractMeta.getStateStore() == null) {
+            log.error("Contract does not have required filed state store");
             return false;
-        } else {
-            if (validationMethods) {
-
-            }
         }
+        if(contractMeta.getTxReceipt() == null) {
+            log.error("Contract does not have required filed transaction receipt");
+            return false;
+        }
+        //TODO whitelist validtaion
         return true;
     }
 
-    //TODO query to contract store
-    public void query(byte[] contract) {
-
+    /**
+     * Check if another node has it
+     */
+    public ContractMeta contractRequest() {
+        //TODO contract request to another node
+        return null;
     }
+
+    /**
+     * Add a contract that the manager does not have
+     */
+    public void addContract(Class<? extends Contract> contract) {
+        File targetDir = new File(contractPath);
+        if (!targetDir.exists() && !targetDir.mkdirs()) {
+            throw new RuntimeException("Failed to create=" + targetDir.getAbsolutePath());
+        }
+        ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
+        ContractId contractId = contractMeta.getContractId();
+        File contractFile = ContractMeta.contractFile(contractPath, contractId);
+        if (!contractFile.exists()) {
+            try {
+                FileUtils.writeByteArrayToFile(contractFile, contractMeta.getContractBinary());
+                contracts.put(contractId, contractMeta);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    /**
+     * Change the contract to the contract version.
+     */
+    public ContractId convertFileToVersion(Class<? extends Contract> contract) {
+        ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
+        return contractMeta.getContractId();
+    }
+
+    public void removeContract(ContractId contractVersion) {
+        String directoryPath = contractVersion.toString().substring(0, 2);
+        String filePath = contractVersion.toString().substring(0, 2) + File.separator
+                + contractVersion + ".class";
+        File file = new File(contractPath + File.separator + filePath);
+        File directory = new File(contractPath + File.separator + directoryPath);
+        if (file.exists()){
+            if(file.isDirectory()){
+                File[] files = file.listFiles();
+                for( int i=0; i<files.length; i++){
+                    files[i].delete();
+                }
+            }
+            file.delete();
+            directory.delete();
+            contracts.remove(contractVersion);
+        }
+    }
+
+    //TODO Query to branch
+
 }

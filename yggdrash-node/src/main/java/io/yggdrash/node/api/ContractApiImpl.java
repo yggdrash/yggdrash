@@ -43,14 +43,14 @@ public class ContractApiImpl implements ContractApi {
 
     @Override
     public Object contract(String contractId, String method) {
-        ContractInfo contractInfo = new ContractInfo(contractManager);
+        //TODO contractMeta to jsonObject
         try {
             if (contractId.getBytes().length > 0) {
                 if (!contractManager.isContract(ContractId.of(contractId))) return false;
-                return contractInfo.getClass().getMethod(method, ContractId.class)
-                        .invoke(contractInfo, ContractId.of(contractId));
+                return contractManager.getClass().getMethod(method, ContractId.class)
+                        .invoke(contractManager, ContractId.of(contractId));
             } else {
-                return contractInfo.getClass().getMethod(method).invoke(contractInfo);
+                return contractManager.getClass().getMethod(method).invoke(contractManager);
             }
         } catch (Exception e) {
             throw new FailedOperationException(e);

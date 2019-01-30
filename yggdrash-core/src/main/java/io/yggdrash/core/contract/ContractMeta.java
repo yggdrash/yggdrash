@@ -16,6 +16,9 @@
 
 package io.yggdrash.core.contract;
 
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.core.contract.methods.ContractMethod;
 import io.yggdrash.core.exception.FailedOperationException;
@@ -25,7 +28,6 @@ import io.yggdrash.core.runtime.annotation.InvokeTransction;
 import java.io.File;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.*;
 
 public class ContractMeta {
@@ -43,7 +45,7 @@ public class ContractMeta {
     ContractMeta(byte[] contractBinary, Class<? extends Contract> contractClass) {
         this.contractBinary = contractBinary;
         this.contractClass = contractClass;
-        this.contractClassName = contractClass.getName();
+        this.contractClassName = contractClass.getSimpleName();
         this.contractId = ContractId.of(contractBinary);
         this.queryMethod = getQueryMethods();
         this.invokeMethod = getInvokeMethods();
@@ -82,13 +84,6 @@ public class ContractMeta {
         return contract;
     }
 
-    public Map getMethods() {
-        Map<String, List<Map<String, String>>> methods = new HashMap<>();
-        methods.put("invoke", ContractUtils.methodInfo(invokeMethod));
-        methods.put("query", ContractUtils.methodInfo(queryMethod));
-        return methods;
-    }
-
     public Field getTxReceipt() {
         for(Field f : ContractUtils.txReceiptFields(getContractInstance())) {
             transactionReceiptField = f;
@@ -113,4 +108,57 @@ public class ContractMeta {
     public Map<String, ContractMethod> getQueryMethods() {
         return ContractUtils.contractMethods(getContractInstance(), ContractQuery.class);
     }
+
+    /**
+     * Convert from ContractMeta.class to JsonObject.
+     * @return ContractMeta as JsonObject
+     */
+    public JsonObject toJsonObject() {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("contractId", this.contractId.toString());
+        jsonObject.addProperty("name", this.contractClassName);
+
+        JsonArray invokeArray = new JsonArray();
+        JsonArray queryArray = new JsonArray();
+        JsonObject invokeProperty = new JsonObject();
+        JsonObject queryProperty = new JsonObject();
+
+        invokeMethod.entrySet().stream().forEach(set -> {
+            invokeProperty.addProperty("name", set.getKey());
+            if (set.getValue().isParams()) {
+                JsonArray inputArray = new JsonArray();
+                Arrays.stream(set.getValue().getMethod().getParameterTypes()).forEach(type -> inputArray.add(type.getSimpleName()));
+                invokeProperty.addProperty("params", set.getValue().getMethod().getParameterTypes().length);
+                invokeProperty.add("inputType", inputArray);
+            }
+            invokeProperty.addProperty("outputType", set.getValue().getMethod().getReturnType().getSimpleName());
+            invokeArray.add(invokeProperty);
+        });
+
+        queryMethod.entrySet().stream().forEach(set -> {
+            queryProperty.addProperty("name", set.getKey());
+            queryProperty.addProperty("outputType", set.getValue().getMethod().getReturnType().getSimpleName());
+            queryArray.add(queryProperty);
+        });
+
+        jsonObject.add("invokeMethods", invokeArray);
+        jsonObject.add("queryMethods", queryArray);
+
+        return jsonObject;
+    }
+
+    /**
+     * Print ContractMeta.
+     */
+    public String toString() {
+        return this.toJsonObject().toString();
+    }
+
+    /**
+     * Print ContractMeta to pretty JsonObject.
+     */
+    String toStringPretty() {
+        return new GsonBuilder().setPrettyPrinting().create().toJson(this.toJsonObject());
+    }
+
 }

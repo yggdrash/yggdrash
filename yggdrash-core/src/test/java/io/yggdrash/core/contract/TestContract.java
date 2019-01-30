@@ -1,0 +1,31 @@
+package io.yggdrash.core.contract;
+
+import com.google.gson.JsonObject;
+import io.yggdrash.core.runtime.annotation.*;
+import io.yggdrash.core.store.StateStore;
+import io.yggdrash.core.store.Store;
+
+@YggdrashContract
+public class TestContract implements Contract {
+
+    @ContractStateStore
+    Store<String, JsonObject> state;
+
+
+    @ContractTransactionReceipt
+    TransactionReceipt txReceipt;
+
+    public void init(StateStore stateStore) {
+    }
+
+    @InvokeTransction
+    public boolean doNothing(JsonObject param) {
+        // pass
+        return true;
+    }
+
+    @ContractQuery
+    public String someQuery() {
+        return "";
+    }
+}

@@ -18,16 +18,13 @@ package io.yggdrash.common.util;
 
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.contract.methods.ContractMethod;
-import io.yggdrash.core.contract.methods.ContractMethodInfo;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.ParamValidation;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -87,22 +84,4 @@ public class ContractUtils {
             throw new FailedOperationException("Contract instance Fail");
         }
     }
-
-    public static List<ContractMethodInfo> allMethodInfo(Map<String, ContractMethod> method) {
-        List<ContractMethodInfo> methodList = new ArrayList<>();
-        method.entrySet().stream().forEach(set -> methodList.add(methodInfo(set.getValue())));
-        return methodList;
-    }
-
-    public static ContractMethodInfo methodInfo(ContractMethod method) {
-        ContractMethodInfo info = new ContractMethodInfo();
-        Method pureMethod = method.getMethod();
-        info.setName(pureMethod.getName());
-        info.setOutputType(pureMethod.getReturnType());
-        if (method.isParams()) {
-            info.setInpiutType(pureMethod.getParameterTypes());
-        }
-        return info;
-    }
-
 }
