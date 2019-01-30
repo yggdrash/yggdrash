@@ -25,6 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
+import java.util.List;
+
 public class PbftBlock {
     private static final Logger log = LoggerFactory.getLogger(PbftBlock.class);
 
@@ -79,14 +81,19 @@ public class PbftBlock {
     }
 
     public static boolean verify(PbftBlock block) {
-        if (block == null) {
+        if (block == null || block.getBlock() == null || block.getPbftMessageSet() == null) {
             return false;
         }
 
-        //todo : check 2f + 1 message count when ?
-        if (block.getBlock().verify()
-                && block.getPbftMessageSet().verify(block.getPbftMessageSet(), block.getBlock())) {
-            return true;
+        if (block.getIndex() == 0) { // genesis block
+            if (block.getBlock().verify()) {
+                return true;
+            }
+        } else {
+            if (block.getBlock().verify()
+                    && block.getPbftMessageSet().verify(block.getPbftMessageSet())) {
+                return true;
+            }
         }
 
         return false;
@@ -108,5 +115,17 @@ public class PbftBlock {
         return protoPbftBlockBuilder.build();
     }
 
+    public static PbftProto.PbftBlockList toProtoList(List<PbftBlock> pbftBlockList) {
+        if (pbftBlockList == null) {
+            return null;
+        }
 
+        PbftProto.PbftBlockList.Builder protoPbftBlockListBuilder =
+                PbftProto.PbftBlockList.newBuilder();
+        for (PbftBlock pbftBlock : pbftBlockList) {
+            protoPbftBlockListBuilder.addPbftBlock(PbftBlock.toProto(pbftBlock));
+        }
+
+        return protoPbftBlockListBuilder.build();
+    }
 }

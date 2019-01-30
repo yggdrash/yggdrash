@@ -59,7 +59,7 @@ public class PbftClientStub {
     public List<PbftBlock> getBlockList(long index) {
         PbftProto.PbftBlockList protoBlockList = blockingStub
                 .withDeadlineAfter(3, TimeUnit.SECONDS)
-                .getBlockList(
+                .getPbftBlockList(
                         EbftProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
 
         if (Context.current().isCancelled()) {

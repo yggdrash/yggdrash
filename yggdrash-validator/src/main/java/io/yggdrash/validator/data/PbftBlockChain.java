@@ -116,6 +116,10 @@ public class PbftBlockChain {
         return rootBlock;
     }
 
+    public void setLastConfirmedBlock(PbftBlock lastConfirmedBlock) {
+        this.lastConfirmedBlock = lastConfirmedBlock;
+    }
+
     public PbftBlock getLastConfirmedBlock() {
         return lastConfirmedBlock;
     }

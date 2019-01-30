@@ -3,6 +3,7 @@ package io.yggdrash.validator.service;
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.proto.NetProto;
+import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
 import io.yggdrash.validator.data.PbftBlock;
 import io.yggdrash.validator.data.PbftBlockChain;
@@ -13,7 +14,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 @GRpcService
 @ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "pbft")
@@ -105,10 +108,35 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
                 && Arrays.equals(lastPbftBlock.getHash(), newPbftBlock.getPrevBlockHash())) {
 
             pbftService.getLock().lock();
-            //pbftService.updateUnconfirmedBlock(newPbftBlock);
+//            pbftService.updateUnconfirmedBlock(newPbftBlock);
             pbftService.getLock().unlock();
         }
 
+    }
+
+
+    @Override
+    public void getPbftBlockList(io.yggdrash.proto.EbftProto.Offset request,
+                                 io.grpc.stub.StreamObserver<PbftProto.PbftBlockList> responseObserver) {
+        long start = request.getIndex();
+        long count = request.getCount();
+        List<PbftBlock> blockList = new ArrayList<>();
+
+        long end = Math.min(start - 1 + count,
+                this.blockChain.getLastConfirmedBlock().getIndex());
+
+        log.trace("start: " + start);
+        log.trace("end: " + end);
+
+        if (start < end) {
+            for (long l = start; l <= end; l++) {
+                blockList.add(this.blockChain.getBlockStore().get(
+                        this.blockChain.getBlockKeyStore().get(l)));
+            }
+        }
+
+        responseObserver.onNext(PbftBlock.toProtoList(blockList));
+        responseObserver.onCompleted();
     }
 
     private void updateStatus(PbftStatus status) {
@@ -123,7 +151,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         }
 
         pbftService.getLock().lock();
-//        pbftService.updateUnconfirmedBlock(status.getPbftMessageSet());
+        pbftService.updateUnconfirmedMsgMap(status.getPbftMessageMap());
         pbftService.getLock().unlock();
     }
 }

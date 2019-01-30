@@ -146,18 +146,16 @@ public class PbftMessage {
         return wallet.signHashedData(getHashForSignning());
     }
 
-//    public static boolean verify(PbftMessage pbftMessage) {
-//        return PbftMessage.verify(pbftMessage, null);
-//    }
-
     public static boolean verify(PbftMessage pbftMessage) {
         // todo: check validator
 
-        if (pbftMessage == null) {
+        if (pbftMessage == null
+                || pbftMessage.getSignature() == null
+                || pbftMessage.getSignature().length == 0) {
             return false;
         }
 
-        if (!Wallet.verify(pbftMessage.getHashForSignning(), pbftMessage.signature, true)) {
+        if (!Wallet.verify(pbftMessage.getHashForSignning(), pbftMessage.getSignature(), true)) {
             return false;
         }
 

@@ -186,7 +186,8 @@ public class EbftNodeServer implements CommandLineRunner {
             for (; i < blockConList.size(); i++) {
                 blockCon = blockConList.get(i);
                 if (!BlockCon.verify(blockCon) || !consensusVerify(blockCon)) {
-                    log.error("blockConSyncing Verify Fail");
+                    log.warn("Verify Fail");
+                    //todo: check verify fail exception
                     continue;
                 }
                 this.blockConChain.getBlockConStore().put(blockCon.getHash(), blockCon);

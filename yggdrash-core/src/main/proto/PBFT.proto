@@ -51,7 +51,7 @@ service PbftService {
     rpc exchangePbftStatus (PbftStatus) returns (PbftStatus) {
     }
 
-    rpc getBlockList (Offset) returns (PbftBlockList) {
+    rpc getPbftBlockList (Offset) returns (PbftBlockList) {
     }
 
     rpc multicastPbftMessage (PbftMessage) returns (Empty) {
