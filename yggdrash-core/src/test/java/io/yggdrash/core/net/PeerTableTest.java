@@ -87,19 +87,19 @@ public class PeerTableTest {
         peerTable.addPeer(peer1);
         peerTable.addPeer(peer2);
 
-        assertEquals(peerTable.getBucketsCount(), 3);
+        assertEquals(peerTable.getBucketsCount(), 2);
         //assertEquals(peerTable.getStoreCount(), 0);
 
         Utils.sleep(200);
 
         peerTable.copyLiveNode(100);
 
-        assertEquals(peerTable.getBucketsCount(), 3);
+        assertEquals(peerTable.getBucketsCount(), 2);
         //assertEquals(peerTable.getStoreCount(), 3);
 
         peerTable.copyLiveNode(300);
 
-        assertEquals(peerTable.getBucketsCount(), 3);
+        assertEquals(peerTable.getBucketsCount(), 2);
         //assertEquals(peerTable.getStoreCount(), 3);
     }
 }

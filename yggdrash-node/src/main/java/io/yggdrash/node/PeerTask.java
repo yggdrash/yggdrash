@@ -24,10 +24,12 @@ import io.yggdrash.core.net.PeerBucket;
 import io.yggdrash.core.net.PeerHandlerGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
 import java.util.Random;
+import java.util.UUID;
 
 public class PeerTask {
 
@@ -52,9 +54,6 @@ public class PeerTask {
     // seed nodes are inserted if the table is empty (initial bootstrap or discarded faulty peers).
     @Scheduled(cron = "*/30 * * * * *")
     public void lookup() {
-        // Run self lookup to discover new neighbor nodes.
-
-
         // The Kademlia paper specifies that the bucket refresh should perform a lookup
         // in the least recently used bucket. We cannot adhere to this because
         // the findnode target is a 512bit value (not hash-sized) and it is not easily possible
@@ -69,7 +68,8 @@ public class PeerTask {
         // Ethereum generates 3 random pubKeys to perform the lookup.
         // Should we create random peers to do the same?
         // Maybe it can relate to "resolve" function
-        return null;
+        String pubKey = Hex.toHexString(UUID.randomUUID().toString().getBytes());
+        return Peer.valueOf(pubKey, "localhost", 32918);
     }
 
     // revalidate checks that the last node in a random bucket is still live
@@ -77,9 +77,9 @@ public class PeerTask {
     @Scheduled(cron = "*/10 * * * * *")
     public void revalidate() {
         Peer last = peerToRevalidate();
-        if (last != null) {
+        if (last != null && last != peerTable.getOwner()) {
             // Ping the selected node and wait for a pong (set last.id to ping msg)
-            log.debug("[revalidate] last peerId => " + last.getPeerId());
+            log.debug("[revalidate] last ynodeUri => " + last.getYnodeUri());
             if (peerHandlerGroup.isPingSucceed(peerTable.getOwner(), last.getPeerId())) {
                 // The peer responded, move it to the front
                 peerTable.getBucketByPeer(last).bump(last);
@@ -108,14 +108,22 @@ public class PeerTask {
     // returns the last node in a random, non-empty bucket
     private Peer peerToRevalidate() {
         Random r = new Random();
-        PeerBucket bucket;
-        int cnt;
+        int cnt = 1;
+        int startIndex = r.nextInt(KademliaOptions.BINS);
 
-        do {
-            bucket = peerTable.getBucketByIndex(r.nextInt(KademliaOptions.BUCKET_SIZE));
-            cnt = bucket.getPeersCount();
-        } while (cnt < 1);
+        for (; cnt < KademliaOptions.BINS; startIndex++, cnt++) {
+            if (startIndex == 0 || startIndex == KademliaOptions.BINS) {
+                startIndex = 1;
+            }
 
-        return bucket.getLastPeer();
+            //log.debug("peerTask :: bucketIndex => " + startIndex);
+
+            PeerBucket bucket = peerTable.getBucketByIndex(startIndex);
+
+            if (bucket.getPeersCount() > 0) {
+                return bucket.getLastPeer();
+            }
+        }
+        return null;
     }
 }

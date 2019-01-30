@@ -44,29 +44,6 @@ public class DiscoveryService extends PeerGrpc.PeerImplBase {
         discoveryConsumer.afterFindPeersResponse();
     }
 
-    /*
-    @Override
-    public void findPeers(Proto.RequestPeer request, StreamObserver<Proto.PeerList> responseObserver) {
-        Peer peer = Peer.valueOf(request.getPubKey(), request.getIp(), request.getPort());
-
-        for (Proto.BestBlock bestBlock : request.getBestBlocksList()) {
-            BestBlock bb = toBestBlock(bestBlock);
-            peer.updateBestBlock(bb);
-        }
-
-        List<String> list = discoveryConsumer.findPeers(peer);
-        Proto.PeerList.Builder peerListBuilder = Proto.PeerList.newBuilder();
-        for (String url : list) {
-            peerListBuilder.addPeers(Proto.PeerInfo.newBuilder().setUrl(url).build());
-        }
-        Proto.PeerList peerList = peerListBuilder.build();
-        responseObserver.onNext(peerList);
-        responseObserver.onCompleted();
-
-        discoveryConsumer.afterFindPeersResponse();
-    }
-    */
-
     @Override
     public void ping(Proto.Ping request, StreamObserver<Proto.Pong> responseObserver) {
         String url = request.getPeer().getUrl();
