@@ -29,51 +29,44 @@ public class BlockHuskTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockHuskTest.class);
 
-    private BlockHusk block;
+    private BlockHusk genesisBlock;
 
     @Before
     public void setUp() {
-        this.block = BlockChainTestUtils.genesisBlock();
+        this.genesisBlock = BlockChainTestUtils.genesisBlock();
     }
 
     @Test
-    public void blockTest() {
-        assert block.getInstance() != null;
-        assert block.getIndex() == 0;
-        assert block.verify();
+    public void genesisBlockTest() {
+        assert genesisBlock.getInstance() != null;
+        assert genesisBlock.getIndex() == 0;
     }
 
     @Test
     public void blockCloneTest() {
-        BlockHusk cloned = new BlockHusk(block.getInstance());
-        assert cloned.hashCode() == block.hashCode();
-        assert cloned.compareTo(block) == 0;
-    }
-
-    @Test
-    public void blockAddressTest() {
-        assertThat(block.getAddress().toString())
-                .isEqualTo("2b8d3ec39e8b8d86a6fcdf5f5fe375f30a6e6c06");
+        BlockHusk cloned = new BlockHusk(genesisBlock.getInstance());
+        assert cloned.hashCode() == genesisBlock.hashCode();
+        assert cloned.compareTo(genesisBlock) == 0;
     }
 
     @Test
     public void deserializeTransactionFromProtoTest() {
-        Proto.Block protoBlock = block.getInstance();
+        Proto.Block protoBlock = genesisBlock.getInstance();
         BlockHusk deserializeBlock = new BlockHusk(protoBlock);
-        assert block.getHash().equals(deserializeBlock.getHash());
+        assert genesisBlock.getHash().equals(deserializeBlock.getHash());
     }
 
     @Test
     public void testToJsonObject() {
-        //todo: modify to checking jsonObject when the block data format change to JsonObject.
-        log.debug(block.toJsonObject().toString());
+        //todo: modify to checking jsonObject when the genesisBlock data format change to JsonObject.
+        log.debug(genesisBlock.toJsonObject().toString());
     }
 
     @Test
-    public void constuctorTest() {
-        BlockHusk block2 = new BlockHusk(new Block(block.toJsonObject()));
-        assertThat(block2.verify()).isTrue();
-        assertThat(block.toJsonObject().toString()).isEqualTo(block2.toJsonObject().toString());
+    public void constructorTest() {
+        BlockHusk block2 = new BlockHusk(new Block(genesisBlock.toJsonObject()));
+        assert block2.getIndex() == genesisBlock.getIndex();
+        assertThat(genesisBlock.toJsonObject().toString()).isEqualTo(block2.toJsonObject().toString());
     }
 
 

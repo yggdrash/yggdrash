@@ -154,7 +154,7 @@ public class TransactionHuskTest  extends TestConstants.SlowTest {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.setWallet(wallet)
                 .setBranchId(TestConstants.YEED)
-                .addTransaction(txBody)
+                .addTransactionBody(txBody)
                 .build();
     }
 }

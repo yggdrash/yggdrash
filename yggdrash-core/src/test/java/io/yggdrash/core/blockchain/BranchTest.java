@@ -1,15 +1,20 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.ContractTestUtils;
+import com.google.gson.JsonParser;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.core.exception.InvalidSignatureException;
-import org.junit.Test;
-
+import io.yggdrash.common.util.FileUtil;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BranchTest {
+    private static final Logger log = LoggerFactory.getLogger(BranchTest.class);
 
     @Test
     public void defaultTest() {
@@ -22,38 +27,55 @@ public class BranchTest {
                         + "of all Branch Chains.";
         String contractId = "d399cd6d34288d04ba9e68ddfda9f5fe99dd778e";
         String timestamp = "00000166c837f0c9";
-        JsonObject genesis = new JsonObject();
-        JsonObject json = ContractTestUtils.createBranchJson(name, symbol, property,
-                description, contractId, timestamp, genesis);
 
-        Branch branch = Branch.of(json);
+        JsonObject branchJson = BranchBuilder.builder()
+                .setName(name)
+                .setSymbol(symbol)
+                .setProperty(property)
+                .setDescription(description)
+                .setTimeStamp(timestamp)
+                .addValidator(TestConstants.wallet().getHexAddress())
+                .buildJson();
+
+
+
+        Branch branch = Branch.of(branchJson);
+        log.debug(branch.getJson().toString());
+
 
         assertThat(branch.getName()).isEqualTo(name);
         assertThat(branch.getSymbol()).isEqualTo(symbol);
         assertThat(branch.getProperty()).isEqualTo(property);
         assertThat(branch.getDescription()).isEqualTo(description);
-        assertThat(branch.getContractVersion().toString()).isEqualTo(contractId);
         assertThat(branch.getTimestamp())
                 .isEqualTo(HexUtil.hexStringToLong(timestamp));
-        assertThat(branch.getOwner().toString()).isEqualTo(TestConstants.wallet().getHexAddress());
-        assertThat(branch.verify()).isTrue();
+    }
+
+
+    @Test
+    public void loadTest() throws IOException {
+
+        File genesisFile = new File(
+                getClass().getClassLoader().getResource("./branch-yggdrash.json").getFile());
+
+        String genesisString = FileUtil.readFileToString(genesisFile, StandardCharsets.UTF_8);
+        JsonObject branch = new JsonParser().parse(genesisString).getAsJsonObject();
+        Branch yggdrashBranch = Branch.of(branch);
+        assert "YGGDRASH".equals(yggdrashBranch.getName());
+
+
     }
 
     @Test
-    public void notVerifiedTest() {
-        JsonObject json = ContractTestUtils.createSampleBranchJson();
-        String invalidSig = "1cb1f610ecfb3a8a49988a17ac1a4cd846dece0bcf797c701a8049d16b88faff9d63df"
-                + "601000a2f2afebb5a19c058bf388c6b7506763badb68cbedbd85732bd9a0";
-        json.addProperty("signature", invalidSig);
-        Branch branch = Branch.of(json);
-        assertThat(branch.verify()).isFalse();
+    public void immutableBranch() {
+
+
+
+
     }
 
-    @Test(expected = InvalidSignatureException.class)
-    public void inValidSignatureTest() {
-        JsonObject json = ContractTestUtils.createSampleBranchJson();
-        json.addProperty("signature", "00");
-        Branch.of(json).verify();
-    }
+
+
+
 
 }

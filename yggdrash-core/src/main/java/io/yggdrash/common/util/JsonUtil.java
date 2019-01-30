@@ -6,13 +6,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.io.Reader;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class JsonUtil {
     private static final Logger log = LoggerFactory.getLogger(JsonUtil.class);
@@ -54,4 +56,16 @@ public class JsonUtil {
     public static JsonObject parseJsonObject(Reader json) {
         return (JsonObject) jsonParser.parse(json);
     }
+
+    public static List<String> convertJsonArrayToStringList(JsonArray array) {
+        List<String> stringList = new ArrayList<>();
+        Iterator<JsonElement> elementIterator = array.iterator();
+        while (elementIterator.hasNext()) {
+            JsonElement element = elementIterator.next();
+            stringList.add(element.getAsString());
+        }
+        return stringList;
+    }
+
+
 }

@@ -64,7 +64,7 @@ public class BlockChainTestUtils {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTxBody(Constants.STEM_CONTRACT_VERSION, "create", json)
                 .setWallet(TestConstants.wallet())
-                .setBranchId(TestConstants.STEM)
+                .setBranchId(genesis.getBlock().getBranchId())
                 .build();
     }
 
@@ -75,13 +75,13 @@ public class BlockChainTestUtils {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTxBody(Constants.STEM_CONTRACT_VERSION, method, params)
                 .setWallet(TestConstants.wallet())
-                .setBranchId(TestConstants.STEM)
+                .setBranchId(branchId)
                 .build();
     }
 
     public static TransactionHusk createTxHusk(BranchId branchId, JsonArray txBody) {
         TransactionBuilder builder = new TransactionBuilder();
-        return builder.addTransaction(txBody)
+        return builder.addTransactionBody(txBody)
                 .setWallet(TestConstants.wallet())
                 .setBranchId(branchId)
                 .build();
@@ -123,7 +123,7 @@ public class BlockChainTestUtils {
     private static Transaction createTransferTx(String to, int amount) {
         JsonArray txBody = ContractTestUtils.transferTxBodyJson(to, amount);
         TransactionBuilder builder = new TransactionBuilder();
-        return builder.addTransaction(txBody)
+        return builder.addTransactionBody(txBody)
                 .setWallet(TestConstants.wallet())
                 .setBranchId(TestConstants.STEM)
                 .build()

@@ -20,8 +20,8 @@ import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.contract.CoinContract;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.contract.ContractClassLoader;
-import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.contract.ContractMeta;
+import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.Runtime;
@@ -33,6 +33,7 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class BlockChainBuilder {
@@ -107,18 +108,20 @@ public class BlockChainBuilder {
         if (runtime == null) {
             runtime = new Runtime(stateStore, transactionReceiptStore);
             // TODO Change Branch Spec
-            ContractVersion branchContractVersion = branch.getContractVersion();
-            Contract contract;
-            // TODO remove branch spec change
-            // TODO Get ContractManager for Contract
-            if (branch.isStem()) {
-                contract = new StemContract();
-            } else if (branch.isYeed()) {
-                contract = new CoinContract();
-            } else {
-                contract = getContract(branchContractVersion);
-            }
-            runtime.addContract(branchContractVersion, contract);
+            List<BranchContract> contracts = branch.getBranchContracts();
+            contracts.stream().forEach(c -> {
+                // TODO Get ContractManager for Contract
+                Contract contract;
+                // TODO remove branch spec change
+                if ("STEM".equals(c.getName())) {
+                    contract = new StemContract();
+                } else if ("YEED".equals(c.getName())) {
+                    contract = new CoinContract();
+                } else {
+                    contract = getContract(c.getContractVersion());
+                }
+                runtime.addContract(c.getContractVersion(), contract);
+            });
 
             // Add System Contract
             defaultContract().entrySet().forEach(s -> runtime.addContract(s.getKey(),s.getValue()));

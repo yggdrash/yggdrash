@@ -30,7 +30,8 @@ public class TransactionBuilder {
     BranchId branchId;
     Wallet wallet;
     List<JsonObject> txBody = new LinkedList<>();
-    long timestamp = 1L;
+
+    long timestamp = -1L;
 
     public TransactionBuilder setBranchId(BranchId branchId) {
         this.branchId = branchId;
@@ -47,12 +48,12 @@ public class TransactionBuilder {
         return this;
     }
 
-    public TransactionBuilder addTransaction(JsonObject txBody) {
+    public TransactionBuilder addTransactionBody(JsonObject txBody) {
         this.txBody.add(txBody);
         return this;
     }
 
-    public TransactionBuilder addTransaction(JsonArray txBody) {
+    public TransactionBuilder addTransactionBody(JsonArray txBody) {
         Iterator<JsonElement> el = txBody.iterator();
         while (el.hasNext()) {
             JsonObject tx = el.next().getAsJsonObject();
@@ -68,7 +69,7 @@ public class TransactionBuilder {
         txObj.addProperty("contractVersion", contractVersion.toString());
         txObj.addProperty("method", method);
         txObj.add("params", params);
-        return addTransaction(txObj);
+        return addTransactionBody(txObj);
     }
 
     private Transaction createTx(Wallet wallet, BranchId txBranchId, JsonArray body) {
@@ -81,7 +82,8 @@ public class TransactionBuilder {
         byte[] chain = txBranchId.getBytes();
         byte[] version = new byte[8];
         byte[] type = new byte[8];
-        if (timestamp == 1L) {
+        // Check timeStamp
+        if (timestamp == -1L) {
             timestamp = TimeUtils.time();
         }
 

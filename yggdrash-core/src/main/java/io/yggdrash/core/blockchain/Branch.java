@@ -16,17 +16,18 @@
 
 package io.yggdrash.core.blockchain;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.JsonUtil;
-import io.yggdrash.core.contract.Contract;
-import io.yggdrash.core.contract.ContractVersion;
-import io.yggdrash.core.wallet.Address;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import org.apache.commons.io.IOUtils;
 
@@ -37,11 +38,10 @@ public class Branch {
     private final String symbol;
     private final String property;
     private final long timestamp;
-    private final Address owner;
     private final JsonObject json;
-    protected ContractVersion contractVersion;
-    protected List<Contract> contracts;
+    protected List<BranchContract> contracts;
     protected String description;
+    private final List<String> validator;
 
     protected Branch(JsonObject json) {
         this.json = json;
@@ -51,11 +51,20 @@ public class Branch {
         this.property = json.get("property").getAsString();
         String timestampHex = json.get("timestamp").getAsString();
         this.timestamp = HexUtil.hexStringToLong(timestampHex);
-        this.owner = Address.of(json.get("owner").getAsString());
-        // ContractVersion has multiple
-        this.contractVersion = ContractVersion.of(json.get("contractVersion").getAsString());
+
+        this.contracts = new ArrayList<>();
+
+        JsonArray contractArray = json.getAsJsonArray("contracts");
         // Contracts
+        if (contractArray != null) {
+            Iterator<JsonElement> it = contractArray.iterator();
+            while (it.hasNext()) {
+                contracts.add(BranchContract.of(it.next().getAsJsonObject()));
+            }
+        }
         this.description = json.get("description").getAsString();
+        this.validator = JsonUtil.convertJsonArrayToStringList(
+                json.get("validator").getAsJsonArray());
     }
 
     public BranchId getBranchId() {
@@ -74,25 +83,21 @@ public class Branch {
         return property;
     }
 
+    public List<BranchContract> getBranchContracts() {
+        return new ArrayList<>(this.contracts);
+    }
+
     public String getDescription() {
         return description;
     }
 
-    public ContractVersion getContractVersion() {
-        return contractVersion;
+    public List<String> getValidators() {
+        return new ArrayList<String>(this.validator);
     }
 
     public long getTimestamp() {
         return timestamp;
     }
-
-    public Address getOwner() {
-        return owner;
-    }
-
-//    public Sha3Hash getSignature() {
-//        return signature;
-//    }
 
     public JsonObject getJson() {
         return json;
@@ -102,34 +107,6 @@ public class Branch {
     public boolean isStem() {
         return symbol != null && Constants.STEM.equals(symbol);
     }
-
-    // TODO remove isYeed
-    public boolean isYeed() {
-        return symbol != null && Constants.YEED.equals(symbol);
-    }
-
-    // Branch information is Other Blockchain Genesis Data
-    // TODO remove
-//    public boolean verify() {
-//        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signature.getBytes());
-//        try {
-//            ECKey ecKeyPub = ECKey.signatureToKey(rawForSign.getBytes(), ecdsaSignature);
-//            if (ecKeyPub.verify(rawForSign.getBytes(), ecdsaSignature)) {
-//                return new Address(ecKeyPub.getAddress()).equals(owner);
-//            } else {
-//                return false;
-//            }
-//        } catch (SignatureException e) {
-//            throw new InvalidSignatureException(e);
-//        }
-//    }
-    // TODO remove
-//    private Sha3Hash rawHashForSign() {
-//        String signatureHex = json.remove("signature").getAsString();
-//        byte[] raw = json.toString().getBytes(StandardCharsets.UTF_8);
-//        json.addProperty("signature", signatureHex);
-//        return new Sha3Hash(raw);
-//    }
 
     public static Branch of(InputStream is) throws IOException {
         String branchString = IOUtils.toString(is, StandardCharsets.UTF_8);
