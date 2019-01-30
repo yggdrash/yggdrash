@@ -22,6 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import io.yggdrash.core.contract.methods.ContractMethod;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,16 +70,16 @@ public class ContractManager extends ClassLoader {
     }
 
     public Map<ContractId, ContractMeta> getContracts() {
-        return contracts;
+        return this.contracts;
     }
 
     public List<ContractId> getContractIdList() {
-        return contracts.entrySet().stream().map(set -> set.getKey())
+        return this.contracts.entrySet().stream().map(set -> set.getKey())
                 .collect(Collectors.toList());
     }
 
     public List<ContractMeta> getContractList() {
-        return contracts.entrySet().stream().map(set -> set.getValue())
+        return this.contracts.entrySet().stream().map(set -> set.getValue())
                 .collect(Collectors.toList());
     }
 
@@ -87,7 +88,7 @@ public class ContractManager extends ClassLoader {
     }
 
     public Boolean isContract(ContractId id) {
-        return contracts.containsKey(id);
+        return this.contracts.containsKey(id);
     }
 
     /**
@@ -102,6 +103,14 @@ public class ContractManager extends ClassLoader {
             log.error("Contract does not have required filed transaction receipt");
             return false;
         }
+
+        for (Map.Entry<String, ContractMethod> elem :
+                contractMeta.getInvokeMethods().entrySet()) {
+                return elem.getValue().getMethod().getReturnType()
+                        .equals(TransactionReceipt.class);
+        }
+
+
         //TODO whitelist validtaion
         return true;
     }
@@ -129,7 +138,7 @@ public class ContractManager extends ClassLoader {
         if (!contractFile.exists()) {
             try {
                 FileUtils.writeByteArrayToFile(contractFile, contractMeta.getContractBinary());
-                contracts.put(contractId, contractMeta);
+                this.contracts.put(contractId, contractMeta);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -160,7 +169,7 @@ public class ContractManager extends ClassLoader {
             }
             file.delete();
             directory.delete();
-            contracts.remove(contractVersion);
+            this.contracts.remove(contractVersion);
             return true;
         }
         return false;
