@@ -57,13 +57,6 @@ message TargetPeer {
     // Fields can be added (i.e.Expiration ...etc)
 }
 
-message RequestPeer {
-    string pubKey = 1;
-    string ip = 2;
-    int32 port = 3;
-    repeated BestBlock bestBlocks = 4;
-}
-
 message PeerList {
     repeated PeerInfo peers = 1;
 }
@@ -74,12 +67,14 @@ message PeerInfo {
 
 message Ping {
     string ping = 1;
-    PeerInfo peer = 2;
+    string from = 2;
+    string to = 3;
+    repeated BestBlock bestBlocks = 4;
 }
 
 message Pong {
     string pong = 1;
-    PeerInfo from = 2;
+    PeerInfo from = 2; // Not used yet
 }
 
 message BestBlock {

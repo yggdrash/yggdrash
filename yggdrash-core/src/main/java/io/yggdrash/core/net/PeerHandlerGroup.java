@@ -25,17 +25,11 @@ public interface PeerHandlerGroup extends BranchEventListener {
 
     void setPeerEventListener(PeerEventListener peerEventListener);
 
-    PeerHandlerFactory getPeerHandlerFactory();
-
     void destroyAll();
 
-    void healthCheck(Peer owner);
-
-    boolean isPingSucceed(Peer owner, PeerId targetId);
+    boolean healthCheck(Peer owner, List<Peer> targetPeerList);
 
     int handlerCount();
-
-    void addHandler(Peer owner, Peer requestPeer);
 
     List<String> getActivePeerList();
 

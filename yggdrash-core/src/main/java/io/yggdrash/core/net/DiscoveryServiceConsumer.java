@@ -60,9 +60,9 @@ public class DiscoveryServiceConsumer implements DiscoveryConsumer {
     }
 
     @Override
-    public String play(Peer from, String msg) {
-        if ("Ping".equals(msg)) {
-            peerTable.touchPeer(from);
+    public String ping(Peer from, Peer to, String msg) {
+        if ("Ping".equals(msg) && to.equals(peerTable.getOwner())) {
+            peerTable.addPeer(from);
             return "Pong";
         }
         return "";

@@ -19,7 +19,6 @@ package io.yggdrash.node;
 import io.yggdrash.core.akashic.SyncManager;
 import io.yggdrash.core.net.BootStrapNode;
 import io.yggdrash.core.net.Dht;
-import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.node.config.NodeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +32,6 @@ public class YggdrashNode extends BootStrapNode {
     private static final Logger log = LoggerFactory.getLogger(YggdrashNodeApp.class);
 
     private final NodeProperties nodeProperties;
-    private NodeStatus nodeStatus;
 
     @Autowired
     public void setDht(Dht peerTable) {
@@ -46,9 +44,8 @@ public class YggdrashNode extends BootStrapNode {
     }
 
     @Autowired
-    YggdrashNode(NodeProperties nodeProperties, NodeStatus nodeStatus) {
+    YggdrashNode(NodeProperties nodeProperties) {
         this.nodeProperties = nodeProperties;
-        this.nodeStatus = nodeStatus;
     }
 
     @PostConstruct
@@ -58,7 +55,6 @@ public class YggdrashNode extends BootStrapNode {
 
         if (nodeProperties.isSeed()) {
             log.info("I'm the Bootstrap Node.");
-            nodeStatus.up();
         }
     }
 }

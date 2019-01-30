@@ -28,6 +28,8 @@ import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
@@ -35,19 +37,34 @@ public class PeerTask {
 
     private static final Logger log = LoggerFactory.getLogger(PeerTask.class);
 
-    @Autowired
     private KademliaPeerTable peerTable;
-    @Autowired
+
     private PeerHandlerGroup peerHandlerGroup;
-    @Autowired
+
     private NodeStatus nodeStatus;
+
+    @Autowired
+    public void setPeerTable(KademliaPeerTable peerTable) {
+        this.peerTable = peerTable;
+    }
+
+    @Autowired
+    public void setPeerHandlerGroup(PeerHandlerGroup peerHandlerGroup) {
+        this.peerHandlerGroup = peerHandlerGroup;
+    }
+
+    @Autowired
+    public void setNodeStatus(NodeStatus nodeStatus) {
+        this.nodeStatus = nodeStatus;
+    }
 
     @Scheduled(cron = "*/10 * * * * *")
     public void healthCheck() {
         if (!nodeStatus.isUpStatus()) {
             return;
         }
-        peerHandlerGroup.healthCheck(peerTable.getOwner());
+        List<Peer> closestPeerList = peerTable.getClosestPeers(peerTable.getOwner(), KademliaOptions.BUCKET_SIZE);
+        peerHandlerGroup.healthCheck(peerTable.getOwner(), closestPeerList);
     }
 
     // refresh performs a lookup for a random target to keep buckets full.
@@ -80,7 +97,7 @@ public class PeerTask {
         if (last != null && last != peerTable.getOwner()) {
             // Ping the selected node and wait for a pong (set last.id to ping msg)
             log.debug("[revalidate] last ynodeUri => " + last.getYnodeUri());
-            if (peerHandlerGroup.isPingSucceed(peerTable.getOwner(), last.getPeerId())) {
+            if (peerHandlerGroup.healthCheck(peerTable.getOwner(), Collections.singletonList(last))) {
                 // The peer responded, move it to the front
                 peerTable.getBucketByPeer(last).bump(last);
             } else {

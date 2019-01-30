@@ -46,10 +46,13 @@ public class DiscoveryService extends PeerGrpc.PeerImplBase {
 
     @Override
     public void ping(Proto.Ping request, StreamObserver<Proto.Pong> responseObserver) {
-        String url = request.getPeer().getUrl();
-        Peer from = Peer.valueOf(url);
+        Peer from = Peer.valueOf(request.getFrom());
+        for (Proto.BestBlock bestBlock : request.getBestBlocksList()) {
+            from.updateBestBlock(toBestBlock(bestBlock));
+        }
+        Peer to = Peer.valueOf(request.getTo());
         log.debug("Received " + request.getPing());
-        String reply = discoveryConsumer.play(from, request.getPing());
+        String reply = discoveryConsumer.ping(from, to, request.getPing());
         Proto.Pong pong = Proto.Pong.newBuilder().setPong(reply).build();
         responseObserver.onNext(pong);
         responseObserver.onCompleted();

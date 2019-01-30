@@ -52,7 +52,7 @@ public class PeerHandlerMock implements PeerHandler {
     }
 
     @Override
-    public String ping(String message, Peer peer) {
+    public String ping(Peer owner, String message) {
         if (pongResponse) {
             pongResponse = false;
             return "Pong";

@@ -72,21 +72,15 @@ public class GRpcPeerHandler implements PeerHandler {
                 .collect(Collectors.toList());
     }
 
-    /*
     @Override
-    public List<Peer> findPeers(Peer peer) {
-        Proto.RequestPeer requestPeer = Proto.RequestPeer.newBuilder()
-                .setPubKey(peer.getPubKey().toString())
-                .setIp(peer.getHost())
-                .setPort(peer.getPort())
-                .addAllBestBlocks(bestBlocksByPeer(peer))
+    public String ping(Peer owner, String message) {
+        Proto.Ping request = Proto.Ping.newBuilder().setPing(message)
+                .setFrom(owner.getYnodeUri())
+                .setTo(peer.getYnodeUri())
+                .addAllBestBlocks(bestBlocksByPeer(owner))
                 .build();
-        return blockingPeerStub.findPeers(requestPeer).getPeersList().stream()
-                .map(peerInfo -> Peer.valueOf(peerInfo.getUrl()))
-                .collect(Collectors.toList());
+        return blockingPeerStub.ping(request).getPong();
     }
-    */
-
 
     private List<Proto.BestBlock> bestBlocksByPeer(Peer peer) {
         List<Proto.BestBlock> bestBlocks = new ArrayList<>();
@@ -97,13 +91,6 @@ public class GRpcPeerHandler implements PeerHandler {
             bestBlocks.add(bestBlock);
         }
         return bestBlocks;
-    }
-
-    @Override
-    public String ping(String message, Peer peer) {
-        Proto.Ping request = Proto.Ping.newBuilder().setPing(message)
-                .setPeer(Proto.PeerInfo.newBuilder().setUrl(peer.getYnodeUri())).build();
-        return blockingPeerStub.ping(request).getPong();
     }
 
     @Override

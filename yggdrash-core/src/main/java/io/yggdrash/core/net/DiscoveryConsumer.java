@@ -24,5 +24,5 @@ public interface DiscoveryConsumer {
 
     void afterFindPeersResponse();
 
-    String play(Peer from, String msg);
+    String ping(Peer from, Peer to, String msg);
 }

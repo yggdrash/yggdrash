@@ -48,33 +48,11 @@ public class GrpcDiscoveryServiceTest {
     }
 
     @Test
-    public void play() {
-        PeerGrpc.PeerBlockingStub blockingStub = PeerGrpc.newBlockingStub(
-                grpcServerRule.getChannel());
-        Peer requestPeer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        when(discoveryConsumerMock.play(requestPeer, "Ping")).thenReturn("Pong");
-
-        Proto.PeerInfo peerInfo = Proto.PeerInfo.newBuilder()
-                .setUrl(requestPeer.getYnodeUri())
-                .build();
-
-        Proto.Ping ping = Proto.Ping.newBuilder().setPing("Ping").setPeer(peerInfo).build();
-
-        Proto.Pong pong = blockingStub.ping(ping);
-
-        assertEquals("Pong", pong.getPong());
-    }
-
-    @Test
     public void findPeers() {
         PeerGrpc.PeerBlockingStub blockingStub = PeerGrpc.newBlockingStub(
                 grpcServerRule.getChannel());
 
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        Proto.BestBlock bestBlock = Proto.BestBlock.newBuilder()
-                .setBranch(ByteString.copyFrom(TestConstants.STEM.getBytes()))
-                .setIndex(0).build();
-
         Proto.TargetPeer targetPeer = Proto.TargetPeer.newBuilder()
                 .setPubKey(peer.getPubKey().toString())
                 .setIp(peer.getHost())
@@ -85,4 +63,27 @@ public class GrpcDiscoveryServiceTest {
 
         assertEquals(0, peerList.getPeersCount());
     }
+
+    @Test
+    public void ping() {
+        PeerGrpc.PeerBlockingStub blockingStub = PeerGrpc.newBlockingStub(
+                grpcServerRule.getChannel());
+        Peer from = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
+        Peer to = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        when(discoveryConsumerMock.ping(from, to,"Ping")).thenReturn("Pong");
+
+        Proto.BestBlock bestBlock = Proto.BestBlock.newBuilder()
+                .setBranch(ByteString.copyFrom(TestConstants.STEM.getBytes()))
+                .setIndex(0).build();
+        Proto.Ping ping = Proto.Ping.newBuilder().setPing("Ping")
+                .setFrom(from.getYnodeUri())
+                .setTo(to.getYnodeUri())
+                .addBestBlocks(bestBlock)
+                .build();
+
+        Proto.Pong pong = blockingStub.ping(ping);
+
+        assertEquals("Pong", pong.getPong());
+    }
+
 }

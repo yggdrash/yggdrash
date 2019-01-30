@@ -106,10 +106,10 @@ public class KademliaPeerTable implements PeerTable, Dht {
         }
     }
 
-    public void loadSeedNodes() {
+    private void loadSeedNodes() {
         // Load nodes from the database and insert them.
         // This should yield a few previously seen nodes that are (hopefully) still alive.
-        if (getBucketsCount() < 1) {
+        if (getBucketsCount() < 1 && seedPeerList != null) {
             this.seedPeerList.stream().map(Peer::valueOf).forEach(this::addPeer);
         }
     }

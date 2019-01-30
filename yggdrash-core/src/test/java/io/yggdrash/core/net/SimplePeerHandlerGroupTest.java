@@ -5,10 +5,12 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.Collections;
+
 public class SimplePeerHandlerGroupTest {
 
     private static final Peer OWNER = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
-
+    private static final Peer TARGET = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
     private PeerHandlerGroup peerHandlerGroup;
 
     @Before
@@ -26,24 +28,14 @@ public class SimplePeerHandlerGroupTest {
      */
     @Test
     public void healthCheck() {
-        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        peerHandlerGroup.addHandler(OWNER, peer); // Pong 정상응답
-        assert !peerHandlerGroup.getActivePeerList().isEmpty();
-
-        peerHandlerGroup.healthCheck(OWNER); // Pong null 응답
-
+        healthCheckForAddHandler();
+        peerHandlerGroup.healthCheck(OWNER, Collections.singletonList(TARGET)); // Pong null 응답
         assert peerHandlerGroup.getActivePeerList().isEmpty();
     }
 
     @Test
-    public void isPingSucceed() {
-        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        assert !peerHandlerGroup.isPingSucceed(OWNER, peer.getPeerId());
-    }
-
-    @Test
     public void destroyAll() {
-        addPeerHandler();
+        healthCheckForAddHandler();
         peerHandlerGroup.destroyAll();
     }
 
@@ -62,9 +54,9 @@ public class SimplePeerHandlerGroupTest {
         assert peerHandlerGroup.getActiveAddressList().size() == 0;
     }
 
-    private void addPeerHandler() {
+    private void healthCheckForAddHandler() {
         assert peerHandlerGroup.getActivePeerList().isEmpty();
-        peerHandlerGroup.addHandler(OWNER, Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
+        peerHandlerGroup.healthCheck(OWNER, Collections.singletonList(TARGET));
         assert !peerHandlerGroup.getActivePeerList().isEmpty();
     }
 }
