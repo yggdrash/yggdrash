@@ -40,7 +40,9 @@ public class TransactionReceiptImpl implements TransactionReceipt {
 
     public TransactionReceiptImpl(TransactionHusk tx) {
         this.txId = tx.getHash().toString();
-        this.issuer = tx.getAddress().toString();
+        if (tx.getAddress() != null) {
+            this.issuer = tx.getAddress().toString();
+        }
     }
 
     public void addLog(JsonObject log) {

@@ -30,6 +30,7 @@ public class TransactionBuilder {
     BranchId branchId;
     Wallet wallet;
     List<JsonObject> txBody = new LinkedList<>();
+    long timestamp = 1L;
 
     public TransactionBuilder setBranchId(BranchId branchId) {
         this.branchId = branchId;
@@ -38,6 +39,11 @@ public class TransactionBuilder {
 
     public TransactionBuilder setWallet(Wallet wallet) {
         this.wallet = wallet;
+        return this;
+    }
+
+    public TransactionBuilder setTimeStamp(long timeStamp) {
+        this.timestamp = timeStamp;
         return this;
     }
 
@@ -67,7 +73,6 @@ public class TransactionBuilder {
 
     private Transaction createTx(Wallet wallet, BranchId txBranchId, JsonArray body) {
 
-        TransactionSignature txSig;
         Transaction tx;
 
         TransactionBody txBody;
@@ -76,14 +81,22 @@ public class TransactionBuilder {
         byte[] chain = txBranchId.getBytes();
         byte[] version = new byte[8];
         byte[] type = new byte[8];
-        long timestamp = TimeUtils.time();
+        if (timestamp == 1L) {
+            timestamp = TimeUtils.time();
+        }
 
         TransactionHeader txHeader;
         txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
         try {
-            txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-            tx = new Transaction(txHeader, txSig.getSignature(), txBody);
+            byte[] sign = new byte[]{};
+            if (wallet != null) {
+                TransactionSignature txSig;
+                txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
+                sign = txSig.getSignature();
+            }
+
+            tx = new Transaction(txHeader, sign, txBody);
 
             return tx;
 

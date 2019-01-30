@@ -9,11 +9,13 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionHeader;
-
 import java.io.IOException;
 import java.io.InputStream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GenesisBlock {
+    private static final Logger log = LoggerFactory.getLogger(GenesisBlock.class);
     private final BlockHusk block;
     private final Branch branch;
 
@@ -37,7 +39,8 @@ public class GenesisBlock {
 
     private BlockHusk toBlock() throws IOException {
         JsonObject jsonObjectBlock = toJsonObjectBlock();
-
+        // Genesis has no signature
+        jsonObjectBlock.addProperty("signature", "");
         Block coreBlock = new Block(jsonObjectBlock);
         return new BlockHusk(coreBlock.toProtoBlock());
     }
@@ -45,6 +48,7 @@ public class GenesisBlock {
     private JsonObject toJsonObjectBlock() throws IOException {
         JsonObject jsonObjectTx = toJsonObjectTx();
         JsonArray jsonArrayBody = new JsonArray();
+        jsonObjectTx.addProperty("signature", "");
         jsonArrayBody.add(jsonObjectTx);
 
         BlockBody blockBody = new BlockBody(jsonArrayBody);
@@ -73,6 +77,8 @@ public class GenesisBlock {
                 new byte[8],
                 branch.getTimestamp(),
                 new TransactionBody(jsonArrayBody));
+        log.debug(txHeader.toString());
+
 
         return toJsonObject(txHeader.toJsonObject(), jsonArrayBody);
     }

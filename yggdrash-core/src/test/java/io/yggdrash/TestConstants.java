@@ -24,7 +24,7 @@ import org.junit.BeforeClass;
 
 public class TestConstants {
 
-    public static final BranchId STEM = BranchId.of("91b29a1453258d72ca6fbbcabb8dca10cca944fb");
+    public static final BranchId STEM = BranchId.of("68932de2b04e1aee47b78e8acd2de1f9036ecd88");
     public static final BranchId YEED = BranchId.of("61dcf9cf6ed382f39f56a1094e2de4d9aa54bf94");
 
     public static final String TRANSFER_TO = "e1980adeafbb9ac6c9be60955484ab1547ab0b76";
