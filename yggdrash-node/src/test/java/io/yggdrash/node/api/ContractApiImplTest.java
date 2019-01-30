@@ -94,16 +94,6 @@ public class ContractApiImplTest {
         sendTransaction(txBody);
     }
 
-    @Test
-    public void contractManager() {
-//        Map<ContractId, ContractMeta> contracts = contractManager.getContracts();
-//        for (Map.Entry<ContractId, ContractMeta> elem : contracts.entrySet()) {
-//            if (elem.getKey() != null) {
-//                System.out.println(elem.getValue().toStringPretty());
-//            }
-//        }
-    }
-
     private void queryAndAssert(String method, Map params, BigDecimal expected) {
         try {
             BigDecimal value = (BigDecimal)CONTRACT_API.query(branchId.toString(), method, params);

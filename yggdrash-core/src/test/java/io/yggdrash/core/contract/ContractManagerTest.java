@@ -16,6 +16,8 @@
 
 package io.yggdrash.core.contract;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
 
 import java.io.*;
@@ -64,17 +66,17 @@ public class ContractManagerTest {
     }
 
     @Test
-    public void getAllContractIdList() {
+    public void getContractIdList() {
         List<ContractId> sampleContractIdList = contractSample();
         if (sampleContractIdList == null || contracts == null) return;
-        assertEquals(sampleContractIdList.size(), contractManager.getAllContractIdList().size());
+        assertEquals(sampleContractIdList.size(), contractManager.getContractIdList().size());
     }
 
     @Test
-    public void getAllContractList() {
+    public void getContractList() {
         List<ContractId> sampleContractIdList = contractSample();
         if (sampleContractIdList == null || contracts == null) return;
-        assertEquals(sampleContractIdList.size(), contractManager.getAllContractList().size());
+        assertEquals(sampleContractIdList.size(), contractManager.getContractList().size());
     }
 
     @Test
@@ -106,6 +108,14 @@ public class ContractManagerTest {
         ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
         ContractId contractVersion = contractMeta.getContractId();
         contractManager.removeContract(contractVersion);
+    }
+
+    @Test
+    public void contractManagerCall() {
+        List<ContractMeta> contractList = contractManager.getContractList();
+        System.out.println(contractList);
+        ContractMeta meta = ContractClassLoader.loadContractClass(StemContract.class);
+        System.out.println(contractManager.getContractById(meta.getContractId()));
     }
 
     private List<ContractId> contractSample() {

@@ -120,10 +120,9 @@ public class ContractMeta {
 
         JsonArray invokeArray = new JsonArray();
         JsonArray queryArray = new JsonArray();
-        JsonObject invokeProperty = new JsonObject();
-        JsonObject queryProperty = new JsonObject();
 
         invokeMethod.entrySet().stream().forEach(set -> {
+            JsonObject invokeProperty = new JsonObject();
             invokeProperty.addProperty("name", set.getKey());
             if (set.getValue().isParams()) {
                 JsonArray inputArray = new JsonArray();
@@ -135,11 +134,14 @@ public class ContractMeta {
             invokeArray.add(invokeProperty);
         });
 
+
         queryMethod.entrySet().stream().forEach(set -> {
+            JsonObject queryProperty = new JsonObject();
             queryProperty.addProperty("name", set.getKey());
             queryProperty.addProperty("outputType", set.getValue().getMethod().getReturnType().getSimpleName());
             queryArray.add(queryProperty);
         });
+
 
         jsonObject.add("invokeMethods", invokeArray);
         jsonObject.add("queryMethods", queryArray);

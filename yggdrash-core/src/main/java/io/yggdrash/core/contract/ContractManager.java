@@ -17,6 +17,9 @@
 package io.yggdrash.core.contract;
 
 import java.io.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.apache.commons.io.FileUtils;
@@ -26,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
 import java.util.stream.Stream;
 
 public class ContractManager extends ClassLoader {
@@ -70,13 +72,13 @@ public class ContractManager extends ClassLoader {
         return contracts;
     }
 
-    public List<ContractId> getAllContractIdList() {
-        return this.contracts.entrySet().stream().map(set -> set.getKey())
+    public List<ContractId> getContractIdList() {
+        return contracts.entrySet().stream().map(set -> set.getKey())
                 .collect(Collectors.toList());
     }
 
-    public List<ContractMeta> getAllContractList() {
-        return this.contracts.entrySet().stream().map(set -> set.getValue())
+    public List<ContractMeta> getContractList() {
+        return contracts.entrySet().stream().map(set -> set.getValue())
                 .collect(Collectors.toList());
     }
 
@@ -114,6 +116,7 @@ public class ContractManager extends ClassLoader {
 
     /**
      * Add a contract that the manager does not have
+     * or Adding a contract from contractRequest
      */
     public void addContract(Class<? extends Contract> contract) {
         File targetDir = new File(contractPath);
@@ -141,7 +144,8 @@ public class ContractManager extends ClassLoader {
         return contractMeta.getContractId();
     }
 
-    public void removeContract(ContractId contractVersion) {
+    public Boolean removeContract(ContractId contractVersion) {
+        //TODO contract owner validation
         String directoryPath = contractVersion.toString().substring(0, 2);
         String filePath = contractVersion.toString().substring(0, 2) + File.separator
                 + contractVersion + ".class";
@@ -157,7 +161,9 @@ public class ContractManager extends ClassLoader {
             file.delete();
             directory.delete();
             contracts.remove(contractVersion);
+            return true;
         }
+        return false;
     }
 
     //TODO Query to branch

@@ -11,7 +11,6 @@ import io.yggdrash.core.exception.FailedOperationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Map;
 
 @Service
@@ -43,14 +42,21 @@ public class ContractApiImpl implements ContractApi {
 
     @Override
     public Object contract(String contractId, String method) {
-        //TODO contractMeta to jsonObject
         try {
             if (contractId.getBytes().length > 0) {
                 if (!contractManager.isContract(ContractId.of(contractId))) return false;
-                return contractManager.getClass().getMethod(method, ContractId.class)
+                Object result = contractManager.getClass().getMethod(method, ContractId.class)
                         .invoke(contractManager, ContractId.of(contractId));
+                if (result instanceof ContractMeta) {
+                    return JsonUtil.convertJsonToMap(((ContractMeta) result).toJsonObject());
+                }
+                return result;
             } else {
-                return contractManager.getClass().getMethod(method).invoke(contractManager);
+                Object result = contractManager.getClass().getMethod(method).invoke(contractManager);
+                if (result instanceof ContractMeta) {
+                    return JsonUtil.convertJsonToMap(((ContractMeta) result).toJsonObject());
+                }
+                return result;
             }
         } catch (Exception e) {
             throw new FailedOperationException(e);
