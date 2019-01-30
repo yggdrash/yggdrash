@@ -139,7 +139,7 @@ public class ContractManager extends ClassLoader {
     /**
      * Change the contract to the contract version.
      */
-    public ContractId convertFileToVersion(Class<? extends Contract> contract) {
+    public ContractId convertContractToVersion(Class<? extends Contract> contract) {
         ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
         return contractMeta.getContractId();
     }

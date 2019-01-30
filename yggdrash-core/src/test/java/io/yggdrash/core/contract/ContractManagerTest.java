@@ -16,8 +16,6 @@
 
 package io.yggdrash.core.contract;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
 
 import java.io.*;
@@ -90,8 +88,8 @@ public class ContractManagerTest {
     }
 
     @Test
-    public void convertFileToVersion() {
-        ContractId version = contractManager.convertFileToVersion(TestContract.class);
+    public void convertContractToVersion() {
+        ContractId version = contractManager.convertContractToVersion(TestContract.class);
         ContractMeta meta = ContractClassLoader.loadContractClass(TestContract.class);
         assertEquals(version, meta.getContractId());
     }

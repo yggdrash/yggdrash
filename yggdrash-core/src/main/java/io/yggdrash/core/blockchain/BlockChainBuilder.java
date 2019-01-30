@@ -17,12 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
-import io.yggdrash.core.contract.CoinContract;
-import io.yggdrash.core.contract.Contract;
-import io.yggdrash.core.contract.ContractClassLoader;
-import io.yggdrash.core.contract.ContractId;
-import io.yggdrash.core.contract.ContractMeta;
-import io.yggdrash.core.contract.StemContract;
+import io.yggdrash.core.contract.*;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
@@ -110,7 +105,6 @@ public class BlockChainBuilder {
             ContractId branchContractId = branch.getContractId();
             Contract contract;
             // TODO remove branch spec change
-            // TODO Get ContractManager for Contract
             if (branch.isStem()) {
                 contract = new StemContract();
             } else if (branch.isYeed()) {
@@ -135,8 +129,8 @@ public class BlockChainBuilder {
             // TODO remove this
             // TODO Check System Contract
 
-            ContractMeta contractMeta = ContractClassLoader.loadContractById(
-                    storeBuilder.getConfig().getContractPath(), contractId);
+            ContractManager contractManager = new ContractManager(storeBuilder.getConfig().getContractPath());
+            ContractMeta contractMeta = contractManager.getContracts().get(contractId);
             return contractMeta.getContract().getDeclaredConstructor().newInstance();
 
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException
