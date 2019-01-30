@@ -1,6 +1,7 @@
 package io.yggdrash.validator.data.pbft;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.proto.PbftProto;
 import org.spongycastle.util.encoders.Hex;
@@ -41,6 +42,19 @@ public class PbftMessageSet {
                 this.commitMap.putIfAbsent(Hex.toHexString(pbftMessage.getSignature().toByteArray()),
                         new PbftMessage(pbftMessage));
             }
+        }
+    }
+
+    public PbftMessageSet(JsonObject jsonObject) {
+        this.prePrepare = new PbftMessage(jsonObject.get("prePrepare").getAsJsonObject());
+        for (JsonElement pbftMessageJsonElement : jsonObject.get("prepareList").getAsJsonArray()) {
+            PbftMessage pbftMessage = new PbftMessage(pbftMessageJsonElement.getAsJsonObject());
+            this.prepareMap.put(pbftMessage.getHashHex(), pbftMessage);
+        }
+
+        for (JsonElement pbftMessageJsonElement : jsonObject.get("commitList").getAsJsonArray()) {
+            PbftMessage pbftMessage = new PbftMessage(pbftMessageJsonElement.getAsJsonObject());
+            this.commitMap.put(pbftMessage.getHashHex(), pbftMessage);
         }
     }
 

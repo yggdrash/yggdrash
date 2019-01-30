@@ -39,6 +39,8 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static io.yggdrash.common.util.Utils.sleep;
+
 @Service
 @EnableScheduling
 @ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "pbft")
@@ -106,17 +108,23 @@ public class PbftService implements CommandLineRunner {
             multicastMessage(prePrepareMsg);
         }
 
+        sleep(500);
+
         // make Prepare msg
         PbftMessage prepareMsg = makePrepareMsg();
         if (prepareMsg != null) {
             multicastMessage(prepareMsg);
         }
 
+        sleep(500);
+
         // make commit msg
         PbftMessage commitMsg = makeCommitMsg();
         if (commitMsg != null) {
             multicastMessage(commitMsg);
         }
+
+        sleep(500);
 
         confirmFinalBlock();
 
@@ -133,15 +141,22 @@ public class PbftService implements CommandLineRunner {
         log.debug("isPrepared=" + this.isPrepared);
         log.debug("isCommited=" + this.isCommited);
 
+        PbftBlock lastBlock = this.blockChain.getLastConfirmedBlock();
 
-        log.debug("lastConfirmedBlock ["
-                + this.blockChain.getLastConfirmedBlock().getIndex()
+        log.debug("PbftBlock ["
+                + lastBlock.getIndex()
                 + "]"
                 + " "
-                + this.blockChain.getLastConfirmedBlock().getHashHex()
+                + lastBlock.getHashHex()
                 + " ("
-                + this.blockChain.getLastConfirmedBlock().getBlock().getAddressHex()
+                + lastBlock.getBlock().getAddressHex()
                 + ")");
+        if (lastBlock.getPbftMessageSet() != null) {
+            log.debug("PbftMessageSet= {} {}",
+                    lastBlock.getPbftMessageSet().getPrepareMap().size(),
+                    lastBlock.getPbftMessageSet().getCommitMap().size());
+        }
+
         log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedMsgMap().size());
     }
 

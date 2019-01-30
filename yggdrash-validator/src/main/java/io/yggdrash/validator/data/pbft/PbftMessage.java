@@ -1,5 +1,6 @@
 package io.yggdrash.validator.data.pbft;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.crypto.HashUtil;
@@ -60,14 +61,7 @@ public class PbftMessage {
     }
 
     public PbftMessage(byte[] bytes) {
-        JsonObject jsonObject = JsonUtil.parseJsonObject(new String(bytes, StandardCharsets.UTF_8));
-        this.type = jsonObject.get("type").getAsString();
-        this.viewNumber = jsonObject.get("viewNumber").getAsLong();
-        this.seqNumber = jsonObject.get("seqNumber").getAsLong();
-        this.hash = Hex.decode(jsonObject.get("hash").getAsString());
-        this.result = Hex.decode(jsonObject.get("result").getAsString());
-        this.signature = Hex.decode(jsonObject.get("signature").getAsString());
-        this.block = new Block(jsonObject.get("block").getAsJsonObject());
+        this(JsonUtil.parseJsonObject(new String(bytes, StandardCharsets.UTF_8)));
     }
 
     public PbftMessage(PbftProto.PbftMessage protoPbftMessage) {
@@ -78,6 +72,28 @@ public class PbftMessage {
         this.result = protoPbftMessage.getResult().toByteArray();
         this.signature = protoPbftMessage.getSignature().toByteArray();
         this.block = Block.toBlock(protoPbftMessage.getBlock());
+    }
+
+    public PbftMessage(JsonObject jsonObject) {
+        this.type = jsonObject.get("type").getAsString();
+        this.viewNumber = jsonObject.get("viewNumber").getAsLong();
+        this.seqNumber = jsonObject.get("seqNumber").getAsLong();
+        this.hash = Hex.decode(jsonObject.get("hash").getAsString());
+        this.signature = Hex.decode(jsonObject.get("signature").getAsString());
+
+        JsonElement resultJsonElement = jsonObject.get("result");
+        if (resultJsonElement != resultJsonElement) {
+            this.result = Hex.decode(resultJsonElement.getAsString());
+        } else {
+            this.result = null;
+        }
+
+        JsonElement blockJsonElement = jsonObject.get("block");
+        if (blockJsonElement != null) {
+            this.block = new Block(blockJsonElement.getAsJsonObject());
+        } else {
+            this.block = null;
+        }
     }
 
     public String getType() {

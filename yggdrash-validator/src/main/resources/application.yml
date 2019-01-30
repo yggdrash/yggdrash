@@ -1,6 +1,6 @@
 logging:
   level:
-    io.yggdrash: trace
+    io.yggdrash: debug
 
 yggdrash:
   validator:

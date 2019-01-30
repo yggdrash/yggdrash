@@ -16,7 +16,9 @@
 
 package io.yggdrash.validator.data;
 
-import io.yggdrash.common.util.ByteUtil;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.Proto;
@@ -25,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class PbftBlock {
@@ -39,8 +42,18 @@ public class PbftBlock {
     }
 
     public PbftBlock(byte[] bytes) {
-        this.block = new Block(ByteUtil.parseBytes(bytes, 0, (int) Block.getBlockLengthInBytes(bytes)));
-        this.pbftMessageSet = null;
+        this(JsonUtil.parseJsonObject(new String(bytes, StandardCharsets.UTF_8)));
+    }
+
+    public PbftBlock(JsonObject jsonObject) {
+        this.block = new Block(jsonObject.get("block").getAsJsonObject());
+
+        JsonElement pbftMessageSetJsonElement = jsonObject.get("pbftMessageSet");
+        if (pbftMessageSetJsonElement != null) {
+            this.pbftMessageSet = new PbftMessageSet(pbftMessageSetJsonElement.getAsJsonObject());
+        } else {
+            this.pbftMessageSet = null;
+        }
     }
 
     public PbftBlock(PbftProto.PbftBlock protoBlock) {
@@ -49,11 +62,7 @@ public class PbftBlock {
     }
 
     public byte[] toBinary() {
-        if (this.pbftMessageSet != null) {
-            return ByteUtil.merge(this.block.toBinary(), this.pbftMessageSet.toBinary());
-        } else {
-            return this.block.toBinary();
-        }
+        return this.toJsonObject().toString().getBytes(StandardCharsets.UTF_8);
     }
 
     public long getIndex() {
@@ -99,6 +108,15 @@ public class PbftBlock {
         return false;
     }
 
+    public JsonObject toJsonObject() {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.add("block", this.block.toJsonObject());
+        if (this.pbftMessageSet != null) {
+            jsonObject.add("pbftMessageSet", this.pbftMessageSet.toJsonObject());
+        }
+        return jsonObject;
+    }
+
     public static PbftProto.PbftBlock toProto(PbftBlock pbftBlock) {
         Proto.Block protoBlock = pbftBlock.getBlock().toProtoBlock();
         PbftProto.PbftMessageSet protoPbftMessageSet =
@@ -128,4 +146,5 @@ public class PbftBlock {
 
         return protoPbftBlockListBuilder.build();
     }
+
 }
