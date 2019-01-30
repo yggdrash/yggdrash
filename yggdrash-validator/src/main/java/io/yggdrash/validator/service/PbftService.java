@@ -143,7 +143,7 @@ public class PbftService implements CommandLineRunner {
 
         PbftBlock lastBlock = this.blockChain.getLastConfirmedBlock();
 
-        log.debug("PbftBlock ["
+        log.info("PbftBlock ["
                 + lastBlock.getIndex()
                 + "]"
                 + " "
@@ -221,10 +221,10 @@ public class PbftService implements CommandLineRunner {
         this.blockChain.getUnConfirmedMsgMap().put(prePrepare.getSignatureHex(), prePrepare);
         this.isPrePrepared = true;
 
-        log.debug("make PrePrepare Msg"
-                + "["
+        log.debug("make PrePrepareMsg"
+                + " ["
                 + newBlock.getIndex()
-                + "]"
+                + "] "
                 + newBlock.getHashHex()
                 + " ("
                 + newBlock.getAddressHex()
@@ -276,13 +276,13 @@ public class PbftService implements CommandLineRunner {
         this.blockChain.getUnConfirmedMsgMap().put(prepareMsg.getSignatureHex(), prepareMsg);
         this.isPrepared = true;
 
-        log.debug("make Prepare Msg"
-                + "["
+        log.debug("make PrepareMsg"
+                + " ["
                 + prepareMsg.getViewNumber()
                 + "]"
-                + "["
+                + " ["
                 + prepareMsg.getSeqNumber()
-                + "]"
+                + "] "
                 + prepareMsg.getHashHex());
 
         return prepareMsg;
@@ -315,13 +315,13 @@ public class PbftService implements CommandLineRunner {
         this.blockChain.getUnConfirmedMsgMap().put(commitMsg.getSignatureHex(), commitMsg);
         this.isCommited = true;
 
-        log.debug("make Commit Msg"
-                + "["
+        log.debug("make CommitMsg"
+                + " ["
                 + commitMsg.getViewNumber()
                 + "]"
-                + "["
+                + " ["
                 + commitMsg.getSeqNumber()
-                + "]"
+                + "] "
                 + commitMsg.getHashHex());
 
         return commitMsg;
@@ -386,12 +386,12 @@ public class PbftService implements CommandLineRunner {
 
         changeLastConfirmedBlock(block);
 
-        log.debug("ConfirmedBlock="
+        log.debug("ConfirmedBlock "
                 + "["
                 + this.blockChain.getLastConfirmedBlock().getIndex()
-                + "]"
+                + "] "
                 + this.blockChain.getLastConfirmedBlock().getHashHex()
-                + "("
+                + " ("
                 + this.blockChain.getLastConfirmedBlock().getPbftMessageSet().getPrepareMap().size()
                 + ", "
                 + this.blockChain.getLastConfirmedBlock().getPbftMessageSet().getCommitMap().size()
