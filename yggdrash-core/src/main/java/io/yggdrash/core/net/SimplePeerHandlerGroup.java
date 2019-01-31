@@ -24,8 +24,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -38,6 +40,8 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
     private PeerHandlerFactory peerHandlerFactory;
 
     private PeerEventListener peerEventListener;
+
+    private final Set<BestBlock> bestBlocks = new HashSet<>();
 
     public SimplePeerHandlerGroup(PeerHandlerFactory peerHandlerFactory) {
         this.peerHandlerFactory = peerHandlerFactory;
@@ -79,6 +83,7 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
 
     private boolean play(Peer owner, PeerHandler peerHandler) {
         try {
+            bestBlocks.forEach(owner::updateBestBlock);
             String pong = peerHandler.ping(owner, "Ping");
             // TODO validation peer
             if ("Pong".equals(pong)) {
@@ -107,6 +112,8 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
 
     @Override
     public void chainedBlock(BlockHusk block) {
+        bestBlocks.add(BestBlock.of(block.getBranchId(), block.getIndex()));
+
         if (handlerMap.isEmpty()) {
             log.trace("Active peer is empty to broadcast block");
             return;

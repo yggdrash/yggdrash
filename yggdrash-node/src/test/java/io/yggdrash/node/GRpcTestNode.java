@@ -13,13 +13,13 @@ import io.yggdrash.core.net.SimplePeerHandlerGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class GRpcTestNode extends BootStrapNode {
+public class GRpcTestNode extends BootStrapNode {
     private static final Logger log = LoggerFactory.getLogger(GRpcTestNode.class);
 
-    final KademliaPeerTable peerTable;
+    public final KademliaPeerTable peerTable;
     final int port;
     final DiscoveryConsumer consumer;
-    private final PeerHandlerGroup peerHandlerGroup;
+    public final PeerHandlerGroup peerHandlerGroup;
     private final PeerTask peerTask;
 
     GRpcTestNode(PeerHandlerFactory factory, int port) {
@@ -36,7 +36,7 @@ class GRpcTestNode extends BootStrapNode {
         peerTask.setPeerTable(peerTable);
     }
 
-    BootStrapNode selfRefreshAndHelthCheck() {
+    public GRpcTestNode selfRefreshAndHealthCheck() {
         super.bootstrapping();
         peerTask.healthCheck();
         return this;

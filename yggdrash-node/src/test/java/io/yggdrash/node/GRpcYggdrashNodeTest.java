@@ -44,7 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(JUnit4.class)
 public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
 
-    private static final int SEED_PORT = 32918;
+    protected static final int SEED_PORT = 32918;
 
     private final AbstractApplicationContext context = new GenericApplicationContext();
 
@@ -66,7 +66,7 @@ public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
     public void testDiscoveryLarge() {
         // act
         for (int i = SEED_PORT; i < SEED_PORT + 100; i++) {
-            testNode(i).selfRefreshAndHelthCheck();
+            testNode(i).selfRefreshAndHealthCheck();
         }
 
         // log debugging
@@ -79,9 +79,9 @@ public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
     @Test
     public void testDiscoverySmall() {
         // act
-        testNode(SEED_PORT).selfRefreshAndHelthCheck();
-        testNode(SEED_PORT + 1).selfRefreshAndHelthCheck();
-        testNode(SEED_PORT + 2).selfRefreshAndHelthCheck();
+        testNode(SEED_PORT).selfRefreshAndHealthCheck();
+        testNode(SEED_PORT + 1).selfRefreshAndHealthCheck();
+        testNode(SEED_PORT + 2).selfRefreshAndHealthCheck();
 
         // assert
         Utils.sleep(100);
@@ -103,7 +103,7 @@ public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
                 .build();
     }
 
-    private GRpcTestNode testNode(int port) {
+    protected GRpcTestNode testNode(int port) {
         GRpcTestNode node = new GRpcTestNode(factory, port);
         nodeList.add(node);
         Server server = createAndStartServer(node);
