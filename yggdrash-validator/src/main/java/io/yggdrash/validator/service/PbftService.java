@@ -67,6 +67,8 @@ public class PbftService implements CommandLineRunner {
     private boolean isPrimary;
     private String currentPrimaryPubKey;
 
+    private int failCount;
+
     private ReentrantLock lock = new ReentrantLock();
 
     @Autowired
@@ -88,6 +90,8 @@ public class PbftService implements CommandLineRunner {
         this.isPrePrepared = false;
         this.isPrepared = false;
         this.isCommited = false;
+
+        this.failCount = 0;
     }
 
     @Override
@@ -95,7 +99,7 @@ public class PbftService implements CommandLineRunner {
         printInitInfo();
     }
 
-    @Scheduled(cron = "*/3 * * * * *")
+    @Scheduled(cron = "*/5 * * * * *")
     public void mainScheduler() {
 
         checkNode();
@@ -129,6 +133,11 @@ public class PbftService implements CommandLineRunner {
         confirmFinalBlock();
 
         loggingStatus();
+
+        PbftMessage viewChangeMsg = makeViewChangeMsg();
+        if (viewChangeMsg != null) {
+            multicastMessage(viewChangeMsg);
+        }
 
         log.info("");
     }
@@ -239,6 +248,76 @@ public class PbftService implements CommandLineRunner {
                 + ")");
 
         return prePrepare;
+    }
+
+
+    private PbftMessage makeViewChangeMsg() {
+        if (this.failCount < 2
+                || !this.isValidator
+                || !this.isActive
+                || !this.isSynced) {
+            return null;
+        }
+
+        Block block = this.blockChain.getLastConfirmedBlock().getBlock();
+        log.trace("block" + block.toString());
+        long index = block.getIndex() + 1;
+        long newViewIndex = index + getActiveNextValidatorIndex(index);
+
+        PbftMessage viewChange = new PbftMessage(
+                "VIEWCHAN",
+                newViewIndex,
+                index,
+                block.getHash(),
+                null,
+                wallet,
+                block);
+        if (viewChange == null) {
+            return null;
+        }
+
+        this.blockChain.getUnConfirmedMsgMap().put(viewChange.getSignatureHex(), viewChange);
+        this.isPrePrepared = true;
+
+        log.debug("make ViewChangeMsg"
+                + " ("
+                + newViewIndex
+                + ")"
+                + " ("
+                + index
+                + ") "
+                + "["
+                + block.getIndex()
+                + "] "
+                + block.getHashHex()
+                + " ("
+                + block.getAddressHex()
+                + ")");
+
+        return viewChange;
+    }
+
+    private long getActiveNextValidatorIndex(long index) {
+        log.trace("Before ActiveNextValidatorIndex: " + index);
+        int validatorCount = this.totalValidatorMap.size();
+        int offSet = ((int) index + 1) % validatorCount;
+        for (int i = 0; i < this.totalValidatorMap.size(); i++) {
+            int seq = (i + offSet) % validatorCount;
+            PbftClientStub client =
+                    (PbftClientStub) this.totalValidatorMap.values().toArray()[seq];
+            if (client.isRunning()) {
+                if (offSet < seq) {
+                    log.trace("ActiveNextValidatorIndex: " + ((seq - offSet + 1)) % validatorCount);
+                    return (long) ((seq - offSet + 1) % validatorCount);
+                } else {
+                    log.trace("ActiveNextValidatorIndex: "
+                            + ((validatorCount + seq - offSet + 1) % validatorCount));
+                    return (long) ((validatorCount + seq - offSet + 1) % validatorCount);
+                }
+            }
+        }
+        log.error("ActiveNextValidatorIndex cannot get next index!");
+        return -1L;
     }
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
@@ -367,6 +446,8 @@ public class PbftService implements CommandLineRunner {
                     case "COMMITMS":
                         comitMap.put(key, pbftMessage);
                         break;
+                    case "VIEWCHAN":
+                        break;
                     default:
                         log.debug("Invalid message type :" + pbftMessage.getType());
                         break;
@@ -383,8 +464,10 @@ public class PbftService implements CommandLineRunner {
             PbftMessageSet pbftMessageSet = new PbftMessageSet(prePrepare, prepareMap, comitMap);
             PbftBlock pbftBlock = new PbftBlock(prePrepare.getBlock(), pbftMessageSet);
             confirmedBlock(pbftBlock);
+            this.failCount = 0;
+        } else {
+            this.failCount++;
         }
-
 
         if (nextCommitCount >= consenusCount) {
             confirmFinalBlock();
