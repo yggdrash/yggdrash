@@ -5,6 +5,8 @@ import io.yggdrash.core.runtime.annotation.*;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.Store;
 
+import java.math.BigDecimal;
+
 @YggdrashContract
 public class TestContract implements Contract {
 
@@ -19,13 +21,26 @@ public class TestContract implements Contract {
     }
 
     @InvokeTransction
-    public boolean doNothing(JsonObject param) {
+    public Boolean doNothing() {
         // pass
         return true;
+    }
+
+    @InvokeTransction
+    public TransactionReceipt transfer(JsonObject params) {
+
+        String to = params.get("to").getAsString().toLowerCase();
+        BigDecimal amount = params.get("amount").getAsBigDecimal();
+        return txReceipt;
     }
 
     @ContractQuery
     public String someQuery() {
         return "";
+    }
+
+    @ContractQuery
+    public void voidQuery() {
+
     }
 }

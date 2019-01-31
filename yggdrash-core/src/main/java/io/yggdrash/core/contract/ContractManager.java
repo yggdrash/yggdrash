@@ -105,22 +105,21 @@ public class ContractManager extends ClassLoader {
         }
 
         for (Map.Entry<String, ContractMethod> elem :
-                contractMeta.getInvokeMethods().entrySet()) {
-                return elem.getValue().getMethod().getReturnType()
-                        .equals(TransactionReceipt.class);
+                contractMeta.getQueryMethods().entrySet()) {
+            if (elem.getValue().getMethod().getReturnType().equals(Void.TYPE)) {
+                return false;
+            }
         }
 
+        for (Map.Entry<String, ContractMethod> elem :
+                contractMeta.getInvokeMethods().entrySet()) {
+            if(elem.getValue().getMethod().getParameterTypes().length < 1) {
+                return false;
+            }
+        }
 
-        //TODO whitelist validtaion
+        //TODO whitelist sandBox validtaion
         return true;
-    }
-
-    /**
-     * Check if another node has it
-     */
-    public ContractMeta contractRequest() {
-        //TODO contract request to another node
-        return null;
     }
 
     /**
@@ -128,6 +127,7 @@ public class ContractManager extends ClassLoader {
      * or Adding a contract from contractRequest
      */
     public void addContract(Class<? extends Contract> contract) {
+        //TODO check the node admin
         File targetDir = new File(contractPath);
         if (!targetDir.exists() && !targetDir.mkdirs()) {
             throw new RuntimeException("Failed to create=" + targetDir.getAbsolutePath());
@@ -154,7 +154,7 @@ public class ContractManager extends ClassLoader {
     }
 
     public Boolean removeContract(ContractId contractVersion) {
-        //TODO contract owner validation
+        //TODO check the node admin
         String directoryPath = contractVersion.toString().substring(0, 2);
         String filePath = contractVersion.toString().substring(0, 2) + File.separator
                 + contractVersion + ".class";
@@ -175,6 +175,8 @@ public class ContractManager extends ClassLoader {
         return false;
     }
 
-    //TODO Query to branch
+    //TODO
+    // 1. contract request to another node
+    // 2. Query to branch
 
 }

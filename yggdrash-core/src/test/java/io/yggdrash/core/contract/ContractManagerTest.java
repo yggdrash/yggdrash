@@ -108,14 +108,6 @@ public class ContractManagerTest {
         contractManager.removeContract(contractVersion);
     }
 
-    @Test
-    public void contractManagerCall() {
-        List<ContractMeta> contractList = contractManager.getContractList();
-        System.out.println(contractList);
-        ContractMeta meta = ContractClassLoader.loadContractClass(StemContract.class);
-        System.out.println(contractManager.getContractById(meta.getContractId()));
-    }
-
     private List<ContractId> contractSample() {
         DefaultConfig defaultConfig = new DefaultConfig();
         List<ContractId> cIds = new ArrayList<>();

@@ -115,7 +115,7 @@ public class ContractMeta {
      */
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("contractId", this.contractId.toString());
+        jsonObject.addProperty("contractVersion", this.contractId.toString());
         jsonObject.addProperty("name", this.contractClassName);
 
         JsonArray invokeArray = new JsonArray();
