@@ -11,12 +11,14 @@ import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @GRpcService
+@ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "ebft")
 public class NodeGrpcService extends BlockChainGrpc.BlockChainImplBase {
     private static final Logger log = LoggerFactory.getLogger(NodeGrpcService.class);
     private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
