@@ -37,7 +37,6 @@ import java.util.List;
 public class BlockCon {
     private static final Logger log = LoggerFactory.getLogger(BlockCon.class);
 
-    private static final boolean TEST_NO_VERIFY = false; // todo: delete when testing is finished
     private static final int BLOCK_HEADER_LENGTH = 124;
     private static final int SIGNATURE_LENGTH = 65;
     private static final int MAX_VALIDATOR_COUNT = 100;
@@ -164,10 +163,6 @@ public class BlockCon {
     }
 
     public static boolean verify(BlockCon blockCon) {
-        if (TEST_NO_VERIFY) {
-            return true;
-        }
-
         if (blockCon == null) {
             return false;
         }

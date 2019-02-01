@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -39,6 +40,7 @@ import static io.yggdrash.common.util.Utils.sleep;
 
 @Service
 @EnableScheduling
+@ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "ebft")
 public class EbftNodeServer implements CommandLineRunner {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(EbftNodeServer.class);
@@ -184,7 +186,8 @@ public class EbftNodeServer implements CommandLineRunner {
             for (; i < blockConList.size(); i++) {
                 blockCon = blockConList.get(i);
                 if (!BlockCon.verify(blockCon) || !consensusVerify(blockCon)) {
-                    log.error("blockConSyncing Verify Fail");
+                    log.warn("Verify Fail");
+                    //todo: check verify fail exception
                     continue;
                 }
                 this.blockConChain.getBlockConStore().put(blockCon.getHash(), blockCon);
@@ -231,7 +234,7 @@ public class EbftNodeServer implements CommandLineRunner {
                     + "]"
                     + newBlockCon.getHashHex()
                     + " ("
-                    + newBlockCon.getBlock().getAddressHexString()
+                    + newBlockCon.getBlock().getAddressHex()
                     + ")");
 
             return newBlockCon;
@@ -413,7 +416,7 @@ public class EbftNodeServer implements CommandLineRunner {
             log.info("[" + lastBlockCon.getIndex() + "] "
                     + lastBlockCon.getHashHex()
                     + " ("
-                    + lastBlockCon.getBlock().getAddressHexString()
+                    + lastBlockCon.getBlock().getAddressHex()
                     + ") "
                     + "("
                     + lastBlockCon.getConsensusList().size()
@@ -438,7 +441,7 @@ public class EbftNodeServer implements CommandLineRunner {
                         + "]"
                         + blockCon.getHashHex()
                         + " ("
-                        + blockCon.getBlock().getAddressHexString()
+                        + blockCon.getBlock().getAddressHex()
                         + ")");
                 for (int i = 0; i < blockCon.getConsensusList().size(); i++) {
                     if (blockCon.getConsensusList().get(i) != null) {
@@ -583,7 +586,7 @@ public class EbftNodeServer implements CommandLineRunner {
         if (runningNodeCount >= consenusCount) {
             if (!this.isActive) {
                 this.isActive = true;
-                log.info("Node is activated. Start make a proposed Block.");
+                log.info("Node is activated.");
             }
         } else {
             if (this.isActive) {
