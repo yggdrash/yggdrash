@@ -9,12 +9,14 @@ import io.yggdrash.validator.data.NodeStatus;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 @GRpcService
+@ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "ebft")
 public class EbftService extends ConsensusEbftGrpc.ConsensusEbftImplBase {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(EbftService.class);

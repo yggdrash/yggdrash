@@ -109,6 +109,10 @@ public class Block implements Cloneable {
         return body;
     }
 
+    public long getIndex() {
+        return this.header.getIndex();
+    }
+
     public byte[] getHash() {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
@@ -123,7 +127,7 @@ public class Block implements Cloneable {
         return HashUtil.sha3(bao.toByteArray());
     }
 
-    public String getHashHexString() {
+    public String getHashHex() {
         return org.spongycastle.util.encoders.Hex.toHexString(this.getHash());
     }
 
@@ -150,7 +154,7 @@ public class Block implements Cloneable {
                 Arrays.copyOfRange(pubBytes, 1, pubBytes.length));
     }
 
-    public String getAddressHexString() {
+    public String getAddressHex() {
         return Hex.toHexString(getAddress());
     }
 
@@ -298,6 +302,10 @@ public class Block implements Cloneable {
     }
 
     public static Block toBlock(Proto.Block protoBlock) {
+        if (protoBlock == null || protoBlock.getSerializedSize() == 0) {
+            return null;
+        }
+
         BlockHeader blockHeader = new BlockHeader(
                 protoBlock.getHeader().getChain().toByteArray(),
                 protoBlock.getHeader().getVersion().toByteArray(),
@@ -318,6 +326,20 @@ public class Block implements Cloneable {
         BlockBody txBody = new BlockBody(txList);
 
         return new Block(blockHeader, protoBlock.getSignature().toByteArray(), txBody);
+    }
+
+    public static long getBlockLengthInBytes(byte[] bytes) {
+        if (bytes == null || bytes.length <= HEADER_LENGTH + SIGNATURE_LENGTH) {
+            log.debug("Input bytes is not valid");
+            return 0L;
+        }
+
+        byte[] headerBytes = new byte[HEADER_LENGTH];
+        System.arraycopy(bytes, 0, headerBytes, 0, headerBytes.length);
+        BlockHeader header = new BlockHeader(headerBytes);
+        long bodyLength = header.getBodyLength();
+
+        return (long) HEADER_LENGTH + (long) SIGNATURE_LENGTH + bodyLength;
     }
 
 }
