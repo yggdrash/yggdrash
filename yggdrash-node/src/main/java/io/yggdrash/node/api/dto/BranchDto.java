@@ -39,6 +39,7 @@ public class BranchDto {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String type;
     public String description;
+    // TODO Change Contract Ids (as List)
     public String contractId;
     public Map<String, Object> genesis;
     public String timestamp;

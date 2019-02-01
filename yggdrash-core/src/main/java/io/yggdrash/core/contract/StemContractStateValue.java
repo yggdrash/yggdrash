@@ -53,7 +53,7 @@ public class StemContractStateValue extends Branch {
     public void init() {
         setType("test");
         setTag("0.1");
-        updateContractHistory(getContractVersion());
+//        updateContractHistory(getContractVersion());
     }
 
     public BranchType getType() {
@@ -83,7 +83,7 @@ public class StemContractStateValue extends Branch {
         return contractHistory;
     }
 
-    void updateContract(String id) {
+    /*void updateContract(String id) {
         ContractVersion newContractVersion = ContractVersion.of(id);
         if (getContractVersion().toString().equals(id)) {
             return;
@@ -93,7 +93,7 @@ public class StemContractStateValue extends Branch {
         getJson().addProperty("contractVersion", id);
 
         updateContractHistory(newContractVersion);
-    }
+    }*/
 
     private void updateContractHistory(ContractVersion newContractVersion) {
         if (contractHistory.contains(newContractVersion)) {

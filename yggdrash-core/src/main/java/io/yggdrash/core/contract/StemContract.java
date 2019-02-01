@@ -49,6 +49,7 @@ public class StemContract implements Contract<JsonObject> {
      */
     @InvokeTransction
     public TransactionReceipt create(JsonObject params) {
+        // TODO Change StemContract Spec
         for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
             BranchId branchId = BranchId.of(entry.getKey());
             JsonObject json = entry.getValue().getAsJsonObject();
@@ -87,13 +88,12 @@ public class StemContract implements Contract<JsonObject> {
      */
     @InvokeTransction
     public TransactionReceipt update(JsonObject params) {
-        txReceipt.addLog(params);
         for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
             BranchId branchId = BranchId.of(entry.getKey());
             JsonObject json = entry.getValue().getAsJsonObject();
 
             StemContractStateValue stateValue = getStateValue(branchId.toString());
-            if (stateValue != null && isOwnerValid(json.get("owner").getAsString())) {
+            if (stateValue != null && isOwnerValid(json.get("validator").getAsString())) {
                 updateBranch(stateValue, json);
                 state.put(branchId.toString(), stateValue.getJson());
                 txReceipt.setStatus(ExecuteStatus.SUCCESS);
@@ -114,7 +114,7 @@ public class StemContract implements Contract<JsonObject> {
         if (json.has("type")) {
             stateValue.setType(json.get("type").getAsString());
         }
-        stateValue.updateContract(json.get("contractVersion").getAsString());
+//        stateValue.updateContract(json.get("contractVersion").getAsString());
     }
 
     /**
@@ -141,7 +141,7 @@ public class StemContract implements Contract<JsonObject> {
         String branchId = params.get(BRANCH_ID)
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
-            return getStateValue(branchId).getContractVersion();
+            //return getStateValue(branchId).getContractVersion();
         }
         return null;
     }
