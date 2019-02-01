@@ -5,9 +5,13 @@ import com.google.gson.JsonParser;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.FileUtil;
+import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -63,17 +67,30 @@ public class BranchTest {
         Branch yggdrashBranch = Branch.of(branch);
         assert "YGGDRASH".equals(yggdrashBranch.getName());
 
-
     }
+
 
     @Test
-    public void immutableBranch() {
+    public void generatorGenesisBlock() throws IOException {
+        File genesisFile = new File(
+                getClass().getClassLoader().getResource("./branch-yggdrash.json").getFile());
 
+        String genesisString = FileUtil.readFileToString(genesisFile, StandardCharsets.UTF_8);
+        JsonObject branch = new JsonParser().parse(genesisString).getAsJsonObject();
+        Branch yggdrashBranch = Branch.of(branch);
 
+        FileInputStream inputBranch = new FileInputStream(genesisFile);
+        GenesisBlock block = GenesisBlock.of(inputBranch);
+        assert block.getBlock().getIndex() == 0;
+        assert yggdrashBranch.getName().equals(block.getBranch().getName());
+        log.debug(JsonUtil.prettyFormat(block.getBlock().toJsonObject()));
 
+        List<TransactionHusk> txs = block.getBlock().getBody();
+
+        // TODO Genesis Block has more by Transaction Type
+        assert txs.size() == 1;
 
     }
-
 
 
 

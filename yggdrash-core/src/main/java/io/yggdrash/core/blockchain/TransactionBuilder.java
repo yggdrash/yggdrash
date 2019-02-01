@@ -106,8 +106,7 @@ public class TransactionBuilder {
             return null;
         }
     }
-
-    public TransactionHusk build() {
+    public Transaction buildTransaction() {
         JsonArray txArray;
         if (branchId == null || txBody.size() == 0) {
             return  null;
@@ -116,7 +115,11 @@ public class TransactionBuilder {
             txArray = new JsonArray();
             txBody.stream().forEach(tb -> txArray.add(tb));
         }
-        Transaction tx = createTx(wallet, branchId, txArray);
+        return createTx(wallet, branchId, txArray);
+    }
+
+    public TransactionHusk build() {
+        Transaction tx = buildTransaction();
         return new TransactionHusk(tx);
     }
 

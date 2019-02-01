@@ -2,6 +2,8 @@ package io.yggdrash.common.util;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -65,6 +67,17 @@ public class JsonUtil {
             stringList.add(element.getAsString());
         }
         return stringList;
+    }
+
+    public static String prettyFormat(String jsonString) {
+        JsonParser parser = new JsonParser();
+        JsonObject json = parser.parse(jsonString).getAsJsonObject();
+        return prettyFormat(json);
+    }
+
+    public static String prettyFormat(JsonObject json) {
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        return gson.toJson(json);
     }
 
 
