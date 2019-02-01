@@ -16,7 +16,9 @@
 
 package io.yggdrash.core.contract;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -96,17 +98,18 @@ public class ContractManager extends ClassLoader {
      */
     public Boolean validation(ContractMeta contractMeta) {
         if(contractMeta.getStateStore() == null) {
-            log.error("Contract does not have required filed state store");
+            log.error("Contract does not have required filed state store.");
             return false;
         }
         if(contractMeta.getTxReceipt() == null) {
-            log.error("Contract does not have required filed transaction receipt");
+            log.error("Contract does not have required filed transaction receipt.");
             return false;
         }
 
         for (Map.Entry<String, ContractMethod> elem :
                 contractMeta.getQueryMethods().entrySet()) {
             if (elem.getValue().getMethod().getReturnType().equals(Void.TYPE)) {
+                log.error("Invoke method should not return void.");
                 return false;
             }
         }
@@ -114,6 +117,7 @@ public class ContractManager extends ClassLoader {
         for (Map.Entry<String, ContractMethod> elem :
                 contractMeta.getInvokeMethods().entrySet()) {
             if(elem.getValue().getMethod().getParameterTypes().length < 1) {
+                log.error("The query method must have a return type.");
                 return false;
             }
         }
