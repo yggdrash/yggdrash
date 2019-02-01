@@ -96,14 +96,9 @@ public class GenesisBlock {
         return jsonArrayTxBody;
     }
 
+    // TODO change Genesis Spec
     private JsonObject toGenesisParams() {
-        if (branch.isStem()) {
-            JsonObject params = new JsonObject();
-            params.add(branch.getBranchId().toString(), branch.getJson());
-            return params;
-        } else {
-            return branch.getJson().getAsJsonObject("genesis");
-        }
+        return branch.getJson().getAsJsonObject("genesis");
     }
 
     private JsonObject toJsonObject(JsonObject header, JsonArray body) {

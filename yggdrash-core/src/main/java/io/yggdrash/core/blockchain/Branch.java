@@ -103,9 +103,8 @@ public class Branch {
         return json;
     }
 
-    // TODO remove isStem
-    public boolean isStem() {
-        return symbol != null && Constants.STEM.equals(symbol);
+    public boolean isYggdrash() {
+        return Constants.YGGDRASH.equals(symbol);
     }
 
     public static Branch of(InputStream is) throws IOException {

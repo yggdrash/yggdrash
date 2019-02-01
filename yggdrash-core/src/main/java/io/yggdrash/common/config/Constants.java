@@ -9,6 +9,7 @@ public class Constants {
 
     public static final String STEM = "STEM";
     public static final String YEED = "YEED";
+    public static final String YGGDRASH = "YGGDRASH";
     public static final String BRANCH_ID = "branchId";
     public static final String TX_ID = "txId";
     public static final String BLOCK_ID = "blockId";
@@ -30,6 +31,8 @@ public class Constants {
     private Constants() {
 
     }
+
+
 
     public static final byte[] STEM_CONTRACT = Hex.encode(STEM.getBytes());
     public static final ContractVersion STEM_CONTRACT_VERSION = ContractVersion.of(HexUtil.toHexString(STEM_CONTRACT));
