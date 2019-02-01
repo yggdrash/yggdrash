@@ -10,6 +10,7 @@ import io.yggdrash.core.net.NodeStatusMock;
 import io.yggdrash.core.net.PeerHandlerFactory;
 import io.yggdrash.core.net.PeerHandlerGroup;
 import io.yggdrash.core.net.SimplePeerHandlerGroup;
+import io.yggdrash.core.util.PeerTableCounter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,12 +18,12 @@ public class GRpcTestNode extends BootStrapNode {
     private static final Logger log = LoggerFactory.getLogger(GRpcTestNode.class);
 
     public final KademliaPeerTable peerTable;
-    final int port;
-    final DiscoveryConsumer consumer;
+    public final int port;
+    public final DiscoveryConsumer consumer;
     public final PeerHandlerGroup peerHandlerGroup;
-    private final PeerTask peerTask;
+    public final PeerTask peerTask;
 
-    GRpcTestNode(PeerHandlerFactory factory, int port) {
+    public GRpcTestNode(PeerHandlerFactory factory, int port) {
         this.port = port;
         this.peerTable = PeerTestUtils.createTable(port, factory);
         setDht(peerTable);
@@ -36,22 +37,15 @@ public class GRpcTestNode extends BootStrapNode {
         peerTask.setPeerTable(peerTable);
     }
 
-    public GRpcTestNode selfRefreshAndHealthCheck() {
-        super.bootstrapping();
-        peerTask.healthCheck();
-        return this;
-    }
-
-    int getActivePeerCount() {
+    public int getActivePeerCount() {
         return peerHandlerGroup.handlerCount();
     }
 
-    void logDebugging() {
-        log.info("{} => peerBucket={}, active={}",
+    public void logDebugging() {
+        log.info("{} => peer={}, bucket={}, active={}",
                 peerTable.getOwner(),
-                String.format(
-                        "%3d",
-                        peerTable.getBucketsCount()),
-                        getActivePeerCount());
+                String.format("%3d", PeerTableCounter.of(peerTable).totalPeerOfBucket()),
+                peerTable.getBucketsCount(),
+                getActivePeerCount());
     }
 }

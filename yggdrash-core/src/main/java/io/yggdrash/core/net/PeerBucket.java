@@ -126,6 +126,7 @@ public class PeerBucket {
         return peers;
     }
 
+    // Debug only
     Set<Peer> getReplacements() {
         return replacements;
     }

@@ -70,7 +70,7 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
             if (peerHandler == null) {
                 peerHandler = peerHandlerFactory.create(to);
                 handlerMap.put(to.toAddress(), peerHandler);
-                log.info("Added size={}, handler={}", handlerCount(), to.toAddress());
+                log.debug("Added size={}, handler={}", handlerCount(), to.toAddress());
             }
             if (!play(owner, peerHandler)) {
                 success = false;

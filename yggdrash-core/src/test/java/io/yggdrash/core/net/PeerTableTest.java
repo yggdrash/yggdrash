@@ -3,6 +3,7 @@ package io.yggdrash.core.net;
 import io.yggdrash.PeerTestUtils;
 import io.yggdrash.TestConstants.SlowTest;
 import io.yggdrash.common.util.Utils;
+import io.yggdrash.core.util.PeerTableCounter;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,7 +14,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 public class PeerTableTest {
-    private PeerTable peerTable;
+    private KademliaPeerTable peerTable;
 
     @Before
     public void setUp() {
@@ -87,19 +88,16 @@ public class PeerTableTest {
         peerTable.addPeer(peer1);
         peerTable.addPeer(peer2);
 
-        assertEquals(peerTable.getBucketsCount(), 2);
-        //assertEquals(peerTable.getStoreCount(), 0);
+        assertEquals(PeerTableCounter.of(peerTable).totalPeerOfBucket(), 2);
 
         Utils.sleep(200);
 
         peerTable.copyLiveNode(100);
 
-        assertEquals(peerTable.getBucketsCount(), 2);
-        //assertEquals(peerTable.getStoreCount(), 3);
+        assertEquals(PeerTableCounter.of(peerTable).totalPeerOfBucket(), 2);
 
         peerTable.copyLiveNode(300);
 
-        assertEquals(peerTable.getBucketsCount(), 2);
-        //assertEquals(peerTable.getStoreCount(), 3);
+        assertEquals(PeerTableCounter.of(peerTable).totalPeerOfBucket(), 2);
     }
 }

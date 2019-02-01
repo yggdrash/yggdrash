@@ -14,103 +14,59 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.node.discovery;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
-import io.grpc.testing.GrpcCleanupRule;
 import io.yggdrash.TestConstants;
-import io.yggdrash.common.util.Utils;
+import io.yggdrash.core.net.KademliaOptions;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerHandlerFactory;
+import io.yggdrash.node.GRpcTestNode;
 import io.yggdrash.node.service.DiscoveryService;
 import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
 import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
-import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(JUnit4.class)
-public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
-
-    protected static final int SEED_PORT = 32918;
+public class TcpDiscoveryNodeTest extends AbstractDiscoveryNodeTest {
 
     private final AbstractApplicationContext context = new GenericApplicationContext();
 
-    private PeerHandlerFactory factory;
-
-    private List<GRpcTestNode> nodeList;
-
-    @Rule
-    public final GrpcCleanupRule gRpcCleanup = new GrpcCleanupRule();
-
-    @Before
+    @Override
     public void setUp() {
+        super.setUp();
         context.refresh();
-        nodeList = new ArrayList<>();
-        setPeerHandlerFactory();
     }
 
     @Test
     public void testDiscoveryLarge() {
-        // act
-        for (int i = SEED_PORT; i < SEED_PORT + 100; i++) {
-            testNode(i).selfRefreshAndHealthCheck();
-        }
+        TestConstants.SlowTest.apply();
 
-        // log debugging
-        Utils.sleep(500);
-        for (GRpcTestNode node : nodeList) {
-            node.logDebugging();
-        }
-    }
-
-    @Test
-    public void testDiscoverySmall() {
         // act
-        testNode(SEED_PORT).selfRefreshAndHealthCheck();
-        testNode(SEED_PORT + 1).selfRefreshAndHealthCheck();
-        testNode(SEED_PORT + 2).selfRefreshAndHealthCheck();
+        bootstrapAndHealthCheck(50);
 
         // assert
-        Utils.sleep(100);
-        assertThat(nodeList.get(0).getActivePeerCount()).isEqualTo(0);
-        assertThat(nodeList.get(1).getActivePeerCount()).isEqualTo(1);
-        assertThat(nodeList.get(2).getActivePeerCount()).isEqualTo(2);
+        for (GRpcTestNode node : nodeList) {
+            nodeList.forEach(this::refreshAndhealthCheck);
+            assertThat(node.getActivePeerCount()).isGreaterThanOrEqualTo(KademliaOptions.BUCKET_SIZE);
+        }
     }
 
-    private void setPeerHandlerFactory() {
-        this.factory = peer -> {
-            ManagedChannel managedChannel = createChannel(peer);
-            gRpcCleanup.register(managedChannel);
-            return new GRpcPeerHandler(managedChannel, peer);
-        };
-    }
-
+    @Override
     protected ManagedChannel createChannel(Peer peer) {
         return ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
                 .build();
     }
 
-    protected GRpcTestNode testNode(int port) {
-        GRpcTestNode node = new GRpcTestNode(factory, port);
-        nodeList.add(node);
-        Server server = createAndStartServer(node);
-        gRpcCleanup.register(server);
-        return node;
-    }
-
+    @Override
     protected Server createAndStartServer(GRpcTestNode node) {
         GrpcServerBuilderConfigurer configurer = builder ->
                 builder.addService(new DiscoveryService(node.consumer));

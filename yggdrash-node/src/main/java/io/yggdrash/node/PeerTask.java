@@ -63,14 +63,14 @@ public class PeerTask {
         if (!nodeStatus.isUpStatus()) {
             return;
         }
-        List<Peer> closestPeerList = peerTable.getClosestPeers(peerTable.getOwner(), KademliaOptions.BUCKET_SIZE);
+        List<Peer> closestPeerList = peerTable.getClosestPeers(peerTable.getOwner(), 7);
         peerHandlerGroup.healthCheck(peerTable.getOwner(), closestPeerList);
     }
 
     // refresh performs a lookup for a random target to keep buckets full.
     // seed nodes are inserted if the table is empty (initial bootstrap or discarded faulty peers).
     @Scheduled(cron = "*/30 * * * * *")
-    public void lookup() {
+    public void refresh() {
         // The Kademlia paper specifies that the bucket refresh should perform a lookup
         // in the least recently used bucket. We cannot adhere to this because
         // the findnode target is a 512bit value (not hash-sized) and it is not easily possible

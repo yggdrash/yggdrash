@@ -52,7 +52,7 @@ public class GRpcPeerHandler implements PeerHandler {
                 .build(), peer);
     }
 
-    GRpcPeerHandler(ManagedChannel channel, Peer peer) {
+    public GRpcPeerHandler(ManagedChannel channel, Peer peer) {
         this.channel = channel;
         this.peer = peer;
         this.blockingPeerStub = PeerGrpc.newBlockingStub(channel);

@@ -20,30 +20,8 @@ import io.yggdrash.core.akashic.SyncManager;
 
 public abstract class BootStrapNode implements BootStrap {
 
-    //protected PeerHandlerGroup peerHandlerGroup;
     private Dht dht;
     private SyncManager syncManager;
-
-    /*
-    public void bootstrapping(Dht dht, int maxPeer) {
-        PeerTable peerTable = dht.discover(peerHandlerGroup.getPeerHandlerFactory());
-        for (Peer peer : peerTable.getClosestPeers(peerTable.getOwner(), maxPeer)) {
-            if (peerHandlerGroup.handlerCount() >= maxPeer) {
-                break;
-            }
-            peerHandlerGroup.addHandler(peerTable.getOwner(), peer);
-        }
-    }
-
-    public void setPeerHandlerGroup(PeerHandlerGroup peerHandlerGroup) {
-        this.peerHandlerGroup = peerHandlerGroup;
-    }
-
-    public void destroy() {
-        peerHandlerGroup.destroyAll();
-    }
-
-    */
 
     @Override
     public void bootstrapping() {

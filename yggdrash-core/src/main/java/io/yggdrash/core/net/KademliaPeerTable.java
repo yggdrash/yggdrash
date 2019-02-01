@@ -32,10 +32,6 @@ public class KademliaPeerTable implements PeerTable, Dht {
         for (int i = 0; i < KademliaOptions.BINS; i++) {
             buckets[i] = new PeerBucket(i);
         }
-
-        if (this.peerStore.size() > 0) {
-            this.peerStore.getAll().forEach(s -> addPeer(Peer.valueOf(s)));
-        }
     }
 
     @Override
@@ -45,7 +41,7 @@ public class KademliaPeerTable implements PeerTable, Dht {
         }
 
         int size = getClosestPeers(target, 1).size();
-        log.debug("peerTable :: refresh =>  target = {}, size = {}", target.getYnodeUri(), size);
+        log.debug("peerTable :: refresh =>  size={}, target={}", size, target.getYnodeUri());
         if (size < 1) {
             // The result set is empty, all peers were dropped, discover.
             // We actually wait for the discover to complete here.
@@ -107,6 +103,10 @@ public class KademliaPeerTable implements PeerTable, Dht {
     }
 
     private void loadSeedNodes() {
+        if (this.peerStore.size() > 0) {
+            this.peerStore.getAll().forEach(Peer::valueOf);
+        }
+
         // Load nodes from the database and insert them.
         // This should yield a few previously seen nodes that are (hopefully) still alive.
         if (getBucketsCount() < 1 && seedPeerList != null) {
@@ -168,8 +168,8 @@ public class KademliaPeerTable implements PeerTable, Dht {
         peer.setDistance(owner);
         buckets[getBucketId(peer)].addPeer(peer);
 
-        log.debug("peerTable :: addPeer => {}, bucketSize => {}",
-                peer.getPeerId(), getBucketsCount());
+        log.trace("peerTable :: addPeer => {}, bucketSize => {}",
+                peer.toAddress(), getBucketsCount());
         /*
         Peer lastSeen = buckets[getBucketId(p)].addPeer(p);
         if (lastSeen != null) {
@@ -333,5 +333,10 @@ public class KademliaPeerTable implements PeerTable, Dht {
     public void peerDisconnected(Peer peer) {
         buckets[getBucketId(peer)].dropPeer(peer);
         peerStore.remove(peer.getPeerId());
+    }
+
+    // Debug only
+    public PeerBucket[] getBuckets() {
+        return buckets;
     }
 }
