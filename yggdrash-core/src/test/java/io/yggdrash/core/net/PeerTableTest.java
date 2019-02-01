@@ -6,7 +6,6 @@ import io.yggdrash.common.util.Utils;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -20,23 +19,19 @@ public class PeerTableTest {
         this.peerTable = PeerTestUtils.createTable();
         // owner added already
         assert peerTable.getAllPeerAddressList().size() == 1;
-
     }
 
     @Test
     public void getLatestPeers() {
         SlowTest.apply();
-        //assert peerTable.getStoreCount() == 0;
 
         Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
         peerTable.addPeer(peer1);
-        //assert peerTable.getStoreCount() == 1;
 
         Utils.sleep(2000);
 
         Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32922");
         peerTable.addPeer(peer2);
-        //assert peerTable.getStoreCount() == 2;
 
         long touchedTime = peer2.getModified();
         List<Peer> latestPeerList = peerTable.getLatestPeers(touchedTime);
@@ -44,17 +39,6 @@ public class PeerTableTest {
         assertEquals(latestPeerList.size(), 1);
         assertTrue(!latestPeerList.contains(peer1));
         assertTrue(latestPeerList.contains(peer2));
-    }
-
-    @Test
-    public void getPeersTest() {
-        // acct
-        Peer requester = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        Collection<String> peerListWithoutRequester = peerTable.getPeers(requester);
-
-        // assert
-        assert peerListWithoutRequester.size() == 1;
-        assert peerTable.getPeerUriList().contains(requester.getYnodeUri());
     }
 
     @Test
@@ -73,6 +57,7 @@ public class PeerTableTest {
         peerTable.addPeer(peer4);
 
         assertTrue(peerTable.getClosestPeers(peer2, 1).contains(peer2));
+        assertEquals(peerTable.getPeerUriList().size(), 4); // owner included
     }
 
     @Test
@@ -87,19 +72,37 @@ public class PeerTableTest {
         peerTable.addPeer(peer1);
         peerTable.addPeer(peer2);
 
-        assertEquals(peerTable.getBucketsCount(), 2);
-        //assertEquals(peerTable.getStoreCount(), 0);
+        assertEquals(peerTable.getPeerUriList().size(), 3); // owner included
 
         Utils.sleep(200);
 
         peerTable.copyLiveNode(100);
 
-        assertEquals(peerTable.getBucketsCount(), 2);
-        //assertEquals(peerTable.getStoreCount(), 3);
+        assertEquals(peerTable.getPeerUriList().size(), 3);
 
         peerTable.copyLiveNode(300);
 
-        assertEquals(peerTable.getBucketsCount(), 2);
-        //assertEquals(peerTable.getStoreCount(), 3);
+        assertEquals(peerTable.getPeerUriList().size(), 3);
+    }
+
+    @Test
+    public void pickReplacement() {
+        KademliaOptions.BUCKET_SIZE = 2;
+
+        // 32920 is the owner of the peerTable
+        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"); // bucketId => 158
+        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32932"); // bucketId => 158
+        Peer peer3 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32942"); // bucketId => 158
+        peerTable.addPeer(peer1);
+        peerTable.addPeer(peer2);
+        peerTable.addPeer(peer3); // This will be added to the replacement list of the 158th bucket
+
+        assertEquals(peerTable.getPeerUriList().size(), 3);
+
+        //peer2 is the latest peer in the bucket so it will be replaced by peer3
+        assertEquals(peerTable.pickReplacement(peer2), peer3);
+        assertEquals(peerTable.getPeerUriList().size(), 3);
+        assertEquals(peerTable.getBucketByIndex(158), peerTable.getBucketByPeer(peer1));
+        assertEquals(peerTable.getBucketIdAndPeerList().get(158).size(), 2);
     }
 }

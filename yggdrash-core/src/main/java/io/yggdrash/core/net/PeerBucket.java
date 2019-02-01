@@ -26,7 +26,7 @@ public class PeerBucket {
     }
 
     private Peer lastPeerOf(Set<Peer> list) {
-        return list.stream().skip(getPeersCount() - 1).findFirst().orElse(null);
+        return list.stream().skip(list.size() - 1).findFirst().orElse(null);
     }
 
     synchronized void dropPeer(Peer peer) {
@@ -96,6 +96,7 @@ public class PeerBucket {
         // replaced dead node
         Peer peerToBeReplaced = lastPeerOf(replacements);
         deleteReplacement(peerToBeReplaced);
+        dropPeer(last);
         addPeer(peerToBeReplaced);
         return peerToBeReplaced;
     }

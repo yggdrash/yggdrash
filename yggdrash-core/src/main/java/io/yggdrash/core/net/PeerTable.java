@@ -32,8 +32,6 @@ public interface PeerTable extends PeerEventListener {
 
     void setSeedPeerList(List<String> seedPeerList);
 
-    List<String> getPeers(Peer peer);
-
     List<String> getPeerUriList();
 
     List<Peer> getLatestPeers(long reqTime);

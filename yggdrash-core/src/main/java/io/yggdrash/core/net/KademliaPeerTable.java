@@ -122,26 +122,6 @@ public class KademliaPeerTable implements PeerTable, Dht {
         this.seedPeerList = seedPeerList;
     }
 
-    /*
-    @Override
-    public List<Peer> getBootstrappingSeedList() {
-        // Load nodes from the database and insert them.
-        // This should yield a few previously seen nodes that are (hopefully) still alive.
-        List<Peer> seedPeerList;
-
-        if (peerStore.size() > 1) {
-            seedPeerList = getClosestPeers(owner, KademliaOptions.BUCKET_SIZE); // self -> owner == target
-        } else if (this.seedPeerList != null) {
-            seedPeerList = this.seedPeerList.stream().map(Peer::valueOf)
-                    .collect(Collectors.toList());
-        } else {
-            seedPeerList = new ArrayList<>();
-        }
-
-        return seedPeerList;
-    }
-    */
-
     // resolve searches for a specific peer with the given ID.
     // It returns null if the node could not be found.
     Peer resolve(Peer peer) {
@@ -170,16 +150,6 @@ public class KademliaPeerTable implements PeerTable, Dht {
 
         log.debug("peerTable :: addPeer => {}, bucketSize => {}",
                 peer.getPeerId(), getBucketsCount());
-        /*
-        Peer lastSeen = buckets[getBucketId(p)].addPeer(p);
-        if (lastSeen != null) {
-            return lastSeen;
-        }
-        */
-
-        //peer will be stored in db at specific time intervals
-        //updatePeerStore(peer);
-        //return null;
     }
 
     public synchronized boolean contains(Peer p) {
@@ -265,6 +235,7 @@ public class KademliaPeerTable implements PeerTable, Dht {
         return latestPeers;
     }
 
+    // This function is for gateway-node.
     @Override
     public Map<Integer, List<Peer>> getBucketIdAndPeerList() {
         Map<Integer, List<Peer>> res = new LinkedHashMap<>();
@@ -294,18 +265,13 @@ public class KademliaPeerTable implements PeerTable, Dht {
         return peers;
     }
 
-    public List<String> getPeers(Peer peer) {
-        List<String> peerList = getPeerUriList();
-        addPeer(peer);
-        return peerList;
-    }
-
     @Override
     public List<String> getPeerUriList() {
         return getAllPeers().stream()
                 .map(Peer::getYnodeUri).collect(Collectors.toList());
     }
 
+    // This function is for gateway-node.
     public List<String> getAllPeerAddressList() {
         return getAllPeers()
                 .stream()
