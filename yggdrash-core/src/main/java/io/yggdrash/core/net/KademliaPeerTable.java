@@ -57,17 +57,20 @@ public class KademliaPeerTable implements PeerTable, Dht {
 
     @Override
     public void selfRefresh() {
+        log.debug("peerTable :: selfRefresh!");
+
         loadSeedNodes();
         lookup(0, new ArrayList<>(), getOwner());
     }
 
     private synchronized void lookup(int round, List<Peer> prevTried, Peer target) {
+        log.debug("peerTable :: lookup : target => {}", target);
         try {
             if (round == KademliaOptions.MAX_STEPS) {
                 log.debug("{}", String.format("(KademliaOptions.MAX_STEPS) Terminating discover"
                         + "after %d rounds.", round));
                 log.trace("{}\n{}",
-                        String.format("Peers discovered %d", getBucketsCount()), getPeerUriList());
+                        String.format("Peers discovered %d", getAllPeers().size()), getPeerUriList());
                 return;
             }
 
@@ -95,7 +98,7 @@ public class KademliaPeerTable implements PeerTable, Dht {
             if (tried.isEmpty()) {
                 log.debug("Terminating discover after {} rounds.", round);
                 log.trace("{}\n{}",
-                        String.format("Peers discovered %d", getBucketsCount()), getPeerUriList());
+                        String.format("Peers discovered %d", getAllPeers().size()), getPeerUriList());
                 return;
             }
 
@@ -148,8 +151,8 @@ public class KademliaPeerTable implements PeerTable, Dht {
         peer.setDistance(owner);
         buckets[getBucketId(peer)].addPeer(peer);
 
-        log.debug("peerTable :: addPeer => {}, bucketSize => {}",
-                peer.getPeerId(), getBucketsCount());
+        log.debug("peerTable :: addPeer => {}, peersCnt => {}, bucketSize => {}",
+                peer.getPeerId(), getAllPeers().size(), getBucketsCount());
     }
 
     public synchronized boolean contains(Peer p) {

@@ -23,7 +23,6 @@ public interface PeerTable extends PeerEventListener {
 
     Peer getOwner();
 
-    //Peer addPeer(Peer peer);
     void addPeer(Peer peer);
 
     void copyLiveNode(long minTableTime);
