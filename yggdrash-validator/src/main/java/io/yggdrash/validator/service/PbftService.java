@@ -63,6 +63,7 @@ public class PbftService implements CommandLineRunner {
     private boolean isPrePrepared;
     private boolean isPrepared;
     private boolean isCommited;
+    private boolean isViewChanged;
 
     private boolean isPrimary;
     private String currentPrimaryPubKey;
@@ -90,7 +91,7 @@ public class PbftService implements CommandLineRunner {
         this.isPrePrepared = false;
         this.isPrepared = false;
         this.isCommited = false;
-
+        this.isViewChanged = false;
         this.failCount = 0;
     }
 
@@ -250,73 +251,22 @@ public class PbftService implements CommandLineRunner {
         return prePrepare;
     }
 
+    private long getNextActiveValidatorIndex(long index) {
+        long validatorCount = this.totalValidatorMap.size();
+        log.trace("Before ValidatorIndex: " + index + " " + validatorCount);
 
-    private PbftMessage makeViewChangeMsg() {
-        if (this.failCount < 2
-                || !this.isValidator
-                || !this.isActive
-                || !this.isSynced) {
-            return null;
-        }
-
-        Block block = this.blockChain.getLastConfirmedBlock().getBlock();
-        log.trace("block" + block.toString());
-        long index = block.getIndex() + 1;
-        long newViewIndex = index + getActiveNextValidatorIndex(index);
-
-        PbftMessage viewChange = new PbftMessage(
-                "VIEWCHAN",
-                newViewIndex,
-                index,
-                block.getHash(),
-                null,
-                wallet,
-                block);
-        if (viewChange == null) {
-            return null;
-        }
-
-        this.blockChain.getUnConfirmedMsgMap().put(viewChange.getSignatureHex(), viewChange);
-        this.isPrePrepared = true;
-
-        log.debug("make ViewChangeMsg"
-                + " ("
-                + newViewIndex
-                + ")"
-                + " ("
-                + index
-                + ") "
-                + "["
-                + block.getIndex()
-                + "] "
-                + block.getHashHex()
-                + " ("
-                + block.getAddressHex()
-                + ")");
-
-        return viewChange;
-    }
-
-    private long getActiveNextValidatorIndex(long index) {
-        log.trace("Before ActiveNextValidatorIndex: " + index);
-        int validatorCount = this.totalValidatorMap.size();
-        int offSet = ((int) index + 1) % validatorCount;
-        for (int i = 0; i < this.totalValidatorMap.size(); i++) {
-            int seq = (i + offSet) % validatorCount;
+        for (long l = index + 1; l <= index + validatorCount; l++) {
+            // next validator sequence 0 ~ n
+            int validatorSeq = (int) (l % validatorCount);
             PbftClientStub client =
-                    (PbftClientStub) this.totalValidatorMap.values().toArray()[seq];
+                    (PbftClientStub) this.totalValidatorMap.values().toArray()[validatorSeq];
             if (client.isRunning()) {
-                if (offSet < seq) {
-                    log.trace("ActiveNextValidatorIndex: " + ((seq - offSet + 1)) % validatorCount);
-                    return (long) ((seq - offSet + 1) % validatorCount);
-                } else {
-                    log.trace("ActiveNextValidatorIndex: "
-                            + ((validatorCount + seq - offSet + 1) % validatorCount));
-                    return (long) ((validatorCount + seq - offSet + 1) % validatorCount);
-                }
+                log.trace("NextActiveValidatorIndex: " + l);
+                return l;
             }
         }
-        log.error("ActiveNextValidatorIndex cannot get next index!");
+
+        log.error("Cannot get next active validator index!");
         return -1L;
     }
 
@@ -492,6 +442,56 @@ public class PbftService implements CommandLineRunner {
                 + ")");
     }
 
+    private PbftMessage makeViewChangeMsg() {
+        if (this.failCount < 2
+                || !this.isValidator
+                || !this.isActive
+                || !this.isSynced
+                || this.isViewChanged) {
+            return null;
+        }
+
+        Block block = this.blockChain.getLastConfirmedBlock().getBlock();
+        log.trace("block" + block.toString());
+        long index = block.getIndex() + 1;
+        long newViewIndex = getNextActiveValidatorIndex(index);
+        if (newViewIndex < 0) {
+            return null;
+        }
+
+        PbftMessage viewChange = new PbftMessage(
+                "VIEWCHAN",
+                newViewIndex,
+                index,
+                block.getHash(),
+                null,
+                wallet,
+                block);
+        if (viewChange == null) {
+            return null;
+        }
+
+        this.blockChain.getUnConfirmedMsgMap().put(viewChange.getSignatureHex(), viewChange);
+        this.isViewChanged = true;
+
+        log.debug("make ViewChangeMsg"
+                + " ("
+                + newViewIndex
+                + ")"
+                + " ("
+                + index
+                + ") "
+                + "["
+                + block.getIndex()
+                + "] "
+                + block.getHashHex()
+                + " ("
+                + block.getAddressHex()
+                + ")");
+
+        return viewChange;
+    }
+
     private void changeLastConfirmedBlock(PbftBlock block) {
         this.blockChain.setLastConfirmedBlock(block);
         for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
@@ -531,7 +531,8 @@ public class PbftService implements CommandLineRunner {
 
     private void checkPrimary() {
         long blockIndex = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
-        int primaryIndex = (int) (blockIndex % totalValidatorMap.size());
+
+        int primaryIndex = (int) checkViewChange(blockIndex % totalValidatorMap.size());
         currentPrimaryPubKey = (String) totalValidatorMap.keySet().toArray()[primaryIndex];
 
         if (currentPrimaryPubKey.equals(this.myNode.getPubKey())) {
@@ -539,6 +540,33 @@ public class PbftService implements CommandLineRunner {
         } else {
             this.isPrimary = false;
         }
+    }
+
+    private long checkViewChange(long viewNumber) {
+        if (!this.isValidator
+                || !this.isActive
+                || !this.isSynced) {
+            return viewNumber;
+        }
+
+        Map<String, PbftMessage> viewChangeMsgMap = getViewChangeMsgMap(viewNumber);
+        if (viewChangeMsgMap == null || viewChangeMsgMap.size() < consenusCount) {
+            return viewNumber;
+        } else {
+            return ((PbftMessage) viewChangeMsgMap.values().toArray()[0]).getViewNumber();
+        }
+    }
+
+    private Map<String, PbftMessage> getViewChangeMsgMap(long index) {
+        Map<String, PbftMessage> viewChangeMsgMap = new TreeMap<>();
+        for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
+            PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
+            if (pbftMessage.getSeqNumber() == index
+                    && pbftMessage.getType().equals("VIEWCHAN")) {
+                viewChangeMsgMap.put(key, pbftMessage);
+            }
+        }
+        return viewChangeMsgMap;
     }
 
     private void checkNode() {
