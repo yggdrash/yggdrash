@@ -20,7 +20,7 @@ public class PeerTableCounter {
     }
 
     public int totalPeerOfBucket() {
-        int cnt = -1; // exclude owner;
+        int cnt = 0;
         for (PeerBucket b : table.getBuckets()) {
             cnt += b.getPeersCount();
         }

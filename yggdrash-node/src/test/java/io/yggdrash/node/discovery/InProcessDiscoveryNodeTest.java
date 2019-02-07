@@ -65,7 +65,7 @@ public class InProcessDiscoveryNodeTest extends AbstractDiscoveryNodeTest {
     public void targetSizeNetworkTest() {
         TestConstants.SlowTest.apply();
         rootLogger.setLevel(Level.INFO);
-        testDiscoveryNetwork(100, 1, 7); // 1.5s
+        testDiscoveryNetwork(100, 2, 7); // 1.5s
         //testDiscoveryNetwork(500, 2, 16); // 2s, maxPeers=96, maxBuckets=11
         //testDiscoveryNetwork(500, 3, 6); // 3s, maxPeers=96, maxBuckets=11
         //testDiscoveryNetwork(1000, 2, 16); // 4.8s, maxPeers=113, maxBuckets=13

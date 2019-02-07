@@ -9,6 +9,7 @@ import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.NodeStatusMock;
 import io.yggdrash.core.net.PeerHandlerFactory;
 import io.yggdrash.core.net.PeerHandlerGroup;
+import io.yggdrash.core.net.PeerTask;
 import io.yggdrash.core.net.SimplePeerHandlerGroup;
 import io.yggdrash.core.util.PeerTableCounter;
 import org.slf4j.Logger;

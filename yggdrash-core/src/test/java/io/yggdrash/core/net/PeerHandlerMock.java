@@ -39,7 +39,7 @@ public class PeerHandlerMock implements PeerHandler {
 
     @Override
     public List<Peer> findPeers(Peer peer) {
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
