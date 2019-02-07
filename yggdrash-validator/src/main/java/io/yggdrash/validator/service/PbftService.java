@@ -110,7 +110,9 @@ public class PbftService implements CommandLineRunner {
         checkPrimary();
 
         // make PrePrepare msg
+        lock.lock();
         PbftMessage prePrepareMsg = makePrePrepareMsg();
+        lock.unlock();
         if (prePrepareMsg != null) {
             multicastMessage(prePrepareMsg);
         }
@@ -118,7 +120,9 @@ public class PbftService implements CommandLineRunner {
         sleep(500);
 
         // make Prepare msg
+        lock.lock();
         PbftMessage prepareMsg = makePrepareMsg();
+        lock.unlock();
         if (prepareMsg != null) {
             multicastMessage(prepareMsg);
         }
@@ -126,23 +130,28 @@ public class PbftService implements CommandLineRunner {
         sleep(500);
 
         // make commit msg
+        lock.lock();
         PbftMessage commitMsg = makeCommitMsg();
+        lock.unlock();
         if (commitMsg != null) {
             multicastMessage(commitMsg);
         }
 
         sleep(500);
 
+        lock.lock();
         confirmFinalBlock();
+        lock.unlock();
 
-        loggingStatus();
-
+        lock.lock();
         PbftMessage viewChangeMsg = makeViewChangeMsg();
+        lock.unlock();
         if (viewChangeMsg != null) {
             multicastMessage(viewChangeMsg);
         }
 
-        log.info("");
+        loggingStatus();
+
     }
 
     private void loggingStatus() {
@@ -186,6 +195,8 @@ public class PbftService implements CommandLineRunner {
             log.debug("TxStore unConfirmed Tx.size= "
                     + this.blockChain.getTransactionStore().getUnconfirmedTxs().size());
         }
+
+        log.info("");
     }
 
     private void multicastBlock(PbftBlock block) {
