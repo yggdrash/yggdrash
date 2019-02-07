@@ -7,7 +7,6 @@ import io.yggdrash.core.util.PeerTableCounter;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collection;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -19,25 +18,21 @@ public class PeerTableTest {
     @Before
     public void setUp() {
         this.peerTable = PeerTestUtils.createTable();
-        // owner added already
-        assert peerTable.getAllPeerAddressList().size() == 1;
+        assert peerTable.getPeerUriList().isEmpty();
 
     }
 
     @Test
     public void getLatestPeers() {
         SlowTest.apply();
-        //assert peerTable.getStoreCount() == 0;
 
         Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
         peerTable.addPeer(peer1);
-        //assert peerTable.getStoreCount() == 1;
 
         Utils.sleep(2000);
 
         Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32922");
         peerTable.addPeer(peer2);
-        //assert peerTable.getStoreCount() == 2;
 
         long touchedTime = peer2.getModified();
         List<Peer> latestPeerList = peerTable.getLatestPeers(touchedTime);
@@ -48,32 +43,23 @@ public class PeerTableTest {
     }
 
     @Test
-    public void getPeersTest() {
-        // acct
-        Peer requester = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        Collection<String> peerListWithoutRequester = peerTable.getPeers(requester);
-
-        // assert
-        assert peerListWithoutRequester.size() == 1;
-        assert peerTable.getPeerUriList().contains(requester.getYnodeUri());
-    }
-
-    @Test
     public void getClosestPeers() {
-        assert peerTable.getClosestPeers(
-                peerTable.getOwner(), KademliaOptions.BUCKET_SIZE).size() == 0;
-
-        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:22909");
-        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32830");
-        Peer peer3 = Peer.valueOf("ynode://75bff16c@127.0.0.1:31340");
-        Peer peer4 = Peer.valueOf("ynode://75bff16c@127.0.0.1:20750");
+        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
 
         peerTable.addPeer(peer1);
         peerTable.addPeer(peer2);
-        peerTable.addPeer(peer3);
-        peerTable.addPeer(peer4);
 
-        assertTrue(peerTable.getClosestPeers(peer2, 1).contains(peer2));
+        assertTrue(peerTable.getClosestPeers(peerTable.getOwner(), 1).contains(peer1));
+    }
+
+    @Test
+    public void getBucketByPeer() {
+        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
+        peerTable.addPeer(peer1);
+        peerTable.addPeer(peer2);
+        assertEquals(peerTable.getBucketByPeer(peer1).getDepth(), peerTable.getBucketByPeer(peer2).getDepth());
     }
 
     @Test
@@ -83,21 +69,23 @@ public class PeerTableTest {
 
     @Test
     public void copyLiveNode() {
+
+        // arrange
         Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
         Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32919");
         peerTable.addPeer(peer1);
         peerTable.addPeer(peer2);
+        assertEquals(0, peerTable.getPeerStore().size());
 
-        assertEquals(PeerTableCounter.of(peerTable).totalPeerOfBucket(), 2);
+        // act
+        Utils.sleep(10);
+        peerTable.copyLiveNode(5);
+        // assert
+        assertEquals(peerTable.getPeerStore().size(), 0);
 
-        Utils.sleep(200);
-
-        peerTable.copyLiveNode(100);
-
-        assertEquals(PeerTableCounter.of(peerTable).totalPeerOfBucket(), 2);
-
-        peerTable.copyLiveNode(300);
-
-        assertEquals(PeerTableCounter.of(peerTable).totalPeerOfBucket(), 2);
+        // act
+        peerTable.copyLiveNode(500);
+        // assert
+        assertEquals(peerTable.getPeerStore().size(), 2);
     }
 }

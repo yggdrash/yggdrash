@@ -24,7 +24,6 @@ public class KademliaPeerTable implements PeerTable, Dht {
         this.peerStore = peerStore;
         this.factory = factory;
         init();
-        addPeer(owner);
     }
 
     private void init() {
@@ -110,7 +109,11 @@ public class KademliaPeerTable implements PeerTable, Dht {
         // Load nodes from the database and insert them.
         // This should yield a few previously seen nodes that are (hopefully) still alive.
         if (getBucketsCount() < 1 && seedPeerList != null) {
-            this.seedPeerList.stream().map(Peer::valueOf).forEach(this::addPeer);
+            this.seedPeerList.stream().map(Peer::valueOf).forEach(peer -> {
+                if (!owner.toAddress().equals(peer.toAddress())) {
+                    addPeer(peer);
+                }
+            });
         }
     }
 
@@ -193,8 +196,9 @@ public class KademliaPeerTable implements PeerTable, Dht {
 
     @Override
     public void copyLiveNode(long minTableTime) {
+        long baseTime = System.currentTimeMillis();
         for (Peer peer : getAllPeers()) {
-            if ((System.currentTimeMillis() - peer.getModified()) > minTableTime) {
+            if (baseTime - peer.getModified() < minTableTime) {
                 updatePeerStore(peer);
             }
         }
@@ -240,7 +244,7 @@ public class KademliaPeerTable implements PeerTable, Dht {
 
     @Override
     public synchronized int getBucketsCount() {
-        int i = -1; // exclude owner's bucket
+        int i = 0;
         for (PeerBucket b : buckets) {
             if (b.getPeersCount() > 0) {
                 i++;
@@ -294,12 +298,6 @@ public class KademliaPeerTable implements PeerTable, Dht {
         return peers;
     }
 
-    public List<String> getPeers(Peer peer) {
-        List<String> peerList = getPeerUriList();
-        addPeer(peer);
-        return peerList;
-    }
-
     @Override
     public List<String> getPeerUriList() {
         return getAllPeers().stream()
@@ -316,8 +314,7 @@ public class KademliaPeerTable implements PeerTable, Dht {
     @Override
     public synchronized List<Peer> getClosestPeers(Peer targetPeer, int limit) {
         List<Peer> closestEntries = getAllPeers();
-        closestEntries.remove(owner);
-        closestEntries.sort(new DistanceComparator(targetPeer.getPeerId().getBytes())); //TODO TestCode
+        closestEntries.sort(new DistanceComparator(targetPeer.getPeerId().getBytes()));
         if (closestEntries.size() > limit) {
             closestEntries = closestEntries.subList(0, limit);
         }
@@ -338,5 +335,10 @@ public class KademliaPeerTable implements PeerTable, Dht {
     // Debug only
     public PeerBucket[] getBuckets() {
         return buckets;
+    }
+
+    // Debug only
+    PeerStore getPeerStore() {
+        return peerStore;
     }
 }
