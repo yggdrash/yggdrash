@@ -1,14 +1,14 @@
-package io.yggdrash.validator.service;
+package io.yggdrash.validator.service.pbft;
 
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
-import io.yggdrash.validator.data.PbftBlock;
-import io.yggdrash.validator.data.PbftBlockChain;
-import io.yggdrash.validator.data.PbftStatus;
+import io.yggdrash.validator.data.pbft.PbftBlock;
+import io.yggdrash.validator.data.pbft.PbftBlockChain;
 import io.yggdrash.validator.data.pbft.PbftMessage;
+import io.yggdrash.validator.data.pbft.PbftStatus;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

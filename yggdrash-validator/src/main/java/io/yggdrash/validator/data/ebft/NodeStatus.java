@@ -1,4 +1,4 @@
-package io.yggdrash.validator.data;
+package io.yggdrash.validator.data.ebft;
 
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.util.ByteUtil;

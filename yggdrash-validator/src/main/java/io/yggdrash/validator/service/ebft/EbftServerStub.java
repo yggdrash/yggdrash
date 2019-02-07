@@ -1,11 +1,11 @@
-package io.yggdrash.validator.service;
+package io.yggdrash.validator.service.ebft;
 
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.proto.ConsensusEbftGrpc;
 import io.yggdrash.proto.EbftProto;
-import io.yggdrash.validator.data.EbftBlock;
-import io.yggdrash.validator.data.EbftBlockChain;
-import io.yggdrash.validator.data.NodeStatus;
+import io.yggdrash.validator.data.ebft.EbftBlock;
+import io.yggdrash.validator.data.ebft.EbftBlockChain;
+import io.yggdrash.validator.data.ebft.NodeStatus;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

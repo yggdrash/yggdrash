@@ -1,4 +1,4 @@
-package io.yggdrash.validator.store;
+package io.yggdrash.validator.store.ebft;
 
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.exception.NonExistObjectException;

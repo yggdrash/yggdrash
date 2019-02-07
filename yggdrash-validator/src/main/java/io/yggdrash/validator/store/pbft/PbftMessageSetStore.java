@@ -1,4 +1,4 @@
-package io.yggdrash.validator.store;
+package io.yggdrash.validator.store.pbft;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.JsonUtil;

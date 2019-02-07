@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.validator.data;
+package io.yggdrash.validator.data.ebft;
 
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.config.Constants;

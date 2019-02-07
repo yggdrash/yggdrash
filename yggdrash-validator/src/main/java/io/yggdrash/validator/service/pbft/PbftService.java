@@ -1,4 +1,4 @@
-package io.yggdrash.validator.service;
+package io.yggdrash.validator.service.pbft;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -12,11 +12,11 @@ import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.data.PbftBlock;
-import io.yggdrash.validator.data.PbftBlockChain;
-import io.yggdrash.validator.data.PbftStatus;
+import io.yggdrash.validator.data.pbft.PbftBlock;
+import io.yggdrash.validator.data.pbft.PbftBlockChain;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
+import io.yggdrash.validator.data.pbft.PbftStatus;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;

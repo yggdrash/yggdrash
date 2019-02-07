@@ -1,12 +1,12 @@
-package io.yggdrash.validator.data;
+package io.yggdrash.validator.data.ebft;
 
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
-import io.yggdrash.validator.store.EbftBlockKeyStore;
-import io.yggdrash.validator.store.EbftBlockStore;
+import io.yggdrash.validator.store.ebft.EbftBlockKeyStore;
+import io.yggdrash.validator.store.ebft.EbftBlockStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;

@@ -1,4 +1,4 @@
-package io.yggdrash.validator.service;
+package io.yggdrash.validator.service.ebft;
 
 import io.grpc.Context;
 import io.grpc.ManagedChannel;
@@ -7,8 +7,8 @@ import io.grpc.StatusRuntimeException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.ConsensusEbftGrpc;
 import io.yggdrash.proto.EbftProto;
-import io.yggdrash.validator.data.EbftBlock;
-import io.yggdrash.validator.data.NodeStatus;
+import io.yggdrash.validator.data.ebft.EbftBlock;
+import io.yggdrash.validator.data.ebft.NodeStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;

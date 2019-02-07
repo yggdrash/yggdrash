@@ -1,4 +1,4 @@
-package io.yggdrash.validator.data;
+package io.yggdrash.validator.data.pbft;
 
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.crypto.HashUtil;
@@ -6,7 +6,6 @@ import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
-import io.yggdrash.validator.data.pbft.PbftMessage;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
