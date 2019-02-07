@@ -47,6 +47,7 @@ import static io.yggdrash.common.util.Utils.sleep;
 public class PbftService implements CommandLineRunner {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftService.class);
+    private static final int FAIL_COUNT = 2;
 
     private final boolean isValidator;
     private final int bftCount;
@@ -56,7 +57,9 @@ public class PbftService implements CommandLineRunner {
     private final PbftBlockChain blockChain;
 
     private final PbftClientStub myNode;
-    private final TreeMap<String, PbftClientStub> totalValidatorMap;
+    private final Map<String, PbftClientStub> totalValidatorMap;
+
+    private ReentrantLock lock = new ReentrantLock();
 
     private boolean isActive;
     private boolean isSynced;
@@ -69,8 +72,7 @@ public class PbftService implements CommandLineRunner {
     private String currentPrimaryPubKey;
 
     private int failCount;
-
-    private ReentrantLock lock = new ReentrantLock();
+    private final Map<String, PbftMessage> viewChangeMap = new TreeMap<>();
 
     @Autowired
     public PbftService(Wallet wallet, PbftBlockChain blockChain) {
@@ -145,30 +147,38 @@ public class PbftService implements CommandLineRunner {
 
     private void loggingStatus() {
         log.trace("loggingStatus");
+        log.debug("failCount= " + this.failCount);
         log.debug("isAcitve=" + this.isActive);
         log.debug("isSynced=" + this.isSynced);
-        log.debug("isPrePrepared=" + this.isPrePrepared);
-        log.debug("isPrepared=" + this.isPrepared);
-        log.debug("isCommited=" + this.isCommited);
+        log.debug("isPrePrepared= " + this.isPrePrepared);
+        log.debug("isPrepared= " + this.isPrepared);
+        log.debug("isCommited= " + this.isCommited);
+        log.debug("isViewChanged= " + this.isViewChanged);
 
         PbftBlock lastBlock = this.blockChain.getLastConfirmedBlock();
 
-        log.info("PbftBlock ["
+        log.info("PbftBlock "
+                + "("
+                + lastBlock.getPbftMessageSet().getPrePrepare().getViewNumber()
+                + ") "
+                + "["
                 + lastBlock.getIndex()
                 + "]"
-                + " "
                 + lastBlock.getHashHex()
+                + " ("
+                + lastBlock.getPbftMessageSet().getPrepareMap().size()
+                + ")"
+                + " ("
+                + lastBlock.getPbftMessageSet().getCommitMap().size()
+                + ")"
+                + " ("
+                + lastBlock.getPbftMessageSet().getViewChangeMap().size()
+                + ")"
                 + " ("
                 + lastBlock.getBlock().getAddressHex()
                 + ")");
-        if (lastBlock.getPbftMessageSet() != null) {
-            log.debug("PbftMessageSet= {} {}",
-                    lastBlock.getPbftMessageSet().getPrepareMap().size(),
-                    lastBlock.getPbftMessageSet().getCommitMap().size());
-        }
 
         log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedMsgMap().size());
-
         log.debug("blockStore size= " + this.blockChain.getBlockStore().size());
         log.debug("blockKeyStore size= " + this.blockChain.getBlockKeyStore().size());
 
@@ -225,13 +235,21 @@ public class PbftService implements CommandLineRunner {
             return null;
         }
 
-        long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
+        long seqNumber = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
         byte[] prevBlockHash = this.blockChain.getLastConfirmedBlock().getHash();
 
-        Block newBlock = makeNewBlock(index, prevBlockHash);
+        Block newBlock = makeNewBlock(seqNumber, prevBlockHash);
         log.trace("newBlock" + newBlock.toString());
 
-        PbftMessage prePrepare = new PbftMessage("PREPREPA", index, index, newBlock.getHash(), null, wallet, newBlock);
+        long viewNumber = getCurrentViewNumber(seqNumber);
+        PbftMessage prePrepare = new PbftMessage(
+                "PREPREPA",
+                viewNumber,
+                seqNumber,
+                newBlock.getHash(),
+                null,
+                wallet,
+                newBlock);
         if (prePrepare == null) {
             return null;
         }
@@ -239,8 +257,11 @@ public class PbftService implements CommandLineRunner {
         this.blockChain.getUnConfirmedMsgMap().put(prePrepare.getSignatureHex(), prePrepare);
         this.isPrePrepared = true;
 
-        log.debug("make PrePrepareMsg"
-                + " ["
+        log.debug("make PrePrepareMsg "
+                + "("
+                + viewNumber
+                + ") "
+                + "["
                 + newBlock.getIndex()
                 + "] "
                 + newBlock.getHashHex()
@@ -249,6 +270,14 @@ public class PbftService implements CommandLineRunner {
                 + ")");
 
         return prePrepare;
+    }
+
+    private long getCurrentViewNumber(long seqNumber) {
+        if (this.viewChangeMap.size() >= consenusCount) {
+            return ((PbftMessage) this.viewChangeMap.values().toArray()[0]).getViewNumber();
+        } else {
+            return seqNumber;
+        }
     }
 
     private long getNextActiveValidatorIndex(long index) {
@@ -302,13 +331,21 @@ public class PbftService implements CommandLineRunner {
             return null;
         }
 
-        long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
-        PbftMessage prePrepareMsg = getPrePrepareMsg(index);
+        long seqNumber = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
+        PbftMessage prePrepareMsg = getPrePrepareMsg(seqNumber);
         if (prePrepareMsg == null) {
             return null;
         }
 
-        PbftMessage prepareMsg = new PbftMessage("PREPAREM", index, index, prePrepareMsg.getHash(), null, wallet, null);
+        long viewNumber = getCurrentViewNumber(seqNumber);
+        PbftMessage prepareMsg = new PbftMessage(
+                "PREPAREM",
+                viewNumber,
+                seqNumber,
+                prePrepareMsg.getHash(),
+                null,
+                wallet,
+                null);
         if (prepareMsg.getSignature() == null) {
             return null;
         }
@@ -316,10 +353,10 @@ public class PbftService implements CommandLineRunner {
         this.blockChain.getUnConfirmedMsgMap().put(prepareMsg.getSignatureHex(), prepareMsg);
         this.isPrepared = true;
 
-        log.debug("make PrepareMsg"
-                + " ["
+        log.debug("make PrepareMsg "
+                + "("
                 + prepareMsg.getViewNumber()
-                + "]"
+                + ")"
                 + " ["
                 + prepareMsg.getSeqNumber()
                 + "] "
@@ -340,13 +377,14 @@ public class PbftService implements CommandLineRunner {
             return null;
         }
 
-        long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
-        Map<String, PbftMessage> prepareMsgMap = getPrepareMsgMap(index);
+        long seqNumber = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
+        Map<String, PbftMessage> prepareMsgMap = getPrepareMsgMap(seqNumber);
         if (prepareMsgMap == null || prepareMsgMap.size() < consenusCount) {
             return null;
         }
 
-        PbftMessage commitMsg = new PbftMessage("COMMITMS", index, index,
+        long viewNumber = getCurrentViewNumber(seqNumber);
+        PbftMessage commitMsg = new PbftMessage("COMMITMS", viewNumber, seqNumber,
                 ((PbftMessage) prepareMsgMap.values().toArray()[0]).getHash(), null, wallet, null);
         if (commitMsg.getSignature() == null) {
             return null;
@@ -355,10 +393,10 @@ public class PbftService implements CommandLineRunner {
         this.blockChain.getUnConfirmedMsgMap().put(commitMsg.getSignatureHex(), commitMsg);
         this.isCommited = true;
 
-        log.debug("make CommitMsg"
-                + " ["
+        log.debug("make CommitMsg "
+                + "("
                 + commitMsg.getViewNumber()
-                + "]"
+                + ")"
                 + " ["
                 + commitMsg.getSeqNumber()
                 + "] "
@@ -411,10 +449,13 @@ public class PbftService implements CommandLineRunner {
         if (prePrepare != null
                 && prepareMap.size() >= consenusCount
                 && comitMap.size() >= consenusCount) {
-            PbftMessageSet pbftMessageSet = new PbftMessageSet(prePrepare, prepareMap, comitMap);
+            PbftMessageSet pbftMessageSet = new PbftMessageSet(
+                    prePrepare, prepareMap, comitMap, this.viewChangeMap);
             PbftBlock pbftBlock = new PbftBlock(prePrepare.getBlock(), pbftMessageSet);
             confirmedBlock(pbftBlock);
             this.failCount = 0;
+            this.viewChangeMap.clear();
+            this.isViewChanged = false;
         } else {
             this.failCount++;
         }
@@ -431,19 +472,17 @@ public class PbftService implements CommandLineRunner {
         changeLastConfirmedBlock(block);
 
         log.debug("ConfirmedBlock "
+                + "("
+                + block.getPbftMessageSet().getPrePrepare().getViewNumber()
+                + ") "
                 + "["
                 + this.blockChain.getLastConfirmedBlock().getIndex()
                 + "] "
-                + this.blockChain.getLastConfirmedBlock().getHashHex()
-                + " ("
-                + this.blockChain.getLastConfirmedBlock().getPbftMessageSet().getPrepareMap().size()
-                + ", "
-                + this.blockChain.getLastConfirmedBlock().getPbftMessageSet().getCommitMap().size()
-                + ")");
+                + this.blockChain.getLastConfirmedBlock().getHashHex());
     }
 
     private PbftMessage makeViewChangeMsg() {
-        if (this.failCount < 2
+        if (this.failCount < FAIL_COUNT
                 || !this.isValidator
                 || !this.isActive
                 || !this.isSynced
@@ -453,43 +492,36 @@ public class PbftService implements CommandLineRunner {
 
         Block block = this.blockChain.getLastConfirmedBlock().getBlock();
         log.trace("block" + block.toString());
-        long index = block.getIndex() + 1;
-        long newViewIndex = getNextActiveValidatorIndex(index);
-        if (newViewIndex < 0) {
+        long seqNumber = block.getIndex() + 1;
+        long newViewNumber = getNextActiveValidatorIndex(seqNumber);
+        if (newViewNumber < 0) {
             return null;
         }
 
-        PbftMessage viewChange = new PbftMessage(
+        PbftMessage viewChangeMsg = new PbftMessage(
                 "VIEWCHAN",
-                newViewIndex,
-                index,
+                newViewNumber,
+                seqNumber,
                 block.getHash(),
                 null,
                 wallet,
                 block);
-        if (viewChange == null) {
+        if (viewChangeMsg == null) {
             return null;
         }
 
-        this.blockChain.getUnConfirmedMsgMap().put(viewChange.getSignatureHex(), viewChange);
+        this.blockChain.getUnConfirmedMsgMap().put(viewChangeMsg.getSignatureHex(), viewChangeMsg);
         this.isViewChanged = true;
 
-        log.debug("make ViewChangeMsg"
+        log.warn("ViewChang"
                 + " ("
-                + newViewIndex
-                + ")"
+                + seqNumber
+                + ") ->"
                 + " ("
-                + index
-                + ") "
-                + "["
-                + block.getIndex()
-                + "] "
-                + block.getHashHex()
-                + " ("
-                + block.getAddressHex()
+                + newViewNumber
                 + ")");
 
-        return viewChange;
+        return viewChangeMsg;
     }
 
     private void changeLastConfirmedBlock(PbftBlock block) {
@@ -532,8 +564,12 @@ public class PbftService implements CommandLineRunner {
     private void checkPrimary() {
         long blockIndex = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
 
-        int primaryIndex = (int) checkViewChange(blockIndex % totalValidatorMap.size());
+        int primaryIndex = (int) (checkViewChange(blockIndex) % totalValidatorMap.size());
         currentPrimaryPubKey = (String) totalValidatorMap.keySet().toArray()[primaryIndex];
+
+        log.debug("Block Index: " + blockIndex);
+        log.debug("Primary Index: " + primaryIndex);
+        log.debug("currentPrimaryPubKey: " + currentPrimaryPubKey);
 
         if (currentPrimaryPubKey.equals(this.myNode.getPubKey())) {
             this.isPrimary = true;
@@ -542,18 +578,23 @@ public class PbftService implements CommandLineRunner {
         }
     }
 
-    private long checkViewChange(long viewNumber) {
+    private long checkViewChange(long index) {
         if (!this.isValidator
                 || !this.isActive
                 || !this.isSynced) {
-            return viewNumber;
+            return index;
         }
 
-        Map<String, PbftMessage> viewChangeMsgMap = getViewChangeMsgMap(viewNumber);
+        Map<String, PbftMessage> viewChangeMsgMap = getViewChangeMsgMap(index);
+
+        log.debug("viewChangeMsgMap size: " + viewChangeMsgMap.size());
+        // todo: check viewNumber
         if (viewChangeMsgMap == null || viewChangeMsgMap.size() < consenusCount) {
-            return viewNumber;
+            return index;
         } else {
-            return ((PbftMessage) viewChangeMsgMap.values().toArray()[0]).getViewNumber();
+            long newViewNumber = ((PbftMessage) viewChangeMsgMap.values().toArray()[0]).getViewNumber();
+            this.viewChangeMap.putAll(viewChangeMsgMap);
+            return newViewNumber;
         }
     }
 
@@ -660,8 +701,8 @@ public class PbftService implements CommandLineRunner {
         }
         this.blockChain.getUnConfirmedMsgMap().put(key, newPbftMessage);
         if (newPbftMessage.getType().equals("PREPREPA")
-                && newPbftMessage.getSeqNumber() ==
-                this.blockChain.getLastConfirmedBlock().getIndex() + 1) {
+                && newPbftMessage.getSeqNumber()
+                == this.blockChain.getLastConfirmedBlock().getIndex() + 1) {
             this.isPrePrepared = true;
         }
     }

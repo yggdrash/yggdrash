@@ -66,18 +66,25 @@ public class PbftMessageSet {
 
     public PbftMessageSet(JsonObject jsonObject) {
         this.prePrepare = new PbftMessage(jsonObject.get("prePrepare").getAsJsonObject());
-        for (JsonElement pbftMessageJsonElement : jsonObject.get("prepareList").getAsJsonArray()) {
-            PbftMessage pbftMessage = new PbftMessage(pbftMessageJsonElement.getAsJsonObject());
-            this.prepareMap.put(pbftMessage.getHashHex(), pbftMessage);
+
+        if (jsonObject.get("prepareList") != null) {
+            for (JsonElement pbftMessageJsonElement : jsonObject.get("prepareList").getAsJsonArray()) {
+                PbftMessage pbftMessage = new PbftMessage(pbftMessageJsonElement.getAsJsonObject());
+                this.prepareMap.put(pbftMessage.getHashHex(), pbftMessage);
+            }
         }
 
-        for (JsonElement pbftMessageJsonElement : jsonObject.get("commitList").getAsJsonArray()) {
-            PbftMessage pbftMessage = new PbftMessage(pbftMessageJsonElement.getAsJsonObject());
-            this.commitMap.put(pbftMessage.getHashHex(), pbftMessage);
+        if (jsonObject.get("commitList") != null) {
+            for (JsonElement pbftMessageJsonElement : jsonObject.get("commitList").getAsJsonArray()) {
+                PbftMessage pbftMessage = new PbftMessage(pbftMessageJsonElement.getAsJsonObject());
+                this.commitMap.put(pbftMessage.getHashHex(), pbftMessage);
+            }
         }
-        for (JsonElement pbftMessageJsonElement : jsonObject.get("viewChangeList").getAsJsonArray()) {
-            PbftMessage pbftMessage = new PbftMessage(pbftMessageJsonElement.getAsJsonObject());
-            this.viewChangeMap.put(pbftMessage.getHashHex(), pbftMessage);
+        if (jsonObject.get("viewChangeList") != null) {
+            for (JsonElement pbftMessageJsonElement : jsonObject.get("viewChangeList").getAsJsonArray()) {
+                PbftMessage pbftMessage = new PbftMessage(pbftMessageJsonElement.getAsJsonObject());
+                this.viewChangeMap.put(pbftMessage.getHashHex(), pbftMessage);
+            }
         }
     }
 
@@ -101,7 +108,6 @@ public class PbftMessageSet {
         PbftMessage prePrepare = pbftMessageSet.getPrePrepare();
         Map<String, PbftMessage> prepareMap = pbftMessageSet.getPrepareMap();
         Map<String, PbftMessage> commitMap = pbftMessageSet.getCommitMap();
-        Map<String, PbftMessage> viewChangeMap = pbftMessageSet.getViewChangeMap();
 
         if (prePrepare == null || prePrepare.getSignature() == null
                 || prepareMap == null
@@ -127,6 +133,7 @@ public class PbftMessageSet {
             }
         }
 
+        Map<String, PbftMessage> viewChangeMap = pbftMessageSet.getViewChangeMap();
         for (String key : viewChangeMap.keySet()) {
             PbftMessage pbftMessage = viewChangeMap.get(key);
             if (!PbftMessage.verify(pbftMessage)) {
@@ -188,9 +195,6 @@ public class PbftMessageSet {
         PbftProto.PbftMessageList protoCommitMessageList =
                 PbftMessage.toProtoList(
                         new ArrayList<PbftMessage>(pbftMessageSet.getCommitMap().values()));
-        PbftProto.PbftMessageList protoViewChangeMessageList =
-                PbftMessage.toProtoList(
-                        new ArrayList<PbftMessage>(pbftMessageSet.getViewChangeMap().values()));
 
         PbftProto.PbftMessageSet.Builder protoPbftMessageSetBuilder =
                 PbftProto.PbftMessageSet.newBuilder();
@@ -203,6 +207,10 @@ public class PbftMessageSet {
         if (protoCommitMessageList != null) {
             protoPbftMessageSetBuilder.setCommitList(protoCommitMessageList);
         }
+
+        PbftProto.PbftMessageList protoViewChangeMessageList =
+                PbftMessage.toProtoList(
+                        new ArrayList<PbftMessage>(pbftMessageSet.getViewChangeMap().values()));
         if (protoViewChangeMessageList != null) {
             protoPbftMessageSetBuilder.setViewChangeList(protoViewChangeMessageList);
         }
