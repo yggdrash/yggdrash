@@ -16,8 +16,8 @@ import java.io.IOException;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-public class BlockConKeyStoreTest {
-    private static final Logger log = LoggerFactory.getLogger(BlockConKeyStoreTest.class);
+public class EbftBlockKeyStoreTest {
+    private static final Logger log = LoggerFactory.getLogger(EbftBlockKeyStoreTest.class);
 
     private Wallet wallet;
 
@@ -27,20 +27,20 @@ public class BlockConKeyStoreTest {
     }
 
     @Test
-    public void blockConKeyStoreTest() {
+    public void ebftBlockKeyStoreTest() {
         LevelDbDataSource ds =
                 new LevelDbDataSource(StoreTestUtils.getTestPath(), "block-con-key-store-test");
-        BlockConKeyStore blockConKeyStore = new BlockConKeyStore(ds);
+        EbftBlockKeyStore ebftBlockKeyStore = new EbftBlockKeyStore(ds);
 
         Block block = new TestUtils(wallet).sampleBlock();
-        blockConKeyStore.put(block.getHeader().getIndex(), block.getHash());
-        byte[] foundKey = blockConKeyStore.get(block.getHeader().getIndex());
+        ebftBlockKeyStore.put(block.getHeader().getIndex(), block.getHash());
+        byte[] foundKey = ebftBlockKeyStore.get(block.getHeader().getIndex());
 
         assertArrayEquals(block.getHash(), foundKey);
-        assert (blockConKeyStore.contains(block.getHeader().getIndex()));
+        assert (ebftBlockKeyStore.contains(block.getHeader().getIndex()));
 
-        log.debug("size: " + blockConKeyStore.size());
-        assertEquals(blockConKeyStore.size(), 1);
+        log.debug("size: " + ebftBlockKeyStore.size());
+        assertEquals(ebftBlockKeyStore.size(), 1);
 
         StoreTestUtils.clearTestDb();
     }

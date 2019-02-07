@@ -4,7 +4,7 @@ import io.yggdrash.StoreTestUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.data.BlockCon;
+import io.yggdrash.validator.data.EbftBlock;
 import io.yggdrash.validator.util.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -19,8 +19,8 @@ import java.util.List;
 
 import static org.junit.Assert.assertEquals;
 
-public class BlockConStoreTest {
-    private static final Logger log = LoggerFactory.getLogger(BlockConStoreTest.class);
+public class EbftBlockStoreTest {
+    private static final Logger log = LoggerFactory.getLogger(EbftBlockStoreTest.class);
 
     private Wallet wallet;
 
@@ -30,25 +30,25 @@ public class BlockConStoreTest {
     }
 
     @Test
-    public void blockConStoreTest() {
+    public void ebftBlockStoreTest() {
         LevelDbDataSource ds =
                 new LevelDbDataSource(StoreTestUtils.getTestPath(), "block-con-store-test");
-        BlockConStore blockConStore = new BlockConStore(ds);
+        EbftBlockStore ebftBlockStore = new EbftBlockStore(ds);
         Block block = new TestUtils(wallet).sampleBlock();
         List<String> consensusList = new ArrayList<>();
         consensusList.add(Hex.toHexString(wallet.sign(block.getHash())));
 
-        BlockCon blockCon = new BlockCon(block.getHeader().getIndex(),
+        EbftBlock ebftBlock = new EbftBlock(block.getHeader().getIndex(),
                 block.getHeader().getPrevBlockHash(), block, consensusList);
 
-        blockConStore.put(blockCon.getHash(), blockCon);
-        BlockCon foundBlockCon = blockConStore.get(blockCon.getHash());
+        ebftBlockStore.put(ebftBlock.getHash(), ebftBlock);
+        EbftBlock foundEbftBlock = ebftBlockStore.get(ebftBlock.getHash());
 
-        assert (blockCon.equals(foundBlockCon));
-        assert (blockConStore.contains(blockCon.getHash()));
+        assert (ebftBlock.equals(foundEbftBlock));
+        assert (ebftBlockStore.contains(ebftBlock.getHash()));
 
-        log.debug("size: " + blockConStore.size());
-        assertEquals(blockConStore.size(), 1);
+        log.debug("size: " + ebftBlockStore.size());
+        assertEquals(ebftBlockStore.size(), 1);
 
         StoreTestUtils.clearTestDb();
     }

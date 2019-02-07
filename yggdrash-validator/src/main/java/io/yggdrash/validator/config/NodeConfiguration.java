@@ -6,7 +6,7 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.data.BlockConChain;
+import io.yggdrash.validator.data.EbftBlockChain;
 import io.yggdrash.validator.data.PbftBlockChain;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -47,8 +47,8 @@ public class NodeConfiguration {
 
     @Bean
     @ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "ebft")
-    BlockConChain blockConChain(Block genesisBlock, DefaultConfig defaultConfig) {
-        return new BlockConChain(genesisBlock, defaultConfig);
+    EbftBlockChain ebftBlockChain(Block genesisBlock, DefaultConfig defaultConfig) {
+        return new EbftBlockChain(genesisBlock, defaultConfig);
     }
 
     @Bean

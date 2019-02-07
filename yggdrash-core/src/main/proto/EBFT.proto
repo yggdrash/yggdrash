@@ -18,15 +18,15 @@ message NodeList {
     repeated string nodeList = 1;
 }
 
-message BlockConList {
-    repeated BlockCon blockConList = 1;
+message EbftBlockList {
+    repeated EbftBlock ebftBlockList = 1;
 }
 
 message ConsensusList {
     repeated string consensusList = 1;
 }
 
-message BlockCon {
+message EbftBlock {
     bytes chain = 1;
     bytes hash = 2;
     int64 index = 3;
@@ -38,8 +38,8 @@ message BlockCon {
 message NodeStatus {
     bytes chain = 1;
     NodeList activeNodeList = 2;
-    BlockCon lastConfirmedBlockCon = 3;
-    BlockConList unConfirmedBlockConList = 4;
+    EbftBlock lastConfirmedEbftBlock = 3;
+    EbftBlockList unConfirmedEbftBlockList = 4;
     int64 timestamp = 5;
     bytes signature = 6;
 }
@@ -64,12 +64,12 @@ service ConsensusEbft {
     rpc exchangeNodeStatus (NodeStatus) returns (NodeStatus) {
     }
 
-    rpc broadcastBlockCon (BlockCon) returns (Empty) {
+    rpc broadcastEbftBlock (EbftBlock) returns (Empty) {
     }
 
-    rpc getBlockConList (Offset) returns (BlockConList) {
+    rpc getEbftBlockList (Offset) returns (EbftBlockList) {
     }
 
-    rpc exchangeBlockConList (BlockConList) returns (BlockConList) {
+    rpc exchangeEbftBlockList (EbftBlockList) returns (EbftBlockList) {
     }
 }

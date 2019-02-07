@@ -3,41 +3,41 @@ package io.yggdrash.validator.store;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.datasource.DbSource;
-import io.yggdrash.validator.data.BlockCon;
+import io.yggdrash.validator.data.EbftBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 
-public class BlockConStore implements Store<byte[], BlockCon> {
-    private static final Logger log = LoggerFactory.getLogger(BlockConStore.class);
+public class EbftBlockStore implements Store<byte[], EbftBlock> {
+    private static final Logger log = LoggerFactory.getLogger(EbftBlockStore.class);
 
     private final DbSource<byte[], byte[]> db;
 
-    public BlockConStore(DbSource<byte[], byte[]> dbSource) {
+    public EbftBlockStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
     }
 
     @Override
-    public void put(byte[] key, BlockCon value) {
-        log.trace("BlockConStore put "
+    public void put(byte[] key, EbftBlock value) {
+        log.trace("EbftBlockStore put "
                 + "(key: " + Hex.toHexString(key) + ")"
                 + "(value length: " + value.toBinary().length + ")");
         db.put(key, value.toBinary());
     }
 
     @Override
-    public BlockCon get(byte[] key) {
-        log.trace("BlockConStore get "
+    public EbftBlock get(byte[] key) {
+        log.trace("EbftBlockStore get "
                 + "(" + Hex.toHexString(key) + ")");
 
         byte[] foundValue = db.get(key);
         if (foundValue != null) {
-            log.trace("BlockConStore get size: "
+            log.trace("EbftBlockStore get size: "
                     + foundValue.length);
 
-            return new BlockCon(foundValue);
+            return new EbftBlock(foundValue);
         }
         throw new NonExistObjectException("Not Found [" + Hex.toHexString(key) + "]");
     }
