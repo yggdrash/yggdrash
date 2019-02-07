@@ -26,7 +26,7 @@ message PbftMessageSet {
     PbftMessage prePrepare = 1;
     PbftMessageList prepareList = 2;
     PbftMessageList commitList = 3;
-    PbftMessage viewChange = 4;
+    PbftMessageList viewChangeList = 4;
 }
 
 message PbftBlock {
