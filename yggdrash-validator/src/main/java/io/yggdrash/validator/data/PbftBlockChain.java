@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public class PbftBlockChain {
 
     private static final Logger log = LoggerFactory.getLogger(PbftBlockChain.class);
-    public static final boolean TEST_NONE_TXSTORE = true;
+    public static final boolean TEST_NONE_TXSTORE = false;
 
     private final byte[] chain;
     private final String host;
