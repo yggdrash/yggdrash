@@ -45,8 +45,8 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
     }
 
     @Override
-    public void exchangePbftStatus(io.yggdrash.proto.PbftProto.PbftStatus request,
-                                   io.grpc.stub.StreamObserver<io.yggdrash.proto.PbftProto.PbftStatus> responseObserver) {
+    public void exchangePbftStatus(PbftProto.PbftStatus request,
+                                   StreamObserver<PbftProto.PbftStatus> responseObserver) {
         PbftStatus status = new PbftStatus(request);
         updateStatus(status);
 
@@ -57,8 +57,8 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
 
     @Override
-    public void multicastPbftMessage(io.yggdrash.proto.PbftProto.PbftMessage request,
-                                     io.grpc.stub.StreamObserver<io.yggdrash.proto.NetProto.Empty> responseObserver) {
+    public void multicastPbftMessage(PbftProto.PbftMessage request,
+                                     StreamObserver<NetProto.Empty> responseObserver) {
 
         log.trace("multicastPbftMessage");
         PbftMessage pbftMessage = new PbftMessage(request);
@@ -86,15 +86,15 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
     }
 
     @Override
-    public void multicastPbftBlock(io.yggdrash.proto.PbftProto.PbftBlock request,
-                                   io.grpc.stub.StreamObserver<io.yggdrash.proto.NetProto.Empty> responseObserver) {
+    public void multicastPbftBlock(PbftProto.PbftBlock request,
+                                   StreamObserver<NetProto.Empty> responseObserver) {
 
         log.trace("multicastPbftBlock");
         PbftBlock newPbftBlock = new PbftBlock(request);
 
         if (!PbftBlock.verify(newPbftBlock)) {
             log.warn("Verify Fail");
-            responseObserver.onNext(io.yggdrash.proto.NetProto.Empty.newBuilder().build());
+            responseObserver.onNext(EMPTY);
             responseObserver.onCompleted();
             return;
         }

@@ -66,7 +66,7 @@ public class BlockCon {
             throw new NotValidateException();
         }
 
-        byte[] bodyBytes = new byte[(int) blockBodyLength];
+        byte[] bodyBytes = new byte[blockBodyLength];
         System.arraycopy(blockConBytes, position, bodyBytes, 0, bodyBytes.length);
         position += bodyBytes.length;
 

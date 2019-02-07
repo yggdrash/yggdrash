@@ -36,7 +36,7 @@ public class PbftMessageSetStore implements Store<byte[], JsonObject> {
                 + "(" + Hex.toHexString(key) + ") "
                 + "value size: "
                 + foundValue.length);
-        if (foundValue != null) {
+        if (foundValue.length > 0) {
             return JsonUtil.parseJsonObject(new String(foundValue, StandardCharsets.UTF_8));
         }
         throw new NonExistObjectException("Not Found [" + Hex.toHexString(key) + "]");

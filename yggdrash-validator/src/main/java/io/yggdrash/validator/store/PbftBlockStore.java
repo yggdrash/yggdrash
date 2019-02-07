@@ -34,7 +34,7 @@ public class PbftBlockStore implements Store<byte[], PbftBlock> {
                 + "(" + Hex.toHexString(key) + ") "
                 + "value size: "
                 + foundValue.length);
-        if (foundValue != null) {
+        if (foundValue.length > 0) {
             return new PbftBlock(foundValue);
         }
         throw new NonExistObjectException("Not Found [" + Hex.toHexString(key) + "]");

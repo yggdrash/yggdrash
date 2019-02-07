@@ -7,7 +7,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class GenesisBlockTest {
@@ -22,12 +21,20 @@ public class GenesisBlockTest {
     }
 
     @Test
-    public void generateGenesisBlock() throws IOException {
+    public void generateGenesisBlock() {
         this.genesisBlock.generateGenesisBlockFile();
 
         ClassLoader classLoader = getClass().getClassLoader();
-        File genesisFile = new File(classLoader.getResource("./genesis/genesis.json").getFile());
-        String genesisString = FileUtil.readFileToString(genesisFile, StandardCharsets.UTF_8);
+
+        File genesisFile;
+        String genesisString = null;
+
+        try {
+            genesisFile = new File(classLoader.getResource("./genesis/genesis.json").getFile());
+            genesisString = FileUtil.readFileToString(genesisFile, StandardCharsets.UTF_8);
+        } catch (Exception e) {
+            assert false;
+        }
 
         log.debug(genesisString);
     }

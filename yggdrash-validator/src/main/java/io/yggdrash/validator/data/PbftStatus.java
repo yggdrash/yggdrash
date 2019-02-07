@@ -43,9 +43,7 @@ public class PbftStatus {
         for (PbftProto.PbftMessage protoPbftMessage :
                 pbftStatus.getPbftMessageList().getPbftMessageListList()) {
             String key = Hex.toHexString(protoPbftMessage.getSignature().toByteArray());
-            if (this.pbftMessageMap.containsKey(key)) {
-                // todo: update pbftmessge
-            } else {
+            if (!this.pbftMessageMap.containsKey(key)) {
                 this.pbftMessageMap.put(key, new PbftMessage(protoPbftMessage));
             }
         }

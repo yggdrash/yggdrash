@@ -82,7 +82,7 @@ public class PbftMessage {
         this.signature = Hex.decode(jsonObject.get("signature").getAsString());
 
         JsonElement resultJsonElement = jsonObject.get("result");
-        if (resultJsonElement != resultJsonElement) {
+        if (resultJsonElement != null) {
             this.result = Hex.decode(resultJsonElement.getAsString());
         } else {
             this.result = null;

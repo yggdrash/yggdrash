@@ -250,7 +250,7 @@ public class PbftService implements CommandLineRunner {
                 null,
                 wallet,
                 newBlock);
-        if (prePrepare == null) {
+        if (prePrepare.getSignature() == null) {
             return null;
         }
 
@@ -418,7 +418,6 @@ public class PbftService implements CommandLineRunner {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
             if (pbftMessage == null || pbftMessage.getSeqNumber() < index) {
                 this.blockChain.getUnConfirmedMsgMap().remove(key);
-                continue;
             } else if (pbftMessage.getSeqNumber() == index) {
                 switch (pbftMessage.getType()) {
                     case "PREPREPA":
@@ -505,15 +504,15 @@ public class PbftService implements CommandLineRunner {
                 block.getHash(),
                 null,
                 wallet,
-                block);
-        if (viewChangeMsg == null) {
+                null);
+        if (viewChangeMsg.getSignature() == null) {
             return null;
         }
 
         this.blockChain.getUnConfirmedMsgMap().put(viewChangeMsg.getSignatureHex(), viewChangeMsg);
         this.isViewChanged = true;
 
-        log.warn("ViewChang"
+        log.warn("ViewChanged"
                 + " ("
                 + seqNumber
                 + ") ->"
@@ -589,7 +588,7 @@ public class PbftService implements CommandLineRunner {
 
         log.debug("viewChangeMsgMap size: " + viewChangeMsgMap.size());
         // todo: check viewNumber
-        if (viewChangeMsgMap == null || viewChangeMsgMap.size() < consenusCount) {
+        if (viewChangeMsgMap.size() < consenusCount) {
             return index;
         } else {
             long newViewNumber = ((PbftMessage) viewChangeMsgMap.values().toArray()[0]).getViewNumber();
@@ -726,7 +725,6 @@ public class PbftService implements CommandLineRunner {
                     pbftMessageBytes.write(pbftMessage.toBinary());
                 } catch (IOException e) {
                     log.debug(e.getMessage());
-                    continue;
                 }
             }
         }
