@@ -28,22 +28,25 @@ import java.util.List;
 import java.util.Map;
 
 public class RuntimeQuery {
-    Contract contract;
-    ReadOnlyStore store;
+    private Contract contract;
+    private ReadOnlyStore store;
     private Map<String, ContractMethod> queryMethods;
 
-    public RuntimeQuery(Contract contract, Store store) {
+    public RuntimeQuery(Contract contract) {
         this.contract = ContractUtils.contractInstance(contract);
-        this.store = new ReadOnlyStore(store);
         queryMethods = getQueryMethods();
+    }
 
+    public void setStore(Store store) {
+        this.store = new ReadOnlyStore(store);
         List<Field> stateField = ContractUtils.stateStoreFields(contract);
         ContractUtils.updateContractFields(this.contract, stateField, this.store);
     }
 
+
     public Object query(String method, JsonObject params) throws Exception {
         // Find query method and query
-        ContractMethod query = queryMethods.get(method.toLowerCase());
+        ContractMethod query = queryMethods.get(method);
         if (query != null) {
             if (params == null && !query.isParams()) {
                 return query.getMethod().invoke(contract);

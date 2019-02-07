@@ -20,6 +20,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 
+import io.yggdrash.common.config.Constants;
 import java.math.BigDecimal;
 
 public class CoinContractTestUtils {
@@ -29,7 +30,7 @@ public class CoinContractTestUtils {
         params.addProperty("to", to);
         params.addProperty("amount", amount);
 
-        return ContractTestUtils.txBodyJson("transfer", params);
+        return ContractTestUtils.txBodyJson(Constants.YEED_CONTRACT_ID,"transfer", params);
     }
 
     public static JsonArray createApproveBody(String spender, BigDecimal amount) {
@@ -37,7 +38,7 @@ public class CoinContractTestUtils {
         params.addProperty("spender", spender);
         params.addProperty("amount", amount);
 
-        return ContractTestUtils.txBodyJson("approve", params);
+        return ContractTestUtils.txBodyJson(Constants.YEED_CONTRACT_ID,"approve", params);
     }
 
     public static JsonArray createTransferFromBody(String from, String to, BigDecimal amount) {
@@ -46,6 +47,6 @@ public class CoinContractTestUtils {
         params.addProperty("to", to);
         params.addProperty("amount", amount);
 
-        return ContractTestUtils.txBodyJson("transferfrom", params);
+        return ContractTestUtils.txBodyJson(Constants.YEED_CONTRACT_ID,"transferfrom", params);
     }
 }

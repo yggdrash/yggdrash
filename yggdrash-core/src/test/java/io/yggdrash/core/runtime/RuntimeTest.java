@@ -16,15 +16,16 @@
 
 package io.yggdrash.core.runtime;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.CoinContract;
+import io.yggdrash.core.contract.ContractId;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.StateStore;
@@ -33,16 +34,19 @@ import io.yggdrash.core.store.datasource.HashMapDbSource;
 import java.math.BigDecimal;
 import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 
 public class RuntimeTest {
+    Logger log = LoggerFactory.getLogger(RuntimeTest.class);
 
     @Test
     public void yeedRuntimeTest() {
         CoinContract contract = new CoinContract();
+        ContractId coinContract = Constants.YEED_CONTRACT_ID;
         Runtime runtime =
                 new Runtime<>(
-                        contract,
                         new StateStore<>(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource())
                 );
@@ -53,11 +57,17 @@ public class RuntimeTest {
                 + " {\"balance\": \"998000000000\"}}}";
 
         JsonObject genesisParams = JsonUtil.parseJsonObject(genesisStr);
+        runtime.addContract(coinContract, contract);
 
-        JsonArray txBody = ContractTestUtils.txBodyJson("genesis", genesisParams);
         BranchId branchId = TestConstants.YEED;
-        TransactionHusk genesisTx = BlockChainTestUtils.createTxHusk(branchId, txBody);
-        TransactionRuntimeResult result = runtime.invoke(genesisTx);
+
+        TransactionBuilder builder = new TransactionBuilder();
+        TransactionHusk testTx = builder.setBranchId(branchId)
+                .addTxBody(coinContract, "genesis", genesisParams)
+                .setWallet(TestConstants.wallet())
+                .build();
+
+        TransactionRuntimeResult result = runtime.invoke(testTx);
         assertThat(result.getReceipt().isSuccess()).isTrue();
 
         assertThat(result.getChangeValues()
@@ -68,18 +78,34 @@ public class RuntimeTest {
 
     @Test
     public void stemRuntimeTest() {
+        ContractId stemContract = Constants.STEM_CONTRACT_ID;
+
         StemContract contract = new StemContract();
         Runtime<JsonObject> runtime =
                 new Runtime<>(
-                        contract,
                         new StateStore<>(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource()));
+        runtime.addContract(stemContract, contract);
 
-        JsonObject json = ContractTestUtils.createSampleBranchJson();
-        BranchId branchId = BranchId.of(json);
-        TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId, "create", json);
-        TransactionRuntimeResult result = runtime.invoke(createTx);
+        JsonObject branch = ContractTestUtils.createSampleBranchJson();
+
+        BranchId branchId = BranchId.of(branch);
+        JsonObject params = new JsonObject();
+        params.add(branchId.toString(), branch);
+
+        TransactionBuilder builder = new TransactionBuilder();
+        TransactionHusk testTx = builder.setBranchId(branchId)
+                .addTxBody(stemContract, "create", params)
+                .setWallet(TestConstants.wallet())
+                .build();
+
+        log.debug(testTx.toString());
+        TransactionRuntimeResult result = runtime.invoke(testTx);
+        result.getReceipt().getTxLog().stream().forEach(l -> log.debug(l.toString()));
+
         assertThat(result.getReceipt().isSuccess()).isTrue();
+        System.out.println(result.getChangeValues().get("BRANCH_ID_LIST"));
+
         assert result.getChangeValues().get("BRANCH_ID_LIST")
                 .getAsJsonArray("branchIds")
                 .getAsString().contains(branchId.toString());

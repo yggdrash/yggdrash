@@ -18,8 +18,8 @@ package io.yggdrash;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BlockHusk;
@@ -27,15 +27,12 @@ import io.yggdrash.core.blockchain.BranchEventListener;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
-import io.yggdrash.core.blockchain.TransactionBody;
-import io.yggdrash.core.blockchain.TransactionHeader;
+import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.blockchain.TransactionSignature;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
-
 import java.io.InputStream;
 
 public class BlockChainTestUtils {
@@ -63,49 +60,31 @@ public class BlockChainTestUtils {
 
     public static TransactionHusk createBranchTxHusk() {
         JsonObject json = ContractTestUtils.createSampleBranchJson();
-        return createBranchTxHusk(BranchId.of(json), "create", json);
+
+        TransactionBuilder builder = new TransactionBuilder();
+        return builder.addTxBody(Constants.STEM_CONTRACT_ID, "create", json)
+                .setWallet(TestConstants.wallet())
+                .setBranchId(TestConstants.STEM)
+                .build();
     }
 
     public static TransactionHusk createBranchTxHusk(BranchId branchId, String method,
                                                      JsonObject branch) {
-
         JsonObject params = new JsonObject();
         params.add(branchId.toString(), branch);
-
-        JsonArray txBody = ContractTestUtils.txBodyJson(method, params);
-        return createTxHusk(TestConstants.STEM, txBody);
+        TransactionBuilder builder = new TransactionBuilder();
+        return builder.addTxBody(Constants.STEM_CONTRACT_ID, method, params)
+                .setWallet(TestConstants.wallet())
+                .setBranchId(TestConstants.STEM)
+                .build();
     }
 
     public static TransactionHusk createTxHusk(BranchId branchId, JsonArray txBody) {
-        Transaction tx = createTx(TestConstants.wallet(), branchId, txBody);
-        return new TransactionHusk(tx);
-    }
-
-    public static Transaction createTx(Wallet wallet, BranchId txBranchId, JsonArray body) {
-
-        TransactionSignature txSig;
-        Transaction tx;
-
-        TransactionBody txBody;
-        txBody = new TransactionBody(body);
-
-        byte[] chain = txBranchId.getBytes();
-        byte[] version = new byte[8];
-        byte[] type = new byte[8];
-        long timestamp = TimeUtils.time();
-
-        TransactionHeader txHeader;
-        txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
-
-        try {
-            txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-            tx = new Transaction(txHeader, txSig.getSignature(), txBody);
-
-            return tx;
-
-        } catch (Exception e) {
-            return null;
-        }
+        TransactionBuilder builder = new TransactionBuilder();
+        return builder.addTransaction(txBody)
+                .setWallet(TestConstants.wallet())
+                .setBranchId(branchId)
+                .build();
     }
 
     public static BlockChain createBlockChain(boolean isProductionMode) {
@@ -143,7 +122,13 @@ public class BlockChainTestUtils {
 
     private static Transaction createTransferTx(String to, int amount) {
         JsonArray txBody = ContractTestUtils.transferTxBodyJson(to, amount);
-        return createTx(wallet, TestConstants.YEED, txBody);
+        TransactionBuilder builder = new TransactionBuilder();
+        return builder.addTransaction(txBody)
+                .setWallet(TestConstants.wallet())
+                .setBranchId(TestConstants.STEM)
+                .build()
+                .getCoreTransaction()
+                ;
     }
 
 }

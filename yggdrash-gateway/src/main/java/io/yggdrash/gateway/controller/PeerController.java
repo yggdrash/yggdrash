@@ -46,7 +46,7 @@ class PeerController {
 
     @GetMapping("/channels")
     public ResponseEntity getChannels() {
-        return ResponseEntity.ok(peerHandlerGroup.getActivePeerListOf());
+        return ResponseEntity.ok(peerHandlerGroup.getActiveAddressList());
     }
 
     @GetMapping("/buckets")

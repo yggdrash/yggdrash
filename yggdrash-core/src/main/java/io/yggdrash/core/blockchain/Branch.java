@@ -107,6 +107,10 @@ public class Branch {
         return symbol != null && Constants.STEM.equals(symbol);
     }
 
+    public boolean isYeed() {
+        return symbol != null && Constants.YEED.equals(symbol);
+    }
+
     public boolean verify() {
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signature.getBytes());
         try {
