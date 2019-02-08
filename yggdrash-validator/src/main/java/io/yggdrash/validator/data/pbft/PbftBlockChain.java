@@ -31,7 +31,7 @@ public class PbftBlockChain {
     private final PbftBlockKeyStore blockKeyStore;
     private final PbftBlockStore blockStore;
 
-    private final PbftBlock rootBlock;
+    private final PbftBlock genesisBlock;
     private PbftBlock lastConfirmedBlock;
     private final Map<String, PbftMessage> unConfirmedMsgMap = new ConcurrentHashMap<>();
 
@@ -49,8 +49,8 @@ public class PbftBlockChain {
         this.host = InetAddress.getLoopbackAddress().getHostAddress();
         this.port = Integer.parseInt(System.getProperty("grpc.port"));
 
-        this.rootBlock = new PbftBlock(genesisBlock, null);
-        this.lastConfirmedBlock = rootBlock;
+        this.genesisBlock = new PbftBlock(genesisBlock, null);
+        this.lastConfirmedBlock = this.genesisBlock;
         this.blockKeyStore = new PbftBlockKeyStore(
                 new LevelDbDataSource(defaultConfig.getDatabasePath(),
                         this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
@@ -60,14 +60,14 @@ public class PbftBlockChain {
                         this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
                                 + "/pbftblock"));
 
-        PbftBlock pbftBlock = rootBlock;
+        PbftBlock pbftBlock = this.genesisBlock;
         if (this.blockKeyStore.size() > 0) {
-            if (!Arrays.equals(this.blockKeyStore.get(0L), rootBlock.getHash())) {
+            if (!Arrays.equals(this.blockKeyStore.get(0L), this.genesisBlock.getHash())) {
                 log.error("PbftBlockKeyStore is not valid.");
                 throw new NotValidateException();
             }
 
-            PbftBlock prevPbftBlock = rootBlock;
+            PbftBlock prevPbftBlock = this.genesisBlock;
             for (long l = 1; l < this.blockKeyStore.size(); l++) {
                 pbftBlock = this.blockStore.get(this.blockKeyStore.get(l));
                 if (Arrays.equals(prevPbftBlock.getHash(), pbftBlock.getPrevBlockHash())) {
@@ -81,8 +81,8 @@ public class PbftBlockChain {
             this.lastConfirmedBlock = pbftBlock;
 
         } else {
-            this.blockKeyStore.put(0L, rootBlock.getHash());
-            this.blockStore.put(rootBlock.getHash(), rootBlock);
+            this.blockKeyStore.put(0L, this.genesisBlock.getHash());
+            this.blockStore.put(this.genesisBlock.getHash(), this.genesisBlock);
         }
 
         if (TEST_NONE_TXSTORE) {
@@ -115,8 +115,8 @@ public class PbftBlockChain {
         return blockStore;
     }
 
-    public PbftBlock getRootBlock() {
-        return rootBlock;
+    public PbftBlock getGenesisBlock() {
+        return genesisBlock;
     }
 
     public void setLastConfirmedBlock(PbftBlock lastConfirmedBlock) {

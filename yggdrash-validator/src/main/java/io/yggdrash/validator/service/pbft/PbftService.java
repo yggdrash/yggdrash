@@ -662,7 +662,7 @@ public class PbftService implements CommandLineRunner {
             } else if (pbftStatus.getIndex()
                     == this.blockChain.getLastConfirmedBlock().getIndex()) {
                 // update unconfirm pbftMessage
-                updateUnconfirmedMsgMap(pbftStatus.getPbftMessageMap());
+                updateUnconfirmedMsgMap(pbftStatus.getUnConfirmedPbftMessageMap());
             }
         } else {
             client.setIsRunning(false);

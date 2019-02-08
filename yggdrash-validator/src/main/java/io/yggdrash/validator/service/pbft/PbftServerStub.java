@@ -151,7 +151,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         }
 
         pbftService.getLock().lock();
-        pbftService.updateUnconfirmedMsgMap(status.getPbftMessageMap());
+        pbftService.updateUnconfirmedMsgMap(status.getUnConfirmedPbftMessageMap());
         pbftService.getLock().unlock();
     }
 }
