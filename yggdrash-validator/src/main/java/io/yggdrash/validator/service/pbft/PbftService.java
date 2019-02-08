@@ -421,9 +421,9 @@ public class PbftService implements CommandLineRunner {
         int nextCommitCount = 0;
 
         long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
-        PbftMessage prePrepare = null;
-        Map<String, PbftMessage> prepareMap = new TreeMap<>();
-        Map<String, PbftMessage> comitMap = new TreeMap<>();
+        PbftMessage prePrepareMsg = null;
+        Map<String, PbftMessage> prepareMessageMap = new TreeMap<>();
+        Map<String, PbftMessage> commitMessageMap = new TreeMap<>();
 
         for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
@@ -432,17 +432,17 @@ public class PbftService implements CommandLineRunner {
             } else if (pbftMessage.getSeqNumber() == index) {
                 switch (pbftMessage.getType()) {
                     case "PREPREPA":
-                        if (prePrepare != null) {
+                        if (prePrepareMsg != null) {
                             // todo: for debugging log
                             log.debug("PrePrepare msg is duplicated.");
                         }
-                        prePrepare = pbftMessage;
+                        prePrepareMsg = pbftMessage;
                         break;
                     case "PREPAREM":
-                        prepareMap.put(key, pbftMessage);
+                        prepareMessageMap.put(key, pbftMessage);
                         break;
                     case "COMMITMS":
-                        comitMap.put(key, pbftMessage);
+                        commitMessageMap.put(key, pbftMessage);
                         break;
                     case "VIEWCHAN":
                         break;
@@ -456,12 +456,12 @@ public class PbftService implements CommandLineRunner {
             }
         }
 
-        if (prePrepare != null
-                && prepareMap.size() >= consenusCount
-                && comitMap.size() >= consenusCount) {
+        if (prePrepareMsg != null
+                && prepareMessageMap.size() >= consenusCount
+                && commitMessageMap.size() >= consenusCount) {
             PbftMessageSet pbftMessageSet = new PbftMessageSet(
-                    prePrepare, prepareMap, comitMap, this.viewChangeMap);
-            PbftBlock pbftBlock = new PbftBlock(prePrepare.getBlock(), pbftMessageSet);
+                    prePrepareMsg, prepareMessageMap, commitMessageMap, this.viewChangeMap);
+            PbftBlock pbftBlock = new PbftBlock(prePrepareMsg.getBlock(), pbftMessageSet);
             confirmedBlock(pbftBlock);
             this.failCount = 0;
             this.viewChangeMap.clear();
