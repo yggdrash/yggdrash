@@ -456,8 +456,9 @@ public class PbftService implements CommandLineRunner {
             }
         }
 
-        if (prePrepareMsg != null
-                && prepareMessageMap.size() >= consenusCount
+        if (prePrepareMsg == null) {
+            this.failCount++;
+        } else if (prepareMessageMap.size() >= consenusCount
                 && commitMessageMap.size() >= consenusCount) {
             PbftMessageSet pbftMessageSet = new PbftMessageSet(
                     prePrepareMsg, prepareMessageMap, commitMessageMap, this.viewChangeMap);
@@ -466,8 +467,6 @@ public class PbftService implements CommandLineRunner {
             this.failCount = 0;
             this.viewChangeMap.clear();
             this.isViewChanged = false;
-        } else {
-            this.failCount++;
         }
 
         if (nextCommitCount >= consenusCount) {
