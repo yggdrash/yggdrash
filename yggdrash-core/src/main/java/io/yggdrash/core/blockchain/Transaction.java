@@ -32,12 +32,13 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 import java.security.SignatureException;
 import java.util.Arrays;
 
 import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 
-public class Transaction implements Cloneable {
+public class Transaction implements Cloneable, Serializable {
 
     private static final Logger log = LoggerFactory.getLogger(Transaction.class);
 

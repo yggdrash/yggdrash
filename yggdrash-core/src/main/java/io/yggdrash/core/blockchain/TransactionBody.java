@@ -21,14 +21,14 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.JsonUtil;
 import org.spongycastle.util.encoders.Hex;
 
+import java.io.Serializable;
 import java.nio.charset.StandardCharsets;
 
-public class TransactionBody implements Cloneable {
+public class TransactionBody implements Cloneable, Serializable {
 
-    private final JsonArray body;
+    private transient final JsonArray body;
 
     public TransactionBody(JsonArray body) {
-
         this.body = body;
     }
 

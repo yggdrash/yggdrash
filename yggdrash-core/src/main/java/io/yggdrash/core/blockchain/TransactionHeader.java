@@ -28,8 +28,9 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.Serializable;
 
-public class TransactionHeader implements Cloneable {
+public class TransactionHeader implements Cloneable, Serializable {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHeader.class);
 

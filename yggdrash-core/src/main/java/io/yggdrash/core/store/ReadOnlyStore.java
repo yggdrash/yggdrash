@@ -31,7 +31,7 @@ public class ReadOnlyStore<K, V> implements Store<K, V> {
     }
 
     @Override
-    public V get(K key) {
+    public <V> V get(K key) {
         return stateStore.get(key);
     }
 
