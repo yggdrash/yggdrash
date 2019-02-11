@@ -19,6 +19,7 @@ package io.yggdrash.core.contract;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -97,32 +98,30 @@ public class ContractManager extends ClassLoader {
      * Check the requirements required by the contract
      */
     public Boolean validation(ContractMeta contractMeta) {
-        if(contractMeta.getStateStore() == null) {
-            log.error("Contract does not have required filed state store.");
-            return false;
+        //TODO classification params validation method
+        if (contractMeta.getStateStore() == null) {
+            throw new IllegalArgumentException("Contract does not have required filed state store.");
         }
-        if(contractMeta.getTxReceipt() == null) {
-            log.error("Contract does not have required filed transaction receipt.");
-            return false;
+        if (contractMeta.getTxReceipt() == null) {
+            throw new IllegalArgumentException("Contract does not have required filed transaction receipt.");
         }
 
         for (Map.Entry<String, ContractMethod> elem :
                 contractMeta.getQueryMethods().entrySet()) {
             if (elem.getValue().getMethod().getReturnType().equals(Void.TYPE)) {
-                log.error("Invoke method should not return void.");
-                return false;
+                throw new IllegalArgumentException("Invoke method should not return void.");
             }
         }
 
         for (Map.Entry<String, ContractMethod> elem :
                 contractMeta.getInvokeMethods().entrySet()) {
-            if(elem.getValue().getMethod().getParameterTypes().length < 1) {
-                log.error("The query method must have a return type.");
-                return false;
+            if (elem.getValue().getMethod().getParameterTypes().length < 1) {
+                throw new IllegalArgumentException("The query method must have a return type.");
             }
         }
 
         //TODO whitelist sandBox validtaion
+        // Check the Project Jigsaw
         return true;
     }
 
@@ -167,9 +166,8 @@ public class ContractManager extends ClassLoader {
         if (file.exists()){
             if(file.isDirectory()){
                 File[] files = file.listFiles();
-                for( int i=0; i<files.length; i++){
-                    files[i].delete();
-                }
+                Arrays.stream(files)
+                        .forEach(f -> f.delete());
             }
             file.delete();
             directory.delete();
@@ -180,7 +178,5 @@ public class ContractManager extends ClassLoader {
     }
 
     //TODO
-    // 1. contract request to another node
-    // 2. Query to branch
-
+    // contract request to another node
 }
