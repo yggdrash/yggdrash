@@ -23,9 +23,6 @@ public class EbftBlockChain {
 
     private static final Logger log = LoggerFactory.getLogger(EbftBlockChain.class);
 
-    private boolean isProposed;
-    private boolean isConsensused;
-
     private final byte[] chain;
     private final String host;
     private final int port;
@@ -132,23 +129,6 @@ public class EbftBlockChain {
     public void setLastConfirmedEbftBlock(EbftBlock lastConfirmedEbftBlock) {
         this.lastConfirmedEbftBlock = lastConfirmedEbftBlock;
     }
-
-    public boolean isProposed() {
-        return isProposed;
-    }
-
-    public void setProposed(boolean proposed) {
-        isProposed = proposed;
-    }
-
-    public boolean isConsensused() {
-        return isConsensused;
-    }
-
-    public void setConsensused(boolean consensused) {
-        isConsensused = consensused;
-    }
-
 
     /**
      * Get BlockList from EbftBlockStore with index, count.

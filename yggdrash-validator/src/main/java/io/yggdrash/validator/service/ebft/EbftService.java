@@ -58,6 +58,8 @@ public class EbftService implements CommandLineRunner {
 
     private boolean isActive;
     private boolean isSynced;
+    private boolean isProposed;
+    private boolean isConsensused;
 
     private ReentrantLock lock = new ReentrantLock();
 
@@ -199,8 +201,8 @@ public class EbftService implements CommandLineRunner {
             // cannot confirm prevBlock.
             if (ebftBlock.getConsensusList().size() >= consenusCount) {
                 changeLastConfirmedBlock(ebftBlock);
-                this.ebftBlockChain.setProposed(false);
-                this.ebftBlockChain.setConsensused(false);
+                this.isProposed = false;
+                this.isConsensused = false;
             }
         }
 
@@ -212,7 +214,7 @@ public class EbftService implements CommandLineRunner {
     private EbftBlock makeProposedBlock() {
         if (this.isValidator
                 && this.isActive
-                && !this.ebftBlockChain.isProposed()
+                && !this.isProposed
                 && this.isSynced) {
             long index = this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex() + 1;
             byte[] prevBlockHash = this.ebftBlockChain.getLastConfirmedEbftBlock().getHash();
@@ -226,7 +228,7 @@ public class EbftService implements CommandLineRunner {
             // add in unconfirmed blockMap & unconfirmed block
             this.ebftBlockChain.getUnConfirmedEbftBlockMap()
                     .putIfAbsent(newEbftBlock.getHashHex(), newEbftBlock);
-            this.ebftBlockChain.setProposed(true);
+            this.isProposed = true;
 
             log.debug("make Proposed Block"
                     + "["
@@ -264,7 +266,7 @@ public class EbftService implements CommandLineRunner {
     }
 
     private EbftBlock makeConsensus() {
-        if (this.ebftBlockChain.isConsensused() || !this.isSynced) {
+        if (this.isConsensused || !this.isSynced) {
             return null;
         }
 
@@ -300,7 +302,7 @@ public class EbftService implements CommandLineRunner {
             EbftBlock ebftBlock = unConfirmedEbftBlockMap.get(minKey);
             String consensus = Hex.toHexString(wallet.signHashedData(ebftBlock.getHash()));
             ebftBlock.getConsensusList().add(consensus);
-            this.ebftBlockChain.setConsensused(true);
+            this.isConsensused = true;
 
             log.debug("make Consensus: "
                     + "["
@@ -383,8 +385,8 @@ public class EbftService implements CommandLineRunner {
         this.ebftBlockChain.getEbftBlockKeyStore().put(ebftBlock.getIndex(), ebftBlock.getHash());
 
         changeLastConfirmedBlock(ebftBlock);
-        this.ebftBlockChain.setProposed(false);
-        this.ebftBlockChain.setConsensused(false);
+        this.isProposed = false;
+        this.isConsensused = false;
 
         log.debug("ConfirmedBlock="
                 + "["
@@ -429,8 +431,8 @@ public class EbftService implements CommandLineRunner {
             log.debug("proposedBlock size= "
                     + this.ebftBlockChain.getUnConfirmedEbftBlockMap().size());
             log.debug("isSynced= " + isSynced);
-            log.debug("isProposed= " + this.ebftBlockChain.isProposed());
-            log.debug("isConsensused= " + this.ebftBlockChain.isConsensused());
+            log.debug("isProposed= " + this.isProposed);
+            log.debug("isConsensused= " + this.isConsensused);
             for (String key : this.ebftBlockChain.getUnConfirmedEbftBlockMap().keySet()) {
                 EbftBlock ebftBlock = this.ebftBlockChain.getUnConfirmedEbftBlockMap().get(key);
                 if (ebftBlock == null) {
