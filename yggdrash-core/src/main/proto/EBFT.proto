@@ -32,12 +32,10 @@ message EbftBlock {
 }
 
 message EbftStatus {
-    bytes chain = 1;
-    NodeList activeNodeList = 2;
-    EbftBlock lastConfirmedEbftBlock = 3;
-    EbftBlockList unConfirmedEbftBlockList = 4;
-    int64 timestamp = 5;
-    bytes signature = 6;
+    EbftBlock lastConfirmedEbftBlock = 1;
+    EbftBlockList unConfirmedEbftBlockList = 2;
+    int64 timestamp = 3;
+    bytes signature = 4;
 }
 
 message Offset {
