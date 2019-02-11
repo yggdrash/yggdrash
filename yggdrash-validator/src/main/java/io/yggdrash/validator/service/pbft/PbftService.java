@@ -59,7 +59,7 @@ public class PbftService implements CommandLineRunner {
     private final PbftClientStub myNode;
     private final Map<String, PbftClientStub> totalValidatorMap;
 
-    private ReentrantLock lock = new ReentrantLock();
+    private final ReentrantLock lock = new ReentrantLock();
 
     private boolean isActive;
     private boolean isSynced;

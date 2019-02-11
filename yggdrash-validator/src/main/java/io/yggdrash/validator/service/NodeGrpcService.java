@@ -41,7 +41,7 @@ public class NodeGrpcService extends BlockChainGrpc.BlockChainImplBase {
         Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
         if (Arrays.equals(syncLimit.getBranch().toByteArray(), ebftBlockChain.getChain())
                 && offset >= 0
-                && offset <= ebftBlockChain.getLastConfirmedEbftBlock().getIndex()) {
+                && offset <= ebftBlockChain.getLastConfirmedBlock().getIndex()) {
             List<EbftBlock> ebftBlockList = ebftBlockChain.getEbftBlockList(offset, limit);
             for (EbftBlock ebftBlock : ebftBlockList) {
                 builder.addBlocks(ebftBlock.getBlock().toProtoBlock());

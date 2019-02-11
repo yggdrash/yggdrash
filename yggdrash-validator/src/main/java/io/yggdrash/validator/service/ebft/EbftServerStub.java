@@ -72,7 +72,7 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
             return;
         }
 
-        EbftBlock lastEbftBlock = this.ebftBlockChain.getLastConfirmedEbftBlock();
+        EbftBlock lastEbftBlock = this.ebftBlockChain.getLastConfirmedBlock();
 
         responseObserver.onNext(io.yggdrash.proto.NetProto.Empty.newBuilder().build());
         responseObserver.onCompleted();
@@ -94,15 +94,15 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
         List<EbftBlock> ebftBlockList = new ArrayList<>();
 
         long end = Math.min(start - 1 + count,
-                this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex());
+                this.ebftBlockChain.getLastConfirmedBlock().getIndex());
 
         log.trace("start: " + start);
         log.trace("end: " + end);
 
         if (start < end) {
             for (long l = start; l <= end; l++) {
-                ebftBlockList.add(this.ebftBlockChain.getEbftBlockStore().get(
-                        this.ebftBlockChain.getEbftBlockKeyStore().get(l)));
+                ebftBlockList.add(this.ebftBlockChain.getBlockStore().get(
+                        this.ebftBlockChain.getBlockKeyStore().get(l)));
             }
         }
 
@@ -114,7 +114,7 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
         if (EbftStatus.verify(ebftStatus)) {
             for (EbftBlock ebftBlock : ebftStatus.getUnConfirmedEbftBlockList()) {
                 if (ebftBlock.getIndex()
-                        <= this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex()) {
+                        <= this.ebftBlockChain.getLastConfirmedBlock().getIndex()) {
                     continue;
                 }
                 ebftService.getLock().lock();
