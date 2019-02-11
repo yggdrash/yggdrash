@@ -1,6 +1,7 @@
 package io.yggdrash.validator.service.ebft;
 
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.proto.EbftServiceGrpc;
 import io.yggdrash.validator.data.ebft.EbftBlock;
@@ -31,18 +32,18 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
     }
 
     @Override
-    public void pingPongTime(EbftProto.PingTime request,
-                             StreamObserver<EbftProto.PongTime> responseObserver) {
+    public void pingPongTime(CommonProto.PingTime request,
+                             StreamObserver<CommonProto.PongTime> responseObserver) {
         long timestamp = System.currentTimeMillis();
-        EbftProto.PongTime pongTime
-                = EbftProto.PongTime.newBuilder().setTimestamp(timestamp).build();
+        CommonProto.PongTime pongTime
+                = CommonProto.PongTime.newBuilder().setTimestamp(timestamp).build();
         responseObserver.onNext(pongTime);
         responseObserver.onCompleted();
     }
 
     @Override
     public void getNodeStatus(
-            EbftProto.Chain request,
+            CommonProto.Chain request,
             StreamObserver<io.yggdrash.proto.EbftProto.EbftStatus> responseObserver) {
         EbftStatus newEbftStatus = ebftService.getMyNodeStatus();
         responseObserver.onNext(EbftStatus.toProto(newEbftStatus));
@@ -86,7 +87,7 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
     }
 
     @Override
-    public void getEbftBlockList(io.yggdrash.proto.EbftProto.Offset request,
+    public void getEbftBlockList(io.yggdrash.proto.CommonProto.Offset request,
                                  io.grpc.stub.StreamObserver<EbftProto.EbftBlockList> responseObserver) {
         long start = request.getIndex();
         long count = request.getCount();

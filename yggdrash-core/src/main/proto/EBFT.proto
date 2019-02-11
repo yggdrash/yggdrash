@@ -2,17 +2,10 @@ syntax = "proto3";
 
 import "Yggdrash.proto";
 import "BlockChain.proto";
+import "Common.proto";
 
 option java_package = "io.yggdrash.proto";
 option java_outer_classname = "EbftProto";
-
-message PingTime {
-    int64 timestamp = 1;
-}
-
-message PongTime {
-    int64 timestamp = 1;
-}
 
 message NodeList {
     repeated string nodeList = 1;
@@ -36,16 +29,6 @@ message EbftStatus {
     EbftBlockList unConfirmedEbftBlockList = 2;
     int64 timestamp = 3;
     bytes signature = 4;
-}
-
-message Offset {
-    bytes chain = 1;
-    int64 index = 2;
-    int64 count = 3;
-}
-
-message Chain {
-    bytes chain = 1;
 }
 
 service EbftService {
