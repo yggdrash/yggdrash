@@ -12,10 +12,9 @@ message PbftMessage {
     int64 viewNumber = 2;
     int64 seqNumber = 3;
     bytes hash = 4;
-    bytes clientId = 5;
-    bytes result = 6;
-    bytes signature = 7;
-    Block block = 8;
+    bytes result = 5;
+    bytes signature = 6;
+    Block block = 7;
 }
 
 message PbftMessageList {
