@@ -30,8 +30,7 @@ public class EbftBlockTest {
         List<String> consensusList = new ArrayList<>();
         consensusList.add(Hex.toHexString(wallet.sign(block.getHash())));
 
-        EbftBlock ebftBlock1 = new EbftBlock(block.getHeader().getIndex(),
-                block.getHeader().getPrevBlockHash(), block, consensusList);
+        EbftBlock ebftBlock1 = new EbftBlock(block, consensusList);
         assertTrue(EbftBlock.verify(ebftBlock1));
 
         EbftBlock ebftBlock2 = new EbftBlock(ebftBlock1.toBinary());

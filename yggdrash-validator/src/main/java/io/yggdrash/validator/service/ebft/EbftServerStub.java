@@ -77,7 +77,7 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
         responseObserver.onCompleted();
 
         if (lastEbftBlock.getIndex() == newEbftBlock.getIndex() - 1
-                && Arrays.equals(lastEbftBlock.getHash(), newEbftBlock.getPrevBlockHash())) {
+                && Arrays.equals(lastEbftBlock.getHash(), newEbftBlock.getBlock().getPrevBlockHash())) {
 
             ebftService.getLock().lock();
             ebftService.updateUnconfirmedBlock(newEbftBlock);

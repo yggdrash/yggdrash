@@ -221,7 +221,7 @@ public class EbftService implements CommandLineRunner {
             log.trace("newBlock" + newBlock.toString());
 
             EbftBlock newEbftBlock
-                    = new EbftBlock(index, prevBlockHash, newBlock);
+                    = new EbftBlock(newBlock);
 
             // add in unconfirmed blockMap & unconfirmed block
             this.ebftBlockChain.getUnConfirmedEbftBlockMap()

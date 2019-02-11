@@ -112,6 +112,10 @@ public class Block implements Cloneable {
         return this.header.getIndex();
     }
 
+    public byte[] getChain() {
+        return this.header.getChain();
+    }
+
     public byte[] getHash() {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
@@ -128,6 +132,10 @@ public class Block implements Cloneable {
 
     public String getHashHex() {
         return org.spongycastle.util.encoders.Hex.toHexString(this.getHash());
+    }
+
+    public byte[] getPrevBlockHash() {
+        return this.header.getPrevBlockHash();
     }
 
     public byte[] getPubKey() {

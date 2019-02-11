@@ -39,8 +39,7 @@ public class EbftBlockStoreTest {
         List<String> consensusList = new ArrayList<>();
         consensusList.add(Hex.toHexString(wallet.sign(block.getHash())));
 
-        EbftBlock ebftBlock = new EbftBlock(block.getHeader().getIndex(),
-                block.getHeader().getPrevBlockHash(), block, consensusList);
+        EbftBlock ebftBlock = new EbftBlock(block, consensusList);
 
         ebftBlockStore.put(ebftBlock.getHash(), ebftBlock);
         EbftBlock foundEbftBlock = ebftBlockStore.get(ebftBlock.getHash());

@@ -50,7 +50,7 @@ public class EbftBlockChain {
         this.host = InetAddress.getLoopbackAddress().getHostAddress();
         this.port = Integer.parseInt(System.getProperty("grpc.port"));
 
-        this.rootEbftBlock = new EbftBlock(0, this.chain, genesisBlock);
+        this.rootEbftBlock = new EbftBlock(genesisBlock);
         this.lastConfirmedEbftBlock = rootEbftBlock;
         this.ebftBlockKeyStore = new EbftBlockKeyStore(
                 new LevelDbDataSource(defaultConfig.getDatabasePath(),

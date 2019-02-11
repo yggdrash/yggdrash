@@ -27,12 +27,8 @@ message ConsensusList {
 }
 
 message EbftBlock {
-    bytes chain = 1;
-    bytes hash = 2;
-    int64 index = 3;
-    bytes prevBlockHash = 4;
-    Block block = 5;
-    ConsensusList consensusList = 6;
+    Block block = 1;
+    ConsensusList consensusList = 2;
 }
 
 message EbftStatus {
