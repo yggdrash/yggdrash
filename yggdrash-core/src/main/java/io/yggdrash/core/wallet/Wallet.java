@@ -119,15 +119,6 @@ public class Wallet {
                 ByteUtil.merge(ByteUtil.parseBytes(kdfPass, 16, 16), encData),
                 WALLET_PBKDF2_HMAC_HASH);
 
-        JsonObject keyJsonObject = makeKeyJsonObject(Hex.toHexString(this.address),
-                Hex.toHexString(iv),
-                Hex.toHexString(encData),
-                Hex.toHexString(salt),
-                Hex.toHexString(mac));
-
-        iv = null;
-        salt = null;
-
         // file permission
         File file = new File(this.keyPath, this.keyName);
         Set<PosixFilePermission> perms = new HashSet<>();
@@ -136,6 +127,15 @@ public class Wallet {
             perms.add(PosixFilePermission.OWNER_WRITE);
             Files.setPosixFilePermissions(file.toPath(), perms);
         }
+
+        JsonObject keyJsonObject = makeKeyJsonObject(Hex.toHexString(this.address),
+                Hex.toHexString(iv),
+                Hex.toHexString(encData),
+                Hex.toHexString(salt),
+                Hex.toHexString(mac));
+
+        iv = null;
+        salt = null;
 
         FileUtil.writeFile(file,
                 new GsonBuilder().setPrettyPrinting().create().toJson(keyJsonObject).getBytes());
