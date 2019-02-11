@@ -35,7 +35,7 @@ message EbftBlock {
     ConsensusList consensusList = 6;
 }
 
-message NodeStatus {
+message EbftStatus {
     bytes chain = 1;
     NodeList activeNodeList = 2;
     EbftBlock lastConfirmedEbftBlock = 3;
@@ -54,14 +54,14 @@ message Chain {
     bytes chain = 1;
 }
 
-service ConsensusEbft {
+service EbftService {
     rpc PingPongTime (PingTime) returns (PongTime) {
     }
 
-    rpc getNodeStatus (Chain) returns (NodeStatus) {
+    rpc getNodeStatus (Chain) returns (EbftStatus) {
     }
 
-    rpc exchangeNodeStatus (NodeStatus) returns (NodeStatus) {
+    rpc exchangeNodeStatus (EbftStatus) returns (EbftStatus) {
     }
 
     rpc broadcastEbftBlock (EbftBlock) returns (Empty) {

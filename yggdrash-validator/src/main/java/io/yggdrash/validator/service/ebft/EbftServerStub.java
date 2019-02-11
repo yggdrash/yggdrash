@@ -1,11 +1,11 @@
 package io.yggdrash.validator.service.ebft;
 
 import io.grpc.stub.StreamObserver;
-import io.yggdrash.proto.ConsensusEbftGrpc;
 import io.yggdrash.proto.EbftProto;
+import io.yggdrash.proto.EbftServiceGrpc;
 import io.yggdrash.validator.data.ebft.EbftBlock;
 import io.yggdrash.validator.data.ebft.EbftBlockChain;
-import io.yggdrash.validator.data.ebft.NodeStatus;
+import io.yggdrash.validator.data.ebft.EbftStatus;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +17,7 @@ import java.util.List;
 
 @GRpcService
 @ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "ebft")
-public class EbftServerStub extends ConsensusEbftGrpc.ConsensusEbftImplBase {
+public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(EbftServerStub.class);
 
@@ -43,20 +43,20 @@ public class EbftServerStub extends ConsensusEbftGrpc.ConsensusEbftImplBase {
     @Override
     public void getNodeStatus(
             EbftProto.Chain request,
-            StreamObserver<io.yggdrash.proto.EbftProto.NodeStatus> responseObserver) {
-        NodeStatus newNodeStatus = ebftService.getMyNodeStatus();
-        responseObserver.onNext(NodeStatus.toProto(newNodeStatus));
+            StreamObserver<io.yggdrash.proto.EbftProto.EbftStatus> responseObserver) {
+        EbftStatus newEbftStatus = ebftService.getMyNodeStatus();
+        responseObserver.onNext(EbftStatus.toProto(newEbftStatus));
         responseObserver.onCompleted();
     }
 
     @Override
-    public void exchangeNodeStatus(io.yggdrash.proto.EbftProto.NodeStatus request,
-            io.grpc.stub.StreamObserver<io.yggdrash.proto.EbftProto.NodeStatus> responseObserver) {
-        NodeStatus blockStatus = new NodeStatus(request);
+    public void exchangeNodeStatus(io.yggdrash.proto.EbftProto.EbftStatus request,
+                                   io.grpc.stub.StreamObserver<io.yggdrash.proto.EbftProto.EbftStatus> responseObserver) {
+        EbftStatus blockStatus = new EbftStatus(request);
         updateStatus(blockStatus);
 
-        NodeStatus newNodeStatus = ebftService.getMyNodeStatus();
-        responseObserver.onNext(NodeStatus.toProto(newNodeStatus));
+        EbftStatus newEbftStatus = ebftService.getMyNodeStatus();
+        responseObserver.onNext(EbftStatus.toProto(newEbftStatus));
         responseObserver.onCompleted();
     }
 
@@ -109,9 +109,9 @@ public class EbftServerStub extends ConsensusEbftGrpc.ConsensusEbftImplBase {
         responseObserver.onCompleted();
     }
 
-    private void updateStatus(NodeStatus nodeStatus) {
-        if (NodeStatus.verify(nodeStatus)) {
-            for (EbftBlock ebftBlock : nodeStatus.getUnConfirmedEbftBlockList()) {
+    private void updateStatus(EbftStatus ebftStatus) {
+        if (EbftStatus.verify(ebftStatus)) {
+            for (EbftBlock ebftBlock : ebftStatus.getUnConfirmedEbftBlockList()) {
                 if (ebftBlock.getIndex()
                         <= this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex()) {
                     continue;

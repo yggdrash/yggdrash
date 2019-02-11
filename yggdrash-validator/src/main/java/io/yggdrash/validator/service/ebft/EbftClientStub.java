@@ -5,10 +5,10 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.proto.ConsensusEbftGrpc;
 import io.yggdrash.proto.EbftProto;
+import io.yggdrash.proto.EbftServiceGrpc;
 import io.yggdrash.validator.data.ebft.EbftBlock;
-import io.yggdrash.validator.data.ebft.NodeStatus;
+import io.yggdrash.validator.data.ebft.EbftStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
@@ -27,10 +27,10 @@ public class EbftClientStub {
     private int port;
     private String id;
     private boolean isRunning;
-    private NodeStatus nodeStatus;
+    private EbftStatus ebftStatus;
 
     private ManagedChannel channel;
-    private ConsensusEbftGrpc.ConsensusEbftBlockingStub blockingStub;
+    private EbftServiceGrpc.EbftServiceBlockingStub blockingStub;
 
     public EbftClientStub(String pubKey, String host, int port) {
         this.pubKey = pubKey;
@@ -42,7 +42,7 @@ public class EbftClientStub {
         this.channel = ManagedChannelBuilder.forAddress(host, port)
                 .usePlaintext()
                 .build();
-        blockingStub = ConsensusEbftGrpc.newBlockingStub(channel);
+        blockingStub = EbftServiceGrpc.newBlockingStub(channel);
     }
 
     public void shutdown() throws InterruptedException {
@@ -68,16 +68,16 @@ public class EbftClientStub {
         return pongTime.getTimestamp();
     }
 
-    public NodeStatus exchangeNodeStatus(EbftProto.NodeStatus nodeStatus) {
-        this.nodeStatus =
-                new NodeStatus(blockingStub
+    public EbftStatus exchangeNodeStatus(EbftProto.EbftStatus nodeStatus) {
+        this.ebftStatus =
+                new EbftStatus(blockingStub
                         .withDeadlineAfter(3, TimeUnit.SECONDS)
                         .exchangeNodeStatus(nodeStatus));
         if (Context.current().isCancelled()) {
             return null;
         }
 
-        return this.nodeStatus;
+        return this.ebftStatus;
     }
 
     public void broadcastEbftBlock(EbftProto.EbftBlock block) {
@@ -144,7 +144,7 @@ public class EbftClientStub {
         return channel;
     }
 
-    public ConsensusEbftGrpc.ConsensusEbftBlockingStub getBlockingStub() {
+    public EbftServiceGrpc.EbftServiceBlockingStub getBlockingStub() {
         return blockingStub;
     }
 

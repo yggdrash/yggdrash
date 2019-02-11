@@ -13,7 +13,7 @@ import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.ebft.EbftBlock;
 import io.yggdrash.validator.data.ebft.EbftBlockChain;
-import io.yggdrash.validator.data.ebft.NodeStatus;
+import io.yggdrash.validator.data.ebft.EbftStatus;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -136,29 +136,29 @@ public class EbftService implements CommandLineRunner {
     }
 
     private void checkNodeStatus(EbftClientStub client) {
-        NodeStatus nodeStatus = client.exchangeNodeStatus(NodeStatus.toProto(getMyNodeStatus()));
-        updateStatus(client, nodeStatus);
+        EbftStatus ebftStatus = client.exchangeNodeStatus(EbftStatus.toProto(getMyNodeStatus()));
+        updateStatus(client, ebftStatus);
     }
 
-    private void updateStatus(EbftClientStub client, NodeStatus nodeStatus) {
-        if (NodeStatus.verify(nodeStatus)) {
+    private void updateStatus(EbftClientStub client, EbftStatus ebftStatus) {
+        if (EbftStatus.verify(ebftStatus)) {
             client.setIsRunning(true);
 
-            if (nodeStatus.getLastConfirmedEbftBlock().getIndex()
+            if (ebftStatus.getLastConfirmedEbftBlock().getIndex()
                     > this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex()) {
                 log.debug("this Index: "
                         + this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex());
-                log.debug("client Index: " + nodeStatus.getLastConfirmedEbftBlock().getIndex());
+                log.debug("client Index: " + ebftStatus.getLastConfirmedEbftBlock().getIndex());
                 log.debug("client : " + client.getId());
 
                 // blockSyncing
                 this.isSynced = false;
                 blockSyncing(client.getPubKey(),
-                        nodeStatus.getLastConfirmedEbftBlock().getIndex());
-            } else if (nodeStatus.getLastConfirmedEbftBlock().getIndex()
+                        ebftStatus.getLastConfirmedEbftBlock().getIndex());
+            } else if (ebftStatus.getLastConfirmedEbftBlock().getIndex()
                     == this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex()) {
                 // unconfirmed block update
-                for (EbftBlock ebftBlock : nodeStatus.getUnConfirmedEbftBlockList()) {
+                for (EbftBlock ebftBlock : ebftStatus.getUnConfirmedEbftBlockList()) {
                     updateUnconfirmedBlock(ebftBlock);
                 }
             }
@@ -504,12 +504,12 @@ public class EbftService implements CommandLineRunner {
         }
     }
 
-    public NodeStatus getMyNodeStatus() {
-        NodeStatus newNodeStatus = new NodeStatus(this.getActiveNodeList(),
+    public EbftStatus getMyNodeStatus() {
+        EbftStatus newEbftStatus = new EbftStatus(this.getActiveNodeList(),
                 this.ebftBlockChain.getLastConfirmedEbftBlock(),
                 new ArrayList<>(this.ebftBlockChain.getUnConfirmedEbftBlockMap().values()));
-        newNodeStatus.setSignature(wallet.sign(newNodeStatus.getDataForSignning()));
-        return newNodeStatus;
+        newEbftStatus.setSignature(wallet.sign(newEbftStatus.getDataForSignning()));
+        return newEbftStatus;
     }
 
     private void printInitInfo() {
