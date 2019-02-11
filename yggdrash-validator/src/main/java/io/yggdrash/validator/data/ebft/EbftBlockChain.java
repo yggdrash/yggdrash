@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
+
 public class EbftBlockChain {
 
     private static final Logger log = LoggerFactory.getLogger(EbftBlockChain.class);
@@ -38,7 +40,7 @@ public class EbftBlockChain {
     @Autowired
     public EbftBlockChain(Block genesisBlock, DefaultConfig defaultConfig) {
         if (genesisBlock.getHeader().getIndex() != 0
-                || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), new byte[32])) {
+                || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), EMPTY_BYTE32)) {
             log.error("GenesisBlock is not valid.");
             throw new NotValidateException();
         }

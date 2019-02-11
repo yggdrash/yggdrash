@@ -13,6 +13,9 @@ import io.yggdrash.core.blockchain.TransactionHeader;
 import java.io.IOException;
 import java.io.InputStream;
 
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
+
 public class GenesisBlock {
     private final BlockHusk block;
     private final Branch branch;
@@ -52,9 +55,9 @@ public class GenesisBlock {
         // todo: change values(version, type) using the configuration.
         BlockHeader blockHeader = new BlockHeader(
                 branch.getBranchId().getBytes(),
-                new byte[8],
-                new byte[8],
-                new byte[32],
+                EMPTY_BYTE8,
+                EMPTY_BYTE8,
+                EMPTY_BYTE32,
                 0L,
                 branch.getTimestamp(),
                 blockBody.getMerkleRoot(),
@@ -68,8 +71,8 @@ public class GenesisBlock {
         // todo: change values(version, type) using the configuration.
         TransactionHeader txHeader = new TransactionHeader(
                 branch.getBranchId().getBytes(),
-                new byte[8],
-                new byte[8],
+                EMPTY_BYTE8,
+                EMPTY_BYTE8,
                 branch.getTimestamp(),
                 new TransactionBody(jsonArrayBody));
 

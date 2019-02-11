@@ -125,6 +125,9 @@ public class Wallet {
                 Hex.toHexString(salt),
                 Hex.toHexString(mac));
 
+        iv = null;
+        salt = null;
+
         // file permission
         File file = new File(this.keyPath, this.keyName);
         Set<PosixFilePermission> perms = new HashSet<>();

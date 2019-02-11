@@ -23,9 +23,11 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;
 
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE20;
+
 public class BranchId {
 
-    public static BranchId NULL = new BranchId(new byte[20]);
+    public static BranchId NULL = new BranchId(EMPTY_BYTE20);
 
     private final Sha3Hash id;
 

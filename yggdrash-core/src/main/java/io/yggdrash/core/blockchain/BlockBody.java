@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
+
 public class BlockBody implements Cloneable {
 
     private static final int TX_HEADER_LENGTH = 84;
@@ -75,9 +77,12 @@ public class BlockBody implements Cloneable {
             pos += txBodyBytes.length;
 
             txBody = new TransactionBody(txBodyBytes);
+            txBodyBytes = null;
 
             txList.add(new Transaction(txHeader, txSigBytes, txBody));
         } while (pos < bodyBytes.length);
+
+        txHeaderBytes = null;
 
         this.body.addAll(txList);
     }
@@ -108,7 +113,7 @@ public class BlockBody implements Cloneable {
 
     public byte[] getMerkleRoot() {
         byte[] merkleRoot = Trie.getMerkleRoot(this.body);
-        return merkleRoot == null ? new byte[32] : merkleRoot;
+        return merkleRoot == null ? EMPTY_BYTE32 : merkleRoot;
     }
 
     /**
