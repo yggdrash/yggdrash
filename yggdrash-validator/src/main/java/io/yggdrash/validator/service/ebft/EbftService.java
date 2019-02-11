@@ -112,7 +112,7 @@ public class EbftService implements CommandLineRunner {
         confirmFinalBlock();
         lock.unlock();
 
-        loggingNode();
+        loggingStatus();
 
     }
 
@@ -411,7 +411,7 @@ public class EbftService implements CommandLineRunner {
         }
     }
 
-    private void loggingNode() {
+    private void loggingStatus() {
 
         EbftBlock lastBlock = this.blockChain.getLastConfirmedBlock().clone();
         if (lastBlock != null) {
