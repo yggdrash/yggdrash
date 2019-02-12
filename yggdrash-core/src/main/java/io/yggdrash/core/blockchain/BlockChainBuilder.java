@@ -17,7 +17,12 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
-import io.yggdrash.core.contract.*;
+import io.yggdrash.core.contract.CoinContract;
+import io.yggdrash.core.contract.Contract;
+import io.yggdrash.core.contract.ContractClassLoader;
+import io.yggdrash.core.contract.ContractMeta;
+import io.yggdrash.core.contract.ContractVersion;
+import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
@@ -28,6 +33,7 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class BlockChainBuilder {
@@ -102,17 +108,20 @@ public class BlockChainBuilder {
         if (runtime == null) {
             runtime = new Runtime(stateStore, transactionReceiptStore);
             // TODO Change Branch Spec
-            ContractId branchContractId = branch.getContractId();
-            Contract contract;
-            // TODO remove branch spec change
-            if (branch.isStem()) {
-                contract = new StemContract();
-            } else if (branch.isYeed()) {
-                contract = new CoinContract();
-            } else {
-                contract = getContract(branchContractId);
-            }
-            runtime.addContract(branchContractId, contract);
+            List<BranchContract> contracts = branch.getBranchContracts();
+            contracts.stream().forEach(c -> {
+                // TODO Get ContractManager for Contract
+                Contract contract;
+                // TODO remove branch spec change
+                if ("STEM".equals(c.getName())) {
+                    contract = new StemContract();
+                } else if ("YEED".equals(c.getName())) {
+                    contract = new CoinContract();
+                } else {
+                    contract = getContract(c.getContractVersion());
+                }
+                runtime.addContract(c.getContractVersion(), contract);
+            });
 
             // Add System Contract
             defaultContract().entrySet().forEach(s -> runtime.addContract(s.getKey(),s.getValue()));
@@ -123,14 +132,14 @@ public class BlockChainBuilder {
                 transactionStore, metaStore, runtime);
     }
 
-    private Contract getContract(ContractId contractId) {
+    private Contract getContract(ContractVersion contractVersion) {
         try {
             // get System Contracts
             // TODO remove this
             // TODO Check System Contract
 
-            ContractManager contractManager = new ContractManager(storeBuilder.getConfig().getContractPath());
-            ContractMeta contractMeta = contractManager.getContracts().get(contractId);
+            ContractMeta contractMeta = ContractClassLoader.loadContractById(
+                    storeBuilder.getConfig().getContractPath(), contractVersion);
             return contractMeta.getContract().getDeclaredConstructor().newInstance();
 
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException
@@ -139,12 +148,12 @@ public class BlockChainBuilder {
         }
     }
 
-    private Map<ContractId, Contract> defaultContract() {
+    private Map<ContractVersion, Contract> defaultContract() {
         // TODO System Default Contract
         // VersionContract etc
 
         // TODO Default Contract has Config
-        Map<ContractId, Contract> defaultContract = new HashMap<>();
+        Map<ContractVersion, Contract> defaultContract = new HashMap<>();
 
 
         return defaultContract;

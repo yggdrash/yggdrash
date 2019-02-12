@@ -20,7 +20,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.TimeUtils;
-import io.yggdrash.core.contract.ContractId;
+import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.wallet.Wallet;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -30,6 +30,8 @@ public class TransactionBuilder {
     BranchId branchId;
     Wallet wallet;
     List<JsonObject> txBody = new LinkedList<>();
+
+    long timestamp = -1L;
 
     public TransactionBuilder setBranchId(BranchId branchId) {
         this.branchId = branchId;
@@ -41,12 +43,17 @@ public class TransactionBuilder {
         return this;
     }
 
-    public TransactionBuilder addTransaction(JsonObject txBody) {
+    public TransactionBuilder setTimeStamp(long timeStamp) {
+        this.timestamp = timeStamp;
+        return this;
+    }
+
+    public TransactionBuilder addTransactionBody(JsonObject txBody) {
         this.txBody.add(txBody);
         return this;
     }
 
-    public TransactionBuilder addTransaction(JsonArray txBody) {
+    public TransactionBuilder addTransactionBody(JsonArray txBody) {
         Iterator<JsonElement> el = txBody.iterator();
         while (el.hasNext()) {
             JsonObject tx = el.next().getAsJsonObject();
@@ -57,17 +64,16 @@ public class TransactionBuilder {
 
 
 
-    public TransactionBuilder addTxBody(ContractId contractId, String method, JsonObject params) {
+    public TransactionBuilder addTxBody(ContractVersion contractVersion, String method, JsonObject params) {
         JsonObject txObj = new JsonObject();
-        txObj.addProperty("contractId", contractId.toString());
+        txObj.addProperty("contractVersion", contractVersion.toString());
         txObj.addProperty("method", method);
         txObj.add("params", params);
-        return addTransaction(txObj);
+        return addTransactionBody(txObj);
     }
 
     private Transaction createTx(Wallet wallet, BranchId txBranchId, JsonArray body) {
 
-        TransactionSignature txSig;
         Transaction tx;
 
         TransactionBody txBody;
@@ -76,14 +82,23 @@ public class TransactionBuilder {
         byte[] chain = txBranchId.getBytes();
         byte[] version = new byte[8];
         byte[] type = new byte[8];
-        long timestamp = TimeUtils.time();
+        // Check timeStamp
+        if (timestamp == -1L) {
+            timestamp = TimeUtils.time();
+        }
 
         TransactionHeader txHeader;
         txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
         try {
-            txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
-            tx = new Transaction(txHeader, txSig.getSignature(), txBody);
+            byte[] sign = new byte[]{};
+            if (wallet != null) {
+                TransactionSignature txSig;
+                txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
+                sign = txSig.getSignature();
+            }
+
+            tx = new Transaction(txHeader, sign, txBody);
 
             return tx;
 
@@ -91,8 +106,7 @@ public class TransactionBuilder {
             return null;
         }
     }
-
-    public TransactionHusk build() {
+    public Transaction buildTransaction() {
         JsonArray txArray;
         if (branchId == null || txBody.size() == 0) {
             return  null;
@@ -101,7 +115,11 @@ public class TransactionBuilder {
             txArray = new JsonArray();
             txBody.stream().forEach(tb -> txArray.add(tb));
         }
-        Transaction tx = createTx(wallet, branchId, txArray);
+        return createTx(wallet, branchId, txArray);
+    }
+
+    public TransactionHusk build() {
+        Transaction tx = buildTransaction();
         return new TransactionHusk(tx);
     }
 

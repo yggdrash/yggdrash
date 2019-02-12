@@ -37,7 +37,7 @@ public class ContractMeta {
     private final Class<? extends Contract> contractClass;
     private final byte[] contractBinary;
     private final String contractClassName;
-    private final ContractId contractId;
+    private final ContractVersion contractVersion;
     private Map<String, ContractMethod> invokeMethod;
     private Map<String, ContractMethod> queryMethod;
     private Field transactionReceiptField;
@@ -46,8 +46,8 @@ public class ContractMeta {
     ContractMeta(byte[] contractBinary, Class<? extends Contract> contractClass) {
         this.contractBinary = contractBinary;
         this.contractClass = contractClass;
-        this.contractClassName = contractClass.getSimpleName();
-        this.contractId = ContractId.of(contractBinary);
+        this.contractClassName = contractClass.getName();
+        this.contractVersion = ContractVersion.of(contractBinary);
         this.queryMethod = getQueryMethods();
         this.invokeMethod = getInvokeMethods();
     }
@@ -56,17 +56,17 @@ public class ContractMeta {
         return contractClass;
     }
 
-    public ContractId getContractId() {
-        return contractId;
+    public ContractVersion getContractVersion() {
+        return contractVersion;
     }
 
     byte[] getContractBinary() {
         return contractBinary;
     }
 
-    static File contractFile(String rootPath, ContractId contractId) {
-        String filePath = contractId.toString().substring(0, 2) + File.separator
-                + contractId + SUFFIX;
+    static File contractFile(String rootPath, ContractVersion contractVersion) {
+        String filePath = contractVersion.toString().substring(0, 2) + File.separator
+                + contractVersion + SUFFIX;
         return new File(rootPath + File.separator + filePath);
     }
 
@@ -116,7 +116,7 @@ public class ContractMeta {
      */
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.addProperty("contractVersion", this.contractId.toString());
+        jsonObject.addProperty("contractVersion", this.contractVersion.toString());
         jsonObject.addProperty("name", this.contractClassName);
 
         JsonArray invokeArray = new JsonArray();

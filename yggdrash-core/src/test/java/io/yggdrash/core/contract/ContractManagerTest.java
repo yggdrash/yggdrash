@@ -42,7 +42,7 @@ public class ContractManagerTest {
 
     private static DefaultConfig defaultConfig = new DefaultConfig();
     private static ContractManager contractManager;
-    private static Map<ContractId, ContractMeta> contracts;
+    private static Map<ContractVersion, ContractMeta> contracts;
 
 
     @Before
@@ -56,27 +56,27 @@ public class ContractManagerTest {
 
     @Test
     public void getContractById() {
-        List<ContractId> sampleContractIdList = contractSample();
+        List<ContractVersion> sampleContractIdList = contractSample();
         if (sampleContractIdList == null || contracts == null) return;
 
         ContractMeta meta = ContractClassLoader.loadContractClass(StemContract.class);
-        ContractMeta meta2 = contractManager.getContractById(meta.getContractId());
+        ContractMeta meta2 = contractManager.getContractById(meta.getContractVersion());
         assertNotNull(meta);
-        log.debug("StemContract.class id={}", meta.getContractId().toString());
-        assertEquals(meta2.getContractId(), meta.getContractId());
+        log.debug("StemContract.class id={}", meta.getContractVersion().toString());
+        assertEquals(meta2.getContractVersion(), meta.getContractVersion());
         assertEquals(meta2.getContract().getName(), meta.getContract().getName());
     }
 
     @Test
     public void getContractIdList() {
-        List<ContractId> sampleContractIdList = contractSample();
+        List<ContractVersion> sampleContractIdList = contractSample();
         if (sampleContractIdList == null || contracts == null) return;
         assertEquals(sampleContractIdList.size(), contractManager.getContractIdList().size());
     }
 
     @Test
     public void getContractList() {
-        List<ContractId> sampleContractIdList = contractSample();
+        List<ContractVersion> sampleContractIdList = contractSample();
         if (sampleContractIdList == null || contracts == null) return;
         assertEquals(sampleContractIdList.size(), contractManager.getContractList().size());
     }
@@ -93,28 +93,28 @@ public class ContractManagerTest {
 
     @Test
     public void convertContractToVersion() {
-        ContractId version = contractManager.convertContractToVersion(TestContract.class);
+        ContractVersion version = contractManager.convertContractToVersion(TestContract.class);
         ContractMeta meta = ContractClassLoader.loadContractClass(TestContract.class);
-        assertEquals(version, meta.getContractId());
+        assertEquals(version, meta.getContractVersion());
     }
 
     @Test
     public void addContract() {
         Class<? extends Contract> contract = TestContract.class;
-        Map<ContractId, ContractMeta> contracts = contractManager.getContracts();
+        Map<ContractVersion, ContractMeta> contracts = contractManager.getContracts();
         if (contracts == null) return;
         long beforSize = contracts.entrySet().size();
         contractManager.addContract(contract);
         assertEquals(beforSize + 1, contracts.entrySet().size());
 
         ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
-        ContractId contractVersion = contractMeta.getContractId();
+        ContractVersion contractVersion = contractMeta.getContractVersion();
         contractManager.removeContract(contractVersion);
     }
 
-    private List<ContractId> contractSample() {
+    private List<ContractVersion> contractSample() {
         DefaultConfig defaultConfig = new DefaultConfig();
-        List<ContractId> cIds = new ArrayList<>();
+        List<ContractVersion> cIds = new ArrayList<>();
         try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(defaultConfig.getContractPath())))) {
             filePathStream.forEach(contractPath -> {
                 File contractFile = new File(String.valueOf(contractPath));
@@ -124,7 +124,7 @@ public class ContractManagerTest {
                     contractBinary = new byte[Math.toIntExact(contractFile.length())];
                     inputStream.read(contractBinary);
 
-                    ContractId contractId = ContractId.of(contractBinary);
+                    ContractVersion contractId = ContractVersion.of(contractBinary);
                     ContractMeta contractMeta = ContractClassLoader.loadContractById(
                             defaultConfig.getContractPath(), contractId);
 
@@ -142,5 +142,3 @@ public class ContractManagerTest {
         return null;
     }
 }
-
-

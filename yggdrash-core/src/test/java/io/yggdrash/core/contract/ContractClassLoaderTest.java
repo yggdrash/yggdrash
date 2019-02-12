@@ -40,15 +40,15 @@ public class ContractClassLoaderTest {
     @Ignore
     public void testContract() throws Exception {
 
-        ContractId noneContractId = ContractId.of(NONE_CONTRACT);
-        File contractNone = ContractMeta.contractFile(".yggdrash/contract", noneContractId);
+        ContractVersion noneContractVersion = ContractVersion.of(NONE_CONTRACT);
+        File contractNone = ContractMeta.contractFile(".yggdrash/contract", noneContractVersion);
         assertEquals(".yggdrash/contract/3f/" + NONE_CONTRACT + ".class",
                 contractNone.getPath());
 
         ContractMeta noneContract = ContractClassLoader.loadContractClass(null, contractNone);
         Class<? extends Contract> none = noneContract.getContract();
 
-        assertEquals(NONE_CONTRACT, noneContract.getContractId().toString());
+        assertEquals(NONE_CONTRACT, noneContract.getContractVersion().toString());
         assertEquals("{}", invokeTest(none));
         Contract a = none.getDeclaredConstructor().newInstance();
         Contract b = none.getDeclaredConstructor().newInstance();
@@ -66,9 +66,9 @@ public class ContractClassLoaderTest {
 
             classData = bos.toByteArray();
         }
-        ContractId idByClassBinary = ContractId.of(classData);
+        ContractVersion idByClassBinary = ContractVersion.of(classData);
         ContractMeta classMeta = new ContractMeta(classData, c);
-        assertEquals(idByClassBinary, classMeta.getContractId());
+        assertEquals(idByClassBinary, classMeta.getContractVersion());
     }
 
     @Test
@@ -76,13 +76,13 @@ public class ContractClassLoaderTest {
         // LOAD Stem Contract
         ContractMeta classMeta = ContractClassLoader.loadContractClass(StemContract.class);
         assertNotNull(classMeta);
-        log.debug("StemContract.class id={}", classMeta.getContractId().toString());
+        log.debug("StemContract.class id={}", classMeta.getContractVersion().toString());
         assertEquals("io.yggdrash.core.contract.StemContract", classMeta.getContract().getName());
 
         // LOAD Coin Contract
         classMeta = ContractClassLoader.loadContractClass(CoinContract.class);
         assertNotNull(classMeta);
-        log.debug("CoinContract.class id={}", classMeta.getContractId().toString());
+        log.debug("CoinContract.class id={}", classMeta.getContractVersion().toString());
         assertEquals("io.yggdrash.core.contract.CoinContract", classMeta.getContract().getName());
     }
 

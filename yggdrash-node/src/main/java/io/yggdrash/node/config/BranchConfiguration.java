@@ -47,17 +47,9 @@ public class BranchConfiguration {
 
     private final StoreBuilder storeBuilder;
 
-    @Value("classpath:/branch-stem.json")
-    Resource stemResource;
+    @Value("classpath:/branch-yggdrash.json")
+    Resource yggdrashResource;
 
-    @Value("classpath:/branch-yeed.json")
-    Resource yeedResource;
-
-    @Value("classpath:/branch-sw.json")
-    Resource swResource;
-
-    @Value("classpath:/branch-asset.json")
-    Resource assetResource;
 
     @Autowired
     BranchConfiguration(StoreBuilder storeBuilder) {
@@ -65,32 +57,10 @@ public class BranchConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(name = "yggdrash.node.seed",
-            havingValue = "false", matchIfMissing = true)
-    BlockChain stem(PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
-            throws IOException {
-        return addBranch(stemResource.getInputStream(), peerHandlerGroup, branchGroup);
-    }
-
-    @Bean
     @ConditionalOnProperty("yggdrash.node.chain.enabled")
-    BlockChain yeed(PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
+    BlockChain yggdrash(PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
             throws IOException {
-        return addBranch(yeedResource.getInputStream(), peerHandlerGroup, branchGroup);
-    }
-
-    @Bean
-    @ConditionalOnProperty("yggdrash.node.chain.enabled")
-    BlockChain sw(PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
-            throws IOException {
-        return addBranch(swResource.getInputStream(), peerHandlerGroup, branchGroup);
-    }
-
-    @Bean
-    @ConditionalOnProperty("yggdrash.node.chain.enabled")
-    BlockChain asset(PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
-            throws IOException {
-        return addBranch(assetResource.getInputStream(), peerHandlerGroup, branchGroup);
+        return addBranch(yggdrashResource.getInputStream(), peerHandlerGroup, branchGroup);
     }
 
     @Bean
@@ -108,9 +78,6 @@ public class BranchConfiguration {
 
     @Bean
     BranchLoader branchLoader(DefaultConfig defaultConfig) {
-        if (defaultConfig.isProductionMode()) {
-            ContractClassLoader.copyResourcesToContractPath(defaultConfig.getContractPath());
-        }
         return new BranchLoader(defaultConfig.getBranchPath());
     }
 

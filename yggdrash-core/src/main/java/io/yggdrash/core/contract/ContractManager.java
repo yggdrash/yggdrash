@@ -37,29 +37,33 @@ import java.util.stream.Stream;
 
 public class ContractManager extends ClassLoader {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
-    private Map<ContractId, ContractMeta> contracts = new HashMap<>();
+    private Map<ContractVersion, ContractMeta> contracts = new HashMap<>();
     private String contractPath;
 
     public ContractManager(String contractPath) {
         this.contractPath = contractPath;
-        load(contractPath);
+        load();
     }
 
-    private void load(String contractRoot) {
-        try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(contractRoot)))) {
-            filePathStream.forEach(contractPath -> {
-                File contractFile = new File(String.valueOf(contractPath));
+    private void load() {
+        File targetDir = new File(this.contractPath);
+        if (!targetDir.exists() && !targetDir.mkdirs()) {
+            throw new RuntimeException("Failed to create=" + targetDir.getAbsolutePath());
+        }
+        try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(this.contractPath)))) {
+            filePathStream.forEach(p -> {
+                File contractFile = new File(String.valueOf(p));
                 if(contractFile.isDirectory()) return;
                 byte[] contractBinary;
                 try (FileInputStream inputStream = new FileInputStream(contractFile)) {
                     contractBinary = new byte[Math.toIntExact(contractFile.length())];
                     inputStream.read(contractBinary);
 
-                    ContractId contractVersion = ContractId.of(contractBinary);
+                    ContractVersion contractVersion = ContractVersion.of(contractBinary);
                     ContractMeta contractMeta = ContractClassLoader.loadContractById(
-                            contractRoot, contractVersion);
+                            this.contractPath, contractVersion);
 
-                    if (Files.isRegularFile(contractPath) && validation(contractMeta)) {
+                    if (Files.isRegularFile(p) && validation(contractMeta)) {
                         contracts.put(contractVersion, contractMeta);
                     }
 
@@ -72,11 +76,11 @@ public class ContractManager extends ClassLoader {
         }
     }
 
-    public Map<ContractId, ContractMeta> getContracts() {
+    public Map<ContractVersion, ContractMeta> getContracts() {
         return this.contracts;
     }
 
-    public List<ContractId> getContractIdList() {
+    public List<ContractVersion> getContractIdList() {
         return this.contracts.entrySet().stream().map(set -> set.getKey())
                 .collect(Collectors.toList());
     }
@@ -86,19 +90,18 @@ public class ContractManager extends ClassLoader {
                 .collect(Collectors.toList());
     }
 
-    public ContractMeta getContractById(ContractId id) {
-        return this.contracts.get(id);
+    public ContractMeta getContractById(ContractVersion version) {
+        return this.contracts.get(version);
     }
 
-    public Boolean isContract(ContractId id) {
-        return this.contracts.containsKey(id);
+    public Boolean isContract(ContractVersion version) {
+        return this.contracts.containsKey(version);
     }
 
     /**
      * Check the requirements required by the contract
      */
     public Boolean validation(ContractMeta contractMeta) {
-        //TODO classification params validation method
         if (contractMeta.getStateStore() == null) {
             throw new IllegalArgumentException("Contract does not have required filed state store.");
         }
@@ -136,12 +139,12 @@ public class ContractManager extends ClassLoader {
             throw new RuntimeException("Failed to create=" + targetDir.getAbsolutePath());
         }
         ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
-        ContractId contractId = contractMeta.getContractId();
-        File contractFile = ContractMeta.contractFile(contractPath, contractId);
+        ContractVersion contractVersion = contractMeta.getContractVersion();
+        File contractFile = ContractMeta.contractFile(contractPath, contractVersion);
         if (!contractFile.exists()) {
             try {
                 FileUtils.writeByteArrayToFile(contractFile, contractMeta.getContractBinary());
-                this.contracts.put(contractId, contractMeta);
+                this.contracts.put(contractVersion, contractMeta);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -151,12 +154,12 @@ public class ContractManager extends ClassLoader {
     /**
      * Change the contract to the contract version.
      */
-    public ContractId convertContractToVersion(Class<? extends Contract> contract) {
+    public ContractVersion convertContractToVersion(Class<? extends Contract> contract) {
         ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
-        return contractMeta.getContractId();
+        return contractMeta.getContractVersion();
     }
 
-    public Boolean removeContract(ContractId contractVersion) {
+    public Boolean removeContract(ContractVersion contractVersion) {
         //TODO check the node admin
         String directoryPath = contractVersion.toString().substring(0, 2);
         String filePath = contractVersion.toString().substring(0, 2) + File.separator
@@ -179,4 +182,5 @@ public class ContractManager extends ClassLoader {
 
     //TODO
     // contract request to another node
+
 }

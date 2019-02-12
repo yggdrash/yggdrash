@@ -49,6 +49,7 @@ public class StemContract implements Contract<JsonObject> {
      */
     @InvokeTransction
     public TransactionReceipt create(JsonObject params) {
+        // TODO Change StemContract Spec
         for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
             BranchId branchId = BranchId.of(entry.getKey());
             JsonObject json = entry.getValue().getAsJsonObject();
@@ -87,13 +88,12 @@ public class StemContract implements Contract<JsonObject> {
      */
     @InvokeTransction
     public TransactionReceipt update(JsonObject params) {
-        txReceipt.addLog(params);
         for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
             BranchId branchId = BranchId.of(entry.getKey());
             JsonObject json = entry.getValue().getAsJsonObject();
 
             StemContractStateValue stateValue = getStateValue(branchId.toString());
-            if (stateValue != null && isOwnerValid(json.get("owner").getAsString())) {
+            if (stateValue != null && isOwnerValid(json.get("validator").getAsString())) {
                 updateBranch(stateValue, json);
                 state.put(branchId.toString(), stateValue.getJson());
                 txReceipt.setStatus(ExecuteStatus.SUCCESS);
@@ -114,7 +114,7 @@ public class StemContract implements Contract<JsonObject> {
         if (json.has("type")) {
             stateValue.setType(json.get("type").getAsString());
         }
-        stateValue.updateContract(json.get("contractId").getAsString());
+//        stateValue.updateContract(json.get("contractVersion").getAsString());
     }
 
     /**
@@ -137,11 +137,11 @@ public class StemContract implements Contract<JsonObject> {
      * @param params   branchId
      */
     @ContractQuery
-    public ContractId getcurrentcontract(JsonObject params) {
+    public ContractVersion getcurrentcontract(JsonObject params) {
         String branchId = params.get(BRANCH_ID)
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {
-            return getStateValue(branchId).getContractId();
+            //return getStateValue(branchId).getContractVersion();
         }
         return null;
     }
@@ -152,7 +152,7 @@ public class StemContract implements Contract<JsonObject> {
      * @param params   branchId
      */
     @ContractQuery
-    public List<ContractId> getcontracthistory(JsonObject params) {
+    public List<ContractVersion> getcontracthistory(JsonObject params) {
         String branchId = params.get(BRANCH_ID)
                 .getAsString().toLowerCase();
         if (isBranchExist(branchId)) {

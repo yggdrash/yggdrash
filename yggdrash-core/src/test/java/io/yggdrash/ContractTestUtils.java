@@ -20,11 +20,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
-import io.yggdrash.core.contract.ContractId;
+import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.wallet.Wallet;
-import org.spongycastle.util.encoders.Hex;
-
 import java.nio.charset.StandardCharsets;
+import org.spongycastle.util.encoders.Hex;
 
 public class ContractTestUtils {
 
@@ -39,12 +38,12 @@ public class ContractTestUtils {
         params.addProperty("to", to);
         params.addProperty("amount", amount);
 
-        return txBodyJson(Constants.YEED_CONTRACT_ID,"transfer", params);
+        return txBodyJson(Constants.YEED_CONTRACT_VERSION,"transfer", params);
     }
 
-    public static JsonArray txBodyJson(ContractId contractId, String method, JsonObject params) {
+    public static JsonArray txBodyJson(ContractVersion contractVersion, String method, JsonObject params) {
         JsonObject txObj = new JsonObject();
-        txObj.addProperty("contractId", contractId.toString());
+        txObj.addProperty("contractVersion", contractVersion.toString());
         txObj.addProperty("method", method);
         txObj.add("params", params);
 
@@ -67,36 +66,49 @@ public class ContractTestUtils {
         String symbol = "STEM";
         String property = "ecosystem";
         String contractId = "d399cd6d34288d04ba9e68ddfda9f5fe99dd778e";
-        return createBranchJson(name, symbol, property, description, contractId, null,
-                new JsonObject());
+        JsonArray contracts = new JsonArray();
+        JsonObject contractSample = new JsonObject();
+        contractSample.addProperty("contractVersion", "1d35091e51a57a745eec67db3428893968869e32");
+        contractSample.add("init", new JsonObject());
+        contractSample.addProperty("description", "some description");
+        contractSample.addProperty("name", "STEM");
+        contracts.add(contractSample);
+
+
+        return createBranchJson(name, symbol, property, description, contracts, null);
     }
 
     public static JsonObject createBranchJson(String name,
                                               String symbol,
                                               String property,
                                               String description,
-                                              String contractId,
-                                              String timestamp,
-                                              JsonObject genesis) {
+                                              JsonArray contracts,
+                                              String timestamp) {
         JsonObject branch = new JsonObject();
         branch.addProperty("name", name);
         branch.addProperty("symbol", symbol);
         branch.addProperty("property", property);
         branch.addProperty("description", description);
-        branch.addProperty("contractId", contractId);
-        branch.add("genesis", genesis);
+        branch.add("contracts", contracts);
         if (timestamp == null) {
             branch.addProperty("timestamp", "00000166c837f0c9");
         } else {
             branch.addProperty("timestamp", timestamp);
         }
-        signBranch(TestConstants.wallet(), branch);
+
+        JsonArray validators = new JsonArray();
+        validators.add(TestConstants.wallet().getHexAddress());
+        branch.add("validator", validators);
+
         return branch;
     }
 
     public static JsonObject signBranch(Wallet wallet, JsonObject raw) {
+        JsonArray validators = new JsonArray();
+        validators.add(wallet.getHexAddress());
+        raw.addProperty("validator", wallet.getHexAddress());
         if (!raw.has("signature")) {
-            raw.addProperty("owner", wallet.getHexAddress());
+
             Sha3Hash hashForSign = new Sha3Hash(raw.toString().getBytes(StandardCharsets.UTF_8));
             byte[] signature = wallet.signHashedData(hashForSign.getBytes());
             raw.addProperty("signature", Hex.toHexString(signature));

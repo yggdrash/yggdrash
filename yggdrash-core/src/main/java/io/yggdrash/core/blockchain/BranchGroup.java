@@ -18,7 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.contract.ContractId;
+import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NonExistObjectException;
@@ -138,8 +138,8 @@ public class BranchGroup {
             BlockChain chain = branches.get(branchId);
             // TODO change branch spec
             // get runtime contract ID and execute
-            ContractId contractId = chain.getRuntime().executeAbleContract().iterator().next();
-            return chain.getRuntime().query(contractId,method, params);
+            ContractVersion contractVersion = chain.getRuntime().executeAbleContract().iterator().next();
+            return chain.getRuntime().query(contractVersion,method, params);
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }

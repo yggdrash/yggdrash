@@ -34,8 +34,10 @@ public class StemController {
     @Autowired
     public StemController(BranchGroup branchGroup) {
         this.stemBranchId = BranchId.NULL;
+        // TODO change Stem Controller
         branchGroup.getAllBranch().forEach(branch -> {
-            if (branch.getBranch().isStem()) {
+            if (branch.getBranch().isYggdrash()) {
+                // YGGDRASH Branch has Stem Contract
                 this.stemBranchId = branch.getBranchId();
             }
         });

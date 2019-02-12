@@ -19,24 +19,25 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonArray;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
-import io.yggdrash.core.exception.DuplicatedException;
-import org.junit.Before;
-import org.junit.Test;
-
-import java.util.Collections;
-import java.util.List;
-
 import static io.yggdrash.TestConstants.PerformanceTest;
 import static io.yggdrash.TestConstants.TRANSFER_TO;
 import static io.yggdrash.TestConstants.YEED;
 import static io.yggdrash.TestConstants.wallet;
+import io.yggdrash.core.exception.DuplicatedException;
+import java.util.Collections;
+import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BranchGroupTest {
 
     private BranchGroup branchGroup;
     private TransactionHusk tx;
     private BlockHusk block;
+    protected static final Logger log = LoggerFactory.getLogger(BranchGroupTest.class);
 
     @Before
     public void setUp() {
