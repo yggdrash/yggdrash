@@ -61,6 +61,7 @@ public class DiscoveryServiceConsumer implements DiscoveryConsumer {
 
     @Override
     public String ping(Peer from, Peer to, String msg) {
+        //TODO Consider adding expiration time
         if ("Ping".equals(msg) && to.equals(peerTable.getOwner())) {
             peerTable.addPeer(from);
             return "Pong";

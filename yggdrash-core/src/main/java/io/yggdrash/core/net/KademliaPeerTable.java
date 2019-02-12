@@ -176,7 +176,7 @@ public class KademliaPeerTable implements PeerTable, Dht {
 
     private void updatePeerStore(Peer peer) {
         if (!peerStore.contains(peer.getPeerId())) {
-            // TODO overwrite ??
+            // TODO overwrite peer which should be updated in the db
             peerStore.put(peer.getPeerId(), peer);
             log.debug("Added peerStore size={}, peer={}", peerStore.size(), peer.toAddress());
         }

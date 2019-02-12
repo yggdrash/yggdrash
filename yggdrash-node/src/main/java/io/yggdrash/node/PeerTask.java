@@ -35,6 +35,10 @@ import java.util.UUID;
 
 public class PeerTask {
 
+    //TODO
+    // PeerTask => peerTable/bucket management
+    // PeerDialer => peerChannel/handler management
+
     private static final Logger log = LoggerFactory.getLogger(PeerTask.class);
 
     private KademliaPeerTable peerTable;
@@ -59,7 +63,7 @@ public class PeerTask {
     }
 
     @Scheduled(cron = "*/10 * * * * *")
-    public void healthCheck() {
+    public void healthCheck() { // ==> Task of PeerDialer?
         if (!nodeStatus.isUpStatus()) {
             return;
         }

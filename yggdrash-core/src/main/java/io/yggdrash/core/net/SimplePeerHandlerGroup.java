@@ -85,7 +85,7 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
         try {
             bestBlocks.forEach(owner::updateBestBlock);
             String pong = peerHandler.ping(owner, "Ping");
-            // TODO validation peer
+            // TODO validation peer and considering expiration
             if ("Pong".equals(pong)) {
                 return true;
             }

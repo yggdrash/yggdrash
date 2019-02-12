@@ -46,6 +46,7 @@ public class DiscoveryService extends PeerGrpc.PeerImplBase {
 
     @Override
     public void ping(Proto.Ping request, StreamObserver<Proto.Pong> responseObserver) {
+        //TODO peer validation
         Peer from = Peer.valueOf(request.getFrom());
         for (Proto.BestBlock bestBlock : request.getBestBlocksList()) {
             from.updateBestBlock(toBestBlock(bestBlock));
