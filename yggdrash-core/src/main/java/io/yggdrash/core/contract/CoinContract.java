@@ -1,16 +1,28 @@
 package io.yggdrash.core.contract;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.core.runtime.annotation.*;
+import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.core.blockchain.PrefixKeyEnum;
+import io.yggdrash.core.blockchain.dpoa.Validator;
+import io.yggdrash.core.blockchain.dpoa.ValidatorSet;
+import io.yggdrash.core.runtime.annotation.ContractQuery;
+import io.yggdrash.core.runtime.annotation.ContractStateStore;
+import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
+import io.yggdrash.core.runtime.annotation.Genesis;
+import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.ParamValidation;
+import io.yggdrash.core.runtime.annotation.YggdrashContract;
 import io.yggdrash.core.store.Store;
-import java.math.BigDecimal;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
+
+import java.math.BigDecimal;
+import java.util.Map;
 
 
 @YggdrashContract
@@ -242,18 +254,36 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
             log.info("\nAddress of Frontier : " + frontier
                     + "\nBalance of Frontier : " + getBalance(frontier));
         }
+
+        boolean isSuccess = saveInitValidator(params.getAsJsonArray("validator"));
+
         // FIXME convert to Json or something
         try {
             putBalance(totalSupplyKey, totalSupply);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        txReceipt.setStatus(ExecuteStatus.SUCCESS);
+        txReceipt.setStatus(isSuccess ? ExecuteStatus.SUCCESS : ExecuteStatus.FALSE);
         JsonObject totalSupplyLog = new JsonObject();
         totalSupplyLog.addProperty("totalSupply", totalSupply.toString());
         txReceipt.addLog(totalSupplyLog);
 
         return txReceipt;
+    }
+
+    public boolean saveInitValidator(JsonArray validators) {
+        ValidatorSet validatorSet = store.get(PrefixKeyEnum.VALIDATORS.toValue());
+        if (validatorSet != null || validators == null) {
+            return true;
+        }
+
+        validatorSet = new ValidatorSet();
+        for (JsonElement validator : validators) {
+            validatorSet.getValidatorMap().put(validator.getAsString(), new Validator(validator.getAsString()));
+        }
+        JsonObject jsonObject = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
+        store.put(PrefixKeyEnum.VALIDATORS.toValue(), jsonObject);
+        return true;
     }
 
     private void addBalanceTo(String to, BigDecimal amount) {

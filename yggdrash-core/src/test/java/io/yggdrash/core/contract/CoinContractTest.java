@@ -242,7 +242,7 @@ public class CoinContractTest {
         }
     }
 
-    private BigDecimal getBalance(String  address) {
+    private BigDecimal getBalance(String address) {
         JsonObject obj = new JsonObject();
         obj.addProperty("address", address);
         return coinContract.balanceOf(obj);
@@ -255,6 +255,13 @@ public class CoinContractTest {
         return coinContract.allowance(obj);
     }
 
+    @Test
+    public void saveInitValidator() {
+        String validators = "{\"validator\": [\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"]}";
+        JsonObject genesis = JsonUtil.parseJsonObject(validators);
 
+        boolean isSuccess = coinContract.saveInitValidator(genesis.getAsJsonArray("validator"));
+        assertEquals(true, isSuccess);
+    }
 
 }
