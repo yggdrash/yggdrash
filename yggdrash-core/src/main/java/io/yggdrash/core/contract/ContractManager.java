@@ -35,6 +35,11 @@ public class ContractManager extends ClassLoader {
     private Map<ContractVersion, ContractMeta> contracts = new HashMap<>();
 
     public ContractManager(String contractPath) {
+        File contractRoot = new File(contractPath);
+        if (!contractRoot.exists()) {
+            contractRoot.mkdirs();
+        }
+        log.info("ContractManager load path : {} ", contractPath);
         load(contractPath);
     }
 

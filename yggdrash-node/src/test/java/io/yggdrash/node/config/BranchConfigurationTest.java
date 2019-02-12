@@ -18,8 +18,6 @@ package io.yggdrash.node.config;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.StoreTestUtils;
-import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BlockChain;
@@ -32,6 +30,11 @@ import io.yggdrash.core.net.PeerHandlerGroup;
 import io.yggdrash.core.net.PeerHandlerMock;
 import io.yggdrash.core.net.SimplePeerHandlerGroup;
 import io.yggdrash.core.store.StoreBuilder;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.nio.charset.StandardCharsets;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
 import org.junit.Ignore;
@@ -42,12 +45,6 @@ import org.spongycastle.util.encoders.Hex;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 
 public class BranchConfigurationTest {
     private static final Logger log = LoggerFactory.getLogger(BranchConfigurationTest.class);
@@ -63,23 +60,6 @@ public class BranchConfigurationTest {
         StoreBuilder builder = new StoreBuilder(config);
         this.branchConfig = new BranchConfiguration(builder);
         this.peerHandlerGroup = new SimplePeerHandlerGroup(PeerHandlerMock.factory);
-    }
-
-    @Test
-    public void addStemBranchTest() throws IOException {
-        BranchGroup branchGroup = getBranchGroup();
-        branchConfig.stemResource = loader.getResource("classpath:/branch-stem.json");
-        BlockChain blockChain = branchConfig.stem(peerHandlerGroup, branchGroup);
-        blockChain.close();
-        assert blockChain.getBranchId().equals(TestConstants.STEM);
-        assert branchGroup.getBranchSize() == 1;
-    }
-
-    @Test
-    public void addProductionStemBranchTest() throws IOException {
-        this.branchConfig = new BranchConfiguration(StoreTestUtils.getProdMockBuilder());
-        addStemBranchTest();
-        StoreTestUtils.clearDefaultConfigDb();
     }
 
     @Test
