@@ -63,7 +63,7 @@ public class BranchControllerTest {
     }
 
     @Test
-    public void shouldGetStemBrancheStates() throws Exception {
+    public void shouldGetStemBranchesStates() throws Exception {
         mockMvc.perform(get("/branches/" + TestConstants.STEM + "/states"))
                 .andDo(print())
                 .andExpect(status().isOk()); // TODO fixed already in devBranch
