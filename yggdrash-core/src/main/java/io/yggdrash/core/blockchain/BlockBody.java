@@ -147,18 +147,7 @@ public class BlockBody implements Cloneable {
 
     @Override
     public BlockBody clone() throws CloneNotSupportedException {
-
-        BlockBody bb = (BlockBody) super.clone();
-
-        List<Transaction> txs = new ArrayList<>();
-
-        for (Transaction tx : this.body) {
-            txs.add(tx.clone());
-        }
-
-        bb.body.addAll(txs);
-
-        return bb;
+        return (BlockBody) super.clone();
     }
 
     public boolean equals(BlockBody newBlockBody) {
