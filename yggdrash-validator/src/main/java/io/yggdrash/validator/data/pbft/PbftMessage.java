@@ -65,13 +65,14 @@ public class PbftMessage {
     }
 
     public PbftMessage(PbftProto.PbftMessage protoPbftMessage) {
-        this.type = protoPbftMessage.getType();
-        this.viewNumber = protoPbftMessage.getViewNumber();
-        this.seqNumber = protoPbftMessage.getSeqNumber();
-        this.hash = protoPbftMessage.getHash().toByteArray();
-        this.result = protoPbftMessage.getResult().toByteArray();
-        this.signature = protoPbftMessage.getSignature().toByteArray();
-        this.block = Block.toBlock(protoPbftMessage.getBlock());
+        this(protoPbftMessage.getType(),
+                protoPbftMessage.getViewNumber(),
+                protoPbftMessage.getSeqNumber(),
+                protoPbftMessage.getHash().toByteArray(),
+                protoPbftMessage.getResult().toByteArray().length == 0
+                        ? null : protoPbftMessage.getResult().toByteArray(),
+                protoPbftMessage.getSignature().toByteArray(),
+                Block.toBlock(protoPbftMessage.getBlock()));
     }
 
     public PbftMessage(JsonObject jsonObject) {
