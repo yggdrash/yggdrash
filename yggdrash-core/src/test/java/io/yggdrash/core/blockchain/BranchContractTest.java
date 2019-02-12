@@ -28,12 +28,13 @@ public class BranchContractTest {
 
     @Test
     public void jsonConvertTest() {
-        String contracts = "{\n" +
-                "        \"contractVersion\": \"1d35091e51a57a745eec67db3428893968869e32\",\n" +
-                "        \"init\": {},\n" +
-                "        \"description\": \"The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.\",\n" +
-                "        \"name\":\"STEM\"\n" +
-                "      }";
+        String contracts = "{\n"
+                + "        \"contractVersion\": \"1d35091e51a57a745eec67db3428893968869e32\",\n"
+                + "        \"init\": {},\n"
+                + "        \"description\": \"The Basis of the YGGDRASH Ecosystem. It is also an "
+                + "aggregate and a blockchain containing information of all Branch Chains.\",\n"
+                + "        \"name\":\"STEM\"\n"
+                + "      }";
         JsonObject contract = (new JsonParser()).parse(contracts).getAsJsonObject();
         BranchContract bc = BranchContract.of(contract);
 

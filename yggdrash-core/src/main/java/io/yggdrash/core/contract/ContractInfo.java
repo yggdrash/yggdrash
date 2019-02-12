@@ -26,7 +26,7 @@ public class ContractInfo {
 
     public List<String> getContractVersions() {
         List<String> contractIdList = new ArrayList<>();
-        for ( ContractVersion key : contractManager.getContracts().keySet() ) {
+        for (ContractVersion key : contractManager.getContracts().keySet()) {
             contractIdList.add(key.toString());
         }
         return contractIdList;

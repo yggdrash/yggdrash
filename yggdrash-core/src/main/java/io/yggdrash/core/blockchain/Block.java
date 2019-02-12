@@ -213,7 +213,7 @@ public class Block implements Cloneable {
                 this.header.getPrevBlockHash(), BlockHeader.PREVBLOCKHASH_LENGTH, "prevBlockHash");
         check &= verifyCheckLengthNotNull(
                 this.header.getMerkleRoot(), BlockHeader.MERKLEROOT_LENGTH, "merkleRootLength");
-        if(header.getIndex() != 0) {
+        if (header.getIndex() != 0) {
             // Genesis Block is not check signature
             check &= verifyCheckLengthNotNull(this.signature, SIGNATURE_LENGTH, "signature");
         }

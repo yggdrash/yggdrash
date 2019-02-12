@@ -19,7 +19,9 @@ public class ContractInfoTest {
     @Test
     public void getContracts() {
         Map<ContractVersion, ContractMeta> contracts = contractManager.getContracts();
-        if (contracts == null) return;
+        if (contracts == null) {
+            return;
+        }
         ContractInfo info = new ContractInfo(contractManager);
         assertEquals(contracts.entrySet().size(), info.getContracts().size());
     }
@@ -42,7 +44,9 @@ public class ContractInfoTest {
     @Test
     public void getContractIds() {
         Map<ContractVersion, ContractMeta> contracts = contractManager.getContracts();
-        if (contracts == null) return;
+        if (contracts == null) {
+            return;
+        }
         ContractInfo info = new ContractInfo(contractManager);
         assertEquals(contracts.entrySet().size(), info.getContractVersions().size());
     }

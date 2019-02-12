@@ -7,15 +7,16 @@ import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.FileUtil;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class BranchTest {
     private static final Logger log = LoggerFactory.getLogger(BranchTest.class);
