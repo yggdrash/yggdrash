@@ -3,6 +3,7 @@ package io.yggdrash.validator.data.pbft;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.proto.PbftProto;
 import io.yggdrash.validator.util.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -17,6 +18,7 @@ import java.util.TreeMap;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class PbftMessageSetTest {
 
@@ -49,6 +51,9 @@ public class PbftMessageSetTest {
     private PbftMessage viewChange4;
 
     private PbftMessageSet pbftMessageSet;
+    private PbftMessageSet pbftMessageSet2;
+    private PbftMessageSet pbftMessageSet3;
+    private PbftMessageSet pbftMessageSet4;
     private Map<String, PbftMessage> prepareMap = new TreeMap<>();
     private Map<String, PbftMessage> commitMap = new TreeMap<>();
     private Map<String, PbftMessage> viewChangeMap = new TreeMap<>();
@@ -195,6 +200,9 @@ public class PbftMessageSetTest {
         viewChangeMap.put(viewChange4.getSignatureHex(), viewChange4);
 
         pbftMessageSet = new PbftMessageSet(prePrepare, prepareMap, commitMap, viewChangeMap);
+        pbftMessageSet2 = new PbftMessageSet(prePrepare, null, null, null);
+        pbftMessageSet3 = new PbftMessageSet(prePrepare, prepareMap, null, null);
+        pbftMessageSet4 = new PbftMessageSet(prePrepare, prepareMap, commitMap, null);
 
     }
 
@@ -230,40 +238,28 @@ public class PbftMessageSetTest {
     @Test
     public void constuctorTest_JsonObect() {
         {
-            PbftMessageSet messageSet = new PbftMessageSet(
-                    this.prePrepare, null, null, null);
-            log.debug(messageSet.toJsonObject().toString());
-
+            PbftMessageSet messageSet = this.pbftMessageSet;
             PbftMessageSet newMessageSet = new PbftMessageSet(messageSet.toJsonObject());
             log.debug(newMessageSet.toJsonObject().toString());
             assertEquals(messageSet.toJsonObject().toString(), newMessageSet.toJsonObject().toString());
         }
 
         {
-            PbftMessageSet messageSet = new PbftMessageSet(
-                    this.prePrepare, this.prepareMap, null, null);
-            log.debug(messageSet.toJsonObject().toString());
-
+            PbftMessageSet messageSet = this.pbftMessageSet2;
             PbftMessageSet newMessageSet = new PbftMessageSet(messageSet.toJsonObject());
             log.debug(newMessageSet.toJsonObject().toString());
             assertEquals(messageSet.toJsonObject().toString(), newMessageSet.toJsonObject().toString());
         }
 
         {
-            PbftMessageSet messageSet = new PbftMessageSet(
-                    this.prePrepare, this.prepareMap, this.commitMap, null);
-            log.debug(messageSet.toJsonObject().toString());
-
+            PbftMessageSet messageSet = this.pbftMessageSet3;
             PbftMessageSet newMessageSet = new PbftMessageSet(messageSet.toJsonObject());
             log.debug(newMessageSet.toJsonObject().toString());
             assertEquals(messageSet.toJsonObject().toString(), newMessageSet.toJsonObject().toString());
         }
 
         {
-            PbftMessageSet messageSet = new PbftMessageSet(
-                    this.prePrepare, this.prepareMap, this.commitMap, this.viewChangeMap);
-            log.debug(messageSet.toJsonObject().toString());
-
+            PbftMessageSet messageSet = this.pbftMessageSet4;
             PbftMessageSet newMessageSet = new PbftMessageSet(messageSet.toJsonObject());
             log.debug(newMessageSet.toJsonObject().toString());
             assertEquals(messageSet.toJsonObject().toString(), newMessageSet.toJsonObject().toString());
@@ -311,6 +307,128 @@ public class PbftMessageSetTest {
             log.debug(newMessageSet.toJsonObject().toString());
             assertArrayEquals(messageSet.toBinary(), newMessageSet.toBinary());
         }
+    }
+
+    @Test
+    public void constuctorTest_Proto() {
+        {
+            PbftMessageSet messageSet = this.pbftMessageSet;
+            PbftProto.PbftMessageSet messageSetProto = PbftMessageSet.toProto(messageSet);
+            PbftMessageSet newMessageSet = new PbftMessageSet(messageSetProto);
+            log.debug(newMessageSet.toJsonObject().toString());
+            assertArrayEquals(messageSet.toBinary(), newMessageSet.toBinary());
+        }
+
+        {
+            PbftMessageSet messageSet = this.pbftMessageSet2;
+            PbftProto.PbftMessageSet messageSetProto = PbftMessageSet.toProto(messageSet);
+            PbftMessageSet newMessageSet = new PbftMessageSet(messageSetProto);
+            log.debug(newMessageSet.toJsonObject().toString());
+            assertArrayEquals(messageSet.toBinary(), newMessageSet.toBinary());
+        }
+
+        {
+            PbftMessageSet messageSet = this.pbftMessageSet3;
+            PbftProto.PbftMessageSet messageSetProto = PbftMessageSet.toProto(messageSet);
+            PbftMessageSet newMessageSet = new PbftMessageSet(messageSetProto);
+            log.debug(newMessageSet.toJsonObject().toString());
+            assertArrayEquals(messageSet.toBinary(), newMessageSet.toBinary());
+        }
+
+        {
+            PbftMessageSet messageSet = this.pbftMessageSet4;
+            PbftProto.PbftMessageSet messageSetProto = PbftMessageSet.toProto(messageSet);
+            PbftMessageSet newMessageSet = new PbftMessageSet(messageSetProto);
+            log.debug(newMessageSet.toJsonObject().toString());
+            assertArrayEquals(messageSet.toBinary(), newMessageSet.toBinary());
+        }
+    }
+
+    @Test
+    public void getterTest() {
+        try {
+            PbftMessageSet messageSet = this.pbftMessageSet;
+            log.debug("prePrepare: " + messageSet.getPrePrepare().toJsonObject().toString());
+            assertNotNull(messageSet.getPrePrepare());
+
+            log.debug("prepareMap Size: " + messageSet.getPrepareMap().size());
+            assertEquals(messageSet.getPrepareMap().size(), 4);
+
+            log.debug("commitMap Size: " + messageSet.getCommitMap().size());
+            assertEquals(messageSet.getCommitMap().size(), 4);
+
+            log.debug("viewChangeMap Size: " + messageSet.getViewChangeMap().size());
+            assertEquals(messageSet.getViewChangeMap().size(), 4);
+
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            assert false;
+        }
+
+        try {
+            PbftMessageSet messageSet = this.pbftMessageSet2;
+            log.debug("prePrepare: " + messageSet.getPrePrepare().toJsonObject().toString());
+            assertNotNull(messageSet.getPrePrepare());
+
+            log.debug("prepareMap Size: " + messageSet.getPrepareMap().size());
+            assertEquals(messageSet.getPrepareMap().size(), 0);
+
+            log.debug("commitMap Size: " + messageSet.getCommitMap().size());
+            assertEquals(messageSet.getCommitMap().size(), 0);
+
+            log.debug("viewChangeMap Size: " + messageSet.getViewChangeMap().size());
+            assertEquals(messageSet.getViewChangeMap().size(), 0);
+
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            assert false;
+        }
+
+        try {
+            PbftMessageSet messageSet = this.pbftMessageSet3;
+            log.debug("prePrepare: " + messageSet.getPrePrepare().toJsonObject().toString());
+            assertNotNull(messageSet.getPrePrepare());
+
+            log.debug("prepareMap Size: " + messageSet.getPrepareMap().size());
+            assertEquals(messageSet.getPrepareMap().size(), 4);
+
+            log.debug("commitMap Size: " + messageSet.getCommitMap().size());
+            assertEquals(messageSet.getCommitMap().size(), 0);
+
+            log.debug("viewChangeMap Size: " + messageSet.getViewChangeMap().size());
+            assertEquals(messageSet.getViewChangeMap().size(), 0);
+
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            assert false;
+        }
+
+        try {
+            PbftMessageSet messageSet = this.pbftMessageSet4;
+            log.debug("prePrepare: " + messageSet.getPrePrepare().toJsonObject().toString());
+            assertNotNull(messageSet.getPrePrepare());
+
+            log.debug("prepareMap Size: " + messageSet.getPrepareMap().size());
+            assertEquals(messageSet.getPrepareMap().size(), 4);
+
+            log.debug("commitMap Size: " + messageSet.getCommitMap().size());
+            assertEquals(messageSet.getCommitMap().size(), 4);
+
+            log.debug("viewChangeMap Size: " + messageSet.getViewChangeMap().size());
+            assertEquals(messageSet.getViewChangeMap().size(), 0);
+
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            assert false;
+        }
+    }
+
+    @Test
+    public void verifyTest() {
+        assertTrue(PbftMessageSet.verify(this.pbftMessageSet));
+        assertTrue(PbftMessageSet.verify(this.pbftMessageSet2));
+        assertTrue(PbftMessageSet.verify(this.pbftMessageSet3));
+        assertTrue(PbftMessageSet.verify(this.pbftMessageSet4));
     }
 
 }

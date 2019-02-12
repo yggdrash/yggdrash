@@ -56,7 +56,7 @@ public class PbftMessage {
         this.seqNumber = seqNumber;
         this.hash = hash;
         this.result = result;
-        this.signature = wallet.signHashedData(getHashForSignning());
+        this.signature = this.sign(wallet);
         this.block = block;
     }
 
