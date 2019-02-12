@@ -13,10 +13,14 @@ import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 public class PbftMessageTest {
 
@@ -155,22 +159,128 @@ public class PbftMessageTest {
     @Test
     public void getterTest() {
         try {
-            log.debug("type: " + this.prepare.getType());
-            log.debug("viewNumber: " + this.prepare.getViewNumber());
-            log.debug("seqNumber: " + this.prepare.getSeqNumber());
-            log.debug("hash: " + Hex.toHexString(this.prepare.getHash()));
-            log.debug("hashHex: " + this.prepare.getHashHex());
-            log.debug("result: " + (Arrays.equals(this.prepare.getResult(), null) ? "null" :
-                    Hex.toHexString(this.prepare.getResult())));
-            log.debug("signature: " + Hex.toHexString(this.prepare.getSignature()));
-            log.debug("signatureHex: " + this.prepare.getSignatureHex());
-            log.debug("block: " + (this.prepare.getBlock() == null ? "null" :
-                    this.prepare.getBlock().toString()));
+            PbftMessage message = this.prePrepare;
+            log.debug("type: " + message.getType());
+            log.debug("viewNumber: " + message.getViewNumber());
+            log.debug("seqNumber: " + message.getSeqNumber());
+            log.debug("hash: " + Hex.toHexString(message.getHash()));
+            log.debug("hashHex: " + message.getHashHex());
+            log.debug("result: " + (Arrays.equals(message.getResult(), null) ? "null" :
+                    Hex.toHexString(message.getResult())));
+            log.debug("signature: " + Hex.toHexString(message.getSignature()));
+            log.debug("signatureHex: " + message.getSignatureHex());
+            log.debug("block: " + (message.getBlock() == null ? "null" :
+                    message.getBlock().toString()));
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            assert false;
+        }
+
+        try {
+            PbftMessage message = this.prepare;
+            log.debug("type: " + message.getType());
+            log.debug("viewNumber: " + message.getViewNumber());
+            log.debug("seqNumber: " + message.getSeqNumber());
+            log.debug("hash: " + Hex.toHexString(message.getHash()));
+            log.debug("hashHex: " + message.getHashHex());
+            log.debug("result: " + (Arrays.equals(message.getResult(), null) ? "null" :
+                    Hex.toHexString(message.getResult())));
+            log.debug("signature: " + Hex.toHexString(message.getSignature()));
+            log.debug("signatureHex: " + message.getSignatureHex());
+            log.debug("block: " + (message.getBlock() == null ? "null" :
+                    message.getBlock().toString()));
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            assert false;
+        }
+
+        try {
+            PbftMessage message = this.commit;
+            log.debug("type: " + message.getType());
+            log.debug("viewNumber: " + message.getViewNumber());
+            log.debug("seqNumber: " + message.getSeqNumber());
+            log.debug("hash: " + Hex.toHexString(message.getHash()));
+            log.debug("hashHex: " + message.getHashHex());
+            log.debug("result: " + (Arrays.equals(message.getResult(), null) ? "null" :
+                    Hex.toHexString(message.getResult())));
+            log.debug("signature: " + Hex.toHexString(message.getSignature()));
+            log.debug("signatureHex: " + message.getSignatureHex());
+            log.debug("block: " + (message.getBlock() == null ? "null" :
+                    message.getBlock().toString()));
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            assert false;
+        }
+
+        try {
+            PbftMessage message = this.viewChange;
+            log.debug("type: " + message.getType());
+            log.debug("viewNumber: " + message.getViewNumber());
+            log.debug("seqNumber: " + message.getSeqNumber());
+            log.debug("hash: " + Hex.toHexString(message.getHash()));
+            log.debug("hashHex: " + message.getHashHex());
+            log.debug("result: " + (Arrays.equals(message.getResult(), null) ? "null" :
+                    Hex.toHexString(message.getResult())));
+            log.debug("signature: " + Hex.toHexString(message.getSignature()));
+            log.debug("signatureHex: " + message.getSignatureHex());
+            log.debug("block: " + (message.getBlock() == null ? "null" :
+                    message.getBlock().toString()));
         } catch (Exception e) {
             log.debug(e.getMessage());
             assert false;
         }
     }
 
+    @Test
+    public void signVerityTest() {
+        {
+            PbftMessage message = this.prePrepare;
+            byte[] signValue = message.sign(wallet);
+            assertArrayEquals(signValue, message.getSignature());
+            assertTrue(PbftMessage.verify(message));
+        }
 
+        {
+            PbftMessage message = this.prepare;
+            byte[] signValue = message.sign(wallet);
+            assertArrayEquals(signValue, message.getSignature());
+            assertTrue(PbftMessage.verify(message));
+        }
+
+        {
+            PbftMessage message = this.commit;
+            byte[] signValue = message.sign(wallet);
+            assertArrayEquals(signValue, message.getSignature());
+            assertTrue(PbftMessage.verify(message));
+        }
+
+        {
+            PbftMessage message = this.viewChange;
+            byte[] signValue = message.sign(wallet);
+            assertArrayEquals(signValue, message.getSignature());
+            assertTrue(PbftMessage.verify(message));
+        }
+    }
+
+    @Test
+    public void pbftMessageListTest() {
+        List<PbftMessage> pbftMessageList = new ArrayList<>();
+        pbftMessageList.add(this.prePrepare);
+        pbftMessageList.add(this.prepare);
+        pbftMessageList.add(this.commit);
+        pbftMessageList.add(this.viewChange);
+
+        PbftProto.PbftMessageList pbftMessageListProto = PbftMessage.toProtoList(pbftMessageList);
+        List<PbftMessage> newPbftMessageList = PbftMessage.toPbftMessageList(pbftMessageListProto);
+
+        for (int i = 0; i < pbftMessageList.size(); i++) {
+            PbftMessage before = pbftMessageList.get(i);
+            log.debug("before: " + before.toJsonObject().toString());
+            PbftMessage after = newPbftMessageList.get(i);
+            log.debug("after:  " + after.toJsonObject().toString());
+            if (!before.equals(after)) {
+                assert false;
+            }
+        }
+    }
 }
