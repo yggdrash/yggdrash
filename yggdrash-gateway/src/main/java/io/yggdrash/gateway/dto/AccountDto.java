@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.api.dto;
+package io.yggdrash.gateway.dto;
 
 import io.yggdrash.core.wallet.Account;
 import org.apache.commons.codec.binary.Hex;

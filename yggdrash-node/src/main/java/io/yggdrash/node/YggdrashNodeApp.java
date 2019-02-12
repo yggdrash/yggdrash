@@ -16,12 +16,22 @@
 
 package io.yggdrash.node;
 
+import io.yggdrash.gateway.GatewayConfiguration;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+import org.springframework.context.annotation.Profile;
 
 @SpringBootApplication
 public class YggdrashNodeApp {
     public static void main(String[] args) {
         SpringApplication.run(YggdrashNodeApp.class, args);
+    }
+
+    @Configuration
+    @Profile("gateway")
+    @Import(GatewayConfiguration.class)
+    class NodeConfig {
     }
 }

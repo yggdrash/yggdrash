@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.api.dto;
+package io.yggdrash.gateway.dto;
 
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.blockchain.BlockHusk;

@@ -25,22 +25,24 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import io.yggdrash.node.api.dto.TransactionDto;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import io.yggdrash.gateway.dto.TransactionDto;
 import org.apache.commons.codec.binary.Hex;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import static org.mockito.Mockito.when;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TransactionMockitoTest {

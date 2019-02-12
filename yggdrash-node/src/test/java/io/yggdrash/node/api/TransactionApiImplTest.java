@@ -21,7 +21,7 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.node.api.dto.TransactionDto;
+import io.yggdrash.gateway.dto.TransactionDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;

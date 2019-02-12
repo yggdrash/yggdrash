@@ -19,7 +19,7 @@ package io.yggdrash.gateway.controller;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.node.api.dto.TransactionDto;
+import io.yggdrash.gateway.dto.TransactionDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
