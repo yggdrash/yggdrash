@@ -32,7 +32,7 @@ public class BlockBody implements Cloneable {
     private static final int TX_HEADER_LENGTH = 84;
     private static final int SIGNATURE_LENGTH = 65;
 
-    private List<Transaction> body = new ArrayList<>();
+    private final List<Transaction> body = new ArrayList<>();
 
     /**
      * Constructor for BlockBody class.
@@ -156,7 +156,7 @@ public class BlockBody implements Cloneable {
             txs.add(tx.clone());
         }
 
-        bb.body = txs;
+        bb.body.addAll(txs);
 
         return bb;
     }
@@ -174,6 +174,10 @@ public class BlockBody implements Cloneable {
         }
 
         return true;
+    }
+
+    public void clear() {
+        this.body.clear();
     }
 }
 

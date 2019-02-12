@@ -255,4 +255,10 @@ public class PbftMessage {
         return Arrays.equals(this.toBinary(), newPbftMessage.toBinary());
     }
 
+    public void clear() {
+        if (this.block != null) {
+            this.block.clear();
+        }
+    }
+
 }
