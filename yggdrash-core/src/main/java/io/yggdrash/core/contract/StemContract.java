@@ -35,7 +35,7 @@ public class StemContract implements Contract<JsonObject> {
 
     @Genesis
     @InvokeTransction // TODO remove InvokeTransaction
-    public TransactionReceipt genesis(JsonObject param) {
+    public TransactionReceipt init(JsonObject param) {
         txReceipt = create(param);
         log.info("[StemContract | genesis] SUCCESS! param => " + param);
 

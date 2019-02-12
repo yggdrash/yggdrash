@@ -226,7 +226,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
     @Genesis
     @ParamValidation
     @InvokeTransction
-    public TransactionReceipt genesis(JsonObject params) {
+    public TransactionReceipt init(JsonObject params) {
         log.info("\ngenesis :: params => " + params);
 
         //totalSupply 는 alloc 의 balance 를 모두 더한 값으로 세팅

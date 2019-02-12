@@ -47,7 +47,7 @@ public class GenesisBlock {
         // Contract init Transaction
         contractTransaction(builder);
         // Save Validator Transaction
-        validatorTransaction(builder);
+        //validatorTransaction(builder);
         Transaction tx = builder.buildTransaction();
 
         // Make Genesis Block
