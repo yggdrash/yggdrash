@@ -75,7 +75,7 @@ public class TransactionDto {
         } catch (Exception e) {
             transactionDto.body = null;
         }
-        transactionDto.author = tx.getAddress().toString();
+        transactionDto.author = tx.getAddress() == null ? null : tx.getAddress().toString();
         transactionDto.txId = tx.getHash().toString();
         return transactionDto;
     }
