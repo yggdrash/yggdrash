@@ -539,7 +539,7 @@ public class PbftService implements CommandLineRunner {
         for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
             if (pbftMessage.getSeqNumber() <= block.getIndex()) {
-                pbftMessage.clear();
+                // todo: clear pbftMessage
                 this.blockChain.getUnConfirmedMsgMap().remove(key);
             }
         }
