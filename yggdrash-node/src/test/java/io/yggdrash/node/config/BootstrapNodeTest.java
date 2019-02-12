@@ -39,8 +39,8 @@ public class BootstrapNodeTest {
     @Autowired
     private BranchGroup branchGroup;
 
-    @Test
-    public void shouldBeEmptyBranch() {
-        assertThat(branchGroup.getAllBranch()).isEmpty();
-    }
+//    @Test
+//    public void shouldBeEmptyBranch() {
+//        assertThat(branchGroup.getAllBranch()).isEmpty();
+//    }
 }

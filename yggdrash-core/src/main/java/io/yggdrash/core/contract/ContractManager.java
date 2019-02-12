@@ -50,6 +50,7 @@ public class ContractManager extends ClassLoader {
         if (!targetDir.exists() && !targetDir.mkdirs()) {
             throw new RuntimeException("Failed to create=" + targetDir.getAbsolutePath());
         }
+        log.info("ContractManager load path : {} ", contractPath);
         try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(this.contractPath)))) {
             filePathStream.forEach(p -> {
                 File contractFile = new File(String.valueOf(p));
