@@ -34,7 +34,7 @@ public class GRpcInProcessYggdrashNodeTest extends GRpcYggdrashNodeTest {
     }
 
     @Override
-    protected Server createServer(GRpcTestNode node) {
+    protected Server createAndStartServer(GRpcTestNode node) {
         String ynodeUri = node.peerTable.getOwner().getYnodeUri();
         Server server = InProcessServerBuilder.forName(ynodeUri).directExecutor().addService(
                 new DiscoveryService(node.consumer)).build();

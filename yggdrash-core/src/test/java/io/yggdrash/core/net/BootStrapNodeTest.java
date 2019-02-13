@@ -3,10 +3,10 @@ package io.yggdrash.core.net;
 import io.yggdrash.PeerTestUtils;
 import org.junit.Test;
 
-public class YggdrashBootStrapNodeTest {
+public class BootStrapNodeTest {
 
     @Test
-    public void selfRefreshTest() {
+    public void selfLookupTest() {
         YggdrashTestNode node1 = new YggdrashTestNode();
         node1.bootstrapping();
     }

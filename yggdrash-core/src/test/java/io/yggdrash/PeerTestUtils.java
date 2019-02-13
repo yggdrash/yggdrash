@@ -19,7 +19,8 @@ package io.yggdrash;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.net.KademliaPeerTable;
 import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerTable;
+import io.yggdrash.core.net.PeerHandlerFactory;
+import io.yggdrash.core.net.PeerHandlerMock;
 import io.yggdrash.core.store.StoreBuilder;
 
 import java.util.Collections;
@@ -32,13 +33,14 @@ public class PeerTestUtils {
 
     private PeerTestUtils() {}
 
-    public static PeerTable createPeerTable() {
-        return createPeerTable(OWNER_PORT);
+    public static KademliaPeerTable createTable() {
+        return createTable(OWNER_PORT, PeerHandlerMock.factory);
     }
 
-    public static PeerTable createPeerTable(int port) {
+    public static KademliaPeerTable createTable(int port, PeerHandlerFactory peerHandlerFactory) {
         Peer owner = Peer.valueOf(NODE_URI_PREFIX + port);
-        PeerTable peerTable = new KademliaPeerTable(owner, storeBuilder.buildPeerStore());
+        KademliaPeerTable peerTable = new KademliaPeerTable(
+                owner, storeBuilder.buildPeerStore(), peerHandlerFactory);
         List<String> seedList = Collections.singletonList(NODE_URI_PREFIX + 32918);
         peerTable.setSeedPeerList(seedList);
         return peerTable;

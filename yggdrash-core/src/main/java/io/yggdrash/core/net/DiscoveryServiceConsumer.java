@@ -26,9 +26,16 @@ public class DiscoveryServiceConsumer implements DiscoveryConsumer {
     }
 
     @Override
+    public List<Peer> findPeers(Peer target) {
+        return peerTable.getClosestPeers(target, KademliaOptions.BUCKET_SIZE);
+    }
+
+    /*
+    @Override
     public List<String> findPeers(Peer requestPeer) {
         return peerTable.getPeers(requestPeer);
     }
+    */
 
     @Override
     public void afterFindPeersResponse() {
@@ -53,9 +60,10 @@ public class DiscoveryServiceConsumer implements DiscoveryConsumer {
     }
 
     @Override
-    public String play(Peer from, String msg) {
-        if ("Ping".equals(msg)) {
-            peerTable.touchPeer(from);
+    public String ping(Peer from, Peer to, String msg) {
+        //TODO Consider adding expiration time
+        if ("Ping".equals(msg) && to.equals(peerTable.getOwner())) {
+            peerTable.addPeer(from);
             return "Pong";
         }
         return "";

@@ -16,7 +16,9 @@
 
 package io.yggdrash.core.net;
 
-public interface Discovery {
+public interface Dht {
 
-    PeerTable discover(PeerHandlerFactory factory);
+    void refresh(Peer target);
+
+    void selfRefresh();
 }
