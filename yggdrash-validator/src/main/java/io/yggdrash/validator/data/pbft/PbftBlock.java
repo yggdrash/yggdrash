@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 
 public class PbftBlock {
@@ -146,4 +147,10 @@ public class PbftBlock {
         return protoPbftBlockListBuilder.build();
     }
 
+    public boolean equals(PbftBlock block) {
+        if (block == null) {
+            return false;
+        }
+        return Arrays.equals(this.toBinary(), block.toBinary());
+    }
 }
