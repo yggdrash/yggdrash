@@ -57,7 +57,8 @@ public class BranchConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty("yggdrash.node.chain.enabled")
+    @ConditionalOnProperty(name = "yggdrash.node.chain.enabled",
+            havingValue = "false", matchIfMissing = true)
     BlockChain yggdrash(PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
             throws IOException {
         return addBranch(yggdrashResource.getInputStream(), peerHandlerGroup, branchGroup);

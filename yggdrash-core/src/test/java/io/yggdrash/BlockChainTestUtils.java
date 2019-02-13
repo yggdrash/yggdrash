@@ -43,7 +43,7 @@ public class BlockChainTestUtils {
 
     static {
         ClassLoader loader = BlockChainTestUtils.class.getClassLoader();
-        try (InputStream is = loader.getResourceAsStream("branch-sample.json")) {
+        try (InputStream is = loader.getResourceAsStream("branch-yggdrash.json")) {
             genesis = GenesisBlock.of(is);
         } catch (Exception e) {
             throw new InvalidSignatureException(e);

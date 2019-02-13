@@ -19,13 +19,15 @@ package io.yggdrash.gateway.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.node.api.dto.TransactionDto;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.cloud.autoconfigure.RefreshEndpointAutoConfiguration;
@@ -35,10 +37,6 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
@@ -54,17 +52,15 @@ public class TransactionControllerTest {
     private String basePath;
 
     @Autowired
-    @Qualifier("stem")
-    private BlockChain stem;
-
-    @Autowired
     private MockMvc mockMvc;
     private JacksonTester<TransactionDto> json;
+    private BranchId yggdrashBranch;
 
     @Before
     public void setUp() {
         JacksonTester.initFields(this, new ObjectMapper());
-        basePath = String.format("/branches/%s/txs", stem.getBranchId());
+        yggdrashBranch = TestConstants.yggdrash();
+        basePath = String.format("/branches/%s/txs", yggdrashBranch);
     }
 
     @Test
@@ -74,7 +70,7 @@ public class TransactionControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.countOfTotal", is(1)))
                 .andExpect(jsonPath("$.txs", hasSize(1)))
-                .andExpect(jsonPath("$.txs[0].branchId", is(stem.getBranchId().toString())));
+                .andExpect(jsonPath("$.txs[0].branchId", is(yggdrashBranch.toString())));
     }
 
     @Test

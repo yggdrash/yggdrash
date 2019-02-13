@@ -62,13 +62,15 @@ public class ContractTestUtils {
     }
 
     public static JsonObject createSampleBranchJson(String description) {
+        TestConstants.yggdrash();
+
         String name = "STEM";
         String symbol = "STEM";
         String property = "ecosystem";
-        String contractId = "d399cd6d34288d04ba9e68ddfda9f5fe99dd778e";
+
         JsonArray contracts = new JsonArray();
         JsonObject contractSample = new JsonObject();
-        contractSample.addProperty("contractVersion", "1d35091e51a57a745eec67db3428893968869e32");
+        contractSample.addProperty("contractVersion", TestConstants.STEM_CONTRACT.toString());
         contractSample.add("init", new JsonObject());
         contractSample.addProperty("description", "some description");
         contractSample.addProperty("name", "STEM");
