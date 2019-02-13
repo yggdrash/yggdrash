@@ -10,24 +10,31 @@
  * limitations under the License
  */
 
-package io.yggdrash.core.net;
+package io.yggdrash.node;
 
 import io.yggdrash.PeerTestUtils;
+import io.yggdrash.TestConstants;
+import io.yggdrash.core.net.NodeStatusMock;
+import io.yggdrash.core.net.PeerHandlerGroup;
+import io.yggdrash.core.net.PeerHandlerMock;
+import io.yggdrash.core.net.PeerTableGroup;
+import io.yggdrash.core.net.SimplePeerHandlerGroup;
 import org.junit.Before;
 import org.junit.Test;
 
 public class PeerTaskTest {
     private final PeerTask peerTask = new PeerTask();
-    private KademliaPeerTable peerTable;
-    private PeerHandlerGroup peerHandlerGroup;
+    private PeerTableGroup peerTableGroup;
 
     @Before
     public void setUp() {
-        peerTask.setNodeStatus(NodeStatusMock.mock);
-        peerTable = PeerTestUtils.createTable();
-        peerTask.setPeerTable(peerTable);
-        peerHandlerGroup = new SimplePeerHandlerGroup(PeerHandlerMock.factory);
+        peerTableGroup = PeerTestUtils.createTableGroup();
+        peerTableGroup.createTable(TestConstants.STEM);
+        PeerHandlerGroup peerHandlerGroup = new SimplePeerHandlerGroup(PeerHandlerMock.factory);
+
+        peerTask.setPeerTableGroup(peerTableGroup);
         peerTask.setPeerHandlerGroup(peerHandlerGroup);
+        peerTask.setNodeStatus(NodeStatusMock.mock);
     }
 
     @Test
@@ -36,23 +43,9 @@ public class PeerTaskTest {
     }
 
     @Test
-    public void revalidateTest() {
-        peerTable.addPeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
-        peerTable.addPeer(Peer.valueOf("ynode://75bff16c@127.0.0.1:32919"));
-        peerTask.revalidate();
-    }
-
-    @Test
     public void refreshTest() {
-        assert peerTable.getBucketsCount() == 0;
+        assert peerTableGroup.getPeerTable(TestConstants.STEM).getBucketsCount() == 0;
         peerTask.refresh(); // seed added in selfRefresh
-        assert peerTable.getBucketsCount() == 1;
+        assert peerTableGroup.getPeerTable(TestConstants.STEM).getBucketsCount() == 1;
     }
-
-    @Test
-    public void copyNodeTest() {
-        peerTask.copyNode();
-        assert peerTable.getPeerStore().size() == 0;
-    }
-
 }

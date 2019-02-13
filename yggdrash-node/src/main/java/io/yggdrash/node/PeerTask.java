@@ -16,52 +16,97 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.net.KademliaPeerTable;
+import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.net.KademliaOptions;
 import io.yggdrash.core.net.NodeStatus;
+import io.yggdrash.core.net.Peer;
 import io.yggdrash.core.net.PeerHandlerGroup;
+import io.yggdrash.core.net.PeerTable;
+import io.yggdrash.core.net.PeerTableGroup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 
-public class PeerTask extends io.yggdrash.core.net.PeerTask {
+import java.util.List;
+
+public class PeerTask {
+    private static final Logger log = LoggerFactory.getLogger(PeerTask.class);
+
+    private PeerTableGroup peerTableGroup;
+    private PeerHandlerGroup peerHandlerGroup;
+    private NodeStatus nodeStatus;
 
     @Autowired
-    public void setPeerTable(KademliaPeerTable peerTable) {
-        super.setPeerTable(peerTable);
+    public void setNodeStatus(NodeStatus nodeStatus) {
+        this.nodeStatus = nodeStatus;
+    }
+
+    @Autowired
+    public void setPeerTableGroup(PeerTableGroup peerTableGroup) {
+        this.peerTableGroup = peerTableGroup;
     }
 
     @Autowired
     public void setPeerHandlerGroup(PeerHandlerGroup peerHandlerGroup) {
-        super.setPeerHandlerGroup(peerHandlerGroup);
+        this.peerHandlerGroup = peerHandlerGroup;
     }
 
-    @Autowired
-    public void setNodeStatus(NodeStatus nodeStatus) {
-        super.setNodeStatus(nodeStatus);
-    }
-
-    @Scheduled(cron = "*/10 * * * * *")
+    @Scheduled(fixedRate = 10000)
     public void healthCheck() {
-        super.healthCheck();
+        if (!nodeStatus.isUpStatus()) {
+            return;
+        }
+        for (BranchId branchId : peerTableGroup.getAllBrancheId()) {
+            PeerTable peerTable = peerTableGroup.getPeerTable(branchId);
+            List<Peer> closestPeerList =
+                    peerTable.getClosestPeers(peerTableGroup.getOwner(), KademliaOptions.BROADCAST_SIZE);
+            log.trace("peerTask  :: healthCheck => size={}, branch={}", closestPeerList.size(), branchId);
+            closestPeerList.forEach(peer -> peerHandlerGroup.healthCheck(branchId, peerTableGroup.getOwner(), peer));
+        }
     }
 
     // refresh performs a lookup for a random target to keep buckets full.
     // seed nodes are inserted if the table is empty (initial bootstrap or discarded faulty peers).
-    @Scheduled(cron = "*/30 * * * * *")
+    @Scheduled(fixedRate = KademliaOptions.BUCKET_REFRESH)
     public void refresh() {
-        super.refresh();
+        peerTableGroup.refresh();
     }
 
     // revalidate checks that the last node in a random bucket is still live
     // and replaces or deletes the node if it isn't
-    @Scheduled(cron = "*/10 * * * * *")
+    //@Scheduled(cron = "*/10 * * * * *")
     public void revalidate() {
-        super.revalidate();
+        for (BranchId branchId : peerTableGroup.getAllBrancheId()) {
+            PeerTable peerTable = peerTableGroup.getPeerTable(branchId);
+
+            Peer last = peerTable.peerToRevalidate();
+            if (last == null || last.equals(peerTableGroup.getOwner())) {
+                return;
+            }
+            // Ping the selected node and wait for a pong (set last.id to ping msg)
+            log.debug("[revalidate] last ynodeUri => " + last.getYnodeUri());
+            if (peerHandlerGroup.healthCheck(branchId, peerTableGroup.getOwner(), last)) {
+                // The peer responded, move it to the front
+                peerTable.getBucketByPeer(last).bump(last);
+            } else {
+                // No reply received, pick a replacement or delete the node
+                // if there aren't any replacement
+                Peer result = peerTable.pickReplacement(last);
+                if (result != null) {
+                    log.debug("Replaced dead peer '{}' to '{}'",
+                            last.getPeerId(), result.getPeerId());
+                } else {
+                    log.debug("Removed dead peer '{}'", last.getPeerId());
+                }
+            }
+        }
     }
 
     // copyNode adds peers from the table to the database if they have been in the table
     // longer then minTableTime.
-    @Scheduled(cron = "*/30 * * * * *")
-    public void copyNode() {
-        super.copyNode();
+    //@Scheduled(cron = "*/30 * * * * *")
+    public void copyLiveNode() {
+        peerTableGroup.copyLiveNode();
     }
 }
