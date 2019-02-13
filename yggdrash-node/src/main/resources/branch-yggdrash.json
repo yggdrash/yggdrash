@@ -6,13 +6,13 @@
   "contracts" :
     [
       {
-        "contractVersion": "417c69915df1b5021150690a105c683ca4944c25",
+        "contractVersion": "dfc39c00ae6a570753d1077ef0f68a3573c325bf",
         "init": {},
         "description": "The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.",
         "name":"STEM"
       },
       {
-        "contractVersion": "9992cb91839c4c2156fb242332475ccf3548e2df",
+        "contractVersion": "892a821b74c86c6cd6adc6563fd9dbcd4e376419",
         "init": {
           "alloc": {
             "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94": {

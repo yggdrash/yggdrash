@@ -76,7 +76,7 @@ public class StemContractTest {
 
         try {
             txReceiptField.set(stemContract, receipt);
-            stemContract.genesis(params);
+            stemContract.init(params);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }

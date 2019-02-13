@@ -27,19 +27,17 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import static io.yggdrash.node.api.JsonRpcConfig.CONTRACT_API;
 import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
 import static org.assertj.core.api.Assertions.assertThat;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ContractApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(ContractApiImplTest.class);
 
-    private static BranchId branchId = TestConstants.YEED;
+    private BranchId branchId = TestConstants.yggdrash();
 
     @Test
     public void contractApiIsNotNull() {
@@ -96,15 +94,18 @@ public class ContractApiImplTest {
 
     private void queryAndAssert(String method, Map params, BigDecimal expected) {
         try {
-            BigDecimal value = (BigDecimal)CONTRACT_API.query(branchId.toString(), method, params);
+            // TODO Change CoinContract Address by Name
+            BigDecimal value = (BigDecimal)CONTRACT_API.query(branchId.toString(),TestConstants.YEED_CONTRACT.toString(), method, params);
             assertThat(value).isEqualTo(expected);
         } catch (Exception e) {
-            log.error(e.getMessage(), e);
+            // TODO exception is test fail
+            //fail(e.getMessage());
+            log.error(e.getMessage());
         }
     }
 
     private void sendTransaction(JsonArray txBody) {
-        TransactionHusk tx = BlockChainTestUtils.createTxHusk(TestConstants.YEED, txBody);
+        TransactionHusk tx = BlockChainTestUtils.createTxHusk(TestConstants.yggdrash(), txBody);
         try {
             TX_API.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {
