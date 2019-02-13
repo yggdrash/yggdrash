@@ -17,10 +17,10 @@
 package io.yggdrash.node.discovery;
 
 import ch.qos.logback.classic.Level;
-import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.net.KademliaOptions;
 import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.net.PeerTable;
 import io.yggdrash.core.util.PeerTableCounter;
 import io.yggdrash.node.GRpcTestNode;
 import org.junit.Test;
@@ -33,24 +33,6 @@ import java.util.Set;
 
 @RunWith(JUnit4.class)
 public class InProcessDiscoveryNodeTest extends AbstractDiscoveryNodeTest {
-
-    @Test
-    public void healthCheckWithBestBlockTest() {
-        // arrange
-        GRpcTestNode bsNode = testNode(SEED_PORT);
-        bsNode.bootstrapping();
-        GRpcTestNode node1 = testNode(SEED_PORT + 1);
-        node1.bootstrapping();
-        // update bestBlock
-        node1.peerHandlerGroup.chainedBlock(BlockChainTestUtils.genesisBlock());
-
-        // act (피어의 BestBlock 정보가 BS노드의 PeerTable에 등록됨)
-        node1.peerTask.healthCheck();
-
-        // assert
-        Peer peer = bsNode.peerTable.getClosestPeers(bsNode.peerTable.getOwner(), 1).get(0);
-        assert peer.getBestBlocks().size() == 1;
-    }
 
     @Test
     public void underDefaultBucketSizeNetworkTest() {
@@ -79,7 +61,7 @@ public class InProcessDiscoveryNodeTest extends AbstractDiscoveryNodeTest {
         PeerTableCounter counter = new PeerTableCounter();
 
         // act
-        bootstrapAndHealthCheck(nodeCount);
+        bootstrapNodes(nodeCount);
         nodeList.forEach(node -> node.peerTask.refresh());
 
         // assert
@@ -87,12 +69,16 @@ public class InProcessDiscoveryNodeTest extends AbstractDiscoveryNodeTest {
         int maxPeers = 0;
         Set<Peer> peerSet = new HashSet<>();
         for (GRpcTestNode node : nodeList) {
-
-            List<Peer> peerList = node.peerTable.getClosestPeers(node.peerTable.getOwner(), limit);
+            List<Peer> peerList =
+                    node.peerTableGroup.getClosestPeers(TestConstants.STEM, node.peerTableGroup.getOwner(), limit);
             peerSet.addAll(peerList);
 
-            int peers = counter.use(node.peerTable).totalPeerOfBucket();
-            int buket = node.peerTable.getBucketsCount();
+            PeerTable peerTable = node.peerTableGroup.getPeerTable(TestConstants.STEM);
+            if (peerTable == null) {
+                continue;
+            }
+            int peers = counter.use(peerTable).totalPeerOfBucket();
+            int buket = peerTable.getBucketsCount();
 
             if (peers > maxPeers) {
                 maxPeers = peers;
