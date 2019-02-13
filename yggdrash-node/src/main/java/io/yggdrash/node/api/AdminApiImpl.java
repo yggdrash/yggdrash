@@ -10,7 +10,7 @@ import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.FileUtil;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.node.api.dto.AdminDto;
+import io.yggdrash.gateway.dto.AdminDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;

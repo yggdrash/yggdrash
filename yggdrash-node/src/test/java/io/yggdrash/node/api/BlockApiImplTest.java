@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.node.api.dto.BlockDto;
+import io.yggdrash.gateway.dto.BlockDto;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,7 @@ import static org.junit.Assert.assertEquals;
 public class BlockApiImplTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockApiImplTest.class);
-    private final String branchId = TestConstants.STEM.toString();
+    private final String branchId = TestConstants.yggdrash().toString();
 
     @Test
     public void blockApiIsNotNull() {

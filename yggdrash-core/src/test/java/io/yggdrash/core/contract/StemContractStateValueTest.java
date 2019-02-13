@@ -29,7 +29,7 @@ public class StemContractStateValueTest {
 
         assertThat(stateValue.getType()).isEqualTo(Branch.BranchType.TEST);
         assertThat(stateValue.getTag()).isNotEmpty();
-        assertThat(stateValue.getContractHistory()).contains(stateValue.getContractId());
+        // TODO Stem Contract Change all of them
     }
 
     @Test
@@ -63,28 +63,17 @@ public class StemContractStateValueTest {
     }
 
     @Test
-    public void updateContractIdTest() {
+    public void updateContractVersionTest() {
         stateValue.init();
-        assertThat(stateValue.getContractHistory()).containsOnly(stateValue.getContractId());
-        assertContractAndHistory(stateValue.getContractId(), 0);
-
-        // update exist contractId
-        stateValue.updateContract(stateValue.getContractId().toString());
-        assertThat(stateValue.getContractHistory()).containsOnly(stateValue.getContractId());
-
-        ContractId newContractId = ContractId.of("00");
-        stateValue.updateContract(newContractId.toString());
-        assertContractAndHistory(newContractId, 1);
     }
 
-    private void assertContractAndHistory(ContractId contractId, int contractHistoryIndex) {
-        assertThat(stateValue.getContractId()).isEqualTo(contractId);
-        assertThat(stateValue.getJson().get("contractId").getAsString())
-                .isEqualTo(contractId.toString());
+    private void assertContractAndHistory(ContractVersion contractVersion, int contractHistoryIndex) {
+        assertThat(stateValue.getJson().get("contractVersion").getAsString())
+                .isEqualTo(contractVersion.toString());
 
-        assertThat(stateValue.getContractHistory()).contains(contractId);
+        assertThat(stateValue.getContractHistory()).contains(contractVersion);
         JsonArray contractHistory = stateValue.getJson().getAsJsonArray("contractHistory");
         assertThat(contractHistory.get(contractHistoryIndex).getAsString())
-                .isEqualTo(contractId.toString());
+                .isEqualTo(contractVersion.toString());
     }
 }

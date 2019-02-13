@@ -21,7 +21,7 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.exception.NonExistObjectException;
-import io.yggdrash.node.api.dto.BlockDto;
+import io.yggdrash.gateway.dto.BlockDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

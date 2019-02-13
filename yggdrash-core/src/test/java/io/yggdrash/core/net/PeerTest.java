@@ -48,7 +48,7 @@ public class PeerTest {
     public void testBestBlock() {
         // arrange
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        BestBlock bb = BestBlock.of(TestConstants.STEM, 0);
+        BestBlock bb = BestBlock.of(TestConstants.yggdrash(), 0);
 
         // act
         peer.updateBestBlock(bb);

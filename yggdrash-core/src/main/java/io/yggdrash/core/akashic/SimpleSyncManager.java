@@ -4,6 +4,7 @@ import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerHandler;
 import io.yggdrash.core.net.PeerHandlerGroup;
 import org.slf4j.Logger;
@@ -14,17 +15,22 @@ import java.util.List;
 public class SimpleSyncManager implements SyncManager {
     private static final Logger log = LoggerFactory.getLogger(SimpleSyncManager.class);
 
+    private final NodeStatus nodeStatus;
     private final BranchGroup branchGroup;
     private final PeerHandlerGroup peerHandlerGroup;
 
-    public SimpleSyncManager(BranchGroup branchGroup, PeerHandlerGroup peerHandlerGroup) {
+    public SimpleSyncManager(BranchGroup branchGroup,
+                             PeerHandlerGroup peerHandlerGroup,
+                             NodeStatus nodeStatus) {
         this.branchGroup = branchGroup;
         this.peerHandlerGroup = peerHandlerGroup;
+        this.nodeStatus = nodeStatus;
     }
 
     @Override
     public void syncBlockAndTransaction() {
         try {
+            nodeStatus.sync();
             for (BlockChain blockChain : branchGroup.getAllBranch()) {
                 List<PeerHandler> peerHandlerList =
                         peerHandlerGroup.getHandlerList(blockChain.getBranchId());
@@ -35,6 +41,8 @@ public class SimpleSyncManager implements SyncManager {
             }
         } catch (Exception e) {
             log.warn(e.getMessage(), e);
+        } finally {
+            nodeStatus.up();
         }
     }
 

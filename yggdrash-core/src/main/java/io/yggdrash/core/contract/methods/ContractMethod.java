@@ -28,7 +28,7 @@ public class ContractMethod {
     public ContractMethod(Method method) {
         Optional<Class<?>> m = Arrays.stream(method.getParameterTypes())
                 .filter(p -> p == JsonObject.class).findFirst();
-        if(method.getParameterCount() == 1 && m.isPresent()) {
+        if (method.getParameterCount() == 1 && m.isPresent()) {
             params = true;
         }
         invokeMethod = method;

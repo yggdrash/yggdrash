@@ -22,13 +22,14 @@ import io.yggdrash.ContractTestUtils;
 import io.yggdrash.core.exception.DuplicatedException;
 import org.junit.Before;
 import org.junit.Test;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 
+import static io.yggdrash.TestConstants.yggdrash;
 import static io.yggdrash.TestConstants.PerformanceTest;
 import static io.yggdrash.TestConstants.TRANSFER_TO;
-import static io.yggdrash.TestConstants.YEED;
 import static io.yggdrash.TestConstants.wallet;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -37,6 +38,7 @@ public class BranchGroupTest {
     private BranchGroup branchGroup;
     private TransactionHusk tx;
     private BlockHusk block;
+    protected static final Logger log = LoggerFactory.getLogger(BranchGroupTest.class);
 
     @Before
     public void setUp() {
@@ -123,23 +125,9 @@ public class BranchGroupTest {
         assertThat(branchGroup.getTransactionReceiptStore(tx.getBranchId())).isNotNull();
     }
 
-//    TODO StemContract 구조변경 및 데이터 모델 변경
-//    TODO getallbranchid 메소드 삭제
-//    @Test
-//    public void getContract() throws Exception {
-//        Contract contract = branchGroup.getContract(block.getBranchId());
-//        assertThat(contract).isNotNull();
-//        Map<String, Method> queryMethod = ContractUtils
-//                .contractMethods(contract, ContractQuery.class);
-//        Method getAllBranchid = queryMethod.get("getallbranchid");
-//        String result = getAllBranchid.invoke(contract).toString();
-//        assertThat(result).contains(block.getBranchId().toString());
-//    }
-
-
     private TransactionHusk createTx(int amount) {
         JsonArray txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, amount);
-        return BlockChainTestUtils.createTxHusk(YEED, txBody);
+        return BlockChainTestUtils.createTxHusk(yggdrash(), txBody);
     }
 
     private BlockHusk newBlock(List<TransactionHusk> body, BlockHusk prevBlock) {

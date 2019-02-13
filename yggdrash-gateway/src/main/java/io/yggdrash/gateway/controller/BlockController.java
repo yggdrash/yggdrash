@@ -19,7 +19,7 @@ package io.yggdrash.gateway.controller;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.node.api.dto.BlockDto;
+import io.yggdrash.gateway.dto.BlockDto;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;

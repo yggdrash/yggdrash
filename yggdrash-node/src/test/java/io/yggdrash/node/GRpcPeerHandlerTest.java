@@ -45,6 +45,8 @@ import static org.mockito.Mockito.verify;
 @RunWith(MockitoJUnitRunner.class)
 public class GRpcPeerHandlerTest {
 
+    private static final Peer TARGET = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+
     @Rule
     public final GrpcServerRule grpcServerRule = new GrpcServerRule().directExecutor();
 
@@ -58,7 +60,7 @@ public class GRpcPeerHandlerTest {
     private ArgumentCaptor<Proto.Ping> pingRequestCaptor;
 
     @Captor
-    private ArgumentCaptor<Proto.RequestPeer> findPeersRequestCaptor;
+    private ArgumentCaptor<Proto.TargetPeer> findPeersTargetCaptor;
 
     @Captor
     private ArgumentCaptor<Proto.Block> blockArgumentCaptor;
@@ -71,23 +73,19 @@ public class GRpcPeerHandlerTest {
 
     private GRpcPeerHandler peerHandler;
 
+    private BranchId yggdrash;
+
     @Before
     public void setUp() {
-        Peer peer = Peer.valueOf("ynode://75bff16c@localhost:9999");
-        peerHandler = new GRpcPeerHandler(grpcServerRule.getChannel(), peer);
+        yggdrash = TestConstants.yggdrash();
+        peerHandler = new GRpcPeerHandler(grpcServerRule.getChannel(), TARGET);
         grpcServerRule.getServiceRegistry().addService(peerService);
         grpcServerRule.getServiceRegistry().addService(blockChainService);
+        assertEquals(TARGET, peerHandler.getPeer());
     }
 
     @Test
-    public void getPeerYnodeUriTest() {
-        GRpcPeerHandler peerHandler =
-                new GRpcPeerHandler(Peer.valueOf("ynode://75bff16c@localhost:32918"));
-        assertEquals("ynode://75bff16c@localhost:32918", peerHandler.getPeer().getYnodeUri());
-    }
-
-    @Test
-    public void play() {
+    public void ping() {
         doAnswer((invocationOnMock) -> {
             StreamObserver<Proto.BlockList> argument = invocationOnMock.getArgument(1);
             argument.onNext(null);
@@ -95,14 +93,18 @@ public class GRpcPeerHandlerTest {
             return null;
         }).when(peerService).ping(pingRequestCaptor.capture(), any());
 
+        Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
+        owner.updateBestBlock(BestBlock.of(yggdrash, 0));
         String ping = "Ping";
-        Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-
-        peerHandler.ping(ping, owner);
+        peerHandler.ping(owner, ping);
 
         verify(peerService).ping(pingRequestCaptor.capture(), any());
 
         assertEquals(ping, pingRequestCaptor.getValue().getPing());
+
+        Proto.BestBlock bestBlock = pingRequestCaptor.getValue().getBestBlocks(0);
+        assertArrayEquals(yggdrash.getBytes(), bestBlock.getBranch().toByteArray());
+        assertEquals(0, bestBlock.getIndex());
     }
 
     @Test
@@ -112,19 +114,14 @@ public class GRpcPeerHandlerTest {
             argument.onNext(null);
             argument.onCompleted();
             return null;
-        }).when(peerService).findPeers(findPeersRequestCaptor.capture(), any());
+        }).when(peerService).findPeers(findPeersTargetCaptor.capture(), any());
 
-        Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        owner.updateBestBlock(BestBlock.of(TestConstants.STEM, 0));
-        peerHandler.findPeers(owner);
+        peerHandler.findPeers(TARGET);
 
-        verify(peerService).findPeers(findPeersRequestCaptor.capture(), any());
+        verify(peerService).findPeers(findPeersTargetCaptor.capture(), any());
 
-        assertEquals("127.0.0.1", findPeersRequestCaptor.getValue().getIp());
-        assertEquals(32918, findPeersRequestCaptor.getValue().getPort());
-        Proto.BestBlock bestBlock = findPeersRequestCaptor.getValue().getBestBlocks(0);
-        assertArrayEquals(TestConstants.STEM.getBytes(), bestBlock.getBranch().toByteArray());
-        assertEquals(0, bestBlock.getIndex());
+        assertEquals("127.0.0.1", findPeersTargetCaptor.getValue().getIp());
+        assertEquals(32918, findPeersTargetCaptor.getValue().getPort());
     }
 
     @Test

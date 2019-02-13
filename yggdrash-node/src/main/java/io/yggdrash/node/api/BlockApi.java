@@ -6,7 +6,7 @@ import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
-import io.yggdrash.node.api.dto.BlockDto;
+import io.yggdrash.gateway.dto.BlockDto;
 
 import static io.yggdrash.common.config.Constants.BLOCK_ID;
 import static io.yggdrash.common.config.Constants.BRANCH_ID;

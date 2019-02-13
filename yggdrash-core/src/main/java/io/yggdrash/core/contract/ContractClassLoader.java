@@ -74,9 +74,9 @@ public class ContractClassLoader extends ClassLoader {
         for (Class<? extends Contract> contract : CONTRACTS) {
             log.debug("copyResourcesToContractPath :: contract => " + contract);
             ContractMeta contractMeta = loadContractClass(contract);
-            ContractId contractId = contractMeta.getContractId();
-            log.debug("copyResourcesToContractPath :: contractId => " + contractId);
-            File contractFile = ContractMeta.contractFile(contractPath, contractId);
+            ContractVersion contractVersion = contractMeta.getContractVersion();
+            log.debug("copyResourcesToContractPath :: contractVersion => " + contractVersion);
+            File contractFile = ContractMeta.contractFile(contractPath, contractVersion);
             if (!contractFile.exists()) {
                 try {
                     FileUtils.writeByteArrayToFile(contractFile, contractMeta.getContractBinary());
@@ -103,8 +103,8 @@ public class ContractClassLoader extends ClassLoader {
         return loader.loadContract(contractFullName, contractFile);
     }
 
-    public static ContractMeta loadContractById(String contractPath, ContractId contractId) {
-        File contractFile = ContractMeta.contractFile(contractPath, contractId);
+    public static ContractMeta loadContractById(String contractPath, ContractVersion contractVersion) {
+        File contractFile = ContractMeta.contractFile(contractPath, contractVersion);
         log.debug("Load contract={}", contractFile.getAbsolutePath());
         if (contractFile.exists()) {
             return ContractClassLoader.loadContractClass(null, contractFile);
