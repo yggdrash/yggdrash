@@ -428,6 +428,7 @@ public class PbftService implements CommandLineRunner {
         for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
             if (pbftMessage == null || pbftMessage.getSeqNumber() < index) {
+                pbftMessage.clear();
                 this.blockChain.getUnConfirmedMsgMap().remove(key);
             } else if (pbftMessage.getSeqNumber() == index) {
                 switch (pbftMessage.getType()) {
@@ -538,6 +539,7 @@ public class PbftService implements CommandLineRunner {
         for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
             if (pbftMessage.getSeqNumber() <= block.getIndex()) {
+                // todo: clear pbftMessage
                 this.blockChain.getUnConfirmedMsgMap().remove(key);
             }
         }

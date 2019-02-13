@@ -353,4 +353,10 @@ public class Block implements Cloneable {
         return (long) HEADER_LENGTH + (long) SIGNATURE_LENGTH + bodyLength;
     }
 
+    public void clear() {
+        this.header = null;
+        this.body.clear();
+        this.body = null;
+        this.signature = null;
+    }
 }
