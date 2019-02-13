@@ -3,7 +3,6 @@ package io.yggdrash.validator.service.pbft;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
@@ -742,12 +741,7 @@ public class PbftService implements CommandLineRunner {
         }
         long timestamp = TimeUtils.time();
 
-        return new PbftStatus(index,
-                pbftMessageMap,
-                timestamp,
-                wallet.sign(ByteUtil.merge(ByteUtil.longToBytes(index),
-                        pbftMessageBytes.toByteArray(),
-                        ByteUtil.longToBytes(timestamp))));
+        return new PbftStatus(index, pbftMessageMap, timestamp, wallet);
     }
 
     private void printInitInfo() {
