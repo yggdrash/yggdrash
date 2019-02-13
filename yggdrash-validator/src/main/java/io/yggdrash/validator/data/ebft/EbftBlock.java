@@ -142,10 +142,6 @@ public class EbftBlock {
         return ebftBlock.getBlock().verify();
     }
 
-    public EbftBlock clone() {
-        return new EbftBlock(this.block, this.consensusList);
-    }
-
     public byte[] toBinary() {
         int pos = 0;
 
@@ -184,5 +180,14 @@ public class EbftBlock {
     public boolean equals(EbftBlock ebftBlock) {
         return this.block.equals(ebftBlock.getBlock())
                 && Arrays.equals(this.consensusList.toArray(), ebftBlock.consensusList.toArray());
+    }
+
+    public void clear() {
+        this.block.clear();
+        this.consensusList.clear();
+    }
+
+    public EbftBlock clone() {
+        return new EbftBlock(this.block.clone(), this.consensusList);
     }
 }

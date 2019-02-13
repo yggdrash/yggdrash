@@ -219,9 +219,15 @@ public class BlockHeader implements Cloneable {
         return this.toJsonObject().toString();
     }
 
-    @Override
-    public BlockHeader clone() throws CloneNotSupportedException {
-        return (BlockHeader) super.clone();
+    public BlockHeader clone() {
+        return new BlockHeader(this.chain.clone(),
+                this.version.clone(),
+                this.type.clone(),
+                this.prevBlockHash.clone(),
+                this.index,
+                this.timestamp,
+                this.merkleRoot.clone(),
+                this.bodyLength);
     }
 
     public boolean equals(BlockHeader newBlockHeader) {

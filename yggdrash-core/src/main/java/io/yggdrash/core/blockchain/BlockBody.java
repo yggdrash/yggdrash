@@ -145,9 +145,8 @@ public class BlockBody implements Cloneable {
         return bao.toByteArray();
     }
 
-    @Override
-    public BlockBody clone() throws CloneNotSupportedException {
-        return (BlockBody) super.clone();
+    public BlockBody clone() {
+        return new BlockBody(this.body);
     }
 
     public boolean equals(BlockBody newBlockBody) {
