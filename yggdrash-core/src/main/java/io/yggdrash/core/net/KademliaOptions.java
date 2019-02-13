@@ -8,6 +8,6 @@ public class KademliaOptions {
     public static int BROADCAST_SIZE = 7;
 
     public static final long REQ_TIMEOUT = 7000;
-    public static final long BUCKET_REFRESH = 7200;     //bucket refreshing interval in millis
+    public static final long BUCKET_REFRESH = 30000;     //bucket refreshing interval in millis
     public static final long DISCOVER_CYCLE = 30;       //dht cycle interval in seconds
 }
