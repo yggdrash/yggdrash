@@ -31,6 +31,10 @@ public class PbftBlockTest {
     private Wallet wallet4;
 
     private Block block;
+    private Block block2;
+    private Block block3;
+    private Block block4;
+
     private PbftBlock pbftBlock;
     private PbftBlock pbftBlock2;
     private PbftBlock pbftBlock3;
@@ -68,6 +72,9 @@ public class PbftBlockTest {
         wallet4 = new Wallet(null, "/tmp/", "test4", "Password1234!");
 
         block = new TestUtils(wallet).sampleBlock();
+        block2 = new TestUtils(wallet).sampleBlock(block.getIndex() + 1, block.getHash());
+        block3 = new TestUtils(wallet).sampleBlock(block2.getIndex() + 1, block2.getHash());
+        block4 = new TestUtils(wallet).sampleBlock(block3.getIndex() + 1, block3.getHash());
 
         prePrepare = new PbftMessage(PREPREPARE,
                 0L,
@@ -207,9 +214,9 @@ public class PbftBlockTest {
         pbftMessageSet4 = new PbftMessageSet(prePrepare, prepareMap, commitMap, null);
 
         this.pbftBlock = new PbftBlock(this.block, this.pbftMessageSet);
-        this.pbftBlock2 = new PbftBlock(this.block, this.pbftMessageSet2);
-        this.pbftBlock3 = new PbftBlock(this.block, this.pbftMessageSet3);
-        this.pbftBlock4 = new PbftBlock(this.block, this.pbftMessageSet4);
+        this.pbftBlock2 = new PbftBlock(this.block2, this.pbftMessageSet2);
+        this.pbftBlock3 = new PbftBlock(this.block3, this.pbftMessageSet3);
+        this.pbftBlock4 = new PbftBlock(this.block4, this.pbftMessageSet4);
 
     }
 
@@ -312,4 +319,13 @@ public class PbftBlockTest {
             assertTrue(newBlock.equals(this.pbftBlock4));
         }
     }
+
+    @Test
+    public void verifyTest() {
+        assertTrue(PbftBlock.verify(this.pbftBlock)
+                && PbftBlock.verify(this.pbftBlock2)
+                && PbftBlock.verify(this.pbftBlock3)
+                && PbftBlock.verify(this.pbftBlock4));
+    }
+
 }

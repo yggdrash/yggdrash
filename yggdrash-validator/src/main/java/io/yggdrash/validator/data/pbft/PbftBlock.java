@@ -94,18 +94,13 @@ public class PbftBlock {
             return false;
         }
 
-        if (block.getIndex() == 0) { // genesis block
-            if (block.getBlock().verify()) {
-                return true;
-            }
+        if (block.getIndex() == 0) {
+            return block.getBlock().verify();
         } else {
-            if (block.getBlock().verify()
-                    && block.getPbftMessageSet().verify(block.getPbftMessageSet())) {
-                return true;
-            }
+            return block.getBlock().verify()
+                    && PbftMessageSet.verify(block.getPbftMessageSet());
         }
 
-        return false;
     }
 
     public JsonObject toJsonObject() {
