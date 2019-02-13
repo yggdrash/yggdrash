@@ -61,19 +61,4 @@ public class TransactionReceiptStoreTest {
 
     }
 
-    @Test
-    public void blockAndTranction() {
-        TransactionReceipt receipt = new TransactionReceiptImpl();
-        receipt.setTxId("TEST_TRANSACTION_123451234512345");
-        receipt.setBranchId("0x00000000000000000000000");
-        receipt.setBlockId("0x1231231231234234234234234");
-
-        // TODO make event
-//        receipt.putLog();
-
-
-    }
-
-
-
 }

@@ -83,7 +83,7 @@ public class Runtime<T> {
 
         if(block.getIndex() == 0) {
             // TODO first transaction is genesis
-            // TODO genesis method don't call any more
+            // TODO init method don't call any more
         }
 
         BlockRuntimeResult result = new BlockRuntimeResult(block);
@@ -101,6 +101,7 @@ public class Runtime<T> {
             if (txReceipt.isSuccess()) {
                 blockState.putAll(txResult.changeValues());
             }
+            log.debug("{} is {}", txReceipt.getTxId(), txReceipt.isSuccess());
 
             result.addTxReceipt(txReceipt);
             // Save TxReceipt
@@ -151,14 +152,18 @@ public class Runtime<T> {
                 JsonObject txBody = transactionElement.getAsJsonObject();
                 // check contract Version
                 ContractVersion txContractVersion = ContractVersion.of(txBody.get("contractVersion").getAsString());
+                log.debug("txContractVersion {} ", txContractVersion);
                 RuntimeContractWrap wrap = contracts.get(txContractVersion);
                 TempStateStore txElementState = wrap.invokeTransaction(txBody, txReceipt, txState);
                 if(txReceipt.isSuccess()) {
                     txState.putAll(txElementState.changeValues());
                 }
+                log.debug("invoke {} is {}", txReceipt.getTxId(), txReceipt.isSuccess());
+
             }
 
         } catch (Throwable e) {
+            e.printStackTrace();
             txReceipt.setStatus(ExecuteStatus.ERROR);
             JsonObject errorLog = new JsonObject();
             errorLog.addProperty("error", e.getMessage());

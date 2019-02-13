@@ -16,25 +16,23 @@
 
 package io.yggdrash.core.contract;
 
+import io.yggdrash.core.contract.methods.ContractMethod;
+import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import io.yggdrash.core.contract.methods.ContractMethod;
-import org.apache.commons.io.FileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.stream.Stream;
 
 public class ContractManager extends ClassLoader {
@@ -56,7 +54,9 @@ public class ContractManager extends ClassLoader {
         try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(this.contractPath)))) {
             filePathStream.forEach(p -> {
                 File contractFile = new File(String.valueOf(p));
-                if(contractFile.isDirectory()) return;
+                if (contractFile.isDirectory()) {
+                    return;
+                }
                 byte[] contractBinary;
                 try (FileInputStream inputStream = new FileInputStream(contractFile)) {
                     contractBinary = new byte[Math.toIntExact(contractFile.length())];
@@ -161,8 +161,8 @@ public class ContractManager extends ClassLoader {
                 + contractVersion + ".class";
         File file = new File(contractPath + File.separator + filePath);
         File directory = new File(contractPath + File.separator + directoryPath);
-        if (file.exists()){
-            if(file.isDirectory()){
+        if (file.exists()) {
+            if (file.isDirectory()) {
                 File[] files = file.listFiles();
                 Arrays.stream(files)
                         .forEach(f -> f.delete());

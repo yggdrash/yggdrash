@@ -125,20 +125,6 @@ public class BranchGroupTest {
         assertThat(branchGroup.getTransactionReceiptStore(tx.getBranchId())).isNotNull();
     }
 
-//    TODO StemContract 구조변경 및 데이터 모델 변경
-//    TODO getallbranchid 메소드 삭제
-//    @Test
-//    public void getContract() throws Exception {
-//        Contract contract = branchGroup.getContract(block.getBranchId());
-//        assertThat(contract).isNotNull();
-//        Map<String, Method> queryMethod = ContractUtils
-//                .contractMethods(contract, ContractQuery.class);
-//        Method getAllBranchid = queryMethod.get("getallbranchid");
-//        String result = getAllBranchid.invoke(contract).toString();
-//        assertThat(result).contains(block.getBranchId().toString());
-//    }
-
-
     private TransactionHusk createTx(int amount) {
         JsonArray txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, amount);
         return BlockChainTestUtils.createTxHusk(YEED, txBody);

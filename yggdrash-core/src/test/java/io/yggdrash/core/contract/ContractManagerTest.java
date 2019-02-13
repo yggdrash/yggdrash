@@ -18,6 +18,10 @@ package io.yggdrash.core.contract;
 
 import io.yggdrash.common.config.DefaultConfig;
 
+import org.junit.Before;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -30,11 +34,6 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -59,7 +58,9 @@ public class ContractManagerTest {
     @Test
     public void getContractById() {
         List<ContractVersion> sampleContractIdList = contractSample();
-        if (sampleContractIdList == null || contracts == null) return;
+        if (sampleContractIdList == null || contracts == null) {
+            return;
+        }
 
         ContractMeta meta = ContractClassLoader.loadContractClass(StemContract.class);
         ContractMeta meta2 = contractManager.getContractById(meta.getContractVersion());
@@ -72,22 +73,28 @@ public class ContractManagerTest {
     @Test
     public void getContractIdList() {
         List<ContractVersion> sampleContractIdList = contractSample();
-        if (sampleContractIdList == null || contracts == null) return;
+        if (sampleContractIdList == null || contracts == null) {
+            return;
+        }
         assertEquals(sampleContractIdList.size(), contractManager.getContractIdList().size());
     }
 
     @Test
     public void getContractList() {
         List<ContractVersion> sampleContractIdList = contractSample();
-        if (sampleContractIdList == null || contracts == null) return;
+        if (sampleContractIdList == null || contracts == null) {
+            return;
+        }
         assertEquals(sampleContractIdList.size(), contractManager.getContractList().size());
     }
 
     @Test
     public void isContract() {
-        if (contracts == null) return;
+        if (contracts == null) {
+            return;
+        }
         contracts.entrySet().stream().forEach(set -> {
-            if (set.getKey() != null){
+            if (set.getKey() != null) {
                 assertEquals(true, contractManager.isContract(set.getKey()));
             }
         });
@@ -104,7 +111,9 @@ public class ContractManagerTest {
     public void addContract() {
         Class<? extends Contract> contract = TestContract.class;
         Map<ContractVersion, ContractMeta> contracts = contractManager.getContracts();
-        if (contracts == null) return;
+        if (contracts == null) {
+            return;
+        }
         long beforSize = contracts.entrySet().size();
         contractManager.addContract(contract);
         assertEquals(beforSize + 1, contracts.entrySet().size());
@@ -127,11 +136,13 @@ public class ContractManagerTest {
 
     private List<ContractVersion> contractSample() {
         DefaultConfig defaultConfig = new DefaultConfig();
-        List<ContractVersion> cIds = new ArrayList<>();
+        List<ContractVersion> contractsVersionSampleIds = new ArrayList<>();
         try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(defaultConfig.getContractPath())))) {
             filePathStream.forEach(contractPath -> {
                 File contractFile = new File(String.valueOf(contractPath));
-                if(contractFile.isDirectory()) return;
+                if (contractFile.isDirectory()) {
+                    return;
+                }
                 byte[] contractBinary;
                 try (FileInputStream inputStream = new FileInputStream(contractFile)) {
                     contractBinary = new byte[Math.toIntExact(contractFile.length())];
@@ -141,14 +152,15 @@ public class ContractManagerTest {
                     ContractMeta contractMeta = ContractClassLoader.loadContractById(
                             defaultConfig.getContractPath(), contractId);
 
-                    if(contractMeta.getStateStore() !=null || contractMeta.getTxReceipt() !=null) {
-                        cIds.add(contractId);
+                    if (contractMeta.getStateStore() != null
+                            || contractMeta.getTxReceipt() != null) {
+                        contractsVersionSampleIds.add(contractId);
                     }
                 } catch (IOException e) {
                     log.warn(e.getMessage());
                 }
             });
-            return cIds;
+            return contractsVersionSampleIds;
         } catch (IOException e) {
             e.printStackTrace();
         }

@@ -51,7 +51,7 @@ public class CoinContractTest {
 
         try {
             txReceiptField.set(coinContract, result);
-            coinContract.genesis(createParams(genesisStr));
+            coinContract.init(createParams(genesisStr));
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }

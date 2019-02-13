@@ -63,7 +63,7 @@ public class RuntimeTest {
 
         TransactionBuilder builder = new TransactionBuilder();
         TransactionHusk testTx = builder.setBranchId(branchId)
-                .addTxBody(coinContract, "genesis", genesisParams)
+                .addTxBody(coinContract, "init", genesisParams)
                 .setWallet(TestConstants.wallet())
                 .build();
 

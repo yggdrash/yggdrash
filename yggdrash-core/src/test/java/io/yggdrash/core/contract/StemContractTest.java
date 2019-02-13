@@ -76,7 +76,7 @@ public class StemContractTest {
 
         try {
             txReceiptField.set(stemContract, receipt);
-            stemContract.genesis(params);
+            stemContract.init(params);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
@@ -157,8 +157,6 @@ public class StemContractTest {
         String name = "Ethereum TO YEED";
         String symbol = "ETH TO YEED";
         String property = "exchange";
-//        String contractId = "b5790adeafbb9ac6c9be60955484ab1547ab0b76";
-//        JsonObject genesis = new JsonObject();
 
         return BranchBuilder.builder()
                 .setName(name)

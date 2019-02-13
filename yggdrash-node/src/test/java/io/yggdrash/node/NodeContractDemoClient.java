@@ -15,6 +15,7 @@ import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
+import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.node.api.BranchApi;
 import io.yggdrash.node.api.ContractApi;
@@ -55,6 +56,11 @@ public class NodeContractDemoClient {
     private static final String SERVER_STG = "10.10.20.100";
     private static final String TRANSFER_TO = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e";
     private static final int TRANSFER_AMOUNT = 1;
+
+    // TODO load by branch api
+    private static BranchId yggdrash;
+    private static ContractVersion stemContract;
+    private static ContractVersion yeedContract;
 
     public static void main(String[] args) throws Exception {
         for (int i = 0; i < 10000; i++) {
@@ -150,7 +156,7 @@ public class NodeContractDemoClient {
         String branchId = getBranchId();
         String serverAddress = getServerAddress();
         List<String> methodList = (List<String>)rpc.proxyOf(serverAddress, ContractApi.class)
-                .query(branchId, "specification", null);
+                .query(branchId,"417c69915df1b5021150690a105c683ca4944c25", "specification", null);
         System.out.println("\n해당 컨트랙트의 메소드 스펙입니다.");
         methodList.forEach(System.out::println);
 
@@ -163,7 +169,7 @@ public class NodeContractDemoClient {
                     .sendTransaction(TransactionDto.createBy(tx));
         } else {
             Map params = createParams();
-            rpc.proxyOf(serverAddress, ContractApi.class).query(branchId, selectedMethod, params);
+            rpc.proxyOf(serverAddress, ContractApi.class).query(branchId,"417c69915df1b5021150690a105c683ca4944c25", selectedMethod, params);
         }
     }
 
@@ -299,7 +305,7 @@ public class NodeContractDemoClient {
         Map params = ContractApiImplTest.createParams(BRANCH_ID, branchId);
 
         String serverAddress = getServerAddress();
-        rpc.proxyOf(serverAddress, ContractApi.class).query(branchId, "view", params);
+        rpc.proxyOf(serverAddress, ContractApi.class).query(branchId,"417c69915df1b5021150690a105c683ca4944c25", "view", params);
     }
 
     private static void update() {
@@ -352,7 +358,7 @@ public class NodeContractDemoClient {
 
         String serverAddress = getServerAddress();
         rpc.proxyOf(serverAddress, ContractApi.class)
-                .query(YEED.toString(), "balanceOf", params);
+                .query("e5804143de0e239527bebfd93c62bc2628d7989e","892a821b74c86c6cd6adc6563fd9dbcd4e376419", "balanceOf", params);
     }
 
     private static JsonObject getBranch() {
@@ -469,5 +475,8 @@ public class NodeContractDemoClient {
             return "unknown";
         }
     }
+
+
+
 }
 

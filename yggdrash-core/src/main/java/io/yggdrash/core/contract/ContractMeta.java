@@ -86,7 +86,7 @@ public class ContractMeta {
     }
 
     public Field getTxReceipt() {
-        for(Field f : ContractUtils.txReceiptFields(getContractInstance())) {
+        for (Field f : ContractUtils.txReceiptFields(getContractInstance())) {
             transactionReceiptField = f;
             f.setAccessible(true);
         }
@@ -94,7 +94,7 @@ public class ContractMeta {
     }
 
     public Field getStateStore() {
-        for(Field f : ContractUtils.stateStoreFields(getContractInstance())) {
+        for (Field f : ContractUtils.stateStoreFields(getContractInstance())) {
             contractStateStoreFiled = f;
             f.setAccessible(true);
         }
@@ -127,8 +127,10 @@ public class ContractMeta {
             invokeProperty.addProperty("name", set.getKey());
             if (set.getValue().isParams()) {
                 JsonArray inputArray = new JsonArray();
-                Arrays.stream(set.getValue().getMethod().getParameterTypes()).forEach(type -> inputArray.add(type.getSimpleName()));
-                invokeProperty.addProperty("params", set.getValue().getMethod().getParameterTypes().length);
+                Arrays.stream(set.getValue().getMethod().getParameterTypes())
+                        .forEach(type -> inputArray.add(type.getSimpleName()));
+                invokeProperty.addProperty("params",
+                        set.getValue().getMethod().getParameterTypes().length);
                 invokeProperty.add("inputType", inputArray);
             }
             invokeProperty.addProperty("outputType", set.getValue().getMethod().getReturnType().getSimpleName());

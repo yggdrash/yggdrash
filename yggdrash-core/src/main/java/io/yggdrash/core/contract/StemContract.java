@@ -3,7 +3,6 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
@@ -12,13 +11,15 @@ import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
 import io.yggdrash.core.store.Store;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
 
 public class StemContract implements Contract<JsonObject> {
 
@@ -35,7 +36,7 @@ public class StemContract implements Contract<JsonObject> {
 
     @Genesis
     @InvokeTransction // TODO remove InvokeTransaction
-    public TransactionReceipt genesis(JsonObject param) {
+    public TransactionReceipt init(JsonObject param) {
         txReceipt = create(param);
         log.info("[StemContract | genesis] SUCCESS! param => " + param);
 

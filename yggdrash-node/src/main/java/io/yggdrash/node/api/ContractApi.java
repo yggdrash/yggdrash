@@ -24,6 +24,7 @@ public interface ContractApi {
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
     Object query(@JsonRpcParam(value = "branchId") String branchId,
+                 @JsonRpcParam(value = "contractVersion") String contractVersion,
                  @JsonRpcParam(value = "method") String method,
                  @JsonRpcParam(value = "params") Map params) throws Exception;
 

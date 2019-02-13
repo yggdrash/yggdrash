@@ -35,7 +35,7 @@ import static org.junit.Assert.assertEquals;
 public class BlockApiImplTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockApiImplTest.class);
-    private final String branchId = TestConstants.STEM.toString();
+    private final String branchId = TestConstants.yggdrash().toString();
 
     @Test
     public void blockApiIsNotNull() {

@@ -130,7 +130,7 @@ public class BranchGroup {
         }
     }
 
-    public Object query(BranchId branchId, String method, JsonObject params) {
+    public Object query(BranchId branchId, String contractVersion, String method, JsonObject params) {
         if (!containsBranch(branchId)) {
             throw new NonExistObjectException(branchId.toString() + " branch");
         }
@@ -138,8 +138,8 @@ public class BranchGroup {
             BlockChain chain = branches.get(branchId);
             // TODO change branch spec
             // get runtime contract ID and execute
-            ContractVersion contractVersion = chain.getRuntime().executeAbleContract().iterator().next();
-            return chain.getRuntime().query(contractVersion,method, params);
+            ContractVersion version = ContractVersion.of(contractVersion);
+            return chain.getRuntime().query(version, method, params);
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }
