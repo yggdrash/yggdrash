@@ -106,7 +106,7 @@ public class AbstractDiscoveryNodeTest {
     protected void bootstrapNodes(int nodeCount, boolean activateBlockChainService) {
         for (int i = SEED_PORT; i < SEED_PORT + nodeCount; i++) {
             GRpcTestNode node = testNode(i, activateBlockChainService);
-            node.getPeerNetwork().init(TestConstants.STEM);
+            node.getPeerNetwork().init(TestConstants.yggdrash());
             if (activateBlockChainService) {
                 node.bootstrapping();
             }

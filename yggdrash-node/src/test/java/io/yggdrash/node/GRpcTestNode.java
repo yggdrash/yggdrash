@@ -42,7 +42,7 @@ public class GRpcTestNode extends BootStrapNode {
         this.port = port;
         this.peerTableGroup = PeerTestUtils.createTableGroup(port, factory);
         if (!isSeed()) {
-            peerTableGroup.createTable(TestConstants.STEM);
+            peerTableGroup.createTable(TestConstants.yggdrash());
         }
         this.discoveryConsumer = new DiscoveryServiceConsumer(peerTableGroup);
         this.peerHandlerGroup = new SimplePeerHandlerGroup(factory);
@@ -82,7 +82,7 @@ public class GRpcTestNode extends BootStrapNode {
     }
 
     public void logDebugging() {
-        PeerTable peerTable = peerTableGroup.getPeerTable(TestConstants.STEM);
+        PeerTable peerTable = peerTableGroup.getPeerTable(TestConstants.yggdrash());
         log.info("{} => peer={}, bucket={}, active={}",
                 peerTableGroup.getOwner(),
                 String.format("%3d", PeerTableCounter.of(peerTable).totalPeerOfBucket()),

@@ -26,7 +26,7 @@ public class PeerHandlerGroupTest {
     @Test
     public void healthCheck() {
         healthCheckForAddHandler();
-        peerHandlerGroup.healthCheck(TestConstants.STEM, OWNER, TARGET); // Pong null 응답
+        peerHandlerGroup.healthCheck(TestConstants.yggdrash(), OWNER, TARGET); // Pong null 응답
         assert peerHandlerGroup.getActivePeerList().isEmpty();
     }
 
@@ -43,7 +43,7 @@ public class PeerHandlerGroupTest {
 
     private void healthCheckForAddHandler() {
         assert peerHandlerGroup.getActivePeerList().isEmpty();
-        peerHandlerGroup.healthCheck(TestConstants.STEM, OWNER, TARGET);
+        peerHandlerGroup.healthCheck(TestConstants.yggdrash(), OWNER, TARGET);
         assert !peerHandlerGroup.getActivePeerList().isEmpty();
     }
 }

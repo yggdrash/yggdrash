@@ -64,13 +64,12 @@ public class BranchConfiguration {
 
     @Bean
     @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
-    BlockChain yggdrash(PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
-            throws IOException {
-        return addBranch(yggdrashResource.getInputStream(), peerHandlerGroup, branchGroup);
+    BlockChain yggdrash(BranchGroup branchGroup) throws IOException {
+        return addBranch(yggdrashResource.getInputStream(), branchGroup);
     }
 
     @Bean
-    BranchGroup branchGroup(BranchLoader loader, PeerHandlerGroup peerHandlerGroup) {
+    BranchGroup branchGroup(BranchLoader loader) {
         BranchGroup branchGroup = new BranchGroup();
         try {
             for (GenesisBlock genesis : loader.getGenesisBlockList()) {

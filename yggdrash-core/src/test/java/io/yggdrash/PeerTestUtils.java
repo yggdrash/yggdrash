@@ -57,6 +57,6 @@ public class PeerTestUtils {
 
     public static KademliaPeerTable createTable() {
         Peer owner = Peer.valueOf(NODE_URI_PREFIX + OWNER_PORT);
-        return new KademliaPeerTable(owner, storeBuilder.buildPeerStore(TestConstants.STEM));
+        return new KademliaPeerTable(owner, storeBuilder.buildPeerStore(TestConstants.yggdrash()));
     }
 }

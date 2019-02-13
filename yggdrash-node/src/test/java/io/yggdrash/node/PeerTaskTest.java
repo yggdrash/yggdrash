@@ -14,6 +14,7 @@ package io.yggdrash.node;
 
 import io.yggdrash.PeerTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.NodeStatusMock;
 import io.yggdrash.core.net.PeerHandlerGroup;
 import io.yggdrash.core.net.PeerHandlerMock;
@@ -22,14 +23,18 @@ import io.yggdrash.core.net.SimplePeerHandlerGroup;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
+
 public class PeerTaskTest {
     private final PeerTask peerTask = new PeerTask();
     private PeerTableGroup peerTableGroup;
+    private BranchId yggdrash;
 
     @Before
     public void setUp() {
+        yggdrash = TestConstants.yggdrash();
         peerTableGroup = PeerTestUtils.createTableGroup();
-        peerTableGroup.createTable(TestConstants.STEM);
+        peerTableGroup.createTable(yggdrash);
         PeerHandlerGroup peerHandlerGroup = new SimplePeerHandlerGroup(PeerHandlerMock.factory);
 
         peerTask.setPeerTableGroup(peerTableGroup);
@@ -44,8 +49,8 @@ public class PeerTaskTest {
 
     @Test
     public void refreshTest() {
-        assert peerTableGroup.getPeerTable(TestConstants.STEM).getBucketsCount() == 0;
+        assertEquals(0, peerTableGroup.getPeerTable(yggdrash).getBucketsCount());
         peerTask.refresh(); // seed added in selfRefresh
-        assert peerTableGroup.getPeerTable(TestConstants.STEM).getBucketsCount() == 1;
+        assertEquals(4, peerTableGroup.getPeerTable(yggdrash).getBucketsCount());
     }
 }

@@ -94,14 +94,14 @@ public class GRpcPeerHandlerTest {
 
         Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
         String ping = "Ping";
-        peerHandler.ping(TestConstants.STEM, owner, ping);
+        peerHandler.ping(yggdrash, owner, ping);
 
         verify(peerService).ping(pingRequestCaptor.capture(), any());
 
         assertEquals(ping, pingRequestCaptor.getValue().getPing());
 
         ByteString branchId = pingRequestCaptor.getValue().getBranch();
-        assertEquals(TestConstants.STEM, BranchId.of(branchId.toByteArray()));
+        assertEquals(yggdrash, BranchId.of(branchId.toByteArray()));
     }
 
     @Test
@@ -113,7 +113,7 @@ public class GRpcPeerHandlerTest {
             return null;
         }).when(peerService).findPeers(findPeersTargetCaptor.capture(), any());
 
-        peerHandler.findPeers(TestConstants.STEM, TARGET);
+        peerHandler.findPeers(yggdrash, TARGET);
 
         verify(peerService).findPeers(findPeersTargetCaptor.capture(), any());
 

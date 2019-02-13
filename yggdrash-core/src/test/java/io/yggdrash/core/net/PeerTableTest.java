@@ -94,12 +94,12 @@ public class PeerTableTest {
         peerTable.addPeer(peer2);
         peerTable.addPeer(peer3); // This will be added to the replacement list of the 158th bucket
 
-        assertEquals(peerTable.getPeerUriList().size(), 3);
+        assertEquals(2, peerTable.getPeerUriList().size());
 
         //peer2 is the latest peer in the bucket so it will be replaced by peer3
-        assertEquals(peerTable.pickReplacement(peer2), peer3);
-        assertEquals(peerTable.getPeerUriList().size(), 3);
+        assertEquals(peer3, peerTable.pickReplacement(peer2));
+        assertEquals(2, peerTable.getPeerUriList().size());
         assertEquals(peerTable.getBucketByIndex(158), peerTable.getBucketByPeer(peer1));
-        assertEquals(peerTable.getBucketIdAndPeerList().get(158).size(), 2);
+        assertEquals(2, peerTable.getBucketIdAndPeerList().get(158).size());
     }
 }
