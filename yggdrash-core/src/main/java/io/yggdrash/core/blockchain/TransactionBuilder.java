@@ -106,6 +106,7 @@ public class TransactionBuilder {
             return null;
         }
     }
+
     public Transaction buildTransaction() {
         JsonArray txArray;
         if (branchId == null || txBody.size() == 0) {

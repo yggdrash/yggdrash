@@ -22,8 +22,8 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.wallet.Wallet;
-import java.nio.charset.StandardCharsets;
 import org.spongycastle.util.encoders.Hex;
+import java.nio.charset.StandardCharsets;
 
 public class ContractTestUtils {
 

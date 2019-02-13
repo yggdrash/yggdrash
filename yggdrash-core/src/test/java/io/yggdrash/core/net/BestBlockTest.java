@@ -2,9 +2,9 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
-import java.io.IOException;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 

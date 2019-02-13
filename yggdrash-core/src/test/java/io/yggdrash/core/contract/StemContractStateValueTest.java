@@ -30,7 +30,6 @@ public class StemContractStateValueTest {
         assertThat(stateValue.getType()).isEqualTo(Branch.BranchType.TEST);
         assertThat(stateValue.getTag()).isNotEmpty();
         // TODO Stem Contract Change all of them
-//        assertThat(stateValue.getContractHistory()).contains(stateValue.getContractVersion());
     }
 
     @Test
@@ -66,20 +65,9 @@ public class StemContractStateValueTest {
     @Test
     public void updateContractVersionTest() {
         stateValue.init();
-//        assertThat(stateValue.getContractHistory()).containsOnly(stateValue.getContractVersion());
-//        assertContractAndHistory(stateValue.getContractVersion(), 0);
-//
-//        // update exist contractVersion
-//        stateValue.updateContract(stateValue.getContractVersion().toString());
-//        assertThat(stateValue.getContractHistory()).containsOnly(stateValue.getContractVersion());
-//
-//        ContractVersion newContractVersion = ContractVersion.of("00");
-//        stateValue.updateContract(newContractVersion.toString());
-//        assertContractAndHistory(newContractVersion, 1);
     }
 
     private void assertContractAndHistory(ContractVersion contractVersion, int contractHistoryIndex) {
-//        assertThat(stateValue.getContractVersion()).isEqualTo(contractVersion);
         assertThat(stateValue.getJson().get("contractVersion").getAsString())
                 .isEqualTo(contractVersion.toString());
 

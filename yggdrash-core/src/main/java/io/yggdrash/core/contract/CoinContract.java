@@ -182,8 +182,6 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
 
         String from = params.get("from").getAsString().toLowerCase();
         String to = params.get("to").getAsString().toLowerCase();
-        BigDecimal amount = params.get("amount").getAsBigDecimal();
-
         txReceipt.addLog(params);
 
         String sender = txReceipt.getIssuer();
@@ -196,6 +194,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
         // check from amount
         BigDecimal fromValue = getBalance(from);
         BigDecimal approveValue = getBalance(approveKey);
+        BigDecimal amount = params.get("amount").getAsBigDecimal();
 
         if (isTransferable(fromValue, amount) && isTransferable(approveValue, amount)) {
             fromValue = fromValue.subtract(amount);

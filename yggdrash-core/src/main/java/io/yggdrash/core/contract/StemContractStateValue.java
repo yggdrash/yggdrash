@@ -53,7 +53,6 @@ public class StemContractStateValue extends Branch {
     public void init() {
         setType("test");
         setTag("0.1");
-//        updateContractHistory(getContractVersion());
     }
 
     public BranchType getType() {

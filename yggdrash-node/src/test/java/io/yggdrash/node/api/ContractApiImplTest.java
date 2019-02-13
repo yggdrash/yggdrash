@@ -26,13 +26,13 @@ import io.yggdrash.node.api.dto.TransactionDto;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.math.BigDecimal;
+import java.util.HashMap;
+import java.util.Map;
 
 import static io.yggdrash.node.api.JsonRpcConfig.CONTRACT_API;
 import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
 import static org.assertj.core.api.Assertions.assertThat;
-import java.math.BigDecimal;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ContractApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(ContractApiImplTest.class);
@@ -95,7 +95,9 @@ public class ContractApiImplTest {
     private void queryAndAssert(String method, Map params, BigDecimal expected) {
         try {
             // TODO Change CoinContract Address by Name
-            BigDecimal value = (BigDecimal)CONTRACT_API.query(branchId.toString(),TestConstants.YEED_CONTRACT.toString(), method, params);
+            BigDecimal value = (BigDecimal)CONTRACT_API
+                    .query(branchId.toString(), TestConstants.YEED_CONTRACT.toString(),
+                            method, params);
             assertThat(value).isEqualTo(expected);
         } catch (Exception e) {
             // TODO exception is test fail

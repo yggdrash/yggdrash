@@ -22,10 +22,10 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Wallet;
-import java.io.IOException;
-import java.io.InputStream;
 import org.junit.Assume;
 import org.junit.BeforeClass;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class TestConstants {
 
