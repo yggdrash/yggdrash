@@ -37,8 +37,11 @@ public class BestBlockTest {
         // assert
         assert bestBlocks.size() == 1;
 
+        // Other Branch
+        BranchId otherBranch = BranchId.of("OTHER".getBytes());
+
         // act again
-        bestBlocks.add(BestBlock.of(TestConstants.yggdrash(), 0));
+        bestBlocks.add(BestBlock.of(otherBranch, 0));
 
         // assert again
         assert bestBlocks.size() == 2;
