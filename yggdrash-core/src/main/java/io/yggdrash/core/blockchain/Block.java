@@ -39,6 +39,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 
 public class Block implements Cloneable {
@@ -56,7 +57,6 @@ public class Block implements Cloneable {
         this.header = header;
         this.signature = signature;
         this.body = body;
-        verify();
     }
 
     public Block(BlockHeader header, Wallet wallet, BlockBody body) {
@@ -76,6 +76,7 @@ public class Block implements Cloneable {
         System.arraycopy(blockBytes, 0, headerBytes, 0, headerBytes.length);
         this.header = new BlockHeader(headerBytes);
         position += headerBytes.length;
+        headerBytes = null;
 
         byte[] sigBytes = new byte[SIGNATURE_LENGTH];
         System.arraycopy(blockBytes, position, sigBytes, 0, sigBytes.length);
@@ -91,6 +92,7 @@ public class Block implements Cloneable {
         System.arraycopy(blockBytes, position, bodyBytes, 0, bodyBytes.length);
         position += bodyBytes.length;
         this.body = new BlockBody(bodyBytes);
+        bodyBytes = null;
 
         if (position != blockBytes.length) {
             throw new NotValidateException();
@@ -109,6 +111,14 @@ public class Block implements Cloneable {
         return body;
     }
 
+    public long getIndex() {
+        return this.header.getIndex();
+    }
+
+    public byte[] getChain() {
+        return this.header.getChain();
+    }
+
     public byte[] getHash() {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
@@ -123,8 +133,12 @@ public class Block implements Cloneable {
         return HashUtil.sha3(bao.toByteArray());
     }
 
-    public String getHashHexString() {
+    public String getHashHex() {
         return org.spongycastle.util.encoders.Hex.toHexString(this.getHash());
+    }
+
+    public byte[] getPrevBlockHash() {
+        return this.header.getPrevBlockHash();
     }
 
     public byte[] getPubKey() {
@@ -150,7 +164,7 @@ public class Block implements Cloneable {
                 Arrays.copyOfRange(pubBytes, 1, pubBytes.length));
     }
 
-    public String getAddressHexString() {
+    public String getAddressHex() {
         return Hex.toHexString(getAddress());
     }
 
@@ -159,9 +173,14 @@ public class Block implements Cloneable {
     }
 
     public boolean verify() {
-
+        // Block DAta Verify
         if (!this.verifyData()) {
             return false;
+        }
+
+        if (this.header.getIndex() == 0) { // Genesis
+            // TODO Genesis Block Check
+            return true;
         }
 
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
@@ -193,7 +212,7 @@ public class Block implements Cloneable {
      * @return true(success), false(fail)
      */
     private boolean verifyData() {
-        // TODO CheckByValidate Code
+        // TODO CheckByValidate By Code
         boolean check = true;
         check &= verifyCheckLengthNotNull(
                 this.header.getChain(), BlockHeader.CHAIN_LENGTH, "chain");
@@ -204,14 +223,17 @@ public class Block implements Cloneable {
                 this.header.getPrevBlockHash(), BlockHeader.PREVBLOCKHASH_LENGTH, "prevBlockHash");
         check &= verifyCheckLengthNotNull(
                 this.header.getMerkleRoot(), BlockHeader.MERKLEROOT_LENGTH, "merkleRootLength");
-        check &= verifyCheckLengthNotNull(this.signature, SIGNATURE_LENGTH, "signature");
+        if (header.getIndex() != 0) {
+            // Genesis Block is not check signature
+            check &= verifyCheckLengthNotNull(this.signature, SIGNATURE_LENGTH, "signature");
+        }
         check &= this.header.getIndex() >= 0;
         check &= this.header.getTimestamp() > TIMESTAMP_2018;
         check &= !(this.header.getBodyLength() < 0
                 || this.header.getBodyLength() != this.getBody().length());
         check &= Arrays.equals(
                 Arrays.equals(this.header.getMerkleRoot(),
-                        new byte[32]) ? null : this.header.getMerkleRoot(),
+                        EMPTY_BYTE32) ? null : this.header.getMerkleRoot(),
                 Trie.getMerkleRoot(this.body.getBody()));
 
         return check;
@@ -298,6 +320,10 @@ public class Block implements Cloneable {
     }
 
     public static Block toBlock(Proto.Block protoBlock) {
+        if (protoBlock == null || protoBlock.getSerializedSize() == 0) {
+            return null;
+        }
+
         BlockHeader blockHeader = new BlockHeader(
                 protoBlock.getHeader().getChain().toByteArray(),
                 protoBlock.getHeader().getVersion().toByteArray(),
@@ -320,4 +346,25 @@ public class Block implements Cloneable {
         return new Block(blockHeader, protoBlock.getSignature().toByteArray(), txBody);
     }
 
+    public static long getBlockLengthInBytes(byte[] bytes) {
+        if (bytes == null || bytes.length <= HEADER_LENGTH + SIGNATURE_LENGTH) {
+            log.debug("Input bytes is not valid");
+            return 0L;
+        }
+
+        byte[] headerBytes = new byte[HEADER_LENGTH];
+        System.arraycopy(bytes, 0, headerBytes, 0, headerBytes.length);
+        BlockHeader header = new BlockHeader(headerBytes);
+        headerBytes = null;
+        long bodyLength = header.getBodyLength();
+
+        return (long) HEADER_LENGTH + (long) SIGNATURE_LENGTH + bodyLength;
+    }
+
+    public void clear() {
+        this.header = null;
+        this.body.clear();
+        this.body = null;
+        this.signature = null;
+    }
 }

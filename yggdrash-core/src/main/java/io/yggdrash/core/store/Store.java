@@ -19,7 +19,7 @@ package io.yggdrash.core.store;
 public interface Store<K, V> {
     void put(K key, V value);
 
-    V get(K key);
+    <V> V get(K key);
 
     boolean contains(K key);
 

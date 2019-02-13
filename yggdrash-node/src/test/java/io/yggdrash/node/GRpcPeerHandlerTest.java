@@ -72,8 +72,11 @@ public class GRpcPeerHandlerTest {
 
     private GRpcPeerHandler peerHandler;
 
+    private BranchId yggdrash;
+
     @Before
     public void setUp() {
+        yggdrash = TestConstants.yggdrash();
         peerHandler = new GRpcPeerHandler(grpcServerRule.getChannel(), TARGET);
         grpcServerRule.getServiceRegistry().addService(peerService);
         grpcServerRule.getServiceRegistry().addService(blockChainService);

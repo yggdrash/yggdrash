@@ -14,6 +14,7 @@ import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBody;
 import io.yggdrash.core.blockchain.TransactionHeader;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import org.spongycastle.crypto.InvalidCipherTextException;
 
@@ -23,6 +24,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
+
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
 
 public class GenesisBlock {
 
@@ -74,9 +78,9 @@ public class GenesisBlock {
         // todo: change values(version, type) using the configuration.
         BlockHeader blockHeader = new BlockHeader(
                 chain,
-                new byte[8],
-                new byte[8],
-                new byte[32],
+                EMPTY_BYTE8,
+                EMPTY_BYTE8,
+                EMPTY_BYTE32,
                 0L,
                 timestamp,
                 blockBody.getMerkleRoot(),
@@ -86,12 +90,17 @@ public class GenesisBlock {
 
     }
 
-    private JsonObject getJsonObjectFromFile(String fileName) throws IOException {
+    private JsonObject getJsonObjectFromFile(String fileName) {
         StringBuilder result = new StringBuilder();
         ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource(fileName).getFile());
-
-        Scanner scanner = new Scanner(file);
+        File file;
+        Scanner scanner;
+        try {
+            file = new File(classLoader.getResource(fileName).getFile());
+            scanner = new Scanner(file);
+        } catch (Exception e) {
+            throw new NotValidateException();
+        }
 
         while (scanner.hasNextLine()) {
             String line = scanner.nextLine();
@@ -107,17 +116,21 @@ public class GenesisBlock {
         return genesisBlock;
     }
 
-    public void generateGenesisBlockFile() throws IOException {
+    public void generateGenesisBlockFile() {
         //todo: change the method to serializing method
 
         JsonObject jsonObject = this.genesisBlock.toJsonObject();
 
         ClassLoader classLoader = getClass().getClassLoader();
-        File genesisFile = new File(classLoader.getResource("./genesis/genesis.json").getFile());
 
-        FileUtil.writeStringToFile(genesisFile,
-                new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject),
-                StandardCharsets.UTF_8, false);
+        try {
+            File genesisFile = new File(classLoader.getResource("./genesis/genesis.json").getFile());
+            FileUtil.writeStringToFile(genesisFile,
+                    new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject),
+                    StandardCharsets.UTF_8, false);
+        } catch (Exception e) {
+            throw new NotValidateException();
+        }
     }
 
 }

@@ -34,6 +34,7 @@ public class DiscoveryServiceConsumer implements DiscoveryConsumer {
 
     @Override
     public String ping(BranchId branchId, Peer from, Peer to, String msg) {
+        //TODO Consider adding expiration time
         if ("Ping".equals(msg) && peerTableGroup.getOwner().toAddress().equals(to.toAddress())) {
             peerTableGroup.addPeer(branchId, from);
             return "Pong";

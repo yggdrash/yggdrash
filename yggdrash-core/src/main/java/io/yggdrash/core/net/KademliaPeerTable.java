@@ -75,8 +75,8 @@ public class KademliaPeerTable implements PeerTable {
         peer.setDistance(owner);
         buckets[getBucketId(peer)].addPeer(peer);
 
-        log.trace("peerTable :: addPeer => {}, bucketSize => {}",
-                peer.toAddress(), getBucketsCount());
+        log.trace("peerTable :: addPeer => {}, peersCnt => {}, bucketSize => {}",
+                peer.toAddress(), getAllPeers().size(), getBucketsCount());
     }
 
     public synchronized boolean contains(Peer p) {
@@ -101,7 +101,7 @@ public class KademliaPeerTable implements PeerTable {
 
     private void updatePeerStore(Peer peer) {
         if (!peerStore.contains(peer.getPeerId())) {
-            // TODO overwrite ??
+            // TODO overwrite peer which should be updated in the db
             peerStore.put(peer.getPeerId(), peer);
             log.debug("Added peerStore size={}, peer={}", peerStore.size(), peer.toAddress());
         }
@@ -149,6 +149,7 @@ public class KademliaPeerTable implements PeerTable {
         return latestPeers;
     }
 
+    // This function is for gateway-node.
     @Override
     public Map<Integer, List<Peer>> getBucketIdAndPeerList() {
         Map<Integer, List<Peer>> res = new LinkedHashMap<>();
@@ -184,6 +185,7 @@ public class KademliaPeerTable implements PeerTable {
                 .map(Peer::getYnodeUri).collect(Collectors.toList());
     }
 
+    // This function is for gateway-node.
     public List<String> getAllPeerAddressList() {
         return getAllPeers()
                 .stream()

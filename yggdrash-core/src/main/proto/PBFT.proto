@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+import "Yggdrash.proto";
+import "BlockChain.proto";
+import "Common.proto";
+
+option java_package = "io.yggdrash.proto";
+option java_outer_classname = "PbftProto";
+
+message PbftMessage {
+    string type = 1;
+    int64 viewNumber = 2;
+    int64 seqNumber = 3;
+    bytes hash = 4;
+    bytes result = 5;
+    bytes signature = 6;
+    Block block = 7;
+}
+
+message PbftMessageList {
+    repeated PbftMessage pbftMessageList = 1;
+}
+
+message PbftMessageSet {
+    PbftMessage prePrepare = 1;
+    PbftMessageList prepareList = 2;
+    PbftMessageList commitList = 3;
+    PbftMessageList viewChangeList = 4;
+}
+
+message PbftBlock {
+    Block block = 1;
+    PbftMessageSet pbftMessageSet = 2;
+}
+
+message PbftBlockList {
+    repeated PbftBlock pbftBlock = 1;
+}
+
+message PbftStatus {
+    int64 index = 1;
+    PbftMessageList pbftMessageList = 2;
+    int64 timestamp = 3;
+    bytes signature = 4;
+}
+
+service PbftService {
+    rpc PingPongTime (PingTime) returns (PongTime) {
+    }
+
+    rpc exchangePbftStatus (PbftStatus) returns (PbftStatus) {
+    }
+
+    rpc getPbftBlockList (Offset) returns (PbftBlockList) {
+    }
+
+    rpc multicastPbftMessage (PbftMessage) returns (Empty) {
+    }
+
+    rpc multicastPbftBlock (PbftBlock) returns (Empty) {
+    }
+}

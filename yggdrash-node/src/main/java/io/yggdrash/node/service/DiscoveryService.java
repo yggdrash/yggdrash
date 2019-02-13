@@ -43,6 +43,7 @@ public class DiscoveryService extends PeerGrpc.PeerImplBase {
 
     @Override
     public void ping(Proto.Ping request, StreamObserver<Proto.Pong> responseObserver) {
+        //TODO peer validation
         Peer from = Peer.valueOf(request.getFrom());
         Peer to = Peer.valueOf(request.getTo());
         BranchId branchId = BranchId.of(request.getBranch().toByteArray());

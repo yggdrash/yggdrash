@@ -36,7 +36,7 @@ public class BlockRuntimeResult {
     }
 
     public void setBlockResult(Set<Map.Entry<String, JsonObject>> values) {
-        values.stream().forEach(entry -> {blockResult.put(entry.getKey(), entry.getValue()); });
+        values.stream().forEach(entry -> blockResult.put(entry.getKey(), entry.getValue()));
     }
 
     public void addTxReceipt(TransactionReceipt txReceipt) {

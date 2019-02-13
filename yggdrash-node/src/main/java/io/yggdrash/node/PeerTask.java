@@ -31,6 +31,11 @@ import org.springframework.scheduling.annotation.Scheduled;
 import java.util.List;
 
 public class PeerTask {
+
+    //TODO
+    // PeerTask => peerTable/bucket management
+    // PeerDialer => peerChannel/handler management
+
     private static final Logger log = LoggerFactory.getLogger(PeerTask.class);
 
     private PeerTableGroup peerTableGroup;
@@ -53,7 +58,7 @@ public class PeerTask {
     }
 
     @Scheduled(fixedRate = 10000)
-    public void healthCheck() {
+    public void healthCheck() { // ==> Task of PeerDialer?
         if (!nodeStatus.isUpStatus()) {
             return;
         }

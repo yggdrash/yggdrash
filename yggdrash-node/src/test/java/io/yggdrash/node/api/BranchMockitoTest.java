@@ -22,7 +22,7 @@ import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.node.api.dto.BranchDto;
+import io.yggdrash.gateway.dto.BranchDto;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;

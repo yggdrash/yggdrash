@@ -43,7 +43,7 @@ public interface TransactionReceipt {
 
     void setBranchId(String branchId);
 
-    String getContractId();
+    String getContractVersion();
 
     void setContractId(String contractId);
 

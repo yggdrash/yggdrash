@@ -63,24 +63,6 @@ public class BranchConfigurationTest {
     }
 
     @Test
-    public void addStemBranchTest() throws IOException {
-        BranchGroup branchGroup = getBranchGroup();
-        branchConfig.stemResource = loader.getResource("classpath:/branch-stem.json");
-        BlockChain blockChain = branchConfig.stem(branchGroup);
-        blockChain.close();
-        assert blockChain.getBranchId().equals(TestConstants.STEM);
-        assert branchGroup.getBranchSize() == 1;
-    }
-
-    @Test
-    public void addProductionStemBranchTest() throws IOException {
-        this.branchConfig = new BranchConfiguration(StoreTestUtils.getProdMockBuilder());
-        branchConfig.setPeerNetwork(PeerTestUtils.createNetwork());
-        addStemBranchTest();
-        StoreTestUtils.clearDefaultConfigDb();
-    }
-
-    @Test
     @Ignore
     public void branchLoaderTest() throws IOException {
         JsonObject branchJson = getBranchJson();

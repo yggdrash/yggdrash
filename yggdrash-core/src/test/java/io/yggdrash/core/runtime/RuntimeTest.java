@@ -25,7 +25,7 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.CoinContract;
-import io.yggdrash.core.contract.ContractId;
+import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.StateStore;
@@ -44,7 +44,7 @@ public class RuntimeTest {
     @Test
     public void yeedRuntimeTest() {
         CoinContract contract = new CoinContract();
-        ContractId coinContract = Constants.YEED_CONTRACT_ID;
+        ContractVersion coinContract = Constants.YEED_CONTRACT_VERSION;
         Runtime runtime =
                 new Runtime<>(
                         new StateStore<>(new HashMapDbSource()),
@@ -59,11 +59,11 @@ public class RuntimeTest {
         JsonObject genesisParams = JsonUtil.parseJsonObject(genesisStr);
         runtime.addContract(coinContract, contract);
 
-        BranchId branchId = TestConstants.YEED;
+        BranchId branchId = TestConstants.yggdrash();
 
         TransactionBuilder builder = new TransactionBuilder();
         TransactionHusk testTx = builder.setBranchId(branchId)
-                .addTxBody(coinContract, "genesis", genesisParams)
+                .addTxBody(coinContract, "init", genesisParams)
                 .setWallet(TestConstants.wallet())
                 .build();
 
@@ -78,7 +78,7 @@ public class RuntimeTest {
 
     @Test
     public void stemRuntimeTest() {
-        ContractId stemContract = Constants.STEM_CONTRACT_ID;
+        ContractVersion stemContract = Constants.STEM_CONTRACT_VERSION;
 
         StemContract contract = new StemContract();
         Runtime<JsonObject> runtime =

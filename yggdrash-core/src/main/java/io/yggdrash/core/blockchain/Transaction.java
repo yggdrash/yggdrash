@@ -36,6 +36,9 @@ import java.security.SignatureException;
 import java.util.Arrays;
 
 import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
+import static io.yggdrash.common.config.Constants.TX_BODY_MAX_LENGTH;
+import static io.yggdrash.common.config.Constants.TX_HEADER_LENGTH;
+import static io.yggdrash.common.config.Constants.TX_SIG_LENGTH;
 
 public class Transaction implements Cloneable {
 
@@ -92,21 +95,27 @@ public class Transaction implements Cloneable {
     public Transaction(byte[] txBytes) {
         int position = 0;
 
-        byte[] headerBytes = new byte[84];
+        byte[] headerBytes = new byte[TX_HEADER_LENGTH];
         System.arraycopy(txBytes, 0, headerBytes, 0, headerBytes.length);
         this.header = new TransactionHeader(headerBytes);
         position += headerBytes.length;
+        headerBytes = null;
 
-        byte[] sigBytes = new byte[65];
+        byte[] sigBytes = new byte[TX_SIG_LENGTH];
         System.arraycopy(txBytes, position, sigBytes, 0, sigBytes.length);
         position += sigBytes.length;
         this.signature = sigBytes;
 
         long bodyLength = this.header.getBodyLength();
+        if (bodyLength > TX_BODY_MAX_LENGTH) {
+            throw new NotValidateException();
+        }
+
         byte[] bodyBytes = new byte[(int)bodyLength];
         System.arraycopy(txBytes, position, bodyBytes, 0, bodyBytes.length);
         position += bodyBytes.length;
         this.body = new TransactionBody(bodyBytes);
+        bodyBytes = null;
 
         if (position != txBytes.length) {
             throw new NotValidateException();

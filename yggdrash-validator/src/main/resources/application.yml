@@ -1,3 +1,8 @@
 logging:
   level:
-    io.yggdrash: debug
+    io.yggdrash: info
+
+yggdrash:
+  validator:
+    consensus:
+      algorithm: ebft

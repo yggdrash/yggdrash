@@ -1,0 +1,38 @@
+{
+  "name": "YGGDRASH",
+  "symbol": "YGGDRASH",
+  "property": "platform",
+  "description":"TRUST-based Multi-dimensional Blockchains",
+  "contracts" :
+  [
+    {
+      "contractVersion": "dfc39c00ae6a570753d1077ef0f68a3573c325bf",
+      "init": {},
+      "description": "The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.",
+      "name":"STEM"
+    },
+    {
+      "contractVersion": "892a821b74c86c6cd6adc6563fd9dbcd4e376419",
+      "init": {
+        "alloc": {
+          "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94": {
+            "balance": "1000000000"
+          },
+          "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95": {
+            "balance": "1000000000"
+          },
+          "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e": {
+            "balance": "1000000000"
+          },
+          "cee3d4755e47055b530deeba062c5bd0c17eb00f": {
+            "balance": "997000000000"
+          }
+        }
+      },
+      "description": "YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.",
+      "name":"YEED"
+    }
+  ],
+  "timestamp": "000001674dc56231",
+  "validator": ["c91e9d46dd4b7584f0b6348ee18277c10fd7cb94"]
+}

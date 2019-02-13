@@ -81,4 +81,25 @@ public class PeerTableTest {
         // assert
         assertEquals(peerTable.getPeerStore().size(), 2);
     }
+
+    @Test
+    public void pickReplacement() {
+        KademliaOptions.BUCKET_SIZE = 2;
+
+        // 32920 is the owner of the peerTable
+        Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"); // bucketId => 158
+        Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32932"); // bucketId => 158
+        Peer peer3 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32942"); // bucketId => 158
+        peerTable.addPeer(peer1);
+        peerTable.addPeer(peer2);
+        peerTable.addPeer(peer3); // This will be added to the replacement list of the 158th bucket
+
+        assertEquals(peerTable.getPeerUriList().size(), 3);
+
+        //peer2 is the latest peer in the bucket so it will be replaced by peer3
+        assertEquals(peerTable.pickReplacement(peer2), peer3);
+        assertEquals(peerTable.getPeerUriList().size(), 3);
+        assertEquals(peerTable.getBucketByIndex(158), peerTable.getBucketByPeer(peer1));
+        assertEquals(peerTable.getBucketIdAndPeerList().get(158).size(), 2);
+    }
 }

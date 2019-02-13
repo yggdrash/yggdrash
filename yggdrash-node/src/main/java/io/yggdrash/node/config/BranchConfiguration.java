@@ -49,17 +49,8 @@ public class BranchConfiguration {
 
     private PeerNetwork peerNetwork;
 
-    @Value("classpath:/branch-stem.json")
-    Resource stemResource;
-
-    @Value("classpath:/branch-yeed.json")
-    Resource yeedResource;
-
-    @Value("classpath:/branch-sw.json")
-    Resource swResource;
-
-    @Value("classpath:/branch-asset.json")
-    Resource assetResource;
+    @Value("classpath:/branch-yggdrash.json")
+    Resource yggdrashResource;
 
     @Autowired
     BranchConfiguration(StoreBuilder storeBuilder) {
@@ -72,26 +63,14 @@ public class BranchConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty(name = "yggdrash.node.seed",
-            havingValue = "false", matchIfMissing = true)
-    BlockChain stem(BranchGroup branchGroup) throws IOException {
-        return addBranch(stemResource.getInputStream(), branchGroup);
+    @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
+    BlockChain yggdrash(PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
+            throws IOException {
+        return addBranch(yggdrashResource.getInputStream(), peerHandlerGroup, branchGroup);
     }
 
     @Bean
-    @ConditionalOnProperty("yggdrash.node.chain.enabled")
-    BlockChain yeed(BranchGroup branchGroup) throws IOException {
-        return addBranch(yeedResource.getInputStream(), branchGroup);
-    }
-
-    @Bean
-    @ConditionalOnProperty("yggdrash.node.chain.enabled")
-    BlockChain sw(BranchGroup branchGroup) throws IOException {
-        return addBranch(swResource.getInputStream(), branchGroup);
-    }
-
-    @Bean
-    BranchGroup branchGroup(BranchLoader loader) {
+    BranchGroup branchGroup(BranchLoader loader, PeerHandlerGroup peerHandlerGroup) {
         BranchGroup branchGroup = new BranchGroup();
         try {
             for (GenesisBlock genesis : loader.getGenesisBlockList()) {
@@ -105,9 +84,6 @@ public class BranchConfiguration {
 
     @Bean
     BranchLoader branchLoader(DefaultConfig defaultConfig) {
-        if (defaultConfig.isProductionMode()) {
-            ContractClassLoader.copyResourcesToContractPath(defaultConfig.getContractPath());
-        }
         return new BranchLoader(defaultConfig.getBranchPath());
     }
 

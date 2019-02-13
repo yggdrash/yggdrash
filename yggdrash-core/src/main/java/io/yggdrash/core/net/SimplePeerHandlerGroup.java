@@ -61,7 +61,7 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
         }
         try {
             String pong = peerHandler.ping(branchId, owner, "Ping");
-            // TODO validation peer
+            // TODO validation peer and considering expiration
             if ("Pong".equals(pong)) {
                 return true;
             }
