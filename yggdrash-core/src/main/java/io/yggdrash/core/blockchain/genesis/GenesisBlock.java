@@ -1,22 +1,27 @@
 package io.yggdrash.core.blockchain.genesis;
 
-import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.Branch;
-import io.yggdrash.core.blockchain.TransactionBody;
-import io.yggdrash.core.blockchain.TransactionHeader;
-
+import io.yggdrash.core.blockchain.BranchContract;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+import java.util.List;
 
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
 
 public class GenesisBlock {
+    private static final Logger log = LoggerFactory.getLogger(GenesisBlock.class);
     private final BlockHusk block;
     private final Branch branch;
 
@@ -38,16 +43,67 @@ public class GenesisBlock {
         return branch;
     }
 
-    private BlockHusk toBlock() throws IOException {
-        JsonObject jsonObjectBlock = toJsonObjectBlock();
+    private BlockHusk toBlock() {
+        // Divided Branch Transaction
+        // TODO Save Branch Genesis Transaction
+        TransactionBuilder builder = new TransactionBuilder();
+        // Contract init Transaction
+        contractTransaction(builder);
+        // Save Validator Transaction
+        //validatorTransaction(builder);
+        Transaction tx = builder.buildTransaction();
 
-        Block coreBlock = new Block(jsonObjectBlock);
+        // Make Genesis Block
+        Block coreBlock = generatorGenesisBlock(tx);
+
         return new BlockHusk(coreBlock.toProtoBlock());
     }
 
+    // Validator initial value
+    private TransactionBuilder validatorTransaction(TransactionBuilder builder) {
+        List<String> validators = branch.getValidators();
+        JsonObject validatorParams = new JsonObject();
+        validatorParams.addProperty("validator", String.join(",",validators));
+        // TODO Validator Contract Version
+        builder.addTxBody(Constants.VALIDATOR_CONTRACT_VERSION, "init", validatorParams);
+
+        return builder;
+    }
+
+    // Contract initial value
+    private TransactionBuilder contractTransaction(TransactionBuilder builder) {
+        List<BranchContract> contracts = branch.getBranchContracts();
+        builder.setBranchId(branch.getBranchId())
+                .setTimeStamp(branch.getTimestamp())
+        ;
+        contracts.stream().forEach(c -> {
+            builder.addTxBody(c.getContractVersion(), "init", c.getInit());
+        });
+        return builder;
+    }
+
+
+    private Block generatorGenesisBlock(Transaction tx) {
+        BlockBody blockBody = new BlockBody(Arrays.asList(tx));
+        BlockHeader blockHeader = new BlockHeader(
+                branch.getBranchId().getBytes(),
+                new byte[8],
+                new byte[8],
+                new byte[32],
+                0L,
+                branch.getTimestamp(),
+                blockBody.getMerkleRoot(),
+                blockBody.length());
+        Block genesisBlock = new Block(blockHeader, new byte[]{}, blockBody);
+        return genesisBlock;
+    }
+
+
+    /*
     private JsonObject toJsonObjectBlock() throws IOException {
         JsonObject jsonObjectTx = toJsonObjectTx();
         JsonArray jsonArrayBody = new JsonArray();
+        jsonObjectTx.addProperty("signature", "");
         jsonArrayBody.add(jsonObjectTx);
 
         BlockBody blockBody = new BlockBody(jsonArrayBody);
@@ -69,12 +125,15 @@ public class GenesisBlock {
     private JsonObject toJsonObjectTx() {
         JsonArray jsonArrayBody = toJsonArrayTxBody();
         // todo: change values(version, type) using the configuration.
+        // TODO jsonFormat convert to Transaction
         TransactionHeader txHeader = new TransactionHeader(
                 branch.getBranchId().getBytes(),
                 EMPTY_BYTE8,
                 EMPTY_BYTE8,
                 branch.getTimestamp(),
                 new TransactionBody(jsonArrayBody));
+        log.debug(txHeader.toString());
+
 
         return toJsonObject(txHeader.toJsonObject(), jsonArrayBody);
     }
@@ -92,24 +151,18 @@ public class GenesisBlock {
         return jsonArrayTxBody;
     }
 
+    // TODO change Genesis Spec
     private JsonObject toGenesisParams() {
-        if (branch.isStem()) {
-            JsonObject params = new JsonObject();
-            params.add(branch.getBranchId().toString(), branch.getJson());
-            return params;
-        } else {
-            return branch.getJson().getAsJsonObject("genesis");
-        }
+        return branch.getJson().getAsJsonObject("genesis");
     }
 
     private JsonObject toJsonObject(JsonObject header, JsonArray body) {
         JsonObject jsonObject = new JsonObject();
         jsonObject.add("header", header);
-        jsonObject.addProperty("signature", branch.getSignature().toString());
         jsonObject.add("body", body);
         return jsonObject;
     }
-
+    */
     public static GenesisBlock of(InputStream is) throws IOException {
         Branch branch = Branch.of(is);
         return new GenesisBlock(branch);

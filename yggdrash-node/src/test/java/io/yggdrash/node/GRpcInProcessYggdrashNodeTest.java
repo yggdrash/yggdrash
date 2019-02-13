@@ -38,7 +38,7 @@ public class GRpcInProcessYggdrashNodeTest extends GRpcYggdrashNodeTest {
         String ynodeUri = node.peerTable.getOwner().getYnodeUri();
         Server server = InProcessServerBuilder.forName(ynodeUri).directExecutor().addService(
                 new DiscoveryService(node.consumer)).build();
-        gRpcCleanup.register(server);
+        grpcCleanup.register(server);
         try {
             return server.start();
         } catch (Exception e) {

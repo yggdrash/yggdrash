@@ -53,7 +53,7 @@ public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
     private List<GRpcTestNode> nodeList;
 
     @Rule
-    public final GrpcCleanupRule gRpcCleanup = new GrpcCleanupRule();
+    public final GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
 
     @Before
     public void setUp() {
@@ -93,7 +93,7 @@ public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
     private void setPeerHandlerFactory() {
         this.factory = peer -> {
             ManagedChannel managedChannel = createChannel(peer);
-            gRpcCleanup.register(managedChannel);
+            grpcCleanup.register(managedChannel);
             return new GRpcPeerHandler(managedChannel, peer);
         };
     }
@@ -107,7 +107,7 @@ public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
         GRpcTestNode node = new GRpcTestNode(factory, port);
         nodeList.add(node);
         Server server = createAndStartServer(node);
-        gRpcCleanup.register(server);
+        grpcCleanup.register(server);
         return node;
     }
 

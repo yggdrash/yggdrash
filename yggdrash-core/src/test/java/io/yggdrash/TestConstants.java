@@ -16,16 +16,24 @@
 
 package io.yggdrash;
 
+import io.yggdrash.core.blockchain.Branch;
+import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Wallet;
 import org.junit.Assume;
 import org.junit.BeforeClass;
+import java.io.IOException;
+import java.io.InputStream;
 
 public class TestConstants {
 
-    public static final BranchId STEM = BranchId.of("91b29a1453258d72ca6fbbcabb8dca10cca944fb");
-    public static final BranchId YEED = BranchId.of("61dcf9cf6ed382f39f56a1094e2de4d9aa54bf94");
+    public static BranchId YGGDRASH_BRANCH_ID;
+
+    public static ContractVersion STEM_CONTRACT;
+    public static ContractVersion YEED_CONTRACT;
+
 
     public static final String TRANSFER_TO = "e1980adeafbb9ac6c9be60955484ab1547ab0b76";
 
@@ -45,6 +53,33 @@ public class TestConstants {
             throw new InvalidSignatureException(e);
         }
     }
+
+    public static BranchId yggdrash() {
+        if (YGGDRASH_BRANCH_ID == null) {
+
+            ClassLoader loader = TestConstants.class.getClassLoader();
+            InputStream is = loader.getResourceAsStream("branch-yggdrash.json");
+            Branch yggdrashBranch = null;
+
+            try {
+                yggdrashBranch = Branch.of(is);
+                YGGDRASH_BRANCH_ID = yggdrashBranch.getBranchId();
+                for (BranchContract bc : yggdrashBranch.getBranchContracts()) {
+                    if ("STEM".equals(bc.getName())) {
+                        STEM_CONTRACT = bc.getContractVersion();
+                    }
+                    if ("YEED".equals(bc.getName())) {
+                        YEED_CONTRACT = bc.getContractVersion();
+                    }
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+                YGGDRASH_BRANCH_ID = null;
+            }
+        }
+        return YGGDRASH_BRANCH_ID;
+    }
+
 
     public static Wallet wallet() {
         return wallet;

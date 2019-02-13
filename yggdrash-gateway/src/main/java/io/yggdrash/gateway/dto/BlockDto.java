@@ -62,7 +62,10 @@ public class BlockDto {
             blockDto.body = block.getBody().stream().map(TransactionDto::createBy)
                     .collect(Collectors.toList());
         }
-        blockDto.author = block.getAddress().toString();
+        if (block.getIndex() != 0) {
+            // Genesis Block has no author
+            blockDto.author = block.getAddress() == null ? null : block.getAddress().toString();
+        }
         blockDto.blockId = block.getHash().toString();
         return blockDto;
     }

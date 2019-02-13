@@ -18,24 +18,20 @@ package io.yggdrash.gateway.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.TestConstants;
-import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.gateway.dto.BlockDto;
 import io.yggdrash.node.YggdrashNodeApp;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -44,14 +40,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @ActiveProfiles("gateway")
 @SpringBootTest(classes = YggdrashNodeApp.class)
-@IfProfileValue(name = "spring.profiles.active", value = TestConstants.CI_TEST)
+//@IfProfileValue(name = "spring.profiles.active", value = TestConstants.CI_TEST)
 public class BlockControllerTest {
 
     private String basePath;
-
-    @Autowired
-    @Qualifier("stem")
-    private BlockChain stem;
 
     @Autowired
     private MockMvc mockMvc;
@@ -61,7 +53,7 @@ public class BlockControllerTest {
     @Before
     public void setUp() {
         JacksonTester.initFields(this, new ObjectMapper());
-        basePath = String.format("/branches/%s/blocks", stem.getBranchId());
+        basePath = String.format("/branches/%s/blocks", TestConstants.yggdrash());
     }
 
     @Test

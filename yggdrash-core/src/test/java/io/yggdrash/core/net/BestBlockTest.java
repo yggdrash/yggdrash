@@ -4,11 +4,15 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
 import org.junit.Test;
 
+import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
 
 public class BestBlockTest {
-    private final BranchId branchId = TestConstants.STEM;
+    private final BranchId branchId = TestConstants.yggdrash();
+
+    public BestBlockTest() throws IOException {
+    }
 
     @Test
     public void testBestBlock() {
@@ -33,8 +37,11 @@ public class BestBlockTest {
         // assert
         assert bestBlocks.size() == 1;
 
+        // Other Branch
+        BranchId otherBranch = BranchId.of("OTHER".getBytes());
+
         // act again
-        bestBlocks.add(BestBlock.of(TestConstants.YEED, 0));
+        bestBlocks.add(BestBlock.of(otherBranch, 0));
 
         // assert again
         assert bestBlocks.size() == 2;

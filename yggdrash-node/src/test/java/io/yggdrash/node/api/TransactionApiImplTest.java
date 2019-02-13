@@ -19,7 +19,6 @@ package io.yggdrash.node.api;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.gateway.dto.TransactionDto;
 import org.junit.Before;
@@ -27,12 +26,11 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
-
 import static io.yggdrash.node.api.JsonRpcConfig.BLOCK_API;
 import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
+import java.io.IOException;
 
 public class TransactionApiImplTest {
 
@@ -40,8 +38,7 @@ public class TransactionApiImplTest {
 
     private final int blockNumber = 3;
     private final int txIndexPosition = 2;
-    private final BranchId stem = TestConstants.STEM;
-    private final BranchId yeed = TestConstants.YEED;
+    private String yggdrashBranch = TestConstants.yggdrash().toString();
 
     @Before
     public void setUp() {
@@ -61,7 +58,7 @@ public class TransactionApiImplTest {
     @Test
     public void getBlockTransactionCountByHashTest() {
         try {
-            assertThat(TX_API.getTransactionCountByBlockHash(stem.toString(),
+            assertThat(TX_API.getTransactionCountByBlockHash(yggdrashBranch,
                     "d52fffa14f5b88b141d05d8e28c90d8131db1aa63e076bfea9c28c3060049e12"))
                     .isNotZero();
         } catch (Exception exception) {
@@ -72,7 +69,7 @@ public class TransactionApiImplTest {
     @Test
     public void getBlockTransactionCountByNumberTest() {
         try {
-            assertThat(TX_API.getTransactionCountByBlockNumber(stem.toString(), blockNumber))
+            assertThat(TX_API.getTransactionCountByBlockNumber(yggdrashBranch, blockNumber))
                     .isNotZero();
         } catch (Throwable exception) {
             log.debug("\n\ngetBlockTransactionCountByNumberTest :: exception => " + exception);
@@ -82,7 +79,7 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByHashTest() {
         try {
-            assertThat(TX_API.getTransactionByHash(stem.toString(),
+            assertThat(TX_API.getTransactionByHash(yggdrashBranch,
                     "f5912fde84c6a3a44b4e529077ca9bf28feccd847137e44a77cd17e9fb9c1353"))
                     .isNotNull();
         } catch (Exception exception) {
@@ -93,7 +90,7 @@ public class TransactionApiImplTest {
     @Test
     public void getTransactionByBlockHashTest() {
         try {
-            assertThat(TX_API.getTransactionByBlockHash(stem.toString(),
+            assertThat(TX_API.getTransactionByBlockHash(yggdrashBranch,
                     "5ef71a90c6d99c7bc13bfbcaffb50cb89210678e99ed6626c9d2f378700b392c",
                     2)).isNotNull();
         } catch (Exception exception) {
@@ -105,7 +102,7 @@ public class TransactionApiImplTest {
     public void getTransactionByBlockNumberTest() {
         try {
             assertThat(TX_API.getTransactionByBlockNumber(
-                    stem.toString(), blockNumber, txIndexPosition))
+                    yggdrashBranch, blockNumber, txIndexPosition))
                     .isNotNull();
         } catch (Exception e) {
             log.debug("\n\ngetTransactionByBlockNumberTest :: exception => " + e);
@@ -116,7 +113,7 @@ public class TransactionApiImplTest {
     public void getTransactionByBlockNumberWithTagTest() {
         try {
             String tag = "latest";
-            TX_API.getTransactionByBlockNumber(stem.toString(), tag, txIndexPosition);
+            TX_API.getTransactionByBlockNumber(yggdrashBranch, tag, txIndexPosition);
         } catch (Exception e) {
             log.debug("\n\ngetTransactionByBlockNumberWithTagTest :: exception => " + e);
         }
@@ -156,9 +153,7 @@ public class TransactionApiImplTest {
     @Test
     public void newPendingTransactionFilterTest() {
         try {
-            assertThat(TX_API.newPendingTransactionFilter(stem.toString()))
-                    .isGreaterThanOrEqualTo(0);
-            assertThat(TX_API.newPendingTransactionFilter(yeed.toString()))
+            assertThat(TX_API.newPendingTransactionFilter(yggdrashBranch))
                     .isGreaterThanOrEqualTo(0);
         } catch (Exception e) {
             log.debug("\n\nnewPendingTransactionFilterTest :: exception => " + e);

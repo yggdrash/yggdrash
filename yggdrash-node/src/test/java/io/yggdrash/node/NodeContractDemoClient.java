@@ -15,6 +15,7 @@ import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
+import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.node.api.BranchApi;
@@ -41,12 +42,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
-import static io.yggdrash.common.config.Constants.CONTRACT_ID;
+import static io.yggdrash.common.config.Constants.CONTRACT_VERSION;
 
 public class NodeContractDemoClient {
-
-    private static final BranchId STEM = TestConstants.STEM;
-    private static final BranchId YEED = TestConstants.YEED;
 
     private static final JsonRpcConfig rpc = new JsonRpcConfig();
     private static final Scanner scan = new Scanner(System.in);
@@ -56,7 +54,15 @@ public class NodeContractDemoClient {
     private static final String TRANSFER_TO = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e";
     private static final int TRANSFER_AMOUNT = 1;
 
+    // TODO load by branch api
+    private static BranchId yggdrash;
+    private static ContractVersion stemContract;
+    private static ContractVersion yeedContract;
+
     public static void main(String[] args) throws Exception {
+        yggdrash = TestConstants.yggdrash();
+        stemContract = TestConstants.STEM_CONTRACT;
+        yeedContract = TestConstants.YEED_CONTRACT;
         for (int i = 0; i < 10000; i++) {
             run();
         }
@@ -150,7 +156,7 @@ public class NodeContractDemoClient {
         String branchId = getBranchId();
         String serverAddress = getServerAddress();
         List<String> methodList = (List<String>)rpc.proxyOf(serverAddress, ContractApi.class)
-                .query(branchId, "specification", null);
+                .query(branchId,"417c69915df1b5021150690a105c683ca4944c25", "specification", null);
         System.out.println("\n해당 컨트랙트의 메소드 스펙입니다.");
         methodList.forEach(System.out::println);
 
@@ -163,7 +169,7 @@ public class NodeContractDemoClient {
                     .sendTransaction(TransactionDto.createBy(tx));
         } else {
             Map params = createParams();
-            rpc.proxyOf(serverAddress, ContractApi.class).query(branchId, selectedMethod, params);
+            rpc.proxyOf(serverAddress, ContractApi.class).query(branchId,"417c69915df1b5021150690a105c683ca4944c25", selectedMethod, params);
         }
     }
 
@@ -235,7 +241,7 @@ public class NodeContractDemoClient {
             System.out.println("=> ");
             JsonObject params = JsonUtil.parseJsonObject(scan.nextLine());
 
-            txBody = ContractTestUtils.txBodyJson(Constants.YEED_CONTRACT_ID, method, params);
+            txBody = ContractTestUtils.txBodyJson(Constants.YEED_CONTRACT_VERSION, method, params);
         } else {
             switch (method) {
                 case "approve":
@@ -288,7 +294,7 @@ public class NodeContractDemoClient {
         String serverAddress = getServerAddress();
         for (int i = 0; i < times; i++) {
             JsonArray txBody = ContractTestUtils.transferTxBodyJson(address, amount);
-            TransactionHusk tx = createTxHusk(YEED, txBody);
+            TransactionHusk tx = createTxHusk(yggdrash, txBody);
             rpc.proxyOf(serverAddress, TransactionApi.class)
                     .sendTransaction(TransactionDto.createBy(tx));
         }
@@ -299,7 +305,7 @@ public class NodeContractDemoClient {
         Map params = ContractApiImplTest.createParams(BRANCH_ID, branchId);
 
         String serverAddress = getServerAddress();
-        rpc.proxyOf(serverAddress, ContractApi.class).query(branchId, "view", params);
+        rpc.proxyOf(serverAddress, ContractApi.class).query(branchId,"417c69915df1b5021150690a105c683ca4944c25", "view", params);
     }
 
     private static void update() {
@@ -332,9 +338,9 @@ public class NodeContractDemoClient {
         String contractId = scan.nextLine();
 
         if ("".equals(contractId)) {
-            contractId = json.get(CONTRACT_ID).getAsString();
+            contractId = json.get(CONTRACT_VERSION).getAsString();
         }
-        json.addProperty(CONTRACT_ID, contractId);
+        json.addProperty(CONTRACT_VERSION, contractId);
 
         ContractTestUtils.signBranch(TestConstants.wallet(), json);
         Branch branch = Branch.of(json);
@@ -352,7 +358,7 @@ public class NodeContractDemoClient {
 
         String serverAddress = getServerAddress();
         rpc.proxyOf(serverAddress, ContractApi.class)
-                .query(YEED.toString(), "balanceOf", params);
+                .query("e5804143de0e239527bebfd93c62bc2628d7989e","892a821b74c86c6cd6adc6563fd9dbcd4e376419", "balanceOf", params);
     }
 
     private static JsonObject getBranch() {
@@ -389,14 +395,13 @@ public class NodeContractDemoClient {
     }
 
     private static String getBranchId() {
-        System.out.println("트랜잭션의 브랜치 아이디 : [1] STEM [2] YEED [3] etc(직접 입력)\n>");
+
+        System.out.println("트랜잭션의 브랜치 아이디 : [1] YGGDRASH [3] etc(직접 입력)\n>");
 
         String branchId = scan.nextLine();
         switch (branchId) {
             case "1":
-                return STEM.toString();
-            case "2":
-                return YEED.toString();
+                return yggdrash.toString();
             case "3":
                 System.out.println("브랜치 아이디 => ");
                 return scan.nextLine();
@@ -469,5 +474,8 @@ public class NodeContractDemoClient {
             return "unknown";
         }
     }
+
+
+
 }
 

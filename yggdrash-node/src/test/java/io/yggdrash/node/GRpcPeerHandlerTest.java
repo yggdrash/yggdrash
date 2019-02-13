@@ -73,8 +73,11 @@ public class GRpcPeerHandlerTest {
 
     private GRpcPeerHandler peerHandler;
 
+    private BranchId yggdrash;
+
     @Before
     public void setUp() {
+        yggdrash = TestConstants.yggdrash();
         peerHandler = new GRpcPeerHandler(grpcServerRule.getChannel(), TARGET);
         grpcServerRule.getServiceRegistry().addService(peerService);
         grpcServerRule.getServiceRegistry().addService(blockChainService);
@@ -91,7 +94,7 @@ public class GRpcPeerHandlerTest {
         }).when(peerService).ping(pingRequestCaptor.capture(), any());
 
         Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
-        owner.updateBestBlock(BestBlock.of(TestConstants.STEM, 0));
+        owner.updateBestBlock(BestBlock.of(yggdrash, 0));
         String ping = "Ping";
         peerHandler.ping(owner, ping);
 
@@ -100,7 +103,7 @@ public class GRpcPeerHandlerTest {
         assertEquals(ping, pingRequestCaptor.getValue().getPing());
 
         Proto.BestBlock bestBlock = pingRequestCaptor.getValue().getBestBlocks(0);
-        assertArrayEquals(TestConstants.STEM.getBytes(), bestBlock.getBranch().toByteArray());
+        assertArrayEquals(yggdrash.getBytes(), bestBlock.getBranch().toByteArray());
         assertEquals(0, bestBlock.getIndex());
     }
 

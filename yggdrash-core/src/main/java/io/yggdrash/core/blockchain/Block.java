@@ -173,9 +173,14 @@ public class Block implements Cloneable {
     }
 
     public boolean verify() {
-
+        // Block DAta Verify
         if (!this.verifyData()) {
             return false;
+        }
+
+        if (this.header.getIndex() == 0) { // Genesis
+            // TODO Genesis Block Check
+            return true;
         }
 
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
@@ -207,7 +212,7 @@ public class Block implements Cloneable {
      * @return true(success), false(fail)
      */
     private boolean verifyData() {
-        // TODO CheckByValidate Code
+        // TODO CheckByValidate By Code
         boolean check = true;
         check &= verifyCheckLengthNotNull(
                 this.header.getChain(), BlockHeader.CHAIN_LENGTH, "chain");
@@ -218,7 +223,10 @@ public class Block implements Cloneable {
                 this.header.getPrevBlockHash(), BlockHeader.PREVBLOCKHASH_LENGTH, "prevBlockHash");
         check &= verifyCheckLengthNotNull(
                 this.header.getMerkleRoot(), BlockHeader.MERKLEROOT_LENGTH, "merkleRootLength");
-        check &= verifyCheckLengthNotNull(this.signature, SIGNATURE_LENGTH, "signature");
+        if (header.getIndex() != 0) {
+            // Genesis Block is not check signature
+            check &= verifyCheckLengthNotNull(this.signature, SIGNATURE_LENGTH, "signature");
+        }
         check &= this.header.getIndex() >= 0;
         check &= this.header.getTimestamp() > TIMESTAMP_2018;
         check &= !(this.header.getBodyLength() < 0
