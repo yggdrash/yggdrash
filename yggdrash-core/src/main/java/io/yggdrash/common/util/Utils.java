@@ -134,7 +134,9 @@ public class Utils {
         if (s.length() == 1) {
             byte[] bb = new byte[n];
             Arrays.fill(bb, s.getBytes()[0]);
-            return new String(bb);
+            String result = new String(bb);
+            bb = null;
+            return result;
         } else {
             StringBuilder ret = new StringBuilder();
             for (int i = 0; i < n; i++) {

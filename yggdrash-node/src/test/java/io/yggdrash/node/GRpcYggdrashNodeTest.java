@@ -44,7 +44,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @RunWith(JUnit4.class)
 public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
 
-    private static final int SEED_PORT = 32918;
+    protected static final int SEED_PORT = 32918;
 
     private final AbstractApplicationContext context = new GenericApplicationContext();
 
@@ -66,7 +66,7 @@ public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
     public void testDiscoveryLarge() {
         // act
         for (int i = SEED_PORT; i < SEED_PORT + 100; i++) {
-            createAndStartNode(i);
+            testNode(i).selfRefreshAndHealthCheck();
         }
 
         // log debugging
@@ -79,9 +79,9 @@ public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
     @Test
     public void testDiscoverySmall() {
         // act
-        createAndStartNode(SEED_PORT);
-        createAndStartNode(SEED_PORT + 1);
-        createAndStartNode(SEED_PORT + 2);
+        testNode(SEED_PORT).selfRefreshAndHealthCheck();
+        testNode(SEED_PORT + 1).selfRefreshAndHealthCheck();
+        testNode(SEED_PORT + 2).selfRefreshAndHealthCheck();
 
         // assert
         Utils.sleep(100);
@@ -103,15 +103,15 @@ public class GRpcYggdrashNodeTest extends TestConstants.SlowTest {
                 .build();
     }
 
-    private void createAndStartNode(int port) {
+    protected GRpcTestNode testNode(int port) {
         GRpcTestNode node = new GRpcTestNode(factory, port);
         nodeList.add(node);
-        Server server = createServer(node);
+        Server server = createAndStartServer(node);
         grpcCleanup.register(server);
-        node.bootstrapping();
+        return node;
     }
 
-    protected Server createServer(GRpcTestNode node) {
+    protected Server createAndStartServer(GRpcTestNode node) {
         GrpcServerBuilderConfigurer configurer = builder ->
                 builder.addService(new DiscoveryService(node.consumer));
 

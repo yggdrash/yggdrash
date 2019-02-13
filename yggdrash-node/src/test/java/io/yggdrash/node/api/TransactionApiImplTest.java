@@ -20,16 +20,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import static io.yggdrash.node.api.JsonRpcConfig.BLOCK_API;
-import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
-import io.yggdrash.node.api.dto.TransactionDto;
-import java.io.IOException;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
+import io.yggdrash.gateway.dto.TransactionDto;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static io.yggdrash.node.api.JsonRpcConfig.BLOCK_API;
+import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertTrue;
+import java.io.IOException;
 
 public class TransactionApiImplTest {
 

@@ -116,11 +116,13 @@ public class BlockHeader implements Cloneable {
         System.arraycopy(blockHeaderBytes, pos, indexBytes, 0, indexBytes.length);
         pos += indexBytes.length;
         this.index = ByteUtil.byteArrayToLong(indexBytes);
+        indexBytes = null;
 
         byte[] timestampBytes = new byte[TIMESTAMP_LENGTH];
         System.arraycopy(blockHeaderBytes, pos, timestampBytes, 0, timestampBytes.length);
         pos += timestampBytes.length;
         this.timestamp = ByteUtil.byteArrayToLong(timestampBytes);
+        timestampBytes = null;
 
         this.merkleRoot = new byte[MERKLEROOT_LENGTH];
         System.arraycopy(blockHeaderBytes, pos, this.merkleRoot, 0, this.merkleRoot.length);
@@ -130,6 +132,7 @@ public class BlockHeader implements Cloneable {
         System.arraycopy(blockHeaderBytes, pos, bodyLengthBytes, 0, bodyLengthBytes.length);
         pos += bodyLengthBytes.length;
         this.bodyLength = ByteUtil.byteArrayToLong(bodyLengthBytes);
+        bodyLengthBytes = null;
 
         if (pos != blockHeaderBytes.length) {
             throw new NotValidateException();

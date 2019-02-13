@@ -23,25 +23,29 @@ public interface PeerTable extends PeerEventListener {
 
     Peer getOwner();
 
-    List<Peer> getBootstrappingSeedList();
+    void addPeer(Peer peer);
 
-    Peer addPeer(Peer peer);
+    void copyLiveNode(long minTableTime);
 
-    int count();
-
-    List<Peer> getClosestPeers(int maxPeers); // getNeighbor
+    List<Peer> getClosestPeers(Peer peer, int limit); // getNeighbor
 
     void setSeedPeerList(List<String> seedPeerList);
-
-    List<String> getPeers(Peer peer);
 
     List<String> getPeerUriList();
 
     List<Peer> getLatestPeers(long reqTime);
 
-    Map<Integer, List<Peer>> getBucketIdAndPeerList(); //for debugging
+    int getBucketsCount();
 
-    List<String> getAllPeersFromBucketsOf(); //for debugging
+    Map<Integer, List<Peer>> getBucketIdAndPeerList(); //for debugging {ynode://pubkey@ip:port}
+
+    List<String> getAllPeerAddressList(); //for debugging {ip:port}
+
+    PeerBucket getBucketByIndex(int index);
+
+    PeerBucket getBucketByPeer(Peer peer);
 
     void touchPeer(Peer peer);
+
+    Peer pickReplacement(Peer peer);
 }

@@ -75,6 +75,9 @@ public class PeerId {
                 break;
             }
         }
+
+        hash = null;
+
         return distance;
     }
 }

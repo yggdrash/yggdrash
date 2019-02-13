@@ -56,7 +56,7 @@ class PeerController {
 
     @GetMapping("/buckets/allPeers")
     public ResponseEntity getPeersFromBuckets() {
-        return ResponseEntity.ok(peerTable.getAllPeersFromBucketsOf());
+        return ResponseEntity.ok(peerTable.getAllPeerAddressList());
     }
 
     @GetMapping("/latestPeers")

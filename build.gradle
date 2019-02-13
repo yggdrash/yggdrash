@@ -121,6 +121,7 @@ project(':yggdrash-node') {
 
     dependencies {
         compile project(':yggdrash-core')
+        compile project(':yggdrash-gateway')
         compile "org.springframework.boot:spring-boot-starter-web"
         compile "org.springframework.boot:spring-boot-starter-undertow"
         compile "org.springframework.boot:spring-boot-starter-actuator"
@@ -161,7 +162,7 @@ project(':yggdrash-gateway') {
     apply plugin: 'io.spring.dependency-management'
 
     dependencies {
-        compile project(':yggdrash-node')
+        compile project(':yggdrash-core')
         compile "org.springframework.boot:spring-boot-starter-undertow"
         compile "org.springframework.boot:spring-boot-starter-websocket"
         compile "org.webjars:sockjs-client:1.1.2"
@@ -177,7 +178,12 @@ project(':yggdrash-gateway') {
     }
 
     bootJar {
-        launchScript()
+        enabled = false
+    }
+
+    jar {
+        classifier = 'classes'
+        enabled = true
     }
 }
 

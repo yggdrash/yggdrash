@@ -18,9 +18,7 @@ package io.yggdrash.node;
 
 import io.yggdrash.core.akashic.SyncManager;
 import io.yggdrash.core.net.BootStrapNode;
-import io.yggdrash.core.net.Discovery;
-import io.yggdrash.core.net.NodeStatus;
-import io.yggdrash.core.net.PeerHandlerGroup;
+import io.yggdrash.core.net.Dht;
 import io.yggdrash.node.config.NodeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +26,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 
 @Service
 public class YggdrashNode extends BootStrapNode {
@@ -36,13 +33,9 @@ public class YggdrashNode extends BootStrapNode {
 
     private final NodeProperties nodeProperties;
 
-    private final NodeStatus nodeStatus;
-
-    private final Discovery discovery;
-
     @Autowired
-    public void setPeerHandlerGroup(PeerHandlerGroup peerHandlerGroup) {
-        super.setPeerHandlerGroup(peerHandlerGroup);
+    public void setDht(Dht peerTable) {
+        super.setDht(peerTable);
     }
 
     @Autowired
@@ -50,30 +43,18 @@ public class YggdrashNode extends BootStrapNode {
         super.setSyncManager(syncManager);
     }
 
-    YggdrashNode(NodeProperties nodeProperties, NodeStatus nodeStatus, Discovery discovery) {
+    @Autowired
+    YggdrashNode(NodeProperties nodeProperties) {
         this.nodeProperties = nodeProperties;
-        this.nodeStatus = nodeStatus;
-        this.discovery = discovery;
     }
 
     @PostConstruct
     public void init() {
         log.info("Bootstrapping...");
-        super.bootstrapping(discovery, nodeProperties.getMaxPeers());
+        bootstrapping();
 
         if (nodeProperties.isSeed()) {
             log.info("I'm the Bootstrap Node.");
-            nodeStatus.up();
-            return;
         }
-        nodeStatus.sync();
-        syncManager.syncBlockAndTransaction();
-        nodeStatus.up();
-    }
-
-    @PreDestroy
-    public void destroy() {
-        log.info("Destroy handlerGroup");
-        super.destroy();
     }
 }

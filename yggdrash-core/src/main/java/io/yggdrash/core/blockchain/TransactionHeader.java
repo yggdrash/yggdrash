@@ -100,6 +100,7 @@ public class TransactionHeader implements Cloneable {
         System.arraycopy(txHeaderBytes, pos, timestampBytes, 0, timestampBytes.length);
         this.timestamp = ByteUtil.byteArrayToLong(timestampBytes);
         pos += timestampBytes.length;
+        timestampBytes = null;
 
         this.bodyHash = new byte[BODYHASH_LENGTH];
         System.arraycopy(txHeaderBytes, pos, this.bodyHash, 0, this.bodyHash.length);
@@ -109,6 +110,7 @@ public class TransactionHeader implements Cloneable {
         System.arraycopy(txHeaderBytes, pos, bodyLengthBytes, 0, bodyLengthBytes.length);
         this.bodyLength = ByteUtil.byteArrayToLong(bodyLengthBytes);
         pos += bodyLengthBytes.length;
+        bodyLengthBytes = null;
 
         if (pos != txHeaderBytes.length) {
             log.debug("Transaction Header Length is not valid.");
