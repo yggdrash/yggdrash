@@ -3,7 +3,6 @@ package io.yggdrash.core.net;
 import io.yggdrash.PeerTestUtils;
 import io.yggdrash.TestConstants.SlowTest;
 import io.yggdrash.common.util.Utils;
-import io.yggdrash.core.util.PeerTableCounter;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -19,7 +18,6 @@ public class PeerTableTest {
     public void setUp() {
         this.peerTable = PeerTestUtils.createTable();
         assert peerTable.getPeerUriList().isEmpty();
-
     }
 
     @Test
@@ -50,7 +48,7 @@ public class PeerTableTest {
         peerTable.addPeer(peer1);
         peerTable.addPeer(peer2);
 
-        assertTrue(peerTable.getClosestPeers(peerTable.getOwner(), 1).contains(peer1));
+        assertTrue(peerTable.getClosestPeers(peer1, 1).contains(peer1));
     }
 
     @Test
@@ -60,11 +58,6 @@ public class PeerTableTest {
         peerTable.addPeer(peer1);
         peerTable.addPeer(peer2);
         assertEquals(peerTable.getBucketByPeer(peer1).getDepth(), peerTable.getBucketByPeer(peer2).getDepth());
-    }
-
-    @Test
-    public void touchPeer() {
-        peerTable.touchPeer(peerTable.getOwner());
     }
 
     @Test

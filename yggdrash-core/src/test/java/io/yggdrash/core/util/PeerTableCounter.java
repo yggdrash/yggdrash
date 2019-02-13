@@ -2,6 +2,7 @@ package io.yggdrash.core.util;
 
 import io.yggdrash.core.net.KademliaPeerTable;
 import io.yggdrash.core.net.PeerBucket;
+import io.yggdrash.core.net.PeerTable;
 
 public class PeerTableCounter {
 
@@ -14,8 +15,8 @@ public class PeerTableCounter {
         this.table = table;
     }
 
-    public PeerTableCounter use(KademliaPeerTable table) {
-        this.table = table;
+    public PeerTableCounter use(PeerTable table) {
+        this.table = (KademliaPeerTable)table;
         return this;
     }
 
@@ -27,7 +28,7 @@ public class PeerTableCounter {
         return cnt;
     }
 
-    public static PeerTableCounter of(KademliaPeerTable table) {
-        return new PeerTableCounter(table);
+    public static PeerTableCounter of(PeerTable table) {
+        return new PeerTableCounter((KademliaPeerTable)table);
     }
 }

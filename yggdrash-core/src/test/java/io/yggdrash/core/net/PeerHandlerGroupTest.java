@@ -1,13 +1,10 @@
 package io.yggdrash.core.net;
 
-import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.TestConstants;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.Collections;
-
-public class SimplePeerHandlerGroupTest {
+public class PeerHandlerGroupTest {
 
     private static final Peer OWNER = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
     private static final Peer TARGET = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
@@ -29,7 +26,7 @@ public class SimplePeerHandlerGroupTest {
     @Test
     public void healthCheck() {
         healthCheckForAddHandler();
-        peerHandlerGroup.healthCheck(OWNER, Collections.singletonList(TARGET)); // Pong null 응답
+        peerHandlerGroup.healthCheck(TestConstants.STEM, OWNER, TARGET); // Pong null 응답
         assert peerHandlerGroup.getActivePeerList().isEmpty();
     }
 
@@ -40,23 +37,13 @@ public class SimplePeerHandlerGroupTest {
     }
 
     @Test
-    public void chainedBlock() {
-        BlockHusk genesis = BlockChainTestUtils.genesisBlock();
-        peerHandlerGroup.chainedBlock(BlockChainTestUtils.genesisBlock());
-        for (BestBlock bestBlock : OWNER.getBestBlocks()) {
-            assert !bestBlock.getBranchId().equals(genesis.getBranchId())
-                    || bestBlock.getIndex() == genesis.getIndex();
-        }
-    }
-
-    @Test
     public void getActivePeerListOf() {
         assert peerHandlerGroup.getActiveAddressList().size() == 0;
     }
 
     private void healthCheckForAddHandler() {
         assert peerHandlerGroup.getActivePeerList().isEmpty();
-        peerHandlerGroup.healthCheck(OWNER, Collections.singletonList(TARGET));
+        peerHandlerGroup.healthCheck(TestConstants.STEM, OWNER, TARGET);
         assert !peerHandlerGroup.getActivePeerList().isEmpty();
     }
 }

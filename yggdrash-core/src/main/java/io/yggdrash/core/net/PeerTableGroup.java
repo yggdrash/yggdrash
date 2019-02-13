@@ -19,22 +19,31 @@ package io.yggdrash.core.net;
 import io.yggdrash.core.blockchain.BranchId;
 
 import java.util.List;
+import java.util.Set;
 
-public interface PeerHandlerGroup {
+public interface PeerTableGroup extends PeerEventListener {
 
-    void setPeerEventListener(PeerEventListener peerEventListener);
+    void setSeedPeerList(List<String> seedPeerList);
 
-    void destroyAll();
+    PeerTable createTable(BranchId branchId);
 
-    boolean healthCheck(BranchId branchId, Peer owner, Peer to);
+    Set<BranchId> getAllBrancheId();
 
-    void removeHandler(PeerHandler peerHandler);
+    PeerTable getPeerTable(BranchId branchId);
 
-    int handlerCount();
+    Peer getOwner();
 
-    List<String> getActivePeerList();
+    void addPeer(BranchId branchId, Peer peer);
 
-    List<String> getActiveAddressList();
+    boolean contains(BranchId branchId);
 
-    List<PeerHandler> getHandlerList(List<Peer> peerList);
+    List<Peer> getClosestPeers(BranchId branchId, Peer targetPeer, int limit);
+
+    List<Peer> getBroadcastPeerList(BranchId branchId);
+
+    void copyLiveNode();
+
+    void selfRefresh();
+
+    void refresh();
 }

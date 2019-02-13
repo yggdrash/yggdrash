@@ -16,18 +16,14 @@
 
 package io.yggdrash.core.net;
 
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -40,8 +36,6 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
     private PeerHandlerFactory peerHandlerFactory;
 
     private PeerEventListener peerEventListener;
-
-    private final Set<BestBlock> bestBlocks = new HashSet<>();
 
     public SimplePeerHandlerGroup(PeerHandlerFactory peerHandlerFactory) {
         this.peerHandlerFactory = peerHandlerFactory;
@@ -58,33 +52,15 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
     }
 
     @Override
-    public boolean healthCheck(Peer owner, List<Peer> closestPeerList) {
-        if (closestPeerList.isEmpty()) {
-            log.trace("Closest peer is empty to health check peer");
-            return false;
+    public boolean healthCheck(BranchId branchId, Peer owner, Peer to) {
+        PeerHandler peerHandler = handlerMap.get(to.toAddress());
+        if (peerHandler == null) {
+            peerHandler = peerHandlerFactory.create(to);
+            handlerMap.put(to.toAddress(), peerHandler);
+            log.debug("Added size={}, handler={}", handlerCount(), to.toAddress());
         }
-
-        boolean success = true;
-        for (Peer to : closestPeerList) {
-            PeerHandler peerHandler = handlerMap.get(to.toAddress());
-            if (peerHandler == null) {
-                peerHandler = peerHandlerFactory.create(to);
-                handlerMap.put(to.toAddress(), peerHandler);
-                log.debug("Added size={}, handler={}", handlerCount(), to.toAddress());
-            }
-            if (!play(owner, peerHandler)) {
-                success = false;
-                log.warn("Health check fail. peer={}", to.toAddress());
-                removeHandler(peerHandler);
-            }
-        }
-        return success;
-    }
-
-    private boolean play(Peer owner, PeerHandler peerHandler) {
         try {
-            bestBlocks.forEach(owner::updateBestBlock);
-            String pong = peerHandler.ping(owner, "Ping");
+            String pong = peerHandler.ping(branchId, owner, "Ping");
             // TODO validation peer
             if ("Pong".equals(pong)) {
                 return true;
@@ -92,42 +68,12 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
         } catch (Exception e) {
             log.warn("Fail to add to the peer handler err=" + e.getMessage());
         }
+        removeHandler(peerHandler);
         return false;
     }
 
     @Override
-    public void receivedTransaction(TransactionHusk tx) {
-        if (handlerMap.isEmpty()) {
-            log.trace("Active peer is empty to broadcast transaction");
-            return;
-        }
-        for (PeerHandler peerHandler : handlerMap.values()) {
-            try {
-                peerHandler.broadcastTransaction(tx);
-            } catch (Exception e) {
-                removeHandler(peerHandler);
-            }
-        }
-    }
-
-    @Override
-    public void chainedBlock(BlockHusk block) {
-        bestBlocks.add(BestBlock.of(block.getBranchId(), block.getIndex()));
-
-        if (handlerMap.isEmpty()) {
-            log.trace("Active peer is empty to broadcast block");
-            return;
-        }
-        for (PeerHandler peerHandler : handlerMap.values()) {
-            try {
-                peerHandler.broadcastBlock(block);
-            } catch (Exception e) {
-                removeHandler(peerHandler);
-            }
-        }
-    }
-
-    private void removeHandler(PeerHandler peerHandler) {
+    public void removeHandler(PeerHandler peerHandler) {
         peerHandler.stop();
         handlerMap.remove(peerHandler.getPeer().toAddress());
         if (peerEventListener != null) {
@@ -154,14 +100,22 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
     }
 
     @Override
-    public List<PeerHandler> getHandlerList(BranchId branchId) {
+    public List<PeerHandler> getHandlerList(List<Peer> peerList) {
         if (handlerMap.isEmpty()) {
             log.trace("Active peer is empty.");
             return Collections.emptyList();
         }
-        // TODO sync peer selection policy
-        String key = (String) handlerMap.keySet().toArray()[0];
-        PeerHandler peerHandler = handlerMap.get(key);
-        return Collections.singletonList(peerHandler);
+
+        if (peerList == null || peerList.isEmpty()) {
+            return Collections.emptyList();
+        }
+        List<PeerHandler> handlerList = new ArrayList<>(peerList.size());
+        for (Peer peer : peerList) {
+            PeerHandler handler = handlerMap.get(peer.toAddress());
+            if (handler != null) {
+                handlerList.add(handler);
+            }
+        }
+        return handlerList;
     }
 }

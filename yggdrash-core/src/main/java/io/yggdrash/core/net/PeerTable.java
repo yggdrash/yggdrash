@@ -19,18 +19,15 @@ package io.yggdrash.core.net;
 import java.util.List;
 import java.util.Map;
 
-public interface PeerTable extends PeerEventListener {
+public interface PeerTable {
 
-    Peer getOwner();
+    void loadSeedNodes(List<String> seedPeerList);
 
-    //Peer addPeer(Peer peer);
     void addPeer(Peer peer);
 
     void copyLiveNode(long minTableTime);
 
     List<Peer> getClosestPeers(Peer peer, int limit); // getNeighbor
-
-    void setSeedPeerList(List<String> seedPeerList);
 
     List<String> getPeerUriList();
 
@@ -46,7 +43,10 @@ public interface PeerTable extends PeerEventListener {
 
     PeerBucket getBucketByPeer(Peer peer);
 
-    void touchPeer(Peer peer);
-
     Peer pickReplacement(Peer peer);
+
+    void dropPeer(Peer peer);
+
+    // returns the last node in a random, non-empty bucket
+    Peer peerToRevalidate();
 }

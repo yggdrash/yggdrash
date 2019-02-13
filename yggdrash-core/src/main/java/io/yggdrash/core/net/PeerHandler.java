@@ -7,9 +7,9 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import java.util.List;
 
 public interface PeerHandler {
-    List<Peer> findPeers(Peer targetPeer);
+    List<Peer> findPeers(BranchId branchId, Peer targetPeer);
 
-    String ping(Peer owner, String message);
+    String ping(BranchId branchId, Peer owner, String message);
 
     Peer getPeer();
 
