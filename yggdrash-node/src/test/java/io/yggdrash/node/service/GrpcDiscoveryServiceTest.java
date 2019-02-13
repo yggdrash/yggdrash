@@ -19,6 +19,7 @@ package io.yggdrash.node.service;
 import com.google.protobuf.ByteString;
 import io.grpc.testing.GrpcServerRule;
 import io.yggdrash.TestConstants;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.proto.PeerGrpc;
@@ -42,9 +43,13 @@ public class GrpcDiscoveryServiceTest {
     @Mock
     private DiscoveryConsumer discoveryConsumerMock;
 
+    private BranchId yggdrash;
+
     @Before
     public void setUp() {
         grpcServerRule.getServiceRegistry().addService(new DiscoveryService(discoveryConsumerMock));
+        yggdrash = TestConstants.yggdrash();
+
     }
 
     @Test
@@ -72,7 +77,7 @@ public class GrpcDiscoveryServiceTest {
 
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
         Proto.BestBlock bestBlock = Proto.BestBlock.newBuilder()
-                .setBranch(ByteString.copyFrom(TestConstants.STEM.getBytes()))
+                .setBranch(ByteString.copyFrom(yggdrash.getBytes()))
                 .setIndex(0).build();
         Proto.RequestPeer requestPeer = Proto.RequestPeer.newBuilder()
                 .setPubKey(peer.getPubKey().toString())

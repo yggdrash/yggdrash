@@ -46,9 +46,6 @@ import static io.yggdrash.common.config.Constants.CONTRACT_VERSION;
 
 public class NodeContractDemoClient {
 
-    private static final BranchId STEM = TestConstants.STEM;
-    private static final BranchId YEED = TestConstants.YEED;
-
     private static final JsonRpcConfig rpc = new JsonRpcConfig();
     private static final Scanner scan = new Scanner(System.in);
 
@@ -63,6 +60,9 @@ public class NodeContractDemoClient {
     private static ContractVersion yeedContract;
 
     public static void main(String[] args) throws Exception {
+        yggdrash = TestConstants.yggdrash();
+        stemContract = TestConstants.STEM_CONTRACT;
+        yeedContract = TestConstants.YEED_CONTRACT;
         for (int i = 0; i < 10000; i++) {
             run();
         }
@@ -294,7 +294,7 @@ public class NodeContractDemoClient {
         String serverAddress = getServerAddress();
         for (int i = 0; i < times; i++) {
             JsonArray txBody = ContractTestUtils.transferTxBodyJson(address, amount);
-            TransactionHusk tx = createTxHusk(YEED, txBody);
+            TransactionHusk tx = createTxHusk(yggdrash, txBody);
             rpc.proxyOf(serverAddress, TransactionApi.class)
                     .sendTransaction(TransactionDto.createBy(tx));
         }
@@ -395,14 +395,13 @@ public class NodeContractDemoClient {
     }
 
     private static String getBranchId() {
-        System.out.println("트랜잭션의 브랜치 아이디 : [1] STEM [2] YEED [3] etc(직접 입력)\n>");
+
+        System.out.println("트랜잭션의 브랜치 아이디 : [1] YGGDRASH [3] etc(직접 입력)\n>");
 
         String branchId = scan.nextLine();
         switch (branchId) {
             case "1":
-                return STEM.toString();
-            case "2":
-                return YEED.toString();
+                return yggdrash.toString();
             case "3":
                 System.out.println("브랜치 아이디 => ");
                 return scan.nextLine();

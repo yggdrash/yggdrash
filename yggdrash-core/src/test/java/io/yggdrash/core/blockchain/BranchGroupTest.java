@@ -27,9 +27,9 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 
+import static io.yggdrash.TestConstants.yggdrash;
 import static io.yggdrash.TestConstants.PerformanceTest;
 import static io.yggdrash.TestConstants.TRANSFER_TO;
-import static io.yggdrash.TestConstants.YEED;
 import static io.yggdrash.TestConstants.wallet;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -127,7 +127,7 @@ public class BranchGroupTest {
 
     private TransactionHusk createTx(int amount) {
         JsonArray txBody = ContractTestUtils.transferTxBodyJson(TRANSFER_TO, amount);
-        return BlockChainTestUtils.createTxHusk(YEED, txBody);
+        return BlockChainTestUtils.createTxHusk(yggdrash(), txBody);
     }
 
     private BlockHusk newBlock(List<TransactionHusk> body, BlockHusk prevBlock) {

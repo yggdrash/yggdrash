@@ -71,8 +71,11 @@ public class GRpcPeerHandlerTest {
 
     private GRpcPeerHandler peerHandler;
 
+    private BranchId yggdrash;
+
     @Before
     public void setUp() {
+        yggdrash = TestConstants.yggdrash();
         Peer peer = Peer.valueOf("ynode://75bff16c@localhost:9999");
         peerHandler = new GRpcPeerHandler(grpcServerRule.getChannel(), peer);
         grpcServerRule.getServiceRegistry().addService(peerService);
@@ -115,7 +118,7 @@ public class GRpcPeerHandlerTest {
         }).when(peerService).findPeers(findPeersRequestCaptor.capture(), any());
 
         Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        owner.updateBestBlock(BestBlock.of(TestConstants.STEM, 0));
+        owner.updateBestBlock(BestBlock.of(yggdrash, 0));
         peerHandler.findPeers(owner);
 
         verify(peerService).findPeers(findPeersRequestCaptor.capture(), any());
@@ -123,7 +126,7 @@ public class GRpcPeerHandlerTest {
         assertEquals("127.0.0.1", findPeersRequestCaptor.getValue().getIp());
         assertEquals(32918, findPeersRequestCaptor.getValue().getPort());
         Proto.BestBlock bestBlock = findPeersRequestCaptor.getValue().getBestBlocks(0);
-        assertArrayEquals(TestConstants.STEM.getBytes(), bestBlock.getBranch().toByteArray());
+        assertArrayEquals(yggdrash.getBytes(), bestBlock.getBranch().toByteArray());
         assertEquals(0, bestBlock.getIndex());
     }
 

@@ -125,7 +125,7 @@ public class BlockChainTestUtils {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTransactionBody(txBody)
                 .setWallet(TestConstants.wallet())
-                .setBranchId(TestConstants.STEM)
+                .setBranchId(TestConstants.yggdrash())
                 .build()
                 .getCoreTransaction()
                 ;

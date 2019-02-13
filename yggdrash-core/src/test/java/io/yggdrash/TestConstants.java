@@ -30,9 +30,6 @@ import java.io.InputStream;
 public class TestConstants {
 
     public static BranchId YGGDRASH_BRANCH_ID;
-    // TODO remove STEM AND YEED BranchIDs
-    public static final BranchId STEM = BranchId.of("68932de2b04e1aee47b78e8acd2de1f9036ecd88");
-    public static final BranchId YEED = BranchId.of("61dcf9cf6ed382f39f56a1094e2de4d9aa54bf94");
 
     public static ContractVersion STEM_CONTRACT;
     public static ContractVersion YEED_CONTRACT;

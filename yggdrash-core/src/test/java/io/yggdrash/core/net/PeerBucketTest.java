@@ -57,7 +57,7 @@ public class PeerBucketTest {
     public void testUpdatedWithLatestPeer() {
         // arrange
         Peer newPeerWithBestBlock = Peer.valueOf(peer1.getYnodeUri());
-        newPeerWithBestBlock.updateBestBlock(BestBlock.of(TestConstants.STEM, 0));
+        newPeerWithBestBlock.updateBestBlock(BestBlock.of(TestConstants.yggdrash(), 0));
 
         bucket.addPeer(peer1);
         assert bucket.findByPeer(peer1).getBestBlocks().size() == 0;

@@ -59,7 +59,7 @@ public class RuntimeTest {
         JsonObject genesisParams = JsonUtil.parseJsonObject(genesisStr);
         runtime.addContract(coinContract, contract);
 
-        BranchId branchId = TestConstants.YEED;
+        BranchId branchId = TestConstants.yggdrash();
 
         TransactionBuilder builder = new TransactionBuilder();
         TransactionHusk testTx = builder.setBranchId(branchId)

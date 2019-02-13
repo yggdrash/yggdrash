@@ -38,7 +38,7 @@ public class BestBlockTest {
         assert bestBlocks.size() == 1;
 
         // act again
-        bestBlocks.add(BestBlock.of(TestConstants.YEED, 0));
+        bestBlocks.add(BestBlock.of(TestConstants.yggdrash(), 0));
 
         // assert again
         assert bestBlocks.size() == 2;
