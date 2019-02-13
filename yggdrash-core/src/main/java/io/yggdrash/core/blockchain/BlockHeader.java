@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 
-public class BlockHeader implements Cloneable {
+public class BlockHeader {
 
     static final int CHAIN_LENGTH = 20;
     static final int VERSION_LENGTH = 8;

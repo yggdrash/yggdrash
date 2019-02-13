@@ -27,7 +27,7 @@ import java.util.List;
 
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 
-public class BlockBody implements Cloneable {
+public class BlockBody {
 
     private static final int TX_HEADER_LENGTH = 84;
     private static final int SIGNATURE_LENGTH = 65;

@@ -42,7 +42,7 @@ import java.util.List;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 
-public class Block implements Cloneable {
+public class Block {
 
     private static final Logger log = LoggerFactory.getLogger(Block.class);
 
