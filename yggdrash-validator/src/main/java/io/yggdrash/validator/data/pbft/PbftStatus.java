@@ -1,4 +1,4 @@
-package io.yggdrash.validator.data;
+package io.yggdrash.validator.data.pbft;
 
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.crypto.HashUtil;
@@ -6,7 +6,6 @@ import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
-import io.yggdrash.validator.data.pbft.PbftMessage;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
@@ -19,16 +18,16 @@ public class PbftStatus {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftStatus.class);
 
     private long index;
-    private final Map<String, PbftMessage> pbftMessageMap = new TreeMap<>();
+    private final Map<String, PbftMessage> unConfirmedPbftMessageMap = new TreeMap<>();
     private long timestamp;
     private byte[] signature;
 
     public PbftStatus(long index,
-                      Map<String, PbftMessage> pbftMessageMap,
+                      Map<String, PbftMessage> unConfirmedPbftMessageMap,
                       long timestamp,
                       byte[] signature) {
         this.index = index;
-        this.pbftMessageMap.putAll(pbftMessageMap);
+        this.unConfirmedPbftMessageMap.putAll(unConfirmedPbftMessageMap);
         if (timestamp == 0L) {
             this.timestamp = TimeUtils.time();
         } else {
@@ -43,10 +42,8 @@ public class PbftStatus {
         for (PbftProto.PbftMessage protoPbftMessage :
                 pbftStatus.getPbftMessageList().getPbftMessageListList()) {
             String key = Hex.toHexString(protoPbftMessage.getSignature().toByteArray());
-            if (this.pbftMessageMap.containsKey(key)) {
-                // todo: update pbftmessge
-            } else {
-                this.pbftMessageMap.put(key, new PbftMessage(protoPbftMessage));
+            if (!this.unConfirmedPbftMessageMap.containsKey(key)) {
+                this.unConfirmedPbftMessageMap.put(key, new PbftMessage(protoPbftMessage));
             }
         }
         this.timestamp = pbftStatus.getTimestamp();
@@ -57,8 +54,8 @@ public class PbftStatus {
         return index;
     }
 
-    public Map<String, PbftMessage> getPbftMessageMap() {
-        return pbftMessageMap;
+    public Map<String, PbftMessage> getUnConfirmedPbftMessageMap() {
+        return unConfirmedPbftMessageMap;
     }
 
     public long getTimestamp() {
@@ -74,8 +71,8 @@ public class PbftStatus {
 
         try {
             dataForSignning.write(ByteUtil.longToBytes(index));
-            for (String key : this.pbftMessageMap.keySet()) {
-                PbftMessage pbftMessage = this.pbftMessageMap.get(key);
+            for (String key : this.unConfirmedPbftMessageMap.keySet()) {
+                PbftMessage pbftMessage = this.unConfirmedPbftMessageMap.get(key);
                 dataForSignning.write(pbftMessage.toBinary());
             }
             dataForSignning.write(ByteUtil.longToBytes(timestamp));
@@ -106,8 +103,8 @@ public class PbftStatus {
         }
 
         PbftProto.PbftMessageList.Builder protoPbftMessageListBuilder = PbftProto.PbftMessageList.newBuilder();
-        for (String key : pbftStatus.getPbftMessageMap().keySet()) {
-            PbftMessage pbftMessage = pbftStatus.getPbftMessageMap().get(key);
+        for (String key : pbftStatus.getUnConfirmedPbftMessageMap().keySet()) {
+            PbftMessage pbftMessage = pbftStatus.getUnConfirmedPbftMessageMap().get(key);
             protoPbftMessageListBuilder.addPbftMessageList(PbftMessage.toProto(pbftMessage));
         }
 

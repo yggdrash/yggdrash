@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.validator.data;
+package io.yggdrash.validator.data.pbft;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -22,7 +22,6 @@ import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.validator.data.pbft.PbftMessageSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;

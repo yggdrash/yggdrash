@@ -1,4 +1,4 @@
-package io.yggdrash.validator.service;
+package io.yggdrash.validator.service.ebft;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -11,9 +11,9 @@ import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.data.BlockCon;
-import io.yggdrash.validator.data.BlockConChain;
-import io.yggdrash.validator.data.NodeStatus;
+import io.yggdrash.validator.data.ebft.EbftBlock;
+import io.yggdrash.validator.data.ebft.EbftBlockChain;
+import io.yggdrash.validator.data.ebft.NodeStatus;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,9 +41,9 @@ import static io.yggdrash.common.util.Utils.sleep;
 @Service
 @EnableScheduling
 @ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "ebft")
-public class EbftNodeServer implements CommandLineRunner {
+public class EbftService implements CommandLineRunner {
 
-    private static final org.slf4j.Logger log = LoggerFactory.getLogger(EbftNodeServer.class);
+    private static final org.slf4j.Logger log = LoggerFactory.getLogger(EbftService.class);
 
     private static final boolean ABNORMAL_TEST = false;
 
@@ -51,10 +51,10 @@ public class EbftNodeServer implements CommandLineRunner {
     private final int consenusCount;
 
     private final Wallet wallet;
-    private final BlockConChain blockConChain;
+    private final EbftBlockChain ebftBlockChain;
 
-    private final EbftNodeClient myNode;
-    private final Map<String, EbftNodeClient> totalValidatorMap;
+    private final EbftClientStub myNode;
+    private final Map<String, EbftClientStub> totalValidatorMap;
 
     private boolean isActive;
     private boolean isSynced;
@@ -62,9 +62,9 @@ public class EbftNodeServer implements CommandLineRunner {
     private ReentrantLock lock = new ReentrantLock();
 
     @Autowired
-    public EbftNodeServer(Wallet wallet, BlockConChain blockConChain) {
+    public EbftService(Wallet wallet, EbftBlockChain ebftBlockChain) {
         this.wallet = wallet;
-        this.blockConChain = blockConChain;
+        this.ebftBlockChain = ebftBlockChain;
         this.myNode = initMyNode();
         this.totalValidatorMap = initTotalValidator();
         this.isValidator = initValidator();
@@ -89,19 +89,19 @@ public class EbftNodeServer implements CommandLineRunner {
         checkNode();
 
         lock.lock();
-        BlockCon proposedBlockCon = makeProposedBlock();
+        EbftBlock proposedEbftBlock = makeProposedBlock();
         lock.unlock();
-        if (proposedBlockCon != null) {
-            broadcast(proposedBlockCon.clone());
+        if (proposedEbftBlock != null) {
+            broadcast(proposedEbftBlock.clone());
         }
 
         sleep(500);
 
         lock.lock();
-        BlockCon consensusedBlockCon = makeConsensus();
+        EbftBlock consensusedEbftBlock = makeConsensus();
         lock.unlock();
-        if (consensusedBlockCon != null) {
-            broadcast(consensusedBlockCon.clone());
+        if (consensusedEbftBlock != null) {
+            broadcast(consensusedEbftBlock.clone());
         }
 
         sleep(500);
@@ -116,7 +116,7 @@ public class EbftNodeServer implements CommandLineRunner {
 
     private void checkNode() {
         for (String key : totalValidatorMap.keySet()) {
-            EbftNodeClient client = totalValidatorMap.get(key);
+            EbftClientStub client = totalValidatorMap.get(key);
             if (client.isMyclient()) {
                 continue;
             }
@@ -135,31 +135,31 @@ public class EbftNodeServer implements CommandLineRunner {
         setActiveMode();
     }
 
-    private void checkNodeStatus(EbftNodeClient client) {
+    private void checkNodeStatus(EbftClientStub client) {
         NodeStatus nodeStatus = client.exchangeNodeStatus(NodeStatus.toProto(getMyNodeStatus()));
         updateStatus(client, nodeStatus);
     }
 
-    private void updateStatus(EbftNodeClient client, NodeStatus nodeStatus) {
+    private void updateStatus(EbftClientStub client, NodeStatus nodeStatus) {
         if (NodeStatus.verify(nodeStatus)) {
             client.setIsRunning(true);
 
-            if (nodeStatus.getLastConfirmedBlockCon().getIndex()
-                    > this.blockConChain.getLastConfirmedBlockCon().getIndex()) {
+            if (nodeStatus.getLastConfirmedEbftBlock().getIndex()
+                    > this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex()) {
                 log.debug("this Index: "
-                        + this.blockConChain.getLastConfirmedBlockCon().getIndex());
-                log.debug("client Index: " + nodeStatus.getLastConfirmedBlockCon().getIndex());
+                        + this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex());
+                log.debug("client Index: " + nodeStatus.getLastConfirmedEbftBlock().getIndex());
                 log.debug("client : " + client.getId());
 
-                // blockConSyncing
+                // blockSyncing
                 this.isSynced = false;
-                blockConSyncing(client.getPubKey(),
-                        nodeStatus.getLastConfirmedBlockCon().getIndex());
-            } else if (nodeStatus.getLastConfirmedBlockCon().getIndex()
-                    == this.blockConChain.getLastConfirmedBlockCon().getIndex()) {
+                blockSyncing(client.getPubKey(),
+                        nodeStatus.getLastConfirmedEbftBlock().getIndex());
+            } else if (nodeStatus.getLastConfirmedEbftBlock().getIndex()
+                    == this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex()) {
                 // unconfirmed block update
-                for (BlockCon blockCon : nodeStatus.getUnConfirmedBlockConList()) {
-                    updateUnconfirmedBlock(blockCon);
+                for (EbftBlock ebftBlock : nodeStatus.getUnConfirmedEbftBlockList()) {
+                    updateUnconfirmedBlock(ebftBlock);
                 }
             }
         } else {
@@ -167,77 +167,77 @@ public class EbftNodeServer implements CommandLineRunner {
         }
     }
 
-    private void blockConSyncing(String pubKey, long index) {
-        EbftNodeClient client = totalValidatorMap.get(pubKey);
-        BlockCon blockCon;
+    private void blockSyncing(String pubKey, long index) {
+        EbftClientStub client = totalValidatorMap.get(pubKey);
+        EbftBlock ebftBlock;
         if (client.isRunning()) {
-            List<BlockCon> blockConList = new ArrayList<>(client.getBlockConList(
-                    this.blockConChain.getLastConfirmedBlockCon().getIndex()));
+            List<EbftBlock> ebftBlockList = new ArrayList<>(client.getEbftBlockList(
+                    this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex()));
 
             log.debug("node: " + client.getId());
             log.debug("index: " + index);
-            log.debug("blockConList size: " + blockConList.size());
+            log.debug("ebftBlockList size: " + ebftBlockList.size());
 
-            if (blockConList.size() == 0) {
+            if (ebftBlockList.size() == 0) {
                 return;
             }
 
             int i = 0;
-            for (; i < blockConList.size(); i++) {
-                blockCon = blockConList.get(i);
-                if (!BlockCon.verify(blockCon) || !consensusVerify(blockCon)) {
+            for (; i < ebftBlockList.size(); i++) {
+                ebftBlock = ebftBlockList.get(i);
+                if (!EbftBlock.verify(ebftBlock) || !consensusVerify(ebftBlock)) {
                     log.warn("Verify Fail");
                     //todo: check verify fail exception
                     continue;
                 }
-                this.blockConChain.getBlockConStore().put(blockCon.getHash(), blockCon);
-                this.blockConChain.getBlockConKeyStore()
-                        .put(blockCon.getIndex(), blockCon.getHash());
+                this.ebftBlockChain.getEbftBlockStore().put(ebftBlock.getHash(), ebftBlock);
+                this.ebftBlockChain.getEbftBlockKeyStore()
+                        .put(ebftBlock.getIndex(), ebftBlock.getHash());
             }
-            blockCon = blockConList.get(i - 1);
+            ebftBlock = ebftBlockList.get(i - 1);
             //todo: if consensusCount(validator count) is different from previous count,
-            // cannot confirm prevBlockCon.
-            if (blockCon.getConsensusList().size() >= consenusCount) {
-                changeLastConfirmedBlock(blockCon);
-                this.blockConChain.setProposed(false);
-                this.blockConChain.setConsensused(false);
+            // cannot confirm prevBlock.
+            if (ebftBlock.getConsensusList().size() >= consenusCount) {
+                changeLastConfirmedBlock(ebftBlock);
+                this.ebftBlockChain.setProposed(false);
+                this.ebftBlockChain.setConsensused(false);
             }
         }
 
-        if (this.blockConChain.getLastConfirmedBlockCon().getIndex() < index) {
-            blockConSyncing(pubKey, index);
+        if (this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex() < index) {
+            blockSyncing(pubKey, index);
         }
     }
 
-    private BlockCon makeProposedBlock() {
+    private EbftBlock makeProposedBlock() {
         if (this.isValidator
                 && this.isActive
-                && !this.blockConChain.isProposed()
+                && !this.ebftBlockChain.isProposed()
                 && this.isSynced) {
-            long index = this.blockConChain.getLastConfirmedBlockCon().getIndex() + 1;
-            byte[]  prevBlockHash = this.blockConChain.getLastConfirmedBlockCon().getHash();
+            long index = this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex() + 1;
+            byte[] prevBlockHash = this.ebftBlockChain.getLastConfirmedEbftBlock().getHash();
 
             Block newBlock = makeNewBlock(index, prevBlockHash);
             log.trace("newBlock" + newBlock.toString());
 
-            BlockCon newBlockCon
-                    = new BlockCon(index, prevBlockHash, newBlock);
+            EbftBlock newEbftBlock
+                    = new EbftBlock(index, prevBlockHash, newBlock);
 
-            // add in unconfirmed blockConMap & unconfirmed blockCon
-            this.blockConChain.getUnConfirmedBlockConMap()
-                    .putIfAbsent(newBlockCon.getHashHex(), newBlockCon);
-            this.blockConChain.setProposed(true);
+            // add in unconfirmed blockMap & unconfirmed block
+            this.ebftBlockChain.getUnConfirmedEbftBlockMap()
+                    .putIfAbsent(newEbftBlock.getHashHex(), newEbftBlock);
+            this.ebftBlockChain.setProposed(true);
 
             log.debug("make Proposed Block"
                     + "["
-                    + newBlockCon.getIndex()
+                    + newEbftBlock.getIndex()
                     + "]"
-                    + newBlockCon.getHashHex()
+                    + newEbftBlock.getHashHex()
                     + " ("
-                    + newBlockCon.getBlock().getAddressHex()
+                    + newEbftBlock.getBlock().getAddressHex()
                     + ")");
 
-            return newBlockCon;
+            return newEbftBlock;
         }
 
         return null;
@@ -246,14 +246,14 @@ public class EbftNodeServer implements CommandLineRunner {
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
         List<Transaction> txs = new ArrayList<>();
         List<TransactionHusk> txHusks = new ArrayList<>(
-                blockConChain.getTransactionStore().getUnconfirmedTxs());
+                ebftBlockChain.getTransactionStore().getUnconfirmedTxs());
         for (TransactionHusk txHusk : txHusks) {
             txs.add(txHusk.getCoreTransaction());
         }
 
         BlockBody newBlockBody = new BlockBody(txs);
         BlockHeader newBlockHeader = new BlockHeader(
-                blockConChain.getChain(),
+                ebftBlockChain.getChain(),
                 new byte[8],
                 new byte[8],
                 prevBlockHash,
@@ -263,24 +263,24 @@ public class EbftNodeServer implements CommandLineRunner {
         return new Block(newBlockHeader, wallet, newBlockBody);
     }
 
-    private BlockCon makeConsensus() {
-        if (this.blockConChain.isConsensused() || !this.isSynced) {
+    private EbftBlock makeConsensus() {
+        if (this.ebftBlockChain.isConsensused() || !this.isSynced) {
             return null;
         }
 
-        Map<String, BlockCon> unConfirmedBlockConMap =
-                this.blockConChain.getUnConfirmedBlockConMap();
-        int unconfirmedBlockConCount = getUnconfirmedBlockConCount(
-                unConfirmedBlockConMap,
-                this.blockConChain.getLastConfirmedBlockCon().getIndex() + 1);
-        if (unconfirmedBlockConCount >= getActiveNodeCount()
-                && unconfirmedBlockConCount >= consenusCount
-                && checkReceiveProposedBlockCon()) { //todo: check efficiency
+        Map<String, EbftBlock> unConfirmedEbftBlockMap =
+                this.ebftBlockChain.getUnConfirmedEbftBlockMap();
+        int unconfirmedEbftBlockCount = getUnconfirmedEbftBlockCount(
+                unConfirmedEbftBlockMap,
+                this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex() + 1);
+        if (unconfirmedEbftBlockCount >= getActiveNodeCount()
+                && unconfirmedEbftBlockCount >= consenusCount
+                && checkReceiveProposedEbftBlock()) { //todo: check efficiency
 
             String minKey = null;
-            for (String key : unConfirmedBlockConMap.keySet()) {
-                if (unConfirmedBlockConMap.get(key).getIndex()
-                        != this.blockConChain.getLastConfirmedBlockCon().getIndex() + 1) {
+            for (String key : unConfirmedEbftBlockMap.keySet()) {
+                if (unConfirmedEbftBlockMap.get(key).getIndex()
+                        != this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex() + 1) {
                     continue;
                 }
                 if (minKey == null) {
@@ -297,39 +297,39 @@ public class EbftNodeServer implements CommandLineRunner {
                 }
             }
 
-            BlockCon blockCon = unConfirmedBlockConMap.get(minKey);
-            String consensus = Hex.toHexString(wallet.signHashedData(blockCon.getHash()));
-            blockCon.getConsensusList().add(consensus);
-            this.blockConChain.setConsensused(true);
+            EbftBlock ebftBlock = unConfirmedEbftBlockMap.get(minKey);
+            String consensus = Hex.toHexString(wallet.signHashedData(ebftBlock.getHash()));
+            ebftBlock.getConsensusList().add(consensus);
+            this.ebftBlockChain.setConsensused(true);
 
             log.debug("make Consensus: "
                     + "["
-                    + blockCon.getIndex()
+                    + ebftBlock.getIndex()
                     + "] "
-                    + blockCon.getHashHex()
+                    + ebftBlock.getHashHex()
                     + " ("
                     + consensus
                     + ")");
 
-            return blockCon;
+            return ebftBlock;
         }
 
         return null;
     }
 
-    private boolean checkReceiveProposedBlockCon() {
-        long index = this.blockConChain.getLastConfirmedBlockCon().getIndex() + 1;
+    private boolean checkReceiveProposedEbftBlock() {
+        long index = this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex() + 1;
         List<String> proposedPubkey = new ArrayList<>();
-        for (String key : this.blockConChain.getUnConfirmedBlockConMap().keySet()) {
-            BlockCon proposedBlockCon = this.blockConChain.getUnConfirmedBlockConMap().get(key);
+        for (String key : this.ebftBlockChain.getUnConfirmedEbftBlockMap().keySet()) {
+            EbftBlock proposedEbftBlock = this.ebftBlockChain.getUnConfirmedEbftBlockMap().get(key);
 
-            if (proposedBlockCon.getIndex() == index) {
-                proposedPubkey.add(Hex.toHexString(proposedBlockCon.getBlock().getPubKey()));
+            if (proposedEbftBlock.getIndex() == index) {
+                proposedPubkey.add(Hex.toHexString(proposedEbftBlock.getBlock().getPubKey()));
             }
         }
 
         for (String key : this.totalValidatorMap.keySet()) {
-            EbftNodeClient client = this.totalValidatorMap.get(key);
+            EbftClientStub client = this.totalValidatorMap.get(key);
             if (client.isRunning()) {
                 if (!proposedPubkey.contains("04" + client.getPubKey())) {
                     return false;
@@ -340,7 +340,7 @@ public class EbftNodeServer implements CommandLineRunner {
         return true;
     }
 
-    private int getUnconfirmedBlockConCount(Map<String, BlockCon> map, long index) {
+    private int getUnconfirmedEbftBlockCount(Map<String, EbftBlock> map, long index) {
         int count = 0;
         for (String key : map.keySet()) {
             if (map.get(key).getIndex() == index) {
@@ -352,16 +352,16 @@ public class EbftNodeServer implements CommandLineRunner {
 
     private void confirmFinalBlock() {
         boolean moreConfirmFlag = false;
-        for (String key : this.blockConChain.getUnConfirmedBlockConMap().keySet()) {
-            BlockCon unconfirmedNode = this.blockConChain.getUnConfirmedBlockConMap().get(key);
+        for (String key : this.ebftBlockChain.getUnConfirmedEbftBlockMap().keySet()) {
+            EbftBlock unconfirmedNode = this.ebftBlockChain.getUnConfirmedEbftBlockMap().get(key);
             if (unconfirmedNode == null) {
                 continue;
             }
             if (unconfirmedNode.getIndex()
-                    <= this.blockConChain.getLastConfirmedBlockCon().getIndex()) {
-                this.blockConChain.getUnConfirmedBlockConMap().remove(key);
+                    <= this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex()) {
+                this.ebftBlockChain.getUnConfirmedEbftBlockMap().remove(key);
             } else if (unconfirmedNode.getIndex()
-                    == this.blockConChain.getLastConfirmedBlockCon().getIndex() + 1) {
+                    == this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex() + 1) {
                 if (unconfirmedNode.getConsensusList().size() >= consenusCount) {
                     confirmedBlock(unconfirmedNode);
                 }
@@ -377,81 +377,81 @@ public class EbftNodeServer implements CommandLineRunner {
         }
     }
 
-    private void confirmedBlock(BlockCon blockCon) {
-        // add newBlockCon into blockConMap
-        this.blockConChain.getBlockConStore().put(blockCon.getHash(), blockCon);
-        this.blockConChain.getBlockConKeyStore().put(blockCon.getIndex(), blockCon.getHash());
+    private void confirmedBlock(EbftBlock ebftBlock) {
+        // add newBlock into blockMap
+        this.ebftBlockChain.getEbftBlockStore().put(ebftBlock.getHash(), ebftBlock);
+        this.ebftBlockChain.getEbftBlockKeyStore().put(ebftBlock.getIndex(), ebftBlock.getHash());
 
-        changeLastConfirmedBlock(blockCon);
-        this.blockConChain.setProposed(false);
-        this.blockConChain.setConsensused(false);
+        changeLastConfirmedBlock(ebftBlock);
+        this.ebftBlockChain.setProposed(false);
+        this.ebftBlockChain.setConsensused(false);
 
-        log.debug("ConfirmedBlockCon="
+        log.debug("ConfirmedBlock="
                 + "["
-                + this.blockConChain.getLastConfirmedBlockCon().getIndex()
+                + this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex()
                 + "]"
-                + this.blockConChain.getLastConfirmedBlockCon().getHashHex()
+                + this.ebftBlockChain.getLastConfirmedEbftBlock().getHashHex()
                 + "("
-                + this.blockConChain.getLastConfirmedBlockCon().getConsensusList().size()
+                + this.ebftBlockChain.getLastConfirmedEbftBlock().getConsensusList().size()
                 + ")");
     }
 
-    private void changeLastConfirmedBlock(BlockCon blockCon) {
-        // change lastConfirmedBlockCon
-        this.blockConChain.setLastConfirmedBlockCon(blockCon);
+    private void changeLastConfirmedBlock(EbftBlock ebftBlock) {
+        // change lastConfirmedBlock
+        this.ebftBlockChain.setLastConfirmedEbftBlock(ebftBlock);
 
-        // clear unConfirmedBlockCon
-        for (String key : this.blockConChain.getUnConfirmedBlockConMap().keySet()) {
-            BlockCon unConfirmedBlockCon = this.blockConChain.getUnConfirmedBlockConMap().get(key);
-            if (unConfirmedBlockCon.getIndex() <= blockCon.getIndex()) {
-                this.blockConChain.getUnConfirmedBlockConMap().remove(key);
+        // clear unConfirmedBlock
+        for (String key : this.ebftBlockChain.getUnConfirmedEbftBlockMap().keySet()) {
+            EbftBlock unConfirmedEbftBlock = this.ebftBlockChain.getUnConfirmedEbftBlockMap().get(key);
+            if (unConfirmedEbftBlock.getIndex() <= ebftBlock.getIndex()) {
+                this.ebftBlockChain.getUnConfirmedEbftBlockMap().remove(key);
             }
         }
     }
 
     private void loggingNode() {
 
-        BlockCon lastBlockCon = this.blockConChain.getLastConfirmedBlockCon().clone();
-        if (lastBlockCon != null) {
-            log.info("[" + lastBlockCon.getIndex() + "] "
-                    + lastBlockCon.getHashHex()
+        EbftBlock lastEbftBlock = this.ebftBlockChain.getLastConfirmedEbftBlock().clone();
+        if (lastEbftBlock != null) {
+            log.info("[" + lastEbftBlock.getIndex() + "] "
+                    + lastEbftBlock.getHashHex()
                     + " ("
-                    + lastBlockCon.getBlock().getAddressHex()
+                    + lastEbftBlock.getBlock().getAddressHex()
                     + ") "
                     + "("
-                    + lastBlockCon.getConsensusList().size()
+                    + lastEbftBlock.getConsensusList().size()
                     + ")");
         }
 
         if (log.isDebugEnabled()) {
-            log.debug("map size= " + this.blockConChain.getBlockConStore().size());
-            log.debug("key size= " + this.blockConChain.getBlockConKeyStore().size());
+            log.debug("map size= " + this.ebftBlockChain.getEbftBlockStore().size());
+            log.debug("key size= " + this.ebftBlockChain.getEbftBlockKeyStore().size());
             log.debug("proposedBlock size= "
-                    + this.blockConChain.getUnConfirmedBlockConMap().size());
+                    + this.ebftBlockChain.getUnConfirmedEbftBlockMap().size());
             log.debug("isSynced= " + isSynced);
-            log.debug("isProposed= " + this.blockConChain.isProposed());
-            log.debug("isConsensused= " + this.blockConChain.isConsensused());
-            for (String key : this.blockConChain.getUnConfirmedBlockConMap().keySet()) {
-                BlockCon blockCon = this.blockConChain.getUnConfirmedBlockConMap().get(key);
-                if (blockCon == null) {
+            log.debug("isProposed= " + this.ebftBlockChain.isProposed());
+            log.debug("isConsensused= " + this.ebftBlockChain.isConsensused());
+            for (String key : this.ebftBlockChain.getUnConfirmedEbftBlockMap().keySet()) {
+                EbftBlock ebftBlock = this.ebftBlockChain.getUnConfirmedEbftBlockMap().get(key);
+                if (ebftBlock == null) {
                     break;
                 }
                 log.debug("proposed ["
-                        + blockCon.getIndex()
+                        + ebftBlock.getIndex()
                         + "]"
-                        + blockCon.getHashHex()
+                        + ebftBlock.getHashHex()
                         + " ("
-                        + blockCon.getBlock().getAddressHex()
+                        + ebftBlock.getBlock().getAddressHex()
                         + ")");
-                for (int i = 0; i < blockCon.getConsensusList().size(); i++) {
-                    if (blockCon.getConsensusList().get(i) != null) {
-                        log.debug(blockCon.getConsensusList().get(i)
+                for (int i = 0; i < ebftBlock.getConsensusList().size(); i++) {
+                    if (ebftBlock.getConsensusList().get(i) != null) {
+                        log.debug(ebftBlock.getConsensusList().get(i)
                                 + " ("
                                 + Hex.toHexString(
                                 Wallet.calculateAddress(
                                         Wallet.calculatePubKey(
-                                                blockCon.getHash(),
-                                                Hex.decode(blockCon.getConsensusList().get(i)),
+                                                ebftBlock.getHash(),
+                                                Hex.decode(ebftBlock.getConsensusList().get(i)),
                                                 true)))
                                 + ")");
                     }
@@ -462,52 +462,52 @@ public class EbftNodeServer implements CommandLineRunner {
         log.info("");
     }
 
-    private void broadcast(BlockCon blockCon) {
+    private void broadcast(EbftBlock ebftBlock) {
         for (String key : totalValidatorMap.keySet()) {
-            EbftNodeClient client = totalValidatorMap.get(key);
+            EbftClientStub client = totalValidatorMap.get(key);
             if (client.isMyclient()) {
                 continue;
             }
             if (client.isRunning()) {
                 try {
-                    client.broadcastBlockCon(BlockCon.toProto(blockCon));
+                    client.broadcastEbftBlock(EbftBlock.toProto(ebftBlock));
                 } catch (Exception e) {
                     log.debug("broadcast exception: " + e.getMessage());
                     log.debug("client: " + client.getId());
-                    log.debug("blockCon: " + blockCon.getHashHex());
+                    log.debug("ebftBlock: " + ebftBlock.getHashHex());
                     // continue
                 }
             }
         }
     }
 
-    public void updateUnconfirmedBlock(BlockCon blockCon) {
-        if (this.blockConChain.getUnConfirmedBlockConMap().containsKey(blockCon.getHashHex())) {
+    public void updateUnconfirmedBlock(EbftBlock ebftBlock) {
+        if (this.ebftBlockChain.getUnConfirmedEbftBlockMap().containsKey(ebftBlock.getHashHex())) {
             // if exist, update consensus
-            if (blockCon.getConsensusList().size() > 0) {
-                for (String consensus : blockCon.getConsensusList()) {
+            if (ebftBlock.getConsensusList().size() > 0) {
+                for (String consensus : ebftBlock.getConsensusList()) {
                     String pubKey = Hex.toHexString(
                             Objects.requireNonNull(Wallet.calculatePubKey(
-                                    blockCon.getHash(), Hex.decode(consensus), true)))
+                                    ebftBlock.getHash(), Hex.decode(consensus), true)))
                             .substring(2);
-                    if (!this.blockConChain.getUnConfirmedBlockConMap().get(blockCon.getHashHex())
+                    if (!this.ebftBlockChain.getUnConfirmedEbftBlockMap().get(ebftBlock.getHashHex())
                             .getConsensusList().contains(consensus)
                             && this.totalValidatorMap.containsKey(pubKey)) {
-                        this.blockConChain.getUnConfirmedBlockConMap().get(blockCon.getHashHex())
+                        this.ebftBlockChain.getUnConfirmedEbftBlockMap().get(ebftBlock.getHashHex())
                                 .getConsensusList().add(consensus);
                     }
                 }
             }
         } else {
-            // if not exist, add blockCon
-            this.blockConChain.getUnConfirmedBlockConMap().put(blockCon.getHashHex(), blockCon);
+            // if not exist, add ebftBlock
+            this.ebftBlockChain.getUnConfirmedEbftBlockMap().put(ebftBlock.getHashHex(), ebftBlock);
         }
     }
 
     public NodeStatus getMyNodeStatus() {
         NodeStatus newNodeStatus = new NodeStatus(this.getActiveNodeList(),
-                this.blockConChain.getLastConfirmedBlockCon(),
-                new ArrayList<>(this.blockConChain.getUnConfirmedBlockConMap().values()));
+                this.ebftBlockChain.getLastConfirmedEbftBlock(),
+                new ArrayList<>(this.ebftBlockChain.getUnConfirmedEbftBlockMap().values()));
         newNodeStatus.setSignature(wallet.sign(newNodeStatus.getDataForSignning()));
         return newNodeStatus;
     }
@@ -519,7 +519,7 @@ public class EbftNodeServer implements CommandLineRunner {
         log.info("isValidator: " + this.isValidator);
     }
 
-    private Map<String, EbftNodeClient> initTotalValidator() {
+    private Map<String, EbftClientStub> initTotalValidator() {
         String jsonString;
         ClassPathResource cpr = new ClassPathResource("validator.json");
         try {
@@ -531,12 +531,12 @@ public class EbftNodeServer implements CommandLineRunner {
         }
 
         JsonObject validatorJsonObject = new Gson().fromJson(jsonString, JsonObject.class);
-        Map<String, EbftNodeClient> nodeMap = new ConcurrentHashMap<>();
+        Map<String, EbftClientStub> nodeMap = new ConcurrentHashMap<>();
 
         Set<Map.Entry<String, JsonElement>> entrySet =
                 validatorJsonObject.get("validator").getAsJsonObject().entrySet();
         for (Map.Entry<String, JsonElement> entry : entrySet) {
-            EbftNodeClient client = new EbftNodeClient(entry.getKey(),
+            EbftClientStub client = new EbftClientStub(entry.getKey(),
                     entry.getValue().getAsJsonObject().get("host").getAsString(),
                     entry.getValue().getAsJsonObject().get("port").getAsInt());
             if (client.getId().equals(myNode.getId())) {
@@ -550,8 +550,8 @@ public class EbftNodeServer implements CommandLineRunner {
         return nodeMap;
     }
 
-    private EbftNodeClient initMyNode() {
-        EbftNodeClient client = new EbftNodeClient(
+    private EbftClientStub initMyNode() {
+        EbftClientStub client = new EbftClientStub(
                 wallet.getPubicKeyHex().substring(2),
                 InetAddress.getLoopbackAddress().getHostAddress(),
                 Integer.parseInt(System.getProperty("grpc.port")));
@@ -570,7 +570,7 @@ public class EbftNodeServer implements CommandLineRunner {
     private List<String> getActiveNodeList() {
         List<String> activeNodeList = new ArrayList<>();
         for (String key : totalValidatorMap.keySet()) {
-            EbftNodeClient client = totalValidatorMap.get(key);
+            EbftClientStub client = totalValidatorMap.get(key);
             if (client.isMyclient()) {
                 continue;
             }
@@ -608,13 +608,13 @@ public class EbftNodeServer implements CommandLineRunner {
         return count;
     }
 
-    public boolean consensusVerify(BlockCon blockCon) {
-        if (blockCon.getConsensusList().size() <= 0) {
+    public boolean consensusVerify(EbftBlock ebftBlock) {
+        if (ebftBlock.getConsensusList().size() <= 0) {
             return true;
         }
 
-        for (String signature : blockCon.getConsensusList()) {
-            if (!Wallet.verify(blockCon.getHash(), Hex.decode(signature), true)) {
+        for (String signature : ebftBlock.getConsensusList()) {
+            if (!Wallet.verify(ebftBlock.getHash(), Hex.decode(signature), true)) {
                 return false;
             }
             // todo: else, check validator

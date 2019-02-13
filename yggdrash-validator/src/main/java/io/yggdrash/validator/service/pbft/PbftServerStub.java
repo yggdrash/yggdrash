@@ -1,14 +1,14 @@
-package io.yggdrash.validator.service;
+package io.yggdrash.validator.service.pbft;
 
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
-import io.yggdrash.validator.data.PbftBlock;
-import io.yggdrash.validator.data.PbftBlockChain;
-import io.yggdrash.validator.data.PbftStatus;
+import io.yggdrash.validator.data.pbft.PbftBlock;
+import io.yggdrash.validator.data.pbft.PbftBlockChain;
 import io.yggdrash.validator.data.pbft.PbftMessage;
+import io.yggdrash.validator.data.pbft.PbftStatus;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,8 +45,8 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
     }
 
     @Override
-    public void exchangePbftStatus(io.yggdrash.proto.PbftProto.PbftStatus request,
-                                   io.grpc.stub.StreamObserver<io.yggdrash.proto.PbftProto.PbftStatus> responseObserver) {
+    public void exchangePbftStatus(PbftProto.PbftStatus request,
+                                   StreamObserver<PbftProto.PbftStatus> responseObserver) {
         PbftStatus status = new PbftStatus(request);
         updateStatus(status);
 
@@ -57,8 +57,8 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
 
     @Override
-    public void multicastPbftMessage(io.yggdrash.proto.PbftProto.PbftMessage request,
-                                     io.grpc.stub.StreamObserver<io.yggdrash.proto.NetProto.Empty> responseObserver) {
+    public void multicastPbftMessage(PbftProto.PbftMessage request,
+                                     StreamObserver<NetProto.Empty> responseObserver) {
 
         log.trace("multicastPbftMessage");
         PbftMessage pbftMessage = new PbftMessage(request);
@@ -86,15 +86,15 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
     }
 
     @Override
-    public void multicastPbftBlock(io.yggdrash.proto.PbftProto.PbftBlock request,
-                                   io.grpc.stub.StreamObserver<io.yggdrash.proto.NetProto.Empty> responseObserver) {
+    public void multicastPbftBlock(PbftProto.PbftBlock request,
+                                   StreamObserver<NetProto.Empty> responseObserver) {
 
         log.trace("multicastPbftBlock");
         PbftBlock newPbftBlock = new PbftBlock(request);
 
         if (!PbftBlock.verify(newPbftBlock)) {
             log.warn("Verify Fail");
-            responseObserver.onNext(io.yggdrash.proto.NetProto.Empty.newBuilder().build());
+            responseObserver.onNext(EMPTY);
             responseObserver.onCompleted();
             return;
         }
@@ -151,7 +151,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         }
 
         pbftService.getLock().lock();
-        pbftService.updateUnconfirmedMsgMap(status.getPbftMessageMap());
+        pbftService.updateUnconfirmedMsgMap(status.getUnConfirmedPbftMessageMap());
         pbftService.getLock().unlock();
     }
 }

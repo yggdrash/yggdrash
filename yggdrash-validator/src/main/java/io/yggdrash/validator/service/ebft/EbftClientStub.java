@@ -1,4 +1,4 @@
-package io.yggdrash.validator.service;
+package io.yggdrash.validator.service.ebft;
 
 import io.grpc.Context;
 import io.grpc.ManagedChannel;
@@ -7,8 +7,8 @@ import io.grpc.StatusRuntimeException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.ConsensusEbftGrpc;
 import io.yggdrash.proto.EbftProto;
-import io.yggdrash.validator.data.BlockCon;
-import io.yggdrash.validator.data.NodeStatus;
+import io.yggdrash.validator.data.ebft.EbftBlock;
+import io.yggdrash.validator.data.ebft.NodeStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
@@ -17,9 +17,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class EbftNodeClient {
+public class EbftClientStub {
 
-    private static final Logger log = LoggerFactory.getLogger(EbftNodeClient.class);
+    private static final Logger log = LoggerFactory.getLogger(EbftClientStub.class);
 
     private boolean myclient;
     private String pubKey;
@@ -32,7 +32,7 @@ public class EbftNodeClient {
     private ManagedChannel channel;
     private ConsensusEbftGrpc.ConsensusEbftBlockingStub blockingStub;
 
-    public EbftNodeClient(String pubKey, String host, int port) {
+    public EbftClientStub(String pubKey, String host, int port) {
         this.pubKey = pubKey;
         this.host = host;
         this.port = port;
@@ -80,28 +80,28 @@ public class EbftNodeClient {
         return this.nodeStatus;
     }
 
-    public void broadcastBlockCon(EbftProto.BlockCon blockCon) {
+    public void broadcastEbftBlock(EbftProto.EbftBlock block) {
         blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS)
-                .broadcastBlockCon(blockCon);
+                .broadcastEbftBlock(block);
     }
 
-    public List<BlockCon> getBlockConList(long index) {
-        EbftProto.BlockConList protoBlockConList = blockingStub
+    public List<EbftBlock> getEbftBlockList(long index) {
+        EbftProto.EbftBlockList protoEbftBlockList = blockingStub
                 .withDeadlineAfter(3, TimeUnit.SECONDS)
-                .getBlockConList(
+                .getEbftBlockList(
                         EbftProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
 
         if (Context.current().isCancelled()) {
             return null;
         }
 
-        List<BlockCon> newBlockConList = new ArrayList<>();
+        List<EbftBlock> newEbftBlockList = new ArrayList<>();
 
-        for (EbftProto.BlockCon protoBlockCon : protoBlockConList.getBlockConListList()) {
-            newBlockConList.add(new BlockCon(protoBlockCon));
+        for (EbftProto.EbftBlock block : protoEbftBlockList.getEbftBlockListList()) {
+            newEbftBlockList.add(new EbftBlock(block));
         }
 
-        return newBlockConList;
+        return newEbftBlockList;
     }
 
     public boolean isMyclient() {

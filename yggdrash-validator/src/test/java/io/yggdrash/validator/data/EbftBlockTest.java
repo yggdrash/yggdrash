@@ -2,6 +2,7 @@ package io.yggdrash.validator.data;
 
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.validator.data.ebft.EbftBlock;
 import io.yggdrash.validator.util.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -14,7 +15,7 @@ import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 
-public class BlockConTest {
+public class EbftBlockTest {
 
     private Wallet wallet;
 
@@ -29,12 +30,12 @@ public class BlockConTest {
         List<String> consensusList = new ArrayList<>();
         consensusList.add(Hex.toHexString(wallet.sign(block.getHash())));
 
-        BlockCon blockCon1 = new BlockCon(block.getHeader().getIndex(),
+        EbftBlock ebftBlock1 = new EbftBlock(block.getHeader().getIndex(),
                 block.getHeader().getPrevBlockHash(), block, consensusList);
-        assertTrue(BlockCon.verify(blockCon1));
+        assertTrue(EbftBlock.verify(ebftBlock1));
 
-        BlockCon blockCon2 = new BlockCon(blockCon1.toBinary());
-        assertTrue(BlockCon.verify(blockCon2));
-        assertTrue(blockCon1.equals(blockCon2));
+        EbftBlock ebftBlock2 = new EbftBlock(ebftBlock1.toBinary());
+        assertTrue(EbftBlock.verify(ebftBlock2));
+        assertTrue(ebftBlock1.equals(ebftBlock2));
     }
 }

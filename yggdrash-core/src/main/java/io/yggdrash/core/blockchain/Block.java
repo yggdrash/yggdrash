@@ -56,7 +56,6 @@ public class Block implements Cloneable {
         this.header = header;
         this.signature = signature;
         this.body = body;
-        verify();
     }
 
     public Block(BlockHeader header, Wallet wallet, BlockBody body) {

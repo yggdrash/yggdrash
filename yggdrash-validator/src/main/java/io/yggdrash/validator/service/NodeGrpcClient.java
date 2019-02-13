@@ -9,7 +9,6 @@ import io.yggdrash.proto.PeerGrpc;
 import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -27,7 +26,6 @@ public class NodeGrpcClient {
     private final BlockChainGrpc.BlockChainBlockingStub blockingBlockChainStub;
     private final BlockChainGrpc.BlockChainBlockingStub asyncBlockChainStub;
 
-    @Autowired
     public NodeGrpcClient(String host, int port) {
         this.host = host;
         this.port = port;
