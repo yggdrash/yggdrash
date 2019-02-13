@@ -30,7 +30,6 @@ import org.spongycastle.util.encoders.Hex;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public class EbftBlock {
@@ -165,7 +164,6 @@ public class EbftBlock {
     }
 
     public static EbftProto.EbftBlock toProto(EbftBlock ebftBlock) {
-        ebftBlock.getConsensusList().removeAll(Collections.singleton(null));
         EbftProto.EbftBlock.Builder protoBlock = EbftProto.EbftBlock.newBuilder()
                 .setBlock(ebftBlock.getBlock().toProtoBlock())
                 .setConsensusList(EbftProto.ConsensusList.newBuilder()
