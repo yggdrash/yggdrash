@@ -17,15 +17,17 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BlockchainMetaInfo;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.net.Peer;
-import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class StoreBuilderTest {
     private static final BranchId BRANCH_ID = BranchId.NULL;
@@ -69,7 +71,7 @@ public class StoreBuilderTest {
     @Test
     public void buildPeerStore() {
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        PeerStore store = builder.buildPeerStore();
+        PeerStore store = builder.buildPeerStore(TestConstants.STEM);
         store.put(peer.getPeerId(), peer);
         assert store.contains(peer.getPeerId());
         assert store.get(peer.getPeerId()).equals(peer);

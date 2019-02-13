@@ -18,6 +18,7 @@ package io.yggdrash.node.config;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.PeerTestUtils;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
@@ -28,9 +29,6 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
-import io.yggdrash.core.net.PeerHandlerGroup;
-import io.yggdrash.core.net.PeerHandlerMock;
-import io.yggdrash.core.net.SimplePeerHandlerGroup;
 import io.yggdrash.core.store.StoreBuilder;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -55,21 +53,20 @@ public class BranchConfigurationTest {
     private static final DefaultConfig config = new DefaultConfig();
     private static final ResourceLoader loader = new DefaultResourceLoader();
 
-    private PeerHandlerGroup peerHandlerGroup;
     private BranchConfiguration branchConfig;
 
     @Before
     public void setUp() {
         StoreBuilder builder = new StoreBuilder(config);
         this.branchConfig = new BranchConfiguration(builder);
-        this.peerHandlerGroup = new SimplePeerHandlerGroup(PeerHandlerMock.factory);
+        branchConfig.setPeerNetwork(PeerTestUtils.createNetwork());
     }
 
     @Test
     public void addStemBranchTest() throws IOException {
         BranchGroup branchGroup = getBranchGroup();
         branchConfig.stemResource = loader.getResource("classpath:/branch-stem.json");
-        BlockChain blockChain = branchConfig.stem(peerHandlerGroup, branchGroup);
+        BlockChain blockChain = branchConfig.stem(branchGroup);
         blockChain.close();
         assert blockChain.getBranchId().equals(TestConstants.STEM);
         assert branchGroup.getBranchSize() == 1;
@@ -78,6 +75,7 @@ public class BranchConfigurationTest {
     @Test
     public void addProductionStemBranchTest() throws IOException {
         this.branchConfig = new BranchConfiguration(StoreTestUtils.getProdMockBuilder());
+        branchConfig.setPeerNetwork(PeerTestUtils.createNetwork());
         addStemBranchTest();
         StoreTestUtils.clearDefaultConfigDb();
     }
@@ -102,7 +100,7 @@ public class BranchConfigurationTest {
 
     private BranchGroup getBranchGroup() {
         BranchLoader loader = branchConfig.branchLoader(config);
-        return branchConfig.branchGroup(loader, peerHandlerGroup);
+        return branchConfig.branchGroup(loader);
     }
 
     private void assertTransaction(BlockChain branch) throws IOException {
