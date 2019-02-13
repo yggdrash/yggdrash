@@ -224,7 +224,6 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      * @return TransactionReceipt
      */
     @Genesis
-    @ParamValidation
     @InvokeTransction
     public TransactionReceipt genesis(JsonObject params) {
         log.info("\ngenesis :: params => " + params);

@@ -19,10 +19,12 @@ package io.yggdrash.core.contract;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import io.yggdrash.core.contract.methods.ContractMethod;
@@ -152,14 +154,6 @@ public class ContractManager extends ClassLoader {
         }
     }
 
-    /**
-     * Change the contract to the contract version.
-     */
-    public ContractVersion convertContractToVersion(Class<? extends Contract> contract) {
-        ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
-        return contractMeta.getContractVersion();
-    }
-
     public Boolean removeContract(ContractVersion contractVersion) {
         //TODO check the node admin
         String directoryPath = contractVersion.toString().substring(0, 2);
@@ -179,6 +173,24 @@ public class ContractManager extends ClassLoader {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Change the contract to the contract version.
+     */
+    public ContractVersion convertContractToVersion(Class<? extends Contract> contract) {
+        ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
+        return contractMeta.getContractVersion();
+    }
+
+    /**
+     * Decompiling a contract file
+     */
+    public ContractMeta decompileContract(String encodedString) throws UnsupportedEncodingException {
+        Base64.Decoder decoder = Base64.getDecoder();
+        byte[] decodedBytes = decoder.decode(encodedString);
+        ContractVersion contractVersion = ContractVersion.of(new String(decodedBytes, "UTF-8"));
+        return contracts.get(contractVersion);
     }
 
     //TODO

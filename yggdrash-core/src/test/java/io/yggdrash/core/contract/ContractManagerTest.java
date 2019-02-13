@@ -21,10 +21,12 @@ import io.yggdrash.common.config.DefaultConfig;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
@@ -110,6 +112,17 @@ public class ContractManagerTest {
         ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
         ContractVersion contractVersion = contractMeta.getContractVersion();
         contractManager.removeContract(contractVersion);
+    }
+
+    @Test
+    public void decompileContract() throws UnsupportedEncodingException {
+        String version = "4b3b921a33362ad5049429e56ab0eccf1b6ab5df";
+        byte[] targetBytes = version.getBytes("UTF-8");
+
+        Base64.Encoder encoder = Base64.getEncoder();
+        String encodedString = encoder.encodeToString(targetBytes);
+
+        contractManager.decompileContract(encodedString);
     }
 
     private List<ContractVersion> contractSample() {
