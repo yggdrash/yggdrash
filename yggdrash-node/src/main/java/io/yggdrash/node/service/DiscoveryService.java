@@ -2,7 +2,6 @@ package io.yggdrash.node.service;
 
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.net.BestBlock;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.Peer;
 import io.yggdrash.node.springboot.grpc.GrpcService;
@@ -28,8 +27,8 @@ public class DiscoveryService extends PeerGrpc.PeerImplBase {
     @Override
     public void findPeers(Proto.TargetPeer target, StreamObserver<Proto.PeerList> responseObserver) {
         Peer peer = Peer.valueOf(target.getPubKey(), target.getIp(), target.getPort());
-
-        List<Peer> list = discoveryConsumer.findPeers(peer); // peer -> target
+        BranchId branchId = BranchId.of(target.getBranch().toByteArray());
+        List<Peer> list = discoveryConsumer.findPeers(branchId, peer); // peer -> target
         Proto.PeerList.Builder peerListBuilder = Proto.PeerList.newBuilder();
 
         for (Peer p : list) {
@@ -40,27 +39,17 @@ public class DiscoveryService extends PeerGrpc.PeerImplBase {
 
         responseObserver.onNext(peerList);
         responseObserver.onCompleted();
-
-        discoveryConsumer.afterFindPeersResponse();
     }
 
     @Override
     public void ping(Proto.Ping request, StreamObserver<Proto.Pong> responseObserver) {
         Peer from = Peer.valueOf(request.getFrom());
-        for (Proto.BestBlock bestBlock : request.getBestBlocksList()) {
-            from.updateBestBlock(toBestBlock(bestBlock));
-        }
         Peer to = Peer.valueOf(request.getTo());
+        BranchId branchId = BranchId.of(request.getBranch().toByteArray());
         log.debug("Received " + request.getPing());
-        String reply = discoveryConsumer.ping(from, to, request.getPing());
+        String reply = discoveryConsumer.ping(branchId, from, to, request.getPing());
         Proto.Pong pong = Proto.Pong.newBuilder().setPong(reply).build();
         responseObserver.onNext(pong);
         responseObserver.onCompleted();
-    }
-
-    private BestBlock toBestBlock(Proto.BestBlock bestBlock) {
-        BranchId branchId = BranchId.of(bestBlock.getBranch().toByteArray());
-        long index = bestBlock.getIndex();
-        return BestBlock.of(branchId, index);
     }
 }

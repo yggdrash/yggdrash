@@ -16,53 +16,26 @@
 
 package io.yggdrash.core.net;
 
+import io.yggdrash.core.blockchain.BranchId;
+
 import java.util.List;
 
 public class DiscoveryServiceConsumer implements DiscoveryConsumer {
-    private final PeerTable peerTable;
+    private final PeerTableGroup peerTableGroup;
 
-    public DiscoveryServiceConsumer(PeerTable peerTable) {
-        this.peerTable = peerTable;
+    public DiscoveryServiceConsumer(PeerTableGroup peerTableGroup) {
+        this.peerTableGroup = peerTableGroup;
     }
 
     @Override
-    public List<Peer> findPeers(Peer target) {
-        return peerTable.getClosestPeers(target, KademliaOptions.BUCKET_SIZE);
-    }
-
-    /*
-    @Override
-    public List<String> findPeers(Peer requestPeer) {
-        return peerTable.getPeers(requestPeer);
-    }
-    */
-
-    @Override
-    public void afterFindPeersResponse() {
-        // TODO remove cross connection
-        /*
-        try {
-            if (!peerTable.isMaxHandler()) {
-                peerTable.addHandler(peer);
-            } else {
-                // maxPeer 를 넘은경우부터 거리 계산된 peerTable 을 기반으로 peerChannel 업데이트
-                if (peerTable.isClosePeer(peer)) {
-                    log.warn("channel is max");
-                    // TODO apply after test
-                    //peerTable.reloadPeerChannel(new GRpcPeerHandler(peer));
-                }
-            }
-        } catch (Exception e) {
-            log.debug("Failed to connect {} -> {}", peerTable.getOwner().toAddress(),
-                    peer.toAddress());
-        }
-        */
+    public List<Peer> findPeers(BranchId branchId, Peer target) {
+        return peerTableGroup.getClosestPeers(branchId, target, KademliaOptions.BUCKET_SIZE);
     }
 
     @Override
-    public String ping(Peer from, Peer to, String msg) {
-        if ("Ping".equals(msg) && to.equals(peerTable.getOwner())) {
-            peerTable.addPeer(from);
+    public String ping(BranchId branchId, Peer from, Peer to, String msg) {
+        if ("Ping".equals(msg) && peerTableGroup.getOwner().toAddress().equals(to.toAddress())) {
+            peerTableGroup.addPeer(branchId, from);
             return "Pong";
         }
         return "";

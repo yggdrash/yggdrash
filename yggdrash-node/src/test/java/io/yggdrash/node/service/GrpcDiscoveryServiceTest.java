@@ -70,15 +70,12 @@ public class GrpcDiscoveryServiceTest {
                 grpcServerRule.getChannel());
         Peer from = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
         Peer to = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        when(discoveryConsumerMock.ping(from, to,"Ping")).thenReturn("Pong");
+        when(discoveryConsumerMock.ping(TestConstants.STEM, from, to,"Ping")).thenReturn("Pong");
 
-        Proto.BestBlock bestBlock = Proto.BestBlock.newBuilder()
-                .setBranch(ByteString.copyFrom(TestConstants.STEM.getBytes()))
-                .setIndex(0).build();
         Proto.Ping ping = Proto.Ping.newBuilder().setPing("Ping")
                 .setFrom(from.getYnodeUri())
                 .setTo(to.getYnodeUri())
-                .addBestBlocks(bestBlock)
+                .setBranch(ByteString.copyFrom(TestConstants.STEM.getBytes()))
                 .build();
 
         Proto.Pong pong = blockingStub.ping(ping);
