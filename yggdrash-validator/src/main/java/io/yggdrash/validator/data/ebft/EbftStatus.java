@@ -11,21 +11,16 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NodeStatus {
-    private byte[] chain;
-    private List<String> activeNodeList;
+public class EbftStatus {
     private EbftBlock lastConfirmedEbftBlock;
     private final List<EbftBlock> unConfirmedEbftBlockList = new ArrayList<>();
     private long timestamp;
     private byte[] signature;
 
-    public NodeStatus(List<String> activeNodeList,
-                      EbftBlock lastConfirmedEbftBlock,
+    public EbftStatus(EbftBlock lastConfirmedEbftBlock,
                       List<EbftBlock> unConfirmedEbftBlockList,
                       long timestamp,
                       byte[] signature) {
-        this.chain = lastConfirmedEbftBlock.getChain();
-        this.activeNodeList = activeNodeList;
         this.lastConfirmedEbftBlock = lastConfirmedEbftBlock;
         if (unConfirmedEbftBlockList != null) {
             this.unConfirmedEbftBlockList.addAll(unConfirmedEbftBlockList);
@@ -40,16 +35,12 @@ public class NodeStatus {
         this.signature = signature;
     }
 
-    public NodeStatus(List<String> activeNodeList,
-                      EbftBlock lastConfirmedEbftBlock,
+    public EbftStatus(EbftBlock lastConfirmedEbftBlock,
                       List<EbftBlock> unConfirmedEbftBlockList) {
-        this (activeNodeList,
-                lastConfirmedEbftBlock, unConfirmedEbftBlockList, TimeUtils.time(), null);
+        this(lastConfirmedEbftBlock, unConfirmedEbftBlockList, TimeUtils.time(), null);
     }
 
-    public NodeStatus(EbftProto.NodeStatus nodeStatus) {
-        this.chain = nodeStatus.getChain().toByteArray();
-        this.activeNodeList = nodeStatus.getActiveNodeList().getNodeListList();
+    public EbftStatus(EbftProto.EbftStatus nodeStatus) {
         this.lastConfirmedEbftBlock = new EbftBlock(nodeStatus.getLastConfirmedEbftBlock());
         for (EbftProto.EbftBlock block :
                 nodeStatus.getUnConfirmedEbftBlockList().getEbftBlockListList()) {
@@ -57,14 +48,6 @@ public class NodeStatus {
         }
         this.timestamp = nodeStatus.getTimestamp();
         this.signature = nodeStatus.getSignature().toByteArray();
-    }
-
-    public byte[] getChain() {
-        return chain;
-    }
-
-    public List<String> getActiveNodeList() {
-        return activeNodeList;
     }
 
     public EbftBlock getLastConfirmedEbftBlock() {
@@ -91,10 +74,6 @@ public class NodeStatus {
         ByteArrayOutputStream dataForSignning = new ByteArrayOutputStream();
 
         try {
-            for (String node : this.activeNodeList) {
-                dataForSignning.write(node.getBytes());
-            }
-
             for (EbftBlock ebftBlock : unConfirmedEbftBlockList) {
                 dataForSignning.write(ebftBlock.getHash());
             }
@@ -108,26 +87,23 @@ public class NodeStatus {
         return dataForSignning.toByteArray();
     }
 
-    public static boolean verify(NodeStatus nodeStatus) {
-        if (nodeStatus != null) {
+    public static boolean verify(EbftStatus ebftStatus) {
+        if (ebftStatus != null) {
             return Wallet.verify(
-                    nodeStatus.getDataForSignning(), nodeStatus.getSignature(), false);
+                    ebftStatus.getDataForSignning(), ebftStatus.getSignature(), false);
         }
 
         return false;
     }
 
-    public static EbftProto.NodeStatus toProto(NodeStatus nodeStatus) {
-        EbftProto.NodeStatus.Builder protoBlockStatus = EbftProto.NodeStatus.newBuilder()
-                .setChain(ByteString.copyFrom(nodeStatus.getChain()))
-                .setActiveNodeList(EbftProto.NodeList.newBuilder()
-                        .addAllNodeList(nodeStatus.getActiveNodeList()).build())
+    public static EbftProto.EbftStatus toProto(EbftStatus ebftStatus) {
+        EbftProto.EbftStatus.Builder protoBlockStatus = EbftProto.EbftStatus.newBuilder()
                 .setLastConfirmedEbftBlock(
-                        EbftBlock.toProto(nodeStatus.getLastConfirmedEbftBlock()))
+                        EbftBlock.toProto(ebftStatus.getLastConfirmedEbftBlock()))
                 .setUnConfirmedEbftBlockList(
-                        EbftBlock.toProtoList(nodeStatus.getUnConfirmedEbftBlockList()))
-                .setTimestamp(nodeStatus.getTimestamp())
-                .setSignature(ByteString.copyFrom(nodeStatus.getSignature()));
+                        EbftBlock.toProtoList(ebftStatus.getUnConfirmedEbftBlockList()))
+                .setTimestamp(ebftStatus.getTimestamp())
+                .setSignature(ByteString.copyFrom(ebftStatus.getSignature()));
         return protoBlockStatus.build();
     }
 

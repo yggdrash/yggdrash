@@ -19,30 +19,29 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
+
 public class EbftBlockChain {
 
     private static final Logger log = LoggerFactory.getLogger(EbftBlockChain.class);
-
-    private boolean isProposed;
-    private boolean isConsensused;
 
     private final byte[] chain;
     private final String host;
     private final int port;
 
-    private final EbftBlockKeyStore ebftBlockKeyStore;
-    private final EbftBlockStore ebftBlockStore;
-    private final EbftBlock rootEbftBlock;
-    private EbftBlock lastConfirmedEbftBlock;
-    private final Map<String, EbftBlock> unConfirmedEbftBlockMap = new ConcurrentHashMap<>();
-
+    private final EbftBlockKeyStore blockKeyStore;
+    private final EbftBlockStore blockStore;
+    private final EbftBlock genesisBlock;
+    private final Map<String, EbftBlock> unConfirmedBlockMap = new ConcurrentHashMap<>();
     private final TransactionStore transactionStore;
+
+    private EbftBlock lastConfirmedBlock;
 
     @Autowired
     public EbftBlockChain(Block genesisBlock, DefaultConfig defaultConfig) {
         if (genesisBlock.getHeader().getIndex() != 0
-                || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), new byte[32])) {
-            log.error("EbftBlockChain() genesisBlock is not valid.");
+                || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), EMPTY_BYTE32)) {
+            log.error("GenesisBlock is not valid.");
             throw new NotValidateException();
         }
 
@@ -50,40 +49,40 @@ public class EbftBlockChain {
         this.host = InetAddress.getLoopbackAddress().getHostAddress();
         this.port = Integer.parseInt(System.getProperty("grpc.port"));
 
-        this.rootEbftBlock = new EbftBlock(0, this.chain, genesisBlock);
-        this.lastConfirmedEbftBlock = rootEbftBlock;
-        this.ebftBlockKeyStore = new EbftBlockKeyStore(
+        this.genesisBlock = new EbftBlock(genesisBlock);
+        this.lastConfirmedBlock = this.genesisBlock;
+        this.blockKeyStore = new EbftBlockKeyStore(
                 new LevelDbDataSource(defaultConfig.getDatabasePath(),
                         this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
-                                + "/blockkey"));
-        this.ebftBlockStore = new EbftBlockStore(
+                                + "/ebftblockkey"));
+        this.blockStore = new EbftBlockStore(
                 new LevelDbDataSource(defaultConfig.getDatabasePath(),
                         this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
-                                + "/block"));
+                                + "/ebftblock"));
 
-        EbftBlock ebftBlock = rootEbftBlock;
-        if (this.ebftBlockKeyStore.size() > 0) {
-            if (!Arrays.equals(this.ebftBlockKeyStore.get(0L), rootEbftBlock.getHash())) {
-                log.error("EbftBlockChain() ebftBlockKeyStore is not valid.");
+        EbftBlock ebftBlock = this.genesisBlock;
+        if (this.blockKeyStore.size() > 0) {
+            if (!Arrays.equals(this.blockKeyStore.get(0L), this.genesisBlock.getHash())) {
+                log.error("EbftBlockChain() blockKeyStore is not valid.");
                 throw new NotValidateException();
             }
 
-            EbftBlock prevEbftBlock = rootEbftBlock;
-            for (long l = 1; l < this.ebftBlockKeyStore.size(); l++) {
-                ebftBlock = this.ebftBlockStore.get(this.ebftBlockKeyStore.get(l));
+            EbftBlock prevEbftBlock = this.genesisBlock;
+            for (long l = 1; l < this.blockKeyStore.size(); l++) {
+                ebftBlock = this.blockStore.get(this.blockKeyStore.get(l));
                 if (Arrays.equals(prevEbftBlock.getHash(), ebftBlock.getPrevBlockHash())) {
                     prevEbftBlock = ebftBlock;
                 } else {
-                    log.error("EbftBlockChain() ebftBlockStore is not valid.");
+                    log.error("EbftBlockChain() blockStore is not valid.");
                     throw new NotValidateException();
                 }
             }
 
-            this.lastConfirmedEbftBlock = ebftBlock;
+            this.lastConfirmedBlock = ebftBlock;
 
         } else {
-            this.ebftBlockKeyStore.put(0L, rootEbftBlock.getHash());
-            this.ebftBlockStore.put(rootEbftBlock.getHash(), rootEbftBlock);
+            this.blockKeyStore.put(0L, this.genesisBlock.getHash());
+            this.blockStore.put(this.genesisBlock.getHash(), this.genesisBlock);
         }
 
         this.transactionStore = new TransactionStore(
@@ -105,50 +104,33 @@ public class EbftBlockChain {
         return port;
     }
 
-    public EbftBlockStore getEbftBlockStore() {
-        return ebftBlockStore;
+    public EbftBlockStore getBlockStore() {
+        return blockStore;
     }
 
-    public EbftBlockKeyStore getEbftBlockKeyStore() {
-        return ebftBlockKeyStore;
+    public EbftBlockKeyStore getBlockKeyStore() {
+        return blockKeyStore;
     }
 
     public TransactionStore getTransactionStore() {
         return transactionStore;
     }
 
-    public EbftBlock getRootEbftBlock() {
-        return rootEbftBlock;
+    public EbftBlock getGenesisBlock() {
+        return genesisBlock;
     }
 
-    public EbftBlock getLastConfirmedEbftBlock() {
-        return lastConfirmedEbftBlock;
+    public EbftBlock getLastConfirmedBlock() {
+        return lastConfirmedBlock;
     }
 
-    public Map<String, EbftBlock> getUnConfirmedEbftBlockMap() {
-        return unConfirmedEbftBlockMap;
+    public Map<String, EbftBlock> getUnConfirmedBlockMap() {
+        return unConfirmedBlockMap;
     }
 
-    public void setLastConfirmedEbftBlock(EbftBlock lastConfirmedEbftBlock) {
-        this.lastConfirmedEbftBlock = lastConfirmedEbftBlock;
+    public void setLastConfirmedBlock(EbftBlock lastConfirmedBlock) {
+        this.lastConfirmedBlock = lastConfirmedBlock;
     }
-
-    public boolean isProposed() {
-        return isProposed;
-    }
-
-    public void setProposed(boolean proposed) {
-        isProposed = proposed;
-    }
-
-    public boolean isConsensused() {
-        return isConsensused;
-    }
-
-    public void setConsensused(boolean consensused) {
-        isConsensused = consensused;
-    }
-
 
     /**
      * Get BlockList from EbftBlockStore with index, count.
@@ -167,9 +149,9 @@ public class EbftBlockChain {
         byte[] key;
         List<EbftBlock> ebftBlockList = new ArrayList<>();
         for (long l = index; l < index + count; l++) {
-            key = ebftBlockKeyStore.get(l);
+            key = blockKeyStore.get(l);
             if (key != null) {
-                ebftBlockList.add(ebftBlockStore.get(key));
+                ebftBlockList.add(blockStore.get(key));
             }
         }
 

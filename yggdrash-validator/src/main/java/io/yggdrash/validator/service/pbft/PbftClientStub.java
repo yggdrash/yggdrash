@@ -5,7 +5,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.proto.EbftProto;
+import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
 import io.yggdrash.validator.data.pbft.PbftBlock;
@@ -60,7 +60,7 @@ public class PbftClientStub {
         PbftProto.PbftBlockList protoBlockList = blockingStub
                 .withDeadlineAfter(3, TimeUnit.SECONDS)
                 .getPbftBlockList(
-                        EbftProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
+                        CommonProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
 
         if (Context.current().isCancelled()) {
             return null;
@@ -75,9 +75,9 @@ public class PbftClientStub {
     }
 
     public long pingPongTime(long timestamp) {
-        EbftProto.PingTime pingTime =
-                EbftProto.PingTime.newBuilder().setTimestamp(timestamp).build();
-        EbftProto.PongTime pongTime;
+        CommonProto.PingTime pingTime =
+                CommonProto.PingTime.newBuilder().setTimestamp(timestamp).build();
+        CommonProto.PongTime pongTime;
         try {
             pongTime = blockingStub
                     .withDeadlineAfter(1, TimeUnit.SECONDS)

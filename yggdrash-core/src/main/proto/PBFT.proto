@@ -2,7 +2,7 @@ syntax = "proto3";
 
 import "Yggdrash.proto";
 import "BlockChain.proto";
-import "EBFT.proto";
+import "Common.proto";
 
 option java_package = "io.yggdrash.proto";
 option java_outer_classname = "PbftProto";
@@ -12,10 +12,9 @@ message PbftMessage {
     int64 viewNumber = 2;
     int64 seqNumber = 3;
     bytes hash = 4;
-    bytes clientId = 5;
-    bytes result = 6;
-    bytes signature = 7;
-    Block block = 8;
+    bytes result = 5;
+    bytes signature = 6;
+    Block block = 7;
 }
 
 message PbftMessageList {
@@ -60,5 +59,4 @@ service PbftService {
 
     rpc multicastPbftBlock (PbftBlock) returns (Empty) {
     }
-
 }

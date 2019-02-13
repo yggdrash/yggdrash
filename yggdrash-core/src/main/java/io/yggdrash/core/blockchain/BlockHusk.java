@@ -27,11 +27,12 @@ import io.yggdrash.core.wallet.Address;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
 
-import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
 
 public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> {
     private static final byte[] EMPTY_BYTE = new byte[32];
@@ -89,8 +90,8 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
 
         Proto.Block.Header blockHeader = getHeader(
                 prevBlock.getHeader().getChain().toByteArray(),
-                new byte[8],
-                new byte[8],
+                EMPTY_BYTE8,
+                EMPTY_BYTE8,
                 prevBlock.getHash().getBytes(),
                 prevBlock.getIndex() + 1,
                 TimeUtils.time(),

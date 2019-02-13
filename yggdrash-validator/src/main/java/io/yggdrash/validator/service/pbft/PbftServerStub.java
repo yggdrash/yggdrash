@@ -1,7 +1,7 @@
 package io.yggdrash.validator.service.pbft;
 
 import io.grpc.stub.StreamObserver;
-import io.yggdrash.proto.EbftProto;
+import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
@@ -35,11 +35,11 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
     }
 
     @Override
-    public void pingPongTime(EbftProto.PingTime request,
-                             StreamObserver<EbftProto.PongTime> responseObserver) {
+    public void pingPongTime(CommonProto.PingTime request,
+                             StreamObserver<CommonProto.PongTime> responseObserver) {
         long timestamp = System.currentTimeMillis();
-        EbftProto.PongTime pongTime
-                = EbftProto.PongTime.newBuilder().setTimestamp(timestamp).build();
+        CommonProto.PongTime pongTime
+                = CommonProto.PongTime.newBuilder().setTimestamp(timestamp).build();
         responseObserver.onNext(pongTime);
         responseObserver.onCompleted();
     }
@@ -116,7 +116,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
 
     @Override
-    public void getPbftBlockList(io.yggdrash.proto.EbftProto.Offset request,
+    public void getPbftBlockList(io.yggdrash.proto.CommonProto.Offset request,
                                  io.grpc.stub.StreamObserver<PbftProto.PbftBlockList> responseObserver) {
         long start = request.getIndex();
         long count = request.getCount();

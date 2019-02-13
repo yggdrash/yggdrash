@@ -1,11 +1,13 @@
 package io.yggdrash.validator.service.ebft;
 
 import io.grpc.stub.StreamObserver;
-import io.yggdrash.proto.ConsensusEbftGrpc;
+import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.EbftProto;
+import io.yggdrash.proto.EbftServiceGrpc;
+import io.yggdrash.proto.NetProto;
 import io.yggdrash.validator.data.ebft.EbftBlock;
 import io.yggdrash.validator.data.ebft.EbftBlockChain;
-import io.yggdrash.validator.data.ebft.NodeStatus;
+import io.yggdrash.validator.data.ebft.EbftStatus;
 import org.lognet.springboot.grpc.GRpcService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +19,7 @@ import java.util.List;
 
 @GRpcService
 @ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "ebft")
-public class EbftServerStub extends ConsensusEbftGrpc.ConsensusEbftImplBase {
+public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(EbftServerStub.class);
 
@@ -31,53 +33,54 @@ public class EbftServerStub extends ConsensusEbftGrpc.ConsensusEbftImplBase {
     }
 
     @Override
-    public void pingPongTime(EbftProto.PingTime request,
-                             StreamObserver<EbftProto.PongTime> responseObserver) {
+    public void pingPongTime(CommonProto.PingTime request,
+                             StreamObserver<CommonProto.PongTime> responseObserver) {
         long timestamp = System.currentTimeMillis();
-        EbftProto.PongTime pongTime
-                = EbftProto.PongTime.newBuilder().setTimestamp(timestamp).build();
+        CommonProto.PongTime pongTime
+                = CommonProto.PongTime.newBuilder().setTimestamp(timestamp).build();
         responseObserver.onNext(pongTime);
         responseObserver.onCompleted();
     }
 
     @Override
     public void getNodeStatus(
-            EbftProto.Chain request,
-            StreamObserver<io.yggdrash.proto.EbftProto.NodeStatus> responseObserver) {
-        NodeStatus newNodeStatus = ebftService.getMyNodeStatus();
-        responseObserver.onNext(NodeStatus.toProto(newNodeStatus));
+            CommonProto.Chain request,
+            StreamObserver<EbftProto.EbftStatus> responseObserver) {
+        EbftStatus newEbftStatus = ebftService.getMyNodeStatus();
+        responseObserver.onNext(EbftStatus.toProto(newEbftStatus));
         responseObserver.onCompleted();
     }
 
     @Override
-    public void exchangeNodeStatus(io.yggdrash.proto.EbftProto.NodeStatus request,
-            io.grpc.stub.StreamObserver<io.yggdrash.proto.EbftProto.NodeStatus> responseObserver) {
-        NodeStatus blockStatus = new NodeStatus(request);
+    public void exchangeNodeStatus(EbftProto.EbftStatus request,
+                                   StreamObserver<EbftProto.EbftStatus> responseObserver) {
+        EbftStatus blockStatus = new EbftStatus(request);
         updateStatus(blockStatus);
 
-        NodeStatus newNodeStatus = ebftService.getMyNodeStatus();
-        responseObserver.onNext(NodeStatus.toProto(newNodeStatus));
+        EbftStatus newEbftStatus = ebftService.getMyNodeStatus();
+        responseObserver.onNext(EbftStatus.toProto(newEbftStatus));
         responseObserver.onCompleted();
     }
 
     @Override
-    public void broadcastEbftBlock(io.yggdrash.proto.EbftProto.EbftBlock request,
-                                   io.grpc.stub.StreamObserver<io.yggdrash.proto.NetProto.Empty> responseObserver) {
+    public void broadcastEbftBlock(EbftProto.EbftBlock request,
+                                   StreamObserver<NetProto.Empty> responseObserver) {
         EbftBlock newEbftBlock = new EbftBlock(request);
         if (!EbftBlock.verify(newEbftBlock) || !ebftService.consensusVerify(newEbftBlock)) {
             log.warn("broadcast EbftBlock Verify Fail");
-            responseObserver.onNext(io.yggdrash.proto.NetProto.Empty.newBuilder().build());
+            responseObserver.onNext(NetProto.Empty.newBuilder().build());
             responseObserver.onCompleted();
             return;
         }
 
-        EbftBlock lastEbftBlock = this.ebftBlockChain.getLastConfirmedEbftBlock();
+        EbftBlock lastEbftBlock = this.ebftBlockChain.getLastConfirmedBlock();
 
-        responseObserver.onNext(io.yggdrash.proto.NetProto.Empty.newBuilder().build());
+        responseObserver.onNext(NetProto.Empty.newBuilder().build());
         responseObserver.onCompleted();
 
         if (lastEbftBlock.getIndex() == newEbftBlock.getIndex() - 1
-                && Arrays.equals(lastEbftBlock.getHash(), newEbftBlock.getPrevBlockHash())) {
+                && Arrays.equals(lastEbftBlock.getHash(),
+                newEbftBlock.getBlock().getPrevBlockHash())) {
 
             ebftService.getLock().lock();
             ebftService.updateUnconfirmedBlock(newEbftBlock);
@@ -86,22 +89,22 @@ public class EbftServerStub extends ConsensusEbftGrpc.ConsensusEbftImplBase {
     }
 
     @Override
-    public void getEbftBlockList(io.yggdrash.proto.EbftProto.Offset request,
-                                 io.grpc.stub.StreamObserver<EbftProto.EbftBlockList> responseObserver) {
+    public void getEbftBlockList(CommonProto.Offset request,
+                                 StreamObserver<EbftProto.EbftBlockList> responseObserver) {
         long start = request.getIndex();
         long count = request.getCount();
         List<EbftBlock> ebftBlockList = new ArrayList<>();
 
         long end = Math.min(start - 1 + count,
-                this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex());
+                this.ebftBlockChain.getLastConfirmedBlock().getIndex());
 
         log.trace("start: " + start);
         log.trace("end: " + end);
 
         if (start < end) {
             for (long l = start; l <= end; l++) {
-                ebftBlockList.add(this.ebftBlockChain.getEbftBlockStore().get(
-                        this.ebftBlockChain.getEbftBlockKeyStore().get(l)));
+                ebftBlockList.add(this.ebftBlockChain.getBlockStore().get(
+                        this.ebftBlockChain.getBlockKeyStore().get(l)));
             }
         }
 
@@ -109,11 +112,11 @@ public class EbftServerStub extends ConsensusEbftGrpc.ConsensusEbftImplBase {
         responseObserver.onCompleted();
     }
 
-    private void updateStatus(NodeStatus nodeStatus) {
-        if (NodeStatus.verify(nodeStatus)) {
-            for (EbftBlock ebftBlock : nodeStatus.getUnConfirmedEbftBlockList()) {
+    private void updateStatus(EbftStatus ebftStatus) {
+        if (EbftStatus.verify(ebftStatus)) {
+            for (EbftBlock ebftBlock : ebftStatus.getUnConfirmedEbftBlockList()) {
                 if (ebftBlock.getIndex()
-                        <= this.ebftBlockChain.getLastConfirmedEbftBlock().getIndex()) {
+                        <= this.ebftBlockChain.getLastConfirmedBlock().getIndex()) {
                     continue;
                 }
                 ebftService.getLock().lock();

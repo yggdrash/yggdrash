@@ -19,6 +19,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
+
 public class PbftBlockChain {
 
     private static final Logger log = LoggerFactory.getLogger(PbftBlockChain.class);
@@ -30,18 +32,17 @@ public class PbftBlockChain {
 
     private final PbftBlockKeyStore blockKeyStore;
     private final PbftBlockStore blockStore;
-
     private final PbftBlock genesisBlock;
-    private PbftBlock lastConfirmedBlock;
     private final Map<String, PbftMessage> unConfirmedMsgMap = new ConcurrentHashMap<>();
-
     private final TransactionStore transactionStore;
+
+    private PbftBlock lastConfirmedBlock;
 
     @Autowired
     public PbftBlockChain(Block genesisBlock, DefaultConfig defaultConfig) {
         if (genesisBlock.getHeader().getIndex() != 0
-                || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), new byte[32])) {
-            log.error("PbftBlockChain() genesisBlock is not valid.");
+                || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), EMPTY_BYTE32)) {
+            log.error("GenesisBlock is not valid.");
             throw new NotValidateException();
         }
 

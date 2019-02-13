@@ -16,7 +16,6 @@
 
 package io.yggdrash.validator.data.ebft;
 
-import com.google.protobuf.ByteString;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.blockchain.Block;
@@ -41,23 +40,19 @@ public class EbftBlock {
     private static final int SIGNATURE_LENGTH = 65;
     private static final int MAX_VALIDATOR_COUNT = 100;
 
-    private byte[] hash;
-    private byte[] chain;
-    private long index;
-    private byte[] prevBlockHash;
     private Block block;
     private final List<String> consensusList = new ArrayList<>();
 
-    public EbftBlock(byte[] blockBytes) {
+    public EbftBlock(byte[] bytes) {
         int position = 0;
 
         byte[] headerBytes = new byte[BLOCK_HEADER_LENGTH];
-        System.arraycopy(blockBytes, 0, headerBytes, 0, headerBytes.length);
+        System.arraycopy(bytes, 0, headerBytes, 0, headerBytes.length);
         position += headerBytes.length;
         BlockHeader blockHeader = new BlockHeader(headerBytes);
 
         byte[] signature = new byte[SIGNATURE_LENGTH];
-        System.arraycopy(blockBytes, position, signature, 0, signature.length);
+        System.arraycopy(bytes, position, signature, 0, signature.length);
         position += signature.length;
 
         int blockBodyLength = (int) blockHeader.getBodyLength();
@@ -67,37 +62,29 @@ public class EbftBlock {
         }
 
         byte[] bodyBytes = new byte[blockBodyLength];
-        System.arraycopy(blockBytes, position, bodyBytes, 0, bodyBytes.length);
+        System.arraycopy(bytes, position, bodyBytes, 0, bodyBytes.length);
         position += bodyBytes.length;
 
-        if ((blockBytes.length - position) % SIGNATURE_LENGTH != 0) {
+        if ((bytes.length - position) % SIGNATURE_LENGTH != 0) {
             throw new NotValidateException();
         }
 
         byte[] consensus = new byte[SIGNATURE_LENGTH];
-        while (position < blockBytes.length) {
-            System.arraycopy(blockBytes, position, consensus, 0, consensus.length);
+        while (position < bytes.length) {
+            System.arraycopy(bytes, position, consensus, 0, consensus.length);
             position += consensus.length;
             this.consensusList.add(Hex.toHexString(consensus));
         }
 
         this.block = new Block(blockHeader, signature, new BlockBody(bodyBytes));
-        this.hash = this.block.getHash();
-        this.chain = this.block.getHeader().getChain();
-        this.index = this.block.getHeader().getIndex();
-        this.prevBlockHash = this.block.getHeader().getPrevBlockHash();
     }
 
-    public EbftBlock(long index, byte[] prevBlockHash, Block block) {
-        this(index, prevBlockHash, block, null);
+    public EbftBlock(Block block) {
+        this(block, null);
     }
 
-    public EbftBlock(long index, byte[] prevBlockHash, Block block, List<String> consensusList) {
-        this.chain = block.getHeader().getChain();
-        this.index = index;
-        this.prevBlockHash = prevBlockHash;
+    public EbftBlock(Block block, List<String> consensusList) {
         this.block = block;
-        this.hash = block.getHash();
         if (consensusList != null) {
             this.consensusList.addAll(consensusList);
         }
@@ -105,10 +92,6 @@ public class EbftBlock {
 
     public EbftBlock(EbftProto.EbftBlock block) {
         this.block = Block.toBlock(block.getBlock());
-        this.chain = block.getChain().toByteArray();
-        this.index = block.getIndex();
-        this.prevBlockHash = block.getPrevBlockHash().toByteArray();
-        this.hash = block.getHash().toByteArray();
         if (block.getConsensusList().getConsensusListList() != null) {
             for (String consensus : block.getConsensusList().getConsensusListList()) {
                 if (consensus != null) {
@@ -118,28 +101,24 @@ public class EbftBlock {
         }
     }
 
-    public byte[] getHash() {
-        return hash;
-    }
-
     public byte[] getChain() {
-        return chain;
-    }
-
-    public String getHashHex() {
-        return Hex.toHexString(hash);
-    }
-
-    public void setHash(byte[] hash) {
-        this.hash = hash;
+        return this.block.getChain();
     }
 
     public long getIndex() {
-        return index;
+        return this.block.getIndex();
     }
 
-    public void setIndex(long index) {
-        this.index = index;
+    public byte[] getHash() {
+        return this.block.getHash();
+    }
+
+    public String getHashHex() {
+        return this.block.getHashHex();
+    }
+
+    public byte[] getPrevBlockHash() {
+        return this.block.getPrevBlockHash();
     }
 
     public Block getBlock() {
@@ -148,14 +127,6 @@ public class EbftBlock {
 
     public void setBlock(Block block) {
         this.block = block;
-    }
-
-    public byte[] getPrevBlockHash() {
-        return prevBlockHash;
-    }
-
-    private void setPrevBlockHash(byte[] prevBlockHash) {
-        this.prevBlockHash = prevBlockHash;
     }
 
     public List<String> getConsensusList() {
@@ -167,15 +138,13 @@ public class EbftBlock {
             return false;
         }
 
-        return Arrays.equals(ebftBlock.getHash(), ebftBlock.getBlock().getHash())
-                && ebftBlock.getIndex() == ebftBlock.getBlock().getHeader().getIndex()
-                && Arrays.equals(ebftBlock.getPrevBlockHash(),
-                ebftBlock.getBlock().getHeader().getPrevBlockHash())
-                && ebftBlock.getBlock().verify();
+        // todo: check consensuses whether validator's signatures or not
+
+        return ebftBlock.getBlock().verify();
     }
 
     public EbftBlock clone() {
-        return new EbftBlock(this.index, this.prevBlockHash, this.block, this.consensusList);
+        return new EbftBlock(this.block, this.consensusList);
     }
 
     public byte[] toBinary() {
@@ -198,10 +167,6 @@ public class EbftBlock {
     public static EbftProto.EbftBlock toProto(EbftBlock ebftBlock) {
         ebftBlock.getConsensusList().removeAll(Collections.singleton(null));
         EbftProto.EbftBlock.Builder protoBlock = EbftProto.EbftBlock.newBuilder()
-                .setChain(ByteString.copyFrom(ebftBlock.getChain()))
-                .setHash(ByteString.copyFrom(ebftBlock.getHash()))
-                .setIndex(ebftBlock.getIndex())
-                .setPrevBlockHash(ByteString.copyFrom(ebftBlock.getPrevBlockHash()))
                 .setBlock(ebftBlock.getBlock().toProtoBlock())
                 .setConsensusList(EbftProto.ConsensusList.newBuilder()
                         .addAllConsensusList(ebftBlock.getConsensusList()).build());
@@ -219,11 +184,7 @@ public class EbftBlock {
     }
 
     public boolean equals(EbftBlock ebftBlock) {
-        return this.index == ebftBlock.getIndex()
-                && Arrays.equals(this.chain, ebftBlock.getChain())
-                && Arrays.equals(this.hash, ebftBlock.getHash())
-                && Arrays.equals(this.prevBlockHash, ebftBlock.getPrevBlockHash())
-                && this.block.equals(ebftBlock.getBlock())
+        return this.block.equals(ebftBlock.getBlock())
                 && Arrays.equals(this.consensusList.toArray(), ebftBlock.consensusList.toArray());
     }
 }

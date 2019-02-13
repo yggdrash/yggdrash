@@ -25,6 +25,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
+
 public class GenesisBlock {
 
     private Block genesisBlock;
@@ -75,9 +78,9 @@ public class GenesisBlock {
         // todo: change values(version, type) using the configuration.
         BlockHeader blockHeader = new BlockHeader(
                 chain,
-                new byte[8],
-                new byte[8],
-                new byte[32],
+                EMPTY_BYTE8,
+                EMPTY_BYTE8,
+                EMPTY_BYTE32,
                 0L,
                 timestamp,
                 blockBody.getMerkleRoot(),
