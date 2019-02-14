@@ -8,7 +8,7 @@ import io.yggdrash.core.runtime.annotation.InvokeTransction;
 import io.yggdrash.core.runtime.annotation.YggdrashContract;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.Store;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 
 @YggdrashContract
 public class TestContract implements Contract {
@@ -33,7 +33,7 @@ public class TestContract implements Contract {
     public TransactionReceipt transfer(JsonObject params) {
 
         String to = params.get("to").getAsString().toLowerCase();
-        BigDecimal amount = params.get("amount").getAsBigDecimal();
+        BigInteger amount = params.get("amount").getAsBigInteger();
         return txReceipt;
     }
 
