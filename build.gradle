@@ -9,7 +9,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 group = 'io.yggdrash'
-version = '0.0.1-SNAPSHOT'
+version = '0.10.0-SNAPSHOT'
 
 defaultTasks ':yggdrash-node:bootRun'
 
@@ -153,6 +153,9 @@ project(':yggdrash-node') {
     }
 
     bootJar {
+        manifest {
+            attributes("Implementation-Version": rootProject.version)
+        }
         launchScript()
     }
 }
@@ -193,9 +196,8 @@ project(':yggdrash-validator') {
 
     dependencies {
         compile project(':yggdrash-core')
-        testCompile project(':yggdrash-core').sourceSets.test.output
-        
         compile "io.github.lognet:grpc-spring-boot-starter:3.0.0"
+        testCompile project(':yggdrash-core').sourceSets.test.output
     }
 }
 
