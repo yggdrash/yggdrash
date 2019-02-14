@@ -14,16 +14,16 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
+import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
+import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
+import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class PbftBlockTest {
 
     private static final Logger log = LoggerFactory.getLogger(PbftBlockTest.class);
-    private static final String PREPREPARE = "PREPREPA";
-    private static final String PREPARE = "PREPAREM";
-    private static final String COMMIT = "COMMITMS";
-    private static final String VIEWCHANGE = "VIEWCHAN";
 
     private Wallet wallet;
     private Wallet wallet2;
@@ -76,7 +76,7 @@ public class PbftBlockTest {
         block3 = new TestUtils(wallet).sampleBlock(block2.getIndex() + 1, block2.getHash());
         block4 = new TestUtils(wallet).sampleBlock(block3.getIndex() + 1, block3.getHash());
 
-        prePrepare = new PbftMessage(PREPREPARE,
+        prePrepare = new PbftMessage(PBFT_PREPREPARE,
                 0L,
                 0L,
                 block.getHash(),
@@ -85,7 +85,7 @@ public class PbftBlockTest {
                 block);
         log.debug(prePrepare.toJsonObject().toString());
 
-        prepare = new PbftMessage(PREPARE,
+        prepare = new PbftMessage(PBFT_PREPARE,
                 0L,
                 0L,
                 block.getHash(),
@@ -94,7 +94,7 @@ public class PbftBlockTest {
                 null);
         log.debug(prepare.toJsonObject().toString());
 
-        prepare2 = new PbftMessage(PREPARE,
+        prepare2 = new PbftMessage(PBFT_PREPARE,
                 0L,
                 0L,
                 block.getHash(),
@@ -103,7 +103,7 @@ public class PbftBlockTest {
                 null);
         log.debug(prepare2.toJsonObject().toString());
 
-        prepare3 = new PbftMessage(PREPARE,
+        prepare3 = new PbftMessage(PBFT_PREPARE,
                 0L,
                 0L,
                 block.getHash(),
@@ -112,7 +112,7 @@ public class PbftBlockTest {
                 null);
         log.debug(prepare3.toJsonObject().toString());
 
-        prepare4 = new PbftMessage(PREPARE,
+        prepare4 = new PbftMessage(PBFT_PREPARE,
                 0L,
                 0L,
                 block.getHash(),
@@ -121,7 +121,7 @@ public class PbftBlockTest {
                 null);
         log.debug(prepare4.toJsonObject().toString());
 
-        commit = new PbftMessage(COMMIT,
+        commit = new PbftMessage(PBFT_COMMIT,
                 0L,
                 0L,
                 block.getHash(),
@@ -130,7 +130,7 @@ public class PbftBlockTest {
                 null);
         log.debug(commit.toJsonObject().toString());
 
-        commit2 = new PbftMessage(COMMIT,
+        commit2 = new PbftMessage(PBFT_COMMIT,
                 0L,
                 0L,
                 block.getHash(),
@@ -139,7 +139,7 @@ public class PbftBlockTest {
                 null);
         log.debug(commit2.toJsonObject().toString());
 
-        commit3 = new PbftMessage(COMMIT,
+        commit3 = new PbftMessage(PBFT_COMMIT,
                 0L,
                 0L,
                 block.getHash(),
@@ -148,7 +148,7 @@ public class PbftBlockTest {
                 null);
         log.debug(commit3.toJsonObject().toString());
 
-        commit4 = new PbftMessage(COMMIT,
+        commit4 = new PbftMessage(PBFT_COMMIT,
                 0L,
                 0L,
                 block.getHash(),
@@ -157,7 +157,7 @@ public class PbftBlockTest {
                 null);
         log.debug(commit4.toJsonObject().toString());
 
-        viewChange = new PbftMessage(VIEWCHANGE,
+        viewChange = new PbftMessage(PBFT_VIEWCHANGE,
                 0L,
                 0L,
                 block.getHash(),
@@ -166,7 +166,7 @@ public class PbftBlockTest {
                 null);
         log.debug(viewChange.toJsonObject().toString());
 
-        viewChange2 = new PbftMessage(VIEWCHANGE,
+        viewChange2 = new PbftMessage(PBFT_VIEWCHANGE,
                 0L,
                 0L,
                 block.getHash(),
@@ -175,7 +175,7 @@ public class PbftBlockTest {
                 null);
         log.debug(viewChange2.toJsonObject().toString());
 
-        viewChange3 = new PbftMessage(VIEWCHANGE,
+        viewChange3 = new PbftMessage(PBFT_VIEWCHANGE,
                 0L,
                 0L,
                 block.getHash(),
@@ -184,7 +184,7 @@ public class PbftBlockTest {
                 null);
         log.debug(viewChange3.toJsonObject().toString());
 
-        viewChange4 = new PbftMessage(VIEWCHANGE,
+        viewChange4 = new PbftMessage(PBFT_VIEWCHANGE,
                 0L,
                 0L,
                 block.getHash(),
