@@ -461,7 +461,7 @@ public class PbftService implements CommandLineRunner {
             PbftMessageSet pbftMessageSet = new PbftMessageSet(
                     prePrepareMsg, prepareMessageMap, commitMessageMap, this.viewChangeMap);
             PbftBlock pbftBlock = new PbftBlock(prePrepareMsg.getBlock(), pbftMessageSet);
-            confirmedBlock(pbftBlock);
+            confirmedBlock(pbftBlock.clone());
             this.failCount = 0;
             this.viewChangeMap.clear();
             this.isViewChanged = false;
@@ -536,7 +536,7 @@ public class PbftService implements CommandLineRunner {
         for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
             if (pbftMessage.getSeqNumber() <= block.getIndex()) {
-                // todo: clear pbftMessage
+                pbftMessage.clear();
                 this.blockChain.getUnConfirmedMsgMap().remove(key);
             }
         }
