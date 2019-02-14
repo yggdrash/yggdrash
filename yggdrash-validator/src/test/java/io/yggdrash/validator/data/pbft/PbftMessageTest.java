@@ -282,4 +282,30 @@ public class PbftMessageTest {
             }
         }
     }
+
+    @Test
+    public void cloneTest() {
+        PbftMessage newPbftMessage = this.prePrepare.clone();
+        assertTrue(newPbftMessage.equals(this.prePrepare));
+        newPbftMessage.clear();
+        assertTrue(PbftMessage.verify(this.prePrepare));
+
+        newPbftMessage = this.prepare.clone();
+        assertTrue(newPbftMessage.equals(this.prepare));
+        newPbftMessage.clear();
+        assertTrue(PbftMessage.verify(this.prepare));
+
+        newPbftMessage = this.commit.clone();
+        assertTrue(newPbftMessage.equals(this.commit));
+        newPbftMessage.clear();
+        assertTrue(PbftMessage.verify(this.commit));
+
+        newPbftMessage = this.viewChange.clone();
+        assertTrue(newPbftMessage.equals(this.viewChange));
+        newPbftMessage.clear();
+        assertTrue(PbftMessage.verify(this.viewChange));
+    }
+
+
+
 }

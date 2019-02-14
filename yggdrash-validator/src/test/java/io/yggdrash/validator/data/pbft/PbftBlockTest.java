@@ -328,4 +328,13 @@ public class PbftBlockTest {
                 && PbftBlock.verify(this.pbftBlock4));
     }
 
+    @Test
+    public void cloneTest() {
+        PbftBlock newPbftBlock = this.pbftBlock.clone();
+        assertTrue(newPbftBlock.equals(this.pbftBlock));
+
+        newPbftBlock.clear();
+        assertTrue(PbftBlock.verify(this.pbftBlock));
+    }
+
 }

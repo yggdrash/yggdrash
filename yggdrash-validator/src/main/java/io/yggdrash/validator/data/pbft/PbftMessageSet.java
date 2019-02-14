@@ -10,6 +10,7 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -250,6 +251,13 @@ public class PbftMessageSet {
         for (PbftMessage pbftMessage : this.viewChangeMap.values()) {
             pbftMessage.clear();
         }
+    }
+
+    public boolean equals(PbftMessageSet newPbftMessageSet) {
+        if (newPbftMessageSet == null) {
+            return false;
+        }
+        return Arrays.equals(this.toBinary(), newPbftMessageSet.toBinary());
     }
 
     public PbftMessageSet clone() {

@@ -431,4 +431,28 @@ public class PbftMessageSetTest {
         assertTrue(PbftMessageSet.verify(this.pbftMessageSet4));
     }
 
+
+    @Test
+    public void cloneTest() {
+        PbftMessageSet newPbftMessageSet = this.pbftMessageSet.clone();
+        assertTrue(newPbftMessageSet.equals(this.pbftMessageSet));
+        newPbftMessageSet.clear();
+        assertTrue(PbftMessageSet.verify(this.pbftMessageSet));
+
+        newPbftMessageSet = this.pbftMessageSet2.clone();
+        assertTrue(newPbftMessageSet.equals(this.pbftMessageSet2));
+        newPbftMessageSet.clear();
+        assertTrue(PbftMessageSet.verify(this.pbftMessageSet2));
+
+        newPbftMessageSet = this.pbftMessageSet3.clone();
+        assertTrue(newPbftMessageSet.equals(this.pbftMessageSet3));
+        newPbftMessageSet.clear();
+        assertTrue(PbftMessageSet.verify(this.pbftMessageSet3));
+
+        newPbftMessageSet = this.pbftMessageSet4.clone();
+        assertTrue(newPbftMessageSet.equals(this.pbftMessageSet4));
+        newPbftMessageSet.clear();
+        assertTrue(PbftMessageSet.verify(this.pbftMessageSet4));
+    }
+
 }
