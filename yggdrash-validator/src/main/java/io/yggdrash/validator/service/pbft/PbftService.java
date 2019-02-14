@@ -187,8 +187,6 @@ public class PbftService implements CommandLineRunner {
                 + ")");
 
         log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedMsgMap().size());
-        log.debug("blockStore size= " + this.blockChain.getBlockStore().size());
-        log.debug("blockKeyStore size= " + this.blockChain.getBlockKeyStore().size());
 
         if (!this.blockChain.TEST_NONE_TXSTORE) {
             log.debug("TxStore unConfirmed Tx.size= "
