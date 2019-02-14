@@ -50,7 +50,7 @@ public class DiscoveryService extends PeerGrpc.PeerImplBase {
     public void ping(Proto.Ping request, StreamObserver<Proto.Pong> responseObserver) {
         String url = request.getPeer().getUrl();
         Peer from = Peer.valueOf(url);
-        log.debug("Received " + request.getPing());
+        log.trace("Received " + request.getPing());
         String reply = discoveryConsumer.play(from, request.getPing());
         Proto.Pong pong = Proto.Pong.newBuilder().setPong(reply).build();
         responseObserver.onNext(pong);

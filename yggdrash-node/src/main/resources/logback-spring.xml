@@ -22,7 +22,7 @@
 
     <!-- TRACE > DEBUG > INFO > WARN > ERROR -->
     <springProfile name="local">
-        <logger name="io.yggdrash" level="DEBUG"/>
+        <logger name="io.yggdrash" level="TRACE"/>
         <logger name="org.springframework" level="WARN"/>
         <logger name="org.ehcache.core" level="WARN"/>
         <logger name="org.xnio" level="WARN"/>
@@ -30,7 +30,7 @@
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
-    <springProfile name="prod">
+    <springProfile name="dev">
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
             <appender-ref ref="FILE"/>
