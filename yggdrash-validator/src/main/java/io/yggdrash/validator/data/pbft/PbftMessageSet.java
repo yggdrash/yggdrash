@@ -251,4 +251,8 @@ public class PbftMessageSet {
             pbftMessage.clear();
         }
     }
+
+    public PbftMessageSet clone() {
+        return new PbftMessageSet(this.toJsonObject());
+    }
 }

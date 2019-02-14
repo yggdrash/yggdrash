@@ -153,4 +153,8 @@ public class PbftBlock {
         this.block.clear();
         this.pbftMessageSet.clear();
     }
+
+    public PbftBlock clone() {
+        return new PbftBlock(this.toJsonObject());
+    }
 }
