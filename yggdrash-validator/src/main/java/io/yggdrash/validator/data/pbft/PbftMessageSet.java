@@ -236,4 +236,19 @@ public class PbftMessageSet {
         return protoPbftMessageSetBuilder.build();
     }
 
+    public void clear() {
+        this.prePrepare.clear();
+
+        for (PbftMessage pbftMessage : this.prepareMap.values()) {
+            pbftMessage.clear();
+        }
+
+        for (PbftMessage pbftMessage : this.commitMap.values()) {
+            pbftMessage.clear();
+        }
+
+        for (PbftMessage pbftMessage : this.viewChangeMap.values()) {
+            pbftMessage.clear();
+        }
+    }
 }
