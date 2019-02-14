@@ -1,5 +1,7 @@
 package io.yggdrash.core.contract;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.PrefixKeyEnum;
@@ -11,7 +13,9 @@ import io.yggdrash.core.blockchain.dpoa.tx.TxValidatorPropose;
 import io.yggdrash.core.blockchain.dpoa.tx.TxValidatorVote;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
+import io.yggdrash.core.runtime.annotation.Genesis;
 import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.ParamValidation;
 import io.yggdrash.core.store.Store;
 import org.apache.commons.collections4.MapUtils;
 
@@ -19,12 +23,36 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
-public class DPoAContract {
+public class DPoAContract implements Contract<JsonObject> {
     @ContractStateStore
     Store<String, JsonObject> state;
 
     @ContractTransactionReceipt
     TransactionReceipt txReceipt;
+
+    @Genesis
+    @ParamValidation
+    @InvokeTransction
+    public TransactionReceipt init(JsonObject params) {
+        boolean isSuccess = saveInitValidator(params.getAsJsonArray("validators"));
+        txReceipt.setStatus(isSuccess ? ExecuteStatus.SUCCESS : ExecuteStatus.FALSE);
+        return txReceipt;
+    }
+
+    public boolean saveInitValidator(JsonArray validators) {
+        ValidatorSet validatorSet = getValidatorSet();
+        if (validatorSet != null) {
+            return true;
+        }
+
+        validatorSet = new ValidatorSet();
+        for (JsonElement validator : validators) {
+            validatorSet.getValidatorMap().put(validator.getAsString(), new Validator(validator.getAsString()));
+        }
+        JsonObject jsonObject = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
+        state.put(PrefixKeyEnum.VALIDATORS.toValue(), jsonObject);
+        return true;
+    }
 
     private boolean validateTx(TxPayload txPayload) {
         if (txPayload == null || !txPayload.validate()) {

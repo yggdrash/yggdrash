@@ -252,8 +252,6 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
             log.info("\nAddress of Frontier : " + frontier
                     + "\nBalance of Frontier : " + getBalance(frontier));
         }
-        // TODO Validator will call by contract channel
-        // boolean isSuccess = saveInitValidator(params.getAsJsonArray("validator"));
         boolean isSuccess = true;
 
         // FIXME convert to Json or something
@@ -270,20 +268,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
         return txReceipt;
     }
 
-    public boolean saveInitValidator(JsonArray validators) {
-        ValidatorSet validatorSet = store.get(PrefixKeyEnum.VALIDATORS.toValue());
-        if (validatorSet != null || validators == null) {
-            return true;
-        }
 
-        validatorSet = new ValidatorSet();
-        for (JsonElement validator : validators) {
-            validatorSet.getValidatorMap().put(validator.getAsString(), new Validator(validator.getAsString()));
-        }
-        JsonObject jsonObject = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
-        store.put(PrefixKeyEnum.VALIDATORS.toValue(), jsonObject);
-        return true;
-    }
 
     private void addBalanceTo(String to, BigDecimal amount) {
         BigDecimal balance = getBalance(to);
