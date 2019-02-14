@@ -39,9 +39,8 @@ public class PeerHandlerMock implements PeerHandler {
         this.peer = Peer.valueOf(ynodeUri);
     }
 
-
     @Override
-    public List<Peer> findPeers(Peer peer) {
+    public List<Peer> findPeers(BranchId branchId, Peer peer) {
         List<Peer> result = new ArrayList<>();
 
         if (OWNER.equals(peer)) {
@@ -66,7 +65,7 @@ public class PeerHandlerMock implements PeerHandler {
     }
 
     @Override
-    public String ping(Peer owner, String message) {
+    public String ping(BranchId branchId, Peer owner, String message) {
         if (pongResponse) {
             pongResponse = false;
             return "Pong";
@@ -82,7 +81,7 @@ public class PeerHandlerMock implements PeerHandler {
             BlockHusk newBlock = new BlockHusk(wallet(), Collections.emptyList(), prevBlock);
             return Collections.singletonList(newBlock);
         }
-        return null;
+        return Collections.emptyList();
     }
 
     @Override
@@ -100,7 +99,7 @@ public class PeerHandlerMock implements PeerHandler {
 
     }
 
-    private static PeerHandler dummy(Peer peer) {
+    public static PeerHandler dummy(Peer peer) {
         return new PeerHandlerMock(peer.getYnodeUri());
     }
 }

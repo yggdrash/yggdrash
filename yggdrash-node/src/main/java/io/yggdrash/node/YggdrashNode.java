@@ -17,8 +17,10 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.akashic.SyncManager;
+import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.net.BootStrapNode;
-import io.yggdrash.core.net.Dht;
+import io.yggdrash.core.net.NodeStatus;
+import io.yggdrash.core.net.PeerNetwork;
 import io.yggdrash.node.config.NodeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,13 +36,23 @@ public class YggdrashNode extends BootStrapNode {
     private final NodeProperties nodeProperties;
 
     @Autowired
-    public void setDht(Dht peerTable) {
-        super.setDht(peerTable);
+    public void setSyncManager(SyncManager syncManager) {
+        super.setSyncManager(syncManager);
     }
 
     @Autowired
-    public void setSyncManager(SyncManager syncManager) {
-        super.setSyncManager(syncManager);
+    public void setNodeStatus(NodeStatus nodeStatus) {
+        super.setNodeStatus(nodeStatus);
+    }
+
+    @Autowired
+    public void setPeerNetwork(PeerNetwork peerNetwork) {
+        super.setPeerNetwork(peerNetwork);
+    }
+
+    @Autowired
+    public void setBranchGroup(BranchGroup branchGroup) {
+        super.setBranchGroup(branchGroup);
     }
 
     @Autowired

@@ -17,6 +17,7 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BlockchainMetaInfo;
@@ -70,7 +71,7 @@ public class StoreBuilderTest {
     @Test
     public void buildPeerStore() {
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-        PeerStore store = builder.buildPeerStore();
+        PeerStore store = builder.buildPeerStore(TestConstants.yggdrash());
         store.put(peer.getPeerId(), peer);
         assert store.contains(peer.getPeerId());
         assert store.get(peer.getPeerId()).equals(peer);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 Akashic Foundation
+ * Copyright 2018 Akashic Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,10 +19,31 @@ package io.yggdrash.core.net;
 import io.yggdrash.core.blockchain.BranchId;
 
 import java.util.List;
+import java.util.Set;
 
-public interface DiscoveryConsumer {
+public interface PeerTableGroup extends PeerEventListener {
 
-    List<Peer> findPeers(BranchId branchId, Peer target);
+    void setSeedPeerList(List<String> seedPeerList);
 
-    String ping(BranchId branchId, Peer from, Peer to, String msg);
+    PeerTable createTable(BranchId branchId);
+
+    Set<BranchId> getAllBrancheId();
+
+    PeerTable getPeerTable(BranchId branchId);
+
+    Peer getOwner();
+
+    void addPeer(BranchId branchId, Peer peer);
+
+    boolean contains(BranchId branchId);
+
+    List<Peer> getClosestPeers(BranchId branchId, Peer targetPeer, int limit);
+
+    List<Peer> getBroadcastPeerList(BranchId branchId);
+
+    void copyLiveNode();
+
+    void selfRefresh();
+
+    void refresh();
 }

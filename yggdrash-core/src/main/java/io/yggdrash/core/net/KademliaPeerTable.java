@@ -1,5 +1,6 @@
 package io.yggdrash.core.net;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.yggdrash.core.store.PeerStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,23 +9,20 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 
-public class KademliaPeerTable implements PeerTable, Dht {
+public class KademliaPeerTable implements PeerTable {
     private static final Logger log = LoggerFactory.getLogger(KademliaPeerTable.class);
 
     private final Peer owner;  // our node
     private transient PeerBucket[] buckets;
     private transient PeerStore peerStore;
-    private final PeerHandlerFactory factory;
-    private List<String> seedPeerList;
 
-    public KademliaPeerTable(Peer owner, PeerStore peerStore, PeerHandlerFactory factory) {
+    public KademliaPeerTable(Peer owner, PeerStore peerStore) {
         this.owner = owner;
         this.peerStore = peerStore;
-        this.factory = factory;
         init();
-        addPeer(owner);
     }
 
     private void init() {
@@ -32,97 +30,23 @@ public class KademliaPeerTable implements PeerTable, Dht {
         for (int i = 0; i < KademliaOptions.BINS; i++) {
             buckets[i] = new PeerBucket(i);
         }
+    }
 
+    @Override
+    public void loadSeedNodes(List<String> seedPeerList) {
         if (this.peerStore.size() > 0) {
-            this.peerStore.getAll().forEach(s -> addPeer(Peer.valueOf(s)));
-        }
-    }
-
-    @Override
-    public void refresh(Peer target) {
-        if (target == null) {
-            return;
+            this.peerStore.getAll().forEach(Peer::valueOf);
         }
 
-        int size = getClosestPeers(target, 1).size();
-        log.debug("peerTable :: refresh =>  target = {}, size = {}", target.getYnodeUri(), size);
-        if (size < 1) {
-            // The result set is empty, all peers were dropped, discover.
-            // We actually wait for the discover to complete here.
-            // The very first query will hit this case and run the bootstrapping logic.
-            selfRefresh();
-        }
-        lookup(0, new ArrayList<>(), target);
-    }
-
-    @Override
-    public void selfRefresh() {
-        log.debug("peerTable :: selfRefresh!");
-
-        loadSeedNodes();
-        lookup(0, new ArrayList<>(), getOwner());
-    }
-
-    private synchronized void lookup(int round, List<Peer> prevTried, Peer target) {
-        log.debug("peerTable :: lookup : target => {}", target);
-        try {
-            if (round == KademliaOptions.MAX_STEPS) {
-                log.debug("{}", String.format("(KademliaOptions.MAX_STEPS) Terminating discover"
-                        + "after %d rounds.", round));
-                log.trace("{}\n{}",
-                        String.format("Peers discovered %d", getAllPeers().size()), getPeerUriList());
-                return;
-            }
-
-            List<Peer> closest = getClosestPeers(target, KademliaOptions.BUCKET_SIZE);
-            List<Peer> tried = new ArrayList<>();
-
-            for (Peer peer : closest) {
-                if (!tried.contains(peer) && !prevTried.contains(peer)) {
-                    PeerHandler peerHandler = factory.create(peer);
-                    try {
-                        List<Peer> peerList = peerHandler.findPeers(target);
-                        peerList.forEach(this::addPeer);
-                        tried.add(peer);
-                    } catch (Exception e) {
-                        log.warn(e.getMessage());
-                    } finally {
-                        peerHandler.stop();
-                    }
-                }
-                if (tried.size() == KademliaOptions.ALPHA) {
-                    break;
-                }
-            }
-
-            if (tried.isEmpty()) {
-                log.debug("Terminating discover after {} rounds.", round);
-                log.trace("{}\n{}",
-                        String.format("Peers discovered %d", getAllPeers().size()), getPeerUriList());
-                return;
-            }
-
-            tried.addAll(prevTried);
-            lookup(round + 1, tried, target);
-        } catch (Exception e) {
-            log.info("{}", e);
-        }
-    }
-
-    private void loadSeedNodes() {
         // Load nodes from the database and insert them.
         // This should yield a few previously seen nodes that are (hopefully) still alive.
         if (getBucketsCount() < 1 && seedPeerList != null) {
-            this.seedPeerList.stream().map(Peer::valueOf).forEach(this::addPeer);
+            seedPeerList.stream().map(Peer::valueOf).forEach(peer -> {
+                if (!owner.toAddress().equals(peer.toAddress())) {
+                    addPeer(peer);
+                }
+            });
         }
-    }
-
-    public Peer getOwner() {
-        return owner;
-    }
-
-    public void setSeedPeerList(List<String> seedPeerList) {
-        this.seedPeerList = seedPeerList;
     }
 
     // resolve searches for a specific peer with the given ID.
@@ -151,8 +75,8 @@ public class KademliaPeerTable implements PeerTable, Dht {
         peer.setDistance(owner);
         buckets[getBucketId(peer)].addPeer(peer);
 
-        log.debug("peerTable :: addPeer => {}, peersCnt => {}, bucketSize => {}",
-                peer.getPeerId(), getAllPeers().size(), getBucketsCount());
+        log.trace("peerTable :: addPeer => {}, peersCnt => {}, bucketSize => {}",
+                peer.toAddress(), getAllPeers().size(), getBucketsCount());
     }
 
     public synchronized boolean contains(Peer p) {
@@ -166,8 +90,9 @@ public class KademliaPeerTable implements PeerTable, Dht {
 
     @Override
     public void copyLiveNode(long minTableTime) {
+        long baseTime = System.currentTimeMillis();
         for (Peer peer : getAllPeers()) {
-            if ((System.currentTimeMillis() - peer.getModified()) > minTableTime) {
+            if (baseTime - peer.getModified() < minTableTime) {
                 updatePeerStore(peer);
             }
         }
@@ -188,20 +113,6 @@ public class KademliaPeerTable implements PeerTable, Dht {
     }
 
     @Override
-    public synchronized void touchPeer(Peer p) {
-        if (!contains(p)) {
-            return;
-        }
-        for (PeerBucket b : buckets) {
-            Peer found = b.findByPeer(p);
-            if (found != null) {
-                found.touch();
-                break;
-            }
-        }
-    }
-
-    @Override
     public synchronized PeerBucket getBucketByIndex(int i) {
         return buckets[i];
     }
@@ -213,7 +124,7 @@ public class KademliaPeerTable implements PeerTable, Dht {
 
     @Override
     public synchronized int getBucketsCount() {
-        int i = -1; // exclude owner's bucket
+        int i = 0;
         for (PeerBucket b : buckets) {
             if (b.getPeersCount() > 0) {
                 i++;
@@ -285,8 +196,7 @@ public class KademliaPeerTable implements PeerTable, Dht {
     @Override
     public synchronized List<Peer> getClosestPeers(Peer targetPeer, int limit) {
         List<Peer> closestEntries = getAllPeers();
-        closestEntries.remove(owner);
-        closestEntries.sort(new DistanceComparator(targetPeer.getPeerId().getBytes())); //TODO TestCode
+        closestEntries.sort(new DistanceComparator(targetPeer.getPeerId().getBytes()));
         if (closestEntries.size() > limit) {
             closestEntries = closestEntries.subList(0, limit);
         }
@@ -299,8 +209,42 @@ public class KademliaPeerTable implements PeerTable, Dht {
      * @param peer disconnected peer
      */
     @Override
-    public void peerDisconnected(Peer peer) {
+    public void dropPeer(Peer peer) {
         buckets[getBucketId(peer)].dropPeer(peer);
         peerStore.remove(peer.getPeerId());
+    }
+
+
+    // returns the last node in a random, non-empty bucket
+    @Override
+    public Peer peerToRevalidate() {
+        Random r = new Random();
+        int cnt = 1;
+        int startIndex = r.nextInt(KademliaOptions.BINS);
+
+        for (; cnt < KademliaOptions.BINS; startIndex++, cnt++) {
+            if (startIndex == 0 || startIndex == KademliaOptions.BINS) {
+                startIndex = 1;
+            }
+
+            //log.debug("peerTask :: bucketIndex => " + startIndex);
+
+            PeerBucket bucket = getBucketByIndex(startIndex);
+
+            if (!bucket.getReplacements().isEmpty()) {
+                return bucket.getLastPeer();
+            }
+        }
+        return null;
+    }
+
+    @VisibleForTesting
+    public PeerBucket[] getBuckets() {
+        return buckets;
+    }
+
+    @VisibleForTesting
+    PeerStore getPeerStore() {
+        return peerStore;
     }
 }

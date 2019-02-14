@@ -18,6 +18,9 @@ package io.yggdrash.node.config;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.PeerTestUtils;
+import io.yggdrash.StoreTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BlockChain;
@@ -26,9 +29,6 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
-import io.yggdrash.core.net.PeerHandlerGroup;
-import io.yggdrash.core.net.PeerHandlerMock;
-import io.yggdrash.core.net.SimplePeerHandlerGroup;
 import io.yggdrash.core.store.StoreBuilder;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -40,12 +40,12 @@ import org.spongycastle.util.encoders.Hex;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-
 
 public class BranchConfigurationTest {
     private static final Logger log = LoggerFactory.getLogger(BranchConfigurationTest.class);
@@ -53,14 +53,13 @@ public class BranchConfigurationTest {
     private static final DefaultConfig config = new DefaultConfig();
     private static final ResourceLoader loader = new DefaultResourceLoader();
 
-    private PeerHandlerGroup peerHandlerGroup;
     private BranchConfiguration branchConfig;
 
     @Before
     public void setUp() {
         StoreBuilder builder = new StoreBuilder(config);
         this.branchConfig = new BranchConfiguration(builder);
-        this.peerHandlerGroup = new SimplePeerHandlerGroup(PeerHandlerMock.factory);
+        branchConfig.setPeerNetwork(PeerTestUtils.createNetwork());
     }
 
     @Test
@@ -83,7 +82,7 @@ public class BranchConfigurationTest {
 
     private BranchGroup getBranchGroup() {
         BranchLoader loader = branchConfig.branchLoader(config);
-        return branchConfig.branchGroup(loader, peerHandlerGroup);
+        return branchConfig.branchGroup(loader);
     }
 
     private void assertTransaction(BlockChain branch) throws IOException {

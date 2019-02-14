@@ -1,6 +1,5 @@
 package io.yggdrash.core.net;
 
-import io.yggdrash.TestConstants;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -57,23 +56,6 @@ public class PeerBucketTest {
         assert bucket.getPeersCount() == 1;
         bucket.addPeer(peer1);
         assert bucket.getPeersCount() == 1;
-    }
-
-    @Test
-    public void testUpdatedWithLatestPeer() {
-        // arrange
-        Peer newPeerWithBestBlock = Peer.valueOf(peer1.getYnodeUri());
-        newPeerWithBestBlock.updateBestBlock(BestBlock.of(TestConstants.yggdrash(), 0));
-
-        bucket.addPeer(peer1);
-        assert bucket.findByPeer(peer1).getBestBlocks().size() == 0;
-
-        // act
-        bucket.addPeer(newPeerWithBestBlock);
-
-        // assert
-        assert bucket.getPeers().size() == 1;
-        //assert bucket.findByPeer(peer1).getBestBlocks().size() == 1;
     }
 
     /*
