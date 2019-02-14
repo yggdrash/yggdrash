@@ -17,31 +17,52 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.core.akashic.SyncManager;
+import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BranchGroup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 public abstract class BootStrapNode implements BootStrap {
+    private static final Logger log = LoggerFactory.getLogger(BootStrapNode.class);
 
-    protected PeerHandlerGroup peerHandlerGroup;
-    protected SyncManager syncManager;
+    private SyncManager syncManager;
+    private NodeStatus nodeStatus;
+    protected PeerNetwork peerNetwork;
+    protected BranchGroup branchGroup;
 
-    public void bootstrapping(Discovery discovery, int maxPeer) {
-        PeerTable peerTable = discovery.discover(peerHandlerGroup.getPeerHandlerFactory());
-        for (Peer peer : peerTable.getClosestPeers(maxPeer)) {
-            if (peerHandlerGroup.handlerCount() >= maxPeer) {
-                break;
+    @Override
+    public void bootstrapping() {
+        try {
+            nodeStatus.sync();
+            for (BlockChain blockChain : branchGroup.getAllBranch()) {
+                List<PeerHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
+                for (PeerHandler peerHandler : peerHandlerList) {
+                    syncManager.syncBlock(peerHandler, blockChain);
+                    syncManager.syncTransaction(peerHandler, blockChain);
+                }
             }
-            peerHandlerGroup.addHandler(peerTable.getOwner(), peer);
+        } catch (Exception e) {
+            log.warn(e.getMessage(), e);
+        } finally {
+            nodeStatus.up();
         }
     }
 
-    public void setPeerHandlerGroup(PeerHandlerGroup peerHandlerGroup) {
-        this.peerHandlerGroup = peerHandlerGroup;
+    public void setBranchGroup(BranchGroup branchGroup) {
+        this.branchGroup = branchGroup;
+    }
+
+    protected void setNodeStatus(NodeStatus nodeStatus) {
+        this.nodeStatus = nodeStatus;
+    }
+
+    public void setPeerNetwork(PeerNetwork peerNetwork) {
+        this.peerNetwork = peerNetwork;
     }
 
     public void setSyncManager(SyncManager syncManager) {
         this.syncManager = syncManager;
-    }
-
-    public void destroy() {
-        peerHandlerGroup.destroyAll();
     }
 }

@@ -8,7 +8,11 @@ import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.RejectedAccessException;
-import io.yggdrash.node.api.dto.TransactionDto;
+import io.yggdrash.gateway.dto.TransactionDto;
+
+import static io.yggdrash.common.config.Constants.BLOCK_ID;
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static io.yggdrash.common.config.Constants.TX_ID;
 
 import static io.yggdrash.common.config.Constants.BLOCK_ID;
 import static io.yggdrash.common.config.Constants.BRANCH_ID;

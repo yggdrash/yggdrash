@@ -19,13 +19,13 @@ package io.yggdrash.node.api;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.common.util.FileUtil;
-import io.yggdrash.node.api.dto.BranchDto;
-import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.yggdrash.gateway.dto.BranchDto;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BranchDtoTest {
 

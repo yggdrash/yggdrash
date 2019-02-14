@@ -24,7 +24,7 @@ import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.contract.ContractManager;
-import io.yggdrash.core.net.PeerHandlerGroup;
+import io.yggdrash.core.net.PeerNetwork;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
 import org.slf4j.Logger;
@@ -47,31 +47,36 @@ public class BranchConfiguration {
 
     private final StoreBuilder storeBuilder;
 
+    private PeerNetwork peerNetwork;
+
     @Value("classpath:/branch-yggdrash.json")
     Resource yggdrashResource;
-
 
     @Autowired
     BranchConfiguration(StoreBuilder storeBuilder) {
         this.storeBuilder = storeBuilder;
     }
 
-    @Bean
-    @ConditionalOnProperty("yggdrash.node.chain.enabled")
-    BlockChain yggdrash(PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
-            throws IOException {
-        return addBranch(yggdrashResource.getInputStream(), peerHandlerGroup, branchGroup);
+    @Autowired
+    public void setPeerNetwork(PeerNetwork peerNetwork) {
+        this.peerNetwork = peerNetwork;
     }
 
     @Bean
-    BranchGroup branchGroup(BranchLoader loader, PeerHandlerGroup peerHandlerGroup) {
+    @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
+    BlockChain yggdrash(BranchGroup branchGroup) throws IOException {
+        return addBranch(yggdrashResource.getInputStream(), branchGroup);
+    }
+
+    @Bean
+    BranchGroup branchGroup(BranchLoader loader) {
         BranchGroup branchGroup = new BranchGroup();
         try {
             for (GenesisBlock genesis : loader.getGenesisBlockList()) {
-                addBranch(genesis, peerHandlerGroup, branchGroup);
+                addBranch(genesis, branchGroup);
             }
-        } catch (Exception e2) {
-            log.warn(e2.getMessage(), e2);
+        } catch (Exception e) {
+            log.warn(e.getMessage(), e);
         }
         return branchGroup;
     }
@@ -89,22 +94,21 @@ public class BranchConfiguration {
         return new ContractManager(defaultConfig.getContractPath());
     }
 
-    private BlockChain addBranch(InputStream is, PeerHandlerGroup peerHandlerGroup, BranchGroup branchGroup)
+    private BlockChain addBranch(InputStream is, BranchGroup branchGroup)
             throws IOException {
         GenesisBlock genesis = GenesisBlock.of(is);
-        return addBranch(genesis, peerHandlerGroup, branchGroup);
+        return addBranch(genesis, branchGroup);
     }
 
-    private BlockChain addBranch(GenesisBlock genesis, PeerHandlerGroup peerHandlerGroup,
+    private BlockChain addBranch(GenesisBlock genesis,
                                  BranchGroup branchGroup) {
         try {
             BlockChain branch = BlockChainBuilder.Builder()
                     .addGenesis(genesis)
                     .setStoreBuilder(storeBuilder)
                     .build();
-            //BestBlock bestBlock = BestBlock.of(branch.getBranchId(), branch.getLastIndex());
-            //peerTable.getOwner().updateBestBlock(bestBlock);
-            branchGroup.addBranch(branch, peerHandlerGroup);
+            branchGroup.addBranch(branch, peerNetwork);
+            peerNetwork.init(branch.getBranchId());
             return branch;
         } catch (Exception e) {
             log.warn(e.getMessage());

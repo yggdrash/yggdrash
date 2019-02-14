@@ -16,13 +16,13 @@
 
 package io.yggdrash.core.net;
 
+import io.yggdrash.core.blockchain.BranchId;
+
 import java.util.List;
 
 public interface DiscoveryConsumer {
 
-    List<String> findPeers(Peer requestPeer);
+    List<Peer> findPeers(BranchId branchId, Peer target);
 
-    void afterFindPeersResponse();
-
-    String play(Peer from, String msg);
+    String ping(BranchId branchId, Peer from, Peer to, String msg);
 }

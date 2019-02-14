@@ -16,28 +16,25 @@
 
 package io.yggdrash.core.net;
 
-import io.yggdrash.core.blockchain.BranchEventListener;
 import io.yggdrash.core.blockchain.BranchId;
 
 import java.util.List;
 
-public interface PeerHandlerGroup extends BranchEventListener {
+public interface PeerHandlerGroup {
 
     void setPeerEventListener(PeerEventListener peerEventListener);
 
-    PeerHandlerFactory getPeerHandlerFactory();
-
     void destroyAll();
 
-    void healthCheck(Peer owner);
+    boolean healthCheck(BranchId branchId, Peer owner, Peer to);
+
+    void removeHandler(PeerHandler peerHandler);
 
     int handlerCount();
-
-    void addHandler(Peer owner, Peer requestPeer);
 
     List<String> getActivePeerList();
 
     List<String> getActiveAddressList();
 
-    List<PeerHandler> getHandlerList(BranchId branchId);
+    List<PeerHandler> getHandlerList(List<Peer> peerList);
 }

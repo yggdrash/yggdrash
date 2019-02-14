@@ -23,7 +23,7 @@ import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.node.api.dto.AdminDto;
+import io.yggdrash.gateway.dto.AdminDto;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

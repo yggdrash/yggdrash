@@ -19,11 +19,10 @@ package io.yggdrash;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.wallet.Wallet;
-import org.spongycastle.util.encoders.Hex;
 import java.nio.charset.StandardCharsets;
+import org.spongycastle.util.encoders.Hex;
 
 public class ContractTestUtils {
 
@@ -37,8 +36,8 @@ public class ContractTestUtils {
         JsonObject params = new JsonObject();
         params.addProperty("to", to);
         params.addProperty("amount", amount);
-
-        return txBodyJson(Constants.YEED_CONTRACT_VERSION,"transfer", params);
+        TestConstants.yggdrash();
+        return txBodyJson(TestConstants.YEED_CONTRACT,"transfer", params);
     }
 
     public static JsonArray txBodyJson(ContractVersion contractVersion, String method, JsonObject params) {
@@ -62,13 +61,15 @@ public class ContractTestUtils {
     }
 
     public static JsonObject createSampleBranchJson(String description) {
+        TestConstants.yggdrash();
+
         String name = "STEM";
         String symbol = "STEM";
         String property = "ecosystem";
-        String contractId = "d399cd6d34288d04ba9e68ddfda9f5fe99dd778e";
+
         JsonArray contracts = new JsonArray();
         JsonObject contractSample = new JsonObject();
-        contractSample.addProperty("contractVersion", "1d35091e51a57a745eec67db3428893968869e32");
+        contractSample.addProperty("contractVersion", TestConstants.STEM_CONTRACT.toString());
         contractSample.add("init", new JsonObject());
         contractSample.addProperty("description", "some description");
         contractSample.addProperty("name", "STEM");

@@ -17,6 +17,9 @@ import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
 
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
+
 public class GenesisBlock {
     private static final Logger log = LoggerFactory.getLogger(GenesisBlock.class);
     private final BlockHusk block;
@@ -108,9 +111,9 @@ public class GenesisBlock {
         // todo: change values(version, type) using the configuration.
         BlockHeader blockHeader = new BlockHeader(
                 branch.getBranchId().getBytes(),
-                new byte[8],
-                new byte[8],
-                new byte[32],
+                EMPTY_BYTE8,
+                EMPTY_BYTE8,
+                EMPTY_BYTE32,
                 0L,
                 branch.getTimestamp(),
                 blockBody.getMerkleRoot(),
@@ -125,8 +128,8 @@ public class GenesisBlock {
         // TODO jsonFormat convert to Transaction
         TransactionHeader txHeader = new TransactionHeader(
                 branch.getBranchId().getBytes(),
-                new byte[8],
-                new byte[8],
+                EMPTY_BYTE8,
+                EMPTY_BYTE8,
                 branch.getTimestamp(),
                 new TransactionBody(jsonArrayBody));
         log.debug(txHeader.toString());

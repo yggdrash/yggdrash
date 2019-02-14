@@ -56,7 +56,7 @@ public class PbftMessage {
         this.seqNumber = seqNumber;
         this.hash = hash;
         this.result = result;
-        this.signature = wallet.signHashedData(getHashForSignning());
+        this.signature = this.sign(wallet);
         this.block = block;
     }
 
@@ -65,13 +65,14 @@ public class PbftMessage {
     }
 
     public PbftMessage(PbftProto.PbftMessage protoPbftMessage) {
-        this.type = protoPbftMessage.getType();
-        this.viewNumber = protoPbftMessage.getViewNumber();
-        this.seqNumber = protoPbftMessage.getSeqNumber();
-        this.hash = protoPbftMessage.getHash().toByteArray();
-        this.result = protoPbftMessage.getResult().toByteArray();
-        this.signature = protoPbftMessage.getSignature().toByteArray();
-        this.block = Block.toBlock(protoPbftMessage.getBlock());
+        this(protoPbftMessage.getType(),
+                protoPbftMessage.getViewNumber(),
+                protoPbftMessage.getSeqNumber(),
+                protoPbftMessage.getHash().toByteArray(),
+                protoPbftMessage.getResult().toByteArray().length == 0
+                        ? null : protoPbftMessage.getResult().toByteArray(),
+                protoPbftMessage.getSignature().toByteArray(),
+                Block.toBlock(protoPbftMessage.getBlock()));
     }
 
     public PbftMessage(JsonObject jsonObject) {
@@ -82,7 +83,7 @@ public class PbftMessage {
         this.signature = Hex.decode(jsonObject.get("signature").getAsString());
 
         JsonElement resultJsonElement = jsonObject.get("result");
-        if (resultJsonElement != resultJsonElement) {
+        if (resultJsonElement != null) {
             this.result = Hex.decode(resultJsonElement.getAsString());
         } else {
             this.result = null;
@@ -163,13 +164,13 @@ public class PbftMessage {
     }
 
     public static boolean verify(PbftMessage pbftMessage) {
-        // todo: check validator
-
         if (pbftMessage == null
                 || pbftMessage.getSignature() == null
                 || pbftMessage.getSignature().length == 0) {
             return false;
         }
+
+        // todo: check validator
 
         if (!Wallet.verify(pbftMessage.getHashForSignning(), pbftMessage.getSignature(), true)) {
             return false;
@@ -180,8 +181,8 @@ public class PbftMessage {
                 return false;
             }
 
-            if (!Arrays.equals(pbftMessage.getHash(), pbftMessage.getBlock().getHash())) {
-                //todo: check viewNumber, seqNumber
+            if (!Arrays.equals(pbftMessage.getHash(), pbftMessage.getBlock().getHash())
+                    || !pbftMessage.getBlock().verify()) {
                 return false;
             }
         }
@@ -251,13 +252,13 @@ public class PbftMessage {
         if (newPbftMessage == null) {
             return false;
         }
+        return Arrays.equals(this.toBinary(), newPbftMessage.toBinary());
+    }
 
-        return this.type.equals(newPbftMessage.getType())
-                && this.viewNumber == newPbftMessage.getViewNumber()
-                && this.seqNumber == newPbftMessage.getSeqNumber()
-                && Arrays.equals(this.hash, newPbftMessage.getHash())
-                && Arrays.equals(this.result, newPbftMessage.getResult())
-                && Arrays.equals(this.signature, newPbftMessage.getSignature());
+    public void clear() {
+        if (this.block != null) {
+            this.block.clear();
+        }
     }
 
 }
