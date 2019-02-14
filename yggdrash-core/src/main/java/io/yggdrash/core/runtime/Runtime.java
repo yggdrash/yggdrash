@@ -167,7 +167,7 @@ public class Runtime<T> {
             txReceipt.setStatus(ExecuteStatus.ERROR);
             JsonObject errorLog = new JsonObject();
             errorLog.addProperty("error", e.getMessage());
-            txReceipt.addLog(errorLog);
+            txReceipt.addLog(errorLog.toString());
         }
         return txState;
     }
@@ -185,4 +185,10 @@ public class Runtime<T> {
     public TransactionReceiptStore getTransactionReceiptStore() {
         return this.txReceiptStore;
     }
+
+    public TransactionReceipt getTransactionReceipt(String txId) {
+        return txReceiptStore.get(txId);
+    }
+
+
 }

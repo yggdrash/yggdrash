@@ -112,6 +112,6 @@ public class TransactionApiImpl implements TransactionApi {
 
     @Override
     public TransactionReceipt getTransactionReceipt(String branchId, String txId) {
-        return branchGroup.getTransactionReceiptStore(BranchId.of(branchId)).get(txId);
+        return branchGroup.getTransactionReceipt(BranchId.of(branchId), txId);
     }
 }

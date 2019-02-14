@@ -93,7 +93,7 @@ public class RuntimeInvoke<T> {
         // filter method exist
         if(method == null) {
             txReceipt.setStatus(ExecuteStatus.ERROR);
-            txReceipt.addLog(errorLog("method is not exist"));
+            txReceipt.addLog(errorLog("method is not exist").toString());
             return store;
         }
         // check exist params
@@ -104,7 +104,7 @@ public class RuntimeInvoke<T> {
             method.getMethod().invoke(contract);
         } else {
             txReceipt.setStatus(ExecuteStatus.ERROR);
-            txReceipt.addLog(errorLog("params is not exist"));
+            txReceipt.addLog(errorLog("params is not exist").toString());
             return store;
         }
         return store;
