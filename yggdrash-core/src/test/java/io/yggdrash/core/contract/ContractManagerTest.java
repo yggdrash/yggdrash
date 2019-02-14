@@ -58,8 +58,8 @@ public class ContractManagerTest {
 
     @Test
     public void getContractById() {
-        List<ContractVersion> sampleContractIdList = contractSample();
-        if (sampleContractIdList == null || contracts == null) {
+        List<ContractVersion> sampleContractVersionList = contractSample();
+        if (sampleContractVersionList == null || contracts == null) {
             return;
         }
 
@@ -73,20 +73,20 @@ public class ContractManagerTest {
 
     @Test
     public void getContractIdList() {
-        List<ContractVersion> sampleContractIdList = contractSample();
-        if (sampleContractIdList == null || contracts == null) {
+        List<ContractVersion> sampleContractVersionList = contractSample();
+        if (sampleContractVersionList == null || contracts == null) {
             return;
         }
-        assertEquals(sampleContractIdList.size(), contractManager.getContractVersionList().size());
+        assertEquals(sampleContractVersionList.size(), contractManager.getContractVersionList().size());
     }
 
     @Test
     public void getContractList() {
-        List<ContractVersion> sampleContractIdList = contractSample();
-        if (sampleContractIdList == null || contracts == null) {
+        List<ContractVersion> sampleContractVersionList = contractSample();
+        if (sampleContractVersionList == null || contracts == null) {
             return;
         }
-        assertEquals(sampleContractIdList.size(), contractManager.getContractList().size());
+        assertEquals(sampleContractVersionList.size(), contractManager.getContractList().size());
     }
 
     @Test
@@ -155,13 +155,13 @@ public class ContractManagerTest {
                     contractBinary = new byte[Math.toIntExact(contractFile.length())];
                     inputStream.read(contractBinary);
 
-                    ContractVersion contractId = ContractVersion.of(contractBinary);
+                    ContractVersion contractVersion = ContractVersion.of(contractBinary);
                     ContractMeta contractMeta = ContractClassLoader.loadContractById(
-                            defaultConfig.getContractPath(), contractId);
+                            defaultConfig.getContractPath(), contractVersion);
 
                     if (contractMeta.getStateStore() != null
                             || contractMeta.getTxReceipt() != null) {
-                        contractsVersionSampleIds.add(contractId);
+                        contractsVersionSampleIds.add(contractVersion);
                     }
                 } catch (IOException e) {
                     log.warn(e.getMessage());
