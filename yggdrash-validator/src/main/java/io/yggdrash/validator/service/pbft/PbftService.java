@@ -101,7 +101,7 @@ public class PbftService implements CommandLineRunner {
         printInitInfo();
     }
 
-    @Scheduled(cron = "*/5 * * * * *")
+    @Scheduled(cron = "*/2 * * * * *")
     public void mainScheduler() {
 
         checkNode();

@@ -431,7 +431,6 @@ public class PbftMessageSetTest {
         assertTrue(PbftMessageSet.verify(this.pbftMessageSet4));
     }
 
-
     @Test
     public void cloneTest() {
         PbftMessageSet newPbftMessageSet = this.pbftMessageSet.clone();
