@@ -24,7 +24,7 @@ public class TestContract implements Contract {
     }
 
     @InvokeTransction
-    public Boolean doNothing() {
+    public Boolean doNothing(JsonObject params) {
         // pass
         return true;
     }
@@ -42,8 +42,4 @@ public class TestContract implements Contract {
         return "";
     }
 
-    @ContractQuery
-    public void voidQuery() {
-
-    }
 }

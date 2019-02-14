@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
@@ -63,7 +64,7 @@ public class CoinContractTest {
 
     @Test
     public void totalSupply() {
-        BigDecimal res = coinContract.totalSupply();
+        BigInteger res = coinContract.totalSupply();
 
         assertEquals(BigDecimal.valueOf(1000000000000L), res);
     }
@@ -72,7 +73,7 @@ public class CoinContractTest {
     public void balanceOf() {
         String paramStr = "{\"address\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}";
 
-        BigDecimal res = coinContract.balanceOf(createParams(paramStr));
+        BigInteger res = coinContract.balanceOf(createParams(paramStr));
         assertEquals(BigDecimal.valueOf(1000000000), res);
     }
 
@@ -81,7 +82,7 @@ public class CoinContractTest {
         String paramStr = "{\"owner\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\","
                 + "\"spender\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\"}";
 
-        BigDecimal res = coinContract.allowance(createParams(paramStr));
+        BigInteger res = coinContract.allowance(createParams(paramStr));
 
         assertEquals(BigDecimal.ZERO, res);
     }
@@ -242,13 +243,13 @@ public class CoinContractTest {
         }
     }
 
-    private BigDecimal getBalance(String  address) {
+    private BigInteger getBalance(String  address) {
         JsonObject obj = new JsonObject();
         obj.addProperty("address", address);
         return coinContract.balanceOf(obj);
     }
 
-    private BigDecimal getAllowance(String owner, String spender) {
+    private BigInteger getAllowance(String owner, String spender) {
         JsonObject obj = new JsonObject();
         obj.addProperty("owner", owner);
         obj.addProperty("spender", spender);

@@ -33,6 +33,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
@@ -63,7 +64,7 @@ public class ContractManagerTest {
         }
 
         ContractMeta meta = ContractClassLoader.loadContractClass(StemContract.class);
-        ContractMeta meta2 = contractManager.getContractById(meta.getContractVersion());
+        ContractMeta meta2 = contractManager.getContractByVersion(meta.getContractVersion());
         assertNotNull(meta);
         log.debug("StemContract.class id={}", meta.getContractVersion().toString());
         assertEquals(meta2.getContractVersion(), meta.getContractVersion());
@@ -76,7 +77,7 @@ public class ContractManagerTest {
         if (sampleContractIdList == null || contracts == null) {
             return;
         }
-        assertEquals(sampleContractIdList.size(), contractManager.getContractIdList().size());
+        assertEquals(sampleContractIdList.size(), contractManager.getContractVersionList().size());
     }
 
     @Test
@@ -110,7 +111,6 @@ public class ContractManagerTest {
     @Test
     public void addContract() {
         Class<? extends Contract> contract = TestContract.class;
-        Map<ContractVersion, ContractMeta> contracts = contractManager.getContracts();
         if (contracts == null) {
             return;
         }
@@ -124,14 +124,21 @@ public class ContractManagerTest {
     }
 
     @Test
-    public void decompileContract() throws UnsupportedEncodingException {
-        String version = "4b3b921a33362ad5049429e56ab0eccf1b6ab5df";
-        byte[] targetBytes = version.getBytes("UTF-8");
+    public void decodingContract() throws UnsupportedEncodingException {
+        if (contracts == null) {
+            return;
+        }
+        contracts.entrySet().stream().findFirst();
+        Optional<Map.Entry<ContractVersion, ContractMeta>> m = contracts.entrySet().stream().findFirst();
+        ContractVersion version = m.get().getKey();
+
+        byte[] targetBytes = version.toString().getBytes("UTF-8");
 
         Base64.Encoder encoder = Base64.getEncoder();
         String encodedString = encoder.encodeToString(targetBytes);
 
-        contractManager.decompileContract(encodedString);
+        ContractMeta meta = contractManager.decodingContract(encodedString);
+        assertEquals(version, meta.getContractVersion());
     }
 
     private List<ContractVersion> contractSample() {
