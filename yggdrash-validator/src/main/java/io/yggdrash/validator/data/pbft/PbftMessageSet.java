@@ -209,10 +209,10 @@ public class PbftMessageSet {
                 PbftMessage.toProto(pbftMessageSet.getPrePrepare());
         PbftProto.PbftMessageList protoPrepareMessageList =
                 PbftMessage.toProtoList(
-                        new ArrayList<PbftMessage>(pbftMessageSet.getPrepareMap().values()));
+                        new ArrayList<>(pbftMessageSet.getPrepareMap().values()));
         PbftProto.PbftMessageList protoCommitMessageList =
                 PbftMessage.toProtoList(
-                        new ArrayList<PbftMessage>(pbftMessageSet.getCommitMap().values()));
+                        new ArrayList<>(pbftMessageSet.getCommitMap().values()));
 
         PbftProto.PbftMessageSet.Builder protoPbftMessageSetBuilder =
                 PbftProto.PbftMessageSet.newBuilder();
@@ -228,7 +228,7 @@ public class PbftMessageSet {
 
         PbftProto.PbftMessageList protoViewChangeMessageList =
                 PbftMessage.toProtoList(
-                        new ArrayList<PbftMessage>(pbftMessageSet.getViewChangeMap().values()));
+                        new ArrayList<>(pbftMessageSet.getViewChangeMap().values()));
         if (protoViewChangeMessageList != null) {
             protoPbftMessageSetBuilder.setViewChangeList(protoViewChangeMessageList);
         }

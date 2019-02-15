@@ -27,7 +27,7 @@ public interface PeerTableGroup extends PeerEventListener {
 
     PeerTable createTable(BranchId branchId);
 
-    Set<BranchId> getAllBrancheId();
+    Set<BranchId> getAllBranchId();
 
     PeerTable getPeerTable(BranchId branchId);
 

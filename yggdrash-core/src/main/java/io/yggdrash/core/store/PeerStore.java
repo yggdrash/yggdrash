@@ -32,7 +32,7 @@ public class PeerStore implements Store<PeerId, Peer> {
 
     private static final Logger log = LoggerFactory.getLogger(PeerStore.class);
     private final DbSource<byte[], byte[]> db;
-    private transient Map<PeerId, Peer> peers = new HashMap<>();
+    private final transient Map<PeerId, Peer> peers = new HashMap<>();
 
     PeerStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();

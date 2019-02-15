@@ -22,14 +22,14 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.wallet.Wallet;
-import java.util.Iterator;
+
 import java.util.LinkedList;
 import java.util.List;
 
 public class TransactionBuilder {
     BranchId branchId;
     Wallet wallet;
-    List<JsonObject> txBody = new LinkedList<>();
+    private final List<JsonObject> txBody = new LinkedList<>();
 
     long timestamp = -1L;
 
@@ -54,9 +54,8 @@ public class TransactionBuilder {
     }
 
     public TransactionBuilder addTransactionBody(JsonArray txBody) {
-        Iterator<JsonElement> el = txBody.iterator();
-        while (el.hasNext()) {
-            JsonObject tx = el.next().getAsJsonObject();
+        for (JsonElement jsonElement : txBody) {
+            JsonObject tx = jsonElement.getAsJsonObject();
             this.txBody.add(tx);
         }
         return this;
@@ -114,7 +113,7 @@ public class TransactionBuilder {
         } else {
 
             txArray = new JsonArray();
-            txBody.stream().forEach(tb -> txArray.add(tb));
+            txBody.forEach(txArray::add);
         }
         return createTx(wallet, branchId, txArray);
     }

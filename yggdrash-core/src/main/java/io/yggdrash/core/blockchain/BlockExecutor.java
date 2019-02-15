@@ -67,7 +67,7 @@ public class BlockExecutor {
                 runtime.invokeBlock(block);
                 // Set Next ExecuteBlock
                 metaStore.setLastExecuteBlock(block);
-                log.info("Block " + block.getIndex() + " Execute Complite");
+                log.info("Block " + block.getIndex() + " Execute Complete");
             }
             runExecute = false;
         }

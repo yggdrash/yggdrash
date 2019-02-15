@@ -20,6 +20,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
+
 import java.math.BigDecimal;
 
 public class CoinContractTestUtils {
@@ -46,6 +47,6 @@ public class CoinContractTestUtils {
         params.addProperty("to", to);
         params.addProperty("amount", amount);
 
-        return ContractTestUtils.txBodyJson(TestConstants.YEED_CONTRACT,"transferfrom", params);
+        return ContractTestUtils.txBodyJson(TestConstants.YEED_CONTRACT,"transferFrom", params);
     }
 }

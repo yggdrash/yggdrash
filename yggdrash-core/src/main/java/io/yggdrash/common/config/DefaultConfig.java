@@ -30,7 +30,7 @@ public class DefaultConfig {
     private static final String DATABASE_PATH = "database.path";
     protected boolean productionMode;
 
-    protected Config config;
+    private Config config;
 
     public DefaultConfig() {
         this(ConfigFactory.empty());

@@ -33,7 +33,7 @@ import java.io.IOException;
 
 public class AdminApiImplTest {
 
-    private static long COMMAND_ACTIVE_TIME = 3 * 60 * 1000;
+    private static final long COMMAND_ACTIVE_TIME = 3 * 60 * 1000;
 
     private static final Logger log = LoggerFactory.getLogger(AdminApiImplTest.class);
 

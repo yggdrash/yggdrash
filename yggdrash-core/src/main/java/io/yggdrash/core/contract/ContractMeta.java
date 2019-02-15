@@ -23,7 +23,7 @@ import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.core.contract.methods.ContractMethod;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
-import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.InvokeTransaction;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -102,7 +102,7 @@ public class ContractMeta {
     }
 
     public Map<String, ContractMethod> getInvokeMethods() {
-        return ContractUtils.contractMethods(getContractInstance(), InvokeTransction.class);
+        return ContractUtils.contractMethods(getContractInstance(), InvokeTransaction.class);
     }
 
 
@@ -122,7 +122,7 @@ public class ContractMeta {
         JsonArray invokeArray = new JsonArray();
         JsonArray queryArray = new JsonArray();
 
-        invokeMethod.entrySet().stream().forEach(set -> {
+        invokeMethod.entrySet().forEach(set -> {
             JsonObject invokeProperty = new JsonObject();
             invokeProperty.addProperty("name", set.getKey());
             if (set.getValue().isParams()) {
@@ -138,7 +138,7 @@ public class ContractMeta {
         });
 
 
-        queryMethod.entrySet().stream().forEach(set -> {
+        queryMethod.entrySet().forEach(set -> {
             JsonObject queryProperty = new JsonObject();
             queryProperty.addProperty("name", set.getKey());
             queryProperty.addProperty("outputType", set.getValue().getMethod().getReturnType().getSimpleName());

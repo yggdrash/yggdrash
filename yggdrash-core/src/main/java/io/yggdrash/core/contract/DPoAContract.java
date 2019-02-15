@@ -11,7 +11,7 @@ import io.yggdrash.core.blockchain.dpoa.tx.TxValidatorPropose;
 import io.yggdrash.core.blockchain.dpoa.tx.TxValidatorVote;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
-import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.InvokeTransaction;
 import io.yggdrash.core.store.Store;
 import org.apache.commons.collections4.MapUtils;
 
@@ -54,7 +54,7 @@ public class DPoAContract {
         return validatorSet;
     }
 
-    @InvokeTransction
+    @InvokeTransaction
     public TransactionReceipt proposeValidator(JsonObject params) {
         txReceipt.setStatus(ExecuteStatus.FALSE);
 
@@ -78,9 +78,8 @@ public class DPoAContract {
             }
 
             //Is the proposed Validator voting complete
-            Iterator<String> iter = proposeValidatorSet.getValidatorMap().keySet().iterator();
-            while (iter.hasNext()) {
-                if (txReceipt.getIssuer().equals(proposeValidatorSet.getValidatorMap().get(iter.next()).getProposalValidatorAddr())) {
+            for (String s : proposeValidatorSet.getValidatorMap().keySet()) {
+                if (txReceipt.getIssuer().equals(proposeValidatorSet.getValidatorMap().get(s).getProposalValidatorAddr())) {
                     return txReceipt;
                 }
             }
@@ -99,7 +98,7 @@ public class DPoAContract {
         return txReceipt;
     }
 
-    @InvokeTransction
+    @InvokeTransaction
     public TransactionReceipt voteValidator(JsonObject params) {
         txReceipt.setStatus(ExecuteStatus.FALSE);
 
@@ -174,7 +173,7 @@ public class DPoAContract {
     }
 
     //todo need to set governance
-    @InvokeTransction
+    @InvokeTransaction
     public TransactionReceipt recoverValidator(String recoverValidator) {
         return null;
     }

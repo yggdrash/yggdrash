@@ -261,7 +261,7 @@ public class CoinContractTest {
         JsonObject genesis = JsonUtil.parseJsonObject(validators);
 
         boolean isSuccess = coinContract.saveInitValidator(genesis.getAsJsonArray("validator"));
-        assertEquals(true, isSuccess);
+        assertTrue(isSuccess);
     }
 
 }

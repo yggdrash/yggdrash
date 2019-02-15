@@ -39,7 +39,7 @@ public class TransactionReceiptStoreTest {
     }
 
     @Test
-    public void testPutTransctionReceipt() {
+    public void testPutTransactionReceipt() {
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setTxId("TEST_TRANSACTION");
         receipt.setStatus(ExecuteStatus.SUCCESS);
@@ -48,7 +48,7 @@ public class TransactionReceiptStoreTest {
     }
 
     @Test
-    public void testTransctionReceipt() {
+    public void testTransactionReceipt() {
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setTxId("TEST_TRANSACTION_1234512345");
         receipt.setStatus(ExecuteStatus.SUCCESS);

@@ -15,12 +15,13 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.lang.reflect.Field;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 //import io.yggdrash.core.runtime.annotation.ContractNonStateStore;
 //import io.yggdrash.core.store.NonStateStore;
@@ -65,7 +66,7 @@ public class DPoAContractTest {
         validatorsArr = genesis.getAsJsonArray("validator");
 
         boolean isSuccess = coinContract.saveInitValidator(validatorsArr);
-        assertEquals(true, isSuccess);
+        assertTrue(isSuccess);
     }
 
     @Test
@@ -197,8 +198,8 @@ public class DPoAContractTest {
         assertEquals(validatorsArr.size(), votable.getTotalVotableCnt());
         assertEquals(validatorsArr.size(), votable.getVotedMap().size());
         assertEquals(ProposeValidatorSet.Votable.VoteStatus.NOT_YET, votable.status());
-        assertEquals(true, votable.getVotedMap().get(issuer).isVoted());
-        assertEquals(true, votable.getVotedMap().get(issuer).isAgree());
+        assertTrue(votable.getVotedMap().get(issuer).isVoted());
+        assertTrue(votable.getVotedMap().get(issuer).isAgree());
     }
 
     /**
@@ -329,18 +330,16 @@ public class DPoAContractTest {
         assertEquals(0, votedHistory.getDisagreeCnt());
 
         Map<String, ProposeValidatorSet.Votable.Vote> votedMap = votedHistory.getVotedMap();
-        Iterator<String> iter = votedMap.keySet().iterator();
-        while (iter.hasNext()) {
-            String validatorAddr = iter.next();
+        for (String validatorAddr : votedMap.keySet()) {
             switch (validatorAddr) {
                 case "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95":
                 case "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94":
-                    assertEquals(true, votedMap.get(validatorAddr).isVoted());
-                    assertEquals(true, votedMap.get(validatorAddr).isAgree());
+                    assertTrue(votedMap.get(validatorAddr).isVoted());
+                    assertTrue(votedMap.get(validatorAddr).isAgree());
                     break;
                 case "a2b0f5fce600eb6c595b28d6253bed92be0568ed":
-                    assertEquals(false, votedMap.get(validatorAddr).isVoted());
-                    assertEquals(false, votedMap.get(validatorAddr).isAgree());
+                    assertFalse(votedMap.get(validatorAddr).isVoted());
+                    assertFalse(votedMap.get(validatorAddr).isAgree());
                     break;
                 default:
                     break;

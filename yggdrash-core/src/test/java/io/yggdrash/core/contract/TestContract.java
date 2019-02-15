@@ -4,10 +4,11 @@ import com.google.gson.JsonObject;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
-import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.InvokeTransaction;
 import io.yggdrash.core.runtime.annotation.YggdrashContract;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.Store;
+
 import java.math.BigDecimal;
 
 @YggdrashContract
@@ -23,13 +24,13 @@ public class TestContract implements Contract {
     public void init(StateStore stateStore) {
     }
 
-    @InvokeTransction
+    @InvokeTransaction
     public Boolean doNothing() {
         // pass
         return true;
     }
 
-    @InvokeTransction
+    @InvokeTransaction
     public TransactionReceipt transfer(JsonObject params) {
 
         String to = params.get("to").getAsString().toLowerCase();
