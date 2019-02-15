@@ -1,7 +1,7 @@
 package io.yggdrash.core.akashic;
 
 import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.net.PeerHandler;
+import io.yggdrash.core.p2p.PeerHandler;
 
 public interface SyncManager {
 

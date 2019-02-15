@@ -1,7 +1,7 @@
 package io.yggdrash.node.api;
 
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerDialer;
+import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerDialer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

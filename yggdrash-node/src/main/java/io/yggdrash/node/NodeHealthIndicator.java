@@ -21,7 +21,7 @@ import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.NodeStatus;
-import io.yggdrash.core.net.PeerDialer;
+import io.yggdrash.core.p2p.PeerDialer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -19,6 +19,11 @@ package io.yggdrash.core.net;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.p2p.KademliaOptions;
+import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerDialer;
+import io.yggdrash.core.p2p.PeerHandler;
+import io.yggdrash.core.p2p.PeerTableGroup;
 
 import java.util.List;
 

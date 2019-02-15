@@ -17,12 +17,12 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.net.KademliaOptions;
 import io.yggdrash.core.net.NodeStatus;
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerDialer;
-import io.yggdrash.core.net.PeerTable;
-import io.yggdrash.core.net.PeerTableGroup;
+import io.yggdrash.core.p2p.KademliaOptions;
+import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerDialer;
+import io.yggdrash.core.p2p.PeerTable;
+import io.yggdrash.core.p2p.PeerTableGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

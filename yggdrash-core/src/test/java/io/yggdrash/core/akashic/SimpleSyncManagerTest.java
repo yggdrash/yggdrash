@@ -2,9 +2,9 @@ package io.yggdrash.core.akashic;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerHandler;
-import io.yggdrash.core.net.PeerHandlerMock;
+import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerHandler;
+import io.yggdrash.core.p2p.PeerHandlerMock;
 import org.junit.Before;
 import org.junit.Test;
 

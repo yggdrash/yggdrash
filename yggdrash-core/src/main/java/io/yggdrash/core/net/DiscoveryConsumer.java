@@ -17,6 +17,7 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.p2p.Peer;
 
 import java.util.List;
 

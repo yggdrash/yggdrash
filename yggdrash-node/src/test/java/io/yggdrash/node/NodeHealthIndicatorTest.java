@@ -18,9 +18,9 @@ package io.yggdrash.node;
 
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.net.PeerDialer;
-import io.yggdrash.core.net.PeerHandlerMock;
-import io.yggdrash.core.net.SimplePeerDialer;
+import io.yggdrash.core.p2p.PeerDialer;
+import io.yggdrash.core.p2p.PeerHandlerMock;
+import io.yggdrash.core.p2p.SimplePeerDialer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;

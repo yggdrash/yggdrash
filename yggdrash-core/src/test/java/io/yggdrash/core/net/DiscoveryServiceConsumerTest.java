@@ -3,6 +3,8 @@ package io.yggdrash.core.net;
 import io.yggdrash.PeerTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerTableGroup;
 import org.junit.Test;
 
 public class DiscoveryServiceConsumerTest {

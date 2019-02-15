@@ -17,13 +17,13 @@
 package io.yggdrash;
 
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.net.KademliaPeerTable;
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerDialer;
-import io.yggdrash.core.net.PeerHandlerMock;
-import io.yggdrash.core.net.PeerTableGroup;
-import io.yggdrash.core.net.PeerTableGroupBuilder;
-import io.yggdrash.core.net.SimplePeerDialer;
+import io.yggdrash.core.p2p.KademliaPeerTable;
+import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerDialer;
+import io.yggdrash.core.p2p.PeerHandlerMock;
+import io.yggdrash.core.p2p.PeerTableGroup;
+import io.yggdrash.core.p2p.PeerTableGroupBuilder;
+import io.yggdrash.core.p2p.SimplePeerDialer;
 import io.yggdrash.core.store.StoreBuilder;
 
 import java.util.Collections;

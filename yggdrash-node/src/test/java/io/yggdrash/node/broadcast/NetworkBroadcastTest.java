@@ -19,7 +19,7 @@ package io.yggdrash.node.broadcast;
 import ch.qos.logback.classic.Level;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.net.KademliaOptions;
+import io.yggdrash.core.p2p.KademliaOptions;
 import io.yggdrash.node.GRpcTestNode;
 import io.yggdrash.node.discovery.AbstractDiscoveryNodeTest;
 import org.junit.Test;

@@ -22,7 +22,7 @@ import io.grpc.testing.GrpcServerRule;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.PeerGrpc;

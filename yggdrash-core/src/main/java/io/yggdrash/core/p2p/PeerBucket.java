@@ -1,4 +1,4 @@
-package io.yggdrash.core.net;
+package io.yggdrash.core.p2p;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -21,7 +21,7 @@ public class PeerBucket {
         return peers.size();
     }
 
-    public Peer getLastPeer() {
+    Peer getLastPeer() {
         return lastPeerOf(peers);
     }
 

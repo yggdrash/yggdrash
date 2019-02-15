@@ -19,6 +19,7 @@ package io.yggdrash.core.net;
 import io.yggdrash.core.akashic.SyncManager;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.p2p.PeerHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

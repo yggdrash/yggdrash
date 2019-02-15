@@ -17,8 +17,8 @@
 package io.yggdrash.gateway.controller;
 
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.net.PeerDialer;
-import io.yggdrash.core.net.PeerTableGroup;
+import io.yggdrash.core.p2p.PeerDialer;
+import io.yggdrash.core.p2p.PeerTableGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

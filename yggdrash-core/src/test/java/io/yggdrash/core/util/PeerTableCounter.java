@@ -1,8 +1,8 @@
 package io.yggdrash.core.util;
 
-import io.yggdrash.core.net.KademliaPeerTable;
-import io.yggdrash.core.net.PeerBucket;
-import io.yggdrash.core.net.PeerTable;
+import io.yggdrash.core.p2p.KademliaPeerTable;
+import io.yggdrash.core.p2p.PeerBucket;
+import io.yggdrash.core.p2p.PeerTable;
 
 public class PeerTableCounter {
 
