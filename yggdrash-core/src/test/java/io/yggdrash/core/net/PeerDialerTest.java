@@ -4,16 +4,16 @@ import io.yggdrash.TestConstants;
 import org.junit.Before;
 import org.junit.Test;
 
-public class PeerHandlerGroupTest {
+public class PeerDialerTest {
 
     private static final Peer OWNER = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
     private static final Peer TARGET = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
-    private PeerHandlerGroup peerHandlerGroup;
+    private PeerDialer peerDialer;
 
     @Before
     public void setUp() {
-        this.peerHandlerGroup = new SimplePeerHandlerGroup(PeerHandlerMock.factory);
-        peerHandlerGroup.setPeerEventListener(peer -> {
+        this.peerDialer = new SimplePeerDialer(PeerHandlerMock.factory);
+        peerDialer.setPeerEventListener(peer -> {
             assert peer != null;
         });
     }
@@ -26,24 +26,24 @@ public class PeerHandlerGroupTest {
     @Test
     public void healthCheck() {
         healthCheckForAddHandler();
-        peerHandlerGroup.healthCheck(TestConstants.yggdrash(), OWNER, TARGET); // Pong null 응답
-        assert peerHandlerGroup.getActivePeerList().isEmpty();
+        peerDialer.healthCheck(TestConstants.yggdrash(), OWNER, TARGET); // Pong null 응답
+        assert peerDialer.getActivePeerList().isEmpty();
     }
 
     @Test
     public void destroyAll() {
         healthCheckForAddHandler();
-        peerHandlerGroup.destroyAll();
+        peerDialer.destroyAll();
     }
 
     @Test
     public void getActivePeerListOf() {
-        assert peerHandlerGroup.getActiveAddressList().size() == 0;
+        assert peerDialer.getActiveAddressList().size() == 0;
     }
 
     private void healthCheckForAddHandler() {
-        assert peerHandlerGroup.getActivePeerList().isEmpty();
-        peerHandlerGroup.healthCheck(TestConstants.yggdrash(), OWNER, TARGET);
-        assert !peerHandlerGroup.getActivePeerList().isEmpty();
+        assert peerDialer.getActivePeerList().isEmpty();
+        peerDialer.healthCheck(TestConstants.yggdrash(), OWNER, TARGET);
+        assert !peerDialer.getActivePeerList().isEmpty();
     }
 }

@@ -26,28 +26,35 @@ public class KademliaPeerNetwork implements PeerNetwork {
 
     private PeerTableGroup peerTableGroup;
 
-    private PeerHandlerGroup peerHandlerGroup;
+    private PeerDialer peerDialer;
 
-    public KademliaPeerNetwork(PeerTableGroup peerTableGroup, PeerHandlerGroup peerHandlerGroup) {
+    public KademliaPeerNetwork(PeerTableGroup peerTableGroup, PeerDialer peerDialer) {
         this.peerTableGroup = peerTableGroup;
-        this.peerHandlerGroup = peerHandlerGroup;
+        this.peerDialer = peerDialer;
     }
 
     @Override
-    public void init(BranchId branchId) {
-        peerTableGroup.createTable(branchId);
+    public void init() {
         peerTableGroup.selfRefresh();
-        List<Peer> closestPeerList =
-                peerTableGroup.getClosestPeers(branchId, peerTableGroup.getOwner(), KademliaOptions.BROADCAST_SIZE);
-        for (Peer peer : closestPeerList) {
-            peerHandlerGroup.healthCheck(branchId, peerTableGroup.getOwner(), peer);
+
+        for (BranchId branchId : peerTableGroup.getAllBrancheId()) {
+            List<Peer> closestPeerList =
+                    peerTableGroup.getClosestPeers(branchId, peerTableGroup.getOwner(), KademliaOptions.BROADCAST_SIZE);
+            for (Peer peer : closestPeerList) {
+                peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), peer);
+            }
         }
+    }
+
+    @Override
+    public void addNetwork(BranchId branchId) {
+        peerTableGroup.createTable(branchId);
     }
 
     @Override
     public List<PeerHandler> getHandlerList(BranchId branchId) {
         List<Peer> peerList = peerTableGroup.getBroadcastPeerList(branchId);
-        return peerHandlerGroup.getHandlerList(peerList);
+        return peerDialer.getHandlerList(peerList);
     }
 
     @Override
@@ -57,7 +64,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
             try {
                 peerHandler.broadcastTransaction(tx);
             } catch (Exception e) {
-                peerHandlerGroup.removeHandler(peerHandler);
+                peerDialer.removeHandler(peerHandler);
             }
         }
     }
@@ -69,7 +76,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
             try {
                 peerHandler.broadcastBlock(block);
             } catch (Exception e) {
-                peerHandlerGroup.removeHandler(peerHandler);
+                peerDialer.removeHandler(peerHandler);
             }
         }
     }

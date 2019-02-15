@@ -17,7 +17,7 @@
 package io.yggdrash.gateway.controller;
 
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.net.PeerHandlerGroup;
+import io.yggdrash.core.net.PeerDialer;
 import io.yggdrash.core.net.PeerTableGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -35,22 +35,22 @@ class PeerController {
 
     private final PeerTableGroup peerTableGroup;
 
-    private final PeerHandlerGroup peerHandlerGroup;
+    private final PeerDialer peerDialer;
 
     @Autowired
-    public PeerController(PeerTableGroup peerTableGroup, PeerHandlerGroup peerHandlerGroup) {
+    public PeerController(PeerTableGroup peerTableGroup, PeerDialer peerDialer) {
         this.peerTableGroup = peerTableGroup;
-        this.peerHandlerGroup = peerHandlerGroup;
+        this.peerDialer = peerDialer;
     }
 
     @GetMapping("/active")
     public ResponseEntity getAllActivePeer() {
-        return ResponseEntity.ok(peerHandlerGroup.getActivePeerList());
+        return ResponseEntity.ok(peerDialer.getActivePeerList());
     }
 
     @GetMapping("/channels")
     public ResponseEntity getChannels() {
-        return ResponseEntity.ok(peerHandlerGroup.getActiveAddressList());
+        return ResponseEntity.ok(peerDialer.getActiveAddressList());
     }
 
     @GetMapping("/{branchId}/buckets")

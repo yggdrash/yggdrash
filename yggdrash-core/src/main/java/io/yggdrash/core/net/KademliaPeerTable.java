@@ -205,7 +205,7 @@ public class KademliaPeerTable implements PeerTable {
     }
 
     /**
-     * call back from PeerHandlerGroup
+     * call back from PeerDialer
      * @param peer disconnected peer
      */
     @Override

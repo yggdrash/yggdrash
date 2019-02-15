@@ -21,13 +21,13 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
     private final Peer owner;  // our node
     private final Map<BranchId, PeerTable> tableMap = new ConcurrentHashMap<>();
     private final StoreBuilder storeBuilder;
-    private final PeerHandlerFactory factory;
+    private final PeerDialer peerDialer;
     private List<String> seedPeerList;
 
-    public KademliaPeerTableGroup(Peer owner, StoreBuilder storeBuilder, PeerHandlerFactory factory) {
+    KademliaPeerTableGroup(Peer owner, StoreBuilder storeBuilder, PeerDialer peerDialer) {
         this.owner = owner;
         this.storeBuilder = storeBuilder;
-        this.factory = factory;
+        this.peerDialer = peerDialer;
     }
 
     @Override
@@ -66,7 +66,11 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
         if (peerTable == null && !isNotSeed(owner)) {
             peerTable = createTable(branchId);
         }
-        peerTable.addPeer(peer);
+        if (peerTable == null) {
+            log.warn("{} branch is not exist to add peer", branchId);
+        } else {
+            peerTable.addPeer(peer);
+        }
     }
 
     private boolean isNotSeed(Peer target) {
@@ -129,7 +133,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
 
             for (Peer peer : closest) {
                 if (!tried.contains(peer) && !prevTried.contains(peer)) {
-                    PeerHandler peerHandler = factory.create(peer);
+                    PeerHandler peerHandler = peerDialer.getPeerHandler(peer);
                     try {
                         List<Peer> peerList = peerHandler.findPeers(entry.getKey(), target);
                         for (Peer findPeer : peerList) {
@@ -141,8 +145,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
                         tried.add(peer);
                     } catch (Exception e) {
                         log.warn(e.getMessage());
-                    } finally {
-                        peerHandler.stop();
+                        peerDialer.removeHandler(peerHandler);
                     }
                 }
                 if (tried.size() == KademliaOptions.ALPHA) {
@@ -194,7 +197,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
     }
 
     /**
-     * call back from PeerHandlerGroup
+     * call back from PeerDialer
      * @param peer disconnected peer
      */
     @Override
