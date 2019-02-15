@@ -230,3 +230,13 @@ coveralls {
     sourceDirs = subprojects.sourceSets.main.allSource.srcDirs.flatten()
     jacocoReportPath = "${buildDir}/reports/jacoco/jacocoRootReport/jacocoRootReport.xml"
 }
+
+// TODO delete using scanning each project
+// usage: ./gradlew cleanConfig -q
+task cleanConfig(type: Delete) {
+    println('# Clean YGGDRASH Config in All modules')
+    delete '.yggdrash'
+    delete 'yggdrash-core/.yggdrash'
+    delete 'yggdrash-node/.yggdrash'
+    delete 'yggdrash-validator/.yggdrash'
+}
