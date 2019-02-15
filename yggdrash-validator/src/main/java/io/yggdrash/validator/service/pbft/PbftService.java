@@ -188,10 +188,8 @@ public class PbftService implements CommandLineRunner {
 
         log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedMsgMap().size());
 
-        if (!this.blockChain.TEST_NONE_TXSTORE) {
-            log.debug("TxStore unConfirmed Tx.size= "
-                    + this.blockChain.getTransactionStore().getUnconfirmedTxs().size());
-        }
+        log.debug("TxStore unConfirmed Tx.size= "
+                + this.blockChain.getTransactionStore().getUnconfirmedTxs().size());
 
         log.info("");
     }
@@ -310,9 +308,8 @@ public class PbftService implements CommandLineRunner {
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
         List<Transaction> txs = new ArrayList<>();
         List<TransactionHusk> txHusks = new ArrayList<>();
-        if (!this.blockChain.TEST_NONE_TXSTORE) {
-            txHusks.addAll(blockChain.getTransactionStore().getUnconfirmedTxs());
-        }
+
+        txHusks.addAll(blockChain.getTransactionStore().getUnconfirmedTxs());
 
         for (TransactionHusk txHusk : txHusks) {
             txs.add(txHusk.getCoreTransaction());

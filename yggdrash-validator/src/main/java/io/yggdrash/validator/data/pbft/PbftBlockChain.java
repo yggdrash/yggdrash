@@ -24,7 +24,6 @@ import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 public class PbftBlockChain {
 
     private static final Logger log = LoggerFactory.getLogger(PbftBlockChain.class);
-    public static final boolean TEST_NONE_TXSTORE = false;
 
     private final byte[] chain;
     private final String host;
@@ -86,14 +85,10 @@ public class PbftBlockChain {
             this.blockStore.put(this.genesisBlock.getHash(), this.genesisBlock);
         }
 
-        if (TEST_NONE_TXSTORE) {
-            this.transactionStore = null;
-        } else {
-            this.transactionStore = new TransactionStore(
-                    new LevelDbDataSource(defaultConfig.getDatabasePath(),
-                            this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
-                                    + "/txs"));
-        }
+        this.transactionStore = new TransactionStore(
+                new LevelDbDataSource(defaultConfig.getDatabasePath(),
+                        this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
+                                + "/txs"));
     }
 
     public byte[] getChain() {
