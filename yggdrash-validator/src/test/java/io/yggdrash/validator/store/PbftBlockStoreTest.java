@@ -1,8 +1,18 @@
-package io.yggdrash.validator.data.pbft;
+package io.yggdrash.validator.store;
 
+import io.yggdrash.StoreTestUtils;
+import io.yggdrash.TestConstants;
+import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.proto.PbftProto;
+import io.yggdrash.validator.data.pbft.PbftBlock;
+import io.yggdrash.validator.data.pbft.PbftMessage;
+import io.yggdrash.validator.data.pbft.PbftMessageSet;
+import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
+import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import io.yggdrash.validator.util.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,19 +21,22 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
-import static org.junit.Assert.assertNotNull;
+import static io.yggdrash.common.util.Utils.sleep;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
-public class PbftBlockTest {
-
-    private static final Logger log = LoggerFactory.getLogger(PbftBlockTest.class);
+public class PbftBlockStoreTest {
+    private static final Logger log = LoggerFactory.getLogger(PbftBlockStoreTest.class);
 
     private Wallet wallet;
     private Wallet wallet2;
@@ -63,6 +76,12 @@ public class PbftBlockTest {
     private Map<String, PbftMessage> prepareMap = new TreeMap<>();
     private Map<String, PbftMessage> commitMap = new TreeMap<>();
     private Map<String, PbftMessage> viewChangeMap = new TreeMap<>();
+
+    private LevelDbDataSource blockKeyDs;
+    private PbftBlockKeyStore blockKeyStore;
+
+    private LevelDbDataSource blockDs;
+    private PbftBlockStore blockStore;
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
@@ -208,133 +227,105 @@ public class PbftBlockTest {
         viewChangeMap.put(viewChange3.getSignatureHex(), viewChange3);
         viewChangeMap.put(viewChange4.getSignatureHex(), viewChange4);
 
-        pbftMessageSet = new PbftMessageSet(prePrepare, prepareMap, commitMap, viewChangeMap);
+        pbftMessageSet = new PbftMessageSet(prePrepare, prepareMap, commitMap, null);
         pbftMessageSet2 = new PbftMessageSet(prePrepare, null, null, null);
         pbftMessageSet3 = new PbftMessageSet(prePrepare, prepareMap, null, null);
-        pbftMessageSet4 = new PbftMessageSet(prePrepare, prepareMap, commitMap, null);
+        pbftMessageSet4 = new PbftMessageSet(prePrepare, prepareMap, commitMap, viewChangeMap);
 
         this.pbftBlock = new PbftBlock(this.block, this.pbftMessageSet);
         this.pbftBlock2 = new PbftBlock(this.block2, this.pbftMessageSet2);
         this.pbftBlock3 = new PbftBlock(this.block3, this.pbftMessageSet3);
         this.pbftBlock4 = new PbftBlock(this.block4, this.pbftMessageSet4);
 
+        StoreTestUtils.clearTestDb();
+
+        this.blockKeyDs = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockKeyStoreTest");
+        this.blockKeyStore = new PbftBlockKeyStore(blockKeyDs);
+        this.blockKeyStore.put(this.pbftBlock.getIndex(), this.pbftBlock.getHash());
+
+        this.blockDs = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockStoreTest");
+        this.blockStore = new PbftBlockStore(blockDs);
+        this.blockStore.put(this.pbftBlock.getHash(), this.pbftBlock);
     }
 
     @Test
-    public void constuctorTest_Default() {
-        log.debug(this.pbftBlock.toJsonObject().toString());
-        assertNotNull(this.pbftBlock);
-
-        log.debug(this.pbftBlock2.toJsonObject().toString());
-        assertNotNull(this.pbftBlock2);
-
-        log.debug(this.pbftBlock3.toJsonObject().toString());
-        assertNotNull(this.pbftBlock3);
-
-        log.debug(this.pbftBlock4.toJsonObject().toString());
-        assertNotNull(this.pbftBlock4);
+    public void putGetTest() {
+        byte[] newHash = blockKeyStore.get(this.pbftBlock.getIndex());
+        PbftBlock newBlock = blockStore.get(newHash);
+        assertTrue(newBlock.equals(this.pbftBlock));
+        assertTrue(blockStore.contains(this.pbftBlock.getHash()));
+        assertFalse(blockStore.contains(EMPTY_BYTE32));
     }
 
     @Test
-    public void constuctorTest_JsonObect() {
-        {
-            PbftBlock newBlock = new PbftBlock(this.pbftBlock.toJsonObject());
-            log.debug(newBlock.toJsonObject().toString());
+    public void putTest_Null() {
+        try {
+            blockStore.put(null, this.pbftBlock);
+        } catch (NotValidateException ne) {
+            log.debug(ne.getMessage());
+            assert true;
+        }
+        try {
+            blockStore.put(this.pbftBlock.getHash(), null);
+        } catch (NotValidateException ne) {
+            log.debug(ne.getMessage());
+            assert true;
+            return;
+        }
+        assert false;
+    }
+
+    @Test
+    public void getTest_Null() {
+        try {
+            blockStore.get(null);
+        } catch (NotValidateException ne) {
+            log.debug(ne.getMessage());
+            assert true;
+            return;
+        }
+        assert false;
+    }
+
+    @Test
+    public void closeTest() {
+        blockStore.close();
+        try {
+            blockStore.get(this.pbftBlock.getHash());
+        } catch (NullPointerException ne) {
+            assert true;
+            this.blockStore = new PbftBlockStore(blockDs);
+            PbftBlock newBlock = blockStore.get(this.pbftBlock.getHash());
             assertTrue(newBlock.equals(this.pbftBlock));
+            return;
         }
-
-        {
-            PbftBlock newBlock = new PbftBlock(this.pbftBlock2.toJsonObject());
-            log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock2));
-        }
-
-        {
-            PbftBlock newBlock = new PbftBlock(this.pbftBlock3.toJsonObject());
-            log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock3));
-        }
-
-        {
-            PbftBlock newBlock = new PbftBlock(this.pbftBlock4.toJsonObject());
-            log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock4));
-        }
+        assert false;
     }
 
     @Test
-    public void constuctorTest_Bytes() {
-        {
-            PbftBlock newBlock = new PbftBlock(this.pbftBlock.toBinary());
-            log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock));
+    public void memoryTest() {
+        TestConstants.PerformanceTest.apply();
+
+        long testNumber = 100000;
+        PbftBlock result;
+        List<PbftBlock> resultList = new ArrayList<>();
+
+        log.debug("Before free memory: " + Runtime.getRuntime().freeMemory());
+        for (long l = 0L; l < testNumber; l++) {
+            this.blockStore.put(HashUtil.sha3(ByteUtil.longToBytes(l)), this.pbftBlock);
+            result = this.blockStore.get(HashUtil.sha3(ByteUtil.longToBytes(l)));
+            resultList.add(result);
         }
 
-        {
-            PbftBlock newBlock = new PbftBlock(this.pbftBlock2.toBinary());
-            log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock2));
+        for (PbftBlock pbftBlock : resultList) {
+            pbftBlock.clear();
         }
+        resultList.clear();
 
-        {
-            PbftBlock newBlock = new PbftBlock(this.pbftBlock3.toBinary());
-            log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock3));
-        }
+        log.debug("After free memory: " + Runtime.getRuntime().freeMemory());
 
-        {
-            PbftBlock newBlock = new PbftBlock(this.pbftBlock4.toBinary());
-            log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock4));
-        }
-    }
-
-    @Test
-    public void constuctorTest_Proto() {
-        {
-            PbftProto.PbftBlock newBlockProto = PbftBlock.toProto(this.pbftBlock);
-            PbftBlock newBlock = new PbftBlock(newBlockProto);
-            log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock));
-        }
-
-        {
-            PbftProto.PbftBlock newBlockProto = PbftBlock.toProto(this.pbftBlock2);
-            PbftBlock newBlock = new PbftBlock(newBlockProto);
-            log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock2));
-        }
-
-        {
-            PbftProto.PbftBlock newBlockProto = PbftBlock.toProto(this.pbftBlock3);
-            PbftBlock newBlock = new PbftBlock(newBlockProto);
-            log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock3));
-        }
-
-        {
-            PbftProto.PbftBlock newBlockProto = PbftBlock.toProto(this.pbftBlock4);
-            PbftBlock newBlock = new PbftBlock(newBlockProto);
-            log.debug(newBlock.toJsonObject().toString());
-            assertTrue(newBlock.equals(this.pbftBlock4));
-        }
-    }
-
-    @Test
-    public void verifyTest() {
-        assertTrue(PbftBlock.verify(this.pbftBlock)
-                && PbftBlock.verify(this.pbftBlock2)
-                && PbftBlock.verify(this.pbftBlock3)
-                && PbftBlock.verify(this.pbftBlock4));
-    }
-
-    @Test
-    public void cloneTest() {
-        PbftBlock newPbftBlock = this.pbftBlock.clone();
-        assertTrue(newPbftBlock.equals(this.pbftBlock));
-
-        newPbftBlock.clear();
-        assertTrue(PbftBlock.verify(this.pbftBlock));
+        System.gc();
+        sleep(20000);
     }
 
 }

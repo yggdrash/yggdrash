@@ -147,7 +147,6 @@ public class WalletTest extends SlowTest {
         Wallet wallet = new Wallet(null, "tmp/temp", "temp.key", "Aa1234567890!");
 
         byte[] plain = "test data 1111".getBytes();
-        byte[] plain2 = "test data 2222".getBytes();
         log.debug("Plain data: " + new String(plain));
 
         byte[] signature = wallet.sign(plain);
@@ -157,6 +156,7 @@ public class WalletTest extends SlowTest {
         log.debug("Verify Result: " + verifyResult);
         assertTrue(verifyResult);
 
+        byte[] plain2 = "test data 2222".getBytes();
         verifyResult = wallet.verify(plain2, signature);
         log.debug("Verify Result: " + verifyResult);
         assertFalse(verifyResult);

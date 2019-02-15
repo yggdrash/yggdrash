@@ -148,4 +148,13 @@ public class PbftBlock {
         }
         return Arrays.equals(this.toBinary(), block.toBinary());
     }
+
+    public void clear() {
+        this.block.clear();
+        this.pbftMessageSet.clear();
+    }
+
+    public PbftBlock clone() {
+        return new PbftBlock(this.toJsonObject());
+    }
 }
