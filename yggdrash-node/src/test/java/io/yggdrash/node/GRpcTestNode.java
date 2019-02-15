@@ -11,74 +11,80 @@ import io.yggdrash.core.net.BlockChainServiceConsumer;
 import io.yggdrash.core.net.BootStrapNode;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.DiscoveryServiceConsumer;
-import io.yggdrash.core.net.KademliaPeerNetwork;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.NodeStatusMock;
+import io.yggdrash.core.net.PeerDialer;
 import io.yggdrash.core.net.PeerHandlerFactory;
-import io.yggdrash.core.net.PeerHandlerGroup;
 import io.yggdrash.core.net.PeerNetwork;
 import io.yggdrash.core.net.PeerTable;
 import io.yggdrash.core.net.PeerTableGroup;
-import io.yggdrash.core.net.SimplePeerHandlerGroup;
+import io.yggdrash.core.net.SimplePeerDialer;
 import io.yggdrash.core.util.PeerTableCounter;
+import io.yggdrash.node.config.NetworkConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class GRpcTestNode extends BootStrapNode {
     private static final Logger log = LoggerFactory.getLogger(GRpcTestNode.class);
 
-    public final PeerTableGroup peerTableGroup;
-    public final int port;
-
     // discovery specific
-    public final DiscoveryConsumer discoveryConsumer;
-    private final PeerHandlerGroup peerHandlerGroup;
-    public final PeerTask peerTask;
+    public final int port;
+    public DiscoveryConsumer discoveryConsumer;
+    private PeerDialer peerDialer;
+    public PeerTableGroup peerTableGroup;
+    public PeerTask peerTask;
 
-    // blockchain specific
+    // branch specific
     public BlockChainConsumer blockChainConsumer;
 
-    public GRpcTestNode(PeerHandlerFactory factory, int port) {
+    public GRpcTestNode(PeerHandlerFactory factory, int port, boolean enableBranch) {
         this.port = port;
-        this.peerTableGroup = PeerTestUtils.createTableGroup(port, factory);
-        if (!isSeed()) {
-            peerTableGroup.createTable(TestConstants.yggdrash());
-        }
-        this.discoveryConsumer = new DiscoveryServiceConsumer(peerTableGroup);
-        this.peerHandlerGroup = new SimplePeerHandlerGroup(factory);
 
-        this.peerTask = new PeerTask();
+        // node configuration
         NodeStatus nodeStatus = NodeStatusMock.mock;
         setNodeStatus(nodeStatus);
-        peerTask.setNodeStatus(nodeStatus);
-        peerTask.setPeerHandlerGroup(peerHandlerGroup);
-        peerTask.setPeerTableGroup(peerTableGroup);
-
-        setPeerNetwork(new KademliaPeerNetwork(peerTableGroup, peerHandlerGroup));
-
         setBranchGroup(new BranchGroup());
         setSyncManager(new SimpleSyncManager());
+
+        p2pConfiguration(factory, nodeStatus);
+
+        branchConfiguration(enableBranch);
+
+        networkConfiguration();
     }
 
-    public void activateBlockChainService(boolean activate) {
-        if (!activate || isSeed()) {
+    private void p2pConfiguration(PeerHandlerFactory factory, NodeStatus nodeStatus) {
+        this.peerDialer = new SimplePeerDialer(factory);
+        this.peerTableGroup = PeerTestUtils.createTableGroup(port, peerDialer);
+        this.discoveryConsumer = new DiscoveryServiceConsumer(peerTableGroup);
+
+        this.peerTask = new PeerTask();
+        peerTask.setNodeStatus(nodeStatus);
+        peerTask.setPeerDialer(peerDialer);
+        peerTask.setPeerTableGroup(peerTableGroup);
+    }
+
+    private void branchConfiguration(boolean enableBranch) {
+        if (!enableBranch || isSeed()) {
             return;
         }
         BlockChain bc = BlockChainTestUtils.createBlockChain(false);
-        branchGroup.addBranch(bc, peerNetwork);
+        branchGroup.addBranch(bc);
         blockChainConsumer = new BlockChainServiceConsumer(branchGroup);
+    }
+
+    private void networkConfiguration() {
+        NetworkConfiguration config = new NetworkConfiguration();
+        PeerNetwork peerNetwork = config.peerNetwork(peerTableGroup, peerDialer, branchGroup);
+        setPeerNetwork(peerNetwork);
     }
 
     public BranchGroup getBranchGroup() {
         return branchGroup;
     }
 
-    public PeerNetwork getPeerNetwork() {
-        return peerNetwork;
-    }
-
     public int getActivePeerCount() {
-        return peerHandlerGroup.handlerCount();
+        return peerDialer.handlerCount();
     }
 
     public void logDebugging() {

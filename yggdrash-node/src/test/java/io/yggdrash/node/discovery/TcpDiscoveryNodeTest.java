@@ -44,12 +44,12 @@ public class TcpDiscoveryNodeTest extends AbstractDiscoveryNodeTest {
     @Override
     public void setUp() {
         super.setUp();
-        context.refresh();
     }
 
     @Test
     public void testDiscoveryLarge() {
         TestConstants.SlowTest.apply();
+        context.refresh();
 
         // act
         bootstrapNodes(50);

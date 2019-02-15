@@ -22,7 +22,12 @@ public class BootStrapNodeTest {
             setNodeStatus(NodeStatusMock.mock);
             setPeerNetwork(new PeerNetwork() {
                 @Override
-                public void init(BranchId branchId) {
+                public void init() {
+
+                }
+
+                @Override
+                public void addNetwork(BranchId branchId) {
 
                 }
 

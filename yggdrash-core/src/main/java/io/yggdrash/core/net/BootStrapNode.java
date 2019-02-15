@@ -29,11 +29,12 @@ public abstract class BootStrapNode implements BootStrap {
 
     private SyncManager syncManager;
     private NodeStatus nodeStatus;
-    protected PeerNetwork peerNetwork;
+    private PeerNetwork peerNetwork;
     protected BranchGroup branchGroup;
 
     @Override
     public void bootstrapping() {
+        peerNetwork.init();
         try {
             nodeStatus.sync();
             for (BlockChain blockChain : branchGroup.getAllBranch()) {

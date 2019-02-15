@@ -22,7 +22,9 @@ import io.yggdrash.core.blockchain.BranchId;
 import java.util.List;
 
 public interface PeerNetwork extends BranchEventListener {
-    void init(BranchId branchId);
+    void init();
+
+    void addNetwork(BranchId branchId);
 
     List<PeerHandler> getHandlerList(BranchId branchId);
 }
