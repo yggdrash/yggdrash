@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static io.yggdrash.common.config.Constants.DEFAULT_PORT;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 
 public class PbftBlockChain {
@@ -47,7 +48,11 @@ public class PbftBlockChain {
 
         this.chain = genesisBlock.getHeader().getChain();
         this.host = InetAddress.getLoopbackAddress().getHostAddress();
-        this.port = Integer.parseInt(System.getProperty("grpc.port"));
+        if (System.getProperty("grpc.port") == null) {
+            this.port = DEFAULT_PORT;
+        } else {
+            this.port = Integer.parseInt(System.getProperty("grpc.port"));
+        }
 
         this.genesisBlock = new PbftBlock(genesisBlock, null);
         this.lastConfirmedBlock = this.genesisBlock;

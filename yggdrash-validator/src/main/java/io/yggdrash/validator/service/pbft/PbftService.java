@@ -101,6 +101,7 @@ public class PbftService implements CommandLineRunner {
         printInitInfo();
     }
 
+    // todo: chage cron setting to config file or genesis ...
     @Scheduled(cron = "*/2 * * * * *")
     public void mainScheduler() {
 
