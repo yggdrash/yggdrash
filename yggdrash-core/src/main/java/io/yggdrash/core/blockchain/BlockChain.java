@@ -77,8 +77,11 @@ public class BlockChain {
     }
 
     private void initGenesis() {
+
         for (TransactionHusk tx : genesisBlock.getBody()) {
-            addTransaction(tx);
+            if (!transactionStore.contains(tx.getHash())) {
+                transactionStore.put(tx.getHash(), tx);
+            }
         }
         addBlock(genesisBlock, false);
     }

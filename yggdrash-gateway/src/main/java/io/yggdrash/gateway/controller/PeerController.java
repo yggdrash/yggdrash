@@ -16,26 +16,30 @@
 
 package io.yggdrash.gateway.controller;
 
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.PeerHandlerGroup;
-import io.yggdrash.core.net.PeerTable;
+import io.yggdrash.core.net.PeerTableGroup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
 
 @RestController
 @RequestMapping("peers")
 class PeerController {
 
-    private final PeerTable peerTable;
+    private final PeerTableGroup peerTableGroup;
 
     private final PeerHandlerGroup peerHandlerGroup;
 
     @Autowired
-    public PeerController(PeerTable peerTable, PeerHandlerGroup peerHandlerGroup) {
-        this.peerTable = peerTable;
+    public PeerController(PeerTableGroup peerTableGroup, PeerHandlerGroup peerHandlerGroup) {
+        this.peerTableGroup = peerTableGroup;
         this.peerHandlerGroup = peerHandlerGroup;
     }
 
@@ -49,18 +53,19 @@ class PeerController {
         return ResponseEntity.ok(peerHandlerGroup.getActiveAddressList());
     }
 
-    @GetMapping("/buckets")
-    public ResponseEntity getBuckets() {
-        return ResponseEntity.ok(peerTable.getBucketIdAndPeerList());
+    @GetMapping("/{branchId}/buckets")
+    public ResponseEntity getBuckets(@PathVariable(name = BRANCH_ID) String branchId) {
+        return ResponseEntity.ok(peerTableGroup.getPeerTable(BranchId.of(branchId)).getBucketIdAndPeerList());
     }
 
-    @GetMapping("/buckets/allPeers")
-    public ResponseEntity getPeersFromBuckets() {
-        return ResponseEntity.ok(peerTable.getAllPeersFromBucketsOf());
+    @GetMapping("/{branchId}/buckets/allPeers")
+    public ResponseEntity getPeersFromBuckets(@PathVariable(name = BRANCH_ID) String branchId) {
+        return ResponseEntity.ok(peerTableGroup.getPeerTable(BranchId.of(branchId)).getAllPeerAddressList());
     }
 
-    @GetMapping("/latestPeers")
-    public ResponseEntity getLatestPeers(@RequestParam(value = "reqTime") long reqTime) {
-        return ResponseEntity.ok(peerTable.getLatestPeers(reqTime));
+    @GetMapping("/{branchId}/latestPeers")
+    public ResponseEntity getLatestPeers(@PathVariable(name = BRANCH_ID) String branchId,
+                                         @RequestParam(value = "reqTime") long reqTime) {
+        return ResponseEntity.ok(peerTableGroup.getPeerTable(BranchId.of(branchId)).getLatestPeers(reqTime));
     }
 }

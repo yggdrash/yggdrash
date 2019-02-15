@@ -114,6 +114,7 @@ public class AdminApiImpl implements AdminApi {
         System.arraycopy(nonce, COMMAND_RAND_LENGTH, newNonce, 0, COMMAND_RAND_LENGTH);
         System.arraycopy(newRand, 0, newNonce, COMMAND_RAND_LENGTH, COMMAND_RAND_LENGTH);
         header.addProperty("nonce", Hex.toHexString(newNonce));
+        newNonce = null;
 
         // - bodyHash
         byte[] bodyHash = HashUtil.sha3(body.toString().getBytes());
@@ -133,6 +134,7 @@ public class AdminApiImpl implements AdminApi {
 
         this.commandMap.put(Hex.toHexString(newRand),
                 Hex.toHexString(ByteUtil.longToBytes(timestamp)));
+        newRand = null;
         // todo: delete the unused data for a long time.
 
         return returnObject.toString();
@@ -227,6 +229,8 @@ public class AdminApiImpl implements AdminApi {
         System.arraycopy(nonce, COMMAND_RAND_LENGTH, newNonce, 0, COMMAND_RAND_LENGTH);
         System.arraycopy(newRand, 0, newNonce, COMMAND_RAND_LENGTH, COMMAND_RAND_LENGTH);
         header.addProperty("nonce", Hex.toHexString(newNonce));
+        newRand = null;
+        newNonce = null;
 
         // - bodyHash
         byte[] bodyHash = HashUtil.sha3(body.toString().getBytes());

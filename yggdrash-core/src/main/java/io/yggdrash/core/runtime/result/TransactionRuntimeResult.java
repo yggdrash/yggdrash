@@ -44,7 +44,7 @@ public class TransactionRuntimeResult {
     }
 
     public void setChangeValues(Set<Map.Entry<String, JsonObject>> values) {
-        values.stream().forEach(entry -> {changeValues.put(entry.getKey(), entry.getValue()); });
+        values.stream().forEach(entry -> changeValues.put(entry.getKey(), entry.getValue()));
     }
 
     public Map<String, JsonObject> getChangeValues() {

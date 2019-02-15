@@ -28,6 +28,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE20;
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
+
 public class TestUtils {
     public static final String YGG_HOME = "testOutput";
 
@@ -111,9 +115,9 @@ public class TestUtils {
             BlockBody blockBody = new BlockBody(txList);
             BlockHeader blockHeader = new BlockHeader(
                     HashUtil.sha3omit12(txBody.getBodyHash()),
-                    new byte[8],
-                    new byte[8],
-                    new byte[32],
+                    EMPTY_BYTE8,
+                    EMPTY_BYTE8,
+                    EMPTY_BYTE32,
                     0L,
                     0L,
                     blockBody.getMerkleRoot(),
@@ -390,7 +394,7 @@ public class TestUtils {
         BlockHeader blockHeader;
         try {
             blockHeader = new BlockHeader(
-                    new byte[20], new byte[8], new byte[8], new byte[32], index, timestamp,
+                    EMPTY_BYTE20, EMPTY_BYTE8, EMPTY_BYTE8, EMPTY_BYTE32, index, timestamp,
                     blockBody.getMerkleRoot(), blockBody.length());
 
             byte[] blockSig = wallet.signHashedData(blockHeader.getHashForSigning());

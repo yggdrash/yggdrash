@@ -22,8 +22,6 @@ import io.yggdrash.core.exception.NotValidateException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Set;
 
 public class Peer {
     private static final String YGGDRASH_NODE_SCHEMA = "ynode";
@@ -33,7 +31,6 @@ public class Peer {
     private String host;
     private int port;
     private String ynodeUri;
-    private final Set<BestBlock> bestBlocks = new HashSet<>();
     private long modified;
     private int distance;
 
@@ -66,8 +63,17 @@ public class Peer {
     }
 
     public static Peer valueOf(String nodeId, String host, int port) {
-        return valueOf(String.format(PEER_URI_FORMAT, YGGDRASH_NODE_SCHEMA,
-                nodeId, host + ":" + port));
+        return valueOf(nodeId, host, port, false);
+    }
+
+    public static Peer valueOf(String nodeId, String host, int port, boolean isSeed) {
+        if (isSeed && ("localhost".equals(host) || "127.0.0.1".equals(host))) {
+            return valueOf(String.format(PEER_URI_FORMAT, YGGDRASH_NODE_SCHEMA,
+                    "00", host + ":" + port));
+        } else {
+            return valueOf(String.format(PEER_URI_FORMAT, YGGDRASH_NODE_SCHEMA,
+                    nodeId, host + ":" + port));
+        }
     }
 
     public PeerId getPeerId() {
@@ -122,20 +128,12 @@ public class Peer {
         return ynodeUri;
     }
 
-    public String toAddress() {
+    String toAddress() {
         return host + ":" + port;
     }
 
     void touch() {
         modified = System.currentTimeMillis();
-    }
-
-    public Set<BestBlock> getBestBlocks() {
-        return bestBlocks;
-    }
-
-    public void updateBestBlock(BestBlock bestBlock) {
-        this.bestBlocks.add(bestBlock);
     }
 
     long getModified() {

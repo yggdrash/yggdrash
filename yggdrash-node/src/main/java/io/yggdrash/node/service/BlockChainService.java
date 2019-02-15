@@ -24,7 +24,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
     private BlockChainConsumer blockChainConsumer;
 
     @Autowired
-    BlockChainService(BlockChainConsumer blockChainConsumer) {
+    public BlockChainService(BlockChainConsumer blockChainConsumer) {
         this.blockChainConsumer = blockChainConsumer;
     }
 

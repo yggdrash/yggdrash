@@ -18,7 +18,7 @@ package io.yggdrash.core.runtime;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.core.contract.Contract;
-import io.yggdrash.core.contract.ContractId;
+import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.TempStateStore;
@@ -28,9 +28,9 @@ public class RuntimeContractWrap {
     private RuntimeInvoke contractInvoke;
     private RuntimeQuery runtimeQuery;
     private Contract contract;
-    private ContractId contractId;
+    private ContractVersion contractVersion;
 
-    public RuntimeContractWrap(ContractId contractId, Contract contract) {
+    public RuntimeContractWrap(ContractVersion contractVersion, Contract contract) {
         this.contract = contract;
         contractInvoke = new RuntimeInvoke(contract);
         runtimeQuery = new RuntimeQuery(contract);
@@ -40,8 +40,8 @@ public class RuntimeContractWrap {
         runtimeQuery.setStore(store);
     }
 
-    public ContractId getContractId() {
-        return this.contractId;
+    public ContractVersion getContractVersion() {
+        return this.contractVersion;
     }
 
 

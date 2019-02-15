@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
-
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -39,11 +39,10 @@ public class BranchDto {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     public String type;
     public String description;
-    public String contractId;
-    public Map<String, Object> genesis;
+    // TODO Change Contract Ids (as List)
+    public List<Map<String,Object>> contracts;
     public String timestamp;
-    public String owner;
-    public String signature;
+    public List<String> validator;
 
     public static BranchDto of(JsonObject json) {
         try {

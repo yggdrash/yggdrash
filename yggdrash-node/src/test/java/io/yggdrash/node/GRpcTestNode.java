@@ -1,36 +1,96 @@
 package io.yggdrash.node;
 
+import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.PeerTestUtils;
-import io.yggdrash.core.net.*;
+import io.yggdrash.TestConstants;
+import io.yggdrash.core.akashic.SimpleSyncManager;
+import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.net.BlockChainConsumer;
+import io.yggdrash.core.net.BlockChainServiceConsumer;
+import io.yggdrash.core.net.BootStrapNode;
+import io.yggdrash.core.net.DiscoveryConsumer;
+import io.yggdrash.core.net.DiscoveryServiceConsumer;
+import io.yggdrash.core.net.KademliaPeerNetwork;
+import io.yggdrash.core.net.NodeStatus;
+import io.yggdrash.core.net.NodeStatusMock;
+import io.yggdrash.core.net.PeerHandlerFactory;
+import io.yggdrash.core.net.PeerHandlerGroup;
+import io.yggdrash.core.net.PeerNetwork;
+import io.yggdrash.core.net.PeerTable;
+import io.yggdrash.core.net.PeerTableGroup;
+import io.yggdrash.core.net.SimplePeerHandlerGroup;
+import io.yggdrash.core.util.PeerTableCounter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class GRpcTestNode extends BootStrapNode {
+public class GRpcTestNode extends BootStrapNode {
     private static final Logger log = LoggerFactory.getLogger(GRpcTestNode.class);
 
-    private static final int MAX_PEERS = 25;
+    public final PeerTableGroup peerTableGroup;
+    public final int port;
 
-    final PeerTable peerTable;
-    final int port;
-    final DiscoveryConsumer consumer;
+    // discovery specific
+    public final DiscoveryConsumer discoveryConsumer;
+    private final PeerHandlerGroup peerHandlerGroup;
+    public final PeerTask peerTask;
 
-    GRpcTestNode(PeerHandlerFactory factory, int port) {
+    // blockchain specific
+    public BlockChainConsumer blockChainConsumer;
+
+    public GRpcTestNode(PeerHandlerFactory factory, int port) {
         this.port = port;
+        this.peerTableGroup = PeerTestUtils.createTableGroup(port, factory);
+        if (!isSeed()) {
+            peerTableGroup.createTable(TestConstants.yggdrash());
+        }
+        this.discoveryConsumer = new DiscoveryServiceConsumer(peerTableGroup);
         this.peerHandlerGroup = new SimplePeerHandlerGroup(factory);
-        this.peerTable = PeerTestUtils.createPeerTable(port);
-        this.consumer = new DiscoveryServiceConsumer(peerTable);
+
+        this.peerTask = new PeerTask();
+        NodeStatus nodeStatus = NodeStatusMock.mock;
+        setNodeStatus(nodeStatus);
+        peerTask.setNodeStatus(nodeStatus);
+        peerTask.setPeerHandlerGroup(peerHandlerGroup);
+        peerTask.setPeerTableGroup(peerTableGroup);
+
+        setPeerNetwork(new KademliaPeerNetwork(peerTableGroup, peerHandlerGroup));
+
+        setBranchGroup(new BranchGroup());
+        setSyncManager(new SimpleSyncManager());
     }
 
-    void bootstrapping() {
-        super.bootstrapping(new KademliaDiscovery(peerTable), MAX_PEERS);
+    public void activateBlockChainService(boolean activate) {
+        if (!activate || isSeed()) {
+            return;
+        }
+        BlockChain bc = BlockChainTestUtils.createBlockChain(false);
+        branchGroup.addBranch(bc, peerNetwork);
+        blockChainConsumer = new BlockChainServiceConsumer(branchGroup);
     }
 
-    int getActivePeerCount() {
+    public BranchGroup getBranchGroup() {
+        return branchGroup;
+    }
+
+    public PeerNetwork getPeerNetwork() {
+        return peerNetwork;
+    }
+
+    public int getActivePeerCount() {
         return peerHandlerGroup.handlerCount();
     }
 
-    void logDebugging() {
-        log.info("{} => peerTable={}, active={}", peerTable.getOwner(),
-                String.format("%3d", peerTable.count()), getActivePeerCount());
+    public void logDebugging() {
+        PeerTable peerTable = peerTableGroup.getPeerTable(TestConstants.yggdrash());
+        log.info("{} => peer={}, bucket={}, active={}",
+                peerTableGroup.getOwner(),
+                String.format("%3d", PeerTableCounter.of(peerTable).totalPeerOfBucket()),
+                peerTable.getBucketsCount(),
+                getActivePeerCount());
+    }
+
+    public boolean isSeed() {
+        return port == PeerTestUtils.SEED_PORT;
     }
 }

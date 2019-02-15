@@ -19,29 +19,34 @@ package io.yggdrash.core.net;
 import java.util.List;
 import java.util.Map;
 
-public interface PeerTable extends PeerEventListener {
+public interface PeerTable {
 
-    Peer getOwner();
+    void loadSeedNodes(List<String> seedPeerList);
 
-    List<Peer> getBootstrappingSeedList();
+    void addPeer(Peer peer);
 
-    Peer addPeer(Peer peer);
+    void copyLiveNode(long minTableTime);
 
-    int count();
-
-    List<Peer> getClosestPeers(int maxPeers); // getNeighbor
-
-    void setSeedPeerList(List<String> seedPeerList);
-
-    List<String> getPeers(Peer peer);
+    List<Peer> getClosestPeers(Peer peer, int limit); // getNeighbor
 
     List<String> getPeerUriList();
 
     List<Peer> getLatestPeers(long reqTime);
 
-    Map<Integer, List<Peer>> getBucketIdAndPeerList(); //for debugging
+    int getBucketsCount();
 
-    List<String> getAllPeersFromBucketsOf(); //for debugging
+    Map<Integer, List<Peer>> getBucketIdAndPeerList(); //for debugging {ynode://pubkey@ip:port}
 
-    void touchPeer(Peer peer);
+    List<String> getAllPeerAddressList(); //for debugging {ip:port}
+
+    PeerBucket getBucketByIndex(int index);
+
+    PeerBucket getBucketByPeer(Peer peer);
+
+    Peer pickReplacement(Peer peer);
+
+    void dropPeer(Peer peer);
+
+    // returns the last node in a random, non-empty bucket
+    Peer peerToRevalidate();
 }

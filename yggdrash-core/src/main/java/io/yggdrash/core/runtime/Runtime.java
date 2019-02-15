@@ -22,7 +22,7 @@ import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.Contract;
-import io.yggdrash.core.contract.ContractId;
+import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.contract.ExecuteStatus;
 import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
@@ -43,7 +43,7 @@ public class Runtime<T> {
 
     private StateStore<T> stateStore;
     private TransactionReceiptStore txReceiptStore;
-    private Map<ContractId, RuntimeContractWrap> contracts = new HashMap<>();
+    private Map<ContractVersion, RuntimeContractWrap> contracts = new HashMap<>();
 
     // All block chain has state root
     private byte[] stateRoot;
@@ -58,19 +58,19 @@ public class Runtime<T> {
 
     }
 
-    public Set<ContractId> executeAbleContract() {
+    public Set<ContractVersion> executeAbleContract() {
         return this.contracts.keySet();
     }
 
     // TODO contract move to Map
-    public void addContract(ContractId contractId, Contract contract) {
-        RuntimeContractWrap wrap = new RuntimeContractWrap(contractId, contract);
+    public void addContract(ContractVersion contractVersion, Contract contract) {
+        RuntimeContractWrap wrap = new RuntimeContractWrap(contractVersion, contract);
         wrap.setStore(stateStore);
-        this.contracts.put(contractId, wrap);
+        this.contracts.put(contractVersion, wrap);
     }
 
-    public boolean hasContract(ContractId contractId) {
-        return this.contracts.containsKey(contractId);
+    public boolean hasContract(ContractVersion contractVersion) {
+        return this.contracts.containsKey(contractVersion);
     }
 
 
@@ -83,7 +83,7 @@ public class Runtime<T> {
 
         if(block.getIndex() == 0) {
             // TODO first transaction is genesis
-            // TODO genesis method don't call any more
+            // TODO init method don't call any more
         }
 
         BlockRuntimeResult result = new BlockRuntimeResult(block);
@@ -101,6 +101,7 @@ public class Runtime<T> {
             if (txReceipt.isSuccess()) {
                 blockState.putAll(txResult.changeValues());
             }
+            log.debug("{} is {}", txReceipt.getTxId(), txReceipt.isSuccess());
 
             result.addTxReceipt(txReceipt);
             // Save TxReceipt
@@ -150,15 +151,19 @@ public class Runtime<T> {
             for (JsonElement transactionElement: JsonUtil.parseJsonArray(tx.getBody())) {
                 JsonObject txBody = transactionElement.getAsJsonObject();
                 // check contract Version
-                ContractId txContractId = ContractId.of(txBody.get("contractId").getAsString());
-                RuntimeContractWrap wrap = contracts.get(txContractId);
+                ContractVersion txContractVersion = ContractVersion.of(txBody.get("contractVersion").getAsString());
+                log.debug("txContractVersion {} ", txContractVersion);
+                RuntimeContractWrap wrap = contracts.get(txContractVersion);
                 TempStateStore txElementState = wrap.invokeTransaction(txBody, txReceipt, txState);
                 if(txReceipt.isSuccess()) {
                     txState.putAll(txElementState.changeValues());
                 }
+                log.debug("invoke {} is {}", txReceipt.getTxId(), txReceipt.isSuccess());
+
             }
 
         } catch (Throwable e) {
+            e.printStackTrace();
             txReceipt.setStatus(ExecuteStatus.ERROR);
             JsonObject errorLog = new JsonObject();
             errorLog.addProperty("error", e.getMessage());
@@ -167,7 +172,7 @@ public class Runtime<T> {
         return txState;
     }
 
-    public Object query(ContractId id, String method, JsonObject params) throws Exception {
+    public Object query(ContractVersion id, String method, JsonObject params) throws Exception {
         RuntimeContractWrap contractWrap = this.contracts.get(id);
         return contractWrap.query(method, params);
     }

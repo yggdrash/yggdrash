@@ -18,14 +18,12 @@ package io.yggdrash.gateway.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.TestConstants;
-import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.gateway.dto.BlockDto;
 import io.yggdrash.node.YggdrashNodeApp;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
@@ -50,10 +48,6 @@ public class BlockControllerTest {
     private String basePath;
 
     @Autowired
-    @Qualifier("stem")
-    private BlockChain stem;
-
-    @Autowired
     private MockMvc mockMvc;
 
     private JacksonTester<BlockDto> json;
@@ -61,7 +55,7 @@ public class BlockControllerTest {
     @Before
     public void setUp() {
         JacksonTester.initFields(this, new ObjectMapper());
-        basePath = String.format("/branches/%s/blocks", stem.getBranchId());
+        basePath = String.format("/branches/%s/blocks", TestConstants.yggdrash());
     }
 
     @Test
