@@ -26,13 +26,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import javax.servlet.http.HttpServletRequest;
 
 @Controller
-@RequestMapping("stem/**")
-public class StemController {
+@RequestMapping("yggdrash/**")
+class YggdrashController {
 
     private BranchId stemBranchId;
 
     @Autowired
-    public StemController(BranchGroup branchGroup) {
+    public YggdrashController(BranchGroup branchGroup) {
         this.stemBranchId = BranchId.NULL;
         // TODO change Stem Controller
         branchGroup.getAllBranch().forEach(branch -> {
@@ -47,6 +47,6 @@ public class StemController {
     public String forward(HttpServletRequest request) {
         String uri = request.getRequestURI();
         String query = request.getQueryString() == null ? "" : "?" + request.getQueryString();
-        return "forward:" + "/branches/" + stemBranchId + uri.substring("/stem".length()) + query;
+        return "forward:" + "/branches/" + stemBranchId + uri.substring("/yggdrash".length()) + query;
     }
 }

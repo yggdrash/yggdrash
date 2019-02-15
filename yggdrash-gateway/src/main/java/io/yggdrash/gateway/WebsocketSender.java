@@ -30,8 +30,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
-@DependsOn({"stem", "yeed"})
-@ConditionalOnProperty("yggdrash.branch.default.active")
+@DependsOn("yggdrash")
+@ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
 public class WebsocketSender implements BranchEventListener {
 
     private final SimpMessagingTemplate template;
