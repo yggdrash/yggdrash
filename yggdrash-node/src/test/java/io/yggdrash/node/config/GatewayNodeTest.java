@@ -19,33 +19,45 @@ package io.yggdrash.node.config;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.gateway.controller.BranchController;
+import io.yggdrash.node.ChainTask;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(properties = {"yggdrash.node.seed=true", "yggdrash.node.chain.enabled=false"})
+@SpringBootTest()
+@ActiveProfiles("gateway")
 @DirtiesContext
-public class BootstrapNodeTest extends TestConstants.CiTest {
+public class GatewayNodeTest extends TestConstants.CiTest {
 
     @Autowired
     private BranchGroup branchGroup;
 
     @Autowired(required = false)
+    private ChainTask chainTask;
+
+    @Autowired(required = false)
     private BranchController branchController;
 
     @Test
-    public void shouldBeEmptyBranch() {
-        assertThat(branchGroup.getAllBranch()).isEmpty();
+    public void shouldBeNotEmptyBranch() {
+        assertThat(branchGroup.getAllBranch()).isNotEmpty();
     }
 
     @Test
-    public void shouldBeNotActivateGatewayProfile() {
-        assertThat(branchController).isNull();
+    public void shouldBeActivateGatewayProfile() {
+        assertThat(branchController).isNotNull();
     }
+
+    @Test
+    public void shouldBeNullChainTask() {
+        assertThat(chainTask).isNull();
+    }
+
 }
