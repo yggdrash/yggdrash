@@ -27,6 +27,10 @@ public class Constants {
     public static final int TX_SIG_LENGTH = 65;
     public static final int TX_BODY_MAX_LENGTH = 10000000; // 10 Mb
 
+    public static final String PBFT_PREPREPARE = "PREPREPA";
+    public static final String PBFT_PREPARE = "PREPAREM";
+    public static final String PBFT_COMMIT = "COMMITMS";
+    public static final String PBFT_VIEWCHANGE = "VIEWCHAN";
 
     public static BigInteger getSECP256K1N() {
         return SECP256K1N;
