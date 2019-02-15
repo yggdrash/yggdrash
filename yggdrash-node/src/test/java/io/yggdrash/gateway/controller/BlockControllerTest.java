@@ -28,7 +28,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.mock.web.MockHttpServletResponse;
-import org.springframework.test.annotation.IfProfileValue;
+import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -40,10 +40,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
-@ActiveProfiles("gateway")
 @SpringBootTest(classes = YggdrashNodeApp.class)
-@IfProfileValue(name = "spring.profiles.active", value = TestConstants.CI_TEST)
-public class BlockControllerTest {
+@ActiveProfiles("gateway")
+@DirtiesContext
+public class BlockControllerTest extends TestConstants.CiTest {
 
     private String basePath;
 

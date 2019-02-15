@@ -42,7 +42,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GRpcPeerHandlerTest {
+public class GRpcPeerHandlerTest extends TestConstants.CiTest {
 
     private static final Peer TARGET = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
 
