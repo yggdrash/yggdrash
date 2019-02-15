@@ -56,7 +56,7 @@
     var grpc = 32918;
     var rest = 8080;
     var branchId = "91b29a1453258d72ca6fbbcabb8dca10cca944fb";
-    var groups = ["91b29a1453258d72ca6fbbcabb8dca10cca944fb", "d872b5a338b824dc56abc6015543496670d81c1b"]; //todo later
+    var groups = []; //todo later
 
     // data format
     var nodes = [];
@@ -237,15 +237,27 @@
         return eleName;
     }
 
-    function writeTableFooter(id) {
-        var url = getChannelsReqUrl(id, this.branchId);
+    function setBranchId() {
+        var url = getNetworkReqUrl(ip);
+
+        $.getJSON(url).done(function (networks) {
+            networks.forEach(function (network) {
+                branchId = network;
+                groups.push(network);
+            });
+            setUp(ip, branchId);
+        });
+    }
+
+    function writeTableFooter(ip) {
+        var url = getChannelsReqUrl(ip);
 
         $.getJSON(url).done(function (channels) {
             channels.forEach(function (channel) {
                 var li = document.createElement("li");
                 var li_txt = document.createTextNode(channel);
                 li.appendChild(li_txt);
-                $("#" + convertUrlToElementName(getGrpcUrl(id)) + " .activePeers").append(li);
+                $("#" + convertUrlToElementName(getGrpcUrl(ip)) + " .activePeers").append(li);
                 //console.log("writeTableFooter :: channel => " + channel);
             });
         });
@@ -258,7 +270,7 @@
             //console.log("setNodesAndChannels :: allPeers => ", allPeers);
             allPeers.forEach(function (grpcUrl) {
                 nodes.push(grpcUrl);
-                channels.push(getChannelsReqUrl(getRestUrl(grpcUrl), branchId));
+                channels.push(getChannelsReqUrl(getRestUrl(grpcUrl)));
             });
         });
     }
@@ -295,7 +307,7 @@
         }
         ip = host + ":" + port;
         appendTable(getGrpcUrl(ip));
-        setUp(ip, branchId);
+        setBranchId();
     }
 
     function getHost(str) {
@@ -320,8 +332,12 @@
         return "http://" + ip + "/peers/" + branchId + "/buckets/allPeers";
     }
 
-    function getChannelsReqUrl(ip, branchId) {
+    function getChannelsReqUrl(ip) {
         return "http://" + ip + "/peers/channels";
+    }
+
+    function getNetworkReqUrl(ip) {
+        return "http://" + ip + "/peers/network";
     }
 
     function getLatestBlockReqUrl(ip, branchId) {

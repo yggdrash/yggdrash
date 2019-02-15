@@ -43,6 +43,11 @@ class PeerController {
         this.peerDialer = peerDialer;
     }
 
+    @GetMapping("/network")
+    public ResponseEntity getNetwork() {
+        return ResponseEntity.ok(peerTableGroup.getAllBrancheId().stream().map(BranchId::toString));
+    }
+
     @GetMapping("/active")
     public ResponseEntity getAllActivePeer() {
         return ResponseEntity.ok(peerDialer.getActivePeerList());
