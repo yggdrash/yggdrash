@@ -5,7 +5,7 @@
     <include resource="org/springframework/boot/logging/logback/console-appender.xml"/>
 
     <property name="LOG_DIR" value="logs"/>
-    <property name="LOG_PATH_NAME" value="${LOG_DIR}/data.log"/>
+    <property name="LOG_PATH_NAME" value="${LOG_DIR}/yggdrash.log"/>
 
     <!-- FILE Appender -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
