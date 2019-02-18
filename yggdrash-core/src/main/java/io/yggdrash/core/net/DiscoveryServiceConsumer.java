@@ -17,6 +17,9 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.p2p.KademliaOptions;
+import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerTableGroup;
 
 import java.util.List;
 

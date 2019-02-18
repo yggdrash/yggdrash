@@ -18,9 +18,6 @@ package io.yggdrash.node.config;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.PeerTestUtils;
-import io.yggdrash.StoreTestUtils;
-import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.BlockChain;
@@ -51,7 +48,7 @@ public class BranchConfigurationTest {
     private static final Logger log = LoggerFactory.getLogger(BranchConfigurationTest.class);
 
     private static final DefaultConfig config = new DefaultConfig();
-    private static final ResourceLoader loader = new DefaultResourceLoader();
+    private static final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
     private BranchConfiguration branchConfig;
 
@@ -59,7 +56,6 @@ public class BranchConfigurationTest {
     public void setUp() {
         StoreBuilder builder = new StoreBuilder(config);
         this.branchConfig = new BranchConfiguration(builder);
-        branchConfig.setPeerNetwork(PeerTestUtils.createNetwork());
     }
 
     @Test
@@ -69,7 +65,8 @@ public class BranchConfigurationTest {
         BranchId branchId = BranchId.of(branchJson);
 
         saveFile(branchId, branchJson);
-        BranchGroup branchGroup = getBranchGroup();
+        BranchGroup branchGroup = branchConfig.branchGroup();
+        branchConfig.branchLoader(config, branchGroup);
         File branchDir = new File(config.getBranchPath(), branchId.toString());
         FileUtils.deleteQuietly(branchDir);
 
@@ -77,12 +74,6 @@ public class BranchConfigurationTest {
         assert branch != null;
         assert branch.getBranchId().equals(branchId);
         assertTransaction(branch);
-
-    }
-
-    private BranchGroup getBranchGroup() {
-        BranchLoader loader = branchConfig.branchLoader(config);
-        return branchConfig.branchGroup(loader);
     }
 
     private void assertTransaction(BlockChain branch) throws IOException {
@@ -102,8 +93,7 @@ public class BranchConfigurationTest {
     }
 
     private JsonObject getBranchJson() throws IOException {
-        ResourceLoader resourceLoader = new DefaultResourceLoader();
-        Resource resource = resourceLoader.getResource("classpath:/branch/sw.json");
+        Resource resource = resourceLoader.getResource("classpath:/branch/branch-yggdrash.json");
         Reader json = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
         return JsonUtil.parseJsonObject(json);
     }

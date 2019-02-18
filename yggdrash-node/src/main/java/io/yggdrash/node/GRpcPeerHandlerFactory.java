@@ -1,8 +1,8 @@
 package io.yggdrash.node;
 
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerHandler;
-import io.yggdrash.core.net.PeerHandlerFactory;
+import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerHandler;
+import io.yggdrash.core.p2p.PeerHandlerFactory;
 
 public class GRpcPeerHandlerFactory implements PeerHandlerFactory {
     @Override

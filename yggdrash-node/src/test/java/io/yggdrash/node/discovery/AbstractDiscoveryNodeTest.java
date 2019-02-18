@@ -22,9 +22,8 @@ import io.grpc.Server;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.testing.GrpcCleanupRule;
-import io.yggdrash.TestConstants;
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerHandlerFactory;
+import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerHandlerFactory;
 import io.yggdrash.node.GRpcPeerHandler;
 import io.yggdrash.node.GRpcTestNode;
 import io.yggdrash.node.service.BlockChainService;
@@ -69,9 +68,8 @@ public class AbstractDiscoveryNodeTest {
         };
     }
 
-    private GRpcTestNode testNode(int port, boolean activateBlockChainService) {
-        GRpcTestNode node = new GRpcTestNode(factory, port);
-        node.activateBlockChainService(activateBlockChainService);
+    private GRpcTestNode testNode(int port, boolean enableBranch) {
+        GRpcTestNode node = new GRpcTestNode(factory, port, enableBranch);
         nodeList.add(node);
         Server server = createAndStartServer(node);
         gRpcCleanup.register(server);
@@ -103,17 +101,14 @@ public class AbstractDiscoveryNodeTest {
         bootstrapNodes(nodeCount, false);
     }
 
-    protected void bootstrapNodes(int nodeCount, boolean activateBlockChainService) {
+    protected void bootstrapNodes(int nodeCount, boolean enableBranch) {
         for (int i = SEED_PORT; i < SEED_PORT + nodeCount; i++) {
-            GRpcTestNode node = testNode(i, activateBlockChainService);
-            node.getPeerNetwork().init(TestConstants.yggdrash());
-            if (activateBlockChainService) {
-                node.bootstrapping();
-            }
+            GRpcTestNode node = testNode(i, enableBranch);
+            node.bootstrapping();
         }
     }
 
-    GRpcTestNode refreshAndHealthCheck(GRpcTestNode node) {
+    protected GRpcTestNode refreshAndHealthCheck(GRpcTestNode node) {
         node.peerTask.refresh();
         node.peerTask.healthCheck();
         return node;

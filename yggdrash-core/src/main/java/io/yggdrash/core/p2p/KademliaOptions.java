@@ -1,4 +1,4 @@
-package io.yggdrash.core.net;
+package io.yggdrash.core.p2p;
 
 public class KademliaOptions {
     public static int BUCKET_SIZE = 16;

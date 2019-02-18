@@ -1,4 +1,4 @@
-package io.yggdrash.core.net;
+package io.yggdrash.core.p2p;
 
 import org.junit.Test;
 import org.slf4j.Logger;

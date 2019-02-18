@@ -1,4 +1,4 @@
-package io.yggdrash.core.net;
+package io.yggdrash.core.p2p;
 
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.crypto.HashUtil;
@@ -75,9 +75,6 @@ public class PeerId {
                 break;
             }
         }
-
-        hash = null;
-
         return distance;
     }
 }
