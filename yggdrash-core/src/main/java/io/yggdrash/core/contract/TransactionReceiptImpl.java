@@ -29,7 +29,7 @@ public class TransactionReceiptImpl implements TransactionReceipt {
     private final List<String> txLog = new ArrayList<>();
     private ExecuteStatus status = ExecuteStatus.FALSE;
     private String issuer;
-    private String contractId;
+    private String contractVersion;
     private Long blockHeight;
     private String methodName;
 
@@ -90,12 +90,12 @@ public class TransactionReceiptImpl implements TransactionReceipt {
 
     @Override
     public String getContractVersion() {
-        return contractId;
+        return contractVersion;
     }
 
     @Override
-    public void setContractId(String contractId) {
-        this.contractId = contractId;
+    public void setContractVersion(String contractVersion) {
+        this.contractVersion = contractVersion;
     }
 
     public List<String> getTxLog() {

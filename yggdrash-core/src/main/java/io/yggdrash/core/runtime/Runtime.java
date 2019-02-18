@@ -153,6 +153,7 @@ public class Runtime<T> {
                 // check contract Version
                 ContractVersion txContractVersion = ContractVersion.of(txBody.get("contractVersion").getAsString());
                 log.debug("txContractVersion {} ", txContractVersion);
+                txReceipt.setContractVersion(txContractVersion.toString());
                 RuntimeContractWrap wrap = contracts.get(txContractVersion);
                 TempStateStore txElementState = wrap.invokeTransaction(txBody, txReceipt, txState);
                 if(txReceipt.isSuccess()) {

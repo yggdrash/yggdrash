@@ -109,7 +109,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
 
         String sender = this.txReceipt.getIssuer();
         if (getBalance(sender).compareTo(BigInteger.ZERO) == 0) {
-            log.info("\n[ERR] " + sender + " has no balance!");
+            txReceipt.addLog(sender + " has no balance");
             return txReceipt;
         }
 

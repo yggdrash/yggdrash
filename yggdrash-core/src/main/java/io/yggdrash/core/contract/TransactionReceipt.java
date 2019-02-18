@@ -44,7 +44,7 @@ public interface TransactionReceipt {
 
     String getContractVersion();
 
-    void setContractId(String contractId);
+    void setContractVersion(String contractId);
 
     List<String> getTxLog();
 

@@ -4,19 +4,14 @@ import com.googlecode.jsonrpc4j.JsonRpcError;
 import com.googlecode.jsonrpc4j.JsonRpcErrors;
 import com.googlecode.jsonrpc4j.JsonRpcParam;
 import com.googlecode.jsonrpc4j.JsonRpcService;
-import io.yggdrash.core.contract.TransactionReceipt;
+import static io.yggdrash.common.config.Constants.BLOCK_ID;
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static io.yggdrash.common.config.Constants.TX_ID;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.exception.RejectedAccessException;
 import io.yggdrash.gateway.dto.TransactionDto;
-
-import static io.yggdrash.common.config.Constants.BLOCK_ID;
-import static io.yggdrash.common.config.Constants.BRANCH_ID;
-import static io.yggdrash.common.config.Constants.TX_ID;
-
-import static io.yggdrash.common.config.Constants.BLOCK_ID;
-import static io.yggdrash.common.config.Constants.BRANCH_ID;
-import static io.yggdrash.common.config.Constants.TX_ID;
+import io.yggdrash.gateway.dto.TransactionReceiptDto;
 
 @JsonRpcService("/api/transaction")
 public interface TransactionApi {
@@ -146,6 +141,6 @@ public interface TransactionApi {
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
                     code = NonExistObjectException.code)})
-    TransactionReceipt getTransactionReceipt(@JsonRpcParam(value = BRANCH_ID) String branchId,
-                                             @JsonRpcParam(value = TX_ID) String txId);
+    TransactionReceiptDto getTransactionReceipt(@JsonRpcParam(value = BRANCH_ID) String branchId,
+                                                @JsonRpcParam(value = TX_ID) String txId);
 }

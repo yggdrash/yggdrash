@@ -9,6 +9,7 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.TransactionDto;
+import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -111,7 +112,9 @@ public class TransactionApiImpl implements TransactionApi {
     }
 
     @Override
-    public TransactionReceipt getTransactionReceipt(String branchId, String txId) {
-        return branchGroup.getTransactionReceipt(BranchId.of(branchId), txId);
+    public TransactionReceiptDto getTransactionReceipt(String branchId, String txId) {
+        TransactionReceipt receipt = branchGroup.getTransactionReceipt(BranchId.of(branchId), txId);
+        return TransactionReceiptDto.createBy(receipt);
+
     }
 }
