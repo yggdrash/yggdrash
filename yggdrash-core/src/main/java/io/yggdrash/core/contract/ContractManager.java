@@ -183,8 +183,7 @@ public class ContractManager extends ClassLoader {
         if (file.exists()) {
             if (file.isDirectory()) {
                 File[] files = file.listFiles();
-                Arrays.stream(files)
-                        .forEach(f -> f.delete());
+                Arrays.stream(files).forEach(File::delete);
             }
             file.delete();
             directory.delete();

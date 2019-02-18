@@ -14,7 +14,7 @@ import io.yggdrash.core.blockchain.dpoa.tx.TxValidatorVote;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.Genesis;
-import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.InvokeTransaction;
 import io.yggdrash.core.runtime.annotation.ParamValidation;
 import io.yggdrash.core.store.Store;
 import org.apache.commons.collections4.MapUtils;
@@ -32,7 +32,7 @@ public class DPoAContract implements Contract<JsonObject> {
 
     @Genesis
     @ParamValidation
-    @InvokeTransction
+    @InvokeTransaction
     public TransactionReceipt init(JsonObject params) {
         boolean isSuccess = saveInitValidator(params.getAsJsonArray("validators"));
         txReceipt.setStatus(isSuccess ? ExecuteStatus.SUCCESS : ExecuteStatus.FALSE);

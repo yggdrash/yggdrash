@@ -94,9 +94,9 @@ public class ContractManagerTest {
         if (contracts == null) {
             return;
         }
-        contracts.entrySet().forEach(set -> {
-            if (set.getKey() != null) {
-                assertEquals(true, contractManager.isContract(set.getKey()));
+        contracts.forEach((key, value) -> {
+            if (key != null) {
+                assertEquals(true, contractManager.isContract(key));
             }
         });
     }
