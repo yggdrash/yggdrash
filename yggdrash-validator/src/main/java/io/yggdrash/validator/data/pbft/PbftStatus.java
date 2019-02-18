@@ -124,10 +124,10 @@ public class PbftStatus {
 
     public byte[] sign(Wallet wallet) {
         if (wallet == null) {
-            throw new NotValidateException("walllet is null");
+            throw new NotValidateException("wallet is null");
         }
 
-        return wallet.signHashedData(getHashForSignning());
+        return wallet.signHashedData(getHashForSigning());
     }
 
     public static boolean verify(PbftStatus status) {

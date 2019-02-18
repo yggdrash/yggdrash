@@ -75,7 +75,7 @@ public class NodeGrpcService extends BlockChainGrpc.BlockChainImplBase {
     @Override
     public void broadcastBlock(Proto.Block request,
                                StreamObserver<NetProto.Empty> responseObserver) {
-        // Validator donot need to receive blocks from general node
+        // Validator do not need to receive blocks from general node
         log.debug("NodeService broadcastBlock");
         responseObserver.onNext(EMPTY);
         responseObserver.onCompleted();
