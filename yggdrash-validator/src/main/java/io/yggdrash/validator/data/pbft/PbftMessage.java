@@ -261,4 +261,8 @@ public class PbftMessage {
         }
     }
 
+    public PbftMessage clone() {
+        return new PbftMessage(toJsonObject());
+    }
+
 }

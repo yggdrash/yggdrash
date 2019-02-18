@@ -27,6 +27,7 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 
 public class PbftBlock {
@@ -93,18 +94,13 @@ public class PbftBlock {
             return false;
         }
 
-        if (block.getIndex() == 0) { // genesis block
-            if (block.getBlock().verify()) {
-                return true;
-            }
+        if (block.getIndex() == 0) {
+            return block.getBlock().verify();
         } else {
-            if (block.getBlock().verify()
-                    && block.getPbftMessageSet().verify(block.getPbftMessageSet())) {
-                return true;
-            }
+            return block.getBlock().verify()
+                    && PbftMessageSet.verify(block.getPbftMessageSet());
         }
 
-        return false;
     }
 
     public JsonObject toJsonObject() {
@@ -146,4 +142,19 @@ public class PbftBlock {
         return protoPbftBlockListBuilder.build();
     }
 
+    public boolean equals(PbftBlock block) {
+        if (block == null) {
+            return false;
+        }
+        return Arrays.equals(this.toBinary(), block.toBinary());
+    }
+
+    public void clear() {
+        this.block.clear();
+        this.pbftMessageSet.clear();
+    }
+
+    public PbftBlock clone() {
+        return new PbftBlock(this.toJsonObject());
+    }
 }

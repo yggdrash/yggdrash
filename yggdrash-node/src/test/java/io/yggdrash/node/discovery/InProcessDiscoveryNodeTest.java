@@ -18,9 +18,9 @@ package io.yggdrash.node.discovery;
 
 import ch.qos.logback.classic.Level;
 import io.yggdrash.TestConstants;
-import io.yggdrash.core.net.KademliaOptions;
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerTable;
+import io.yggdrash.core.p2p.KademliaOptions;
+import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerTable;
 import io.yggdrash.core.util.PeerTableCounter;
 import io.yggdrash.node.GRpcTestNode;
 import org.junit.Test;

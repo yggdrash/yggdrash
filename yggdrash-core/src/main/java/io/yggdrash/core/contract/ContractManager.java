@@ -16,17 +16,25 @@
 
 package io.yggdrash.core.contract;
 
+import com.google.gson.JsonElement;
 import io.yggdrash.core.contract.methods.ContractMethod;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -81,7 +89,7 @@ public class ContractManager extends ClassLoader {
         return this.contracts;
     }
 
-    public List<ContractVersion> getContractIdList() {
+    public List<ContractVersion> getContractVersionList() {
         return this.contracts.entrySet().stream().map(set -> set.getKey())
                 .collect(Collectors.toList());
     }
@@ -91,12 +99,22 @@ public class ContractManager extends ClassLoader {
                 .collect(Collectors.toList());
     }
 
-    public ContractMeta getContractById(ContractVersion version) {
+    public ContractMeta getContractByVersion(ContractVersion version) {
         return this.contracts.get(version);
     }
 
     public Boolean isContract(ContractVersion version) {
         return this.contracts.containsKey(version);
+    }
+
+    public JsonElement getInvoke(ContractVersion version) {
+        ContractMeta contractMeta = contracts.get(version);
+        return contractMeta.toJsonObject().get("invokeMethods");
+    }
+
+    public JsonElement getQuery(ContractVersion version) {
+        ContractMeta contractMeta = contracts.get(version);
+        return contractMeta.toJsonObject().get("queryMethods");
     }
 
     /**
@@ -109,18 +127,21 @@ public class ContractManager extends ClassLoader {
         if (contractMeta.getTxReceipt() == null) {
             throw new IllegalArgumentException("Contract does not have required filed transaction receipt.");
         }
+        if (this.contracts.containsKey(contractMeta.getContractVersion())) {
+            throw new IllegalArgumentException("The contract version already exists.");
+        }
 
         for (Map.Entry<String, ContractMethod> elem :
                 contractMeta.getQueryMethods().entrySet()) {
             if (elem.getValue().getMethod().getReturnType().equals(Void.TYPE)) {
-                throw new IllegalArgumentException("Invoke method should not return void.");
+                throw new IllegalArgumentException("The query method should not return void.");
             }
         }
 
         for (Map.Entry<String, ContractMethod> elem :
                 contractMeta.getInvokeMethods().entrySet()) {
             if (elem.getValue().getMethod().getParameterTypes().length < 1) {
-                throw new IllegalArgumentException("The query method must have a return type.");
+                throw new IllegalArgumentException("Invoke method must have parameters");
             }
         }
 
@@ -141,23 +162,17 @@ public class ContractManager extends ClassLoader {
         }
         ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
         ContractVersion contractVersion = contractMeta.getContractVersion();
-        File contractFile = ContractMeta.contractFile(contractPath, contractVersion);
-        if (!contractFile.exists()) {
-            try {
-                FileUtils.writeByteArrayToFile(contractFile, contractMeta.getContractBinary());
-                this.contracts.put(contractVersion, contractMeta);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
+        if (validation(contractMeta)) {
+            File contractFile = ContractMeta.contractFile(contractPath, contractVersion);
+            if (!contractFile.exists()) {
+                try {
+                    FileUtils.writeByteArrayToFile(contractFile, contractMeta.getContractClassBinary());
+                    this.contracts.put(contractVersion, contractMeta);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             }
         }
-    }
-
-    /**
-     * Change the contract to the contract version.
-     */
-    public ContractVersion convertContractToVersion(Class<? extends Contract> contract) {
-        ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
-        return contractMeta.getContractVersion();
     }
 
     public Boolean removeContract(ContractVersion contractVersion) {
@@ -179,6 +194,55 @@ public class ContractManager extends ClassLoader {
             return true;
         }
         return false;
+    }
+
+    /**
+     * Change the contract to the contract version.
+     */
+    public ContractVersion convertContractToVersion(Class<? extends Contract> contract) {
+        ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
+        return contractMeta.getContractVersion();
+    }
+
+    /**
+     * Decodinging a contract file
+     */
+    public ContractMeta decodingContract(String encodedString) throws UnsupportedEncodingException {
+        Base64.Decoder decoder = Base64.getDecoder();
+        byte[] decodedBytes = decoder.decode(encodedString);
+        ContractVersion contractVersion = ContractVersion.of(new String(decodedBytes, "UTF-8"));
+        return contracts.get(contractVersion);
+    }
+
+
+    public Boolean contractObjectVerify(ContractVersion contractVersion) {
+        ContractMeta contractMeta = contracts.get(contractVersion);
+        Object obj = contractMeta.getContractInstance();
+
+        //object hash 비교
+        return true;
+    }
+
+    public static byte[] serialize(Object obj) throws Exception {
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(bos);
+            oos.writeObject(obj);
+            oos.flush();
+        } finally {
+            try {
+                bos.close();
+            } catch (IOException e) {
+                log.error(e.getCause().toString());
+            }
+        }
+        return bos.toByteArray();
+    }
+
+    public static Object deserialize(byte[] data) throws IOException, ClassNotFoundException {
+        ByteArrayInputStream in = new ByteArrayInputStream(data);
+        ObjectInputStream is = new ObjectInputStream(in);
+        return is.readObject();
     }
 
     //TODO

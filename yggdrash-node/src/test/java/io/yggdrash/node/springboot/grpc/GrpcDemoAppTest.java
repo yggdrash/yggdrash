@@ -37,7 +37,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
@@ -48,12 +47,11 @@ import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 
 @RunWith(SpringRunner.class)
-@IfProfileValue(name = "spring.profiles.active", value = TestConstants.CI_TEST)
 @SpringBootTest(
         classes = {GrpcDemoApp.class, GrpcDemoAppTest.TestConfig.class},
         properties = {"yggdrash.node.grpc.black-list=" + GrpcDemoAppTest.BLOCK_IPS})
 
-public class GrpcDemoAppTest {
+public class GrpcDemoAppTest extends TestConstants.CiTest {
     static final String BLOCK_IPS = "127.0.0.2,127.0.0.3";
 
     @LocalRunningGrpcPort

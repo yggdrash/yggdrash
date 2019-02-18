@@ -23,26 +23,21 @@ import io.yggdrash.core.net.BlockChainConsumer;
 import io.yggdrash.core.net.BlockChainServiceConsumer;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.DiscoveryServiceConsumer;
-import io.yggdrash.core.net.KademliaPeerNetwork;
-import io.yggdrash.core.net.KademliaPeerTableGroup;
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerHandlerFactory;
-import io.yggdrash.core.net.PeerHandlerGroup;
-import io.yggdrash.core.net.PeerNetwork;
-import io.yggdrash.core.net.PeerTableGroup;
-import io.yggdrash.core.net.SimplePeerHandlerGroup;
+import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerDialer;
+import io.yggdrash.core.p2p.PeerHandlerFactory;
+import io.yggdrash.core.p2p.PeerTableGroup;
+import io.yggdrash.core.p2p.PeerTableGroupBuilder;
+import io.yggdrash.core.p2p.SimplePeerDialer;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.GRpcPeerHandlerFactory;
-import io.yggdrash.node.PeerTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
-@EnableScheduling
 @EnableConfigurationProperties(NodeProperties.class)
 public class P2PConfiguration {
 
@@ -61,24 +56,21 @@ public class P2PConfiguration {
     }
 
     @Bean
-    PeerTableGroup peerTableGroup(Wallet wallet, PeerHandlerFactory peerHandlerFactory) {
+    PeerDialer peerDialer(PeerHandlerFactory peerHandlerFactory) {
+        return new SimplePeerDialer(peerHandlerFactory);
+    }
+
+    @Bean
+    PeerTableGroup peerTableGroup(Wallet wallet, PeerDialer peerDialer) {
         Peer owner = Peer.valueOf(wallet.getNodeId(), nodeProperties.getGrpc().getHost(),
                 nodeProperties.getGrpc().getPort(), nodeProperties.isSeed());
-        PeerTableGroup peerTableGroup = new KademliaPeerTableGroup(owner, storeBuilder, peerHandlerFactory);
-        peerTableGroup.setSeedPeerList(nodeProperties.getSeedPeerList());
-        return peerTableGroup;
-    }
 
-    @Bean
-    PeerHandlerGroup peerHandlerGroup(PeerTableGroup peerTableGroup, PeerHandlerFactory peerHandlerFactory) {
-        PeerHandlerGroup peerHandlerGroup = new SimplePeerHandlerGroup(peerHandlerFactory);
-        peerHandlerGroup.setPeerEventListener(peerTableGroup);
-        return peerHandlerGroup;
-    }
-
-    @Bean
-    PeerNetwork peerNetwork(PeerTableGroup peerTableGroup, PeerHandlerGroup peerHandlerGroup) {
-        return new KademliaPeerNetwork(peerTableGroup, peerHandlerGroup);
+        return PeerTableGroupBuilder.Builder()
+                .setOwner(owner)
+                .setStoreBuilder(storeBuilder)
+                .setPeerDialer(peerDialer)
+                .setSeedPeerList(nodeProperties.getSeedPeerList())
+                .build();
     }
 
     @Bean
@@ -94,14 +86,5 @@ public class P2PConfiguration {
     @Bean
     SyncManager syncManager() {
         return new SimpleSyncManager();
-    }
-
-    /**
-     * Scheduling Beans
-     */
-
-    @Bean
-    PeerTask peerTask() {
-        return new PeerTask();
     }
 }

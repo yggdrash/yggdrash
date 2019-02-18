@@ -26,19 +26,19 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import javax.servlet.http.HttpServletRequest;
 
 @Controller
-@RequestMapping("stem/**")
-public class StemController {
+@RequestMapping("yggdrash/**")
+class YggdrashController {
 
-    private BranchId stemBranchId;
+    private BranchId branchId;
 
     @Autowired
-    public StemController(BranchGroup branchGroup) {
-        this.stemBranchId = BranchId.NULL;
+    public YggdrashController(BranchGroup branchGroup) {
+        this.branchId = BranchId.NULL;
         // TODO change Stem Controller
         branchGroup.getAllBranch().forEach(branch -> {
             if (branch.getBranch().isYggdrash()) {
                 // YGGDRASH Branch has Stem Contract
-                this.stemBranchId = branch.getBranchId();
+                this.branchId = branch.getBranchId();
             }
         });
     }
@@ -47,6 +47,6 @@ public class StemController {
     public String forward(HttpServletRequest request) {
         String uri = request.getRequestURI();
         String query = request.getQueryString() == null ? "" : "?" + request.getQueryString();
-        return "forward:" + "/branches/" + stemBranchId + uri.substring("/stem".length()) + query;
+        return "forward:" + "/branches/" + branchId + uri.substring("/yggdrash".length()) + query;
     }
 }

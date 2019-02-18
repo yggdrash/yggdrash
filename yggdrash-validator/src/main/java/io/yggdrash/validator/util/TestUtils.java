@@ -369,7 +369,7 @@ public class TestUtils {
         BlockHeader blockHeader;
         try {
             blockHeader = new BlockHeader(
-                    new byte[20], new byte[8], new byte[8], prevBlockHash, index, timestamp,
+                    EMPTY_BYTE20, EMPTY_BYTE8, EMPTY_BYTE8, prevBlockHash, index, timestamp,
                     blockBody.getMerkleRoot(), blockBody.length());
 
             byte[] blockSig = wallet.signHashedData(blockHeader.getHashForSigning());
@@ -383,32 +383,19 @@ public class TestUtils {
     }
 
     public JsonObject sampleBlockObject() {
+        return sampleBlockObject(0L, EMPTY_BYTE32);
+    }
 
-        List<Transaction> txs1 = new ArrayList<>();
-        txs1.add(sampleTx());
-
-        BlockBody blockBody = new BlockBody(txs1);
-
-        long index = 0;
-        long timestamp = TimeUtils.time();
-        BlockHeader blockHeader;
-        try {
-            blockHeader = new BlockHeader(
-                    EMPTY_BYTE20, EMPTY_BYTE8, EMPTY_BYTE8, EMPTY_BYTE32, index, timestamp,
-                    blockBody.getMerkleRoot(), blockBody.length());
-
-            byte[] blockSig = wallet.signHashedData(blockHeader.getHashForSigning());
-
-            Block block = new Block(blockHeader, blockSig, blockBody);
-
-            return block.toJsonObject();
-        } catch (Exception e) {
-            throw new NotValidateException();
-        }
+    public JsonObject sampleBlockObject(long index) {
+        return sampleBlockObject(index, EMPTY_BYTE32);
     }
 
     public Block sampleBlock() {
         return new Block(sampleBlockObject());
+    }
+
+    public Block sampleBlock(long index) {
+        return new Block(sampleBlockObject(index));
     }
 
     public Block sampleBlock(long index, byte[] prevBlockHash) {

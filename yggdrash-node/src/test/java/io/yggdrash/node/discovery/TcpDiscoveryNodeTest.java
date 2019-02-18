@@ -21,8 +21,8 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.yggdrash.TestConstants;
-import io.yggdrash.core.net.KademliaOptions;
-import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.p2p.KademliaOptions;
+import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.node.GRpcTestNode;
 import io.yggdrash.node.service.BlockChainService;
 import io.yggdrash.node.service.DiscoveryService;
@@ -44,12 +44,12 @@ public class TcpDiscoveryNodeTest extends AbstractDiscoveryNodeTest {
     @Override
     public void setUp() {
         super.setUp();
-        context.refresh();
     }
 
     @Test
     public void testDiscoveryLarge() {
         TestConstants.SlowTest.apply();
+        context.refresh();
 
         // act
         bootstrapNodes(50);

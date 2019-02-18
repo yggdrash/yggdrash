@@ -30,7 +30,6 @@ import org.spongycastle.util.encoders.Hex;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 
 public class EbftBlock {
@@ -143,10 +142,6 @@ public class EbftBlock {
         return ebftBlock.getBlock().verify();
     }
 
-    public EbftBlock clone() {
-        return new EbftBlock(this.block, this.consensusList);
-    }
-
     public byte[] toBinary() {
         int pos = 0;
 
@@ -165,7 +160,6 @@ public class EbftBlock {
     }
 
     public static EbftProto.EbftBlock toProto(EbftBlock ebftBlock) {
-        ebftBlock.getConsensusList().removeAll(Collections.singleton(null));
         EbftProto.EbftBlock.Builder protoBlock = EbftProto.EbftBlock.newBuilder()
                 .setBlock(ebftBlock.getBlock().toProtoBlock())
                 .setConsensusList(EbftProto.ConsensusList.newBuilder()
@@ -186,5 +180,14 @@ public class EbftBlock {
     public boolean equals(EbftBlock ebftBlock) {
         return this.block.equals(ebftBlock.getBlock())
                 && Arrays.equals(this.consensusList.toArray(), ebftBlock.consensusList.toArray());
+    }
+
+    public void clear() {
+        this.block.clear();
+        this.consensusList.clear();
+    }
+
+    public EbftBlock clone() {
+        return new EbftBlock(this.block.clone(), this.consensusList);
     }
 }

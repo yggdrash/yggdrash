@@ -1,4 +1,4 @@
-package io.yggdrash.core.net;
+package io.yggdrash.core.p2p;
 
 import io.yggdrash.PeerTestUtils;
 import io.yggdrash.TestConstants.SlowTest;

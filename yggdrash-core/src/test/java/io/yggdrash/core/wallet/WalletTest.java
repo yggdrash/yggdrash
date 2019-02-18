@@ -156,21 +156,30 @@ public class WalletTest extends SlowTest {
         log.debug("Verify Result: " + verifyResult);
         assertTrue(verifyResult);
 
+        byte[] plain2 = "test data 2222".getBytes();
+        verifyResult = wallet.verify(plain2, signature);
+        log.debug("Verify Result: " + verifyResult);
+        assertFalse(verifyResult);
+
         verifyResult = wallet.verifyHashedData(HashUtil.sha3(plain), signature);
         log.debug("Verify Result: " + verifyResult);
         assertTrue(verifyResult);
 
-        verifyResult = Wallet.verify(HashUtil.sha3(plain), signature, true);
-        log.debug("Verify Result: " + verifyResult);
-        assertTrue(verifyResult);
-
-        verifyResult = Wallet.verify(plain, signature, false);
+        verifyResult = Wallet.verify(HashUtil.sha3(plain), signature, true, wallet.getPubicKey());
         log.debug("Verify Result: " + verifyResult);
         assertTrue(verifyResult);
 
         verifyResult = Wallet.verify(plain, signature, false, wallet.getPubicKey());
         log.debug("Verify Result: " + verifyResult);
         assertTrue(verifyResult);
+
+        verifyResult = Wallet.verify(plain, signature, false, wallet.getPubicKey());
+        log.debug("Verify Result: " + verifyResult);
+        assertTrue(verifyResult);
+
+        verifyResult = Wallet.verify(HashUtil.sha3(plain2), signature, true, wallet.getPubicKey());
+        log.debug("Verify Result: " + verifyResult);
+        assertFalse(verifyResult);
     }
 
     @Test

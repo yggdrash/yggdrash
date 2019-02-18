@@ -32,7 +32,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -246,7 +246,7 @@ public class NodeContractDemoClient {
         JsonArray txBody = null;
         String from;
         String to;
-        BigDecimal amount;
+        BigInteger amount;
 
         if (scan.nextLine().equals("Y")) {
             System.out.println("=> ");
@@ -259,7 +259,7 @@ public class NodeContractDemoClient {
                     System.out.println("spender => ");
                     String spender = scan.nextLine();
                     System.out.println("amount => ");
-                    BigDecimal approvedAmount = new BigDecimal(scan.nextLine());
+                    BigInteger approvedAmount = new BigInteger(scan.nextLine());
 
                     txBody = CoinContractTestUtils.createApproveBody(spender, approvedAmount);
                     break;
@@ -267,7 +267,7 @@ public class NodeContractDemoClient {
                     System.out.println("to => ");
                     to = scan.nextLine();
                     System.out.println("amount => ");
-                    amount = new BigDecimal(scan.nextLine());
+                    amount = new BigInteger(scan.nextLine());
 
                     txBody = CoinContractTestUtils.createTransferBody(to, amount);
                     break;
@@ -277,7 +277,7 @@ public class NodeContractDemoClient {
                     System.out.println("to => ");
                     to = scan.nextLine();
                     System.out.println("amount => ");
-                    amount = new BigDecimal(scan.nextLine());
+                    amount = new BigInteger(scan.nextLine());
 
                     txBody = CoinContractTestUtils.createTransferFromBody(from, to, amount);
                     break;

@@ -3,6 +3,7 @@ package io.yggdrash.common.config;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.core.contract.ContractVersion;
 import org.spongycastle.util.encoders.Hex;
+
 import java.math.BigInteger;
 
 public class Constants {
@@ -22,11 +23,17 @@ public class Constants {
     public static final byte[] EMPTY_BYTE8 = new byte[8];
     public static final byte[] EMPTY_BYTE20 = new byte[20];
     public static final byte[] EMPTY_BYTE32 = new byte[32];
+    public static final byte[] EMPTY_BYTE1K = new byte[1024];
+
 
     public static final int TX_HEADER_LENGTH = 84;
     public static final int TX_SIG_LENGTH = 65;
     public static final int TX_BODY_MAX_LENGTH = 10000000; // 10 Mb
 
+    public static final String PBFT_PREPREPARE = "PREPREPA";
+    public static final String PBFT_PREPARE = "PREPAREM";
+    public static final String PBFT_COMMIT = "COMMITMS";
+    public static final String PBFT_VIEWCHANGE = "VIEWCHAN";
 
     public static BigInteger getSECP256K1N() {
         return SECP256K1N;

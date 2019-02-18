@@ -20,7 +20,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.core.wallet.Wallet;
 import org.spongycastle.util.encoders.Hex;
 
-public class TransactionSignature implements Cloneable {
+public class TransactionSignature {
 
     private final byte[] signature;
 
@@ -56,9 +56,7 @@ public class TransactionSignature implements Cloneable {
         return this.toJsonObject().toString();
     }
 
-    @Override
-    public TransactionSignature clone() throws CloneNotSupportedException {
-        return (TransactionSignature) super.clone();
+    public TransactionSignature clone() {
+        return new TransactionSignature(this.signature.clone());
     }
-
 }

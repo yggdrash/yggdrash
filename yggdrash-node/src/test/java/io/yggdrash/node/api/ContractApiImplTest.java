@@ -26,7 +26,7 @@ import io.yggdrash.node.CoinContractTestUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -51,14 +51,14 @@ public class ContractApiImplTest {
 
     @Test
     public void totalSupply() {
-        queryAndAssert("totalSupply", null, BigDecimal.valueOf(1000000000000L));
+        queryAndAssert("totalSupply", null, BigInteger.valueOf(1000000000000L));
     }
 
     @Test
     public void balanceOf() {
         Map params = createParams("address",
                 "cee3d4755e47055b530deeba062c5bd0c17eb00f");
-        queryAndAssert("balanceOf", params, BigDecimal.valueOf(998000000000L));
+        queryAndAssert("balanceOf", params, BigInteger.valueOf(998000000000L));
     }
 
     @Test
@@ -66,20 +66,20 @@ public class ContractApiImplTest {
         Map params = createParams("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
         params.put("spender", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
 
-        queryAndAssert("allowance", params, BigDecimal.ZERO);
+        queryAndAssert("allowance", params, BigInteger.ZERO);
     }
 
     @Test
     public void transfer() {
         JsonArray txBody = CoinContractTestUtils.createTransferBody(
-                "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigDecimal("1000"));
+                "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigInteger("1000"));
         sendTransaction(txBody);
     }
 
     @Test
     public void approve() {
         JsonArray txBody = CoinContractTestUtils.createApproveBody(
-                "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigDecimal("1000"));
+                "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigInteger("1000"));
         sendTransaction(txBody);
     }
 
@@ -88,14 +88,14 @@ public class ContractApiImplTest {
         JsonArray txBody = CoinContractTestUtils.createTransferFromBody(
                 "cee3d4755e47055b530deeba062c5bd0c17eb00f",
                 "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e",
-                new BigDecimal("1000"));
+                new BigInteger("1000"));
         sendTransaction(txBody);
     }
 
-    private void queryAndAssert(String method, Map params, BigDecimal expected) {
+    private void queryAndAssert(String method, Map params, BigInteger expected) {
         try {
             // TODO Change CoinContract Address by Name
-            BigDecimal value = (BigDecimal)CONTRACT_API
+            BigInteger value = (BigInteger)CONTRACT_API
                     .query(branchId.toString(), TestConstants.YEED_CONTRACT.toString(),
                             method, params);
             assertThat(value).isEqualTo(expected);

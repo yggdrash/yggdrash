@@ -1,4 +1,4 @@
-package io.yggdrash.core.net;
+package io.yggdrash.core.p2p;
 
 import io.yggdrash.common.util.Utils;
 import org.junit.Test;

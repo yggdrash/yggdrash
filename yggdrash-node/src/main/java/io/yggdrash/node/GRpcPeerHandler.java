@@ -22,8 +22,8 @@ import io.grpc.ManagedChannelBuilder;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerHandler;
+import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerHandler;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto.SyncLimit;
 import io.yggdrash.proto.PeerGrpc;
@@ -127,13 +127,13 @@ public class GRpcPeerHandler implements PeerHandler {
 
     @Override
     public void broadcastTransaction(TransactionHusk tx) {
-        log.info("*** Broadcasting txs...");
+        log.trace("Broadcasting txs -> {}", tx.getHash());
         asyncBlockChainStub.broadcastTransaction(tx.getInstance());
     }
 
     @Override
     public void broadcastBlock(BlockHusk block) {
-        log.info("*** Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
+        log.trace("Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
         asyncBlockChainStub.broadcastBlock(block.getInstance());
     }
 }

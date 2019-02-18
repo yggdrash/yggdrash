@@ -26,6 +26,7 @@ import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.wallet.Wallet;
+
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -36,13 +37,14 @@ import java.util.concurrent.ConcurrentHashMap;
 public class BranchGroup {
     private final Map<BranchId, BlockChain> branches = new ConcurrentHashMap<>();
 
-    public void addBranch(BlockChain blockChain,
-                          BranchEventListener branchEventListener) {
+    public void addBranch(BlockChain blockChain) {
+        if (blockChain == null) {
+            return;
+        }
         BranchId branchId = blockChain.getBranchId();
         if (branches.containsKey(branchId)) {
             throw new DuplicatedException(branchId.toString() + " duplicated");
         }
-        blockChain.addListener(branchEventListener);
         branches.put(branchId, blockChain);
     }
 
@@ -50,7 +52,7 @@ public class BranchGroup {
         return branches.get(branchId);
     }
 
-    boolean containsBranch(BranchId branchId) {
+    private boolean containsBranch(BranchId branchId) {
         return branches.containsKey(branchId);
     }
 
@@ -111,7 +113,7 @@ public class BranchGroup {
         return branches.get(branchId).getBlockByHash(hash);
     }
 
-    public int getBranchSize() {
+    int getBranchSize() {
         return branches.size();
     }
 

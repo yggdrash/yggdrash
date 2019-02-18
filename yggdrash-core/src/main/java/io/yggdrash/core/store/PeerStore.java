@@ -16,8 +16,8 @@
 
 package io.yggdrash.core.store;
 
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerId;
+import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerId;
 import io.yggdrash.core.store.datasource.DbSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
