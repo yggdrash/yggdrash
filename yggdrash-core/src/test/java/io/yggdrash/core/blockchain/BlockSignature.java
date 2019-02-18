@@ -18,7 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import io.yggdrash.core.wallet.Wallet;
 
-public class BlockSignature implements Cloneable {
+public class BlockSignature {
 
     private final byte[] signature;
 
@@ -34,9 +34,8 @@ public class BlockSignature implements Cloneable {
         return this.signature;
     }
 
-    @Override
-    public BlockSignature clone() throws CloneNotSupportedException {
-        return (BlockSignature) super.clone();
+    public BlockSignature clone() {
+        return new BlockSignature(this.signature.clone());
     }
 
 }

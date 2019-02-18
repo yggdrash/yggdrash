@@ -22,7 +22,7 @@ import io.grpc.testing.GrpcServerRule;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.PeerGrpc;
@@ -42,7 +42,7 @@ import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GRpcPeerHandlerTest {
+public class GRpcPeerHandlerTest extends TestConstants.CiTest {
 
     private static final Peer TARGET = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
 

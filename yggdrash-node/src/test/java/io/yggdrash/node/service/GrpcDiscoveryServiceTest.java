@@ -21,7 +21,7 @@ import io.grpc.testing.GrpcServerRule;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.DiscoveryConsumer;
-import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.proto.PeerGrpc;
 import io.yggdrash.proto.Proto;
 import org.junit.Before;

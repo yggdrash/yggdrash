@@ -23,7 +23,7 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BlockchainMetaInfo;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.p2p.Peer;
 import org.junit.Before;
 import org.junit.Test;
 

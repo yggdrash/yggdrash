@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.net;
+package io.yggdrash.core.p2p;
 
 import io.yggdrash.core.blockchain.BranchId;
 

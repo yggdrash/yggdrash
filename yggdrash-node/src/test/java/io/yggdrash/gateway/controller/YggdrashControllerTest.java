@@ -23,7 +23,6 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.annotation.IfProfileValue;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -33,18 +32,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
-@IfProfileValue(name = "spring.profiles.active", value = TestConstants.CI_TEST)
-@ActiveProfiles("gateway")
 @AutoConfigureMockMvc
 @SpringBootTest(classes = YggdrashNodeApp.class)
-public class StemControllerTest {
+@ActiveProfiles("gateway")
+public class YggdrashControllerTest extends TestConstants.CiTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @Test
     public void shouldGetBranches() throws Exception {
-        mockMvc.perform(get("/stem/blocks"))
+        mockMvc.perform(get("/yggdrash/blocks"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andReturn().getResponse();

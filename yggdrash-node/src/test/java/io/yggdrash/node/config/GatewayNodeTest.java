@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Akashic Foundation
+ * Copyright 2019 Akashic Foundation
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,46 +14,48 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node;
+package io.yggdrash.node.config;
 
 import io.yggdrash.TestConstants;
-import io.yggdrash.node.config.NodeProperties;
+import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.gateway.controller.BranchController;
+import io.yggdrash.node.ChainTask;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(SpringRunner.class)
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
-public class ActuatorTest extends TestConstants.CiTest {
+@SpringBootTest()
+@ActiveProfiles("gateway")
+public class GatewayNodeTest extends TestConstants.CiTest {
 
     @Autowired
-    TestRestTemplate restTemplate;
+    private BranchGroup branchGroup;
 
-    @Autowired
-    NodeProperties properties;
+    @Autowired(required = false)
+    private ChainTask chainTask;
+
+    @Autowired(required = false)
+    private BranchController branchController;
 
     @Test
-    public void shouldCheckHealthOfNode() {
-        ResponseEntity<String> entity = this.restTemplate.getForEntity(
-                "/actuator/health", String.class);
-        assertThat(entity.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(entity.getBody()).contains("\"status\":\"UP\"");
+    public void shouldBeNotEmptyBranch() {
+        assertThat(branchGroup.getAllBranch()).isNotEmpty();
     }
 
     @Test
-    public void getGrpc() {
-        assert properties.getGrpc().getHost().equals("localhost");
+    public void shouldBeActivateGatewayProfile() {
+        assertThat(branchController).isNotNull();
     }
 
     @Test
-    public void getPeer() {
-        assert properties.getSeedPeerList().size() > 0;
+    public void shouldBeNullChainTask() {
+        assertThat(chainTask).isNull();
     }
+
 }

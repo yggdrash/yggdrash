@@ -17,18 +17,16 @@
 package io.yggdrash;
 
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.net.KademliaPeerNetwork;
-import io.yggdrash.core.net.KademliaPeerTable;
-import io.yggdrash.core.net.KademliaPeerTableGroup;
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerHandlerFactory;
-import io.yggdrash.core.net.PeerHandlerGroup;
-import io.yggdrash.core.net.PeerHandlerMock;
-import io.yggdrash.core.net.SimplePeerHandlerGroup;
+import io.yggdrash.core.p2p.KademliaPeerTable;
+import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerDialer;
+import io.yggdrash.core.p2p.PeerHandlerMock;
+import io.yggdrash.core.p2p.PeerTableGroup;
+import io.yggdrash.core.p2p.PeerTableGroupBuilder;
+import io.yggdrash.core.p2p.SimplePeerDialer;
 import io.yggdrash.core.store.StoreBuilder;
 
 import java.util.Collections;
-import java.util.List;
 
 public class PeerTestUtils {
     public static final int SEED_PORT = 32918;
@@ -38,21 +36,18 @@ public class PeerTestUtils {
 
     private PeerTestUtils() {}
 
-    public static KademliaPeerNetwork createNetwork() {
-        PeerHandlerGroup peerHandlerGroup = new SimplePeerHandlerGroup(PeerHandlerMock.factory);
-        return new KademliaPeerNetwork(createTableGroup(), peerHandlerGroup);
+    public static PeerTableGroup createTableGroup() {
+        return createTableGroup(OWNER_PORT, new SimplePeerDialer(PeerHandlerMock.factory));
     }
 
-    public static KademliaPeerTableGroup createTableGroup() {
-        return createTableGroup(OWNER_PORT, PeerHandlerMock.factory);
-    }
-
-    public static KademliaPeerTableGroup createTableGroup(int port, PeerHandlerFactory factory) {
+    public static PeerTableGroup createTableGroup(int port, PeerDialer peerDialer) {
         Peer owner = Peer.valueOf(NODE_URI_PREFIX + port);
-        KademliaPeerTableGroup tableGroup = new KademliaPeerTableGroup(owner, storeBuilder, factory);
-        List<String> seedList = Collections.singletonList(NODE_URI_PREFIX + SEED_PORT);
-        tableGroup.setSeedPeerList(seedList);
-        return tableGroup;
+        return PeerTableGroupBuilder.Builder()
+                .setOwner(owner)
+                .setStoreBuilder(storeBuilder)
+                .setPeerDialer(peerDialer)
+                .setSeedPeerList(Collections.singletonList(NODE_URI_PREFIX + SEED_PORT))
+                .build();
     }
 
     public static KademliaPeerTable createTable() {

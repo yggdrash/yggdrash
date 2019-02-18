@@ -14,13 +14,13 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.net;
+package io.yggdrash.core.p2p;
 
 import io.yggdrash.core.blockchain.BranchId;
 
 import java.util.List;
 
-public interface PeerHandlerGroup {
+public interface PeerDialer {
 
     void setPeerEventListener(PeerEventListener peerEventListener);
 
@@ -37,4 +37,6 @@ public interface PeerHandlerGroup {
     List<String> getActiveAddressList();
 
     List<PeerHandler> getHandlerList(List<Peer> peerList);
+
+    PeerHandler getPeerHandler(Peer peer);
 }

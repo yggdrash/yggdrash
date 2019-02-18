@@ -17,12 +17,12 @@
 package io.yggdrash.node;
 
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.net.KademliaOptions;
 import io.yggdrash.core.net.NodeStatus;
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerHandlerGroup;
-import io.yggdrash.core.net.PeerTable;
-import io.yggdrash.core.net.PeerTableGroup;
+import io.yggdrash.core.p2p.KademliaOptions;
+import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerDialer;
+import io.yggdrash.core.p2p.PeerTable;
+import io.yggdrash.core.p2p.PeerTableGroup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +39,7 @@ public class PeerTask {
     private static final Logger log = LoggerFactory.getLogger(PeerTask.class);
 
     private PeerTableGroup peerTableGroup;
-    private PeerHandlerGroup peerHandlerGroup;
+    private PeerDialer peerDialer;
     private NodeStatus nodeStatus;
 
     @Autowired
@@ -53,8 +53,8 @@ public class PeerTask {
     }
 
     @Autowired
-    public void setPeerHandlerGroup(PeerHandlerGroup peerHandlerGroup) {
-        this.peerHandlerGroup = peerHandlerGroup;
+    public void setPeerDialer(PeerDialer peerDialer) {
+        this.peerDialer = peerDialer;
     }
 
     @Scheduled(fixedRate = 10000)
@@ -67,7 +67,7 @@ public class PeerTask {
             List<Peer> closestPeerList =
                     peerTable.getClosestPeers(peerTableGroup.getOwner(), KademliaOptions.BROADCAST_SIZE);
             log.trace("peerTask  :: healthCheck => size={}, branch={}", closestPeerList.size(), branchId);
-            closestPeerList.forEach(peer -> peerHandlerGroup.healthCheck(branchId, peerTableGroup.getOwner(), peer));
+            closestPeerList.forEach(peer -> peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), peer));
         }
     }
 
@@ -91,7 +91,7 @@ public class PeerTask {
             }
             // Ping the selected node and wait for a pong (set last.id to ping msg)
             log.debug("[revalidate] last ynodeUri => " + last.getYnodeUri());
-            if (peerHandlerGroup.healthCheck(branchId, peerTableGroup.getOwner(), last)) {
+            if (peerDialer.healthCheck(branchId, peerTableGroup.getOwner(), last)) {
                 // The peer responded, move it to the front
                 peerTable.getBucketByPeer(last).bump(last);
             } else {
