@@ -1,5 +1,6 @@
 package io.yggdrash.node;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -21,6 +22,7 @@ import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.BranchDto;
 import io.yggdrash.gateway.dto.TransactionDto;
+import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import io.yggdrash.node.api.BranchApi;
 import io.yggdrash.node.api.ContractApi;
 import io.yggdrash.node.api.ContractApiImplTest;
@@ -358,15 +360,16 @@ public class NodeContractDemoClient {
 
     private static void txReceipt() {
         String branchId = getBranchId();
-
-        System.out.println("조회할 트랜잭션 해시를 적어주세요\n>");
-        System.out.println("기본값 : " + lastTransactionId);
+        System.out.println("조회할 트랜잭션 해시를 적어주세요 \n 기본값 : " + lastTransactionId+"\n>");
         String txHash = scan.nextLine();
         if ("".equals(txHash)) {
             txHash = lastTransactionId;
         }
+        TransactionReceiptDto txr = rpc.proxyOf(TARGET_SERVER, TransactionApi.class).getTransactionReceipt(branchId, txHash);
 
-        rpc.proxyOf(TARGET_SERVER, TransactionApi.class).getTransactionReceipt(branchId, txHash);
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String prettyJsonString = gson.toJson(txr);
+        System.out.println(prettyJsonString);
     }
 
     private static void deployBranch() throws Exception {
