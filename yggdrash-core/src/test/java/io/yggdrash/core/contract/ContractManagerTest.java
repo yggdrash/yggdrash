@@ -154,18 +154,6 @@ public class ContractManagerTest {
         assertEquals(version, meta.getContractVersion());
     }
 
-    @Test
-    public void decompileContract() {
-        if (contracts == null) {
-            return;
-        }
-        contracts.entrySet().stream().findFirst();
-        Optional<Map.Entry<ContractVersion, ContractMeta>> m = contracts.entrySet().stream().findFirst();
-        ContractVersion version = m.get().getKey();
-
-        contractManager.decompileContract(version);
-    }
-
     private List<ContractVersion> contractSample() {
         DefaultConfig defaultConfig = new DefaultConfig();
         List<ContractVersion> contractsVersionSampleIds = new ArrayList<>();

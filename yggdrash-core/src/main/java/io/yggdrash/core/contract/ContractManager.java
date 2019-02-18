@@ -226,7 +226,8 @@ public class ContractManager extends ClassLoader {
      */
     public String decompileContract(ContractVersion contractVersion) {
         if (!existFile((contractVersion))) {
-            throw new RuntimeException("The contract file does not exist");
+            //TODO reuqest to another node
+            log.error("The contract file does not exist");
         }
         AtomicReference<String> result = new AtomicReference<>("");
         OutputSinkFactory mySink = new OutputSinkFactory() {
