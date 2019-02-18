@@ -33,6 +33,7 @@ import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.store.StoreBuilder;
 
 import java.io.InputStream;
+import java.util.Collections;
 
 public class BlockChainTestUtils {
     private static final GenesisBlock genesis;
@@ -50,6 +51,10 @@ public class BlockChainTestUtils {
 
     public static BlockHusk genesisBlock() {
         return genesis.getBlock();
+    }
+
+    public static BlockHusk createNextBlock() {
+        return new BlockHusk(TestConstants.wallet(), Collections.emptyList(), genesis.getBlock());
     }
 
     public static TransactionHusk createTransferTxHusk() {

@@ -99,7 +99,12 @@ public class PeerHandlerMock implements PeerHandler {
 
     }
 
+    public static PeerHandler dummy() {
+        return dummy(OWNER);
+    }
+
     public static PeerHandler dummy(Peer peer) {
         return new PeerHandlerMock(peer.getYnodeUri());
     }
+
 }
