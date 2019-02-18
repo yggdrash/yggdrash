@@ -5,4 +5,4 @@ logging:
 yggdrash:
   validator:
     consensus:
-      algorithm: ebft
+      algorithm: pbft

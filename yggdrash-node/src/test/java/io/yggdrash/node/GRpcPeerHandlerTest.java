@@ -16,13 +16,13 @@
 
 package io.yggdrash.node;
 
+import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.net.BestBlock;
-import io.yggdrash.core.net.Peer;
+import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.PeerGrpc;
@@ -36,14 +36,13 @@ import org.mockito.Captor;
 import org.mockito.Spy;
 import org.mockito.junit.MockitoJUnitRunner;
 
-import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
-public class GRpcPeerHandlerTest {
+public class GRpcPeerHandlerTest extends TestConstants.CiTest {
 
     private static final Peer TARGET = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
 
@@ -94,17 +93,15 @@ public class GRpcPeerHandlerTest {
         }).when(peerService).ping(pingRequestCaptor.capture(), any());
 
         Peer owner = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
-        owner.updateBestBlock(BestBlock.of(yggdrash, 0));
         String ping = "Ping";
-        peerHandler.ping(owner, ping);
+        peerHandler.ping(yggdrash, owner, ping);
 
         verify(peerService).ping(pingRequestCaptor.capture(), any());
 
         assertEquals(ping, pingRequestCaptor.getValue().getPing());
 
-        Proto.BestBlock bestBlock = pingRequestCaptor.getValue().getBestBlocks(0);
-        assertArrayEquals(yggdrash.getBytes(), bestBlock.getBranch().toByteArray());
-        assertEquals(0, bestBlock.getIndex());
+        ByteString branchId = pingRequestCaptor.getValue().getBranch();
+        assertEquals(yggdrash, BranchId.of(branchId.toByteArray()));
     }
 
     @Test
@@ -116,7 +113,7 @@ public class GRpcPeerHandlerTest {
             return null;
         }).when(peerService).findPeers(findPeersTargetCaptor.capture(), any());
 
-        peerHandler.findPeers(TARGET);
+        peerHandler.findPeers(yggdrash, TARGET);
 
         verify(peerService).findPeers(findPeersTargetCaptor.capture(), any());
 

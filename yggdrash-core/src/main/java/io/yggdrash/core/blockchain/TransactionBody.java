@@ -23,17 +23,16 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;
 
-public class TransactionBody implements Cloneable {
+public class TransactionBody {
 
-    private final JsonArray body;
+    private final JsonArray body = new JsonArray();
 
     public TransactionBody(JsonArray body) {
-
-        this.body = body;
+        this.body.addAll(body);
     }
 
     public TransactionBody(String body) {
-        this.body = JsonUtil.parseJsonArray(body);
+        this.body.addAll(JsonUtil.parseJsonArray(body));
     }
 
     public TransactionBody(byte[] bodyBytes) {
@@ -68,9 +67,7 @@ public class TransactionBody implements Cloneable {
         return this.body.toString().getBytes(StandardCharsets.UTF_8);
     }
 
-    @Override
-    public TransactionBody clone() throws CloneNotSupportedException {
-        //todo: check body data whether clone or not
-        return (TransactionBody) super.clone();
+    public TransactionBody clone() {
+        return new TransactionBody(this.body);
     }
 }

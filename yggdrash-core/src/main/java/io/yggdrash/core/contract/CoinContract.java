@@ -20,7 +20,7 @@ import io.yggdrash.core.store.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.Map;
 
 
@@ -44,7 +44,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
     @ContractQuery
     @ParamValidation
     @Override
-    public BigDecimal totalSupply() {
+    public BigInteger totalSupply() {
         log.info("\ntotalsupply :: param => ");
         return getBalance(totalSupplyKey);
     }
@@ -53,19 +53,19 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      * Gets the balance of the specified address
      * params owner   The address to query the balance of
      *
-     * @return A BigDecimal representing the amount owned by the passed address
+     * @return A BigInteger representing the amount owned by the passed address
      */
     @ContractQuery
     @ParamValidation
     @Override
-    public BigDecimal balanceOf(JsonObject params) {
+    public BigInteger balanceOf(JsonObject params) {
         log.info("\nbalanceof :: params => " + params);
 
         String address = params.get("address").getAsString().toLowerCase();
         if (store.get(address) != null) {
             return getBalance(address);
         }
-        return BigDecimal.ZERO;
+        return BigInteger.ZERO;
     }
 
     /**
@@ -73,12 +73,12 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      * params owner    The address which owns the funds.
      * params spender  The address which will spend the funds
      *
-     * @return A BigDecimal specifying the amount of coin still available for the spender
+     * @return A BigInteger specifying the amount of coin still available for the spender
      */
     @ContractQuery
     @ParamValidation
     @Override
-    public BigDecimal allowance(JsonObject params) {
+    public BigInteger allowance(JsonObject params) {
         log.info("\nallowance :: params => " + params);
 
         String owner = params.get("owner").getAsString().toLowerCase();
@@ -88,7 +88,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
         if (store.get(owner) != null && store.get(approveKey) != null) {
             return getBalance(approveKey);
         }
-        return BigDecimal.ZERO;
+        return BigInteger.ZERO;
     }
 
     /**
@@ -105,16 +105,16 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
         log.info("\ntransfer :: params => " + params);
 
         String to = params.get("to").getAsString().toLowerCase();
-        BigDecimal amount = params.get("amount").getAsBigDecimal();
+        BigInteger amount = params.get("amount").getAsBigInteger();
 
         txReceipt.addLog(params);
         String sender = this.txReceipt.getIssuer();
-        if (getBalance(sender).compareTo(BigDecimal.ZERO) == 0) {
+        if (getBalance(sender).compareTo(BigInteger.ZERO) == 0) {
             log.info("\n[ERR] " + sender + " has no balance!");
             return txReceipt;
         }
 
-        BigDecimal senderBallance = getBalance(sender);
+        BigInteger senderBallance = getBalance(sender);
         log.debug("sender : " + senderBallance);
         if (isTransferable(senderBallance, amount)) {
             senderBallance = senderBallance.subtract(amount);
@@ -145,18 +145,18 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
         log.info("\napprove :: params => " + params);
 
         String spender = params.get("spender").getAsString().toLowerCase();
-        BigDecimal amount = params.get("amount").getAsBigDecimal();
+        BigInteger amount = params.get("amount").getAsBigInteger();
 
         String sender = txReceipt.getIssuer();
 
         txReceipt.addLog(params);
 
-        if (getBalance(sender).compareTo(BigDecimal.ZERO) == 0) {
+        if (getBalance(sender).compareTo(BigInteger.ZERO) == 0) {
             log.info("\n[ERR] " + sender + " has no balance!");
             return txReceipt;
         }
 
-        BigDecimal senderBalance = getBalance(sender);
+        BigInteger senderBalance = getBalance(sender);
         if (isTransferable(senderBalance, amount)) {
             String approveKey = approveKey(sender, spender);
             putBalance(approveKey, amount);
@@ -192,14 +192,14 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
         String sender = txReceipt.getIssuer();
         String approveKey = approveKey(from, sender);
         log.debug("approve Key : " + approveKey);
-        if (getBalance(approveKey).compareTo(BigDecimal.ZERO) == 0) {
+        if (getBalance(approveKey).compareTo(BigInteger.ZERO) == 0) {
             log.info("\n[ERR] " + from + " has no balance!");
             return txReceipt;
         }
         // check from amount
-        BigDecimal fromValue = getBalance(from);
-        BigDecimal approveValue = getBalance(approveKey);
-        BigDecimal amount = params.get("amount").getAsBigDecimal();
+        BigInteger fromValue = getBalance(from);
+        BigInteger approveValue = getBalance(approveKey);
+        BigInteger amount = params.get("amount").getAsBigInteger();
 
         if (isTransferable(fromValue, amount) && isTransferable(approveValue, amount)) {
             fromValue = fromValue.subtract(amount);
@@ -228,18 +228,17 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      * @return TransactionReceipt
      */
     @Genesis
-    @ParamValidation
     @InvokeTransction
     public TransactionReceipt init(JsonObject params) {
         log.info("\ngenesis :: params => " + params);
 
         //totalSupply 는 alloc 의 balance 를 모두 더한 값으로 세팅
-        BigDecimal totalSupply = BigDecimal.ZERO;
+        BigInteger totalSupply = BigInteger.ZERO;
         JsonObject alloc = params.getAsJsonObject("alloc");
         for (Map.Entry<String, JsonElement> entry : alloc.entrySet()) {
             String frontier = entry.getKey();
             JsonObject value = entry.getValue().getAsJsonObject();
-            BigDecimal balance = value.get("balance").getAsBigDecimal();
+            BigInteger balance = value.get("balance").getAsBigInteger();
             totalSupply = totalSupply.add(balance);
             addBalanceTo(frontier, balance);
 
@@ -252,6 +251,8 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
             log.info("\nAddress of Frontier : " + frontier
                     + "\nBalance of Frontier : " + getBalance(frontier));
         }
+        // TODO Validator will call by contract channel
+        // boolean isSuccess = saveInitValidator(params.getAsJsonArray("validator"));
         boolean isSuccess = true;
 
         // FIXME convert to Json or something
@@ -268,23 +269,35 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
         return txReceipt;
     }
 
-
-
-    private void addBalanceTo(String to, BigDecimal amount) {
-        BigDecimal balance = getBalance(to);
+    private void addBalanceTo(String to, BigInteger amount) {
+        BigInteger balance = getBalance(to);
         putBalance(to, balance.add(amount));
     }
 
-    private BigDecimal getBalance(String key) {
+    public boolean saveInitValidator(JsonArray validators) {
+        ValidatorSet validatorSet = store.get(PrefixKeyEnum.VALIDATORS.toValue());
+        if (validatorSet != null || validators == null) {
+            return true;
+        }
+
+        validatorSet = new ValidatorSet();
+        for (JsonElement validator : validators) {
+            validatorSet.getValidatorMap().put(validator.getAsString(), new Validator(validator.getAsString()));
+        }
+        JsonObject jsonObject = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
+        store.put(PrefixKeyEnum.VALIDATORS.toValue(), jsonObject);
+        return true;
+    }
+    private BigInteger getBalance(String key) {
         JsonObject storeValue = store.get(key);
         if (storeValue != null && storeValue.has("balance")) {
-            return storeValue.get("balance").getAsBigDecimal();
+            return storeValue.get("balance").getAsBigInteger();
         } else {
-            return BigDecimal.ZERO;
+            return BigInteger.ZERO;
         }
     }
 
-    private void putBalance(String key, BigDecimal value) {
+    private void putBalance(String key, BigInteger value) {
         JsonObject storeValue = new JsonObject();
         storeValue.addProperty("balance", value);
         store.put(key, storeValue);
@@ -297,9 +310,9 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
         return Hex.toHexString(approveKey);
     }
 
-    private boolean isTransferable(BigDecimal targetBalance, BigDecimal ammount) {
+    private boolean isTransferable(BigInteger targetBalance, BigInteger ammount) {
         // same is  0, more is 1
-        return targetBalance.subtract(ammount).compareTo(BigDecimal.ZERO) >= 0;
+        return targetBalance.subtract(ammount).compareTo(BigInteger.ZERO) >= 0;
     }
 
 

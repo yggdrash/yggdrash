@@ -40,7 +40,7 @@ import static io.yggdrash.common.config.Constants.TX_BODY_MAX_LENGTH;
 import static io.yggdrash.common.config.Constants.TX_HEADER_LENGTH;
 import static io.yggdrash.common.config.Constants.TX_SIG_LENGTH;
 
-public class Transaction implements Cloneable {
+public class Transaction {
 
     private static final Logger log = LoggerFactory.getLogger(Transaction.class);
 
@@ -342,20 +342,8 @@ public class Transaction implements Cloneable {
         return bao.toByteArray();
     }
 
-    /**
-     * Clone a transaction.
-     *
-     * @return a transaction
-     * @throws CloneNotSupportedException CloneNotSupportedException
-     */
-    @Override
-    public Transaction clone() throws CloneNotSupportedException {
-        Transaction tx = (Transaction) super.clone();
-        tx.header = this.header.clone();
-        tx.signature = this.signature.clone();
-        tx.body = this.body.clone();
-
-        return tx;
+    public Transaction clone() {
+        return new Transaction(this.header.clone(), this.signature.clone(), this.body.clone());
     }
 
     public static Proto.Transaction toProtoTransaction(Transaction tx) {

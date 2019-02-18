@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import io.yggdrash.TestConstants;
 import io.yggdrash.gateway.dto.BlockDto;
 import io.yggdrash.node.YggdrashNodeApp;
-import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,16 +31,17 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
-@ActiveProfiles("gateway")
 @SpringBootTest(classes = YggdrashNodeApp.class)
-//@IfProfileValue(name = "spring.profiles.active", value = TestConstants.CI_TEST)
-public class BlockControllerTest {
+@ActiveProfiles("gateway")
+public class BlockControllerTest extends TestConstants.CiTest {
 
     private String basePath;
 

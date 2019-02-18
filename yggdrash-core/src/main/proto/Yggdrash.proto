@@ -54,6 +54,7 @@ message TargetPeer {
     string pubKey = 1;
     string ip = 2;
     int32 port = 3;
+    bytes branch = 4;
     // Fields can be added (i.e.Expiration ...etc)
 }
 
@@ -69,15 +70,10 @@ message Ping {
     string ping = 1;
     string from = 2;
     string to = 3;
-    repeated BestBlock bestBlocks = 4;
+    bytes branch = 4;
 }
 
 message Pong {
     string pong = 1;
     PeerInfo from = 2; // Not used yet
-}
-
-message BestBlock {
-    bytes branch = 1;
-    int64 index = 2;
 }

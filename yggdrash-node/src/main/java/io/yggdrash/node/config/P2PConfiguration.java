@@ -23,34 +23,31 @@ import io.yggdrash.core.net.BlockChainConsumer;
 import io.yggdrash.core.net.BlockChainServiceConsumer;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.DiscoveryServiceConsumer;
-import io.yggdrash.core.net.KademliaPeerTable;
-import io.yggdrash.core.net.NodeStatus;
-import io.yggdrash.core.net.Peer;
-import io.yggdrash.core.net.PeerHandlerFactory;
-import io.yggdrash.core.net.PeerHandlerGroup;
-import io.yggdrash.core.net.PeerTable;
-import io.yggdrash.core.net.SimplePeerHandlerGroup;
-import io.yggdrash.core.store.PeerStore;
+import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerDialer;
+import io.yggdrash.core.p2p.PeerHandlerFactory;
+import io.yggdrash.core.p2p.PeerTableGroup;
+import io.yggdrash.core.p2p.PeerTableGroupBuilder;
+import io.yggdrash.core.p2p.SimplePeerDialer;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.GRpcPeerHandlerFactory;
-import io.yggdrash.node.PeerTask;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
-@EnableScheduling
 @EnableConfigurationProperties(NodeProperties.class)
 public class P2PConfiguration {
 
     private final NodeProperties nodeProperties;
+    private final StoreBuilder storeBuilder;
 
     @Autowired
-    P2PConfiguration(NodeProperties nodeProperties) {
+    P2PConfiguration(NodeProperties nodeProperties, StoreBuilder storeBuilder) {
         this.nodeProperties = nodeProperties;
+        this.storeBuilder = storeBuilder;
     }
 
     @Bean
@@ -59,28 +56,26 @@ public class P2PConfiguration {
     }
 
     @Bean
-    KademliaPeerTable peerTable(Wallet wallet,
-                                StoreBuilder storeBuilder,
-                                PeerHandlerFactory peerHandlerFactory) {
+    PeerDialer peerDialer(PeerHandlerFactory peerHandlerFactory) {
+        return new SimplePeerDialer(peerHandlerFactory);
+    }
+
+    @Bean
+    PeerTableGroup peerTableGroup(Wallet wallet, PeerDialer peerDialer) {
         Peer owner = Peer.valueOf(wallet.getNodeId(), nodeProperties.getGrpc().getHost(),
-                nodeProperties.getGrpc().getPort());
+                nodeProperties.getGrpc().getPort(), nodeProperties.isSeed());
 
-        PeerStore peerStore = storeBuilder.buildPeerStore();
-        KademliaPeerTable peerTable = new KademliaPeerTable(owner, peerStore, peerHandlerFactory);
-        peerTable.setSeedPeerList(nodeProperties.getSeedPeerList());
-        return peerTable;
+        return PeerTableGroupBuilder.Builder()
+                .setOwner(owner)
+                .setStoreBuilder(storeBuilder)
+                .setPeerDialer(peerDialer)
+                .setSeedPeerList(nodeProperties.getSeedPeerList())
+                .build();
     }
 
     @Bean
-    PeerHandlerGroup peerHandlerGroup(PeerTable peerTable, PeerHandlerFactory peerHandlerFactory) {
-        PeerHandlerGroup peerHandlerGroup = new SimplePeerHandlerGroup(peerHandlerFactory);
-        peerHandlerGroup.setPeerEventListener(peerTable);
-        return peerHandlerGroup;
-    }
-
-    @Bean
-    DiscoveryConsumer discoveryConsumer(PeerTable peerTable) {
-        return new DiscoveryServiceConsumer(peerTable);
+    DiscoveryConsumer discoveryConsumer(PeerTableGroup peerTableGroup) {
+        return new DiscoveryServiceConsumer(peerTableGroup);
     }
 
     @Bean
@@ -89,18 +84,7 @@ public class P2PConfiguration {
     }
 
     @Bean
-    SyncManager syncManager(BranchGroup branchGroup,
-                            PeerHandlerGroup peerHandlerGroup,
-                            NodeStatus nodeStatus) {
-        return new SimpleSyncManager(branchGroup, peerHandlerGroup, nodeStatus);
-    }
-
-    /**
-     * Scheduling Beans
-     */
-
-    @Bean
-    PeerTask peerTask() {
-        return new PeerTask();
+    SyncManager syncManager() {
+        return new SimpleSyncManager();
     }
 }

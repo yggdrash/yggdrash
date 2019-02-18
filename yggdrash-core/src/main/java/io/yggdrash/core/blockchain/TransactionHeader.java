@@ -29,7 +29,7 @@ import org.spongycastle.util.encoders.Hex;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-public class TransactionHeader implements Cloneable {
+public class TransactionHeader {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHeader.class);
 
@@ -201,9 +201,12 @@ public class TransactionHeader implements Cloneable {
         return this.toJsonObject().toString();
     }
 
-    @Override
-    public TransactionHeader clone() throws CloneNotSupportedException {
-        return (TransactionHeader) super.clone();
+    public TransactionHeader clone() {
+        return new TransactionHeader(this.chain.clone(),
+                this.version.clone(),
+                this.type.clone(),
+                this.timestamp,
+                this.bodyHash.clone(),
+                this.bodyLength);
     }
-
 }

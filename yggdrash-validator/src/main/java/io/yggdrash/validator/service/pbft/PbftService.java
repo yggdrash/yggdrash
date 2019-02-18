@@ -3,7 +3,6 @@ package io.yggdrash.validator.service.pbft;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
@@ -102,7 +101,7 @@ public class PbftService implements CommandLineRunner {
         printInitInfo();
     }
 
-    @Scheduled(cron = "*/5 * * * * *")
+    @Scheduled(cron = "*/2 * * * * *")
     public void mainScheduler() {
 
         checkNode();
@@ -188,8 +187,6 @@ public class PbftService implements CommandLineRunner {
                 + ")");
 
         log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedMsgMap().size());
-        log.debug("blockStore size= " + this.blockChain.getBlockStore().size());
-        log.debug("blockKeyStore size= " + this.blockChain.getBlockKeyStore().size());
 
         if (!this.blockChain.TEST_NONE_TXSTORE) {
             log.debug("TxStore unConfirmed Tx.size= "
@@ -464,7 +461,7 @@ public class PbftService implements CommandLineRunner {
             PbftMessageSet pbftMessageSet = new PbftMessageSet(
                     prePrepareMsg, prepareMessageMap, commitMessageMap, this.viewChangeMap);
             PbftBlock pbftBlock = new PbftBlock(prePrepareMsg.getBlock(), pbftMessageSet);
-            confirmedBlock(pbftBlock);
+            confirmedBlock(pbftBlock.clone());
             this.failCount = 0;
             this.viewChangeMap.clear();
             this.isViewChanged = false;
@@ -539,7 +536,7 @@ public class PbftService implements CommandLineRunner {
         for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
             if (pbftMessage.getSeqNumber() <= block.getIndex()) {
-                // todo: clear pbftMessage
+                pbftMessage.clear();
                 this.blockChain.getUnConfirmedMsgMap().remove(key);
             }
         }
@@ -742,12 +739,7 @@ public class PbftService implements CommandLineRunner {
         }
         long timestamp = TimeUtils.time();
 
-        return new PbftStatus(index,
-                pbftMessageMap,
-                timestamp,
-                wallet.sign(ByteUtil.merge(ByteUtil.longToBytes(index),
-                        pbftMessageBytes.toByteArray(),
-                        ByteUtil.longToBytes(timestamp))));
+        return new PbftStatus(index, pbftMessageMap, timestamp, wallet);
     }
 
     private void printInitInfo() {

@@ -18,7 +18,6 @@ import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -92,22 +91,22 @@ public class PbftMessageTest {
         byte[] prePrepareBytes = this.prePrepare.toBinary();
         PbftMessage prePrepare = new PbftMessage(prePrepareBytes);
         log.debug(prePrepare.toJsonObject().toString());
-        assertEquals(prePrepare.toJsonObject().toString(), this.prePrepare.toJsonObject().toString());
+        assertTrue(prePrepare.equals(this.prePrepare));
 
         byte[] preparePbftBytes = prepare.toBinary();
         PbftMessage prepare = new PbftMessage(preparePbftBytes);
         log.debug(prepare.toJsonObject().toString());
-        assertEquals(prepare.toJsonObject().toString(), this.prepare.toJsonObject().toString());
+        assertTrue(prepare.equals(this.prepare));
 
         byte[] commitBytes = commit.toBinary();
         PbftMessage commit = new PbftMessage(commitBytes);
         log.debug(commit.toJsonObject().toString());
-        assertEquals(commit.toJsonObject().toString(), this.commit.toJsonObject().toString());
+        assertTrue(commit.equals(this.commit));
 
         byte[] viewChangeBytes = viewChange.toBinary();
         PbftMessage viewChange = new PbftMessage(viewChangeBytes);
         log.debug(viewChange.toJsonObject().toString());
-        assertEquals(viewChange.toJsonObject().toString(), this.viewChange.toJsonObject().toString());
+        assertTrue(viewChange.equals(this.viewChange));
     }
 
     @Test
@@ -115,22 +114,22 @@ public class PbftMessageTest {
         JsonObject prePrepareJsonObject = prePrepare.toJsonObject();
         PbftMessage prePrepare = new PbftMessage(prePrepareJsonObject);
         log.debug(prePrepare.toJsonObject().toString());
-        assertEquals(prePrepare.toJsonObject().toString(), this.prePrepare.toJsonObject().toString());
+        assertTrue(prePrepare.equals(this.prePrepare));
 
         JsonObject prepareJsonObject = prepare.toJsonObject();
         PbftMessage prepare = new PbftMessage(prepareJsonObject);
         log.debug(prepare.toJsonObject().toString());
-        assertEquals(prepare.toJsonObject().toString(), this.prepare.toJsonObject().toString());
+        assertTrue(prepare.equals(this.prepare));
 
         JsonObject commitJsonObject = commit.toJsonObject();
         PbftMessage commit = new PbftMessage(commitJsonObject);
         log.debug(commit.toJsonObject().toString());
-        assertEquals(commit.toJsonObject().toString(), this.commit.toJsonObject().toString());
+        assertTrue(commit.equals(this.commit));
 
         JsonObject viewChangeJsonObject = viewChange.toJsonObject();
         PbftMessage viewChange = new PbftMessage(viewChangeJsonObject);
         log.debug(viewChange.toJsonObject().toString());
-        assertEquals(viewChange.toJsonObject().toString(), this.viewChange.toJsonObject().toString());
+        assertTrue(viewChange.equals(this.viewChange));
     }
 
     @Test
@@ -138,22 +137,22 @@ public class PbftMessageTest {
         PbftProto.PbftMessage prePrepare = PbftMessage.toProto(this.prePrepare);
         PbftMessage newPrePrepare = new PbftMessage(prePrepare);
         log.debug(newPrePrepare.toJsonObject().toString());
-        assertEquals(newPrePrepare.toJsonObject().toString(), this.prePrepare.toJsonObject().toString());
+        assertTrue(newPrePrepare.equals(this.prePrepare));
 
         PbftProto.PbftMessage prepare = PbftMessage.toProto(this.prepare);
         PbftMessage newPrepare = new PbftMessage(prepare);
         log.debug(newPrepare.toJsonObject().toString());
-        assertEquals(newPrepare.toJsonObject().toString(), this.prepare.toJsonObject().toString());
+        assertTrue(newPrepare.equals(this.prepare));
 
         PbftProto.PbftMessage commit = PbftMessage.toProto(this.commit);
         PbftMessage newCommit = new PbftMessage(commit);
         log.debug(newCommit.toJsonObject().toString());
-        assertEquals(newCommit.toJsonObject().toString(), this.commit.toJsonObject().toString());
+        assertTrue(newCommit.equals(this.commit));
 
         PbftProto.PbftMessage viewChange = PbftMessage.toProto(this.viewChange);
         PbftMessage newViewChange = new PbftMessage(viewChange);
         log.debug(newViewChange.toJsonObject().toString());
-        assertEquals(newViewChange.toJsonObject().toString(), this.viewChange.toJsonObject().toString());
+        assertTrue(newViewChange.equals(this.viewChange));
     }
 
     @Test
@@ -283,4 +282,30 @@ public class PbftMessageTest {
             }
         }
     }
+
+    @Test
+    public void cloneTest() {
+        PbftMessage newPbftMessage = this.prePrepare.clone();
+        assertTrue(newPbftMessage.equals(this.prePrepare));
+        newPbftMessage.clear();
+        assertTrue(PbftMessage.verify(this.prePrepare));
+
+        newPbftMessage = this.prepare.clone();
+        assertTrue(newPbftMessage.equals(this.prepare));
+        newPbftMessage.clear();
+        assertTrue(PbftMessage.verify(this.prepare));
+
+        newPbftMessage = this.commit.clone();
+        assertTrue(newPbftMessage.equals(this.commit));
+        newPbftMessage.clear();
+        assertTrue(PbftMessage.verify(this.commit));
+
+        newPbftMessage = this.viewChange.clone();
+        assertTrue(newPbftMessage.equals(this.viewChange));
+        newPbftMessage.clear();
+        assertTrue(PbftMessage.verify(this.viewChange));
+    }
+
+
+
 }

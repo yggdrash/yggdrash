@@ -108,7 +108,8 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
                 && Arrays.equals(lastPbftBlock.getHash(), newPbftBlock.getPrevBlockHash())) {
 
             pbftService.getLock().lock();
-//            pbftService.updateUnconfirmedBlock(newPbftBlock);
+            // todo: check block confirm
+            //pbftService.updateUnconfirmedBlock(newPbftBlock);
             pbftService.getLock().unlock();
         }
 

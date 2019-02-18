@@ -200,10 +200,12 @@ public class EbftService implements CommandLineRunner {
             //todo: if consensusCount(validator count) is different from previous count,
             // cannot confirm prevBlock.
             if (ebftBlock.getConsensusList().size() >= consenusCount) {
-                changeLastConfirmedBlock(ebftBlock);
+                changeLastConfirmedBlock(ebftBlock.clone());
                 this.isProposed = false;
                 this.isConsensused = false;
             }
+
+            ebftBlockList.clear();
         }
 
         if (this.blockChain.getLastConfirmedBlock().getIndex() < index) {
@@ -355,20 +357,22 @@ public class EbftService implements CommandLineRunner {
     private void confirmFinalBlock() {
         boolean moreConfirmFlag = false;
         for (String key : this.blockChain.getUnConfirmedBlockMap().keySet()) {
-            EbftBlock unconfirmedNode = this.blockChain.getUnConfirmedBlockMap().get(key);
-            if (unconfirmedNode == null) {
+            EbftBlock unconfirmedBlock = this.blockChain.getUnConfirmedBlockMap().get(key);
+            if (unconfirmedBlock == null) {
+                this.blockChain.getUnConfirmedBlockMap().remove(key);
                 continue;
             }
-            if (unconfirmedNode.getIndex()
+            if (unconfirmedBlock.getIndex()
                     <= this.blockChain.getLastConfirmedBlock().getIndex()) {
+                unconfirmedBlock.clear();
                 this.blockChain.getUnConfirmedBlockMap().remove(key);
-            } else if (unconfirmedNode.getIndex()
+            } else if (unconfirmedBlock.getIndex()
                     == this.blockChain.getLastConfirmedBlock().getIndex() + 1) {
-                if (unconfirmedNode.getConsensusList().size() >= consenusCount) {
-                    confirmedBlock(unconfirmedNode);
+                if (unconfirmedBlock.getConsensusList().size() >= consenusCount) {
+                    confirmedBlock(unconfirmedBlock);
                 }
             } else {
-                if (unconfirmedNode.getConsensusList().size() >= consenusCount) {
+                if (unconfirmedBlock.getConsensusList().size() >= consenusCount) {
                     moreConfirmFlag = true;
                 }
             }
@@ -384,7 +388,7 @@ public class EbftService implements CommandLineRunner {
         this.blockChain.getBlockStore().put(ebftBlock.getHash(), ebftBlock);
         this.blockChain.getBlockKeyStore().put(ebftBlock.getIndex(), ebftBlock.getHash());
 
-        changeLastConfirmedBlock(ebftBlock);
+        changeLastConfirmedBlock(ebftBlock.clone());
         this.isProposed = false;
         this.isConsensused = false;
 
@@ -404,8 +408,9 @@ public class EbftService implements CommandLineRunner {
 
         // clear unConfirmedBlock
         for (String key : this.blockChain.getUnConfirmedBlockMap().keySet()) {
-            EbftBlock unConfirmedEbftBlock = this.blockChain.getUnConfirmedBlockMap().get(key);
-            if (unConfirmedEbftBlock.getIndex() <= ebftBlock.getIndex()) {
+            EbftBlock unConfirmedBlock = this.blockChain.getUnConfirmedBlockMap().get(key);
+            if (unConfirmedBlock.getIndex() <= ebftBlock.getIndex()) {
+                unConfirmedBlock.clear();
                 this.blockChain.getUnConfirmedBlockMap().remove(key);
             }
         }

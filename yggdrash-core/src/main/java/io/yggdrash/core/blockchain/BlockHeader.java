@@ -30,7 +30,7 @@ import java.io.IOException;
 import java.util.Arrays;
 
 
-public class BlockHeader implements Cloneable {
+public class BlockHeader {
 
     static final int CHAIN_LENGTH = 20;
     static final int VERSION_LENGTH = 8;
@@ -219,9 +219,15 @@ public class BlockHeader implements Cloneable {
         return this.toJsonObject().toString();
     }
 
-    @Override
-    public BlockHeader clone() throws CloneNotSupportedException {
-        return (BlockHeader) super.clone();
+    public BlockHeader clone() {
+        return new BlockHeader(this.chain.clone(),
+                this.version.clone(),
+                this.type.clone(),
+                this.prevBlockHash.clone(),
+                this.index,
+                this.timestamp,
+                this.merkleRoot.clone(),
+                this.bodyLength);
     }
 
     public boolean equals(BlockHeader newBlockHeader) {
