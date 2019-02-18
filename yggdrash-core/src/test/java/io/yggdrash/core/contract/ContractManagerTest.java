@@ -26,7 +26,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -55,18 +54,6 @@ public class ContractManagerTest {
         }
         this.contractManager = new ContractManager(defaultConfig.getContractPath());
         this.contracts = contractManager.getContracts();
-    }
-
-    @Test
-    public void classLoaderTest() throws Exception{
-        ContractMeta meta = this.contracts.get(ContractVersion.of("7b343aea81217bf80058a497669354c6b7cad3ef"));
-        ContractMeta meta2 = this.contracts.get(ContractVersion.of("509b8402e80dc632cb207fbc205c533c46d1e7df"));
-
-        Method m = meta.getContractInstance().getClass().getDeclaredMethod("someQuery");
-        System.out.println(m.invoke(meta.getContractInstance()));
-
-        Method m2 = meta2.getContractInstance().getClass().getDeclaredMethod("someQuery");
-        System.out.println("##" + m2.invoke(meta2.getContractInstance()));
     }
 
     @Test
