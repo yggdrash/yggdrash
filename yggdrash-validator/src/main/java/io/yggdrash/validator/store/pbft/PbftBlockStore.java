@@ -1,14 +1,12 @@
 package io.yggdrash.validator.store.pbft;
 
-import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
-
-import java.io.IOException;
 
 public class PbftBlockStore implements Store<byte[], PbftBlock> {
     private static final Logger log = LoggerFactory.getLogger(PbftBlockStore.class);
@@ -21,6 +19,10 @@ public class PbftBlockStore implements Store<byte[], PbftBlock> {
 
     @Override
     public void put(byte[] key, PbftBlock value) {
+        if (key == null || value == null) {
+            throw new NotValidateException("Key or value are not vaild.");
+        }
+
         log.trace("put "
                 + "(key: " + Hex.toHexString(key) + ")"
                 + "(value length: " + value.toBinary().length + ")");
@@ -29,34 +31,21 @@ public class PbftBlockStore implements Store<byte[], PbftBlock> {
 
     @Override
     public PbftBlock get(byte[] key) {
-        byte[] foundValue = db.get(key);
-        log.trace("get "
-                + "(" + Hex.toHexString(key) + ") "
-                + "value size: "
-                + foundValue.length);
-        if (foundValue.length > 0) {
-            return new PbftBlock(foundValue);
+        if (key == null) {
+            throw new NotValidateException("Key is not vaild.");
         }
-        throw new NonExistObjectException("Not Found [" + Hex.toHexString(key) + "]");
+
+        log.trace("get " + "(" + Hex.toHexString(key) + ")");
+        return new PbftBlock(db.get(key));
     }
 
     @Override
     public boolean contains(byte[] key) {
-        if (key != null) {
-            return db.get(key) != null;
+        if (key == null) {
+            return false;
         }
 
-        return false;
-    }
-
-    public int size() {
-        try {
-            return db.getAll().size();
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-
-        return 0;
+        return db.get(key) != null;
     }
 
     public void close() {

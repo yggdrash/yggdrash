@@ -1,4 +1,4 @@
-package io.yggdrash.core.net;
+package io.yggdrash.core.p2p;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.yggdrash.core.store.PeerStore;
@@ -205,7 +205,7 @@ public class KademliaPeerTable implements PeerTable {
     }
 
     /**
-     * call back from PeerHandlerGroup
+     * call back from PeerDialer
      * @param peer disconnected peer
      */
     @Override

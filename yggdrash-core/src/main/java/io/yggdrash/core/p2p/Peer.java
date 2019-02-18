@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.net;
+package io.yggdrash.core.p2p;
 
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.exception.NotValidateException;
@@ -128,7 +128,7 @@ public class Peer {
         return ynodeUri;
     }
 
-    String toAddress() {
+    public String toAddress() {
         return host + ":" + port;
     }
 

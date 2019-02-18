@@ -41,7 +41,7 @@ import static io.yggdrash.common.config.Constants.BRANCH_ID;
 
 @RestController
 @RequestMapping("branches/{branchId}/txs")
-public class TransactionController {
+class TransactionController {
 
     private final BranchGroup branchGroup;
 

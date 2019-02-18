@@ -24,7 +24,6 @@ import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.contract.ContractManager;
-import io.yggdrash.core.net.PeerNetwork;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
 import org.slf4j.Logger;
@@ -47,8 +46,6 @@ public class BranchConfiguration {
 
     private final StoreBuilder storeBuilder;
 
-    private PeerNetwork peerNetwork;
-
     @Value("classpath:/branch-yggdrash.json")
     Resource yggdrashResource;
 
@@ -57,33 +54,31 @@ public class BranchConfiguration {
         this.storeBuilder = storeBuilder;
     }
 
-    @Autowired
-    public void setPeerNetwork(PeerNetwork peerNetwork) {
-        this.peerNetwork = peerNetwork;
-    }
-
     @Bean
     @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
     BlockChain yggdrash(BranchGroup branchGroup) throws IOException {
-        return addBranch(yggdrashResource.getInputStream(), branchGroup);
+        BlockChain yggdrash = createBranch(yggdrashResource.getInputStream());
+        branchGroup.addBranch(yggdrash);
+        return yggdrash;
     }
 
     @Bean
-    BranchGroup branchGroup(BranchLoader loader) {
-        BranchGroup branchGroup = new BranchGroup();
+    BranchGroup branchGroup() {
+        return new BranchGroup();
+    }
+
+    @Bean
+    BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup) {
+        BranchLoader branchLoader = new BranchLoader(defaultConfig.getBranchPath());
         try {
-            for (GenesisBlock genesis : loader.getGenesisBlockList()) {
-                addBranch(genesis, branchGroup);
+            for (GenesisBlock genesis : branchLoader.getGenesisBlockList()) {
+                BlockChain bc = createBranch(genesis);
+                branchGroup.addBranch(bc);
             }
         } catch (Exception e) {
             log.warn(e.getMessage(), e);
         }
-        return branchGroup;
-    }
-
-    @Bean
-    BranchLoader branchLoader(DefaultConfig defaultConfig) {
-        return new BranchLoader(defaultConfig.getBranchPath());
+        return branchLoader;
     }
 
     @Bean
@@ -94,22 +89,18 @@ public class BranchConfiguration {
         return new ContractManager(defaultConfig.getContractPath());
     }
 
-    private BlockChain addBranch(InputStream is, BranchGroup branchGroup)
+    private BlockChain createBranch(InputStream is)
             throws IOException {
         GenesisBlock genesis = GenesisBlock.of(is);
-        return addBranch(genesis, branchGroup);
+        return createBranch(genesis);
     }
 
-    private BlockChain addBranch(GenesisBlock genesis,
-                                 BranchGroup branchGroup) {
+    private BlockChain createBranch(GenesisBlock genesis) {
         try {
-            BlockChain branch = BlockChainBuilder.Builder()
+            return BlockChainBuilder.Builder()
                     .addGenesis(genesis)
                     .setStoreBuilder(storeBuilder)
                     .build();
-            branchGroup.addBranch(branch, peerNetwork);
-            peerNetwork.init(branch.getBranchId());
-            return branch;
         } catch (Exception e) {
             log.warn(e.getMessage());
             return null;

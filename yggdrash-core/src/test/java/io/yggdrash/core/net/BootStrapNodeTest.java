@@ -4,6 +4,7 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.p2p.PeerHandler;
 import org.junit.Test;
 
 import java.util.List;
@@ -22,7 +23,12 @@ public class BootStrapNodeTest {
             setNodeStatus(NodeStatusMock.mock);
             setPeerNetwork(new PeerNetwork() {
                 @Override
-                public void init(BranchId branchId) {
+                public void init() {
+
+                }
+
+                @Override
+                public void addNetwork(BranchId branchId) {
 
                 }
 

@@ -19,7 +19,7 @@ package io.yggdrash.node.broadcast;
 import ch.qos.logback.classic.Level;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.net.KademliaOptions;
+import io.yggdrash.core.p2p.KademliaOptions;
 import io.yggdrash.node.GRpcTestNode;
 import io.yggdrash.node.discovery.AbstractDiscoveryNodeTest;
 import org.junit.Test;
@@ -32,18 +32,17 @@ public class NetworkBroadcastTest extends AbstractDiscoveryNodeTest {
     @Test
     public void broadcastNetworkTest() {
         // arrange
-        //TestConstants.SlowTest.apply();
         rootLogger.setLevel(Level.INFO);
         KademliaOptions.MAX_STEPS = 2;
 
-        TransactionHusk testTx = BlockChainTestUtils.createTransferTxHusk();
-
         bootstrapNodes(3, true);
-        nodeList.forEach(node -> node.peerTask.refresh());
-        nodeList.forEach(node -> node.peerTask.healthCheck());
+        nodeList.forEach(this::refreshAndHealthCheck);
 
         // act
+        TransactionHusk testTx = BlockChainTestUtils.createTransferTxHusk();
         nodeList.get(1).getBranchGroup().addTransaction(testTx);
+
+        // assert
         for (GRpcTestNode node : nodeList) {
             if (node.isSeed()) {
                 continue;

@@ -18,9 +18,9 @@ package io.yggdrash.node;
 
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.net.PeerHandlerGroup;
-import io.yggdrash.core.net.PeerHandlerMock;
-import io.yggdrash.core.net.SimplePeerHandlerGroup;
+import io.yggdrash.core.p2p.PeerDialer;
+import io.yggdrash.core.p2p.PeerHandlerMock;
+import io.yggdrash.core.p2p.SimplePeerDialer;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,9 +43,9 @@ public class NodeHealthIndicatorTest {
     @Before
     public void setUp() {
         DefaultConfig defaultConfig = new DefaultConfig();
-        PeerHandlerGroup peerHandlerGroup = new SimplePeerHandlerGroup(PeerHandlerMock.factory);
+        PeerDialer peerDialer = new SimplePeerDialer(PeerHandlerMock.factory);
         this.nodeHealthIndicator = new NodeHealthIndicator(defaultConfig, branchGroupMock,
-                peerHandlerGroup);
+                peerDialer);
     }
 
     @Test

@@ -22,7 +22,7 @@ import io.yggdrash.core.contract.CoinContract;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
-import java.math.BigDecimal;
+import java.math.BigInteger;
 import org.junit.Test;
 
 public class RuntimeQueryTest {
@@ -37,6 +37,6 @@ public class RuntimeQueryTest {
         query.setStore(tempStore);
 
         Object result = query.query("totalSupply", null);
-        assert BigDecimal.valueOf(10000).equals(result);
+        assert BigInteger.valueOf(10000).equals(result);
     }
 }

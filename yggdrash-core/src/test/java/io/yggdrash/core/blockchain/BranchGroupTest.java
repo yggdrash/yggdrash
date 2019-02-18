@@ -24,13 +24,14 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.Collections;
 import java.util.List;
 
-import static io.yggdrash.TestConstants.yggdrash;
 import static io.yggdrash.TestConstants.PerformanceTest;
 import static io.yggdrash.TestConstants.TRANSFER_TO;
 import static io.yggdrash.TestConstants.wallet;
+import static io.yggdrash.TestConstants.yggdrash;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class BranchGroupTest {
@@ -52,7 +53,7 @@ public class BranchGroupTest {
     @Test(expected = DuplicatedException.class)
     public void addExistedBranch() {
         BlockChain exist = BlockChainTestUtils.createBlockChain(false);
-        branchGroup.addBranch(exist, null);
+        branchGroup.addBranch(exist);
     }
 
     @Test

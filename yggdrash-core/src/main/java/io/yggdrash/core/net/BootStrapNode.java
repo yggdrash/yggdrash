@@ -19,6 +19,7 @@ package io.yggdrash.core.net;
 import io.yggdrash.core.akashic.SyncManager;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.p2p.PeerHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,11 +30,12 @@ public abstract class BootStrapNode implements BootStrap {
 
     private SyncManager syncManager;
     private NodeStatus nodeStatus;
-    protected PeerNetwork peerNetwork;
+    private PeerNetwork peerNetwork;
     protected BranchGroup branchGroup;
 
     @Override
     public void bootstrapping() {
+        peerNetwork.init();
         try {
             nodeStatus.sync();
             for (BlockChain blockChain : branchGroup.getAllBranch()) {

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.net;
+package io.yggdrash.core.p2p;
 
 import io.yggdrash.core.blockchain.BranchId;
 import org.slf4j.Logger;
@@ -27,9 +27,9 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-public class SimplePeerHandlerGroup implements PeerHandlerGroup {
+public class SimplePeerDialer implements PeerDialer {
 
-    private static final Logger log = LoggerFactory.getLogger(SimplePeerHandlerGroup.class);
+    private static final Logger log = LoggerFactory.getLogger(SimplePeerDialer.class);
 
     private final Map<String, PeerHandler> handlerMap = new ConcurrentHashMap<>();
 
@@ -37,7 +37,7 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
 
     private PeerEventListener peerEventListener;
 
-    public SimplePeerHandlerGroup(PeerHandlerFactory peerHandlerFactory) {
+    public SimplePeerDialer(PeerHandlerFactory peerHandlerFactory) {
         this.peerHandlerFactory = peerHandlerFactory;
     }
 
@@ -53,12 +53,7 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
 
     @Override
     public boolean healthCheck(BranchId branchId, Peer owner, Peer to) {
-        PeerHandler peerHandler = handlerMap.get(to.toAddress());
-        if (peerHandler == null) {
-            peerHandler = peerHandlerFactory.create(to);
-            handlerMap.put(to.toAddress(), peerHandler);
-            log.debug("Added size={}, handler={}", handlerCount(), to.toAddress());
-        }
+        PeerHandler peerHandler = getPeerHandler(to);
         try {
             String pong = peerHandler.ping(branchId, owner, "Ping");
             // TODO validation peer and considering expiration
@@ -117,5 +112,16 @@ public class SimplePeerHandlerGroup implements PeerHandlerGroup {
             }
         }
         return handlerList;
+    }
+
+    @Override
+    public synchronized PeerHandler getPeerHandler(Peer peer) {
+        PeerHandler peerHandler = handlerMap.get(peer.toAddress());
+        if (peerHandler == null) {
+            peerHandler = peerHandlerFactory.create(peer);
+            handlerMap.put(peer.toAddress(), peerHandler);
+            log.debug("Added size={}, id={}, handler={}", handlerCount(), peerHandler, peer.toAddress());
+        }
+        return peerHandler;
     }
 }

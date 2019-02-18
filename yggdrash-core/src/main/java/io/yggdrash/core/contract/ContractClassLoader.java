@@ -79,7 +79,7 @@ public class ContractClassLoader extends ClassLoader {
             File contractFile = ContractMeta.contractFile(contractPath, contractVersion);
             if (!contractFile.exists()) {
                 try {
-                    FileUtils.writeByteArrayToFile(contractFile, contractMeta.getContractBinary());
+                    FileUtils.writeByteArrayToFile(contractFile, contractMeta.getContractClassBinary());
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
