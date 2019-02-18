@@ -10,6 +10,7 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -236,4 +237,30 @@ public class PbftMessageSet {
         return protoPbftMessageSetBuilder.build();
     }
 
+    public void clear() {
+        this.prePrepare.clear();
+
+        for (PbftMessage pbftMessage : this.prepareMap.values()) {
+            pbftMessage.clear();
+        }
+
+        for (PbftMessage pbftMessage : this.commitMap.values()) {
+            pbftMessage.clear();
+        }
+
+        for (PbftMessage pbftMessage : this.viewChangeMap.values()) {
+            pbftMessage.clear();
+        }
+    }
+
+    public boolean equals(PbftMessageSet newPbftMessageSet) {
+        if (newPbftMessageSet == null) {
+            return false;
+        }
+        return Arrays.equals(this.toBinary(), newPbftMessageSet.toBinary());
+    }
+
+    public PbftMessageSet clone() {
+        return new PbftMessageSet(this.toJsonObject());
+    }
 }

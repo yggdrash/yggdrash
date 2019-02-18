@@ -155,7 +155,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
 
             if (tried.isEmpty()) {
                 log.debug("Terminating discover after {} rounds.", round);
-                log.trace("{}\nPeers discovered {}",
+                log.trace("NumberOfBuckets: {}\nPeers discovered {}",
                         entry.getValue().getBucketsCount(), entry.getValue().getPeerUriList());
                 return;
             }

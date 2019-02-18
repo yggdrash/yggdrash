@@ -1,7 +1,7 @@
 package io.yggdrash.validator.store.pbft;
 
 import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.datasource.DbSource;
 import org.slf4j.Logger;
@@ -21,6 +21,10 @@ public class PbftBlockKeyStore implements Store<Long, byte[]> {
 
     @Override
     public void put(Long key, byte[] value) {
+        if (key < 0) {
+            throw new NotValidateException("Key is not vaild.");
+        }
+
         log.trace("put "
                 + "(key: " + key + ")"
                 + "(value : " + Hex.toHexString(value) + ")");
@@ -29,23 +33,21 @@ public class PbftBlockKeyStore implements Store<Long, byte[]> {
 
     @Override
     public byte[] get(Long key) {
-        log.trace("get " + "(" + key + ")");
-        if (key > -1) {
-            byte[] foundValue = db.get(ByteUtil.longToBytes(key));
-            if (foundValue != null) {
-                log.trace("value: " + Hex.toHexString(foundValue));
-                return foundValue;
-            }
+        if (key < 0) {
+            throw new NotValidateException("Key is not vaild.");
         }
-        throw new NonExistObjectException("Not Found [" + key + "]");
+
+        log.trace("get " + "(" + key + ")");
+        return db.get(ByteUtil.longToBytes(key));
     }
 
     @Override
     public boolean contains(Long key) {
-        if (key > -1) {
-            return db.get(ByteUtil.longToBytes(key)) != null;
+        if (key < 0) {
+            return false;
         }
-        return false;
+
+        return db.get(ByteUtil.longToBytes(key)) != null;
     }
 
     public int size() {

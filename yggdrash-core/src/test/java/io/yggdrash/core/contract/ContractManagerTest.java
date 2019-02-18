@@ -25,12 +25,15 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
@@ -55,13 +58,13 @@ public class ContractManagerTest {
 
     @Test
     public void getContractById() {
-        List<ContractVersion> sampleContractIdList = contractSample();
-        if (sampleContractIdList == null || contracts == null) {
+        List<ContractVersion> sampleContractVersionList = contractSample();
+        if (sampleContractVersionList == null || contracts == null) {
             return;
         }
 
         ContractMeta meta = ContractClassLoader.loadContractClass(StemContract.class);
-        ContractMeta meta2 = contractManager.getContractById(meta.getContractVersion());
+        ContractMeta meta2 = contractManager.getContractByVersion(meta.getContractVersion());
         assertNotNull(meta);
         log.debug("StemContract.class id={}", meta.getContractVersion().toString());
         assertEquals(meta2.getContractVersion(), meta.getContractVersion());
@@ -70,20 +73,20 @@ public class ContractManagerTest {
 
     @Test
     public void getContractIdList() {
-        List<ContractVersion> sampleContractIdList = contractSample();
-        if (sampleContractIdList == null || contracts == null) {
+        List<ContractVersion> sampleContractVersionList = contractSample();
+        if (sampleContractVersionList == null || contracts == null) {
             return;
         }
-        assertEquals(sampleContractIdList.size(), contractManager.getContractIdList().size());
+        assertEquals(sampleContractVersionList.size(), contractManager.getContractVersionList().size());
     }
 
     @Test
     public void getContractList() {
-        List<ContractVersion> sampleContractIdList = contractSample();
-        if (sampleContractIdList == null || contracts == null) {
+        List<ContractVersion> sampleContractVersionList = contractSample();
+        if (sampleContractVersionList == null || contracts == null) {
             return;
         }
-        assertEquals(sampleContractIdList.size(), contractManager.getContractList().size());
+        assertEquals(sampleContractVersionList.size(), contractManager.getContractList().size());
     }
 
     @Test
@@ -108,7 +111,6 @@ public class ContractManagerTest {
     @Test
     public void addContract() {
         Class<? extends Contract> contract = TestContract.class;
-        Map<ContractVersion, ContractMeta> contracts = contractManager.getContracts();
         if (contracts == null) {
             return;
         }
@@ -119,6 +121,24 @@ public class ContractManagerTest {
         ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
         ContractVersion contractVersion = contractMeta.getContractVersion();
         contractManager.removeContract(contractVersion);
+    }
+
+    @Test
+    public void decodingContract() throws UnsupportedEncodingException {
+        if (contracts == null) {
+            return;
+        }
+        contracts.entrySet().stream().findFirst();
+        Optional<Map.Entry<ContractVersion, ContractMeta>> m = contracts.entrySet().stream().findFirst();
+        ContractVersion version = m.get().getKey();
+
+        byte[] targetBytes = version.toString().getBytes("UTF-8");
+
+        Base64.Encoder encoder = Base64.getEncoder();
+        String encodedString = encoder.encodeToString(targetBytes);
+
+        ContractMeta meta = contractManager.decodingContract(encodedString);
+        assertEquals(version, meta.getContractVersion());
     }
 
     private List<ContractVersion> contractSample() {
@@ -135,13 +155,13 @@ public class ContractManagerTest {
                     contractBinary = new byte[Math.toIntExact(contractFile.length())];
                     inputStream.read(contractBinary);
 
-                    ContractVersion contractId = ContractVersion.of(contractBinary);
+                    ContractVersion contractVersion = ContractVersion.of(contractBinary);
                     ContractMeta contractMeta = ContractClassLoader.loadContractById(
-                            defaultConfig.getContractPath(), contractId);
+                            defaultConfig.getContractPath(), contractVersion);
 
                     if (contractMeta.getStateStore() != null
                             || contractMeta.getTxReceipt() != null) {
-                        contractsVersionSampleIds.add(contractId);
+                        contractsVersionSampleIds.add(contractVersion);
                     }
                 } catch (IOException e) {
                     log.warn(e.getMessage());

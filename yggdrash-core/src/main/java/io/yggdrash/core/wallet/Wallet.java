@@ -279,6 +279,7 @@ public class Wallet {
      */
     public static boolean verify(byte[] data, byte[] signature, boolean hashed) {
 
+        // todo: check pubkey or delete method
         return verify(data, signature, hashed, null);
     }
 
@@ -303,6 +304,7 @@ public class Wallet {
             return false;
         }
 
+        //todo: check pubkey
         if (pubKey != null && !Arrays.equals(ecKeyPub.getPubKey(), pubKey)) {
             logger.debug("Invalid signature");
             return false;

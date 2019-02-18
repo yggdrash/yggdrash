@@ -31,6 +31,8 @@ import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
+import java.math.BigInteger;
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,8 +76,8 @@ public class RuntimeTest {
 
         assertThat(result.getChangeValues()
                 .get("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94")
-                .get("balance").getAsBigDecimal()
-        ).isEqualTo(BigDecimal.valueOf(1000000000));
+                .get("balance").getAsBigInteger()
+        ).isEqualTo(BigInteger.valueOf(1000000000));
     }
 
     @Test

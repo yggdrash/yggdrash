@@ -42,7 +42,7 @@ import java.util.List;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 
-public class Block implements Cloneable {
+public class Block {
 
     private static final Logger log = LoggerFactory.getLogger(Block.class);
 
@@ -270,14 +270,8 @@ public class Block implements Cloneable {
         return bao.toByteArray();
     }
 
-    @Override
-    public Block clone() throws CloneNotSupportedException {
-        Block block = (Block) super.clone();
-        block.header = this.header.clone();
-        block.signature = this.signature.clone();
-        block.body = this.body.clone();
-
-        return block;
+    public Block clone() {
+        return new Block(this.header.clone(), this.signature.clone(), this.body.clone());
     }
 
     public boolean equals(Block newBlock) {
