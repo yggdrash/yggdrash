@@ -17,15 +17,16 @@
 package io.yggdrash.core.contract;
 
 import io.yggdrash.common.config.DefaultConfig;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -54,6 +55,18 @@ public class ContractManagerTest {
         }
         this.contractManager = new ContractManager(defaultConfig.getContractPath());
         this.contracts = contractManager.getContracts();
+    }
+
+    @Test
+    public void classLoaderTest() throws Exception{
+        ContractMeta meta = this.contracts.get(ContractVersion.of("7b343aea81217bf80058a497669354c6b7cad3ef"));
+        ContractMeta meta2 = this.contracts.get(ContractVersion.of("509b8402e80dc632cb207fbc205c533c46d1e7df"));
+
+        Method m = meta.getContractInstance().getClass().getDeclaredMethod("someQuery");
+        System.out.println(m.invoke(meta.getContractInstance()));
+
+        Method m2 = meta2.getContractInstance().getClass().getDeclaredMethod("someQuery");
+        System.out.println("##" + m2.invoke(meta2.getContractInstance()));
     }
 
     @Test
@@ -139,6 +152,18 @@ public class ContractManagerTest {
 
         ContractMeta meta = contractManager.decodingContract(encodedString);
         assertEquals(version, meta.getContractVersion());
+    }
+
+    @Test
+    public void decompileContract() {
+        if (contracts == null) {
+            return;
+        }
+        contracts.entrySet().stream().findFirst();
+        Optional<Map.Entry<ContractVersion, ContractMeta>> m = contracts.entrySet().stream().findFirst();
+        ContractVersion version = m.get().getKey();
+
+        contractManager.decompileContract(version);
     }
 
     private List<ContractVersion> contractSample() {

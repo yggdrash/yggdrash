@@ -19,6 +19,9 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonElement;
 import io.yggdrash.core.contract.methods.ContractMethod;
 import org.apache.commons.io.FileUtils;
+import org.benf.cfr.reader.api.CfrDriver;
+import org.benf.cfr.reader.api.OutputSinkFactory;
+import org.benf.cfr.reader.api.SinkReturns;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,13 +38,19 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ContractManager extends ClassLoader {
+    private static final String SUFFIX = ".class";
+
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
     private Map<ContractVersion, ContractMeta> contracts = new HashMap<>();
     private String contractPath;
@@ -54,7 +63,7 @@ public class ContractManager extends ClassLoader {
     private void load() {
         File targetDir = new File(this.contractPath);
         if (!targetDir.exists() && !targetDir.mkdirs()) {
-            throw new RuntimeException("Failed to create=" + targetDir.getAbsolutePath());
+            throw new RuntimeException("The contract file does not exist" + targetDir.getAbsolutePath());
         }
         log.info("ContractManager load path : {} ", contractPath);
         try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(this.contractPath)))) {
@@ -158,7 +167,7 @@ public class ContractManager extends ClassLoader {
         //TODO check the node admin
         File targetDir = new File(contractPath);
         if (!targetDir.exists() && !targetDir.mkdirs()) {
-            throw new RuntimeException("Failed to create=" + targetDir.getAbsolutePath());
+            throw new RuntimeException("The contract file does not exist" + targetDir.getAbsolutePath());
         }
         ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
         ContractVersion contractVersion = contractMeta.getContractVersion();
@@ -178,11 +187,9 @@ public class ContractManager extends ClassLoader {
     public Boolean removeContract(ContractVersion contractVersion) {
         //TODO check the node admin
         String directoryPath = contractVersion.toString().substring(0, 2);
-        String filePath = contractVersion.toString().substring(0, 2) + File.separator
-                + contractVersion + ".class";
-        File file = new File(contractPath + File.separator + filePath);
+        File file = new File(contractPath + File.separator + getFilePath(contractVersion));
         File directory = new File(contractPath + File.separator + directoryPath);
-        if (file.exists()) {
+        if (existFile(contractVersion)) {
             if (file.isDirectory()) {
                 File[] files = file.listFiles();
                 Arrays.stream(files)
@@ -214,12 +221,54 @@ public class ContractManager extends ClassLoader {
         return contracts.get(contractVersion);
     }
 
+    /**
+     * Decompile a contract class
+     */
+    public String decompileContract(ContractVersion contractVersion) {
+        if (!existFile((contractVersion))) {
+            throw new RuntimeException("The contract file does not exist");
+        }
+        AtomicReference<String> result = new AtomicReference<>("");
+        OutputSinkFactory mySink = new OutputSinkFactory() {
+            @Override
+            public List<SinkClass> getSupportedSinks(SinkType sinkType,
+                                                     Collection<SinkClass> collection) {
+                if (sinkType == SinkType.JAVA && collection.contains(SinkClass.DECOMPILED)) {
+                    return Arrays.asList(SinkClass.DECOMPILED, SinkClass.STRING);
+                } else {
+                    return Collections.singletonList(SinkClass.STRING);
+                }
+            }
 
-    public Boolean contractObjectVerify(ContractVersion contractVersion) {
-        ContractMeta contractMeta = contracts.get(contractVersion);
-        Object obj = contractMeta.getContractInstance();
+            Consumer<SinkReturns.Decompiled> dumpDecompiled = d -> {
+                result.set(d.getJava());
+            };
 
-        //object hash 비교
+            @Override
+            public <T> Sink<T> getSink(SinkType sinkType, SinkClass sinkClass) {
+                if (sinkType == SinkType.JAVA && sinkClass == SinkClass.DECOMPILED) {
+                    return x -> dumpDecompiled.accept((SinkReturns.Decompiled) x);
+                }
+                return ignore -> {};
+            }
+        };
+
+        CfrDriver driver = new CfrDriver.Builder().withOutputSink(mySink).build();
+        driver.analyse(Collections.singletonList(
+                contractPath + File.separator + getFilePath(contractVersion)));
+        return result.get();
+    }
+
+    private String getFilePath(ContractVersion contractVersion) {
+        return contractVersion.toString().substring(0, 2) + File.separator
+                + contractVersion + SUFFIX;
+    }
+
+    private Boolean existFile(ContractVersion contractVersion) {
+        File file = new File(contractPath + File.separator + getFilePath(contractVersion));
+        if (!file.exists()) {
+            return false;
+        }
         return true;
     }
 
