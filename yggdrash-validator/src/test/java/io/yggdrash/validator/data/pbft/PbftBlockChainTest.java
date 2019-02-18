@@ -2,10 +2,12 @@ package io.yggdrash.validator.data.pbft;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
+import io.yggdrash.StoreTestUtils;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.validator.util.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -16,6 +18,7 @@ import org.springframework.util.FileCopyUtils;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 
 import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
@@ -62,7 +65,12 @@ public class PbftBlockChainTest {
 
         block = this.genesisBlock();
 
-        this.pbftBlockChain = new PbftBlockChain(block, defaultConfig);
+        StoreTestUtils.clearTestDb();
+
+        this.pbftBlockChain = new PbftBlockChain(block, defaultConfig, StoreTestUtils.getTestPath(),
+                "/pbftKey",
+                "/pbftBlock",
+                "/pbftTx");
 
         prePrepare = new PbftMessage(PBFT_PREPREPARE,
                 0L,
@@ -184,20 +192,21 @@ public class PbftBlockChainTest {
 
     @Test
     public void getPbftBlockListTest() {
-//        int count = 100;
-//        PbftBlock newBlock = this.pbftBlockChain.getGenesisBlock();
-//        Block block = new TestUtils(wallet).sampleBlock(newBlock.getIndex() + 1, newBlock.getHash());
-//
-//        for (int i = 0; i < count; i++) {
-//            block = new TestUtils(wallet).sampleBlock(block.getIndex() + 1, block.getHash());
-//            PbftBlock pbftBlock = new PbftBlock(block, null);
-//
-//            this.pbftBlockChain.getBlockKeyStore().put(pbftBlock.getIndex(), pbftBlock.getHash());
-//            this.pbftBlockChain.getBlockStore().put(pbftBlock.getHash(), pbftBlock);
-//        }
-//
-//        List<PbftBlock> pbftBlockList = this.pbftBlockChain.getPbftBlockList(1, 100);
-//        assertEquals(pbftBlockList.size(), count);
+        // todo: check speed (put, get)
+        int count = 100;
+        PbftBlock newBlock = this.pbftBlockChain.getGenesisBlock();
+        Block block;
+
+        for (int i = 0; i < count; i++) {
+            block = new TestUtils(wallet).sampleBlock(newBlock.getIndex() + 1, newBlock.getHash());
+            newBlock = new PbftBlock(block, null);
+
+            this.pbftBlockChain.getBlockKeyStore().put(newBlock.getIndex(), newBlock.getHash());
+            this.pbftBlockChain.getBlockStore().put(newBlock.getHash(), newBlock);
+        }
+
+        List<PbftBlock> pbftBlockList = this.pbftBlockChain.getPbftBlockList(1, 100);
+        assertEquals(pbftBlockList.size(), count);
     }
 
 }

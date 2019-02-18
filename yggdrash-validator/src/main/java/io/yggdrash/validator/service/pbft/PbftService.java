@@ -165,27 +165,30 @@ public class PbftService implements CommandLineRunner {
         log.debug("isViewChanged= " + this.isViewChanged);
 
         PbftBlock lastBlock = this.blockChain.getLastConfirmedBlock();
-
-        log.info("PbftBlock "
-                + "("
-                + lastBlock.getPbftMessageSet().getPrePrepare().getViewNumber()
-                + ") "
-                + "["
-                + lastBlock.getIndex()
-                + "]"
-                + lastBlock.getHashHex()
-                + " ("
-                + lastBlock.getPbftMessageSet().getPrepareMap().size()
-                + ")"
-                + " ("
-                + lastBlock.getPbftMessageSet().getCommitMap().size()
-                + ")"
-                + " ("
-                + lastBlock.getPbftMessageSet().getViewChangeMap().size()
-                + ")"
-                + " ("
-                + lastBlock.getBlock().getAddressHex()
-                + ")");
+        try {
+            log.info("PbftBlock "
+                    + "("
+                    + lastBlock.getPbftMessageSet().getPrePrepare().getViewNumber()
+                    + ") "
+                    + "["
+                    + lastBlock.getIndex()
+                    + "]"
+                    + lastBlock.getHashHex()
+                    + " ("
+                    + lastBlock.getPbftMessageSet().getPrepareMap().size()
+                    + ")"
+                    + " ("
+                    + lastBlock.getPbftMessageSet().getCommitMap().size()
+                    + ")"
+                    + " ("
+                    + lastBlock.getPbftMessageSet().getViewChangeMap().size()
+                    + ")"
+                    + " ("
+                    + lastBlock.getBlock().getAddressHex()
+                    + ")");
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+        }
 
         log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedMsgMap().size());
 

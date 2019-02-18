@@ -9,7 +9,6 @@ import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
 import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.InetAddress;
@@ -39,7 +38,8 @@ public class PbftBlockChain {
     private PbftBlock lastConfirmedBlock;
 
     @Autowired
-    public PbftBlockChain(Block genesisBlock, DefaultConfig defaultConfig) {
+    public PbftBlockChain(Block genesisBlock, DefaultConfig defaultConfig, String dbPath,
+                          String blockKeyStorePath, String blockStorePath, String txStorePath) {
         if (genesisBlock.getHeader().getIndex() != 0
                 || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), EMPTY_BYTE32)) {
             log.error("GenesisBlock is not valid.");
@@ -57,16 +57,16 @@ public class PbftBlockChain {
         this.genesisBlock = new PbftBlock(genesisBlock, null);
         this.lastConfirmedBlock = this.genesisBlock;
         this.blockKeyStore = new PbftBlockKeyStore(
-                new LevelDbDataSource(defaultConfig.getDatabasePath(),
-                        this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
-                                + "/pbftblockkey"));
+                new LevelDbDataSource(dbPath, blockKeyStorePath));
         this.blockStore = new PbftBlockStore(
-                new LevelDbDataSource(defaultConfig.getDatabasePath(),
-                        this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
-                                + "/pbftblock"));
+                new LevelDbDataSource(dbPath, blockStorePath));
 
         PbftBlock pbftBlock = this.genesisBlock;
-        if (this.blockKeyStore.size() > 0) {
+        if (this.blockKeyStore.size() == 0) {
+            this.blockKeyStore.put(0L, this.genesisBlock.getHash());
+            this.blockStore.put(this.genesisBlock.getHash(), this.genesisBlock);
+
+        } else {
             if (!Arrays.equals(this.blockKeyStore.get(0L), this.genesisBlock.getHash())) {
                 log.error("PbftBlockKeyStore is not valid.");
                 throw new NotValidateException();
@@ -78,23 +78,18 @@ public class PbftBlockChain {
                 if (Arrays.equals(prevPbftBlock.getHash(), pbftBlock.getPrevBlockHash())) {
                     prevPbftBlock = pbftBlock;
                 } else {
-                    log.error("PbftBlockChain() bpbftBlockStore is not valid.");
-                    throw new NotValidateException();
+                    throw new NotValidateException("PbftBlockStore is not valid.");
                 }
             }
 
             this.lastConfirmedBlock = pbftBlock;
 
-        } else {
-            this.blockKeyStore.put(0L, this.genesisBlock.getHash());
-            this.blockStore.put(this.genesisBlock.getHash(), this.genesisBlock);
         }
 
         this.transactionStore = new TransactionStore(
-                new LevelDbDataSource(defaultConfig.getDatabasePath(),
-                        this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
-                                + "/txs"));
+                new LevelDbDataSource(dbPath, txStorePath));
     }
+
 
     public byte[] getChain() {
         return chain;
