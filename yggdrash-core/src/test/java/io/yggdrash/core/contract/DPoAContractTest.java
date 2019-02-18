@@ -64,7 +64,16 @@ public class DPoAContractTest {
         JsonObject genesis = JsonUtil.parseJsonObject(validators);
         validatorsArr = genesis.getAsJsonArray("validator");
 
-        boolean isSuccess = coinContract.saveInitValidator(validatorsArr);
+        boolean isSuccess = dPoAContract.saveInitValidator(validatorsArr);
+        assertEquals(true, isSuccess);
+    }
+
+    @Test
+    public void saveInitValidator() {
+        String validators = "{\"validator\": [\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"]}";
+        JsonObject genesis = JsonUtil.parseJsonObject(validators);
+
+        boolean isSuccess = dPoAContract.saveInitValidator(genesis.getAsJsonArray("validator"));
         assertEquals(true, isSuccess);
     }
 
