@@ -27,10 +27,6 @@ spring.profiles.active: local
 
 spring.profiles: local
 
-logging:
-  level:
-    io.yggdrash: debug
-
 yggdrash:
   node:
     seed-peer-list:
@@ -42,10 +38,6 @@ management.endpoints.web.exposure.include: "*"
 
 spring.profiles: dev
 
-logging:
-  level:
-    io.yggdrash: debug
-
 yggdrash:
   node:
     seed-peer-list:
@@ -54,10 +46,6 @@ yggdrash:
 ---
 
 spring.profiles: prod
-
-logging:
-  level:
-    io.yggdrash: info
 
 yggdrash:
   node:

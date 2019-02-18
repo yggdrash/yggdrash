@@ -200,8 +200,8 @@ public class BlockChain {
         if (prevBlock == null) {
             return true;
         }
-        log.trace(" prev : " + prevBlock.getHash());
-        log.trace(" new : " + nextBlock.getHash());
+        log.trace("prev : " + prevBlock.getHash());
+        log.trace("new  : " + nextBlock.getHash());
 
         if (prevBlock.getIndex() + 1 != nextBlock.getIndex()) {
             log.warn("invalid index: prev:{} / new:{}", prevBlock.getIndex(), nextBlock.getIndex());
