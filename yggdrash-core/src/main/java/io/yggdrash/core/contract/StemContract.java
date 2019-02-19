@@ -240,10 +240,7 @@ public class StemContract implements Contract<JsonObject> {
         });
         return branchIdSet;
     }
-
-
-
-
+    
     private boolean isBranchExist(String branchId) {
         return state.get(branchId) != null;
     }

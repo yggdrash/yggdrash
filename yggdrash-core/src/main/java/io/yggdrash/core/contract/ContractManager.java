@@ -112,7 +112,7 @@ public class ContractManager extends ClassLoader {
         return this.contracts.get(version);
     }
 
-    public Boolean isContract(ContractVersion version) {
+    public Boolean hasContract(ContractVersion version) {
         return this.contracts.containsKey(version);
     }
 

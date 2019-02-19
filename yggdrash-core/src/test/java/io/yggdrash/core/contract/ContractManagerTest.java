@@ -87,13 +87,13 @@ public class ContractManagerTest {
     }
 
     @Test
-    public void isContract() {
+    public void hasContract() {
         if (contracts == null) {
             return;
         }
         contracts.entrySet().stream().forEach(set -> {
             if (set.getKey() != null) {
-                assertEquals(true, contractManager.isContract(set.getKey()));
+                assertEquals(true, contractManager.hasContract(set.getKey()));
             }
         });
     }
