@@ -13,6 +13,7 @@ import io.yggdrash.core.runtime.annotation.InvokeTransction;
 import io.yggdrash.core.store.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -20,6 +21,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static io.yggdrash.common.config.Constants.VALIDATOR;
 
 public class StemContract implements Contract<JsonObject> {
 
@@ -68,6 +70,7 @@ public class StemContract implements Contract<JsonObject> {
                     // Branch ID 추가부터
                     addBranchId(branchId);
                     state.put(branchId.toString(), stateValue.getJson());
+
                     txReceipt.setStatus(ExecuteStatus.SUCCESS);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -119,28 +122,13 @@ public class StemContract implements Contract<JsonObject> {
     }
 
     /**
-     * Returns branch.json as JsonString (query)
-     *
-     * @param params   branchId
-     */
-    @ContractQuery
-    public JsonObject view(JsonObject params) {
-        String branchId = params.get(BRANCH_ID).getAsString().toLowerCase();
-        if (isBranchExist(branchId)) {
-            return getStateValue(branchId).getJson();
-        }
-        return new JsonObject();
-    }
-
-    /**
      * Returns current contract of branch
      *
      * @param params   branchId
      */
     @ContractQuery
-    public ContractVersion getcurrentcontract(JsonObject params) {
-        String branchId = params.get(BRANCH_ID)
-                .getAsString().toLowerCase();
+    public ContractVersion getCurrentContract(JsonObject params) {
+        String branchId = params.get(BRANCH_ID).getAsString();
         if (isBranchExist(branchId)) {
             //return getStateValue(branchId).getContractVersion();
         }
@@ -153,9 +141,8 @@ public class StemContract implements Contract<JsonObject> {
      * @param params   branchId
      */
     @ContractQuery
-    public List<ContractVersion> getcontracthistory(JsonObject params) {
-        String branchId = params.get(BRANCH_ID)
-                .getAsString().toLowerCase();
+    public List<ContractVersion> getContractHistory(JsonObject params) {
+        String branchId = params.get(BRANCH_ID).getAsString();
         if (isBranchExist(branchId)) {
             return getStateValue(branchId).getContractHistory();
         }
@@ -166,10 +153,9 @@ public class StemContract implements Contract<JsonObject> {
      * Returns a list contains all branch id
      *
      * @return list of all branch id
-     * // TODO REMOVE getAllBranchId
      */
     @ContractQuery
-    public Set<String> getallbranchid() {
+    public Set<String> getBranchIdList() {
         JsonObject branchList = state.get(branchIdListKey);
         if (branchList == null) {
             return Collections.emptySet();
@@ -182,6 +168,82 @@ public class StemContract implements Contract<JsonObject> {
         return branchIdSet;
     }
 
+    /**
+     * @param params branch id
+     *
+     * @return branch json object
+     */
+    @ContractQuery
+    public JsonObject getBranch(JsonObject params) {
+        String branchId = params.get(BRANCH_ID).getAsString();
+        if (isBranchExist(branchId)) {
+            return getStateValue(branchId).getJson();
+        }
+        return new JsonObject();
+    }
+
+    /**
+     * @param params branch id
+     *
+     * @return contract json object
+     */
+    @ContractQuery
+    public Set<JsonElement> getContractByBranch(JsonObject params) {
+        String branchId = params.get(BRANCH_ID).getAsString();
+        Set<JsonElement> contractSet = new HashSet<>();
+        if (isBranchExist(branchId)) {
+            JsonArray contracts = getStateValue(branchId).getJson()
+                    .getAsJsonArray("contracts");
+            for (JsonElement c : contracts) {
+                contractSet.add(c);
+            }
+        }
+        return contractSet;
+    }
+
+    /**
+     * @param params branch id
+     *
+     * @return contract json object
+     */
+    @ContractQuery
+    public Set<String> getValidator(JsonObject params) {
+        String branchId = params.get(BRANCH_ID).getAsString();
+        Set<String> validatorSet = new HashSet<>();
+        if (isBranchExist(branchId)) {
+            JsonArray contracts = getStateValue(branchId).getJson()
+                    .getAsJsonArray("validator");
+            for (JsonElement c : contracts) {
+                validatorSet.add(c.getAsString());
+            }
+        }
+        return validatorSet;
+    }
+
+
+    /**
+     * @param params branch id
+     *
+     * @return contract json object
+     */
+    @ContractQuery
+    public Set<String> getBranchIdByValidator(JsonObject params) {
+        String validator = params.get(VALIDATOR).getAsString();
+        Set<String> branchIdSet = new HashSet<>();
+
+        getBranchIdList().stream().forEach(id -> {
+            getStateValue(id).getValidators().stream().forEach(v -> {
+                if (validator.equals(v)) {
+                    branchIdSet.add(id);
+                }
+            });
+        });
+        return branchIdSet;
+    }
+
+
+
+
     private boolean isBranchExist(String branchId) {
         return state.get(branchId) != null;
     }
@@ -191,7 +253,7 @@ public class StemContract implements Contract<JsonObject> {
         // check branch exist
         if (!isBranchExist(newBranchId.toString())) {
             JsonArray branchIds = new JsonArray();
-            for (String branchId : getallbranchid()) {
+            for (String branchId : getBranchIdList()) {
                 branchIds.add(branchId);
             }
             JsonObject obj = new JsonObject();
@@ -212,7 +274,7 @@ public class StemContract implements Contract<JsonObject> {
     }
 
     private StemContractStateValue getStateValue(JsonObject param) {
-        String branchId = param.get("branchId").getAsString().toLowerCase();
+        String branchId = param.get("branchId").getAsString();
         return getStateValue(branchId);
     }
 

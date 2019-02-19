@@ -31,7 +31,7 @@ import java.io.InputStream;
 public class ContractClassLoader extends ClassLoader {
     private static final Logger log = LoggerFactory.getLogger(ContractClassLoader.class);
     private static final Class[] CONTRACTS = {StemContract.class,
-            NoneContract.class, CoinContract.class};
+            NoneContract.class, CoinContract.class, DPoAContract.class};
     private static final Long MAX_FILE_LENGTH = 5242880L; // default 5MB bytes
 
     static {
@@ -103,7 +103,7 @@ public class ContractClassLoader extends ClassLoader {
         return loader.loadContract(contractFullName, contractFile);
     }
 
-    public static ContractMeta loadContractById(String contractPath, ContractVersion contractVersion) {
+    public static ContractMeta loadContractByVersion(String contractPath, ContractVersion contractVersion) {
         File contractFile = ContractMeta.contractFile(contractPath, contractVersion);
         log.debug("Load contract={}", contractFile.getAbsolutePath());
         if (contractFile.exists()) {

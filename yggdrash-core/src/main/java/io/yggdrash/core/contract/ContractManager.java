@@ -78,7 +78,7 @@ public class ContractManager extends ClassLoader {
                     inputStream.read(contractBinary);
 
                     ContractVersion contractVersion = ContractVersion.of(contractBinary);
-                    ContractMeta contractMeta = ContractClassLoader.loadContractById(
+                    ContractMeta contractMeta = ContractClassLoader.loadContractByVersion(
                             this.contractPath, contractVersion);
 
                     if (Files.isRegularFile(p) && validation(contractMeta)) {
@@ -214,11 +214,11 @@ public class ContractManager extends ClassLoader {
     /**
      * Decodinging a contract file
      */
-    public ContractMeta decodingContract(String encodedString) throws UnsupportedEncodingException {
+    public String decodingContract(String encodedString) throws UnsupportedEncodingException {
         Base64.Decoder decoder = Base64.getDecoder();
         byte[] decodedBytes = decoder.decode(encodedString);
         ContractVersion contractVersion = ContractVersion.of(new String(decodedBytes, "UTF-8"));
-        return contracts.get(contractVersion);
+        return decompileContract(contractVersion);
     }
 
     /**
