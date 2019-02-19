@@ -22,15 +22,6 @@ import java.util.Map;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-//import io.yggdrash.core.runtime.annotation.ContractNonStateStore;
-//import io.yggdrash.core.store.NonStateStore;
-//import io.yggdrash.core.store.datasource.HashMapDbSource;
-//import io.yggdrash.core.types.GenesisInfo;
-//import io.yggdrash.core.types.ProposeValidatorSet;
-//import io.yggdrash.core.types.Validator;
-//import io.yggdrash.core.types.enumeration.PrefixKeyEnum;
-//import io.yggdrash.core.types.tx.TxValidatorPropose;
-//import io.yggdrash.core.types.tx.TxValidatorVote;
 
 public class DPoAContractTest {
     private DPoAContract dPoAContract;

@@ -195,8 +195,8 @@ public class DPoAContract implements Contract<JsonObject> {
                             Validator validator = new Validator(entry.getKey(), entry.getValue());
                             validatorSet.getValidatorMap().put(entry.getKey(), validator);
                         }
-                        break;
                     case DISAGREE:
+                        // both AGREE and DISAGREE remove and update validator
                         it.remove();
                         isUpdateProposedValidator = true;
                         break;
