@@ -31,12 +31,12 @@ import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
-import java.math.BigInteger;
-import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.math.BigInteger;
 
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RuntimeTest {
     Logger log = LoggerFactory.getLogger(RuntimeTest.class);

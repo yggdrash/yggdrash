@@ -32,11 +32,11 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.TempStateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Runtime<T> {
     protected static final Logger log = LoggerFactory.getLogger(Runtime.class);
@@ -81,14 +81,14 @@ public class Runtime<T> {
         // - Index *(Height)
         // Map String
 
-        if(block.getIndex() == 0) {
+        if (block.getIndex() == 0) {
             // TODO first transaction is genesis
             // TODO init method don't call any more
         }
 
         BlockRuntimeResult result = new BlockRuntimeResult(block);
         TempStateStore blockState = new TempStateStore(stateStore);
-        for(TransactionHusk tx: block.getBody()) {
+        for (TransactionHusk tx: block.getBody()) {
             TransactionReceipt txReceipt = new TransactionReceiptImpl(tx);
             // set Block ID
             txReceipt.setBlockId(block.getHash().toString());
@@ -156,7 +156,7 @@ public class Runtime<T> {
                 txReceipt.setContractVersion(txContractVersion.toString());
                 RuntimeContractWrap wrap = contracts.get(txContractVersion);
                 TempStateStore txElementState = wrap.invokeTransaction(txBody, txReceipt, txState);
-                if(txReceipt.isSuccess()) {
+                if (txReceipt.isSuccess()) {
                     txState.putAll(txElementState.changeValues());
                 }
                 log.debug("invoke {} is {}", txReceipt.getTxId(), txReceipt.isSuccess());

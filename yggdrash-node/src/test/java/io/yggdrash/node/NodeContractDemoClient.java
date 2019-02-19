@@ -8,8 +8,6 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
-import static io.yggdrash.common.config.Constants.BRANCH_ID;
-import static io.yggdrash.common.config.Constants.CONTRACT_VERSION;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.JsonUtil;
@@ -28,6 +26,8 @@ import io.yggdrash.node.api.ContractApi;
 import io.yggdrash.node.api.ContractApiImplTest;
 import io.yggdrash.node.api.JsonRpcConfig;
 import io.yggdrash.node.api.TransactionApi;
+import org.springframework.core.io.DefaultResourceLoader;
+import org.springframework.core.io.Resource;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -43,8 +43,9 @@ import java.util.Optional;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.Resource;
+
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static io.yggdrash.common.config.Constants.CONTRACT_VERSION;
 
 public class NodeContractDemoClient {
 
@@ -86,9 +87,9 @@ public class NodeContractDemoClient {
 
     private static void run() throws Exception {
         System.out.println("===============");
-        System.out.println("YGGDRASH BRANCH : "+yggdrash.toString());
-        System.out.println("STEM CONTRACT : "+stemContract.toString());
-        System.out.println("YEED BRANCH : "+yeedContract.toString());
+        System.out.println("YGGDRASH BRANCH : " + yggdrash.toString());
+        System.out.println("STEM CONTRACT : " + stemContract.toString());
+        System.out.println("YEED BRANCH : " + yeedContract.toString());
 
 
         System.out.print("[1] 트랜잭션 전송\n[2] 트랜잭션 조회\n[3] 브랜치 배포\n[4] 브랜치 목록\n"
@@ -195,9 +196,10 @@ public class NodeContractDemoClient {
     }
 
     private static void sendGeneralTxOrQuery() throws Exception {
+        // TODO change Spec
         String branchId = getBranchId();
         List<String> methodList = (List<String>)rpc.proxyOf(TARGET_SERVER, ContractApi.class)
-                .query(branchId,"417c69915df1b5021150690a105c683ca4944c25", "specification", null);
+                .query(branchId, stemContract.toString(), "specification", null);
         System.out.println("\n해당 컨트랙트의 메소드 스펙입니다.");
         methodList.forEach(System.out::println);
 
@@ -209,7 +211,8 @@ public class NodeContractDemoClient {
             sendTransaction(tx);
         } else {
             Map params = createParams();
-            rpc.proxyOf(TARGET_SERVER, ContractApi.class).query(branchId,"417c69915df1b5021150690a105c683ca4944c25", selectedMethod, params);
+            rpc.proxyOf(TARGET_SERVER, ContractApi.class).query(branchId,
+                    stemContract.toString(), selectedMethod, params);
         }
     }
 
@@ -342,7 +345,8 @@ public class NodeContractDemoClient {
         String branchId = getBranchId();
         Map params = ContractApiImplTest.createParams(BRANCH_ID, branchId);
 
-        rpc.proxyOf(TARGET_SERVER, ContractApi.class).query(branchId,"417c69915df1b5021150690a105c683ca4944c25", "view", params);
+        rpc.proxyOf(TARGET_SERVER, ContractApi.class).query(branchId,
+                stemContract.toString(), "view", params);
     }
 
     private static void update() {
@@ -361,12 +365,13 @@ public class NodeContractDemoClient {
 
     private static void txReceipt() {
         String branchId = getBranchId();
-        System.out.println("조회할 트랜잭션 해시를 적어주세요 \n 기본값 : " + lastTransactionId+"\n>");
+        System.out.println("조회할 트랜잭션 해시를 적어주세요 \n 기본값 : " + lastTransactionId + "\n>");
         String txHash = scan.nextLine();
         if ("".equals(txHash)) {
             txHash = lastTransactionId;
         }
-        TransactionReceiptDto txr = rpc.proxyOf(TARGET_SERVER, TransactionApi.class).getTransactionReceipt(branchId, txHash);
+        TransactionReceiptDto txr = rpc.proxyOf(TARGET_SERVER, TransactionApi.class)
+                .getTransactionReceipt(branchId, txHash);
 
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         String prettyJsonString = gson.toJson(txr);

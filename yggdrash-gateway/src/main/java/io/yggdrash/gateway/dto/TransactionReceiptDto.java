@@ -34,7 +34,13 @@ public class TransactionReceiptDto {
 
     public static TransactionReceiptDto createBy(TransactionReceipt tx) {
         TransactionReceiptDto transactionDto = new TransactionReceiptDto();
-        transactionDto.txLog = tx.getTxLog();
+        if (tx == null) {
+            return null;
+        }
+        transactionDto.txLog =  new ArrayList<>();
+        if (tx.getTxLog() != null) {
+            transactionDto.txLog.addAll(tx.getTxLog());
+        }
         transactionDto.txId = tx.getTxId();
         transactionDto.blockId = tx.getBlockId();
         transactionDto.branchId = tx.getBranchId();

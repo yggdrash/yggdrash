@@ -287,6 +287,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
         store.put(PrefixKeyEnum.VALIDATORS.toValue(), jsonObject);
         return true;
     }
+
     private BigInteger getBalance(String key) {
         JsonObject storeValue = store.get(key);
         if (storeValue != null && storeValue.has("balance")) {

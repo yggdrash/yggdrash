@@ -27,22 +27,22 @@ import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
 import org.apache.commons.codec.binary.Hex;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertEquals;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
-import static org.mockito.Mockito.when;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertArrayEquals;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class TransactionMockitoTest {
@@ -80,8 +80,6 @@ public class TransactionMockitoTest {
         BlockHusk genesis = BlockChainTestUtils.genesisBlock();
         block = new BlockHusk(TestConstants.wallet(), txList, genesis);
         blockId = block.getHash().toString();
-        when(branchGroupMock.getTransactionReceiptStore(branchId))
-                .thenReturn(txReceiptStoreMock);
     }
 
     private static final Logger log = LoggerFactory.getLogger(TransactionApi.class);
@@ -124,7 +122,8 @@ public class TransactionMockitoTest {
 
     @Test
     public void getTransactionReceiptTest() {
-        when(txReceiptStoreMock.get(txId)).thenReturn(txReceipt);
+        when(branchGroupMock.getTransactionReceipt(branchId, txId))
+                .thenReturn(txReceipt);
         TransactionReceiptDto res = txApiImpl.getTransactionReceipt(branchId.toString(), txId);
         assertEquals(res.txId, txId);
     }

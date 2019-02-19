@@ -115,7 +115,6 @@ public class StemContract implements Contract<JsonObject> {
         if (json.has("type")) {
             stateValue.setType(json.get("type").getAsString());
         }
-//        stateValue.updateContract(json.get("contractVersion").getAsString());
     }
 
     /**
