@@ -14,7 +14,7 @@ version = '0.10.0-SNAPSHOT'
 defaultTasks ':yggdrash-node:bootRun'
 
 ext {
-    grpcVersion         = '1.17.0'
+    grpcVersion         = '1.18.0'
     protobufVersion     = '3.6.1'
     levelDBVersion      = '0.10'
     ehcacheVersion      = '3.6.2'
