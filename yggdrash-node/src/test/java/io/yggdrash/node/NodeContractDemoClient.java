@@ -67,6 +67,7 @@ public class NodeContractDemoClient {
     public static void main(String[] args) throws Exception {
         // GetAddress
         getServerAddress();
+        // Get Branch Information
         getNodeBranch();
 
         while (true) {
