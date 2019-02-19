@@ -18,7 +18,5 @@ package io.yggdrash.core.net;
 
 public interface BootStrap {
 
-    //void bootstrapping(Dht dht, int maxPeer);
-
     void bootstrapping();
 }

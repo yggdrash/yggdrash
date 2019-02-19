@@ -26,9 +26,6 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
-import io.yggdrash.core.net.PeerHandlerGroup;
-import io.yggdrash.core.net.PeerHandlerMock;
-import io.yggdrash.core.net.SimplePeerHandlerGroup;
 import io.yggdrash.core.store.StoreBuilder;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -40,27 +37,25 @@ import org.spongycastle.util.encoders.Hex;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 
-
 public class BranchConfigurationTest {
     private static final Logger log = LoggerFactory.getLogger(BranchConfigurationTest.class);
 
     private static final DefaultConfig config = new DefaultConfig();
-    private static final ResourceLoader loader = new DefaultResourceLoader();
+    private static final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
-    private PeerHandlerGroup peerHandlerGroup;
     private BranchConfiguration branchConfig;
 
     @Before
     public void setUp() {
         StoreBuilder builder = new StoreBuilder(config);
         this.branchConfig = new BranchConfiguration(builder);
-        this.peerHandlerGroup = new SimplePeerHandlerGroup(PeerHandlerMock.factory);
     }
 
     @Test
@@ -70,7 +65,8 @@ public class BranchConfigurationTest {
         BranchId branchId = BranchId.of(branchJson);
 
         saveFile(branchId, branchJson);
-        BranchGroup branchGroup = getBranchGroup();
+        BranchGroup branchGroup = branchConfig.branchGroup();
+        branchConfig.branchLoader(config, branchGroup);
         File branchDir = new File(config.getBranchPath(), branchId.toString());
         FileUtils.deleteQuietly(branchDir);
 
@@ -78,12 +74,6 @@ public class BranchConfigurationTest {
         assert branch != null;
         assert branch.getBranchId().equals(branchId);
         assertTransaction(branch);
-
-    }
-
-    private BranchGroup getBranchGroup() {
-        BranchLoader loader = branchConfig.branchLoader(config);
-        return branchConfig.branchGroup(loader, peerHandlerGroup);
     }
 
     private void assertTransaction(BlockChain branch) throws IOException {
@@ -103,8 +93,7 @@ public class BranchConfigurationTest {
     }
 
     private JsonObject getBranchJson() throws IOException {
-        ResourceLoader resourceLoader = new DefaultResourceLoader();
-        Resource resource = resourceLoader.getResource("classpath:/branch/sw.json");
+        Resource resource = resourceLoader.getResource("classpath:/branch/branch-yggdrash.json");
         Reader json = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
         return JsonUtil.parseJsonObject(json);
     }

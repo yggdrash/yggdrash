@@ -2,16 +2,16 @@ package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
 
-import java.math.BigDecimal;
+import java.math.BigInteger;
 
 public interface CoinStandard {
 
     // Query
-    BigDecimal totalSupply();
+    BigInteger totalSupply();
 
-    BigDecimal balanceOf(JsonObject params);
+    BigInteger balanceOf(JsonObject params);
 
-    BigDecimal allowance(JsonObject params);
+    BigInteger allowance(JsonObject params);
 
 
     // Transaction

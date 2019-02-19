@@ -56,6 +56,7 @@
     var grpc = 32918;
     var rest = 8080;
     var branchId = "91b29a1453258d72ca6fbbcabb8dca10cca944fb";
+    var groups = []; //todo later
 
     // data format
     var nodes = [];
@@ -103,14 +104,14 @@
         $("tbody").empty();
         $("tfoot .activePeers").empty();
         $("svg").empty();
-        setUp(ip);
+        setUp(ip, branchId);
     }
 
-    function setUp(ip) {
+    function setUp(ip, branchId) {
         writeTableFooter(ip);
-        getBuckets(ip);
-        setNodesAndChannels(ip);
-        setBlockHeight(ip);
+        getBuckets(ip, branchId);
+        setNodesAndChannels(ip, branchId);
+        setBlockHeight(ip, branchId);
     }
 
     function getBuckets(ip, branchId) {
@@ -126,13 +127,9 @@
                     var port = peer.port;
                     var peerId = base64toHex(peer.peerId.bytes);
                     var pubKey = base64toHex(peer.pubKey.bytes);
-                    var bestBlocks = [];
                     var ynodeUri = peer.ynodeUri;
-                    for(var i in peer.bestBlocks) {
-                        var bb = peer.bestBlocks[i];
-                        bestBlocks.push(base64toHex(bb.branchId.bytes) + ': ' + bb.index);
-                    }
-                    peerInfoElementList.push(writePeerInfoData(index, host, port, peerId, pubKey, ynodeUri, bestBlocks));
+
+                    peerInfoElementList.push(writePeerInfoData(index, host, port, peerId, pubKey, ynodeUri));
                 });
                 writeTableBody(ip, bucketId, peerInfoElementList);
             });
@@ -149,21 +146,19 @@
         return HEX.toUpperCase();
     }
 
-    function writePeerInfoData(index, host, port, peerId, pubKey, ynodeUri, bestBlocks) {
+    function writePeerInfoData(index, host, port, peerId, pubKey, ynodeUri) {
         var ip_txt = document.createTextNode("[" + index + "] " + host + ":" + port);
         var host_txt = document.createTextNode("host : " + host);
         var port_txt = document.createTextNode("port : " + port);
         var peerId_txt = document.createTextNode("peerId : " + peerId);
         var pubKey_txt = document.createTextNode("pubKey : " + pubKey);
         var ynodeUri_txt = document.createTextNode("ynodeUri : " + ynodeUri);
-        var bestBlocks_txt = document.createTextNode("bestBlocks : " + bestBlocks);
 
         var li1 = document.createElement("li");
         var li2 = document.createElement("li");
         var li3 = document.createElement("li");
         var li4 = document.createElement("li");
         var li5 = document.createElement("li");
-        var li6 = document.createElement("li");
         var td = document.createElement("td");
         var span = document.createElement("span");
         var div = document.createElement("div");
@@ -187,8 +182,7 @@
         li2.appendChild(port_txt);
         li3.appendChild(peerId_txt);
         li4.appendChild(pubKey_txt);
-        li5.appendChild(bestBlocks_txt);
-        li6.appendChild(ynodeUri_txt);
+        li5.appendChild(ynodeUri_txt);
 
         div.appendChild(hr);
         div.appendChild(li1);
@@ -196,7 +190,6 @@
         div.appendChild(li3);
         div.appendChild(li4);
         div.appendChild(li5);
-        div.appendChild(li6);
 
         td.append(span);
         td.append(div);
@@ -244,22 +237,34 @@
         return eleName;
     }
 
-    function writeTableFooter(id) {
-        var url = getChannelsReqUrl(id);
+    function setBranchId() {
+        var url = getNetworkReqUrl(ip);
+
+        $.getJSON(url).done(function (networks) {
+            networks.forEach(function (network) {
+                branchId = network;
+                groups.push(network);
+            });
+            setUp(ip, branchId);
+        });
+    }
+
+    function writeTableFooter(ip) {
+        var url = getChannelsReqUrl(ip);
 
         $.getJSON(url).done(function (channels) {
             channels.forEach(function (channel) {
                 var li = document.createElement("li");
                 var li_txt = document.createTextNode(channel);
                 li.appendChild(li_txt);
-                $("#" + convertUrlToElementName(getGrpcUrl(id)) + " .activePeers").append(li);
+                $("#" + convertUrlToElementName(getGrpcUrl(ip)) + " .activePeers").append(li);
                 //console.log("writeTableFooter :: channel => " + channel);
             });
         });
     }
 
-    function setNodesAndChannels(ip) {
-        var url = getPeersFromBucketsReqUrl(ip);
+    function setNodesAndChannels(ip, branchId) {
+        var url = getPeersFromBucketsReqUrl(ip, branchId);
 
         $.getJSON(url).done(function (allPeers) {
             //console.log("setNodesAndChannels :: allPeers => ", allPeers);
@@ -270,8 +275,8 @@
         });
     }
 
-    function setBlockHeight(host, port) {
-        var url = getLatestBlockReqUrl(host, port);
+    function setBlockHeight(host, port, branchId) {
+        var url = getLatestBlockReqUrl(host, port, branchId);
 
         $.getJSON(url).done(function (latestBlock) {
             curBlockHeight = latestBlock.index;
@@ -281,7 +286,7 @@
 
     function findIsolatedPeer() {
         this.nodes.forEach(function (node) {
-            var url = getLatestPeersReqUrl(getRestUrl(node.name), this.reqTime);
+            var url = getLatestPeersReqUrl(getRestUrl(node.name), this.branchId, this.reqTime);
             $.getJSON(url).done(function (latestPeers) {
                 console.log("node :: " + node.name);
                 console.log("latestPeers => ", latestPeers);
@@ -302,7 +307,7 @@
         }
         ip = host + ":" + port;
         appendTable(getGrpcUrl(ip));
-        setUp(ip);
+        setBranchId();
     }
 
     function getHost(str) {
@@ -319,24 +324,28 @@
         return str.substr(str.lastIndexOf(":") + 1, 4);
     }
 
-    function getBucketsReqUrl(ip) {
-        return "http://" + ip + "/peers/buckets";
+    function getBucketsReqUrl(ip, branchId) {
+        return "http://" + ip + "/peers/" + branchId + "/buckets";
     }
 
-    function getPeersFromBucketsReqUrl(ip) {
-        return "http://" + ip + "/peers/buckets/allPeers";
+    function getPeersFromBucketsReqUrl(ip, branchId) {
+        return "http://" + ip + "/peers/" + branchId + "/buckets/allPeers";
     }
 
     function getChannelsReqUrl(ip) {
         return "http://" + ip + "/peers/channels";
     }
 
-    function getLatestBlockReqUrl(ip) {
+    function getNetworkReqUrl(ip) {
+        return "http://" + ip + "/peers/network";
+    }
+
+    function getLatestBlockReqUrl(ip, branchId) {
         return "http://" + ip + "/branches/" + branchId + "/blocks/latest";
     }
 
-    function getLatestPeersReqUrl(ip, reqTime) {
-        return "http://" + ip + "/peers/latestPeers?reqTime=" + reqTime;
+    function getLatestPeersReqUrl(ip, branchId, reqTime) {
+        return "http://" + ip + "/peers/" + branchId + "/latestPeers?reqTime=" + reqTime;
     }
 
     function getGrpcUrl(str) { //Convert rest to grpc url
@@ -539,7 +548,7 @@
             if ($("#" + convertUrlToElementName(ip)).length < 1) {
                 appendTable(ip);
                 writeTableFooter(getRestUrl(ip));
-                getBuckets(getRestUrl(ip));
+                getBuckets(getRestUrl(ip), branchId);
             }
         });
 
