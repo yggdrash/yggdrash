@@ -9,7 +9,6 @@ import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
 import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.net.InetAddress;
@@ -19,12 +18,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import static io.yggdrash.common.config.Constants.DEFAULT_PORT;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 
 public class PbftBlockChain {
 
     private static final Logger log = LoggerFactory.getLogger(PbftBlockChain.class);
-    public static final boolean TEST_NONE_TXSTORE = false;
 
     private final byte[] chain;
     private final String host;
@@ -39,7 +38,8 @@ public class PbftBlockChain {
     private PbftBlock lastConfirmedBlock;
 
     @Autowired
-    public PbftBlockChain(Block genesisBlock, DefaultConfig defaultConfig) {
+    public PbftBlockChain(Block genesisBlock, DefaultConfig defaultConfig, String dbPath,
+                          String blockKeyStorePath, String blockStorePath, String txStorePath) {
         if (genesisBlock.getHeader().getIndex() != 0
                 || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), EMPTY_BYTE32)) {
             log.error("GenesisBlock is not valid.");
@@ -48,21 +48,25 @@ public class PbftBlockChain {
 
         this.chain = genesisBlock.getHeader().getChain();
         this.host = InetAddress.getLoopbackAddress().getHostAddress();
-        this.port = Integer.parseInt(System.getProperty("grpc.port"));
+        if (System.getProperty("grpc.port") == null) {
+            this.port = DEFAULT_PORT;
+        } else {
+            this.port = Integer.parseInt(System.getProperty("grpc.port"));
+        }
 
         this.genesisBlock = new PbftBlock(genesisBlock, null);
         this.lastConfirmedBlock = this.genesisBlock;
         this.blockKeyStore = new PbftBlockKeyStore(
-                new LevelDbDataSource(defaultConfig.getDatabasePath(),
-                        this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
-                                + "/pbftblockkey"));
+                new LevelDbDataSource(dbPath, blockKeyStorePath));
         this.blockStore = new PbftBlockStore(
-                new LevelDbDataSource(defaultConfig.getDatabasePath(),
-                        this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
-                                + "/pbftblock"));
+                new LevelDbDataSource(dbPath, blockStorePath));
 
         PbftBlock pbftBlock = this.genesisBlock;
-        if (this.blockKeyStore.size() > 0) {
+        if (this.blockKeyStore.size() == 0) {
+            this.blockKeyStore.put(0L, this.genesisBlock.getHash());
+            this.blockStore.put(this.genesisBlock.getHash(), this.genesisBlock);
+
+        } else {
             if (!Arrays.equals(this.blockKeyStore.get(0L), this.genesisBlock.getHash())) {
                 log.error("PbftBlockKeyStore is not valid.");
                 throw new NotValidateException();
@@ -74,27 +78,18 @@ public class PbftBlockChain {
                 if (Arrays.equals(prevPbftBlock.getHash(), pbftBlock.getPrevBlockHash())) {
                     prevPbftBlock = pbftBlock;
                 } else {
-                    log.error("PbftBlockChain() bpbftBlockStore is not valid.");
-                    throw new NotValidateException();
+                    throw new NotValidateException("PbftBlockStore is not valid.");
                 }
             }
 
             this.lastConfirmedBlock = pbftBlock;
 
-        } else {
-            this.blockKeyStore.put(0L, this.genesisBlock.getHash());
-            this.blockStore.put(this.genesisBlock.getHash(), this.genesisBlock);
         }
 
-        if (TEST_NONE_TXSTORE) {
-            this.transactionStore = null;
-        } else {
-            this.transactionStore = new TransactionStore(
-                    new LevelDbDataSource(defaultConfig.getDatabasePath(),
-                            this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
-                                    + "/txs"));
-        }
+        this.transactionStore = new TransactionStore(
+                new LevelDbDataSource(dbPath, txStorePath));
     }
+
 
     public byte[] getChain() {
         return chain;

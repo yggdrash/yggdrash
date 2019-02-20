@@ -21,8 +21,8 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.wallet.Wallet;
-import java.nio.charset.StandardCharsets;
 import org.spongycastle.util.encoders.Hex;
+import java.nio.charset.StandardCharsets;
 
 public class ContractTestUtils {
 
@@ -63,16 +63,17 @@ public class ContractTestUtils {
     public static JsonObject createSampleBranchJson(String description) {
         TestConstants.yggdrash();
 
-        String name = "STEM";
-        String symbol = "STEM";
-        String property = "ecosystem";
+        final String name = "STEM";
+        final String symbol = "STEM";
+        final String property = "ecosystem";
 
-        JsonArray contracts = new JsonArray();
         JsonObject contractSample = new JsonObject();
         contractSample.addProperty("contractVersion", TestConstants.STEM_CONTRACT.toString());
         contractSample.add("init", new JsonObject());
         contractSample.addProperty("description", "some description");
         contractSample.addProperty("name", "STEM");
+
+        JsonArray contracts = new JsonArray();
         contracts.add(contractSample);
 
 

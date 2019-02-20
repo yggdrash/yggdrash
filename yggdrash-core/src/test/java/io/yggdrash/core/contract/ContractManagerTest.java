@@ -25,15 +25,12 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.junit.Assert.assertEquals;
@@ -90,13 +87,13 @@ public class ContractManagerTest {
     }
 
     @Test
-    public void isContract() {
+    public void hasContract() {
         if (contracts == null) {
             return;
         }
-        contracts.forEach((key, value) -> {
-            if (key != null) {
-                assertEquals(true, contractManager.isContract(key));
+        contracts.entrySet().stream().forEach(set -> {
+            if (set.getKey() != null) {
+                assertEquals(true, contractManager.hasContract(set.getKey()));
             }
         });
     }
@@ -123,24 +120,6 @@ public class ContractManagerTest {
         contractManager.removeContract(contractVersion);
     }
 
-    @Test
-    public void decodingContract() throws UnsupportedEncodingException {
-        if (contracts == null) {
-            return;
-        }
-        contracts.entrySet().stream().findFirst();
-        Optional<Map.Entry<ContractVersion, ContractMeta>> m = contracts.entrySet().stream().findFirst();
-        ContractVersion version = m.get().getKey();
-
-        byte[] targetBytes = version.toString().getBytes("UTF-8");
-
-        Base64.Encoder encoder = Base64.getEncoder();
-        String encodedString = encoder.encodeToString(targetBytes);
-
-        ContractMeta meta = contractManager.decodingContract(encodedString);
-        assertEquals(version, meta.getContractVersion());
-    }
-
     private List<ContractVersion> contractSample() {
         DefaultConfig defaultConfig = new DefaultConfig();
         List<ContractVersion> contractsVersionSampleIds = new ArrayList<>();
@@ -156,7 +135,7 @@ public class ContractManagerTest {
                     inputStream.read(contractBinary);
 
                     ContractVersion contractVersion = ContractVersion.of(contractBinary);
-                    ContractMeta contractMeta = ContractClassLoader.loadContractById(
+                    ContractMeta contractMeta = ContractClassLoader.loadContractByVersion(
                             defaultConfig.getContractPath(), contractVersion);
 
                     if (contractMeta.getStateStore() != null

@@ -3,7 +3,6 @@ package io.yggdrash.validator.store;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.Block;
-import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.pbft.PbftBlock;
@@ -28,10 +27,10 @@ import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
-import static io.yggdrash.common.util.Utils.sleep;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class PbftBlockKeyStoreTest {
@@ -252,26 +251,14 @@ public class PbftBlockKeyStoreTest {
 
     @Test
     public void putTest_NegativeNumber() {
-        try {
-            blockKeyStore.put(-1L, this.pbftBlock.getHash());
-        } catch (NotValidateException ne) {
-            log.debug(ne.getMessage());
-            assert true;
-            return;
-        }
-        assert false;
+        int beforeSize = blockKeyStore.size();
+        blockKeyStore.put(-1L, this.pbftBlock.getHash());
+        assertEquals(blockKeyStore.size(), beforeSize);
     }
 
     @Test
     public void getTest_NegativeNumber() {
-        try {
-            blockKeyStore.get(-1L);
-        } catch (NotValidateException ne) {
-            log.debug(ne.getMessage());
-            assert true;
-            return;
-        }
-        assert false;
+        assertNull(blockKeyStore.get(-1L));
     }
 
     @Test
@@ -308,8 +295,8 @@ public class PbftBlockKeyStoreTest {
         log.debug("After free memory: " + Runtime.getRuntime().freeMemory());
         assertEquals(this.blockKeyStore.size(), testNumber);
 
-        System.gc();
-        sleep(20000);
+//        System.gc();
+//        sleep(20000);
     }
 
 }

@@ -56,8 +56,7 @@ public class GrpcBlockChainServiceTest {
     @Before
     public void setUp() {
         grpcServerRule.getServiceRegistry()
-                .addService(new BlockChainService(blockChainConsumerMock)
-        );
+                .addService(new BlockChainService(blockChainConsumerMock));
 
         tx = BlockChainTestUtils.createTransferTxHusk();
         block = BlockChainTestUtils.genesisBlock();

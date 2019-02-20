@@ -8,6 +8,8 @@ import java.math.BigInteger;
 
 public class Constants {
 
+    public static final int DEFAULT_PORT = 32918;
+
     public static final String STEM = "STEM";
     public static final String YEED = "YEED";
     public static final String VALIDATOR = "VALIDATOR";
@@ -45,7 +47,6 @@ public class Constants {
     private Constants() {
 
     }
-
 
     // TODO Contract Version fix
     public static final byte[] STEM_CONTRACT = Hex.encode(STEM.getBytes());
