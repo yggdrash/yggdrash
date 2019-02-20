@@ -70,7 +70,8 @@ public class InProcessDiscoveryNodeTest extends AbstractDiscoveryNodeTest {
         Set<Peer> peerSet = new HashSet<>();
         for (GRpcTestNode node : nodeList) {
             List<Peer> peerList =
-                    node.peerTableGroup.getClosestPeers(TestConstants.yggdrash(), node.peerTableGroup.getOwner(), limit);
+                    node.peerTableGroup.getClosestPeers(
+                            TestConstants.yggdrash(), node.peerTableGroup.getOwner(), limit);
             peerSet.addAll(peerList);
 
             PeerTable peerTable = node.peerTableGroup.getPeerTable(TestConstants.yggdrash());

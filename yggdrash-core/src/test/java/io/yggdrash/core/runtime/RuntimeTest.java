@@ -34,11 +34,9 @@ import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.math.BigInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
-
 
 public class RuntimeTest {
     private Logger log = LoggerFactory.getLogger(RuntimeTest.class);

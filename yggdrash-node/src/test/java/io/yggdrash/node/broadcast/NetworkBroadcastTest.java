@@ -47,7 +47,8 @@ public class NetworkBroadcastTest extends AbstractDiscoveryNodeTest {
             if (node.isSeed()) {
                 continue;
             }
-            assert node.getBranchGroup().getUnconfirmedTxs(testTx.getBranchId()).get(0).getHash().equals(testTx.getHash());
+            assert node.getBranchGroup().getUnconfirmedTxs(testTx.getBranchId())
+                    .get(0).getHash().equals(testTx.getHash());
         }
     }
 }

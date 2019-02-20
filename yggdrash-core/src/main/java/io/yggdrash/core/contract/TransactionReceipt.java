@@ -16,12 +16,11 @@
 
 package io.yggdrash.core.contract;
 
-import com.google.gson.JsonObject;
 import java.util.List;
 
 public interface TransactionReceipt {
 
-    void addLog(JsonObject log);
+    void addLog(String log);
 
     ExecuteStatus getStatus();
 
@@ -45,9 +44,9 @@ public interface TransactionReceipt {
 
     String getContractVersion();
 
-    void setContractId(String contractId);
+    void setContractVersion(String contractId);
 
-    List<JsonObject> getTxLog();
+    List<String> getTxLog();
 
     boolean isSuccess();
 
