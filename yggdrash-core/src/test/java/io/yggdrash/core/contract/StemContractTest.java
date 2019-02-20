@@ -34,9 +34,11 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static io.yggdrash.common.config.Constants.VALIDATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
@@ -96,6 +98,7 @@ public class StemContractTest {
 
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer(stateValue.getValidators().get(0));
+
         try {
             txReceiptField.set(stemContract, receipt);
             stemContract.create(params);
@@ -114,8 +117,9 @@ public class StemContractTest {
     public void updateTest() {
         String description = "Hello World!";
         JsonObject json = ContractTestUtils.createSampleBranchJson(description);
-        JsonObject params = createParams(json);
 
+        JsonObject params = createParams(json);
+        System.out.println(params);
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer(stateValue.getValidators().iterator().next());
 
@@ -133,18 +137,23 @@ public class StemContractTest {
 
     private void stemBranchViewTest(String description) {
         JsonObject params = createParams();
-        JsonObject result = stemContract.view(params);
+        JsonObject result = stemContract.getBranch(params);
         assertThat(result.get("description").getAsString()).isEqualTo(description);
     }
 
     @Test
-    public void getAllBranchIdTest() {
-        Set<String> branchIdList = stemContract.getallbranchid();
+    public void getBranchList() {
+        Set<String> branchIdList = stemContract.getBranchIdList();
         assertThat(branchIdList).containsOnly(stateValue.getBranchId().toString());
     }
 
     private JsonObject createParams() {
         return ContractTestUtils.createParams(BRANCH_ID, stateValue.getBranchId().toString());
+    }
+
+    private JsonObject createValidatorParams() {
+        Optional<String> v = stateValue.getValidators().stream().findFirst();
+        return ContractTestUtils.createParams(VALIDATOR, v.get());
     }
 
     private JsonObject createParams(JsonElement json) {

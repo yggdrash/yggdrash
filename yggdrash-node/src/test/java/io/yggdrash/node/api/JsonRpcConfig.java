@@ -24,7 +24,7 @@ public class JsonRpcConfig {
     static final AccountApi ACCOUNT_API = new JsonRpcConfig().proxyOf(AccountApi.class);
     static final PeerApi PEER_API = new JsonRpcConfig().proxyOf(PeerApi.class);
 
-    public <T> T proxyOf(Class<T> proxyInterface) {
+    private <T> T proxyOf(Class<T> proxyInterface) {
         return proxyOf("localhost", proxyInterface);
     }
 

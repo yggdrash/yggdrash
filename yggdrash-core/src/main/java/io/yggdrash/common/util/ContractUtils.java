@@ -22,8 +22,10 @@ import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.ParamValidation;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.List;
@@ -71,7 +73,7 @@ public class ContractUtils {
                 .filter(method -> method.isAnnotationPresent(annotationClass))
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
                 .collect(
-                        Collectors.toMap(m -> m.getName(), m -> new ContractMethod(m))
+                        Collectors.toMap(Method::getName, ContractMethod::new)
                 );
     }
 

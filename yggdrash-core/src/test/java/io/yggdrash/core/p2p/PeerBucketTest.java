@@ -10,8 +10,8 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class PeerBucketTest {
-    private Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
-    private Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32922");
+    private final Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
+    private final Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32922");
 
     private PeerBucket bucket;
 

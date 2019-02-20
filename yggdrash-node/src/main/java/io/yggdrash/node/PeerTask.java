@@ -62,7 +62,7 @@ public class PeerTask {
         if (!nodeStatus.isUpStatus()) {
             return;
         }
-        for (BranchId branchId : peerTableGroup.getAllBrancheId()) {
+        for (BranchId branchId : peerTableGroup.getAllBranchId()) {
             PeerTable peerTable = peerTableGroup.getPeerTable(branchId);
             List<Peer> closestPeerList =
                     peerTable.getClosestPeers(peerTableGroup.getOwner(), KademliaOptions.BROADCAST_SIZE);
@@ -82,7 +82,7 @@ public class PeerTask {
     // and replaces or deletes the node if it isn't
     //@Scheduled(cron = "*/10 * * * * *")
     public void revalidate() {
-        for (BranchId branchId : peerTableGroup.getAllBrancheId()) {
+        for (BranchId branchId : peerTableGroup.getAllBranchId()) {
             PeerTable peerTable = peerTableGroup.getPeerTable(branchId);
 
             Peer last = peerTable.peerToRevalidate();

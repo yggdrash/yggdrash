@@ -48,6 +48,10 @@ public class PeerTableGroupBuilder {
         return this;
     }
 
+    public void setType(String type) {
+        this.type = type;
+    }
+
     public PeerTableGroup build() {
         PeerTableGroup peerTableGroup;
         if ("dht".equals(type)) {

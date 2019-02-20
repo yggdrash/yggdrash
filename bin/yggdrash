@@ -4,7 +4,7 @@ echo "==========================================================================
 
 if [ ! -n "$YGGDRASH_HOME" ]
 then
-    echo "You must set the enviroment YGGDRASH_HOME"
+    echo "You must set the environment YGGDRASH_HOME"
     echo "$YGGDRASH_HOME"
     echo
     echo "ex)"

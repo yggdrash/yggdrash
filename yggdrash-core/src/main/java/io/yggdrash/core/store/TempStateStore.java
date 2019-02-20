@@ -18,6 +18,7 @@ package io.yggdrash.core.store;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
@@ -63,7 +64,7 @@ public class TempStateStore implements Store<String, JsonObject> {
     }
 
     public void putAll(Set<Map.Entry<String, JsonObject>> values) {
-        values.stream().forEach(entry -> tempStore.put(entry.getKey(), entry.getValue()));
+        values.forEach(entry -> tempStore.put(entry.getKey(), entry.getValue()));
     }
 
     public Set<Map.Entry<String, JsonObject>> changeValues() {

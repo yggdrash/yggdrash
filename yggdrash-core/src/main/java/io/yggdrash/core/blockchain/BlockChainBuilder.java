@@ -103,7 +103,7 @@ public class BlockChainBuilder {
             stateStore = storeBuilder.buildStateStore(genesisBlock.getBranchId());
         }
         if (transactionReceiptStore == null) {
-            transactionReceiptStore = storeBuilder.buildTransactionReciptStore(
+            transactionReceiptStore = storeBuilder.buildTransactionReceiptStore(
                     genesisBlock.getBranchId());
         }
 
@@ -111,7 +111,7 @@ public class BlockChainBuilder {
             runtime = new Runtime(stateStore, transactionReceiptStore);
             // TODO Change Branch Spec
             List<BranchContract> contracts = branch.getBranchContracts();
-            contracts.stream().forEach(c -> {
+            contracts.forEach(c -> {
                 // TODO Get ContractManager for Contract
                 Contract contract;
                 // TODO remove branch spec change
@@ -128,7 +128,7 @@ public class BlockChainBuilder {
             });
 
             // Add System Contract
-            defaultContract().entrySet().forEach(s -> runtime.addContract(s.getKey(), s.getValue()));
+            defaultContract().forEach((key, value) -> runtime.addContract(key, value));
 
         }
 
@@ -142,7 +142,7 @@ public class BlockChainBuilder {
             // TODO remove this
             // TODO Check System Contract
 
-            ContractMeta contractMeta = ContractClassLoader.loadContractById(
+            ContractMeta contractMeta = ContractClassLoader.loadContractByVersion(
                     storeBuilder.getConfig().getContractPath(), contractVersion);
             return contractMeta.getContract().getDeclaredConstructor().newInstance();
 

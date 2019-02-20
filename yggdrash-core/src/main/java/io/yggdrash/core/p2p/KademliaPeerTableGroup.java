@@ -51,7 +51,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
     }
 
     @Override
-    public Set<BranchId> getAllBrancheId() {
+    public Set<BranchId> getAllBranchId() {
         return tableMap.keySet();
     }
 

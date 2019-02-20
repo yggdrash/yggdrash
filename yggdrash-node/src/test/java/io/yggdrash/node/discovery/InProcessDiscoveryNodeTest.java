@@ -78,13 +78,13 @@ public class InProcessDiscoveryNodeTest extends AbstractDiscoveryNodeTest {
                 continue;
             }
             int peers = counter.use(peerTable).totalPeerOfBucket();
-            int buket = peerTable.getBucketsCount();
+            int bucket = peerTable.getBucketsCount();
 
             if (peers > maxPeers) {
                 maxPeers = peers;
             }
-            if (buket > maxBucket) {
-                maxBucket = buket;
+            if (bucket > maxBucket) {
+                maxBucket = bucket;
             }
         }
         log.info("nodeCount={}, discoveredPeerSize={}, maxPeers={}, maxBuckets={}",

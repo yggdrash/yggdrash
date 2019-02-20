@@ -8,7 +8,7 @@ import io.yggdrash.core.p2p.PeerTableGroup;
 import org.junit.Test;
 
 public class DiscoveryServiceConsumerTest {
-    private BranchId yggdrash = TestConstants.yggdrash();
+    private final BranchId yggdrash = TestConstants.yggdrash();
 
     @Test
     public void peerAddedByPingTest() {

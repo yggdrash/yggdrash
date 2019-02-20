@@ -74,6 +74,7 @@ project(':yggdrash-core') {
     apply plugin: 'com.google.protobuf'
 
     dependencies {
+        compile files('libs/cfr-0.139.jar')
         compile "io.grpc:grpc-protobuf:${grpcVersion}"
         compile "io.grpc:grpc-stub:${grpcVersion}"
         compile "io.grpc:grpc-netty:${grpcVersion}"

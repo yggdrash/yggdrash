@@ -1,11 +1,9 @@
 package io.yggdrash.node.api;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
-import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.core.wallet.Account;
 import io.yggdrash.gateway.dto.AccountDto;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -16,12 +14,6 @@ public class AccountApiImpl implements AccountApi {
 
     private final ArrayList<String> addresses = new ArrayList<>();
     private final long balance = 100000;
-    private final BranchGroup branchGroup;
-
-    @Autowired
-    public AccountApiImpl(BranchGroup branchGroup) {
-        this.branchGroup = branchGroup;
-    }
 
     @Override
     public String createAccount() {
