@@ -19,12 +19,11 @@ package io.yggdrash.core.contract;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.ContractUtils;
 import io.yggdrash.core.contract.methods.ContractMethod;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.annotation.ContractQuery;
-import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.InvokeTransaction;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -103,7 +102,7 @@ public class ContractMeta {
     }
 
     public Map<String, ContractMethod> getInvokeMethods() {
-        return ContractUtils.contractMethods(getContractInstance(), InvokeTransction.class);
+        return ContractUtils.contractMethods(getContractInstance(), InvokeTransaction.class);
     }
 
 
@@ -123,32 +122,32 @@ public class ContractMeta {
         JsonArray invokeArray = new JsonArray();
         JsonArray queryArray = new JsonArray();
 
-        invokeMethod.entrySet().stream().forEach(set -> {
+        invokeMethod.forEach((key, value) -> {
             JsonObject invokeProperty = new JsonObject();
 
-            invokeProperty.addProperty("name", set.getKey());
+            invokeProperty.addProperty("name", key);
 
-            if (set.getValue().isParams()) {
+            if (value.isParams()) {
                 JsonArray inputArray = new JsonArray();
-                Arrays.stream(set.getValue().getMethod().getParameterTypes())
+                Arrays.stream(value.getMethod().getParameterTypes())
                         .forEach(type -> inputArray.add(type.getSimpleName()));
                 invokeProperty.addProperty("params",
-                        set.getValue().getMethod().getParameterTypes().length);
+                        value.getMethod().getParameterTypes().length);
                 invokeProperty.add("inputType", inputArray);
             }
 
             invokeProperty.addProperty("outputType",
-                    set.getValue().getMethod().getReturnType().getSimpleName());
+                    value.getMethod().getReturnType().getSimpleName());
             invokeArray.add(invokeProperty);
         });
 
 
-        queryMethod.entrySet().stream().forEach(set -> {
+        queryMethod.forEach((key, value) -> {
             JsonObject queryProperty = new JsonObject();
 
-            queryProperty.addProperty("name", set.getKey());
+            queryProperty.addProperty("name", key);
             queryProperty.addProperty("outputType",
-                    set.getValue().getMethod().getReturnType().getSimpleName());
+                    value.getMethod().getReturnType().getSimpleName());
             queryArray.add(queryProperty);
         });
 

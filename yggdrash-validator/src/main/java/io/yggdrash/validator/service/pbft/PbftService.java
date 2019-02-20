@@ -50,7 +50,7 @@ public class PbftService implements CommandLineRunner {
 
     private final boolean isValidator;
     private final int bftCount;
-    private final int consenusCount;
+    private final int consensusCount;
 
     private final Wallet wallet;
     private final PbftBlockChain blockChain;
@@ -64,7 +64,7 @@ public class PbftService implements CommandLineRunner {
     private boolean isSynced;
     private boolean isPrePrepared;
     private boolean isPrepared;
-    private boolean isCommited;
+    private boolean isCommitted;
     private boolean isViewChanged;
 
     private boolean isPrimary;
@@ -82,16 +82,16 @@ public class PbftService implements CommandLineRunner {
         this.isValidator = initValidator();
         if (totalValidatorMap != null) {
             this.bftCount = (totalValidatorMap.size() - 1) / 3;
-            this.consenusCount = bftCount * 2 + 1;
+            this.consensusCount = bftCount * 2 + 1;
         } else {
-            this.consenusCount = 0;
+            this.consensusCount = 0;
             throw new NotValidateException();
         }
         this.isActive = false;
         this.isSynced = false;
         this.isPrePrepared = false;
         this.isPrepared = false;
-        this.isCommited = false;
+        this.isCommitted = false;
         this.isViewChanged = false;
         this.failCount = 0;
     }
@@ -160,7 +160,7 @@ public class PbftService implements CommandLineRunner {
         log.debug("isSynced=" + this.isSynced);
         log.debug("isPrePrepared= " + this.isPrePrepared);
         log.debug("isPrepared= " + this.isPrepared);
-        log.debug("isCommited= " + this.isCommited);
+        log.debug("isCommitted= " + this.isCommitted);
         log.debug("isViewChanged= " + this.isViewChanged);
 
         PbftBlock lastBlock = this.blockChain.getLastConfirmedBlock();
@@ -188,7 +188,7 @@ public class PbftService implements CommandLineRunner {
 
         log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedMsgMap().size());
 
-        if (!this.blockChain.TEST_NONE_TXSTORE) {
+        if (!PbftBlockChain.TEST_NONE_TXSTORE) {
             log.debug("TxStore unConfirmed Tx.size= "
                     + this.blockChain.getTransactionStore().getUnconfirmedTxs().size());
         }
@@ -281,7 +281,7 @@ public class PbftService implements CommandLineRunner {
     }
 
     private long getCurrentViewNumber(long seqNumber) {
-        if (this.viewChangeMap.size() >= consenusCount) {
+        if (this.viewChangeMap.size() >= consensusCount) {
             return ((PbftMessage) this.viewChangeMap.values().toArray()[0]).getViewNumber();
         } else {
             return seqNumber;
@@ -310,7 +310,7 @@ public class PbftService implements CommandLineRunner {
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
         List<Transaction> txs = new ArrayList<>();
         List<TransactionHusk> txHusks = new ArrayList<>();
-        if (!this.blockChain.TEST_NONE_TXSTORE) {
+        if (!PbftBlockChain.TEST_NONE_TXSTORE) {
             txHusks.addAll(blockChain.getTransactionStore().getUnconfirmedTxs());
         }
 
@@ -381,13 +381,13 @@ public class PbftService implements CommandLineRunner {
                 || !this.isSynced
                 || !this.isPrePrepared
                 || !this.isPrepared
-                || this.isCommited) {
+                || this.isCommitted) {
             return null;
         }
 
         long seqNumber = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
         Map<String, PbftMessage> prepareMsgMap = getPrepareMsgMap(seqNumber);
-        if (prepareMsgMap == null || prepareMsgMap.size() < consenusCount) {
+        if (prepareMsgMap == null || prepareMsgMap.size() < consensusCount) {
             return null;
         }
 
@@ -399,7 +399,7 @@ public class PbftService implements CommandLineRunner {
         }
 
         this.blockChain.getUnConfirmedMsgMap().put(commitMsg.getSignatureHex(), commitMsg);
-        this.isCommited = true;
+        this.isCommitted = true;
 
         log.debug("make CommitMsg "
                 + "("
@@ -456,8 +456,8 @@ public class PbftService implements CommandLineRunner {
 
         if (prePrepareMsg == null) {
             this.failCount++;
-        } else if (prepareMessageMap.size() >= consenusCount
-                && commitMessageMap.size() >= consenusCount) {
+        } else if (prepareMessageMap.size() >= consensusCount
+                && commitMessageMap.size() >= consensusCount) {
             PbftMessageSet pbftMessageSet = new PbftMessageSet(
                     prePrepareMsg, prepareMessageMap, commitMessageMap, this.viewChangeMap);
             PbftBlock pbftBlock = new PbftBlock(prePrepareMsg.getBlock(), pbftMessageSet);
@@ -467,7 +467,7 @@ public class PbftService implements CommandLineRunner {
             this.isViewChanged = false;
         }
 
-        if (nextCommitCount >= consenusCount) {
+        if (nextCommitCount >= consensusCount) {
             confirmFinalBlock();
         }
     }
@@ -543,7 +543,7 @@ public class PbftService implements CommandLineRunner {
 
         this.isPrePrepared = false;
         this.isPrepared = false;
-        this.isCommited = false;
+        this.isCommitted = false;
     }
 
     private Map<String, PbftMessage> getPrepareMsgMap(long index) {
@@ -579,11 +579,7 @@ public class PbftService implements CommandLineRunner {
         log.debug("Primary Index: " + primaryIndex);
         log.debug("currentPrimaryPubKey: " + currentPrimaryPubKey);
 
-        if (currentPrimaryPubKey.equals(this.myNode.getPubKey())) {
-            this.isPrimary = true;
-        } else {
-            this.isPrimary = false;
-        }
+        this.isPrimary = currentPrimaryPubKey.equals(this.myNode.getPubKey());
     }
 
     private long checkViewChange(long index) {
@@ -597,7 +593,7 @@ public class PbftService implements CommandLineRunner {
 
         log.debug("viewChangeMsgMap size: " + viewChangeMsgMap.size());
         // todo: check viewNumber
-        if (viewChangeMsgMap.size() < consenusCount) {
+        if (viewChangeMsgMap.size() < consensusCount) {
             return index;
         } else {
             long newViewNumber = ((PbftMessage) viewChangeMsgMap.values().toArray()[0]).getViewNumber();
@@ -659,7 +655,7 @@ public class PbftService implements CommandLineRunner {
                 blockSyncing(client.getPubKey(), pbftStatus.getIndex());
             } else if (pbftStatus.getIndex()
                     == this.blockChain.getLastConfirmedBlock().getIndex()) {
-                // update unconfirm pbftMessage
+                // update unConfirm pbftMessage
                 updateUnconfirmedMsgMap(pbftStatus.getUnConfirmedPbftMessageMap());
             }
         } else {
@@ -813,7 +809,7 @@ public class PbftService implements CommandLineRunner {
 
     private void setActiveMode() {
         int runningNodeCount = getActiveNodeCount();
-        if (runningNodeCount >= consenusCount) {
+        if (runningNodeCount >= consensusCount) {
             if (!this.isActive) {
                 this.isActive = true;
                 log.info("Node is activated.");

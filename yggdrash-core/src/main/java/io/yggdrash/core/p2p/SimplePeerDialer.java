@@ -33,7 +33,7 @@ public class SimplePeerDialer implements PeerDialer {
 
     private final Map<String, PeerHandler> handlerMap = new ConcurrentHashMap<>();
 
-    private PeerHandlerFactory peerHandlerFactory;
+    private final PeerHandlerFactory peerHandlerFactory;
 
     private PeerEventListener peerEventListener;
 

@@ -514,7 +514,7 @@ public class EbftService implements CommandLineRunner {
     public EbftStatus getMyNodeStatus() {
         EbftStatus newEbftStatus = new EbftStatus(this.blockChain.getLastConfirmedBlock(),
                 new ArrayList<>(this.blockChain.getUnConfirmedBlockMap().values()));
-        newEbftStatus.setSignature(wallet.sign(newEbftStatus.getDataForSignning()));
+        newEbftStatus.setSignature(wallet.sign(newEbftStatus.getDataForSigning()));
         return newEbftStatus;
     }
 

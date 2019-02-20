@@ -9,10 +9,11 @@ import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.Genesis;
-import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.InvokeTransaction;
 import io.yggdrash.core.store.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -35,7 +36,7 @@ public class StemContract implements Contract<JsonObject> {
     TransactionReceipt txReceipt;
 
     @Genesis
-    @InvokeTransction // TODO remove InvokeTransaction
+    @InvokeTransaction // TODO remove InvokeTransaction
     public TransactionReceipt init(JsonObject param) {
         txReceipt = create(param);
         log.info("[StemContract | genesis] SUCCESS! param => " + param);
@@ -48,7 +49,7 @@ public class StemContract implements Contract<JsonObject> {
      *
      * @param params branch   : The branch.json to register on the stem
      */
-    @InvokeTransction
+    @InvokeTransaction
     public TransactionReceipt create(JsonObject params) {
         // TODO Change StemContract Spec
         for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
@@ -87,7 +88,7 @@ public class StemContract implements Contract<JsonObject> {
      * @param params branchId The Id of the branch to update
      *               branch   The branch.json to update on the stem
      */
-    @InvokeTransction
+    @InvokeTransaction
     public TransactionReceipt update(JsonObject params) {
         for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
             BranchId branchId = BranchId.of(entry.getKey());

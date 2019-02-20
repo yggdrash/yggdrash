@@ -18,6 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,7 +75,7 @@ public class BranchBuilder {
         branch.addProperty("timestamp", timeStamp);
 
         JsonArray contractArray = new JsonArray();
-        contracts.stream().forEach(c -> {
+        contracts.forEach(c -> {
             JsonObject obj = new JsonObject();
             obj.addProperty("contractVersion", c.getContractVersion().toString());
             obj.add("init", c.getInit());
@@ -85,7 +86,7 @@ public class BranchBuilder {
 
         branch.add("contracts", contractArray);
         JsonArray validatorArray = new JsonArray();
-        validators.forEach(v -> validatorArray.add(v));
+        validators.forEach(validatorArray::add);
         branch.add("validator", validatorArray);
 
 

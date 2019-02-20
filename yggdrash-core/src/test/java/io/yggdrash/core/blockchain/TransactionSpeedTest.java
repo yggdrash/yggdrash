@@ -38,7 +38,7 @@ public class TransactionSpeedTest extends PerformanceTest {
 
     private static final long MAX = 100L;
     private static final long CON_TIMEOUT = 1000L;
-    private static final long VERYFY_TIMEOUT = 2000L;
+    private static final long VERIFY_TIMEOUT = 2000L;
 
     private TransactionBody txBody;
     private TransactionHeader txHeader;
@@ -55,7 +55,7 @@ public class TransactionSpeedTest extends PerformanceTest {
         params.addProperty("amount", "10000000");
 
         JsonArray txArrayBody = ContractTestUtils.txBodyJson(Constants.STEM_CONTRACT_VERSION,
-                "tansfer", params);
+                "transfer", params);
 
         txBody = new TransactionBody(txArrayBody);
 
@@ -179,7 +179,7 @@ public class TransactionSpeedTest extends PerformanceTest {
         log.info(" Transaction:Constructor(byte[]) nanoTime:" + averageTime);
     }
 
-    @Test(timeout = VERYFY_TIMEOUT)
+    @Test(timeout = VERIFY_TIMEOUT)
     public void testSpeedTransactionVerify() {
 
         long startTime;

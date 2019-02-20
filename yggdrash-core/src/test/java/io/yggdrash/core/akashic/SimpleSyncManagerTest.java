@@ -13,7 +13,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class SimpleSyncManagerTest {
 
     private static final Peer OWNER = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
-    private PeerHandler handler = PeerHandlerMock.dummy(OWNER);
+    private final PeerHandler handler = PeerHandlerMock.dummy(OWNER);
     private SimpleSyncManager syncManager;
     private BlockChain blockChain;
 

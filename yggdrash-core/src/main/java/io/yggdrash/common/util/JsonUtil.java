@@ -15,7 +15,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -62,9 +61,7 @@ public class JsonUtil {
 
     public static List<String> convertJsonArrayToStringList(JsonArray array) {
         List<String> stringList = new ArrayList<>();
-        Iterator<JsonElement> elementIterator = array.iterator();
-        while (elementIterator.hasNext()) {
-            JsonElement element = elementIterator.next();
+        for (JsonElement element : array) {
             stringList.add(element.getAsString());
         }
         return stringList;

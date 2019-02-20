@@ -45,7 +45,7 @@ class PeerController {
 
     @GetMapping("/network")
     public ResponseEntity getNetwork() {
-        return ResponseEntity.ok(peerTableGroup.getAllBrancheId().stream().map(BranchId::toString));
+        return ResponseEntity.ok(peerTableGroup.getAllBranchId().stream().map(BranchId::toString));
     }
 
     @GetMapping("/active")

@@ -2,8 +2,8 @@ package io.yggdrash.core.p2p;
 
 import java.util.Comparator;
 
-public class DistanceComparator implements Comparator<Peer> {
-    private byte[] targetId;
+class DistanceComparator implements Comparator<Peer> {
+    private final byte[] targetId;
 
     DistanceComparator(byte[] targetId) {
         this.targetId = targetId;

@@ -57,7 +57,7 @@ public class StoreBuilder {
         return new StateStore(getDbSource(branchId + "/state"));
     }
 
-    public TransactionReceiptStore buildTransactionReciptStore(BranchId branchId) {
+    public TransactionReceiptStore buildTransactionReceiptStore(BranchId branchId) {
         return new TransactionReceiptStore(getDbSource(branchId + "/txreceipt"));
     }
 

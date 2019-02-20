@@ -17,11 +17,11 @@
 package io.yggdrash.core.contract;
 
 import io.yggdrash.common.config.DefaultConfig;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -94,9 +94,9 @@ public class ContractManagerTest {
         if (contracts == null) {
             return;
         }
-        contracts.entrySet().stream().forEach(set -> {
-            if (set.getKey() != null) {
-                assertEquals(true, contractManager.isContract(set.getKey()));
+        contracts.forEach((key, value) -> {
+            if (key != null) {
+                assertEquals(true, contractManager.isContract(key));
             }
         });
     }
@@ -114,9 +114,9 @@ public class ContractManagerTest {
         if (contracts == null) {
             return;
         }
-        long beforSize = contracts.entrySet().size();
+        long beforeSize = contracts.entrySet().size();
         contractManager.addContract(contract);
-        assertEquals(beforSize + 1, contracts.entrySet().size());
+        assertEquals(beforeSize + 1, contracts.entrySet().size());
 
         ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
         ContractVersion contractVersion = contractMeta.getContractVersion();

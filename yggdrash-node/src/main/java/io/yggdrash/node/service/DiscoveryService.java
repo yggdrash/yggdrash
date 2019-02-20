@@ -17,7 +17,7 @@ import java.util.List;
 public class DiscoveryService extends PeerGrpc.PeerImplBase {
     private static final Logger log = LoggerFactory.getLogger(DiscoveryService.class);
 
-    private DiscoveryConsumer discoveryConsumer;
+    private final DiscoveryConsumer discoveryConsumer;
 
     @Autowired
     public DiscoveryService(DiscoveryConsumer discoveryConsumer) {
