@@ -50,33 +50,33 @@ public class PeerTableLargeTest {
     private void test(int nodeCount, int limit) {
         initTable(nodeCount);
 
-        int totalRecursiveTry = 0;
+        int totalVisitCount = 0;
         for (PeerTable table : peerTableMap.values()) {
-            List<PeerTable> tried = new ArrayList<>(peerTableMap.values());
-            assert tried.size() == nodeCount - 1;
+            List<PeerTable> visited = new ArrayList<>(peerTableMap.values());
+            assert visited.size() == nodeCount - 1;
 
-            totalRecursiveTry = recursiveTry(table, tried, limit);
-            assert tried.size() == 0;
+            totalVisitCount = recursiveTry(table, visited, limit);
+            assert visited.size() == 0;
             //break; // test first node only
         }
-        log.debug("=== nodeCount={}, totalTry={}", nodeCount, totalRecursiveTry);
+        log.debug("=== nodeCount={}, totalVisitCount={}", nodeCount, totalVisitCount);
         peerList.clear();
         peerTableMap.clear();
     }
 
-    private int recursiveTry(PeerTable table, List<PeerTable> tried, int limit) {
-        if (tried.isEmpty()) {
+    private int recursiveTry(PeerTable table, List<PeerTable> visited, int limit) {
+        if (visited.isEmpty()) {
             return -1;
         }
-        if (!tried.contains(table)) {
+        if (!visited.contains(table)) {
             return 1;
         }
-        tried.remove(table);
+        visited.remove(table);
         List<Peer> closest = closest(table, limit, false);
         int count = 1;
         for (Peer peer : closest) {
             PeerTable targetTable = peerTableMap.get(peer);
-            int triedCnt = recursiveTry(targetTable, tried, limit);
+            int triedCnt = recursiveTry(targetTable, visited, limit);
             if (triedCnt == -1) {
                 return ++count;
             }
@@ -96,7 +96,9 @@ public class PeerTableLargeTest {
         }
 
         for (PeerTable table : peerTableMap.values()) {
+            // fill all peers in table
             for (Peer peer : peerList) {
+                // exclude owner
                 if (table.getOwner().equals(peer)) {
                     continue;
                 }
@@ -110,7 +112,7 @@ public class PeerTableLargeTest {
             return Collections.emptyList();
         }
         List<Peer> closest = table.getClosestPeers(table.getOwner(), limit);
-        closest.remove(SEED);
+        closest.remove(SEED); // exclude seed
         if (debugClosest) {
             String closestStr = table.getOwner().getPort() + " -> ";
             for (Peer peer : closest) {
