@@ -1,6 +1,5 @@
 package io.yggdrash.validator.store.pbft;
 
-import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.validator.data.pbft.PbftBlock;
@@ -20,7 +19,8 @@ public class PbftBlockStore implements Store<byte[], PbftBlock> {
     @Override
     public void put(byte[] key, PbftBlock value) {
         if (key == null || value == null) {
-            throw new NotValidateException("Key or value are not valid.");
+            log.debug("Key or value are not vaild.");
+            return;
         }
 
         log.trace("put "
@@ -32,7 +32,8 @@ public class PbftBlockStore implements Store<byte[], PbftBlock> {
     @Override
     public PbftBlock get(byte[] key) {
         if (key == null) {
-            throw new NotValidateException("Key is not valid.");
+            log.debug("Key is not vaild.");
+            return null;
         }
 
         log.trace("get " + "(" + Hex.toHexString(key) + ")");
