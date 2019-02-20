@@ -5,7 +5,6 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.blockchain.Block;
-import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.pbft.PbftBlock;
@@ -31,7 +30,6 @@ import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
-import static io.yggdrash.common.util.Utils.sleep;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -258,36 +256,6 @@ public class PbftBlockStoreTest {
     }
 
     @Test
-    public void putTest_Null() {
-        try {
-            blockStore.put(null, this.pbftBlock);
-        } catch (NotValidateException ne) {
-            log.debug(ne.getMessage());
-            assert true;
-        }
-        try {
-            blockStore.put(this.pbftBlock.getHash(), null);
-        } catch (NotValidateException ne) {
-            log.debug(ne.getMessage());
-            assert true;
-            return;
-        }
-        assert false;
-    }
-
-    @Test
-    public void getTest_Null() {
-        try {
-            blockStore.get(null);
-        } catch (NotValidateException ne) {
-            log.debug(ne.getMessage());
-            assert true;
-            return;
-        }
-        assert false;
-    }
-
-    @Test
     public void closeTest() {
         blockStore.close();
         try {
@@ -324,8 +292,8 @@ public class PbftBlockStoreTest {
 
         log.debug("After free memory: " + Runtime.getRuntime().freeMemory());
 
-        System.gc();
-        sleep(20000);
+//        System.gc();
+//        sleep(20000);
     }
 
 }
