@@ -127,13 +127,13 @@ public class GRpcPeerHandler implements PeerHandler {
 
     @Override
     public void broadcastTransaction(TransactionHusk tx) {
-        log.info("*** Broadcasting txs...");
+        log.trace("Broadcasting txs -> {}", tx.getHash());
         asyncBlockChainStub.broadcastTransaction(tx.getInstance());
     }
 
     @Override
     public void broadcastBlock(BlockHusk block) {
-        log.info("*** Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
+        log.trace("Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
         asyncBlockChainStub.broadcastBlock(block.getInstance());
     }
 }

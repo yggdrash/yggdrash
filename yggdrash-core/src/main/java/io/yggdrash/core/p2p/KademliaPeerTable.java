@@ -16,8 +16,8 @@ public class KademliaPeerTable implements PeerTable {
     private static final Logger log = LoggerFactory.getLogger(KademliaPeerTable.class);
 
     private final Peer owner;  // our node
+    private final transient PeerStore peerStore;
     private transient PeerBucket[] buckets;
-    private transient PeerStore peerStore;
 
     public KademliaPeerTable(Peer owner, PeerStore peerStore) {
         this.owner = owner;

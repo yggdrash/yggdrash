@@ -140,7 +140,7 @@ public class PbftMessage {
         return this.toJsonObject().toString().getBytes(StandardCharsets.UTF_8);
     }
 
-    public byte[] getHashForSignning() {
+    public byte[] getHashForSigning() {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
         try {
@@ -157,10 +157,10 @@ public class PbftMessage {
 
     public byte[] sign(Wallet wallet) {
         if (wallet == null) {
-            throw new NotValidateException("walllet is null");
+            throw new NotValidateException("wallet is null");
         }
 
-        return wallet.signHashedData(getHashForSignning());
+        return wallet.signHashedData(getHashForSigning());
     }
 
     public static boolean verify(PbftMessage pbftMessage) {
@@ -172,7 +172,7 @@ public class PbftMessage {
 
         // todo: check validator
 
-        if (!Wallet.verify(pbftMessage.getHashForSignning(), pbftMessage.getSignature(), true)) {
+        if (!Wallet.verify(pbftMessage.getHashForSigning(), pbftMessage.getSignature(), true)) {
             return false;
         }
 

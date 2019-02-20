@@ -99,7 +99,7 @@ public class BlockStore implements Store<Sha3Hash, BlockHusk> {
     }
 
     private byte[] blockIndexKey(long index) {
-        String blockIndexKey = "BLOCK_INDEX_" + Long.toString(index);
+        String blockIndexKey = "BLOCK_INDEX_" + index;
         return HashUtil.sha3(blockIndexKey.getBytes());
     }
 

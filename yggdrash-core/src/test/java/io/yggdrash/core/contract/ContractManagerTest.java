@@ -111,9 +111,9 @@ public class ContractManagerTest {
         if (contracts == null) {
             return;
         }
-        long beforSize = contracts.entrySet().size();
+        long beforeSize = contracts.entrySet().size();
         contractManager.addContract(contract);
-        assertEquals(beforSize + 1, contracts.entrySet().size());
+        assertEquals(beforeSize + 1, contracts.entrySet().size());
 
         ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
         ContractVersion contractVersion = contractMeta.getContractVersion();

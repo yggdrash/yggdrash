@@ -175,7 +175,7 @@ public class BlockChain {
 
         // run Block Transactions
         // TODO run block execute move to other process (or thread)
-        // TODO last excute block will invoke
+        // TODO last execute block will invoke
         if (nextBlock.getIndex() > metaStore.getLastExecuteBlockIndex()) {
             BlockRuntimeResult result = runtime.invokeBlock(nextBlock);
             // Save Result
@@ -200,8 +200,8 @@ public class BlockChain {
         if (prevBlock == null) {
             return true;
         }
-        log.trace(" prev : " + prevBlock.getHash());
-        log.trace(" new : " + nextBlock.getHash());
+        log.trace("prev : " + prevBlock.getHash());
+        log.trace("new  : " + nextBlock.getHash());
 
         if (prevBlock.getIndex() + 1 != nextBlock.getIndex()) {
             log.warn("invalid index: prev:{} / new:{}", prevBlock.getIndex(), nextBlock.getIndex());

@@ -23,12 +23,12 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.JsonUtil;
 import org.apache.commons.io.IOUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 
 
@@ -58,9 +58,8 @@ public class Branch {
         JsonArray contractArray = json.getAsJsonArray("contracts");
         // Contracts
         if (contractArray != null) {
-            Iterator<JsonElement> it = contractArray.iterator();
-            while (it.hasNext()) {
-                contracts.add(BranchContract.of(it.next().getAsJsonObject()));
+            for (JsonElement jsonElement : contractArray) {
+                contracts.add(BranchContract.of(jsonElement.getAsJsonObject()));
             }
         }
         this.description = json.get("description").getAsString();
@@ -93,7 +92,7 @@ public class Branch {
     }
 
     public List<String> getValidators() {
-        return new ArrayList<String>(this.validator);
+        return new ArrayList<>(this.validator);
     }
 
     public long getTimestamp() {

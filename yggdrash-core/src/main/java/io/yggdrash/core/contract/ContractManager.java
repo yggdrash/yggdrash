@@ -36,6 +36,7 @@ import java.io.UnsupportedEncodingException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collection;
@@ -45,7 +46,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ContractManager extends ClassLoader {
@@ -99,13 +99,11 @@ public class ContractManager extends ClassLoader {
     }
 
     public List<ContractVersion> getContractVersionList() {
-        return this.contracts.entrySet().stream().map(set -> set.getKey())
-                .collect(Collectors.toList());
+        return new ArrayList<>(this.contracts.keySet());
     }
 
     public List<ContractMeta> getContractList() {
-        return this.contracts.entrySet().stream().map(set -> set.getValue())
-                .collect(Collectors.toList());
+        return new ArrayList<>(this.contracts.values());
     }
 
     public ContractMeta getContractByVersion(ContractVersion version) {
@@ -154,7 +152,7 @@ public class ContractManager extends ClassLoader {
             }
         }
 
-        //TODO whitelist sandBox validtaion
+        //TODO whitelist sandBox validation
         // Check the Project Jigsaw
         return true;
     }
@@ -192,8 +190,7 @@ public class ContractManager extends ClassLoader {
         if (existFile(contractVersion)) {
             if (file.isDirectory()) {
                 File[] files = file.listFiles();
-                Arrays.stream(files)
-                        .forEach(f -> f.delete());
+                Arrays.stream(files).forEach(File::delete);
             }
             file.delete();
             directory.delete();

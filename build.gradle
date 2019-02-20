@@ -9,7 +9,7 @@ apply plugin: 'java'
 apply plugin: 'idea'
 
 group = 'io.yggdrash'
-version = '0.0.1-SNAPSHOT'
+version = '0.10.0-SNAPSHOT'
 
 defaultTasks ':yggdrash-node:bootRun'
 
@@ -158,6 +158,9 @@ project(':yggdrash-node') {
     }
 
     bootJar {
+        manifest {
+            attributes("Implementation-Version": rootProject.version)
+        }
         launchScript()
     }
 }
@@ -198,9 +201,8 @@ project(':yggdrash-validator') {
 
     dependencies {
         compile project(':yggdrash-core')
-        testCompile project(':yggdrash-core').sourceSets.test.output
-        
         compile "io.github.lognet:grpc-spring-boot-starter:3.0.0"
+        testCompile project(':yggdrash-core').sourceSets.test.output
     }
 }
 
@@ -228,4 +230,14 @@ task jacocoRootReport(type: JacocoReport) {
 coveralls {
     sourceDirs = subprojects.sourceSets.main.allSource.srcDirs.flatten()
     jacocoReportPath = "${buildDir}/reports/jacoco/jacocoRootReport/jacocoRootReport.xml"
+}
+
+// TODO delete using scanning each project
+// usage: ./gradlew cleanConfig -q
+task cleanConfig(type: Delete) {
+    println('# Clean YGGDRASH Config in All modules')
+    delete '.yggdrash'
+    delete 'yggdrash-core/.yggdrash'
+    delete 'yggdrash-node/.yggdrash'
+    delete 'yggdrash-validator/.yggdrash'
 }

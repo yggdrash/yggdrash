@@ -20,4 +20,3 @@ message Offset {
 message Chain {
     bytes chain = 1;
 }
-

@@ -9,5 +9,5 @@ $$  \  /$$//$$$$$$  |/$$$$$$  |$$$$$$$  |$$$$$$$  |/$$$$$$  |/$$$$$$  |$$ |  $$ 
     $$ |   $$    $$/ $$    $$/ $$    $$/ $$ |  $$ |$$ |  $$ |$$    $$/ $$ |  $$ |
     $$/     $$$$$$/   $$$$$$/  $$$$$$$/  $$/   $$/ $$/   $$/  $$$$$$/  $$/   $$/
 
- :: YGGDRASH :: Trust Based Multi Dimensional Blockchain Platform  ${application.version}
-
+ * YGGDRASH :: Trust Based Multi Dimensional Blockchain Platform ${application.formatted-version}
+ * Github Repository: https://github.com/yggdrash/yggdrash

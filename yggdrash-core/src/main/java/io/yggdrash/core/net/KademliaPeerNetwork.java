@@ -29,9 +29,9 @@ import java.util.List;
 
 public class KademliaPeerNetwork implements PeerNetwork {
 
-    private PeerTableGroup peerTableGroup;
+    private final PeerTableGroup peerTableGroup;
 
-    private PeerDialer peerDialer;
+    private final PeerDialer peerDialer;
 
     public KademliaPeerNetwork(PeerTableGroup peerTableGroup, PeerDialer peerDialer) {
         this.peerTableGroup = peerTableGroup;
@@ -42,7 +42,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
     public void init() {
         peerTableGroup.selfRefresh();
 
-        for (BranchId branchId : peerTableGroup.getAllBrancheId()) {
+        for (BranchId branchId : peerTableGroup.getAllBranchId()) {
             List<Peer> closestPeerList =
                     peerTableGroup.getClosestPeers(branchId, peerTableGroup.getOwner(), KademliaOptions.BROADCAST_SIZE);
             for (Peer peer : closestPeerList) {

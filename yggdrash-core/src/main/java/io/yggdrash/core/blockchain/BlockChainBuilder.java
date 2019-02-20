@@ -22,6 +22,7 @@ import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.contract.ContractMeta;
 import io.yggdrash.core.contract.ContractVersion;
+import io.yggdrash.core.contract.DPoAContract;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.Runtime;
@@ -31,6 +32,7 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
+
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.List;
@@ -101,7 +103,7 @@ public class BlockChainBuilder {
             stateStore = storeBuilder.buildStateStore(genesisBlock.getBranchId());
         }
         if (transactionReceiptStore == null) {
-            transactionReceiptStore = storeBuilder.buildTransactionReciptStore(
+            transactionReceiptStore = storeBuilder.buildTransactionReceiptStore(
                     genesisBlock.getBranchId());
         }
 
@@ -109,7 +111,7 @@ public class BlockChainBuilder {
             runtime = new Runtime(stateStore, transactionReceiptStore);
             // TODO Change Branch Spec
             List<BranchContract> contracts = branch.getBranchContracts();
-            contracts.stream().forEach(c -> {
+            contracts.forEach(c -> {
                 // TODO Get ContractManager for Contract
                 Contract contract;
                 // TODO remove branch spec change
@@ -117,6 +119,8 @@ public class BlockChainBuilder {
                     contract = new StemContract();
                 } else if ("YEED".equals(c.getName())) {
                     contract = new CoinContract();
+                } else if ("DPoA".equals(c.getName())) {
+                    contract = new DPoAContract();
                 } else {
                     contract = getContract(c.getContractVersion());
                 }
@@ -124,7 +128,7 @@ public class BlockChainBuilder {
             });
 
             // Add System Contract
-            defaultContract().entrySet().forEach(s -> runtime.addContract(s.getKey(),s.getValue()));
+            defaultContract().forEach((key, value) -> runtime.addContract(key, value));
 
         }
 
