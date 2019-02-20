@@ -142,7 +142,7 @@ public class BlockChainBuilder {
             // TODO remove this
             // TODO Check System Contract
 
-            ContractMeta contractMeta = ContractClassLoader.loadContractById(
+            ContractMeta contractMeta = ContractClassLoader.loadContractByVersion(
                     storeBuilder.getConfig().getContractPath(), contractVersion);
             return contractMeta.getContract().getDeclaredConstructor().newInstance();
 

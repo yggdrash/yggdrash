@@ -103,7 +103,7 @@ public class ContractClassLoader extends ClassLoader {
         return loader.loadContract(contractFullName, contractFile);
     }
 
-    public static ContractMeta loadContractById(String contractPath, ContractVersion contractVersion) {
+    public static ContractMeta loadContractByVersion(String contractPath, ContractVersion contractVersion) {
         File contractFile = ContractMeta.contractFile(contractPath, contractVersion);
         log.debug("Load contract={}", contractFile.getAbsolutePath());
         if (contractFile.exists()) {
