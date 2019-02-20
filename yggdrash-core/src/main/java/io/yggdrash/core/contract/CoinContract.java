@@ -13,7 +13,7 @@ import io.yggdrash.core.runtime.annotation.ContractQuery;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.Genesis;
-import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.InvokeTransaction;
 import io.yggdrash.core.runtime.annotation.ParamValidation;
 import io.yggdrash.core.runtime.annotation.YggdrashContract;
 import io.yggdrash.core.store.Store;
@@ -98,7 +98,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      *
      * @return TransactionReceipt
      */
-    @InvokeTransction
+    @InvokeTransaction
     @ParamValidation
     @Override
     public TransactionReceipt transfer(JsonObject params) {
@@ -113,12 +113,12 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
             return txReceipt;
         }
 
-        BigInteger senderBallance = getBalance(sender);
-        log.debug("sender : " + senderBallance);
-        if (isTransferable(senderBallance, amount)) {
-            senderBallance = senderBallance.subtract(amount);
+        BigInteger senderBalance = getBalance(sender);
+        log.debug("sender : " + senderBalance);
+        if (isTransferable(senderBalance, amount)) {
+            senderBalance = senderBalance.subtract(amount);
             addBalanceTo(to, amount);
-            putBalance(sender, senderBallance);
+            putBalance(sender, senderBalance);
             txReceipt.setStatus(ExecuteStatus.SUCCESS);
             log.debug("\n[Transferred] Transfer " + amount + " from " + sender + " to " + to);
             log.debug("\nBalance of From (" + sender + ") : " + getBalance(sender)
@@ -140,7 +140,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      *
      * @return TransactionReceipt
      */
-    @InvokeTransction
+    @InvokeTransaction
     @ParamValidation
     @Override
     public TransactionReceipt approve(JsonObject params) {
@@ -179,7 +179,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      *
      * @return TransactionReceipt
      */
-    @InvokeTransction
+    @InvokeTransaction
     @ParamValidation
     @Override
     public TransactionReceipt transferFrom(JsonObject params) {
@@ -227,7 +227,7 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
      * @return TransactionReceipt
      */
     @Genesis
-    @InvokeTransction
+    @InvokeTransaction
     public TransactionReceipt init(JsonObject params) {
         log.debug("\ngenesis :: params => " + params);
 
@@ -310,9 +310,9 @@ public class CoinContract implements CoinStandard, Contract<JsonObject> {
         return Hex.toHexString(approveKey);
     }
 
-    private boolean isTransferable(BigInteger targetBalance, BigInteger ammount) {
+    private boolean isTransferable(BigInteger targetBalance, BigInteger amount) {
         // same is  0, more is 1
-        return targetBalance.subtract(ammount).compareTo(BigInteger.ZERO) >= 0;
+        return targetBalance.subtract(amount).compareTo(BigInteger.ZERO) >= 0;
     }
 
 

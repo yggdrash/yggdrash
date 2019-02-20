@@ -76,11 +76,11 @@ public class AbstractDiscoveryNodeTest {
         return node;
     }
 
-    protected ManagedChannel createChannel(Peer peer) {
+    ManagedChannel createChannel(Peer peer) {
         return InProcessChannelBuilder.forName(peer.getYnodeUri()).directExecutor().build();
     }
 
-    protected Server createAndStartServer(GRpcTestNode node) {
+    Server createAndStartServer(GRpcTestNode node) {
         String ynodeUri = node.peerTableGroup.getOwner().getYnodeUri();
         InProcessServerBuilder builder = InProcessServerBuilder.forName(ynodeUri).directExecutor().addService(
                 new DiscoveryService(node.discoveryConsumer));

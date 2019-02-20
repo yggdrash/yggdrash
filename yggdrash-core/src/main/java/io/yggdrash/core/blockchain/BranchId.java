@@ -27,7 +27,7 @@ import static io.yggdrash.common.config.Constants.EMPTY_BYTE20;
 
 public class BranchId {
 
-    public static BranchId NULL = new BranchId(EMPTY_BYTE20);
+    public static final BranchId NULL = new BranchId(EMPTY_BYTE20);
 
     private final Sha3Hash id;
 
@@ -35,7 +35,7 @@ public class BranchId {
         this.id = hash;
     }
 
-    public BranchId(byte[] bytes) {
+    private BranchId(byte[] bytes) {
         this(Sha3Hash.createByHashed(bytes));
     }
 

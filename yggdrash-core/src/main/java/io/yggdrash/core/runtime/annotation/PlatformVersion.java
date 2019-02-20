@@ -21,10 +21,9 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-
 // Contract require Platform Version Tag
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface PlatformVersion {
-    String vertion() default "0.0.1";
+    String version() default "0.0.1";
 }

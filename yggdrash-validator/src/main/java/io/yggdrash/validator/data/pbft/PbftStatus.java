@@ -104,35 +104,35 @@ public class PbftStatus {
         return signature;
     }
 
-    public byte[] getHashForSignning() {
-        ByteArrayOutputStream dataForSignning = new ByteArrayOutputStream();
+    public byte[] getHashForSigning() {
+        ByteArrayOutputStream dataForSigning = new ByteArrayOutputStream();
 
         try {
-            dataForSignning.write(ByteUtil.longToBytes(index));
+            dataForSigning.write(ByteUtil.longToBytes(index));
             for (String key : this.unConfirmedPbftMessageMap.keySet()) {
                 PbftMessage pbftMessage = this.unConfirmedPbftMessageMap.get(key);
-                dataForSignning.write(pbftMessage.toBinary());
+                dataForSigning.write(pbftMessage.toBinary());
             }
-            dataForSignning.write(ByteUtil.longToBytes(timestamp));
+            dataForSigning.write(ByteUtil.longToBytes(timestamp));
         } catch (Exception e) {
             log.debug(e.getMessage());
             return null;
         }
 
-        return HashUtil.sha3(dataForSignning.toByteArray());
+        return HashUtil.sha3(dataForSigning.toByteArray());
     }
 
     public byte[] sign(Wallet wallet) {
         if (wallet == null) {
-            throw new NotValidateException("walllet is null");
+            throw new NotValidateException("wallet is null");
         }
 
-        return wallet.signHashedData(getHashForSignning());
+        return wallet.signHashedData(getHashForSigning());
     }
 
     public static boolean verify(PbftStatus status) {
         if (status != null && status.getSignature() != null) {
-            byte[] hashData = status.getHashForSignning();
+            byte[] hashData = status.getHashForSigning();
             byte[] signature = status.getSignature();
             if (hashData == null || signature == null
                     || !Wallet.verify(hashData, signature, true)) {

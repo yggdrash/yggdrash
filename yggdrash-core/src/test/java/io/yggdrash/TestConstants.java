@@ -24,12 +24,13 @@ import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Wallet;
 import org.junit.Assume;
 import org.junit.BeforeClass;
+
 import java.io.IOException;
 import java.io.InputStream;
 
 public class TestConstants {
 
-    public static BranchId YGGDRASH_BRANCH_ID;
+    private static BranchId YGGDRASH_BRANCH_ID;
 
     public static ContractVersion STEM_CONTRACT;
     public static ContractVersion YEED_CONTRACT;
@@ -37,7 +38,7 @@ public class TestConstants {
 
     public static final String TRANSFER_TO = "e1980adeafbb9ac6c9be60955484ab1547ab0b76";
 
-    public static final String CI_TEST = "ci";
+    private static final String CI_TEST = "ci";
     private static final String SLOW_TEST = "slow";
     private static final String PERFORMANCE_TEST = "performance";
     private static final String PROFILE = System.getProperty("spring.profiles.active");

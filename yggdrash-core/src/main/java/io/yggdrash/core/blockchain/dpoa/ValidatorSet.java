@@ -4,7 +4,6 @@ import io.yggdrash.core.blockchain.SerialEnum;
 
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -35,7 +34,7 @@ public class ValidatorSet implements Serializable {
                     validators.add(v);
                 }
             });
-            Collections.sort(validators, comparator == null ? Comparator.reverseOrder() : comparator);
+            validators.sort(comparator == null ? Comparator.reverseOrder() : comparator);
         }
 
         return validators;

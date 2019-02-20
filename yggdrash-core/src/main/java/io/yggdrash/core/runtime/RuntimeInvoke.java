@@ -23,9 +23,10 @@ import io.yggdrash.core.contract.ExecuteStatus;
 import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.contract.methods.ContractMethod;
 import io.yggdrash.core.runtime.annotation.Genesis;
-import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.InvokeTransaction;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.TempStateStore;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -64,7 +65,7 @@ public class RuntimeInvoke<T> {
     // TODO Change Meta info
     // TODO filter invoke jSonObject
     private Map<String, ContractMethod> getInvokeMethods(Contract<T> contract) {
-        return ContractUtils.contractMethods(contract, InvokeTransction.class);
+        return ContractUtils.contractMethods(contract, InvokeTransaction.class);
     }
 
     // TODO remove

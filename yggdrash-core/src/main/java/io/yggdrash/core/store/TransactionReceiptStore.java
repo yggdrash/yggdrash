@@ -19,15 +19,15 @@ public class TransactionReceiptStore {
     Gson gson = new Gson();
 
     public void put(TransactionReceipt txReceipt) {
-        // TransctionReceipt to Bytearray
+        // TransactionReceipt to ByteArray
         String txReceiptJson = gson.toJson(txReceipt);
         db.put(txReceipt.getTxId().getBytes(), txReceiptJson.getBytes());
     }
 
     public TransactionReceipt get(String txHash) {
-        byte[] tranasctionReceipt = db.get(txHash.getBytes());
-        // TransctionReceipt from ByteArray
-        String txReceiptJson = new String(tranasctionReceipt);
+        byte[] transactionReceipt = db.get(txHash.getBytes());
+        // TransactionReceipt from ByteArray
+        String txReceiptJson = new String(transactionReceipt);
         return gson.fromJson(txReceiptJson, TransactionReceiptImpl.class);
     }
 

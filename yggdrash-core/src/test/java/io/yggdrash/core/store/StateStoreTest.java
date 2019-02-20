@@ -25,7 +25,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertEquals;
 
 public class StateStoreTest {
     StateStore stateStore;
@@ -47,7 +47,7 @@ public class StateStoreTest {
         String stateKey = "State";
         JsonObject obj = new JsonParser().parse("{\"value\":\"value\"}").getAsJsonObject();
         stateStore.put(stateKey, obj);
-        assertTrue(stateStore.getStateSize() == 1L);
+        assertEquals(1L, stateStore.getStateSize());
     }
 
     @Test
@@ -56,18 +56,18 @@ public class StateStoreTest {
         JsonObject obj = new JsonParser().parse("{\"value\":\"value\"}").getAsJsonObject();
         stateStore.put(stateKey, obj);
         JsonObject obj2 = stateStore.get(stateKey);
-        assertTrue(obj.equals(obj2));
+        assertEquals(obj, obj2);
         log.debug(obj.getClass().toString());
     }
 
     @Test
     public void getStateSize() throws Exception {
         // first is null
-        assertTrue(this.stateStore.getStateSize() == 0L);
+        assertEquals(0L, this.stateStore.getStateSize());
         // add some state
         this.stateStore.put("STATE", new JsonObject());
         // state size is 1L
-        assertTrue(this.stateStore.getStateSize() == 1L);
+        assertEquals(1L, this.stateStore.getStateSize());
     }
 
 

@@ -70,27 +70,27 @@ public class EbftStatus {
         this.signature = signature;
     }
 
-    public byte[] getDataForSignning() {
-        ByteArrayOutputStream dataForSignning = new ByteArrayOutputStream();
+    public byte[] getDataForSigning() {
+        ByteArrayOutputStream dataForSigning = new ByteArrayOutputStream();
 
         try {
             for (EbftBlock ebftBlock : unConfirmedEbftBlockList) {
-                dataForSignning.write(ebftBlock.getHash());
+                dataForSigning.write(ebftBlock.getHash());
             }
 
-            dataForSignning.write(lastConfirmedEbftBlock.getHash());
-            dataForSignning.write(ByteUtil.longToBytes(timestamp));
+            dataForSigning.write(lastConfirmedEbftBlock.getHash());
+            dataForSigning.write(ByteUtil.longToBytes(timestamp));
         } catch (IOException e) {
             return null;
         }
 
-        return dataForSignning.toByteArray();
+        return dataForSigning.toByteArray();
     }
 
     public static boolean verify(EbftStatus ebftStatus) {
         if (ebftStatus != null) {
             return Wallet.verify(
-                    ebftStatus.getDataForSignning(), ebftStatus.getSignature(), false);
+                    ebftStatus.getDataForSigning(), ebftStatus.getSignature(), false);
         }
 
         return false;

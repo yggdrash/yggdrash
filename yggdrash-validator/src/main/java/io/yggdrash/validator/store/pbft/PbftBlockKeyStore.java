@@ -22,7 +22,7 @@ public class PbftBlockKeyStore implements Store<Long, byte[]> {
     @Override
     public void put(Long key, byte[] value) {
         if (key < 0) {
-            throw new NotValidateException("Key is not vaild.");
+            throw new NotValidateException("Key is not valid.");
         }
 
         log.trace("put "
@@ -34,7 +34,7 @@ public class PbftBlockKeyStore implements Store<Long, byte[]> {
     @Override
     public byte[] get(Long key) {
         if (key < 0) {
-            throw new NotValidateException("Key is not vaild.");
+            throw new NotValidateException("Key is not valid.");
         }
 
         log.trace("get " + "(" + key + ")");

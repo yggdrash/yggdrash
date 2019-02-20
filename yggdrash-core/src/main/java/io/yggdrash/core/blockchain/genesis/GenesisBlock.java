@@ -8,15 +8,13 @@ import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class GenesisBlock {
-    private static final Logger log = LoggerFactory.getLogger(GenesisBlock.class);
     private final BlockHusk block;
     private final Branch branch;
 
@@ -25,7 +23,7 @@ public class GenesisBlock {
      *
      * @param branch branch info
      */
-    private GenesisBlock(Branch branch) throws IOException {
+    private GenesisBlock(Branch branch) {
         this.branch = branch;
         this.block = toBlock();
     }
@@ -60,15 +58,13 @@ public class GenesisBlock {
         builder.setBranchId(branch.getBranchId())
                 .setTimeStamp(branch.getTimestamp())
         ;
-        contracts.stream().forEach(c -> {
-            builder.addTxBody(c.getContractVersion(), "init", c.getInit());
-        });
+        contracts.forEach(c -> builder.addTxBody(c.getContractVersion(), "init", c.getInit()));
         return builder;
     }
 
 
     private Block generatorGenesisBlock(Transaction tx) {
-        BlockBody blockBody = new BlockBody(Arrays.asList(tx));
+        BlockBody blockBody = new BlockBody(Collections.singletonList(tx));
         BlockHeader blockHeader = new BlockHeader(
                 branch.getBranchId().getBytes(),
                 new byte[8],

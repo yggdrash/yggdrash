@@ -27,6 +27,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
 
+import java.io.IOException;
+
 import static io.yggdrash.node.api.JsonRpcConfig.BLOCK_API;
 import static io.yggdrash.node.api.JsonRpcConfig.TX_API;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,7 +40,7 @@ public class TransactionApiImplTest {
 
     private final int blockNumber = 3;
     private final int txIndexPosition = 2;
-    private String yggdrashBranch = TestConstants.yggdrash().toString();
+    private final String yggdrashBranch = TestConstants.yggdrash().toString();
 
     @Before
     public void setUp() {

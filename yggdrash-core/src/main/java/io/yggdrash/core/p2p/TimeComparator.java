@@ -2,7 +2,7 @@ package io.yggdrash.core.p2p;
 
 import java.util.Comparator;
 
-public class TimeComparator implements Comparator<Peer> {
+class TimeComparator implements Comparator<Peer> {
     @Override
     public int compare(Peer p1, Peer p2) {
         long t1 = p1.getModified();
