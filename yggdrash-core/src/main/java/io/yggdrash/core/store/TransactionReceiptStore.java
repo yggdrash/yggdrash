@@ -7,7 +7,7 @@ import io.yggdrash.core.store.datasource.DbSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TransactionReceiptStore {
+public class TransactionReceiptStore implements Store<String, TransactionReceipt>{
     private static final Logger log = LoggerFactory.getLogger(TransactionReceiptStore.class);
 
 
@@ -24,11 +24,22 @@ public class TransactionReceiptStore {
         db.put(txReceipt.getTxId().getBytes(), txReceiptJson.getBytes());
     }
 
+    @Override
     public TransactionReceipt get(String txHash) {
         byte[] transactionReceipt = db.get(txHash.getBytes());
         // TransactionReceipt from ByteArray
         String txReceiptJson = new String(transactionReceipt);
         return gson.fromJson(txReceiptJson, TransactionReceiptImpl.class);
+    }
+
+    @Override
+    public void put(String key, TransactionReceipt value) {
+
+    }
+
+    @Override
+    public boolean contains(String key) {
+        return false;
     }
 
     public void close() {
