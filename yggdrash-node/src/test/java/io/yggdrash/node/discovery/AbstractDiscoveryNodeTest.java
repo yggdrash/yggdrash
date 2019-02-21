@@ -37,7 +37,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AbstractDiscoveryNodeTest {
-    static final Logger log = LoggerFactory.getLogger(AbstractDiscoveryNodeTest.class);
+    protected static final Logger log = LoggerFactory.getLogger(AbstractDiscoveryNodeTest.class);
     protected static final ch.qos.logback.classic.Logger rootLogger =
             (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 

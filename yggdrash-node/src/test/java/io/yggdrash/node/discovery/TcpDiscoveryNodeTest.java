@@ -41,10 +41,15 @@ public class TcpDiscoveryNodeTest extends AbstractDiscoveryNodeTest {
 
     private final AbstractApplicationContext context = new GenericApplicationContext();
 
-    @Test
-    public void testDiscoveryLarge() {
-        TestConstants.SlowTest.apply();
+    @Override
+    public void setUp() {
+        super.setUp();
         context.refresh();
+    }
+
+    @Test
+    public void test() {
+        TestConstants.SlowTest.apply();
 
         // act
         bootstrapNodes(50);

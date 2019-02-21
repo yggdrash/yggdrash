@@ -18,10 +18,11 @@ package io.yggdrash.node.broadcast;
 
 import ch.qos.logback.classic.Level;
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.p2p.KademliaOptions;
 import io.yggdrash.node.GRpcTestNode;
 import io.yggdrash.node.discovery.AbstractDiscoveryNodeTest;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -30,25 +31,35 @@ import org.junit.runners.JUnit4;
 public class NetworkBroadcastTest extends AbstractDiscoveryNodeTest {
 
     @Test
-    public void broadcastNetworkTest() {
-        // arrange
-        rootLogger.setLevel(Level.INFO);
-        KademliaOptions.MAX_STEPS = 2;
+    public void test() {
+        TestConstants.SlowTest.apply();
+        broadcastNetworkTest(20); // 4s;
+        //broadcastNetworkTest(100); // (inProcess=39s, tcp=80s);
+        //broadcastNetworkTest(300); // 6m
+    }
 
-        bootstrapNodes(3, true);
-        nodeList.forEach(this::refreshAndHealthCheck);
+    private void broadcastNetworkTest(int nodeCount) {
+        // arrange
+        rootLogger.setLevel(Level.ERROR);
+
+        bootstrapNodes(nodeCount, true); // 100 nodes  (inProcess=2ms, tcp=8s)
+        nodeList.forEach(this::refreshAndHealthCheck); // 100 nodes  (tcp=2s)
 
         // act
-        TransactionHusk testTx = BlockChainTestUtils.createTransferTxHusk();
-        nodeList.get(1).getBranchGroup().addTransaction(testTx);
+        for (int i = 1; i < nodeCount; i++) {
+            // broadcast 100 nodes (inProcess=300ms, tcp=700ms)
+            TransactionHusk tx = BlockChainTestUtils.createTransferTxHusk();
+            nodeList.get(i).getBranchGroup().addTransaction(tx);
+            log.error("broadcast finish={}", i);
+        }
 
         // assert
         for (GRpcTestNode node : nodeList) {
             if (node.isSeed()) {
                 continue;
             }
-            assert node.getBranchGroup().getUnconfirmedTxs(testTx.getBranchId())
-                    .get(0).getHash().equals(testTx.getHash());
+            Assert.assertEquals(nodeCount - 1,
+                    node.getBranchGroup().getUnconfirmedTxs(TestConstants.yggdrash()).size());
         }
     }
 }
