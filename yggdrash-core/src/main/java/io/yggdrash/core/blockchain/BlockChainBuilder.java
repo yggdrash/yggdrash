@@ -50,6 +50,8 @@ public class BlockChainBuilder {
     private TransactionReceiptStore transactionReceiptStore;
     private Runtime runtime;
 
+    private ContractPolicyLoader policyLoader;
+
     public BlockChainBuilder addGenesis(GenesisBlock genesis) {
         this.genesis = genesis;
         return this;
@@ -82,6 +84,11 @@ public class BlockChainBuilder {
 
     public BlockChainBuilder setRuntime(Runtime runtime) {
         this.runtime = runtime;
+        return this;
+    }
+
+    public BlockChainBuilder setPolicyLoader(ContractPolicyLoader policyLoader) {
+        this.policyLoader = policyLoader;
         return this;
     }
 
@@ -132,8 +139,19 @@ public class BlockChainBuilder {
 
         }
 
+        ContractContainer contractContainer = null;
+        if (policyLoader != null) {
+            contractContainer = ContractContainer.ContractContainerBuilder.aContractContainer()
+                    .withFrameworkFactory(policyLoader.getFrameworkFactory())
+                    .withContainerConfig(policyLoader.getContainerConfig())
+                    .withBranchId(branch.getBranchId().toString())
+//                    .withStateDB(stateDB)
+//                    .withUserStateDB(stateDB)
+                    .build();
+        }
+
         return new BlockChain(branch, genesisBlock, blockStore,
-                transactionStore, metaStore, runtime);
+                transactionStore, metaStore, runtime, contractContainer);
     }
 
     private Contract getContract(ContractVersion contractVersion) {

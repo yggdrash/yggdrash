@@ -24,6 +24,7 @@ import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.ContractPolicyLoader;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.store.StoreBuilder;
@@ -48,6 +49,7 @@ public class BranchConfigurationTest {
     private static final Logger log = LoggerFactory.getLogger(BranchConfigurationTest.class);
 
     private static final DefaultConfig config = new DefaultConfig();
+    private static final ContractPolicyLoader policyLoader = new ContractPolicyLoader();
     private static final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
     private BranchConfiguration branchConfig;
@@ -66,7 +68,7 @@ public class BranchConfigurationTest {
 
         saveFile(branchId, branchJson);
         BranchGroup branchGroup = branchConfig.branchGroup();
-        branchConfig.branchLoader(config, branchGroup);
+        branchConfig.branchLoader(config, branchGroup, policyLoader);
         File branchDir = new File(config.getBranchPath(), branchId.toString());
         FileUtils.deleteQuietly(branchDir);
 

@@ -1,0 +1,17 @@
+jar {
+    baseName = 'yggdrash-contract-core'
+}
+
+ext {
+    equinoxVersion = '3.13.0.v20180226-1711'
+    commonsLang = '3.8.1'
+    jacksonVersion = '2.9.7'
+    gsonVersion = '2.8.5'
+}
+
+dependencies {
+    compile "org.eclipse.tycho:org.eclipse.osgi:${equinoxVersion}"
+    compile "org.apache.commons:commons-lang3:${commonsLang}"
+    compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
+    compile "com.google.code.gson:gson:${gsonVersion}"
+}

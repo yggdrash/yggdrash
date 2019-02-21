@@ -14,22 +14,25 @@ version = '0.10.0-SNAPSHOT'
 defaultTasks ':yggdrash-node:bootRun'
 
 ext {
-    grpcVersion         = '1.17.0'
-    protobufVersion     = '3.6.1'
-    levelDBVersion      = '0.10'
-    ehcacheVersion      = '3.6.2'
-    scastleVersion      = '1.58.0.0'
+    grpcVersion = '1.17.0'
+    protobufVersion = '3.6.1'
+    levelDBVersion = '0.10'
+    ehcacheVersion = '3.6.2'
+    scastleVersion = '1.58.0.0'
     commonsCodecVersion = '1.11'
-    commonsIOVersion    = '2.6'
-    gsonVersion         = '2.8.5'
-    jsonSimpleVersion   = '1.1'
-    jacksonVersion      = '2.9.7'
-    typesafeVersion     = '1.3.3'
-    logbackVersion      = '1.2.3'
-    annotationVersion   = '1.3.2'
-    assertjVersion      = '3.11.1'
-    commonLangVersion   = '3.8.1'
-    collectionsVersion  = '4.2'
+    commonsIOVersion = '2.6'
+    gsonVersion = '2.8.5'
+    jsonSimpleVersion = '1.1'
+    jacksonVersion = '2.9.7'
+    typesafeVersion = '1.3.3'
+    logbackVersion = '1.2.3'
+    annotationVersion = '1.3.2'
+    assertjVersion = '3.11.1'
+    commonLangVersion = '3.8.1'
+    collectionsVersion = '4.2'
+
+    importPackage = 'org.osgi.framework,com.google.gson'
+    excludeList = ["META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/NOTICE"]
 }
 
 allprojects {
@@ -74,6 +77,8 @@ project(':yggdrash-core') {
     apply plugin: 'com.google.protobuf'
 
     dependencies {
+        compile project(':yggdrash-contract-core')
+
         compile "io.grpc:grpc-protobuf:${grpcVersion}"
         compile "io.grpc:grpc-stub:${grpcVersion}"
         compile "io.grpc:grpc-netty:${grpcVersion}"
@@ -117,6 +122,69 @@ project(':yggdrash-core') {
             }
         }
     }
+
+    task dpoaContract(type: Jar) {
+        //Add current module source
+        from(sourceSets.main.output) {
+            include "**"
+        }
+
+        // Add dependency library
+        from {
+            configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        }
+
+        manifest {
+            attributes(
+                    'Bundle-ManifestVersion': '2',
+                    'Bundle-Name': 'DPoA Contract',
+                    'Bundle-Description': 'DPoA Contract',
+                    'Bundle-Vendor': 'YGGDRASH',
+                    'Bundle-SymbolicName': 'io.yggdrash.core.contract.osgi.DPoAContract',
+                    'Bundle-Version': '1.0.0',
+                    'Bundle-Activator': 'io.yggdrash.core.contract.osgi.DPoAContract',
+                    'Import-Package': "${importPackage}"
+            )
+        }
+        exclude(excludeList)
+        archiveName "dpoaContract-${manifest.attributes.get('Bundle-Version')}.jar"
+    }
+
+    def keystoreFile = new File("${project.buildscript.sourceFile.absolutePath}/../src/main/resources/yggdrash.p12")
+    def keystorePass = '098098'
+    def keyAlias = 'yggdrash'
+    task signJar(dependsOn: 'jar', description: 'to Sign JAR.', group: 'Build') {
+
+        dependsOn dpoaContract
+
+        doLast {
+            def libFiles = file('build/libs').listFiles()
+            libFiles.each {
+                if (it.name.startsWith('yggdrash-core')) {
+                    return
+                }
+                ant.jar(destfile: it, update: true) {
+                    delegate.manifest {
+                        attribute(name: 'permissions', value: 'all-permissions')
+                        attribute(name: 'codebase', value: '*')
+                    }
+                }
+
+                ant.signjar(
+                        tsaurl: 'http://sha256timestamp.ws.symantec.com/sha256/timestamp',
+                        alias: keyAlias,
+                        jar: it,
+                        keystore: "${keystoreFile.absolutePath}",
+                        storepass: keystorePass,
+                        destDir: 'build/libs',
+                        verbose: true,
+                        preservelastmodified: 'true'
+                )
+            }
+        }
+    }
+
+    build.finalizedBy(signJar)
 }
 
 project(':yggdrash-node') {
@@ -126,6 +194,7 @@ project(':yggdrash-node') {
     dependencies {
         compile project(':yggdrash-core')
         compile project(':yggdrash-gateway')
+        compile project(':yggdrash-contract-core')
         compile "org.springframework.boot:spring-boot-starter-web"
         compile "org.springframework.boot:spring-boot-starter-undertow"
         compile "org.springframework.boot:spring-boot-starter-actuator"
@@ -209,13 +278,13 @@ task jacocoRootReport(type: JacocoReport) {
     description = 'Generates an aggregate report from all subprojects'
     dependsOn = subprojects.test
     sourceDirectories.from = subprojects.sourceSets.main.allSource.srcDirs
-    classDirectories.from =  subprojects.sourceSets.main.output
+    classDirectories.from = subprojects.sourceSets.main.output
     executionData.from = subprojects.jacocoTestReport.executionData
 
     afterEvaluate {
         classDirectories.from = classDirectories.files.collect {
             fileTree(dir: it,
-                exclude: ['io/yggdrash/proto/**']
+                    exclude: ['io/yggdrash/proto/**']
             )
         }
     }

@@ -56,9 +56,11 @@ public class BlockChain {
 
     private BlockHusk prevBlock;
 
+    private ContractContainer contractContainer;
+
     public BlockChain(Branch branch, BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, MetaStore metaStore,
-                      Runtime runtime) {
+                      Runtime runtime, ContractContainer contractContainer) {
         this.branch = branch;
         this.genesisBlock = genesisBlock;
         this.blockStore = blockStore;
@@ -67,6 +69,7 @@ public class BlockChain {
         this.runtime = runtime;
         this.stateStore = runtime.getStateStore();
         this.transactionReceiptStore = runtime.getTransactionReceiptStore();
+        this.contractContainer = contractContainer;
 
         // Empty blockChain
         if (!blockStore.contains(genesisBlock.getHash())) {
@@ -143,6 +146,10 @@ public class BlockChain {
 
     BlockHusk getPrevBlock() {
         return this.prevBlock;
+    }
+
+    public ContractContainer getContractContainer() {
+        return contractContainer;
     }
 
     /**
