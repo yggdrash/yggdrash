@@ -66,6 +66,13 @@ public class StemContract implements Contract<JsonObject> {
             }
             if (!isBranchExist(branchId.toString()) && isBranchIdValid(branchId, stateValue)) {
                 try {
+
+                    // branch id 생성
+
+
+                    // validator set
+                    // Tx id set
+
                     stateValue.init();
                     // Branch ID 추가부터
                     addBranchId(branchId);
@@ -185,6 +192,21 @@ public class StemContract implements Contract<JsonObject> {
     /**
      * @param params branch id
      *
+     * @return branch json object
+     */
+    @ContractQuery
+    public JsonObject getBranchByTxID(JsonObject params) {
+        //TODO txid -> txhusk -> branch id
+        String branchId = params.get(BRANCH_ID).getAsString();
+        if (isBranchExist(branchId)) {
+            return getStateValue(branchId).getJson();
+        }
+        return new JsonObject();
+    }
+
+    /**
+     * @param params branch id
+     *
      * @return contract json object
      */
     @ContractQuery
@@ -240,7 +262,7 @@ public class StemContract implements Contract<JsonObject> {
         });
         return branchIdSet;
     }
-    
+
     private boolean isBranchExist(String branchId) {
         return state.get(branchId) != null;
     }
