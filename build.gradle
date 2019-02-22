@@ -1,7 +1,7 @@
 plugins {
     id 'org.springframework.boot' version '2.1.1.RELEASE' apply false
     id 'com.google.protobuf' version '0.8.7'
-    id "com.palantir.docker" version "0.20.1"
+    id 'com.palantir.docker' version '0.21.0'
     id 'com.github.kt3k.coveralls' version '2.8.2'
 }
 
@@ -152,11 +152,6 @@ project(':yggdrash-node') {
         buildArgs(['JAR_FILE': "${bootJar.archiveName}"])
     }
 
-    jar {
-        classifier = 'classes'
-        enabled = true
-    }
-
     bootJar {
         manifest {
             attributes("Implementation-Version": rootProject.version)
@@ -185,13 +180,13 @@ project(':yggdrash-gateway') {
         compile.exclude module: 'spring-boot-starter-tomcat'
     }
 
-    bootJar {
-        enabled = false
-    }
-
     jar {
         classifier = 'classes'
         enabled = true
+    }
+
+    bootJar {
+        enabled = false
     }
 }
 
