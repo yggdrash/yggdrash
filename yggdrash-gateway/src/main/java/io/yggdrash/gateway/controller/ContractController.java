@@ -3,9 +3,8 @@ package io.yggdrash.gateway.controller;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.ContractStatus;
+import io.yggdrash.core.blockchain.osgi.ContractStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -24,7 +23,7 @@ public class ContractController {
         if (blockChain == null) {
             return null;
         }
-        List<ContractStatus> result = blockChain.getContractContainer().searchContracts();
+        List<ContractStatus> result = blockChain.getContractContainer().getContractManager().searchContracts();
         return result;
     }
 }

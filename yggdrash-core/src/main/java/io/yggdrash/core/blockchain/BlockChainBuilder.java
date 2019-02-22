@@ -17,6 +17,9 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import io.yggdrash.core.blockchain.osgi.ContractContainer;
+import io.yggdrash.core.blockchain.osgi.ContractContainerBuilder;
+import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.contract.CoinContract;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.contract.ContractClassLoader;
@@ -141,7 +144,7 @@ public class BlockChainBuilder {
 
         ContractContainer contractContainer = null;
         if (policyLoader != null) {
-            contractContainer = ContractContainer.ContractContainerBuilder.aContractContainer()
+            contractContainer = ContractContainerBuilder.newInstance()
                     .withFrameworkFactory(policyLoader.getFrameworkFactory())
                     .withContainerConfig(policyLoader.getContainerConfig())
                     .withBranchId(branch.getBranchId().toString())
