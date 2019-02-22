@@ -700,11 +700,9 @@ public class PbftService implements CommandLineRunner {
     }
 
     public void updateUnconfirmedMsg(PbftMessage newPbftMessage) {
-        String key = newPbftMessage.getSignatureHex();
-        if (this.blockChain.getUnConfirmedMsgMap().containsKey(key)) {
-            return;
-        }
-        this.blockChain.getUnConfirmedMsgMap().put(key, newPbftMessage);
+        this.blockChain.getUnConfirmedMsgMap()
+                .put(newPbftMessage.getSignatureHex(), newPbftMessage);
+
         if (newPbftMessage.getType().equals("PREPREPA")
                 && newPbftMessage.getSeqNumber()
                 == this.blockChain.getLastConfirmedBlock().getIndex() + 1) {
