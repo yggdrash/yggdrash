@@ -258,6 +258,8 @@ public class PbftBlockKeyStoreMultiThreadTest {
 
     @After
     public void tearDown() {
+        TestConstants.PerformanceTest.apply();
+
         log.debug("blockKeyStore size= " + this.blockKeyStore.size());
 
         System.gc();
