@@ -1,8 +1,9 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.contract.store.StateDB;
-import io.yggdrash.contract.store.UserStateDB;
+import io.yggdrash.core.runtime.annotation.ContractStateStore;
+import io.yggdrash.core.store.StateStore;
+import io.yggdrash.core.store.TransactionReceiptStore;
 import org.apache.commons.io.FileUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -28,6 +29,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Field;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -40,13 +43,14 @@ public class ContractContainer {
     private static final Logger log = LoggerFactory.getLogger(ContractContainer.class);
 
     private final String CONTRACT_RESOURCE_PATH = "/system-contracts";
+    private final String PREFIX_BUNDLE_PATH = "file:";
 
     private FrameworkFactory frameworkFactory;
     private Map<String, String> commonContainerConfig;
 
     private String branchId;
-    private StateDB stateDB;
-    private UserStateDB userStateDB;
+    private StateStore stateStore;
+    private TransactionReceiptStore transactionReceiptStore;
 
     private Framework framework;
     private String bundlePath;
@@ -68,9 +72,9 @@ public class ContractContainer {
             loadSystemContract(copiedContracts);
 
 
-//            for (Bundle bundle : framework.getBundleContext().getBundles()) {
-//                inject(bundle);
-//            }
+            for (Bundle bundle : framework.getBundleContext().getBundles()) {
+                inject(bundle);
+            }
             Arrays.asList(framework.getBundleContext().getBundles()).forEach(b -> log.info("Bundle: {}", b.getSymbolicName()));
             Arrays.asList(framework.getRegisteredServices()).forEach(s -> log.info("Service reference: {}", s.toString()));
         } catch (Exception e) {
@@ -158,6 +162,33 @@ public class ContractContainer {
         }
     }
 
+    private void inject(Bundle bundle) throws IllegalAccessException {
+        ServiceReference<?>[] serviceRefs = bundle.getRegisteredServices();
+        if (serviceRefs == null) {
+            return;
+        }
+
+        boolean isSystemContract = bundle.getLocation().startsWith(String.format("%s%s", bundlePath, CONTRACT_RESOURCE_PATH)) ? true : false;
+
+        for (ServiceReference serviceRef : serviceRefs) {
+            Object service = framework.getBundleContext().getService(serviceRef);
+            injectField(service, service.getClass().getDeclaredFields(), isSystemContract);
+        }
+    }
+
+    private void injectField(Object o, Field[] fields, boolean isSystemContract) throws IllegalAccessException {
+        for (Field field : fields) {
+            field.setAccessible(true);
+            for (Annotation annotation : field.getDeclaredAnnotations()) {
+                if (isSystemContract) {
+                    if (annotation.annotationType().equals(ContractStateStore.class)) {
+                        field.set(o, stateStore);
+                    }
+                }
+            }
+        }
+    }
+
     private Bundle getBundle(Object identifier) {
         Bundle bundle = null;
         if (identifier instanceof String) {
@@ -187,7 +218,7 @@ public class ContractContainer {
                     break;
                 case START:
                     bundle.start();
-//                    inject(bundle);
+                    inject(bundle);
                     break;
                 case STOP:
                     bundle.stop();
@@ -224,7 +255,7 @@ public class ContractContainer {
     public long install(String contractLocation) {
         Bundle bundle;
         try {
-            bundle = framework.getBundleContext().installBundle(String.format("file:%s", contractLocation));
+            bundle = framework.getBundleContext().installBundle(String.format("%s%s", PREFIX_BUNDLE_PATH, contractLocation));
             boolean isPass = verifyManifest(bundle);
             if (!isPass) {
                 uninstall(bundle.getBundleId());
@@ -264,8 +295,8 @@ public class ContractContainer {
         private FrameworkFactory frameworkFactory;
         private Map<String, String> containerConfig;
         private String branchId;
-        private StateDB stateDB;
-        private UserStateDB userStateDB;
+        private StateStore stateStore;
+        private TransactionReceiptStore transactionReceiptStore;
 
         private ContractContainerBuilder() {
         }
@@ -289,13 +320,13 @@ public class ContractContainer {
             return this;
         }
 
-        public ContractContainerBuilder withStateDB(StateDB stateDB) {
-            this.stateDB = stateDB;
+        public ContractContainerBuilder withStateStore(StateStore stateStore) {
+            this.stateStore = stateStore;
             return this;
         }
 
-        public ContractContainerBuilder withUserStateDB(UserStateDB userStateDB) {
-            this.userStateDB = userStateDB;
+        public ContractContainerBuilder withTransactionReceiptStore(TransactionReceiptStore transactionReceiptStore) {
+            this.transactionReceiptStore = transactionReceiptStore;
             return this;
         }
 
@@ -313,10 +344,10 @@ public class ContractContainer {
             }
 
             ContractContainer contractContainer = new ContractContainer();
-            contractContainer.stateDB = this.stateDB;
+            contractContainer.stateStore = this.stateStore;
+            contractContainer.transactionReceiptStore = this.transactionReceiptStore;
             contractContainer.frameworkFactory = this.frameworkFactory;
             contractContainer.commonContainerConfig = this.containerConfig;
-            contractContainer.userStateDB = this.userStateDB;
             contractContainer.branchId = this.branchId;
 
             contractContainer.newFramework();

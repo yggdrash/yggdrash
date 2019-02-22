@@ -33,7 +33,15 @@ ext {
     commonLangVersion = '3.8.1'
     collectionsVersion = '4.2'
 
-    importPackage = 'org.osgi.framework,com.google.gson'
+    importPackage = 'org.osgi.framework' +
+            ',com.google.gson' +
+            ',io.yggdrash.core.blockchain' +
+            ',io.yggdrash.core.contract' +
+            ',io.yggdrash.core.runtime.annotation' +
+            ',io.yggdrash.core.store' +
+            ',io.yggdrash.contract.annotation' +
+            ',io.yggdrash.contract.store' +
+            ',io.yggdrash.contract.utils'
     excludeList = ["META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/NOTICE"]
 }
 
@@ -145,14 +153,14 @@ project(':yggdrash-core') {
                     'Bundle-SymbolicName': 'io.yggdrash.core.contract.osgi.DPoAContract',
                     'Bundle-Version': '1.0.0',
                     'Bundle-Activator': 'io.yggdrash.core.contract.osgi.DPoAContract',
-                    'Import-Package': "${importPackage}"
+                    'Import-Package': "${importPackage},io.yggdrash.core.blockchain.dpoa"
             )
         }
         exclude(excludeList)
         archiveName "dpoaContract-${manifest.attributes.get('Bundle-Version')}.jar"
     }
 
-    def keystoreFile = new File("${project.buildscript.sourceFile.absolutePath}/../src/main/resources/yggdrash.p12")
+    def keystoreFile = new File("${project.projectDir.toString()}/src/main/resources/yggdrash.p12")
     def keystorePass = '098098'
     def keyAlias = 'yggdrash'
     task signJar(dependsOn: 'jar', description: 'to Sign JAR.', group: 'Build') {

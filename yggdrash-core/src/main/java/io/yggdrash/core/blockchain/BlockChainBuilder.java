@@ -145,8 +145,8 @@ public class BlockChainBuilder {
                     .withFrameworkFactory(policyLoader.getFrameworkFactory())
                     .withContainerConfig(policyLoader.getContainerConfig())
                     .withBranchId(branch.getBranchId().toString())
-//                    .withStateDB(stateDB)
-//                    .withUserStateDB(stateDB)
+                    .withStateStore(stateStore)
+                    .withTransactionReceiptStore(transactionReceiptStore)
                     .build();
         }
 
