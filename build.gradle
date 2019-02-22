@@ -5,6 +5,8 @@ plugins {
     id 'com.github.kt3k.coveralls' version '2.8.2'
 }
 
+import java.nio.file.Files
+
 apply plugin: 'java'
 apply plugin: 'idea'
 
@@ -184,7 +186,13 @@ project(':yggdrash-core') {
         }
     }
 
-    build.finalizedBy(signJar)
+    task copyContract(type: Copy, dependsOn: signJar) {
+        from file('build/libs')
+        into file(file('build/libs').absolutePath + '/../../../yggdrash-node/src/main/resources/system-contracts')
+        exclude "yggdrash-core*"
+    }
+
+    build.finalizedBy(copyContract)
 }
 
 project(':yggdrash-node') {

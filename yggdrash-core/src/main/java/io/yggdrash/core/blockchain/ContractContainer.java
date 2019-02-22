@@ -1,7 +1,9 @@
 package io.yggdrash.core.blockchain;
 
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.contract.store.StateDB;
 import io.yggdrash.contract.store.UserStateDB;
+import org.apache.commons.io.FileUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundlePermission;
@@ -21,8 +23,15 @@ import org.osgi.service.permissionadmin.PermissionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.PropertyPermission;
@@ -30,21 +39,34 @@ import java.util.PropertyPermission;
 public class ContractContainer {
     private static final Logger log = LoggerFactory.getLogger(ContractContainer.class);
 
+    private final String CONTRACT_RESOURCE_PATH = "/system-contracts";
+
     private FrameworkFactory frameworkFactory;
-    private Map<String, String> containerConfig;
+    private Map<String, String> commonContainerConfig;
 
     private String branchId;
     private StateDB stateDB;
     private UserStateDB userStateDB;
 
     private Framework framework;
+    private String bundlePath;
 
     private void newFramework() {
+        DefaultConfig config = new DefaultConfig();
+        String containerPath = String.format("%s/%s", config.getOsgiPath(), branchId);
+        bundlePath = String.format("%s/bundles", containerPath);
+
+        Map<String, String> containerConfig = new HashMap<>();
+        containerConfig.put("org.osgi.framework.storage", containerPath);
+        containerConfig.putAll(commonContainerConfig);
         framework = frameworkFactory.newFramework(containerConfig);
 
         try {
             framework.start();
             setDefaultPermission(branchId);
+            List<String> copiedContracts = copySystemContractToContractPath();
+            loadSystemContract(copiedContracts);
+
 
 //            for (Bundle bundle : framework.getBundleContext().getBundles()) {
 //                inject(bundle);
@@ -56,9 +78,9 @@ public class ContractContainer {
         }
     }
 
-    private void setDefaultPermission(String branch) {
+    private void setDefaultPermission(String branchId) {
         BundleContext context = framework.getBundleContext();
-        String permissionKey = String.format("%s-allow-bundle-permission", branch);
+        String permissionKey = String.format("%s-allow-bundle-permission", branchId);
 
 
         ServiceReference<ConditionalPermissionAdmin> ref = context.getServiceReference(ConditionalPermissionAdmin.class);
@@ -98,7 +120,129 @@ public class ContractContainer {
                 ConditionalPermissionInfo.ALLOW));
 
         boolean isSuccess = update.commit();
-        log.info("Load complete policy {}:{}", branch, isSuccess);
+        log.info("Load complete policy {}:{}", branchId, isSuccess);
+    }
+
+    private List<String> copySystemContractToContractPath() {
+        List<String> contracts = new ArrayList<>();
+        List<String> copiedContracts = new ArrayList<>();
+        try {
+            //Read system contract files
+            try (
+                    InputStream in = getClass().getResourceAsStream(CONTRACT_RESOURCE_PATH);
+                    BufferedReader br = new BufferedReader(new InputStreamReader(in))
+            ) {
+                String resource;
+                while ((resource = br.readLine()) != null) {
+                    contracts.add(String.format("%s/%s", CONTRACT_RESOURCE_PATH, resource));
+                }
+            }
+
+            //Copy contract
+            for (String contract : contracts) {
+                URL inputUrl = getClass().getResource(contract);
+                File dest = new File(String.format("%s/%s", bundlePath, contract));
+                FileUtils.copyURLToFile(inputUrl, dest);
+                copiedContracts.add(dest.getPath());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return copiedContracts;
+    }
+
+    private void loadSystemContract(List<String> copiedContracts) {
+        for (String copiedContract : copiedContracts) {
+            install(copiedContract);
+        }
+    }
+
+    private Bundle getBundle(Object identifier) {
+        Bundle bundle = null;
+        if (identifier instanceof String) {
+            bundle = framework.getBundleContext().getBundle((String) identifier);
+        } else if (identifier instanceof Long) {
+            bundle = framework.getBundleContext().getBundle((long) identifier);
+        }
+        return bundle;
+    }
+
+    private enum ActionType {
+        UNINSTALL,
+        START,
+        STOP
+    }
+
+    private boolean action(Object identifier, ActionType action) {
+        Bundle bundle = getBundle(identifier);
+        if (bundle == null) {
+            return false;
+        }
+
+        try {
+            switch (action) {
+                case UNINSTALL:
+                    bundle.uninstall();
+                    break;
+                case START:
+                    bundle.start();
+//                    inject(bundle);
+                    break;
+                case STOP:
+                    bundle.stop();
+                    break;
+            }
+        } catch (Exception e) {
+            System.out.println(e.getCause());
+            throw new RuntimeException(e);
+        }
+        return true;
+    }
+
+    private boolean verifyManifest(Bundle bundle) {
+        String bundleManifestVersion = bundle.getHeaders().get("Bundle-ManifestVersion");
+        String bundleSymbolicName = bundle.getHeaders().get("Bundle-SymbolicName");
+        String bundleVersion = bundle.getHeaders().get("Bundle-Version");
+        if (!"2".equals(bundleManifestVersion)) {
+            log.error("Must set Bundle-ManifestVersion to 2");
+            return false;
+        }
+        if (bundleSymbolicName == null || "".equals(bundleSymbolicName)) {
+            log.error("Must set Bundle-SymbolicName");
+            return false;
+        }
+
+        if (bundleVersion == null || "".equals(bundleVersion)) {
+            log.error("Must set Bundle-Version");
+            return false;
+        }
+
+        return true;
+    }
+
+    public long install(String contractLocation) {
+        Bundle bundle;
+        try {
+            bundle = framework.getBundleContext().installBundle(String.format("file:%s", contractLocation));
+            boolean isPass = verifyManifest(bundle);
+            if (!isPass) {
+                uninstall(bundle.getBundleId());
+            }
+
+            start(bundle.getBundleId());
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        return bundle.getBundleId();
+    }
+
+    public boolean uninstall(long contractId) {
+        return action(contractId, ActionType.UNINSTALL);
+    }
+
+    public boolean start(long contractId) {
+        return action(contractId, ActionType.START);
     }
 
     public List<ContractStatus> searchContracts() {
@@ -161,7 +305,7 @@ public class ContractContainer {
             }
 
             if (this.containerConfig == null) {
-                throw new IllegalStateException("Must set containerConfig");
+                throw new IllegalStateException("Must set commonContainerConfig");
             }
 
             if (this.branchId == null) {
@@ -171,7 +315,7 @@ public class ContractContainer {
             ContractContainer contractContainer = new ContractContainer();
             contractContainer.stateDB = this.stateDB;
             contractContainer.frameworkFactory = this.frameworkFactory;
-            contractContainer.containerConfig = this.containerConfig;
+            contractContainer.commonContainerConfig = this.containerConfig;
             contractContainer.userStateDB = this.userStateDB;
             contractContainer.branchId = this.branchId;
 

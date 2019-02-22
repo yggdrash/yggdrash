@@ -26,6 +26,7 @@ import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
 
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -33,7 +34,10 @@ import java.util.Map;
 public class DPoAContract implements BundleActivator, ServiceListener {
     @Override
     public void start(BundleContext context) throws Exception {
-
+        //Find for service in another bundle
+        Hashtable<String, String> props = new Hashtable();
+        props.put("YGGDRASH", "DPoA");
+        context.registerService(DPoAService.class.getName(), new DPoAService(), props);
     }
 
     @Override
@@ -46,7 +50,7 @@ public class DPoAContract implements BundleActivator, ServiceListener {
 
     }
 
-    private static class DPoAService implements Contract<JsonObject> {
+    public static class DPoAService implements Contract<JsonObject> {
         @ContractStateStore
         Store<String, JsonObject> state;
 
