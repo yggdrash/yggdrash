@@ -17,10 +17,21 @@
 package io.yggdrash.core.store;
 
 import com.google.common.primitives.Longs;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BlockchainMetaInfo;
+import io.yggdrash.core.blockchain.Branch;
+import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.store.datasource.DbSource;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class MetaStore implements Store<String, String> {
     private final DbSource<byte[], byte[]> db;
@@ -110,5 +121,108 @@ public class MetaStore implements Store<String, String> {
     }
 
 
+    public void setBranch(Branch branch) {
+        // if Exist Branch Information Did not save
+        // Save Branch
+        JsonObject json = branch.getJson();
+        if (db.get(BlockchainMetaInfo.BRANCH.toString().getBytes()) == null) {
+            db.put(BlockchainMetaInfo.BRANCH.toString().getBytes(), json.toString().getBytes());
+        }
+    }
+
+    public Branch getBranch() {
+        // load Branch
+        byte[] jsonByteArray = db.get(BlockchainMetaInfo.BRANCH.toString().getBytes());
+        String jsonString = new String(jsonByteArray);
+        JsonParser parser = new JsonParser();
+        JsonObject json = parser.parse(jsonString).getAsJsonObject();
+
+        return Branch.of(json);
+    }
+
+    // TODO UPDATE Branch - Version History
+
+    // Set Genesis Block
+    public void setGenesisBlock(GenesisBlock genesisBlock) {
+        if (db.get(BlockchainMetaInfo.GENESIS_BLOCK.toString().getBytes()) == null) {
+            Sha3Hash genesisBlockHash = genesisBlock.getBlock().getHash();
+            db.put(BlockchainMetaInfo.GENESIS_BLOCK.toString().getBytes(), genesisBlockHash.getBytes());
+        }
+    }
+
+    // Get Genesis Block
+    public Sha3Hash getGenesisBlock() {
+        byte[] genesisBlockHash = db.get(BlockchainMetaInfo.GENESIS_BLOCK.toString().getBytes());
+        return new Sha3Hash(genesisBlockHash);
+    }
+
+    // Set Validator
+    public void setValidators(Set<String> validators) {
+        // TODO Set Validators
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(baos);
+        for (String element : validators) {
+            try {
+                out.writeUTF(element);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        byte[] valiatorsByteArray = baos.toByteArray();
+        db.put(BlockchainMetaInfo.VALIDATORS.toString().getBytes(), valiatorsByteArray);
+    }
+
+    // TODO Get Validator
+    public Set<String> getValidators() throws IOException {
+        byte[] valiatorsByteArray = db.get(BlockchainMetaInfo.VALIDATORS.toString().getBytes());
+        ByteArrayInputStream bais = new ByteArrayInputStream(valiatorsByteArray);
+        DataInputStream in = new DataInputStream(bais);
+        Set<String> validatorSet = new HashSet<>();
+        while (in.available() > 0) {
+            validatorSet.add(in.readUTF());
+        }
+        return validatorSet;
+    }
+
+    // Add validator
+    public boolean addValidator(String validator) {
+        Set<String> validators = null;
+        try {
+            validators = getValidators();
+            validators.add(validator);
+            setValidators(validators);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+
+    }
+
+    // Remove Validator
+    public boolean removeValidator(String validator) {
+        Set<String> validators = null;
+        try {
+            validators = getValidators();
+            validators.remove(validator);
+            setValidators(validators);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // TODO Set Contracts
+    // Save Contracts initial values
+
+    // TODO Get Contracts
+    // Load Contracts initial values
+
+
+
+    // TODO Update Contract
+
+    // TODO Add Contract
 
 }

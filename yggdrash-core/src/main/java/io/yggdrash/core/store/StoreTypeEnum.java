@@ -25,8 +25,7 @@ public enum StoreTypeEnum {
     TRANSACTION_RECEIPT_STORE("txreceipt"),
     PEER_STORE("peers"),
     META_STORE("meta"),
-    STATE_STORE("state"),
-    BRANCH_STORE("branch")
+    STATE_STORE("state")
     ;
 
     private String type;

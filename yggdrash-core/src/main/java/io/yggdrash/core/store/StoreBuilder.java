@@ -58,8 +58,6 @@ public class StoreBuilder {
                 return new MetaStore(dbSource);
             case STATE_STORE:
                 return new StateStore(dbSource);
-            case BRANCH_STORE:
-                return new BranchStore(dbSource);
         }
         return null;
     }
