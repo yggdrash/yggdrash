@@ -22,8 +22,8 @@ import io.yggdrash.core.contract.CoinContract;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
-import java.math.BigInteger;
 import org.junit.Test;
+import java.math.BigInteger;
 
 public class RuntimeQueryTest {
 

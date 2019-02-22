@@ -24,6 +24,8 @@ import java.util.List;
 
 public interface BlockChainConsumer {
 
+    void setListener(CatchUpSyncEventListener listener);
+
     List<BlockHusk> syncBlock(BranchId branchId, long offset, long limit);
 
     List<TransactionHusk> syncTransaction(BranchId branchId);

@@ -27,7 +27,7 @@ public class SimpleSyncManagerTest {
     public void syncBlock() {
         assertThat(blockChain.getLastIndex()).isEqualTo(0);
 
-        syncManager.syncBlock(handler, blockChain);
+        syncManager.syncBlock(handler, blockChain, -1);
 
         assertThat(blockChain.getLastIndex()).isEqualTo(1);
     }

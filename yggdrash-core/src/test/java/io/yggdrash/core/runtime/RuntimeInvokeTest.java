@@ -30,8 +30,8 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.TempStateStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
-import java.lang.reflect.InvocationTargetException;
 import org.junit.Test;
+import java.lang.reflect.InvocationTargetException;
 
 public class RuntimeInvokeTest {
 

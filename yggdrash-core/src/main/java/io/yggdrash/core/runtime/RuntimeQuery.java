@@ -50,7 +50,7 @@ public class RuntimeQuery {
         if (query != null) {
             if (params == null && !query.isParams()) {
                 return query.getMethod().invoke(contract);
-            } else if(params != null && query.isParams() ) {
+            } else if (params != null && query.isParams()) {
                 return query.getMethod().invoke(contract, params);
             }
 
