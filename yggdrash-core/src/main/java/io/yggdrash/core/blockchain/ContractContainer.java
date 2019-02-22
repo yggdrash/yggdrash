@@ -42,7 +42,8 @@ import java.util.PropertyPermission;
 public class ContractContainer {
     private static final Logger log = LoggerFactory.getLogger(ContractContainer.class);
 
-    private final String CONTRACT_RESOURCE_PATH = "/system-contracts";
+    private final String SYSTEM_CONTRACT_RESOURCE_PATH = "/system-contracts";
+    private final String USER_CONTRACT_RESOURCE_PATH = "/user-contracts";
     private final String PREFIX_BUNDLE_PATH = "file:";
 
     private FrameworkFactory frameworkFactory;
@@ -129,36 +130,38 @@ public class ContractContainer {
 
     private List<String> copySystemContractToContractPath() {
         List<String> contracts = new ArrayList<>();
-        List<String> copiedContracts = new ArrayList<>();
         try {
             //Read system contract files
             try (
-                    InputStream in = getClass().getResourceAsStream(CONTRACT_RESOURCE_PATH);
+                    InputStream in = getClass().getResourceAsStream(SYSTEM_CONTRACT_RESOURCE_PATH);
                     BufferedReader br = new BufferedReader(new InputStreamReader(in))
             ) {
                 String resource;
                 while ((resource = br.readLine()) != null) {
-                    contracts.add(String.format("%s/%s", CONTRACT_RESOURCE_PATH, resource));
+                    contracts.add(resource);
                 }
             }
 
             //Copy contract
             for (String contract : contracts) {
                 URL inputUrl = getClass().getResource(contract);
-                File dest = new File(String.format("%s/%s", bundlePath, contract));
+                File dest = new File(makeContractPath(contract, true));
                 FileUtils.copyURLToFile(inputUrl, dest);
-                copiedContracts.add(dest.getPath());
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        return copiedContracts;
+        return contracts;
+    }
+
+    private String makeContractPath(String contractName, boolean isSystemContract) {
+        return String.format("%s/%s/%s", bundlePath, isSystemContract ? SYSTEM_CONTRACT_RESOURCE_PATH : USER_CONTRACT_RESOURCE_PATH, contractName);
     }
 
     private void loadSystemContract(List<String> copiedContracts) {
         for (String copiedContract : copiedContracts) {
-            install(copiedContract);
+            install(makeContractPath(copiedContract, true));
         }
     }
 
@@ -168,7 +171,7 @@ public class ContractContainer {
             return;
         }
 
-        boolean isSystemContract = bundle.getLocation().startsWith(String.format("%s%s", bundlePath, CONTRACT_RESOURCE_PATH)) ? true : false;
+        boolean isSystemContract = bundle.getLocation().startsWith(String.format("%s%s", bundlePath, SYSTEM_CONTRACT_RESOURCE_PATH)) ? true : false;
 
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = framework.getBundleContext().getService(serviceRef);
