@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
@@ -39,9 +38,7 @@ public class StemContract implements Contract<JsonObject> {
     @Genesis
     @InvokeTransaction // TODO remove InvokeTransaction
     public TransactionReceipt init(JsonObject param) {
-        txReceipt = create(param);
         log.info("[StemContract | genesis] SUCCESS! param => " + param);
-
         return txReceipt;
     }
 
@@ -52,34 +49,25 @@ public class StemContract implements Contract<JsonObject> {
      */
     @InvokeTransaction
     public TransactionReceipt create(JsonObject params) {
-        // TODO Change StemContract Spec
-        for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
-            BranchId branchId = BranchId.of(entry.getKey());
-            JsonObject json = entry.getValue().getAsJsonObject();
-
-            StemContractStateValue stateValue;
-            try {
-                stateValue = StemContractStateValue.of(json);
-            } catch (Exception e) {
-                log.warn("Failed to convert Branch = {}", json);
-                continue;
-            }
+        StemContractStateValue stateValue;
+        try {
+            stateValue = StemContractStateValue.of(params);
+            BranchId branchId = stateValue.getBranchId();
             if (!isBranchExist(branchId.toString()) && isBranchIdValid(branchId, stateValue)) {
                 try {
                     stateValue.init();
-                    // Branch ID 추가부터
                     addBranchId(branchId);
                     state.put(branchId.toString(), stateValue.getJson());
-
-                    txReceipt.setStatus(ExecuteStatus.SUCCESS);
                 } catch (Exception e) {
                     e.printStackTrace();
                     txReceipt.setStatus(ExecuteStatus.FALSE);
                 }
 
                 log.info("[StemContract | create] branchId => " + branchId);
-                log.info("[StemContract | create] branch => " + json);
+                log.info("[StemContract | create] branch => " + params);
             }
+        } catch (Exception e) {
+            log.warn("Failed to convert Branch = {}", params);
         }
         return txReceipt;
     }
@@ -92,19 +80,24 @@ public class StemContract implements Contract<JsonObject> {
      */
     @InvokeTransaction
     public TransactionReceipt update(JsonObject params) {
-        for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
-            BranchId branchId = BranchId.of(entry.getKey());
-            JsonObject json = entry.getValue().getAsJsonObject();
-
-            StemContractStateValue stateValue = getStateValue(branchId.toString());
-            if (stateValue != null && isOwnerValid(json.get("validator").getAsString())) {
-                updateBranch(stateValue, json);
+        StemContractStateValue stateValue;
+        try {
+            stateValue = StemContractStateValue.of(params);
+            BranchId branchId = stateValue.getBranchId();
+            if (isOwnerValid(params.get("validator").getAsString())
+                    && stateValue != null && !isBranchExist(branchId.toString())
+                    && isBranchIdValid(branchId, stateValue)) {
+                updateBranch(stateValue, params);
                 state.put(branchId.toString(), stateValue.getJson());
+                addTxId(branchId);
                 txReceipt.setStatus(ExecuteStatus.SUCCESS);
                 log.info("[StemContract | update] branchId => " + branchId);
                 log.info("[StemContract | update] branch => " + stateValue.getJson());
             }
+        } catch (Exception e) {
+            log.warn("Failed to convert Branch = {}", params);
         }
+
         return txReceipt;
     }
 
@@ -117,6 +110,9 @@ public class StemContract implements Contract<JsonObject> {
         }
         if (json.has("type")) {
             stateValue.setType(json.get("type").getAsString());
+        }
+        if (json.has("fee")) {
+            stateValue.setFee(json.get("fee").getAsBigInteger());
         }
     }
 
@@ -184,6 +180,20 @@ public class StemContract implements Contract<JsonObject> {
     /**
      * @param params branch id
      *
+     * @return branch json object
+     */
+    @ContractQuery
+    public JsonObject getBranchByTxID(JsonObject params) {
+        //TODO txid -> txhusk -> branch id xx
+        // txid constains??
+//        String txId = params.get(TX_ID).getAsString();
+
+        return new JsonObject();
+    }
+
+    /**
+     * @param params branch id
+     *
      * @return contract json object
      */
     @ContractQuery
@@ -210,10 +220,10 @@ public class StemContract implements Contract<JsonObject> {
         String branchId = params.get(BRANCH_ID).getAsString();
         Set<String> validatorSet = new HashSet<>();
         if (isBranchExist(branchId)) {
-            JsonArray contracts = getStateValue(branchId).getJson()
+            JsonArray validators = getStateValue(branchId).getJson()
                     .getAsJsonArray("validator");
-            for (JsonElement c : contracts) {
-                validatorSet.add(c.getAsString());
+            for (JsonElement v : validators) {
+                validatorSet.add(v.getAsString());
             }
         }
         return validatorSet;
@@ -239,7 +249,7 @@ public class StemContract implements Contract<JsonObject> {
         });
         return branchIdSet;
     }
-    
+
     private boolean isBranchExist(String branchId) {
         return state.get(branchId) != null;
     }
@@ -259,6 +269,16 @@ public class StemContract implements Contract<JsonObject> {
 
         }
     }
+
+    private void addTxId(BranchId branchId) {
+        if (!isBranchExist(branchId.toString())) {
+            JsonObject txId = new JsonObject();
+            txId.addProperty("txId", txReceipt.getTxId());
+            state.put(branchId.toString(), txId);
+        }
+    }
+
+
 
     private boolean isOwnerValid(String owner) {
         String sender = this.txReceipt.getIssuer();

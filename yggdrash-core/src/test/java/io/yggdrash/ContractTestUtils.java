@@ -22,6 +22,8 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.wallet.Wallet;
 import org.spongycastle.util.encoders.Hex;
+
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 
 public class ContractTestUtils {
@@ -66,6 +68,7 @@ public class ContractTestUtils {
         final String name = "STEM";
         final String symbol = "STEM";
         final String property = "ecosystem";
+        final BigInteger fee = BigInteger.valueOf(100000);
 
         JsonObject contractSample = new JsonObject();
         contractSample.addProperty("contractVersion", TestConstants.STEM_CONTRACT.toString());
@@ -77,7 +80,7 @@ public class ContractTestUtils {
         contracts.add(contractSample);
 
 
-        return createBranchJson(name, symbol, property, description, contracts, null);
+        return createBranchJson(name, symbol, property, description, contracts, fee, null);
     }
 
     public static JsonObject createBranchJson(String name,
@@ -85,12 +88,14 @@ public class ContractTestUtils {
                                               String property,
                                               String description,
                                               JsonArray contracts,
+                                              BigInteger fee,
                                               String timestamp) {
         JsonObject branch = new JsonObject();
         branch.addProperty("name", name);
         branch.addProperty("symbol", symbol);
         branch.addProperty("property", property);
         branch.addProperty("description", description);
+        branch.addProperty("fee", fee);
         branch.add("contracts", contracts);
         if (timestamp == null) {
             branch.addProperty("timestamp", "00000166c837f0c9");
@@ -101,7 +106,6 @@ public class ContractTestUtils {
         JsonArray validators = new JsonArray();
         validators.add(TestConstants.wallet().getHexAddress());
         branch.add("validator", validators);
-
         return branch;
     }
 

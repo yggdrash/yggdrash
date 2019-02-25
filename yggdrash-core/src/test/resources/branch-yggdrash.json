@@ -3,6 +3,7 @@
   "symbol": "YGGDRASH",
   "property": "platform",
   "description": "TRUST-based Multi-dimensional Blockchains",
+  "fee": 0,
   "contracts": [
     {
       "contractVersion": "dfc39c00ae6a570753d1077ef0f68a3573c325bf",

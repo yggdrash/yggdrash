@@ -21,6 +21,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.Branch;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -32,6 +33,7 @@ public class StemContractStateValue extends Branch {
 
     private BranchType type;
     private String tag;
+    private BigInteger fee;
     private final List<ContractVersion> contractHistory = new ArrayList<>();
 
     public StemContractStateValue(JsonObject json) {
@@ -71,6 +73,11 @@ public class StemContractStateValue extends Branch {
     public void setTag(String tag) {
         this.tag = tag;
         getJson().addProperty("tag", tag);
+    }
+
+    public void setFee(BigInteger fee) {
+        this.fee = fee;
+        getJson().addProperty("fee", fee);
     }
 
     public void setDescription(String description) {

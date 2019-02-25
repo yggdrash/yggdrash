@@ -26,6 +26,7 @@ import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -39,6 +40,7 @@ public class Branch {
     private final String symbol;
     private final String property;
     private final long timestamp;
+    private final BigInteger fee;
     private final JsonObject json;
     protected List<BranchContract> contracts;
     protected String description;
@@ -50,6 +52,7 @@ public class Branch {
         this.name = json.get("name").getAsString();
         this.symbol = json.get("symbol").getAsString();
         this.property = json.get("property").getAsString();
+        this.fee = json.get("fee").getAsBigInteger();
         String timestampHex = json.get("timestamp").getAsString();
         this.timestamp = HexUtil.hexStringToLong(timestampHex);
 
@@ -81,6 +84,10 @@ public class Branch {
 
     public String getProperty() {
         return property;
+    }
+
+    public BigInteger getFee() {
+        return fee;
     }
 
     public List<BranchContract> getBranchContracts() {
