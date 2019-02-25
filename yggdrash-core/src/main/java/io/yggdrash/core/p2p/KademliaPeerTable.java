@@ -239,6 +239,11 @@ public class KademliaPeerTable implements PeerTable {
     }
 
     @VisibleForTesting
+    public Peer getOwner() {
+        return owner;
+    }
+
+    @VisibleForTesting
     public PeerBucket[] getBuckets() {
         return buckets;
     }
@@ -246,5 +251,10 @@ public class KademliaPeerTable implements PeerTable {
     @VisibleForTesting
     PeerStore getPeerStore() {
         return peerStore;
+    }
+
+    @Override
+    public String toString() {
+        return owner.toAddress();
     }
 }

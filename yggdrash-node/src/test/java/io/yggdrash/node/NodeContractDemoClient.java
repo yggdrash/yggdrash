@@ -1,5 +1,6 @@
 package io.yggdrash.node;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -17,7 +18,9 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.gateway.dto.BranchDto;
 import io.yggdrash.gateway.dto.TransactionDto;
+import io.yggdrash.gateway.dto.TransactionReceiptDto;
 import io.yggdrash.node.api.BranchApi;
 import io.yggdrash.node.api.ContractApi;
 import io.yggdrash.node.api.ContractApiImplTest;
@@ -25,7 +28,6 @@ import io.yggdrash.node.api.JsonRpcConfig;
 import io.yggdrash.node.api.TransactionApi;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -37,6 +39,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -55,21 +58,40 @@ public class NodeContractDemoClient {
     private static final int TRANSFER_AMOUNT = 1;
 
     // TODO load by branch api
+    private static String TARGET_SERVER;
     private static BranchId yggdrash;
     private static ContractVersion stemContract;
     private static ContractVersion yeedContract;
 
+    private static String lastTransactionId;
+
     public static void main(String[] args) throws Exception {
-        yggdrash = TestConstants.yggdrash();
-        stemContract = TestConstants.STEM_CONTRACT;
-        yeedContract = TestConstants.YEED_CONTRACT;
-        for (int i = 0; i < 10000; i++) {
+        // GetAddress
+        getServerAddress();
+        // Get Branch Information
+        getNodeBranch();
+
+        while (true) {
             run();
         }
     }
 
+    // TODO 신규추가
+    // 서버 상태 조회
+    // -- ping / pong
+    // 브랜치 상태 조회
+    // -- api/branch
+    // 컨트렉트 상태 조회
+    // -- api/contractmanager ?
+
+
     private static void run() throws Exception {
-        System.out.print("===============\n");
+        System.out.println("===============");
+        System.out.println("YGGDRASH BRANCH : " + yggdrash.toString());
+        System.out.println("STEM CONTRACT : " + stemContract.toString());
+        System.out.println("YEED BRANCH : " + yeedContract.toString());
+
+
         System.out.print("[1] 트랜잭션 전송\n[2] 트랜잭션 조회\n[3] 브랜치 배포\n[4] 브랜치 목록\n"
                         + "[5] 브랜치 수정\n[6] 브랜치 조회\n[7] 발란스 조회\n[9] 종료\n>");
 
@@ -123,6 +145,31 @@ public class NodeContractDemoClient {
         }
     }
 
+    private static void getNodeBranch() throws Exception {
+        Map<String, BranchDto> branches = rpc.proxyOf(TARGET_SERVER, BranchApi.class)
+                .getBranches();
+
+        //BranchDto yggdrash = branches.get("YGGDRASH");
+        // find yggdrash branch : BranchId, Branch
+
+        Optional<Map.Entry<String,BranchDto>> branch = branches.entrySet().stream().filter(ent ->
+                "YGGDRASH".equals(ent.getValue().name))
+                .findFirst();
+        if (branch.isPresent()) {
+            yggdrash = BranchId.of(branch.get().getKey());
+            BranchDto branchDto = branch.get().getValue();
+            branchDto.contracts.forEach(contract -> {
+                if ("STEM".equals(contract.get("name"))) {
+                    stemContract = ContractVersion.of((String) contract.get("contractVersion"));
+                } else if ("YEED".equals(contract.get("name"))) {
+                    yeedContract = ContractVersion.of((String) contract.get("contractVersion"));
+                }
+
+            });
+        }
+    }
+
+
     private static void sendStemTx() {
         JsonObject branch = getBranch();
         sendStemTx(branch, "create");
@@ -130,33 +177,29 @@ public class NodeContractDemoClient {
 
     private static void sendStemTx(JsonObject branch, String method) {
         int times = getSendTimes();
-        String serverAddress = getServerAddress();
         BranchId branchId = BranchId.of(branch);
         for (int i = 0; i < times; i++) {
             TransactionHusk tx = BlockChainTestUtils.createBranchTxHusk(branchId, method, branch);
-            rpc.proxyOf(serverAddress, TransactionApi.class)
-                    .sendTransaction(TransactionDto.createBy(tx));
+            sendTransaction(tx);
         }
     }
 
     private static void sendNoneTx() {
         String branchId = getBranchId();
         int times = getSendTimes();
-        String serverAddress = getServerAddress();
         int amount = 1;
         for (int i = 0; i < times; i++) {
             JsonArray txBody = ContractTestUtils.transferTxBodyJson("", amount);
             TransactionHusk tx = createTxHusk(BranchId.of(branchId), txBody);
-            rpc.proxyOf(serverAddress, TransactionApi.class)
-                    .sendTransaction(TransactionDto.createBy(tx));
+            sendTransaction(tx);
         }
     }
 
     private static void sendGeneralTxOrQuery() throws Exception {
+        // TODO change Spec
         String branchId = getBranchId();
-        String serverAddress = getServerAddress();
-        List<String> methodList = (List<String>)rpc.proxyOf(serverAddress, ContractApi.class)
-                .query(branchId,"417c69915df1b5021150690a105c683ca4944c25", "specification", null);
+        List<String> methodList = (List<String>)rpc.proxyOf(TARGET_SERVER, ContractApi.class)
+                .query(branchId, stemContract.toString(), "specification", null);
         System.out.println("\n해당 컨트랙트의 메소드 스펙입니다.");
         methodList.forEach(System.out::println);
 
@@ -165,11 +208,11 @@ public class NodeContractDemoClient {
         if (methodList.get(index).contains("TransactionReceipt")) {
             TransactionHusk tx = createTx(branchId, selectedMethod);
             System.out.println("tx => " + tx);
-            rpc.proxyOf(serverAddress, TransactionApi.class)
-                    .sendTransaction(TransactionDto.createBy(tx));
+            sendTransaction(tx);
         } else {
             Map params = createParams();
-            rpc.proxyOf(serverAddress, ContractApi.class).query(branchId,"417c69915df1b5021150690a105c683ca4944c25", selectedMethod, params);
+            rpc.proxyOf(TARGET_SERVER, ContractApi.class).query(branchId,
+                    stemContract.toString(), selectedMethod, params);
         }
     }
 
@@ -291,12 +334,10 @@ public class NodeContractDemoClient {
 
     private static void sendYeedTx(String address, long amount) {
         int times = getSendTimes();
-        String serverAddress = getServerAddress();
         for (int i = 0; i < times; i++) {
             JsonArray txBody = ContractTestUtils.transferTxBodyJson(address, amount);
             TransactionHusk tx = createTxHusk(yggdrash, txBody);
-            rpc.proxyOf(serverAddress, TransactionApi.class)
-                    .sendTransaction(TransactionDto.createBy(tx));
+            sendTransaction(tx);
         }
     }
 
@@ -304,8 +345,8 @@ public class NodeContractDemoClient {
         String branchId = getBranchId();
         Map params = ContractApiImplTest.createParams(BRANCH_ID, branchId);
 
-        String serverAddress = getServerAddress();
-        rpc.proxyOf(serverAddress, ContractApi.class).query(branchId,"417c69915df1b5021150690a105c683ca4944c25", "view", params);
+        rpc.proxyOf(TARGET_SERVER, ContractApi.class).query(branchId,
+                stemContract.toString(), "view", params);
     }
 
     private static void update() {
@@ -324,12 +365,17 @@ public class NodeContractDemoClient {
 
     private static void txReceipt() {
         String branchId = getBranchId();
-
-        System.out.println("조회할 트랜잭션 해시를 적어주세요\n>");
+        System.out.println("조회할 트랜잭션 해시를 적어주세요 \n 기본값 : " + lastTransactionId + "\n>");
         String txHash = scan.nextLine();
+        if ("".equals(txHash)) {
+            txHash = lastTransactionId;
+        }
+        TransactionReceiptDto txr = rpc.proxyOf(TARGET_SERVER, TransactionApi.class)
+                .getTransactionReceipt(branchId, txHash);
 
-        String serverAddress = getServerAddress();
-        rpc.proxyOf(serverAddress, TransactionApi.class).getTransactionReceipt(branchId, txHash);
+        Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        String prettyJsonString = gson.toJson(txr);
+        System.out.println(prettyJsonString);
     }
 
     private static void deployBranch() throws Exception {
@@ -348,17 +394,15 @@ public class NodeContractDemoClient {
     }
 
     private static void getBranches() {
-        String serverAddress = getServerAddress();
-        rpc.proxyOf(serverAddress, BranchApi.class).getBranches();
+        rpc.proxyOf(TARGET_SERVER, BranchApi.class).getBranches();
     }
 
     private static void balance() throws Exception {
         System.out.println("조회할 주소를 적어주세요\n>");
         Map params = ContractApiImplTest.createParams("address", scan.nextLine());
 
-        String serverAddress = getServerAddress();
-        rpc.proxyOf(serverAddress, ContractApi.class)
-                .query("e5804143de0e239527bebfd93c62bc2628d7989e","892a821b74c86c6cd6adc6563fd9dbcd4e376419", "balanceOf", params);
+        rpc.proxyOf(TARGET_SERVER, ContractApi.class)
+                .query(yggdrash.toString(),yeedContract.toString(), "balanceOf", params);
     }
 
     private static JsonObject getBranch() {
@@ -381,17 +425,23 @@ public class NodeContractDemoClient {
                 SERVER_STG, SERVER_PROD));
 
         String num = scan.nextLine();
+
         switch (num) {
             case "2":
-                return SERVER_STG;
+                TARGET_SERVER = SERVER_STG;
+                break;
             case "3":
-                return SERVER_PROD;
+                TARGET_SERVER = SERVER_PROD;
+                break;
             case "4":
                 System.out.println("서버 주소 => ");
-                return scan.nextLine();
+                TARGET_SERVER = scan.nextLine();
+                break;
             default:
-                return "localhost";
+                TARGET_SERVER = "localhost";
+                break;
         }
+        return TARGET_SERVER;
     }
 
     private static String getBranchId() {
@@ -473,6 +523,12 @@ public class NodeContractDemoClient {
             }
             return "unknown";
         }
+    }
+
+    private static void sendTransaction(TransactionHusk tx) {
+        TransactionDto txd = TransactionDto.createBy(tx);
+        lastTransactionId = rpc.proxyOf(TARGET_SERVER, TransactionApi.class)
+                .sendTransaction(txd);
     }
 
 

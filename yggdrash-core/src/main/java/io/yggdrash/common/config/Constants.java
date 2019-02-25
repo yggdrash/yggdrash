@@ -8,6 +8,8 @@ import java.math.BigInteger;
 
 public class Constants {
 
+    public static final int DEFAULT_PORT = 32918;
+
     public static final String STEM = "STEM";
     public static final String YEED = "YEED";
     public static final String VALIDATOR = "VALIDATOR";
@@ -24,7 +26,9 @@ public class Constants {
     public static final byte[] EMPTY_BYTE20 = new byte[20];
     public static final byte[] EMPTY_BYTE32 = new byte[32];
     public static final byte[] EMPTY_BYTE1K = new byte[1024];
-
+    public static final byte[] EMPTY_BYTE10K = new byte[10240];
+    public static final byte[] EMPTY_BYTE100K = new byte[102400];
+    public static final byte[] EMPTY_BYTE1M = new byte[1024000];
 
     public static final int TX_HEADER_LENGTH = 84;
     public static final int TX_SIG_LENGTH = 65;
@@ -45,7 +49,6 @@ public class Constants {
     private Constants() {
 
     }
-
 
     // TODO Contract Version fix
     public static final byte[] STEM_CONTRACT = Hex.encode(STEM.getBytes());

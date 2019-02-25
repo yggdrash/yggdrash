@@ -6,6 +6,7 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.core.akashic.SimpleSyncManager;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.BlockChainConsumer;
 import io.yggdrash.core.net.BlockChainServiceConsumer;
 import io.yggdrash.core.net.BootStrapNode;
@@ -24,20 +25,22 @@ import io.yggdrash.node.config.NetworkConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class GRpcTestNode extends BootStrapNode {
-    private static final Logger log = LoggerFactory.getLogger(GRpcTestNode.class);
+public class TestNode extends BootStrapNode {
+    private static final Logger log = LoggerFactory.getLogger(TestNode.class);
 
     // discovery specific
     public final int port;
     public DiscoveryConsumer discoveryConsumer;
+
+    protected BranchId branchId = TestConstants.yggdrash();
     private PeerDialer peerDialer;
+
     public PeerTableGroup peerTableGroup;
     public PeerTask peerTask;
-
     // branch specific
     public BlockChainConsumer blockChainConsumer;
 
-    public GRpcTestNode(PeerHandlerFactory factory, int port, boolean enableBranch) {
+    TestNode(PeerHandlerFactory factory, int port, boolean enableBranch) {
         this.port = port;
 
         // node configuration
@@ -71,6 +74,7 @@ public class GRpcTestNode extends BootStrapNode {
         BlockChain bc = BlockChainTestUtils.createBlockChain(false);
         branchGroup.addBranch(bc);
         blockChainConsumer = new BlockChainServiceConsumer(branchGroup);
+        blockChainConsumer.setListener(this);
     }
 
     private void networkConfiguration() {
@@ -83,12 +87,20 @@ public class GRpcTestNode extends BootStrapNode {
         return branchGroup;
     }
 
+    public BlockChain getDefaultBranch() {
+        return branchGroup.getBranch(branchId);
+    }
+
+    public void generateBlock() {
+        branchGroup.generateBlock(TestConstants.wallet(), branchId);
+    }
+
     public int getActivePeerCount() {
         return peerDialer.handlerCount();
     }
 
     public void logDebugging() {
-        PeerTable peerTable = peerTableGroup.getPeerTable(TestConstants.yggdrash());
+        PeerTable peerTable = peerTableGroup.getPeerTable(branchId);
         log.info("{} => peer={}, bucket={}, active={}",
                 peerTableGroup.getOwner(),
                 String.format("%3d", PeerTableCounter.of(peerTable).totalPeerOfBucket()),

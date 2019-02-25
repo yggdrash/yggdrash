@@ -129,6 +129,9 @@ public class ContractManagerTest {
                 if (contractFile.isDirectory()) {
                     return;
                 }
+                if (!contractFile.getName().endsWith(".class")) {
+                    return;
+                }
                 byte[] contractBinary;
                 try (FileInputStream inputStream = new FileInputStream(contractFile)) {
                     contractBinary = new byte[Math.toIntExact(contractFile.length())];

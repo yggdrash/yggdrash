@@ -101,6 +101,7 @@ public class PbftService implements CommandLineRunner {
         printInitInfo();
     }
 
+    // todo: chage cron setting to config file or genesis ...
     @Scheduled(cron = "*/2 * * * * *")
     public void mainScheduler() {
 
@@ -164,36 +165,35 @@ public class PbftService implements CommandLineRunner {
         log.debug("isViewChanged= " + this.isViewChanged);
 
         PbftBlock lastBlock = this.blockChain.getLastConfirmedBlock();
-
-        log.info("PbftBlock "
-                + "("
-                + lastBlock.getPbftMessageSet().getPrePrepare().getViewNumber()
-                + ") "
-                + "["
-                + lastBlock.getIndex()
-                + "]"
-                + lastBlock.getHashHex()
-                + " ("
-                + lastBlock.getPbftMessageSet().getPrepareMap().size()
-                + ")"
-                + " ("
-                + lastBlock.getPbftMessageSet().getCommitMap().size()
-                + ")"
-                + " ("
-                + lastBlock.getPbftMessageSet().getViewChangeMap().size()
-                + ")"
-                + " ("
-                + lastBlock.getBlock().getAddressHex()
-                + ")");
-
-        log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedMsgMap().size());
-
-        if (!PbftBlockChain.TEST_NONE_TXSTORE) {
-            log.debug("TxStore unConfirmed Tx.size= "
-                    + this.blockChain.getTransactionStore().getUnconfirmedTxs().size());
+        try {
+            log.info("PbftBlock "
+                    + "("
+                    + lastBlock.getPbftMessageSet().getPrePrepare().getViewNumber()
+                    + ") "
+                    + "["
+                    + lastBlock.getIndex()
+                    + "]"
+                    + lastBlock.getHashHex()
+                    + " ("
+                    + lastBlock.getPbftMessageSet().getPrepareMap().size()
+                    + ")"
+                    + " ("
+                    + lastBlock.getPbftMessageSet().getCommitMap().size()
+                    + ")"
+                    + " ("
+                    + lastBlock.getPbftMessageSet().getViewChangeMap().size()
+                    + ")"
+                    + " ("
+                    + lastBlock.getBlock().getAddressHex()
+                    + ")");
+        } catch (Exception e) {
+            log.debug(e.getMessage());
         }
 
-        log.info("");
+        log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedMsgMap().size());
+        log.debug("TxStore unConfirmed Tx.size= "
+                + this.blockChain.getTransactionStore().getUnconfirmedTxs().size());
+        log.debug("");
     }
 
     private void multicastBlock(PbftBlock block) {
@@ -310,9 +310,8 @@ public class PbftService implements CommandLineRunner {
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
         List<Transaction> txs = new ArrayList<>();
         List<TransactionHusk> txHusks = new ArrayList<>();
-        if (!PbftBlockChain.TEST_NONE_TXSTORE) {
-            txHusks.addAll(blockChain.getTransactionStore().getUnconfirmedTxs());
-        }
+
+        txHusks.addAll(blockChain.getTransactionStore().getUnconfirmedTxs());
 
         for (TransactionHusk txHusk : txHusks) {
             txs.add(txHusk.getCoreTransaction());
@@ -699,11 +698,9 @@ public class PbftService implements CommandLineRunner {
     }
 
     public void updateUnconfirmedMsg(PbftMessage newPbftMessage) {
-        String key = newPbftMessage.getSignatureHex();
-        if (this.blockChain.getUnConfirmedMsgMap().containsKey(key)) {
-            return;
-        }
-        this.blockChain.getUnConfirmedMsgMap().put(key, newPbftMessage);
+        this.blockChain.getUnConfirmedMsgMap()
+                .put(newPbftMessage.getSignatureHex(), newPbftMessage);
+
         if (newPbftMessage.getType().equals("PREPREPA")
                 && newPbftMessage.getSeqNumber()
                 == this.blockChain.getLastConfirmedBlock().getIndex() + 1) {

@@ -21,6 +21,47 @@ public class PeerTableTest {
     }
 
     @Test
+    public void dropPeer() {
+        // arrange
+        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
+        peerTable.addPeer(peer);
+        assert peerTable.contains(peer);
+
+        // act
+        peerTable.dropPeer(peer);
+
+        // assert
+        assert !peerTable.contains(peer);
+    }
+
+    @Test
+    public void shouldReturnNullRevalidate() {
+        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
+        peerTable.addPeer(peer);
+
+        // act
+        Peer peerForRevalidate = peerTable.peerToRevalidate();
+
+        // assert
+        assert peerForRevalidate == null;
+    }
+
+    @Test
+    public void shouldReturnRevalidate() {
+        // arrange
+        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
+        peerTable.addPeer(peer);
+        PeerBucket peerBucket = peerTable.getBucketByPeer(peer);
+        peerBucket.getReplacements().add(Peer.valueOf("ynode://75bff16c@127.0.0.1:32918"));
+
+        // act
+        Peer peerForRevalidate = peerTable.peerToRevalidate();
+
+        // assert
+        assert peer.equals(peerForRevalidate);
+    }
+
+    @Test
     public void getLatestPeers() {
         SlowTest.apply();
 
@@ -102,4 +143,6 @@ public class PeerTableTest {
         assertEquals(peerTable.getBucketByIndex(158), peerTable.getBucketByPeer(peer1));
         assertEquals(2, peerTable.getBucketIdAndPeerList().get(158).size());
     }
+
+
 }

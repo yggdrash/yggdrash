@@ -14,7 +14,7 @@ version = '0.10.0-SNAPSHOT'
 defaultTasks ':yggdrash-node:bootRun'
 
 ext {
-    grpcVersion         = '1.17.0'
+    grpcVersion         = '1.18.0'
     protobufVersion     = '3.6.1'
     levelDBVersion      = '0.10'
     ehcacheVersion      = '3.6.2'
@@ -203,6 +203,7 @@ project(':yggdrash-validator') {
         compile project(':yggdrash-core')
         compile "io.github.lognet:grpc-spring-boot-starter:3.0.0"
         testCompile project(':yggdrash-core').sourceSets.test.output
+        testCompile "com.vmlens:concurrent-junit:1.0.2"
     }
 }
 

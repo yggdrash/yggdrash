@@ -1,7 +1,6 @@
 package io.yggdrash.validator.store.pbft;
 
 import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.datasource.DbSource;
 import org.slf4j.Logger;
@@ -22,7 +21,8 @@ public class PbftBlockKeyStore implements Store<Long, byte[]> {
     @Override
     public void put(Long key, byte[] value) {
         if (key < 0) {
-            throw new NotValidateException("Key is not valid.");
+            log.debug("Key is not vaild.");
+            return;
         }
 
         log.trace("put "
@@ -34,7 +34,8 @@ public class PbftBlockKeyStore implements Store<Long, byte[]> {
     @Override
     public byte[] get(Long key) {
         if (key < 0) {
-            throw new NotValidateException("Key is not valid.");
+            log.debug("Key is not vaild.");
+            return null;
         }
 
         log.trace("get " + "(" + key + ")");

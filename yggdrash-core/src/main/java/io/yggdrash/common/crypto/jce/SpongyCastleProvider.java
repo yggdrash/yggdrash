@@ -34,11 +34,7 @@ public final class SpongyCastleProvider {
 
         static {
             Provider p = Security.getProvider("SC");
-
             INSTANCE = (p != null) ? p : new BouncyCastleProvider();
-
-            INSTANCE.put("MessageDigest.ETH-KECCAK-256", "io.yggdrash.common.crypto.cryptohash.Keccak256");
-            INSTANCE.put("MessageDigest.ETH-KECCAK-512", "io.yggdrash.common.crypto.cryptohash.Keccak512");
         }
     }
 }

@@ -49,4 +49,6 @@ public interface PeerTable {
 
     // returns the last node in a random, non-empty bucket
     Peer peerToRevalidate();
+
+    Peer getOwner(); //for debugging
 }
