@@ -203,6 +203,7 @@ project(':yggdrash-validator') {
         compile project(':yggdrash-core')
         compile "io.github.lognet:grpc-spring-boot-starter:3.0.0"
         testCompile project(':yggdrash-core').sourceSets.test.output
+        testCompile "com.vmlens:concurrent-junit:1.0.2"
     }
 }
 
