@@ -36,6 +36,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+
+import java.net.InetAddress;
+import java.util.Arrays;
 
 @Configuration
 @EnableConfigurationProperties(NodeProperties.class)
@@ -45,9 +49,17 @@ public class P2PConfiguration {
     private final StoreBuilder storeBuilder;
 
     @Autowired
-    P2PConfiguration(NodeProperties nodeProperties, StoreBuilder storeBuilder) {
+    P2PConfiguration(NodeProperties nodeProperties, StoreBuilder storeBuilder, Environment env) {
         this.nodeProperties = nodeProperties;
         this.storeBuilder = storeBuilder;
+        boolean isLocal = Arrays.asList(env.getActiveProfiles()).contains("local");
+        if (!isLocal && "localhost".equals(nodeProperties.getGrpc().getHost())) {
+            try {
+                nodeProperties.getGrpc().setHost(InetAddress.getLocalHost().getHostAddress());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Bean
