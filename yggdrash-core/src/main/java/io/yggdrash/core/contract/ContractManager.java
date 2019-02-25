@@ -68,9 +68,6 @@ public class ContractManager extends ClassLoader {
         if (!targetDir.exists() && !targetDir.mkdirs()) {
             throw new RuntimeException("The contract file does not exist" + targetDir.getAbsolutePath());
         }
-//        if (!targetDir.exists() && !targetDir.mkdirs()) {
-//            throw new RuntimeException("The contract file does not exist" + targetDir.getAbsolutePath());
-//        }
         log.info("ContractManager load path : {} ", contractPath);
         try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(this.contractPath)))) {
             filePathStream.forEach(p -> {
