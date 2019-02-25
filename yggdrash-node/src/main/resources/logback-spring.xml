@@ -30,6 +30,15 @@
             <appender-ref ref="CONSOLE"/>
         </root>
     </springProfile>
+    <springProfile name="debug">
+        <logger name="io.yggdrash" level="TRACE"/>
+        <logger name="org.springframework" level="WARN"/>
+        <logger name="org.ehcache.core" level="WARN"/>
+        <logger name="org.xnio" level="WARN"/>
+        <root level="INFO">
+            <appender-ref ref="CONSOLE"/>
+        </root>
+    </springProfile>
     <springProfile name="dev">
         <root level="INFO">
             <appender-ref ref="CONSOLE"/>
