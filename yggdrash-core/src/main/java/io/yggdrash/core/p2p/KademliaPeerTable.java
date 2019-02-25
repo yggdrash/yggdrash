@@ -194,7 +194,7 @@ public class KademliaPeerTable implements PeerTable {
     }
 
     @Override
-    public synchronized List<Peer> getClosestPeers(Peer targetPeer, int limit) {
+    public List<Peer> getClosestPeers(Peer targetPeer, int limit) {
         List<Peer> closestEntries = getAllPeers();
         closestEntries.sort(new DistanceComparator(targetPeer.getPeerId().getBytes()));
         if (closestEntries.size() > limit) {
