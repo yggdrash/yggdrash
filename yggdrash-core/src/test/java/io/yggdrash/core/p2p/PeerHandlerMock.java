@@ -24,6 +24,8 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.Future;
 
 import static io.yggdrash.TestConstants.wallet;
 
@@ -97,6 +99,31 @@ public class PeerHandlerMock implements PeerHandler {
     @Override
     public void broadcastTransaction(TransactionHusk txHusk) {
 
+    }
+
+    @Override
+    public void biBroadcastBlock(BlockHusk blockHusk) {
+
+    }
+
+    @Override
+    public void biBroadcastTx(TransactionHusk txHusk) {
+
+    }
+
+    @Override
+    public Future<List<BlockHusk>> biSyncBlock(BranchId branchId, long offset) {
+        return null;
+    }
+
+    @Override
+    public void biDirectTest(int seq, String msg) {
+
+    }
+
+    @Override
+    public Future<List<TransactionHusk>> biSyncTx(BranchId branchId) {
+        return null;
     }
 
     public static PeerHandler dummy() {

@@ -7,7 +7,7 @@ import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerTableGroup;
 import org.junit.Test;
 
-public class DiscoveryServiceConsumerTest {
+public class DiscoveryServiceConsumerTest extends TestConstants.SlowTest {
     private final BranchId yggdrash = TestConstants.yggdrash();
 
     @Test

@@ -56,9 +56,23 @@ public class BlockChainTestUtils {
         return new BlockHusk(TestConstants.wallet(), Collections.emptyList(), genesis.getBlock());
     }
 
+    public static BlockHusk createNextBlock(BlockHusk nextBlock) {
+        return new BlockHusk(TestConstants.wallet(), Collections.emptyList(), nextBlock);
+    }
+
     public static TransactionHusk createBranchTxHusk() {
         JsonObject json = ContractTestUtils.createSampleBranchJson();
 
+        return createBranchTxHusk(json);
+    }
+
+    public static TransactionHusk createBranchTxHusk(String description) {
+        JsonObject json = ContractTestUtils.createSampleBranchJson(description);
+
+        return createBranchTxHusk(json);
+    }
+
+    private static TransactionHusk createBranchTxHusk(JsonObject json) {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTxBody(Constants.STEM_CONTRACT_VERSION, "create", json)
                 .setWallet(TestConstants.wallet())

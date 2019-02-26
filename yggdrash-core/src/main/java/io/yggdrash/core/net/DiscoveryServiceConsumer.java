@@ -32,6 +32,8 @@ public class DiscoveryServiceConsumer implements DiscoveryConsumer {
 
     @Override
     public List<Peer> findPeers(BranchId branchId, Peer target) {
+        // the target will only be stored in the peerTable if the current node is a seed-node.
+        peerTableGroup.addPeer(branchId, target);
         return peerTableGroup.getClosestPeers(branchId, target, KademliaOptions.CLOSEST_SIZE);
     }
 

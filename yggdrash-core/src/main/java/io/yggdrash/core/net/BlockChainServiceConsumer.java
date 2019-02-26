@@ -36,6 +36,29 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
         this.branchGroup = branchGroup;
     }
 
+    /*
+    3 cases of doing syncBlock
+    - The first time a new node connects to the network
+    - If the rebooting node is connected to the network again
+    - If the node received a block with a different block height
+
+    The current block synchronization proceeds recursively.
+    That is, it recursively inquires whether the current block height is higher than
+    the current block height.
+    This should proceed in normal_mode of block synchronization.
+    The synchronization will be very slow if the block height is high.
+
+    TODO
+    The "fast_sync" mode should be implemented so that when a new node is connected
+    to the network(=branch) and quickly synchronize blocks that have already been verified,
+    such as block-boxes or file types.
+    If so, which node should receive the request for fast sync?
+    A malicious node may transmit the blocks that have not been verified and DDoS attacks
+    are possible with requests that require relatively large return values.
+    Also, Isn't it necessary to request the current block height(=status)?
+    The synchronization will take a long time when there are many gaps in block height during
+    the node isn't connected to the network.
+     */
     @Override
     public void setListener(CatchUpSyncEventListener listener) {
         this.listener = listener;

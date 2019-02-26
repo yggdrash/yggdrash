@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -47,7 +48,8 @@ public class BranchGroupTest {
         tx = BlockChainTestUtils.createBranchTxHusk();
         assertThat(branchGroup.getBranchSize()).isEqualTo(1);
         BlockChain bc = branchGroup.getBranch(tx.getBranchId());
-        block = newBlock(Collections.singletonList(tx), bc.getPrevBlock());
+        //block = newBlock(Collections.singletonList(tx), bc.getPrevBlock());
+        block = newBlock(new ArrayList<>(), bc.getPrevBlock());
     }
 
     @Test(expected = DuplicatedException.class)
@@ -114,6 +116,21 @@ public class BranchGroupTest {
                 .isEqualTo(newBlock.getHash());
         TransactionHusk foundTx = branchGroup.getTxByHash(tx.getBranchId(), tx.getHash());
         assertThat(foundTx.getHash()).isEqualTo(tx.getHash());
+    }
+
+    @Test
+    public void specificBlockHeightOfBlockChain() {
+        addMultipleBlock(block);
+    }
+
+    private void addMultipleBlock(BlockHusk block) {
+        BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
+        while (blockChain.getLastIndex() < 10) {
+            System.out.println(blockChain.getLastIndex());
+            branchGroup.addBlock(block);
+            BlockHusk nextBlockHusk = newBlock(new ArrayList<>(), block);
+            addMultipleBlock(nextBlockHusk);
+        }
     }
 
     @Test

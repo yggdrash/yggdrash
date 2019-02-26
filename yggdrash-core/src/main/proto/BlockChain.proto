@@ -12,10 +12,22 @@ service BlockChain {
     rpc syncTransaction (SyncLimit) returns (TransactionList) {
     }
 
-    // Client to server streaming RPC
+    // Client to server simple RPC
     rpc broadcastBlock (Block) returns (Empty) {
     }
     rpc broadcastTransaction (Transaction) returns (Empty) {
+    }
+
+    // Bidirectional streaming RPC
+    rpc biSyncBlock (stream SyncLimit) returns (stream BlockList) {
+    }
+    rpc biSyncTx (stream SyncLimit) returns (stream TransactionList) {
+    }
+    rpc biBroadcastBlock (stream Block) returns (stream Empty) {
+    }
+    rpc biBroadcastTx (stream Transaction) returns (stream Empty) {
+    }
+    rpc biDirectTest (stream Tik) returns (stream Tik) {
     }
 }
 
@@ -26,4 +38,10 @@ message SyncLimit {
     bytes branch = 1;
     uint64 offset = 2;
     uint32 limit = 3;
+}
+
+//For test
+message Tik {
+    uint32 seq = 1;
+    string msg = 2;
 }
