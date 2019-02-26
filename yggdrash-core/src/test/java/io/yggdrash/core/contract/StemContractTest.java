@@ -38,6 +38,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static io.yggdrash.common.config.Constants.TX_ID;
 import static io.yggdrash.common.config.Constants.VALIDATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -81,13 +82,7 @@ public class StemContractTest {
             e.printStackTrace();
         }
     }
-
-    @Test
-    public void test() {
-        JsonObject p = createParams();
-//        stemContract.getBranch(p);
-        System.out.println(stemContract.getBranch(p));
-    }
+    
     @Test
     @Ignore
     public void createTest() {
@@ -157,6 +152,10 @@ public class StemContractTest {
     private JsonObject createValidatorParams() {
         Optional<String> v = stateValue.getValidators().stream().findFirst();
         return ContractTestUtils.createParams(VALIDATOR, v.get());
+    }
+
+    private JsonObject createTxParams() {
+        return ContractTestUtils.createParams(TX_ID, "82c8c793e5ebb90cba24d7708dd23dc46417c41516c28f7ae8b02cd9d3f27c82");
     }
 
     private JsonObject createParams(JsonElement json) {

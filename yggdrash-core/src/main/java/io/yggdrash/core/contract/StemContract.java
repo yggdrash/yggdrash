@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static io.yggdrash.common.config.Constants.TX_ID;
 import static io.yggdrash.common.config.Constants.VALIDATOR;
 
 public class StemContract implements Contract<JsonObject> {
@@ -169,7 +170,7 @@ public class StemContract implements Contract<JsonObject> {
     public List<ContractVersion> getContractHistory(JsonObject params) {
         String branchId = params.get(BRANCH_ID).getAsString();
         if (isBranchExist(branchId)) {
-            return getStateValue(branchId).getContractHistory();
+            return getBranchStateValue(branchId).getContractHistory();
         }
         return Collections.emptyList();
     }
@@ -202,23 +203,21 @@ public class StemContract implements Contract<JsonObject> {
     public JsonObject getBranch(JsonObject params) {
         String branchId = params.get(BRANCH_ID).getAsString();
         if (isBranchExist(branchId)) {
-            return getStateValue(branchId).getJson();
+            return getBranchStateValue(branchId).getJson();
         }
         return new JsonObject();
     }
 
     /**
-     * @param params branch id
+     * @param params transaction id
      *
-     * @return branch json object
+     * @return branch id
      */
     @ContractQuery
-    public JsonObject getBranchByTxID(JsonObject params) {
-        //TODO txid -> txhusk -> branch id xx
-        // txid constains??
-//        String txId = params.get(TX_ID).getAsString();
-
-        return new JsonObject();
+    public String getBranchIdByTxId(JsonObject params) {
+        String txId = params.get(TX_ID).getAsString();
+        String branchId = state.get(txId);
+        return branchId == null ? new String() : branchId;
     }
 
     /**
@@ -231,7 +230,7 @@ public class StemContract implements Contract<JsonObject> {
         String branchId = params.get(BRANCH_ID).getAsString();
         Set<JsonElement> contractSet = new HashSet<>();
         if (isBranchExist(branchId)) {
-            JsonArray contracts = getStateValue(branchId).getJson()
+            JsonArray contracts = getBranchStateValue(branchId).getJson()
                     .getAsJsonArray("contracts");
             for (JsonElement c : contracts) {
                 contractSet.add(c);
@@ -243,14 +242,14 @@ public class StemContract implements Contract<JsonObject> {
     /**
      * @param params branch id
      *
-     * @return contract json object
+     * @return validator set
      */
     @ContractQuery
     public Set<String> getValidator(JsonObject params) {
         String branchId = params.get(BRANCH_ID).getAsString();
         Set<String> validatorSet = new HashSet<>();
         if (isBranchExist(branchId)) {
-            JsonArray validators = getStateValue(branchId).getJson()
+            JsonArray validators = getBranchStateValue(branchId).getJson()
                     .getAsJsonArray("validator");
             for (JsonElement v : validators) {
                 validatorSet.add(v.getAsString());
@@ -263,7 +262,7 @@ public class StemContract implements Contract<JsonObject> {
     /**
      * @param params branch id
      *
-     * @return contract json object
+     * @return branch id set
      */
     @ContractQuery
     public Set<String> getBranchIdByValidator(JsonObject params) {
@@ -271,7 +270,7 @@ public class StemContract implements Contract<JsonObject> {
         Set<String> branchIdSet = new HashSet<>();
 
         getBranchIdList().stream().forEach(id -> {
-            getStateValue(id).getValidators().stream().forEach(v -> {
+            getBranchStateValue(id).getValidators().stream().forEach(v -> {
                 if (validator.equals(v)) {
                     branchIdSet.add(id);
                 }
@@ -281,7 +280,7 @@ public class StemContract implements Contract<JsonObject> {
     }
 
     private boolean isBranchExist(String branchId) {
-        return state.get(branchId) != null;
+        return state.contains(branchId);
     }
 
     // new branchId
@@ -321,10 +320,10 @@ public class StemContract implements Contract<JsonObject> {
 
     private StemContractStateValue getStateValue(JsonObject param) {
         String branchId = param.get("branchId").getAsString();
-        return getStateValue(branchId);
+        return getBranchStateValue(branchId);
     }
 
-    private StemContractStateValue getStateValue(String branchId) {
+    private StemContractStateValue getBranchStateValue(String branchId) {
         JsonObject json = state.get(branchId);
         if (json == null) {
             return null;
