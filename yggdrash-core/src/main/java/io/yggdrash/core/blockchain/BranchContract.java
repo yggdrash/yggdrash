@@ -25,9 +25,10 @@ public class BranchContract {
     private String name;
     private String description;
     private String property;
-
+    private JsonObject json;
 
     protected BranchContract(JsonObject json) {
+        this.json = json;
         this.contractVersion = ContractVersion.of(json.get("contractVersion").getAsString());
         this.init = json.getAsJsonObject("init");
         this.name = json.get("name").getAsString();
@@ -59,4 +60,9 @@ public class BranchContract {
     public String getProperty() {
         return property;
     }
+
+    public JsonObject getJson() {
+        return this.json;
+    }
+
 }
