@@ -91,6 +91,9 @@ public class RuntimeInvoke<T> {
         // TODO Check Transaction has contractID
         String methodName = txBody.get("method").getAsString();
         ContractMethod method = invokeMethods.get(methodName);
+        if (method == null) { // json rpc js library sent as 'TRANSFER'
+            method = invokeMethods.get(methodName.toLowerCase());
+        }
         // filter method exist
         if (method == null) {
             txReceipt.setStatus(ExecuteStatus.ERROR);
