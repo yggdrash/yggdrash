@@ -32,46 +32,16 @@ import java.util.List;
 public class StemContractStateValue extends Branch {
 
     private static BigInteger fee;
-    private BranchType type;
-    private String tag;
+    private Long blockHeight;
     private final List<ContractVersion> contractHistory = new ArrayList<>();
 
     public StemContractStateValue(JsonObject json) {
         super(json);
-        if (json.has("type")) {
-            this.type = BranchType.of(getJson().get("type").getAsString());
-        }
-        if (json.has("tag")) {
-            this.tag = getJson().get("tag").getAsString();
-        }
         if (json.has("contractHistory")) {
             for (JsonElement jsonElement : json.getAsJsonArray("contractHistory")) {
                 contractHistory.add(ContractVersion.of(jsonElement.getAsString()));
             }
         }
-    }
-
-    public void init() {
-        setType("test");
-        setTag("0.1");
-    }
-
-    public BranchType getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = BranchType.of(type);
-        getJson().addProperty("type", type);
-    }
-
-    public String getTag() {
-        return tag;
-    }
-
-    public void setTag(String tag) {
-        this.tag = tag;
-        getJson().addProperty("tag", tag);
     }
 
     public BigInteger getFee() {
@@ -83,9 +53,9 @@ public class StemContractStateValue extends Branch {
         getJson().addProperty("fee", fee);
     }
 
-    public void setDescription(String description) {
-        this.description = description;
-        getJson().addProperty("description", description);
+    public void setBlockHeight(Long height) {
+        this.blockHeight = height;
+        getJson().addProperty("blockHeight", blockHeight);
     }
 
     List<ContractVersion> getContractHistory() {

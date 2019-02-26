@@ -82,7 +82,22 @@ public class StemContractTest {
             e.printStackTrace();
         }
     }
-    
+
+    @Test
+    public void test() {
+        JsonObject b = createParams();
+        JsonObject t = createTxParams();
+        JsonObject v = createValidatorParams();
+//        stemContract.getBranchIdList();
+//        stemContract.getBranch(b);
+//        stemContract.getBranchIdByTxId(t);
+//        stemContract.getContractByBranch(b);
+//        stemContract.getValidator(b);
+//        stemContract.getBranchIdByValidator(v);
+//        stemContract.feeState(b);
+//        stemContract.blockHeightState(b);
+        System.out.println(stemContract.getBranch(b));
+    }
     @Test
     @Ignore
     public void createTest() {

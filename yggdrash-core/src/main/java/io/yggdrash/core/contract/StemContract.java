@@ -57,13 +57,15 @@ public class StemContract implements Contract<JsonObject> {
             BranchId branchId = stateValue.getBranchId();
             if (!isBranchExist(branchId.toString()) && isBranchIdValid(branchId, stateValue)) {
                 try {
-                    stateValue.init();
                     addBranchId(branchId);
 //                    validatorVerify(params);
 
+                    stateValue.setFee(params.get("fee").getAsBigInteger());
+                    stateValue.setBlockHeight(txReceipt.getBlockHeight());
+
                     state.put(branchId.toString(), stateValue.getJson());
                     addTxId(branchId);
-                    setFee(branchId);
+
                 } catch (Exception e) {
                     e.printStackTrace();
                     txReceipt.setStatus(ExecuteStatus.FALSE);
@@ -76,30 +78,6 @@ public class StemContract implements Contract<JsonObject> {
             log.warn("Failed to convert Branch = {}", params);
         }
         return txReceipt;
-    }
-
-    private Boolean validatorVerify(JsonObject params) {
-        //TODO 벨리데이터들 다른 브랜치에 벨리데이터가 사인한 값들이 맞냐!
-        txReceipt.getIssuer();
-        params.getAsJsonArray("validator");
-
-        return false;
-    }
-
-    public BigInteger setFee(BranchId branchId) {
-        // 현재 블록 하이트와 수수료를 저장한다.
-
-        return null;
-    }
-
-    public BigInteger getFee() {
-        //TODO 수수료 측정
-        return null;
-    }
-
-    // TODO message call to yeed
-    public void callYeed() {
-
     }
 
     /**
@@ -133,18 +111,32 @@ public class StemContract implements Contract<JsonObject> {
     }
 
     private void updateBranch(StemContractStateValue stateValue, JsonObject json) {
-        if (json.has("tag")) {
-            stateValue.setTag(json.get("tag").getAsString());
-        }
-        if (json.has("description")) {
-            stateValue.setDescription(json.get("description").getAsString());
-        }
-        if (json.has("type")) {
-            stateValue.setType(json.get("type").getAsString());
-        }
         if (json.has("fee")) {
             stateValue.setFee(json.get("fee").getAsBigInteger());
         }
+//        if (json.has("validator")) {
+//            stateValue.set (json.get("validator").getAsJsonArray());
+//        }
+    }
+
+    /**
+     * Returns boolean
+     *
+     * @param params
+     */
+    @InvokeTransaction
+    public Boolean extinguishBranch(JsonObject params) {
+        // TODO branch extinguish
+        return false;
+    }
+
+    /**
+     * Returns boolean
+     *
+     * @param branchId
+     */
+    public void callYeed(BranchId branchId) {
+        // TODO message call to yeed
     }
 
     /**
@@ -216,8 +208,9 @@ public class StemContract implements Contract<JsonObject> {
     @ContractQuery
     public String getBranchIdByTxId(JsonObject params) {
         String txId = params.get(TX_ID).getAsString();
-        String branchId = state.get(txId);
-        return branchId == null ? new String() : branchId;
+        JsonObject branchId = state.get(txId);
+        return branchId == null ? new String()
+                : branchId.get("branchId").getAsString();
     }
 
     /**
@@ -279,6 +272,33 @@ public class StemContract implements Contract<JsonObject> {
         return branchIdSet;
     }
 
+    /**
+     * @param params branch id
+     *
+     * @return fee state
+     */
+    public BigInteger feeState(JsonObject params) {
+        String branchId = params.get(BRANCH_ID).getAsString();
+        if (isBranchExist(branchId)) {
+            return getBranchStateValue(branchId).getFee();
+        }
+        return BigInteger.ZERO;
+    }
+
+    /**
+     * @param params branch id
+     *
+     * @return block height state
+     */
+    public Long blockHeightState(JsonObject params) {
+        String branchId = params.get(BRANCH_ID).getAsString();
+        if (isBranchExist(branchId)) {
+            return txReceipt.getBlockHeight();
+        }
+        return null;
+    }
+
+
     private boolean isBranchExist(String branchId) {
         return state.contains(branchId);
     }
@@ -300,14 +320,13 @@ public class StemContract implements Contract<JsonObject> {
     }
 
     private void addTxId(BranchId branchId) {
-        if (!isBranchExist(branchId.toString())) {
+        if (isBranchExist(branchId.toString())
+                && txReceipt.getTxId() != null) {
             JsonObject bid = new JsonObject();
             bid.addProperty("branchId", branchId.toString());
             state.put(txReceipt.getTxId(), bid);
         }
     }
-
-
 
     private boolean isOwnerValid(String owner) {
         String sender = this.txReceipt.getIssuer();
@@ -332,5 +351,11 @@ public class StemContract implements Contract<JsonObject> {
         }
     }
 
+    private Boolean validatorVerify(JsonObject params) {
+        //TODO 벨리데이터들 다른 브랜치에 벨리데이터가 사인한 값들이 맞냐!
+        txReceipt.getIssuer();
+        params.getAsJsonArray("validator");
 
+        return false;
+    }
 }
