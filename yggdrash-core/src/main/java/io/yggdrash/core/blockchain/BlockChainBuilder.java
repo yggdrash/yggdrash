@@ -17,6 +17,9 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import io.yggdrash.core.blockchain.osgi.ContractContainer;
+import io.yggdrash.core.blockchain.osgi.ContractContainerBuilder;
+import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.contract.CoinContract;
 import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.contract.ContractClassLoader;
@@ -50,6 +53,8 @@ public class BlockChainBuilder {
     private TransactionReceiptStore transactionReceiptStore;
     private Runtime runtime;
 
+    private ContractPolicyLoader policyLoader;
+
     public BlockChainBuilder addGenesis(GenesisBlock genesis) {
         this.genesis = genesis;
         return this;
@@ -82,6 +87,11 @@ public class BlockChainBuilder {
 
     public BlockChainBuilder setRuntime(Runtime runtime) {
         this.runtime = runtime;
+        return this;
+    }
+
+    public BlockChainBuilder setPolicyLoader(ContractPolicyLoader policyLoader) {
+        this.policyLoader = policyLoader;
         return this;
     }
 
@@ -132,8 +142,19 @@ public class BlockChainBuilder {
 
         }
 
+        ContractContainer contractContainer = null;
+        if (policyLoader != null) {
+            contractContainer = ContractContainerBuilder.newInstance()
+                    .withFrameworkFactory(policyLoader.getFrameworkFactory())
+                    .withContainerConfig(policyLoader.getContainerConfig())
+                    .withBranchId(branch.getBranchId().toString())
+                    .withStateStore(stateStore)
+                    .withTransactionReceiptStore(transactionReceiptStore)
+                    .build();
+        }
+
         return new BlockChain(branch, genesisBlock, blockStore,
-                transactionStore, metaStore, runtime);
+                transactionStore, metaStore, runtime, contractContainer);
     }
 
     private Contract getContract(ContractVersion contractVersion) {
