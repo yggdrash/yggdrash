@@ -63,11 +63,12 @@ public class TransactionBuilder {
 
 
 
-    public TransactionBuilder addTxBody(ContractVersion contractVersion, String method, JsonObject params) {
+    public TransactionBuilder addTxBody(ContractVersion contractVersion, String method, JsonObject params, boolean isSystem) {
         JsonObject txObj = new JsonObject();
         txObj.addProperty("contractVersion", contractVersion.toString());
         txObj.addProperty("method", method);
         txObj.add("params", params);
+        txObj.addProperty("isSystem", isSystem);
         return addTransactionBody(txObj);
     }
 

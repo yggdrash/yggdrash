@@ -58,7 +58,7 @@ public class GenesisBlock {
         builder.setBranchId(branch.getBranchId())
                 .setTimeStamp(branch.getTimestamp())
         ;
-        contracts.forEach(c -> builder.addTxBody(c.getContractVersion(), "init", c.getInit()));
+        contracts.forEach(c -> builder.addTxBody(c.getContractVersion(), "init", c.getInit(), c.isSystem()));
         return builder;
     }
 
