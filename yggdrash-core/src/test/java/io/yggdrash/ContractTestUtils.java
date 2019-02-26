@@ -90,12 +90,12 @@ public class ContractTestUtils {
                                               JsonArray contracts,
                                               BigInteger fee,
                                               String timestamp) {
+        JsonObject branchSample = new JsonObject();
         JsonObject branch = new JsonObject();
         branch.addProperty("name", name);
         branch.addProperty("symbol", symbol);
         branch.addProperty("property", property);
         branch.addProperty("description", description);
-        branch.addProperty("fee", fee);
         branch.add("contracts", contracts);
         if (timestamp == null) {
             branch.addProperty("timestamp", "00000166c837f0c9");
@@ -106,7 +106,11 @@ public class ContractTestUtils {
         JsonArray validators = new JsonArray();
         validators.add(TestConstants.wallet().getHexAddress());
         branch.add("validator", validators);
-        return branch;
+
+
+        branchSample.add("branch", branch);
+        branchSample.addProperty("fee", fee);
+        return branchSample;
     }
 
     public static JsonObject signBranch(Wallet wallet, JsonObject raw) {

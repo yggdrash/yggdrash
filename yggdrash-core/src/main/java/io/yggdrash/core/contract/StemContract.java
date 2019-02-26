@@ -14,6 +14,7 @@ import io.yggdrash.core.store.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigInteger;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -57,7 +58,11 @@ public class StemContract implements Contract<JsonObject> {
                 try {
                     stateValue.init();
                     addBranchId(branchId);
+//                    validatorVerify(params);
+
                     state.put(branchId.toString(), stateValue.getJson());
+                    addTxId(branchId);
+                    setFee(branchId);
                 } catch (Exception e) {
                     e.printStackTrace();
                     txReceipt.setStatus(ExecuteStatus.FALSE);
@@ -70,6 +75,30 @@ public class StemContract implements Contract<JsonObject> {
             log.warn("Failed to convert Branch = {}", params);
         }
         return txReceipt;
+    }
+
+    private Boolean validatorVerify(JsonObject params) {
+        //TODO 벨리데이터들 다른 브랜치에 벨리데이터가 사인한 값들이 맞냐!
+        txReceipt.getIssuer();
+        params.getAsJsonArray("validator");
+
+        return false;
+    }
+
+    public BigInteger setFee(BranchId branchId) {
+        // 현재 블록 하이트와 수수료를 저장한다.
+
+        return null;
+    }
+
+    public BigInteger getFee() {
+        //TODO 수수료 측정
+        return null;
+    }
+
+    // TODO message call to yeed
+    public void callYeed() {
+
     }
 
     /**
@@ -88,6 +117,7 @@ public class StemContract implements Contract<JsonObject> {
                     && stateValue != null && !isBranchExist(branchId.toString())
                     && isBranchIdValid(branchId, stateValue)) {
                 updateBranch(stateValue, params);
+
                 state.put(branchId.toString(), stateValue.getJson());
                 addTxId(branchId);
                 txReceipt.setStatus(ExecuteStatus.SUCCESS);
@@ -272,9 +302,9 @@ public class StemContract implements Contract<JsonObject> {
 
     private void addTxId(BranchId branchId) {
         if (!isBranchExist(branchId.toString())) {
-            JsonObject txId = new JsonObject();
-            txId.addProperty("txId", txReceipt.getTxId());
-            state.put(branchId.toString(), txId);
+            JsonObject bid = new JsonObject();
+            bid.addProperty("branchId", branchId.toString());
+            state.put(txReceipt.getTxId(), bid);
         }
     }
 

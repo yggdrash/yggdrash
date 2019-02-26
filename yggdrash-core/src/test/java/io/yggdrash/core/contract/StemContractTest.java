@@ -83,6 +83,12 @@ public class StemContractTest {
     }
 
     @Test
+    public void test() {
+        JsonObject p = createParams();
+//        stemContract.getBranch(p);
+        System.out.println(stemContract.getBranch(p));
+    }
+    @Test
     @Ignore
     public void createTest() {
         // TODO StemContract Change Spec

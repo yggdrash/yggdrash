@@ -31,14 +31,13 @@ import java.util.List;
  */
 public class StemContractStateValue extends Branch {
 
+    private static BigInteger fee;
     private BranchType type;
     private String tag;
-    private BigInteger fee;
     private final List<ContractVersion> contractHistory = new ArrayList<>();
 
     public StemContractStateValue(JsonObject json) {
         super(json);
-
         if (json.has("type")) {
             this.type = BranchType.of(getJson().get("type").getAsString());
         }
@@ -73,6 +72,10 @@ public class StemContractStateValue extends Branch {
     public void setTag(String tag) {
         this.tag = tag;
         getJson().addProperty("tag", tag);
+    }
+
+    public BigInteger getFee() {
+        return fee;
     }
 
     public void setFee(BigInteger fee) {
@@ -115,6 +118,13 @@ public class StemContractStateValue extends Branch {
     }
 
     public static StemContractStateValue of(JsonObject json) {
+        JsonObject branch = json.deepCopy().getAsJsonObject("branch");
+        if (branch != null) {
+            if (json.has("fee")) {
+                fee = json.get("fee").getAsBigInteger();
+            }
+            return new StemContractStateValue(branch);
+        }
         return new StemContractStateValue(json.deepCopy());
     }
 
