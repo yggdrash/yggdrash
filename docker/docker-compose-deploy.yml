@@ -15,8 +15,8 @@ services:
         target: /.yggdrash/keystore/nodePri.key
     network_mode: host
     environment:
-      - SPRING_PROFILES_ACTIVE=dev,gateway,bootstrap
-      - YGGDRASH_NODE_GRPC_HOST=172.16.10.159
+      - SPRING_PROFILES_ACTIVE=${PROFILE:-dev},gateway,bootstrap
+      - YGGDRASH_NODE_GRPC_HOST=${HOST:-172.16.10.159}
     volumes:
       - yggdrash-bs:/.yggdrash
     restart: on-failure
@@ -26,9 +26,9 @@ services:
     container_name: yggdrash-master
     network_mode: host
     environment:
-      - SPRING_PROFILES_ACTIVE=dev,gateway,master
+      - SPRING_PROFILES_ACTIVE=${PROFILE:-dev},gateway,master
       - SERVER_PORT=8081
-      - YGGDRASH_NODE_GRPC_HOST=172.16.10.159
+      - YGGDRASH_NODE_GRPC_HOST=${HOST:-172.16.10.159}
       - YGGDRASH_NODE_GRPC_PORT=32919
     volumes:
       - yggdrash-master:/.yggdrash
@@ -39,9 +39,9 @@ services:
     container_name: yggdrash-node
     network_mode: host
     environment:
-      - SPRING_PROFILES_ACTIVE=dev,gateway
+      - SPRING_PROFILES_ACTIVE=${PROFILE:-dev},gateway
       - SERVER_PORT=8082
-      - YGGDRASH_NODE_GRPC_HOST=172.16.10.159
+      - YGGDRASH_NODE_GRPC_HOST=${HOST:-172.16.10.159}
       - YGGDRASH_NODE_GRPC_PORT=32920
     restart: on-failure
 
