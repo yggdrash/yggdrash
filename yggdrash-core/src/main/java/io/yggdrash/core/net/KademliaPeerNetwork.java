@@ -92,7 +92,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
     */
 
     @Override
-    public void receivedTransaction(TransactionHusk tx) { //R
+    public void receivedTransaction(TransactionHusk tx) {
         List<PeerHandler> getHandlerList = getHandlerList(tx.getBranchId());
         for (PeerHandler peerHandler : getHandlerList) {
             try {
@@ -104,7 +104,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
     }
 
     @Override
-    public void chainedBlock(BlockHusk block) { //R
+    public void chainedBlock(BlockHusk block) { 
         List<PeerHandler> getHandlerList = getHandlerList(block.getBranchId());
         for (PeerHandler peerHandler : getHandlerList) {
             try {
