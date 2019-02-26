@@ -31,3 +31,6 @@ logs/
 /dist/
 /nbdist/
 /.nb-gradle/
+
+### Core Contract ###
+yggdrash-core/src/main/resources/system-contracts
