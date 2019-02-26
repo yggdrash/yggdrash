@@ -28,6 +28,7 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.store.StoreBuilder;
 
@@ -60,7 +61,7 @@ public class BlockChainTestUtils {
         JsonObject json = ContractTestUtils.createSampleBranchJson();
 
         TransactionBuilder builder = new TransactionBuilder();
-        return builder.addTxBody(Constants.STEM_CONTRACT_VERSION, "create", json)
+        return builder.addTxBody(Constants.STEM_CONTRACT_VERSION, "create", json, false)
                 .setWallet(TestConstants.wallet())
                 .setBranchId(genesis.getBlock().getBranchId())
                 .build();
@@ -71,7 +72,7 @@ public class BlockChainTestUtils {
         JsonObject params = new JsonObject();
         params.add(branchId.toString(), branch);
         TransactionBuilder builder = new TransactionBuilder();
-        return builder.addTxBody(Constants.STEM_CONTRACT_VERSION, method, params)
+        return builder.addTxBody(Constants.STEM_CONTRACT_VERSION, method, params, false)
                 .setWallet(TestConstants.wallet())
                 .setBranchId(branchId)
                 .build();
@@ -95,6 +96,7 @@ public class BlockChainTestUtils {
         return BlockChainBuilder.Builder()
                 .addGenesis(genesis)
                 .setStoreBuilder(storeBuilder)
+                .setPolicyLoader(new ContractPolicyLoader())
                 .build();
     }
 

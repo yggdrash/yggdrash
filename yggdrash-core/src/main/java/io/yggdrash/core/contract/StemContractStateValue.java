@@ -78,7 +78,7 @@ public class StemContractStateValue extends Branch {
         getJson().addProperty("description", description);
     }
 
-    List<ContractVersion> getContractHistory() {
+    public List<ContractVersion> getContractHistory() {
         return contractHistory;
     }
 
