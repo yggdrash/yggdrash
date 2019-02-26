@@ -32,11 +32,12 @@ import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.TempStateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class Runtime<T> {
     protected static final Logger log = LoggerFactory.getLogger(Runtime.class);
@@ -81,14 +82,14 @@ public class Runtime<T> {
         // - Index *(Height)
         // Map String
 
-        if(block.getIndex() == 0) {
+        if (block.getIndex() == 0) {
             // TODO first transaction is genesis
             // TODO init method don't call any more
         }
 
         BlockRuntimeResult result = new BlockRuntimeResult(block);
         TempStateStore blockState = new TempStateStore(stateStore);
-        for(TransactionHusk tx: block.getBody()) {
+        for (TransactionHusk tx: block.getBody()) {
             TransactionReceipt txReceipt = new TransactionReceiptImpl(tx);
             // set Block ID
             txReceipt.setBlockId(block.getHash().toString());
@@ -96,7 +97,7 @@ public class Runtime<T> {
             txReceipt.setBranchId(block.getBranchId().toString());
 
             // Transaction invoke here
-            // save Tranction Receipt
+            // save Transaction Receipt
             TempStateStore txResult = invoke(tx, txReceipt, blockState);
             if (txReceipt.isSuccess()) {
                 blockState.putAll(txResult.changeValues());
@@ -113,15 +114,11 @@ public class Runtime<T> {
     }
 
     public void commitBlockResult(BlockRuntimeResult result) {
-        // TODO store transaction bybatch
+        // TODO store transaction by batch
         Map<String, JsonObject> changes = result.getBlockResult();
-        result.getTxReceipts().stream().forEach(txr -> {
-            txReceiptStore.put(txr);
-        });
+        result.getTxReceipts().forEach(txr -> txReceiptStore.put(txr));
         if (!changes.isEmpty()) {
-            changes.entrySet().stream().forEach(r -> {
-                stateStore.put(r.getKey(), r.getValue());
-            });
+            changes.forEach((key, value) -> stateStore.put(key, value));
 
         }
         // TODO make transaction Receipt Event
@@ -133,7 +130,7 @@ public class Runtime<T> {
     public TransactionRuntimeResult invoke(TransactionHusk tx) {
         TransactionReceipt txReceipt = new TransactionReceiptImpl(tx);
         TransactionRuntimeResult trr = new TransactionRuntimeResult(tx);
-        trr.setTransctionReceipt(txReceipt);
+        trr.setTransactionReceipt(txReceipt);
 
         TempStateStore store = invoke(tx, txReceipt, stateStore);
         trr.setChangeValues(store.changeValues());
@@ -153,9 +150,10 @@ public class Runtime<T> {
                 // check contract Version
                 ContractVersion txContractVersion = ContractVersion.of(txBody.get("contractVersion").getAsString());
                 log.debug("txContractVersion {} ", txContractVersion);
+                txReceipt.setContractVersion(txContractVersion.toString());
                 RuntimeContractWrap wrap = contracts.get(txContractVersion);
                 TempStateStore txElementState = wrap.invokeTransaction(txBody, txReceipt, txState);
-                if(txReceipt.isSuccess()) {
+                if (txReceipt.isSuccess()) {
                     txState.putAll(txElementState.changeValues());
                 }
                 log.debug("invoke {} is {}", txReceipt.getTxId(), txReceipt.isSuccess());
@@ -167,7 +165,7 @@ public class Runtime<T> {
             txReceipt.setStatus(ExecuteStatus.ERROR);
             JsonObject errorLog = new JsonObject();
             errorLog.addProperty("error", e.getMessage());
-            txReceipt.addLog(errorLog);
+            txReceipt.addLog(errorLog.toString());
         }
         return txState;
     }
@@ -185,4 +183,10 @@ public class Runtime<T> {
     public TransactionReceiptStore getTransactionReceiptStore() {
         return this.txReceiptStore;
     }
+
+    public TransactionReceipt getTransactionReceipt(String txId) {
+        return txReceiptStore.get(txId);
+    }
+
+
 }

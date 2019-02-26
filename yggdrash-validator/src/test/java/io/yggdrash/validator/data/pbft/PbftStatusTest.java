@@ -235,7 +235,7 @@ public class PbftStatusTest {
     @Test
     public void verifyTest() {
         assertTrue(PbftStatus.verify(this.pbftStatus));
-        log.debug(Hex.toHexString(this.pbftStatus.getHashForSignning()));
+        log.debug(Hex.toHexString(this.pbftStatus.getHashForSigning()));
         log.debug(Hex.toHexString(this.pbftStatus.getSignature()));
         assertTrue(PbftStatus.verify(this.pbftStatus2));
         assertTrue(PbftStatus.verify(this.pbftStatus3));
@@ -245,7 +245,7 @@ public class PbftStatusTest {
                 this.pbftStatus.getUnConfirmedPbftMessageMap(),
                 TimeUtils.time(),
                 this.pbftStatus.getSignature());
-        log.debug(Hex.toHexString(falsePbftStatus.getHashForSignning()));
+        log.debug(Hex.toHexString(falsePbftStatus.getHashForSigning()));
         log.debug(Hex.toHexString(this.pbftStatus.getSignature()));
         // todo: check validation with pubkey
         //assertFalse(PbftStatus.verify(falsePbftStatus));

@@ -9,7 +9,7 @@ import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
-import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.InvokeTransaction;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -267,7 +267,7 @@ public class ContractManager {
 
         Map<String, Method> methods = Arrays.stream(service.getClass().getDeclaredMethods())
                 .filter(method -> {
-                    if (method.isAnnotationPresent(InvokeTransction.class)) {
+                    if (method.isAnnotationPresent(InvokeTransaction.class)) {
                         return true;
                     }
                     return false;

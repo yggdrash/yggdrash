@@ -1,5 +1,7 @@
 package io.yggdrash.core.p2p;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -127,7 +129,7 @@ public class PeerBucket {
         return peers;
     }
 
-    // Debug only
+    @VisibleForTesting
     Set<Peer> getReplacements() {
         return replacements;
     }

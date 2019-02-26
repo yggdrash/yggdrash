@@ -1,7 +1,5 @@
 package io.yggdrash.core.blockchain.genesis;
 
-import com.google.gson.JsonObject;
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
@@ -10,18 +8,13 @@ import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
-
 public class GenesisBlock {
-    private static final Logger log = LoggerFactory.getLogger(GenesisBlock.class);
     private final BlockHusk block;
     private final Branch branch;
 
@@ -30,7 +23,7 @@ public class GenesisBlock {
      *
      * @param branch branch info
      */
-    private GenesisBlock(Branch branch) throws IOException {
+    private GenesisBlock(Branch branch) {
         this.branch = branch;
         this.block = toBlock();
     }
@@ -59,32 +52,19 @@ public class GenesisBlock {
         return new BlockHusk(coreBlock.toProtoBlock());
     }
 
-    // Validator initial value
-    private TransactionBuilder validatorTransaction(TransactionBuilder builder) {
-        List<String> validators = branch.getValidators();
-        JsonObject validatorParams = new JsonObject();
-        validatorParams.addProperty("validator", String.join(",",validators));
-        // TODO Validator Contract Version
-        builder.addTxBody(Constants.VALIDATOR_CONTRACT_VERSION, "init", validatorParams, false);
-
-        return builder;
-    }
-
     // Contract initial value
     private TransactionBuilder contractTransaction(TransactionBuilder builder) {
         List<BranchContract> contracts = branch.getBranchContracts();
         builder.setBranchId(branch.getBranchId())
                 .setTimeStamp(branch.getTimestamp())
         ;
-        contracts.stream().forEach(c -> {
-            builder.addTxBody(c.getContractVersion(), "init", c.getInit(), c.isSystem());
-        });
+        contracts.forEach(c -> builder.addTxBody(c.getContractVersion(), "init", c.getInit(), c.isSystem()));
         return builder;
     }
 
 
     private Block generatorGenesisBlock(Transaction tx) {
-        BlockBody blockBody = new BlockBody(Arrays.asList(tx));
+        BlockBody blockBody = new BlockBody(Collections.singletonList(tx));
         BlockHeader blockHeader = new BlockHeader(
                 branch.getBranchId().getBytes(),
                 new byte[8],

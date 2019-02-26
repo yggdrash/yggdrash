@@ -31,15 +31,15 @@ import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
-import java.math.BigInteger;
-import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.math.BigInteger;
 
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class RuntimeTest {
-    Logger log = LoggerFactory.getLogger(RuntimeTest.class);
+    private Logger log = LoggerFactory.getLogger(RuntimeTest.class);
 
     @Test
     public void yeedRuntimeTest() {
@@ -101,7 +101,7 @@ public class RuntimeTest {
 
         log.debug(testTx.toString());
         TransactionRuntimeResult result = runtime.invoke(testTx);
-        result.getReceipt().getTxLog().stream().forEach(l -> log.debug(l.toString()));
+        result.getReceipt().getTxLog().forEach(l -> log.debug(l.toString()));
 
         assertThat(result.getReceipt().isSuccess()).isTrue();
         System.out.println(result.getChangeValues().get("BRANCH_ID_LIST"));

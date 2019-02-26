@@ -1,37 +1,58 @@
-version: '3'
+version: '3.3'
 
 services:
 
-  yggdrash-node1:
+  yggdrash-bs:
     image: yggdrash/yggdrash-node
+    container_name: yggdrash-bs
     build:
       context: ./
       args:
         JAR_FILE: yggdrash-node.jar
-    container_name: yggdrash-node1
-    ports:
-    - 8080:8080
-    - 32918:32918
+    secrets:
+      - source: nodePri.key
+        target: /.yggdrash/keystore/nodePri.key
+    ports: ['8080:8080']
     environment:
-    - YGGDRASH_NODE_GRPC_HOST=yggdrash-node1
-    - YGGDRASH_NODE_MAX_PEERS=25
+      - SPRING_PROFILES_ACTIVE=dev,gateway,bootstrap
+      - 'SPRING_APPLICATION_JSON={
+          "yggdrash.node.grpc.host": "yggdrash-bs",
+          "yggdrash.node.seed-peer-list": ["ynode://57c6510966903044581c148bb67eb47dbbeebef1@yggdrash-bs:32918"]
+        }'
     volumes:
-    - ynode1-data:/.yggdrash
-    restart: on-failure
-  yggdrash-node2:
+      - yggdrash-bs:/.yggdrash
+
+  yggdrash-master:
     image: yggdrash/yggdrash-node
-    container_name: yggdrash-node2
-    ports:
-    - 8081:8080
+    container_name: yggdrash-master
+    ports: ['8081:8080']
     environment:
-    - YGGDRASH_NODE_GRPC_HOST=yggdrash-node2
-    - RUN_SLEEP=5
+      - SPRING_PROFILES_ACTIVE=dev,gateway,master
+      - 'SPRING_APPLICATION_JSON={
+          "yggdrash.node.grpc.host": "yggdrash-master",
+          "yggdrash.node.seed-peer-list": ["ynode://57c6510966903044581c148bb67eb47dbbeebef1@yggdrash-bs:32918"]
+        }'
     volumes:
-    - ynode2-data:/.yggdrash
-    restart: on-failure
+      - yggdrash-master:/.yggdrash
+
+  yggdrash-node:
+    image: yggdrash/yggdrash-node
+    ports: ['8082-9000:8080']
+    environment:
+      - RUN_SLEEP=5
+      - SPRING_PROFILES_ACTIVE=dev,gateway
+      - 'SPRING_APPLICATION_JSON={
+          "yggdrash.node.seed-peer-list": ["ynode://57c6510966903044581c148bb67eb47dbbeebef1@yggdrash-bs:32918"]
+        }'
+
 
 volumes:
-  ynode1-data:
+  yggdrash-bs:
     driver: local
-  ynode2-data:
+  yggdrash-master:
     driver: local
+
+
+secrets:
+  nodePri.key:
+    file: ./config/nodePri.key

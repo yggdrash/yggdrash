@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.node.discovery;
+package io.yggdrash.node;
 
 import ch.qos.logback.classic.Level;
 import io.grpc.ManagedChannel;
@@ -24,8 +24,6 @@ import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.testing.GrpcCleanupRule;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerHandlerFactory;
-import io.yggdrash.node.GRpcPeerHandler;
-import io.yggdrash.node.GRpcTestNode;
 import io.yggdrash.node.service.BlockChainService;
 import io.yggdrash.node.service.DiscoveryService;
 import org.junit.Before;
@@ -36,16 +34,16 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-public class AbstractDiscoveryNodeTest {
-    static final Logger log = LoggerFactory.getLogger(AbstractDiscoveryNodeTest.class);
+public class AbstractNodeTest {
+    protected static final Logger log = LoggerFactory.getLogger(AbstractNodeTest.class);
     protected static final ch.qos.logback.classic.Logger rootLogger =
             (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
-    private static final int SEED_PORT = 32918;
+    protected static final int SEED_PORT = 32918;
 
     private PeerHandlerFactory factory;
 
-    protected List<GRpcTestNode> nodeList;
+    protected List<TestNode> nodeList;
 
     static {
         ((ch.qos.logback.classic.Logger) LoggerFactory.getLogger("io.grpc.netty")).setLevel(Level.INFO);
@@ -68,8 +66,8 @@ public class AbstractDiscoveryNodeTest {
         };
     }
 
-    private GRpcTestNode testNode(int port, boolean enableBranch) {
-        GRpcTestNode node = new GRpcTestNode(factory, port, enableBranch);
+    protected TestNode createNode(int port, boolean enableBranch) {
+        TestNode node = new TestNode(factory, port, enableBranch);
         nodeList.add(node);
         Server server = createAndStartServer(node);
         gRpcCleanup.register(server);
@@ -80,7 +78,7 @@ public class AbstractDiscoveryNodeTest {
         return InProcessChannelBuilder.forName(peer.getYnodeUri()).directExecutor().build();
     }
 
-    protected Server createAndStartServer(GRpcTestNode node) {
+    protected Server createAndStartServer(TestNode node) {
         String ynodeUri = node.peerTableGroup.getOwner().getYnodeUri();
         InProcessServerBuilder builder = InProcessServerBuilder.forName(ynodeUri).directExecutor().addService(
                 new DiscoveryService(node.discoveryConsumer));
@@ -97,18 +95,18 @@ public class AbstractDiscoveryNodeTest {
         }
     }
 
-    void bootstrapNodes(int nodeCount) {
+    protected void bootstrapNodes(int nodeCount) {
         bootstrapNodes(nodeCount, false);
     }
 
     protected void bootstrapNodes(int nodeCount, boolean enableBranch) {
         for (int i = SEED_PORT; i < SEED_PORT + nodeCount; i++) {
-            GRpcTestNode node = testNode(i, enableBranch);
+            TestNode node = createNode(i, enableBranch);
             node.bootstrapping();
         }
     }
 
-    protected GRpcTestNode refreshAndHealthCheck(GRpcTestNode node) {
+    protected TestNode refreshAndHealthCheck(TestNode node) {
         node.peerTask.refresh();
         node.peerTask.healthCheck();
         return node;

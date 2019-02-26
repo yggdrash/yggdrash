@@ -37,7 +37,15 @@ This is the implementation written in Java and runs on Linux, OSX and Windows.
 
 Yggdrash requires `JAVA` 1.8+ compiler to build. To install Java, follow this [link](http://www.oracle.com/technetwork/java/javase/overview/index.html).
 
-Open JDK or Oracle JDK 1.8 to 11 are supported.
+| JDK Version   | sourceCompatibility | Build | Run |
+| --------------|---------------------|-------|-----|
+| 12.ea.31-open | 12                  | ✅    | ✅  |
+| 11.0.2-zulu   | 11                  | ✅    | ✅  |
+| 11.0.2-open   | 11                  | ✅    | ✅  |
+| 10.0.2-open   | 10                  | ✅    | ✅  |
+| 9.0.4-open    | 9                   | ✅    | ✅  |
+| 8.0.202-zulu  | 1.8  (recommended)  | ✅    | ✅  |
+| 8.0.201-oracle| 1.8                 | ✅    | ✅  |
 
 ### Getting the source
 
@@ -65,7 +73,7 @@ You can fully dockerize the yggdrash node. For more information refer to [docker
 Docker is one quick way for running an yggdrash node:
 
 ```
-docker run --rm -p 8080:8080 -v $HOME/.yggdrash:/.yggdrash yggdrash/yggdrash-node
+docker run --rm -e SPRING_PROFILES_ACTIVE=local,master,gateway -p 8080:8080 -v $HOME/.yggdrash:/.yggdrash yggdrash/yggdrash-node
 ```
 
 Yggdrash node binds to `localhost` using `8080` for the RESTful API & JSON RPC, and `32918` for the gRPC by default.
@@ -87,13 +95,14 @@ yggdrash-node/build/libs/*.jar
 ```
 
 To find out usages of all command line options:
-- `--spring.profiles.active=value` Environment property to specify which profiles are active (default: default, docker default: prod-production mode)
+- `--spring.profiles.active=value` Environment property to specify which profiles are active
+  - env: local(default), dev(for test), prod(docker default), debug(for debug logging)
+  - role: bootstrap(node discovery bootstrap node), master(block proposer for test), gateway(restful api) 
 - `--server.address=value` JSON RPC & RESTful API services listening address (default: localhost)
 - `--server.port=value` JSON RPC & RESTful API services listening port (default: 8080)
 - `--yggdrash.node.grpc.host=value` gRPC service listening address (default: localhost)
 - `--yggdrash.node.grpc.port=value` gRPC service listening port (default: 32918)
 - `--yggdrash.node.max-peers=value` maximum number of P2P network peers (default: 25)
-- `--yggdrash.branch.default.active=true|false` activate default branches or not (default: true)
 
 ### Running Tests
 To launch yggdrash's tests, run:

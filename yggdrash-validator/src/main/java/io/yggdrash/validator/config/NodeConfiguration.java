@@ -9,6 +9,7 @@ import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.ebft.EbftBlockChain;
 import io.yggdrash.validator.data.pbft.PbftBlockChain;
 import org.spongycastle.crypto.InvalidCipherTextException;
+import org.spongycastle.util.encoders.Hex;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,10 +17,27 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
+
+import static io.yggdrash.common.config.Constants.DEFAULT_PORT;
 
 @Configuration
 public class NodeConfiguration {
+
+    @Bean
+    String grpcHost() {
+        return InetAddress.getLoopbackAddress().getHostAddress();
+    }
+
+    @Bean
+    long grpcPort() {
+        if (System.getProperty("grpc.port") == null) {
+            return DEFAULT_PORT;
+        } else {
+            return Integer.parseInt(System.getProperty("grpc.port"));
+        }
+    }
 
     @Bean
     DefaultConfig defaultConfig() {
@@ -54,7 +72,16 @@ public class NodeConfiguration {
     @Bean
     @ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "pbft")
     PbftBlockChain pbftBlockChain(Block genesisBlock, DefaultConfig defaultConfig) {
-        return new PbftBlockChain(genesisBlock, defaultConfig);
+        String dbPath = defaultConfig.getDatabasePath();
+        String keyStorePath = grpcHost() + "_" + grpcPort() + "/"
+                + Hex.toHexString(genesisBlock.getHeader().getChain()) + "/pbftKey";
+        String blockStorePath = grpcHost() + "_" + grpcPort() + "/"
+                + Hex.toHexString(genesisBlock.getHeader().getChain()) + "/pbftBlock";
+        String txStorePath = grpcHost() + "_" + grpcPort() + "/"
+                + Hex.toHexString(genesisBlock.getHeader().getChain()) + "/pbftTx";
+
+        return new PbftBlockChain(genesisBlock, defaultConfig, dbPath, keyStorePath, blockStorePath,
+                txStorePath);
     }
 
 }

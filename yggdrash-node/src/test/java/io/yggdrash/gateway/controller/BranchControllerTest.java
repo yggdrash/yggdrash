@@ -61,7 +61,7 @@ public class BranchControllerTest  extends TestConstants.CiTest {
     }
 
     @Test
-    public void shouldGetStemBrancheStates() throws Exception {
+    public void shouldGetStemBranchStates() throws Exception {
         mockMvc.perform(get("/branches/" + TestConstants.yggdrash() + "/states"))
                 .andDo(print())
                 .andExpect(status().isOk()); // TODO fixed already in devBranch

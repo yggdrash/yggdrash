@@ -23,7 +23,8 @@ import io.grpc.ServerBuilder;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.p2p.KademliaOptions;
 import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.node.GRpcTestNode;
+import io.yggdrash.node.AbstractNodeTest;
+import io.yggdrash.node.TestNode;
 import io.yggdrash.node.service.BlockChainService;
 import io.yggdrash.node.service.DiscoveryService;
 import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
@@ -37,25 +38,25 @@ import org.springframework.context.support.GenericApplicationContext;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(JUnit4.class)
-public class TcpDiscoveryNodeTest extends AbstractDiscoveryNodeTest {
+public class NodeTcpDiscoveryTest extends AbstractNodeTest {
 
     private final AbstractApplicationContext context = new GenericApplicationContext();
 
     @Override
     public void setUp() {
         super.setUp();
+        context.refresh();
     }
 
     @Test
-    public void testDiscoveryLarge() {
+    public void test() {
         TestConstants.SlowTest.apply();
-        context.refresh();
 
         // act
         bootstrapNodes(50);
 
         // assert
-        for (GRpcTestNode node : nodeList) {
+        for (TestNode node : nodeList) {
             nodeList.forEach(this::refreshAndHealthCheck);
             assertThat(node.getActivePeerCount()).isGreaterThanOrEqualTo(KademliaOptions.BUCKET_SIZE);
         }
@@ -68,7 +69,7 @@ public class TcpDiscoveryNodeTest extends AbstractDiscoveryNodeTest {
     }
 
     @Override
-    protected Server createAndStartServer(GRpcTestNode node) {
+    protected Server createAndStartServer(TestNode node) {
         GrpcServerBuilderConfigurer configurer = builder -> {
             builder.addService(new DiscoveryService(node.discoveryConsumer));
             if (node.blockChainConsumer != null) {

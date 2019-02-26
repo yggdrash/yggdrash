@@ -23,9 +23,10 @@ import io.yggdrash.core.contract.ExecuteStatus;
 import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.contract.methods.ContractMethod;
 import io.yggdrash.core.runtime.annotation.Genesis;
-import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.InvokeTransaction;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.TempStateStore;
+
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
@@ -55,7 +56,7 @@ public class RuntimeInvoke<T> {
 
     private void transactionReceipt() {
         // TODO transactionReceipt is required
-        for(Field f : ContractUtils.txReceiptFields(contract)) {
+        for (Field f : ContractUtils.txReceiptFields(contract)) {
             transactionReceiptField = f;
             f.setAccessible(true);
         }
@@ -64,7 +65,7 @@ public class RuntimeInvoke<T> {
     // TODO Change Meta info
     // TODO filter invoke jSonObject
     private Map<String, ContractMethod> getInvokeMethods(Contract<T> contract) {
-        return ContractUtils.contractMethods(contract, InvokeTransction.class);
+        return ContractUtils.contractMethods(contract, InvokeTransaction.class);
     }
 
     // TODO remove
@@ -91,20 +92,20 @@ public class RuntimeInvoke<T> {
         String methodName = txBody.get("method").getAsString();
         ContractMethod method = invokeMethods.get(methodName);
         // filter method exist
-        if(method == null) {
+        if (method == null) {
             txReceipt.setStatus(ExecuteStatus.ERROR);
-            txReceipt.addLog(errorLog("method is not exist"));
+            txReceipt.addLog(errorLog("method is not exist").toString());
             return store;
         }
         // check exist params
-        if(txBody.has("params") && method.isParams()) {
+        if (txBody.has("params") && method.isParams()) {
             JsonObject params = txBody.getAsJsonObject("params");
             method.getMethod().invoke(contract, params);
         } else if (!method.isParams()) {
             method.getMethod().invoke(contract);
         } else {
             txReceipt.setStatus(ExecuteStatus.ERROR);
-            txReceipt.addLog(errorLog("params is not exist"));
+            txReceipt.addLog(errorLog("params is not exist").toString());
             return store;
         }
         return store;

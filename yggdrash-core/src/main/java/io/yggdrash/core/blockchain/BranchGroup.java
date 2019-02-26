@@ -19,6 +19,7 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.contract.ContractVersion;
+import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.exception.DuplicatedException;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NonExistObjectException;
@@ -123,6 +124,11 @@ public class BranchGroup {
     public TransactionReceiptStore getTransactionReceiptStore(BranchId branchId) {
         return branches.get(branchId).getRuntime().getTransactionReceiptStore();
     }
+
+    public TransactionReceipt getTransactionReceipt(BranchId branchId, String transactionId) {
+        return branches.get(branchId).getRuntime().getTransactionReceipt(transactionId);
+    }
+
 
     public List<TransactionHusk> getUnconfirmedTxs(BranchId branchId) {
         if (branches.containsKey(branchId)) {

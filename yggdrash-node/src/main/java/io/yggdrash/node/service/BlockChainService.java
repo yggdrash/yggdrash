@@ -21,7 +21,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
     private static final Logger log = LoggerFactory.getLogger(BlockChainService.class);
     private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
 
-    private BlockChainConsumer blockChainConsumer;
+    private final BlockChainConsumer blockChainConsumer;
 
     @Autowired
     public BlockChainService(BlockChainConsumer blockChainConsumer) {

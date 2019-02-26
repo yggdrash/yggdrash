@@ -22,7 +22,8 @@ import io.yggdrash.core.p2p.KademliaOptions;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerTable;
 import io.yggdrash.core.util.PeerTableCounter;
-import io.yggdrash.node.GRpcTestNode;
+import io.yggdrash.node.AbstractNodeTest;
+import io.yggdrash.node.TestNode;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -32,7 +33,7 @@ import java.util.List;
 import java.util.Set;
 
 @RunWith(JUnit4.class)
-public class InProcessDiscoveryNodeTest extends AbstractDiscoveryNodeTest {
+public class NodeInProcessDiscoveryTest extends AbstractNodeTest {
 
     @Test
     public void underDefaultBucketSizeNetworkTest() {
@@ -68,9 +69,10 @@ public class InProcessDiscoveryNodeTest extends AbstractDiscoveryNodeTest {
         int maxBucket = 0;
         int maxPeers = 0;
         Set<Peer> peerSet = new HashSet<>();
-        for (GRpcTestNode node : nodeList) {
+        for (TestNode node : nodeList) {
             List<Peer> peerList =
-                    node.peerTableGroup.getClosestPeers(TestConstants.yggdrash(), node.peerTableGroup.getOwner(), limit);
+                    node.peerTableGroup.getClosestPeers(
+                            TestConstants.yggdrash(), node.peerTableGroup.getOwner(), limit);
             peerSet.addAll(peerList);
 
             PeerTable peerTable = node.peerTableGroup.getPeerTable(TestConstants.yggdrash());
@@ -78,13 +80,13 @@ public class InProcessDiscoveryNodeTest extends AbstractDiscoveryNodeTest {
                 continue;
             }
             int peers = counter.use(peerTable).totalPeerOfBucket();
-            int buket = peerTable.getBucketsCount();
+            int bucket = peerTable.getBucketsCount();
 
             if (peers > maxPeers) {
                 maxPeers = peers;
             }
-            if (buket > maxBucket) {
-                maxBucket = buket;
+            if (bucket > maxBucket) {
+                maxBucket = bucket;
             }
         }
         log.info("nodeCount={}, discoveredPeerSize={}, maxPeers={}, maxBuckets={}",

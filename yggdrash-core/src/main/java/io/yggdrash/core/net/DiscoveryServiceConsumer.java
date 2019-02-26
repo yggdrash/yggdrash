@@ -32,7 +32,7 @@ public class DiscoveryServiceConsumer implements DiscoveryConsumer {
 
     @Override
     public List<Peer> findPeers(BranchId branchId, Peer target) {
-        return peerTableGroup.getClosestPeers(branchId, target, KademliaOptions.BUCKET_SIZE);
+        return peerTableGroup.getClosestPeers(branchId, target, KademliaOptions.CLOSEST_SIZE);
     }
 
     @Override

@@ -14,7 +14,7 @@ import io.yggdrash.core.blockchain.dpoa.tx.TxValidatorVote;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.Genesis;
-import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.InvokeTransaction;
 import io.yggdrash.core.runtime.annotation.ParamValidation;
 import io.yggdrash.core.store.Store;
 import org.apache.commons.collections4.MapUtils;
@@ -32,7 +32,7 @@ public class DPoAContract implements Contract<JsonObject> {
 
     @Genesis
     @ParamValidation
-    @InvokeTransction
+    @InvokeTransaction
     public TransactionReceipt init(JsonObject params) {
         boolean isSuccess = saveInitValidator(params.getAsJsonArray("validators"));
         txReceipt.setStatus(isSuccess ? ExecuteStatus.SUCCESS : ExecuteStatus.FALSE);
@@ -47,7 +47,8 @@ public class DPoAContract implements Contract<JsonObject> {
 
         validatorSet = new ValidatorSet();
         for (JsonElement validator : validators) {
-            validatorSet.getValidatorMap().put(validator.getAsString(), new Validator(validator.getAsString()));
+            validatorSet.getValidatorMap().put(validator.getAsString(),
+                    new Validator(validator.getAsString()));
         }
         JsonObject jsonObject = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
         state.put(PrefixKeyEnum.VALIDATORS.toValue(), jsonObject);
@@ -66,7 +67,8 @@ public class DPoAContract implements Contract<JsonObject> {
         ProposeValidatorSet proposeValidatorSet = null;
         JsonObject jsonProposeValidatorSet = state.get(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue());
         if (jsonProposeValidatorSet != null) {
-            proposeValidatorSet = JsonUtil.generateJsonToClass(jsonProposeValidatorSet.toString(), ProposeValidatorSet.class);
+            proposeValidatorSet = JsonUtil.generateJsonToClass(
+                    jsonProposeValidatorSet.toString(), ProposeValidatorSet.class);
         }
 
         return proposeValidatorSet;
@@ -76,25 +78,28 @@ public class DPoAContract implements Contract<JsonObject> {
         ValidatorSet validatorSet = null;
         JsonObject jsonValidatorSet = state.get(PrefixKeyEnum.VALIDATORS.toValue());
         if (jsonValidatorSet != null) {
-            validatorSet = JsonUtil.generateJsonToClass(jsonValidatorSet.toString(), ValidatorSet.class);
+            validatorSet = JsonUtil.generateJsonToClass(
+                    jsonValidatorSet.toString(), ValidatorSet.class);
         }
 
         return validatorSet;
     }
 
-    @InvokeTransction
+    @InvokeTransaction
     public TransactionReceipt proposeValidator(JsonObject params) {
         txReceipt.setStatus(ExecuteStatus.FALSE);
 
         //Check validation
-        TxValidatorPropose txValidatorPropose = JsonUtil.generateJsonToClass(params.toString(), TxValidatorPropose.class);
+        TxValidatorPropose txValidatorPropose = JsonUtil.generateJsonToClass(
+                params.toString(), TxValidatorPropose.class);
         if (!validateTx(txValidatorPropose)) {
             return txReceipt;
         }
 
         //Is exists proposer
         ValidatorSet validatorSet = getValidatorSet();
-        if (validatorSet == null || validatorSet.getValidatorMap() == null || validatorSet.getValidatorMap().get(txReceipt.getIssuer()) == null) {
+        if (validatorSet == null || validatorSet.getValidatorMap() == null
+                || validatorSet.getValidatorMap().get(txReceipt.getIssuer()) == null) {
             return txReceipt;
         }
 
@@ -106,9 +111,9 @@ public class DPoAContract implements Contract<JsonObject> {
             }
 
             //Is the proposed Validator voting complete
-            Iterator<String> iter = proposeValidatorSet.getValidatorMap().keySet().iterator();
-            while (iter.hasNext()) {
-                if (txReceipt.getIssuer().equals(proposeValidatorSet.getValidatorMap().get(iter.next()).getProposalValidatorAddr())) {
+            for (String s : proposeValidatorSet.getValidatorMap().keySet()) {
+                if (txReceipt.getIssuer().equals(proposeValidatorSet.getValidatorMap()
+                        .get(s).getProposalValidatorAddr())) {
                     return txReceipt;
                 }
             }
@@ -122,12 +127,13 @@ public class DPoAContract implements Contract<JsonObject> {
         proposeValidatorSet.getValidatorMap().put(txValidatorPropose.getValidatorAddr(), votable);
 
         //Save
-        state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(), JsonUtil.parseJsonObject(JsonUtil.convertObjToString(proposeValidatorSet)));
+        state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(), JsonUtil.parseJsonObject(
+                JsonUtil.convertObjToString(proposeValidatorSet)));
         txReceipt.setStatus(ExecuteStatus.SUCCESS);
         return txReceipt;
     }
 
-    @InvokeTransction
+    @InvokeTransaction
     public TransactionReceipt voteValidator(JsonObject params) {
         txReceipt.setStatus(ExecuteStatus.FALSE);
 
@@ -139,13 +145,17 @@ public class DPoAContract implements Contract<JsonObject> {
 
         //Is exists proposed validator
         ProposeValidatorSet proposeValidatorSet = getProposeValidatorSet();
-        if (proposeValidatorSet == null || MapUtils.isEmpty(proposeValidatorSet.getValidatorMap()) || proposeValidatorSet.getValidatorMap().get(txValidatorVote.getValidatorAddr()) == null) {
+        if (proposeValidatorSet == null || MapUtils.isEmpty(proposeValidatorSet.getValidatorMap())
+                || proposeValidatorSet.getValidatorMap().get(txValidatorVote.getValidatorAddr())
+                == null) {
             return txReceipt;
         }
 
         //Check available vote
-        ProposeValidatorSet.Votable votable = proposeValidatorSet.getValidatorMap().get(txValidatorVote.getValidatorAddr());
-        if (votable.getVotedMap().get(txReceipt.getIssuer()) == null || votable.getVotedMap().get(txReceipt.getIssuer()).isVoted()) {
+        ProposeValidatorSet.Votable votable = proposeValidatorSet.getValidatorMap()
+                .get(txValidatorVote.getValidatorAddr());
+        if (votable.getVotedMap().get(txReceipt.getIssuer()) == null
+                || votable.getVotedMap().get(txReceipt.getIssuer()).isVoted()) {
             return txReceipt;
         }
 
@@ -159,7 +169,8 @@ public class DPoAContract implements Contract<JsonObject> {
         votable.getVotedMap().get(txReceipt.getIssuer()).setVoted(true);
 
         //Save
-        state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(), JsonUtil.parseJsonObject(JsonUtil.convertObjToString(proposeValidatorSet)));
+        state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(), JsonUtil.parseJsonObject(
+                JsonUtil.convertObjToString(proposeValidatorSet)));
         txReceipt.setStatus(ExecuteStatus.SUCCESS);
         return txReceipt;
     }
@@ -172,7 +183,8 @@ public class DPoAContract implements Contract<JsonObject> {
 
         ProposeValidatorSet proposeValidatorSet = getProposeValidatorSet();
         if (proposeValidatorSet != null && proposeValidatorSet.getValidatorMap() != null) {
-            for (Iterator<Map.Entry<String, ProposeValidatorSet.Votable>> it = proposeValidatorSet.getValidatorMap().entrySet().iterator(); it.hasNext(); ) {
+            for (Iterator<Map.Entry<String, ProposeValidatorSet.Votable>> it = proposeValidatorSet
+                    .getValidatorMap().entrySet().iterator(); it.hasNext(); ) {
                 Map.Entry<String, ProposeValidatorSet.Votable> entry = it.next();
                 switch (entry.getValue().status()) {
                     case AGREE:
@@ -182,6 +194,7 @@ public class DPoAContract implements Contract<JsonObject> {
                             validatorSet.getValidatorMap().put(entry.getKey(), validator);
                         }
                     case DISAGREE:
+                        // both AGREE and DISAGREE remove and update validator
                         it.remove();
                         isUpdateProposedValidator = true;
                         break;
@@ -192,17 +205,19 @@ public class DPoAContract implements Contract<JsonObject> {
         }
 
         if (isUpdateValidator) {
-            state.put(PrefixKeyEnum.VALIDATORS.toValue(), JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet)));
+            state.put(PrefixKeyEnum.VALIDATORS.toValue(),
+                    JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet)));
         }
         if (isUpdateProposedValidator) {
-            state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(), JsonUtil.parseJsonObject(JsonUtil.convertObjToString(proposeValidatorSet)));
+            state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(),
+                    JsonUtil.parseJsonObject(JsonUtil.convertObjToString(proposeValidatorSet)));
         }
 
         return validatorSet.order(null);
     }
 
     //todo need to set governance
-    @InvokeTransction
+    @InvokeTransaction
     public TransactionReceipt recoverValidator(String recoverValidator) {
         return null;
     }

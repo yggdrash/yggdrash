@@ -51,7 +51,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
     }
 
     @Override
-    public Set<BranchId> getAllBrancheId() {
+    public Set<BranchId> getAllBranchId() {
         return tableMap.keySet();
     }
 
@@ -90,7 +90,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
     }
 
     @Override
-    public synchronized List<Peer> getClosestPeers(BranchId branchId, Peer targetPeer, int limit) {
+    public List<Peer> getClosestPeers(BranchId branchId, Peer targetPeer, int limit) {
         if (tableMap.containsKey(branchId)) {
             return tableMap.get(branchId).getClosestPeers(targetPeer, limit);
         }
@@ -144,7 +144,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
                         }
                         tried.add(peer);
                     } catch (Exception e) {
-                        log.warn(e.getMessage());
+                        log.warn("lookup for {} err={}", peer.toAddress(), e.getMessage());
                         peerDialer.removeHandler(peerHandler);
                     }
                 }

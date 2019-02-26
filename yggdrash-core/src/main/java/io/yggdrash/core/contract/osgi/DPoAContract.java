@@ -16,7 +16,7 @@ import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.runtime.annotation.ContractStateStore;
 import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.runtime.annotation.Genesis;
-import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.InvokeTransaction;
 import io.yggdrash.core.runtime.annotation.ParamValidation;
 import io.yggdrash.core.store.Store;
 import org.apache.commons.collections4.MapUtils;
@@ -79,7 +79,7 @@ public class DPoAContract implements BundleActivator, ServiceListener {
 
         @Genesis
         @ParamValidation
-        @InvokeTransction
+        @InvokeTransaction
         public TransactionReceipt init(JsonObject params) {
             log.info("Initialize DPoA");
             boolean isSuccess = saveInitValidator(params.getAsJsonArray("validators"));
@@ -130,7 +130,7 @@ public class DPoAContract implements BundleActivator, ServiceListener {
             return validatorSet;
         }
 
-        @InvokeTransction
+        @InvokeTransaction
         public TransactionReceipt proposeValidator(JsonObject params) {
             txReceipt.setStatus(ExecuteStatus.FALSE);
 
@@ -175,7 +175,7 @@ public class DPoAContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
-        @InvokeTransction
+        @InvokeTransaction
         public TransactionReceipt voteValidator(JsonObject params) {
             txReceipt.setStatus(ExecuteStatus.FALSE);
 
@@ -250,7 +250,7 @@ public class DPoAContract implements BundleActivator, ServiceListener {
         }
 
         //todo need to set governance
-        @InvokeTransction
+        @InvokeTransaction
         public TransactionReceipt recoverValidator(String recoverValidator) {
             return null;
         }

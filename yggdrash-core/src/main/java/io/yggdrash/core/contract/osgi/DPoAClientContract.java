@@ -1,7 +1,7 @@
 package io.yggdrash.core.contract.osgi;
 
 import io.yggdrash.core.blockchain.dpoa.Validator;
-import io.yggdrash.core.runtime.annotation.InvokeTransction;
+import io.yggdrash.core.runtime.annotation.InvokeTransaction;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
@@ -57,7 +57,7 @@ public class DPoAClientContract implements BundleActivator, ServiceListener {
             this.serviceTracker = serviceTracker;
         }
 
-        @InvokeTransction
+        @InvokeTransaction
         public List<Validator> commit() {
             Object service = serviceTracker.getService();
             if (service == null || !(service instanceof DPoAContract.DPoAService)) {

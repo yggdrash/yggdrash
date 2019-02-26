@@ -13,7 +13,7 @@ import org.junit.Test;
 
 public class PeerNetworkTest {
     private PeerNetwork peerNetwork;
-    private BlockHusk genesis = BlockChainTestUtils.genesisBlock();
+    private final BlockHusk genesis = BlockChainTestUtils.genesisBlock();
 
     @Before
     public void setUp() {

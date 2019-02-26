@@ -57,6 +57,11 @@ public class MetaStore implements Store<String, String> {
         storeLongValue(BlockchainMetaInfo.BEST_BLOCK_INDEX.toString(), index);
     }
 
+    public void setBestBlock(BlockHusk block) {
+        setBestBlockHash(block.getHash());
+        setBestBlock(block.getIndex());
+    }
+
     public Sha3Hash getBestBlockHash() {
         byte[] bestBlockHashArray = db.get(BlockchainMetaInfo.BEST_BLOCK.toString().getBytes());
         Sha3Hash bestBlockHash = null;
@@ -69,11 +74,6 @@ public class MetaStore implements Store<String, String> {
     public void setBestBlockHash(Sha3Hash hash) {
         byte[] bestBlockHash = hash.getBytes();
         db.put(BlockchainMetaInfo.BEST_BLOCK.toString().getBytes(), bestBlockHash);
-    }
-
-    public void setBestBlock(BlockHusk block) {
-        setBestBlockHash(block.getHash());
-        setBestBlock(block.getIndex());
     }
 
     public Long getLastExecuteBlockIndex() {
