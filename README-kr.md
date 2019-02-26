@@ -64,7 +64,7 @@ cd yggdrash
 아래는 도커로 쉽고 빠르게 단일노드를 실행하고 컨테이너 종료시 삭제되는 명령입니다.
 
 ```
-docker run --rm -p 8080:8080 -v $HOME/.yggdrash:/.yggdrash yggdrash/yggdrash-node
+docker run --rm -e SPRING_PROFILES_ACTIVE=local,master,gateway -p 8080:8080 -v $HOME/.yggdrash:/.yggdrash yggdrash/yggdrash-node
 ```
 
 이 경우 `localhost` 주소의 `8080`(기본값) 포트로 RESTful API 와 JSON RPC를 호출 가능하고, `32918`(기본값)은 노드간 gRPC 통신용 포트로 사용됩니다.
@@ -87,7 +87,9 @@ yggdrash-node/build/libs/*.jar
 
 다음과 같은 옵션을 사용해서 노드 jar 를 실행 가능합니다. (예: yggdrash-node.jar --server.port=8081)
 
-- `--spring.profiles.active=value` 활성화하려는 환경 profile 이름 (기본값: default, 도커 기본값: prod-운영모드) 
+- `--spring.profiles.active=value` 활성화하려는 환경 profile 이름
+  - env: local(기본 값), dev(테스트용), prod(도커 기본값), debug(디버그 로그 활성화)
+  - role: bootstrap(노드 디스커버리용 부트스트랩 노드), master(테스트용 블록 생성 노드), gateway(restful api)  
 - `--server.address=value` JSON RPC 및 RESTful API 서비스용 호스트 주소 (기본값: localhost)
 - `--server.port=value` JSON RPC 및 RESTful API 서비스용 포트 (기본값: 8080)
 - `--yggdrash.node.grpc.host=value` gRPC 서비스용 호스트 주소 (기본값: localhost)
@@ -117,7 +119,7 @@ Gradle 캐시를 사용하지 않고 통합 테스트를 사용하기 위한 명
 
 도커를 사용하면 개발 경험을 향상시킬수 있습니다. 여러개의 노드를 확장하거나 필요한 서비스를 조합해서 쉽게 실행할 수 있습니다.
 
-예로 2개의 노드가 설정된 yml을 아래 명령어로 실행 가능합니다.
+예로 각 역할별 노드가 조합된 yml을 아래 명령어로 실행 가능합니다.
 ```
 docker-compose -f docker/docker-compose.yml up -d
 ```
