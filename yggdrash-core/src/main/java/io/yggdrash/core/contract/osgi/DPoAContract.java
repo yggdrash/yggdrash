@@ -52,7 +52,22 @@ public class DPoAContract implements BundleActivator, ServiceListener {
 
     @Override
     public void serviceChanged(ServiceEvent event) {
+        String[] objectClass = (String[]) event.getServiceReference().getProperty("objectClass");
 
+        switch (event.getType()) {
+            case ServiceEvent.REGISTERED:
+                log.info("Register service: class - {}", objectClass[0]);
+                break;
+            case ServiceEvent.MODIFIED:
+                log.info("Modify service: class - {}", objectClass[0]);
+                break;
+            case ServiceEvent.UNREGISTERING:
+                log.info("Unresiter service: class - {}", objectClass[0]);
+                break;
+            case ServiceEvent.MODIFIED_ENDMATCH:
+                log.info("Modify(EndMatch) service: class - {}", objectClass[0]);
+                break;
+        }
     }
 
     public static class DPoAService implements Contract<JsonObject> {
