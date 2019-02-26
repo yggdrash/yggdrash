@@ -36,10 +36,8 @@ import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
@@ -103,66 +101,67 @@ public class GRpcPeerHandler implements PeerHandler {
         }
     }
 
-    /**
-     * Sync block request
-     *
-     * @param offset the start block index to sync
-     * @return the block list
-     */
+    ///**
+    // * Sync block request
+    // *
+    // * @param offset the start block index to sync
+    // * @return the block list
+    // */
+    /*
     @Override
-    public List<BlockHusk> syncBlock(BranchId branchId, long offset) {
+    public List<BlockHusk> simpleSyncBlock(BranchId branchId, long offset) {
         SyncLimit syncLimit = SyncLimit.newBuilder()
                 .setOffset(offset)
                 .setLimit(DEFAULT_LIMIT)
                 .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
-        return blockingBlockChainStub.syncBlock(syncLimit).getBlocksList().stream()
+        return blockingBlockChainStub.simpleSyncBlock(syncLimit).getBlocksList().stream()
                 .map(BlockHusk::new)
                 .collect(Collectors.toList());
     }
+    */
 
-    /**
-     * Sync transaction request
-     *
-     * @return the transaction list
-     */
+    ///**
+    // * Sync transaction request
+    // *
+    // * @return the transaction list
+    // */
+    /*
     @Override
-    public List<TransactionHusk> syncTransaction(BranchId branchId) {
+    public List<TransactionHusk> simpleSyncTransaction(BranchId branchId) {
         SyncLimit syncLimit = SyncLimit.newBuilder()
                 .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
-        return blockingBlockChainStub.syncTransaction(syncLimit).getTransactionsList().stream()
+        return blockingBlockChainStub.simpleSyncTransaction(syncLimit).getTransactionsList().stream()
                 .map(TransactionHusk::new)
                 .collect(Collectors.toList());
     }
+    */
 
+    /*
     @Override
-    public void broadcastTransaction(TransactionHusk tx) {
+    public void simpleBroadcastTransaction(TransactionHusk tx) {
         log.trace("Broadcasting txs -> {}", tx.getHash());
-        blockingBlockChainStub.broadcastTransaction(tx.getInstance());
+        blockingBlockChainStub.simpleBroadcastTransaction(tx.getInstance());
     }
 
     @Override
-    public void broadcastBlock(BlockHusk block) {
+    public void simpleBroadcastBlock(BlockHusk block) {
         log.trace("Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
-        blockingBlockChainStub.broadcastBlock(block.getInstance());
+        blockingBlockChainStub.simpleBroadcastBlock(block.getInstance());
     }
+    */
 
     @Override
-    public Future<List<BlockHusk>> biSyncBlock(BranchId branchId, long offset) {
+    public Future<List<BlockHusk>> syncBlock(BranchId branchId, long offset) {
+        log.debug("Requesting sync block: branchId={}, offset={}", branchId, offset);
+
         SyncLimit syncLimit = SyncLimit.newBuilder()
                 .setOffset(offset)
                 .setLimit(DEFAULT_LIMIT)
                 .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
-        /*
-        return blockingBlockChainStub.syncBlock(syncLimit).getBlocksList().stream()
-                .map(BlockHusk::new)
-                .collect(Collectors.toList());
-        */
-
-        log.debug("Requesting sync block: branchId={}, offset={}", branchId, offset);
 
         CompletableFuture<List<BlockHusk>> husksCompletableFuture = new CompletableFuture<>();
 
-        StreamObserver<SyncLimit> requestObserver = asyncStub.biSyncBlock(
+        StreamObserver<SyncLimit> requestObserver = asyncStub.syncBlock(
                 new StreamObserver<Proto.BlockList>() {
                     @Override
                     public void onNext(Proto.BlockList blockList) {
@@ -198,7 +197,7 @@ public class GRpcPeerHandler implements PeerHandler {
     }
 
     @Override
-    public Future<List<TransactionHusk>> biSyncTx(BranchId branchId) {
+    public Future<List<TransactionHusk>> syncTx(BranchId branchId) {
         SyncLimit syncLimit = SyncLimit.newBuilder()
                 .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
 
@@ -206,7 +205,7 @@ public class GRpcPeerHandler implements PeerHandler {
 
         CompletableFuture<List<TransactionHusk>> husksCompletableFuture = new CompletableFuture<>();
 
-        StreamObserver<SyncLimit> requestObserver = asyncStub.biSyncTx(
+        StreamObserver<SyncLimit> requestObserver = asyncStub.syncTx(
                 new StreamObserver<Proto.TransactionList>() {
                     @Override
                     public void onNext(Proto.TransactionList txList) {
@@ -245,10 +244,10 @@ public class GRpcPeerHandler implements PeerHandler {
     // When we send a (single) block to the server and get back a (single) empty.
     // Use the asynchronous stub for this method.
     @Override
-    public void biBroadcastBlock(BlockHusk blockHusk) {
+    public void broadcastBlock(BlockHusk blockHusk) {
         log.debug("Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
 
-        StreamObserver<Proto.Block> requestObserver = asyncStub.biBroadcastBlock(
+        StreamObserver<Proto.Block> requestObserver = asyncStub.broadcastBlock(
                 new StreamObserver<NetProto.Empty>() {
                     @Override
                     public void onNext(NetProto.Empty empty) {
@@ -279,10 +278,10 @@ public class GRpcPeerHandler implements PeerHandler {
     }
 
     @Override
-    public void biBroadcastTx(TransactionHusk txHusk) {
+    public void broadcastTx(TransactionHusk txHusk) {
         log.debug("Broadcasting txs -> {}", txHusk.getHash());
 
-        StreamObserver<Proto.Transaction> requestObserver = asyncStub.biBroadcastTx(
+        StreamObserver<Proto.Transaction> requestObserver = asyncStub.broadcastTx(
                 new StreamObserver<NetProto.Empty>() {
                     @Override
                     public void onNext(NetProto.Empty value) {

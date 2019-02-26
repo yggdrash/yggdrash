@@ -40,7 +40,8 @@ public abstract class BootStrapNode implements BootStrap, CatchUpSyncEventListen
         try {
             nodeStatus.sync();
             for (BlockChain blockChain : branchGroup.getAllBranch()) {
-                List<PeerHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
+                List<PeerHandler> peerHandlerList =
+                        peerNetwork.getHandlerList(blockChain.getBranchId());
                 for (PeerHandler peerHandler : peerHandlerList) {
                     syncManager.syncBlock(peerHandler, blockChain, -1);
                     syncManager.syncTransaction(peerHandler, blockChain);

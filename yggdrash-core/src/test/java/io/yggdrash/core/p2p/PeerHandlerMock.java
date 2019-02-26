@@ -20,19 +20,23 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 import static io.yggdrash.TestConstants.wallet;
 
 public class PeerHandlerMock implements PeerHandler {
-    public static final PeerHandlerFactory factory = PeerHandlerMock::dummy;
+    private static final Logger log = LoggerFactory.getLogger(PeerHandlerMock.class);
     private static final String NODE_URI_PREFIX = "ynode://75bff16c@127.0.0.1:";
     private static final Peer OWNER = Peer.valueOf(NODE_URI_PREFIX + 32920);
+
+    public static final PeerHandlerFactory factory = PeerHandlerMock::dummy;
 
     private final Peer peer;
     private boolean pongResponse = true;
@@ -76,8 +80,9 @@ public class PeerHandlerMock implements PeerHandler {
         return null;
     }
 
+    /*
     @Override
-    public List<BlockHusk> syncBlock(BranchId branchId, long offset) {
+    public List<BlockHusk> simpleSyncBlock(BranchId branchId, long offset) {
         if (offset == 1) {
             BlockHusk prevBlock = BlockChainTestUtils.genesisBlock();
             BlockHusk newBlock = new BlockHusk(wallet(), Collections.emptyList(), prevBlock);
@@ -87,8 +92,43 @@ public class PeerHandlerMock implements PeerHandler {
     }
 
     @Override
-    public List<TransactionHusk> syncTransaction(BranchId branchId) {
+    public List<TransactionHusk> simpleSyncTransaction(BranchId branchId) {
         return Collections.singletonList(BlockChainTestUtils.createTransferTxHusk());
+    }
+
+    @Override
+    public void simpleBroadcastBlock(BlockHusk blockHusk) {
+
+    }
+
+    @Override
+    public void simpleBroadcastTransaction(TransactionHusk txHusk) {
+
+    }
+    */
+
+    @Override
+    public Future<List<BlockHusk>> syncBlock(BranchId branchId, long offset) {
+        log.debug("[PeerHandlerMock] SyncBlock branchId={}, offset={}", branchId, offset);
+
+        CompletableFuture<List<BlockHusk>> husksCompletableFuture = new CompletableFuture<>();
+        if (offset == 1) {
+            BlockHusk prevBlock = BlockChainTestUtils.genesisBlock();
+            BlockHusk newBlock = new BlockHusk(wallet(), Collections.emptyList(), prevBlock);
+            husksCompletableFuture.complete(Collections.singletonList(newBlock));
+        }
+        return husksCompletableFuture;
+    }
+
+    @Override
+    public Future<List<TransactionHusk>> syncTx(BranchId branchId) {
+        log.debug("[PeerHandlerMock] SyncTx branchId={}", branchId);
+
+        CompletableFuture<List<TransactionHusk>> husksCompletableFuture = new CompletableFuture<>();
+        husksCompletableFuture.complete(
+                Collections.singletonList(BlockChainTestUtils.createTransferTxHusk()));
+
+        return husksCompletableFuture;
     }
 
     @Override
@@ -97,33 +137,13 @@ public class PeerHandlerMock implements PeerHandler {
     }
 
     @Override
-    public void broadcastTransaction(TransactionHusk txHusk) {
+    public void broadcastTx(TransactionHusk txHusk) {
 
-    }
-
-    @Override
-    public void biBroadcastBlock(BlockHusk blockHusk) {
-
-    }
-
-    @Override
-    public void biBroadcastTx(TransactionHusk txHusk) {
-
-    }
-
-    @Override
-    public Future<List<BlockHusk>> biSyncBlock(BranchId branchId, long offset) {
-        return null;
     }
 
     @Override
     public void biDirectTest(int seq, String msg) {
 
-    }
-
-    @Override
-    public Future<List<TransactionHusk>> biSyncTx(BranchId branchId) {
-        return null;
     }
 
     public static PeerHandler dummy() {

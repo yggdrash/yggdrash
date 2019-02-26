@@ -5,7 +5,6 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Future;
 
 public interface PeerHandler {
@@ -17,21 +16,21 @@ public interface PeerHandler {
 
     void stop();
 
-    List<BlockHusk> syncBlock(BranchId branchId, long offset);
+    //List<BlockHusk> simpleSyncBlock(BranchId branchId, long offset);
 
-    List<TransactionHusk> syncTransaction(BranchId branchId);
+    //List<TransactionHusk> simpleSyncTransaction(BranchId branchId);
+
+    //void simpleBroadcastBlock(BlockHusk blockHusk);
+
+    //void simpleBroadcastTransaction(TransactionHusk txHusk);
+
+    Future<List<BlockHusk>> syncBlock(BranchId branchId, long offset);
+
+    Future<List<TransactionHusk>> syncTx(BranchId branchId);
 
     void broadcastBlock(BlockHusk blockHusk);
 
-    void broadcastTransaction(TransactionHusk txHusk);
-
-    Future<List<BlockHusk>> biSyncBlock(BranchId branchId, long offset);
-
-    Future<List<TransactionHusk>> biSyncTx(BranchId branchId);
-
-    void biBroadcastBlock(BlockHusk blockHusk);
-
-    void biBroadcastTx(TransactionHusk txHusk);
+    void broadcastTx(TransactionHusk txHusk);
 
     void biDirectTest(int seq, String msg);
 }

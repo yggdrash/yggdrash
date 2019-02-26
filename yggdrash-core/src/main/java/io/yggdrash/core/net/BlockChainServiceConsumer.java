@@ -87,7 +87,7 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
     }
 
     @Override
-    public List<TransactionHusk> syncTransaction(BranchId branchId) {
+    public List<TransactionHusk> syncTx(BranchId branchId) {
         return branchGroup.getUnconfirmedTxs(branchId);
     }
 
@@ -104,7 +104,7 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
     }
 
     @Override
-    public void broadcastTransaction(TransactionHusk tx) {
+    public void broadcastTx(TransactionHusk tx) {
         try {
             branchGroup.addTransaction(tx);
         } catch (Exception e) {

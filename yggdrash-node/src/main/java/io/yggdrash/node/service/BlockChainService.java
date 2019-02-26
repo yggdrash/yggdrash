@@ -31,14 +31,15 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
         this.blockChainConsumer = blockChainConsumer;
     }
 
-    /**
-     * Sync block response
-     *
-     * @param syncLimit        the start branch id, block index and limit to sync
-     * @param responseObserver the observer response to the block list
-     */
+    ///**
+    // * Sync block response
+    // *
+    // * @param syncLimit        the start branch id, block index and limit to sync
+    // * @param responseObserver the observer response to the block list
+    // */
+    /*
     @Override
-    public void syncBlock(NetProto.SyncLimit syncLimit,
+    public void simpleSyncBlock(NetProto.SyncLimit syncLimit,
                           StreamObserver<Proto.BlockList> responseObserver) {
         BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
         long offset = syncLimit.getOffset();
@@ -53,15 +54,17 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
         responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
     }
+    */
 
-    /**
-     * Sync transaction response
-     *
-     * @param syncLimit        the branch id to sync
-     * @param responseObserver the observer response to the transaction list
-     */
+    ///**
+    // * Sync transaction response
+    // *
+    // * @param syncLimit        the branch id to sync
+    // * @param responseObserver the observer response to the transaction list
+    // */
+    /*
     @Override
-    public void syncTransaction(NetProto.SyncLimit syncLimit,
+    public void simpleSyncTransaction(NetProto.SyncLimit syncLimit,
                                 StreamObserver<Proto.TransactionList> responseObserver) {
         log.debug("Received syncTransaction request");
         BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
@@ -74,8 +77,9 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
         responseObserver.onCompleted();
     }
 
+
     @Override
-    public void broadcastBlock(Proto.Block request,
+    public void simpleBroadcastBlock(Proto.Block request,
                                StreamObserver<NetProto.Empty> responseObserver) {
         long id = ByteUtil.byteArrayToLong(
                 request.getHeader().getIndex().toByteArray());
@@ -87,17 +91,18 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
     }
 
     @Override
-    public void broadcastTransaction(Proto.Transaction request,
+    public void simpleBroadcastTransaction(Proto.Transaction request,
                                      StreamObserver<NetProto.Empty> responseObserver) {
         TransactionHusk tx = new TransactionHusk(request);
         log.debug("Received transaction: hash={}", tx.getHash());
-        blockChainConsumer.broadcastTransaction(tx);
+        blockChainConsumer.broadcastTx(tx);
         responseObserver.onNext(EMPTY);
         responseObserver.onCompleted();
     }
+    */
 
     @Override
-    public StreamObserver<Proto.Block> biBroadcastBlock(
+    public StreamObserver<Proto.Block> broadcastBlock(
             StreamObserver<NetProto.Empty> responseObserver) {
         return new StreamObserver<Proto.Block>() {
             @Override
@@ -108,6 +113,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
                 log.debug("[BlockChainService] Received block: id=[{}], hash={}",
                         id, blockHusk.getHash());
 
+                blockChainConsumer.broadcastBlock(blockHusk);
                 responseObserver.onNext(EMPTY);
             }
 
@@ -125,7 +131,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
     }
 
     @Override
-    public StreamObserver<Proto.Transaction> biBroadcastTx(
+    public StreamObserver<Proto.Transaction> broadcastTx(
             StreamObserver<NetProto.Empty> responseObserver) {
         return new StreamObserver<Proto.Transaction>() {
             @Override
@@ -133,6 +139,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
                 TransactionHusk txHusk = new TransactionHusk(tx);
                 log.debug("[BlockChainService] Received transaction: hash={}", txHusk.getHash());
 
+                blockChainConsumer.broadcastTx(txHusk);
                 responseObserver.onNext(EMPTY);
             }
 
@@ -150,7 +157,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
     }
 
     @Override
-    public StreamObserver<NetProto.SyncLimit> biSyncBlock(
+    public StreamObserver<NetProto.SyncLimit> syncBlock(
             StreamObserver<Proto.BlockList> responseObserver) {
         return new StreamObserver<NetProto.SyncLimit>() {
             @Override
@@ -183,7 +190,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
     }
 
     @Override
-    public StreamObserver<NetProto.SyncLimit> biSyncTx(
+    public StreamObserver<NetProto.SyncLimit> syncTx(
             StreamObserver<Proto.TransactionList> responseObserver) {
         return new StreamObserver<NetProto.SyncLimit>() {
             @Override
@@ -191,7 +198,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
                 BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
                 log.debug("[BlockChainService] Received syncTransaction request");
 
-                List<TransactionHusk> txList = blockChainConsumer.syncTransaction(branchId);
+                List<TransactionHusk> txList = blockChainConsumer.syncTx(branchId);
                 Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
 
                 for (TransactionHusk husk : txList) {

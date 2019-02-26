@@ -121,14 +121,19 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
         lookup(0, new ArrayList<>(), getOwner(), entry);
     }
 
-    private synchronized void lookup(int round, List<Peer> prevTried, Peer target, Map.Entry<BranchId, PeerTable> entry) {
+    private synchronized void lookup(int round,
+                                     List<Peer> prevTried,
+                                     Peer target,
+                                     Map.Entry<BranchId,
+                                             PeerTable> entry) {
         try {
             if (round == KademliaOptions.MAX_STEPS) {
-                log.debug("(KademliaOptions.MAX_STEPS) Terminating discover after {} rounds.", round);
+                log.debug("(MAX_STEPS) Terminating discover after {} rounds.", round);
                 return;
             }
 
-            List<Peer> closest = entry.getValue().getClosestPeers(target, KademliaOptions.BUCKET_SIZE);
+            List<Peer> closest = entry.getValue().getClosestPeers(
+                    target, KademliaOptions.BUCKET_SIZE);
             List<Peer> tried = new ArrayList<>();
 
             for (Peer peer : closest) {

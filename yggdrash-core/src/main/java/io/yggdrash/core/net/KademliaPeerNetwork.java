@@ -66,12 +66,37 @@ public class KademliaPeerNetwork implements PeerNetwork {
         return peerDialer.getHandlerList(peerList);
     }
 
+    /*
     @Override
     public void receivedTransaction(TransactionHusk tx) {
         List<PeerHandler> getHandlerList = getHandlerList(tx.getBranchId());
         for (PeerHandler peerHandler : getHandlerList) {
             try {
-                peerHandler.broadcastTransaction(tx);
+                peerHandler.simpleBroadcastTransaction(tx);
+            } catch (Exception e) {
+                peerDialer.removeHandler(peerHandler);
+            }
+        }
+    }
+    @Override
+    public void chainedBlock(BlockHusk block) {
+        List<PeerHandler> getHandlerList = getHandlerList(block.getBranchId());
+        for (PeerHandler peerHandler : getHandlerList) {
+            try {
+                peerHandler.simpleBroadcastBlock(block);
+            } catch (Exception e) {
+                peerDialer.removeHandler(peerHandler);
+            }
+        }
+    }
+    */
+
+    @Override
+    public void receivedTransaction(TransactionHusk tx) { //R
+        List<PeerHandler> getHandlerList = getHandlerList(tx.getBranchId());
+        for (PeerHandler peerHandler : getHandlerList) {
+            try {
+                peerHandler.broadcastTx(tx);
             } catch (Exception e) {
                 peerDialer.removeHandler(peerHandler);
             }
@@ -79,7 +104,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
     }
 
     @Override
-    public void chainedBlock(BlockHusk block) {
+    public void chainedBlock(BlockHusk block) { //R
         List<PeerHandler> getHandlerList = getHandlerList(block.getBranchId());
         for (PeerHandler peerHandler : getHandlerList) {
             try {

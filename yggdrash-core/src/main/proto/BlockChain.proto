@@ -7,25 +7,25 @@ option java_outer_classname = "NetProto";
 
 service BlockChain {
     // Client to server messaging RPC
-    rpc syncBlock (SyncLimit) returns (BlockList) {
+    rpc simpleSyncBlock (SyncLimit) returns (BlockList) {
     }
-    rpc syncTransaction (SyncLimit) returns (TransactionList) {
+    rpc simpleSyncTransaction (SyncLimit) returns (TransactionList) {
     }
 
     // Client to server simple RPC
-    rpc broadcastBlock (Block) returns (Empty) {
+    rpc simpleBroadcastBlock (Block) returns (Empty) {
     }
-    rpc broadcastTransaction (Transaction) returns (Empty) {
+    rpc simpleBroadcastTransaction (Transaction) returns (Empty) {
     }
 
     // Bidirectional streaming RPC
-    rpc biSyncBlock (stream SyncLimit) returns (stream BlockList) {
+    rpc syncBlock (stream SyncLimit) returns (stream BlockList) {
     }
-    rpc biSyncTx (stream SyncLimit) returns (stream TransactionList) {
+    rpc syncTx (stream SyncLimit) returns (stream TransactionList) {
     }
-    rpc biBroadcastBlock (stream Block) returns (stream Empty) {
+    rpc broadcastBlock (stream Block) returns (stream Empty) {
     }
-    rpc biBroadcastTx (stream Transaction) returns (stream Empty) {
+    rpc broadcastTx (stream Transaction) returns (stream Empty) {
     }
     rpc biDirectTest (stream Tik) returns (stream Tik) {
     }

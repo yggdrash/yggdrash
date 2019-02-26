@@ -28,9 +28,9 @@ public interface BlockChainConsumer {
 
     List<BlockHusk> syncBlock(BranchId branchId, long offset, long limit);
 
-    List<TransactionHusk> syncTransaction(BranchId branchId);
+    List<TransactionHusk> syncTx(BranchId branchId);
 
     void broadcastBlock(BlockHusk block);
 
-    void broadcastTransaction(TransactionHusk tx);
+    void broadcastTx(TransactionHusk tx);
 }

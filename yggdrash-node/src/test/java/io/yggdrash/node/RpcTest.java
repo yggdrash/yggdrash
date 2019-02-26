@@ -121,10 +121,10 @@ public class RpcTest extends AbstractNodeTest {
     }
 
     @Test
-    public void biSyncTxTest() throws Exception {
+    public void syncTxTest() throws Exception {
         addDummyTx();
 
-        Future<List<TransactionHusk>> futureHusks = handler.biSyncTx(branchId);
+        Future<List<TransactionHusk>> futureHusks = handler.syncTx(branchId);
 
         Thread.sleep(3000);
 
@@ -136,10 +136,10 @@ public class RpcTest extends AbstractNodeTest {
     }
 
     @Test
-    public void biSyncBlockTest() throws Exception {
+    public void syncBlockTest() throws Exception {
         setSpecificBlockHeightOfBlockChain();
 
-        Future<List<BlockHusk>> futureHusks = handler.biSyncBlock(branchId, 5);
+        Future<List<BlockHusk>> futureHusks = handler.syncBlock(branchId, 5);
 
         Thread.sleep(3000);
 
@@ -151,17 +151,17 @@ public class RpcTest extends AbstractNodeTest {
     }
 
     @Test
-    public void biBroadcastBlockTest() throws Exception {
+    public void broadcastBlockTest() throws Exception {
         for (BlockHusk blockHusk : blockHuskList) {
-            handler.biBroadcastBlock(blockHusk);
+            handler.broadcastBlock(blockHusk);
         }
         Thread.sleep(3000);
     }
 
     @Test
-    public void biBroadcastTxTest() throws Exception {
+    public void broadcastTxTest() throws Exception {
         for (TransactionHusk txHusk : getTmpTxList()) {
-            handler.biBroadcastTx(txHusk);
+            handler.broadcastTx(txHusk);
         }
         Thread.sleep(3000);
     }
@@ -209,12 +209,12 @@ public class RpcTest extends AbstractNodeTest {
     private GRpcPeerHandler.TestHelper testHelper = new GRpcPeerHandler.TestHelper() {
         @Override
         public void onMessage(Message message) {
-            System.out.println(message);
+            log.debug("[TestHelper] Message received: {}", message);
         }
 
         @Override
         public void onRpcError(Throwable exception) {
-            System.out.println(exception.getMessage());
+            log.debug("[TestHelper] Error occurred: {}", exception.getMessage());
         }
     };
 }
