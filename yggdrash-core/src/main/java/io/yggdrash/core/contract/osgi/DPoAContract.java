@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.Map;
 
 public class DPoAContract implements BundleActivator, ServiceListener {
-    private static final Logger log = LoggerFactory.getLogger(io.yggdrash.core.contract.DPoAContract.class);
+    private static final Logger log = LoggerFactory.getLogger(io.yggdrash.core.contract.osgi.DPoAContract.class);
 
     @Override
     public void start(BundleContext context) throws Exception {

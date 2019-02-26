@@ -61,15 +61,15 @@ public class ContractManager {
         this.systemContracts = systemContracts;
     }
 
-    String makeContractPath(String contractName, boolean isSystemContract) {
+    public String makeContractPath(String contractName, boolean isSystemContract) {
         return String.format("%s/%s", isSystemContract ? systemContractPath : userContractPath, contractName);
     }
 
-    String makeContractFullPath(String contractName, boolean isSystemContract) {
+    public String makeContractFullPath(String contractName, boolean isSystemContract) {
         return String.format("%s%s/%s", PREFIX_BUNDLE_PATH, isSystemContract ? systemContractPath : userContractPath, contractName);
     }
 
-    boolean checkSystemContract(String contractName) {
+    public boolean checkSystemContract(String contractName) {
         if (contractName.startsWith("system-")) {
             return true;
         }
@@ -205,7 +205,6 @@ public class ContractManager {
     }
 
     public Object invoke(long contractId, JsonObject txBody, TransactionReceipt txReceipt) {
-        txBody.get("contractVersion");
         Bundle bundle = getBundle(contractId);
 
         // Check service existence
@@ -213,7 +212,7 @@ public class ContractManager {
             return null;
         }
 
-        Object result = new ArrayList<>();
+        Object result = null;
         // Assume one service
         ServiceReference serviceRef = bundle.getRegisteredServices()[0];
         Object service = framework.getBundleContext().getService(serviceRef);

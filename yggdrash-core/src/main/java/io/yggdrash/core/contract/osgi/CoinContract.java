@@ -33,7 +33,7 @@ import java.util.Hashtable;
 import java.util.Map;
 
 public class CoinContract implements BundleActivator, ServiceListener {
-    private static final Logger log = LoggerFactory.getLogger(io.yggdrash.core.contract.CoinContract.class);
+    private static final Logger log = LoggerFactory.getLogger(io.yggdrash.core.contract.osgi.CoinContract.class);
 
     @Override
     public void start(BundleContext context) throws Exception {
