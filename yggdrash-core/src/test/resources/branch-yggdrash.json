@@ -2,17 +2,17 @@
   "name": "YGGDRASH",
   "symbol": "YGGDRASH",
   "property": "platform",
-  "description":"TRUST-based Multi-dimensional Blockchains",
-  "contracts" :
-  [
+  "description": "TRUST-based Multi-dimensional Blockchains",
+  "contracts": [
     {
       "contractVersion": "dfc39c00ae6a570753d1077ef0f68a3573c325bf",
       "init": {},
       "description": "The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.",
-      "name":"STEM"
+      "name": "STEM"
     },
     {
-      "contractVersion": "892a821b74c86c6cd6adc6563fd9dbcd4e376419",
+      "contractVersion": "system-coin-contract-1.0.0.jar",
+      "isSystem": true,
       "init": {
         "alloc": {
           "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94": {
@@ -30,9 +30,22 @@
         }
       },
       "description": "YEED is the currency used inside YGGDRASH. The vitality of the new branch chain is decided by the amount of YEED, which will be consumed gradually.",
-      "name":"YEED"
+      "name": "YEED"
+    },
+    {
+      "contractVersion": "system-dpoa-contract-1.0.0.jar",
+      "isSystem": true,
+      "init": {
+        "validators": [
+          "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94"
+        ]
+      },
+      "name": "DPoA",
+      "description": "This contract is for a validator."
     }
   ],
   "timestamp": "000001674dc56231",
-  "validator": ["c91e9d46dd4b7584f0b6348ee18277c10fd7cb94"]
+  "validator": [
+    "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94"
+  ]
 }

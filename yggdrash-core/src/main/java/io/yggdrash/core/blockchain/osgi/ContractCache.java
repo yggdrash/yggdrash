@@ -1,25 +1,29 @@
 package io.yggdrash.core.blockchain.osgi;
 
+import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ContractCache {
-    private Field[] transactionReceiptFields;
-    private Method[] invokeTransctionMethods;
+    //Map<contractName, Map<field, List<Annotation>>>
+    private Map<String, Map<Field, List<Annotation>>> injectingFields;
+    //Map<contractName, Map<methodName, method>>
+    private Map<String, Map<String, Method>> invokeTransactionMethods;
 
-    public Field[] getTransactionReceiptFields() {
-        return transactionReceiptFields;
+    ContractCache() {
+        injectingFields = new HashMap<>();
+        invokeTransactionMethods = new HashMap<>();
     }
 
-    public void setTransactionReceiptFields(Field[] transactionReceiptFields) {
-        this.transactionReceiptFields = transactionReceiptFields;
+    public Map<String, Map<Field, List<Annotation>>> getInjectingFields() {
+        return injectingFields;
     }
 
-    public Method[] getInvokeTransctionMethods() {
-        return invokeTransctionMethods;
-    }
 
-    public void setInvokeTransctionMethods(Method[] invokeTransctionMethods) {
-        this.invokeTransctionMethods = invokeTransctionMethods;
+    public Map<String, Map<String, Method>> getInvokeTransactionMethods() {
+        return invokeTransactionMethods;
     }
 }

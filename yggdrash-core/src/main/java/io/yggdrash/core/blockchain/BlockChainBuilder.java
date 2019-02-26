@@ -152,6 +152,7 @@ public class BlockChainBuilder {
                     .withTransactionReceiptStore(transactionReceiptStore)
                     .build();
         }
+        System.out.println(branch.getBranchId().toString());
 
         return new BlockChain(branch, genesisBlock, blockStore,
                 transactionStore, metaStore, runtime, contractContainer);

@@ -12,6 +12,7 @@ import java.util.ServiceLoader;
 
 public class ContractPolicyLoader {
     private final String EXTRA_PACKAGES = "com.google.gson" +
+            ",io.yggdrash.common.util" +
             ",io.yggdrash.contract.utils" +
             ",io.yggdrash.core.blockchain" +
             ",io.yggdrash.core.contract" +
@@ -42,10 +43,7 @@ public class ContractPolicyLoader {
 
         containerConfig = new HashMap<>();
         containerConfig.put("org.osgi.framework.system.packages.extra", EXTRA_PACKAGES);
-    }
-
-    public String getEXTRA_PACKAGES() {
-        return EXTRA_PACKAGES;
+        containerConfig.put("org.osgi.framework.security", "osgi");
     }
 
     public FrameworkFactory getFrameworkFactory() {

@@ -185,9 +185,11 @@ public class BlockChain {
         // TODO run block execute move to other process (or thread)
         // TODO last excute block will invoke
         if (nextBlock.getIndex() > metaStore.getLastExecuteBlockIndex()) {
-            BlockRuntimeResult result = runtime.invokeBlock(nextBlock);
+//            BlockRuntimeResult result = runtime.invokeBlock(nextBlock);
+            BlockRuntimeResult result = contractContainer.getContractManager().executeTransactions(nextBlock);
             // Save Result
-            runtime.commitBlockResult(result);
+            contractContainer.getContractManager().commitBlockResult(result);
+//            runtime.commitBlockResult(result);
             metaStore.setLastExecuteBlock(nextBlock);
         }
 

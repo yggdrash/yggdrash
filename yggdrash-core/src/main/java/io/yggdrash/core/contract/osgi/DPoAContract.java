@@ -1,7 +1,6 @@
 package io.yggdrash.core.contract.osgi;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.util.JsonUtil;
 import io.yggdrash.core.blockchain.PrefixKeyEnum;
@@ -25,6 +24,8 @@ import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
 import org.osgi.framework.ServiceListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Hashtable;
 import java.util.Iterator;
@@ -32,8 +33,12 @@ import java.util.List;
 import java.util.Map;
 
 public class DPoAContract implements BundleActivator, ServiceListener {
+    private static final Logger log = LoggerFactory.getLogger(io.yggdrash.core.contract.DPoAContract.class);
+
     @Override
     public void start(BundleContext context) throws Exception {
+        log.info("⚪ Start dpoa contract");
+
         //Find for service in another bundle
         Hashtable<String, String> props = new Hashtable();
         props.put("YGGDRASH", "DPoA");
@@ -42,7 +47,7 @@ public class DPoAContract implements BundleActivator, ServiceListener {
 
     @Override
     public void stop(BundleContext context) throws Exception {
-
+        log.info("⚫ Stop dpoa contract");
     }
 
     @Override
@@ -61,6 +66,7 @@ public class DPoAContract implements BundleActivator, ServiceListener {
         @ParamValidation
         @InvokeTransction
         public TransactionReceipt init(JsonObject params) {
+            log.info("Initialize DPoA");
             boolean isSuccess = saveInitValidator(params.getAsJsonArray("validators"));
             txReceipt.setStatus(isSuccess ? ExecuteStatus.SUCCESS : ExecuteStatus.FALSE);
             return txReceipt;
@@ -73,8 +79,8 @@ public class DPoAContract implements BundleActivator, ServiceListener {
             }
 
             validatorSet = new ValidatorSet();
-            for (JsonElement validator : validators) {
-                validatorSet.getValidatorMap().put(validator.getAsString(), new Validator(validator.getAsString()));
+            for (int i = 0; i < validators.size(); i++) {
+                validatorSet.getValidatorMap().put(validators.get(i).getAsString(), new Validator(validators.get(i).getAsString()));
             }
             JsonObject jsonObject = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
             state.put(PrefixKeyEnum.VALIDATORS.toValue(), jsonObject);

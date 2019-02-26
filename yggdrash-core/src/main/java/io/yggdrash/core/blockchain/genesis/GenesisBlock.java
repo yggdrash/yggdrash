@@ -65,7 +65,7 @@ public class GenesisBlock {
         JsonObject validatorParams = new JsonObject();
         validatorParams.addProperty("validator", String.join(",",validators));
         // TODO Validator Contract Version
-        builder.addTxBody(Constants.VALIDATOR_CONTRACT_VERSION, "init", validatorParams);
+        builder.addTxBody(Constants.VALIDATOR_CONTRACT_VERSION, "init", validatorParams, false);
 
         return builder;
     }
@@ -77,7 +77,7 @@ public class GenesisBlock {
                 .setTimeStamp(branch.getTimestamp())
         ;
         contracts.stream().forEach(c -> {
-            builder.addTxBody(c.getContractVersion(), "init", c.getInit());
+            builder.addTxBody(c.getContractVersion(), "init", c.getInit(), c.isSystem());
         });
         return builder;
     }

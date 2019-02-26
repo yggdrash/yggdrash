@@ -116,10 +116,10 @@ public class TransactionReceiptImpl implements TransactionReceipt {
         return status == ExecuteStatus.SUCCESS;
     }
 
-    @Override
-    public String toString() {
-        return JsonUtil.convertObjToString(this);
-    }
+//    @Override
+//    public String toString() {
+//        return JsonUtil.convertObjToString(this);
+//    }
 
     public String getIssuer() {
         return issuer;
