@@ -40,8 +40,8 @@ public class NodeSyncTest extends AbstractNodeTest {
         bootstrapSyncNode(node2);
 
         // assert
-        assert nodeList.get(node1).getDefaultBranch().getLastIndex() ==
-                nodeList.get(node2).getDefaultBranch().getLastIndex();
+        assert nodeList.get(node1).getDefaultBranch().getLastIndex()
+                == nodeList.get(node2).getDefaultBranch().getLastIndex();
     }
 
     @Test
@@ -57,8 +57,8 @@ public class NodeSyncTest extends AbstractNodeTest {
         int node2 = 2;
         bootstrapSyncNode(node2);
         // 4) assert
-        assert nodeList.get(node1).getDefaultBranch().getLastIndex() ==
-                nodeList.get(node2).getDefaultBranch().getLastIndex();
+        assert nodeList.get(node1).getDefaultBranch().getLastIndex()
+                == nodeList.get(node2).getDefaultBranch().getLastIndex();
         // 5) node1: before healthCheck no routing(node1 -> node2) and generate block
         generateBlock(node1, 1);
 
@@ -68,8 +68,8 @@ public class NodeSyncTest extends AbstractNodeTest {
         generateBlock(node1, 1);
 
         // assert
-        assert nodeList.get(node1).getDefaultBranch().getLastIndex() ==
-                nodeList.get(node2).getDefaultBranch().getLastIndex();
+        assert nodeList.get(node1).getDefaultBranch().getLastIndex()
+                == nodeList.get(node2).getDefaultBranch().getLastIndex();
     }
 
     private void bootstrapSyncNode(int nodeIdx) {

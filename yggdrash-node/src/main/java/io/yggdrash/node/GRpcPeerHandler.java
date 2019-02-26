@@ -51,7 +51,6 @@ public class GRpcPeerHandler implements PeerHandler {
     private final ManagedChannel channel;
     private final PeerGrpc.PeerBlockingStub blockingPeerStub;
     private final BlockChainGrpc.BlockChainBlockingStub blockingBlockChainStub;
-    private final BlockChainGrpc.BlockChainBlockingStub asyncBlockChainStub;
     private final BlockChainGrpc.BlockChainStub asyncStub;
     private final Peer peer;
 
@@ -60,12 +59,11 @@ public class GRpcPeerHandler implements PeerHandler {
                 .build(), peer);
     }
 
-    public GRpcPeerHandler(ManagedChannel channel, Peer peer) {
+    GRpcPeerHandler(ManagedChannel channel, Peer peer) {
         this.channel = channel;
         this.peer = peer;
         this.blockingPeerStub = PeerGrpc.newBlockingStub(channel);
         this.blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
-        this.asyncBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
         this.asyncStub =  BlockChainGrpc.newStub(channel);
     }
 
@@ -139,13 +137,13 @@ public class GRpcPeerHandler implements PeerHandler {
     @Override
     public void broadcastTransaction(TransactionHusk tx) {
         log.trace("Broadcasting txs -> {}", tx.getHash());
-        asyncBlockChainStub.broadcastTransaction(tx.getInstance());
+        blockingBlockChainStub.broadcastTransaction(tx.getInstance());
     }
 
     @Override
     public void broadcastBlock(BlockHusk block) {
         log.trace("Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
-        asyncBlockChainStub.broadcastBlock(block.getInstance());
+        blockingBlockChainStub.broadcastBlock(block.getInstance());
     }
 
     @Override

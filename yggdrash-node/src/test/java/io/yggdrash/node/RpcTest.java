@@ -10,7 +10,7 @@
  * limitations under the License
  */
 
-package io.yggdrash.node.discovery;
+package io.yggdrash.node;
 
 import com.google.protobuf.Message;
 import io.grpc.ManagedChannel;
@@ -25,9 +25,6 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.node.AbstractNodeTest;
-import io.yggdrash.node.GRpcPeerHandler;
-import io.yggdrash.node.TestNode;
 import io.yggdrash.node.service.BlockChainService;
 import io.yggdrash.node.service.DiscoveryService;
 import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
@@ -46,8 +43,8 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 @RunWith(JUnit4.class)
-public class RPCTest extends AbstractNodeTest {
-    private static final Logger log = LoggerFactory.getLogger(RPCTest.class);
+public class RpcTest extends AbstractNodeTest {
+    private static final Logger log = LoggerFactory.getLogger(RpcTest.class);
     private static final int NODE_CNT = 2;
 
     private final AbstractApplicationContext context = new GenericApplicationContext();

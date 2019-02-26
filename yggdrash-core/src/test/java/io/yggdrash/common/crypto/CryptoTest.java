@@ -18,7 +18,6 @@
 
 package io.yggdrash.common.crypto;
 
-import io.yggdrash.common.util.Utils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,15 +102,6 @@ public class CryptoTest {
         byte[] blockHashB = sha3(Hex.decode(blockRaw));
         String blockHash = Hex.toHexString(blockHashB);
         log.debug(blockHash);
-    }
-
-    @Test
-    public void test9() {
-        // TODO: https://tools.ietf.org/html/rfc6979#section-2.2
-        // TODO: https://github.com/bcgit/bc-java/blob/master/core/src/main/java/org/bouncycastle/crypto/signers/ECDSASigner.java
-
-        log.debug(new BigInteger(Hex.decode("3913517ebd3c0c65000000")).toString());
-        log.debug(Utils.getValueShortString(new BigInteger("69000000000000000000000000")));
     }
 
     @Test
