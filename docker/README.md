@@ -12,7 +12,7 @@ To ensure everything worked, run:
 first build a docker image of the yggdrash node by running:
 
 ```shell
-> ./gradlew docker
+> ./gradlew build docker
 ```
 
 then run the node:

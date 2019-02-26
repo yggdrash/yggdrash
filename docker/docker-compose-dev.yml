@@ -1,3 +1,4 @@
+
 version: '3.3'
 
 services:
@@ -12,38 +13,37 @@ services:
     secrets:
       - source: nodePri.key
         target: /.yggdrash/keystore/nodePri.key
-    ports: ['8080:8080']
+    network_mode: host
     environment:
       - SPRING_PROFILES_ACTIVE=dev,gateway,bootstrap
-      - 'SPRING_APPLICATION_JSON={
-          "yggdrash.node.grpc.host": "yggdrash-bs",
-          "yggdrash.node.seed-peer-list": ["ynode://57c6510966903044581c148bb67eb47dbbeebef1@yggdrash-bs:32918"]
-        }'
+      - YGGDRASH_NODE_GRPC_HOST=172.16.10.159
     volumes:
       - yggdrash-bs:/.yggdrash
+    restart: on-failure
 
   yggdrash-master:
     image: yggdrash/yggdrash-node
     container_name: yggdrash-master
-    ports: ['8081:8080']
+    network_mode: host
     environment:
       - SPRING_PROFILES_ACTIVE=dev,gateway,master
-      - 'SPRING_APPLICATION_JSON={
-          "yggdrash.node.grpc.host": "yggdrash-master",
-          "yggdrash.node.seed-peer-list": ["ynode://57c6510966903044581c148bb67eb47dbbeebef1@yggdrash-bs:32918"]
-        }'
+      - SERVER_PORT=8081
+      - YGGDRASH_NODE_GRPC_HOST=172.16.10.159
+      - YGGDRASH_NODE_GRPC_PORT=32919
     volumes:
       - yggdrash-master:/.yggdrash
+    restart: on-failure
 
   yggdrash-node:
     image: yggdrash/yggdrash-node
-    ports: ['8082-9000:8080']
+    container_name: yggdrash-node
+    network_mode: host
     environment:
-      - RUN_SLEEP=5
       - SPRING_PROFILES_ACTIVE=dev,gateway
-      - 'SPRING_APPLICATION_JSON={
-          "yggdrash.node.seed-peer-list": ["ynode://57c6510966903044581c148bb67eb47dbbeebef1@yggdrash-bs:32918"]
-        }'
+      - SERVER_PORT=8082
+      - YGGDRASH_NODE_GRPC_HOST=172.16.10.159
+      - YGGDRASH_NODE_GRPC_PORT=32920
+    restart: on-failure
 
 
 volumes:
