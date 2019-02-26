@@ -37,7 +37,15 @@ This is the implementation written in Java and runs on Linux, OSX and Windows.
 
 Yggdrash requires `JAVA` 1.8+ compiler to build. To install Java, follow this [link](http://www.oracle.com/technetwork/java/javase/overview/index.html).
 
-Open JDK or Oracle JDK 1.8 to 11 are supported.
+| JDK Version   | sourceCompatibility | Build | Run |
+| --------------|---------------------|-------|-----|
+| 12.ea.31-open | 12                  | ✅    | ✅  |
+| 11.0.2-zulu   | 11                  | ✅    | ✅  |
+| 11.0.2-open   | 11                  | ✅    | ✅  |
+| 10.0.2-open   | 10                  | ✅    | ✅  |
+| 9.0.4-open    | 9                   | ✅    | ✅  |
+| 8.0.202-zulu  | 1.8  (recommended)  | ✅    | ✅  |
+| 8.0.201-oracle| 1.8                 | ✅    | ✅  |
 
 ### Getting the source
 

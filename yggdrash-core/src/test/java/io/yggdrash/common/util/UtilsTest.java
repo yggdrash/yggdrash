@@ -19,7 +19,6 @@ package io.yggdrash.common.util;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.math.BigInteger;
 import java.util.Locale;
 
 public class UtilsTest {
@@ -32,11 +31,6 @@ public class UtilsTest {
     @Test
     public void longToTimePeriod() {
         assert Utils.longToTimePeriod(1).equals("1ms");
-    }
-
-    @Test
-    public void getValueShortString() {
-        assert Utils.getValueShortString(BigInteger.ONE).equals("1·(10^0)");
     }
 
     @Test

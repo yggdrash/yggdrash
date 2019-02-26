@@ -41,7 +41,7 @@ spring.profiles: dev
 yggdrash:
   node:
     seed-peer-list:
-      - "ynode://7c7fe194441abbd4cde8a8341f35e586371af0ee@172.16.10.159:32918"
+      - "ynode://57c6510966903044581c148bb67eb47dbbeebef1@172.16.10.159:32918"
 
 ---
 
