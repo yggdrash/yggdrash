@@ -42,11 +42,11 @@ Launch all node by running: `docker-compose up --scale yggdrash-node=3 -d`.
 - block -> http://localhost:8081/yggdrash/blocks
 
 ### General node:
-- best block http://localhost:8082/yggdrash/blocks/latest
+- best block -> http://localhost:8082/yggdrash/blocks/latest
 
 ## deploy to test server
-- dev : docker-compose -f docker-compose-deploy.yml up -d
-- prod: create .env and docker-compose -f docker-compose-deploy.yml up -d
+- dev server: `docker-compose -f docker-compose-deploy.yml up -d`
+- prod server: create `.env` file and run `docker-compose -f docker-compose-deploy.yml up -d`
 ```shell
 PROFILE=prod
 GRPC_HOST=52.79.188.79
