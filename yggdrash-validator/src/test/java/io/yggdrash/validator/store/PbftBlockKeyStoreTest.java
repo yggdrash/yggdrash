@@ -27,6 +27,7 @@ import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
+import static io.yggdrash.common.util.Utils.sleep;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -295,8 +296,32 @@ public class PbftBlockKeyStoreTest {
         log.debug("After free memory: " + Runtime.getRuntime().freeMemory());
         assertEquals(this.blockKeyStore.size(), testNumber);
 
-//        System.gc();
-//        sleep(20000);
+        System.gc();
+        sleep(20000);
     }
+
+    @Test
+    public void memoryTestMultiThread() {
+        TestConstants.PerformanceTest.apply();
+
+        long testNumber = 1000000;
+        byte[] result;
+        List<byte[]> resultList = new ArrayList<>();
+
+        log.debug("Before free memory: " + Runtime.getRuntime().freeMemory());
+        for (long l = 0L; l < testNumber; l++) {
+            this.blockKeyStore.put(l, EMPTY_BYTE1K);
+            result = this.blockKeyStore.get(l);
+            resultList.add(result);
+        }
+        resultList.clear();
+        log.debug("blockKeyStore size: " + this.blockKeyStore.size());
+        log.debug("After free memory: " + Runtime.getRuntime().freeMemory());
+        assertEquals(this.blockKeyStore.size(), testNumber);
+
+        System.gc();
+        sleep(20000);
+    }
+
 
 }

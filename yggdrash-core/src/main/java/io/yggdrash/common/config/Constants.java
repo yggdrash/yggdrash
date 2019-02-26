@@ -26,7 +26,9 @@ public class Constants {
     public static final byte[] EMPTY_BYTE20 = new byte[20];
     public static final byte[] EMPTY_BYTE32 = new byte[32];
     public static final byte[] EMPTY_BYTE1K = new byte[1024];
-
+    public static final byte[] EMPTY_BYTE10K = new byte[10240];
+    public static final byte[] EMPTY_BYTE100K = new byte[102400];
+    public static final byte[] EMPTY_BYTE1M = new byte[1024000];
 
     public static final int TX_HEADER_LENGTH = 84;
     public static final int TX_SIG_LENGTH = 65;

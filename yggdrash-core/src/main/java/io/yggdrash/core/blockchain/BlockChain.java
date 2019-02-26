@@ -17,6 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
@@ -56,9 +57,11 @@ public class BlockChain {
 
     private BlockHusk prevBlock;
 
+    private ContractContainer contractContainer;
+
     public BlockChain(Branch branch, BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, MetaStore metaStore,
-                      Runtime runtime) {
+                      Runtime runtime, ContractContainer contractContainer) {
         this.branch = branch;
         this.genesisBlock = genesisBlock;
         this.blockStore = blockStore;
@@ -67,6 +70,7 @@ public class BlockChain {
         this.runtime = runtime;
         this.stateStore = runtime.getStateStore();
         this.transactionReceiptStore = runtime.getTransactionReceiptStore();
+        this.contractContainer = contractContainer;
 
         // Empty blockChain
         if (!blockStore.contains(genesisBlock.getHash())) {
@@ -145,6 +149,10 @@ public class BlockChain {
         return this.prevBlock;
     }
 
+    public ContractContainer getContractContainer() {
+        return contractContainer;
+    }
+
     /**
      * Gets last block index.
      *
@@ -177,9 +185,11 @@ public class BlockChain {
         // TODO run block execute move to other process (or thread)
         // TODO last execute block will invoke
         if (nextBlock.getIndex() > metaStore.getLastExecuteBlockIndex()) {
-            BlockRuntimeResult result = runtime.invokeBlock(nextBlock);
+//            BlockRuntimeResult result = runtime.invokeBlock(nextBlock);
+            BlockRuntimeResult result = contractContainer.getContractManager().executeTransactions(nextBlock);
             // Save Result
-            runtime.commitBlockResult(result);
+            contractContainer.getContractManager().commitBlockResult(result);
+//            runtime.commitBlockResult(result);
             metaStore.setLastExecuteBlock(nextBlock);
         }
 
