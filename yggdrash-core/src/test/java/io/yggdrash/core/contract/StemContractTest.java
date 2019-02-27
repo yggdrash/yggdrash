@@ -64,7 +64,7 @@ public class StemContractTest {
         JsonObject params = createParams(stateValue.getJson());
 
         TransactionReceipt receipt = new TransactionReceiptImpl();
-        receipt.setIssuer(stateValue.getValidators().get(0));
+        receipt.setIssuer(stateValue.getValidators().stream().findFirst().get());
 
         List<Field> txReceipt = ContractUtils.txReceiptFields(stemContract);
         if (txReceipt.size() == 1) {
@@ -97,7 +97,7 @@ public class StemContractTest {
         params.add(branchId, branch);
 
         TransactionReceipt receipt = new TransactionReceiptImpl();
-        receipt.setIssuer(stateValue.getValidators().get(0));
+        receipt.setIssuer(stateValue.getValidators().stream().findFirst().get());
 
         try {
             txReceiptField.set(stemContract, receipt);

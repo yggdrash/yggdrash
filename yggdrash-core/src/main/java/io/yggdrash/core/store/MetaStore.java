@@ -17,20 +17,23 @@
 package io.yggdrash.core.store;
 
 import com.google.common.primitives.Longs;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BlockchainMetaInfo;
 import io.yggdrash.core.blockchain.Branch;
-import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.store.datasource.DbSource;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class MetaStore implements Store<String, String> {
@@ -143,17 +146,18 @@ public class MetaStore implements Store<String, String> {
     // TODO UPDATE Branch - Version History
 
     // Set Genesis Block
-    public void setGenesisBlock(GenesisBlock genesisBlock) {
+    public boolean setGenesisBlockHash(Sha3Hash genesisBlockHash) {
         if (db.get(BlockchainMetaInfo.GENESIS_BLOCK.toString().getBytes()) == null) {
-            Sha3Hash genesisBlockHash = genesisBlock.getBlock().getHash();
             db.put(BlockchainMetaInfo.GENESIS_BLOCK.toString().getBytes(), genesisBlockHash.getBytes());
+            return true;
         }
+        return false;
     }
 
     // Get Genesis Block
-    public Sha3Hash getGenesisBlock() {
+    public Sha3Hash getGenesisBlockHash() {
         byte[] genesisBlockHash = db.get(BlockchainMetaInfo.GENESIS_BLOCK.toString().getBytes());
-        return new Sha3Hash(genesisBlockHash);
+        return new Sha3Hash(genesisBlockHash, true);
     }
 
     // Set Validator
@@ -213,16 +217,29 @@ public class MetaStore implements Store<String, String> {
         return false;
     }
 
-    // TODO Set Contracts
+    // Set Contracts
     // Save Contracts initial values
+    public void setBranchContracts(List<BranchContract> contracts) {
+        JsonArray array = new JsonArray();
+        contracts.stream().forEach(c -> array.add(c.getJson()));
+        byte[] contractBytes = array.toString().getBytes();
+        db.put(BlockchainMetaInfo.BRANCH_CONTRACTS.toString().getBytes(), contractBytes);
+    }
 
-    // TODO Get Contracts
+    // Get Contracts
     // Load Contracts initial values
+    public List<BranchContract> getBranchContacts() {
+        List<BranchContract> contracts = new ArrayList<>();
+        byte[] contractBytes = db.get(BlockchainMetaInfo.BRANCH_CONTRACTS.toString().getBytes());
+        JsonParser parser = new JsonParser();
+        JsonArray json = parser.parse(new String(contractBytes)).getAsJsonArray();
 
-
-
-    // TODO Update Contract
-
-    // TODO Add Contract
-
+        for(int i=0; i < json.size(); i++) {
+            if (json.get(i).isJsonObject()) {
+                JsonObject branchContract = json.get(i).getAsJsonObject();
+                contracts.add(BranchContract.of(branchContract));
+            }
+        }
+        return contracts;
+    }
 }

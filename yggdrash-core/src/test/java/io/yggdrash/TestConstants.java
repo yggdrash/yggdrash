@@ -34,6 +34,7 @@ public class TestConstants {
 
     public static ContractVersion STEM_CONTRACT;
     public static ContractVersion YEED_CONTRACT;
+    public static Branch TEST_BRANCH;
 
 
     public static final String TRANSFER_TO = "e1980adeafbb9ac6c9be60955484ab1547ab0b76";
@@ -61,9 +62,9 @@ public class TestConstants {
             ClassLoader loader = TestConstants.class.getClassLoader();
             InputStream is = loader.getResourceAsStream("branch-yggdrash.json");
             Branch yggdrashBranch = null;
-
             try {
                 yggdrashBranch = Branch.of(is);
+                TEST_BRANCH = yggdrashBranch;
                 YGGDRASH_BRANCH_ID = yggdrashBranch.getBranchId();
                 for (BranchContract bc : yggdrashBranch.getBranchContracts()) {
                     if ("STEM".equals(bc.getName())) {

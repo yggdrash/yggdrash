@@ -23,5 +23,6 @@ public enum  BlockchainMetaInfo {
     LAST_EXECUTE_BLOCK_INDEX,
     BRANCH,
     GENESIS_BLOCK,
-    VALIDATORS
+    VALIDATORS,
+    BRANCH_CONTRACTS
 }

@@ -27,6 +27,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import org.apache.commons.io.IOUtils;
@@ -98,8 +99,8 @@ public class Branch {
         return description;
     }
 
-    public List<String> getValidators() {
-        return new ArrayList<>(this.validators);
+    public Set<String> getValidators() {
+        return new HashSet<>(this.validators);
     }
 
     public boolean addValidator(String validator) {
