@@ -139,7 +139,6 @@ public class BlockChainBuilder {
 
             // Add System Contract
             defaultContract().forEach((key, value) -> runtime.addContract(key, value));
-
         }
 
         ContractContainer contractContainer = null;

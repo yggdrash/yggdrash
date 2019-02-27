@@ -34,6 +34,7 @@ import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.math.BigInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -89,22 +90,20 @@ public class RuntimeTest {
 
         JsonObject branch = ContractTestUtils.createSampleBranchJson();
 
-        BranchId branchId = BranchId.of(branch);
-        JsonObject params = new JsonObject();
-        params.add(branchId.toString(), branch);
+        BranchId branchId = BranchId.of(branch.get("branch").getAsJsonObject());
 
         TransactionBuilder builder = new TransactionBuilder();
         TransactionHusk testTx = builder.setBranchId(branchId)
-                .addTxBody(stemContract, "create", params, false)
+                .addTxBody(stemContract, "create", branch, false)
                 .setWallet(TestConstants.wallet())
                 .build();
 
         log.debug(testTx.toString());
         TransactionRuntimeResult result = runtime.invoke(testTx);
+
         result.getReceipt().getTxLog().forEach(l -> log.debug(l.toString()));
 
         assertThat(result.getReceipt().isSuccess()).isTrue();
-        System.out.println(result.getChangeValues().get("BRANCH_ID_LIST"));
 
         assert result.getChangeValues().get("BRANCH_ID_LIST")
                 .getAsJsonArray("branchIds")

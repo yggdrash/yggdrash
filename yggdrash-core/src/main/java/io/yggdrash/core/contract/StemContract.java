@@ -58,7 +58,6 @@ public class StemContract implements Contract<JsonObject> {
             if (!isBranchExist(branchId.toString()) && isBranchIdValid(branchId, stateValue)) {
                 try {
                     addBranchId(branchId);
-//                    validatorVerify(params);
 
                     stateValue.setFee(params.get("fee").getAsBigInteger());
                     stateValue.setBlockHeight(txReceipt.getBlockHeight());
@@ -66,6 +65,7 @@ public class StemContract implements Contract<JsonObject> {
                     state.put(branchId.toString(), stateValue.getJson());
                     addTxId(branchId);
 
+                    txReceipt.setStatus(ExecuteStatus.SUCCESS);
                 } catch (Exception e) {
                     e.printStackTrace();
                     txReceipt.setStatus(ExecuteStatus.FALSE);

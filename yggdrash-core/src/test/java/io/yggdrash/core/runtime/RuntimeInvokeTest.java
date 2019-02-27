@@ -31,6 +31,7 @@ import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.TempStateStore;
 import io.yggdrash.core.store.datasource.HashMapDbSource;
 import org.junit.Test;
+
 import java.lang.reflect.InvocationTargetException;
 
 public class RuntimeInvokeTest {
@@ -43,7 +44,7 @@ public class RuntimeInvokeTest {
         Store tempStore = new StateStore<>(new HashMapDbSource());
 
         JsonObject json = ContractTestUtils.createSampleBranchJson();
-        BranchId branchId = BranchId.of(json);
+        BranchId branchId = BranchId.of(json.get("branch").getAsJsonObject());
 
         TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId,
                 "create", json);
