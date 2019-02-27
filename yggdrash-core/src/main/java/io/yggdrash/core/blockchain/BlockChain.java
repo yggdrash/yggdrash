@@ -202,7 +202,7 @@ public class BlockChain {
             listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
         }
         log.debug("Added idx=[{}], tx={}, branch={}, blockHash={}", nextBlock.getIndex(),
-                nextBlock.getBodySize(), getBranchId(), nextBlock.getHash());
+                nextBlock.getBodyCount(), getBranchId(), nextBlock.getHash());
         return nextBlock;
     }
 
