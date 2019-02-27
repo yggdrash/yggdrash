@@ -158,8 +158,12 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         return body;
     }
 
-    public int getBodySize() {
+    public int getBodyCount() {
         return protoBlock.getBody().getTransactionsCount();
+    }
+
+    public long getBodyLength() {
+        return coreBlock.getHeader().getBodyLength();
     }
 
     @Override

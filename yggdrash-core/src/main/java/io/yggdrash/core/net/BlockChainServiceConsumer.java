@@ -29,6 +29,7 @@ import java.util.List;
 
 public class BlockChainServiceConsumer implements BlockChainConsumer {
     private static final Logger log = LoggerFactory.getLogger(BlockChainServiceConsumer.class);
+    private static final long BLOCK_SIZE_LIMIT = 3 * 1024 * 1024; // 3MB
     private final BranchGroup branchGroup;
     private CatchUpSyncEventListener listener;
 
@@ -53,9 +54,14 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
             offset = 0;
         }
 
+        long bodyLengthSum = 0;
         for (int i = 0; i < limit; i++) {
             BlockHusk block = branchGroup.getBlockByIndex(branchId, offset++);
             if (block == null) {
+                break;
+            }
+            bodyLengthSum += block.getBodyLength();
+            if (bodyLengthSum > BLOCK_SIZE_LIMIT) {
                 break;
             }
             blockHuskList.add(block);
