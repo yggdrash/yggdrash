@@ -145,7 +145,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     }
 
     public Sha3Hash getPrevHash() {
-        return new Sha3Hash(this.coreBlock.getPrevBlockHash());
+        return new Sha3Hash(this.coreBlock.getPrevBlockHash(), true);
     }
 
     public long getIndex() {
