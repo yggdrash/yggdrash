@@ -61,7 +61,7 @@ public class SimplePeerDialer implements PeerDialer {
                 return true;
             }
         } catch (Exception e) {
-            log.warn("Fail to add to the peer handler err=" + e.getMessage());
+            log.warn("add peer handler {}->{}, err={}", owner.toAddress(), to.toAddress(), e.getMessage());
         }
         removeHandler(peerHandler);
         return false;

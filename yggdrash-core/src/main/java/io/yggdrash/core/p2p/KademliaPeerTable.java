@@ -35,7 +35,9 @@ public class KademliaPeerTable implements PeerTable {
     @Override
     public void loadSeedNodes(List<String> seedPeerList) {
         if (this.peerStore.size() > 0) {
-            this.peerStore.getAll().forEach(Peer::valueOf);
+            for (String peer : this.peerStore.getAll()) {
+                addPeer(Peer.valueOf(peer));
+            }
         }
 
         // Load nodes from the database and insert them.
@@ -194,7 +196,7 @@ public class KademliaPeerTable implements PeerTable {
     }
 
     @Override
-    public synchronized List<Peer> getClosestPeers(Peer targetPeer, int limit) {
+    public List<Peer> getClosestPeers(Peer targetPeer, int limit) {
         List<Peer> closestEntries = getAllPeers();
         closestEntries.sort(new DistanceComparator(targetPeer.getPeerId().getBytes()));
         if (closestEntries.size() > limit) {

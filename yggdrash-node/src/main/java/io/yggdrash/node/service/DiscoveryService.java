@@ -47,7 +47,7 @@ public class DiscoveryService extends PeerGrpc.PeerImplBase {
         Peer from = Peer.valueOf(request.getFrom());
         Peer to = Peer.valueOf(request.getTo());
         BranchId branchId = BranchId.of(request.getBranch().toByteArray());
-        log.debug("Received " + request.getPing());
+        log.debug("{} received. from={} -> to={}", request.getPing(), from.toAddress(), to.toAddress());
         String reply = discoveryConsumer.ping(branchId, from, to, request.getPing());
         Proto.Pong pong = Proto.Pong.newBuilder().setPong(reply).build();
         responseObserver.onNext(pong);
