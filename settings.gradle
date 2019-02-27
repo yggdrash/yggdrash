@@ -3,3 +3,5 @@ include 'yggdrash-core'
 include 'yggdrash-node'
 include 'yggdrash-gateway'
 include 'yggdrash-validator'
+include 'yggdrash-contract-core'
+

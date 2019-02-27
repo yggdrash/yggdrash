@@ -25,16 +25,22 @@ public class BranchContract {
     private String name;
     private String description;
     private String property;
+    private boolean isSystem;
 
 
     protected BranchContract(JsonObject json) {
-        this.contractVersion = ContractVersion.of(json.get("contractVersion").getAsString());
         this.init = json.getAsJsonObject("init");
         this.name = json.get("name").getAsString();
         this.description = json.get("description").getAsString();
         this.property = json.has("property") ? json.get("property").getAsString() : "";
-    }
+        this.isSystem = json.has("isSystem") ? json.get("isSystem").getAsBoolean() : false;
 
+        if (this.isSystem) {
+            this.contractVersion = ContractVersion.ofNonHex(json.get("contractVersion").getAsString());
+        } else {
+            this.contractVersion = ContractVersion.of(json.get("contractVersion").getAsString());
+        }
+    }
 
     public static BranchContract of(JsonObject json) {
         return new BranchContract(json);
@@ -58,5 +64,9 @@ public class BranchContract {
 
     public String getProperty() {
         return property;
+    }
+
+    public boolean isSystem() {
+        return isSystem;
     }
 }

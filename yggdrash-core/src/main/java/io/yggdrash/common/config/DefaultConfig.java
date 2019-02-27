@@ -26,6 +26,7 @@ public class DefaultConfig {
     private static final String PROPERTY_NETWORK_P2P_VER = "network.p2p.version";
 
     private static final String CONTRACT_PATH = "contract.path";
+    private static final String OSGI_PATH = "osgi.path";
     private static final String BRANCH_PATH = "branch.path";
     private static final String DATABASE_PATH = "database.path";
     protected boolean productionMode;
@@ -143,6 +144,10 @@ public class DefaultConfig {
 
     public String getContractPath() {
         return config.getString(CONTRACT_PATH);
+    }
+
+    public String getOsgiPath() {
+        return config.getString(OSGI_PATH);
     }
 
     public String getBranchPath() {

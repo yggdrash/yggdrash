@@ -20,6 +20,7 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.contract.ContractClassLoader;
@@ -54,24 +55,33 @@ public class BranchConfiguration {
         this.storeBuilder = storeBuilder;
     }
 
-    @Bean("yggdrash")
+    @Bean
     BlockChain yggdrash(BranchGroup branchGroup) throws IOException {
         BlockChain yggdrash = createBranch(yggdrashResource.getInputStream());
+    @Bean
+    @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
+    BlockChain yggdrash(BranchGroup branchGroup, ContractPolicyLoader contractPolicyLoader) throws IOException {
+        BlockChain yggdrash = createBranch(yggdrashResource.getInputStream(), contractPolicyLoader);
         branchGroup.addBranch(yggdrash);
         return yggdrash;
     }
 
-    @Bean("branchGroup")
+    @Bean
     BranchGroup branchGroup() {
         return new BranchGroup();
     }
 
-    @Bean("branchLoader")
-    BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup) {
+    @Bean
+    ContractPolicyLoader contractPolicyLoader() {
+        return new ContractPolicyLoader();
+    }
+
+    @Bean
+    BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup, ContractPolicyLoader policyLoader) {
         BranchLoader branchLoader = new BranchLoader(defaultConfig.getBranchPath());
         try {
             for (GenesisBlock genesis : branchLoader.getGenesisBlockList()) {
-                BlockChain bc = createBranch(genesis);
+                BlockChain bc = createBranch(genesis, policyLoader);
                 branchGroup.addBranch(bc);
             }
         } catch (Exception e) {
@@ -88,17 +98,18 @@ public class BranchConfiguration {
         return new ContractManager(defaultConfig.getContractPath());
     }
 
-    private BlockChain createBranch(InputStream is)
+    private BlockChain createBranch(InputStream is, ContractPolicyLoader policyLoader)
             throws IOException {
         GenesisBlock genesis = GenesisBlock.of(is);
-        return createBranch(genesis);
+        return createBranch(genesis, policyLoader);
     }
 
-    private BlockChain createBranch(GenesisBlock genesis) {
+    private BlockChain createBranch(GenesisBlock genesis, ContractPolicyLoader policyLoader) {
         try {
             return BlockChainBuilder.Builder()
                     .addGenesis(genesis)
                     .setStoreBuilder(storeBuilder)
+                    .setPolicyLoader(policyLoader)
                     .build();
         } catch (Exception e) {
             log.warn(e.getMessage());
@@ -109,7 +120,6 @@ public class BranchConfiguration {
     /**
      * Scheduling Beans
      */
-
     @Bean
     @ConditionalOnProperty("yggdrash.node.chain.gen")
     public ChainTask chainTask() {
