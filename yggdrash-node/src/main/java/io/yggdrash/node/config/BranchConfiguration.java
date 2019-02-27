@@ -16,16 +16,24 @@
 
 package io.yggdrash.node.config;
 
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
+import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.contract.ContractManager;
+import io.yggdrash.core.store.BlockStore;
+import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
+import java.io.IOException;
+import java.io.InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,9 +43,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 @Configuration
 @EnableScheduling
@@ -57,7 +62,16 @@ public class BranchConfiguration {
     @Bean
     @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
     BlockChain yggdrash(BranchGroup branchGroup) throws IOException {
-        BlockChain yggdrash = createBranch(yggdrashResource.getInputStream());
+        // TODO remove yggdrash
+        InputStream is = yggdrashResource.getInputStream();
+        GenesisBlock genesis = GenesisBlock.of(is);
+
+        BlockChain yggdrash = loadBranch(genesis.getBranch().getBranchId());
+
+        if (yggdrash == null) {
+            yggdrash = createBranch(genesis);
+        }
+
         branchGroup.addBranch(yggdrash);
         return yggdrash;
     }
@@ -70,9 +84,15 @@ public class BranchConfiguration {
     @Bean
     BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup) {
         BranchLoader branchLoader = new BranchLoader(defaultConfig.getBranchPath());
+        // TODO check exist branch
         try {
             for (GenesisBlock genesis : branchLoader.getGenesisBlockList()) {
-                BlockChain bc = createBranch(genesis);
+                // check exist branch
+                BlockChain bc = loadBranch(genesis.getBranch().getBranchId());
+                if (bc == null) {
+                    bc = createBranch(genesis);
+                }
+                // TODO check Validator
                 branchGroup.addBranch(bc);
             }
         } catch (Exception e) {
@@ -96,6 +116,7 @@ public class BranchConfiguration {
     }
 
     private BlockChain createBranch(GenesisBlock genesis) {
+        // TODO createBranch Save Branch File
         try {
             return BlockChainBuilder.Builder()
                     .addGenesis(genesis)
@@ -106,6 +127,37 @@ public class BranchConfiguration {
             return null;
         }
     }
+
+    // TODO load Branch By Store
+    private BlockChain loadBranch(BranchId branchId) {
+        // TODO blockChain Loader will load blockchain by store
+        // Load Meta Store
+        BlockChainBuilder builder = BlockChainBuilder.Builder();
+        MetaStore metaStore = storeBuilder.buildMetaStore(branchId);
+        if (!branchId.equals(metaStore.getBranchId())) {
+            return null;
+        }
+        BlockStore blockStore = storeBuilder.buildBlockStore(branchId);
+
+        // TODO get Branch
+        Branch branch = metaStore.getBranch();
+
+        // TODO get Genesis
+        Sha3Hash genesisBlockHash = metaStore.getGenesisBlockHash();
+        BlockHusk genesisBlock = blockStore.get(genesisBlockHash);
+        GenesisBlock genesis = GenesisBlock.of(branch, genesisBlock);
+
+        // TODO Get Contracts
+
+
+        return builder.addGenesis(genesis)
+            .setBlockStore(blockStore)
+            .setMetaStore(metaStore)
+            .setStoreBuilder(storeBuilder)
+            .build();
+    }
+
+
 
     /**
      * Scheduling Beans
