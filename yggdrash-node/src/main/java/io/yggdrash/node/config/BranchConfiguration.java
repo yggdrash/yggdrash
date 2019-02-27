@@ -20,9 +20,9 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.contract.ContractManager;
 import io.yggdrash.core.store.StoreBuilder;
@@ -55,9 +55,6 @@ public class BranchConfiguration {
         this.storeBuilder = storeBuilder;
     }
 
-    @Bean
-    BlockChain yggdrash(BranchGroup branchGroup) throws IOException {
-        BlockChain yggdrash = createBranch(yggdrashResource.getInputStream());
     @Bean
     @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
     BlockChain yggdrash(BranchGroup branchGroup, ContractPolicyLoader contractPolicyLoader) throws IOException {
