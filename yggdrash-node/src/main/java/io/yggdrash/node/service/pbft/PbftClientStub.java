@@ -95,7 +95,7 @@ public class PbftClientStub {
 
     public PbftStatus exchangePbftStatus(PbftProto.PbftStatus pbftStatus) {
         this.pbftStatus = new PbftStatus(blockingStub
-                .withDeadlineAfter(3, TimeUnit.SECONDS)
+                .withDeadlineAfter(5, TimeUnit.SECONDS)
                 .exchangePbftStatus(pbftStatus));
         if (Context.current().isCancelled()) {
             return null;

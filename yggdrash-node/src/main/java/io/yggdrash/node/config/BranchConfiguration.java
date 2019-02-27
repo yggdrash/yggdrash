@@ -54,20 +54,19 @@ public class BranchConfiguration {
         this.storeBuilder = storeBuilder;
     }
 
-    @Bean
-    @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
+    @Bean("yggdrash")
     BlockChain yggdrash(BranchGroup branchGroup) throws IOException {
         BlockChain yggdrash = createBranch(yggdrashResource.getInputStream());
         branchGroup.addBranch(yggdrash);
         return yggdrash;
     }
 
-    @Bean
+    @Bean("branchGroup")
     BranchGroup branchGroup() {
         return new BranchGroup();
     }
 
-    @Bean
+    @Bean("branchLoader")
     BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup) {
         BranchLoader branchLoader = new BranchLoader(defaultConfig.getBranchPath());
         try {

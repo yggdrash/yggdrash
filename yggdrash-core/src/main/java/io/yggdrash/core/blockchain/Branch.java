@@ -107,6 +107,10 @@ public class Branch {
         return json;
     }
 
+    public JsonObject getConsensus() {
+        return consensus;
+    }
+
     public boolean isYggdrash() {
         return Constants.YGGDRASH.equals(symbol);
     }

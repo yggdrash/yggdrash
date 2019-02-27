@@ -1,12 +1,15 @@
 package io.yggdrash.node.service.pbft;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
+import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.pbft.PbftBlock;
@@ -15,13 +18,12 @@ import io.yggdrash.core.blockchain.pbft.PbftMessageSet;
 import io.yggdrash.core.blockchain.pbft.PbftStatus;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import org.apache.commons.io.IOUtils;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -29,9 +31,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -41,8 +40,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static io.yggdrash.common.util.Utils.sleep;
 
+@Profile("validator")
 @Service
-@Configuration
 @EnableScheduling
 public class PbftService implements CommandLineRunner {
 
@@ -55,6 +54,7 @@ public class PbftService implements CommandLineRunner {
 
     private final Wallet wallet;
     private final PbftBlockChain blockChain;
+    private final BranchGroup branchGroup;
 
     private final PbftClientStub myNode;
     private final Map<String, PbftClientStub> totalValidatorMap;
@@ -78,9 +78,10 @@ public class PbftService implements CommandLineRunner {
     Resource validatorResource;
 
     @Autowired
-    public PbftService(Wallet wallet, PbftBlockChain blockChain) {
+    public PbftService(Wallet wallet, PbftBlockChain blockChain, BranchGroup branchGroup) {
         this.wallet = wallet;
         this.blockChain = blockChain;
+        this.branchGroup = branchGroup;
         this.myNode = initMyNode();
         this.totalValidatorMap = initTotalValidator();
         this.isValidator = initValidator();
@@ -479,6 +480,8 @@ public class PbftService implements CommandLineRunner {
         this.blockChain.getBlockStore().put(block.getHash(), block);
         this.blockChain.getBlockKeyStore().put(block.getIndex(), block.getHash());
 
+        this.branchGroup.addBlock(new BlockHusk(block.getBlock()), true);
+
         changeLastConfirmedBlock(block);
 
         log.debug("ConfirmedBlock "
@@ -691,6 +694,8 @@ public class PbftService implements CommandLineRunner {
                 this.blockChain.getBlockStore().put(pbftBlock.getHash(), pbftBlock);
                 this.blockChain.getBlockKeyStore()
                         .put(pbftBlock.getIndex(), pbftBlock.getHash());
+
+                this.branchGroup.addBlock(new BlockHusk(pbftBlock.getBlock()), true);
             }
             pbftBlock = pbftBlockList.get(i - 1);
             changeLastConfirmedBlock(pbftBlock);
@@ -747,15 +752,9 @@ public class PbftService implements CommandLineRunner {
     }
 
     private TreeMap<String, PbftClientStub> initTotalValidator() {
-        String jsonString;
-        try {
-            InputStream bdata = validatorResource.getInputStream();
-            jsonString = IOUtils.toString(bdata, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new NotValidateException("Error validator.json");
-        }
-
-        JsonObject validatorJsonObject = new Gson().fromJson(jsonString, JsonObject.class);
+        JsonObject validatorJsonObject =
+                branchGroup.getBranch(new BranchId(new Sha3Hash(blockChain.getChain(), true)))
+                        .getBranch().getConsensus();
         TreeMap<String, PbftClientStub> nodeMap = new TreeMap<>();
 
         Set<Map.Entry<String, JsonElement>> entrySet =
@@ -778,8 +777,8 @@ public class PbftService implements CommandLineRunner {
     private PbftClientStub initMyNode() {
         PbftClientStub client = new PbftClientStub(
                 wallet.getPubicKeyHex().substring(2),
-                InetAddress.getLoopbackAddress().getHostAddress(),
-                Integer.parseInt(System.getProperty("yggdrash.node.grpc.port")));
+                this.blockChain.getHost(),
+                this.blockChain.getPort());
 
         client.setMyclient(true);
         client.setIsRunning(true);
