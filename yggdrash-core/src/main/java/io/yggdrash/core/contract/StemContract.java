@@ -14,7 +14,7 @@ import io.yggdrash.core.store.Store;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
@@ -40,6 +40,7 @@ public class StemContract implements Contract<JsonObject> {
     @Genesis
     @InvokeTransaction // TODO remove InvokeTransaction
     public TransactionReceipt init(JsonObject param) {
+        txReceipt = create(param);
         log.info("[StemContract | genesis] SUCCESS! param => " + param);
         return txReceipt;
     }
@@ -58,10 +59,7 @@ public class StemContract implements Contract<JsonObject> {
             if (!isBranchExist(branchId.toString()) && isBranchIdValid(branchId, stateValue)) {
                 try {
                     addBranchId(branchId);
-
-                    stateValue.setFee(params.get("fee").getAsBigInteger());
-                    stateValue.setBlockHeight(txReceipt.getBlockHeight());
-
+                    setStateValue(stateValue, params);
                     state.put(branchId.toString(), stateValue.getJson());
                     addTxId(branchId);
 
@@ -95,7 +93,7 @@ public class StemContract implements Contract<JsonObject> {
             if (isOwnerValid(params.get("validator").getAsString())
                     && stateValue != null && !isBranchExist(branchId.toString())
                     && isBranchIdValid(branchId, stateValue)) {
-                updateBranch(stateValue, params);
+                setStateValue(stateValue, params);
 
                 state.put(branchId.toString(), stateValue.getJson());
                 addTxId(branchId);
@@ -110,10 +108,21 @@ public class StemContract implements Contract<JsonObject> {
         return txReceipt;
     }
 
-    private void updateBranch(StemContractStateValue stateValue, JsonObject json) {
-        if (json.has("fee")) {
-            stateValue.setFee(json.get("fee").getAsBigInteger());
+    private void setStateValue(StemContractStateValue stateValue, JsonObject json) {
+        // fee = fee - transaction size fee
+        if (json.has("fee") && txReceipt.getTxSize() != null) {
+            BigDecimal fee = json.get("fee").getAsBigDecimal();
+            BigDecimal txSize = BigDecimal.valueOf(txReceipt.getTxSize());
+
+            // tx size fee = txSize / 1mbyte
+            // 1mbyte to 1yeed
+            BigDecimal txFee = txSize.divide(BigDecimal.valueOf(1000000));
+            BigDecimal resultFee = fee.subtract(txFee);
+
+            stateValue.setFee(resultFee);
+            stateValue.setBlockHeight(txReceipt.getBlockHeight());
         }
+
 //        if (json.has("validator")) {
 //            stateValue.set (json.get("validator").getAsJsonArray());
 //        }
@@ -277,12 +286,12 @@ public class StemContract implements Contract<JsonObject> {
      *
      * @return fee state
      */
-    public BigInteger feeState(JsonObject params) {
+    public BigDecimal feeState(JsonObject params) {
         String branchId = params.get(BRANCH_ID).getAsString();
         if (isBranchExist(branchId)) {
             return getBranchStateValue(branchId).getFee();
         }
-        return BigInteger.ZERO;
+        return BigDecimal.ZERO;
     }
 
     /**

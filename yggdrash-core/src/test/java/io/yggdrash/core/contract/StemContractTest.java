@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -77,7 +78,7 @@ public class StemContractTest {
 
         try {
             txReceiptField.set(stemContract, receipt);
-            stemContract.create(params);
+            stemContract.init(params);
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
@@ -95,19 +96,17 @@ public class StemContractTest {
 //        stemContract.getValidator(b);
 //        stemContract.getBranchIdByValidator(v);
 //        stemContract.feeState(b);
-//        stemContract.blockHeightState(b);
-        System.out.println(stemContract.getBranch(b));
+        stemContract.blockHeightState(b);
+//        System.out.println(stemContract.feeState(b));
     }
+
     @Test
-    @Ignore
     public void createTest() {
         // TODO StemContract Change Spec
         String description = "ETH TO YEED";
-        JsonObject branch = getEthToYeedBranch(description);
+        JsonObject params = getEthToYeedBranch(description);
 
-        String branchId = BranchId.of(branch).toString();
-        JsonObject params = new JsonObject();
-        params.add(branchId, branch);
+        String branchId = BranchId.of(params.get("branch").getAsJsonObject()).toString();
 
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer(stateValue.getValidators().get(0));
@@ -183,14 +182,21 @@ public class StemContractTest {
         String name = "Ethereum TO YEED";
         String symbol = "ETH TO YEED";
         String property = "exchange";
+        String timeStamp = "00000166c837f0c9";
 
-        return BranchBuilder.builder()
-                .setName(name)
-                .setDescription(description)
-                .setSymbol(symbol)
-                .setProperty(property)
-                .addValidator(TestConstants.wallet().getHexAddress())
-                .buildJson();
+        JsonObject branchJson = BranchBuilder.builder()
+                                .setName(name)
+                                .setDescription(description)
+                                .setSymbol(symbol)
+                                .setProperty(property)
+                                .setTimeStamp(timeStamp)
+                                .addValidator(TestConstants.wallet().getHexAddress())
+                                .buildJson();
+
+        JsonObject branch = new JsonObject();
+        branch.add("branch", branchJson);
+        branch.addProperty("fee", BigInteger.valueOf(100000));
+        return branch;
     }
 
 }

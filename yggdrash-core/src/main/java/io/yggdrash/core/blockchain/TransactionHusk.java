@@ -103,6 +103,10 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         return Sha3Hash.createByHashed(this.coreTransaction.getHash());
     }
 
+    public Long getTxSize() {
+        return this.coreTransaction.txSize();
+    }
+
     public Sha3Hash getHashForSigning() {
         return Sha3Hash.createByHashed(this.coreTransaction.getHeader().getHashForSigning());
     }
@@ -191,6 +195,5 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
                 ByteUtil.byteArrayToLong(
                         o.getInstance().getHeader().getTimestamp().toByteArray()));
     }
-
 
 }

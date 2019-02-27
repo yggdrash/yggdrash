@@ -21,7 +21,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.Branch;
 
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,7 +31,7 @@ import java.util.List;
  */
 public class StemContractStateValue extends Branch {
 
-    private static BigInteger fee;
+    private static BigDecimal fee;
     private Long blockHeight;
     private final List<ContractVersion> contractHistory = new ArrayList<>();
 
@@ -44,11 +44,11 @@ public class StemContractStateValue extends Branch {
         }
     }
 
-    public BigInteger getFee() {
+    public BigDecimal getFee() {
         return fee;
     }
 
-    public void setFee(BigInteger fee) {
+    public void setFee(BigDecimal fee) {
         this.fee = fee;
         getJson().addProperty("fee", fee);
     }
@@ -88,12 +88,8 @@ public class StemContractStateValue extends Branch {
     }
 
     public static StemContractStateValue of(JsonObject json) {
-        JsonObject branch = json.deepCopy().getAsJsonObject("branch");
-        if (branch != null) {
-            if (json.has("fee")) {
-                fee = json.get("fee").getAsBigInteger();
-            }
-            return new StemContractStateValue(branch);
+        if (json.has("fee")) {
+            return new StemContractStateValue(json.deepCopy().getAsJsonObject("branch"));
         }
         return new StemContractStateValue(json.deepCopy());
     }

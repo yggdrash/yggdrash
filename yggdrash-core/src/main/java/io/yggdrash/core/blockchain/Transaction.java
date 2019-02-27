@@ -163,10 +163,21 @@ public class Transaction {
             log.warn(e.getMessage());
             return null;
         }
-
         return HashUtil.sha3(bao.toByteArray());
     }
 
+    public Long txSize() {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        try {
+            bao.write(this.header.toBinary());
+            bao.write(this.body.toBinary());
+            bao.write(this.signature);
+        } catch (IOException e) {
+            log.warn(e.getMessage());
+        }
+
+        return Long.valueOf(bao.toByteArray().length);
+    }
     /**
      * Get transaction hash(HexString).
      *
