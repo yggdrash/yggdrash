@@ -90,21 +90,22 @@ public class BlockChainBuilder {
         if (branch == null) {
             branch = genesis.getBranch();
         }
+        BranchId branchId = branch.getBranchId();
         if (blockStore == null) {
-            blockStore = storeBuilder.buildBlockStore(genesisBlock.getBranchId());
+            blockStore = storeBuilder.buildBlockStore(branchId);
         }
         if (transactionStore == null) {
-            transactionStore = storeBuilder.buildTxStore(genesisBlock.getBranchId());
+            transactionStore = storeBuilder.buildTxStore(branchId);
         }
         if (metaStore == null) {
-            metaStore = storeBuilder.buildMetaStore(genesisBlock.getBranchId());
+            metaStore = storeBuilder.buildMetaStore(branchId);
         }
         if (stateStore == null) {
-            stateStore = storeBuilder.buildStateStore(genesisBlock.getBranchId());
+            stateStore = storeBuilder.buildStateStore(branchId);
         }
         if (transactionReceiptStore == null) {
             transactionReceiptStore = storeBuilder.buildTransactionReceiptStore(
-                    genesisBlock.getBranchId());
+                    branchId);
         }
 
         if (runtime == null) {

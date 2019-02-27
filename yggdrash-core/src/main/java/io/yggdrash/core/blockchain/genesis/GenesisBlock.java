@@ -10,11 +10,11 @@ import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class GenesisBlock {
     private final BlockHusk block;
@@ -29,6 +29,12 @@ public class GenesisBlock {
         this.branch = branch;
         this.block = toBlock();
     }
+
+    private GenesisBlock(Branch branch, BlockHusk block) {
+        this.branch = branch;
+        this.block = block;
+    }
+
 
     public BlockHusk getBlock() {
         return block;
@@ -56,7 +62,7 @@ public class GenesisBlock {
 
     // Validator initial value
     private TransactionBuilder validatorTransaction(TransactionBuilder builder) {
-        List<String> validators = branch.getValidators();
+        Set<String> validators = branch.getValidators();
         JsonObject validatorParams = new JsonObject();
         validatorParams.addProperty("validator", String.join(",",validators));
         // TODO Validator Contract Version
@@ -159,6 +165,10 @@ public class GenesisBlock {
     public static GenesisBlock of(InputStream is) throws IOException {
         Branch branch = Branch.of(is);
         return new GenesisBlock(branch);
+    }
+
+    public static GenesisBlock of(Branch branch, BlockHusk block) {
+        return new GenesisBlock(branch, block);
     }
 
 }

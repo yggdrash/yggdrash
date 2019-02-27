@@ -84,8 +84,19 @@ public class MetaStoreTest {
         assert !ms.setGenesisBlockHash(otherGenesisBlock);
 
         assert ms.getGenesisBlockHash().equals(genesis);
-
     }
+
+    @Test
+    public void getSetBranch() {
+        TestConstants.yggdrash();
+        Branch branch = TestConstants.TEST_BRANCH;
+        ms.setBranch(branch);
+
+        Branch loadBranch = ms.getBranch();
+        assert branch.getBranchId().equals(loadBranch.getBranchId());
+        assert ms.getBranchId().equals(branch.getBranchId());
+    }
+
 
     @Test
     public void getSetValidators() throws IOException {

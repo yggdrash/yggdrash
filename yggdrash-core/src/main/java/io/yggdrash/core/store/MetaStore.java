@@ -22,9 +22,9 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.core.blockchain.BlockchainMetaInfo;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
+import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.store.datasource.DbSource;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -39,6 +39,7 @@ import java.util.Set;
 public class MetaStore implements Store<String, String> {
     private final DbSource<byte[], byte[]> db;
 
+    // TODO Change to DAO patten
     MetaStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
     }
@@ -130,6 +131,7 @@ public class MetaStore implements Store<String, String> {
         JsonObject json = branch.getJson();
         if (db.get(BlockchainMetaInfo.BRANCH.toString().getBytes()) == null) {
             db.put(BlockchainMetaInfo.BRANCH.toString().getBytes(), json.toString().getBytes());
+            db.put(BlockchainMetaInfo.BRANCH_ID.toString().getBytes(), branch.getBranchId().getBytes());
         }
     }
 
@@ -141,6 +143,11 @@ public class MetaStore implements Store<String, String> {
         JsonObject json = parser.parse(jsonString).getAsJsonObject();
 
         return Branch.of(json);
+    }
+
+    public BranchId getBranchId() {
+        byte[] branchIdBytes = db.get(BlockchainMetaInfo.BRANCH_ID.toString().getBytes());
+        return new BranchId(new Sha3Hash(branchIdBytes, true));
     }
 
     // TODO UPDATE Branch - Version History
@@ -241,5 +248,17 @@ public class MetaStore implements Store<String, String> {
             }
         }
         return contracts;
+    }
+
+    public enum  BlockchainMetaInfo {
+        BEST_BLOCK,
+        BEST_BLOCK_INDEX,
+        LAST_EXECUTE_BLOCK,
+        LAST_EXECUTE_BLOCK_INDEX,
+        BRANCH,
+        BRANCH_ID,
+        GENESIS_BLOCK,
+        VALIDATORS,
+        BRANCH_CONTRACTS
     }
 }

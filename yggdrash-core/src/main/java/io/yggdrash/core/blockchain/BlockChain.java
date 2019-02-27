@@ -84,6 +84,12 @@ public class BlockChain {
             }
         }
         addBlock(genesisBlock, false);
+
+        // Add Meta Information
+        metaStore.setBranch(branch);
+        metaStore.setGenesisBlockHash(genesisBlock.getHash());
+        metaStore.setValidators(branch.getValidators());
+        metaStore.setBranchContracts(branch.getBranchContracts());
     }
 
 
