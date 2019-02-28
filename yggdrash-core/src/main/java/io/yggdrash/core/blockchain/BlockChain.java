@@ -224,8 +224,7 @@ public class BlockChain {
 
     public TransactionHusk addTransaction(TransactionHusk tx) {
         if (transactionStore.contains(tx.getHash())) {
-            throw new FailedOperationException("Duplicated " + tx.getHash().toString()
-                    + " Transaction");
+            return null;
         } else if (!tx.verify()) {
             throw new InvalidSignatureException();
         }
