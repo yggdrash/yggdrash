@@ -6,7 +6,6 @@ import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.contract.Contract;
-import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.contract.ExecuteStatus;
 import io.yggdrash.core.contract.StemContractStateValue;
 import io.yggdrash.core.contract.TransactionReceipt;
@@ -27,7 +26,6 @@ import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.List;
 import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
@@ -88,7 +86,6 @@ public class StemContract implements BundleActivator, ServiceListener {
                 if (!isBranchExist(branchId.toString()) && isBranchIdValid(branchId, stateValue)) {
                     try {
                         addBranchId(branchId);
-                        setStateValue(stateValue, params);
                         state.put(branchId.toString(), stateValue.getJson());
                         addTxId(branchId);
 
@@ -122,7 +119,7 @@ public class StemContract implements BundleActivator, ServiceListener {
                 if (isOwnerValid(params.get("validator").getAsString())
                         && stateValue != null && !isBranchExist(branchId.toString())
                         && isBranchIdValid(branchId, stateValue)) {
-                    setStateValue(stateValue, params);
+//                    setFee(stateValue, params);
 
                     state.put(branchId.toString(), stateValue.getJson());
                     addTxId(branchId);
@@ -135,81 +132,6 @@ public class StemContract implements BundleActivator, ServiceListener {
             }
 
             return txReceipt;
-        }
-
-        /**
-         * fee = fee - transaction size fee
-         * tx size fee = txSize / 1mbyte
-         * 1mbyte to 1yeed
-         *
-         * @param stateValue, json
-         */
-        private void setStateValue(StemContractStateValue stateValue, JsonObject json) {
-
-            if (json.has("fee") && txReceipt.getTxSize() != null) {
-                BigDecimal fee = json.get("fee").getAsBigDecimal();
-                BigDecimal txSize = BigDecimal.valueOf(txReceipt.getTxSize());
-
-                BigDecimal txFee = txSize.divide(BigDecimal.valueOf(1000000));
-                BigDecimal resultFee = fee.subtract(txFee);
-
-                stateValue.setFee(resultFee);
-                stateValue.setBlockHeight(txReceipt.getBlockHeight());
-
-                stateValue.setExtinguishBlockHeight();
-            }
-
-//        if (json.has("validator")) {
-//            stateValue.set (json.get("validator").getAsJsonArray());
-//        }
-        }
-
-        /**
-         * Returns boolean
-         *
-         * @param params
-         */
-        @InvokeTransaction
-        public Boolean extinguishBranch(JsonObject params) {
-            // TODO branch extinguish
-            return false;
-        }
-
-        /**
-         * Returns boolean
-         *
-         * @param branchId
-         */
-        public void callYeed(BranchId branchId) {
-            // TODO message call to yeed
-        }
-
-        /**
-         * Returns current contract of branch
-         *
-         * @param params   branchId
-         */
-        @ContractQuery
-        public ContractVersion getCurrentContract(JsonObject params) {
-            String branchId = params.get(BRANCH_ID).getAsString();
-            if (isBranchExist(branchId)) {
-                //return getStateValue(branchId).getContractVersion();
-            }
-            return null;
-        }
-
-        /**
-         * Returns version history of branch
-         *
-         * @param params   branchId
-         */
-        @ContractQuery
-        public List<ContractVersion> getContractHistory(JsonObject params) {
-            String branchId = params.get(BRANCH_ID).getAsString();
-            if (isBranchExist(branchId)) {
-                return getBranchStateValue(branchId).getContractHistory();
-            }
-            return Collections.emptyList();
         }
 
         /**
@@ -325,23 +247,16 @@ public class StemContract implements BundleActivator, ServiceListener {
         public BigDecimal feeState(JsonObject params) {
             //TODO 현재 블록의 수수료 조회
             // 수수료 소진되는 로직
+            // 현재 조회한 시점의 블록 높이 - 블록 높이
 
             String branchId = params.get(BRANCH_ID).getAsString();
             if (isBranchExist(branchId)) {
+                Long current = txReceipt.getBlockHeight();
+
                 return getBranchStateValue(branchId).getFee();
             }
             return BigDecimal.ZERO;
         }
-
-        /**
-         * @param params branch id
-         *
-         * @return block height state
-         */
-        public Long blockHeightState(JsonObject params) {
-            return txReceipt.getBlockHeight();
-        }
-
 
         private boolean isBranchExist(String branchId) {
             return state.contains(branchId);
@@ -393,14 +308,6 @@ public class StemContract implements BundleActivator, ServiceListener {
             } else {
                 return new StemContractStateValue(json);
             }
-        }
-
-        private Boolean validatorVerify(JsonObject params) {
-            //TODO sign verify of validator
-            txReceipt.getIssuer();
-            params.getAsJsonArray("validator");
-
-            return false;
         }
     }
 }

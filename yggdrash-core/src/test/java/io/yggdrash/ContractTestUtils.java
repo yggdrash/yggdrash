@@ -68,13 +68,14 @@ public class ContractTestUtils {
         final String name = "STEM";
         final String symbol = "STEM";
         final String property = "ecosystem";
-        final BigInteger fee = BigInteger.valueOf(100000);
+        final BigInteger fee = BigInteger.valueOf(100);
 
         JsonObject contractSample = new JsonObject();
         contractSample.addProperty("contractVersion", TestConstants.STEM_CONTRACT.toString());
         contractSample.add("init", new JsonObject());
         contractSample.addProperty("description", "some description");
         contractSample.addProperty("name", "STEM");
+        contractSample.addProperty("isSystem", true);
 
         JsonArray contracts = new JsonArray();
         contracts.add(contractSample);

@@ -25,9 +25,7 @@ import static io.yggdrash.common.config.Constants.TX_ID;
 import static io.yggdrash.common.config.Constants.VALIDATOR;
 
 public class StemContract implements Contract<JsonObject> {
-
     private static final Logger log = LoggerFactory.getLogger(StemContract.class);
-
     private final String branchIdListKey = "BRANCH_ID_LIST";
 
     @ContractStateStore
@@ -116,18 +114,14 @@ public class StemContract implements Contract<JsonObject> {
      * @param stateValue, json
      */
     private void setStateValue(StemContractStateValue stateValue, JsonObject json) {
-
         if (json.has("fee") && txReceipt.getTxSize() != null) {
             BigDecimal fee = json.get("fee").getAsBigDecimal();
             BigDecimal txSize = BigDecimal.valueOf(txReceipt.getTxSize());
-
             BigDecimal txFee = txSize.divide(BigDecimal.valueOf(1000000));
             BigDecimal resultFee = fee.subtract(txFee);
 
             stateValue.setFee(resultFee);
             stateValue.setBlockHeight(txReceipt.getBlockHeight());
-
-            stateValue.setExtinguishBlockHeight();
         }
 
 //        if (json.has("validator")) {
@@ -293,26 +287,21 @@ public class StemContract implements Contract<JsonObject> {
      *
      * @return fee state
      */
-    public BigDecimal feeState(JsonObject params) {
-        //TODO 현재 블록의 수수료 조회
-        // 수수료 소진되는 로직
-
+    public Long feeState(JsonObject params) {
         String branchId = params.get(BRANCH_ID).getAsString();
         if (isBranchExist(branchId)) {
-            return getBranchStateValue(branchId).getFee();
+            Long currentHeight = txReceipt.getBlockHeight();
+            Long createPointHeight = getBranchStateValue(branchId).getBlockHeight();
+            Long height = currentHeight - createPointHeight;
+
+            //1block to 1yeed
+            BigDecimal fee = getBranchStateValue(branchId).getFee();
+            Long result = fee.longValue() - height;
+
+            return result;
         }
-        return BigDecimal.ZERO;
+        return new Long(0);
     }
-
-    /**
-     * @param params branch id
-     *
-     * @return block height state
-     */
-    public Long blockHeightState(JsonObject params) {
-        return txReceipt.getBlockHeight();
-    }
-
 
     private boolean isBranchExist(String branchId) {
         return state.contains(branchId);

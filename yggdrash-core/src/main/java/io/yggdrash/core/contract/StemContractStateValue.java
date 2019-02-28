@@ -53,16 +53,13 @@ public class StemContractStateValue extends Branch {
         getJson().addProperty("fee", fee);
     }
 
+    public Long getBlockHeight() {
+        return blockHeight;
+    }
+
     public void setBlockHeight(Long height) {
         this.blockHeight = height;
         getJson().addProperty("blockHeight", blockHeight);
-    }
-
-    public void setExtinguishBlockHeight() {
-        System.out.println(fee);
-        //TODO 블록의 높이를 실시간으로 알아 높이가 올라갈때마다 수수료를 줄이도
-//        int resultHeight = lastBlockHeight - blockHeight
-
     }
 
     public List<ContractVersion> getContractHistory() {

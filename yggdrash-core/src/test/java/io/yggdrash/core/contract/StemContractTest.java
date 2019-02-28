@@ -95,8 +95,7 @@ public class StemContractTest {
 //        stemContract.getContractByBranch(b);
 //        stemContract.getValidator(b);
 //        stemContract.getBranchIdByValidator(v);
-//        stemContract.feeState(b);
-        stemContract.blockHeightState(b);
+        stemContract.feeState(b);
 //        System.out.println(stemContract.feeState(b));
     }
 
