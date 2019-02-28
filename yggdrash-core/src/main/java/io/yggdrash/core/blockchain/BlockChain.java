@@ -38,6 +38,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static io.yggdrash.common.config.Constants.LIMIT;
+
 public class BlockChain {
 
     private static final Logger log = LoggerFactory.getLogger(BlockChain.class);
@@ -116,7 +118,7 @@ public class BlockChain {
     }
 
     void generateBlock(Wallet wallet) {
-        List<TransactionHusk> txs = getUnconfirmedTxs();
+        List<TransactionHusk> txs = getUnconfirmedTxsWithLimit();
         BlockHusk block = new BlockHusk(wallet, txs, getPrevBlock());
         addBlock(block, true);
     }
@@ -127,6 +129,24 @@ public class BlockChain {
 
     List<TransactionHusk> getUnconfirmedTxs() {
         return new ArrayList<>(transactionStore.getUnconfirmedTxs());
+    }
+
+    private List<TransactionHusk> getUnconfirmedTxsWithLimit() {
+        long bodySizeSum = 0;
+        Set<Sha3Hash> pendingKeys = transactionStore.getPendingKeys();
+        List<TransactionHusk> unconfirmedTxs = new ArrayList<>(pendingKeys.size());
+        for (Sha3Hash key : pendingKeys) {
+            TransactionHusk tx = transactionStore.getUnconfirmedTxs(key);
+            if (tx == null) {
+                continue;
+            }
+            bodySizeSum += tx.getLength();
+            if (bodySizeSum > LIMIT.BLOCK_SYNC_SIZE) {
+                break;
+            }
+            unconfirmedTxs.add(tx);
+        }
+        return unconfirmedTxs;
     }
 
     long countOfTxs() {
@@ -242,7 +262,7 @@ public class BlockChain {
         }
     }
 
-    public long size() {
+    public long transactionCount() {
         return blockStore.getBlockchainTransactionSize();
     }
 

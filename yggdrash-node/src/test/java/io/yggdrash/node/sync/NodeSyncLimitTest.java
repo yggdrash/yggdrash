@@ -30,8 +30,8 @@ import org.junit.runners.JUnit4;
 public class NodeSyncLimitTest extends NodeTcpDiscoveryTest {
 
     @Override
-    @Ignore
     @Test
+    @Ignore
     public void test() {
         rootLogger.setLevel(Level.INFO);
 
@@ -50,6 +50,29 @@ public class NodeSyncLimitTest extends NodeTcpDiscoveryTest {
 
         // assert
         assert node1.getDefaultBranch().getLastIndex() == node2.getDefaultBranch().getLastIndex();
+    }
+
+    @Test
+    @Ignore
+    public void testLargeBlock() {
+        rootLogger.setLevel(Level.INFO);
+
+        // arrange
+        // Node1 : start -> generate tx -> generate block
+        TestNode node1 = createAndStartNode(8888, true);
+        int blockCount = 1;
+        generateTxAndBlock(node1, blockCount, 16000);
+        assert node1.getDefaultBranch().getLastIndex() == blockCount;
+        // Node2 : start -> add route node2 -> node1
+        TestNode node2 = createAndStartNode(8889, true);
+        node2.peerTableGroup.addPeer(TestConstants.yggdrash(), node1.peerTableGroup.getOwner());
+
+        // act sync block
+        node2.bootstrapping();
+
+        // assert
+        assert node1.getDefaultBranch().getLastIndex() == node2.getDefaultBranch().getLastIndex();
+        assert node1.getDefaultBranch().transactionCount() == node2.getDefaultBranch().transactionCount();
     }
 
     private void generateTxAndBlock(TestNode node, int blockCount, int txCount) {
