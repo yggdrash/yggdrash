@@ -28,6 +28,7 @@ import io.yggdrash.node.api.JsonRpcConfig;
 import io.yggdrash.node.api.TransactionApi;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -162,7 +163,7 @@ public class NodeContractDemoClient {
                 if ("STEM".equals(contract.get("name"))) {
                     stemContract = ContractVersion.of((String) contract.get("contractVersion"));
                 } else if ("YEED".equals(contract.get("name"))) {
-                    yeedContract = ContractVersion.of((String) contract.get("contractVersion"));
+                    yeedContract = ContractVersion.ofNonHex((String) contract.get("contractVersion"));
                 }
 
             });

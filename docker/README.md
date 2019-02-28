@@ -36,7 +36,7 @@ Launch all node by running: `docker-compose up --scale yggdrash-node=3 -d`.
 ## Configured Docker services
 
 ### Bootstrap node:
-- active peers -> http://localhost:8081/yggdrash/blocks/latest
+- active peers -> http://localhost:8080/peers/active
 
 ### Master node:
 - block -> http://localhost:8081/yggdrash/blocks
