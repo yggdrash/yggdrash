@@ -15,22 +15,22 @@ version = '0.10.0-SNAPSHOT'
 defaultTasks ':yggdrash-node:bootRun'
 
 ext {
-    grpcVersion         = '1.18.0'
-    protobufVersion     = '3.6.1'
-    levelDBVersion      = '0.10'
-    ehcacheVersion      = '3.6.2'
-    scastleVersion      = '1.58.0.0'
+    grpcVersion = '1.18.0'
+    protobufVersion = '3.6.1'
+    levelDBVersion = '0.10'
+    ehcacheVersion = '3.6.2'
+    scastleVersion = '1.58.0.0'
     commonsCodecVersion = '1.11'
-    commonsIOVersion    = '2.6'
-    gsonVersion         = '2.8.5'
-    jsonSimpleVersion   = '1.1'
-    jacksonVersion      = '2.9.7'
-    typesafeVersion     = '1.3.3'
-    logbackVersion      = '1.2.3'
-    annotationVersion   = '1.3.2'
-    assertjVersion      = '3.11.1'
-    commonLangVersion   = '3.8.1'
-    collectionsVersion  = '4.2'
+    commonsIOVersion = '2.6'
+    gsonVersion = '2.8.5'
+    jsonSimpleVersion = '1.1'
+    jacksonVersion = '2.9.7'
+    typesafeVersion = '1.3.3'
+    logbackVersion = '1.2.3'
+    annotationVersion = '1.3.2'
+    assertjVersion = '3.11.1'
+    commonLangVersion = '3.8.1'
+    collectionsVersion = '4.2'
 
     importPackage = 'org.osgi.framework' +
             ',com.google.gson' +
@@ -257,7 +257,7 @@ project(':yggdrash-core') {
     }
 
     task removeContract(type: Delete) {
-        delete fileTree(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts').include('*')
+        delete fileTree(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts').include('*').exclude('contracts')
     }
 
     task copyContract(type: Copy) {
@@ -306,11 +306,20 @@ project(':yggdrash-node') {
     }
 
     bootJar {
+        archiveName = "${project.name}-script.sh"
         manifest {
             attributes("Implementation-Version": rootProject.version)
         }
         launchScript()
     }
+
+    task customJar(type: org.springframework.boot.gradle.tasks.bundling.BootJar){
+        archiveName = "${project.name}.jar"
+        mainClassName = 'io.yggdrash.node.YggdrashNodeApp'
+
+        with bootJar
+    }
+    bootJar.dependsOn customJar
 }
 
 project(':yggdrash-gateway') {
@@ -359,13 +368,13 @@ task jacocoRootReport(type: JacocoReport) {
     description = 'Generates an aggregate report from all subprojects'
     dependsOn = subprojects.test
     sourceDirectories.from = subprojects.sourceSets.main.allSource.srcDirs
-    classDirectories.from =  subprojects.sourceSets.main.output
+    classDirectories.from = subprojects.sourceSets.main.output
     executionData.from = subprojects.jacocoTestReport.executionData
 
     afterEvaluate {
         classDirectories.from = classDirectories.files.collect {
             fileTree(dir: it,
-                exclude: ['io/yggdrash/proto/**']
+                    exclude: ['io/yggdrash/proto/**']
             )
         }
     }

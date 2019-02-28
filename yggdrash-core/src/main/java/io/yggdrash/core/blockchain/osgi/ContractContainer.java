@@ -4,6 +4,7 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundlePermission;
@@ -22,13 +23,12 @@ import org.osgi.service.permissionadmin.PermissionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.ReflectPermission;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -145,19 +145,16 @@ public class ContractContainer {
     }
 
     private List<String> copySystemContractToContractPath() {
-        List<String> contracts = new ArrayList<>();
+        List<String> contracts;
 
         InputStream in = null;
         try {
-            in = getClass().getResourceAsStream(SUFFIX_SYSTEM_CONTRACT);
-            if (in != null) {
-                //Read system contract files
-                try (BufferedReader br = new BufferedReader(new InputStreamReader(in))) {
-                    String resource;
-                    while ((resource = br.readLine()) != null) {
-                        contracts.add(resource);
-                    }
-                }
+            //Read system contract files
+            in = Thread.currentThread().getContextClassLoader().getResourceAsStream(String.format("%s/contracts", SUFFIX_SYSTEM_CONTRACT));
+            in = in == null ? getClass().getResourceAsStream(String.format("%s/contracts", SUFFIX_SYSTEM_CONTRACT)) : in;
+            contracts = IOUtils.readLines(in, StandardCharsets.UTF_8);
+            if (contracts == null) {
+                return new ArrayList<>();
             }
 
             //Copy contract
