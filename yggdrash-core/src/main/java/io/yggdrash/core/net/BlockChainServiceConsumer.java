@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.net;
 
+import io.yggdrash.common.config.Constants.LIMIT;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
@@ -29,7 +30,6 @@ import java.util.List;
 
 public class BlockChainServiceConsumer implements BlockChainConsumer {
     private static final Logger log = LoggerFactory.getLogger(BlockChainServiceConsumer.class);
-    private static final long BLOCK_SIZE_LIMIT = 3 * 1024 * 1024; // 3MB
     private final BranchGroup branchGroup;
     private CatchUpSyncEventListener listener;
 
@@ -61,7 +61,7 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
                 break;
             }
             bodyLengthSum += block.getBodyLength();
-            if (bodyLengthSum > BLOCK_SIZE_LIMIT) {
+            if (bodyLengthSum > LIMIT.BLOCK_SYNC_SIZE) {
                 break;
             }
             blockHuskList.add(block);

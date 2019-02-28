@@ -36,8 +36,8 @@ public class BlockChainTest extends CiTest {
     public void shouldBeGetBlockByHash() {
         BlockChain blockChain = generateTestBlockChain(false);
         BlockHusk prevBlock = blockChain.getPrevBlock(); // goto Genesis
-        long blockIndex = blockChain.size();
-        BlockHusk testBlock = getBlockFixture(blockIndex, prevBlock.getHash());
+        long nextIndex = blockChain.getLastIndex() + 1;
+        BlockHusk testBlock = getBlockFixture(nextIndex, prevBlock.getHash());
         blockChain.addBlock(testBlock, false);
 
         assertThat(blockChain.getBlockByHash(testBlock.getHash()))
@@ -48,12 +48,11 @@ public class BlockChainTest extends CiTest {
     public void shouldBeGetBlockByIndex() {
         BlockChain blockChain = generateTestBlockChain();
         BlockHusk prevBlock = blockChain.getPrevBlock(); // goto Genesis
-        long blockIndex = blockChain.size();
-        BlockHusk testBlock = getBlockFixture(blockIndex, prevBlock.getHash());
+        long nextIndex = blockChain.getLastIndex() + 1;
+        BlockHusk testBlock = getBlockFixture(nextIndex, prevBlock.getHash());
         blockChain.addBlock(testBlock, false);
 
-        assertThat(blockChain.getBlockByIndex(blockIndex))
-                .isEqualTo(testBlock);
+        assertThat(blockChain.getBlockByIndex(nextIndex)).isEqualTo(testBlock);
     }
 
     @Test
@@ -84,7 +83,8 @@ public class BlockChainTest extends CiTest {
         BlockChain blockChain2 = generateTestBlockChain(true);
         BlockHusk foundBlock = blockChain2.getBlockByHash(testBlock.getHash());
         blockChain2.close();
-        assertThat(blockChain2.size()).isEqualTo(2);
+        long nextIndex = blockChain2.getLastIndex() + 1;
+        assertThat(nextIndex).isEqualTo(2);
         assertThat(testBlock).isEqualTo(foundBlock);
 
         clearDefaultConfigDb();
@@ -134,8 +134,8 @@ public class BlockChainTest extends CiTest {
             }
         });
         BlockHusk prevBlock = blockChain.getPrevBlock(); // goto Genesis
-        long blockIndex = blockChain.size();
-        BlockHusk testBlock = getBlockFixture(blockIndex, prevBlock.getHash());
+        long nextIndex = blockChain.getLastIndex() + 1;
+        BlockHusk testBlock = getBlockFixture(nextIndex, prevBlock.getHash());
         blockChain.addBlock(testBlock, false);
         blockChain.addTransaction(BlockChainTestUtils.createTransferTxHusk());
     }
