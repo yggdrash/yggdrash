@@ -17,11 +17,12 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.blockchain.BlockchainMetaInfo;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.store.datasource.DbSource;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
-import io.yggdrash.core.store.datasource.LevelDbDataSource;
+import io.yggdrash.common.store.datasource.DbSource;
+import io.yggdrash.common.store.datasource.HashMapDbSource;
+import io.yggdrash.common.store.datasource.LevelDbDataSource;
 
 public class StoreBuilder {
 

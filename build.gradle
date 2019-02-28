@@ -30,19 +30,7 @@ ext {
     assertjVersion      = '3.11.1'
     commonLangVersion   = '3.8.1'
     collectionsVersion  = '4.2'
-
-    importPackage = 'org.osgi.framework' +
-            ',com.google.gson' +
-            ',org.w3c.dom' +
-            ',io.yggdrash.common.util' +
-            ',io.yggdrash.core.blockchain' +
-            ',io.yggdrash.core.contract' +
-            ',io.yggdrash.core.runtime.annotation' +
-            ',io.yggdrash.core.store' +
-            ',io.yggdrash.contract.annotation' +
-            ',io.yggdrash.contract.store' +
-            ',io.yggdrash.contract.utils'
-    excludeList = ["META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/NOTICE"]
+    equinoxVersion = '3.13.0.v20180226-1711'
 }
 
 allprojects {
@@ -87,24 +75,17 @@ project(':yggdrash-core') {
     apply plugin: 'com.google.protobuf'
 
     dependencies {
-        compile project(':yggdrash-contract-core')
+        compile project(':yggdrash-common')
 
         compile files('libs/cfr-0.139.jar')
         compile "io.grpc:grpc-protobuf:${grpcVersion}"
         compile "io.grpc:grpc-stub:${grpcVersion}"
         compile "io.grpc:grpc-netty:${grpcVersion}"
         compile "com.google.protobuf:protobuf-java:${protobufVersion}"
-        compile "org.iq80.leveldb:leveldb:${levelDBVersion}"
         compile "org.ehcache:ehcache:${ehcacheVersion}"
-        compile "com.madgag.spongycastle:prov:${scastleVersion}" // for SHA3 and SECP256K1
-        compile "commons-codec:commons-codec:${commonsCodecVersion}"
-        compile "commons-io:commons-io:${commonsIOVersion}"
         compile "com.google.code.gson:gson:${gsonVersion}"
         compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
         compile "com.typesafe:config:${typesafeVersion}"
-        compile "ch.qos.logback:logback-classic:${logbackVersion}"
-        compile "org.apache.commons:commons-lang3:${commonLangVersion}"
-        compile "org.apache.commons:commons-collections4:${collectionsVersion}"
         compileOnly "javax.annotation:javax.annotation-api:${annotationVersion}"
         testCompile "org.assertj:assertj-core:${assertjVersion}"
     }
@@ -133,142 +114,6 @@ project(':yggdrash-core') {
             }
         }
     }
-
-    task dpoaContract(type: Jar) {
-        //Add current module source
-        from(sourceSets.main.output) {
-            include "**"
-            exclude(["system-contracts"])
-        }
-
-        // Add dependency library
-        from {
-            configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-        }
-
-        manifest {
-            attributes(
-                    'Bundle-ManifestVersion': '2',
-                    'Bundle-Name': 'DPoA Contract',
-                    'Bundle-Description': 'DPoA Contract',
-                    'Bundle-Vendor': 'YGGDRASH',
-                    'Bundle-SymbolicName': 'io.yggdrash.core.contract.osgi.DPoAContract',
-                    'Bundle-Version': '1.0.0',
-                    'Bundle-Activator': 'io.yggdrash.core.contract.osgi.DPoAContract',
-                    'Import-Package': "${importPackage},io.yggdrash.core.contract.osgi"
-            )
-        }
-        exclude(excludeList)
-        archiveName "system-dpoa-contract-${manifest.attributes.get('Bundle-Version')}.jar"
-    }
-
-    task dpoaClientContract(type: Jar) {
-        //Add current module source
-        from(sourceSets.main.output) {
-            include "**"
-            exclude(["system-contracts"])
-        }
-
-        // Add dependency library
-        from {
-            configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-        }
-
-        manifest {
-            attributes(
-                    'Bundle-ManifestVersion': '2',
-                    'Bundle-Name': 'DPoA Client Contract',
-                    'Bundle-Description': 'DPoA Client Contract',
-                    'Bundle-Vendor': 'YGGDRASH',
-                    'Bundle-SymbolicName': 'io.yggdrash.core.contract.osgi.DPoAClientContract',
-                    'Bundle-Version': '1.0.0',
-                    'Bundle-Activator': 'io.yggdrash.core.contract.osgi.DPoAClientContract',
-                    'Import-Package': "${importPackage},io.yggdrash.core.contract.osgi"
-            )
-        }
-        exclude(excludeList)
-        archiveName "system-dpoa-client-contract-${manifest.attributes.get('Bundle-Version')}.jar"
-    }
-
-    task coinContract(type: Jar) {
-        //Add current module source
-        from(sourceSets.main.output) {
-            include "**"
-            exclude(["system-contracts"])
-        }
-
-        // Add dependency library
-        from {
-            configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-        }
-
-        manifest {
-            attributes(
-                    'Bundle-ManifestVersion': '2',
-                    'Bundle-Name': 'Coin Contract',
-                    'Bundle-Description': 'Coin Contract',
-                    'Bundle-Vendor': 'YGGDRASH',
-                    'Bundle-SymbolicName': 'io.yggdrash.core.contract.osgi.CoinContract',
-                    'Bundle-Version': '1.0.0',
-                    'Bundle-Activator': 'io.yggdrash.core.contract.osgi.CoinContract',
-                    'Export-Package': "io.yggdrash.core.contract.osgi",
-                    'Import-Package': "${importPackage}"
-            )
-        }
-        exclude(excludeList)
-        archiveName "system-coin-contract-${manifest.attributes.get('Bundle-Version')}.jar"
-    }
-
-    def keystoreFile = new File("${project.projectDir.toString()}/src/main/resources/yggdrash.p12")
-    def keystorePass = '098098'
-    def keyAlias = 'yggdrash'
-    task signJar(description: 'to Sign JAR.', group: 'Build') {
-
-        dependsOn dpoaContract
-        dependsOn dpoaClientContract
-        dependsOn coinContract
-
-        doLast {
-            def libFiles = file('build/libs').listFiles()
-            libFiles.each {
-                if (it.name.startsWith('yggdrash-core')) {
-                    return
-                }
-                ant.jar(destfile: it, update: true) {
-                    delegate.manifest {
-                        attribute(name: 'permissions', value: 'all-permissions')
-                        attribute(name: 'codebase', value: '*')
-                    }
-                }
-
-                ant.signjar(
-                        tsaurl: 'http://sha256timestamp.ws.symantec.com/sha256/timestamp',
-                        alias: keyAlias,
-                        jar: it,
-                        keystore: "${keystoreFile.absolutePath}",
-                        storepass: keystorePass,
-                        destDir: 'build/libs',
-                        verbose: true,
-                        preservelastmodified: 'true'
-                )
-            }
-        }
-    }
-
-    task removeContract(type: Delete) {
-        delete fileTree(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts').include('*')
-    }
-
-    task copyContract(type: Copy) {
-        dependsOn signJar
-        dependsOn removeContract
-
-        from file('build/libs')
-        into file(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts')
-        exclude "yggdrash-core*"
-    }
-
-    jar.dependsOn(copyContract)
 }
 
 project(':yggdrash-node') {

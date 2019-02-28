@@ -1,0 +1,192 @@
+ext {
+    importPackage =
+            "io.yggdrash.common.contract" +
+            ",io.yggdrash.common.contract.method" +
+            ",io.yggdrash.common.contract.vo" +
+            ",io.yggdrash.common.contract.vo.dpoa" +
+            ",io.yggdrash.common.contract.vo.dpoa.tx" +
+            ",io.yggdrash.common.crypto" +
+            ",io.yggdrash.common.crypto.jce" +
+            ",io.yggdrash.common.exception" +
+            ",io.yggdrash.common.store" +
+            ",io.yggdrash.common.store.datasource" +
+            ",io.yggdrash.common.utils" +
+
+            ",org.osgi.framework" +
+            ",org.osgi.util.tracker" +
+            ",com.google.gson" +
+            ",org.w3c.dom" +
+            ",org.slf4j" +
+            ",java.math" +
+            ",io.yggdrash.contract.core" +
+            ",io.yggdrash.contract.core.annotation" +
+            ",io.yggdrash.contract.core.store"
+
+    excludeList = ["META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/NOTICE"]
+}
+
+task dpoaContract(type: Jar) {
+    //Add current module source
+    from(sourceSets.main.output) {
+        include "**"
+        exclude(["system-contracts"])
+    }
+
+    // Add dependency library
+//    from {
+//        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+//    }
+
+    manifest {
+        attributes(
+                'Bundle-ManifestVersion': '2',
+                'Bundle-Name': 'DPoA Contract',
+                'Bundle-Description': 'DPoA Contract',
+                'Bundle-Vendor': 'YGGDRASH',
+                'Bundle-SymbolicName': 'io.yggdrash.contract.dpoa.DPoAContract',
+                'Bundle-Version': '1.0.0',
+                'Bundle-Activator': 'io.yggdrash.contract.dpoa.DPoAContract',
+                'Export-Package': "io.yggdrash.contract.dpoa",
+                'Import-Package': "${importPackage}"
+        )
+    }
+    exclude(excludeList)
+    archiveName "1-system-dpoa-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+}
+
+task dpoaClientContract(type: Jar) {
+    //Add current module source
+    from(sourceSets.main.output) {
+        include "**"
+        exclude(["system-contracts"])
+    }
+
+    // Add dependency library
+//    from {
+//        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+//    }
+
+    manifest {
+        attributes(
+                'Bundle-ManifestVersion': '2',
+                'Bundle-Name': 'DPoA Client Contract',
+                'Bundle-Description': 'DPoA Client Contract',
+                'Bundle-Vendor': 'YGGDRASH',
+                'Bundle-SymbolicName': 'io.yggdrash.contract.dpoa.DPoAClientContract',
+                'Bundle-Version': '1.0.0',
+                'Bundle-Activator': 'io.yggdrash.contract.dpoa.DPoAClientContract',
+                'Import-Package': "${importPackage},io.yggdrash.contract.dpoa"
+        )
+    }
+    exclude(excludeList)
+    archiveName "2-system-dpoa-client-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+}
+
+task coinContract(type: Jar) {
+    //Add current module source
+    from(sourceSets.main.output) {
+        include "**"
+        exclude(["system-contracts"])
+    }
+
+    // Add dependency library
+//    from {
+//        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+//    }
+
+    manifest {
+        attributes(
+                'Bundle-ManifestVersion': '2',
+                'Bundle-Name': 'Coin Contract',
+                'Bundle-Description': 'Coin Contract',
+                'Bundle-Vendor': 'YGGDRASH',
+                'Bundle-SymbolicName': 'io.yggdrash.contract.coin.CoinContract',
+                'Bundle-Version': '1.0.0',
+                'Bundle-Activator': 'io.yggdrash.contract.coin.CoinContract',
+                'Import-Package': "${importPackage}"
+        )
+    }
+    exclude(excludeList)
+    archiveName "3-system-coin-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+}
+
+def keystoreFile = new File("${project.projectDir.toString()}/src/main/resources/yggdrash.p12")
+def keystorePass = '098098'
+def keyAlias = 'yggdrash'
+task signJar(description: 'to Sign JAR.', group: 'Build') {
+
+    dependsOn dpoaContract
+    dependsOn dpoaClientContract
+    dependsOn coinContract
+
+    doLast {
+        def libFiles = file('build/libs').listFiles()
+        libFiles.each {
+            if (it.name.startsWith("${project.name}")) {
+                return
+            }
+            ant.jar(destfile: it, update: true) {
+                delegate.manifest {
+                    attribute(name: 'permissions', value: 'all-permissions')
+                    attribute(name: 'codebase', value: '*')
+                }
+            }
+
+            ant.signjar(
+                    tsaurl: 'http://sha256timestamp.ws.symantec.com/sha256/timestamp',
+                    alias: keyAlias,
+                    jar: it,
+                    keystore: "${keystoreFile.absolutePath}",
+                    storepass: keystorePass,
+                    destDir: 'build/libs',
+                    verbose: true,
+                    preservelastmodified: 'true'
+            )
+        }
+    }
+}
+
+task removeContract(type: Delete) {
+    delete fileTree(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts').include('*')
+}
+
+task copyContract(type: Copy) {
+    dependsOn removeContract
+    dependsOn signJar
+
+    from file('build/libs')
+    into file(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts')
+    exclude "${project.name}*"
+
+    doLast {
+        def contractsFile = file(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts/contracts')
+        contractsFile.delete()
+        contractsFile.createNewFile()
+
+        def fw = new FileWriter(contractsFile, true)
+        def libFiles = file('build/libs').listFiles()
+        def totalSize = libFiles.length
+        def cnt = 0
+        libFiles.each {
+            if (it.name.startsWith("${project.name}")) {
+                return
+            }
+            cnt++
+            if (cnt == totalSize) {
+                fw.write(it.getName())
+            } else {
+                fw.write("${it.getName()}\n")
+            }
+            fw.flush()
+        }
+        if (fw != null) {
+            fw.close()
+        }
+    }
+}
+
+jar.dependsOn(copyContract)
+
+dependencies {
+    compile project(':yggdrash-common')
+}

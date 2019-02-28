@@ -1,19 +1,21 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.core.runtime.annotation.ContractQuery;
-import io.yggdrash.core.runtime.annotation.ContractStateStore;
-import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
-import io.yggdrash.core.runtime.annotation.InvokeTransaction;
+import io.yggdrash.common.contract.Contract;
+import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractQuery;
+import io.yggdrash.contract.core.annotation.ContractStateStore;
+import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
+import io.yggdrash.contract.core.annotation.InvokeTransaction;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.runtime.annotation.YggdrashContract;
-import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.Store;
+import io.yggdrash.common.store.StateStore;
 
 @YggdrashContract
 public class NoneContract implements Contract {
 
     @ContractStateStore
-    Store<String, JsonObject> state;
+    ReadWriterStore<String, JsonObject> state;
 
 
     @ContractTransactionReceipt

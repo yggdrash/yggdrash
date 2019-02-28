@@ -17,15 +17,16 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
-import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
-import io.yggdrash.core.store.StateStore;
+import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.wallet.Wallet;
@@ -53,7 +54,7 @@ public class BlockChain {
     private final StateStore stateStore;
     private final TransactionReceiptStore transactionReceiptStore;
 
-    private final Runtime<?> runtime;
+    private Runtime<?> runtime;
 
     private BlockHusk prevBlock;
 
@@ -61,15 +62,16 @@ public class BlockChain {
 
     public BlockChain(Branch branch, BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, MetaStore metaStore,
-                      Runtime runtime, ContractContainer contractContainer) {
+                      StateStore stateStore, TransactionReceiptStore transactionReceiptStore,
+                      ContractContainer contractContainer) {
         this.branch = branch;
         this.genesisBlock = genesisBlock;
         this.blockStore = blockStore;
         this.transactionStore = transactionStore;
         this.metaStore = metaStore;
-        this.runtime = runtime;
-        this.stateStore = runtime.getStateStore();
-        this.transactionReceiptStore = runtime.getTransactionReceiptStore();
+//        this.runtime = runtime;
+        this.stateStore = stateStore;
+        this.transactionReceiptStore = transactionReceiptStore;
         this.contractContainer = contractContainer;
 
         // Empty blockChain
@@ -113,6 +115,18 @@ public class BlockChain {
 
     Runtime<?> getRuntime() {
         return runtime;
+    }
+
+    public StateStore getStateStore() {
+        return stateStore;
+    }
+
+    public TransactionReceiptStore getTransactionReceiptStore() {
+        return transactionReceiptStore;
+    }
+
+    public TransactionReceipt getTransactionReceipt(String txId) {
+        return transactionReceiptStore.get(txId);
     }
 
     void generateBlock(Wallet wallet) {

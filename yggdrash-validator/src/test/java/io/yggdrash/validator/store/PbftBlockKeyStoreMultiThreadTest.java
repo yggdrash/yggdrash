@@ -4,7 +4,7 @@ import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.Block;
-import io.yggdrash.core.store.datasource.LevelDbDataSource;
+import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessage;

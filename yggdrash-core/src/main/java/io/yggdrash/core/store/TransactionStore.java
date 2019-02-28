@@ -18,9 +18,10 @@ package io.yggdrash.core.store;
 
 import com.google.common.collect.EvictingQueue;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.exception.FailedOperationException;
-import io.yggdrash.core.store.datasource.DbSource;
+import io.yggdrash.common.exception.FailedOperationException;
+import io.yggdrash.common.store.datasource.DbSource;
 import org.ehcache.Cache;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
@@ -38,7 +39,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class TransactionStore implements Store<Sha3Hash, TransactionHusk> {
+public class TransactionStore implements ReadWriterStore<Sha3Hash, TransactionHusk> {
     private static final Logger log = LoggerFactory.getLogger(TransactionStore.class);
     private static final Lock LOCK = new ReentrantLock();
 

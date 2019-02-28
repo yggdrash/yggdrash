@@ -16,7 +16,7 @@
 
 package io.yggdrash.gateway.dto;
 
-import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;

@@ -16,7 +16,7 @@
 
 package io.yggdrash.core.blockchain;
 
-import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;

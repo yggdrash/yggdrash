@@ -2,16 +2,17 @@ package io.yggdrash.core.blockchain.osgi;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.common.store.StateStore;
+import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractQuery;
+import io.yggdrash.contract.core.annotation.ContractStateStore;
+import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
+import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
-import io.yggdrash.core.runtime.annotation.ContractStateStore;
-import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
-import io.yggdrash.core.runtime.annotation.InvokeTransaction;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
-import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
@@ -70,10 +71,7 @@ public class ContractManager {
     }
 
     public boolean checkSystemContract(String contractName) {
-        if (contractName.startsWith("system-")) {
-            return true;
-        }
-        return false;
+        return contractName.matches("[0-9]*[-]*system-.*");
     }
 
     void inject(Bundle bundle) throws IllegalAccessException {
@@ -139,6 +137,7 @@ public class ContractManager {
                     break;
             }
         } catch (Exception e) {
+            e.printStackTrace();
             log.error("Execute bundle exception: branchID - {}, msg - {}", branchId, e.getMessage());
             throw new RuntimeException(e);
         }
@@ -193,6 +192,42 @@ public class ContractManager {
 
     public boolean stop(long contractId) {
         return action(contractId, ActionType.STOP);
+    }
+
+    public Object query(String contractVersion, String methodName, JsonObject params) {
+        String contractFileName = makeContractFullPath(contractVersion, checkSystemContract(contractVersion));
+        Bundle bundle = getBundle(contractFileName);
+        if (bundle == null) {
+            return null;
+        }
+
+        Object result = null;
+        // Assume one service
+        ServiceReference serviceRef = bundle.getRegisteredServices()[0];
+        Object service = framework.getBundleContext().getService(serviceRef);
+
+        Map<String, Method> methodMap = contractCache.getQueryMethods().get(bundle.getLocation());
+        if (methodMap == null) {
+            methodMap = cacheContract(bundle.getLocation(), service);
+        }
+
+        Method method = methodMap.get(methodName);
+        if (method == null) {
+            return null;
+        }
+
+        // Invoke method
+        try {
+            if (method.getParameterCount() == 0) {
+                result = method.invoke(service);
+            } else {
+                result = method.invoke(service, params);
+            }
+        } catch (Exception e) {
+            log.error("Call contract query : {}", bundle.getBundleId());
+        }
+
+        return result;
     }
 
     public Object invoke(String contractFileName, JsonObject txBody, TransactionReceipt txReceipt) {
@@ -275,6 +310,17 @@ public class ContractManager {
                 .filter(method -> Modifier.isPublic(method.getModifiers()))
                 .collect(Collectors.toMap(m -> m.getName(), m -> m));
         contractCache.getInvokeTransactionMethods().put(location, methods);
+
+        Map<String, Method> queryMethods = Arrays.stream(service.getClass().getDeclaredMethods())
+                .filter(method -> {
+                    if (method.isAnnotationPresent(ContractQuery.class)) {
+                        return true;
+                    }
+                    return false;
+                })
+                .filter(method -> Modifier.isPublic(method.getModifiers()))
+                .collect(Collectors.toMap(m -> m.getName(), m -> m));
+        contractCache.getQueryMethods().put(location, queryMethods);
 
         return methods;
     }
