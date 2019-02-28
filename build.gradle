@@ -190,6 +190,35 @@ project(':yggdrash-core') {
         archiveName "system-dpoa-client-contract-${manifest.attributes.get('Bundle-Version')}.jar"
     }
 
+    task stemContract(type: Jar) {
+        //Add current module source
+        from(sourceSets.main.output) {
+            include "**"
+            exclude(["system-contracts"])
+        }
+
+        // Add dependency library
+        from {
+            configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        }
+
+        manifest {
+            attributes(
+                    'Bundle-ManifestVersion': '2',
+                    'Bundle-Name': 'Stem Contract',
+                    'Bundle-Description': 'Stem Contract',
+                    'Bundle-Vendor': 'YGGDRASH',
+                    'Bundle-SymbolicName': 'io.yggdrash.core.contract.osgi.StemContract',
+                    'Bundle-Version': '1.0.0',
+                    'Bundle-Activator': 'io.yggdrash.core.contract.osgi.StemContract',
+                    'Export-Package': "io.yggdrash.core.contract.osgi",
+                    'Import-Package': "${importPackage}"
+            )
+        }
+        exclude(excludeList)
+        archiveName "system-stem-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+    }
+
     task coinContract(type: Jar) {
         //Add current module source
         from(sourceSets.main.output) {
@@ -227,6 +256,7 @@ project(':yggdrash-core') {
         dependsOn dpoaContract
         dependsOn dpoaClientContract
         dependsOn coinContract
+        dependsOn stemContract
 
         doLast {
             def libFiles = file('build/libs').listFiles()

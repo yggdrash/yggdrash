@@ -108,19 +108,26 @@ public class StemContract implements Contract<JsonObject> {
         return txReceipt;
     }
 
+    /**
+     * fee = fee - transaction size fee
+     * tx size fee = txSize / 1mbyte
+     * 1mbyte to 1yeed
+     *
+     * @param stateValue, json
+     */
     private void setStateValue(StemContractStateValue stateValue, JsonObject json) {
-        // fee = fee - transaction size fee
+
         if (json.has("fee") && txReceipt.getTxSize() != null) {
             BigDecimal fee = json.get("fee").getAsBigDecimal();
             BigDecimal txSize = BigDecimal.valueOf(txReceipt.getTxSize());
 
-            // tx size fee = txSize / 1mbyte
-            // 1mbyte to 1yeed
             BigDecimal txFee = txSize.divide(BigDecimal.valueOf(1000000));
             BigDecimal resultFee = fee.subtract(txFee);
 
             stateValue.setFee(resultFee);
             stateValue.setBlockHeight(txReceipt.getBlockHeight());
+
+            stateValue.setExtinguishBlockHeight();
         }
 
 //        if (json.has("validator")) {
@@ -287,6 +294,9 @@ public class StemContract implements Contract<JsonObject> {
      * @return fee state
      */
     public BigDecimal feeState(JsonObject params) {
+        //TODO 현재 블록의 수수료 조회
+        // 수수료 소진되는 로직
+
         String branchId = params.get(BRANCH_ID).getAsString();
         if (isBranchExist(branchId)) {
             return getBranchStateValue(branchId).getFee();
@@ -300,11 +310,7 @@ public class StemContract implements Contract<JsonObject> {
      * @return block height state
      */
     public Long blockHeightState(JsonObject params) {
-        String branchId = params.get(BRANCH_ID).getAsString();
-        if (isBranchExist(branchId)) {
-            return txReceipt.getBlockHeight();
-        }
-        return null;
+        return txReceipt.getBlockHeight();
     }
 
 
@@ -361,7 +367,7 @@ public class StemContract implements Contract<JsonObject> {
     }
 
     private Boolean validatorVerify(JsonObject params) {
-        //TODO 벨리데이터들 다른 브랜치에 벨리데이터가 사인한 값들이 맞냐!
+        //TODO sign verify of validator
         txReceipt.getIssuer();
         params.getAsJsonArray("validator");
 
