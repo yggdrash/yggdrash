@@ -124,7 +124,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     }
 
     public Sha3Hash getHash() {
-        return new Sha3Hash(this.coreBlock.getHash());
+        return new Sha3Hash(this.coreBlock.getHash(), true);
     }
 
     public Address getAddress() {
