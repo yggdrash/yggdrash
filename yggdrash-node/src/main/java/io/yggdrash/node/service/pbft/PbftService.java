@@ -40,7 +40,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static io.yggdrash.common.util.Utils.sleep;
 
-@Profile("validator")
 @Service
 @EnableScheduling
 public class PbftService implements CommandLineRunner {
@@ -78,9 +77,9 @@ public class PbftService implements CommandLineRunner {
     Resource validatorResource;
 
     @Autowired
-    public PbftService(Wallet wallet, PbftBlockChain blockChain, BranchGroup branchGroup) {
+    public PbftService(Wallet wallet, PbftBlockChain pbftBlockChain, BranchGroup branchGroup) {
         this.wallet = wallet;
-        this.blockChain = blockChain;
+        this.blockChain = pbftBlockChain;
         this.branchGroup = branchGroup;
         this.myNode = initMyNode();
         this.totalValidatorMap = initTotalValidator();
@@ -107,6 +106,7 @@ public class PbftService implements CommandLineRunner {
     }
 
     // todo: chage cron setting to config file or genesis ...
+    @Profile("validator")
     @Scheduled(cron = "*/2 * * * * *")
     public void mainScheduler() {
 

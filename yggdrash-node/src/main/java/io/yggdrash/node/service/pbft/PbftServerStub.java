@@ -26,8 +26,8 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
     private final PbftService pbftService; //todo: check security!
 
     @Autowired
-    public PbftServerStub(PbftBlockChain blockChain, PbftService pbftService) {
-        this.blockChain = blockChain;
+    public PbftServerStub(PbftBlockChain pbftBlockChain, PbftService pbftService) {
+        this.blockChain = pbftBlockChain;
         this.pbftService = pbftService;
     }
 
