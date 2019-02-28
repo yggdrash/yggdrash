@@ -49,7 +49,7 @@ public class ActuatorTest extends TestConstants.CiTest {
 
     @Test
     public void getGrpc() {
-        assert properties.getGrpc().getHost().equals("localhost");
+        assert properties.getGrpc().getHost().equals("127.0.0.1");
     }
 
     @Test

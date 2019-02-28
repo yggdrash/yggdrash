@@ -12,22 +12,45 @@ To ensure everything worked, run:
 first build a docker image of the yggdrash node by running:
 
 ```shell
-> ./gradlew docker
+> ./gradlew build docker
 ```
 
 then run the node:
 
 ```shell
-> docker run --rm -p 8080:8080 -v $HOME/.yggdrash:/.yggdrash yggdrash/yggdrash-node
+> docker run --rm -e SPRING_PROFILES_ACTIVE=local,master,gateway -p 8080:8080  yggdrash/yggdrash-node
 ```
 
 now shows all the blocks:
 
 ```shell
-> curl localhost:8080/blocks
+> curl localhost:8080/yggdrash/blocks
+```
+
+# Docker Compose
+
+## Usage
+
+Launch all node by running: `docker-compose up --scale yggdrash-node=3 -d`.
+
+## Configured Docker services
+
+### Bootstrap node:
+- active peers -> http://localhost:8081/yggdrash/blocks/latest
+
+### Master node:
+- block -> http://localhost:8081/yggdrash/blocks
+
+### General node:
+- best block -> http://localhost:8082/yggdrash/blocks/latest
+
+## deploy to test server
+- dev server: `docker-compose -f docker-compose-deploy.yml up -d`
+- prod server: create `.env` file and run `docker-compose -f docker-compose-deploy.yml up -d`
+```shell
+PROFILE=prod
+GRPC_HOST=52.79.188.79
 ```
 
 #### TODO
-
- - Docker-Compose configuration
  - Kubernetes configuration

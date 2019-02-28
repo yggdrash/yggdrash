@@ -1,7 +1,7 @@
 plugins {
     id 'org.springframework.boot' version '2.1.1.RELEASE' apply false
     id 'com.google.protobuf' version '0.8.7'
-    id "com.palantir.docker" version "0.20.1"
+    id 'com.palantir.docker' version '0.21.0'
     id 'com.github.kt3k.coveralls' version '2.8.2'
 }
 
@@ -14,7 +14,7 @@ version = '0.10.0-SNAPSHOT'
 defaultTasks ':yggdrash-node:bootRun'
 
 ext {
-    grpcVersion         = '1.17.0'
+    grpcVersion         = '1.18.0'
     protobufVersion     = '3.6.1'
     levelDBVersion      = '0.10'
     ehcacheVersion      = '3.6.2'
@@ -30,6 +30,19 @@ ext {
     assertjVersion      = '3.11.1'
     commonLangVersion   = '3.8.1'
     collectionsVersion  = '4.2'
+
+    importPackage = 'org.osgi.framework' +
+            ',com.google.gson' +
+            ',org.w3c.dom' +
+            ',io.yggdrash.common.util' +
+            ',io.yggdrash.core.blockchain' +
+            ',io.yggdrash.core.contract' +
+            ',io.yggdrash.core.runtime.annotation' +
+            ',io.yggdrash.core.store' +
+            ',io.yggdrash.contract.annotation' +
+            ',io.yggdrash.contract.store' +
+            ',io.yggdrash.contract.utils'
+    excludeList = ["META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/NOTICE"]
 }
 
 allprojects {
@@ -74,6 +87,8 @@ project(':yggdrash-core') {
     apply plugin: 'com.google.protobuf'
 
     dependencies {
+        compile project(':yggdrash-contract-core')
+
         compile files('libs/cfr-0.139.jar')
         compile "io.grpc:grpc-protobuf:${grpcVersion}"
         compile "io.grpc:grpc-stub:${grpcVersion}"
@@ -118,6 +133,142 @@ project(':yggdrash-core') {
             }
         }
     }
+
+    task dpoaContract(type: Jar) {
+        //Add current module source
+        from(sourceSets.main.output) {
+            include "**"
+            exclude(["system-contracts"])
+        }
+
+        // Add dependency library
+        from {
+            configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        }
+
+        manifest {
+            attributes(
+                    'Bundle-ManifestVersion': '2',
+                    'Bundle-Name': 'DPoA Contract',
+                    'Bundle-Description': 'DPoA Contract',
+                    'Bundle-Vendor': 'YGGDRASH',
+                    'Bundle-SymbolicName': 'io.yggdrash.core.contract.osgi.DPoAContract',
+                    'Bundle-Version': '1.0.0',
+                    'Bundle-Activator': 'io.yggdrash.core.contract.osgi.DPoAContract',
+                    'Import-Package': "${importPackage},io.yggdrash.core.contract.osgi"
+            )
+        }
+        exclude(excludeList)
+        archiveName "system-dpoa-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+    }
+
+    task dpoaClientContract(type: Jar) {
+        //Add current module source
+        from(sourceSets.main.output) {
+            include "**"
+            exclude(["system-contracts"])
+        }
+
+        // Add dependency library
+        from {
+            configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        }
+
+        manifest {
+            attributes(
+                    'Bundle-ManifestVersion': '2',
+                    'Bundle-Name': 'DPoA Client Contract',
+                    'Bundle-Description': 'DPoA Client Contract',
+                    'Bundle-Vendor': 'YGGDRASH',
+                    'Bundle-SymbolicName': 'io.yggdrash.core.contract.osgi.DPoAClientContract',
+                    'Bundle-Version': '1.0.0',
+                    'Bundle-Activator': 'io.yggdrash.core.contract.osgi.DPoAClientContract',
+                    'Import-Package': "${importPackage},io.yggdrash.core.contract.osgi"
+            )
+        }
+        exclude(excludeList)
+        archiveName "system-dpoa-client-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+    }
+
+    task coinContract(type: Jar) {
+        //Add current module source
+        from(sourceSets.main.output) {
+            include "**"
+            exclude(["system-contracts"])
+        }
+
+        // Add dependency library
+        from {
+            configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        }
+
+        manifest {
+            attributes(
+                    'Bundle-ManifestVersion': '2',
+                    'Bundle-Name': 'Coin Contract',
+                    'Bundle-Description': 'Coin Contract',
+                    'Bundle-Vendor': 'YGGDRASH',
+                    'Bundle-SymbolicName': 'io.yggdrash.core.contract.osgi.CoinContract',
+                    'Bundle-Version': '1.0.0',
+                    'Bundle-Activator': 'io.yggdrash.core.contract.osgi.CoinContract',
+                    'Export-Package': "io.yggdrash.core.contract.osgi",
+                    'Import-Package': "${importPackage}"
+            )
+        }
+        exclude(excludeList)
+        archiveName "system-coin-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+    }
+
+    def keystoreFile = new File("${project.projectDir.toString()}/src/main/resources/yggdrash.p12")
+    def keystorePass = '098098'
+    def keyAlias = 'yggdrash'
+    task signJar(description: 'to Sign JAR.', group: 'Build') {
+
+        dependsOn dpoaContract
+        dependsOn dpoaClientContract
+        dependsOn coinContract
+
+        doLast {
+            def libFiles = file('build/libs').listFiles()
+            libFiles.each {
+                if (it.name.startsWith('yggdrash-core')) {
+                    return
+                }
+                ant.jar(destfile: it, update: true) {
+                    delegate.manifest {
+                        attribute(name: 'permissions', value: 'all-permissions')
+                        attribute(name: 'codebase', value: '*')
+                    }
+                }
+
+                ant.signjar(
+                        tsaurl: 'http://sha256timestamp.ws.symantec.com/sha256/timestamp',
+                        alias: keyAlias,
+                        jar: it,
+                        keystore: "${keystoreFile.absolutePath}",
+                        storepass: keystorePass,
+                        destDir: 'build/libs',
+                        verbose: true,
+                        preservelastmodified: 'true'
+                )
+            }
+        }
+    }
+
+    task removeContract(type: Delete) {
+        delete fileTree(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts').include('*')
+    }
+
+    task copyContract(type: Copy) {
+        dependsOn signJar
+        dependsOn removeContract
+
+        from file('build/libs')
+        into file(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts')
+        exclude "yggdrash-core*"
+    }
+
+    jar.dependsOn(copyContract)
 }
 
 project(':yggdrash-node') {
@@ -133,7 +284,8 @@ project(':yggdrash-node') {
         compile "org.springframework.cloud:spring-cloud-starter:2.0.0.RELEASE"
         compile "com.github.briandilley.jsonrpc4j:jsonrpc4j:1.5.3"
         annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
-        runtime "org.springframework.boot:spring-boot-devtools"
+        //Must be disable in osgi
+//        runtime "org.springframework.boot:spring-boot-devtools"
         testCompile "org.springframework.boot:spring-boot-starter-test"
         testCompile "io.grpc:grpc-testing:${grpcVersion}"
         testCompile project(':yggdrash-core').sourceSets.test.output
@@ -150,11 +302,6 @@ project(':yggdrash-node') {
         name "yggdrash/${bootJar.baseName}"
         files bootJar.archivePath
         buildArgs(['JAR_FILE': "${bootJar.archiveName}"])
-    }
-
-    jar {
-        classifier = 'classes'
-        enabled = true
     }
 
     bootJar {
@@ -185,13 +332,13 @@ project(':yggdrash-gateway') {
         compile.exclude module: 'spring-boot-starter-tomcat'
     }
 
-    bootJar {
-        enabled = false
-    }
-
     jar {
         classifier = 'classes'
         enabled = true
+    }
+
+    bootJar {
+        enabled = false
     }
 }
 
@@ -203,6 +350,7 @@ project(':yggdrash-validator') {
         compile project(':yggdrash-core')
         compile "io.github.lognet:grpc-spring-boot-starter:3.0.0"
         testCompile project(':yggdrash-core').sourceSets.test.output
+        testCompile "com.vmlens:concurrent-junit:1.0.2"
     }
 }
 

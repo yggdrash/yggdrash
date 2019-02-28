@@ -25,14 +25,15 @@ import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.store.StoreBuilder;
 
 import java.io.InputStream;
+import java.util.Collections;
 
 public class BlockChainTestUtils {
     private static final GenesisBlock genesis;
@@ -52,15 +53,15 @@ public class BlockChainTestUtils {
         return genesis.getBlock();
     }
 
-    public static TransactionHusk createTransferTxHusk() {
-        return new TransactionHusk(createTransferTx());
+    public static BlockHusk createNextBlock() {
+        return new BlockHusk(TestConstants.wallet(), Collections.emptyList(), genesis.getBlock());
     }
 
     public static TransactionHusk createBranchTxHusk() {
         JsonObject json = ContractTestUtils.createSampleBranchJson();
 
         TransactionBuilder builder = new TransactionBuilder();
-        return builder.addTxBody(Constants.STEM_CONTRACT_VERSION, "create", json)
+        return builder.addTxBody(Constants.STEM_CONTRACT_VERSION, "create", json, false)
                 .setWallet(TestConstants.wallet())
                 .setBranchId(genesis.getBlock().getBranchId())
                 .build();
@@ -71,7 +72,7 @@ public class BlockChainTestUtils {
         JsonObject params = new JsonObject();
         params.add(branchId.toString(), branch);
         TransactionBuilder builder = new TransactionBuilder();
-        return builder.addTxBody(Constants.STEM_CONTRACT_VERSION, method, params)
+        return builder.addTxBody(Constants.STEM_CONTRACT_VERSION, method, params, false)
                 .setWallet(TestConstants.wallet())
                 .setBranchId(branchId)
                 .build();
@@ -95,6 +96,7 @@ public class BlockChainTestUtils {
         return BlockChainBuilder.Builder()
                 .addGenesis(genesis)
                 .setStoreBuilder(storeBuilder)
+                .setPolicyLoader(new ContractPolicyLoader())
                 .build();
     }
 
@@ -105,19 +107,17 @@ public class BlockChainTestUtils {
         return branchGroup;
     }
 
-    private static Transaction createTransferTx() {
+    public static TransactionHusk createTransferTxHusk() {
         return createTransferTx(TestConstants.TRANSFER_TO, 100);
     }
 
-    private static Transaction createTransferTx(String to, int amount) {
+    private static TransactionHusk createTransferTx(String to, int amount) {
         JsonArray txBody = ContractTestUtils.transferTxBodyJson(to, amount);
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTransactionBody(txBody)
                 .setWallet(TestConstants.wallet())
                 .setBranchId(TestConstants.yggdrash())
-                .build()
-                .getCoreTransaction()
-                ;
+                .build();
     }
 
 }

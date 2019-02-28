@@ -30,9 +30,15 @@ import java.util.List;
 public class BlockChainServiceConsumer implements BlockChainConsumer {
     private static final Logger log = LoggerFactory.getLogger(BlockChainServiceConsumer.class);
     private final BranchGroup branchGroup;
+    private CatchUpSyncEventListener listener;
 
     public BlockChainServiceConsumer(BranchGroup branchGroup) {
         this.branchGroup = branchGroup;
+    }
+
+    @Override
+    public void setListener(CatchUpSyncEventListener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -68,6 +74,9 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
             branchGroup.addBlock(block, true);
         } catch (Exception e) {
             log.warn(e.getMessage());
+            if (listener != null) {
+                listener.catchUpRequest(block);
+            }
         }
     }
 

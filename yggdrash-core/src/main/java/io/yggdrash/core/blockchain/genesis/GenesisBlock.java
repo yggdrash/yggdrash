@@ -1,7 +1,5 @@
 package io.yggdrash.core.blockchain.genesis;
 
-import com.google.gson.JsonObject;
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
@@ -60,24 +58,13 @@ public class GenesisBlock {
         return new BlockHusk(coreBlock.toProtoBlock());
     }
 
-    // Validator initial value
-    private TransactionBuilder validatorTransaction(TransactionBuilder builder) {
-        Set<String> validators = branch.getValidators();
-        JsonObject validatorParams = new JsonObject();
-        validatorParams.addProperty("validator", String.join(",",validators));
-        // TODO Validator Contract Version
-        builder.addTxBody(Constants.VALIDATOR_CONTRACT_VERSION, "init", validatorParams);
-
-        return builder;
-    }
-
     // Contract initial value
     private TransactionBuilder contractTransaction(TransactionBuilder builder) {
         List<BranchContract> contracts = branch.getBranchContracts();
         builder.setBranchId(branch.getBranchId())
                 .setTimeStamp(branch.getTimestamp())
         ;
-        contracts.forEach(c -> builder.addTxBody(c.getContractVersion(), "init", c.getInit()));
+        contracts.forEach(c -> builder.addTxBody(c.getContractVersion(), "init", c.getInit(), c.isSystem()));
         return builder;
     }
 

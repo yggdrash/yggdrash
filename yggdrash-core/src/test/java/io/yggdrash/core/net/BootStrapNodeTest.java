@@ -1,52 +1,31 @@
 package io.yggdrash.core.net;
 
-import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.TestConstants;
+import io.yggdrash.core.akashic.SimpleSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.p2p.PeerHandler;
 import org.junit.Test;
 
-import java.util.List;
+import static org.junit.Assert.assertEquals;
 
-public class BootStrapNodeTest {
+public class BootStrapNodeTest extends BootStrapNode {
 
-    @Test
-    public void selfLookupTest() {
-        YggdrashTestNode node1 = new YggdrashTestNode();
-        node1.bootstrapping();
+    public BootStrapNodeTest() {
+        BranchGroup branchGroup = BlockChainTestUtils.createBranchGroup();
+        setBranchGroup(branchGroup);
+        setNodeStatus(NodeStatusMock.mock);
+        setPeerNetwork(PeerNetworkMock.mock);
+        setSyncManager(new SimpleSyncManager());
     }
 
-    private class YggdrashTestNode extends BootStrapNode {
-        YggdrashTestNode() {
-            setBranchGroup(new BranchGroup());
-            setNodeStatus(NodeStatusMock.mock);
-            setPeerNetwork(new PeerNetwork() {
-                @Override
-                public void init() {
+    @Test
+    public void bootstrappingTest() {
+        bootstrapping();
+    }
 
-                }
-
-                @Override
-                public void addNetwork(BranchId branchId) {
-
-                }
-
-                @Override
-                public List<PeerHandler> getHandlerList(BranchId branchId) {
-                    return null;
-                }
-
-                @Override
-                public void chainedBlock(BlockHusk block) {
-
-                }
-
-                @Override
-                public void receivedTransaction(TransactionHusk tx) {
-
-                }
-            });
-        }
+    @Test
+    public void catchUpRequestTest() {
+        catchUpRequest(BlockChainTestUtils.createNextBlock());
+        assertEquals(1, branchGroup.getLastIndex(TestConstants.yggdrash()));
     }
 }

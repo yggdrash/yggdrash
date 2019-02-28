@@ -1,0 +1,58 @@
+
+version: '3.3'
+
+services:
+
+  yggdrash-bs:
+    image: yggdrash/yggdrash-node
+    container_name: yggdrash-bs
+    build:
+      context: ./
+      args:
+        JAR_FILE: yggdrash-node.jar
+    secrets:
+      - source: nodePri.key
+        target: /.yggdrash/keystore/nodePri.key
+    network_mode: host
+    environment:
+      - SPRING_PROFILES_ACTIVE=${PROFILE:-dev},gateway,bootstrap
+      - YGGDRASH_NODE_GRPC_HOST=${HOST:-172.16.10.159}
+    volumes:
+      - yggdrash-bs:/.yggdrash
+    restart: on-failure
+
+  yggdrash-master:
+    image: yggdrash/yggdrash-node
+    container_name: yggdrash-master
+    network_mode: host
+    environment:
+      - SPRING_PROFILES_ACTIVE=${PROFILE:-dev},gateway,master
+      - SERVER_PORT=8081
+      - YGGDRASH_NODE_GRPC_HOST=${HOST:-172.16.10.159}
+      - YGGDRASH_NODE_GRPC_PORT=32919
+    volumes:
+      - yggdrash-master:/.yggdrash
+    restart: on-failure
+
+  yggdrash-node:
+    image: yggdrash/yggdrash-node
+    container_name: yggdrash-node
+    network_mode: host
+    environment:
+      - SPRING_PROFILES_ACTIVE=${PROFILE:-dev},gateway
+      - SERVER_PORT=8082
+      - YGGDRASH_NODE_GRPC_HOST=${HOST:-172.16.10.159}
+      - YGGDRASH_NODE_GRPC_PORT=32920
+    restart: on-failure
+
+
+volumes:
+  yggdrash-bs:
+    driver: local
+  yggdrash-master:
+    driver: local
+
+
+secrets:
+  nodePri.key:
+    file: ./config/nodePri.key

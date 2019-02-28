@@ -24,10 +24,13 @@ import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerHandler;
 import io.yggdrash.core.p2p.PeerTableGroup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
 public class KademliaPeerNetwork implements PeerNetwork {
+    private static final Logger log = LoggerFactory.getLogger(KademliaPeerNetwork.class);
 
     private final PeerTableGroup peerTableGroup;
 
@@ -40,6 +43,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
 
     @Override
     public void init() {
+        log.info("Init node={}", peerTableGroup.getOwner().toString());
         peerTableGroup.selfRefresh();
 
         for (BranchId branchId : peerTableGroup.getAllBranchId()) {

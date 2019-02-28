@@ -13,14 +13,20 @@ public class SimpleSyncManager implements SyncManager {
     private static final Logger log = LoggerFactory.getLogger(SimpleSyncManager.class);
 
     @Override
-    public void syncBlock(PeerHandler peerHandler, BlockChain blockChain) {
+    public void syncBlock(PeerHandler peerHandler, BlockChain blockChain, long limitIndex) {
         List<BlockHusk> blockList;
         do {
             long offset = blockChain.getLastIndex() + 1;
+            if (limitIndex > 0 && limitIndex <= offset) {
+                return;
+            }
             blockList = peerHandler.syncBlock(blockChain.getBranchId(), offset);
             log.debug("Synchronize block offset={} receivedSize={}, from={}", offset, blockList.size(),
                     peerHandler.getPeer());
             for (BlockHusk block : blockList) {
+                if (limitIndex > 0 && limitIndex <= block.getIndex()) {
+                    return;
+                }
                 blockChain.addBlock(block, false);
             }
         } while (!blockList.isEmpty());

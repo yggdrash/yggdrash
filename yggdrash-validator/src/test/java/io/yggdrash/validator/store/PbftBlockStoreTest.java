@@ -5,7 +5,6 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.ByteUtil;
 import io.yggdrash.core.blockchain.Block;
-import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.pbft.PbftBlock;
@@ -255,36 +254,6 @@ public class PbftBlockStoreTest {
         assertTrue(newBlock.equals(this.pbftBlock));
         assertTrue(blockStore.contains(this.pbftBlock.getHash()));
         assertFalse(blockStore.contains(EMPTY_BYTE32));
-    }
-
-    @Test
-    public void putTest_Null() {
-        try {
-            blockStore.put(null, this.pbftBlock);
-        } catch (NotValidateException ne) {
-            log.debug(ne.getMessage());
-            assert true;
-        }
-        try {
-            blockStore.put(this.pbftBlock.getHash(), null);
-        } catch (NotValidateException ne) {
-            log.debug(ne.getMessage());
-            assert true;
-            return;
-        }
-        assert false;
-    }
-
-    @Test
-    public void getTest_Null() {
-        try {
-            blockStore.get(null);
-        } catch (NotValidateException ne) {
-            log.debug(ne.getMessage());
-            assert true;
-            return;
-        }
-        assert false;
     }
 
     @Test
