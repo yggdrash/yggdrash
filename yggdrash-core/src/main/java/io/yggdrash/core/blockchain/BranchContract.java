@@ -25,10 +25,12 @@ public class BranchContract {
     private String name;
     private String description;
     private String property;
+    private JsonObject json;
     private boolean isSystem;
 
 
     protected BranchContract(JsonObject json) {
+        this.json = json;
         this.init = json.getAsJsonObject("init");
         this.name = json.get("name").getAsString();
         this.description = json.get("description").getAsString();
@@ -68,5 +70,9 @@ public class BranchContract {
 
     public boolean isSystem() {
         return isSystem;
+    }
+
+    public JsonObject getJson() {
+        return json;
     }
 }
