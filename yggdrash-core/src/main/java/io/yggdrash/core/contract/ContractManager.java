@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.contract;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import io.yggdrash.core.contract.methods.ContractMethod;
 import org.apache.commons.io.FileUtils;
@@ -42,8 +43,10 @@ import java.util.Base64;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -72,6 +75,10 @@ public class ContractManager extends ClassLoader {
                 if (contractFile.isDirectory()) {
                     return;
                 }
+                if (!contractFile.getName().endsWith(".class")) {
+                    return;
+                }
+
                 byte[] contractBinary;
                 try (FileInputStream inputStream = new FileInputStream(contractFile)) {
                     contractBinary = new byte[Math.toIntExact(contractFile.length())];
@@ -114,14 +121,22 @@ public class ContractManager extends ClassLoader {
         return this.contracts.containsKey(version);
     }
 
-    public JsonElement getInvoke(ContractVersion version) {
+    public Set<JsonElement> getMethod(ContractVersion version) {
+        if (!hasContract(version)) {
+            return Collections.emptySet();
+        }
         ContractMeta contractMeta = contracts.get(version);
-        return contractMeta.toJsonObject().get("invokeMethods");
-    }
+        Set<JsonElement> methodSet = new HashSet<>();
 
-    public JsonElement getQuery(ContractVersion version) {
-        ContractMeta contractMeta = contracts.get(version);
-        return contractMeta.toJsonObject().get("queryMethods");
+        JsonArray qm = contractMeta.toJsonObject().getAsJsonArray("queryMethods");
+        JsonArray im = contractMeta.toJsonObject().getAsJsonArray("invokeMethods");
+        for (JsonElement q : qm) {
+            methodSet.add(q);
+        }
+        for (JsonElement i : im) {
+            methodSet.add(i);
+        }
+        return methodSet;
     }
 
     /**

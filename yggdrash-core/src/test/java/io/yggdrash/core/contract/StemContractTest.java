@@ -62,7 +62,6 @@ public class StemContractTest {
         JsonObject json = ContractTestUtils.createSampleBranchJson();
         stateValue = StemContractStateValue.of(json);
         JsonObject params = createParams(stateValue.getJson());
-
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer(stateValue.getValidators().get(0));
 
@@ -142,9 +141,40 @@ public class StemContractTest {
     }
 
     @Test
-    public void getBranchList() {
+    public void getBranchIdListTest() {
         Set<String> branchIdList = stemContract.getBranchIdList();
         assertThat(branchIdList).containsOnly(stateValue.getBranchId().toString());
+    }
+
+    @Test
+    public void getBranchTest() {
+        JsonObject params = createParams();
+        stemContract.getBranch(params);
+    }
+
+    @Test
+    public void getBranchByTxIDTest() {
+        JsonObject params = createParams();
+        stemContract.getBranchByTxID(params);
+    }
+
+    @Test
+    public void getContractByBranchTest() {
+        JsonObject params = createParams();
+        stemContract.getContractByBranch(params);
+    }
+
+    @Test
+    public void getValidatorTest() {
+        JsonObject params = createParams();
+        //TODO store -> validator set compare to return validator
+        stemContract.getValidator(params);
+    }
+
+    @Test
+    public void getBranchIdByValidatorTest() {
+        JsonObject params = createValidatorParams();
+        stemContract.getBranchIdByValidator(params);
     }
 
     private JsonObject createParams() {
