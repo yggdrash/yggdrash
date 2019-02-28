@@ -107,11 +107,16 @@ public class BlockChainBuilder {
             transactionReceiptStore = storeBuilder.buildTransactionReceiptStore(
                     branchId);
         }
+        // TODO Load Branch Information
+        List<BranchContract> contracts = metaStore.getBranchContacts();
+        if (contracts.size() == 0) {
+            contracts = branch.getBranchContracts();
+        }
+
 
         if (runtime == null) {
             runtime = new Runtime(stateStore, transactionReceiptStore);
             // TODO Change Branch Spec
-            List<BranchContract> contracts = branch.getBranchContracts();
             contracts.forEach(c -> {
                 // TODO Get ContractManager for Contract
                 Contract contract;

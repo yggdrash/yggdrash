@@ -72,6 +72,7 @@ public class BlockChain {
         if (!blockStore.contains(genesisBlock.getHash())) {
             initGenesis();
         } else {
+            // Load Block Chain Information
             loadTransaction();
         }
     }

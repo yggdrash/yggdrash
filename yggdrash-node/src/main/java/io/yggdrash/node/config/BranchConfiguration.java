@@ -16,20 +16,14 @@
 
 package io.yggdrash.node.config;
 
-import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
-import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.contract.ContractManager;
-import io.yggdrash.core.store.BlockStore;
-import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
 import java.io.IOException;
@@ -66,11 +60,7 @@ public class BranchConfiguration {
         InputStream is = yggdrashResource.getInputStream();
         GenesisBlock genesis = GenesisBlock.of(is);
 
-        BlockChain yggdrash = loadBranch(genesis.getBranch().getBranchId());
-
-        if (yggdrash == null) {
-            yggdrash = createBranch(genesis);
-        }
+        BlockChain yggdrash = createBranch(genesis);
 
         branchGroup.addBranch(yggdrash);
         return yggdrash;
@@ -88,11 +78,7 @@ public class BranchConfiguration {
         try {
             for (GenesisBlock genesis : branchLoader.getGenesisBlockList()) {
                 // check exist branch
-                BlockChain bc = loadBranch(genesis.getBranch().getBranchId());
-                if (bc == null) {
-                    bc = createBranch(genesis);
-                }
-                // TODO check Validator
+                BlockChain bc = createBranch(genesis);
                 branchGroup.addBranch(bc);
             }
         } catch (Exception e) {
@@ -127,37 +113,6 @@ public class BranchConfiguration {
             return null;
         }
     }
-
-    // TODO load Branch By Store
-    private BlockChain loadBranch(BranchId branchId) {
-        // TODO blockChain Loader will load blockchain by store
-        // Load Meta Store
-        BlockChainBuilder builder = BlockChainBuilder.Builder();
-        MetaStore metaStore = storeBuilder.buildMetaStore(branchId);
-        if (!branchId.equals(metaStore.getBranchId())) {
-            return null;
-        }
-        BlockStore blockStore = storeBuilder.buildBlockStore(branchId);
-
-        // TODO get Branch
-        Branch branch = metaStore.getBranch();
-
-        // TODO get Genesis
-        Sha3Hash genesisBlockHash = metaStore.getGenesisBlockHash();
-        BlockHusk genesisBlock = blockStore.get(genesisBlockHash);
-        GenesisBlock genesis = GenesisBlock.of(branch, genesisBlock);
-
-        // TODO Get Contracts
-
-
-        return builder.addGenesis(genesis)
-            .setBlockStore(blockStore)
-            .setMetaStore(metaStore)
-            .setStoreBuilder(storeBuilder)
-            .build();
-    }
-
-
 
     /**
      * Scheduling Beans
