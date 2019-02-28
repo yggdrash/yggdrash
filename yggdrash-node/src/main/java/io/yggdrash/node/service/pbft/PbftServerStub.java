@@ -11,11 +11,13 @@ import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+@Profile("validator")
 @GrpcService
 public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 

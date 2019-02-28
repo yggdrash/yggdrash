@@ -1,6 +1,5 @@
 package io.yggdrash.node.service.pbft;
 
-import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.pbft.PbftBlock;
 import io.yggdrash.core.blockchain.pbft.PbftMessage;
@@ -12,6 +11,7 @@ import io.yggdrash.core.store.pbft.PbftBlockStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Profile;
 
 import java.net.InetAddress;
 import java.util.ArrayList;
@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import static io.yggdrash.common.config.Constants.DEFAULT_PORT;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 
+@Profile("validator")
 public class PbftBlockChain {
 
     private static final Logger log = LoggerFactory.getLogger(PbftBlockChain.class);
@@ -40,7 +41,7 @@ public class PbftBlockChain {
     private PbftBlock lastConfirmedBlock;
 
     @Autowired
-    public PbftBlockChain(Block genesisBlock, DefaultConfig defaultConfig, String dbPath,
+    public PbftBlockChain(Block genesisBlock, String dbPath,
                           String blockKeyStorePath, String blockStorePath, String txStorePath) {
         if (genesisBlock.getHeader().getIndex() != 0
                 || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), EMPTY_BYTE32)) {

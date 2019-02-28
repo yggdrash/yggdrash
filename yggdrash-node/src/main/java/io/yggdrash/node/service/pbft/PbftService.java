@@ -21,10 +21,8 @@ import io.yggdrash.core.wallet.Wallet;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
-import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -40,6 +38,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import static io.yggdrash.common.util.Utils.sleep;
 
+@Profile("validator")
 @Service
 @EnableScheduling
 public class PbftService implements CommandLineRunner {
@@ -72,9 +71,6 @@ public class PbftService implements CommandLineRunner {
 
     private int failCount;
     private final Map<String, PbftMessage> viewChangeMap = new TreeMap<>();
-
-    @Value("classpath:/validator.json")
-    Resource validatorResource;
 
     @Autowired
     public PbftService(Wallet wallet, PbftBlockChain pbftBlockChain, BranchGroup branchGroup) {
