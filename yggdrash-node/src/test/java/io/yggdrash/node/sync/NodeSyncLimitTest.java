@@ -22,6 +22,7 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.node.TestNode;
 import io.yggdrash.node.discovery.NodeTcpDiscoveryTest;
 import org.junit.Ignore;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -30,6 +31,7 @@ public class NodeSyncLimitTest extends NodeTcpDiscoveryTest {
 
     @Override
     @Ignore
+    @Test
     public void test() {
         rootLogger.setLevel(Level.INFO);
 
