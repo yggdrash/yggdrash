@@ -90,7 +90,7 @@ public class NodeContractDemoClient {
         System.out.println("===============");
         System.out.println("YGGDRASH BRANCH : " + yggdrash.toString());
         System.out.println("STEM CONTRACT : " + stemContract.toString());
-        System.out.println("YEED BRANCH : " + yeedContract.toString());
+        System.out.println("YEED CONTRACT : " + yeedContract.toString());
 
 
         System.out.print("[1] 트랜잭션 전송\n[2] 트랜잭션 조회\n[3] 브랜치 배포\n[4] 브랜치 목록\n"
@@ -146,7 +146,7 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static void getNodeBranch() throws Exception {
+    private static void getNodeBranch() {
         Map<String, BranchDto> branches = rpc.proxyOf(TARGET_SERVER, BranchApi.class)
                 .getBranches();
 
