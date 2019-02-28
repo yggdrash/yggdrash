@@ -38,8 +38,6 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static io.yggdrash.common.util.Utils.sleep;
-
 @Service
 @EnableScheduling
 @ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "pbft")
@@ -117,7 +115,11 @@ public class PbftService implements CommandLineRunner {
             multicastMessage(prePrepareMsg);
         }
 
-        sleep(500);
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            log.trace(e.getMessage());
+        }
 
         // make Prepare msg
         lock.lock();
@@ -127,7 +129,11 @@ public class PbftService implements CommandLineRunner {
             multicastMessage(prepareMsg);
         }
 
-        sleep(500);
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            log.trace(e.getMessage());
+        }
 
         // make commit msg
         lock.lock();
@@ -137,7 +143,11 @@ public class PbftService implements CommandLineRunner {
             multicastMessage(commitMsg);
         }
 
-        sleep(500);
+        try {
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            log.trace(e.getMessage());
+        }
 
         lock.lock();
         confirmFinalBlock();
@@ -613,7 +623,7 @@ public class PbftService implements CommandLineRunner {
         return viewChangeMsgMap;
     }
 
-    private void checkNode() {
+    public void checkNode() {
         for (String key : totalValidatorMap.keySet()) {
             PbftClientStub client = totalValidatorMap.get(key);
             if (client.isMyclient()) {
