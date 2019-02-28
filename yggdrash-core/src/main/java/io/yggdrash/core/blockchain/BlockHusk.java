@@ -115,9 +115,16 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         }
     }
 
-    public Sha3Hash getHash() {
+    public Proto.Block getProtoBlock() {
+        return protoBlock;
+    }
 
-        return new Sha3Hash(protoBlock.getHeader().toByteArray());
+    public Block getCoreBlock() {
+        return coreBlock;
+    }
+
+    public Sha3Hash getHash() {
+        return new Sha3Hash(this.coreBlock.getHash(), true);
     }
 
     public Address getAddress() {
@@ -138,8 +145,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     }
 
     public Sha3Hash getPrevHash() {
-
-        return Sha3Hash.createByHashed(getHeader().getPrevBlockHash().toByteArray());
+        return new Sha3Hash(this.coreBlock.getPrevBlockHash(), true);
     }
 
     public long getIndex() {

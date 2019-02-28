@@ -81,7 +81,6 @@ public class BlockChain {
     }
 
     private void initGenesis() {
-
         for (TransactionHusk tx : genesisBlock.getBody()) {
             if (!transactionStore.contains(tx.getHash())) {
                 transactionStore.put(tx.getHash(), tx);
@@ -89,7 +88,6 @@ public class BlockChain {
         }
         addBlock(genesisBlock, false);
     }
-
 
     private void loadTransaction() {
         // load recent 1000 block
@@ -217,7 +215,7 @@ public class BlockChain {
             log.warn("invalid index: prev:{} / new:{}", prevBlock.getIndex(), nextBlock.getIndex());
             return false;
         } else if (!prevBlock.getHash().equals(nextBlock.getPrevHash())) {
-            log.warn("invalid previous hash={}", prevBlock.getHash());
+            log.warn("invalid previous hash= {} {}", prevBlock.getHash(), nextBlock.getPrevHash());
             return false;
         }
 

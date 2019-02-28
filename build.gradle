@@ -3,6 +3,7 @@ plugins {
     id 'com.google.protobuf' version '0.8.7'
     id 'com.palantir.docker' version '0.21.0'
     id 'com.github.kt3k.coveralls' version '2.8.2'
+    id 'osgi'
 }
 
 apply plugin: 'java'

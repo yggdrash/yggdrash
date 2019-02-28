@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.JsonObject;
+
 import java.util.List;
 import java.util.Map;
 
@@ -43,6 +44,8 @@ public class BranchDto {
     public List<Map<String,Object>> contracts;
     public String timestamp;
     public List<String> validator;
+
+    public Map<String, Object> consensus;
 
     public static BranchDto of(JsonObject json) {
         try {
