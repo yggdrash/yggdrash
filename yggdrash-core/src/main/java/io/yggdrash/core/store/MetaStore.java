@@ -164,6 +164,9 @@ public class MetaStore implements Store<String, String> {
     // Get Genesis Block
     public Sha3Hash getGenesisBlockHash() {
         byte[] genesisBlockHash = db.get(BlockchainMetaInfo.GENESIS_BLOCK.toString().getBytes());
+        if (genesisBlockHash == null) {
+            return null;
+        }
         return new Sha3Hash(genesisBlockHash, true);
     }
 
@@ -186,6 +189,9 @@ public class MetaStore implements Store<String, String> {
     // TODO Get Validator
     public Set<String> getValidators() throws IOException {
         byte[] valiatorsByteArray = db.get(BlockchainMetaInfo.VALIDATORS.toString().getBytes());
+        if (valiatorsByteArray == null) {
+            return null;
+        }
         ByteArrayInputStream bais = new ByteArrayInputStream(valiatorsByteArray);
         DataInputStream in = new DataInputStream(bais);
         Set<String> validatorSet = new HashSet<>();
@@ -238,6 +244,9 @@ public class MetaStore implements Store<String, String> {
     public List<BranchContract> getBranchContacts() {
         List<BranchContract> contracts = new ArrayList<>();
         byte[] contractBytes = db.get(BlockchainMetaInfo.BRANCH_CONTRACTS.toString().getBytes());
+        if (contractBytes == null) {
+            return new ArrayList<>();
+        }
         JsonParser parser = new JsonParser();
         JsonArray json = parser.parse(new String(contractBytes)).getAsJsonArray();
 

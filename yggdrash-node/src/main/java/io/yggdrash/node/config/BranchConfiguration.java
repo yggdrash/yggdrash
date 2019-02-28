@@ -102,6 +102,7 @@ public class BranchConfiguration {
     }
 
     private BlockChain createBranch(GenesisBlock genesis, ContractPolicyLoader policyLoader) {
+        log.info("createBranch {} {}",genesis.getBranch().getBranchId(), genesis.getBranch().getName());
         try {
             return BlockChainBuilder.Builder()
                     .addGenesis(genesis)
@@ -109,7 +110,8 @@ public class BranchConfiguration {
                     .setPolicyLoader(policyLoader)
                     .build();
         } catch (Exception e) {
-            log.warn(e.getMessage());
+            e.printStackTrace();
+            log.error(e.getMessage());
             return null;
         }
     }
