@@ -1,26 +1,26 @@
 ext {
     importPackage =
             "io.yggdrash.common.contract" +
-            ",io.yggdrash.common.contract.method" +
-            ",io.yggdrash.common.contract.vo" +
-            ",io.yggdrash.common.contract.vo.dpoa" +
-            ",io.yggdrash.common.contract.vo.dpoa.tx" +
-            ",io.yggdrash.common.crypto" +
-            ",io.yggdrash.common.crypto.jce" +
-            ",io.yggdrash.common.exception" +
-            ",io.yggdrash.common.store" +
-            ",io.yggdrash.common.store.datasource" +
-            ",io.yggdrash.common.utils" +
+                    ",io.yggdrash.common.contract.method" +
+                    ",io.yggdrash.common.contract.vo" +
+                    ",io.yggdrash.common.contract.vo.dpoa" +
+                    ",io.yggdrash.common.contract.vo.dpoa.tx" +
+                    ",io.yggdrash.common.crypto" +
+                    ",io.yggdrash.common.crypto.jce" +
+                    ",io.yggdrash.common.exception" +
+                    ",io.yggdrash.common.store" +
+                    ",io.yggdrash.common.store.datasource" +
+                    ",io.yggdrash.common.utils" +
 
-            ",org.osgi.framework" +
-            ",org.osgi.util.tracker" +
-            ",com.google.gson" +
-            ",org.w3c.dom" +
-            ",org.slf4j" +
-            ",java.math" +
-            ",io.yggdrash.contract.core" +
-            ",io.yggdrash.contract.core.annotation" +
-            ",io.yggdrash.contract.core.store"
+                    ",org.osgi.framework" +
+                    ",org.osgi.util.tracker" +
+                    ",com.google.gson" +
+                    ",org.w3c.dom" +
+                    ",org.slf4j" +
+                    ",java.math" +
+                    ",io.yggdrash.contract.core" +
+                    ",io.yggdrash.contract.core.annotation" +
+                    ",io.yggdrash.contract.core.store"
 
     excludeList = ["META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/NOTICE"]
 }
@@ -154,12 +154,14 @@ task copyContract(type: Copy) {
     dependsOn removeContract
     dependsOn signJar
 
+    def copyPath = file('build/libs').absolutePath + '/../../../yggdrash-core/build/resources/main/system-contracts'
+
     from file('build/libs')
-    into file(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts')
+    into file("${copyPath}")
     exclude "${project.name}*"
 
     doLast {
-        def contractsFile = file(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts/contracts')
+        def contractsFile = file("${copyPath}/contracts")
         contractsFile.delete()
         contractsFile.createNewFile()
 

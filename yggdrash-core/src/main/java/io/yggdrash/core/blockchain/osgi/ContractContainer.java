@@ -23,11 +23,9 @@ import org.osgi.service.permissionadmin.PermissionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.lang.reflect.ReflectPermission;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -148,17 +146,17 @@ public class ContractContainer {
     }
 
     private List<String> copySystemContractToContractPath() {
-        List<String> contracts;
+        List<String> contracts = new ArrayList<>();
 
         InputStream in = null;
         try {
             //Read system contract files
             in = Thread.currentThread().getContextClassLoader().getResourceAsStream(String.format("%s/contracts", SUFFIX_SYSTEM_CONTRACT));
             in = in == null ? getClass().getResourceAsStream(String.format("%s/contracts", SUFFIX_SYSTEM_CONTRACT)) : in;
-            contracts = IOUtils.readLines(in, StandardCharsets.UTF_8);
-            if (contracts == null) {
-                return new ArrayList<>();
+            if (in == null) {
+                return contracts;
             }
+            contracts = IOUtils.readLines(in, StandardCharsets.UTF_8);
 
             //Copy contract
             for (String contract : contracts) {
