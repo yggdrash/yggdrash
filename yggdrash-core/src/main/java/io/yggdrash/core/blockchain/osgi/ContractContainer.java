@@ -159,7 +159,8 @@ public class ContractContainer {
             contracts = IOUtils.readLines(in, StandardCharsets.UTF_8);
 
             //Copy contract
-            for (String contract : contracts) {
+            for (int i = contracts.size() - 1; i >= 0; i--) {
+                String contract = contracts.get(i);
                 URL inputUrl = getClass().getResource(String.format("%s/%s", SUFFIX_SYSTEM_CONTRACT, contract));
                 File dest = new File(contractManager.makeContractPath(contract, true));
                 if (dest.exists()) {
