@@ -150,44 +150,60 @@ task removeContract(type: Delete) {
     delete fileTree(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts').include('*')
 }
 
-task copyContract(type: Copy) {
+task copyContractToCoreBuildResrouce(type: Copy) {
     dependsOn removeContract
     dependsOn signJar
 
     def copyPath = file('build/libs').absolutePath + '/../../../yggdrash-core/build/resources/main/system-contracts'
+    def copyResourcePath = file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts'
 
     from file('build/libs')
     into file("${copyPath}")
     exclude "${project.name}*"
 
     doLast {
-        def contractsFile = file("${copyPath}/contracts")
-        contractsFile.delete()
-        contractsFile.createNewFile()
+        def contractsFile = [file("${copyPath}/contracts"), file("${copyResourcePath}/contracts")]
+        contractsFile.each {
+            it.delete()
+            it.getParentFile().mkdirs()
+            it.createNewFile()
 
-        def fw = new FileWriter(contractsFile, true)
-        def libFiles = file('build/libs').listFiles()
-        def totalSize = libFiles.length
-        def cnt = 0
-        libFiles.each {
-            if (it.name.startsWith("${project.name}")) {
-                return
+            def fw = new FileWriter(it, true)
+            def libFiles = file('build/libs').listFiles()
+            def totalSize = libFiles.length
+            def cnt = 0
+            libFiles.each {
+                if (it.name.startsWith("${project.name}")) {
+                    return
+                }
+                cnt++
+                if (cnt == totalSize) {
+                    fw.write(it.getName())
+                } else {
+                    fw.write("${it.getName()}\n")
+                }
+                fw.flush()
             }
-            cnt++
-            if (cnt == totalSize) {
-                fw.write(it.getName())
-            } else {
-                fw.write("${it.getName()}\n")
+            if (fw != null) {
+                fw.close()
             }
-            fw.flush()
-        }
-        if (fw != null) {
-            fw.close()
         }
     }
 }
 
-jar.dependsOn(copyContract)
+task copyContractToCoreResrouce(type: Copy) {
+    dependsOn removeContract
+    dependsOn signJar
+
+    from file('build/libs')
+    into file(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts')
+    exclude "${project.name}*"
+}
+
+jar {
+    dependsOn copyContractToCoreBuildResrouce
+    dependsOn copyContractToCoreResrouce
+}
 
 dependencies {
     compile project(':yggdrash-common')
