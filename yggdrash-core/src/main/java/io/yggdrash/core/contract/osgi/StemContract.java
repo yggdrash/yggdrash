@@ -296,11 +296,6 @@ public class StemContract implements BundleActivator, ServiceListener {
             return branchId.equals(branch.getBranchId());
         }
 
-        private StemContractStateValue getStateValue(JsonObject param) {
-            String branchId = param.get("branchId").getAsString();
-            return getBranchStateValue(branchId);
-        }
-
         private StemContractStateValue getBranchStateValue(String branchId) {
             JsonObject json = state.get(branchId);
             if (json == null) {

@@ -248,6 +248,35 @@ project(':yggdrash-core') {
         archiveName "system-coin-contract-${manifest.attributes.get('Bundle-Version')}.jar"
     }
 
+    task noneContract(type: Jar) {
+        //Add current module source
+        from(sourceSets.main.output) {
+            include "**"
+            exclude(["system-contracts"])
+        }
+
+        // Add dependency library
+        from {
+            configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+        }
+
+        manifest {
+            attributes(
+                    'Bundle-ManifestVersion': '2',
+                    'Bundle-Name': 'None Contract',
+                    'Bundle-Description': 'None Contract',
+                    'Bundle-Vendor': 'YGGDRASH',
+                    'Bundle-SymbolicName': 'io.yggdrash.core.contract.osgi.NoneContract',
+                    'Bundle-Version': '1.0.0',
+                    'Bundle-Activator': 'io.yggdrash.core.contract.osgi.NoneContract',
+                    'Export-Package': "io.yggdrash.core.contract.osgi",
+                    'Import-Package': "${importPackage}"
+            )
+        }
+        exclude(excludeList)
+        archiveName "system-none-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+    }
+
     def keystoreFile = new File("${project.projectDir.toString()}/src/main/resources/yggdrash.p12")
     def keystorePass = '098098'
     def keyAlias = 'yggdrash'
@@ -257,6 +286,7 @@ project(':yggdrash-core') {
         dependsOn dpoaClientContract
         dependsOn coinContract
         dependsOn stemContract
+        dependsOn noneContract
 
         doLast {
             def libFiles = file('build/libs').listFiles()

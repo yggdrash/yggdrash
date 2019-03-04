@@ -39,7 +39,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
-import static io.yggdrash.common.config.Constants.TX_ID;
 import static io.yggdrash.common.config.Constants.VALIDATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -84,19 +83,49 @@ public class StemContractTest {
         }
     }
 
+
+
     @Test
-    public void test() {
-        JsonObject b = createParams();
-        JsonObject t = createTxParams();
-        JsonObject v = createValidatorParams();
-//        stemContract.getBranchIdList();
-//        stemContract.getBranch(b);
-//        stemContract.getBranchIdByTxId(t);
-//        stemContract.getContractByBranch(b);
-//        stemContract.getValidator(b);
-//        stemContract.getBranchIdByValidator(v);
-        stemContract.feeState(b);
-//        System.out.println(stemContract.feeState(b));
+    public void getBranchTest() {
+        JsonObject branch = createParams();
+        JsonObject json = stemContract.getBranch(branch);
+        String branchId = branch.get("branchId").getAsString();
+        JsonObject saved = stateStore.get(branchId);
+        assertThat(saved.equals(json));
+    }
+
+    @Test
+    public void getContractByBranchTest() {
+        JsonObject branch = createParams();
+        Set<JsonElement> contractSet = stemContract.getContractByBranch(branch);
+        String branchId = branch.get("branchId").getAsString();
+        JsonObject saved = stateStore.get(branchId);
+        assertThat(saved.get("contracts").equals(contractSet));
+    }
+
+    @Test
+    public void getBranchIdByValidatorTest() {
+        JsonObject validatorParams = createValidatorParams();
+        Set<String> branchIdSet = stemContract.getBranchIdByValidator(validatorParams);
+        String validator = validatorParams.get("VALIDATOR").getAsString();
+
+        branchIdSet.stream().forEach(bId -> {
+            JsonObject saved = stateStore.get(bId);
+            saved.get("validator").getAsJsonArray().forEach(v -> {
+                assertThat(v.equals(validator));
+            });
+        });
+
+
+    }
+
+    @Test
+    public void getValidatorTest() {
+        JsonObject branch = createParams();
+        Set<String> validatorSet = stemContract.getValidator(branch);
+        String branchId = branch.get("branchId").getAsString();
+        JsonObject saved = stateStore.get(branchId);
+        assertThat(saved.get("validator").equals(validatorSet));
     }
 
     @Test
@@ -165,10 +194,6 @@ public class StemContractTest {
     private JsonObject createValidatorParams() {
         Optional<String> v = stateValue.getValidators().stream().findFirst();
         return ContractTestUtils.createParams(VALIDATOR, v.get());
-    }
-
-    private JsonObject createTxParams() {
-        return ContractTestUtils.createParams(TX_ID, "82c8c793e5ebb90cba24d7708dd23dc46417c41516c28f7ae8b02cd9d3f27c82");
     }
 
     private JsonObject createParams(JsonElement json) {

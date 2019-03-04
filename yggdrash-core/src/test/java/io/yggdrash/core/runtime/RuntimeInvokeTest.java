@@ -34,7 +34,11 @@ import org.junit.Test;
 
 import java.lang.reflect.InvocationTargetException;
 
+import static io.yggdrash.common.config.Constants.TX_ID;
+
 public class RuntimeInvokeTest {
+
+    TransactionReceipt txReceipt;
 
     @Test
     public void initTest() throws InvocationTargetException, IllegalAccessException {
@@ -50,6 +54,7 @@ public class RuntimeInvokeTest {
                 "create", json);
         TransactionReceipt receipt = new TransactionReceiptImpl(createTx);
 
+        this.txReceipt = receipt;
         for (JsonElement txEl: JsonUtil.parseJsonArray(createTx.getBody())) {
             TempStateStore store = invoke.invokeTransaction(
                     txEl.getAsJsonObject(), receipt, tempStore);
@@ -58,6 +63,22 @@ public class RuntimeInvokeTest {
         }
     }
 
+//    @Test
+//    public void getBranchIdByTxIdTest() {
+//        StemContract contract = new StemContract();
+//        JsonObject txParams = createTxParams(txReceipt.getTxId());
+////        contract.getBranchIdByTxId(txParams);
+//        System.out.println(contract.getBranchIdByTxId(txParams));
+//    }
 
+//    @Test
+//    public void test() {
+//        JsonObject b = createParams();
+//        stemContract.feeState(b);
+//    }
+
+    private JsonObject createTxParams(String txId) {
+        return ContractTestUtils.createParams(TX_ID, txId);
+    }
 
 }

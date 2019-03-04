@@ -50,6 +50,10 @@ public class StemContract implements Contract<JsonObject> {
      */
     @InvokeTransaction
     public TransactionReceipt create(JsonObject params) {
+        //TODO node credentials
+        // 네트워크 접속할 수 있는 권한을 표시하는 자격증명 발급
+        // pki 기반
+
         StemContractStateValue stateValue;
         try {
             stateValue = StemContractStateValue.of(params);
@@ -84,6 +88,7 @@ public class StemContract implements Contract<JsonObject> {
      */
     @InvokeTransaction
     public TransactionReceipt update(JsonObject params) {
+        //TODO fee state check
         StemContractStateValue stateValue;
         try {
             stateValue = StemContractStateValue.of(params);
@@ -91,10 +96,11 @@ public class StemContract implements Contract<JsonObject> {
             if (isOwnerValid(params.get("validator").getAsString())
                     && stateValue != null && !isBranchExist(branchId.toString())
                     && isBranchIdValid(branchId, stateValue)) {
+                addBranchId(branchId);
                 setStateValue(stateValue, params);
-
                 state.put(branchId.toString(), stateValue.getJson());
                 addTxId(branchId);
+
                 txReceipt.setStatus(ExecuteStatus.SUCCESS);
                 log.info("[StemContract | update] branchId => " + branchId);
                 log.info("[StemContract | update] branch => " + stateValue.getJson());
@@ -145,8 +151,14 @@ public class StemContract implements Contract<JsonObject> {
      *
      * @param branchId
      */
-    public void callYeed(BranchId branchId) {
-        // TODO message call to yeed
+    public void messageCall(BranchId branchId) {
+        // TODO message call to contract
+    }
+
+    public void certificateAuthority() {
+        // TODO 싸인값 검
+        // 벨리데이터가 맞으면 네트워크 채널에 참여가능하도록
+
     }
 
     /**
@@ -297,10 +309,16 @@ public class StemContract implements Contract<JsonObject> {
             //1block to 1yeed
             BigDecimal fee = getBranchStateValue(branchId).getFee();
             Long result = fee.longValue() - height;
-
             return result;
         }
         return new Long(0);
+    }
+
+    private Boolean isEnoughFee(JsonObject params) {
+//        if (feeState()) {
+//            return true;
+//        }
+        return false;
     }
 
     private boolean isBranchExist(String branchId) {
@@ -339,11 +357,6 @@ public class StemContract implements Contract<JsonObject> {
 
     private boolean isBranchIdValid(BranchId branchId, Branch branch) {
         return branchId.equals(branch.getBranchId());
-    }
-
-    private StemContractStateValue getStateValue(JsonObject param) {
-        String branchId = param.get("branchId").getAsString();
-        return getBranchStateValue(branchId);
     }
 
     private StemContractStateValue getBranchStateValue(String branchId) {
