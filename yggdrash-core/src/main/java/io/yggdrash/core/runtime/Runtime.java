@@ -148,16 +148,20 @@ public class Runtime<T> {
             for (JsonElement transactionElement: JsonUtil.parseJsonArray(tx.getBody())) {
                 JsonObject txBody = transactionElement.getAsJsonObject();
                 // check contract Version
-                ContractVersion txContractVersion = ContractVersion.of(txBody.get("contractVersion").getAsString());
-                log.debug("txContractVersion {} ", txContractVersion);
-                txReceipt.setContractVersion(txContractVersion.toString());
+                ContractVersion txContractVersion = ContractVersion.ofNonHex(txBody.get("contractVersion").getAsString());
                 RuntimeContractWrap wrap = contracts.get(txContractVersion);
+                // TODO remove this (retry if not system contract)
+                if (wrap == null) {
+                    txContractVersion = ContractVersion.of(txBody.get("contractVersion").getAsString());
+                    wrap = contracts.get(txContractVersion);
+                }
+                log.debug("txContractVersion {}", txContractVersion);
+                txReceipt.setContractVersion(txContractVersion.toString());
                 TempStateStore txElementState = wrap.invokeTransaction(txBody, txReceipt, txState);
                 if (txReceipt.isSuccess()) {
                     txState.putAll(txElementState.changeValues());
                 }
                 log.debug("invoke {} is {}", txReceipt.getTxId(), txReceipt.isSuccess());
-
             }
 
         } catch (Throwable e) {
@@ -187,6 +191,4 @@ public class Runtime<T> {
     public TransactionReceipt getTransactionReceipt(String txId) {
         return txReceiptStore.get(txId);
     }
-
-
 }

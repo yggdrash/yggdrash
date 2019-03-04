@@ -30,6 +30,7 @@ public class BranchBuilder {
     String timeStamp;
     List<BranchContract> contracts = new ArrayList<>();
     List<String> validators = new ArrayList<>();
+    JsonObject consensus;
 
     public BranchBuilder setName(String name) {
         this.name = name;
@@ -66,6 +67,12 @@ public class BranchBuilder {
         return this;
     }
 
+    public BranchBuilder addConsensus(JsonObject consensus) {
+        this.consensus = consensus;
+        return this;
+    }
+
+
     public JsonObject buildJson() {
         JsonObject branch = new JsonObject();
         branch.addProperty("name", name);
@@ -89,6 +96,7 @@ public class BranchBuilder {
         validators.forEach(validatorArray::add);
         branch.add("validator", validatorArray);
 
+        branch.add("consensus", consensus);
 
         return branch;
 

@@ -17,6 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
@@ -37,6 +38,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static io.yggdrash.common.config.Constants.LIMIT;
+
 public class BlockChain {
 
     private static final Logger log = LoggerFactory.getLogger(BlockChain.class);
@@ -56,9 +59,11 @@ public class BlockChain {
 
     private BlockHusk prevBlock;
 
+    private ContractContainer contractContainer;
+
     public BlockChain(Branch branch, BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, MetaStore metaStore,
-                      Runtime runtime) {
+                      Runtime runtime, ContractContainer contractContainer) {
         this.branch = branch;
         this.genesisBlock = genesisBlock;
         this.blockStore = blockStore;
@@ -67,6 +72,7 @@ public class BlockChain {
         this.runtime = runtime;
         this.stateStore = runtime.getStateStore();
         this.transactionReceiptStore = runtime.getTransactionReceiptStore();
+        this.contractContainer = contractContainer;
 
         // Empty blockChain
         if (!blockStore.contains(genesisBlock.getHash())) {
@@ -77,7 +83,6 @@ public class BlockChain {
     }
 
     private void initGenesis() {
-
         for (TransactionHusk tx : genesisBlock.getBody()) {
             if (!transactionStore.contains(tx.getHash())) {
                 transactionStore.put(tx.getHash(), tx);
@@ -85,7 +90,6 @@ public class BlockChain {
         }
         addBlock(genesisBlock, false);
     }
-
 
     private void loadTransaction() {
         // load recent 1000 block
@@ -112,7 +116,7 @@ public class BlockChain {
     }
 
     void generateBlock(Wallet wallet) {
-        List<TransactionHusk> txs = getUnconfirmedTxs();
+        List<TransactionHusk> txs = getUnconfirmedTxsWithLimit();
         BlockHusk block = new BlockHusk(wallet, txs, getPrevBlock());
         addBlock(block, true);
     }
@@ -123,6 +127,24 @@ public class BlockChain {
 
     List<TransactionHusk> getUnconfirmedTxs() {
         return new ArrayList<>(transactionStore.getUnconfirmedTxs());
+    }
+
+    private List<TransactionHusk> getUnconfirmedTxsWithLimit() {
+        long bodySizeSum = 0;
+        Set<Sha3Hash> pendingKeys = transactionStore.getPendingKeys();
+        List<TransactionHusk> unconfirmedTxs = new ArrayList<>(pendingKeys.size());
+        for (Sha3Hash key : pendingKeys) {
+            TransactionHusk tx = transactionStore.getUnconfirmedTxs(key);
+            if (tx == null) {
+                continue;
+            }
+            bodySizeSum += tx.getLength();
+            if (bodySizeSum > LIMIT.BLOCK_SYNC_SIZE) {
+                break;
+            }
+            unconfirmedTxs.add(tx);
+        }
+        return unconfirmedTxs;
     }
 
     long countOfTxs() {
@@ -143,6 +165,10 @@ public class BlockChain {
 
     BlockHusk getPrevBlock() {
         return this.prevBlock;
+    }
+
+    public ContractContainer getContractContainer() {
+        return contractContainer;
     }
 
     /**
@@ -177,9 +203,11 @@ public class BlockChain {
         // TODO run block execute move to other process (or thread)
         // TODO last execute block will invoke
         if (nextBlock.getIndex() > metaStore.getLastExecuteBlockIndex()) {
-            BlockRuntimeResult result = runtime.invokeBlock(nextBlock);
+//            BlockRuntimeResult result = runtime.invokeBlock(nextBlock);
+            BlockRuntimeResult result = contractContainer.getContractManager().executeTransactions(nextBlock);
             // Save Result
-            runtime.commitBlockResult(result);
+            contractContainer.getContractManager().commitBlockResult(result);
+//            runtime.commitBlockResult(result);
             metaStore.setLastExecuteBlock(nextBlock);
         }
 
@@ -192,7 +220,7 @@ public class BlockChain {
             listenerList.forEach(listener -> listener.chainedBlock(nextBlock));
         }
         log.debug("Added idx=[{}], tx={}, branch={}, blockHash={}", nextBlock.getIndex(),
-                nextBlock.getBodySize(), getBranchId(), nextBlock.getHash());
+                nextBlock.getBodyCount(), getBranchId(), nextBlock.getHash());
         return nextBlock;
     }
 
@@ -207,7 +235,7 @@ public class BlockChain {
             log.warn("invalid index: prev:{} / new:{}", prevBlock.getIndex(), nextBlock.getIndex());
             return false;
         } else if (!prevBlock.getHash().equals(nextBlock.getPrevHash())) {
-            log.warn("invalid previous hash={}", prevBlock.getHash());
+            log.warn("invalid previous hash= {} {}", prevBlock.getHash(), nextBlock.getPrevHash());
             return false;
         }
 
@@ -216,8 +244,7 @@ public class BlockChain {
 
     public TransactionHusk addTransaction(TransactionHusk tx) {
         if (transactionStore.contains(tx.getHash())) {
-            throw new FailedOperationException("Duplicated " + tx.getHash().toString()
-                    + " Transaction");
+            return null;
         } else if (!tx.verify()) {
             throw new InvalidSignatureException();
         }
@@ -233,7 +260,7 @@ public class BlockChain {
         }
     }
 
-    public long size() {
+    public long transactionCount() {
         return blockStore.getBlockchainTransactionSize();
     }
 

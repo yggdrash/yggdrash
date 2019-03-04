@@ -55,16 +55,6 @@ public class Utils {
         return day + "d" + (day % 24) + "h";
     }
 
-    public static String getValueShortString(BigInteger number) {
-        BigInteger result = number;
-        int pow = 0;
-        while (result.compareTo(_1000_) == 1 || result.compareTo(_1000_) == 0) {
-            result = result.divide(_1000_);
-            pow += 3;
-        }
-        return result.toString() + "\u00b7(" + "10^" + pow + ")";
-    }
-
     public static SecureRandom getRandom() {
         return random;
     }

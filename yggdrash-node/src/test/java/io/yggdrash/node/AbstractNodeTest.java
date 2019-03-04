@@ -66,7 +66,7 @@ public class AbstractNodeTest {
         };
     }
 
-    protected TestNode createNode(int port, boolean enableBranch) {
+    protected TestNode createAndStartNode(int port, boolean enableBranch) {
         TestNode node = new TestNode(factory, port, enableBranch);
         nodeList.add(node);
         Server server = createAndStartServer(node);
@@ -101,7 +101,7 @@ public class AbstractNodeTest {
 
     protected void bootstrapNodes(int nodeCount, boolean enableBranch) {
         for (int i = SEED_PORT; i < SEED_PORT + nodeCount; i++) {
-            TestNode node = createNode(i, enableBranch);
+            TestNode node = createAndStartNode(i, enableBranch);
             node.bootstrapping();
         }
     }
