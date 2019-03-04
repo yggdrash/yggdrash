@@ -1,8 +1,8 @@
 package io.yggdrash.validator.store.ebft;
 
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.exception.NonExistObjectException;
-import io.yggdrash.core.store.Store;
-import io.yggdrash.core.store.datasource.DbSource;
+import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.validator.data.ebft.EbftBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,7 +10,7 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 
-public class EbftBlockStore implements Store<byte[], EbftBlock> {
+public class EbftBlockStore implements ReadWriterStore<byte[], EbftBlock> {
     private static final Logger log = LoggerFactory.getLogger(EbftBlockStore.class);
 
     private final DbSource<byte[], byte[]> db;

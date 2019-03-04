@@ -85,14 +85,6 @@ public class BranchConfiguration {
         return branchLoader;
     }
 
-//    @Bean
-//    ContractManager contractManager(DefaultConfig defaultConfig) {
-//        if (defaultConfig.isProductionMode()) {
-//            ContractClassLoader.copyResourcesToContractPath(defaultConfig.getContractPath());
-//        }
-//        return new ContractManager(defaultConfig.getContractPath());
-//    }
-
     private BlockChain createBranch(InputStream is, ContractPolicyLoader policyLoader)
             throws IOException {
         GenesisBlock genesis = GenesisBlock.of(is);

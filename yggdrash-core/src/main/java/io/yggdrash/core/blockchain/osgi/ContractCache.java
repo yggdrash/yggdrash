@@ -12,10 +12,13 @@ public class ContractCache {
     private Map<String, Map<Field, List<Annotation>>> injectingFields;
     //Map<contractName, Map<methodName, method>>
     private Map<String, Map<String, Method>> invokeTransactionMethods;
+    //Map<contractName, Map<methodName, method>>
+    private Map<String, Map<String, Method>> queryMethods;
 
     ContractCache() {
         injectingFields = new HashMap<>();
         invokeTransactionMethods = new HashMap<>();
+        queryMethods = new HashMap<>();
     }
 
     public Map<String, Map<Field, List<Annotation>>> getInjectingFields() {
@@ -25,5 +28,9 @@ public class ContractCache {
 
     public Map<String, Map<String, Method>> getInvokeTransactionMethods() {
         return invokeTransactionMethods;
+    }
+
+    public Map<String, Map<String, Method>> getQueryMethods() {
+        return queryMethods;
     }
 }

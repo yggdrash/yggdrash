@@ -20,16 +20,16 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
-import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.StemContract;
-import io.yggdrash.core.contract.TransactionReceipt;
+import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
-import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.Store;
+import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.store.TempStateStore;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
+import io.yggdrash.common.store.datasource.HashMapDbSource;
 import org.junit.Test;
 
 import java.lang.reflect.InvocationTargetException;
@@ -45,7 +45,7 @@ public class RuntimeInvokeTest {
         StemContract contract = new StemContract();
         RuntimeInvoke invoke = new RuntimeInvoke(contract);
 
-        Store tempStore = new StateStore<>(new HashMapDbSource());
+        ReadWriterStore tempStore = new StateStore<>(new HashMapDbSource());
 
         JsonObject json = ContractTestUtils.createSampleBranchJson();
         BranchId branchId = BranchId.of(json.get("branch").getAsJsonObject());

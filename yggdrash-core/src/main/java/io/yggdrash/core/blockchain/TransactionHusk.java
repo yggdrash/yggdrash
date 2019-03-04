@@ -18,7 +18,8 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.config.Constants;
+import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Address;
@@ -85,6 +86,10 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         return this.protoTransaction.getBody().toStringUtf8();
     }
 
+    public long getLength() {
+        return Constants.TX_HEADER_LENGTH + Constants.TX_SIG_LENGTH + coreTransaction.getHeader().getBodyLength();
+    }
+
     void sign(Wallet wallet) {
 
         try {
@@ -100,7 +105,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
     }
 
     public Sha3Hash getHash() {
-        return Sha3Hash.createByHashed(this.coreTransaction.getHash());
+        return new Sha3Hash(this.coreTransaction.getHash(), true);
     }
 
     public Long getTxSize() {

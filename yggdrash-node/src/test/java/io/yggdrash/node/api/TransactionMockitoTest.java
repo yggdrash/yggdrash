@@ -22,7 +22,7 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.contract.TransactionReceipt;
+import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.gateway.dto.TransactionDto;

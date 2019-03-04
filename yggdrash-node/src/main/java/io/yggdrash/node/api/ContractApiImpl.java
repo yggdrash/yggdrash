@@ -3,7 +3,7 @@ package io.yggdrash.node.api;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImpl;
-import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import org.springframework.beans.factory.annotation.Autowired;

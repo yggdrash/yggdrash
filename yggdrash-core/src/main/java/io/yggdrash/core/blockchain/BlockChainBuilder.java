@@ -16,29 +16,25 @@
 
 package io.yggdrash.core.blockchain;
 
+import io.yggdrash.common.contract.Contract;
+import io.yggdrash.common.exception.FailedOperationException;
+import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.blockchain.osgi.ContractContainerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
-import io.yggdrash.core.contract.CoinContract;
-import io.yggdrash.core.contract.Contract;
 import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.contract.ContractMeta;
 import io.yggdrash.core.contract.ContractVersion;
-import io.yggdrash.core.contract.DPoAContract;
-import io.yggdrash.core.contract.StemContract;
-import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
-import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class BlockChainBuilder {
@@ -117,29 +113,28 @@ public class BlockChainBuilder {
                     genesisBlock.getBranchId());
         }
 
-        if (runtime == null) {
-            runtime = new Runtime(stateStore, transactionReceiptStore);
-            // TODO Change Branch Spec
-            List<BranchContract> contracts = branch.getBranchContracts();
-            contracts.forEach(c -> {
-                // TODO Get ContractManager for Contract
-                Contract contract;
-                // TODO remove branch spec change
-                if ("STEM".equals(c.getName())) {
-                    contract = new StemContract();
-                } else if ("YEED".equals(c.getName())) {
-                    contract = new CoinContract();
-                } else if ("DPoA".equals(c.getName())) {
-                    contract = new DPoAContract();
-                } else {
-                    contract = getContract(c.getContractVersion());
-                }
-                runtime.addContract(c.getContractVersion(), contract);
-            });
-
-            // Add System Contract
-            defaultContract().forEach((key, value) -> runtime.addContract(key, value));
-        }
+//        if (runtime == null) {
+//            runtime = new Runtime(stateStore, transactionReceiptStore);
+//            // TODO Change Branch Spec
+//            List<BranchContract> contracts = branch.getBranchContracts();
+//            contracts.forEach(c -> {
+//                // TODO Get ContractManager for Contract
+//                Contract contract;
+//                // TODO remove branch spec change
+//                if ("STEM".equals(c.getName())) {
+//                    contract = new StemContract();
+//                } else if ("DPoA".equals(c.getName())) {
+//                    contract = new DPoAContract();
+//                } else {
+//                    contract = getContract(c.getContractVersion());
+//                }
+//                runtime.addContract(c.getContractVersion(), contract);
+//            });
+//
+//            // Add System Contract
+//            defaultContract().forEach((key, value) -> runtime.addContract(key, value));
+//
+//        }
 
         ContractContainer contractContainer = null;
         if (policyLoader != null) {
@@ -153,7 +148,7 @@ public class BlockChainBuilder {
         }
 
         return new BlockChain(branch, genesisBlock, blockStore,
-                transactionStore, metaStore, runtime, contractContainer);
+                transactionStore, metaStore, stateStore, transactionReceiptStore, contractContainer);
     }
 
     private Contract getContract(ContractVersion contractVersion) {

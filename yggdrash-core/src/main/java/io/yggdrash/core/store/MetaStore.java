@@ -18,11 +18,12 @@ package io.yggdrash.core.store;
 
 import com.google.common.primitives.Longs;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BlockchainMetaInfo;
-import io.yggdrash.core.store.datasource.DbSource;
+import io.yggdrash.common.store.datasource.DbSource;
 
-public class MetaStore implements Store<String, String> {
+public class MetaStore implements ReadWriterStore<String, String> {
     private final DbSource<byte[], byte[]> db;
 
     MetaStore(DbSource<byte[], byte[]> dbSource) {

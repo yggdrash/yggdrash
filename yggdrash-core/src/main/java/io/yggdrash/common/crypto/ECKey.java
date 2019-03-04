@@ -23,7 +23,7 @@ import io.yggdrash.common.crypto.jce.ECKeyFactory;
 import io.yggdrash.common.crypto.jce.ECKeyPairGenerator;
 import io.yggdrash.common.crypto.jce.ECSignatureFactory;
 import io.yggdrash.common.crypto.jce.SpongyCastleProvider;
-import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.utils.ByteUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.asn1.ASN1InputStream;
@@ -68,7 +68,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
 import static io.yggdrash.common.util.BiUtil.isLessThan;
-import static io.yggdrash.common.util.ByteUtil.bigIntegerToBytes;
+import static io.yggdrash.common.utils.ByteUtil.bigIntegerToBytes;
 
 /**
  * <p>Represents an elliptic curve public and (optionally) private key, usable for digital signatures but not encryption.

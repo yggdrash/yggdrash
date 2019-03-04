@@ -16,6 +16,8 @@
 
 package io.yggdrash.core.contract;
 
+import io.yggdrash.contract.core.ExecuteStatus;
+import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.TransactionHusk;
 
 import java.util.ArrayList;

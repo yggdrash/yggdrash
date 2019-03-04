@@ -17,12 +17,13 @@
 package io.yggdrash.core.runtime;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.ContractUtils;
-import io.yggdrash.core.contract.Contract;
-import io.yggdrash.core.contract.methods.ContractMethod;
-import io.yggdrash.core.runtime.annotation.ContractQuery;
+import io.yggdrash.common.utils.ContractUtils;
+import io.yggdrash.common.contract.Contract;
+import io.yggdrash.common.contract.methods.ContractMethod;
+import io.yggdrash.contract.core.annotation.ContractQuery;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.store.ReadOnlyStore;
-import io.yggdrash.core.store.Store;
+
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ public class RuntimeQuery {
         queryMethods = getQueryMethods();
     }
 
-    public void setStore(Store store) {
+    public void setStore(ReadWriterStore store) {
         this.store = new ReadOnlyStore(store);
         List<Field> stateField = ContractUtils.stateStoreFields(contract);
         ContractUtils.updateContractFields(this.contract, stateField, this.store);

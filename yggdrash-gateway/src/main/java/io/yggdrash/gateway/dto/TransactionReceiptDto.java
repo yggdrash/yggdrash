@@ -16,7 +16,7 @@
 
 package io.yggdrash.gateway.dto;
 
-import io.yggdrash.core.contract.TransactionReceipt;
+import io.yggdrash.contract.core.TransactionReceipt;
 import java.util.ArrayList;
 import java.util.List;
 

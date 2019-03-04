@@ -18,19 +18,20 @@ package io.yggdrash.core.store;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class TempStateStore implements Store<String, JsonObject> {
-    private Store<String, JsonObject> stateStore;
+public class TempStateStore implements ReadWriterStore<String, JsonObject> {
+    private ReadWriterStore<String, JsonObject> stateStore;
     Map<String, JsonObject> tempStore = new LinkedHashMap<>();
 
     // TODO check State root
     Sha3Hash stateRoot;
 
-    public TempStateStore(Store originStore) {
+    public TempStateStore(ReadWriterStore originStore) {
         this.stateStore = originStore;
     }
 

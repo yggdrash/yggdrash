@@ -18,18 +18,18 @@ package io.yggdrash.core.runtime;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.contract.Contract;
+import io.yggdrash.common.contract.Contract;
 import io.yggdrash.core.contract.ContractVersion;
-import io.yggdrash.core.contract.ExecuteStatus;
-import io.yggdrash.core.contract.TransactionReceipt;
+import io.yggdrash.contract.core.ExecuteStatus;
+import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
-import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.Store;
+import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.store.TempStateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.slf4j.Logger;
@@ -139,7 +139,7 @@ public class Runtime<T> {
     }
 
 
-    public TempStateStore invoke(TransactionHusk tx, TransactionReceipt txReceipt, Store origin) {
+    public TempStateStore invoke(TransactionHusk tx, TransactionReceipt txReceipt, ReadWriterStore origin) {
         // Find invoke method and invoke
         // validation method
         TempStateStore txState = new TempStateStore(origin);
@@ -148,16 +148,20 @@ public class Runtime<T> {
             for (JsonElement transactionElement: JsonUtil.parseJsonArray(tx.getBody())) {
                 JsonObject txBody = transactionElement.getAsJsonObject();
                 // check contract Version
-                ContractVersion txContractVersion = ContractVersion.of(txBody.get("contractVersion").getAsString());
-                log.debug("txContractVersion {} ", txContractVersion);
-                txReceipt.setContractVersion(txContractVersion.toString());
+                ContractVersion txContractVersion = ContractVersion.ofNonHex(txBody.get("contractVersion").getAsString());
                 RuntimeContractWrap wrap = contracts.get(txContractVersion);
+                // TODO remove this (retry if not system contract)
+                if (wrap == null) {
+                    txContractVersion = ContractVersion.of(txBody.get("contractVersion").getAsString());
+                    wrap = contracts.get(txContractVersion);
+                }
+                log.debug("txContractVersion {}", txContractVersion);
+                txReceipt.setContractVersion(txContractVersion.toString());
                 TempStateStore txElementState = wrap.invokeTransaction(txBody, txReceipt, txState);
                 if (txReceipt.isSuccess()) {
                     txState.putAll(txElementState.changeValues());
                 }
                 log.debug("invoke {} is {}", txReceipt.getTxId(), txReceipt.isSuccess());
-
             }
 
         } catch (Throwable e) {
@@ -187,6 +191,4 @@ public class Runtime<T> {
     public TransactionReceipt getTransactionReceipt(String txId) {
         return txReceiptStore.get(txId);
     }
-
-
 }
