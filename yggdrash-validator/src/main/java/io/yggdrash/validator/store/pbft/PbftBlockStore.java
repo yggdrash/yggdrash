@@ -24,19 +24,20 @@ public class PbftBlockStore implements Store<byte[], PbftBlock> {
             return;
         }
 
-        log.trace("put "
-                + "(key: " + Hex.toHexString(key) + ")"
-                + "(value length: " + value.toBinary().length + ")");
-
-        // todo: delete for performance after testing
-        if (value.toBinary().length > Constants.MAX_MEMORY) {
-            log.warn("put "
+        byte[] valueBin = value.toBinary();
+        if (valueBin.length > Constants.MAX_MEMORY) {
+            log.error("Block size is not valid.");
+            log.error("put "
                     + "(key: " + Hex.toHexString(key) + ")"
-                    + "(value length: " + value.toBinary().length + ")");
+                    + "(value length: " + valueBin.length + ")");
             return;
         }
 
-        db.put(key, value.toBinary());
+        log.trace("put "
+                + "(key: " + Hex.toHexString(key) + ")"
+                + "(value length: " + valueBin.length + ")");
+
+        db.put(key, valueBin);
     }
 
     @Override
