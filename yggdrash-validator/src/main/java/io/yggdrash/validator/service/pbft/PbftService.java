@@ -27,7 +27,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.util.FileCopyUtils;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
@@ -541,7 +540,7 @@ public class PbftService implements CommandLineRunner {
     }
 
     private void changeLastConfirmedBlock(PbftBlock block) {
-        this.blockChain.setLastConfirmedBlock(block);
+        this.blockChain.setLastConfirmedBlock(block.clone());
         for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
             if (pbftMessage.getSeqNumber() <= block.getIndex()) {
@@ -647,6 +646,7 @@ public class PbftService implements CommandLineRunner {
     private void checkNodeStatus(PbftClientStub client) {
         PbftStatus pbftStatus = client.exchangePbftStatus(PbftStatus.toProto(getMyNodeStatus()));
         updateStatus(client, pbftStatus);
+        pbftStatus.clear();
     }
 
     private void updateStatus(PbftClientStub client, PbftStatus pbftStatus) {
@@ -676,8 +676,8 @@ public class PbftService implements CommandLineRunner {
         PbftClientStub client = totalValidatorMap.get(pubKey);
         PbftBlock pbftBlock;
         if (client.isRunning()) {
-            List<PbftBlock> pbftBlockList = new ArrayList<>(client.getBlockList(
-                    this.blockChain.getLastConfirmedBlock().getIndex()));
+            List<PbftBlock> pbftBlockList = client.getBlockList(
+                    this.blockChain.getLastConfirmedBlock().getIndex());
 
             log.debug("node: " + client.getId());
             log.debug("index: " + index);
@@ -692,14 +692,30 @@ public class PbftService implements CommandLineRunner {
                 pbftBlock = pbftBlockList.get(i);
                 if (!PbftBlock.verify(pbftBlock)) {
                     log.warn("Verify Fail");
+                    for (PbftBlock pbBlock : pbftBlockList) {
+                        pbBlock.clear();
+                    }
+                    pbftBlockList.clear();
                     return;
                 }
-                this.blockChain.getBlockStore().put(pbftBlock.getHash(), pbftBlock);
-                this.blockChain.getBlockKeyStore()
-                        .put(pbftBlock.getIndex(), pbftBlock.getHash());
+
+                if (!this.blockChain.getBlockStore().contains(pbftBlock.getHash())) {
+                    this.blockChain.getBlockStore().put(pbftBlock.getHash(), pbftBlock.clone());
+                }
+
+                if (!this.blockChain.getBlockKeyStore().contains(pbftBlock.getIndex())) {
+                    this.blockChain.getBlockKeyStore()
+                            .put(pbftBlock.getIndex(), pbftBlock.getHash());
+                }
             }
             pbftBlock = pbftBlockList.get(i - 1);
             changeLastConfirmedBlock(pbftBlock);
+
+            for (PbftBlock pbBlock : pbftBlockList) {
+                pbBlock.clear();
+            }
+            pbftBlockList.clear();
+
         }
 
         if (this.blockChain.getLastConfirmedBlock().getIndex() < index) {
@@ -708,8 +724,13 @@ public class PbftService implements CommandLineRunner {
     }
 
     public void updateUnconfirmedMsg(PbftMessage newPbftMessage) {
-        this.blockChain.getUnConfirmedMsgMap()
-                .put(newPbftMessage.getSignatureHex(), newPbftMessage);
+
+        if (this.blockChain.getUnConfirmedMsgMap().containsKey(newPbftMessage.getSignatureHex())) {
+            newPbftMessage.clear();
+        } else {
+            this.blockChain.getUnConfirmedMsgMap()
+                    .put(newPbftMessage.getSignatureHex(), newPbftMessage.clone());
+        }
 
         if (newPbftMessage.getType().equals("PREPREPA")
                 && newPbftMessage.getSeqNumber()
@@ -728,16 +749,10 @@ public class PbftService implements CommandLineRunner {
     public PbftStatus getMyNodeStatus() {
         long index = this.blockChain.getLastConfirmedBlock().getIndex();
         Map<String, PbftMessage> pbftMessageMap = new TreeMap<>();
-        ByteArrayOutputStream pbftMessageBytes = new ByteArrayOutputStream();
         for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
             if (pbftMessage.getSeqNumber() == index + 1) {
-                pbftMessageMap.put(key, pbftMessage);
-                try {
-                    pbftMessageBytes.write(pbftMessage.toBinary());
-                } catch (IOException e) {
-                    log.debug(e.getMessage());
-                }
+                pbftMessageMap.put(key, pbftMessage.clone());
             }
         }
         long timestamp = TimeUtils.time();
