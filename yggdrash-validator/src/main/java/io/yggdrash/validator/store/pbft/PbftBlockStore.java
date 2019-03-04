@@ -1,5 +1,6 @@
 package io.yggdrash.validator.store.pbft;
 
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.store.Store;
 import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.validator.data.pbft.PbftBlock;
@@ -26,6 +27,15 @@ public class PbftBlockStore implements Store<byte[], PbftBlock> {
         log.trace("put "
                 + "(key: " + Hex.toHexString(key) + ")"
                 + "(value length: " + value.toBinary().length + ")");
+
+        // todo: delete for performance after testing
+        if (value.toBinary().length > Constants.MAX_MEMORY) {
+            log.warn("put "
+                    + "(key: " + Hex.toHexString(key) + ")"
+                    + "(value length: " + value.toBinary().length + ")");
+            return;
+        }
+
         db.put(key, value.toBinary());
     }
 
