@@ -151,11 +151,20 @@ project(':yggdrash-node') {
     }
 
     bootJar {
+        archiveName = "${project.name}-exec.jar"
         manifest {
             attributes("Implementation-Version": rootProject.version)
         }
         launchScript()
     }
+
+    task customJar(type: org.springframework.boot.gradle.tasks.bundling.BootJar) {
+        archiveName = "${project.name}.jar"
+        mainClassName = 'io.yggdrash.node.YggdrashNodeApp'
+
+        with bootJar
+    }
+    bootJar.dependsOn customJar
 }
 
 project(':yggdrash-gateway') {
