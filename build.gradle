@@ -151,7 +151,7 @@ project(':yggdrash-node') {
     }
 
     bootJar {
-        archiveName = "${project.name}-script.sh"
+        archiveName = "${project.name}-exec.jar"
         manifest {
             attributes("Implementation-Version": rootProject.version)
         }
