@@ -26,7 +26,7 @@ import io.yggdrash.common.store.datasource.DbSource;
 
 public class BlockStore implements ReadWriterStore<Sha3Hash, BlockHusk> {
     private final DbSource<byte[], byte[]> db;
-    private Long transactionSize = 0L;
+    private long transactionSize;
 
 
     BlockStore(DbSource<byte[], byte[]> dbSource) {
@@ -68,7 +68,7 @@ public class BlockStore implements ReadWriterStore<Sha3Hash, BlockHusk> {
         // store block data
         db.put(block.getHash().getBytes(), block.getData());
         // add block Transaction size
-        transactionSize += block.getBodySize();
+        transactionSize += block.getBodyCount();
         db.put("TRANSACTION_SIZE".getBytes(), Longs.toByteArray(transactionSize));
     }
 

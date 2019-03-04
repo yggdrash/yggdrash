@@ -42,7 +42,7 @@ public class BlockDto {
     public String blockId;
 
     public static BlockDto createBy(BlockHusk block) {
-        return createBy(block, block.getBodySize() < MAX_TX_BODY);
+        return createBy(block, block.getBodyCount() < MAX_TX_BODY);
     }
 
     private static BlockDto createBy(BlockHusk block, boolean withBody) {
@@ -57,7 +57,7 @@ public class BlockDto {
         blockDto.merkleRoot = Hex.toHexString(header.getMerkleRoot().toByteArray());
         blockDto.bodyLength = ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray());
         blockDto.signature = Hex.toHexString(block.getInstance().getSignature().toByteArray());
-        blockDto.txSize = block.getBodySize();
+        blockDto.txSize = block.getBodyCount();
         if (withBody) {
             blockDto.body = block.getBody().stream().map(TransactionDto::createBy)
                     .collect(Collectors.toList());

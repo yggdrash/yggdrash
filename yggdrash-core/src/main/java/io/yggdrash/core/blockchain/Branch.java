@@ -42,7 +42,9 @@ public class Branch {
     private final JsonObject json;
     protected List<BranchContract> contracts;
     protected String description;
-    private final List<String> validator;
+    private final List<String> validator; //todo: change to validatorList for integration
+
+    private final JsonObject consensus;
 
     protected Branch(JsonObject json) {
         this.json = json;
@@ -65,6 +67,8 @@ public class Branch {
         this.description = json.get("description").getAsString();
         this.validator = JsonUtil.convertJsonArrayToStringList(
                 json.get("validator").getAsJsonArray());
+
+        consensus = json.get("consensus").getAsJsonObject();
     }
 
     public BranchId getBranchId() {
@@ -101,6 +105,10 @@ public class Branch {
 
     public JsonObject getJson() {
         return json;
+    }
+
+    public JsonObject getConsensus() {
+        return consensus;
     }
 
     public boolean isYggdrash() {

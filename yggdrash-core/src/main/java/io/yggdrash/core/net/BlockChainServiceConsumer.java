@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.net;
 
+import io.yggdrash.common.config.Constants.LIMIT;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
@@ -53,9 +54,14 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
             offset = 0;
         }
 
+        long bodyLengthSum = 0;
         for (int i = 0; i < limit; i++) {
             BlockHusk block = branchGroup.getBlockByIndex(branchId, offset++);
             if (block == null) {
+                break;
+            }
+            bodyLengthSum += block.getBodyLength();
+            if (bodyLengthSum > LIMIT.BLOCK_SYNC_SIZE) {
                 break;
             }
             blockHuskList.add(block);
