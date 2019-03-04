@@ -6,7 +6,7 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.contract.TransactionReceipt;
+import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;

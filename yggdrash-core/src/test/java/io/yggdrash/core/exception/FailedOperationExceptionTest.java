@@ -1,5 +1,6 @@
 package io.yggdrash.core.exception;
 
+import io.yggdrash.common.exception.FailedOperationException;
 import org.junit.Test;
 
 public class FailedOperationExceptionTest {

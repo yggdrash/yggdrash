@@ -1,6 +1,6 @@
 package io.yggdrash.core.blockchain.osgi;
 
-import io.yggdrash.core.store.StateStore;
+import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.osgi.framework.launch.FrameworkFactory;
 

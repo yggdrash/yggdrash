@@ -19,7 +19,7 @@ package io.yggdrash.core.store;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.core.store.datasource.LevelDbDataSource;
+import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 

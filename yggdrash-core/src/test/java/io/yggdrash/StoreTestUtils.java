@@ -17,7 +17,7 @@
 package io.yggdrash;
 
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.common.util.FileUtil;
+import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.core.store.StoreBuilder;
 
 import java.nio.file.Paths;

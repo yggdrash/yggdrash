@@ -18,7 +18,7 @@ package io.yggdrash.core.blockchain.pbft;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.Proto;

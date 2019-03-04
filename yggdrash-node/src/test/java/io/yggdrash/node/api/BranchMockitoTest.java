@@ -19,7 +19,7 @@ package io.yggdrash.node.api;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchGroup;

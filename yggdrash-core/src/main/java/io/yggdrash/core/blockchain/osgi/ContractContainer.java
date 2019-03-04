@@ -1,7 +1,7 @@
 package io.yggdrash.core.blockchain.osgi;
 
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.store.StateStore;
+import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -75,7 +75,7 @@ public class ContractContainer {
 
         framework = frameworkFactory.newFramework(containerConfig);
         systemContractPath = String.format("%s/bundles%s", containerPath, SUFFIX_SYSTEM_CONTRACT);
-        userContractPath = String.format("%s/bundles/%s", containerPath, SUFFIX_USER_CONTRACT);
+        userContractPath = String.format("%s/bundles%s", containerPath, SUFFIX_USER_CONTRACT);
         contractManager = new ContractManager(framework, systemContractPath, userContractPath, branchId, stateStore, transactionReceiptStore);
 
         try {
@@ -91,6 +91,7 @@ public class ContractContainer {
 //            Arrays.asList(framework.getBundleContext().getBundles()).forEach(b -> log.info("Bundle: {}", b.getSymbolicName()));
 //            Arrays.asList(framework.getRegisteredServices()).forEach(s -> log.info("Service reference: {}", s.toString()));
         } catch (Exception e) {
+            e.printStackTrace();
             log.error("Load contract container exception: branchID - {}, msg - {}", branchId, e.getMessage());
             throw new IllegalStateException(e.getCause());
         }
@@ -145,17 +146,17 @@ public class ContractContainer {
     }
 
     private List<String> copySystemContractToContractPath() {
-        List<String> contracts;
+        List<String> contracts = new ArrayList<>();
 
         InputStream in = null;
         try {
             //Read system contract files
             in = Thread.currentThread().getContextClassLoader().getResourceAsStream(String.format("%s/contracts", SUFFIX_SYSTEM_CONTRACT));
             in = in == null ? getClass().getResourceAsStream(String.format("%s/contracts", SUFFIX_SYSTEM_CONTRACT)) : in;
-            contracts = IOUtils.readLines(in, StandardCharsets.UTF_8);
-            if (contracts == null) {
-                return new ArrayList<>();
+            if (in == null) {
+                return contracts;
             }
+            contracts = IOUtils.readLines(in, StandardCharsets.UTF_8);
 
             //Copy contract
             for (String contract : contracts) {

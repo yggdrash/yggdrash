@@ -20,17 +20,18 @@ import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
-import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.contract.CoinContract;
 import io.yggdrash.core.contract.ContractVersion;
+import io.yggdrash.core.contract.DPoAContract;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
-import io.yggdrash.core.store.StateStore;
+import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
+import io.yggdrash.common.store.datasource.HashMapDbSource;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,12 +39,13 @@ import java.math.BigInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+@Ignore
 public class RuntimeTest {
     private Logger log = LoggerFactory.getLogger(RuntimeTest.class);
 
     @Test
     public void yeedRuntimeTest() {
-        CoinContract contract = new CoinContract();
+        DPoAContract contract = new DPoAContract();
         ContractVersion coinContract = Constants.YEED_CONTRACT_VERSION;
         Runtime runtime =
                 new Runtime<>(

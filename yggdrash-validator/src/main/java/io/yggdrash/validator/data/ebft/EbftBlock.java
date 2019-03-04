@@ -17,7 +17,7 @@
 package io.yggdrash.validator.data.ebft;
 
 import io.yggdrash.common.config.Constants;
-import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;

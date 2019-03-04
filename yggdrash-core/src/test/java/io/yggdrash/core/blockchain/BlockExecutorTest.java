@@ -17,15 +17,15 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.contract.CoinContract;
 import io.yggdrash.core.contract.ContractVersion;
+import io.yggdrash.core.contract.DPoAContract;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
-import io.yggdrash.core.store.StateStore;
+import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
+import io.yggdrash.common.store.datasource.HashMapDbSource;
 import org.junit.Test;
 
 public class BlockExecutorTest {
@@ -35,7 +35,7 @@ public class BlockExecutorTest {
     @Test
     public void executorTest() {
 
-        CoinContract contract = new CoinContract();
+        DPoAContract contract = new DPoAContract();
         Runtime runtime =
                 new Runtime<>(
                         new StateStore<>(new HashMapDbSource()),

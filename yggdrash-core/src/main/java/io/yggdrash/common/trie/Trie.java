@@ -1,7 +1,7 @@
 package io.yggdrash.common.trie;
 
 import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionHusk;
 

@@ -16,12 +16,13 @@
 
 package io.yggdrash.core.store;
 
-import io.yggdrash.core.exception.FailedOperationException;
+import io.yggdrash.common.exception.FailedOperationException;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 
-public class ReadOnlyStore<K, V> implements Store<K, V> {
-    private Store<K, V> stateStore;
+public class ReadOnlyStore<K, V> implements ReadWriterStore<K, V> {
+    private ReadWriterStore<K, V> stateStore;
 
-    public ReadOnlyStore(Store originStore) {
+    public ReadOnlyStore(ReadWriterStore originStore) {
         this.stateStore = originStore;
     }
 

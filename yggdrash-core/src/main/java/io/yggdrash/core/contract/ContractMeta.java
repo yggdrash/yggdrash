@@ -19,11 +19,12 @@ package io.yggdrash.core.contract;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.ContractUtils;
-import io.yggdrash.core.contract.methods.ContractMethod;
-import io.yggdrash.core.exception.FailedOperationException;
-import io.yggdrash.core.runtime.annotation.ContractQuery;
-import io.yggdrash.core.runtime.annotation.InvokeTransaction;
+import io.yggdrash.common.contract.Contract;
+import io.yggdrash.common.utils.ContractUtils;
+import io.yggdrash.common.contract.methods.ContractMethod;
+import io.yggdrash.common.exception.FailedOperationException;
+import io.yggdrash.contract.core.annotation.ContractQuery;
+import io.yggdrash.contract.core.annotation.InvokeTransaction;
 
 import java.io.File;
 import java.lang.reflect.Field;

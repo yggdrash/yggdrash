@@ -3,14 +3,17 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.contract.Contract;
+import io.yggdrash.contract.core.ExecuteStatus;
+import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.runtime.annotation.ContractQuery;
-import io.yggdrash.core.runtime.annotation.ContractStateStore;
-import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
-import io.yggdrash.core.runtime.annotation.Genesis;
-import io.yggdrash.core.runtime.annotation.InvokeTransaction;
-import io.yggdrash.core.store.Store;
+import io.yggdrash.contract.core.annotation.ContractQuery;
+import io.yggdrash.contract.core.annotation.ContractStateStore;
+import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
+import io.yggdrash.contract.core.annotation.Genesis;
+import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +33,7 @@ public class StemContract implements Contract<JsonObject> {
     private final String branchIdListKey = "BRANCH_ID_LIST";
 
     @ContractStateStore
-    Store<String, JsonObject> state;
+    ReadWriterStore<String, JsonObject> state;
 
 
     @ContractTransactionReceipt

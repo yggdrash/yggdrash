@@ -3,20 +3,23 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.JsonUtil;
-import io.yggdrash.core.blockchain.PrefixKeyEnum;
-import io.yggdrash.core.blockchain.dpoa.ProposeValidatorSet;
-import io.yggdrash.core.blockchain.dpoa.Validator;
-import io.yggdrash.core.blockchain.dpoa.ValidatorSet;
-import io.yggdrash.core.blockchain.dpoa.tx.TxPayload;
-import io.yggdrash.core.blockchain.dpoa.tx.TxValidatorPropose;
-import io.yggdrash.core.blockchain.dpoa.tx.TxValidatorVote;
-import io.yggdrash.core.runtime.annotation.ContractStateStore;
-import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
-import io.yggdrash.core.runtime.annotation.Genesis;
-import io.yggdrash.core.runtime.annotation.InvokeTransaction;
-import io.yggdrash.core.runtime.annotation.ParamValidation;
-import io.yggdrash.core.store.Store;
+import io.yggdrash.common.contract.Contract;
+import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.contract.core.ExecuteStatus;
+import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.common.contract.vo.PrefixKeyEnum;
+import io.yggdrash.common.contract.vo.dpoa.ProposeValidatorSet;
+import io.yggdrash.common.contract.vo.dpoa.Validator;
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
+import io.yggdrash.common.contract.vo.dpoa.tx.TxPayload;
+import io.yggdrash.common.contract.vo.dpoa.tx.TxValidatorPropose;
+import io.yggdrash.common.contract.vo.dpoa.tx.TxValidatorVote;
+import io.yggdrash.contract.core.annotation.ContractStateStore;
+import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
+import io.yggdrash.contract.core.annotation.Genesis;
+import io.yggdrash.contract.core.annotation.InvokeTransaction;
+import io.yggdrash.contract.core.annotation.ParamValidation;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import org.apache.commons.collections4.MapUtils;
 
 import java.util.Iterator;
@@ -25,7 +28,7 @@ import java.util.Map;
 
 public class DPoAContract implements Contract<JsonObject> {
     @ContractStateStore
-    Store<String, JsonObject> state;
+    ReadWriterStore<String, JsonObject> state;
 
     @ContractTransactionReceipt
     TransactionReceipt txReceipt;

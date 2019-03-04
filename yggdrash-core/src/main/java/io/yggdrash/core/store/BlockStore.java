@@ -19,11 +19,12 @@ package io.yggdrash.core.store;
 import com.google.common.primitives.Longs;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.exception.NonExistObjectException;
-import io.yggdrash.core.store.datasource.DbSource;
+import io.yggdrash.common.store.datasource.DbSource;
 
-public class BlockStore implements Store<Sha3Hash, BlockHusk> {
+public class BlockStore implements ReadWriterStore<Sha3Hash, BlockHusk> {
     private final DbSource<byte[], byte[]> db;
     private long transactionSize;
 
