@@ -16,9 +16,10 @@
 
 package io.yggdrash.core.store;
 
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerId;
-import io.yggdrash.core.store.datasource.DbSource;
+import io.yggdrash.common.store.datasource.DbSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class PeerStore implements Store<PeerId, Peer> {
+public class PeerStore implements ReadWriterStore<PeerId, Peer> {
 
     private static final Logger log = LoggerFactory.getLogger(PeerStore.class);
     private final DbSource<byte[], byte[]> db;

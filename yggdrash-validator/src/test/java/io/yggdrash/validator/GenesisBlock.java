@@ -6,7 +6,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.common.util.FileUtil;
+import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;

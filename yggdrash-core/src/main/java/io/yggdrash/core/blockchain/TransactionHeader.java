@@ -20,7 +20,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NotValidateException;
 import org.slf4j.Logger;

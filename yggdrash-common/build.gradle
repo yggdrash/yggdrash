@@ -1,0 +1,17 @@
+jar {
+    baseName = 'yggdrash-common'
+}
+
+dependencies {
+    compile project(':yggdrash-contract-core')
+    
+    testCompile "org.assertj:assertj-core:${assertjVersion}"
+
+    compile "org.iq80.leveldb:leveldb:${levelDBVersion}"
+    compile "com.madgag.spongycastle:prov:${scastleVersion}" // for SHA3 and SECP256K1
+    compile "commons-io:commons-io:${commonsIOVersion}"
+    compile "commons-codec:commons-codec:${commonsCodecVersion}"
+    compile "org.apache.commons:commons-lang3:${commonLangVersion}"
+    compile "org.apache.commons:commons-collections4:${collectionsVersion}"
+    compile "ch.qos.logback:logback-classic:${logbackVersion}"
+}

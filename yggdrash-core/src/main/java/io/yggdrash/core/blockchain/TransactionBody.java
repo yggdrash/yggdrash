@@ -18,7 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
 import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.common.utils.JsonUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;

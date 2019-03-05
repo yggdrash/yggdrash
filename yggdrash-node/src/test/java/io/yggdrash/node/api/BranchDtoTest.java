@@ -18,7 +18,7 @@ package io.yggdrash.node.api;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.yggdrash.common.util.FileUtil;
+import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.gateway.dto.BranchDto;
 import org.junit.Test;
 import org.slf4j.Logger;

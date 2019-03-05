@@ -1,13 +1,13 @@
 package io.yggdrash.core.store.pbft;
 
+import io.yggdrash.common.store.datasource.DbSource;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.pbft.PbftBlock;
-import io.yggdrash.core.store.Store;
-import io.yggdrash.core.store.datasource.DbSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
-public class PbftBlockStore implements Store<byte[], PbftBlock> {
+public class PbftBlockStore implements ReadWriterStore<byte[], PbftBlock> {
     private static final Logger log = LoggerFactory.getLogger(PbftBlockStore.class);
 
     private final DbSource<byte[], byte[]> db;

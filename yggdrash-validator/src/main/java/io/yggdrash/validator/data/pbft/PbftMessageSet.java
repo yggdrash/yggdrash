@@ -3,7 +3,7 @@ package io.yggdrash.validator.data.pbft;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.PbftProto;
 import org.spongycastle.util.encoders.Hex;

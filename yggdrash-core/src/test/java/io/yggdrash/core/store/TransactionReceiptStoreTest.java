@@ -16,10 +16,10 @@
 
 package io.yggdrash.core.store;
 
-import io.yggdrash.core.contract.ExecuteStatus;
-import io.yggdrash.core.contract.TransactionReceipt;
+import io.yggdrash.contract.core.ExecuteStatus;
+import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
+import io.yggdrash.common.store.datasource.HashMapDbSource;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;

@@ -18,7 +18,8 @@ package io.yggdrash.core.contract;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
-import io.yggdrash.core.contract.methods.ContractMethod;
+import io.yggdrash.common.contract.Contract;
+import io.yggdrash.common.contract.methods.ContractMethod;
 import org.apache.commons.io.FileUtils;
 import org.benf.cfr.reader.api.CfrDriver;
 import org.benf.cfr.reader.api.OutputSinkFactory;
@@ -85,13 +86,15 @@ public class ContractManager extends ClassLoader {
                     inputStream.read(contractBinary);
 
                     ContractVersion contractVersion = ContractVersion.of(contractBinary);
-                    ContractMeta contractMeta = ContractClassLoader.loadContractByVersion(
-                            this.contractPath, contractVersion);
+                    try{
+                        ContractMeta contractMeta = ContractClassLoader.loadContractByVersion(
+                                this.contractPath, contractVersion);
+                        if (Files.isRegularFile(p) && validation(contractMeta)) {
+                            contracts.put(contractVersion, contractMeta);
+                        }
+                    }catch (Throwable e){
 
-                    if (Files.isRegularFile(p) && validation(contractMeta)) {
-                        contracts.put(contractVersion, contractMeta);
                     }
-
                 } catch (IOException e) {
                     log.warn(e.getMessage());
                 }
