@@ -14,6 +14,7 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
@@ -35,8 +36,6 @@ import java.util.stream.Collectors;
 
 public class ContractManager {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
-
-    private final String PREFIX_BUNDLE_PATH = "file:";
 
     private Framework framework;
     private String systemContractPath;
@@ -67,7 +66,7 @@ public class ContractManager {
     }
 
     public String makeContractFullPath(String contractName, boolean isSystemContract) {
-        return String.format("%s%s/%s", PREFIX_BUNDLE_PATH, isSystemContract ? systemContractPath : userContractPath, contractName);
+        return String.format("%s%s/%s", ContractContainer.PREFIX_BUNDLE_PATH, isSystemContract ? systemContractPath : userContractPath, contractName);
     }
 
     public boolean checkSystemContract(String contractName) {
@@ -80,7 +79,7 @@ public class ContractManager {
             return;
         }
 
-        boolean isSystemContract = bundle.getLocation().startsWith(String.format("%s%s", PREFIX_BUNDLE_PATH, systemContractPath)) ? true : false;
+        boolean isSystemContract = bundle.getLocation().startsWith(String.format("%s%s", ContractContainer.PREFIX_BUNDLE_PATH, systemContractPath)) ? true : false;
 
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = framework.getBundleContext().getService(serviceRef);
@@ -137,8 +136,7 @@ public class ContractManager {
                     break;
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            log.error("Execute bundle exception: branchID - {}, msg - {}", branchId, e.getMessage());
+            log.error("Execute bundle exception: contractId:{}, path:{}, stack:{}", bundle.getBundleId(), bundle.getLocation(), ExceptionUtils.getStackTrace(e));
             throw new RuntimeException(e);
         }
         return true;
@@ -283,7 +281,7 @@ public class ContractManager {
                 result = method.invoke(service, txBody.getAsJsonObject("params"));
             }
         } catch (Exception e) {
-            log.error("Call contract: {}", contractId);
+            log.error("Call contract: contractId:{}, path:{}, stack:{}", contractId, bundle.getLocation(), ExceptionUtils.getStackTrace(e));
         }
         return result;
     }

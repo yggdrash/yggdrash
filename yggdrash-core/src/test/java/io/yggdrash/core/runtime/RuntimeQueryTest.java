@@ -21,7 +21,7 @@ import com.google.gson.JsonParser;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.contract.core.store.ReadWriterStore;
-import io.yggdrash.core.contract.DPoAContract;
+import io.yggdrash.core.contract.StemContract;
 import org.junit.Ignore;
 import org.junit.Test;
 import java.math.BigInteger;
@@ -31,7 +31,7 @@ public class RuntimeQueryTest {
 
     @Test
     public void querySomeContract() throws Exception {
-        DPoAContract contract = new DPoAContract();
+        StemContract contract = new StemContract();
         ReadWriterStore<String,JsonObject> tempStore = new StateStore<>(new HashMapDbSource());
         tempStore.put("TOTAL_SUPPLY",
                 new JsonParser().parse("{\"balance\":10000}").getAsJsonObject());

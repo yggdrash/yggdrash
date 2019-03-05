@@ -82,7 +82,7 @@ public class ContractClassLoaderTest {
         assertEquals("io.yggdrash.core.contract.StemContract", classMeta.getContract().getName());
 
         // LOAD Coin Contract
-        classMeta = ContractClassLoader.loadContractClass(DPoAContract.class);
+        classMeta = ContractClassLoader.loadContractClass(StemContract.class);
         assertNotNull(classMeta);
         log.debug("CoinContract.class id={}", classMeta.getContractVersion().toString());
         assertEquals("io.yggdrash.core.contract.CoinContract", classMeta.getContract().getName());

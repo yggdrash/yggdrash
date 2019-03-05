@@ -1,5 +1,6 @@
 package io.yggdrash.core.blockchain.osgi;
 
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.osgi.framework.launch.FrameworkFactory;
@@ -12,6 +13,7 @@ public class ContractContainerBuilder {
     private String branchId;
     private StateStore stateStore;
     private TransactionReceiptStore transactionReceiptStore;
+    private DefaultConfig config;
 
     private ContractContainerBuilder() {
 
@@ -46,6 +48,11 @@ public class ContractContainerBuilder {
         return this;
     }
 
+    public ContractContainerBuilder withConfig(DefaultConfig config) {
+        this.config = config;
+        return this;
+    }
+
     public ContractContainer build() {
         if (this.frameworkFactory == null) {
             throw new IllegalStateException("Must set frameworkFactory");
@@ -65,6 +72,7 @@ public class ContractContainerBuilder {
                 , this.branchId
                 , this.stateStore
                 , this.transactionReceiptStore
+                , this.config
         );
         contractContainer.newFramework();
         return contractContainer;

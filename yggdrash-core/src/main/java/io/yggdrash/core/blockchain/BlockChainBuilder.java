@@ -16,28 +16,25 @@
 
 package io.yggdrash.core.blockchain;
 
+import io.yggdrash.common.contract.Contract;
+import io.yggdrash.common.exception.FailedOperationException;
+import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.blockchain.osgi.ContractContainerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
-import io.yggdrash.common.contract.Contract;
 import io.yggdrash.core.contract.ContractClassLoader;
 import io.yggdrash.core.contract.ContractMeta;
 import io.yggdrash.core.contract.ContractVersion;
-import io.yggdrash.core.contract.DPoAContract;
-import io.yggdrash.core.contract.StemContract;
-import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
-import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class BlockChainBuilder {
@@ -147,6 +144,7 @@ public class BlockChainBuilder {
                     .withBranchId(branch.getBranchId().toString())
                     .withStateStore(stateStore)
                     .withTransactionReceiptStore(transactionReceiptStore)
+                    .withConfig(storeBuilder.getConfig())
                     .build();
         }
 

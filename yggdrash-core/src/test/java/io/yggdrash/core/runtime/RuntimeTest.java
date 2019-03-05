@@ -25,7 +25,6 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.ContractVersion;
-import io.yggdrash.core.contract.DPoAContract;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.common.store.StateStore;
@@ -45,7 +44,7 @@ public class RuntimeTest {
 
     @Test
     public void yeedRuntimeTest() {
-        DPoAContract contract = new DPoAContract();
+        StemContract contract = new StemContract();
         ContractVersion coinContract = Constants.YEED_CONTRACT_VERSION;
         Runtime runtime =
                 new Runtime<>(
