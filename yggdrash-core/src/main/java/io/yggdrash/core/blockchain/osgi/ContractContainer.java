@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FilePermission;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.ReflectPermission;
@@ -38,8 +39,9 @@ import java.util.PropertyPermission;
 public class ContractContainer {
     private static final Logger log = LoggerFactory.getLogger(ContractContainer.class);
 
-    private final String SUFFIX_SYSTEM_CONTRACT = "/system-contracts";
-    private final String SUFFIX_USER_CONTRACT = "/user-contracts";
+    public static final String PREFIX_BUNDLE_PATH = "file:";
+    private static final String SUFFIX_SYSTEM_CONTRACT = "/system-contracts";
+    private static final String SUFFIX_USER_CONTRACT = "/user-contracts";
 
     private Framework framework;
     private String systemContractPath;
@@ -52,18 +54,19 @@ public class ContractContainer {
     private TransactionReceiptStore transactionReceiptStore;
 
     private ContractManager contractManager;
+    private DefaultConfig config;
 
     ContractContainer(FrameworkFactory frameworkFactory, Map<String, String> containerConfig, String branchId
-            , StateStore stateStore, TransactionReceiptStore transactionReceiptStore) {
+            , StateStore stateStore, TransactionReceiptStore transactionReceiptStore, DefaultConfig config) {
         this.frameworkFactory = frameworkFactory;
         this.commonContainerConfig = containerConfig;
         this.branchId = branchId;
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
+        this.config = config;
     }
 
     void newFramework() {
-        DefaultConfig config = new DefaultConfig();
         String containerPath = String.format("%s/%s", config.getOsgiPath(), branchId);
 
         Map<String, String> containerConfig = new HashMap<>();
@@ -134,11 +137,37 @@ public class ContractContainer {
         infos.add(admin.newConditionalPermissionInfo(
                 permissionKey,
                 new ConditionInfo[]{
-                        new ConditionInfo(BundleLocationCondition.class.getName(), new String[]{
-                                "*"
-                        })
+                        new ConditionInfo(BundleLocationCondition.class.getName(), new String[]{"*"})
                 },
                 permissionInfos.toArray(new PermissionInfo[permissionInfos.size()]),
+                ConditionalPermissionInfo.ALLOW));
+
+        //Allow file permission to system contract
+        infos.add(admin.newConditionalPermissionInfo(
+                String.format("%s-system-file", permissionKey),
+                new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName()
+                        , new String[]{String.format("file:%s/*", systemContractPath)})
+                },
+                new PermissionInfo[]{
+                        new PermissionInfo(FilePermission.class.getName()
+                                , String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"),
+                        new PermissionInfo(FilePermission.class.getName()
+                                , String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete")
+                },
+                ConditionalPermissionInfo.ALLOW));
+
+        //Allow file permission to user contract
+        infos.add(admin.newConditionalPermissionInfo(
+                String.format("%s-user-file", permissionKey),
+                new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName()
+                        , new String[]{String.format("file:%s/*", userContractPath)})
+                },
+                new PermissionInfo[]{
+                        new PermissionInfo(FilePermission.class.getName()
+                                , String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"),
+                        new PermissionInfo(FilePermission.class.getName()
+                                , String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete")
+                },
                 ConditionalPermissionInfo.ALLOW));
 
         boolean isSuccess = update.commit();
@@ -159,7 +188,8 @@ public class ContractContainer {
             contracts = IOUtils.readLines(in, StandardCharsets.UTF_8);
 
             //Copy contract
-            for (String contract : contracts) {
+            for (int i = contracts.size() - 1; i >= 0; i--) {
+                String contract = contracts.get(i);
                 URL inputUrl = getClass().getResource(String.format("%s/%s", SUFFIX_SYSTEM_CONTRACT, contract));
                 File dest = new File(contractManager.makeContractPath(contract, true));
                 if (dest.exists()) {

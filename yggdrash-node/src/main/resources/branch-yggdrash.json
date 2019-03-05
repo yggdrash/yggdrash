@@ -11,7 +11,7 @@
       "name": "STEM"
     },
     {
-      "contractVersion": "3-system-coin-contract-1.0.0.jar",
+      "contractVersion": "system-coin-contract-1.0.0.jar",
       "isSystem": true,
       "init": {
         "alloc": {
@@ -42,7 +42,7 @@
       "name": "YEED"
     },
     {
-      "contractVersion": "1-system-dpoa-contract-1.0.0.jar",
+      "contractVersion": "system-dpoa-contract-1.0.0.jar",
       "isSystem": true,
       "init": {
         "validators": [
