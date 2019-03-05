@@ -4,7 +4,7 @@ jdk:
 cache:
   directories:
   - $HOME/.m2/repository
-#  - $HOME/.gradle
+  - $HOME/.gradle
 env:
   global:
   - SPRING_OUTPUT_ANSI_ENABLED=ALWAYS
