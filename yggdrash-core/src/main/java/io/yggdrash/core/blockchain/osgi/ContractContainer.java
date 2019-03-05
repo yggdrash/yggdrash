@@ -63,7 +63,8 @@ public class ContractContainer {
         this.branchId = branchId;
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
-        this.config = config;
+//        this.config = config;
+        this.config = new DefaultConfig();
     }
 
     void newFramework() {
