@@ -4,4 +4,6 @@ include 'yggdrash-node'
 include 'yggdrash-gateway'
 include 'yggdrash-validator'
 include 'yggdrash-contract-core'
+include 'yggdrash-common'
+include 'yggdrash-contract'
 

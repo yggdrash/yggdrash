@@ -1,7 +1,7 @@
 package io.yggdrash.core.blockchain.osgi;
 
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.core.store.StateStore;
+import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.FilePermission;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.ReflectPermission;
@@ -38,8 +39,9 @@ import java.util.PropertyPermission;
 public class ContractContainer {
     private static final Logger log = LoggerFactory.getLogger(ContractContainer.class);
 
-    private final String SUFFIX_SYSTEM_CONTRACT = "/system-contracts";
-    private final String SUFFIX_USER_CONTRACT = "/user-contracts";
+    public static final String PREFIX_BUNDLE_PATH = "file:";
+    private static final String SUFFIX_SYSTEM_CONTRACT = "/system-contracts";
+    private static final String SUFFIX_USER_CONTRACT = "/user-contracts";
 
     private Framework framework;
     private String systemContractPath;
@@ -52,18 +54,19 @@ public class ContractContainer {
     private TransactionReceiptStore transactionReceiptStore;
 
     private ContractManager contractManager;
+    private DefaultConfig config;
 
     ContractContainer(FrameworkFactory frameworkFactory, Map<String, String> containerConfig, String branchId
-            , StateStore stateStore, TransactionReceiptStore transactionReceiptStore) {
+            , StateStore stateStore, TransactionReceiptStore transactionReceiptStore, DefaultConfig config) {
         this.frameworkFactory = frameworkFactory;
         this.commonContainerConfig = containerConfig;
         this.branchId = branchId;
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
+        this.config = config;
     }
 
     void newFramework() {
-        DefaultConfig config = new DefaultConfig();
         String containerPath = String.format("%s/%s", config.getOsgiPath(), branchId);
 
         Map<String, String> containerConfig = new HashMap<>();
@@ -75,7 +78,7 @@ public class ContractContainer {
 
         framework = frameworkFactory.newFramework(containerConfig);
         systemContractPath = String.format("%s/bundles%s", containerPath, SUFFIX_SYSTEM_CONTRACT);
-        userContractPath = String.format("%s/bundles/%s", containerPath, SUFFIX_USER_CONTRACT);
+        userContractPath = String.format("%s/bundles%s", containerPath, SUFFIX_USER_CONTRACT);
         contractManager = new ContractManager(framework, systemContractPath, userContractPath, branchId, stateStore, transactionReceiptStore);
 
         try {
@@ -91,6 +94,7 @@ public class ContractContainer {
 //            Arrays.asList(framework.getBundleContext().getBundles()).forEach(b -> log.info("Bundle: {}", b.getSymbolicName()));
 //            Arrays.asList(framework.getRegisteredServices()).forEach(s -> log.info("Service reference: {}", s.toString()));
         } catch (Exception e) {
+            e.printStackTrace();
             log.error("Load contract container exception: branchID - {}, msg - {}", branchId, e.getMessage());
             throw new IllegalStateException(e.getCause());
         }
@@ -133,11 +137,37 @@ public class ContractContainer {
         infos.add(admin.newConditionalPermissionInfo(
                 permissionKey,
                 new ConditionInfo[]{
-                        new ConditionInfo(BundleLocationCondition.class.getName(), new String[]{
-                                "*"
-                        })
+                        new ConditionInfo(BundleLocationCondition.class.getName(), new String[]{"*"})
                 },
                 permissionInfos.toArray(new PermissionInfo[permissionInfos.size()]),
+                ConditionalPermissionInfo.ALLOW));
+
+        //Allow file permission to system contract
+        infos.add(admin.newConditionalPermissionInfo(
+                String.format("%s-system-file", permissionKey),
+                new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName()
+                        , new String[]{String.format("file:%s/*", systemContractPath)})
+                },
+                new PermissionInfo[]{
+                        new PermissionInfo(FilePermission.class.getName()
+                                , String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"),
+                        new PermissionInfo(FilePermission.class.getName()
+                                , String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete")
+                },
+                ConditionalPermissionInfo.ALLOW));
+
+        //Allow file permission to user contract
+        infos.add(admin.newConditionalPermissionInfo(
+                String.format("%s-user-file", permissionKey),
+                new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName()
+                        , new String[]{String.format("file:%s/*", userContractPath)})
+                },
+                new PermissionInfo[]{
+                        new PermissionInfo(FilePermission.class.getName()
+                                , String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"),
+                        new PermissionInfo(FilePermission.class.getName()
+                                , String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete")
+                },
                 ConditionalPermissionInfo.ALLOW));
 
         boolean isSuccess = update.commit();
@@ -145,20 +175,21 @@ public class ContractContainer {
     }
 
     private List<String> copySystemContractToContractPath() {
-        List<String> contracts;
+        List<String> contracts = new ArrayList<>();
 
         InputStream in = null;
         try {
             //Read system contract files
             in = Thread.currentThread().getContextClassLoader().getResourceAsStream(String.format("%s/contracts", SUFFIX_SYSTEM_CONTRACT));
             in = in == null ? getClass().getResourceAsStream(String.format("%s/contracts", SUFFIX_SYSTEM_CONTRACT)) : in;
-            contracts = IOUtils.readLines(in, StandardCharsets.UTF_8);
-            if (contracts == null) {
-                return new ArrayList<>();
+            if (in == null) {
+                return contracts;
             }
+            contracts = IOUtils.readLines(in, StandardCharsets.UTF_8);
 
             //Copy contract
-            for (String contract : contracts) {
+            for (int i = contracts.size() - 1; i >= 0; i--) {
+                String contract = contracts.get(i);
                 URL inputUrl = getClass().getResource(String.format("%s/%s", SUFFIX_SYSTEM_CONTRACT, contract));
                 File dest = new File(contractManager.makeContractPath(contract, true));
                 if (dest.exists()) {

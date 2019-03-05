@@ -18,8 +18,8 @@ package io.yggdrash.gateway.dto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
-import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.common.utils.ByteUtil;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;

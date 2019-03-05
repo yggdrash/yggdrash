@@ -17,14 +17,14 @@
 package io.yggdrash.core.runtime;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.ContractUtils;
-import io.yggdrash.core.contract.Contract;
-import io.yggdrash.core.contract.ExecuteStatus;
-import io.yggdrash.core.contract.TransactionReceipt;
-import io.yggdrash.core.contract.methods.ContractMethod;
-import io.yggdrash.core.runtime.annotation.Genesis;
-import io.yggdrash.core.runtime.annotation.InvokeTransaction;
-import io.yggdrash.core.store.Store;
+import io.yggdrash.common.utils.ContractUtils;
+import io.yggdrash.common.contract.Contract;
+import io.yggdrash.contract.core.ExecuteStatus;
+import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.common.contract.methods.ContractMethod;
+import io.yggdrash.contract.core.annotation.Genesis;
+import io.yggdrash.contract.core.annotation.InvokeTransaction;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.store.TempStateStore;
 
 import java.lang.reflect.Field;
@@ -80,7 +80,7 @@ public class RuntimeInvoke<T> {
         return null;
     }
 
-    public TempStateStore invokeTransaction(JsonObject txBody, TransactionReceipt txReceipt, Store origin)
+    public TempStateStore invokeTransaction(JsonObject txBody, TransactionReceipt txReceipt, ReadWriterStore origin)
             throws InvocationTargetException, IllegalAccessException {
         // set State Store
         TempStateStore store = new TempStateStore(origin);

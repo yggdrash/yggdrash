@@ -16,6 +16,7 @@
 
 package io.yggdrash.common.util;
 
+import io.yggdrash.common.utils.ByteUtil;
 import org.junit.Assert;
 import org.junit.Test;
 import org.spongycastle.util.encoders.Hex;
