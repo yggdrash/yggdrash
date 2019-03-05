@@ -43,7 +43,6 @@ public class MasterNodeTest extends TestConstants.CiTest {
 
     @Test
     public void shouldBeNotEmptyBranch() {
-        System.out.println("!!!!!! : " + branchGroup.getAllBranch().size());
         assertThat(branchGroup.getAllBranch()).isNotEmpty();
     }
 

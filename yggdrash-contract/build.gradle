@@ -116,8 +116,8 @@ def keyAlias = 'yggdrash'
 task signJar(description: 'to Sign JAR.', group: 'Build') {
 
     dependsOn dpoaContract
-    dependsOn dpoaClientContract
     dependsOn coinContract
+//    dependsOn dpoaClientContract
 
     doLast {
         def libFiles = file('build/libs').listFiles()

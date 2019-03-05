@@ -109,8 +109,6 @@ public class BranchConfiguration {
                     .setPolicyLoader(policyLoader)
                     .build();
         } catch (Exception e) {
-            System.out.println("!!!!!! :2 ");
-            e.printStackTrace();
             log.warn(e.getMessage());
             return null;
         }
