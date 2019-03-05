@@ -65,12 +65,14 @@ public class ContractContainer {
         this.transactionReceiptStore = transactionReceiptStore;
         this.config = config;
 
+        System.out.println("$$$$$$ : " + config.getOsgiPath());
         File file = new File(config.getOsgiPath());
-        for (String s : file.list()) {
-            System.out.println("######### : " + s);
+        if(file != null){
+            for (String s : file.list()) {
+                System.out.println("######### : " + s);
+            }
         }
 
-        System.out.println("$$$$$$ : " + config.getOsgiPath());
     }
 
     void newFramework() {
