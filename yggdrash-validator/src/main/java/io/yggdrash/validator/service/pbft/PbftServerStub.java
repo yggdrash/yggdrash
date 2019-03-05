@@ -89,7 +89,6 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
             pbftService.getLock().lock();
             pbftService.updateUnconfirmedMsg(pbftMessage);
-            pbftMessage.clear();
             pbftService.getLock().unlock();
         } finally {
             pbftMessage.clear();

@@ -43,6 +43,8 @@ import java.util.concurrent.locks.ReentrantLock;
 public class PbftService implements CommandLineRunner {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftService.class);
+
+    private static final boolean TEST_MEMORY_LEAK = true;
     private static final int FAIL_COUNT = 2;
 
     private final boolean isValidator;
@@ -161,6 +163,19 @@ public class PbftService implements CommandLineRunner {
 
         loggingStatus();
 
+        // todo: delete when the memory test ended
+        if (TEST_MEMORY_LEAK) {
+            if (this.blockChain.getLastConfirmedBlock().getIndex() == 200L) {
+                log.info("System.gc() and Sleep 10min");
+                System.gc();
+
+                try {
+                    Thread.sleep(3600000);
+                } catch (InterruptedException e) {
+                    log.trace(e.getMessage());
+                }
+            }
+        }
     }
 
     private void loggingStatus() {
@@ -470,8 +485,32 @@ public class PbftService implements CommandLineRunner {
                     prePrepareMsg, prepareMessageMap, commitMessageMap, this.viewChangeMap);
             PbftBlock pbftBlock = new PbftBlock(prePrepareMsg.getBlock(), pbftMessageSet);
             confirmedBlock(pbftBlock.clone());
+            pbftBlock.clear();
+
+            prePrepareMsg.clear();
+
+            for (PbftMessage pbftMessage : prepareMessageMap.values()) {
+                if (pbftMessage != null) {
+                    pbftMessage.clear();
+                }
+            }
+            prepareMessageMap.clear();
+
+            for (PbftMessage pbftMessage : commitMessageMap.values()) {
+                if (pbftMessage != null) {
+                    pbftMessage.clear();
+                }
+            }
+            commitMessageMap.clear();
+
+            for (PbftMessage pbftMessage : viewChangeMap.values()) {
+                if (pbftMessage != null) {
+                    pbftMessage.clear();
+                }
+            }
+            viewChangeMap.clear();
+
             this.failCount = 0;
-            this.viewChangeMap.clear();
             this.isViewChanged = false;
         }
 
@@ -725,9 +764,7 @@ public class PbftService implements CommandLineRunner {
 
     public void updateUnconfirmedMsg(PbftMessage newPbftMessage) {
 
-        if (this.blockChain.getUnConfirmedMsgMap().containsKey(newPbftMessage.getSignatureHex())) {
-            newPbftMessage.clear();
-        } else {
+        if (!this.blockChain.getUnConfirmedMsgMap().containsKey(newPbftMessage.getSignatureHex())) {
             this.blockChain.getUnConfirmedMsgMap()
                     .put(newPbftMessage.getSignatureHex(), newPbftMessage.clone());
         }
