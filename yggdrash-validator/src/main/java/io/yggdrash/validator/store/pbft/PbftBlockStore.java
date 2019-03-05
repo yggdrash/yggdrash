@@ -1,8 +1,6 @@
 package io.yggdrash.validator.store.pbft;
 
 import io.yggdrash.common.config.Constants;
-import io.yggdrash.core.store.Store;
-import io.yggdrash.core.store.datasource.DbSource;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.validator.data.pbft.PbftBlock;
