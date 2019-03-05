@@ -9,7 +9,7 @@ env:
   global:
   - SPRING_OUTPUT_ANSI_ENABLED=ALWAYS
 script:
-  - ./gradlew clean build -PspringProfiles=ci
+  - ./gradlew --stacktrace --debug clean build -PspringProfiles=ci
 after_success:
   - ./gradlew jacocoRootReport coveralls
   - bash <(curl -s https://codecov.io/bash)
