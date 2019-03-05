@@ -65,6 +65,7 @@ public class ContractContainer {
         this.transactionReceiptStore = transactionReceiptStore;
 //        this.config = config;
         this.config = new DefaultConfig();
+        log.info("####### : "+config.getOsgiPath());
     }
 
     void newFramework() {
