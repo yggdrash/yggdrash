@@ -48,41 +48,52 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
     public void exchangePbftStatus(PbftProto.PbftStatus request,
                                    StreamObserver<PbftProto.PbftStatus> responseObserver) {
         PbftStatus status = new PbftStatus(request);
-        updateStatus(status);
-
         PbftStatus newStatus = pbftService.getMyNodeStatus();
-        responseObserver.onNext(PbftStatus.toProto(newStatus));
-        responseObserver.onCompleted();
+        try {
+            updateStatus(status);
+
+            responseObserver.onNext(PbftStatus.toProto(newStatus));
+            responseObserver.onCompleted();
+        } finally {
+            status.clear();
+            newStatus.clear();
+        }
     }
 
 
     @Override
     public void multicastPbftMessage(PbftProto.PbftMessage request,
                                      StreamObserver<NetProto.Empty> responseObserver) {
-
         log.trace("multicastPbftMessage");
         PbftMessage pbftMessage = new PbftMessage(request);
+        try {
 
-        if (!PbftMessage.verify(pbftMessage)) {
-            log.warn("Verify Fail");
+            if (!PbftMessage.verify(pbftMessage)) {
+                log.warn("Verify Fail");
+                pbftMessage.clear();
+                responseObserver.onNext(EMPTY);
+                responseObserver.onCompleted();
+                return;
+            }
+
+            long lastIndex = this.blockChain.getLastConfirmedBlock().getIndex();
+            if (pbftMessage.getSeqNumber() <= lastIndex) {
+                pbftMessage.clear();
+                responseObserver.onNext(EMPTY);
+                responseObserver.onCompleted();
+                return;
+            }
+
             responseObserver.onNext(EMPTY);
             responseObserver.onCompleted();
-            return;
+
+            pbftService.getLock().lock();
+            pbftService.updateUnconfirmedMsg(pbftMessage);
+            pbftMessage.clear();
+            pbftService.getLock().unlock();
+        } finally {
+            pbftMessage.clear();
         }
-
-        long lastIndex = this.blockChain.getLastConfirmedBlock().getIndex();
-        if (pbftMessage.getSeqNumber() <= lastIndex) {
-            responseObserver.onNext(EMPTY);
-            responseObserver.onCompleted();
-            return;
-        }
-
-        responseObserver.onNext(EMPTY);
-        responseObserver.onCompleted();
-
-        pbftService.getLock().lock();
-        pbftService.updateUnconfirmedMsg(pbftMessage);
-        pbftService.getLock().unlock();
     }
 
     @Override
@@ -92,27 +103,31 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         log.trace("multicastPbftBlock");
         PbftBlock newPbftBlock = new PbftBlock(request);
 
-        if (!PbftBlock.verify(newPbftBlock)) {
-            log.warn("Verify Fail");
-            responseObserver.onNext(EMPTY);
+        try {
+            if (!PbftBlock.verify(newPbftBlock)) {
+                log.warn("Verify Fail");
+                newPbftBlock.clear();
+                responseObserver.onNext(EMPTY);
+                responseObserver.onCompleted();
+                return;
+            }
+
+            PbftBlock lastPbftBlock = this.blockChain.getLastConfirmedBlock();
+
+            responseObserver.onNext(io.yggdrash.proto.NetProto.Empty.newBuilder().build());
             responseObserver.onCompleted();
-            return;
+
+            if (lastPbftBlock.getIndex() == newPbftBlock.getIndex() - 1
+                    && Arrays.equals(lastPbftBlock.getHash(), newPbftBlock.getPrevBlockHash())) {
+
+                pbftService.getLock().lock();
+                // todo: check block confirm
+                //pbftService.updateUnconfirmedBlock(newPbftBlock);
+                pbftService.getLock().unlock();
+            }
+        } finally {
+            newPbftBlock.clear();
         }
-
-        PbftBlock lastPbftBlock = this.blockChain.getLastConfirmedBlock();
-
-        responseObserver.onNext(io.yggdrash.proto.NetProto.Empty.newBuilder().build());
-        responseObserver.onCompleted();
-
-        if (lastPbftBlock.getIndex() == newPbftBlock.getIndex() - 1
-                && Arrays.equals(lastPbftBlock.getHash(), newPbftBlock.getPrevBlockHash())) {
-
-            pbftService.getLock().lock();
-            // todo: check block confirm
-            //pbftService.updateUnconfirmedBlock(newPbftBlock);
-            pbftService.getLock().unlock();
-        }
-
     }
 
 
@@ -123,21 +138,25 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         long count = request.getCount();
         List<PbftBlock> blockList = new ArrayList<>();
 
-        long end = Math.min(start - 1 + count,
-                this.blockChain.getLastConfirmedBlock().getIndex());
+        try {
+            long end = Math.min(start - 1 + count,
+                    this.blockChain.getLastConfirmedBlock().getIndex());
 
-        log.trace("start: " + start);
-        log.trace("end: " + end);
+            log.trace("start: " + start);
+            log.trace("end: " + end);
 
-        if (start < end) {
-            for (long l = start; l <= end; l++) {
-                blockList.add(this.blockChain.getBlockStore().get(
-                        this.blockChain.getBlockKeyStore().get(l)));
+            if (start < end) {
+                for (long l = start; l <= end; l++) {
+                    blockList.add(this.blockChain.getBlockStore().get(
+                            this.blockChain.getBlockKeyStore().get(l)));
+                }
             }
-        }
 
-        responseObserver.onNext(PbftBlock.toProtoList(blockList));
-        responseObserver.onCompleted();
+            responseObserver.onNext(PbftBlock.toProtoList(blockList));
+            responseObserver.onCompleted();
+        } finally {
+            blockList.clear();
+        }
     }
 
     private void updateStatus(PbftStatus status) {

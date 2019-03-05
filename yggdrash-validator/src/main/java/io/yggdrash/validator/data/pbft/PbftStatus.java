@@ -197,4 +197,15 @@ public class PbftStatus {
         }
         return Arrays.equals(this.toBinary(), newPbftStatus.toBinary());
     }
+
+    public void clear() {
+        for (PbftMessage pbftMessage : this.unConfirmedPbftMessageMap.values()) {
+            if (pbftMessage != null) {
+                pbftMessage.clear();
+            }
+        }
+        this.unConfirmedPbftMessageMap.clear();
+    }
+
+
 }
