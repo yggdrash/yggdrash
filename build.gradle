@@ -235,11 +235,14 @@ coveralls {
     jacocoReportPath = "${buildDir}/reports/jacoco/jacocoRootReport/jacocoRootReport.xml"
 }
 
-test {
-    testLogging {
-        showStandardStreams = true
+allprojects {
+    test {
+        testLogging {
+            showStandardStreams = true
+        }
     }
 }
+
 
 // TODO delete using scanning each project
 // usage: ./gradlew cleanConfig -q

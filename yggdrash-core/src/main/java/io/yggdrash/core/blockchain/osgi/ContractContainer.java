@@ -63,9 +63,14 @@ public class ContractContainer {
         this.branchId = branchId;
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
-//        this.config = config;
-        this.config = new DefaultConfig();
-        log.info("####### : "+config.getOsgiPath());
+        this.config = config;
+
+        File file = new File(config.getOsgiPath());
+        for (String s : file.list()) {
+            System.out.println("######### : " + s);
+        }
+
+        System.out.println("$$$$$$ : " + config.getOsgiPath());
     }
 
     void newFramework() {
