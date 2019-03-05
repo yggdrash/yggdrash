@@ -64,15 +64,6 @@ public class ContractContainer {
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
         this.config = config;
-
-        System.out.println("$$$$$$ : " + config.getOsgiPath());
-        File file = new File(config.getOsgiPath());
-        if(file != null){
-            for (String s : file.list()) {
-                System.out.println("######### : " + s);
-            }
-        }
-
     }
 
     void newFramework() {
@@ -91,15 +82,20 @@ public class ContractContainer {
         contractManager = new ContractManager(framework, systemContractPath, userContractPath, branchId, stateStore, transactionReceiptStore);
 
         try {
+            System.out.println("!!!!! :1 "+systemContractPath);
+            System.out.println("!!!!! :2 "+userContractPath);
             framework.start();
             setDefaultPermission(branchId);
             List<String> copiedContracts = copySystemContractToContractPath();
+            System.out.println("!!!!! :3 "+copiedContracts != null ? copiedContracts.size() : null);
             loadSystemContract(copiedContracts);
             contractManager.setSystemContracts(copiedContracts);
 
             for (Bundle bundle : framework.getBundleContext().getBundles()) {
+                System.out.println("!!!!! :4 "+bundle.getLocation());
                 contractManager.inject(bundle);
             }
+            System.out.println("!!!!! :5 "+userContractPath);
 //            Arrays.asList(framework.getBundleContext().getBundles()).forEach(b -> log.info("Bundle: {}", b.getSymbolicName()));
 //            Arrays.asList(framework.getRegisteredServices()).forEach(s -> log.info("Service reference: {}", s.toString()));
         } catch (Exception e) {
