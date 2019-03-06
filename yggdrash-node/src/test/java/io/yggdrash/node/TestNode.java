@@ -3,8 +3,8 @@ package io.yggdrash.node;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.PeerTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.core.akashic.SimpleSyncManager;
 import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.net.BlockChainConsumer;
@@ -34,6 +34,7 @@ public class TestNode extends BootStrapNode {
 
     protected BranchId branchId = TestConstants.yggdrash();
     private PeerDialer peerDialer;
+    private NodeStatus nodeStatus = NodeStatusMock.mock;
 
     public PeerTableGroup peerTableGroup;
     public PeerTask peerTask;
@@ -44,10 +45,8 @@ public class TestNode extends BootStrapNode {
         this.port = port;
 
         // node configuration
-        NodeStatus nodeStatus = NodeStatusMock.mock;
         setNodeStatus(nodeStatus);
         setBranchGroup(new BranchGroup());
-        setSyncManager(new SimpleSyncManager());
 
         p2pConfiguration(factory, nodeStatus);
 
@@ -74,13 +73,14 @@ public class TestNode extends BootStrapNode {
         BlockChain bc = BlockChainTestUtils.createBlockChain(false);
         branchGroup.addBranch(bc);
         blockChainConsumer = new BlockChainServiceConsumer(branchGroup);
-        blockChainConsumer.setListener(this);
+        //blockChainConsumer.setListener(this);
     }
 
     private void networkConfiguration() {
         NetworkConfiguration config = new NetworkConfiguration();
         PeerNetwork peerNetwork = config.peerNetwork(peerTableGroup, peerDialer, branchGroup);
         setPeerNetwork(peerNetwork);
+        setSyncManager(config.syncManager(nodeStatus, peerNetwork, branchGroup));
     }
 
     public BranchGroup getBranchGroup() {
@@ -89,6 +89,10 @@ public class TestNode extends BootStrapNode {
 
     public BlockChain getDefaultBranch() {
         return branchGroup.getBranch(branchId);
+    }
+
+    public BlockChainSyncManager getSyncManger() {
+        return (BlockChainSyncManager) this.syncManager;
     }
 
     public void generateBlock() {

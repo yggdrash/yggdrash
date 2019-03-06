@@ -44,19 +44,6 @@ public class PeerBucket {
     }
 
     synchronized void addPeer(Peer peer) {
-        /*
-        if (!peers.contains(p)) {
-            if (peers.size() >= KademliaOptions.BUCKET_SIZE) {
-                return getLastSeen();
-            } else {
-                peers.add(p);
-            }
-        }
-        // updated
-        peers.remove(p);
-        peers.add(p);
-        return null;
-        */
         if (!bumpOrAdd(peer)) {
             addReplacement(peer);
         }

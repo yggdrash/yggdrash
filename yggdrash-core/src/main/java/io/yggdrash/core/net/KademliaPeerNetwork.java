@@ -98,18 +98,20 @@ public class KademliaPeerNetwork implements PeerNetwork {
             try {
                 peerHandler.broadcastTx(tx);
             } catch (Exception e) {
+                log.debug("[KadmeliaPeerNetwork] Chained Tx ERR: {}", e.getMessage());
                 peerDialer.removeHandler(peerHandler);
             }
         }
     }
 
     @Override
-    public void chainedBlock(BlockHusk block) { 
+    public void chainedBlock(BlockHusk block) { //TODO AddBlock BP
         List<PeerHandler> getHandlerList = getHandlerList(block.getBranchId());
-        for (PeerHandler peerHandler : getHandlerList) {
+        for (PeerHandler peerHandler : getHandlerList) { //TODO Verify NULL
             try {
                 peerHandler.broadcastBlock(block);
             } catch (Exception e) {
+                log.debug("[KadmeliaPeerNetwork] Chained Block ERR: {}", e.getMessage());
                 peerDialer.removeHandler(peerHandler);
             }
         }

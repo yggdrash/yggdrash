@@ -126,8 +126,6 @@ public class RpcTest extends AbstractNodeTest {
 
         Future<List<TransactionHusk>> futureHusks = handler.syncTx(branchId);
 
-        Thread.sleep(3000);
-
         List<TransactionHusk> txHusks = futureHusks.get();
         for (TransactionHusk txHusk : txHusks) {
             Assert.assertTrue(txHuskList.contains(txHusk));
@@ -140,8 +138,6 @@ public class RpcTest extends AbstractNodeTest {
         setSpecificBlockHeightOfBlockChain();
 
         Future<List<BlockHusk>> futureHusks = handler.syncBlock(branchId, 5);
-
-        Thread.sleep(3000);
 
         List<BlockHusk> blockHusks = futureHusks.get();
         for (BlockHusk blockHusk : blockHusks) {

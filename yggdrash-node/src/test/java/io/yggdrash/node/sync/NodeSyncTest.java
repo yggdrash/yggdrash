@@ -57,6 +57,7 @@ public class NodeSyncTest extends AbstractNodeTest {
         // 3) node2: bootstrap
         int node2 = 2;
         bootstrapSyncNode(node2);
+        nodeList.get(node2).blockChainConsumer.setListener(nodeList.get(node2).getSyncManger());
         // 4) assert
         Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(),
                 nodeList.get(node2).getDefaultBranch().getLastIndex());
@@ -67,6 +68,9 @@ public class NodeSyncTest extends AbstractNodeTest {
         // node1: after healthCheck added routing(node1 -> node2) and generate block
         nodeList.get(node1).peerTask.healthCheck();
         generateBlock(node1, 1);
+
+        nodeList.get(node1).peerTask.getPeerDialer().destroyAll();
+        nodeList.get(node2).peerTask.getPeerDialer().destroyAll();
 
         // assert
         Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(),

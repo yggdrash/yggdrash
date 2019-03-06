@@ -48,9 +48,11 @@ public class GRpcPeerHandler implements PeerHandler {
 
     private final ManagedChannel channel;
     private final PeerGrpc.PeerBlockingStub blockingPeerStub;
-    private final BlockChainGrpc.BlockChainBlockingStub blockingBlockChainStub;
     private final BlockChainGrpc.BlockChainStub asyncStub;
     private final Peer peer;
+    private final StreamObserver<NetProto.Empty> emptyResponseStreamObserver;
+    private StreamObserver<Proto.Block> broadcastBlockRequestObserver;
+    private StreamObserver<Proto.Transaction> broadcastTxRequestObserver;
 
     GRpcPeerHandler(Peer peer) {
         this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
@@ -61,8 +63,26 @@ public class GRpcPeerHandler implements PeerHandler {
         this.channel = channel;
         this.peer = peer;
         this.blockingPeerStub = PeerGrpc.newBlockingStub(channel);
-        this.blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
         this.asyncStub =  BlockChainGrpc.newStub(channel);
+        this.emptyResponseStreamObserver =
+                new StreamObserver<NetProto.Empty>() {
+                    @Override
+                    public void onNext(NetProto.Empty empty) {
+                        log.debug("[PeerHandler] Empty Received");
+                    }
+
+                    @Override
+                    public void onError(Throwable t) {
+                        log.warn("[PeerHandler] Broadcast Failed: {}", Status.fromThrowable(t));
+                    }
+
+                    @Override
+                    public void onCompleted() {
+                        log.debug("[PeerHandler] Broadcast Finished");
+                        // Server destroyed
+                        channel.shutdown();
+                    }
+                };
     }
 
     @Override
@@ -96,7 +116,14 @@ public class GRpcPeerHandler implements PeerHandler {
     @Override
     public void stop() {
         log.debug("Stop for peer=" + peer.getYnodeUri());
-        if (channel != null) {
+
+        if (channel != null && !channel.isTerminated()) {
+            if (broadcastBlockRequestObserver != null) {
+                broadcastBlockRequestObserver.onCompleted();
+            }
+            if (broadcastTxRequestObserver != null) {
+                broadcastTxRequestObserver.onCompleted();
+            }
             channel.shutdown();
         }
     }
@@ -140,13 +167,13 @@ public class GRpcPeerHandler implements PeerHandler {
     @Override
     public void simpleBroadcastTransaction(TransactionHusk tx) {
         log.trace("Broadcasting txs -> {}", tx.getHash());
-        blockingBlockChainStub.simpleBroadcastTransaction(tx.getInstance());
+        blockingPeerStub.simpleBroadcastTransaction(tx.getInstance());
     }
 
     @Override
     public void simpleBroadcastBlock(BlockHusk block) {
         log.trace("Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
-        blockingBlockChainStub.simpleBroadcastBlock(block.getInstance());
+        blockingPeerStub.simpleBroadcastBlock(block.getInstance());
     }
     */
 
@@ -157,7 +184,8 @@ public class GRpcPeerHandler implements PeerHandler {
         SyncLimit syncLimit = SyncLimit.newBuilder()
                 .setOffset(offset)
                 .setLimit(DEFAULT_LIMIT)
-                .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
+                .setBranch(ByteString.copyFrom(branchId.getBytes()))
+                .setFrom(peer.getYnodeUri()).build();
 
         CompletableFuture<List<BlockHusk>> husksCompletableFuture = new CompletableFuture<>();
 
@@ -247,6 +275,41 @@ public class GRpcPeerHandler implements PeerHandler {
     public void broadcastBlock(BlockHusk blockHusk) {
         log.debug("Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
 
+        if (this.broadcastBlockRequestObserver == null) {
+            this.broadcastBlockRequestObserver =
+                    asyncStub.broadcastBlock(emptyResponseStreamObserver);
+        }
+
+        try {
+            log.debug("[PeerHandler] onNext: index=[{}]", blockHusk.getIndex());
+            broadcastBlockRequestObserver.onNext(blockHusk.getInstance());
+        } catch (RuntimeException e) {
+            // Cancel RPC
+            log.debug("[PeerHandler] Cancel Broadcast Block RPC: {}", e.getMessage(), e);
+        }
+    }
+
+    @Override
+    public void broadcastTx(TransactionHusk txHusk) {
+        log.debug("Broadcasting txs -> {}", txHusk.getHash());
+
+        if (this.broadcastTxRequestObserver == null) {
+            this.broadcastTxRequestObserver = asyncStub.broadcastTx(emptyResponseStreamObserver);
+        }
+
+        try {
+            broadcastTxRequestObserver.onNext(txHusk.getInstance());
+        } catch (RuntimeException e) {
+            // Cancel RPC
+            log.debug("[PeerHandler] Cancel Broadcast Tx RPC: {}", e.getMessage(), e);
+        }
+    }
+
+    /*
+    @Override
+    public void broadcastBlock(BlockHusk blockHusk) {
+        log.debug("Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
+
         StreamObserver<Proto.Block> requestObserver = asyncStub.broadcastBlock(
                 new StreamObserver<NetProto.Empty>() {
                     @Override
@@ -267,14 +330,13 @@ public class GRpcPeerHandler implements PeerHandler {
         );
 
         try {
+            log.debug("[PeerHandler] onNext: index=[{}]", blockHusk.getIndex());
             requestObserver.onNext(blockHusk.getInstance());
         } catch (RuntimeException e) {
             // Cancel RPC
             log.debug("[PeerHandler] Cancel Broadcast Block RPC: {}", e.getMessage(), e);
         }
-
-        // Mark the end of requests
-        requestObserver.onCompleted();
+        //requestObserver.onCompleted();
     }
 
     @Override
@@ -308,9 +370,10 @@ public class GRpcPeerHandler implements PeerHandler {
         }
 
         // Mark the end of requests
-        requestObserver.onCompleted();
-    }
+        //requestObserver.onCompleted();
 
+    }
+    */
     /*
     [ biDirectTest Overview ]
 

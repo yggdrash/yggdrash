@@ -159,9 +159,11 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
             }
 
             if (tried.isEmpty()) {
+                /*
                 log.debug("Terminating discover after {} rounds.", round);
                 log.trace("NumberOfBuckets: {}\nPeers discovered {}",
                         entry.getValue().getBucketsCount(), entry.getValue().getPeerUriList());
+                        */
                 return;
             }
 
@@ -182,7 +184,7 @@ public class KademliaPeerTableGroup implements PeerTableGroup {
         Peer randomTarget = randomTargetGeneration();
         for (Map.Entry<BranchId, PeerTable> entry : tableMap.entrySet()) {
             int size = entry.getValue().getClosestPeers(randomTarget, 1).size();
-            log.trace("peerTable :: refresh => size={}, branch={}", size, entry.getKey());
+            //log.trace("peerTable :: refresh => size={}, branch={}", size, entry.getKey());
             if (size < 1) {
                 // The result set is empty, all peers were dropped, discover.
                 // We actually wait for the discover to complete here.

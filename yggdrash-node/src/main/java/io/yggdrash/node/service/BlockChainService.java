@@ -15,6 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import javax.annotation.PreDestroy;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -25,19 +26,73 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
     private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
 
     private final BlockChainConsumer blockChainConsumer;
+    //private final StreamObserver<Proto.Block> blockStreamObserver;
+    //private final StreamObserver<Proto.Transaction> transactionStreamObserver;
 
     @Autowired
     public BlockChainService(BlockChainConsumer blockChainConsumer) {
         this.blockChainConsumer = blockChainConsumer;
+        /*
+        this.blockStreamObserver =  new StreamObserver<Proto.Block>() {
+            @Override
+            public void onNext(Proto.Block block) {
+                long id = ByteUtil.byteArrayToLong(
+                        block.getHeader().getIndex().toByteArray());
+                BlockHusk blockHusk = new BlockHusk(block);
+                log.debug("[BlockChainService] Received block: id=[{}], hash={}",
+                        id, blockHusk.getHash());
+
+                blockChainConsumer.broadcastBlock(blockHusk);
+                //responseObserver.onNext(EMPTY);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                log.debug("[BlockChainService] Encountered error in broadcastBlock: {}",
+                        Status.fromThrowable(t));
+            }
+
+            @Override
+            public void onCompleted() {
+                log.debug("[BlockChainService] Complete broadcast block");
+            }
+        };
+        this.transactionStreamObserver =  new StreamObserver<Proto.Transaction>() {
+            @Override
+            public void onNext(Proto.Transaction tx) {
+                TransactionHusk txHusk = new TransactionHusk(tx);
+                log.debug("[BlockChainService] Received transaction: hash={}", txHusk.getHash());
+
+                blockChainConsumer.broadcastTx(txHusk);
+                //responseObserver.onNext(EMPTY);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                log.debug("[BlockChainService] Encountered error in broadcastTx: {}",
+                        Status.fromThrowable(t));
+            }
+
+            @Override
+            public void onCompleted() {
+                log.debug("[BlockChainService] Complete broadcast tx");
+            }
+        };
+        */
     }
 
-    ///**
-    // * Sync block response
-    // *
-    // * @param syncLimit        the start branch id, block index and limit to sync
-    // * @param responseObserver the observer response to the block list
-    // */
-    /*
+    @PreDestroy
+    private void destroy() {
+        //blockStreamObserver.onCompleted();
+        //transactionStreamObserver.onCompleted();
+    }
+
+    /**
+     * Sync block response
+     *
+     * @param syncLimit        the start branch id, block index and limit to sync
+     * @param responseObserver the observer response to the block list
+     */
     @Override
     public void simpleSyncBlock(NetProto.SyncLimit syncLimit,
                           StreamObserver<Proto.BlockList> responseObserver) {
@@ -54,21 +109,19 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
         responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
     }
-    */
 
-    ///**
-    // * Sync transaction response
-    // *
-    // * @param syncLimit        the branch id to sync
-    // * @param responseObserver the observer response to the transaction list
-    // */
-    /*
+    /**
+     * Sync transaction response
+     *
+     * @param syncLimit        the branch id to sync
+     * @param responseObserver the observer response to the transaction list
+     */
     @Override
     public void simpleSyncTransaction(NetProto.SyncLimit syncLimit,
                                 StreamObserver<Proto.TransactionList> responseObserver) {
         log.debug("Received syncTransaction request");
         BranchId branchId = BranchId.of(syncLimit.getBranch().toByteArray());
-        List<TransactionHusk> txList = blockChainConsumer.syncTransaction(branchId);
+        List<TransactionHusk> txList = blockChainConsumer.syncTx(branchId);
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
         for (TransactionHusk husk : txList) {
             builder.addTransactions(husk.getInstance());
@@ -99,6 +152,19 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
         responseObserver.onNext(EMPTY);
         responseObserver.onCompleted();
     }
+
+    /*
+    @Override
+    public StreamObserver<Proto.Block> broadcastBlock(
+            StreamObserver<NetProto.Empty> responseObserver) {
+        return blockStreamObserver;
+    }
+
+    @Override
+    public StreamObserver<Proto.Transaction> broadcastTx(
+            StreamObserver<NetProto.Empty> responseObserver) {
+        return transactionStreamObserver;
+    }
     */
 
     @Override
@@ -114,7 +180,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
                         id, blockHusk.getHash());
 
                 blockChainConsumer.broadcastBlock(blockHusk);
-                responseObserver.onNext(EMPTY);
+                //responseObserver.onNext(EMPTY);
             }
 
             @Override
@@ -125,6 +191,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
 
             @Override
             public void onCompleted() {
+                log.debug("[BlockChainService] Complete broadcast block");
                 responseObserver.onCompleted();
             }
         };
@@ -140,7 +207,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
                 log.debug("[BlockChainService] Received transaction: hash={}", txHusk.getHash());
 
                 blockChainConsumer.broadcastTx(txHusk);
-                responseObserver.onNext(EMPTY);
+                //responseObserver.onNext(EMPTY);
             }
 
             @Override
@@ -151,6 +218,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
 
             @Override
             public void onCompleted() {
+                log.debug("[BlockChainService] Complete broadcast tx");
                 responseObserver.onCompleted();
             }
         };
@@ -166,7 +234,8 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
                 long offset = syncLimit.getOffset();
                 long limit = syncLimit.getLimit();
                 log.debug("[BlockChainService] Received syncBlock request:"
-                                + "branch={}, offset={}, limit={}", branchId, offset, limit);
+                                + "branch={}, offset={}, limit={}, from={}",
+                        branchId, offset, limit, syncLimit.getFrom());
 
                 List<BlockHusk> blockList = blockChainConsumer.syncBlock(branchId, offset, limit);
                 Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
@@ -178,7 +247,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
 
             @Override
             public void onError(Throwable t) {
-                log.debug("[BlockChainService] Encountered error in biSyncBlock: {}",
+                log.debug("[BlockChainService] Encountered error in syncBlock: {}",
                         Status.fromThrowable(t));
             }
 

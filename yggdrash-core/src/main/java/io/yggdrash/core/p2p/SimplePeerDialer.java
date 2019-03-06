@@ -64,6 +64,7 @@ public class SimplePeerDialer implements PeerDialer {
             log.warn("add peer handler {}->{}, err={}", owner.toAddress(), to.toAddress(), e.getMessage());
         }
         removeHandler(peerHandler);
+        // TODO 현재 Channel 이 없는 경우 peerBucket 을 기반으로 Channel 을 다시 생성해줘야 함
         return false;
     }
 

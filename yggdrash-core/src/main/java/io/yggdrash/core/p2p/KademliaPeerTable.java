@@ -77,8 +77,10 @@ public class KademliaPeerTable implements PeerTable {
         peer.setDistance(owner);
         buckets[getBucketId(peer)].addPeer(peer);
 
+        /*
         log.trace("peerTable :: addPeer => {}, peersCnt => {}, bucketSize => {}",
                 peer.toAddress(), getAllPeers().size(), getBucketsCount());
+                */
     }
 
     public synchronized boolean contains(Peer p) {

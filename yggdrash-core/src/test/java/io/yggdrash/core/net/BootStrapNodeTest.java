@@ -1,12 +1,8 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.TestConstants;
-import io.yggdrash.core.akashic.SimpleSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
 import org.junit.Test;
-
-import static org.junit.Assert.assertEquals;
 
 public class BootStrapNodeTest extends BootStrapNode {
 
@@ -15,17 +11,11 @@ public class BootStrapNodeTest extends BootStrapNode {
         setBranchGroup(branchGroup);
         setNodeStatus(NodeStatusMock.mock);
         setPeerNetwork(PeerNetworkMock.mock);
-        setSyncManager(new SimpleSyncManager());
+        setSyncManager(BlockChainSyncManagerMock.mock);
     }
 
     @Test
     public void bootstrappingTest() {
         bootstrapping();
-    }
-
-    @Test
-    public void catchUpRequestTest() {
-        catchUpRequest(BlockChainTestUtils.createNextBlock());
-        assertEquals(1, branchGroup.getLastIndex(TestConstants.yggdrash()));
     }
 }
