@@ -7,6 +7,18 @@
     <property name="LOG_DIR" value="logs"/>
     <property name="LOG_PATH_NAME" value="${LOG_DIR}/yggdrash.log"/>
 
+    <!-- Console Appender -->
+    <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- Ref. https://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-logging.html -->
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <pattern>
+                %clr(%d{${LOG_DATEFORMAT_PATTERN:-yyyy-MM-dd HH:mm:ss.SSS}}){faint} %clr(${LOG_LEVEL_PATTERN:-%5p})
+                %clr([%15.15t]){faint} %clr(%-40.40logger{39}){cyan} %-20(%clr(\(%line\)){yellow}) %clr(:){faint}
+                %m%n${LOG_EXCEPTION_CONVERSION_WORD:-%wEx}
+            </pattern>
+        </layout>
+    </appender>
+
     <!-- FILE Appender -->
     <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
         <file>${LOG_PATH_NAME}</file>
@@ -16,7 +28,7 @@
             <maxHistory>60</maxHistory>
         </rollingPolicy>
         <encoder>
-            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%-5p] [%F]%M\(%L\) : %m%n</pattern>
+            <pattern>%d{yyyy-MM-dd HH:mm} [%-5p] [%F]%M\(%L\) : %m%n</pattern>
         </encoder>
     </appender>
 
@@ -24,7 +36,7 @@
     <springProfile name="debug">
         <logger name="io.yggdrash" level="TRACE"/>
         <root level="DEBUG">
-            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="Console"/>
         </root>
     </springProfile>
     <springProfile name="local">
@@ -33,18 +45,18 @@
         <logger name="org.ehcache.core" level="WARN"/>
         <logger name="org.xnio" level="WARN"/>
         <root level="INFO">
-            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="Console"/>
         </root>
     </springProfile>
     <springProfile name="dev">
         <root level="INFO">
-            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="Console"/>
             <appender-ref ref="FILE"/>
         </root>
     </springProfile>
     <springProfile name="prod">
         <root level="INFO">
-            <appender-ref ref="CONSOLE"/>
+            <appender-ref ref="Console"/>
             <appender-ref ref="FILE"/>
         </root>
     </springProfile>
