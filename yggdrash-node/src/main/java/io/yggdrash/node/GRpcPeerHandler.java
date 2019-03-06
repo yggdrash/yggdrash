@@ -42,6 +42,7 @@ public class GRpcPeerHandler implements PeerHandler {
     private final ManagedChannel channel;
     private final PeerGrpc.PeerBlockingStub blockingPeerStub;
     private final BlockChainGrpc.BlockChainBlockingStub blockingBlockChainStub;
+    private final BlockChainGrpc.BlockChainFutureStub futureBlockChainStub;
     private final Peer peer;
 
     GRpcPeerHandler(Peer peer) {
@@ -54,6 +55,7 @@ public class GRpcPeerHandler implements PeerHandler {
         this.peer = peer;
         this.blockingPeerStub = PeerGrpc.newBlockingStub(channel);
         this.blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
+        this.futureBlockChainStub = BlockChainGrpc.newFutureStub(channel);
     }
 
     @Override
@@ -126,12 +128,12 @@ public class GRpcPeerHandler implements PeerHandler {
     @Override
     public void broadcastTransaction(TransactionHusk tx) {
         log.trace("Broadcasting txs -> {}", tx.getHash());
-        blockingBlockChainStub.broadcastTransaction(tx.getInstance());
+        futureBlockChainStub.broadcastTransaction(tx.getInstance());
     }
 
     @Override
     public void broadcastBlock(BlockHusk block) {
         log.trace("Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
-        blockingBlockChainStub.broadcastBlock(block.getInstance());
+        futureBlockChainStub.broadcastBlock(block.getInstance());
     }
 }
