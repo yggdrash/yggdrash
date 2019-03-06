@@ -18,8 +18,8 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.utils.ByteUtil;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -120,7 +120,7 @@ public class TransactionHeaderTest {
     }
 
     @Test
-    public void testTransactionHeaderClone() throws Exception {
+    public void testTransactionHeaderClone() {
         TransactionHeader txHeader1
                 = new TransactionHeader(chain, version, type, timestamp, bodyHash, bodyLength);
 

@@ -41,7 +41,7 @@ public class BlockBodyTest {
     private Transaction tx2;
 
     @Before
-    public void setUp() throws Exception {
+    public void setUp() {
 
         JsonObject jsonParam1 = new JsonObject();
         jsonParam1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
@@ -79,7 +79,7 @@ public class BlockBodyTest {
     }
 
     @Test
-    public void testBlockBodyTest() throws Exception {
+    public void testBlockBodyTest() {
 
         log.debug("tx1=" + tx1.toString());
         log.debug("tx2=" + tx2.toString());

@@ -16,8 +16,13 @@ import java.util.List;
 @RestController
 @RequestMapping("contract")
 public class ContractController {
-    @Autowired
+
     private BranchGroup branchGroup;
+
+    @Autowired
+    public ContractController(BranchGroup branchGroup) {
+        this.branchGroup = branchGroup;
+    }
 
     @RequestMapping("/{branchId}/search")
     public List<ContractStatus> search(@PathVariable(name = "branchId") String branchId) {

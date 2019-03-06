@@ -18,19 +18,20 @@ package io.yggdrash.core.runtime;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.Contract;
+import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.contract.ContractVersion;
-import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.store.TempStateStore;
+
 import java.lang.reflect.InvocationTargetException;
 
-public class RuntimeContractWrap {
-    private RuntimeInvoke contractInvoke;
-    private RuntimeQuery runtimeQuery;
-    private Contract contract;
+class RuntimeContractWrap {
+    private final RuntimeInvoke contractInvoke;
+    private final RuntimeQuery runtimeQuery;
+    private final Contract contract;
     private ContractVersion contractVersion;
 
-    public RuntimeContractWrap(ContractVersion contractVersion, Contract contract) {
+    RuntimeContractWrap(ContractVersion contractVersion, Contract contract) {
         this.contract = contract;
         contractInvoke = new RuntimeInvoke(contract);
         runtimeQuery = new RuntimeQuery(contract);
@@ -45,7 +46,7 @@ public class RuntimeContractWrap {
     }
 
 
-    public TempStateStore invokeTransaction(JsonObject txBody, TransactionReceipt txReceipt, ReadWriterStore origin)
+    TempStateStore invokeTransaction(JsonObject txBody, TransactionReceipt txReceipt, ReadWriterStore origin)
             throws InvocationTargetException, IllegalAccessException {
         return this.contractInvoke.invokeTransaction(txBody, txReceipt, origin);
     }

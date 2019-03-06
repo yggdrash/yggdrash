@@ -18,18 +18,18 @@ package io.yggdrash.core.runtime;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.contract.Contract;
+import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.contract.core.ExecuteStatus;
+import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.common.contract.Contract;
 import io.yggdrash.core.contract.ContractVersion;
-import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
-import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.store.TempStateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.slf4j.Logger;
@@ -40,11 +40,11 @@ import java.util.Map;
 import java.util.Set;
 
 public class Runtime<T> {
-    protected static final Logger log = LoggerFactory.getLogger(Runtime.class);
+    private static final Logger log = LoggerFactory.getLogger(Runtime.class);
 
-    private StateStore<T> stateStore;
-    private TransactionReceiptStore txReceiptStore;
-    private Map<ContractVersion, RuntimeContractWrap> contracts = new HashMap<>();
+    private final StateStore<T> stateStore;
+    private final TransactionReceiptStore txReceiptStore;
+    private final Map<ContractVersion, RuntimeContractWrap> contracts = new HashMap<>();
 
     // All block chain has state root
     private byte[] stateRoot;
@@ -116,15 +116,13 @@ public class Runtime<T> {
     public void commitBlockResult(BlockRuntimeResult result) {
         // TODO store transaction by batch
         Map<String, JsonObject> changes = result.getBlockResult();
-        result.getTxReceipts().forEach(txr -> txReceiptStore.put(txr));
+        result.getTxReceipts().forEach(txReceiptStore::put);
         if (!changes.isEmpty()) {
-            changes.forEach((key, value) -> stateStore.put(key, value));
-
+            changes.forEach(stateStore::put);
         }
         // TODO make transaction Receipt Event
 
     }
-
 
     // This invoke is temp run Transaction
     public TransactionRuntimeResult invoke(TransactionHusk tx) {
@@ -138,8 +136,7 @@ public class Runtime<T> {
         return trr;
     }
 
-
-    public TempStateStore invoke(TransactionHusk tx, TransactionReceipt txReceipt, ReadWriterStore origin) {
+    private TempStateStore invoke(TransactionHusk tx, TransactionReceipt txReceipt, ReadWriterStore origin) {
         // Find invoke method and invoke
         // validation method
         TempStateStore txState = new TempStateStore(origin);

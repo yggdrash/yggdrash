@@ -6,8 +6,8 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
@@ -28,11 +28,11 @@ import java.util.Scanner;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
 
-public class GenesisBlock {
+class GenesisBlock {
 
     private Block genesisBlock;
 
-    public GenesisBlock() throws IOException, InvalidCipherTextException {
+    GenesisBlock() throws IOException, InvalidCipherTextException {
 
         JsonObject genesisObject = getJsonObjectFromFile("./genesis/config.json");
 
@@ -112,11 +112,7 @@ public class GenesisBlock {
         return new Gson().fromJson(result.toString(), JsonObject.class);
     }
 
-    public Block getGenesisBlock() {
-        return genesisBlock;
-    }
-
-    public void generateGenesisBlockFile() {
+    void generateGenesisBlockFile() {
         //todo: change the method to serializing method
 
         JsonObject jsonObject = this.genesisBlock.toJsonObject();

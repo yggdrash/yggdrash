@@ -33,17 +33,17 @@ public class DPoAContract implements BundleActivator {
     private static final Logger log = LoggerFactory.getLogger(DPoAContract.class);
 
     @Override
-    public void start(BundleContext context) throws Exception {
+    public void start(BundleContext context) {
         log.info("⚪ Start dpoa contract");
 
         //Find for service in another bundle
-        Hashtable<String, String> props = new Hashtable();
+        Hashtable<String, String> props = new Hashtable<>();
         props.put("YGGDRASH", "DPoA");
         context.registerService(DPoAService.class.getName(), new DPoAService(), props);
     }
 
     @Override
-    public void stop(BundleContext context) throws Exception {
+    public void stop(BundleContext context) {
         log.info("⚫ Stop dpoa contract");
     }
 
@@ -131,9 +131,8 @@ public class DPoAContract implements BundleActivator {
                 }
 
                 //Is the proposed Validator voting complete
-                Iterator<String> iter = proposeValidatorSet.getValidatorMap().keySet().iterator();
-                while (iter.hasNext()) {
-                    if (txReceipt.getIssuer().equals(proposeValidatorSet.getValidatorMap().get(iter.next()).getProposalValidatorAddr())) {
+                for (String s : proposeValidatorSet.getValidatorMap().keySet()) {
+                    if (txReceipt.getIssuer().equals(proposeValidatorSet.getValidatorMap().get(s).getProposalValidatorAddr())) {
                         return txReceipt;
                     }
                 }

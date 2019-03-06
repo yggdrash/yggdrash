@@ -60,7 +60,7 @@ public class BlockChain {
 
     private BlockHusk prevBlock;
 
-    private ContractContainer contractContainer;
+    private final ContractContainer contractContainer;
 
     public BlockChain(Branch branch, BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, MetaStore metaStore,

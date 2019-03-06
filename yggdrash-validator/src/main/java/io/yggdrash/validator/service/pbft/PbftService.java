@@ -318,9 +318,7 @@ public class PbftService implements CommandLineRunner {
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
         List<Transaction> txs = new ArrayList<>();
-        List<TransactionHusk> txHusks = new ArrayList<>();
-
-        txHusks.addAll(blockChain.getTransactionStore().getUnconfirmedTxs());
+        List<TransactionHusk> txHusks = new ArrayList<>(blockChain.getTransactionStore().getUnconfirmedTxs());
 
         for (TransactionHusk txHusk : txHusks) {
             txs.add(txHusk.getCoreTransaction());

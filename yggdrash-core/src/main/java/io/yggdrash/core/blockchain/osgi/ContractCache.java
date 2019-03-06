@@ -7,30 +7,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ContractCache {
+class ContractCache {
     //Map<contractName, Map<field, List<Annotation>>>
-    private Map<String, Map<Field, List<Annotation>>> injectingFields;
+    private final Map<String, Map<Field, List<Annotation>>> injectingFields = new HashMap<>();
     //Map<contractName, Map<methodName, method>>
-    private Map<String, Map<String, Method>> invokeTransactionMethods;
+    private final Map<String, Map<String, Method>> invokeTransactionMethods = new HashMap<>();
     //Map<contractName, Map<methodName, method>>
-    private Map<String, Map<String, Method>> queryMethods;
+    private final Map<String, Map<String, Method>> queryMethods = new HashMap<>();
 
-    ContractCache() {
-        injectingFields = new HashMap<>();
-        invokeTransactionMethods = new HashMap<>();
-        queryMethods = new HashMap<>();
-    }
-
-    public Map<String, Map<Field, List<Annotation>>> getInjectingFields() {
+    Map<String, Map<Field, List<Annotation>>> getInjectingFields() {
         return injectingFields;
     }
 
-
-    public Map<String, Map<String, Method>> getInvokeTransactionMethods() {
+    Map<String, Map<String, Method>> getInvokeTransactionMethods() {
         return invokeTransactionMethods;
     }
 
-    public Map<String, Map<String, Method>> getQueryMethods() {
+    Map<String, Map<String, Method>> getQueryMethods() {
         return queryMethods;
     }
 }

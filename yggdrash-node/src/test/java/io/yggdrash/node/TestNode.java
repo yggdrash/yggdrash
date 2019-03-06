@@ -27,12 +27,12 @@ import org.slf4j.LoggerFactory;
 
 public class TestNode extends BootStrapNode {
     private static final Logger log = LoggerFactory.getLogger(TestNode.class);
+    private final BranchId branchId = TestConstants.yggdrash();
 
     // discovery specific
     public final int port;
     public DiscoveryConsumer discoveryConsumer;
 
-    protected BranchId branchId = TestConstants.yggdrash();
     private PeerDialer peerDialer;
 
     public PeerTableGroup peerTableGroup;
