@@ -10,10 +10,6 @@ yggdrash:
     consensus:
       algorithm: pbft
 
-logging:
-  level:
-    io.yggdrash: info
-
 spring:
   output:
     ansi:
