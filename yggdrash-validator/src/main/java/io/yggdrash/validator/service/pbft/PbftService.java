@@ -123,6 +123,8 @@ public class PbftService implements CommandLineRunner {
                 } catch (InterruptedException e) {
                     log.trace(e.getMessage());
                 }
+            } else {
+                break;
             }
         }
 
@@ -141,6 +143,8 @@ public class PbftService implements CommandLineRunner {
                     } catch (InterruptedException e) {
                         log.trace(e.getMessage());
                     }
+                } else {
+                    break;
                 }
             }
         }
@@ -160,6 +164,8 @@ public class PbftService implements CommandLineRunner {
                     } catch (InterruptedException e) {
                         log.trace(e.getMessage());
                     }
+                } else {
+                    break;
                 }
             }
         }
