@@ -14,7 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Profile;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @Profile("validator")
@@ -83,37 +82,6 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         pbftService.updateUnconfirmedMsg(pbftMessage);
         pbftService.getLock().unlock();
     }
-
-    @Override
-    public void multicastPbftBlock(PbftProto.PbftBlock request,
-                                   StreamObserver<NetProto.Empty> responseObserver) {
-
-        log.trace("multicastPbftBlock");
-        PbftBlock newPbftBlock = new PbftBlock(request);
-
-        if (!PbftBlock.verify(newPbftBlock)) {
-            log.warn("Verify Fail");
-            responseObserver.onNext(EMPTY);
-            responseObserver.onCompleted();
-            return;
-        }
-
-        PbftBlock lastPbftBlock = this.blockChain.getLastConfirmedBlock();
-
-        responseObserver.onNext(NetProto.Empty.newBuilder().build());
-        responseObserver.onCompleted();
-
-        if (lastPbftBlock.getIndex() == newPbftBlock.getIndex() - 1
-                && Arrays.equals(lastPbftBlock.getHash(), newPbftBlock.getPrevBlockHash())) {
-
-            pbftService.getLock().lock();
-            // todo: check block confirm
-            //pbftService.updateUnconfirmedBlock(newPbftBlock);
-            pbftService.getLock().unlock();
-        }
-
-    }
-
 
     @Override
     public void getPbftBlockList(CommonProto.Offset request,
