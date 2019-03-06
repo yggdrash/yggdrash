@@ -132,15 +132,15 @@ public class PbftService implements CommandLineRunner {
         lock.unlock();
         if (prepareMsg != null) {
             multicastMessage(prepareMsg);
-        }
 
-        for (int i = 0; i < 10; i++) {
-            if (getMsgMap(blockChain.getLastConfirmedBlock().getIndex(), "PREPAREM").size()
-                    < consensusCount) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    log.trace(e.getMessage());
+            for (int i = 0; i < consensusCount; i++) {
+                if (getMsgMap(blockChain.getLastConfirmedBlock().getIndex(), "PREPAREM").size()
+                        < consensusCount) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        log.trace(e.getMessage());
+                    }
                 }
             }
         }
@@ -151,15 +151,15 @@ public class PbftService implements CommandLineRunner {
         lock.unlock();
         if (commitMsg != null) {
             multicastMessage(commitMsg);
-        }
 
-        for (int i = 0; i < 10; i++) {
-            if (getMsgMap(blockChain.getLastConfirmedBlock().getIndex(), "COMMITMS").size()
-                    < consensusCount) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    log.trace(e.getMessage());
+            for (int i = 0; i < consensusCount; i++) {
+                if (getMsgMap(blockChain.getLastConfirmedBlock().getIndex(), "COMMITMS").size()
+                        < consensusCount) {
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        log.trace(e.getMessage());
+                    }
                 }
             }
         }
