@@ -24,7 +24,7 @@ import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.wallet.Wallet;
 import org.spongycastle.util.encoders.Hex;
 
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 
 public class ContractTestUtils {
@@ -56,20 +56,20 @@ public class ContractTestUtils {
     }
 
     public static JsonObject createSampleBranchJson() {
-        String description =
-                "The Basis of the YGGDRASH Ecosystem. "
-                        + "It is also an aggregate and a blockchain containing information "
-                        + "of all Branch Chains.";
-        return createSampleBranchJson(description);
+        String validator = TestConstants.wallet().getHexAddress();
+        return createSampleBranchJson(validator);
     }
 
-    public static JsonObject createSampleBranchJson(String description) {
+    public static JsonObject createSampleBranchJson(String validator) {
         TestConstants.yggdrash();
 
         final String name = "STEM";
         final String symbol = "STEM";
         final String property = "ecosystem";
-        final BigInteger fee = BigInteger.valueOf(100);
+        final String description = "The Basis of the YGGDRASH Ecosystem." +
+                "It is also an aggregate and a blockchain containing information" +
+                "of all Branch Chains.";
+        final BigDecimal fee = BigDecimal.valueOf(100);
 
         JsonObject contractSample = new JsonObject();
         contractSample.addProperty("contractVersion", TestConstants.STEM_CONTRACT.toString());
@@ -82,15 +82,16 @@ public class ContractTestUtils {
         contracts.add(contractSample);
 
 
-        return createBranchJson(name, symbol, property, description, contracts, fee, null);
+        return createBranchJson(name, symbol, property, description, validator, contracts, fee, null);
     }
 
     public static JsonObject createBranchJson(String name,
                                               String symbol,
                                               String property,
                                               String description,
+                                              String validator,
                                               JsonArray contracts,
-                                              BigInteger fee,
+                                              BigDecimal fee,
                                               String timestamp) {
         JsonObject branchSample = new JsonObject();
         JsonObject branch = new JsonObject();
@@ -106,7 +107,7 @@ public class ContractTestUtils {
         }
 
         JsonArray validators = new JsonArray();
-        validators.add(TestConstants.wallet().getHexAddress());
+        validators.add(validator);
         branch.add("validator", validators);
 
         String consensusString = new StringBuilder()
@@ -134,11 +135,12 @@ public class ContractTestUtils {
                 .append("  }}").toString();
         JsonObject consensus = new Gson().fromJson(consensusString, JsonObject.class);
         branch.add("consensus", consensus);
+        branch.addProperty("fee", fee);
 
-        branchSample.add("branch", branch);
-        branchSample.addProperty("fee", fee);
+//        branchSample.add("branch", branch);
+//        branchSample.addProperty("fee", fee);
 
-        return branchSample;
+        return branch;
     }
 
     public static JsonObject signBranch(Wallet wallet, JsonObject raw) {

@@ -17,13 +17,10 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.Branch;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * updatable branch of stem contract
@@ -33,15 +30,14 @@ public class StemContractStateValue extends Branch {
 
     private static BigDecimal fee;
     private Long blockHeight;
-    private final List<ContractVersion> contractHistory = new ArrayList<>();
 
     public StemContractStateValue(JsonObject json) {
         super(json);
-        if (json.has("contractHistory")) {
-            for (JsonElement jsonElement : json.getAsJsonArray("contractHistory")) {
-                contractHistory.add(ContractVersion.of(jsonElement.getAsString()));
-            }
-        }
+    }
+
+    public void init() {
+        setFee(BigDecimal.ZERO);
+        setBlockHeight(0L);
     }
 
     public BigDecimal getFee() {
@@ -62,39 +58,16 @@ public class StemContractStateValue extends Branch {
         getJson().addProperty("blockHeight", blockHeight);
     }
 
-    public List<ContractVersion> getContractHistory() {
-        return contractHistory;
+    public void updateValidator(String validator) {
+        JsonArray validators = getJson().get(("validator")).getAsJsonArray();
+        validators.add(validator);
     }
 
-    /*void updateContract(String id) {
-        ContractVersion newContractVersion = ContractVersion.of(id);
-        if (getContractVersion().toString().equals(id)) {
-            return;
-        }
-
-        contractVersion = newContractVersion;
-        getJson().addProperty("contractVersion", id);
-
-        updateContractHistory(newContractVersion);
-    }*/
-
-    private void updateContractHistory(ContractVersion newContractVersion) {
-        if (contractHistory.contains(newContractVersion)) {
-            return;
-        }
-
-        contractHistory.add(newContractVersion);
-        if (!getJson().has("contractHistory")) {
-            JsonArray contractHistory = new JsonArray();
-            getJson().add("contractHistory", contractHistory);
-        }
-        getJson().getAsJsonArray("contractHistory").add(newContractVersion.toString());
+    public void setPreBranchId(String preBranchId) {
+        getJson().addProperty("preBranchId", preBranchId);
     }
 
     public static StemContractStateValue of(JsonObject json) {
-        if (json.has("fee")) {
-            return new StemContractStateValue(json.deepCopy().getAsJsonObject("branch"));
-        }
         return new StemContractStateValue(json.deepCopy());
     }
 

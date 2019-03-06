@@ -48,7 +48,6 @@ public class Branch {
 
     protected Branch(JsonObject json) {
         this.json = json;
-        this.branchId = BranchId.of(json);
         this.name = json.get("name").getAsString();
         this.symbol = json.get("symbol").getAsString();
         this.property = json.get("property").getAsString();
@@ -67,7 +66,7 @@ public class Branch {
         this.description = json.get("description").getAsString();
         this.validator = JsonUtil.convertJsonArrayToStringList(
                 json.get("validator").getAsJsonArray());
-
+        this.branchId = BranchId.of(getBranchJson());
         consensus = json.get("consensus").getAsJsonObject();
     }
 
@@ -109,6 +108,19 @@ public class Branch {
 
     public JsonObject getConsensus() {
         return consensus;
+    }
+
+    public JsonObject getBranchJson() {
+        JsonObject branch = new JsonObject();
+        branch.addProperty("name", name);
+        branch.addProperty("symbol", symbol);
+        branch.addProperty("property", property);
+        branch.addProperty("description", description);
+        branch.addProperty("timestamp", timestamp);
+        branch.add("contracts", json.getAsJsonArray("contracts"));
+        branch.add("validator", json.get("validator").getAsJsonArray());
+        branch.add("consensus", consensus);
+        return branch;
     }
 
     public boolean isYggdrash() {

@@ -17,6 +17,7 @@
 package io.yggdrash.core.contract;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
@@ -26,15 +27,16 @@ import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
+import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchBuilder;
 import io.yggdrash.core.blockchain.BranchId;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
@@ -43,6 +45,7 @@ import java.util.Set;
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import static io.yggdrash.common.config.Constants.VALIDATOR;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 
@@ -63,11 +66,9 @@ public class StemContractTest {
         stemContract = new StemContract();
 
         JsonObject params = ContractTestUtils.createSampleBranchJson();
-        System.out.println(params);
         stateValue = StemContractStateValue.of(params);
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer(stateValue.getValidators().get(0));
-
         List<Field> txReceipt = ContractUtils.txReceiptFields(stemContract);
         if (txReceipt.size() == 1) {
             txReceiptField = txReceipt.get(0);
@@ -135,8 +136,7 @@ public class StemContractTest {
     public void createTest() {
         String description = "ETH TO YEED";
         JsonObject params = getEthToYeedBranch(description);
-        String branchId = BranchId.of(params.get("branch").getAsJsonObject()).toString();
-
+        BranchId branchId = Branch.of(params).getBranchId();
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer(stateValue.getValidators().get(0));
 
@@ -149,18 +149,14 @@ public class StemContractTest {
 
         assertThat(receipt.isSuccess()).isTrue();
 
-        JsonObject saved = stateStore.get(branchId);
+        JsonObject saved = stateStore.get(branchId.toString());
         assertThat(saved).isNotNull();
         assertThat(saved.get("description").getAsString()).isEqualTo(description);
     }
 
     @Test
-    @Ignore
     public void updateTest() {
-        String description = "Hello World!";
-        JsonObject params = ContractTestUtils.createSampleBranchJson(description);
-
-//        JsonObject params = createParams(json);
+        JsonObject params = createUpdateParams();
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer(stateValue.getValidators().iterator().next());
 
@@ -172,14 +168,24 @@ public class StemContractTest {
         }
 
         assertTrue(receipt.isSuccess());
-
-        stemBranchViewTest(description);
+        stemBranchViewTest(params.get("validator").getAsString());
     }
 
-    private void stemBranchViewTest(String description) {
-        JsonObject params = createParams();
-        JsonObject result = stemContract.getBranch(params);
-        assertThat(result.get("description").getAsString()).isEqualTo(description);
+    private void stemBranchViewTest(String validator) {
+        Set<String> branchIdList = stemContract.getBranchIdList();
+        branchIdList.stream().forEach(b -> {
+            if (!b.equals(stateValue.getBranchId().toString())) {
+                JsonObject preBranchParams = createParams();
+                JsonObject preBranchJson = stemContract.getBranch(preBranchParams);
+                JsonObject params = createParams(b);
+                JsonObject branchJson = stemContract.getBranch(params);
+
+                JsonArray preValidator = preBranchJson.get("validator").getAsJsonArray();
+                preValidator.add(validator);
+                JsonArray newValidator = branchJson.get("validator").getAsJsonArray();
+                assertEquals(newValidator, preValidator);
+            }
+        });
     }
 
     @Test
@@ -192,14 +198,20 @@ public class StemContractTest {
         return ContractTestUtils.createParams(BRANCH_ID, stateValue.getBranchId().toString());
     }
 
+    private JsonObject createParams(String bid) {
+        return ContractTestUtils.createParams(BRANCH_ID, bid);
+    }
+
     private JsonObject createValidatorParams() {
         Optional<String> v = stateValue.getValidators().stream().findFirst();
         return ContractTestUtils.createParams(VALIDATOR, v.get());
     }
 
-    private JsonObject createParams(JsonElement json) {
+    private JsonObject createUpdateParams() {
         JsonObject params = new JsonObject();
-        params.add(stateValue.getBranchId().toString(), json);
+        params.addProperty(BRANCH_ID, "ade1be8566f3544dbb58ccfaae61eb45960dbc0d");
+        params.addProperty("validator", "30d0c0e7212642b371082df39824c5121c8ad047");
+        params.addProperty("fee", BigDecimal.valueOf(1000));
         return params;
     }
 
@@ -244,10 +256,8 @@ public class StemContractTest {
                                 .addValidator(TestConstants.wallet().getHexAddress())
                                 .buildJson();
 
-        JsonObject branch = new JsonObject();
-        branch.add("branch", branchJson);
-        branch.addProperty("fee", BigInteger.valueOf(100));
-        return branch;
+        branchJson.addProperty("fee", BigInteger.valueOf(100));
+        return branchJson;
     }
 
 }

@@ -6,21 +6,20 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.Contract;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.store.ReadWriterStore;
-import io.yggdrash.core.blockchain.Branch;
-import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
+import io.yggdrash.contract.core.store.ReadWriterStore;
+import io.yggdrash.core.blockchain.Branch;
+import io.yggdrash.core.blockchain.BranchId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
@@ -57,21 +56,23 @@ public class StemContract implements Contract {
         try {
             stateValue = StemContractStateValue.of(params);
             BranchId branchId = stateValue.getBranchId();
-            if (!isBranchExist(branchId.toString()) && isBranchIdValid(branchId, stateValue)) {
+            if (!isBranchExist(branchId.toString())
+                    && isBranchIdValid(branchId, stateValue)
+                    && certificateAuthority(params)) {
                 try {
-                    addBranchId(branchId);
+                    stateValue.init();
                     setStateValue(stateValue, params);
+                    addBranchId(branchId);
                     state.put(branchId.toString(), stateValue.getJson());
                     addTxId(branchId);
 
                     txReceipt.setStatus(ExecuteStatus.SUCCESS);
                 } catch (Exception e) {
-                    e.printStackTrace();
                     txReceipt.setStatus(ExecuteStatus.FALSE);
                 }
 
                 log.info("[StemContract | create] branchId => " + branchId);
-                log.info("[StemContract | create] branch => " + params);
+                log.info("[StemContract | create] branch => " + stateValue.getJson());
             }
         } catch (Exception e) {
             log.warn("Failed to convert Branch = {}", params);
@@ -87,21 +88,28 @@ public class StemContract implements Contract {
      */
     @InvokeTransaction
     public TransactionReceipt update(JsonObject params) {
-        //TODO fee state check
+        // TODO fee state check
         StemContractStateValue stateValue;
         try {
-            stateValue = StemContractStateValue.of(params);
-            BranchId branchId = stateValue.getBranchId();
-            if (isOwnerValid(params.get("validator").getAsString())
-                    && stateValue != null && !isBranchExist(branchId.toString())
-                    && isBranchIdValid(branchId, stateValue)) {
-                addBranchId(branchId);
-                setStateValue(stateValue, params);
-                state.put(branchId.toString(), stateValue.getJson());
-                addTxId(branchId);
+            String preBranchId = params.get(BRANCH_ID).getAsString();
+            JsonObject preBranchJson = state.get(preBranchId);
 
-                txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                log.info("[StemContract | update] branchId => " + branchId);
+            stateValue = StemContractStateValue.of(preBranchJson);
+            updateValue(stateValue, params);
+            BranchId newBranchId = Branch.of(stateValue.getJson()).getBranchId();
+
+            if (certificateAuthority(preBranchJson) && stateValue != null
+                    && !isBranchExist(newBranchId.toString())) {
+                try {
+                    addBranchId(newBranchId);
+                    state.put(newBranchId.toString(), stateValue.getJson());
+                    addTxId(newBranchId);
+
+                    txReceipt.setStatus(ExecuteStatus.SUCCESS);
+                } catch (Exception e) {
+                    txReceipt.setStatus(ExecuteStatus.FALSE);
+                }
+                log.info("[StemContract | update] branchId => " + newBranchId);
                 log.info("[StemContract | update] branch => " + stateValue.getJson());
             }
         } catch (Exception e) {
@@ -118,9 +126,10 @@ public class StemContract implements Contract {
      *
      * @param stateValue, json
      */
-    private void setStateValue(StemContractStateValue stateValue, JsonObject json) {
-        if (json.has("fee") && txReceipt.getTxSize() != null) {
-            BigDecimal fee = json.get("fee").getAsBigDecimal();
+    private void setStateValue(StemContractStateValue stateValue, JsonObject params) {
+        if (params.has("fee") && txReceipt.getTxSize() != null) {
+            // TODO update시 기존의 브랜치 아이디에서 fee 값과 합산?
+            BigDecimal fee = params.get("fee").getAsBigDecimal();
             BigDecimal txSize = BigDecimal.valueOf(txReceipt.getTxSize());
             BigDecimal txFee = txSize.divide(BigDecimal.valueOf(1000000));
             BigDecimal resultFee = fee.subtract(txFee);
@@ -128,10 +137,14 @@ public class StemContract implements Contract {
             stateValue.setFee(resultFee);
             stateValue.setBlockHeight(txReceipt.getBlockHeight());
         }
+    }
 
-//        if (json.has("validator")) {
-//            stateValue.set (json.get("validator").getAsJsonArray());
-//        }
+    private void updateValue(StemContractStateValue stateValue, JsonObject params) {
+        setStateValue(stateValue, params);
+        if (params.has("validator")) {
+            stateValue.updateValidator(params.get("validator").getAsString());
+            stateValue.setPreBranchId(params.get("branchId").getAsString());
+        }
     }
 
     /**
@@ -152,40 +165,6 @@ public class StemContract implements Contract {
      */
     public void messageCall(BranchId branchId) {
         // TODO message call to contract
-    }
-
-    public void certificateAuthority() {
-        // TODO 싸인값 검
-        // 벨리데이터가 맞으면 네트워크 채널에 참여가능하도록
-
-    }
-
-    /**
-     * Returns current contract of branch
-     *
-     * @param params   branchId
-     */
-    @ContractQuery
-    public ContractVersion getCurrentContract(JsonObject params) {
-        String branchId = params.get(BRANCH_ID).getAsString();
-        if (isBranchExist(branchId)) {
-            //return getStateValue(branchId).getContractVersion();
-        }
-        return null;
-    }
-
-    /**
-     * Returns version history of branch
-     *
-     * @param params   branchId
-     */
-    @ContractQuery
-    public List<ContractVersion> getContractHistory(JsonObject params) {
-        String branchId = params.get(BRANCH_ID).getAsString();
-        if (isBranchExist(branchId)) {
-            return getBranchStateValue(branchId).getContractHistory();
-        }
-        return Collections.emptyList();
     }
 
     /**
@@ -364,9 +343,23 @@ public class StemContract implements Contract {
         }
     }
 
-    private boolean isOwnerValid(String owner) {
+    public Boolean certificateAuthority(JsonObject params) {
+        JsonObject branchJson;
+        if (params.has("branch")) {
+            branchJson = params.get("branch").getAsJsonObject();
+        } else {
+            branchJson = params;
+        }
+
         String sender = this.txReceipt.getIssuer();
-        return sender != null && sender.equals(owner);
+        JsonArray validators = branchJson.get("validator").getAsJsonArray();
+        for (JsonElement v : validators) {
+            if (sender != null && sender.equals(v.getAsString())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private boolean isBranchIdValid(BranchId branchId, Branch branch) {
@@ -380,13 +373,5 @@ public class StemContract implements Contract {
         } else {
             return new StemContractStateValue(json);
         }
-    }
-
-    private Boolean validatorVerify(JsonObject params) {
-        //TODO sign verify of validator
-        txReceipt.getIssuer();
-        params.getAsJsonArray("validator");
-
-        return false;
     }
 }

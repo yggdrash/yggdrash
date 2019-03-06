@@ -22,6 +22,7 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
+import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.StemContract;
@@ -30,26 +31,31 @@ import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.store.TempStateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.lang.reflect.InvocationTargetException;
 
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import static io.yggdrash.common.config.Constants.TX_ID;
 
 public class RuntimeInvokeTest {
 
     TransactionReceipt txReceipt;
+    StemContract stemContract;
+    BranchId branchId;
 
     @Test
     public void initTest() throws InvocationTargetException, IllegalAccessException {
         StemContract contract = new StemContract();
+        stemContract = contract;
         RuntimeInvoke invoke = new RuntimeInvoke(contract);
 
         ReadWriterStore tempStore = new StateStore<>(new HashMapDbSource());
 
         JsonObject json = ContractTestUtils.createSampleBranchJson();
-        BranchId branchId = BranchId.of(json.get("branch").getAsJsonObject());
-
+        BranchId branchId = Branch.of(json).getBranchId();
+        this.branchId = branchId;
         TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId,
                 "create", json);
         TransactionReceipt receipt = new TransactionReceiptImpl(createTx);
@@ -63,19 +69,23 @@ public class RuntimeInvokeTest {
         }
     }
 
-//    @Test
-//    public void getBranchIdByTxIdTest() {
-//        StemContract contract = new StemContract();
-//        JsonObject txParams = createTxParams(txReceipt.getTxId());
-////        contract.getBranchIdByTxId(txParams);
-//        System.out.println(contract.getBranchIdByTxId(txParams));
-//    }
+    @Test
+    @Ignore
+    public void getBranchIdByTxIdTest() {
+        JsonObject txParams = createTxParams(txReceipt.getTxId());
+        stemContract.getBranchIdByTxId(txParams);
+    }
 
-//    @Test
-//    public void test() {
-//        JsonObject b = createParams();
-//        stemContract.feeState(b);
-//    }
+    @Test
+    @Ignore
+    public void feeStateTest() {
+        JsonObject b = createParams();
+        stemContract.feeState(b);
+    }
+
+    private JsonObject createParams() {
+        return ContractTestUtils.createParams(BRANCH_ID, branchId.toString());
+    }
 
     private JsonObject createTxParams(String txId) {
         return ContractTestUtils.createParams(TX_ID, txId);
