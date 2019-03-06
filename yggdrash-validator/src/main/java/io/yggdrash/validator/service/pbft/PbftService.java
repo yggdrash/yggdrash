@@ -45,7 +45,7 @@ public class PbftService implements CommandLineRunner {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftService.class);
 
     private static final boolean TEST_MEMORY_LEAK = false;
-    private static final int FAIL_COUNT = 2;
+    private static final int FAIL_COUNT = 3;
 
     private final boolean isValidator;
     private final int bftCount;
@@ -101,7 +101,7 @@ public class PbftService implements CommandLineRunner {
     }
 
     // todo: chage cron setting to config file or genesis ...
-    @Scheduled(cron = "*/2 * * * * *")
+    @Scheduled(cron = "* * * * * *")
     public void mainScheduler() {
 
         checkNode();
@@ -116,10 +116,14 @@ public class PbftService implements CommandLineRunner {
             multicastMessage(prePrepareMsg);
         }
 
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            log.trace(e.getMessage());
+        for (int i = 0; i < 10; i++) {
+            if (!isPrePrepared) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    log.trace(e.getMessage());
+                }
+            }
         }
 
         // make Prepare msg
@@ -130,10 +134,15 @@ public class PbftService implements CommandLineRunner {
             multicastMessage(prepareMsg);
         }
 
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            log.trace(e.getMessage());
+        for (int i = 0; i < 10; i++) {
+            if (getMsgMap(blockChain.getLastConfirmedBlock().getIndex(), "PREPAREM").size()
+                    < consensusCount) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    log.trace(e.getMessage());
+                }
+            }
         }
 
         // make commit msg
@@ -144,10 +153,15 @@ public class PbftService implements CommandLineRunner {
             multicastMessage(commitMsg);
         }
 
-        try {
-            Thread.sleep(500);
-        } catch (InterruptedException e) {
-            log.trace(e.getMessage());
+        for (int i = 0; i < 10; i++) {
+            if (getMsgMap(blockChain.getLastConfirmedBlock().getIndex(), "COMMITMS").size()
+                    < consensusCount) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    log.trace(e.getMessage());
+                }
+            }
         }
 
         lock.lock();
@@ -596,6 +610,18 @@ public class PbftService implements CommandLineRunner {
             }
         }
         return prepareMsgMap;
+    }
+
+    private Map<String, PbftMessage> getMsgMap(long index, String msg) {
+        Map<String, PbftMessage> msgMap = new TreeMap<>();
+        for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
+            PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
+            if (pbftMessage.getSeqNumber() == index
+                    && pbftMessage.getType().equals(msg)) {
+                msgMap.put(key, pbftMessage);
+            }
+        }
+        return msgMap;
     }
 
     private PbftMessage getPrePrepareMsg(long index) {
