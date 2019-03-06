@@ -207,6 +207,7 @@ project(':yggdrash-validator') {
         testCompile project(':yggdrash-core').sourceSets.test.output
         testCompile "com.vmlens:concurrent-junit:1.0.2"
         testCompile "org.springframework.boot:spring-boot-starter-test"
+        testCompile "io.grpc:grpc-testing:${grpcVersion}"
     }
 }
 

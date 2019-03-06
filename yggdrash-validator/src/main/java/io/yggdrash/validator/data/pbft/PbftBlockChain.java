@@ -1,10 +1,10 @@
 package io.yggdrash.validator.data.pbft;
 
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
 import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import org.slf4j.Logger;
@@ -72,18 +72,19 @@ public class PbftBlockChain {
                 throw new NotValidateException();
             }
 
-            PbftBlock prevPbftBlock = this.genesisBlock;
+            PbftBlock prevPbftBlock = this.blockStore.get(this.blockKeyStore.get(0L));
+            PbftBlock nextPbftBlock = null;
             for (long l = 1; l < this.blockKeyStore.size(); l++) {
-                pbftBlock = this.blockStore.get(this.blockKeyStore.get(l));
-                if (Arrays.equals(prevPbftBlock.getHash(), pbftBlock.getPrevBlockHash())) {
-                    prevPbftBlock = pbftBlock;
+                nextPbftBlock = this.blockStore.get(this.blockKeyStore.get(l));
+                if (Arrays.equals(prevPbftBlock.getHash(), nextPbftBlock.getPrevBlockHash())) {
+                    prevPbftBlock.clear();
+                    prevPbftBlock = nextPbftBlock;
                 } else {
                     throw new NotValidateException("PbftBlockStore is not valid.");
                 }
             }
 
-            this.lastConfirmedBlock = pbftBlock;
-
+            this.lastConfirmedBlock = nextPbftBlock;
         }
 
         this.transactionStore = new TransactionStore(
