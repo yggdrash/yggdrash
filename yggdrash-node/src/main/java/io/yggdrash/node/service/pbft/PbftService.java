@@ -197,25 +197,6 @@ public class PbftService implements CommandLineRunner {
         log.debug("");
     }
 
-    private void multicastBlock(PbftBlock block) {
-        for (String key : totalValidatorMap.keySet()) {
-            PbftClientStub client = totalValidatorMap.get(key);
-            if (client.isMyclient()) {
-                continue;
-            }
-            if (client.isRunning()) {
-                try {
-                    client.multicastPbftBlock(PbftBlock.toProto(block));
-                } catch (Exception e) {
-                    log.debug("multicast exception: " + e.getMessage());
-                    log.debug("client: " + client.getId());
-                    log.debug("block: " + block.getHashHex());
-                    // continue
-                }
-            }
-        }
-    }
-
     private void multicastMessage(PbftMessage message) {
         for (String key : totalValidatorMap.keySet()) {
             PbftClientStub client = totalValidatorMap.get(key);
