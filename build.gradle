@@ -30,6 +30,8 @@ ext {
     assertjVersion      = '3.11.1'
     commonLangVersion   = '3.8.1'
     collectionsVersion  = '4.2'
+    logbackEsAppenderVersion  = '1.6'
+    logbackJinoVersion  = '3.0.12'
     equinoxVersion = '3.13.0.v20180226-1711'
 }
 
@@ -129,6 +131,8 @@ project(':yggdrash-node') {
         compile "org.springframework.boot:spring-boot-starter-actuator"
         compile "org.springframework.cloud:spring-cloud-starter:2.0.0.RELEASE"
         compile "com.github.briandilley.jsonrpc4j:jsonrpc4j:1.5.3"
+        compile "com.internetitem:logback-elasticsearch-appender:${logbackEsAppenderVersion}"
+        compile "org.codehaus.janino:janino:${logbackJinoVersion}"
         annotationProcessor "org.springframework.boot:spring-boot-configuration-processor"
         //Must be disable in osgi
 //        runtime "org.springframework.boot:spring-boot-devtools"
