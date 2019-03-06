@@ -18,7 +18,8 @@ package io.yggdrash.core.store;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
+import io.yggdrash.common.store.StateStore;
+import io.yggdrash.common.store.datasource.HashMapDbSource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;

@@ -18,12 +18,11 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.contract.ContractVersion;
-import io.yggdrash.core.contract.TransactionReceipt;
+import io.yggdrash.common.exception.FailedOperationException;
+import io.yggdrash.common.store.StateStore;
+import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.exception.DuplicatedException;
-import io.yggdrash.core.exception.FailedOperationException;
 import io.yggdrash.core.exception.NonExistObjectException;
-import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.wallet.Wallet;
 
@@ -118,15 +117,15 @@ public class BranchGroup {
     }
 
     public StateStore<?> getStateStore(BranchId branchId) {
-        return branches.get(branchId).getRuntime().getStateStore();
+        return branches.get(branchId).getStateStore();
     }
 
     public TransactionReceiptStore getTransactionReceiptStore(BranchId branchId) {
-        return branches.get(branchId).getRuntime().getTransactionReceiptStore();
+        return branches.get(branchId).getTransactionReceiptStore();
     }
 
     public TransactionReceipt getTransactionReceipt(BranchId branchId, String transactionId) {
-        return branches.get(branchId).getRuntime().getTransactionReceipt(transactionId);
+        return branches.get(branchId).getTransactionReceipt(transactionId);
     }
 
 
@@ -144,10 +143,7 @@ public class BranchGroup {
         }
         try {
             BlockChain chain = branches.get(branchId);
-            // TODO change branch spec
-            // get runtime contract ID and execute
-            ContractVersion version = ContractVersion.of(contractVersion);
-            return chain.getRuntime().query(version, method, params);
+            return chain.getContractContainer().getContractManager().query(contractVersion, method, params);
         } catch (Exception e) {
             throw new FailedOperationException(e);
         }

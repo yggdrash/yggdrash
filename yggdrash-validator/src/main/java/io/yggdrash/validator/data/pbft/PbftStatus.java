@@ -5,8 +5,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.common.util.ByteUtil;
-import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.common.utils.ByteUtil;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
@@ -197,4 +197,15 @@ public class PbftStatus {
         }
         return Arrays.equals(this.toBinary(), newPbftStatus.toBinary());
     }
+
+    public void clear() {
+        for (PbftMessage pbftMessage : this.unConfirmedPbftMessageMap.values()) {
+            if (pbftMessage != null) {
+                pbftMessage.clear();
+            }
+        }
+        this.unConfirmedPbftMessageMap.clear();
+    }
+
+
 }

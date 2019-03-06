@@ -17,10 +17,12 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.store.StateStore;
+import io.yggdrash.common.store.datasource.DbSource;
+import io.yggdrash.common.store.datasource.HashMapDbSource;
+import io.yggdrash.common.store.datasource.LevelDbDataSource;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.store.datasource.DbSource;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
-import io.yggdrash.core.store.datasource.LevelDbDataSource;
 import java.io.File;
 
 public class StoreBuilder {
@@ -41,7 +43,7 @@ public class StoreBuilder {
         return this;
     }
 
-    public Store build(StoreTypeEnum typeEnum) {
+    public ReadWriterStore build(StoreTypeEnum typeEnum) {
         DbSource<byte[], byte[]> dbSource;
         dbSource = getDbSource(branchId + File.separator + typeEnum);
         switch (typeEnum) {

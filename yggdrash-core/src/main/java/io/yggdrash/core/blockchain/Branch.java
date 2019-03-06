@@ -21,7 +21,8 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.common.utils.JsonUtil;
+import org.apache.commons.io.IOUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -30,7 +31,6 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.apache.commons.io.IOUtils;
 
 
 public class Branch {
@@ -46,6 +46,8 @@ public class Branch {
 
     // TODO change ACL Validators
     private final Set<String> validators;
+
+    private final JsonObject consensus;
 
     protected Branch(JsonObject json) {
         this.json = json;
@@ -69,6 +71,8 @@ public class Branch {
         this.description = json.get("description").getAsString();
         this.validators = JsonUtil.convertJsonArrayToSet(
                 json.get("validator").getAsJsonArray());
+
+        consensus = json.get("consensus").getAsJsonObject();
     }
 
     public BranchId getBranchId() {
@@ -120,6 +124,10 @@ public class Branch {
         return json;
     }
 
+    public JsonObject getConsensus() {
+        return consensus;
+    }
+
     public boolean isYggdrash() {
         return Constants.YGGDRASH.equals(symbol);
     }
@@ -163,6 +171,7 @@ public class Branch {
         JsonArray validatorArray = new JsonArray();
         validators.stream().forEach(v -> validatorArray.add(v));
         branchJson.add("validator", validatorArray);
+        branchJson.add("consensus", consensus);
         return branchJson;
     }
 

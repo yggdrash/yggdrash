@@ -18,7 +18,7 @@ package io.yggdrash.gateway.controller;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.TestConstants;
-import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.node.YggdrashNodeApp;
 import org.junit.Test;

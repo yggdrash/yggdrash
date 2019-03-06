@@ -1,6 +1,6 @@
 package io.yggdrash.validator;
 
-import io.yggdrash.common.util.FileUtil;
+import io.yggdrash.common.utils.FileUtil;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;

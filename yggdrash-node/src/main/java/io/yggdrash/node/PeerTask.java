@@ -32,10 +32,6 @@ import java.util.List;
 
 public class PeerTask {
 
-    //TODO
-    // PeerTask => peerTable/bucket management
-    // PeerDialer => peerChannel/handler management
-
     private static final Logger log = LoggerFactory.getLogger(PeerTask.class);
 
     private PeerTableGroup peerTableGroup;
@@ -73,7 +69,7 @@ public class PeerTask {
 
     // refresh performs a lookup for a random target to keep buckets full.
     // seed nodes are inserted if the table is empty (initial bootstrap or discarded faulty peers).
-    @Scheduled(fixedRate = KademliaOptions.BUCKET_REFRESH)
+    @Scheduled(cron = "*/" + KademliaOptions.BUCKET_REFRESH + " * * * * *")
     public void refresh() {
         peerTableGroup.refresh();
     }

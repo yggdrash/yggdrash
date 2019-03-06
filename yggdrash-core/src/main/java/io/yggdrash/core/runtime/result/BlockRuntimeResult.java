@@ -18,7 +18,7 @@ package io.yggdrash.core.runtime.result;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.core.contract.TransactionReceipt;
+import io.yggdrash.contract.core.TransactionReceipt;
 
 import java.util.ArrayList;
 import java.util.HashMap;

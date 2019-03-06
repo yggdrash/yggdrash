@@ -2,17 +2,17 @@ package io.yggdrash.core.blockchain.osgi;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.common.store.StateStore;
+import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractStateStore;
+import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.contract.TransactionReceipt;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
-import io.yggdrash.core.runtime.annotation.ContractStateStore;
-import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
-import io.yggdrash.core.runtime.annotation.InvokeTransaction;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
-import io.yggdrash.core.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
@@ -23,19 +23,14 @@ import org.slf4j.LoggerFactory;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ContractManager {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
-
-    private final String PREFIX_BUNDLE_PATH = "file:";
 
     private Framework framework;
     private String systemContractPath;
@@ -66,14 +61,11 @@ public class ContractManager {
     }
 
     public String makeContractFullPath(String contractName, boolean isSystemContract) {
-        return String.format("%s%s/%s", PREFIX_BUNDLE_PATH, isSystemContract ? systemContractPath : userContractPath, contractName);
+        return String.format("%s%s/%s", ContractContainer.PREFIX_BUNDLE_PATH, isSystemContract ? systemContractPath : userContractPath, contractName);
     }
 
     public boolean checkSystemContract(String contractName) {
-        if (contractName.startsWith("system-")) {
-            return true;
-        }
-        return false;
+        return contractName.matches("[0-9]*[-]*system-.*");
     }
 
     void inject(Bundle bundle) throws IllegalAccessException {
@@ -82,7 +74,7 @@ public class ContractManager {
             return;
         }
 
-        boolean isSystemContract = bundle.getLocation().startsWith(String.format("%s%s", PREFIX_BUNDLE_PATH, systemContractPath)) ? true : false;
+        boolean isSystemContract = bundle.getLocation().startsWith(String.format("%s%s", ContractContainer.PREFIX_BUNDLE_PATH, systemContractPath)) ? true : false;
 
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = framework.getBundleContext().getService(serviceRef);
@@ -119,6 +111,12 @@ public class ContractManager {
         STOP
     }
 
+    private enum MethodType {
+        EndBlock,
+        Query,
+        InvokeTx
+    }
+
     private boolean action(Object identifier, ActionType action) {
         Bundle bundle = getBundle(identifier);
         if (bundle == null) {
@@ -139,7 +137,7 @@ public class ContractManager {
                     break;
             }
         } catch (Exception e) {
-            log.error("Execute bundle exception: branchID - {}, msg - {}", branchId, e.getMessage());
+            log.error("Execute bundle exception: contractId:{}, path:{}, stack:{}", bundle.getBundleId(), bundle.getLocation(), ExceptionUtils.getStackTrace(e));
             throw new RuntimeException(e);
         }
         return true;
@@ -195,88 +193,107 @@ public class ContractManager {
         return action(contractId, ActionType.STOP);
     }
 
+    private Object callContractMethod(Bundle bundle, String methodName, JsonObject params, MethodType methodType, TransactionReceipt txReceipt) {
+        if (bundle.getRegisteredServices() == null) {
+            return null;
+        }
+        // Assume one service
+        ServiceReference serviceRef = bundle.getRegisteredServices()[0];
+        Object service = framework.getBundleContext().getService(serviceRef);
+
+        Map<String, Method> methodMap = null;
+        contractCache.cacheContract(bundle, framework);
+        switch (methodType) {
+            case InvokeTx:
+                methodMap = contractCache.getInvokeTransactionMethods().get(bundle.getLocation());
+                break;
+            case Query:
+                methodMap = contractCache.getQueryMethods().get(bundle.getLocation());
+                break;
+            case EndBlock:
+                methodMap = contractCache.getEndBlockMethods().get(bundle.getLocation());
+                break;
+        }
+
+        if (methodMap == null || methodMap.get(methodName) == null) {
+            return null;
+        }
+
+        Method method = methodMap.get(methodName);
+        try {
+            switch (methodType) {
+                case InvokeTx:
+                    // Inject field
+                    Map<Field, List<Annotation>> fields = contractCache.getInjectingFields().get(bundle.getLocation());
+                    Iterator<Field> fieldIter = fields.keySet().iterator();
+                    while (fieldIter.hasNext()) {
+                        Field field = fieldIter.next();
+                        field.setAccessible(true);
+                        for (Annotation a : field.getDeclaredAnnotations()) {
+                            if (a.annotationType().equals(ContractTransactionReceipt.class)) {
+                                field.set(service, txReceipt);
+                            }
+                        }
+                    }
+                    break;
+            }
+
+            if (method.getParameterCount() == 0) {
+                return method.invoke(service);
+            } else {
+                return method.invoke(service, params);
+            }
+        } catch (Exception e) {
+            log.error("Call contract method : {}", bundle.getBundleId());
+        }
+
+        return null;
+    }
+
+    public Object query(String contractVersion, String methodName, JsonObject params) {
+        String contractFileName = makeContractFullPath(contractVersion, checkSystemContract(contractVersion));
+        Bundle bundle = getBundle(contractFileName);
+        if (bundle == null) {
+            return null;
+        }
+        return callContractMethod(bundle, methodName, params, MethodType.Query, null);
+    }
+
     public Object invoke(String contractFileName, JsonObject txBody, TransactionReceipt txReceipt) {
         Bundle bundle = getBundle(contractFileName);
         if (bundle == null) {
             return null;
         }
-
         return invoke(bundle.getBundleId(), txBody, txReceipt);
     }
 
     public Object invoke(long contractId, JsonObject txBody, TransactionReceipt txReceipt) {
         Bundle bundle = getBundle(contractId);
-
-        // Check service existence
-        if (bundle == null || bundle.getRegisteredServices() == null) {
+        if (bundle == null) {
             return null;
         }
-
-        Object result = null;
-        // Assume one service
-        ServiceReference serviceRef = bundle.getRegisteredServices()[0];
-        Object service = framework.getBundleContext().getService(serviceRef);
-
-        Map<String, Method> methodMap = contractCache.getInvokeTransactionMethods().get(bundle.getLocation());
-        if (methodMap == null) {
-            methodMap = cacheContract(bundle.getLocation(), service);
-        }
-
-        try {
-            Method method = methodMap.get(txBody.get("method").getAsString());
-            if (method == null) {
-                return null;
-            }
-
-            // Inject field
-            Map<Field, List<Annotation>> fields = contractCache.getInjectingFields().get(bundle.getLocation());
-            Iterator<Field> fieldIter = fields.keySet().iterator();
-            while (fieldIter.hasNext()) {
-                Field field = fieldIter.next();
-                field.setAccessible(true);
-                for (Annotation a : field.getDeclaredAnnotations()) {
-                    if (a.annotationType().equals(ContractTransactionReceipt.class)) {
-                        field.set(service, txReceipt);
-                    }
-                }
-            }
-
-            // Invoke method
-            if (method.getParameterCount() == 0) {
-                result = method.invoke(service);
-            } else {
-                result = method.invoke(service, txBody.getAsJsonObject("params"));
-            }
-        } catch (Exception e) {
-            log.error("Call contract: {}", contractId);
-        }
-        return result;
+        return callContractMethod(bundle, txBody.get("method").getAsString(), txBody.getAsJsonObject("params"), MethodType.InvokeTx, txReceipt);
     }
 
-    private Map<String, Method> cacheContract(String location, Object service) {
-        Map<Field, List<Annotation>> fields = Arrays.stream(service.getClass().getDeclaredFields())
-                .filter(field -> {
-                    if (field.getDeclaredAnnotations() != null && field.getDeclaredAnnotations().length > 0) {
-                        return true;
+    private List<Object> endBlock() {
+        List<Object> results = new ArrayList<>();
+        for (Bundle bundle : framework.getBundleContext().getBundles()) {
+            ServiceReference serviceRef = bundle.getRegisteredServices()[0];
+            Object service = framework.getBundleContext().getService(serviceRef);
+
+            contractCache.cacheContract(bundle, framework);
+            Map<String, Method> endBlockMethods = contractCache.getEndBlockMethods().get(bundle.getLocation());
+            if (endBlockMethods != null) {
+                endBlockMethods.forEach((k, m) -> {
+                    Object result = callContractMethod(bundle, k, null, MethodType.EndBlock, null);
+                    if (result != null) {
+                        results.add(result);
                     }
-                    return false;
-                })
-                .collect(Collectors.toMap(field -> field, field -> Arrays.asList(field.getDeclaredAnnotations())));
-        contractCache.getInjectingFields().put(location, fields);
+                });
+            }
+        }
 
-
-        Map<String, Method> methods = Arrays.stream(service.getClass().getDeclaredMethods())
-                .filter(method -> {
-                    if (method.isAnnotationPresent(InvokeTransaction.class)) {
-                        return true;
-                    }
-                    return false;
-                })
-                .filter(method -> Modifier.isPublic(method.getModifiers()))
-                .collect(Collectors.toMap(m -> m.getName(), m -> m));
-        contractCache.getInvokeTransactionMethods().put(location, methods);
-
-        return methods;
+        return results;
     }
 
     public BlockRuntimeResult executeTransactions(BlockHusk nextBlock) {
@@ -307,6 +324,7 @@ public class ContractManager {
             result.addTxReceipt(txReceipt);
             // Save TxReceipt
         }
+        List<Object> endBlockResult = endBlock();
         // Save BlockStates
 //        result.setBlockResult(blockState.changeValues());
 

@@ -17,9 +17,10 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NotValidateException;
 import org.slf4j.Logger;
@@ -120,7 +121,7 @@ public class TransactionHeader {
     }
 
     public long length() {
-        return this.toBinary().length;
+        return Constants.TX_HEADER_LENGTH;
     }
 
     public byte[] getChain() {

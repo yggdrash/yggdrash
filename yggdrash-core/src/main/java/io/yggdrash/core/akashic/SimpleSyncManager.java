@@ -14,22 +14,25 @@ public class SimpleSyncManager implements SyncManager {
 
     @Override
     public void syncBlock(PeerHandler peerHandler, BlockChain blockChain, long limitIndex) {
-        List<BlockHusk> blockList;
-        do {
+        // try 10 times per 10,000 blocks = maximum 100,000 blocks per peer
+        for (int i = 0; i < 10; i++) {
             long offset = blockChain.getLastIndex() + 1;
             if (limitIndex > 0 && limitIndex <= offset) {
                 return;
             }
-            blockList = peerHandler.syncBlock(blockChain.getBranchId(), offset);
-            log.debug("Synchronize block offset={} receivedSize={}, from={}", offset, blockList.size(),
-                    peerHandler.getPeer());
+            List<BlockHusk> blockList = peerHandler.syncBlock(blockChain.getBranchId(), offset);
+            log.debug("Synchronize block requestOffset={} receivedSize={}, from={}", offset, blockList.size(),
+                    peerHandler.getPeer().toAddress());
+            if (blockList.isEmpty()) {
+                return;
+            }
             for (BlockHusk block : blockList) {
                 if (limitIndex > 0 && limitIndex <= block.getIndex()) {
                     return;
                 }
                 blockChain.addBlock(block, false);
             }
-        } while (!blockList.isEmpty());
+        }
     }
 
     @Override

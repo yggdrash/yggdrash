@@ -1,13 +1,14 @@
 package io.yggdrash.core.store;
 
 import com.google.gson.Gson;
-import io.yggdrash.core.contract.TransactionReceipt;
+import io.yggdrash.common.store.datasource.DbSource;
+import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
-import io.yggdrash.core.store.datasource.DbSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TransactionReceiptStore implements Store<String, TransactionReceipt>{
+public class TransactionReceiptStore implements ReadWriterStore<String, TransactionReceipt> {
     private static final Logger log = LoggerFactory.getLogger(TransactionReceiptStore.class);
 
 

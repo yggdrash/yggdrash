@@ -20,12 +20,13 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.common.util.ContractUtils;
+import io.yggdrash.common.utils.ContractUtils;
+import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.BranchBuilder;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.runtime.annotation.ContractStateStore;
-import io.yggdrash.core.store.StateStore;
-import io.yggdrash.core.store.datasource.HashMapDbSource;
+import io.yggdrash.contract.core.annotation.ContractStateStore;
+import io.yggdrash.common.store.StateStore;
+import io.yggdrash.common.store.datasource.HashMapDbSource;
 import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -62,7 +63,6 @@ public class StemContractTest {
         JsonObject json = ContractTestUtils.createSampleBranchJson();
         stateValue = StemContractStateValue.of(json);
         JsonObject params = createParams(stateValue.getJson());
-
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer(stateValue.getValidators().stream().findFirst().get());
 
@@ -142,9 +142,40 @@ public class StemContractTest {
     }
 
     @Test
-    public void getBranchList() {
+    public void getBranchIdListTest() {
         Set<String> branchIdList = stemContract.getBranchIdList();
         assertThat(branchIdList).containsOnly(stateValue.getBranchId().toString());
+    }
+
+    @Test
+    public void getBranchTest() {
+        JsonObject params = createParams();
+        stemContract.getBranch(params);
+    }
+
+    @Test
+    public void getBranchByTxIDTest() {
+        JsonObject params = createParams();
+        stemContract.getBranchByTxID(params);
+    }
+
+    @Test
+    public void getContractByBranchTest() {
+        JsonObject params = createParams();
+        stemContract.getContractByBranch(params);
+    }
+
+    @Test
+    public void getValidatorTest() {
+        JsonObject params = createParams();
+        //TODO store -> validator set compare to return validator
+        stemContract.getValidator(params);
+    }
+
+    @Test
+    public void getBranchIdByValidatorTest() {
+        JsonObject params = createValidatorParams();
+        stemContract.getBranchIdByValidator(params);
     }
 
     private JsonObject createParams() {

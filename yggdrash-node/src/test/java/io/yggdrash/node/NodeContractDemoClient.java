@@ -10,7 +10,7 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.common.util.JsonUtil;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
@@ -28,6 +28,7 @@ import io.yggdrash.node.api.JsonRpcConfig;
 import io.yggdrash.node.api.TransactionApi;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -89,7 +90,7 @@ public class NodeContractDemoClient {
         System.out.println("===============");
         System.out.println("YGGDRASH BRANCH : " + yggdrash.toString());
         System.out.println("STEM CONTRACT : " + stemContract.toString());
-        System.out.println("YEED BRANCH : " + yeedContract.toString());
+        System.out.println("YEED CONTRACT : " + yeedContract.toString());
 
 
         System.out.print("[1] 트랜잭션 전송\n[2] 트랜잭션 조회\n[3] 브랜치 배포\n[4] 브랜치 목록\n"
@@ -145,7 +146,7 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static void getNodeBranch() throws Exception {
+    private static void getNodeBranch() {
         Map<String, BranchDto> branches = rpc.proxyOf(TARGET_SERVER, BranchApi.class)
                 .getBranches();
 
@@ -162,7 +163,7 @@ public class NodeContractDemoClient {
                 if ("STEM".equals(contract.get("name"))) {
                     stemContract = ContractVersion.of((String) contract.get("contractVersion"));
                 } else if ("YEED".equals(contract.get("name"))) {
-                    yeedContract = ContractVersion.of((String) contract.get("contractVersion"));
+                    yeedContract = ContractVersion.ofNonHex((String) contract.get("contractVersion"));
                 }
 
             });

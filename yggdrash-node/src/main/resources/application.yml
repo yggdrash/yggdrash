@@ -6,6 +6,9 @@ yggdrash:
     max-peers: 25
     chain.enabled: true
     chain.gen: false
+  validator:
+    consensus:
+      algorithm: pbft
 
 spring:
   output:
@@ -70,3 +73,4 @@ spring.profiles: master
 yggdrash:
   node:
     chain.gen: true
+

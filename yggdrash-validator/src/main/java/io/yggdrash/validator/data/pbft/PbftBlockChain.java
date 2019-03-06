@@ -4,7 +4,7 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.core.store.datasource.LevelDbDataSource;
+import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
 import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import org.slf4j.Logger;

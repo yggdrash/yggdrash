@@ -21,11 +21,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.store.datasource.DbSource;
+import io.yggdrash.common.store.datasource.DbSource;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -36,7 +37,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MetaStore implements Store<String, String> {
+public class MetaStore implements ReadWriterStore<String, String> {
     private final DbSource<byte[], byte[]> db;
 
     // TODO Change to DAO patten

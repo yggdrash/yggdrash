@@ -19,18 +19,18 @@ package io.yggdrash.core.blockchain.genesis;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.common.config.DefaultConfig;
-import io.yggdrash.common.util.FileUtil;
+import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.core.blockchain.Branch;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 public class BranchLoaderTest {
     Branch branch;

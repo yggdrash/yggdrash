@@ -23,7 +23,7 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.trie.Trie;
-import io.yggdrash.common.util.ByteUtil;
+import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
@@ -357,7 +357,9 @@ public class Block {
 
     public void clear() {
         this.header = null;
-        this.body.clear();
+        if (this.body != null) {
+            this.body.clear();
+        }
         this.body = null;
         this.signature = null;
     }
