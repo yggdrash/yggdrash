@@ -144,6 +144,7 @@ public class BlockChainBuilder {
                     .withBranchId(branch.getBranchId().toString())
                     .withStateStore(stateStore)
                     .withTransactionReceiptStore(transactionReceiptStore)
+                    .withConfig(storeBuilder.getConfig())
                     .build();
         }
 

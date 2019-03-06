@@ -51,7 +51,7 @@ task dpoaContract(type: Jar) {
         )
     }
     exclude(excludeList)
-    archiveName "1-system-dpoa-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+    archiveName "system-dpoa-contract-${manifest.attributes.get('Bundle-Version')}.jar"
 }
 
 task dpoaClientContract(type: Jar) {
@@ -79,7 +79,7 @@ task dpoaClientContract(type: Jar) {
         )
     }
     exclude(excludeList)
-    archiveName "2-system-dpoa-client-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+    archiveName "system-dpoa-client-contract-${manifest.attributes.get('Bundle-Version')}.jar"
 }
 
 task coinContract(type: Jar) {
@@ -107,7 +107,7 @@ task coinContract(type: Jar) {
         )
     }
     exclude(excludeList)
-    archiveName "3-system-coin-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+    archiveName "system-coin-contract-${manifest.attributes.get('Bundle-Version')}.jar"
 }
 
 task noneContract(type: Jar) {
@@ -172,8 +172,8 @@ def keyAlias = 'yggdrash'
 task signJar(description: 'to Sign JAR.', group: 'Build') {
 
     dependsOn dpoaContract
-    dependsOn dpoaClientContract
     dependsOn coinContract
+//    dependsOn dpoaClientContract
 
     doLast {
         def libFiles = file('build/libs').listFiles()

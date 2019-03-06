@@ -17,16 +17,16 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.exception.FailedOperationException;
+import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
-import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
-import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.wallet.Wallet;
@@ -101,6 +101,14 @@ public class BlockChain {
         for (long i = loadStart; i <= bestBlock; i++) {
             // recent block load and update Cache
             BlockHusk block = blockStore.getBlockByIndex(i);
+            // TODO node can be shutdown before blockStore.addBlock()
+            // addBlock(): metaStore.setBestBlock() -> executeTransactions() -> blockStore.addBlock()
+            if (block == null) {
+                long prevIdx = i - 1;
+                metaStore.setBestBlock(blockStore.getBlockByIndex(prevIdx));
+                log.warn("reset metaStore bestBlock: {} -> {}", bestBlock, prevIdx);
+                break;
+            }
             transactionStore.updateCache(block.getBody());
             // set Last Best Block
             if (i == bestBlock) {
@@ -121,11 +129,11 @@ public class BlockChain {
         return stateStore;
     }
 
-    public TransactionReceiptStore getTransactionReceiptStore() {
+    TransactionReceiptStore getTransactionReceiptStore() {
         return transactionReceiptStore;
     }
 
-    public TransactionReceipt getTransactionReceipt(String txId) {
+    TransactionReceipt getTransactionReceipt(String txId) {
         return transactionReceiptStore.get(txId);
     }
 

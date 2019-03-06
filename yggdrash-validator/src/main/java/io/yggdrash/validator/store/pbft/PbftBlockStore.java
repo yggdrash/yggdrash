@@ -1,5 +1,6 @@
 package io.yggdrash.validator.store.pbft;
 
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.validator.data.pbft.PbftBlock;
@@ -23,10 +24,20 @@ public class PbftBlockStore implements ReadWriterStore<byte[], PbftBlock> {
             return;
         }
 
+        byte[] valueBin = value.toBinary();
+        if (valueBin.length > Constants.MAX_MEMORY) {
+            log.error("Block size is not valid.");
+            log.error("put "
+                    + "(key: " + Hex.toHexString(key) + ")"
+                    + "(value length: " + valueBin.length + ")");
+            return;
+        }
+
         log.trace("put "
                 + "(key: " + Hex.toHexString(key) + ")"
-                + "(value length: " + value.toBinary().length + ")");
-        db.put(key, value.toBinary());
+                + "(value length: " + valueBin.length + ")");
+
+        db.put(key, valueBin);
     }
 
     @Override

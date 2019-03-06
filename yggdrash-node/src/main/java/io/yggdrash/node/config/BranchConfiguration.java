@@ -99,7 +99,7 @@ public class BranchConfiguration {
                     .setPolicyLoader(policyLoader)
                     .build();
         } catch (Exception e) {
-            log.warn(e.getMessage());
+            log.warn(e.getMessage(), e);
             return null;
         }
     }

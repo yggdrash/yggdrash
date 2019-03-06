@@ -358,7 +358,9 @@ public class Block {
 
     public void clear() {
         this.header = null;
-        this.body.clear();
+        if (this.body != null) {
+            this.body.clear();
+        }
         this.body = null;
         this.signature = null;
     }

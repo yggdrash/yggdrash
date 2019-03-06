@@ -55,14 +55,19 @@ public abstract class BootStrapNode implements BootStrap, CatchUpSyncEventListen
 
     @Override
     public void catchUpRequest(BlockHusk block) {
+        if (!nodeStatus.isUpStatus()) {
+            return;
+        }
         BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
         if (blockChain == null) {
             return;
         }
         List<PeerHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
+        nodeStatus.sync();
         for (PeerHandler peerHandler : peerHandlerList) {
             syncManager.syncBlock(peerHandler, blockChain, block.getIndex());
         }
+        nodeStatus.up();
         try {
             blockChain.addBlock(block, true);
         } catch (Exception e) {
