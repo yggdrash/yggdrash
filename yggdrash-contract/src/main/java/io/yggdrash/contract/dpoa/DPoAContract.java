@@ -12,6 +12,8 @@ import io.yggdrash.common.contract.vo.dpoa.tx.TxValidatorVote;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractEndBlock;
+import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.Genesis;
@@ -97,6 +99,7 @@ public class DPoAContract implements BundleActivator {
             return proposeValidatorSet;
         }
 
+        @ContractQuery
         public ValidatorSet getValidatorSet() {
             ValidatorSet validatorSet = null;
             JsonObject jsonValidatorSet = state.get(PrefixKeyEnum.VALIDATORS.toValue());
@@ -190,6 +193,7 @@ public class DPoAContract implements BundleActivator {
         }
 
         //todo should receive a set of byzantine and a set of validator that participated in the previous block consensus.
+        @ContractEndBlock
         public List<Validator> commit() {
             boolean isUpdateValidator = false;
             boolean isUpdateProposedValidator = false;
