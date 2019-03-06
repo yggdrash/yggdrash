@@ -50,6 +50,10 @@ public class Constants {
 
     }
 
+    public interface LIMIT {
+        long BLOCK_SYNC_SIZE = 3 * 1024 * 1024; // 3MB
+    }
+
     // TODO Contract Version fix
     public static final byte[] STEM_CONTRACT = Hex.encode(STEM.getBytes());
     public static final ContractVersion STEM_CONTRACT_VERSION = ContractVersion.of(HexUtil.toHexString(STEM_CONTRACT));

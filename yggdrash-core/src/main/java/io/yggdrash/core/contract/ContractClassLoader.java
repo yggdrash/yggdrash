@@ -17,6 +17,7 @@
 package io.yggdrash.core.contract;
 
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.contract.Contract;
 import io.yggdrash.core.exception.NonExistObjectException;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -30,8 +31,7 @@ import java.io.InputStream;
 
 public class ContractClassLoader extends ClassLoader {
     private static final Logger log = LoggerFactory.getLogger(ContractClassLoader.class);
-    private static final Class[] CONTRACTS = {StemContract.class,
-            NoneContract.class, CoinContract.class, DPoAContract.class};
+    private static final Class[] CONTRACTS = {StemContract.class, NoneContract.class};
     private static final Long MAX_FILE_LENGTH = 5242880L; // default 5MB bytes
 
     static {

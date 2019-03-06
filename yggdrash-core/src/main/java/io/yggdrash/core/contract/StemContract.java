@@ -3,14 +3,17 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.contract.Contract;
+import io.yggdrash.contract.core.ExecuteStatus;
+import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.runtime.annotation.ContractQuery;
-import io.yggdrash.core.runtime.annotation.ContractStateStore;
-import io.yggdrash.core.runtime.annotation.ContractTransactionReceipt;
-import io.yggdrash.core.runtime.annotation.Genesis;
-import io.yggdrash.core.runtime.annotation.InvokeTransaction;
-import io.yggdrash.core.store.Store;
+import io.yggdrash.contract.core.annotation.ContractQuery;
+import io.yggdrash.contract.core.annotation.ContractStateStore;
+import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
+import io.yggdrash.contract.core.annotation.Genesis;
+import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,7 +33,7 @@ public class StemContract implements Contract<JsonObject> {
     private final String branchIdListKey = "BRANCH_ID_LIST";
 
     @ContractStateStore
-    Store<String, JsonObject> state;
+    ReadWriterStore<String, JsonObject> state;
 
 
     @ContractTransactionReceipt
@@ -66,6 +69,13 @@ public class StemContract implements Contract<JsonObject> {
             }
             if (!isBranchExist(branchId.toString()) && isBranchIdValid(branchId, stateValue)) {
                 try {
+
+                    // branch id 생성
+
+
+                    // validator set
+                    // Tx id set
+
                     stateValue.init();
                     // Branch ID 추가부터
                     addBranchId(branchId);
@@ -184,6 +194,21 @@ public class StemContract implements Contract<JsonObject> {
     /**
      * @param params branch id
      *
+     * @return branch json object
+     */
+    @ContractQuery
+    public JsonObject getBranchByTxID(JsonObject params) {
+        //TODO txid -> txhusk -> branch id
+        String branchId = params.get(BRANCH_ID).getAsString();
+        if (isBranchExist(branchId)) {
+            return getStateValue(branchId).getJson();
+        }
+        return new JsonObject();
+    }
+
+    /**
+     * @param params branch id
+     *
      * @return contract json object
      */
     @ContractQuery
@@ -239,7 +264,7 @@ public class StemContract implements Contract<JsonObject> {
         });
         return branchIdSet;
     }
-    
+
     private boolean isBranchExist(String branchId) {
         return state.get(branchId) != null;
     }

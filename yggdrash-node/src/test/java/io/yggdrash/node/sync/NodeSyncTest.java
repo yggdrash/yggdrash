@@ -29,7 +29,7 @@ public class NodeSyncTest extends AbstractNodeTest {
     public void bootstrapBlockSyncTest() {
         // arrange
         // bs node
-        createNode(SEED_PORT, false).bootstrapping();
+        createAndStartNode(SEED_PORT, false).bootstrapping();
         // bootstrap -> generate block
         int node1 = 1;
         bootstrapSyncNode(node1);
@@ -49,7 +49,7 @@ public class NodeSyncTest extends AbstractNodeTest {
     public void catchUpBlockSyncTest() {
         ////// arrange //////
         // 1) bs node: bootstrap
-        createNode(SEED_PORT, false).bootstrapping();
+        createAndStartNode(SEED_PORT, false).bootstrapping();
         // 2) node1: bootstrap and generate block
         int node1 = 1;
         bootstrapSyncNode(node1);
@@ -78,7 +78,7 @@ public class NodeSyncTest extends AbstractNodeTest {
     }
 
     private void bootstrapSyncNode(int nodeIdx) {
-        createNode(SEED_PORT + nodeIdx, true).bootstrapping();
+        createAndStartNode(SEED_PORT + nodeIdx, true).bootstrapping();
     }
 
     private void generateBlock(int nodeIdx, int count) {

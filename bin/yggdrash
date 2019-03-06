@@ -24,7 +24,7 @@ PID=$HOME/bin/yggdrash.pid
 LOG=$HOME/logs/yggdrash.log
 ERROR=$HOME/logs/error.log
 
-CMD="yggdrash-node.jar"
+CMD="app.jar"
 COMMAND="$BIN/$CMD"
 JARFILE="$YGGDRASH_HOME/yggdrash-node/build/libs/yggdrash-node.jar"
 

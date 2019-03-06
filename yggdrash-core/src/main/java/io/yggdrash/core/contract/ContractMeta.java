@@ -19,11 +19,12 @@ package io.yggdrash.core.contract;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.ContractUtils;
-import io.yggdrash.core.contract.methods.ContractMethod;
-import io.yggdrash.core.exception.FailedOperationException;
-import io.yggdrash.core.runtime.annotation.ContractQuery;
-import io.yggdrash.core.runtime.annotation.InvokeTransaction;
+import io.yggdrash.common.contract.Contract;
+import io.yggdrash.common.utils.ContractUtils;
+import io.yggdrash.common.contract.methods.ContractMethod;
+import io.yggdrash.common.exception.FailedOperationException;
+import io.yggdrash.contract.core.annotation.ContractQuery;
+import io.yggdrash.contract.core.annotation.InvokeTransaction;
 
 import java.io.File;
 import java.lang.reflect.Field;
@@ -118,46 +119,34 @@ public class ContractMeta {
         JsonObject jsonObject = new JsonObject();
         jsonObject.addProperty("contractVersion", this.contractVersion.toString());
         jsonObject.addProperty("name", this.contractClassName);
+        jsonObject.add("invokeMethods", setMethod(invokeMethod));
+        jsonObject.add("queryMethods", setMethod(queryMethod));
 
-        JsonArray invokeArray = new JsonArray();
-        JsonArray queryArray = new JsonArray();
+        return jsonObject;
+    }
 
-        invokeMethod.forEach((key, value) -> {
-            JsonObject invokeProperty = new JsonObject();
+    private JsonArray setMethod(Map<String, ContractMethod> methods) {
+        JsonArray methodArray = new JsonArray();
 
-            invokeProperty.addProperty("name", key);
+        methods.forEach((key, value) -> {
+            JsonObject methodProperty = new JsonObject();
+            methodProperty.addProperty("name", key);
 
             if (value.isParams()) {
                 JsonArray inputArray = new JsonArray();
                 Arrays.stream(value.getMethod().getParameterTypes())
                         .forEach(type -> inputArray.add(type.getSimpleName()));
-                invokeProperty.addProperty("params",
+                methodProperty.addProperty("params",
                         value.getMethod().getParameterTypes().length);
-                invokeProperty.add("inputType", inputArray);
+                methodProperty.add("inputType", inputArray);
             }
 
-            invokeProperty.addProperty("outputType",
+            methodProperty.addProperty("outputType",
                     value.getMethod().getReturnType().getSimpleName());
-            invokeArray.add(invokeProperty);
+            methodArray.add(methodProperty);
         });
-
-
-        queryMethod.forEach((key, value) -> {
-            JsonObject queryProperty = new JsonObject();
-
-            queryProperty.addProperty("name", key);
-            queryProperty.addProperty("outputType",
-                    value.getMethod().getReturnType().getSimpleName());
-            queryArray.add(queryProperty);
-        });
-
-
-        jsonObject.add("invokeMethods", invokeArray);
-        jsonObject.add("queryMethods", queryArray);
-
-        return jsonObject;
+        return methodArray;
     }
-
     /**
      * Print ContractMeta.
      */
