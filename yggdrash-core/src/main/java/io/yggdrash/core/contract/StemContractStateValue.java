@@ -58,13 +58,16 @@ public class StemContractStateValue extends Branch {
         getJson().addProperty("blockHeight", blockHeight);
     }
 
-    public void updateValidator(String validator) {
-        JsonArray validators = getJson().get(("validator")).getAsJsonArray();
-        validators.add(validator);
-    }
-
-    public void setPreBranchId(String preBranchId) {
-        getJson().addProperty("preBranchId", preBranchId);
+    public void updateValidatorSet(String validator) {
+        if (getJson().has("updateValidators")) {
+            //TODO if validator array
+            JsonArray v = getJson().get("updateValidators").getAsJsonArray();
+            v.add(validator);
+        } else {
+            JsonArray updateValidator = new JsonArray();
+            updateValidator.add(validator);
+            getJson().add("updateValidators", updateValidator);
+        }
     }
 
     public static StemContractStateValue of(JsonObject json) {

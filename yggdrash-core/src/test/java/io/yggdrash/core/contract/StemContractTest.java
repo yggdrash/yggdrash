@@ -87,8 +87,6 @@ public class StemContractTest {
         }
     }
 
-
-
     @Test
     public void getBranchTest() {
         JsonObject branch = createParams();
@@ -169,6 +167,23 @@ public class StemContractTest {
 
         assertTrue(receipt.isSuccess());
         stemBranchViewTest(params.get("validator").getAsString());
+
+
+        /* ========================================================= */
+        JsonObject params2 = createUpdateParams2();
+        TransactionReceipt receipt2 = new TransactionReceiptImpl();
+        receipt2.setIssuer(stateValue.getValidators().iterator().next());
+
+        try {
+            txReceiptField.set(stemContract, receipt);
+            receipt2 = stemContract.update(params2);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        assertTrue(receipt2.isSuccess());
+
+
     }
 
     private void stemBranchViewTest(String validator) {
@@ -211,6 +226,14 @@ public class StemContractTest {
         JsonObject params = new JsonObject();
         params.addProperty(BRANCH_ID, "ade1be8566f3544dbb58ccfaae61eb45960dbc0d");
         params.addProperty("validator", "30d0c0e7212642b371082df39824c5121c8ad047");
+        params.addProperty("fee", BigDecimal.valueOf(1000));
+        return params;
+    }
+
+    private JsonObject createUpdateParams2() {
+        JsonObject params = new JsonObject();
+        params.addProperty(BRANCH_ID, "ade1be8566f3544dbb58ccfaae61eb45960dbc0d");
+        params.addProperty("validator", "2df39824c5121c8ad04730d0c0e7212642b37108");
         params.addProperty("fee", BigDecimal.valueOf(1000));
         return params;
     }

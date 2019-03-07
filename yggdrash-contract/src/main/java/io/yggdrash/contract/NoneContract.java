@@ -10,14 +10,12 @@ import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Hashtable;
 
-public class NoneContract implements BundleActivator, ServiceListener {
+public class NoneContract implements BundleActivator {
     private static final Logger log = LoggerFactory.getLogger(NoneContract.class);
 
     @Override
@@ -32,11 +30,6 @@ public class NoneContract implements BundleActivator, ServiceListener {
     @Override
     public void stop(BundleContext context) throws Exception {
         log.info("⚫ Stop none contract");
-    }
-
-    @Override
-    public void serviceChanged(ServiceEvent event) {
-
     }
 
     public static class NoneService {

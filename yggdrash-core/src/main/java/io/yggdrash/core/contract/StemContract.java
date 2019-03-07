@@ -95,21 +95,21 @@ public class StemContract implements Contract {
             JsonObject preBranchJson = state.get(preBranchId);
 
             stateValue = StemContractStateValue.of(preBranchJson);
-            updateValue(stateValue, params);
-            BranchId newBranchId = Branch.of(stateValue.getJson()).getBranchId();
+            BranchId branchId = stateValue.getBranchId();
 
             if (certificateAuthority(preBranchJson) && stateValue != null
-                    && !isBranchExist(newBranchId.toString())) {
+                    && isBranchExist(branchId.toString())) {
                 try {
-                    addBranchId(newBranchId);
-                    state.put(newBranchId.toString(), stateValue.getJson());
-                    addTxId(newBranchId);
+                    updateValue(stateValue, params);
+                    addBranchId(branchId);
+                    state.put(branchId.toString(), stateValue.getJson());
+                    addTxId(branchId);
 
                     txReceipt.setStatus(ExecuteStatus.SUCCESS);
                 } catch (Exception e) {
                     txReceipt.setStatus(ExecuteStatus.FALSE);
                 }
-                log.info("[StemContract | update] branchId => " + newBranchId);
+                log.info("[StemContract | update] branchId => " + branchId);
                 log.info("[StemContract | update] branch => " + stateValue.getJson());
             }
         } catch (Exception e) {
@@ -128,7 +128,7 @@ public class StemContract implements Contract {
      */
     private void setStateValue(StemContractStateValue stateValue, JsonObject params) {
         if (params.has("fee") && txReceipt.getTxSize() != null) {
-            // TODO update시 기존의 브랜치 아이디에서 fee 값과 합산?
+            // TODO update시 기존의 브랜치 아이디에서 fee 값과 합산
             BigDecimal fee = params.get("fee").getAsBigDecimal();
             BigDecimal txSize = BigDecimal.valueOf(txReceipt.getTxSize());
             BigDecimal txFee = txSize.divide(BigDecimal.valueOf(1000000));
@@ -142,20 +142,8 @@ public class StemContract implements Contract {
     private void updateValue(StemContractStateValue stateValue, JsonObject params) {
         setStateValue(stateValue, params);
         if (params.has("validator")) {
-            stateValue.updateValidator(params.get("validator").getAsString());
-            stateValue.setPreBranchId(params.get("branchId").getAsString());
+            stateValue.updateValidatorSet(params.get("validator").getAsString());
         }
-    }
-
-    /**
-     * Returns boolean
-     *
-     * @param params
-     */
-    @InvokeTransaction
-    public Boolean extinguishBranch(JsonObject params) {
-        // TODO branch extinguish
-        return false;
     }
 
     /**
@@ -220,7 +208,6 @@ public class StemContract implements Contract {
      */
     @ContractQuery
     public JsonObject getBranchByTxID(JsonObject params) {
-        //TODO txid -> txhusk -> branch id
         String branchId = params.get(BRANCH_ID).getAsString();
         if (isBranchExist(branchId)) {
             return getBranchStateValue(branchId).getJson();
@@ -308,9 +295,9 @@ public class StemContract implements Contract {
     }
 
     private Boolean isEnoughFee(JsonObject params) {
-//        if (feeState()) {
-//            return true;
-//        }
+        if (feeState(params) > 0) {
+            return true;
+        }
         return false;
     }
 
@@ -343,17 +330,18 @@ public class StemContract implements Contract {
         }
     }
 
-    public Boolean certificateAuthority(JsonObject params) {
-        JsonObject branchJson;
-        if (params.has("branch")) {
-            branchJson = params.get("branch").getAsJsonObject();
-        } else {
-            branchJson = params;
-        }
-
+    private Boolean certificateAuthority(JsonObject params) {
         String sender = this.txReceipt.getIssuer();
-        JsonArray validators = branchJson.get("validator").getAsJsonArray();
+        JsonArray validators = params.get("validator").getAsJsonArray();
         for (JsonElement v : validators) {
+            if (params.has("updateValidators")) {
+                JsonArray uvs = params.get("updateValidators").getAsJsonArray();
+                for (JsonElement uv : uvs) {
+                    if (sender != null && sender.equals(v.getAsString())) {
+                        return true;
+                    }
+                }
+            }
             if (sender != null && sender.equals(v.getAsString())) {
                 return true;
             }

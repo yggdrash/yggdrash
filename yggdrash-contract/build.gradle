@@ -135,36 +135,9 @@ task noneContract(type: Jar) {
         )
     }
     exclude(excludeList)
-    archiveName "4-system-none-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+    archiveName "system-none-contract-${manifest.attributes.get('Bundle-Version')}.jar"
 }
 
-task stemContract(type: Jar) {
-    //Add current module source
-    from(sourceSets.main.output) {
-        include "**"
-        exclude(["system-contracts"])
-    }
-
-    // Add dependency library
-//    from {
-//        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-//    }
-
-    manifest {
-        attributes(
-                'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'Stem Contract',
-                'Bundle-Description': 'Stem Contract',
-                'Bundle-Vendor': 'YGGDRASH',
-                'Bundle-SymbolicName': 'io.yggdrash.contract.stem.StemContract',
-                'Bundle-Version': '1.0.0',
-                'Bundle-Activator': 'io.yggdrash.contract.stem.StemContract',
-                'Import-Package': "${importPackage}"
-        )
-    }
-    exclude(excludeList)
-    archiveName "5-system-stem-contract-${manifest.attributes.get('Bundle-Version')}.jar"
-}
 
 def keystoreFile = new File("${project.projectDir.toString()}/src/main/resources/yggdrash.p12")
 def keystorePass = '098098'
@@ -173,6 +146,7 @@ task signJar(description: 'to Sign JAR.', group: 'Build') {
 
     dependsOn dpoaContract
     dependsOn coinContract
+    dependsOn noneContract
 //    dependsOn dpoaClientContract
 
     doLast {
