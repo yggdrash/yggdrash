@@ -57,7 +57,7 @@
                 <allowEmpty>false</allowEmpty>
             </property>
             <property>
-                <name>severity</name>
+                <name>level</name>
                 <value>%level</value>
             </property>
             <property>
@@ -71,6 +71,18 @@
             <property>
                 <name>logger</name>
                 <value>%logger</value>
+            </property>
+            <property>
+                <name>method</name>
+                <value>%method</value>
+            </property>
+            <property>
+                <name>line</name>
+                <value>%line</value>
+            </property>
+            <property>
+                <name>caller</name>
+                <value>%caller{1..3}</value>
             </property>
         </properties>
         <headers>
