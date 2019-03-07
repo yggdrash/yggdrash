@@ -141,11 +141,6 @@ public class PeerHandlerMock implements PeerHandler {
 
     }
 
-    @Override
-    public void biDirectTest(int seq, String msg) {
-
-    }
-
     public static PeerHandler dummy() {
         return dummy(OWNER);
     }

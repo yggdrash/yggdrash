@@ -17,8 +17,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.annotation.PreDestroy;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
 
 @GrpcService
 public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
@@ -280,49 +278,6 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
             public void onError(Throwable t) {
                 log.debug("[BlockChainService] Encountered error in biSyncTx: {}",
                         Status.fromThrowable(t));
-            }
-
-            @Override
-            public void onCompleted() {
-                responseObserver.onCompleted();
-            }
-        };
-    }
-
-    /*
-    [ biDirectTest Overview ]
-
-    Get and return  a StreamObserver response observer, return values via our methods response
-    observer while the client is still writing messages to their message stream.
-    Each side will always get the other's message in the order they were written,
-    bot the client and server can read and write any order - the streams operate completely
-    independently.
-    */
-    private ConcurrentMap<Integer, List<NetProto.Tik>> tikNotes = new ConcurrentHashMap<>();
-
-    /**
-     * Receives a stream of msg, and responds with a stream of all previous msgs.
-     * @param responseObserver an observer to receive the stream of previous messages.
-     * @return an observer to handle requested msg.
-     */
-    @Override
-    public StreamObserver<NetProto.Tik> biDirectTest(
-            StreamObserver<NetProto.Tik> responseObserver) {
-        return new StreamObserver<NetProto.Tik>() {
-            @Override
-            public void onNext(NetProto.Tik tik) {
-                log.debug("Server :: received tik => " + tik.getMsg());
-
-                NetProto.Tik res = NetProto.Tik.newBuilder()
-                        .setSeq(tik.getSeq())
-                        .setMsg(tik.getSeq() + " received").build();
-
-                responseObserver.onNext(res);
-            }
-
-            @Override
-            public void onError(Throwable t) {
-                log.debug("BlockChainService :: biDirectTest cancelled " + t.getMessage(), t);
             }
 
             @Override

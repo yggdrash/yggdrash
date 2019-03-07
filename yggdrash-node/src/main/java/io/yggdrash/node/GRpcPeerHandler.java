@@ -373,88 +373,8 @@ public class GRpcPeerHandler implements PeerHandler {
 
     }
     */
-    /*
-    [ biDirectTest Overview ]
-
-    To call service methods, we need to create a stub, or rather two stubs :
-        - a blocking/synchronous stub : this means that the RPC all waits for the server to respond,
-          and will either return a response or raise an exception.
-        - a non-blocking/asynchronous stub : that makes non-blocking calls to the server, where the
-          response is returned asynchronously. You can make certain types of streaming call only
-          using the asynchronous stub.
-     */
 
     public TestHelper testHelper;
-
-    /**
-     * Bi-directional example, which can only be asynchronous.
-     * Send some chat messages, and print any chat messages that are sent from the server.
-     * @param seq sequence of message
-     * @param msg message
-     */
-    @Override
-    public void biDirectTest(int seq, String msg) {
-        log.debug("*** biDriectTest -> [{}]: {}", seq, msg);
-        //final CountDownLatch finishLatch = new CountDownLatch(1);
-
-        // Create a requestObserver
-        StreamObserver<NetProto.Tik> requestObserver =
-                asyncStub.biDirectTest(new StreamObserver<NetProto.Tik>() {
-                    @Override
-                    public void onNext(NetProto.Tik tik) {
-                        log.debug("GRpcPeerHandler :: Got message [{}]: {}",
-                                tik.getSeq(), tik.getMsg());
-                        if (testHelper != null) {
-                            testHelper.onMessage(tik);
-                        }
-                    }
-
-                    @Override
-                    public void onError(Throwable t) {
-                        log.debug("GRpcPeerHandler :: biDirectTest Failed");
-                        if (testHelper != null) {
-                            testHelper.onRpcError(t);
-                        }
-                        //finishLatch.countDown();
-                    }
-
-                    @Override
-                    public void onCompleted() {
-                        log.debug("GRpcPeerHandler :: Finished biDirectTest");
-                        //finishLatch.countDown();
-                    }
-                });
-
-        try {
-            NetProto.Tik[] requests = {
-                    newTik(0, "zero"),
-                    newTik(1, "one"),
-                    newTik(2, "two"),
-                    newTik(3, "three")
-            };
-
-            for (NetProto.Tik request : requests) {
-                log.debug("GRpCPeerHandler :: Sending message [{}]: {}",
-                        request.getSeq(), request.getMsg());
-
-                requestObserver.onNext(request);
-            }
-        } catch (RuntimeException e) {
-            // Cancel RPC
-            requestObserver.onError(e);
-            throw e;
-        }
-
-        // Mark the end of requests
-        requestObserver.onCompleted();
-
-        // Return the latch while receiving happens asynchronously
-        //return finishLatch;
-    }
-
-    private NetProto.Tik newTik(int seq, String msg) {
-        return NetProto.Tik.newBuilder().setSeq(seq).setMsg(msg).build();
-    }
 
     /**
      * Only used for helping unit test.

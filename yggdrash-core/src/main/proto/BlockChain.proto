@@ -27,8 +27,6 @@ service BlockChain {
     }
     rpc broadcastTx (stream Transaction) returns (stream Empty) {
     }
-    rpc biDirectTest (stream Tik) returns (stream Tik) {
-    }
 }
 
 message Empty {
@@ -39,10 +37,4 @@ message SyncLimit {
     uint64 offset = 2;
     uint32 limit = 3;
     string from = 4;
-}
-
-//For test
-message Tik {
-    uint32 seq = 1;
-    string msg = 2;
 }

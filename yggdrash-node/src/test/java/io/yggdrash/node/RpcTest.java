@@ -170,12 +170,6 @@ public class RpcTest extends AbstractNodeTest {
         return txList;
     }
 
-    @Test
-    public void biDirectTest() throws Exception {
-        handler.biDirectTest(100, "test");
-        Thread.sleep(3000);
-    }
-
     @Override
     protected ManagedChannel createChannel(Peer peer) {
         return ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()

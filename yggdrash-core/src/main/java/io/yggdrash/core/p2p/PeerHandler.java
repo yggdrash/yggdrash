@@ -31,6 +31,4 @@ public interface PeerHandler {
     void broadcastBlock(BlockHusk blockHusk);
 
     void broadcastTx(TransactionHusk txHusk);
-
-    void biDirectTest(int seq, String msg);
 }
