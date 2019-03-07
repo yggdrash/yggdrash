@@ -97,9 +97,9 @@ public class StemContractTest {
     }
 
     @Test
-    public void getContractByBranchTest() {
+    public void getContractTest() {
         JsonObject branch = createParams();
-        Set<JsonElement> contractSet = stemContract.getContractByBranch(branch);
+        Set<JsonElement> contractSet = stemContract.getContract(branch);
         String branchId = branch.get("branchId").getAsString();
         JsonObject saved = stateStore.get(branchId);
         assertThat(saved.get("contracts").equals(contractSet));
@@ -185,12 +185,12 @@ public class StemContractTest {
         assertTrue(receipt2.isSuccess());
         validators.add(params2.get("validator").getAsString());
         stemBranchViewTest(validators);
-
     }
 
     private void stemBranchViewTest(JsonArray validators) {
         JsonObject params = createParams();
         JsonObject branchJson = stemContract.getBranch(params);
+
         JsonArray uvs= branchJson.get("updateValidators").getAsJsonArray();
         assertEquals(uvs, validators);
     }
