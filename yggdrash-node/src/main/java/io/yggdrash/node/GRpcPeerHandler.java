@@ -281,7 +281,6 @@ public class GRpcPeerHandler implements PeerHandler {
         }
 
         try {
-            log.debug("[PeerHandler] onNext: index=[{}]", blockHusk.getIndex());
             broadcastBlockRequestObserver.onNext(blockHusk.getInstance());
         } catch (RuntimeException e) {
             // Cancel RPC
