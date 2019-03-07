@@ -3,9 +3,9 @@ package io.yggdrash.validator.store;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.blockchain.Block;
-import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessage;
@@ -18,6 +18,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -295,6 +296,29 @@ public class PbftBlockStoreTest {
 
         System.gc();
         sleep(20000);
+    }
+
+    @Test
+    public void memoryTest2() {
+        TestConstants.PerformanceTest.apply();
+
+        long testNumber = 10000;
+
+        for (long l = 1; l < testNumber; l++) {
+            Block newBlock = new TestUtils(wallet).sampleBlock(l, block.getHash());
+            PbftBlock newPbftBlock = new PbftBlock(newBlock, this.pbftMessageSet);
+
+            this.blockKeyStore.put(l, newPbftBlock.getHash());
+            this.blockStore.put(newPbftBlock.getHash(), newPbftBlock);
+        }
+
+        for (long l = 0; l < testNumber; l++) {
+            log.debug("blockKeyStore: " + l + " " + Hex.toHexString(this.blockKeyStore.get(l)));
+            log.debug("blockStore: " + this.blockStore.get(this.blockKeyStore.get(l)).getIndex());
+        }
+
+        System.gc();
+        sleep(300000);
     }
 
 }
