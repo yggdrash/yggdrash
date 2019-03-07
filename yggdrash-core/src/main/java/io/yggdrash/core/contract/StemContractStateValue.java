@@ -29,7 +29,7 @@ import java.math.BigDecimal;
 public class StemContractStateValue extends Branch {
 
     private static BigDecimal fee;
-    private Long blockHeight;
+    private static Long blockHeight;
 
     public StemContractStateValue(JsonObject json) {
         super(json);
@@ -53,8 +53,8 @@ public class StemContractStateValue extends Branch {
         return blockHeight;
     }
 
-    public void setBlockHeight(Long height) {
-        this.blockHeight = height;
+    public void setBlockHeight(Long blockHeight) {
+        this.blockHeight = blockHeight;
         getJson().addProperty("blockHeight", blockHeight);
     }
 

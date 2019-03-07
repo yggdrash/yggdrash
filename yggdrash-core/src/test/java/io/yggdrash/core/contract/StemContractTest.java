@@ -182,8 +182,6 @@ public class StemContractTest {
         }
 
         assertTrue(receipt2.isSuccess());
-
-
     }
 
     private void stemBranchViewTest(String validator) {
@@ -234,7 +232,7 @@ public class StemContractTest {
         JsonObject params = new JsonObject();
         params.addProperty(BRANCH_ID, "ade1be8566f3544dbb58ccfaae61eb45960dbc0d");
         params.addProperty("validator", "2df39824c5121c8ad04730d0c0e7212642b37108");
-        params.addProperty("fee", BigDecimal.valueOf(1000));
+        params.addProperty("fee", BigDecimal.valueOf(2000));
         return params;
     }
 

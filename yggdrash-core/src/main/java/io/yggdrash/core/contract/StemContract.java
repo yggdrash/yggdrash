@@ -67,12 +67,11 @@ public class StemContract implements Contract {
                     addTxId(branchId);
 
                     txReceipt.setStatus(ExecuteStatus.SUCCESS);
+                    log.info("[StemContract | create] branchId => " + branchId);
+                    log.info("[StemContract | create] branch => " + stateValue.getJson());
                 } catch (Exception e) {
                     txReceipt.setStatus(ExecuteStatus.FALSE);
                 }
-
-                log.info("[StemContract | create] branchId => " + branchId);
-                log.info("[StemContract | create] branch => " + stateValue.getJson());
             }
         } catch (Exception e) {
             log.warn("Failed to convert Branch = {}", params);
@@ -93,7 +92,6 @@ public class StemContract implements Contract {
         try {
             String preBranchId = params.get(BRANCH_ID).getAsString();
             JsonObject preBranchJson = state.get(preBranchId);
-
             stateValue = StemContractStateValue.of(preBranchJson);
             BranchId branchId = stateValue.getBranchId();
 
@@ -106,11 +104,11 @@ public class StemContract implements Contract {
                     addTxId(branchId);
 
                     txReceipt.setStatus(ExecuteStatus.SUCCESS);
+                    log.info("[StemContract | update] branchId => " + branchId);
+                    log.info("[StemContract | update] branch => " + stateValue.getJson());
                 } catch (Exception e) {
                     txReceipt.setStatus(ExecuteStatus.FALSE);
                 }
-                log.info("[StemContract | update] branchId => " + branchId);
-                log.info("[StemContract | update] branch => " + stateValue.getJson());
             }
         } catch (Exception e) {
             log.warn("Failed to convert Branch = {}", params);
@@ -128,14 +126,17 @@ public class StemContract implements Contract {
      */
     private void setStateValue(StemContractStateValue stateValue, JsonObject params) {
         if (params.has("fee") && txReceipt.getTxSize() != null) {
-            // TODO update시 기존의 브랜치 아이디에서 fee 값과 합산
             BigDecimal fee = params.get("fee").getAsBigDecimal();
             BigDecimal txSize = BigDecimal.valueOf(txReceipt.getTxSize());
+//            BigDecimal txSize = BigDecimal.valueOf(1000000);
             BigDecimal txFee = txSize.divide(BigDecimal.valueOf(1000000));
             BigDecimal resultFee = fee.subtract(txFee);
+            BigDecimal remainFee = feeState(stateValue);
 
-            stateValue.setFee(resultFee);
+            stateValue.setFee(remainFee.longValue() > 0
+                    ? resultFee.add(remainFee) : resultFee);
             stateValue.setBlockHeight(txReceipt.getBlockHeight());
+            //            stateValue.setBlockHeight(1L);
         }
     }
 
@@ -294,7 +295,20 @@ public class StemContract implements Contract {
         return new Long(0);
     }
 
+    private BigDecimal feeState(StemContractStateValue stateValue) {
+        BigDecimal currentFee = stateValue.getFee();
+        if (currentFee.longValue() > 0) {
+            Long currentHeight = txReceipt.getBlockHeight();
+//            Long currentHeight = 101L;
+            Long createPointHeight = stateValue.getBlockHeight();
+            Long height = currentHeight - createPointHeight;
+            return currentFee.subtract(BigDecimal.valueOf(height));
+        }
+        return BigDecimal.ZERO;
+    }
+
     private Boolean isEnoughFee(JsonObject params) {
+        // TODO 쿼리에서 stateValue 추출이 가능한가?
         if (feeState(params) > 0) {
             return true;
         }
@@ -305,9 +319,7 @@ public class StemContract implements Contract {
         return state.contains(branchId);
     }
 
-    // new branchId
     private void addBranchId(BranchId newBranchId) {
-        // check branch exist
         if (!isBranchExist(newBranchId.toString())) {
             JsonArray branchIds = new JsonArray();
             for (String branchId : getBranchIdList()) {
