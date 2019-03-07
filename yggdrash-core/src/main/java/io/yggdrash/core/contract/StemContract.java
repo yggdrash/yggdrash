@@ -87,7 +87,6 @@ public class StemContract implements Contract {
      */
     @InvokeTransaction
     public TransactionReceipt update(JsonObject params) {
-        // TODO fee state check
         StemContractStateValue stateValue;
         try {
             String preBranchId = params.get(BRANCH_ID).getAsString();
@@ -125,10 +124,10 @@ public class StemContract implements Contract {
      * @param stateValue, json
      */
     private void setStateValue(StemContractStateValue stateValue, JsonObject params) {
+        // TODO change boolean
         if (params.has("fee") && txReceipt.getTxSize() != null) {
             BigDecimal fee = params.get("fee").getAsBigDecimal();
             BigDecimal txSize = BigDecimal.valueOf(txReceipt.getTxSize());
-//            BigDecimal txSize = BigDecimal.valueOf(1000000);
             BigDecimal txFee = txSize.divide(BigDecimal.valueOf(1000000));
             BigDecimal resultFee = fee.subtract(txFee);
             BigDecimal remainFee = feeState(stateValue);
@@ -136,7 +135,6 @@ public class StemContract implements Contract {
             stateValue.setFee(remainFee.longValue() > 0
                     ? resultFee.add(remainFee) : resultFee);
             stateValue.setBlockHeight(txReceipt.getBlockHeight());
-            //            stateValue.setBlockHeight(1L);
         }
     }
 
@@ -154,6 +152,7 @@ public class StemContract implements Contract {
      */
     public void messageCall(BranchId branchId) {
         // TODO message call to contract
+        // TODO isEnoughFee
     }
 
     /**
@@ -183,7 +182,9 @@ public class StemContract implements Contract {
     @ContractQuery
     public JsonObject getBranch(JsonObject params) {
         String branchId = params.get(BRANCH_ID).getAsString();
-        if (isBranchExist(branchId)) {
+        StemContractStateValue stateValue = getBranchStateValue(branchId);
+
+        if (isBranchExist(branchId) && isEnoughFee(stateValue)) {
             return getBranchStateValue(branchId).getJson();
         }
         return new JsonObject();
@@ -205,27 +206,15 @@ public class StemContract implements Contract {
     /**
      * @param params branch id
      *
-     * @return branch json object
-     */
-    @ContractQuery
-    public JsonObject getBranchByTxID(JsonObject params) {
-        String branchId = params.get(BRANCH_ID).getAsString();
-        if (isBranchExist(branchId)) {
-            return getBranchStateValue(branchId).getJson();
-        }
-        return new JsonObject();
-    }
-
-    /**
-     * @param params branch id
-     *
      * @return contract json object
      */
     @ContractQuery
     public Set<JsonElement> getContractByBranch(JsonObject params) {
         String branchId = params.get(BRANCH_ID).getAsString();
         Set<JsonElement> contractSet = new HashSet<>();
-        if (isBranchExist(branchId)) {
+        StemContractStateValue stateValue = getBranchStateValue(branchId);
+
+        if (isBranchExist(branchId) && isEnoughFee(stateValue)) {
             JsonArray contracts = getBranchStateValue(branchId).getJson()
                     .getAsJsonArray("contracts");
             for (JsonElement c : contracts) {
@@ -244,7 +233,9 @@ public class StemContract implements Contract {
     public Set<String> getValidator(JsonObject params) {
         String branchId = params.get(BRANCH_ID).getAsString();
         Set<String> validatorSet = new HashSet<>();
-        if (isBranchExist(branchId)) {
+        StemContractStateValue stateValue = getBranchStateValue(branchId);
+
+        if (isBranchExist(branchId) && isEnoughFee(stateValue)) {
             JsonArray validators = getBranchStateValue(branchId).getJson()
                     .getAsJsonArray("validator");
             for (JsonElement v : validators) {
@@ -280,26 +271,26 @@ public class StemContract implements Contract {
      *
      * @return fee state
      */
-    public Long feeState(JsonObject params) {
+    public BigDecimal feeState(JsonObject params) {
         String branchId = params.get(BRANCH_ID).getAsString();
+        StemContractStateValue stateValue = getBranchStateValue(branchId);
+        BigDecimal result = BigDecimal.ZERO;
         if (isBranchExist(branchId)) {
             Long currentHeight = txReceipt.getBlockHeight();
-            Long createPointHeight = getBranchStateValue(branchId).getBlockHeight();
+            Long createPointHeight = stateValue.getBlockHeight();
             Long height = currentHeight - createPointHeight;
 
             //1block to 1yeed
-            BigDecimal fee = getBranchStateValue(branchId).getFee();
-            Long result = fee.longValue() - height;
-            return result;
+            BigDecimal currentFee = stateValue.getFee();
+            result = currentFee.subtract(BigDecimal.valueOf(height));
         }
-        return new Long(0);
+        return result.longValue() > 0 ? result : BigDecimal.ZERO;
     }
 
     private BigDecimal feeState(StemContractStateValue stateValue) {
         BigDecimal currentFee = stateValue.getFee();
         if (currentFee.longValue() > 0) {
             Long currentHeight = txReceipt.getBlockHeight();
-//            Long currentHeight = 101L;
             Long createPointHeight = stateValue.getBlockHeight();
             Long height = currentHeight - createPointHeight;
             return currentFee.subtract(BigDecimal.valueOf(height));
@@ -307,9 +298,8 @@ public class StemContract implements Contract {
         return BigDecimal.ZERO;
     }
 
-    private Boolean isEnoughFee(JsonObject params) {
-        // TODO 쿼리에서 stateValue 추출이 가능한가?
-        if (feeState(params) > 0) {
+    private Boolean isEnoughFee(StemContractStateValue stateValue) {
+        if (feeState(stateValue).longValue() > 0) {
             return true;
         }
         return false;
@@ -349,7 +339,7 @@ public class StemContract implements Contract {
             if (params.has("updateValidators")) {
                 JsonArray uvs = params.get("updateValidators").getAsJsonArray();
                 for (JsonElement uv : uvs) {
-                    if (sender != null && sender.equals(v.getAsString())) {
+                    if (sender != null && sender.equals(uv.getAsString())) {
                         return true;
                     }
                 }

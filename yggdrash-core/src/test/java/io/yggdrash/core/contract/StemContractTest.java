@@ -166,10 +166,11 @@ public class StemContractTest {
         }
 
         assertTrue(receipt.isSuccess());
-        stemBranchViewTest(params.get("validator").getAsString());
-
-
+        JsonArray validators = new JsonArray();
+        validators.add(params.get("validator").getAsString());
+        stemBranchViewTest(validators);
         /* ========================================================= */
+
         JsonObject params2 = createUpdateParams2();
         TransactionReceipt receipt2 = new TransactionReceiptImpl();
         receipt2.setIssuer(stateValue.getValidators().iterator().next());
@@ -182,23 +183,16 @@ public class StemContractTest {
         }
 
         assertTrue(receipt2.isSuccess());
+        validators.add(params2.get("validator").getAsString());
+        stemBranchViewTest(validators);
+
     }
 
-    private void stemBranchViewTest(String validator) {
-        Set<String> branchIdList = stemContract.getBranchIdList();
-        branchIdList.stream().forEach(b -> {
-            if (!b.equals(stateValue.getBranchId().toString())) {
-                JsonObject preBranchParams = createParams();
-                JsonObject preBranchJson = stemContract.getBranch(preBranchParams);
-                JsonObject params = createParams(b);
-                JsonObject branchJson = stemContract.getBranch(params);
-
-                JsonArray preValidator = preBranchJson.get("validator").getAsJsonArray();
-                preValidator.add(validator);
-                JsonArray newValidator = branchJson.get("validator").getAsJsonArray();
-                assertEquals(newValidator, preValidator);
-            }
-        });
+    private void stemBranchViewTest(JsonArray validators) {
+        JsonObject params = createParams();
+        JsonObject branchJson = stemContract.getBranch(params);
+        JsonArray uvs= branchJson.get("updateValidators").getAsJsonArray();
+        assertEquals(uvs, validators);
     }
 
     @Test
