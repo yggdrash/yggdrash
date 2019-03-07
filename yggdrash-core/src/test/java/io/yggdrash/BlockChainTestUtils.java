@@ -61,7 +61,7 @@ public class BlockChainTestUtils {
         JsonObject json = ContractTestUtils.createSampleBranchJson();
 
         TransactionBuilder builder = new TransactionBuilder();
-        return builder.addTxBody(Constants.STEM_CONTRACT_VERSION, "create", json.get("branch").getAsJsonObject(), false)
+        return builder.addTxBody(Constants.STEM_CONTRACT_VERSION, "create", json, false)
                 .setWallet(TestConstants.wallet())
                 .setBranchId(genesis.getBlock().getBranchId())
                 .build();
