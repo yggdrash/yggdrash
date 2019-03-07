@@ -21,14 +21,11 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
-import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BranchId;
-import java.io.File;
 
 public class StoreBuilder {
 
     private final DefaultConfig config;
-    private BranchId branchId;
 
     public StoreBuilder(DefaultConfig config) {
         this.config = config;
@@ -36,31 +33,6 @@ public class StoreBuilder {
 
     public DefaultConfig getConfig() {
         return config;
-    }
-
-    public StoreBuilder setBranchId(BranchId branchId) {
-        this.branchId = branchId;
-        return this;
-    }
-
-    public ReadWriterStore build(StoreTypeEnum typeEnum) {
-        DbSource<byte[], byte[]> dbSource;
-        dbSource = getDbSource(branchId + File.separator + typeEnum);
-        switch (typeEnum) {
-            case BLOCK_STORE:
-                return new BlockStore(dbSource);
-            case TRANSACTION_STORE:
-                return new TransactionStore(dbSource);
-            case TRANSACTION_RECEIPT_STORE:
-                return new TransactionReceiptStore(dbSource);
-            case PEER_STORE:
-                return new PeerStore(dbSource);
-            case META_STORE:
-                return new MetaStore(dbSource);
-            case STATE_STORE:
-                return new StateStore(dbSource);
-        }
-        return null;
     }
 
     public BlockStore buildBlockStore(BranchId branchId) {
