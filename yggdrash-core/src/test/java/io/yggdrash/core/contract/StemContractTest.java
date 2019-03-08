@@ -216,7 +216,7 @@ public class StemContractTest {
 
     private JsonObject createUpdateParams() {
         JsonObject params = new JsonObject();
-        params.addProperty(BRANCH_ID, "ade1be8566f3544dbb58ccfaae61eb45960dbc0d");
+        params.addProperty(BRANCH_ID, stateValue.getBranchId().toString());
         params.addProperty("validator", "30d0c0e7212642b371082df39824c5121c8ad047");
         params.addProperty("fee", BigDecimal.valueOf(1000));
         return params;
@@ -224,7 +224,7 @@ public class StemContractTest {
 
     private JsonObject createUpdateParams2() {
         JsonObject params = new JsonObject();
-        params.addProperty(BRANCH_ID, "ade1be8566f3544dbb58ccfaae61eb45960dbc0d");
+        params.addProperty(BRANCH_ID, stateValue.getBranchId().toString());
         params.addProperty("validator", "2df39824c5121c8ad04730d0c0e7212642b37108");
         params.addProperty("fee", BigDecimal.valueOf(2000));
         return params;

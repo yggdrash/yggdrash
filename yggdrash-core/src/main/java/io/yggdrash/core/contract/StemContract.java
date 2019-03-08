@@ -184,7 +184,7 @@ public class StemContract implements Contract {
         String branchId = params.get(BRANCH_ID).getAsString();
         StemContractStateValue stateValue = getBranchStateValue(branchId);
 
-        // TODO isEnoughFee(stateValue)
+        // TODO isEnoughFee(stateValue) check
         if (isBranchExist(branchId)) {
             return getBranchStateValue(branchId).getJson();
         }
@@ -215,7 +215,7 @@ public class StemContract implements Contract {
         Set<JsonElement> contractSet = new HashSet<>();
         StemContractStateValue stateValue = getBranchStateValue(branchId);
 
-        // TODO isEnoughFee(stateValue)
+        // TODO isEnoughFee(stateValue) check
         if (isBranchExist(branchId)) {
             JsonArray contracts = getBranchStateValue(branchId).getJson()
                     .getAsJsonArray("contracts");
@@ -237,7 +237,7 @@ public class StemContract implements Contract {
         Set<String> validatorSet = new HashSet<>();
         StemContractStateValue stateValue = getBranchStateValue(branchId);
 
-        // TODO isEnoughFee(stateValue)
+        // TODO isEnoughFee(stateValue) check
         if (isBranchExist(branchId)) {
             JsonArray validators = getBranchStateValue(branchId).getJson()
                     .getAsJsonArray("validator");
