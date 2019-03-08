@@ -19,6 +19,7 @@ package io.yggdrash.core.net;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.p2p.Peer;
 
 import java.util.List;
 
@@ -28,9 +29,11 @@ public interface BlockChainConsumer {
 
     List<BlockHusk> syncBlock(BranchId branchId, long offset, long limit);
 
-    List<TransactionHusk> syncTransaction(BranchId branchId);
+    List<BlockHusk> syncBlock(BranchId branchId, long offset, long limit, Peer from);
+
+    List<TransactionHusk> syncTx(BranchId branchId);
 
     void broadcastBlock(BlockHusk block);
 
-    void broadcastTransaction(TransactionHusk tx);
+    void broadcastTx(TransactionHusk tx);
 }

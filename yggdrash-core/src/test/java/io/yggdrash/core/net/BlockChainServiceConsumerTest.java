@@ -5,6 +5,7 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -23,26 +24,27 @@ public class BlockChainServiceConsumerTest {
 
     @Test
     public void syncBlock() {
-        List<BlockHusk> blockHuskList = blockChainServiceConsumer.syncBlock(branchId, 0, 10);
+        List<BlockHusk> blockHuskList =
+                blockChainServiceConsumer.syncBlock(branchId, 0, 10);
 
-        assert blockHuskList.size() == 1;
+        Assert.assertEquals(blockHuskList.size(), 1);
     }
 
     @Test
-    public void syncTransaction() {
-        assert blockChainServiceConsumer.syncTransaction(branchId).size() == 0;
+    public void syncTx() {
+        Assert.assertEquals(blockChainServiceConsumer.syncTx(branchId).size(), 0);
 
-        blockChainServiceConsumer.broadcastTransaction(BlockChainTestUtils.createTransferTxHusk());
+        blockChainServiceConsumer.broadcastTx(BlockChainTestUtils.createTransferTxHusk());
 
-        assert blockChainServiceConsumer.syncTransaction(branchId).size() == 1;
+        Assert.assertEquals(blockChainServiceConsumer.syncTx(branchId).size(), 1);
     }
 
     @Test
     public void broadcastBlock() {
-        assert branchGroup.getBranch(branchId).getLastIndex() == 0;
+        Assert.assertEquals(branchGroup.getBranch(branchId).getLastIndex(), 0);
 
         blockChainServiceConsumer.broadcastBlock(BlockChainTestUtils.createNextBlock());
 
-        assert branchGroup.getBranch(branchId).getLastIndex() == 1;
+        Assert.assertEquals(branchGroup.getBranch(branchId).getLastIndex(), 1);
     }
 }

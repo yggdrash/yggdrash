@@ -66,25 +66,52 @@ public class KademliaPeerNetwork implements PeerNetwork {
         return peerDialer.getHandlerList(peerList);
     }
 
+    /*
     @Override
     public void receivedTransaction(TransactionHusk tx) {
         List<PeerHandler> getHandlerList = getHandlerList(tx.getBranchId());
         for (PeerHandler peerHandler : getHandlerList) {
             try {
-                peerHandler.broadcastTransaction(tx);
+                peerHandler.simpleBroadcastTransaction(tx);
             } catch (Exception e) {
+                peerDialer.removeHandler(peerHandler);
+            }
+        }
+    }
+    @Override
+    public void chainedBlock(BlockHusk block) {
+        List<PeerHandler> getHandlerList = getHandlerList(block.getBranchId());
+        for (PeerHandler peerHandler : getHandlerList) {
+            try {
+                peerHandler.simpleBroadcastBlock(block);
+            } catch (Exception e) {
+                peerDialer.removeHandler(peerHandler);
+            }
+        }
+    }
+    */
+
+    @Override
+    public void receivedTransaction(TransactionHusk tx) {
+        List<PeerHandler> getHandlerList = getHandlerList(tx.getBranchId());
+        for (PeerHandler peerHandler : getHandlerList) {
+            try {
+                peerHandler.broadcastTx(tx);
+            } catch (Exception e) {
+                log.debug("[KadmeliaPeerNetwork] Chained Tx ERR: {}", e.getMessage());
                 peerDialer.removeHandler(peerHandler);
             }
         }
     }
 
     @Override
-    public void chainedBlock(BlockHusk block) {
+    public void chainedBlock(BlockHusk block) { //TODO AddBlock BP
         List<PeerHandler> getHandlerList = getHandlerList(block.getBranchId());
-        for (PeerHandler peerHandler : getHandlerList) {
+        for (PeerHandler peerHandler : getHandlerList) { //TODO Verify NULL
             try {
                 peerHandler.broadcastBlock(block);
             } catch (Exception e) {
+                log.debug("[KadmeliaPeerNetwork] Chained Block ERR: {}", e.getMessage());
                 peerDialer.removeHandler(peerHandler);
             }
         }

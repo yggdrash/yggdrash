@@ -22,6 +22,7 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.p2p.Peer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,52 +43,91 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
         this.listener = listener;
     }
 
+    private boolean isValidRequest(long curIndex, long reqIndex, Peer from) {
+        // TODO limit maxDiff
+        long maxDiffBetweenCurrentAndReceivedBlockHeight = 10000;
+        if (curIndex < reqIndex) {
+            long diff = reqIndex - curIndex;
+            return diff < maxDiffBetweenCurrentAndReceivedBlockHeight;
+        }
+        // TODO 'from' is a bad peer! Add 'from' peer to the blacklist
+        return false;
+    }
+
     @Override
     public List<BlockHusk> syncBlock(BranchId branchId, long offset, long limit) {
-        BlockChain blockChain = branchGroup.getBranch(branchId);
-        List<BlockHusk> blockHuskList = new ArrayList<>();
-        if (blockChain == null) {
-            log.warn("Invalid syncBlock request for branchId={}", branchId);
-            return blockHuskList;
-        }
-        if (offset < 0) {
-            offset = 0;
-        }
+        return syncBlock(branchId, offset, limit, null);
+    }
 
-        long bodyLengthSum = 0;
-        for (int i = 0; i < limit; i++) {
-            BlockHusk block = branchGroup.getBlockByIndex(branchId, offset++);
-            if (block == null) {
-                break;
+    @Override
+    public List<BlockHusk> syncBlock(BranchId branchId, long offset, long limit, Peer from) {
+        long curBestBlock = branchGroup.getLastIndex(branchId);
+        List<BlockHusk> blockHuskList = new ArrayList<>();
+        if (isValidRequest(curBestBlock, offset, from)) {
+            // Catchup Event!
+            if (listener != null) {
+                listener.catchUpRequest(branchId, offset);
             }
-            bodyLengthSum += block.getBodyLength();
-            if (bodyLengthSum > LIMIT.BLOCK_SYNC_SIZE) {
-                break;
+        } else {
+            BlockChain blockChain = branchGroup.getBranch(branchId);
+
+            if (blockChain == null) {
+                log.warn("Invalid syncBlock request for branchId={}", branchId);
+                return blockHuskList;
             }
-            blockHuskList.add(block);
+            if (offset < 0) {
+                offset = 0;
+            }
+
+            long bodyLengthSum = 0;
+            for (int i = 0; i < limit; i++) {
+                BlockHusk block = branchGroup.getBlockByIndex(branchId, offset++);
+                if (block == null) {
+                    break;
+                }
+                bodyLengthSum += block.getBodyLength();
+                if (bodyLengthSum > LIMIT.BLOCK_SYNC_SIZE) {
+                    break;
+                }
+                blockHuskList.add(block);
+            }
         }
         return blockHuskList;
     }
 
     @Override
-    public List<TransactionHusk> syncTransaction(BranchId branchId) {
+    public List<TransactionHusk> syncTx(BranchId branchId) {
         return branchGroup.getUnconfirmedTxs(branchId);
     }
 
     @Override
     public void broadcastBlock(BlockHusk block) {
         try {
-            branchGroup.addBlock(block, true);
+            long nextIndex = branchGroup.getLastIndex(block.getBranchId()) + 1;
+            long receivedIndex = block.getIndex();
+
+            if (nextIndex < receivedIndex) {
+                // Catchup Event!
+                if (listener != null) {
+                    listener.catchUpRequest(block);
+                } else {
+                    log.debug("[BlockChainServiceConsumer] No listener!");
+                }
+            } else {
+                branchGroup.addBlock(block, true);
+            }
         } catch (Exception e) {
-            log.warn(e.getMessage());
+            log.warn("[BlockChainServiceConsumer] BroadcastBlock ERR={}", e.getMessage());
+            /*
             if (listener != null) {
                 listener.catchUpRequest(block);
             }
+            */
         }
     }
 
     @Override
-    public void broadcastTransaction(TransactionHusk tx) {
+    public void broadcastTx(TransactionHusk tx) {
         try {
             branchGroup.addTransaction(tx);
         } catch (Exception e) {

@@ -17,13 +17,19 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.StoreTestUtils;
-import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
+import io.yggdrash.core.p2p.Peer;
 import org.junit.AfterClass;
 import org.junit.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
 public class PeerStoreTest {
     private PeerStore peerStore;
@@ -53,5 +59,35 @@ public class PeerStoreTest {
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
         peerStore.put(peer.getPeerId(), peer);
         assertThat(peerStore.getAll().size()).isEqualTo(1);
+    }
+
+    @Test
+    public void overwrite() {
+        peerStore = new PeerStore(new HashMapDbSource());
+
+        Peer p1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
+        Peer p2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32919");
+        peerStore.put(p1.getPeerId(), p1);
+        peerStore.put(p2.getPeerId(), p2);
+
+        assertEquals(2, peerStore.getAll().size());
+        assertTrue(peerStore.contains(p1.getPeerId()));
+        assertTrue(peerStore.contains(p2.getPeerId()));
+
+        Peer p3 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
+        Peer p4 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
+        Peer p5 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32922");
+        List<Peer> peerList = new ArrayList<>();
+        peerList.add(p3);
+        peerList.add(p4);
+        peerList.add(p5);
+        peerStore.overwrite(peerList);
+
+        assertEquals(3, peerStore.getAll().size());
+        assertFalse(peerStore.contains(p1.getPeerId()));
+        assertFalse(peerStore.contains(p2.getPeerId()));
+        assertTrue(peerStore.contains(p3.getPeerId()));
+        assertTrue(peerStore.contains(p4.getPeerId()));
+        assertTrue(peerStore.contains(p5.getPeerId()));
     }
 }
