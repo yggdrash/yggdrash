@@ -19,22 +19,11 @@ public class TransactionReceiptStore {
         db.put(txReceipt.getTxId().getBytes(), txReceiptJson.getBytes());
     }
 
-    @Override
     public TransactionReceipt get(String txHash) {
         byte[] transactionReceipt = db.get(txHash.getBytes());
         // TransactionReceipt from ByteArray
         String txReceiptJson = new String(transactionReceipt);
         return gson.fromJson(txReceiptJson, TransactionReceiptImpl.class);
-    }
-
-    @Override
-    public void put(String key, TransactionReceipt value) {
-
-    }
-
-    @Override
-    public boolean contains(String key) {
-        return false;
     }
 
     public void close() {
