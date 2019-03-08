@@ -106,7 +106,7 @@ public class PeerTask {
 
     // copyNode adds peers from the table to the database if they have been in the table
     // longer then minTableTime.
-    //@Scheduled(cron = "*/30 * * * * *")
+    @Scheduled(cron = "*/30 * * * * *")
     public void copyLiveNode() {
         peerTableGroup.copyLiveNode();
     }
