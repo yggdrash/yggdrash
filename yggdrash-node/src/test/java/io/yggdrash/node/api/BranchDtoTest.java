@@ -23,13 +23,14 @@ import io.yggdrash.gateway.dto.BranchDto;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 
 public class BranchDtoTest {
 
-    protected static final Logger log = LoggerFactory.getLogger(BranchDtoTest.class);
+    private static final Logger log = LoggerFactory.getLogger(BranchDtoTest.class);
 
     @Test
     public void convertBranchDto() throws IOException {

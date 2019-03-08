@@ -47,7 +47,7 @@ public class BlockTest {
     private Block block1;
 
     @Before
-    public void init() throws Exception {
+    public void init() {
         JsonObject jsonParams1 = new JsonObject();
         jsonParams1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
         jsonParams1.addProperty("amount", "10000000");
@@ -108,7 +108,7 @@ public class BlockTest {
     }
 
     @Test
-    public void testBlockConstructor() throws Exception {
+    public void testBlockConstructor() {
         BlockHeader blockHeader2 = block1.getHeader().clone();
         BlockBody blockBody2 = block1.getBody().clone();
         BlockSignature blockSig2 = new BlockSignature(wallet, blockHeader2.getHashForSigning());
@@ -133,7 +133,7 @@ public class BlockTest {
     }
 
     @Test
-    public void testBlockClone() throws Exception {
+    public void testBlockClone() {
         Block block2 = block1.clone();
         log.debug("block2=" + block2.toJsonObject());
 
@@ -143,7 +143,7 @@ public class BlockTest {
     }
 
     @Test
-    public void testBlockKey() throws Exception {
+    public void testBlockKey() {
         Block block2 = block1.clone();
         log.debug("block2 pubKey=" + block2.getPubKeyHexString());
 

@@ -17,8 +17,11 @@
 package io.yggdrash.node.config;
 
 import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.SyncManager;
 import io.yggdrash.core.net.KademliaPeerNetwork;
+import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerNetwork;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerTableGroup;
@@ -54,5 +57,11 @@ public class NetworkConfiguration {
     @Bean
     PeerTask peerTask() {
         return new PeerTask();
+    }
+
+    @Bean
+    public SyncManager syncManager(
+            NodeStatus nodeStatus, PeerNetwork peerNetwork, BranchGroup branchGroup) {
+        return new BlockChainSyncManager(nodeStatus, peerNetwork, branchGroup);
     }
 }

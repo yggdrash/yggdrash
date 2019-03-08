@@ -16,10 +16,10 @@
 
 package io.yggdrash.core.store;
 
+import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerId;
-import io.yggdrash.common.store.datasource.DbSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +45,10 @@ public class PeerStore implements ReadWriterStore<PeerId, Peer> {
         db.put(key.getBytes(), value.toString().getBytes());
     }
 
+    private void put(Peer value) {
+        put(value.getPeerId(), value);
+    }
+
     @Override
     public Peer get(PeerId key) {
         byte[] foundedValue = db.get(key.getBytes());
@@ -60,6 +64,19 @@ public class PeerStore implements ReadWriterStore<PeerId, Peer> {
             return true;
         }
         return peers.containsKey(key);
+    }
+
+    public void overwrite(List<Peer> peerList) {
+        //log.debug("[PeerStore] before remove all :: peers => {}", peers);
+        //log.debug("[PeerStore] before remove all :: db => {}", getAll().size());
+
+        peers.keySet().stream().map(PeerId::getBytes).forEach(db::delete);
+        peers.keySet().removeIf(peers::containsKey);
+
+        peerList.forEach(this::put);
+
+        //log.debug("[PeerStore] before add all :: peers => {}", peers);
+        //log.debug("[PeerStore] before add all :: db => {}", getAll().size());
     }
 
     public void close() {

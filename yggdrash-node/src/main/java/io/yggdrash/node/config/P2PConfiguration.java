@@ -16,8 +16,6 @@
 
 package io.yggdrash.node.config;
 
-import io.yggdrash.core.akashic.SimpleSyncManager;
-import io.yggdrash.core.akashic.SyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.net.BlockChainConsumer;
 import io.yggdrash.core.net.BlockChainServiceConsumer;
@@ -93,10 +91,5 @@ public class P2PConfiguration {
     @Bean
     BlockChainConsumer blockChainConsumer(BranchGroup branchGroup) {
         return new BlockChainServiceConsumer(branchGroup);
-    }
-
-    @Bean
-    SyncManager syncManager() {
-        return new SimpleSyncManager();
     }
 }

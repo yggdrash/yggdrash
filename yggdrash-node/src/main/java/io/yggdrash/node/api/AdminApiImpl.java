@@ -35,14 +35,14 @@ public class AdminApiImpl implements AdminApi {
     private static final Logger log = LoggerFactory.getLogger(AdminApiImpl.class);
 
     private static int COMMAND_ACTIVE_TIME;
-    private static int COMMAND_RAND_LENGTH = 8;
-    private static int COMMAND_NONCE_LENGTH = 16;
+    private static final int COMMAND_RAND_LENGTH = 8;
+    private static final int COMMAND_NONCE_LENGTH = 16;
     private static final boolean IS_WINDOWS =
             System.getProperty("os.name").toLowerCase().startsWith("windows");
 
-    private String adminMode;
-    private String adminIp;
-    private byte[] adminPubKey;
+    private final String adminMode;
+    private final String adminIp;
+    private final byte[] adminPubKey;
 
     private JsonObject header;
     private String signature;

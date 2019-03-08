@@ -2,7 +2,6 @@ package io.yggdrash.contract.dpoa;
 
 import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.contract.core.annotation.ContractQuery;
-import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
@@ -36,13 +35,13 @@ public class DPoAClientContract implements BundleActivator, ServiceListener {
         );
         serviceTracker.open();
 
-        Hashtable<String, String> props = new Hashtable();
+        Hashtable<String, String> props = new Hashtable<>();
         props.put("YGGDRASH", "DPoAClient");
         context.registerService(DPoAClientService.class.getName(), new DPoAClientService(serviceTracker), props);
     }
 
     @Override
-    public void stop(BundleContext context) throws Exception {
+    public void stop(BundleContext context) {
         log.info("⚫ Stop dpoa client contract");
     }
 

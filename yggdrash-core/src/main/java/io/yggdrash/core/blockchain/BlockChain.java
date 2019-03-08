@@ -62,7 +62,7 @@ public class BlockChain {
 
     private BlockHusk prevBlock;
 
-    private ContractContainer contractContainer;
+    private final ContractContainer contractContainer;
 
     public BlockChain(Branch branch, BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, MetaStore metaStore,
@@ -161,7 +161,7 @@ public class BlockChain {
     }
 
     void generateBlock(Wallet wallet) {
-        List<TransactionHusk> txs = getUnconfirmedTxsWithLimit();
+        List<TransactionHusk> txs = transactionStore.getUnconfirmedTxsWithLimit(LIMIT.BLOCK_SYNC_SIZE);
         BlockHusk block = new BlockHusk(wallet, txs, getPrevBlock());
         addBlock(block, true);
     }
@@ -172,24 +172,6 @@ public class BlockChain {
 
     List<TransactionHusk> getUnconfirmedTxs() {
         return new ArrayList<>(transactionStore.getUnconfirmedTxs());
-    }
-
-    private List<TransactionHusk> getUnconfirmedTxsWithLimit() {
-        long bodySizeSum = 0;
-        Set<Sha3Hash> pendingKeys = transactionStore.getPendingKeys();
-        List<TransactionHusk> unconfirmedTxs = new ArrayList<>(pendingKeys.size());
-        for (Sha3Hash key : pendingKeys) {
-            TransactionHusk tx = transactionStore.getUnconfirmedTxs(key);
-            if (tx == null) {
-                continue;
-            }
-            bodySizeSum += tx.getLength();
-            if (bodySizeSum > LIMIT.BLOCK_SYNC_SIZE) {
-                break;
-            }
-            unconfirmedTxs.add(tx);
-        }
-        return unconfirmedTxs;
     }
 
     long countOfTxs() {
@@ -248,11 +230,11 @@ public class BlockChain {
         // TODO run block execute move to other process (or thread)
         // TODO last execute block will invoke
         if (nextBlock.getIndex() > metaStore.getLastExecuteBlockIndex()) {
-//            BlockRuntimeResult result = runtime.invokeBlock(nextBlock);
+            //BlockRuntimeResult result = runtime.invokeBlock(nextBlock);
             BlockRuntimeResult result = contractContainer.getContractManager().executeTransactions(nextBlock);
             // Save Result
             contractContainer.getContractManager().commitBlockResult(result);
-//            runtime.commitBlockResult(result);
+            //runtime.commitBlockResult(result);
             metaStore.setLastExecuteBlock(nextBlock);
         }
 
@@ -273,8 +255,8 @@ public class BlockChain {
         if (prevBlock == null) {
             return true;
         }
-        log.trace("prev : " + prevBlock.getHash());
-        log.trace("new  : " + nextBlock.getHash());
+        // log.trace("prev : " + prevBlock.getHash());
+        // log.trace("new  : " + nextBlock.getHash());
 
         if (prevBlock.getIndex() + 1 != nextBlock.getIndex()) {
             log.warn("invalid index: prev:{} / new:{}", prevBlock.getIndex(), nextBlock.getIndex());

@@ -43,7 +43,7 @@ public class CoinContractTest {
         genesis();
     }
 
-    public void genesis() {
+    private void genesis() {
         String genesisStr = "{\"alloc\": {\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\":"
                 + " {\"balance\": \"1000000000\"},\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\":"
                 + " {\"balance\": \"1000000000\"},\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":"
@@ -234,7 +234,7 @@ public class CoinContractTest {
         return JsonUtil.parseJsonObject(paramStr);
     }
 
-    public class MetaCoinContract extends CoinContract {
+    private class MetaCoinContract extends CoinContract {
         public TransactionReceipt hello(JsonObject params) {
             TransactionReceipt txReceipt = new TransactionReceiptImpl();
             txReceipt.addLog(params.toString());

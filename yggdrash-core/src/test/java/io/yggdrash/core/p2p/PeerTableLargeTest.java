@@ -18,8 +18,8 @@ public class PeerTableLargeTest {
     private static final String NODE_URI_PREFIX = "ynode://d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95@172.16.10.159:";
 
     private static final Peer SEED = Peer.valueOf(NODE_URI_PREFIX + SEED_PORT);
-    private List<Peer> peerList = new ArrayList<>();
-    private Map<Peer, PeerTable> peerTableMap = new HashMap<>();
+    private final List<Peer> peerList = new ArrayList<>();
+    private final Map<Peer, PeerTable> peerTableMap = new HashMap<>();
 
     @Test
     public void peerTableTest() {

@@ -6,14 +6,14 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.Contract;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.store.ReadWriterStore;
-import io.yggdrash.core.blockchain.Branch;
-import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
+import io.yggdrash.contract.core.store.ReadWriterStore;
+import io.yggdrash.core.blockchain.Branch;
+import io.yggdrash.core.blockchain.BranchId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -138,6 +138,7 @@ public class StemContract implements Contract<JsonObject> {
     @ContractQuery
     public ContractVersion getCurrentContract(JsonObject params) {
         String branchId = params.get(BRANCH_ID).getAsString();
+        // TODO to be implemented
         if (isBranchExist(branchId)) {
             //return getStateValue(branchId).getContractVersion();
         }
@@ -255,13 +256,11 @@ public class StemContract implements Contract<JsonObject> {
         String validator = params.get(VALIDATOR).getAsString();
         Set<String> branchIdSet = new HashSet<>();
 
-        getBranchIdList().stream().forEach(id -> {
-            getStateValue(id).getValidators().stream().forEach(v -> {
-                if (validator.equals(v)) {
-                    branchIdSet.add(id);
-                }
-            });
-        });
+        getBranchIdList().forEach(id -> getStateValue(id).getValidators().forEach(v -> {
+            if (validator.equals(v)) {
+                branchIdSet.add(id);
+            }
+        }));
         return branchIdSet;
     }
 

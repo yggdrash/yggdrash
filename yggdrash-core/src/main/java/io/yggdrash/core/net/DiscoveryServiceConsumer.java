@@ -25,9 +25,15 @@ import java.util.List;
 
 public class DiscoveryServiceConsumer implements DiscoveryConsumer {
     private final PeerTableGroup peerTableGroup;
+    private CatchUpSyncEventListener listener;
 
     public DiscoveryServiceConsumer(PeerTableGroup peerTableGroup) {
         this.peerTableGroup = peerTableGroup;
+    }
+
+    @Override
+    public void setListener(CatchUpSyncEventListener listener) {
+        this.listener = listener;
     }
 
     @Override
@@ -38,8 +44,17 @@ public class DiscoveryServiceConsumer implements DiscoveryConsumer {
     @Override
     public String ping(BranchId branchId, Peer from, Peer to, String msg) {
         //TODO Consider adding expiration time
+        //TODO AddPeer only when doing the handshake.
+        // AddPeer is still possible with multiple different pubKeys
+        // even if the ip and port are the same.
         if ("Ping".equals(msg) && peerTableGroup.getOwner().toAddress().equals(to.toAddress())) {
             peerTableGroup.addPeer(branchId, from);
+
+            //TODO Test!
+            if (listener != null) {
+                listener.catchUpRequest(branchId, from);
+            }
+
             return "Pong";
         }
         return "";

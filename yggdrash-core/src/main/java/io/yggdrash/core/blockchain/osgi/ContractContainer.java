@@ -5,6 +5,7 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.BundlePermission;
@@ -28,6 +29,7 @@ import java.io.FilePermission;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.ReflectPermission;
+import java.net.SocketPermission;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -39,7 +41,7 @@ import java.util.PropertyPermission;
 public class ContractContainer {
     private static final Logger log = LoggerFactory.getLogger(ContractContainer.class);
 
-    public static final String PREFIX_BUNDLE_PATH = "file:";
+    static final String PREFIX_BUNDLE_PATH = "file:";
     private static final String SUFFIX_SYSTEM_CONTRACT = "/system-contracts";
     private static final String SUFFIX_USER_CONTRACT = "/user-contracts";
 
@@ -47,14 +49,14 @@ public class ContractContainer {
     private String systemContractPath;
     private String userContractPath;
 
-    private FrameworkFactory frameworkFactory;
-    private Map<String, String> commonContainerConfig;
-    private String branchId;
-    private StateStore stateStore;
-    private TransactionReceiptStore transactionReceiptStore;
+    private final FrameworkFactory frameworkFactory;
+    private final Map<String, String> commonContainerConfig;
+    private final String branchId;
+    private final StateStore stateStore;
+    private final TransactionReceiptStore transactionReceiptStore;
+    private final DefaultConfig config;
 
     private ContractManager contractManager;
-    private DefaultConfig config;
 
     ContractContainer(FrameworkFactory frameworkFactory, Map<String, String> containerConfig, String branchId
             , StateStore stateStore, TransactionReceiptStore transactionReceiptStore, DefaultConfig config) {
@@ -142,32 +144,35 @@ public class ContractContainer {
                 permissionInfos.toArray(new PermissionInfo[permissionInfos.size()]),
                 ConditionalPermissionInfo.ALLOW));
 
+        String esHost = System.getProperty("es.host");
         //Allow file permission to system contract
+        List<PermissionInfo> systemPermissions = new ArrayList<>();
+        systemPermissions.add(new PermissionInfo(FilePermission.class.getName(), String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"));
+        systemPermissions.add(new PermissionInfo(FilePermission.class.getName(), String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete"));
+        if (!StringUtils.isEmpty(esHost)) {
+            systemPermissions.add(new PermissionInfo(SocketPermission.class.getName(), esHost, "connect,resolve"));
+        }
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-system-file", permissionKey),
                 new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName()
                         , new String[]{String.format("file:%s/*", systemContractPath)})
                 },
-                new PermissionInfo[]{
-                        new PermissionInfo(FilePermission.class.getName()
-                                , String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"),
-                        new PermissionInfo(FilePermission.class.getName()
-                                , String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete")
-                },
+                systemPermissions.toArray(new PermissionInfo[systemPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
 
         //Allow file permission to user contract
+        List<PermissionInfo> userPermissions = new ArrayList<>();
+        userPermissions.add(new PermissionInfo(FilePermission.class.getName(), String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"));
+        userPermissions.add(new PermissionInfo(FilePermission.class.getName(), String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete"));
+        if (!StringUtils.isEmpty(esHost)) {
+            userPermissions.add(new PermissionInfo(SocketPermission.class.getName(), esHost, "connect,resolve"));
+        }
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-user-file", permissionKey),
                 new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName()
                         , new String[]{String.format("file:%s/*", userContractPath)})
                 },
-                new PermissionInfo[]{
-                        new PermissionInfo(FilePermission.class.getName()
-                                , String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"),
-                        new PermissionInfo(FilePermission.class.getName()
-                                , String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete")
-                },
+                userPermissions.toArray(new PermissionInfo[userPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
 
         boolean isSuccess = update.commit();

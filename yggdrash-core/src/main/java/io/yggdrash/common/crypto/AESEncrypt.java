@@ -16,7 +16,7 @@ import java.security.SecureRandom;
  */
 public class AESEncrypt {
 
-    private static final int AES_KEYLENGTH = 128;
+    private static final int AES_KEY_LENGTH = 128;
 
     /**
      * encrypt data as AES.
@@ -30,7 +30,7 @@ public class AESEncrypt {
         PaddedBufferedBlockCipher bbc = new PaddedBufferedBlockCipher(
                 new CBCBlockCipher(new AESEngine()), new PKCS7Padding());
         KeyParameter kp = new KeyParameter(key);
-        byte[] ivBytes = new byte[AES_KEYLENGTH / 8];
+        byte[] ivBytes = new byte[AES_KEY_LENGTH / 8];
         SecureRandom prng = new SecureRandom();
         prng.nextBytes(ivBytes);
 
@@ -86,7 +86,7 @@ public class AESEncrypt {
         PaddedBufferedBlockCipher bbc = new PaddedBufferedBlockCipher(
                 new CBCBlockCipher(new AESEngine()), new PKCS7Padding());
         KeyParameter kp = new KeyParameter(key);
-        byte[] ivBytes = new byte[AES_KEYLENGTH / 8];
+        byte[] ivBytes = new byte[AES_KEY_LENGTH / 8];
         System.arraycopy(ivEncData, 0, ivBytes, 0, ivBytes.length);
 
         byte[] encData = new byte[ivEncData.length - ivBytes.length];

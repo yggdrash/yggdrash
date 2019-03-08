@@ -41,7 +41,7 @@ public class Branch {
     private final String property;
     private final long timestamp;
     private final JsonObject json;
-    protected List<BranchContract> contracts;
+    private final List<BranchContract> contracts;
     protected String description;
 
     // TODO change ACL Validators

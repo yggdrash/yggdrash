@@ -23,6 +23,8 @@ import java.util.List;
 
 public interface DiscoveryConsumer {
 
+    void setListener(CatchUpSyncEventListener listener);
+
     List<Peer> findPeers(BranchId branchId, Peer target);
 
     String ping(BranchId branchId, Peer from, Peer to, String msg);

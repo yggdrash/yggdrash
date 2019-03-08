@@ -10,8 +10,8 @@ public class Constants {
 
     public static final int DEFAULT_PORT = 32918;
 
-    public static final String STEM = "STEM";
-    public static final String YEED = "YEED";
+    private static final String STEM = "STEM";
+    private static final String YEED = "YEED";
     public static final String VALIDATOR = "VALIDATOR";
     public static final String YGGDRASH = "YGGDRASH";
     public static final String BRANCH_ID = "branchId";
@@ -55,11 +55,11 @@ public class Constants {
     }
 
     // TODO Contract Version fix
-    public static final byte[] STEM_CONTRACT = Hex.encode(STEM.getBytes());
+    private static final byte[] STEM_CONTRACT = Hex.encode(STEM.getBytes());
     public static final ContractVersion STEM_CONTRACT_VERSION = ContractVersion.of(HexUtil.toHexString(STEM_CONTRACT));
-    public static final byte[] YEED_CONTRACT = Hex.encode(YEED.getBytes());
+    private static final byte[] YEED_CONTRACT = Hex.encode(YEED.getBytes());
     public static final ContractVersion YEED_CONTRACT_VERSION = ContractVersion.of(HexUtil.toHexString(YEED_CONTRACT));
-    public static final byte[] VALIDATOR_CONTRACT = Hex.encode(VALIDATOR.getBytes());
+    private static final byte[] VALIDATOR_CONTRACT = Hex.encode(VALIDATOR.getBytes());
     public static final ContractVersion VALIDATOR_CONTRACT_VERSION = ContractVersion.of(HexUtil.toHexString(VALIDATOR_CONTRACT));
 
 }

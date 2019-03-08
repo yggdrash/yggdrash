@@ -2,8 +2,8 @@ package io.yggdrash.validator.store;
 
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
+import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessage;
@@ -72,9 +72,9 @@ public class PbftBlockKeyStoreTest {
     private PbftMessageSet pbftMessageSet2;
     private PbftMessageSet pbftMessageSet3;
     private PbftMessageSet pbftMessageSet4;
-    private Map<String, PbftMessage> prepareMap = new TreeMap<>();
-    private Map<String, PbftMessage> commitMap = new TreeMap<>();
-    private Map<String, PbftMessage> viewChangeMap = new TreeMap<>();
+    private final Map<String, PbftMessage> prepareMap = new TreeMap<>();
+    private final Map<String, PbftMessage> commitMap = new TreeMap<>();
+    private final Map<String, PbftMessage> viewChangeMap = new TreeMap<>();
 
     private LevelDbDataSource ds;
     private PbftBlockKeyStore blockKeyStore;

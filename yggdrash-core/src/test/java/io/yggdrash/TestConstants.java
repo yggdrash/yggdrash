@@ -32,7 +32,7 @@ public class TestConstants {
 
     private static BranchId YGGDRASH_BRANCH_ID;
 
-    public static ContractVersion STEM_CONTRACT;
+    static ContractVersion STEM_CONTRACT;
     public static ContractVersion YEED_CONTRACT;
     public static Branch TEST_BRANCH;
 
@@ -61,7 +61,7 @@ public class TestConstants {
 
             ClassLoader loader = TestConstants.class.getClassLoader();
             InputStream is = loader.getResourceAsStream("branch-yggdrash.json");
-            Branch yggdrashBranch = null;
+            Branch yggdrashBranch;
             try {
                 yggdrashBranch = Branch.of(is);
                 TEST_BRANCH = yggdrashBranch;

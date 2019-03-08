@@ -277,9 +277,7 @@ public class PbftMessageTest {
             log.debug("before: " + before.toJsonObject().toString());
             PbftMessage after = newPbftMessageList.get(i);
             log.debug("after:  " + after.toJsonObject().toString());
-            if (!before.equals(after)) {
-                assert false;
-            }
+            assert before.equals(after);
         }
     }
 
