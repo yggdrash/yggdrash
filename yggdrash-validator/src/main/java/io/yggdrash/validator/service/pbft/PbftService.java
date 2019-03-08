@@ -559,6 +559,7 @@ public class PbftService implements CommandLineRunner {
     private void confirmedBlock(PbftBlock block) {
         this.blockChain.getBlockStore().put(block.getHash(), block);
         this.blockChain.getBlockKeyStore().put(block.getIndex(), block.getHash());
+        this.blockChain.batchTxs(block);
 
         log.debug("ConfirmedBlock "
                 + "("
@@ -757,6 +758,7 @@ public class PbftService implements CommandLineRunner {
                     this.blockChain.getBlockKeyStore()
                             .put(pbftBlock.getIndex(), pbftBlock.getHash());
                 }
+                this.blockChain.batchTxs(pbftBlock);
             }
             pbftBlock = pbftBlockList.get(i - 1);
             changeLastConfirmedBlock(pbftBlock);
