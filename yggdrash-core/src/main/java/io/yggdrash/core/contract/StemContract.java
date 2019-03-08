@@ -186,6 +186,7 @@ public class StemContract implements Contract {
 
         // TODO isEnoughFee(stateValue) check
         if (isBranchExist(branchId)) {
+            // TODO change fee state
             return getBranchStateValue(branchId).getJson();
         }
         return new JsonObject();
@@ -199,6 +200,8 @@ public class StemContract implements Contract {
     @ContractQuery
     public String getBranchIdByTxId(JsonObject params) {
         String txId = params.get(TX_ID).getAsString();
+        // TODO branch fee state check
+        // TODO isEnoughFee(stateValue) check
         JsonObject branchId = state.get(txId);
         return branchId == null ? new String()
                 : branchId.get("branchId").getAsString();
@@ -259,6 +262,9 @@ public class StemContract implements Contract {
         String validator = params.get(VALIDATOR).getAsString();
         Set<String> branchIdSet = new HashSet<>();
 
+        // TODO branch fee state check
+        // TODO isEnoughFee(stateValue) check
+
         getBranchIdList().stream().forEach(id -> {
             getBranchStateValue(id).getValidators().stream().forEach(v -> {
                 if (validator.equals(v)) {
@@ -295,8 +301,8 @@ public class StemContract implements Contract {
         if (currentFee.longValue() > 0) {
             Long currentHeight = txReceipt.getBlockHeight();
             Long createPointHeight = stateValue.getBlockHeight();
-            Long height = currentHeight - createPointHeight;
-            return currentFee.subtract(BigDecimal.valueOf(height));
+            Long overTimeHeight = currentHeight - createPointHeight;
+            return currentFee.subtract(BigDecimal.valueOf(overTimeHeight));
         }
         return BigDecimal.ZERO;
     }
