@@ -26,6 +26,7 @@ import java.util.concurrent.Future;
 
 public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListener {
     private static final Logger log = LoggerFactory.getLogger(BlockChainSyncManager.class);
+    private static final long limitIndex = 10000;
 
     private NodeStatus nodeStatus;
     private BranchGroup branchGroup;
@@ -76,7 +77,7 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
             return;
         }
 
-        reqSyncBlockToHandlers(blockChain, block.getIndex());
+        reqSyncBlockToHandlers(blockChain);
 
         try {
             blockChain.addBlock(block, true);
@@ -93,7 +94,7 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
             return;
         }
 
-        reqSyncBlockToHandlers(blockChain, offset);
+        reqSyncBlockToHandlers(blockChain);
     }
 
     // When ping received (DiscoveryServiceConsumer)
@@ -111,7 +112,7 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
             return;
         }
 
-        reqSyncBlockToHandlers(blockChain, bestBlock);
+        reqSyncBlockToHandlers(blockChain);
     }
 
     @Override
@@ -162,11 +163,11 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
         }
     }
 
-    private void reqSyncBlockToHandlers(BlockChain blockChain, long bestBlock) {
+    private void reqSyncBlockToHandlers(BlockChain blockChain) {
         BranchId branchId = blockChain.getBranchId();
         nodeStatus.sync();
         for (PeerHandler peerHandler : peerNetwork.getHandlerList(branchId)) {
-            syncBlock(peerHandler, blockChain, bestBlock);
+            syncBlock(peerHandler, blockChain, limitIndex);
         }
         nodeStatus.up();
     }

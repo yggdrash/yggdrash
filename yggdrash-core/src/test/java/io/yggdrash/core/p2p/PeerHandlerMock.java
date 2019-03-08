@@ -117,6 +117,21 @@ public class PeerHandlerMock implements PeerHandler {
             BlockHusk newBlock = new BlockHusk(wallet(), Collections.emptyList(), prevBlock);
             husksCompletableFuture.complete(Collections.singletonList(newBlock));
         }
+
+        /*
+        List<BlockHusk> blockHusks = new ArrayList<>();
+        BlockHusk genesisBlock = BlockChainTestUtils.genesisBlock();
+        BlockHusk firstBlock =  new BlockHusk(wallet(), Collections.emptyList(), genesisBlock);
+        blockHusks.add(firstBlock);
+
+        for (int i = 0; i < 3; i++) {
+            BlockHusk prevBlock = blockHusks.get(i);
+            BlockHusk nextBlock = new BlockHusk(wallet(),  Collections.emptyList(), prevBlock);
+            blockHusks.add(nextBlock);
+        }
+
+        husksCompletableFuture.complete(blockHusks);
+        */
         return husksCompletableFuture;
     }
 

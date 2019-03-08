@@ -1,6 +1,7 @@
 package io.yggdrash.core.p2p;
 
 import io.yggdrash.PeerTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.TestConstants.SlowTest;
 import io.yggdrash.common.util.Utils;
 import org.junit.Before;
@@ -103,8 +104,8 @@ public class PeerTableTest {
 
     @Test
     public void copyLiveNode() {
-
-        // arrange
+        TestConstants.SlowTest.apply();
+        // arrange(1)
         Peer peer1 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
         Peer peer2 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32919");
         peerTable.addPeer(peer1);
@@ -114,6 +115,7 @@ public class PeerTableTest {
         // act
         Utils.sleep(10);
         peerTable.copyLiveNode(5);
+
         // assert
         assertEquals(peerTable.getPeerStore().size(), 0);
 
@@ -121,6 +123,22 @@ public class PeerTableTest {
         peerTable.copyLiveNode(500);
         // assert
         assertEquals(peerTable.getPeerStore().size(), 2);
+
+        // arrange(2)
+        Peer peer3 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
+        Peer peer4 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
+        Peer peer5 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32922");
+        peerTable.addPeer(peer3);
+        peerTable.addPeer(peer4);
+        peerTable.addPeer(peer5);
+        assertEquals(peerTable.getPeerStore().size(), 2);
+
+        // act
+        Utils.sleep(10);
+        peerTable.copyLiveNode(15);
+
+        //assert
+        assertEquals(peerTable.getPeerStore().size(), 3);
     }
 
     @Test

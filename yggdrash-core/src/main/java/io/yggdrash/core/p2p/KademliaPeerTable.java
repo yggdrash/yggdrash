@@ -71,7 +71,7 @@ public class KademliaPeerTable implements PeerTable {
     // addPeer attempts to add the given peer to its corresponding bucket.
     // If the bucket has space available, adding the peer succeeds immediately.
     // Otherwise, the node is added if the least recently active node in the bucket
-    // does not respond to a ping packet. (TODO implementation of healthCheck by ping)
+    // does not respond to a ping packet.
     @Override
     public synchronized void addPeer(Peer peer) {
         peer.setDistance(owner);
@@ -94,21 +94,16 @@ public class KademliaPeerTable implements PeerTable {
 
     @Override
     public void copyLiveNode(long minTableTime) {
+        List<Peer> peerList = new ArrayList<>();
         long baseTime = System.currentTimeMillis();
         for (Peer peer : getAllPeers()) {
             if (baseTime - peer.getModified() < minTableTime) {
-                updatePeerStore(peer);
+                //updatePeerStore(peer);
+                peerList.add(peer);
             }
         }
-
-    }
-
-    private void updatePeerStore(Peer peer) {
-        if (!peerStore.contains(peer.getPeerId())) {
-            // TODO overwrite peer which should be updated in the db
-            peerStore.put(peer.getPeerId(), peer);
-            log.debug("Added peerStore size={}, peer={}", peerStore.size(), peer.toAddress());
-        }
+        log.debug("[KademliaPeerTable] overwritePeerStore :: peerList => {}", peerList);
+        peerStore.overwrite(peerList);
     }
 
     @Override
