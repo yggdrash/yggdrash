@@ -121,10 +121,9 @@ public class StemContract implements Contract {
      * tx size fee = txSize / 1mbyte
      * 1mbyte to 1yeed
      *
-     * @param stateValue, json
+     * @param stateValue params
      */
     private void setStateValue(StemContractStateValue stateValue, JsonObject params) {
-        // TODO change boolean
         if (params.has("fee") && txReceipt.getTxSize() != null) {
             BigDecimal fee = params.get("fee").getAsBigDecimal();
             BigDecimal txSize = BigDecimal.valueOf(txReceipt.getTxSize());
@@ -149,7 +148,7 @@ public class StemContract implements Contract {
      * Returns boolean
      *
      * @param branchId
-     */
+     * */
     public void messageCall(BranchId branchId) {
         // TODO message call to contract
         // TODO isEnoughFee
@@ -169,7 +168,11 @@ public class StemContract implements Contract {
         JsonArray branchIds = branchList.getAsJsonArray("branchIds");
         Set<String> branchIdSet = new HashSet<>();
         for (JsonElement branchId : branchIds) {
-            branchIdSet.add(branchId.getAsString());
+            StemContractStateValue stateValue =
+                    getBranchStateValue(branchId.getAsString());
+            if (isEnoughFee(stateValue)) {
+                branchIdSet.add(branchId.getAsString());
+            }
         }
         return branchIdSet;
     }
@@ -184,10 +187,9 @@ public class StemContract implements Contract {
         String branchId = params.get(BRANCH_ID).getAsString();
         StemContractStateValue stateValue = getBranchStateValue(branchId);
 
-        // TODO isEnoughFee(stateValue) check
-        if (isBranchExist(branchId)) {
-            // TODO change fee state
-            return getBranchStateValue(branchId).getJson();
+        if (isBranchExist(branchId) && isEnoughFee(stateValue)) {
+            stateValue.setFee(feeState(stateValue));
+            return stateValue.getJson();
         }
         // TODO fee not enough mesaage
         return new JsonObject();
@@ -205,8 +207,7 @@ public class StemContract implements Contract {
         if (branchIdJson != null && branchIdJson.has("branchId")) {
             String branchId = branchIdJson.get("branchId").getAsString();
             StemContractStateValue stateValue = getBranchStateValue(branchId);
-            // TODO isEnoughFee(stateValue) check
-            if (isBranchExist(branchId)) {
+            if (isBranchExist(branchId) && isEnoughFee(stateValue)) {
                 return branchIdJson.get("branchId").getAsString();
             }
         }
@@ -224,8 +225,7 @@ public class StemContract implements Contract {
         Set<JsonElement> contractSet = new HashSet<>();
         StemContractStateValue stateValue = getBranchStateValue(branchId);
 
-        // TODO isEnoughFee(stateValue) check
-        if (isBranchExist(branchId)) {
+        if (isBranchExist(branchId) && isEnoughFee(stateValue)) {
             JsonArray contracts = getBranchStateValue(branchId).getJson()
                     .getAsJsonArray("contracts");
             for (JsonElement c : contracts) {
@@ -246,8 +246,7 @@ public class StemContract implements Contract {
         Set<String> validatorSet = new HashSet<>();
         StemContractStateValue stateValue = getBranchStateValue(branchId);
 
-        // TODO isEnoughFee(stateValue) check
-        if (isBranchExist(branchId)) {
+        if (isBranchExist(branchId) && isEnoughFee(stateValue)) {
             JsonArray validators = getBranchStateValue(branchId).getJson()
                     .getAsJsonArray("validator");
             for (JsonElement v : validators) {
@@ -269,11 +268,14 @@ public class StemContract implements Contract {
         Set<String> branchIdSet = new HashSet<>();
 
         getBranchIdList().stream().forEach(id -> {
-            getBranchStateValue(id).getValidators().stream().forEach(v -> {
-                if (validator.equals(v)) {
-                    branchIdSet.add(id);
-                }
-            });
+            StemContractStateValue stateValue = getBranchStateValue(id);
+            if (isEnoughFee(stateValue)) {
+                getBranchStateValue(id).getValidators().stream().forEach(v -> {
+                    if (validator.equals(v)) {
+                        branchIdSet.add(id);
+                    }
+                });
+            }
         });
         return branchIdSet;
     }
