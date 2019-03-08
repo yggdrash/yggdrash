@@ -7,12 +7,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
-import java.io.IOException;
-
 public class PbftBlockKeyStore implements ReadWriterStore<Long, byte[]> {
     private static final Logger log = LoggerFactory.getLogger(PbftBlockKeyStore.class);
 
     private final DbSource<byte[], byte[]> db;
+    private long size = 0;
 
     public PbftBlockKeyStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
@@ -29,6 +28,7 @@ public class PbftBlockKeyStore implements ReadWriterStore<Long, byte[]> {
                 + "(key: " + key + ")"
                 + "(value : " + Hex.toHexString(value) + ")");
         db.put(ByteUtil.longToBytes(key), value);
+        size++;
     }
 
     @Override
@@ -51,13 +51,8 @@ public class PbftBlockKeyStore implements ReadWriterStore<Long, byte[]> {
         return db.get(ByteUtil.longToBytes(key)) != null;
     }
 
-    public int size() {
-        try {
-            return db.getAll().size();
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-        return 0;
+    public long size() {
+        return this.size;
     }
 
     public void close() {

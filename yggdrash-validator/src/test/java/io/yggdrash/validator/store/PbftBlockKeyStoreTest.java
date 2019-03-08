@@ -252,7 +252,7 @@ public class PbftBlockKeyStoreTest {
 
     @Test
     public void putTest_NegativeNumber() {
-        int beforeSize = blockKeyStore.size();
+        long beforeSize = blockKeyStore.size();
         blockKeyStore.put(-1L, this.pbftBlock.getHash());
         assertEquals(blockKeyStore.size(), beforeSize);
     }
