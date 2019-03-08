@@ -29,9 +29,8 @@ import org.slf4j.LoggerFactory;
 import static org.junit.Assert.assertEquals;
 
 public class StateStoreTest {
-    StateStore stateStore;
-    Logger log = LoggerFactory.getLogger(StateStoreTest.class);
-
+    private static final Logger log = LoggerFactory.getLogger(StateStoreTest.class);
+    private StateStore stateStore;
 
     @Before
     public void setUp() {
@@ -44,7 +43,7 @@ public class StateStoreTest {
     }
 
     @Test
-    public void putState() throws Exception {
+    public void putState() {
         String stateKey = "State";
         JsonObject obj = new JsonParser().parse("{\"value\":\"value\"}").getAsJsonObject();
         stateStore.put(stateKey, obj);
@@ -52,7 +51,7 @@ public class StateStoreTest {
     }
 
     @Test
-    public void getState() throws Exception {
+    public void getState() {
         String stateKey = "State";
         JsonObject obj = new JsonParser().parse("{\"value\":\"value\"}").getAsJsonObject();
         stateStore.put(stateKey, obj);
@@ -62,7 +61,7 @@ public class StateStoreTest {
     }
 
     @Test
-    public void getStateSize() throws Exception {
+    public void getStateSize() {
         // first is null
         assertEquals(0L, this.stateStore.getStateSize());
         // add some state

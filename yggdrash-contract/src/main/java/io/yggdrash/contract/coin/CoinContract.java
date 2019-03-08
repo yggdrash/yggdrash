@@ -34,16 +34,16 @@ public class CoinContract implements BundleActivator, ServiceListener {
     private static final Logger log = LoggerFactory.getLogger(CoinContract.class);
 
     @Override
-    public void start(BundleContext context) throws Exception {
+    public void start(BundleContext context) {
         log.info("⚪ Start coin contract");
         //Find for service in another bundle
-        Hashtable<String, String> props = new Hashtable();
+        Hashtable<String, String> props = new Hashtable<>();
         props.put("YGGDRASH", "Coin");
         context.registerService(CoinService.class.getName(), new CoinService(), props);
     }
 
     @Override
-    public void stop(BundleContext context) throws Exception {
+    public void stop(BundleContext context) {
         log.info("⚫ Stop coin contract");
     }
 
@@ -69,7 +69,7 @@ public class CoinContract implements BundleActivator, ServiceListener {
         @ParamValidation
         @Override
         public BigInteger totalSupply() {
-            log.debug("\ntotalsupply :: param => ");
+            log.debug("\ntotalSupply :: param => ");
             return getBalance(totalSupplyKey);
         }
 
@@ -83,7 +83,7 @@ public class CoinContract implements BundleActivator, ServiceListener {
         @ParamValidation
         @Override
         public BigInteger balanceOf(JsonObject params) {
-            log.debug("\nbalanceof :: params => " + params);
+            log.debug("\nbalanceOf :: params => " + params);
 
             String address = params.get("address").getAsString().toLowerCase();
             if (store.get(address) != null) {
@@ -207,7 +207,7 @@ public class CoinContract implements BundleActivator, ServiceListener {
         @ParamValidation
         @Override
         public TransactionReceipt transferFrom(JsonObject params) {
-            log.debug("\ntransferfrom :: params => " + params);
+            log.debug("\ntransferFrom :: params => " + params);
 
             String from = params.get("from").getAsString().toLowerCase();
             String to = params.get("to").getAsString().toLowerCase();

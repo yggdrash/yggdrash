@@ -106,9 +106,8 @@ public class AbstractNodeTest {
         }
     }
 
-    protected TestNode refreshAndHealthCheck(TestNode node) {
+    protected void refreshAndHealthCheck(TestNode node) {
         node.peerTask.refresh();
         node.peerTask.healthCheck();
-        return node;
     }
 }

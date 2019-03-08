@@ -10,7 +10,7 @@ public enum PrefixKeyEnum {
     PROPOSE_VALIDATORS("pv-"),
     VALIDATORS("vl-");
 
-    private String value;
+    private final String value;
 
     PrefixKeyEnum(String value) {
         this.value = value;

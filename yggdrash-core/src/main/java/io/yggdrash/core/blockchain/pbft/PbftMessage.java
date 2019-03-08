@@ -181,10 +181,8 @@ public class PbftMessage {
                 return false;
             }
 
-            if (!Arrays.equals(pbftMessage.getHash(), pbftMessage.getBlock().getHash())
-                    || !pbftMessage.getBlock().verify()) {
-                return false;
-            }
+            return Arrays.equals(pbftMessage.getHash(), pbftMessage.getBlock().getHash())
+                    && pbftMessage.getBlock().verify();
         }
 
         return true;

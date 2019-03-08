@@ -1,3 +1,5 @@
+import org.springframework.boot.gradle.tasks.bundling.BootJar
+
 plugins {
     id 'org.springframework.boot' version '2.1.1.RELEASE' apply false
     id 'com.google.protobuf' version '0.8.7'
@@ -161,7 +163,7 @@ project(':yggdrash-node') {
         launchScript()
     }
 
-    task customJar(type: org.springframework.boot.gradle.tasks.bundling.BootJar) {
+    task customJar(type: BootJar) {
         archiveName = "${project.name}.jar"
         mainClassName = 'io.yggdrash.node.YggdrashNodeApp'
 

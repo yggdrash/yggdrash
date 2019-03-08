@@ -17,8 +17,8 @@
 package io.yggdrash.core.runtime.result;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.core.blockchain.BlockHusk;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -27,9 +27,9 @@ import java.util.Map;
 import java.util.Set;
 
 public class BlockRuntimeResult {
-    Map<String, JsonObject> blockResult = new HashMap<>();
-    List<TransactionReceipt> txReceipts = new ArrayList<>();
-    BlockHusk block;
+    private final Map<String, JsonObject> blockResult = new HashMap<>();
+    private final List<TransactionReceipt> txReceipts = new ArrayList<>();
+    private final BlockHusk block;
 
 
     public BlockRuntimeResult(BlockHusk block) {

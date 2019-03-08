@@ -20,6 +20,8 @@ import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
+import io.yggdrash.common.store.StateStore;
+import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionBuilder;
@@ -27,9 +29,7 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.ContractVersion;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
-import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import io.yggdrash.common.store.datasource.HashMapDbSource;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -41,7 +41,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Ignore
 public class RuntimeTest {
-    private Logger log = LoggerFactory.getLogger(RuntimeTest.class);
+    private static final Logger log = LoggerFactory.getLogger(RuntimeTest.class);
 
     @Test
     public void yeedRuntimeTest() {
@@ -101,8 +101,7 @@ public class RuntimeTest {
 
         log.debug(testTx.toString());
         TransactionRuntimeResult result = runtime.invoke(testTx);
-
-        result.getReceipt().getTxLog().forEach(l -> log.debug(l.toString()));
+        result.getReceipt().getTxLog().forEach(log::debug);
 
         assertThat(result.getReceipt().isSuccess()).isTrue();
 

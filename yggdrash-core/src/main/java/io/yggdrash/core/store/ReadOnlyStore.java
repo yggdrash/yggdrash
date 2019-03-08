@@ -20,7 +20,7 @@ import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 
 public class ReadOnlyStore<K, V> implements ReadWriterStore<K, V> {
-    private ReadWriterStore<K, V> stateStore;
+    private final ReadWriterStore<K, V> stateStore;
 
     public ReadOnlyStore(ReadWriterStore originStore) {
         this.stateStore = originStore;

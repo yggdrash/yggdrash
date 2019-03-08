@@ -43,6 +43,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static io.yggdrash.common.config.Constants.TX_ID;
 import static io.yggdrash.common.config.Constants.VALIDATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
@@ -85,6 +86,12 @@ public class StemContractTest {
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
+    }
+
+    @Test
+    public void getBranchList() {
+        Set<String> branchIdList = stemContract.getBranchIdList();
+        assertThat(branchIdList).containsOnly(stateValue.getBranchId().toString());
     }
 
     @Test
@@ -195,18 +202,16 @@ public class StemContractTest {
         assertEquals(uvs, validators);
     }
 
-    @Test
-    public void getBranchList() {
-        Set<String> branchIdList = stemContract.getBranchIdList();
-        assertThat(branchIdList).containsOnly(stateValue.getBranchId().toString());
-    }
-
     private JsonObject createParams() {
         return ContractTestUtils.createParams(BRANCH_ID, stateValue.getBranchId().toString());
     }
 
     private JsonObject createParams(String bid) {
         return ContractTestUtils.createParams(BRANCH_ID, bid);
+    }
+
+    private JsonObject createTxParams(String txId) {
+        return ContractTestUtils.createParams(TX_ID, txId);
     }
 
     private JsonObject createValidatorParams() {

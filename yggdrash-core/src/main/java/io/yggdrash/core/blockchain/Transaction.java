@@ -19,6 +19,7 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.ByteUtil;
@@ -47,9 +48,9 @@ public class Transaction {
     private static final int SIGNATURE_LENGTH = 65;
 
     // Transaction Data Format v0.0.3
-    private TransactionHeader header;
-    private byte[] signature;
-    private TransactionBody body;
+    private final TransactionHeader header;
+    private final byte[] signature;
+    private final TransactionBody body;
 
     /**
      * Transaction Constructor.
@@ -58,8 +59,7 @@ public class Transaction {
      * @param signature transaction signature
      * @param body   transaction body
      */
-    public Transaction(TransactionHeader header,
-                       byte[] signature, TransactionBody body) {
+    public Transaction(TransactionHeader header, byte[] signature, TransactionBody body) {
         this.header = header;
         this.signature = signature;
         this.body = body;
@@ -235,7 +235,7 @@ public class Transaction {
      * @return tx length
      */
     public long length() {
-        return this.header.length() + this.signature.length + this.body.length();
+        return Constants.TX_HEADER_LENGTH + this.signature.length + this.body.length();
     }
 
     /**
@@ -381,7 +381,7 @@ public class Transaction {
         return protoTransaction;
     }
 
-    public static Transaction toTransaction(Proto.Transaction protoTransaction) {
+    static Transaction toTransaction(Proto.Transaction protoTransaction) {
         // todo: move at TransactionHusk
 
         TransactionHeader txHeader = new TransactionHeader(

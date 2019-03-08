@@ -189,6 +189,7 @@ public class StemContract implements Contract {
             // TODO change fee state
             return getBranchStateValue(branchId).getJson();
         }
+        // TODO fee not enough mesaage
         return new JsonObject();
     }
 
@@ -200,11 +201,16 @@ public class StemContract implements Contract {
     @ContractQuery
     public String getBranchIdByTxId(JsonObject params) {
         String txId = params.get(TX_ID).getAsString();
-        // TODO branch fee state check
-        // TODO isEnoughFee(stateValue) check
-        JsonObject branchId = state.get(txId);
-        return branchId == null ? new String()
-                : branchId.get("branchId").getAsString();
+        JsonObject branchIdJson = state.get(txId);
+        if (branchIdJson != null && branchIdJson.has("branchId")) {
+            String branchId = branchIdJson.get("branchId").getAsString();
+            StemContractStateValue stateValue = getBranchStateValue(branchId);
+            // TODO isEnoughFee(stateValue) check
+            if (isBranchExist(branchId)) {
+                return branchIdJson.get("branchId").getAsString();
+            }
+        }
+        return new String();
     }
 
     /**
@@ -261,9 +267,6 @@ public class StemContract implements Contract {
     public Set<String> getBranchIdByValidator(JsonObject params) {
         String validator = params.get(VALIDATOR).getAsString();
         Set<String> branchIdSet = new HashSet<>();
-
-        // TODO branch fee state check
-        // TODO isEnoughFee(stateValue) check
 
         getBranchIdList().stream().forEach(id -> {
             getBranchStateValue(id).getValidators().stream().forEach(v -> {

@@ -17,7 +17,6 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.utils.ByteUtil;
@@ -117,12 +116,8 @@ public class TransactionHeader {
             log.debug("Transaction Header Length is not valid.");
             throw new NotValidateException();
         }
-
     }
 
-    public long length() {
-        return Constants.TX_HEADER_LENGTH;
-    }
 
     public byte[] getChain() {
         return this.chain;

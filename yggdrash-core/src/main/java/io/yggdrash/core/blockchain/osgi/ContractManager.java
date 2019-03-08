@@ -25,21 +25,20 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Dictionary;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
 public class ContractManager {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
 
-    private Framework framework;
-    private String systemContractPath;
-    private String userContractPath;
-    private String branchId;
-    private StateStore stateStore;
-    private TransactionReceiptStore transactionReceiptStore;
+    private final Framework framework;
+    private final String systemContractPath;
+    private final String userContractPath;
+    private final String branchId;
+    private final StateStore stateStore;
+    private final TransactionReceiptStore transactionReceiptStore;
+    private final ContractCache contractCache;
 
-    private ContractCache contractCache;
     private List<String> systemContracts;
 
     ContractManager(Framework framework, String systemContractPath, String userContractPath, String branchId, StateStore stateStore, TransactionReceiptStore transactionReceiptStore) {
@@ -52,19 +51,19 @@ public class ContractManager {
         contractCache = new ContractCache();
     }
 
-    public void setSystemContracts(List<String> systemContracts) {
+    void setSystemContracts(List<String> systemContracts) {
         this.systemContracts = systemContracts;
     }
 
-    public String makeContractPath(String contractName, boolean isSystemContract) {
+    String makeContractPath(String contractName, boolean isSystemContract) {
         return String.format("%s/%s", isSystemContract ? systemContractPath : userContractPath, contractName);
     }
 
-    public String makeContractFullPath(String contractName, boolean isSystemContract) {
+    private String makeContractFullPath(String contractName, boolean isSystemContract) {
         return String.format("%s%s/%s", ContractContainer.PREFIX_BUNDLE_PATH, isSystemContract ? systemContractPath : userContractPath, contractName);
     }
 
-    public boolean checkSystemContract(String contractName) {
+    private boolean checkSystemContract(String contractName) {
         return contractName.matches("[0-9]*[-]*system-.*");
     }
 
@@ -74,7 +73,7 @@ public class ContractManager {
             return;
         }
 
-        boolean isSystemContract = bundle.getLocation().startsWith(String.format("%s%s", ContractContainer.PREFIX_BUNDLE_PATH, systemContractPath)) ? true : false;
+        boolean isSystemContract = bundle.getLocation().startsWith(String.format("%s%s", ContractContainer.PREFIX_BUNDLE_PATH, systemContractPath));
 
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = framework.getBundleContext().getService(serviceRef);
@@ -164,7 +163,7 @@ public class ContractManager {
         return true;
     }
 
-    public long install(String contractFileName, boolean isSystemContract) {
+    long install(String contractFileName, boolean isSystemContract) {
         Bundle bundle;
         try {
             bundle = framework.getBundleContext().installBundle(makeContractFullPath(contractFileName, isSystemContract));
@@ -181,7 +180,7 @@ public class ContractManager {
         return bundle.getBundleId();
     }
 
-    public boolean uninstall(long contractId) {
+    private boolean uninstall(long contractId) {
         return action(contractId, ActionType.UNINSTALL);
     }
 
@@ -225,9 +224,7 @@ public class ContractManager {
                 case InvokeTx:
                     // Inject field
                     Map<Field, List<Annotation>> fields = contractCache.getInjectingFields().get(bundle.getLocation());
-                    Iterator<Field> fieldIter = fields.keySet().iterator();
-                    while (fieldIter.hasNext()) {
-                        Field field = fieldIter.next();
+                    for (Field field : fields.keySet()) {
                         field.setAccessible(true);
                         for (Annotation a : field.getDeclaredAnnotations()) {
                             if (a.annotationType().equals(ContractTransactionReceipt.class)) {
@@ -334,14 +331,9 @@ public class ContractManager {
     public void commitBlockResult(BlockRuntimeResult result) {
         // TODO store transaction bybatch
         Map<String, JsonObject> changes = result.getBlockResult();
-        result.getTxReceipts().stream().forEach(txr -> {
-            transactionReceiptStore.put(txr);
-        });
+        result.getTxReceipts().forEach(transactionReceiptStore::put);
         if (!changes.isEmpty()) {
-            changes.entrySet().stream().forEach(r -> {
-                stateStore.put(r.getKey(), r.getValue());
-            });
-
+            changes.forEach(stateStore::put);
         }
         // TODO make transaction Receipt Event
 

@@ -16,22 +16,16 @@
 
 package io.yggdrash.core.store;
 
+import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
-import io.yggdrash.common.store.datasource.HashMapDbSource;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TransactionReceiptStoreTest {
 
-    private static final Logger log = LoggerFactory.getLogger(TransactionReceiptStoreTest.class);
-
-    TransactionReceiptStore store;
-
-
+    private TransactionReceiptStore store;
 
     @Before
     public void setUp() {

@@ -25,8 +25,8 @@ import java.util.Map;
 import java.util.Set;
 
 public class TempStateStore implements ReadWriterStore<String, JsonObject> {
-    private ReadWriterStore<String, JsonObject> stateStore;
-    Map<String, JsonObject> tempStore = new LinkedHashMap<>();
+    private final ReadWriterStore<String, JsonObject> stateStore;
+    private final Map<String, JsonObject> tempStore = new LinkedHashMap<>();
 
     // TODO check State root
     Sha3Hash stateRoot;

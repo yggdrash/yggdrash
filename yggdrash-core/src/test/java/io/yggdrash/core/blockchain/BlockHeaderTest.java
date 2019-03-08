@@ -42,7 +42,7 @@ public class BlockHeaderTest {
     private final long timestamp = TimeUtils.time();
 
     @Test
-    public void testBlockHeader() throws Exception {
+    public void testBlockHeader() {
 
         JsonObject jsonParam1 = new JsonObject();
         jsonParam1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");

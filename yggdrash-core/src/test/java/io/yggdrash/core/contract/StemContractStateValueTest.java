@@ -3,6 +3,11 @@ package io.yggdrash.core.contract;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 import org.junit.Before;
+import org.junit.Test;
+
+import java.math.BigDecimal;
+
+import static org.junit.Assert.assertEquals;
 
 public class StemContractStateValueTest {
 
@@ -14,31 +19,19 @@ public class StemContractStateValueTest {
         this.stateValue = StemContractStateValue.of(json);
     }
 
-//    @Test
-//    public void initTest() {
-//        assertThat(stateValue.getFee()).isNull();
-//        assertThat(stateValue.get()).isNull();
-//        assertThat(stateValue.getContractHistory()).isEmpty();
-//
-//        stateValue.init();
-//
-//        assertThat(stateValue.getType()).isEqualTo(Branch.BranchType.TEST);
-//        assertThat(stateValue.getTag()).isNotEmpty();
-//        // TODO Stem Contract Change all of them
-//    }
-//
-//    @Test
-//    public void setFeeTest() {
-//        stateValue.setType("private");
-//        assertThat(stateValue.getType()).isEqualTo(Branch.BranchType.PRIVATE);
-//        assertThat(stateValue.getJson().get("type").getAsString()).isEqualTo("private");
-//    }
-//
-//    @Test
-//    public void setBlockHeightTest() {
-//        String tag = "0.2";
-//        stateValue.setTag(tag);
-//        assertThat(stateValue.getTag()).isEqualTo(tag);
-//        assertThat(stateValue.getJson().get("tag").getAsString()).isEqualTo(tag);
-//    }
+    @Test
+    public void setFeeTest() {
+        stateValue.setFee(BigDecimal.valueOf(1000));;
+        assertEquals(BigDecimal.valueOf(1000), stateValue.getFee());
+    }
+
+    @Test
+    public void setBlockHeightTest() {
+        Long height = 3L;
+        stateValue.setBlockHeight(height);
+        assertEquals(height, stateValue.getBlockHeight());
+
+        Long b = stateValue.getJson().get("blockHeight").getAsLong();
+        assertEquals(b, stateValue.getBlockHeight());
+    }
 }

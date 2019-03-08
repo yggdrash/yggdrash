@@ -48,7 +48,7 @@ public class EbftService implements CommandLineRunner {
     private static final boolean ABNORMAL_TEST = false;
 
     private final boolean isValidator;
-    private final int consenusCount;
+    private final int consensusCount;
 
     private final Wallet wallet;
     private final EbftBlockChain blockChain;
@@ -73,9 +73,9 @@ public class EbftService implements CommandLineRunner {
         this.isActive = false;
         this.isSynced = false;
         if (totalValidatorMap != null) {
-            this.consenusCount = totalValidatorMap.size() / 2 + 1;
+            this.consensusCount = totalValidatorMap.size() / 2 + 1;
         } else {
-            this.consenusCount = 0;
+            this.consensusCount = 0;
             throw new NotValidateException();
         }
     }
@@ -199,7 +199,7 @@ public class EbftService implements CommandLineRunner {
             ebftBlock = ebftBlockList.get(i - 1);
             //todo: if consensusCount(validator count) is different from previous count,
             // cannot confirm prevBlock.
-            if (ebftBlock.getConsensusList().size() >= consenusCount) {
+            if (ebftBlock.getConsensusList().size() >= consensusCount) {
                 changeLastConfirmedBlock(ebftBlock.clone());
                 this.isProposed = false;
                 this.isConsensused = false;
@@ -278,7 +278,7 @@ public class EbftService implements CommandLineRunner {
                 unConfirmedEbftBlockMap,
                 this.blockChain.getLastConfirmedBlock().getIndex() + 1);
         if (unconfirmedEbftBlockCount >= getActiveNodeCount()
-                && unconfirmedEbftBlockCount >= consenusCount
+                && unconfirmedEbftBlockCount >= consensusCount
                 && checkReceiveProposedEbftBlock()) { //todo: check efficiency
 
             String minKey = null;
@@ -368,11 +368,11 @@ public class EbftService implements CommandLineRunner {
                 this.blockChain.getUnConfirmedBlockMap().remove(key);
             } else if (unconfirmedBlock.getIndex()
                     == this.blockChain.getLastConfirmedBlock().getIndex() + 1) {
-                if (unconfirmedBlock.getConsensusList().size() >= consenusCount) {
+                if (unconfirmedBlock.getConsensusList().size() >= consensusCount) {
                     confirmedBlock(unconfirmedBlock);
                 }
             } else {
-                if (unconfirmedBlock.getConsensusList().size() >= consenusCount) {
+                if (unconfirmedBlock.getConsensusList().size() >= consensusCount) {
                     moreConfirmFlag = true;
                 }
             }
@@ -589,7 +589,7 @@ public class EbftService implements CommandLineRunner {
 
     private void setActiveMode() {
         int runningNodeCount = getActiveNodeCount();
-        if (runningNodeCount >= consenusCount) {
+        if (runningNodeCount >= consensusCount) {
             if (!this.isActive) {
                 this.isActive = true;
                 log.info("Node is activated.");

@@ -38,9 +38,6 @@ public class TxValidatorVote implements Serializable, TxPayload {
 
     @Override
     public boolean validate() {
-        if (StringUtils.isEmpty(validatorAddr)) {
-            return false;
-        }
-        return true;
+        return !StringUtils.isEmpty(validatorAddr);
     }
 }
