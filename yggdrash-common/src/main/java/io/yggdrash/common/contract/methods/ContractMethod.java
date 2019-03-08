@@ -17,13 +17,14 @@
 package io.yggdrash.common.contract.methods;
 
 import com.google.gson.JsonObject;
+
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Optional;
 
 public class ContractMethod {
-    Method invokeMethod;
-    boolean params = false;
+    private final Method invokeMethod;
+    private boolean params = false;
 
     public ContractMethod(Method method) {
         Optional<Class<?>> m = Arrays.stream(method.getParameterTypes())
@@ -38,7 +39,7 @@ public class ContractMethod {
         return invokeMethod;
     }
 
-    public boolean isParams() {
+    public boolean hasParams() {
         return params;
     }
 }

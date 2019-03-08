@@ -16,8 +16,9 @@
 
 package io.yggdrash.node;
 
-import io.yggdrash.core.akashic.SyncManager;
+import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.SyncManager;
 import io.yggdrash.core.net.BlockChainConsumer;
 import io.yggdrash.core.net.BootStrapNode;
 import io.yggdrash.core.net.NodeStatus;
@@ -58,7 +59,7 @@ public class YggdrashNode extends BootStrapNode {
 
     @Autowired
     public void setListener(BlockChainConsumer blockChainConsumer) {
-        blockChainConsumer.setListener(this);
+        blockChainConsumer.setListener((BlockChainSyncManager) syncManager);
     }
 
     @Autowired

@@ -34,7 +34,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -56,8 +56,8 @@ public class ContractManager extends ClassLoader {
     private static final String SUFFIX = ".class";
 
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
-    private Map<ContractVersion, ContractMeta> contracts = new HashMap<>();
-    private String contractPath;
+    private final Map<ContractVersion, ContractMeta> contracts = new HashMap<>();
+    private final String contractPath;
 
     public ContractManager(String contractPath) {
         this.contractPath = contractPath;
@@ -70,7 +70,7 @@ public class ContractManager extends ClassLoader {
             throw new RuntimeException("The contract file does not exist" + targetDir.getAbsolutePath());
         }
         log.info("ContractManager load path : {} ", contractPath);
-        try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(this.contractPath)))) {
+        try (Stream<Path> filePathStream = Files.walk(Paths.get(this.contractPath))) {
             filePathStream.forEach(p -> {
                 File contractFile = new File(String.valueOf(p));
                 if (contractFile.isDirectory()) {
@@ -93,7 +93,7 @@ public class ContractManager extends ClassLoader {
                             contracts.put(contractVersion, contractMeta);
                         }
                     }catch (Throwable e){
-
+                        log.warn(e.getMessage());
                     }
                 } catch (IOException e) {
                     log.warn(e.getMessage());
@@ -108,19 +108,19 @@ public class ContractManager extends ClassLoader {
         return this.contracts;
     }
 
-    public List<ContractVersion> getContractVersionList() {
+    List<ContractVersion> getContractVersionList() {
         return new ArrayList<>(this.contracts.keySet());
     }
 
-    public List<ContractMeta> getContractList() {
+    List<ContractMeta> getContractList() {
         return new ArrayList<>(this.contracts.values());
     }
 
-    public ContractMeta getContractByVersion(ContractVersion version) {
+    ContractMeta getContractByVersion(ContractVersion version) {
         return this.contracts.get(version);
     }
 
-    public Boolean hasContract(ContractVersion version) {
+    Boolean hasContract(ContractVersion version) {
         return this.contracts.containsKey(version);
     }
 
@@ -145,7 +145,7 @@ public class ContractManager extends ClassLoader {
     /**
      * Check the requirements required by the contract
      */
-    public Boolean validation(ContractMeta contractMeta) {
+    private Boolean validation(ContractMeta contractMeta) {
         if (contractMeta.getStateStore() == null) {
             throw new IllegalArgumentException("Contract does not have required filed state store.");
         }
@@ -179,7 +179,7 @@ public class ContractManager extends ClassLoader {
      * Add a contract that the manager does not have
      * or Adding a contract from contractRequest
      */
-    public void addContract(Class<? extends Contract> contract) {
+    void addContract(Class<? extends Contract> contract) {
         //TODO check the node admin
         File targetDir = new File(contractPath);
         if (!targetDir.exists() && !targetDir.mkdirs()) {
@@ -200,7 +200,7 @@ public class ContractManager extends ClassLoader {
         }
     }
 
-    public Boolean removeContract(ContractVersion contractVersion) {
+    Boolean removeContract(ContractVersion contractVersion) {
         //TODO check the node admin
         String directoryPath = contractVersion.toString().substring(0, 2);
         File file = new File(contractPath + File.separator + getFilePath(contractVersion));
@@ -221,27 +221,27 @@ public class ContractManager extends ClassLoader {
     /**
      * Change the contract to the contract version.
      */
-    public ContractVersion convertContractToVersion(Class<? extends Contract> contract) {
+    ContractVersion convertContractToVersion(Class<? extends Contract> contract) {
         ContractMeta contractMeta = ContractClassLoader.loadContractClass(contract);
         return contractMeta.getContractVersion();
     }
 
     /**
-     * Decodinging a contract file
+     * Decoding a contract file
      */
-    public String decodingContract(String encodedString) throws UnsupportedEncodingException {
+    public String decodingContract(String encodedString) {
         Base64.Decoder decoder = Base64.getDecoder();
         byte[] decodedBytes = decoder.decode(encodedString);
-        ContractVersion contractVersion = ContractVersion.of(new String(decodedBytes, "UTF-8"));
+        ContractVersion contractVersion = ContractVersion.of(new String(decodedBytes, StandardCharsets.UTF_8));
         return decompileContract(contractVersion);
     }
 
     /**
      * Decompile a contract class
      */
-    public String decompileContract(ContractVersion contractVersion) {
+    private String decompileContract(ContractVersion contractVersion) {
         if (!existFile((contractVersion))) {
-            //TODO reuqest to another node
+            //TODO request to another node
             log.error("The contract file does not exist");
         }
         AtomicReference<String> result = new AtomicReference<>("");
@@ -256,9 +256,7 @@ public class ContractManager extends ClassLoader {
                 }
             }
 
-            Consumer<SinkReturns.Decompiled> dumpDecompiled = d -> {
-                result.set(d.getJava());
-            };
+            Consumer<SinkReturns.Decompiled> dumpDecompiled = d -> result.set(d.getJava());
 
             @Override
             public <T> Sink<T> getSink(SinkType sinkType, SinkClass sinkClass) {
@@ -282,10 +280,7 @@ public class ContractManager extends ClassLoader {
 
     private Boolean existFile(ContractVersion contractVersion) {
         File file = new File(contractPath + File.separator + getFilePath(contractVersion));
-        if (!file.exists()) {
-            return false;
-        }
-        return true;
+        return file.exists();
     }
 
     public static byte[] serialize(Object obj) throws Exception {

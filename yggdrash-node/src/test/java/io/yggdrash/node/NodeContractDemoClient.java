@@ -10,8 +10,8 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
@@ -67,10 +67,8 @@ public class NodeContractDemoClient {
     private static String lastTransactionId;
 
     public static void main(String[] args) throws Exception {
-        // GetAddress
-        getServerAddress();
-        // Get Branch Information
-        getNodeBranch();
+        setServerAddress();
+        setBranchAndContract();
 
         while (true) {
             run();
@@ -83,7 +81,7 @@ public class NodeContractDemoClient {
     // 브랜치 상태 조회
     // -- api/branch
     // 컨트렉트 상태 조회
-    // -- api/contractmanager ?
+    // -- api/contractManager ?
 
 
     private static void run() throws Exception {
@@ -146,7 +144,7 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static void getNodeBranch() {
+    private static void setBranchAndContract() {
         Map<String, BranchDto> branches = rpc.proxyOf(TARGET_SERVER, BranchApi.class)
                 .getBranches();
 
@@ -236,7 +234,7 @@ public class NodeContractDemoClient {
         System.out.println("[3] 직접 입력      {key : value, key : value ...}");
         System.out.println(">");
 
-        Map params = new HashMap();
+        Map<String, String> params = new HashMap<>();
         switch (scan.nextLine()) {
             case "1":
                 System.out.println("key => ");
@@ -304,7 +302,7 @@ public class NodeContractDemoClient {
 
                     txBody = CoinContractTestUtils.createTransferBody(to, amount);
                     break;
-                case "transferfrom":
+                case "transferFrom":
                     System.out.println("from => ");
                     from = scan.nextLine();
                     System.out.println("to => ");
@@ -421,7 +419,7 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static String getServerAddress() {
+    private static void setServerAddress() {
         System.out.println(String.format("전송할 노드 : [1] 로컬 [2] 스테이지(%s) [3] 운영(%s) [4] 직접 입력\n>",
                 SERVER_STG, SERVER_PROD));
 
@@ -442,7 +440,6 @@ public class NodeContractDemoClient {
                 TARGET_SERVER = "localhost";
                 break;
         }
-        return TARGET_SERVER;
     }
 
     private static String getBranchId() {

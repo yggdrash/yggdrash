@@ -17,11 +17,11 @@
 package io.yggdrash.core.runtime;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.common.contract.Contract;
+import io.yggdrash.common.contract.methods.ContractMethod;
+import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.common.contract.methods.ContractMethod;
 import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.store.ReadWriterStore;
@@ -32,18 +32,18 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 
-public class RuntimeInvoke<T> {
+class RuntimeInvoke<T> {
     // This Class is Invoke Transaction for Contract
 
     // TODO contract change meta Class
-    private Contract<T> contract;
+    private final Contract<T> contract;
 
-    private Map<String, ContractMethod> invokeMethods;
+    private final Map<String, ContractMethod> invokeMethods;
     private ContractMethod genesis;
     private Field transactionReceiptField;
-    private List<Field> stateField;
+    private final List<Field> stateField;
 
-    public RuntimeInvoke(Contract<T> contract) {
+    RuntimeInvoke(Contract<T> contract) {
         // contract Instance
         // TODO change contract to contractMeta
         this.contract = ContractUtils.contractInstance(contract);
@@ -80,7 +80,7 @@ public class RuntimeInvoke<T> {
         return null;
     }
 
-    public TempStateStore invokeTransaction(JsonObject txBody, TransactionReceipt txReceipt, ReadWriterStore origin)
+    TempStateStore invokeTransaction(JsonObject txBody, TransactionReceipt txReceipt, ReadWriterStore origin)
             throws InvocationTargetException, IllegalAccessException {
         // set State Store
         TempStateStore store = new TempStateStore(origin);
@@ -98,10 +98,10 @@ public class RuntimeInvoke<T> {
             return store;
         }
         // check exist params
-        if (txBody.has("params") && method.isParams()) {
+        if (txBody.has("params") && method.hasParams()) {
             JsonObject params = txBody.getAsJsonObject("params");
             method.getMethod().invoke(contract, params);
-        } else if (!method.isParams()) {
+        } else if (!method.hasParams()) {
             method.getMethod().invoke(contract);
         } else {
             txReceipt.setStatus(ExecuteStatus.ERROR);

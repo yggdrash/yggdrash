@@ -31,6 +31,7 @@ public class Peer {
     private String host;
     private int port;
     private String ynodeUri;
+    private long bestBlock;
     private long modified;
     private int distance;
 
@@ -94,6 +95,14 @@ public class Peer {
 
     public String getYnodeUri() {
         return ynodeUri;
+    }
+
+    public long getBestBlock() {
+        return bestBlock;
+    }
+
+    public void setBestBlock(long bestBlock) {
+        this.bestBlock = bestBlock;
     }
 
     void setDistance(Peer owner) {

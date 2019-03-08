@@ -17,9 +17,9 @@
 package io.yggdrash.core.runtime;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.common.contract.Contract;
 import io.yggdrash.common.contract.methods.ContractMethod;
+import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.store.ReadOnlyStore;
@@ -28,12 +28,12 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 
-public class RuntimeQuery {
-    private Contract contract;
+class RuntimeQuery {
+    private final Contract contract;
+    private final Map<String, ContractMethod> queryMethods;
     private ReadOnlyStore store;
-    private Map<String, ContractMethod> queryMethods;
 
-    public RuntimeQuery(Contract contract) {
+    RuntimeQuery(Contract contract) {
         this.contract = ContractUtils.contractInstance(contract);
         queryMethods = getQueryMethods();
     }
@@ -49,9 +49,9 @@ public class RuntimeQuery {
         // Find query method and query
         ContractMethod query = queryMethods.get(method);
         if (query != null) {
-            if (params == null && !query.isParams()) {
+            if (params == null && !query.hasParams()) {
                 return query.getMethod().invoke(contract);
-            } else if (params != null && query.isParams()) {
+            } else if (params != null && query.hasParams()) {
                 return query.getMethod().invoke(contract, params);
             }
 

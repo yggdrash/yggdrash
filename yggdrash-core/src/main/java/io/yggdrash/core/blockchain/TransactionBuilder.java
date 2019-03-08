@@ -27,11 +27,11 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class TransactionBuilder {
-    BranchId branchId;
-    Wallet wallet;
+    private BranchId branchId;
+    private Wallet wallet;
     private final List<JsonObject> txBody = new LinkedList<>();
 
-    long timestamp = -1L;
+    private long timestamp = -1L;
 
     public TransactionBuilder setBranchId(BranchId branchId) {
         this.branchId = branchId;
@@ -48,7 +48,7 @@ public class TransactionBuilder {
         return this;
     }
 
-    public TransactionBuilder addTransactionBody(JsonObject txBody) {
+    private TransactionBuilder addTransactionBody(JsonObject txBody) {
         this.txBody.add(txBody);
         return this;
     }
@@ -60,8 +60,6 @@ public class TransactionBuilder {
         }
         return this;
     }
-
-
 
     public TransactionBuilder addTxBody(ContractVersion contractVersion, String method, JsonObject params, boolean isSystem) {
         JsonObject txObj = new JsonObject();

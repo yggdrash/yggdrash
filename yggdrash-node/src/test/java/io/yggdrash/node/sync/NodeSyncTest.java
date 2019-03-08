@@ -17,6 +17,7 @@
 package io.yggdrash.node.sync;
 
 import io.yggdrash.node.AbstractNodeTest;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -33,15 +34,15 @@ public class NodeSyncTest extends AbstractNodeTest {
         int node1 = 1;
         bootstrapSyncNode(node1);
         generateBlock(node1, 4);
-        assert nodeList.get(node1).getDefaultBranch().getLastIndex() == 4;
+        Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(), 4);
 
         // act
         int node2 = 2;
         bootstrapSyncNode(node2);
 
         // assert
-        assert nodeList.get(node1).getDefaultBranch().getLastIndex() ==
-                nodeList.get(node2).getDefaultBranch().getLastIndex();
+        Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(),
+                nodeList.get(node2).getDefaultBranch().getLastIndex());
     }
 
     @Test
@@ -56,9 +57,10 @@ public class NodeSyncTest extends AbstractNodeTest {
         // 3) node2: bootstrap
         int node2 = 2;
         bootstrapSyncNode(node2);
+        nodeList.get(node2).blockChainConsumer.setListener(nodeList.get(node2).getSyncManger());
         // 4) assert
-        assert nodeList.get(node1).getDefaultBranch().getLastIndex() ==
-                nodeList.get(node2).getDefaultBranch().getLastIndex();
+        Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(),
+                nodeList.get(node2).getDefaultBranch().getLastIndex());
         // 5) node1: before healthCheck no routing(node1 -> node2) and generate block
         generateBlock(node1, 1);
 
@@ -67,9 +69,12 @@ public class NodeSyncTest extends AbstractNodeTest {
         nodeList.get(node1).peerTask.healthCheck();
         generateBlock(node1, 1);
 
+        nodeList.get(node1).peerTask.getPeerDialer().destroyAll();
+        nodeList.get(node2).peerTask.getPeerDialer().destroyAll();
+
         // assert
-        assert nodeList.get(node1).getDefaultBranch().getLastIndex() ==
-                nodeList.get(node2).getDefaultBranch().getLastIndex();
+        Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(),
+                nodeList.get(node2).getDefaultBranch().getLastIndex());
     }
 
     private void bootstrapSyncNode(int nodeIdx) {

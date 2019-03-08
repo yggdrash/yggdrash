@@ -52,5 +52,16 @@ PROFILE=prod
 GRPC_HOST=52.79.188.79
 ```
 
+# Elasticsearch Docker Compose
+
+## Usage
+
+Launch es by running: `docker-compose -f docker-compose-es.yml up`.
+
+## Integrate node with es
+```shell
+> docker run --rm -e es.host=host:9200 -e es.prefix.index=INDEX_NAME -p 8080:8080  yggdrash/yggdrash-node
+```
+
 #### TODO
  - Kubernetes configuration

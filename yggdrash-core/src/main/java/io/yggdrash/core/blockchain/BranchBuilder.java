@@ -23,14 +23,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class BranchBuilder {
-    String name;
-    String symbol;
-    String property;
-    String description;
-    String timeStamp;
-    List<BranchContract> contracts = new ArrayList<>();
-    List<String> validators = new ArrayList<>();
-    JsonObject consensus;
+    private String name;
+    private String symbol;
+    private String property;
+    private String description;
+    private String timeStamp;
+    private final List<BranchContract> contracts = new ArrayList<>();
+    private final List<String> validators = new ArrayList<>();
+    private JsonObject consensus;
 
     public BranchBuilder setName(String name) {
         this.name = name;

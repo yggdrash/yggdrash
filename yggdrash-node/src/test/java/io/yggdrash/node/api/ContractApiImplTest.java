@@ -26,6 +26,7 @@ import io.yggdrash.node.CoinContractTestUtils;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.math.BigInteger;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,7 +38,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ContractApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(ContractApiImplTest.class);
 
-    private BranchId branchId = TestConstants.yggdrash();
+    private final BranchId branchId = TestConstants.yggdrash();
 
     @Test
     public void contractApiIsNotNull() {
@@ -63,7 +64,7 @@ public class ContractApiImplTest {
 
     @Test
     public void allowance() {
-        Map params = createParams("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
+        Map<String, String> params = createParams("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
         params.put("spender", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
 
         queryAndAssert("allowance", params, BigInteger.ZERO);
@@ -115,8 +116,8 @@ public class ContractApiImplTest {
         }
     }
 
-    public static Map createParams(String key, String value) {
-        Map params = new HashMap();
+    public static Map<String, String> createParams(String key, String value) {
+        Map<String, String> params = new HashMap<>();
         params.put(key, value);
         return params;
     }

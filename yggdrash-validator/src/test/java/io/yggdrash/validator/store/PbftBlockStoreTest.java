@@ -73,9 +73,9 @@ public class PbftBlockStoreTest {
     private PbftMessageSet pbftMessageSet2;
     private PbftMessageSet pbftMessageSet3;
     private PbftMessageSet pbftMessageSet4;
-    private Map<String, PbftMessage> prepareMap = new TreeMap<>();
-    private Map<String, PbftMessage> commitMap = new TreeMap<>();
-    private Map<String, PbftMessage> viewChangeMap = new TreeMap<>();
+    private final Map<String, PbftMessage> prepareMap = new TreeMap<>();
+    private final Map<String, PbftMessage> commitMap = new TreeMap<>();
+    private final Map<String, PbftMessage> viewChangeMap = new TreeMap<>();
 
     private LevelDbDataSource blockKeyDs;
     private PbftBlockKeyStore blockKeyStore;

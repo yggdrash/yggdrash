@@ -82,7 +82,7 @@ public class ContractTestUtils {
         return createBranchJson(name, symbol, property, description, contracts, null);
     }
 
-    public static JsonObject createBranchJson(String name,
+    private static JsonObject createBranchJson(String name,
                                               String symbol,
                                               String property,
                                               String description,

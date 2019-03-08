@@ -26,7 +26,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class PeerNetworkMock implements PeerNetwork {
-    static final PeerNetwork mock = new PeerNetworkMock();
+    public static final PeerNetwork mock = new PeerNetworkMock();
 
     @Override
     public void init() {

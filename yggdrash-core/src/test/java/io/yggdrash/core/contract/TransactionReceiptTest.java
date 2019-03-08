@@ -38,7 +38,7 @@ public class TransactionReceiptTest {
         JsonObject testLog = new JsonObject();
         testLog.addProperty("key", "value");
         txReceipt.addLog(testLog.toString());
-        assert String.valueOf(txReceipt.getTxLog().get(0).toString()).equals("{\"key\":\"value\"}");
+        assert txReceipt.getTxLog().get(0).equals("{\"key\":\"value\"}");
     }
 
     @Test

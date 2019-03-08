@@ -44,4 +44,9 @@ public class PeerTableGroupTest {
         peerTableGroup.refresh();
         assertEquals(12, peerTableGroup.getPeerTable(yggdrash).getAllPeerAddressList().size());
     }
+
+    @Test
+    public void copyLiveNode() {
+        peerTableGroup.copyLiveNode();
+    }
 }

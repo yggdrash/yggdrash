@@ -64,6 +64,7 @@ message PeerList {
 
 message PeerInfo {
     string url = 1;
+    int64 bestBlock = 2;
 }
 
 message Ping {
@@ -71,9 +72,10 @@ message Ping {
     string from = 2;
     string to = 3;
     bytes branch = 4;
+    int64 bestBlock = 5;
 }
 
 message Pong {
     string pong = 1;
-    PeerInfo from = 2; // Not used yet
+    string from = 2;
 }

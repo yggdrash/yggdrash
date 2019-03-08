@@ -16,31 +16,32 @@
 
 package io.yggdrash.core.net;
 
-import io.yggdrash.core.akashic.SyncManager;
 import io.yggdrash.core.blockchain.BlockChain;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.SyncManager;
 import io.yggdrash.core.p2p.PeerHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 
-public abstract class BootStrapNode implements BootStrap, CatchUpSyncEventListener {
+public abstract class BootStrapNode implements BootStrap {
     private static final Logger log = LoggerFactory.getLogger(BootStrapNode.class);
 
-    private SyncManager syncManager;
     private NodeStatus nodeStatus;
     private PeerNetwork peerNetwork;
     protected BranchGroup branchGroup;
+    protected SyncManager syncManager;
 
     @Override
     public void bootstrapping() {
         peerNetwork.init();
+        // TODO 추후 비동기 Sync 에 대한 Pool 필요 (nodStatus.sync 중일 때) => 현재는 동기화 Sync 로
         try {
             nodeStatus.sync();
             for (BlockChain blockChain : branchGroup.getAllBranch()) {
-                List<PeerHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
+                List<PeerHandler> peerHandlerList =
+                        peerNetwork.getHandlerList(blockChain.getBranchId());
                 for (PeerHandler peerHandler : peerHandlerList) {
                     syncManager.syncBlock(peerHandler, blockChain, -1);
                     syncManager.syncTransaction(peerHandler, blockChain);
@@ -53,6 +54,7 @@ public abstract class BootStrapNode implements BootStrap, CatchUpSyncEventListen
         }
     }
 
+    /*
     @Override
     public void catchUpRequest(BlockHusk block) {
         if (!nodeStatus.isUpStatus()) {
@@ -74,6 +76,7 @@ public abstract class BootStrapNode implements BootStrap, CatchUpSyncEventListen
             log.warn("Catch up block error={}", e.getMessage());
         }
     }
+    */
 
     public void setBranchGroup(BranchGroup branchGroup) {
         this.branchGroup = branchGroup;

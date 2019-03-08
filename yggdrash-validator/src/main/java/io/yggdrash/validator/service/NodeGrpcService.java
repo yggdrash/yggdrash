@@ -31,8 +31,8 @@ public class NodeGrpcService extends BlockChainGrpc.BlockChainImplBase {
     }
 
     @Override
-    public void syncBlock(NetProto.SyncLimit syncLimit,
-                          StreamObserver<Proto.BlockList> responseObserver) {
+    public void simpleSyncBlock(NetProto.SyncLimit syncLimit,
+                                StreamObserver<Proto.BlockList> responseObserver) {
         log.debug("NodeService syncBlock");
         long offset = syncLimit.getOffset();
         long limit = syncLimit.getLimit();
@@ -53,8 +53,8 @@ public class NodeGrpcService extends BlockChainGrpc.BlockChainImplBase {
     }
 
     @Override
-    public void syncTransaction(NetProto.SyncLimit syncLimit,
-                                StreamObserver<Proto.TransactionList> responseObserver) {
+    public void simpleSyncTransaction(NetProto.SyncLimit syncLimit,
+                                      StreamObserver<Proto.TransactionList> responseObserver) {
         log.debug("NodeService syncTransaction");
         long offset = syncLimit.getOffset();
         long limit = syncLimit.getLimit();
@@ -74,8 +74,8 @@ public class NodeGrpcService extends BlockChainGrpc.BlockChainImplBase {
     }
 
     @Override
-    public void broadcastBlock(Proto.Block request,
-                               StreamObserver<NetProto.Empty> responseObserver) {
+    public void simpleBroadcastBlock(Proto.Block request,
+                                     StreamObserver<NetProto.Empty> responseObserver) {
         // Validator do not need to receive blocks from general node
         log.debug("NodeService broadcastBlock");
         responseObserver.onNext(EMPTY);
@@ -83,8 +83,8 @@ public class NodeGrpcService extends BlockChainGrpc.BlockChainImplBase {
     }
 
     @Override
-    public void broadcastTransaction(Proto.Transaction request,
-                                     StreamObserver<NetProto.Empty> responseObserver) {
+    public void simpleBroadcastTransaction(Proto.Transaction request,
+                                           StreamObserver<NetProto.Empty> responseObserver) {
         log.debug("NodeService broadcastTransaction");
         log.debug("Received transaction: {}", request);
         TransactionHusk tx = new TransactionHusk(request);

@@ -20,9 +20,9 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.Contract;
-import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.common.contract.methods.ContractMethod;
 import io.yggdrash.common.exception.FailedOperationException;
+import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 
@@ -39,8 +39,8 @@ public class ContractMeta {
     private final byte[] contractClassBinary;
     private final String contractClassName;
     private final ContractVersion contractVersion;
-    private Map<String, ContractMethod> invokeMethod;
-    private Map<String, ContractMethod> queryMethod;
+    private final Map<String, ContractMethod> invokeMethod;
+    private final Map<String, ContractMethod> queryMethod;
     private Field transactionReceiptField;
     private Field contractStateStoreFiled;
 
@@ -75,7 +75,7 @@ public class ContractMeta {
         return clazz.getName().replace(".", "/") + SUFFIX;
     }
 
-    public Contract getContractInstance() {
+    private Contract getContractInstance() {
         Contract contract;
         try {
             contract = getContract().getDeclaredConstructor().newInstance();
@@ -102,12 +102,12 @@ public class ContractMeta {
         return contractStateStoreFiled;
     }
 
-    public Map<String, ContractMethod> getInvokeMethods() {
+    Map<String, ContractMethod> getInvokeMethods() {
         return ContractUtils.contractMethods(getContractInstance(), InvokeTransaction.class);
     }
 
 
-    public Map<String, ContractMethod> getQueryMethods() {
+    Map<String, ContractMethod> getQueryMethods() {
         return ContractUtils.contractMethods(getContractInstance(), ContractQuery.class);
     }
 
@@ -132,7 +132,7 @@ public class ContractMeta {
             JsonObject methodProperty = new JsonObject();
             methodProperty.addProperty("name", key);
 
-            if (value.isParams()) {
+            if (value.hasParams()) {
                 JsonArray inputArray = new JsonArray();
                 Arrays.stream(value.getMethod().getParameterTypes())
                         .forEach(type -> inputArray.add(type.getSimpleName()));

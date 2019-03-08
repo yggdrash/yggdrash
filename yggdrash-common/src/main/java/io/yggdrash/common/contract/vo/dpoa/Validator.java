@@ -47,7 +47,7 @@ public class Validator implements Serializable, Comparable<Validator> {
         this.votedHistory = votedHistory;
     }
 
-    public boolean isFreezing() {
+    boolean isFreezing() {
         return isFreezing;
     }
 
@@ -87,7 +87,7 @@ public class Validator implements Serializable, Comparable<Validator> {
     public enum FreezingType {
         BYZANTINE(1), DISCONNECTED(2);
 
-        private int value;
+        private final int value;
 
         FreezingType(int value) {
             this.value = value;

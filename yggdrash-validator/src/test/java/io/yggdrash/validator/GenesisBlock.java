@@ -28,11 +28,11 @@ import java.util.Scanner;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
 
-public class GenesisBlock {
+class GenesisBlock {
 
     private Block genesisBlock;
 
-    public GenesisBlock() throws IOException, InvalidCipherTextException {
+    GenesisBlock() throws IOException, InvalidCipherTextException {
 
         JsonObject genesisObject = getJsonObjectFromFile("./genesis/config.json");
 
@@ -112,11 +112,7 @@ public class GenesisBlock {
         return new Gson().fromJson(result.toString(), JsonObject.class);
     }
 
-    public Block getGenesisBlock() {
-        return genesisBlock;
-    }
-
-    public void generateGenesisBlockFile() {
+    void generateGenesisBlockFile() {
         //todo: change the method to serializing method
 
         JsonObject jsonObject = this.genesisBlock.toJsonObject();

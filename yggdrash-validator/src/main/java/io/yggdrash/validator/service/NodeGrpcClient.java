@@ -70,20 +70,19 @@ public class NodeGrpcClient {
                 .setOffset(offset)
                 .setLimit(DEFAULT_LIMIT)
                 .setBranch(ByteString.copyFrom(branchId)).build();
-        return blockingBlockChainStub.syncBlock(syncLimit).getBlocksList();
+        return blockingBlockChainStub.simpleSyncBlock(syncLimit).getBlocksList();
     }
 
     public List<Proto.Transaction> syncTransaction(byte[] branchId) {
         NetProto.SyncLimit syncLimit = NetProto.SyncLimit.newBuilder()
                 .setBranch(ByteString.copyFrom(branchId)).build();
-        return blockingBlockChainStub.syncTransaction(syncLimit).getTransactionsList();
+        return blockingBlockChainStub.simpleSyncTransaction(syncLimit).getTransactionsList();
     }
 
     public void broadcastTransaction(List<Proto.Transaction> txs) {
         for (Proto.Transaction tx : txs) {
             log.trace("Sending transaction: {}", tx);
-            asyncBlockChainStub.broadcastTransaction(tx);
+            asyncBlockChainStub.simpleBroadcastTransaction(tx);
         }
     }
-
 }

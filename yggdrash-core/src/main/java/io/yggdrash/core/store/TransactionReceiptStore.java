@@ -1,22 +1,17 @@
 package io.yggdrash.core.store;
 
 import com.google.gson.Gson;
+import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
-import io.yggdrash.common.store.datasource.DbSource;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TransactionReceiptStore {
-    private static final Logger log = LoggerFactory.getLogger(TransactionReceiptStore.class);
-
+    private final DbSource<byte[], byte[]> db;
+    private final Gson gson = new Gson();
 
     public TransactionReceiptStore(DbSource<byte[], byte[]> source) {
         this.db = source.init();
     }
-
-    private final DbSource<byte[], byte[]> db;
-    Gson gson = new Gson();
 
     public void put(TransactionReceipt txReceipt) {
         // TransactionReceipt to ByteArray
