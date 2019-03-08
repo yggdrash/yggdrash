@@ -190,7 +190,9 @@ public class PbftService implements CommandLineRunner {
             }
         }
 
-        System.gc();
+        if (log.isTraceEnabled()) {
+            System.gc();
+        }
     }
 
     private boolean waitingForMessage(String message) {
