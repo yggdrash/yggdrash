@@ -16,6 +16,7 @@ public class ContractPolicyLoader {
             ",io.yggdrash.common.contract.vo" +
             ",io.yggdrash.common.contract.vo.dpoa" +
             ",io.yggdrash.common.contract.vo.dpoa.tx" +
+            ",io.yggdrash.common.branch" +
             ",io.yggdrash.common.crypto" +
             ",io.yggdrash.common.crypto.jce" +
             ",io.yggdrash.common.exception" +

@@ -167,16 +167,7 @@ public class Transaction {
     }
 
     public Long txSize() {
-        ByteArrayOutputStream bao = new ByteArrayOutputStream();
-        try {
-            bao.write(this.header.toBinary());
-            bao.write(this.body.toBinary());
-            bao.write(this.signature);
-        } catch (IOException e) {
-            log.warn(e.getMessage());
-        }
-
-        return Long.valueOf(bao.toByteArray().length);
+        return this.header.getBodyLength();
     }
     /**
      * Get transaction hash(HexString).
