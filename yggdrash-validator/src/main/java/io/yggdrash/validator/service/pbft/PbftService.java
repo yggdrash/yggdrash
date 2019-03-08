@@ -67,10 +67,11 @@ public class PbftService implements CommandLineRunner {
     private boolean isViewChanged;
 
     private boolean isPrimary;
+    private long viewNumber;
+    private long seqNumber;
     private String currentPrimaryPubKey;
 
     private int failCount;
-    private final Map<String, PbftMessage> viewChangeMap = new TreeMap<>();
 
     @Autowired
     public PbftService(Wallet wallet, PbftBlockChain blockChain) {
@@ -93,6 +94,9 @@ public class PbftService implements CommandLineRunner {
         this.isCommitted = false;
         this.isViewChanged = false;
         this.failCount = 0;
+
+        this.viewNumber = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
+        this.seqNumber = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
     }
 
     @Override
@@ -103,10 +107,31 @@ public class PbftService implements CommandLineRunner {
     // todo: chage cron setting to config file or genesis ...
     @Scheduled(cron = "* * * * * *")
     public void mainScheduler() {
+        if (!isValidator) {
+            return;
+        }
+
+        loggingStatus();
 
         checkNode();
 
+        if (!isActive) {
+            return;
+        }
+
+        lock.lock();
+        PbftMessage viewChangeMsg = makeViewChangeMsg();
+        lock.unlock();
+        if (viewChangeMsg != null) {
+            multicastMessage(viewChangeMsg);
+            if (!waitingForMessage("VIEWCHAN")) {
+                log.debug("VIEWCHAN messages is not enough.");
+            }
+        }
+
+        lock.lock();
         checkPrimary();
+        lock.unlock();
 
         // make PrePrepare msg
         lock.lock();
@@ -114,17 +139,10 @@ public class PbftService implements CommandLineRunner {
         lock.unlock();
         if (prePrepareMsg != null) {
             multicastMessage(prePrepareMsg);
-        }
-
-        for (int i = 0; i < 10; i++) {
-            if (!isPrePrepared) {
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    log.trace(e.getMessage());
-                }
-            } else {
-                break;
+        } else {
+            if (!waitingForMessage("PREPREPA")) {
+                failCount++;
+                return;
             }
         }
 
@@ -134,18 +152,9 @@ public class PbftService implements CommandLineRunner {
         lock.unlock();
         if (prepareMsg != null) {
             multicastMessage(prepareMsg);
-
-            for (int i = 0; i < consensusCount; i++) {
-                if (getMsgMap(blockChain.getLastConfirmedBlock().getIndex(), "PREPAREM").size()
-                        < consensusCount) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        log.trace(e.getMessage());
-                    }
-                } else {
-                    break;
-                }
+            if (!waitingForMessage("PREPAREM")) {
+                failCount++;
+                return;
             }
         }
 
@@ -155,33 +164,15 @@ public class PbftService implements CommandLineRunner {
         lock.unlock();
         if (commitMsg != null) {
             multicastMessage(commitMsg);
-
-            for (int i = 0; i < consensusCount; i++) {
-                if (getMsgMap(blockChain.getLastConfirmedBlock().getIndex(), "COMMITMS").size()
-                        < consensusCount) {
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        log.trace(e.getMessage());
-                    }
-                } else {
-                    break;
-                }
+            if (!waitingForMessage("COMMITMS")) {
+                failCount++;
+                return;
             }
         }
 
         lock.lock();
         confirmFinalBlock();
         lock.unlock();
-
-        lock.lock();
-        PbftMessage viewChangeMsg = makeViewChangeMsg();
-        lock.unlock();
-        if (viewChangeMsg != null) {
-            multicastMessage(viewChangeMsg);
-        }
-
-        loggingStatus();
 
         // todo: delete when the memory test ended
         if (TEST_MEMORY_LEAK) {
@@ -198,7 +189,35 @@ public class PbftService implements CommandLineRunner {
                 log.debug("Free Memory: " + Runtime.getRuntime().freeMemory());
             }
         }
+
+        System.gc();
     }
+
+    private boolean waitingForMessage(String message) {
+        int messageCount = 0;
+        for (int i = 0; i < consensusCount; i++) {
+            switch (message) {
+                case "PREPREPA":
+                    messageCount = 1;
+                    break;
+                default:
+                    messageCount = consensusCount;
+            }
+
+            if (getMsgMap(blockChain.getLastConfirmedBlock().getIndex() + 1, message).size()
+                    < messageCount) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    log.trace(e.getMessage());
+                }
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     private void loggingStatus() {
         log.trace("loggingStatus");
@@ -262,21 +281,18 @@ public class PbftService implements CommandLineRunner {
     }
 
     private PbftMessage makePrePrepareMsg() {
-        if (!this.isValidator
-                || !this.isActive
-                || !this.isSynced
-                || !this.isPrimary
+        if (!this.isPrimary
                 || this.isPrePrepared) {
             return null;
         }
 
-        long seqNumber = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
+//        long seqNumber = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
         byte[] prevBlockHash = this.blockChain.getLastConfirmedBlock().getHash();
 
         Block newBlock = makeNewBlock(seqNumber, prevBlockHash);
         log.trace("newBlock" + newBlock.toString());
 
-        long viewNumber = getCurrentViewNumber(seqNumber);
+//        long viewNumber = getCurrentViewNumber(seqNumber);
         PbftMessage prePrepare = new PbftMessage(
                 "PREPREPA",
                 viewNumber,
@@ -308,12 +324,26 @@ public class PbftService implements CommandLineRunner {
     }
 
     private long getCurrentViewNumber(long seqNumber) {
-        if (this.viewChangeMap.size() >= consensusCount) {
-            //todo:check viewChange message number
-            return ((PbftMessage) this.viewChangeMap.values().toArray()[0]).getViewNumber();
-        } else {
-            return seqNumber;
+        Map<String, PbftMessage> viewChangeMsgMap = getMsgMap(seqNumber, "VIEWCHAN");
+
+        if (viewChangeMsgMap.size() >= consensusCount) {
+
+            for (int i = 0; i < viewChangeMsgMap.size(); i++) {
+
+                long count = 0;
+                for (int j = 0; j < viewChangeMsgMap.size(); j++) {
+                    if (((PbftMessage) viewChangeMsgMap.values().toArray()[i]).getViewNumber()
+                            == ((PbftMessage) viewChangeMsgMap.values().toArray()[j]).getViewNumber()) {
+                        count++;
+                    }
+                }
+                if (count >= consensusCount) {
+                    return ((PbftMessage) viewChangeMsgMap.values().toArray()[i]).getViewNumber();
+                }
+            }
         }
+
+        return seqNumber;
     }
 
     private long getNextActiveValidatorIndex(long index) {
@@ -361,21 +391,17 @@ public class PbftService implements CommandLineRunner {
     }
 
     private PbftMessage makePrepareMsg() {
-        if (!this.isValidator
-                || !this.isActive
-                || !this.isSynced
-                || !this.isPrePrepared
+        if (!this.isPrePrepared
                 || this.isPrepared) {
             return null;
         }
 
-        long seqNumber = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
-        PbftMessage prePrepareMsg = getPrePrepareMsg(seqNumber);
+        // todo : check 1 more PREPREPARE msg
+        PbftMessage prePrepareMsg = (PbftMessage) getMsgMap(seqNumber, "PREPREPA").values().toArray()[0];
         if (prePrepareMsg == null) {
             return null;
         }
 
-        long viewNumber = getCurrentViewNumber(seqNumber);
         PbftMessage prepareMsg = new PbftMessage(
                 "PREPAREM",
                 viewNumber,
@@ -416,14 +442,12 @@ public class PbftService implements CommandLineRunner {
             return null;
         }
 
-        long seqNumber = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
-        Map<String, PbftMessage> prepareMsgMap = getPrepareMsgMap(seqNumber);
+        Map<String, PbftMessage> prepareMsgMap = getMsgMap(seqNumber, "PREPAREM");
         if (prepareMsgMap == null || prepareMsgMap.size() < consensusCount) {
             prepareMsgMap.clear();
             return null;
         }
 
-        long viewNumber = getCurrentViewNumber(seqNumber);
         PbftMessage commitMsg = new PbftMessage("COMMITMS", viewNumber, seqNumber,
                 ((PbftMessage) prepareMsgMap.values().toArray()[0]).getHash(), null, wallet, null);
         if (commitMsg.getSignature() == null) {
@@ -457,6 +481,7 @@ public class PbftService implements CommandLineRunner {
         PbftMessage prePrepareMsg = null;
         Map<String, PbftMessage> prepareMessageMap = new TreeMap<>();
         Map<String, PbftMessage> commitMessageMap = new TreeMap<>();
+        Map<String, PbftMessage> viewChangeMessageMap = new TreeMap<>();
 
         for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
@@ -484,7 +509,7 @@ public class PbftService implements CommandLineRunner {
                         commitMessageMap.put(key, pbftMessage);
                         break;
                     case "VIEWCHAN":
-                        // todo: check
+                        viewChangeMessageMap.put(key, pbftMessage);
                         break;
                     default:
                         log.warn("Invalid message type :" + pbftMessage.getType());
@@ -513,16 +538,20 @@ public class PbftService implements CommandLineRunner {
             }
             commitMessageMap.clear();
 
+            for (PbftMessage pbftMessage : viewChangeMessageMap.values()) {
+                if (pbftMessage != null) {
+                    pbftMessage.clear();
+                }
+            }
+            viewChangeMessageMap.clear();
+
         } else if (prepareMessageMap.size() >= consensusCount
                 && commitMessageMap.size() >= consensusCount) {
             PbftMessageSet pbftMessageSet = new PbftMessageSet(
-                    prePrepareMsg, prepareMessageMap, commitMessageMap, this.viewChangeMap);
+                    prePrepareMsg, prepareMessageMap, commitMessageMap, viewChangeMessageMap);
             PbftBlock pbftBlock = new PbftBlock(prePrepareMsg.getBlock(), pbftMessageSet);
             confirmedBlock(pbftBlock);
             pbftBlock.clear();
-
-            this.failCount = 0;
-            this.isViewChanged = false;
         }
 
         if (nextCommitCount >= consensusCount) {
@@ -548,9 +577,6 @@ public class PbftService implements CommandLineRunner {
 
     private PbftMessage makeViewChangeMsg() {
         if (this.failCount < FAIL_COUNT
-                || !this.isValidator
-                || !this.isActive
-                || !this.isSynced
                 || this.isViewChanged) {
             return null;
         }
@@ -604,18 +630,11 @@ public class PbftService implements CommandLineRunner {
         this.isPrePrepared = false;
         this.isPrepared = false;
         this.isCommitted = false;
-    }
+        this.failCount = 0;
+        this.isViewChanged = false;
 
-    private Map<String, PbftMessage> getPrepareMsgMap(long index) {
-        Map<String, PbftMessage> prepareMsgMap = new TreeMap<>();
-        for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
-            PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
-            if (pbftMessage.getSeqNumber() == index
-                    && pbftMessage.getType().equals("PREPAREM")) {
-                prepareMsgMap.put(key, pbftMessage);
-            }
-        }
-        return prepareMsgMap;
+        this.viewNumber = index + 1;
+        this.seqNumber = index + 1;
     }
 
     private Map<String, PbftMessage> getMsgMap(long index, String msg) {
@@ -630,50 +649,18 @@ public class PbftService implements CommandLineRunner {
         return msgMap;
     }
 
-    private PbftMessage getPrePrepareMsg(long index) {
-        for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
-            PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
-            if (pbftMessage.getSeqNumber() == index
-                    && pbftMessage.getType().equals("PREPREPA")) {
-                return pbftMessage;
-            }
-        }
-        return null;
-    }
-
     private void checkPrimary() {
-        long blockIndex = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
 
-        int primaryIndex = (int) (checkViewChange(blockIndex) % totalValidatorMap.size());
+        this.viewNumber = getCurrentViewNumber(this.seqNumber);
+        int primaryIndex = (int) (this.viewNumber % totalValidatorMap.size());
         currentPrimaryPubKey = (String) totalValidatorMap.keySet().toArray()[primaryIndex];
 
-        log.debug("Block Index: " + blockIndex);
+        log.debug("viewNumber: " + this.viewNumber);
+        log.debug("seqNumber: " + this.seqNumber);
         log.debug("Primary Index: " + primaryIndex);
         log.debug("currentPrimaryPubKey: " + currentPrimaryPubKey);
 
         this.isPrimary = currentPrimaryPubKey.equals(this.myNode.getPubKey());
-    }
-
-    private long checkViewChange(long index) {
-        if (!this.isValidator
-                || !this.isActive
-                || !this.isSynced) {
-            return index;
-        }
-
-        Map<String, PbftMessage> viewChangeMsgMap = getViewChangeMsgMap(index);
-
-        log.debug("viewChangeMsgMap size: " + viewChangeMsgMap.size());
-        // todo: check viewNumber
-        if (viewChangeMsgMap.size() < consensusCount) {
-            viewChangeMsgMap.clear();
-            return index;
-        } else {
-            long newViewNumber = ((PbftMessage) viewChangeMsgMap.values().toArray()[0]).getViewNumber();
-            this.viewChangeMap.putAll(viewChangeMsgMap);
-            viewChangeMsgMap.clear();
-            return newViewNumber;
-        }
     }
 
     private Map<String, PbftMessage> getViewChangeMsgMap(long index) {
@@ -750,6 +737,7 @@ public class PbftService implements CommandLineRunner {
             log.debug("blockList size: " + pbftBlockList.size());
 
             if (pbftBlockList.size() == 0) {
+                pbftBlockList.clear();
                 return;
             }
 

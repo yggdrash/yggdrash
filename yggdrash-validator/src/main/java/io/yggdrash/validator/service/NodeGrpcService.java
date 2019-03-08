@@ -62,6 +62,7 @@ public class NodeGrpcService extends BlockChainGrpc.BlockChainImplBase {
 
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
         if (Arrays.equals(syncLimit.getBranch().toByteArray(), ebftBlockChain.getChain())) {
+            //todo: check memory leak
             for (TransactionHusk husk :
                     new ArrayList<>(ebftBlockChain.getTransactionStore().getUnconfirmedTxs())) {
                 builder.addTransactions(husk.getInstance());

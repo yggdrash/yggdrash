@@ -1,6 +1,5 @@
 package io.yggdrash.validator.data.pbft;
 
-import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
@@ -38,7 +37,7 @@ public class PbftBlockChain {
     private PbftBlock lastConfirmedBlock;
 
     @Autowired
-    public PbftBlockChain(Block genesisBlock, DefaultConfig defaultConfig, String dbPath,
+    public PbftBlockChain(Block genesisBlock, String dbPath,
                           String blockKeyStorePath, String blockStorePath, String txStorePath) {
         if (genesisBlock.getHeader().getIndex() != 0
                 || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), EMPTY_BYTE32)) {
@@ -61,7 +60,6 @@ public class PbftBlockChain {
         this.blockStore = new PbftBlockStore(
                 new LevelDbDataSource(dbPath, blockStorePath));
 
-        PbftBlock pbftBlock = this.genesisBlock;
         if (this.blockKeyStore.size() == 0) {
             this.blockKeyStore.put(0L, this.genesisBlock.getHash());
             this.blockStore.put(this.genesisBlock.getHash(), this.genesisBlock);
@@ -84,7 +82,9 @@ public class PbftBlockChain {
                 }
             }
 
-            this.lastConfirmedBlock = nextPbftBlock;
+            if (nextPbftBlock != null) {
+                this.lastConfirmedBlock = nextPbftBlock;
+            }
         }
 
         this.transactionStore = new TransactionStore(

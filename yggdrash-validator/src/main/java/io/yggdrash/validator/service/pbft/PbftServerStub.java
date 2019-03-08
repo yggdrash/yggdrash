@@ -109,8 +109,8 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
             if (start < end) {
                 for (long l = start; l <= end; l++) {
-                    blockList.add(this.blockChain.getBlockStore().get(
-                            this.blockChain.getBlockKeyStore().get(l)));
+                    byte[] key = this.blockChain.getBlockKeyStore().get(l);
+                    blockList.add(this.blockChain.getBlockStore().get(key));
                 }
             }
 
