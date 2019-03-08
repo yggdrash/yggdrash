@@ -23,7 +23,7 @@ public class PeerTest {
     }
 
     @Test(expected = NotValidateException.class)
-    public void unkownSchemaTest() {
+    public void unknownSchemaTest() {
         Peer.valueOf("http://75bff16c@yggdrash-node1:32918");
     }
 

@@ -102,7 +102,7 @@ public class Trie {
         return getMerkleRoot(hashTree, algorithm, false);
     }
 
-    public static byte[] getMerkleRoot(ArrayList<byte[]> hashTree) {
+    private static byte[] getMerkleRoot(ArrayList<byte[]> hashTree) {
         return getMerkleRoot(hashTree, "KECCAK-256");
     }
 

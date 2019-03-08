@@ -82,7 +82,7 @@ public class TransactionSignatureTest {
     }
 
     @Test
-    public void testTransactionSignatureClone() throws Exception {
+    public void testTransactionSignatureClone() {
         TransactionSignature txSig2 = txSig1.clone();
         log.debug("txSig1=" + txSig1.getSignatureHexString());
         log.debug("txSig2=" + txSig2.getSignatureHexString());

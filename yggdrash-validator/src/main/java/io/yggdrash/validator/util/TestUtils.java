@@ -6,8 +6,8 @@ import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
@@ -35,7 +35,7 @@ import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
 public class TestUtils {
     public static final String YGG_HOME = "testOutput";
 
-    private Wallet wallet;
+    private final Wallet wallet;
     private static byte[] type =
             ByteBuffer.allocate(8).putInt(0).array();
     private static byte[] version =

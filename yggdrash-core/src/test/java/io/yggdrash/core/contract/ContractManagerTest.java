@@ -40,9 +40,9 @@ import static org.junit.Assert.assertNotNull;
 
 @Ignore
 public class ContractManagerTest {
-    Logger log = LoggerFactory.getLogger(ContractManagerTest.class);
+    private static final Logger log = LoggerFactory.getLogger(ContractManagerTest.class);
 
-    private static DefaultConfig defaultConfig = new DefaultConfig();
+    private static final DefaultConfig defaultConfig = new DefaultConfig();
     private static ContractManager contractManager;
     private static Map<ContractVersion, ContractMeta> contracts;
 
@@ -52,8 +52,8 @@ public class ContractManagerTest {
         if (defaultConfig.isProductionMode()) {
             ContractClassLoader.copyResourcesToContractPath(defaultConfig.getContractPath());
         }
-        this.contractManager = new ContractManager(defaultConfig.getContractPath());
-        this.contracts = contractManager.getContracts();
+        contractManager = new ContractManager(defaultConfig.getContractPath());
+        contracts = contractManager.getContracts();
     }
 
     @Test
@@ -94,9 +94,9 @@ public class ContractManagerTest {
         if (contracts == null) {
             return;
         }
-        contracts.entrySet().stream().forEach(set -> {
-            if (set.getKey() != null) {
-                assertEquals(true, contractManager.hasContract(set.getKey()));
+        contracts.forEach((key, value) -> {
+            if (key != null) {
+                assertEquals(true, contractManager.hasContract(key));
             }
         });
     }

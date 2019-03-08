@@ -19,8 +19,8 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestConstants.SlowTest;
-import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
 import org.junit.Before;
@@ -142,7 +142,7 @@ public class TransactionTest extends SlowTest {
     }
 
     @Test
-    public void testTransactionClone() throws Exception {
+    public void testTransactionClone() {
         Transaction tx2 = tx1.clone();
         log.debug("tx2=" + tx2.toJsonObject());
 
@@ -160,7 +160,7 @@ public class TransactionTest extends SlowTest {
     }
 
     @Test
-    public void testTransactionField() throws Exception {
+    public void testTransactionField() {
         Transaction tx2 = tx1.clone();
         log.debug("tx2=" + tx2.toJsonObject());
 
@@ -171,7 +171,7 @@ public class TransactionTest extends SlowTest {
     }
 
     @Test
-    public void testTransactionGetHash() throws Exception {
+    public void testTransactionGetHash() {
         Transaction tx2 = tx1.clone();
         log.debug("tx2=" + tx2.toJsonObject());
 

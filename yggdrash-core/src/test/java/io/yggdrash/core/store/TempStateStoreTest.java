@@ -22,14 +22,10 @@ import io.yggdrash.common.store.datasource.HashMapDbSource;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class TempStateStoreTest {
 
-    StateStore stateStore;
-    Logger log = LoggerFactory.getLogger(TempStateStoreTest.class);
-
+    private StateStore stateStore;
 
     @Before
     public void setUp() {

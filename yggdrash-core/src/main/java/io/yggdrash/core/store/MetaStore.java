@@ -18,10 +18,10 @@ package io.yggdrash.core.store;
 
 import com.google.common.primitives.Longs;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BlockchainMetaInfo;
-import io.yggdrash.common.store.datasource.DbSource;
 
 public class MetaStore implements ReadWriterStore<String, String> {
     private final DbSource<byte[], byte[]> db;
@@ -54,16 +54,16 @@ public class MetaStore implements ReadWriterStore<String, String> {
         return reStoreToLong(BlockchainMetaInfo.BEST_BLOCK_INDEX.toString(), -1);
     }
 
-    public void setBestBlock(Long index) {
-        storeLongValue(BlockchainMetaInfo.BEST_BLOCK_INDEX.toString(), index);
-    }
-
     public void setBestBlock(BlockHusk block) {
         setBestBlockHash(block.getHash());
         setBestBlock(block.getIndex());
     }
 
-    public Sha3Hash getBestBlockHash() {
+    private void setBestBlock(Long index) {
+        storeLongValue(BlockchainMetaInfo.BEST_BLOCK_INDEX.toString(), index);
+    }
+
+    Sha3Hash getBestBlockHash() {
         byte[] bestBlockHashArray = db.get(BlockchainMetaInfo.BEST_BLOCK.toString().getBytes());
         Sha3Hash bestBlockHash = null;
         if (bestBlockHashArray != null) {
@@ -72,7 +72,7 @@ public class MetaStore implements ReadWriterStore<String, String> {
         return bestBlockHash;
     }
 
-    public void setBestBlockHash(Sha3Hash hash) {
+    void setBestBlockHash(Sha3Hash hash) {
         byte[] bestBlockHash = hash.getBytes();
         db.put(BlockchainMetaInfo.BEST_BLOCK.toString().getBytes(), bestBlockHash);
     }

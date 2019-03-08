@@ -18,10 +18,10 @@ package io.yggdrash.core.store;
 
 import com.google.common.collect.EvictingQueue;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.contract.core.store.ReadWriterStore;
-import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.datasource.DbSource;
+import io.yggdrash.contract.core.store.ReadWriterStore;
+import io.yggdrash.core.blockchain.TransactionHusk;
 import org.ehcache.Cache;
 import org.ehcache.config.builders.CacheConfigurationBuilder;
 import org.ehcache.config.builders.CacheManagerBuilder;
@@ -131,21 +131,32 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, TransactionHu
         return this.countOfTxs;
     }
 
-    public Set<Sha3Hash> getPendingKeys() {
-        return new HashSet<>(pendingKeys);
-    }
-
-    public TransactionHusk getUnconfirmedTxs(Sha3Hash key) {
-        return pendingPool.get(key);
+    public List<TransactionHusk> getUnconfirmedTxsWithLimit(long limit) {
+        LOCK.lock();
+        long bodySizeSum = 0;
+        List<TransactionHusk> unconfirmedTxs = new ArrayList<>(pendingKeys.size());
+        for (Sha3Hash key : pendingKeys) {
+            TransactionHusk tx = pendingPool.get(key);
+            if (tx == null) {
+                continue;
+            }
+            bodySizeSum += tx.getLength();
+            if (bodySizeSum > limit) {
+                break;
+            }
+            unconfirmedTxs.add(tx);
+        }
+        LOCK.unlock();
+        return unconfirmedTxs;
     }
 
     public Collection<TransactionHusk> getUnconfirmedTxs() {
-        Set<Sha3Hash> unconfirmedKeys = new HashSet<>(pendingKeys);
-        Collection<TransactionHusk> unconfirmedTxs = pendingPool.getAll(unconfirmedKeys).values();
+        LOCK.lock();
+        Collection<TransactionHusk> unconfirmedTxs = pendingPool.getAll(pendingKeys).values();
         if (unconfirmedTxs.size() > 0) {
-            log.debug("unconfirmedKeys={} unconfirmedTxs={}",
-                    unconfirmedKeys.size(), unconfirmedTxs.size());
+            log.debug("unconfirmedKeys={} unconfirmedTxs={}", pendingKeys.size(), unconfirmedTxs.size());
         }
+        LOCK.unlock();
         return unconfirmedTxs;
     }
 

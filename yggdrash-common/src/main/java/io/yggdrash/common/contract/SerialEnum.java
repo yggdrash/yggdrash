@@ -10,7 +10,7 @@ public enum SerialEnum {
     TX_VALIDATOR_PROPOSE(4),
     TX_VALIDATOR_VOTE(5);
 
-    private int value;
+    private final int value;
 
     SerialEnum(int value) {
         this.value = value;

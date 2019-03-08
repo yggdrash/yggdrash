@@ -20,20 +20,19 @@ import com.google.gson.JsonObject;
 import io.yggdrash.core.contract.ContractVersion;
 
 public class BranchContract {
-    private ContractVersion contractVersion;
-    private JsonObject init;
-    private String name;
-    private String description;
-    private String property;
-    private boolean isSystem;
+    private final ContractVersion contractVersion;
+    private final JsonObject init;
+    private final String name;
+    private final String description;
+    private final String property;
+    private final boolean isSystem;
 
-
-    protected BranchContract(JsonObject json) {
+    private BranchContract(JsonObject json) {
         this.init = json.getAsJsonObject("init");
         this.name = json.get("name").getAsString();
         this.description = json.get("description").getAsString();
         this.property = json.has("property") ? json.get("property").getAsString() : "";
-        this.isSystem = json.has("isSystem") ? json.get("isSystem").getAsBoolean() : false;
+        this.isSystem = json.has("isSystem") && json.get("isSystem").getAsBoolean();
 
         if (this.isSystem) {
             this.contractVersion = ContractVersion.ofNonHex(json.get("contractVersion").getAsString());

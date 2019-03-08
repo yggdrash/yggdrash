@@ -3,16 +3,16 @@ package io.yggdrash.core.blockchain.osgi;
 import com.fasterxml.jackson.annotation.JsonCreator;
 
 public class ContractStatus {
-    private String symbolicName;
-    private String version;
-    private String vendor;
-    private String description;
-    private long id;
-    private String location;
-    private Status status;
-    private int serviceCnt;
+    private final String symbolicName;
+    private final String version;
+    private final String vendor;
+    private final String description;
+    private final long id;
+    private final String location;
+    private final Status status;
+    private final int serviceCnt;
 
-    public ContractStatus(String symbolicName, String version, String vendor, String description, long id, String location, int state, int serviceCnt) {
+    ContractStatus(String symbolicName, String version, String vendor, String description, long id, String location, int state, int serviceCnt) {
         this.symbolicName = symbolicName;
         this.version = version;
         this.vendor = vendor == null ? "" : vendor;

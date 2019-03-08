@@ -23,16 +23,16 @@ import io.yggdrash.core.store.MetaStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class BlockExecutor {
-    BlockStore store;
-    MetaStore metaStore;
-    Runtime runtime;
-    boolean runExecute;
+class BlockExecutor {
+    private final BlockStore store;
+    private final MetaStore metaStore;
+    private final Runtime runtime;
+    private boolean runExecute;
 
 
     private static final Logger log = LoggerFactory.getLogger(BlockExecutor.class);
 
-    public BlockExecutor(BlockStore store, MetaStore metaStore, Runtime runtime) {
+    BlockExecutor(BlockStore store, MetaStore metaStore, Runtime runtime) {
         this.store = store;
         this.metaStore = metaStore;
         this.runtime = runtime;
@@ -42,7 +42,7 @@ public class BlockExecutor {
         return runExecute;
     }
 
-    public void runExecuteBlocks() {
+    void runExecuteBlocks() {
         if (!runExecute) {
             executeBlock();
         }

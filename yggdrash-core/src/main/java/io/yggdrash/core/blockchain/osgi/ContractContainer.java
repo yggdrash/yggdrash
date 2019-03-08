@@ -39,7 +39,7 @@ import java.util.PropertyPermission;
 public class ContractContainer {
     private static final Logger log = LoggerFactory.getLogger(ContractContainer.class);
 
-    public static final String PREFIX_BUNDLE_PATH = "file:";
+    static final String PREFIX_BUNDLE_PATH = "file:";
     private static final String SUFFIX_SYSTEM_CONTRACT = "/system-contracts";
     private static final String SUFFIX_USER_CONTRACT = "/user-contracts";
 
@@ -47,14 +47,14 @@ public class ContractContainer {
     private String systemContractPath;
     private String userContractPath;
 
-    private FrameworkFactory frameworkFactory;
-    private Map<String, String> commonContainerConfig;
-    private String branchId;
-    private StateStore stateStore;
-    private TransactionReceiptStore transactionReceiptStore;
+    private final FrameworkFactory frameworkFactory;
+    private final Map<String, String> commonContainerConfig;
+    private final String branchId;
+    private final StateStore stateStore;
+    private final TransactionReceiptStore transactionReceiptStore;
+    private final DefaultConfig config;
 
     private ContractManager contractManager;
-    private DefaultConfig config;
 
     ContractContainer(FrameworkFactory frameworkFactory, Map<String, String> containerConfig, String branchId
             , StateStore stateStore, TransactionReceiptStore transactionReceiptStore, DefaultConfig config) {
