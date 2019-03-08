@@ -16,37 +16,18 @@
 
 package io.yggdrash.node.discovery;
 
-import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.p2p.KademliaOptions;
-import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.node.AbstractNodeTest;
+import io.yggdrash.node.TcpNodeTest;
 import io.yggdrash.node.TestNode;
-import io.yggdrash.node.service.BlockChainService;
-import io.yggdrash.node.service.DiscoveryService;
-import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
-import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 @RunWith(JUnit4.class)
-public class NodeTcpDiscoveryTest extends AbstractNodeTest {
-
-    private final AbstractApplicationContext context = new GenericApplicationContext();
-
-    @Override
-    public void setUp() {
-        super.setUp();
-        context.refresh();
-    }
+public class NodeTcpDiscoveryTest extends TcpNodeTest {
 
     @Test
     public void test() {
@@ -59,32 +40,6 @@ public class NodeTcpDiscoveryTest extends AbstractNodeTest {
         for (TestNode node : nodeList) {
             nodeList.forEach(this::refreshAndHealthCheck);
             assertThat(node.getActivePeerCount()).isGreaterThanOrEqualTo(KademliaOptions.BUCKET_SIZE);
-        }
-    }
-
-    @Override
-    protected ManagedChannel createChannel(Peer peer) {
-        return ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
-                .build();
-    }
-
-    @Override
-    protected Server createAndStartServer(TestNode node) {
-        GrpcServerBuilderConfigurer configurer = builder -> {
-            builder.addService(new DiscoveryService(node.discoveryConsumer));
-            if (node.blockChainConsumer != null) {
-                builder.addService(new BlockChainService(node.blockChainConsumer));
-            }
-        };
-
-        GrpcServerRunner runner = new GrpcServerRunner(configurer,
-                ServerBuilder.forPort(node.port));
-        runner.setApplicationContext(context);
-        try {
-            runner.run();
-            return runner.getServer();
-        } catch (Exception e) {
-            return null;
         }
     }
 }

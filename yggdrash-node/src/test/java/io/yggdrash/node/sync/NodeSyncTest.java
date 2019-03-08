@@ -69,8 +69,8 @@ public class NodeSyncTest extends AbstractNodeTest {
         nodeList.get(node1).peerTask.healthCheck();
         generateBlock(node1, 1);
 
-        nodeList.get(node1).peerTask.getPeerDialer().destroyAll();
-        nodeList.get(node2).peerTask.getPeerDialer().destroyAll();
+        nodeList.get(node1).destory();
+        nodeList.get(node2).destory();
 
         // assert
         Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(),
