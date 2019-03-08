@@ -288,13 +288,11 @@ public class PbftService implements CommandLineRunner {
             return null;
         }
 
-//        long seqNumber = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
         byte[] prevBlockHash = this.blockChain.getLastConfirmedBlock().getHash();
 
         Block newBlock = makeNewBlock(seqNumber, prevBlockHash);
         log.trace("newBlock" + newBlock.toString());
 
-//        long viewNumber = getCurrentViewNumber(seqNumber);
         PbftMessage prePrepare = new PbftMessage(
                 "PREPREPA",
                 viewNumber,

@@ -17,9 +17,9 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.StoreTestUtils;
-import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
+import io.yggdrash.core.p2p.Peer;
 import org.junit.AfterClass;
 import org.junit.Test;
 
