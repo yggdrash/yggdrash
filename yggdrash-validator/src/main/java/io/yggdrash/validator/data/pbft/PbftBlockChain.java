@@ -6,13 +6,13 @@ import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.TransactionStore;
+import io.yggdrash.validator.config.ConsensusConfiguration;
 import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
 import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -21,7 +21,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static io.yggdrash.common.config.Constants.DEFAULT_PORT;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 
 public class PbftBlockChain {
@@ -29,8 +28,6 @@ public class PbftBlockChain {
     private static final Logger log = LoggerFactory.getLogger(PbftBlockChain.class);
 
     private final byte[] chain;
-    private final String host;
-    private final int port;
 
     private final PbftBlockKeyStore blockKeyStore;
     private final PbftBlockStore blockStore;
@@ -40,8 +37,9 @@ public class PbftBlockChain {
 
     private PbftBlock lastConfirmedBlock;
 
-    @Autowired
-    public PbftBlockChain(Block genesisBlock, String dbPath,
+    private final ConsensusConfiguration consensusConfiguration;
+
+    public PbftBlockChain(@Qualifier("validatorGenesisBlock") Block genesisBlock, String dbPath,
                           String blockKeyStorePath, String blockStorePath, String txStorePath) {
         if (genesisBlock.getHeader().getIndex() != 0
                 || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), EMPTY_BYTE32)) {
@@ -50,12 +48,6 @@ public class PbftBlockChain {
         }
 
         this.chain = genesisBlock.getHeader().getChain();
-        this.host = InetAddress.getLoopbackAddress().getHostAddress();
-        if (System.getProperty("grpc.port") == null) {
-            this.port = DEFAULT_PORT;
-        } else {
-            this.port = Integer.parseInt(System.getProperty("grpc.port"));
-        }
 
         this.genesisBlock = new PbftBlock(genesisBlock, null);
         this.lastConfirmedBlock = this.genesisBlock;
@@ -93,19 +85,12 @@ public class PbftBlockChain {
 
         this.transactionStore = new TransactionStore(
                 new LevelDbDataSource(dbPath, txStorePath));
-    }
 
+        this.consensusConfiguration = new ConsensusConfiguration(this.genesisBlock.getBlock());
+    }
 
     public byte[] getChain() {
         return chain;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public int getPort() {
-        return port;
     }
 
     public PbftBlockKeyStore getBlockKeyStore() {
@@ -134,6 +119,10 @@ public class PbftBlockChain {
 
     public TransactionStore getTransactionStore() {
         return transactionStore;
+    }
+
+    public ConsensusConfiguration getConsensusConfiguration() {
+        return consensusConfiguration;
     }
 
     public List<PbftBlock> getPbftBlockList(long index, long count) {

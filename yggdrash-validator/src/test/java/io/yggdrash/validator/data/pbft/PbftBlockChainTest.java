@@ -179,8 +179,6 @@ public class PbftBlockChainTest {
     @Test
     public void getterTest() {
         assertNotNull(this.pbftBlockChain.getChain());
-        assertNotNull(this.pbftBlockChain.getHost());
-        assertEquals(this.pbftBlockChain.getPort(), 32918);
         assertNotNull(this.pbftBlockChain.getBlockKeyStore());
         assertNotNull(this.pbftBlockChain.getBlockStore());
         assertNotNull(this.pbftBlockChain.getGenesisBlock());
