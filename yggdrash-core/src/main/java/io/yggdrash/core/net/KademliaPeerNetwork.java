@@ -66,31 +66,6 @@ public class KademliaPeerNetwork implements PeerNetwork {
         return peerDialer.getHandlerList(peerList);
     }
 
-    /*
-    @Override
-    public void receivedTransaction(TransactionHusk tx) {
-        List<PeerHandler> getHandlerList = getHandlerList(tx.getBranchId());
-        for (PeerHandler peerHandler : getHandlerList) {
-            try {
-                peerHandler.simpleBroadcastTransaction(tx);
-            } catch (Exception e) {
-                peerDialer.removeHandler(peerHandler);
-            }
-        }
-    }
-    @Override
-    public void chainedBlock(BlockHusk block) {
-        List<PeerHandler> getHandlerList = getHandlerList(block.getBranchId());
-        for (PeerHandler peerHandler : getHandlerList) {
-            try {
-                peerHandler.simpleBroadcastBlock(block);
-            } catch (Exception e) {
-                peerDialer.removeHandler(peerHandler);
-            }
-        }
-    }
-    */
-
     @Override
     public void receivedTransaction(TransactionHusk tx) {
         List<PeerHandler> getHandlerList = getHandlerList(tx.getBranchId());
@@ -98,7 +73,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
             try {
                 peerHandler.broadcastTx(tx);
             } catch (Exception e) {
-                log.debug("[KadmeliaPeerNetwork] Chained Tx ERR: {}", e.getMessage());
+                log.debug("[KadmeliaPeerNetwork] broadcast tx ERR: {}", e.getMessage());
                 peerDialer.removeHandler(peerHandler);
             }
         }
@@ -111,7 +86,7 @@ public class KademliaPeerNetwork implements PeerNetwork {
             try {
                 peerHandler.broadcastBlock(block);
             } catch (Exception e) {
-                log.debug("[KadmeliaPeerNetwork] Chained Block ERR: {}", e.getMessage());
+                log.debug("[KadmeliaPeerNetwork] broadcast block ERR: {}", e.getMessage());
                 peerDialer.removeHandler(peerHandler);
             }
         }
