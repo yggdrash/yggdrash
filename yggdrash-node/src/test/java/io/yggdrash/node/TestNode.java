@@ -12,9 +12,7 @@ import io.yggdrash.core.net.BlockChainServiceConsumer;
 import io.yggdrash.core.net.BootStrapNode;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.DiscoveryServiceConsumer;
-import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.NodeStatusMock;
-import io.yggdrash.core.net.PeerNetwork;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerHandlerFactory;
 import io.yggdrash.core.p2p.PeerTable;
@@ -30,32 +28,27 @@ public class TestNode extends BootStrapNode {
     private final BranchId branchId = TestConstants.yggdrash();
 
     // discovery specific
-    public final int port;
-    public DiscoveryConsumer discoveryConsumer;
-
+    final int port;
+    DiscoveryConsumer discoveryConsumer;
     private PeerDialer peerDialer;
-    private NodeStatus nodeStatus = NodeStatusMock.mock;
-
     public PeerTableGroup peerTableGroup;
     public PeerTask peerTask;
+
     // branch specific
     public BlockChainConsumer blockChainConsumer;
 
     TestNode(PeerHandlerFactory factory, int port, boolean enableBranch) {
         this.port = port;
 
-        // node configuration
-        setNodeStatus(nodeStatus);
-        setBranchGroup(new BranchGroup());
-
-        p2pConfiguration(factory, nodeStatus);
+        p2pConfiguration(factory);
 
         branchConfiguration(enableBranch);
 
         networkConfiguration();
     }
 
-    private void p2pConfiguration(PeerHandlerFactory factory, NodeStatus nodeStatus) {
+    private void p2pConfiguration(PeerHandlerFactory factory) {
+        this.nodeStatus = NodeStatusMock.mock;
         this.peerDialer = new SimplePeerDialer(factory);
         this.peerTableGroup = PeerTestUtils.createTableGroup(port, peerDialer);
         this.discoveryConsumer = new DiscoveryServiceConsumer(peerTableGroup);
@@ -67,19 +60,21 @@ public class TestNode extends BootStrapNode {
     }
 
     private void branchConfiguration(boolean enableBranch) {
-        if (!enableBranch || isSeed()) {
+        this.branchGroup = new BranchGroup();
+        if (isSeed()) {
+            return;
+        } else if (!enableBranch) {
+            peerTableGroup.createTable(TestConstants.yggdrash());
             return;
         }
         BlockChain bc = BlockChainTestUtils.createBlockChain(false);
         branchGroup.addBranch(bc);
         blockChainConsumer = new BlockChainServiceConsumer(branchGroup);
-        //blockChainConsumer.setListener(this);
     }
 
     private void networkConfiguration() {
         NetworkConfiguration config = new NetworkConfiguration();
-        PeerNetwork peerNetwork = config.peerNetwork(peerTableGroup, peerDialer, branchGroup);
-        setPeerNetwork(peerNetwork);
+        this.peerNetwork = config.peerNetwork(peerTableGroup, peerDialer, branchGroup);
         setSyncManager(config.syncManager(nodeStatus, peerNetwork, branchGroup));
     }
 
@@ -101,6 +96,10 @@ public class TestNode extends BootStrapNode {
 
     public int getActivePeerCount() {
         return peerDialer.handlerCount();
+    }
+
+    public void destory() {
+        peerTask.getPeerDialer().destroyAll();
     }
 
     public void logDebugging() {
