@@ -1,8 +1,8 @@
 package io.yggdrash.validator.data.ebft;
 
 import com.google.protobuf.ByteString;
-import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.EbftProto;
 

@@ -5,9 +5,9 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.JsonUtil;
-import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
@@ -131,10 +131,12 @@ public class PbftStatus {
     }
 
     public static boolean verify(PbftStatus status) {
-        if (status != null && status.getSignature() != null) {
+        if (status != null
+                && status.getSignature() != null) {
             byte[] hashData = status.getHashForSigning();
             byte[] signature = status.getSignature();
-            if (hashData == null || signature == null
+            if (hashData == null
+                    || signature == null
                     || !Wallet.verify(hashData, signature, true)) {
                 return false;
             }

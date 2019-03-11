@@ -80,7 +80,7 @@ public class NodeConfiguration {
         String txStorePath = grpcHost() + "_" + grpcPort() + "/"
                 + Hex.toHexString(genesisBlock.getHeader().getChain()) + "/pbftTx";
 
-        return new PbftBlockChain(genesisBlock, defaultConfig, dbPath, keyStorePath, blockStorePath,
+        return new PbftBlockChain(genesisBlock, dbPath, keyStorePath, blockStorePath,
                 txStorePath);
     }
 

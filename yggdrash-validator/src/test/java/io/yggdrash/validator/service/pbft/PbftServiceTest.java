@@ -27,11 +27,11 @@ public class PbftServiceTest {
 
     @Test
     public void checkNodeTest() {
-        for (int i = 0; i < 100; i++) {
+        for (int i = 0; i < 1000; i++) {
             pbftService.checkNode();
         }
 
         System.gc();
-        sleep(20000);
+        sleep(3600000);
     }
 }

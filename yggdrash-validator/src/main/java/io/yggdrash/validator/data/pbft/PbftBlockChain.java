@@ -1,10 +1,9 @@
 package io.yggdrash.validator.data.pbft;
 
-import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
 import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import org.slf4j.Logger;
@@ -38,7 +37,7 @@ public class PbftBlockChain {
     private PbftBlock lastConfirmedBlock;
 
     @Autowired
-    public PbftBlockChain(Block genesisBlock, DefaultConfig defaultConfig, String dbPath,
+    public PbftBlockChain(Block genesisBlock, String dbPath,
                           String blockKeyStorePath, String blockStorePath, String txStorePath) {
         if (genesisBlock.getHeader().getIndex() != 0
                 || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), EMPTY_BYTE32)) {
@@ -61,7 +60,6 @@ public class PbftBlockChain {
         this.blockStore = new PbftBlockStore(
                 new LevelDbDataSource(dbPath, blockStorePath));
 
-        PbftBlock pbftBlock = this.genesisBlock;
         if (this.blockKeyStore.size() == 0) {
             this.blockKeyStore.put(0L, this.genesisBlock.getHash());
             this.blockStore.put(this.genesisBlock.getHash(), this.genesisBlock);
@@ -72,18 +70,21 @@ public class PbftBlockChain {
                 throw new NotValidateException();
             }
 
-            PbftBlock prevPbftBlock = this.genesisBlock;
+            PbftBlock prevPbftBlock = this.blockStore.get(this.blockKeyStore.get(0L));
+            PbftBlock nextPbftBlock = null;
             for (long l = 1; l < this.blockKeyStore.size(); l++) {
-                pbftBlock = this.blockStore.get(this.blockKeyStore.get(l));
-                if (Arrays.equals(prevPbftBlock.getHash(), pbftBlock.getPrevBlockHash())) {
-                    prevPbftBlock = pbftBlock;
+                nextPbftBlock = this.blockStore.get(this.blockKeyStore.get(l));
+                if (Arrays.equals(prevPbftBlock.getHash(), nextPbftBlock.getPrevBlockHash())) {
+                    prevPbftBlock.clear();
+                    prevPbftBlock = nextPbftBlock;
                 } else {
                     throw new NotValidateException("PbftBlockStore is not valid.");
                 }
             }
 
-            this.lastConfirmedBlock = pbftBlock;
-
+            if (nextPbftBlock != null) {
+                this.lastConfirmedBlock = nextPbftBlock;
+            }
         }
 
         this.transactionStore = new TransactionStore(
