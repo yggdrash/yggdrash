@@ -1,7 +1,9 @@
 package io.yggdrash.validator.data.pbft;
 
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
@@ -13,8 +15,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static io.yggdrash.common.config.Constants.DEFAULT_PORT;
@@ -150,4 +154,17 @@ public class PbftBlockChain {
         return pbftBlockList;
     }
 
+    public void batchTxs(PbftBlock block) {
+        if (block == null
+                || block.getBlock() == null
+                || block.getBlock().getBody().length() == 0) {
+            return;
+        }
+        Set<Sha3Hash> keys = new HashSet<>();
+
+        for (Transaction tx : block.getBlock().getBody().getBody()) {
+            keys.add(new Sha3Hash(tx.getHash(), true));
+        }
+        transactionStore.batch(keys);
+    }
 }

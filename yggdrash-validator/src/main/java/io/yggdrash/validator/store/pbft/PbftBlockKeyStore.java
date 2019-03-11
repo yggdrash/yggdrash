@@ -3,6 +3,7 @@ package io.yggdrash.validator.store.pbft;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
+import io.yggdrash.core.exception.NotValidateException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
@@ -13,9 +14,16 @@ public class PbftBlockKeyStore implements ReadWriterStore<Long, byte[]> {
     private static final Logger log = LoggerFactory.getLogger(PbftBlockKeyStore.class);
 
     private final DbSource<byte[], byte[]> db;
+    private long size = 0;
 
     public PbftBlockKeyStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
+        try {
+            this.size = this.db.getAll().size();
+        } catch (IOException e) {
+            log.debug(e.getMessage());
+            throw new NotValidateException("PbftBlockKeyStore is not valid.");
+        }
     }
 
     @Override
@@ -29,6 +37,7 @@ public class PbftBlockKeyStore implements ReadWriterStore<Long, byte[]> {
                 + "(key: " + key + ")"
                 + "(value : " + Hex.toHexString(value) + ")");
         db.put(ByteUtil.longToBytes(key), value);
+        size++;
     }
 
     @Override
@@ -51,13 +60,8 @@ public class PbftBlockKeyStore implements ReadWriterStore<Long, byte[]> {
         return db.get(ByteUtil.longToBytes(key)) != null;
     }
 
-    public int size() {
-        try {
-            return db.getAll().size();
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-        return 0;
+    public long size() {
+        return this.size;
     }
 
     public void close() {
