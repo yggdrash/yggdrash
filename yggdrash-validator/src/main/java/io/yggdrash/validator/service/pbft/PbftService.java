@@ -237,20 +237,20 @@ public class PbftService implements CommandLineRunner {
         try {
             log.info("PbftBlock "
                     + "("
-                    + lastBlock.getPbftMessageSet().getPrePrepare().getViewNumber()
+                    + lastBlock.getConsensusMessages().getPrePrepare().getViewNumber()
                     + ") "
                     + "["
                     + lastBlock.getIndex()
                     + "]"
                     + lastBlock.getHashHex()
                     + " ("
-                    + lastBlock.getPbftMessageSet().getPrepareMap().size()
+                    + lastBlock.getConsensusMessages().getPrepareMap().size()
                     + ")"
                     + " ("
-                    + lastBlock.getPbftMessageSet().getCommitMap().size()
+                    + lastBlock.getConsensusMessages().getCommitMap().size()
                     + ")"
                     + " ("
-                    + lastBlock.getPbftMessageSet().getViewChangeMap().size()
+                    + lastBlock.getConsensusMessages().getViewChangeMap().size()
                     + ")"
                     + " ("
                     + lastBlock.getBlock().getAddressHex()
@@ -563,7 +563,7 @@ public class PbftService implements CommandLineRunner {
 
         log.debug("ConfirmedBlock "
                 + "("
-                + block.getPbftMessageSet().getPrePrepare().getViewNumber()
+                + block.getConsensusMessages().getPrePrepare().getViewNumber()
                 + ") "
                 + "["
                 + block.getIndex()

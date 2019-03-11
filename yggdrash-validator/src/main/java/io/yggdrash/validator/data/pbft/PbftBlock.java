@@ -30,7 +30,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
-public class PbftBlock {
+public class PbftBlock implements io.yggdrash.validator.data.Block {
     private static final Logger log = LoggerFactory.getLogger(PbftBlock.class);
 
     private final Block block;
@@ -61,48 +61,47 @@ public class PbftBlock {
         this.pbftMessageSet = new PbftMessageSet(protoBlock.getPbftMessageSet());
     }
 
-    public byte[] toBinary() {
-        return this.toJsonObject().toString().getBytes(StandardCharsets.UTF_8);
+    @Override
+    public byte[] getChain() {
+        return this.block.getChain();
     }
 
+    @Override
     public long getIndex() {
         return this.block.getIndex();
     }
 
+    @Override
     public byte[] getHash() {
         return this.block.getHash();
     }
 
+    @Override
     public String getHashHex() {
         return Hex.toHexString(getHash());
     }
 
+    @Override
     public byte[] getPrevBlockHash() {
         return this.block.getHeader().getPrevBlockHash();
     }
 
+    @Override
     public Block getBlock() {
         return block;
     }
 
-    public PbftMessageSet getPbftMessageSet() {
+    @Override
+    public PbftMessageSet getConsensusMessages() {
         return pbftMessageSet;
     }
 
-    public static boolean verify(PbftBlock block) {
-        if (block == null || block.getBlock() == null || block.getPbftMessageSet() == null) {
-            return false;
-        }
-
-        if (block.getIndex() == 0) {
-            return block.getBlock().verify();
-        } else {
-            return block.getBlock().verify()
-                    && PbftMessageSet.verify(block.getPbftMessageSet());
-        }
-
+    @Override
+    public byte[] toBinary() {
+        return this.toJsonObject().toString().getBytes(StandardCharsets.UTF_8);
     }
 
+    @Override
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
         jsonObject.add("block", this.block.toJsonObject());
@@ -112,10 +111,58 @@ public class PbftBlock {
         return jsonObject;
     }
 
+    @Override
+    public boolean equals(io.yggdrash.validator.data.Block block) {
+        if (block == null) {
+            return false;
+        }
+        return Arrays.equals(this.toBinary(), block.toBinary());
+    }
+
+    @Override
+    public void clear() {
+        this.block.clear();
+        if (this.pbftMessageSet != null) {
+            this.pbftMessageSet.clear();
+        }
+    }
+
+    @Override
+    public PbftBlock clone() {
+        return new PbftBlock(this.toJsonObject());
+    }
+
+    @Override
+    public boolean verify() {
+        if (this.block == null || getConsensusMessages() == null) {
+            return false;
+        }
+
+        if (getIndex() == 0) {
+            return getBlock().verify();
+        } else {
+            return getBlock().verify()
+                    && PbftMessageSet.verify(getConsensusMessages());
+        }
+    }
+
+    public static boolean verify(PbftBlock block) {
+        if (block == null || block.getBlock() == null || block.getConsensusMessages() == null) {
+            return false;
+        }
+
+        if (block.getIndex() == 0) {
+            return block.getBlock().verify();
+        } else {
+            return block.getBlock().verify()
+                    && PbftMessageSet.verify(block.getConsensusMessages());
+        }
+    }
+
     public static PbftProto.PbftBlock toProto(PbftBlock pbftBlock) {
         Proto.Block protoBlock = pbftBlock.getBlock().toProtoBlock();
         PbftProto.PbftMessageSet protoPbftMessageSet =
-                PbftMessageSet.toProto(pbftBlock.getPbftMessageSet());
+                PbftMessageSet.toProto(pbftBlock.getConsensusMessages());
 
         PbftProto.PbftBlock.Builder protoPbftBlockBuilder = PbftProto.PbftBlock.newBuilder();
         if (protoBlock != null) {
@@ -140,23 +187,5 @@ public class PbftBlock {
         }
 
         return protoPbftBlockListBuilder.build();
-    }
-
-    public boolean equals(PbftBlock block) {
-        if (block == null) {
-            return false;
-        }
-        return Arrays.equals(this.toBinary(), block.toBinary());
-    }
-
-    public void clear() {
-        this.block.clear();
-        if (this.pbftMessageSet != null) {
-            this.pbftMessageSet.clear();
-        }
-    }
-
-    public PbftBlock clone() {
-        return new PbftBlock(this.toJsonObject());
     }
 }

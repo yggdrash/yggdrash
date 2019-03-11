@@ -60,6 +60,7 @@ public class PbftBlockStore implements ReadWriterStore<byte[], PbftBlock> {
         return db.get(key) != null;
     }
 
+    @Override
     public void close() {
         this.db.close();
     }

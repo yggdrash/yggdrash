@@ -6,7 +6,7 @@ import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.validator.config.ConsensusConfiguration;
+import io.yggdrash.validator.config.Consensus;
 import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
 import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import org.slf4j.Logger;
@@ -37,7 +37,7 @@ public class PbftBlockChain {
 
     private PbftBlock lastConfirmedBlock;
 
-    private final ConsensusConfiguration consensusConfiguration;
+    private final Consensus consensus;
 
     public PbftBlockChain(@Qualifier("validatorGenesisBlock") Block genesisBlock, String dbPath,
                           String blockKeyStorePath, String blockStorePath, String txStorePath) {
@@ -86,7 +86,7 @@ public class PbftBlockChain {
         this.transactionStore = new TransactionStore(
                 new LevelDbDataSource(dbPath, txStorePath));
 
-        this.consensusConfiguration = new ConsensusConfiguration(this.genesisBlock.getBlock());
+        this.consensus = new Consensus(this.genesisBlock.getBlock());
     }
 
     public byte[] getChain() {
@@ -121,8 +121,8 @@ public class PbftBlockChain {
         return transactionStore;
     }
 
-    public ConsensusConfiguration getConsensusConfiguration() {
-        return consensusConfiguration;
+    public Consensus getConsensus() {
+        return consensus;
     }
 
     public List<PbftBlock> getPbftBlockList(long index, long count) {

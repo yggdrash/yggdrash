@@ -199,7 +199,7 @@ public class EbftService implements CommandLineRunner {
             ebftBlock = ebftBlockList.get(i - 1);
             //todo: if consensusCount(validator count) is different from previous count,
             // cannot confirm prevBlock.
-            if (ebftBlock.getConsensusList().size() >= consensusCount) {
+            if (ebftBlock.getConsensusMessages().size() >= consensusCount) {
                 changeLastConfirmedBlock(ebftBlock.clone());
                 this.isProposed = false;
                 this.isConsensused = false;
@@ -303,7 +303,7 @@ public class EbftService implements CommandLineRunner {
 
             EbftBlock ebftBlock = unConfirmedEbftBlockMap.get(minKey);
             String consensus = Hex.toHexString(wallet.signHashedData(ebftBlock.getHash()));
-            ebftBlock.getConsensusList().add(consensus);
+            ebftBlock.getConsensusMessages().add(consensus);
             this.isConsensused = true;
 
             log.debug("make Consensus: "
@@ -368,11 +368,11 @@ public class EbftService implements CommandLineRunner {
                 this.blockChain.getUnConfirmedBlockMap().remove(key);
             } else if (unconfirmedBlock.getIndex()
                     == this.blockChain.getLastConfirmedBlock().getIndex() + 1) {
-                if (unconfirmedBlock.getConsensusList().size() >= consensusCount) {
+                if (unconfirmedBlock.getConsensusMessages().size() >= consensusCount) {
                     confirmedBlock(unconfirmedBlock);
                 }
             } else {
-                if (unconfirmedBlock.getConsensusList().size() >= consensusCount) {
+                if (unconfirmedBlock.getConsensusMessages().size() >= consensusCount) {
                     moreConfirmFlag = true;
                 }
             }
@@ -398,7 +398,7 @@ public class EbftService implements CommandLineRunner {
                 + "]"
                 + this.blockChain.getLastConfirmedBlock().getHashHex()
                 + "("
-                + this.blockChain.getLastConfirmedBlock().getConsensusList().size()
+                + this.blockChain.getLastConfirmedBlock().getConsensusMessages().size()
                 + ")");
     }
 
@@ -426,7 +426,7 @@ public class EbftService implements CommandLineRunner {
                     + lastBlock.getBlock().getAddressHex()
                     + ") "
                     + "("
-                    + lastBlock.getConsensusList().size()
+                    + lastBlock.getConsensusMessages().size()
                     + ")");
         }
 
@@ -450,15 +450,15 @@ public class EbftService implements CommandLineRunner {
                         + " ("
                         + ebftBlock.getBlock().getAddressHex()
                         + ")");
-                for (int i = 0; i < ebftBlock.getConsensusList().size(); i++) {
-                    if (ebftBlock.getConsensusList().get(i) != null) {
-                        log.debug(ebftBlock.getConsensusList().get(i)
+                for (int i = 0; i < ebftBlock.getConsensusMessages().size(); i++) {
+                    if (ebftBlock.getConsensusMessages().get(i) != null) {
+                        log.debug(ebftBlock.getConsensusMessages().get(i)
                                 + " ("
                                 + Hex.toHexString(
                                 Wallet.calculateAddress(
                                         Wallet.calculatePubKey(
                                                 ebftBlock.getHash(),
-                                                Hex.decode(ebftBlock.getConsensusList().get(i)),
+                                                Hex.decode(ebftBlock.getConsensusMessages().get(i)),
                                                 true)))
                                 + ")");
                     }
@@ -491,17 +491,17 @@ public class EbftService implements CommandLineRunner {
     public void updateUnconfirmedBlock(EbftBlock ebftBlock) {
         if (this.blockChain.getUnConfirmedBlockMap().containsKey(ebftBlock.getHashHex())) {
             // if exist, update consensus
-            if (ebftBlock.getConsensusList().size() > 0) {
-                for (String consensus : ebftBlock.getConsensusList()) {
+            if (ebftBlock.getConsensusMessages().size() > 0) {
+                for (String consensus : ebftBlock.getConsensusMessages()) {
                     String pubKey = Hex.toHexString(
                             Objects.requireNonNull(Wallet.calculatePubKey(
                                     ebftBlock.getHash(), Hex.decode(consensus), true)))
                             .substring(2);
                     if (!this.blockChain.getUnConfirmedBlockMap().get(ebftBlock.getHashHex())
-                            .getConsensusList().contains(consensus)
+                            .getConsensusMessages().contains(consensus)
                             && this.totalValidatorMap.containsKey(pubKey)) {
                         this.blockChain.getUnConfirmedBlockMap().get(ebftBlock.getHashHex())
-                                .getConsensusList().add(consensus);
+                                .getConsensusMessages().add(consensus);
                     }
                 }
             }
@@ -615,11 +615,11 @@ public class EbftService implements CommandLineRunner {
     }
 
     public boolean consensusVerify(EbftBlock ebftBlock) {
-        if (ebftBlock.getConsensusList().size() <= 0) {
+        if (ebftBlock.getConsensusMessages().size() <= 0) {
             return true;
         }
 
-        for (String signature : ebftBlock.getConsensusList()) {
+        for (String signature : ebftBlock.getConsensusMessages()) {
             if (!Wallet.verify(ebftBlock.getHash(), Hex.decode(signature), true)) {
                 return false;
             }
