@@ -19,7 +19,7 @@ package io.yggdrash.core.blockchain;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
-import io.yggdrash.core.contract.ContractVersion;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;

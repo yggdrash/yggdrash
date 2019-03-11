@@ -17,15 +17,12 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.contract.Contract;
-import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.blockchain.osgi.ContractContainerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
-import io.yggdrash.core.contract.ContractClassLoader;
-import io.yggdrash.core.contract.ContractMeta;
-import io.yggdrash.core.contract.ContractVersion;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
@@ -33,7 +30,6 @@ import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -150,22 +146,6 @@ public class BlockChainBuilder {
 
         return new BlockChain(branch, genesisBlock, blockStore,
                 transactionStore, metaStore, stateStore, transactionReceiptStore, contractContainer);
-    }
-
-    private Contract getContract(ContractVersion contractVersion) {
-        try {
-            // get System Contracts
-            // TODO remove this
-            // TODO Check System Contract
-
-            ContractMeta contractMeta = ContractClassLoader.loadContractByVersion(
-                    storeBuilder.getConfig().getContractPath(), contractVersion);
-            return contractMeta.getContract().getDeclaredConstructor().newInstance();
-
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException
-                | InvocationTargetException e) {
-            throw new FailedOperationException(e);
-        }
     }
 
     private Map<ContractVersion, Contract> defaultContract() {

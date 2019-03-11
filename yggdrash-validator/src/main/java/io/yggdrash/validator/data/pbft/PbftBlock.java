@@ -151,7 +151,9 @@ public class PbftBlock {
 
     public void clear() {
         this.block.clear();
-        this.pbftMessageSet.clear();
+        if (this.pbftMessageSet != null) {
+            this.pbftMessageSet.clear();
+        }
     }
 
     public PbftBlock clone() {

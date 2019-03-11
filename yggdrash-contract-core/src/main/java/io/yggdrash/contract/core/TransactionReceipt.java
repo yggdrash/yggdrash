@@ -28,6 +28,8 @@ public interface TransactionReceipt {
 
     String getTxId();
 
+    Long getTxSize();
+
     void setTxId(String txId);
 
     String getBlockId();

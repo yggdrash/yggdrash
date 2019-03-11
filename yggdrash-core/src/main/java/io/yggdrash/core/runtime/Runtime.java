@@ -26,7 +26,7 @@ import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.contract.ContractVersion;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
