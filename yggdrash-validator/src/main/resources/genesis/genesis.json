@@ -1,26 +1,26 @@
 {
   "header": {
-    "chain": "97e63ad2d2028005b70d0ede1f6fe0a4b0e7602c",
+    "chain": "84083fa3b28ceb0695b5fe412188ddc3ffb77dc0",
     "version": "0000000000000000",
     "type": "0000000000000000",
     "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
     "index": "0000000000000000",
-    "timestamp": "000001683662003e",
-    "merkleRoot": "33ca73cf2e417f49fe88290279494c1c55f7e2fb1c6539af7ea37cd6cc2fe015",
-    "bodyLength": "000000000000051e"
+    "timestamp": "000001696a99f4cf",
+    "merkleRoot": "712b45b04f89d402eaae8bf938a69aa484368261224ec7ce3cc7497bdbc4935b",
+    "bodyLength": "0000000000000460"
   },
-  "signature": "1c912251c38bdb0f29ff4f58d2a3933d55eb4ac0f54e75f3ba55911cb7e010e6e336f1567ec2bcc6dea7c26359dcf4b7108f918acbb883c0c33e89b87580be185d",
+  "signature": "1bb3f84eff95efc7767cb6c06e0417f34a91043cda763722eb04ca1d548cd1341765a8174987d6b2e1d37d00c2222326ff564a700e9211af0b4f3ccfd5bd123ae5",
   "body": [
     {
       "header": {
-        "chain": "97e63ad2d2028005b70d0ede1f6fe0a4b0e7602c",
+        "chain": "84083fa3b28ceb0695b5fe412188ddc3ffb77dc0",
         "version": "0000000000000000",
         "type": "0000000000000000",
-        "timestamp": "000001683662003e",
-        "bodyHash": "0a30918b9b16b2449d55b1d37f22faebfdf00c383d7518b8411218f5d6ea21e8",
-        "bodyLength": "0000000000000489"
+        "timestamp": "000001696a99f4cf",
+        "bodyHash": "5e6204e74d901309a20482a13fe9dabbb948cbbe5a73f7e37e774efdd62e4d73",
+        "bodyLength": "00000000000003cb"
       },
-      "signature": "1b355e5db599528bc18671768e2279dcd69a61b72f27357646ba31e59fe3ccf1356149e7857552ddfe770fe91204b69b837712511d9f9e3d6cec1e11f697b0eae2",
+      "signature": "1b2f1aea31be64293636c52a39d578e91dcae5d716019bbaccb2d9dbd0e173eec6635103328e14784ab4e3cc46ef004ae5cd9288b26126750bcd416515c50ea52d",
       "body": [
         {
           "operator": "GENESIS",
@@ -29,55 +29,40 @@
             "5db10750e8caff27f906b41c71b3471057dd2000": {
               "balance": "1000000000"
             },
-            "5db10750e8caff27f906b41c71b3471057dd2001": {
+            "77283a04b3410fe21ba5ed04c7bd3ba89e70b78c": {
               "balance": "1000000000"
             },
-            "5db10750e8caff27f906b41c71b3471057dd2002": {
+            "9911fb4663637706811a53a0e0b4bcedeee38686": {
               "balance": "1000000000"
             },
-            "5db10750e8caff27f906b41c71b3471057dd2003": {
+            "2ee2eb80c93d031147c21ba8e2e0f0f4a33f5312": {
               "balance": "1000000000"
             },
-            "5db10750e8caff27f906b41c71b3471057dd2004": {
+            "51e2128e8deb622c2ec6dc38f9d895f0be044eb4": {
               "balance": "1000000000"
             },
-            "5db10750e8caff27f906b41c71b3471057dd2005": {
+            "047269a50640ed2b0d45d461488c13abad1e0fac": {
               "balance": "1000000000"
             },
-            "5db10750e8caff27f906b41c71b3471057dd2006": {
+            "21640f2116389a3e37462fd6b68b969e490b6a50": {
               "balance": "1000000000"
             },
-            "5db10750e8caff27f906b41c71b3471057dd2007": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2008": {
-              "balance": "1000000000"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2009": {
+            "63fef4912dc8b0781351b18eb9be450638ea2c17": {
               "balance": "1000000000"
             }
           },
-          "node": {
-            "5db10750e8caff27f906b41c71b3471057dd2006": {
-              "host": "100.100.100.6",
-              "port": "32918"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2007": {
-              "host": "100.100.100.7",
-              "port": "32918"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2008": {
-              "host": "100.100.100.8",
-              "port": "32918"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2009": {
-              "host": "100.100.100.9",
-              "port": "32918"
-            },
-            "5db10750e8caff27f906b41c71b3471057dd2010": {
-              "host": "100.100.100.10",
-              "port": "32918"
-            }
+          "consensus": {
+            "algorithm": "pbft",
+            "period": "* * * * * *",
+            "validator": [
+              "77283a04b3410fe21ba5ed04c7bd3ba89e70b78c",
+              "9911fb4663637706811a53a0e0b4bcedeee38686",
+              "2ee2eb80c93d031147c21ba8e2e0f0f4a33f5312",
+              "51e2128e8deb622c2ec6dc38f9d895f0be044eb4",
+              "047269a50640ed2b0d45d461488c13abad1e0fac",
+              "21640f2116389a3e37462fd6b68b969e490b6a50",
+              "63fef4912dc8b0781351b18eb9be450638ea2c17"
+            ]
           }
         }
       ]
