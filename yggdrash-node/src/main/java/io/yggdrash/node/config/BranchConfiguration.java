@@ -23,8 +23,6 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
-import io.yggdrash.core.contract.ContractClassLoader;
-import io.yggdrash.core.contract.ContractManager;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
 import org.slf4j.Logger;
@@ -85,14 +83,6 @@ public class BranchConfiguration {
             log.warn(e.getMessage(), e);
         }
         return branchLoader;
-    }
-
-    @Bean
-    ContractManager contractManager(DefaultConfig defaultConfig) {
-        if (defaultConfig.isProductionMode()) {
-            ContractClassLoader.copyResourcesToContractPath(defaultConfig.getContractPath());
-        }
-        return new ContractManager(defaultConfig.getContractPath());
     }
 
     private BlockChain createBranch(InputStream is, ContractPolicyLoader policyLoader)

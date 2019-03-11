@@ -82,7 +82,6 @@ project(':yggdrash-core') {
         compile project(':yggdrash-common')
         implementation project(':yggdrash-contract')
 
-        compile files('libs/cfr-0.139.jar')
         compile "io.grpc:grpc-protobuf:${grpcVersion}"
         compile "io.grpc:grpc-stub:${grpcVersion}"
         compile "io.grpc:grpc-netty:${grpcVersion}"

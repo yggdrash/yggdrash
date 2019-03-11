@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package io.yggdrash.core.contract;
+package io.yggdrash.common.contract;
 
 import io.yggdrash.common.crypto.HashUtil;
 import org.spongycastle.util.encoders.Hex;

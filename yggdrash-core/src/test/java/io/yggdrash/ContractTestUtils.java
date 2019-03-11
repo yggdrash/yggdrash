@@ -20,10 +20,11 @@ import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.core.contract.ContractVersion;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.wallet.Wallet;
 import org.spongycastle.util.encoders.Hex;
 
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 
 public class ContractTestUtils {
@@ -55,39 +56,44 @@ public class ContractTestUtils {
     }
 
     public static JsonObject createSampleBranchJson() {
-        String description =
-                "The Basis of the YGGDRASH Ecosystem. "
-                        + "It is also an aggregate and a blockchain containing information "
-                        + "of all Branch Chains.";
-        return createSampleBranchJson(description);
+        String validator = TestConstants.wallet().getHexAddress();
+        return createSampleBranchJson(validator);
     }
 
-    public static JsonObject createSampleBranchJson(String description) {
+    public static JsonObject createSampleBranchJson(String validator) {
         TestConstants.yggdrash();
 
         final String name = "STEM";
         final String symbol = "STEM";
         final String property = "ecosystem";
+        final String description = "The Basis of the YGGDRASH Ecosystem." +
+                "It is also an aggregate and a blockchain containing information" +
+                "of all Branch Chains.";
+        final BigDecimal fee = BigDecimal.valueOf(100);
 
         JsonObject contractSample = new JsonObject();
         contractSample.addProperty("contractVersion", TestConstants.STEM_CONTRACT.toString());
         contractSample.add("init", new JsonObject());
         contractSample.addProperty("description", "some description");
         contractSample.addProperty("name", "STEM");
+        contractSample.addProperty("isSystem", true);
 
         JsonArray contracts = new JsonArray();
         contracts.add(contractSample);
 
 
-        return createBranchJson(name, symbol, property, description, contracts, null);
+        return createBranchJson(name, symbol, property, description, validator, contracts, fee, null);
     }
 
     private static JsonObject createBranchJson(String name,
                                               String symbol,
                                               String property,
                                               String description,
+                                              String validator,
                                               JsonArray contracts,
+                                              BigDecimal fee,
                                               String timestamp) {
+        JsonObject branchSample = new JsonObject();
         JsonObject branch = new JsonObject();
         branch.addProperty("name", name);
         branch.addProperty("symbol", symbol);
@@ -101,7 +107,7 @@ public class ContractTestUtils {
         }
 
         JsonArray validators = new JsonArray();
-        validators.add(TestConstants.wallet().getHexAddress());
+        validators.add(validator);
         branch.add("validator", validators);
 
         String consensusString = new StringBuilder()
@@ -129,6 +135,10 @@ public class ContractTestUtils {
                 .append("  }}").toString();
         JsonObject consensus = new Gson().fromJson(consensusString, JsonObject.class);
         branch.add("consensus", consensus);
+        branch.addProperty("fee", fee);
+
+//        branchSample.add("branch", branch);
+//        branchSample.addProperty("fee", fee);
 
         return branch;
     }

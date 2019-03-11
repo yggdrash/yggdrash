@@ -56,8 +56,7 @@ public class GenesisBlock {
     private TransactionBuilder contractTransaction(TransactionBuilder builder) {
         List<BranchContract> contracts = branch.getBranchContracts();
         builder.setBranchId(branch.getBranchId())
-                .setTimeStamp(branch.getTimestamp())
-        ;
+                .setTimeStamp(branch.getTimestamp());
         contracts.forEach(c -> builder.addTxBody(c.getContractVersion(), "init", c.getInit(), c.isSystem()));
         return builder;
     }
