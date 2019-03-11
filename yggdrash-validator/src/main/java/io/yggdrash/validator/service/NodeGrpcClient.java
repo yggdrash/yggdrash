@@ -24,7 +24,7 @@ public class NodeGrpcClient {
     private ManagedChannel channel;
     private final PeerGrpc.PeerBlockingStub blockingPeerStub;
     private final BlockChainGrpc.BlockChainBlockingStub blockingBlockChainStub;
-    private final BlockChainGrpc.BlockChainBlockingStub asyncBlockChainStub;
+    private final BlockChainGrpc.BlockChainStub asyncBlockChainStub;
 
     public NodeGrpcClient(String host, int port) {
         this.host = host;
@@ -34,7 +34,7 @@ public class NodeGrpcClient {
                 .build();
         this.blockingPeerStub = PeerGrpc.newBlockingStub(channel);
         this.blockingBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
-        this.asyncBlockChainStub = BlockChainGrpc.newBlockingStub(channel);
+        this.asyncBlockChainStub = BlockChainGrpc.newStub(channel);
     }
 
     public void shutdown() throws InterruptedException {
@@ -61,7 +61,7 @@ public class NodeGrpcClient {
         return blockingBlockChainStub;
     }
 
-    public BlockChainGrpc.BlockChainBlockingStub getAsyncBlockChainStub() {
+    public BlockChainGrpc.BlockChainStub getAsyncBlockChainStub() {
         return asyncBlockChainStub;
     }
 
@@ -70,19 +70,19 @@ public class NodeGrpcClient {
                 .setOffset(offset)
                 .setLimit(DEFAULT_LIMIT)
                 .setBranch(ByteString.copyFrom(branchId)).build();
-        return blockingBlockChainStub.simpleSyncBlock(syncLimit).getBlocksList();
+        return blockingBlockChainStub.syncBlock(syncLimit).getBlocksList();
     }
 
     public List<Proto.Transaction> syncTransaction(byte[] branchId) {
         NetProto.SyncLimit syncLimit = NetProto.SyncLimit.newBuilder()
                 .setBranch(ByteString.copyFrom(branchId)).build();
-        return blockingBlockChainStub.simpleSyncTransaction(syncLimit).getTransactionsList();
+        return blockingBlockChainStub.syncTx(syncLimit).getTransactionsList();
     }
 
     public void broadcastTransaction(List<Proto.Transaction> txs) {
         for (Proto.Transaction tx : txs) {
             log.trace("Sending transaction: {}", tx);
-            asyncBlockChainStub.simpleBroadcastTransaction(tx);
+            //asyncBlockChainStub.broadcastBlock()
         }
     }
 }

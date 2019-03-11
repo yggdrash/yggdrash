@@ -31,7 +31,7 @@ public class NodeGrpcService extends BlockChainGrpc.BlockChainImplBase {
     }
 
     @Override
-    public void simpleSyncBlock(NetProto.SyncLimit syncLimit,
+    public void syncBlock(NetProto.SyncLimit syncLimit,
                                 StreamObserver<Proto.BlockList> responseObserver) {
         log.debug("NodeService syncBlock");
         long offset = syncLimit.getOffset();
@@ -53,7 +53,7 @@ public class NodeGrpcService extends BlockChainGrpc.BlockChainImplBase {
     }
 
     @Override
-    public void simpleSyncTransaction(NetProto.SyncLimit syncLimit,
+    public void syncTx(NetProto.SyncLimit syncLimit,
                                       StreamObserver<Proto.TransactionList> responseObserver) {
         log.debug("NodeService syncTransaction");
         long offset = syncLimit.getOffset();
@@ -73,25 +73,51 @@ public class NodeGrpcService extends BlockChainGrpc.BlockChainImplBase {
     }
 
     @Override
-    public void simpleBroadcastBlock(Proto.Block request,
-                                     StreamObserver<NetProto.Empty> responseObserver) {
-        // Validator do not need to receive blocks from general node
-        log.debug("NodeService broadcastBlock");
-        responseObserver.onNext(EMPTY);
-        responseObserver.onCompleted();
+    public StreamObserver<Proto.Block> broadcastBlock(StreamObserver<NetProto.Empty> responseObserver) {
+        return new StreamObserver<Proto.Block>() {
+            @Override
+            public void onNext(Proto.Block value) {
+                log.warn("ignored broadcast block");
+            }
+
+            @Override
+            public void onError(Throwable t) {
+                log.warn(t.getMessage());
+            }
+
+            @Override
+            public void onCompleted() {
+                // Validator do not need to receive blocks from general node
+                log.debug("NodeService broadcastBlock");
+                responseObserver.onNext(EMPTY);
+                responseObserver.onCompleted();
+            }
+        };
     }
 
     @Override
-    public void simpleBroadcastTransaction(Proto.Transaction request,
-                                           StreamObserver<NetProto.Empty> responseObserver) {
-        log.debug("NodeService broadcastTransaction");
-        log.debug("Received transaction: {}", request);
-        TransactionHusk tx = new TransactionHusk(request);
-        if (Arrays.equals(tx.getBranchId().getBytes(), ebftBlockChain.getChain())) {
-            ebftBlockChain.getTransactionStore().put(tx.getHash(), tx);
-        }
+    public StreamObserver<Proto.Transaction> broadcastTx(StreamObserver<NetProto.Empty> responseObserver) {
+        return new StreamObserver<Proto.Transaction>() {
+            @Override
+            public void onNext(Proto.Transaction value) {
+                log.debug("NodeService broadcastTransaction");
+                log.debug("Received transaction: {}", value);
+                TransactionHusk tx = new TransactionHusk(value);
+                if (Arrays.equals(tx.getBranchId().getBytes(), ebftBlockChain.getChain())) {
+                    ebftBlockChain.getTransactionStore().put(tx.getHash(), tx);
+                }
+            }
 
-        responseObserver.onNext(EMPTY);
-        responseObserver.onCompleted();
+            @Override
+            public void onError(Throwable t) {
+                log.warn(t.getMessage());
+            }
+
+            @Override
+            public void onCompleted() {
+                responseObserver.onNext(EMPTY);
+                responseObserver.onCompleted();
+            }
+        };
     }
 }
