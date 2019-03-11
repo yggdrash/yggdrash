@@ -5,7 +5,6 @@ import java.util.List;
 
 public class TransactionReceiptImpl implements TransactionReceipt {
     private String txId;
-    private Long txSize;
     private String blockId;
     private String branchId;
     private final List<String> txLog = new ArrayList<>();
@@ -19,10 +18,9 @@ public class TransactionReceiptImpl implements TransactionReceipt {
         //init;
     }
 
-    public TransactionReceiptImpl(String txId, String issuer, Long txSize) {
+    public TransactionReceiptImpl(String txId, String issuer) {
         this.txId = txId;
         this.issuer = issuer;
-        this.txSize = txSize;
     }
 
     public void addLog(String log) {
@@ -43,7 +41,7 @@ public class TransactionReceiptImpl implements TransactionReceipt {
 
     @Override
     public Long getTxSize() {
-        return txSize;
+        return null;
     }
 
     public void setTxId(String txId) {

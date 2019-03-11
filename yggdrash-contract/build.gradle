@@ -5,7 +5,6 @@ ext {
                     ",io.yggdrash.common.contract.vo" +
                     ",io.yggdrash.common.contract.vo.dpoa" +
                     ",io.yggdrash.common.contract.vo.dpoa.tx" +
-                    ",io.yggdrash.common.branch" +
                     ",io.yggdrash.common.crypto" +
                     ",io.yggdrash.common.crypto.jce" +
                     ",io.yggdrash.common.exception" +
@@ -85,35 +84,6 @@ task dpoaClientContract(type: Jar) {
     archiveName "system-dpoa-client-contract-${manifest.attributes.get('Bundle-Version')}.jar"
 }
 
-task stemContract(type: Jar) {
-    //Add current module source
-    from(sourceSets.main.output) {
-        include "**"
-        exclude(["system-contracts"])
-    }
-
-    // Add dependency library
-//    from {
-//        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-//    }
-
-    manifest {
-        attributes(
-                'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'Stem Contract',
-                'Bundle-Description': 'Stem Contract',
-                'Bundle-Vendor': 'YGGDRASH',
-                'Bundle-SymbolicName': 'io.yggdrash.contract.stem.StemContract',
-                'Bundle-Version': '1.0.0',
-                'Bundle-Activator': 'io.yggdrash.contract.stem.StemContract',
-                'Export-Package': "io.yggdrash.contract.stem",
-                'Import-Package': "${importPackage}"
-        )
-    }
-    exclude(excludeList)
-    archiveName "system-stem-contract-${manifest.attributes.get('Bundle-Version')}.jar"
-}
-
 task coinContract(type: Jar) {
     //Add current module source
     from(sourceSets.main.output) {
@@ -179,7 +149,6 @@ task signJar(description: 'to Sign JAR.', group: 'Build') {
     dependsOn dpoaContract
     dependsOn coinContract
     dependsOn noneContract
-    dependsOn stemContract
 //    dependsOn dpoaClientContract
 
     doLast {

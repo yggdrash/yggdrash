@@ -108,10 +108,6 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         return new Sha3Hash(this.coreTransaction.getHash(), true);
     }
 
-    public Long getTxSize() {
-        return this.coreTransaction.txSize();
-    }
-
     public Sha3Hash getHashForSigning() {
         return Sha3Hash.createByHashed(this.coreTransaction.getHeader().getHashForSigning());
     }

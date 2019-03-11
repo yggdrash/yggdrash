@@ -1,7 +1,7 @@
 package io.yggdrash.common.config;
 
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.core.contract.ContractVersion;
+import io.yggdrash.common.contract.ContractVersion;
 import org.spongycastle.util.encoders.Hex;
 
 import java.math.BigInteger;

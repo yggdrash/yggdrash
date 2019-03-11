@@ -26,7 +26,7 @@ import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.contract.ContractVersion;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.TransactionReceiptStore;

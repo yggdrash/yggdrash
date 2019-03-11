@@ -166,9 +166,6 @@ public class Transaction {
         return HashUtil.sha3(bao.toByteArray());
     }
 
-    public Long txSize() {
-        return this.header.getBodyLength();
-    }
     /**
      * Get transaction hash(HexString).
      *
