@@ -22,6 +22,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.proto.EbftProto;
+import io.yggdrash.validator.data.ConsensusBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,7 +32,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-public class EbftBlock implements io.yggdrash.validator.data.Block {
+public class EbftBlock implements ConsensusBlock {
     private static final Logger log = LoggerFactory.getLogger(EbftBlock.class);
 
     private static final int BLOCK_HEADER_LENGTH = 124;
@@ -133,10 +134,10 @@ public class EbftBlock implements io.yggdrash.validator.data.Block {
     }
 
     @Override
-    public boolean equals(io.yggdrash.validator.data.Block block) {
-        return this.block.equals(block.getBlock())
+    public boolean equals(ConsensusBlock consensusBlock) {
+        return this.block.equals(consensusBlock.getBlock())
                 && Arrays.equals(this.consensusList.toArray(),
-                ((List) block.getConsensusMessages()).toArray());
+                ((List) consensusBlock.getConsensusMessages()).toArray());
     }
 
     @Override

@@ -7,7 +7,7 @@ import io.yggdrash.validator.store.BlockStore;
 
 import java.util.Map;
 
-public interface BlockChain {
+public interface ConsensusBlockChain {
     byte[] getChain();
 
     Consensus getConsensus();
@@ -18,9 +18,9 @@ public interface BlockChain {
 
     TransactionStore getTransactionStore();
 
-    Block getGenesisBlock();
+    ConsensusBlock getGenesisBlock();
 
-    Block getLastConfirmedBlock();
+    ConsensusBlock getLastConfirmedBlock();
 
     Map<String, Object> getUnConfirmedData();
 }

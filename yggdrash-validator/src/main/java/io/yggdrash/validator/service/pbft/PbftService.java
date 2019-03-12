@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -39,7 +38,6 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Service
 @EnableScheduling
-@ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "pbft")
 public class PbftService implements CommandLineRunner {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftService.class);
@@ -69,7 +67,7 @@ public class PbftService implements CommandLineRunner {
     private boolean isPrimary;
     private long viewNumber;
     private long seqNumber;
-    private String currentPrimaryPubKey;
+    private String currentPrimaryAddr;
 
     private int failCount;
 
@@ -221,7 +219,6 @@ public class PbftService implements CommandLineRunner {
         }
         return false;
     }
-
 
     private void loggingStatus() {
         log.trace("loggingStatus");
@@ -650,14 +647,14 @@ public class PbftService implements CommandLineRunner {
     private void checkPrimary() {
         this.viewNumber = getCurrentViewNumber(this.seqNumber);
         int primaryIndex = (int) (this.viewNumber % totalValidatorMap.size());
-        currentPrimaryPubKey = (String) totalValidatorMap.keySet().toArray()[primaryIndex];
+        currentPrimaryAddr = (String) totalValidatorMap.keySet().toArray()[primaryIndex];
 
         log.debug("viewNumber: " + this.viewNumber);
         log.debug("seqNumber: " + this.seqNumber);
         log.debug("Primary Index: " + primaryIndex);
-        log.debug("currentPrimaryPubKey: " + currentPrimaryPubKey);
+        log.debug("currentPrimaryAddr: " + currentPrimaryAddr);
 
-        this.isPrimary = currentPrimaryPubKey.equals(this.myNode.getPubKey());
+        this.isPrimary = currentPrimaryAddr.equals(this.myNode.getAddr());
     }
 
     private Map<String, PbftMessage> getViewChangeMsgMap(long index) {
@@ -711,7 +708,7 @@ public class PbftService implements CommandLineRunner {
                 log.debug("client : " + client.getId());
 
                 this.isSynced = false;
-                blockSyncing(client.getPubKey(), pbftStatus.getIndex());
+                blockSyncing(client.getAddr(), pbftStatus.getIndex());
             } else if (pbftStatus.getIndex()
                     == this.blockChain.getLastConfirmedBlock().getIndex()) {
                 // update unConfirm pbftMessage
@@ -722,8 +719,8 @@ public class PbftService implements CommandLineRunner {
         }
     }
 
-    private void blockSyncing(String pubKey, long index) {
-        PbftClientStub client = totalValidatorMap.get(pubKey);
+    private void blockSyncing(String addr, long index) {
+        PbftClientStub client = totalValidatorMap.get(addr);
         PbftBlock pbftBlock;
         if (client.isRunning()) {
             List<PbftBlock> pbftBlockList = client.getBlockList(
@@ -771,7 +768,7 @@ public class PbftService implements CommandLineRunner {
         }
 
         if (this.blockChain.getLastConfirmedBlock().getIndex() < index) {
-            blockSyncing(pubKey, index);
+            blockSyncing(addr, index);
         }
     }
 
@@ -818,7 +815,7 @@ public class PbftService implements CommandLineRunner {
 
     private TreeMap<String, PbftClientStub> initTotalValidator() {
         String jsonString;
-        ClassPathResource cpr = new ClassPathResource("validator.json");
+        ClassPathResource cpr = new ClassPathResource("validator-config.json");
         try {
             byte[] bdata = FileCopyUtils.copyToByteArray(cpr.getInputStream());
             jsonString = new String(bdata, StandardCharsets.UTF_8);
@@ -837,9 +834,9 @@ public class PbftService implements CommandLineRunner {
                     entry.getValue().getAsJsonObject().get("host").getAsString(),
                     entry.getValue().getAsJsonObject().get("port").getAsInt());
             if (client.getId().equals(myNode.getId())) {
-                nodeMap.put(myNode.getPubKey(), myNode);
+                nodeMap.put(myNode.getAddr(), myNode);
             } else {
-                nodeMap.put(client.getPubKey(), client);
+                nodeMap.put(client.getAddr(), client);
             }
         }
 
@@ -849,7 +846,7 @@ public class PbftService implements CommandLineRunner {
 
     private PbftClientStub initMyNode() {
         PbftClientStub client = new PbftClientStub(
-                wallet.getPubicKeyHex().substring(2),
+                wallet.getHexAddress(),
                 InetAddress.getLoopbackAddress().getHostAddress(),
                 Integer.parseInt(System.getProperty("grpc.port")));
 
@@ -861,7 +858,7 @@ public class PbftService implements CommandLineRunner {
 
     private boolean initValidator() {
         log.debug("MyNode ID: " + this.myNode.getId());
-        return totalValidatorMap.containsKey(this.myNode.getPubKey());
+        return totalValidatorMap.containsKey(this.myNode.getAddr());
     }
 
     private List<String> getActiveNodeList() {

@@ -2,7 +2,7 @@ package io.yggdrash.validator.data;
 
 import com.google.gson.JsonObject;
 
-public interface Block {
+public interface ConsensusBlock {
 
     io.yggdrash.core.blockchain.Block getBlock();
 
@@ -24,9 +24,9 @@ public interface Block {
 
     JsonObject toJsonObject();
 
-    boolean equals(Block block);
+    boolean equals(ConsensusBlock consensusBlock);
 
-    Block clone();
+    ConsensusBlock clone();
 
     void clear();
 }

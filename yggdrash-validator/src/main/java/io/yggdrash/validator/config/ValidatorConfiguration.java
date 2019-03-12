@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
-import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.ebft.EbftBlockChain;
@@ -68,29 +67,13 @@ public class ValidatorConfiguration {
     }
 
     @Bean
-    @DependsOn("validatorGenesisBlock")
-    String pbftAlgorithm(@Qualifier("validatorGenesisBlock") Block genesisBlock) {
-        JsonObject consensusObject = ((JsonObject) ((Transaction) genesisBlock.getBody().getBody().toArray()[0])
-                .getBody().getBody().get(0)).getAsJsonObject("consensus");
-        String algorithm = consensusObject.get("algorithm").getAsString();
-
-        if (algorithm.equals("pbft")) {
-
-            return algorithm;
-        } else {
-            return null;
-        }
-    }
-
-    @Bean
     @ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "ebft")
     EbftBlockChain ebftBlockChain(@Qualifier("validatorGenesisBlock") Block genesisBlock, DefaultConfig defaultConfig) {
         return new EbftBlockChain(genesisBlock, defaultConfig);
     }
 
     @Bean
-    @DependsOn( {"validatorGenesisBlock", "pbftAlgorithm", "ConsensusConfiguration"})
-    @ConditionalOnProperty(name = "io.yggdrash.validator.config.ConsensusConfiguration.algorithm", havingValue = "pbft")
+    @DependsOn( {"validatorGenesisBlock"})
     PbftBlockChain pbftBlockChain(@Qualifier("validatorGenesisBlock") Block genesisBlock, DefaultConfig defaultConfig) {
         String dbPath = defaultConfig.getDatabasePath();
         String keyStorePath = grpcHost() + "_" + grpcPort() + "/"

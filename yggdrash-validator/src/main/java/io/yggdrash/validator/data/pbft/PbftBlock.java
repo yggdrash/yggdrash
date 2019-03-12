@@ -22,6 +22,7 @@ import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.Proto;
+import io.yggdrash.validator.data.ConsensusBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
@@ -30,7 +31,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
-public class PbftBlock implements io.yggdrash.validator.data.Block {
+public class PbftBlock implements ConsensusBlock {
     private static final Logger log = LoggerFactory.getLogger(PbftBlock.class);
 
     private final Block block;
@@ -112,11 +113,11 @@ public class PbftBlock implements io.yggdrash.validator.data.Block {
     }
 
     @Override
-    public boolean equals(io.yggdrash.validator.data.Block block) {
-        if (block == null) {
+    public boolean equals(ConsensusBlock consensusBlock) {
+        if (consensusBlock == null) {
             return false;
         }
-        return Arrays.equals(this.toBinary(), block.toBinary());
+        return Arrays.equals(this.toBinary(), consensusBlock.toBinary());
     }
 
     @Override
