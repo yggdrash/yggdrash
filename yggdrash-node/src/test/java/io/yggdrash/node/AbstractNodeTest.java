@@ -32,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class AbstractNodeTest {
@@ -54,7 +55,7 @@ public class AbstractNodeTest {
 
     @Before
     public void setUp() {
-        nodeList = new ArrayList<>();
+        nodeList = Collections.synchronizedList(new ArrayList<>());
         setPeerHandlerFactory();
     }
 
@@ -69,8 +70,8 @@ public class AbstractNodeTest {
     protected TestNode createAndStartNode(int port, boolean enableBranch) {
         TestNode node = new TestNode(factory, port, enableBranch);
         nodeList.add(node);
-        Server server = createAndStartServer(node);
-        gRpcCleanup.register(server);
+        node.server = createAndStartServer(node);
+        gRpcCleanup.register(node.server);
         return node;
     }
 

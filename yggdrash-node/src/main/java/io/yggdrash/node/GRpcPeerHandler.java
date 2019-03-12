@@ -116,12 +116,20 @@ public class GRpcPeerHandler implements PeerHandler {
     public void stop() {
         log.debug("Stop for peer=" + peer.getYnodeUri());
 
-        if (channel != null && !channel.isTerminated()) {
+        if (isAlive()) {
             if (broadcastBlockRequestObserver != null) {
-                broadcastBlockRequestObserver.onCompleted();
+                try {
+                    broadcastBlockRequestObserver.onCompleted();
+                } catch (Exception e) {
+                    log.warn(e.getMessage());
+                }
             }
             if (broadcastTxRequestObserver != null) {
-                broadcastTxRequestObserver.onCompleted();
+                try {
+                    broadcastTxRequestObserver.onCompleted();
+                } catch (Exception e) {
+                    log.warn(e.getMessage());
+                }
             }
             channel.shutdown();
         }
@@ -222,5 +230,9 @@ public class GRpcPeerHandler implements PeerHandler {
         }
 
         broadcastTxRequestObserver.onNext(txHusk.getInstance());
+    }
+
+    private boolean isAlive() {
+        return channel != null && !channel.isTerminated() && !channel.isShutdown();
     }
 }
