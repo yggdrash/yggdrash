@@ -99,7 +99,7 @@ public class RandomBroadcastTest extends AbstractNodeTest {
     private TestNode getRandomNode() {
         Random r = new Random();
         int nodeIdx = r.nextInt(nodeList.size() - 1);
-        if (nodeIdx == 0) {
+        if (nodeIdx == 0) { // exclude seed node
             nodeIdx = 1;
         }
         return nodeList.get(nodeIdx);

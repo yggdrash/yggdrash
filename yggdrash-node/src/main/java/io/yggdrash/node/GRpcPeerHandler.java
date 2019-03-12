@@ -34,6 +34,7 @@ import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -160,11 +161,13 @@ public class GRpcPeerHandler implements PeerHandler {
                     @Override
                     public void onError(Throwable t) {
                         log.debug("[PeerHandler] Sync Block Failed: {}", Status.fromThrowable(t));
+                        husksCompletableFuture.completeExceptionally(t);
                     }
 
                     @Override
                     public void onCompleted() {
                         log.debug("[PeerHandler] Sync Block Finished");
+                        husksCompletableFuture.complete(Collections.emptyList());
                     }
                 }
         );
@@ -195,11 +198,13 @@ public class GRpcPeerHandler implements PeerHandler {
                     @Override
                     public void onError(Throwable t) {
                         log.debug("[PeerHandler] Sync Block Failed: {}", Status.fromThrowable(t));
+                        husksCompletableFuture.completeExceptionally(t);
                     }
 
                     @Override
                     public void onCompleted() {
                         log.debug("[PeerHandler] Sync Tx Finished");
+                        husksCompletableFuture.complete(Collections.emptyList());
                     }
                 }
         );
