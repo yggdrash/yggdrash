@@ -4,7 +4,6 @@ import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
-import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
@@ -12,7 +11,6 @@ import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -115,7 +113,7 @@ public class PbftClientStub {
     }
 
     public String getAddress() {
-        return Hex.toHexString(Wallet.calculateAddress(Hex.decode(this.addr)));
+        return this.addr;
     }
 
     public String getHost() {
