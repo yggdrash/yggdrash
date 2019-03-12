@@ -28,8 +28,8 @@ import java.util.List;
 public abstract class BootStrapNode implements BootStrap {
     private static final Logger log = LoggerFactory.getLogger(BootStrapNode.class);
 
-    private NodeStatus nodeStatus;
-    private PeerNetwork peerNetwork;
+    protected NodeStatus nodeStatus;
+    protected PeerNetwork peerNetwork;
     protected BranchGroup branchGroup;
     protected SyncManager syncManager;
 

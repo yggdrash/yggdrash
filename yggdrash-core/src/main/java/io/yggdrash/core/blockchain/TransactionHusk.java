@@ -197,5 +197,4 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
                         o.getInstance().getHeader().getTimestamp().toByteArray()));
     }
 
-
 }

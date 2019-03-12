@@ -19,7 +19,7 @@ package io.yggdrash;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.contract.ContractVersion;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Wallet;
 import org.junit.Assume;
@@ -90,21 +90,28 @@ public class TestConstants {
     public static class SlowTest {
         @BeforeClass
         public static void apply() {
-            Assume.assumeTrue(SLOW_TEST.equals(PROFILE));
+            Assume.assumeTrue(contains(SLOW_TEST));
         }
     }
 
     public static class PerformanceTest {
         @BeforeClass
         public static void apply() {
-            Assume.assumeTrue(PERFORMANCE_TEST.equals(PROFILE));
+            Assume.assumeTrue(contains(PERFORMANCE_TEST));
         }
     }
 
     public static class CiTest {
         @BeforeClass
         public static void apply() {
-            Assume.assumeTrue(CI_TEST.equals(PROFILE));
+            Assume.assumeTrue(contains(CI_TEST));
         }
+    }
+
+    private static boolean contains(String profile) {
+        if (PROFILE == null) {
+            return false;
+        }
+        return PROFILE.contains(profile);
     }
 }

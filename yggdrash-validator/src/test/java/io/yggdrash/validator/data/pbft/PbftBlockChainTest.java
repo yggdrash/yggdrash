@@ -67,7 +67,7 @@ public class PbftBlockChainTest {
 
         StoreTestUtils.clearTestDb();
 
-        this.pbftBlockChain = new PbftBlockChain(block, defaultConfig, StoreTestUtils.getTestPath(),
+        this.pbftBlockChain = new PbftBlockChain(block, StoreTestUtils.getTestPath(),
                 "/pbftKey",
                 "/pbftBlock",
                 "/pbftTx");

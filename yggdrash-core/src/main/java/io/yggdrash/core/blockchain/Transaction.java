@@ -163,7 +163,6 @@ public class Transaction {
             log.warn(e.getMessage());
             return null;
         }
-
         return HashUtil.sha3(bao.toByteArray());
     }
 

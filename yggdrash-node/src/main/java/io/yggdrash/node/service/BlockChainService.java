@@ -178,7 +178,6 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
                         id, blockHusk.getHash());
 
                 blockChainConsumer.broadcastBlock(blockHusk);
-                //responseObserver.onNext(EMPTY);
             }
 
             @Override
@@ -190,6 +189,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
             @Override
             public void onCompleted() {
                 log.debug("[BlockChainService] Complete broadcast block");
+                responseObserver.onNext(EMPTY);
                 responseObserver.onCompleted();
             }
         };
@@ -205,7 +205,6 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
                 log.debug("[BlockChainService] Received transaction: hash={}", txHusk.getHash());
 
                 blockChainConsumer.broadcastTx(txHusk);
-                //responseObserver.onNext(EMPTY);
             }
 
             @Override
@@ -217,6 +216,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
             @Override
             public void onCompleted() {
                 log.debug("[BlockChainService] Complete broadcast tx");
+                responseObserver.onNext(EMPTY);
                 responseObserver.onCompleted();
             }
         };

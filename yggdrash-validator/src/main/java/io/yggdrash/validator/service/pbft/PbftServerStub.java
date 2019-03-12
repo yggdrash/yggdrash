@@ -15,7 +15,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 @GRpcService
@@ -60,7 +59,6 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         }
     }
 
-
     @Override
     public void multicastPbftMessage(PbftProto.PbftMessage request,
                                      StreamObserver<NetProto.Empty> responseObserver) {
@@ -89,47 +87,11 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
             pbftService.getLock().lock();
             pbftService.updateUnconfirmedMsg(pbftMessage);
-            pbftMessage.clear();
             pbftService.getLock().unlock();
         } finally {
             pbftMessage.clear();
         }
     }
-
-    @Override
-    public void multicastPbftBlock(PbftProto.PbftBlock request,
-                                   StreamObserver<NetProto.Empty> responseObserver) {
-
-        log.trace("multicastPbftBlock");
-        PbftBlock newPbftBlock = new PbftBlock(request);
-
-        try {
-            if (!PbftBlock.verify(newPbftBlock)) {
-                log.warn("Verify Fail");
-                newPbftBlock.clear();
-                responseObserver.onNext(EMPTY);
-                responseObserver.onCompleted();
-                return;
-            }
-
-            PbftBlock lastPbftBlock = this.blockChain.getLastConfirmedBlock();
-
-            responseObserver.onNext(io.yggdrash.proto.NetProto.Empty.newBuilder().build());
-            responseObserver.onCompleted();
-
-            if (lastPbftBlock.getIndex() == newPbftBlock.getIndex() - 1
-                    && Arrays.equals(lastPbftBlock.getHash(), newPbftBlock.getPrevBlockHash())) {
-
-                pbftService.getLock().lock();
-                // todo: check block confirm
-                //pbftService.updateUnconfirmedBlock(newPbftBlock);
-                pbftService.getLock().unlock();
-            }
-        } finally {
-            newPbftBlock.clear();
-        }
-    }
-
 
     @Override
     public void getPbftBlockList(io.yggdrash.proto.CommonProto.Offset request,
@@ -147,14 +109,17 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
             if (start < end) {
                 for (long l = start; l <= end; l++) {
-                    blockList.add(this.blockChain.getBlockStore().get(
-                            this.blockChain.getBlockKeyStore().get(l)));
+                    byte[] key = this.blockChain.getBlockKeyStore().get(l);
+                    blockList.add(this.blockChain.getBlockStore().get(key));
                 }
             }
 
             responseObserver.onNext(PbftBlock.toProtoList(blockList));
             responseObserver.onCompleted();
         } finally {
+            for (PbftBlock pbftBlock : blockList) {
+                pbftBlock.clear();
+            }
             blockList.clear();
         }
     }

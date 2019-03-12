@@ -19,26 +19,27 @@ package io.yggdrash.node.sync;
 import ch.qos.logback.classic.Level;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.node.TcpNodeTest;
 import io.yggdrash.node.TestNode;
-import io.yggdrash.node.discovery.NodeTcpDiscoveryTest;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
-@RunWith(JUnit4.class)
-public class NodeSyncLimitTest extends NodeTcpDiscoveryTest {
+import static org.assertj.core.api.Assertions.assertThat;
 
-    @Override
+@RunWith(JUnit4.class)
+public class NodeSyncLimitTest extends TcpNodeTest {
+
     @Test
     @Ignore
-    public void test() {
+    public void testLargeBlockList() {
         rootLogger.setLevel(Level.INFO);
 
         // arrange
         // Node1 : start -> generate tx -> generate block
         TestNode node1 = createAndStartNode(8888, true);
-        int blockCount = 30;
+        int blockCount = 23;
         generateTxAndBlock(node1, blockCount, 500);
         assert node1.getDefaultBranch().getLastIndex() == blockCount;
         // Node2 : start -> add route node2 -> node1
@@ -49,7 +50,7 @@ public class NodeSyncLimitTest extends NodeTcpDiscoveryTest {
         node2.bootstrapping();
 
         // assert
-        assert node1.getDefaultBranch().getLastIndex() == node2.getDefaultBranch().getLastIndex();
+        assertThat(node2.getDefaultBranch().getLastIndex()).isEqualTo(21);
     }
 
     @Test
@@ -70,9 +71,12 @@ public class NodeSyncLimitTest extends NodeTcpDiscoveryTest {
         // act sync block
         node2.bootstrapping();
 
+        node1.destory();
+        node2.destory();
+
         // assert
-        assert node1.getDefaultBranch().getLastIndex() == node2.getDefaultBranch().getLastIndex();
-        assert node1.getDefaultBranch().transactionCount() == node2.getDefaultBranch().transactionCount();
+        assertThat(node2.getDefaultBranch().getLastIndex()).isEqualTo(node1.getDefaultBranch().getLastIndex());
+        assertThat(node2.getDefaultBranch().transactionCount()).isEqualTo(node1.getDefaultBranch().transactionCount());
     }
 
     private void generateTxAndBlock(TestNode node, int blockCount, int txCount) {

@@ -16,9 +16,7 @@
 
 package io.yggdrash.node;
 
-import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.Message;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.Status;
@@ -373,27 +371,4 @@ public class GRpcPeerHandler implements PeerHandler {
 
     }
     */
-
-    public TestHelper testHelper;
-
-    /**
-     * Only used for helping unit test.
-     */
-    @VisibleForTesting
-    public interface TestHelper {
-        /**
-         * Used for verify/inspect message received from server.
-         */
-        void onMessage(Message message);
-
-        /**
-         * Used for verify/inspect error received from server.
-         */
-        void onRpcError(Throwable exception);
-    }
-
-    @VisibleForTesting
-    public void setTestHelper(TestHelper testHelper) {
-        this.testHelper = testHelper;
-    }
 }

@@ -56,7 +56,4 @@ service PbftService {
 
     rpc multicastPbftMessage (PbftMessage) returns (Empty) {
     }
-
-    rpc multicastPbftBlock (PbftBlock) returns (Empty) {
-    }
 }

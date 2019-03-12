@@ -17,19 +17,17 @@ import io.yggdrash.core.blockchain.BranchId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.math.BigDecimal;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static io.yggdrash.common.config.Constants.TX_ID;
 import static io.yggdrash.common.config.Constants.VALIDATOR;
 
-public class StemContract implements Contract<JsonObject> {
-
+public class StemContract implements Contract {
     private static final Logger log = LoggerFactory.getLogger(StemContract.class);
-
     private final String branchIdListKey = "BRANCH_ID_LIST";
 
     @ContractStateStore
@@ -44,7 +42,6 @@ public class StemContract implements Contract<JsonObject> {
     public TransactionReceipt init(JsonObject param) {
         txReceipt = create(param);
         log.info("[StemContract | genesis] SUCCESS! param => " + param);
-
         return txReceipt;
     }
 
@@ -55,41 +52,29 @@ public class StemContract implements Contract<JsonObject> {
      */
     @InvokeTransaction
     public TransactionReceipt create(JsonObject params) {
-        // TODO Change StemContract Spec
-        for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
-            BranchId branchId = BranchId.of(entry.getKey());
-            JsonObject json = entry.getValue().getAsJsonObject();
-
-            StemContractStateValue stateValue;
-            try {
-                stateValue = StemContractStateValue.of(json);
-            } catch (Exception e) {
-                log.warn("Failed to convert Branch = {}", json);
-                continue;
-            }
-            if (!isBranchExist(branchId.toString()) && isBranchIdValid(branchId, stateValue)) {
+        StemContractStateValue stateValue;
+        try {
+            stateValue = StemContractStateValue.of(params);
+            BranchId branchId = stateValue.getBranchId();
+            if (!isBranchExist(branchId.toString())
+                    && isBranchIdValid(branchId, stateValue)
+                    && certificateAuthority(params)) {
                 try {
-
-                    // branch id 생성
-
-
-                    // validator set
-                    // Tx id set
-
                     stateValue.init();
-                    // Branch ID 추가부터
+                    setStateValue(stateValue, params);
                     addBranchId(branchId);
                     state.put(branchId.toString(), stateValue.getJson());
+                    addTxId(branchId);
 
                     txReceipt.setStatus(ExecuteStatus.SUCCESS);
+                    log.info("[StemContract | create] branchId => " + branchId);
+                    log.info("[StemContract | create] branch => " + stateValue.getJson());
                 } catch (Exception e) {
-                    e.printStackTrace();
                     txReceipt.setStatus(ExecuteStatus.FALSE);
                 }
-
-                log.info("[StemContract | create] branchId => " + branchId);
-                log.info("[StemContract | create] branch => " + json);
             }
+        } catch (Exception e) {
+            log.warn("Failed to convert Branch = {}", params);
         }
         return txReceipt;
     }
@@ -102,61 +87,71 @@ public class StemContract implements Contract<JsonObject> {
      */
     @InvokeTransaction
     public TransactionReceipt update(JsonObject params) {
-        for (Map.Entry<String, JsonElement> entry : params.entrySet()) {
-            BranchId branchId = BranchId.of(entry.getKey());
-            JsonObject json = entry.getValue().getAsJsonObject();
+        StemContractStateValue stateValue;
+        try {
+            String preBranchId = params.get(BRANCH_ID).getAsString();
+            JsonObject preBranchJson = state.get(preBranchId);
+            stateValue = StemContractStateValue.of(preBranchJson);
+            BranchId branchId = stateValue.getBranchId();
 
-            StemContractStateValue stateValue = getStateValue(branchId.toString());
-            if (stateValue != null && isOwnerValid(json.get("validator").getAsString())) {
-                updateBranch(stateValue, json);
-                state.put(branchId.toString(), stateValue.getJson());
-                txReceipt.setStatus(ExecuteStatus.SUCCESS);
-                log.info("[StemContract | update] branchId => " + branchId);
-                log.info("[StemContract | update] branch => " + stateValue.getJson());
+            if (certificateAuthority(preBranchJson) && stateValue != null
+                    && isBranchExist(branchId.toString())) {
+                try {
+                    updateValue(stateValue, params);
+                    addBranchId(branchId);
+                    state.put(branchId.toString(), stateValue.getJson());
+                    addTxId(branchId);
+
+                    txReceipt.setStatus(ExecuteStatus.SUCCESS);
+                    log.info("[StemContract | update] branchId => " + branchId);
+                    log.info("[StemContract | update] branch => " + stateValue.getJson());
+                } catch (Exception e) {
+                    txReceipt.setStatus(ExecuteStatus.FALSE);
+                }
             }
+        } catch (Exception e) {
+            log.warn("Failed to convert Branch = {}", params);
         }
+
         return txReceipt;
     }
 
-    private void updateBranch(StemContractStateValue stateValue, JsonObject json) {
-        if (json.has("tag")) {
-            stateValue.setTag(json.get("tag").getAsString());
+    /**
+     * fee = fee - transaction size fee
+     * tx size fee = txSize / 1mbyte
+     * 1mbyte to 1yeed
+     *
+     * @param stateValue params
+     */
+    private void setStateValue(StemContractStateValue stateValue, JsonObject params) {
+        if (params.has("fee") && txReceipt.getTxSize() != null) {
+            BigDecimal fee = params.get("fee").getAsBigDecimal();
+            BigDecimal txSize = BigDecimal.valueOf(txReceipt.getTxSize());
+            BigDecimal txFee = txSize.divide(BigDecimal.valueOf(1000000));
+            BigDecimal resultFee = fee.subtract(txFee);
+            BigDecimal remainFee = feeState(stateValue);
+
+            stateValue.setFee(remainFee.longValue() > 0
+                    ? resultFee.add(remainFee) : resultFee);
+            stateValue.setBlockHeight(txReceipt.getBlockHeight());
         }
-        if (json.has("description")) {
-            stateValue.setDescription(json.get("description").getAsString());
-        }
-        if (json.has("type")) {
-            stateValue.setType(json.get("type").getAsString());
+    }
+
+    private void updateValue(StemContractStateValue stateValue, JsonObject params) {
+        setStateValue(stateValue, params);
+        if (params.has("validator")) {
+            stateValue.updateValidatorSet(params.get("validator").getAsString());
         }
     }
 
     /**
-     * Returns current contract of branch
+     * Returns boolean
      *
-     * @param params   branchId
-     */
-    @ContractQuery
-    public ContractVersion getCurrentContract(JsonObject params) {
-        String branchId = params.get(BRANCH_ID).getAsString();
-        // TODO to be implemented
-        if (isBranchExist(branchId)) {
-            //return getStateValue(branchId).getContractVersion();
-        }
-        return null;
-    }
-
-    /**
-     * Returns version history of branch
-     *
-     * @param params   branchId
-     */
-    @ContractQuery
-    public List<ContractVersion> getContractHistory(JsonObject params) {
-        String branchId = params.get(BRANCH_ID).getAsString();
-        if (isBranchExist(branchId)) {
-            return getStateValue(branchId).getContractHistory();
-        }
-        return Collections.emptyList();
+     * @param branchId
+     * */
+    public void messageCall(BranchId branchId) {
+        // TODO message call to contract
+        // TODO isEnoughFee
     }
 
     /**
@@ -173,7 +168,11 @@ public class StemContract implements Contract<JsonObject> {
         JsonArray branchIds = branchList.getAsJsonArray("branchIds");
         Set<String> branchIdSet = new HashSet<>();
         for (JsonElement branchId : branchIds) {
-            branchIdSet.add(branchId.getAsString());
+            StemContractStateValue stateValue =
+                    getBranchStateValue(branchId.getAsString());
+            if (isEnoughFee(stateValue)) {
+                branchIdSet.add(branchId.getAsString());
+            }
         }
         return branchIdSet;
     }
@@ -186,25 +185,33 @@ public class StemContract implements Contract<JsonObject> {
     @ContractQuery
     public JsonObject getBranch(JsonObject params) {
         String branchId = params.get(BRANCH_ID).getAsString();
-        if (isBranchExist(branchId)) {
-            return getStateValue(branchId).getJson();
+        StemContractStateValue stateValue = getBranchStateValue(branchId);
+
+        if (isBranchExist(branchId) && isEnoughFee(stateValue)) {
+            stateValue.setFee(feeState(stateValue));
+            return stateValue.getJson();
         }
+        // TODO fee not enough mesaage
         return new JsonObject();
     }
 
     /**
-     * @param params branch id
+     * @param params transaction id
      *
-     * @return branch json object
+     * @return branch id
      */
     @ContractQuery
-    public JsonObject getBranchByTxID(JsonObject params) {
-        //TODO txid -> txhusk -> branch id
-        String branchId = params.get(BRANCH_ID).getAsString();
-        if (isBranchExist(branchId)) {
-            return getStateValue(branchId).getJson();
+    public String getBranchIdByTxId(JsonObject params) {
+        String txId = params.get(TX_ID).getAsString();
+        JsonObject branchIdJson = state.get(txId);
+        if (branchIdJson != null && branchIdJson.has("branchId")) {
+            String branchId = branchIdJson.get("branchId").getAsString();
+            StemContractStateValue stateValue = getBranchStateValue(branchId);
+            if (isBranchExist(branchId) && isEnoughFee(stateValue)) {
+                return branchIdJson.get("branchId").getAsString();
+            }
         }
-        return new JsonObject();
+        return new String();
     }
 
     /**
@@ -213,11 +220,13 @@ public class StemContract implements Contract<JsonObject> {
      * @return contract json object
      */
     @ContractQuery
-    public Set<JsonElement> getContractByBranch(JsonObject params) {
+    public Set<JsonElement> getContract(JsonObject params) {
         String branchId = params.get(BRANCH_ID).getAsString();
         Set<JsonElement> contractSet = new HashSet<>();
-        if (isBranchExist(branchId)) {
-            JsonArray contracts = getStateValue(branchId).getJson()
+        StemContractStateValue stateValue = getBranchStateValue(branchId);
+
+        if (isBranchExist(branchId) && isEnoughFee(stateValue)) {
+            JsonArray contracts = getBranchStateValue(branchId).getJson()
                     .getAsJsonArray("contracts");
             for (JsonElement c : contracts) {
                 contractSet.add(c);
@@ -229,17 +238,19 @@ public class StemContract implements Contract<JsonObject> {
     /**
      * @param params branch id
      *
-     * @return contract json object
+     * @return validator set
      */
     @ContractQuery
     public Set<String> getValidator(JsonObject params) {
         String branchId = params.get(BRANCH_ID).getAsString();
         Set<String> validatorSet = new HashSet<>();
-        if (isBranchExist(branchId)) {
-            JsonArray contracts = getStateValue(branchId).getJson()
+        StemContractStateValue stateValue = getBranchStateValue(branchId);
+
+        if (isBranchExist(branchId) && isEnoughFee(stateValue)) {
+            JsonArray validators = getBranchStateValue(branchId).getJson()
                     .getAsJsonArray("validator");
-            for (JsonElement c : contracts) {
-                validatorSet.add(c.getAsString());
+            for (JsonElement v : validators) {
+                validatorSet.add(v.getAsString());
             }
         }
         return validatorSet;
@@ -249,28 +260,70 @@ public class StemContract implements Contract<JsonObject> {
     /**
      * @param params branch id
      *
-     * @return contract json object
+     * @return branch id set
      */
     @ContractQuery
     public Set<String> getBranchIdByValidator(JsonObject params) {
         String validator = params.get(VALIDATOR).getAsString();
         Set<String> branchIdSet = new HashSet<>();
 
-        getBranchIdList().forEach(id -> getStateValue(id).getValidators().forEach(v -> {
-            if (validator.equals(v)) {
-                branchIdSet.add(id);
+        getBranchIdList().stream().forEach(id -> {
+            StemContractStateValue stateValue = getBranchStateValue(id);
+            if (isEnoughFee(stateValue)) {
+                getBranchStateValue(id).getValidators().stream().forEach(v -> {
+                    if (validator.equals(v)) {
+                        branchIdSet.add(id);
+                    }
+                });
             }
-        }));
+        });
         return branchIdSet;
     }
 
-    private boolean isBranchExist(String branchId) {
-        return state.get(branchId) != null;
+    /**
+     * @param params branch id
+     *
+     * @return fee state
+     */
+    public BigDecimal feeState(JsonObject params) {
+        String branchId = params.get(BRANCH_ID).getAsString();
+        StemContractStateValue stateValue = getBranchStateValue(branchId);
+        BigDecimal result = BigDecimal.ZERO;
+        if (isBranchExist(branchId)) {
+            Long currentHeight = txReceipt.getBlockHeight();
+            Long createPointHeight = stateValue.getBlockHeight();
+            Long height = currentHeight - createPointHeight;
+
+            //1block to 1yeed
+            BigDecimal currentFee = stateValue.getFee();
+            result = currentFee.subtract(BigDecimal.valueOf(height));
+        }
+        return result.longValue() > 0 ? result : BigDecimal.ZERO;
     }
 
-    // new branchId
+    private BigDecimal feeState(StemContractStateValue stateValue) {
+        BigDecimal currentFee = stateValue.getFee();
+        if (currentFee.longValue() > 0) {
+            Long currentHeight = txReceipt.getBlockHeight();
+            Long createPointHeight = stateValue.getBlockHeight();
+            Long overTimeHeight = currentHeight - createPointHeight;
+            return currentFee.subtract(BigDecimal.valueOf(overTimeHeight));
+        }
+        return BigDecimal.ZERO;
+    }
+
+    private Boolean isEnoughFee(StemContractStateValue stateValue) {
+        if (feeState(stateValue).longValue() > 0) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean isBranchExist(String branchId) {
+        return state.contains(branchId);
+    }
+
     private void addBranchId(BranchId newBranchId) {
-        // check branch exist
         if (!isBranchExist(newBranchId.toString())) {
             JsonArray branchIds = new JsonArray();
             for (String branchId : getBranchIdList()) {
@@ -284,21 +337,40 @@ public class StemContract implements Contract<JsonObject> {
         }
     }
 
-    private boolean isOwnerValid(String owner) {
+    private void addTxId(BranchId branchId) {
+        if (isBranchExist(branchId.toString())
+                && txReceipt.getTxId() != null) {
+            JsonObject bid = new JsonObject();
+            bid.addProperty("branchId", branchId.toString());
+            state.put(txReceipt.getTxId(), bid);
+        }
+    }
+
+    private Boolean certificateAuthority(JsonObject params) {
         String sender = this.txReceipt.getIssuer();
-        return sender != null && sender.equals(owner);
+        JsonArray validators = params.get("validator").getAsJsonArray();
+        for (JsonElement v : validators) {
+            if (params.has("updateValidators")) {
+                JsonArray uvs = params.get("updateValidators").getAsJsonArray();
+                for (JsonElement uv : uvs) {
+                    if (sender != null && sender.equals(uv.getAsString())) {
+                        return true;
+                    }
+                }
+            }
+            if (sender != null && sender.equals(v.getAsString())) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     private boolean isBranchIdValid(BranchId branchId, Branch branch) {
         return branchId.equals(branch.getBranchId());
     }
 
-    private StemContractStateValue getStateValue(JsonObject param) {
-        String branchId = param.get("branchId").getAsString();
-        return getStateValue(branchId);
-    }
-
-    private StemContractStateValue getStateValue(String branchId) {
+    private StemContractStateValue getBranchStateValue(String branchId) {
         JsonObject json = state.get(branchId);
         if (json == null) {
             return null;
@@ -306,6 +378,4 @@ public class StemContract implements Contract<JsonObject> {
             return new StemContractStateValue(json);
         }
     }
-
-
 }

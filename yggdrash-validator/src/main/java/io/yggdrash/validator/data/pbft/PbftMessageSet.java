@@ -9,10 +9,10 @@ import io.yggdrash.proto.PbftProto;
 import org.spongycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 public class PbftMessageSet {
 
@@ -208,12 +208,16 @@ public class PbftMessageSet {
 
         PbftProto.PbftMessage protoPrePrepareMessage =
                 PbftMessage.toProto(pbftMessageSet.getPrePrepare());
+
         PbftProto.PbftMessageList protoPrepareMessageList =
                 PbftMessage.toProtoList(
-                        new ArrayList<>(pbftMessageSet.getPrepareMap().values()));
+                        pbftMessageSet.getPrepareMap().values()
+                                .stream().collect(Collectors.toList()));
+
         PbftProto.PbftMessageList protoCommitMessageList =
                 PbftMessage.toProtoList(
-                        new ArrayList<>(pbftMessageSet.getCommitMap().values()));
+                        pbftMessageSet.getCommitMap().values()
+                                .stream().collect(Collectors.toList()));
 
         PbftProto.PbftMessageSet.Builder protoPbftMessageSetBuilder =
                 PbftProto.PbftMessageSet.newBuilder();
@@ -229,7 +233,8 @@ public class PbftMessageSet {
 
         PbftProto.PbftMessageList protoViewChangeMessageList =
                 PbftMessage.toProtoList(
-                        new ArrayList<>(pbftMessageSet.getViewChangeMap().values()));
+                        pbftMessageSet.getViewChangeMap().values()
+                                .stream().collect(Collectors.toList()));
         if (protoViewChangeMessageList != null) {
             protoPbftMessageSetBuilder.setViewChangeList(protoViewChangeMessageList);
         }

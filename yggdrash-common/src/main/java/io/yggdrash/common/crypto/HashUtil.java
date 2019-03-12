@@ -46,7 +46,9 @@ public class HashUtil {
     private static final String HASH_SHA_1_ALGORITHM_NAME = "SHA-1";
 
     static {
-        Security.addProvider(SpongyCastleProvider.getInstance());
+        if (Security.getProvider("SC") == null) {
+            Security.addProvider(SpongyCastleProvider.getInstance());
+        }
     }
 
     /**
