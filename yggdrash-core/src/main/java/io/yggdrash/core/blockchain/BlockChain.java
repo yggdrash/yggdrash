@@ -17,6 +17,8 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.Sha3Hash;
+import static io.yggdrash.common.config.Constants.LIMIT;
+import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
@@ -32,14 +34,12 @@ import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.wallet.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import static io.yggdrash.common.config.Constants.LIMIT;
 
 public class BlockChain {
 
@@ -55,6 +55,8 @@ public class BlockChain {
     private final MetaStore metaStore;
     private final StateStore stateStore;
     private final TransactionReceiptStore transactionReceiptStore;
+    private final List<Validator> validators = new ArrayList<>();
+
 
     private Runtime<?> runtime;
 
@@ -76,11 +78,24 @@ public class BlockChain {
         this.transactionReceiptStore = transactionReceiptStore;
         this.contractContainer = contractContainer;
 
-        // Empty blockChain
-        if (!blockStore.contains(genesisBlock.getHash())) {
+
+        // getGenesis Block by Store
+        Sha3Hash blockHash = metaStore.getGenesisBlockHash();
+        if (blockHash == null || !blockStore.contains(blockHash)) {
+            log.debug("BlockChain init Genesis");
             initGenesis();
         } else {
+            log.debug("BlockChain Load in Storage");
+            // Load Block Chain Information
             loadTransaction();
+
+            // Load Validator
+            try {
+                metaStore.getValidators().stream().forEach(v -> validators.add(new Validator(v)));
+            } catch (IOException e) {
+                // TODO throws Validator error
+                e.printStackTrace();
+            }
         }
     }
 
@@ -91,6 +106,14 @@ public class BlockChain {
             }
         }
         addBlock(genesisBlock, false);
+
+        // Add Meta Information
+        metaStore.setBranch(branch);
+        metaStore.setGenesisBlockHash(genesisBlock.getHash());
+        metaStore.setValidators(branch.getValidators());
+        metaStore.setBranchContracts(branch.getBranchContracts());
+
+        branch.getValidators().stream().forEach(v -> validators.add(new Validator(v)));
     }
 
     private void loadTransaction() {

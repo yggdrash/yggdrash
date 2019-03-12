@@ -74,6 +74,7 @@ public class BranchConfiguration {
     @Bean
     BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup, ContractPolicyLoader policyLoader) {
         BranchLoader branchLoader = new BranchLoader(defaultConfig.getBranchPath());
+        // TODO check exist branch
         try {
             for (GenesisBlock genesis : branchLoader.getGenesisBlockList()) {
                 BlockChain bc = createBranch(genesis, policyLoader);
@@ -92,6 +93,7 @@ public class BranchConfiguration {
     }
 
     private BlockChain createBranch(GenesisBlock genesis, ContractPolicyLoader policyLoader) {
+        log.info("createBranch {} {}",genesis.getBranch().getBranchId(), genesis.getBranch().getName());
         try {
             return BlockChainBuilder.Builder()
                     .addGenesis(genesis)
