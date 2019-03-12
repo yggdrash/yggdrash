@@ -7,11 +7,11 @@ import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.validator.config.Consensus;
+import io.yggdrash.validator.data.ConsensusBlockChain;
 import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
 import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 
-public class PbftBlockChain {
+public class PbftBlockChain implements ConsensusBlockChain<String, PbftMessage> {
 
     private static final Logger log = LoggerFactory.getLogger(PbftBlockChain.class);
 
@@ -39,7 +39,7 @@ public class PbftBlockChain {
 
     private final Consensus consensus;
 
-    public PbftBlockChain(@Qualifier("validatorGenesisBlock") Block genesisBlock, String dbPath,
+    public PbftBlockChain(Block genesisBlock, String dbPath,
                           String blockKeyStorePath, String blockStorePath, String txStorePath) {
         if (genesisBlock.getHeader().getIndex() != 0
                 || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), EMPTY_BYTE32)) {
@@ -113,7 +113,7 @@ public class PbftBlockChain {
         return lastConfirmedBlock;
     }
 
-    public Map<String, PbftMessage> getUnConfirmedMsgMap() {
+    public Map<String, PbftMessage> getUnConfirmedData() {
         return unConfirmedMsgMap;
     }
 

@@ -49,9 +49,9 @@ public class EbftBlock implements ConsensusBlock {
     public EbftBlock(JsonObject jsonObject) {
         this.block = new Block(jsonObject.get("block").getAsJsonObject());
 
-        JsonArray consensusJsonArray = jsonObject.get("consensusList").getAsJsonArray();
-        if (consensusJsonArray != null) {
-            for (JsonElement jsonElement : consensusJsonArray) {
+        JsonElement consensusJsonElement = jsonObject.get("consensusList");
+        if (consensusJsonElement != null) {
+            for (JsonElement jsonElement : consensusJsonElement.getAsJsonArray()) {
                 this.consensusList.add(jsonElement.getAsString());
             }
         }

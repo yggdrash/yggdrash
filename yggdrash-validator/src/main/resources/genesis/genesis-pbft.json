@@ -1,26 +1,26 @@
 {
   "header": {
-    "chain": "02cc102278b8fe83d190ff7ee5a9cf4019dd6e65",
+    "chain": "84083fa3b28ceb0695b5fe412188ddc3ffb77dc0",
     "version": "0000000000000000",
     "type": "0000000000000000",
     "prevBlockHash": "0000000000000000000000000000000000000000000000000000000000000000",
     "index": "0000000000000000",
-    "timestamp": "0000016970b32a1e",
-    "merkleRoot": "0d80f05785c8bd2902a2459fdb06a37b4c9e05d3d432b8f3d11fe47e9887a192",
+    "timestamp": "000001696a99f4cf",
+    "merkleRoot": "712b45b04f89d402eaae8bf938a69aa484368261224ec7ce3cc7497bdbc4935b",
     "bodyLength": "0000000000000460"
   },
-  "signature": "1bc99c20d2f0a40827ba2d55965b9949eb884fea0dc6111b491d44c36099c850051ba75ef42ea9a3b7b2111a0ba3ca41e6a7467c82ce33496a4c3d7f529ffb3d66",
+  "signature": "1bb3f84eff95efc7767cb6c06e0417f34a91043cda763722eb04ca1d548cd1341765a8174987d6b2e1d37d00c2222326ff564a700e9211af0b4f3ccfd5bd123ae5",
   "body": [
     {
       "header": {
-        "chain": "02cc102278b8fe83d190ff7ee5a9cf4019dd6e65",
+        "chain": "84083fa3b28ceb0695b5fe412188ddc3ffb77dc0",
         "version": "0000000000000000",
         "type": "0000000000000000",
-        "timestamp": "0000016970b32a1e",
-        "bodyHash": "b0a75f9ad6c69efba06491e4bccd7c53af9463165c7ccf42608787dc6485285b",
+        "timestamp": "000001696a99f4cf",
+        "bodyHash": "5e6204e74d901309a20482a13fe9dabbb948cbbe5a73f7e37e774efdd62e4d73",
         "bodyLength": "00000000000003cb"
       },
-      "signature": "1bc52d13be818abc422d5f4e3ed4dab8d0ab9cef369da19e2dae829b8a71395a757fa6ca7365e6d1173a2a21fe8eaa8bc268a20f2fb918dd694e16d13dd6d07196",
+      "signature": "1b2f1aea31be64293636c52a39d578e91dcae5d716019bbaccb2d9dbd0e173eec6635103328e14784ab4e3cc46ef004ae5cd9288b26126750bcd416515c50ea52d",
       "body": [
         {
           "operator": "GENESIS",
@@ -52,7 +52,7 @@
             }
           },
           "consensus": {
-            "algorithm": "ebft",
+            "algorithm": "pbft",
             "period": "* * * * * *",
             "validator": [
               "77283a04b3410fe21ba5ed04c7bd3ba89e70b78c",

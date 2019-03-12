@@ -5,18 +5,18 @@ import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
+import io.yggdrash.validator.data.ConsensusBlockChain;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftBlockChain;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftStatus;
-import org.lognet.springboot.grpc.GRpcService;
+import io.yggdrash.validator.service.ConsensusService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@GRpcService
 public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftServerStub.class);
@@ -26,9 +26,9 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
     private final PbftService pbftService; //todo: check security!
 
     @Autowired
-    public PbftServerStub(PbftBlockChain blockChain, PbftService pbftService) {
-        this.blockChain = blockChain;
-        this.pbftService = pbftService;
+    public PbftServerStub(ConsensusBlockChain blockChain, ConsensusService consensusService) {
+        this.blockChain = (PbftBlockChain) blockChain;
+        this.pbftService = (PbftService) consensusService;
     }
 
     @Override

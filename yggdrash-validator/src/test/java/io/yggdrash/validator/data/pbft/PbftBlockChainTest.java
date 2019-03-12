@@ -183,7 +183,7 @@ public class PbftBlockChainTest {
         assertNotNull(this.pbftBlockChain.getBlockStore());
         assertNotNull(this.pbftBlockChain.getGenesisBlock());
         assertNotNull(this.pbftBlockChain.getGenesisBlock());
-        assertEquals(this.pbftBlockChain.getUnConfirmedMsgMap().size(), 0);
+        assertEquals(this.pbftBlockChain.getUnConfirmedData().size(), 0);
         assertNotNull(this.pbftBlockChain.getTransactionStore());
         assertNotNull(this.pbftBlockChain.getLastConfirmedBlock());
     }

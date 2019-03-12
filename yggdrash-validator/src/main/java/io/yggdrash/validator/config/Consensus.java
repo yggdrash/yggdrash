@@ -4,23 +4,16 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.Transaction;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@Configuration
-@DependsOn("validatorGenesisBlock")
 public class Consensus {
     private String algorithm;
     private String period;
     private List<String> validators = new ArrayList<>();
 
-    @Autowired
-    public Consensus(@Qualifier("validatorGenesisBlock") Block genesisBlock) {
+    public Consensus(Block genesisBlock) {
         JsonObject consensusObject = ((JsonObject) ((Transaction) genesisBlock.getBody().getBody().toArray()[0])
                 .getBody().getBody().get(0)).getAsJsonObject("consensus");
         algorithm = consensusObject.get("algorithm").getAsString();

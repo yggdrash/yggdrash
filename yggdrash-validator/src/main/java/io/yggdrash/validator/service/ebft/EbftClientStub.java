@@ -23,7 +23,7 @@ public class EbftClientStub {
     private static final Logger log = LoggerFactory.getLogger(EbftClientStub.class);
 
     private boolean myclient;
-    private String pubKey;
+    private String addr;
     private String host;
     private int port;
     private String id;
@@ -33,11 +33,11 @@ public class EbftClientStub {
     private ManagedChannel channel;
     private EbftServiceGrpc.EbftServiceBlockingStub blockingStub;
 
-    public EbftClientStub(String pubKey, String host, int port) {
-        this.pubKey = pubKey;
+    public EbftClientStub(String addr, String host, int port) {
+        this.addr = addr;
         this.host = host;
         this.port = port;
-        this.id = this.pubKey + "@" + this.host + ":" + this.port;
+        this.id = this.addr + "@" + this.host + ":" + this.port;
         this.isRunning = false;
 
         this.channel = ManagedChannelBuilder.forAddress(host, port)
@@ -113,12 +113,12 @@ public class EbftClientStub {
         this.myclient = myclient;
     }
 
-    public String getPubKey() {
-        return pubKey;
+    public String getAddr() {
+        return addr;
     }
 
     public String getAddress() {
-        return Hex.toHexString(Wallet.calculateAddress(Hex.decode(this.pubKey)));
+        return Hex.toHexString(Wallet.calculateAddress(Hex.decode(this.addr)));
     }
 
     public String getHost() {
@@ -151,7 +151,7 @@ public class EbftClientStub {
 
     @Override
     public String toString() {
-        return this.pubKey + "@" + this.host + ":" + this.port;
+        return this.addr + "@" + this.host + ":" + this.port;
     }
 
 }
