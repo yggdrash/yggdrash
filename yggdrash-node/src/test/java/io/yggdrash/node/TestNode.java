@@ -1,5 +1,6 @@
 package io.yggdrash.node;
 
+import io.grpc.Server;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.PeerTestUtils;
 import io.yggdrash.TestConstants;
@@ -27,8 +28,10 @@ public class TestNode extends BootStrapNode {
     private static final Logger log = LoggerFactory.getLogger(TestNode.class);
     private final BranchId branchId = TestConstants.yggdrash();
 
+    public final int port;
+    Server server;
+
     // discovery specific
-    final int port;
     DiscoveryConsumer discoveryConsumer;
     private PeerDialer peerDialer;
     public PeerTableGroup peerTableGroup;
@@ -98,8 +101,9 @@ public class TestNode extends BootStrapNode {
         return peerDialer.handlerCount();
     }
 
-    public void destory() {
-        peerTask.getPeerDialer().destroyAll();
+    public void shutdown() {
+        peerNetwork.destroy();
+        server.shutdownNow();
     }
 
     public void logDebugging() {
