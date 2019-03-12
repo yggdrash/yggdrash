@@ -294,7 +294,7 @@ public class BlockChain {
             }
             return tx;
         } catch (Exception e) {
-            throw new FailedOperationException("Transaction");
+            throw new FailedOperationException(e);
         }
     }
 
