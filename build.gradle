@@ -253,3 +253,12 @@ task cleanConfig(type: Delete) {
     delete 'yggdrash-node/.yggdrash'
     delete 'yggdrash-validator/.yggdrash'
 }
+
+allprojects{
+    test {
+        testLogging {
+            showStandardStreams = true
+
+        }
+    }
+}
