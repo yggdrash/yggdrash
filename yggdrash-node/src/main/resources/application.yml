@@ -18,6 +18,8 @@ spring:
 management:
   endpoint.health.show-details: always
   health:
+    elasticsearch:
+      enabled: false
     diskspace:
       enabled: false
   endpoint:

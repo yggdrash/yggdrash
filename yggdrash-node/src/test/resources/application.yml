@@ -6,6 +6,9 @@ yggdrash:
     - "ynode://00@localhost:8080"
 
 management:
+  health:
+    elasticsearch:
+      enabled: false
   endpoint:
     restart:
       enabled: true
