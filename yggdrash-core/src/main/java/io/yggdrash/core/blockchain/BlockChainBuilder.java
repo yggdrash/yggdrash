@@ -17,18 +17,21 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.contract.Contract;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.blockchain.osgi.ContractContainerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
-import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
+import io.yggdrash.core.store.output.OutputStore;
+import io.yggdrash.core.store.output.es.EsClient;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,6 +47,7 @@ public class BlockChainBuilder {
     private StateStore stateStore;
     private TransactionReceiptStore transactionReceiptStore;
     private Runtime runtime;
+    private OutputStore[] outputStores;
 
     private ContractPolicyLoader policyLoader;
 
@@ -144,8 +148,29 @@ public class BlockChainBuilder {
                     .build();
         }
 
+        if (!StringUtils.isEmpty(System.getProperty("es.host"))
+                && !StringUtils.isEmpty(System.getProperty("es.transport"))
+                && !StringUtils.isEmpty(System.getProperty("event.store"))) {
+            String[] splitHost = System.getProperty("es.host").split(":");
+            if (splitHost.length != 2) {
+                throw new RuntimeException("The es.host value must be of the form ip:port.");
+            }
+
+            if (!StringUtils.isNumeric(System.getProperty("es.transport"))) {
+                throw new RuntimeException("The es.transport value must be a number.");
+            }
+
+            outputStores = new OutputStore[]{
+                    EsClient.newInstance(
+                            splitHost[0]
+                            , Integer.parseInt(System.getProperty("es.transport"))
+                            , System.getProperty("event.store")
+                    )
+            };
+        }
+
         return new BlockChain(branch, genesisBlock, blockStore,
-                transactionStore, metaStore, stateStore, transactionReceiptStore, contractContainer);
+                transactionStore, metaStore, stateStore, transactionReceiptStore, contractContainer, outputStores);
     }
 
     private Map<ContractVersion, Contract> defaultContract() {
