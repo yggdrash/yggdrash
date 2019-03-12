@@ -1,6 +1,6 @@
 ext {
     importPackage =
-            "io.yggdrash.common.contract" +
+                    "io.yggdrash.common.contract" +
                     ",io.yggdrash.common.contract.method" +
                     ",io.yggdrash.common.contract.vo" +
                     ",io.yggdrash.common.contract.vo.dpoa" +
@@ -22,8 +22,10 @@ ext {
                     ",io.yggdrash.contract.core.annotation" +
                     ",io.yggdrash.contract.core.store"
 
+
     excludeList = ["META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/NOTICE"]
 }
+
 
 task dpoaContract(type: Jar) {
     //Add current module source
@@ -110,6 +112,35 @@ task coinContract(type: Jar) {
     archiveName "system-coin-contract-${manifest.attributes.get('Bundle-Version')}.jar"
 }
 
+task noneContract(type: Jar) {
+    //Add current module source
+    from(sourceSets.main.output) {
+        include "**"
+        exclude(["system-contracts"])
+    }
+
+    // Add dependency library
+//    from {
+//        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
+//    }
+
+    manifest {
+        attributes(
+                'Bundle-ManifestVersion': '2',
+                'Bundle-Name': 'None Contract',
+                'Bundle-Description': 'None Contract',
+                'Bundle-Vendor': 'YGGDRASH',
+                'Bundle-SymbolicName': 'io.yggdrash.contract.NoneContract',
+                'Bundle-Version': '1.0.0',
+                'Bundle-Activator': 'io.yggdrash.contract.NoneContract',
+                'Import-Package': "${importPackage}"
+        )
+    }
+    exclude(excludeList)
+    archiveName "system-none-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+}
+
+
 def keystoreFile = new File("${project.projectDir.toString()}/src/main/resources/yggdrash.p12")
 def keystorePass = '098098'
 def keyAlias = 'yggdrash'
@@ -117,6 +148,7 @@ task signJar(description: 'to Sign JAR.', group: 'Build') {
 
     dependsOn dpoaContract
     dependsOn coinContract
+    dependsOn noneContract
 //    dependsOn dpoaClientContract
 
     doLast {

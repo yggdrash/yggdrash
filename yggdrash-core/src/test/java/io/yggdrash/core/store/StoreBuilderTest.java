@@ -20,7 +20,6 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.core.blockchain.BlockchainMetaInfo;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.p2p.Peer;
@@ -46,7 +45,6 @@ public class StoreBuilderTest {
         MetaStore store = builder.buildMetaStore(BRANCH_ID);
         store.setBestBlock(block);
 
-        assertThat(store.contains(BlockchainMetaInfo.BRANCH.toString())).isTrue();
         assertThat(store.getBestBlockHash()).isEqualTo(block.getHash());
     }
 

@@ -23,8 +23,6 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
-import io.yggdrash.core.contract.ContractClassLoader;
-import io.yggdrash.core.contract.ContractManager;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
 import org.slf4j.Logger;
@@ -76,6 +74,7 @@ public class BranchConfiguration {
     @Bean
     BranchLoader branchLoader(DefaultConfig defaultConfig, BranchGroup branchGroup, ContractPolicyLoader policyLoader) {
         BranchLoader branchLoader = new BranchLoader(defaultConfig.getBranchPath());
+        // TODO check exist branch
         try {
             for (GenesisBlock genesis : branchLoader.getGenesisBlockList()) {
                 BlockChain bc = createBranch(genesis, policyLoader);
@@ -87,14 +86,6 @@ public class BranchConfiguration {
         return branchLoader;
     }
 
-    @Bean
-    ContractManager contractManager(DefaultConfig defaultConfig) {
-        if (defaultConfig.isProductionMode()) {
-            ContractClassLoader.copyResourcesToContractPath(defaultConfig.getContractPath());
-        }
-        return new ContractManager(defaultConfig.getContractPath());
-    }
-
     private BlockChain createBranch(InputStream is, ContractPolicyLoader policyLoader)
             throws IOException {
         GenesisBlock genesis = GenesisBlock.of(is);
@@ -102,6 +93,7 @@ public class BranchConfiguration {
     }
 
     private BlockChain createBranch(GenesisBlock genesis, ContractPolicyLoader policyLoader) {
+        log.info("createBranch {} {}",genesis.getBranch().getBranchId(), genesis.getBranch().getName());
         try {
             return BlockChainBuilder.Builder()
                     .addGenesis(genesis)

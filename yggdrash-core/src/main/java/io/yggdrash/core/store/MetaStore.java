@@ -17,15 +17,30 @@
 package io.yggdrash.core.store;
 
 import com.google.common.primitives.Longs;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.core.blockchain.BlockchainMetaInfo;
+import io.yggdrash.core.blockchain.Branch;
+import io.yggdrash.core.blockchain.BranchContract;
+import io.yggdrash.core.blockchain.BranchId;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class MetaStore implements ReadWriterStore<String, String> {
     private final DbSource<byte[], byte[]> db;
 
+    // TODO Change to DAO patten
     MetaStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
     }
@@ -111,5 +126,149 @@ public class MetaStore implements ReadWriterStore<String, String> {
     }
 
 
+    public void setBranch(Branch branch) {
+        // if Exist Branch Information Did not save
+        // Save Branch
+        JsonObject json = branch.getJson();
+        if (db.get(BlockchainMetaInfo.BRANCH.toString().getBytes()) == null) {
+            db.put(BlockchainMetaInfo.BRANCH.toString().getBytes(), json.toString().getBytes());
+            db.put(BlockchainMetaInfo.BRANCH_ID.toString().getBytes(), branch.getBranchId().getBytes());
+        }
+    }
 
+    public Branch getBranch() {
+        // load Branch
+        byte[] jsonByteArray = db.get(BlockchainMetaInfo.BRANCH.toString().getBytes());
+        String jsonString = new String(jsonByteArray);
+        JsonParser parser = new JsonParser();
+        JsonObject json = parser.parse(jsonString).getAsJsonObject();
+
+        return Branch.of(json);
+    }
+
+    public BranchId getBranchId() {
+        byte[] branchIdBytes = db.get(BlockchainMetaInfo.BRANCH_ID.toString().getBytes());
+        return new BranchId(new Sha3Hash(branchIdBytes, true));
+    }
+
+    // TODO UPDATE Branch - Version History
+
+    // Set Genesis Block
+    public boolean setGenesisBlockHash(Sha3Hash genesisBlockHash) {
+        if (db.get(BlockchainMetaInfo.GENESIS_BLOCK.toString().getBytes()) == null) {
+            db.put(BlockchainMetaInfo.GENESIS_BLOCK.toString().getBytes(), genesisBlockHash.getBytes());
+            return true;
+        }
+        return false;
+    }
+
+    // Get Genesis Block
+    public Sha3Hash getGenesisBlockHash() {
+        byte[] genesisBlockHash = db.get(BlockchainMetaInfo.GENESIS_BLOCK.toString().getBytes());
+        if (genesisBlockHash == null) {
+            return null;
+        }
+        return new Sha3Hash(genesisBlockHash, true);
+    }
+
+    // Set Validator
+    public void setValidators(Set<String> validators) {
+        // TODO Set Validators
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        DataOutputStream out = new DataOutputStream(baos);
+        for (String element : validators) {
+            try {
+                out.writeUTF(element);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        byte[] valiatorsByteArray = baos.toByteArray();
+        db.put(BlockchainMetaInfo.VALIDATORS.toString().getBytes(), valiatorsByteArray);
+    }
+
+    // TODO Get Validator
+    public Set<String> getValidators() throws IOException {
+        byte[] valiatorsByteArray = db.get(BlockchainMetaInfo.VALIDATORS.toString().getBytes());
+        if (valiatorsByteArray == null) {
+            return null;
+        }
+        ByteArrayInputStream bais = new ByteArrayInputStream(valiatorsByteArray);
+        DataInputStream in = new DataInputStream(bais);
+        Set<String> validatorSet = new HashSet<>();
+        while (in.available() > 0) {
+            validatorSet.add(in.readUTF());
+        }
+        return validatorSet;
+    }
+
+    // Add validator
+    public boolean addValidator(String validator) {
+        Set<String> validators = null;
+        try {
+            validators = getValidators();
+            validators.add(validator);
+            setValidators(validators);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+
+    }
+
+    // Remove Validator
+    public boolean removeValidator(String validator) {
+        Set<String> validators = null;
+        try {
+            validators = getValidators();
+            validators.remove(validator);
+            setValidators(validators);
+            return true;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    // Set Contracts
+    // Save Contracts initial values
+    public void setBranchContracts(List<BranchContract> contracts) {
+        JsonArray array = new JsonArray();
+        contracts.stream().forEach(c -> array.add(c.getJson()));
+        byte[] contractBytes = array.toString().getBytes();
+        db.put(BlockchainMetaInfo.BRANCH_CONTRACTS.toString().getBytes(), contractBytes);
+    }
+
+    // Get Contracts
+    // Load Contracts initial values
+    public List<BranchContract> getBranchContacts() {
+        List<BranchContract> contracts = new ArrayList<>();
+        byte[] contractBytes = db.get(BlockchainMetaInfo.BRANCH_CONTRACTS.toString().getBytes());
+        if (contractBytes == null) {
+            return new ArrayList<>();
+        }
+        JsonParser parser = new JsonParser();
+        JsonArray json = parser.parse(new String(contractBytes)).getAsJsonArray();
+
+        for(int i=0; i < json.size(); i++) {
+            if (json.get(i).isJsonObject()) {
+                JsonObject branchContract = json.get(i).getAsJsonObject();
+                contracts.add(BranchContract.of(branchContract));
+            }
+        }
+        return contracts;
+    }
+
+    public enum  BlockchainMetaInfo {
+        BEST_BLOCK,
+        BEST_BLOCK_INDEX,
+        LAST_EXECUTE_BLOCK,
+        LAST_EXECUTE_BLOCK_INDEX,
+        BRANCH,
+        BRANCH_ID,
+        GENESIS_BLOCK,
+        VALIDATORS,
+        BRANCH_CONTRACTS
+    }
 }

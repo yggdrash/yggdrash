@@ -152,4 +152,14 @@ public class BranchGroup {
     public long countOfTxs(BranchId branchId) {
         return branches.get(branchId).countOfTxs();
     }
+
+    private boolean isHexString(String version) {
+        String hexVersion = "0x" + version;
+        for(int i = 0; i < hexVersion.length(); i++) {
+            if(Character.digit(hexVersion.charAt(i), 16) == -1) {
+                return false;
+            }
+        }
+        return true;
+    }
 }

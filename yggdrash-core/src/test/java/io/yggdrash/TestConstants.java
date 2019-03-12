@@ -19,7 +19,7 @@ package io.yggdrash;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.contract.ContractVersion;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.wallet.Wallet;
 import org.junit.Assume;
@@ -34,6 +34,7 @@ public class TestConstants {
 
     static ContractVersion STEM_CONTRACT;
     public static ContractVersion YEED_CONTRACT;
+    public static Branch TEST_BRANCH;
 
 
     public static final String TRANSFER_TO = "e1980adeafbb9ac6c9be60955484ab1547ab0b76";
@@ -61,9 +62,9 @@ public class TestConstants {
             ClassLoader loader = TestConstants.class.getClassLoader();
             InputStream is = loader.getResourceAsStream("branch-yggdrash.json");
             Branch yggdrashBranch;
-
             try {
                 yggdrashBranch = Branch.of(is);
+                TEST_BRANCH = yggdrashBranch;
                 YGGDRASH_BRANCH_ID = yggdrashBranch.getBranchId();
                 for (BranchContract bc : yggdrashBranch.getBranchContracts()) {
                     if ("STEM".equals(bc.getName())) {
@@ -89,21 +90,28 @@ public class TestConstants {
     public static class SlowTest {
         @BeforeClass
         public static void apply() {
-            Assume.assumeTrue(SLOW_TEST.equals(PROFILE));
+            Assume.assumeTrue(contains(SLOW_TEST));
         }
     }
 
     public static class PerformanceTest {
         @BeforeClass
         public static void apply() {
-            Assume.assumeTrue(PERFORMANCE_TEST.equals(PROFILE));
+            Assume.assumeTrue(contains(PERFORMANCE_TEST));
         }
     }
 
     public static class CiTest {
         @BeforeClass
         public static void apply() {
-            Assume.assumeTrue(CI_TEST.equals(PROFILE));
+            Assume.assumeTrue(contains(CI_TEST));
         }
+    }
+
+    private static boolean contains(String profile) {
+        if (PROFILE == null) {
+            return false;
+        }
+        return PROFILE.contains(profile);
     }
 }

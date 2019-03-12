@@ -26,7 +26,7 @@ import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.contract.ContractVersion;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.TransactionReceiptStore;
@@ -91,13 +91,11 @@ public class RuntimeTest {
 
         JsonObject branch = ContractTestUtils.createSampleBranchJson();
 
-        BranchId branchId = BranchId.of(branch);
-        JsonObject params = new JsonObject();
-        params.add(branchId.toString(), branch);
+        BranchId branchId = BranchId.of(branch.get("branch").getAsJsonObject());
 
         TransactionBuilder builder = new TransactionBuilder();
         TransactionHusk testTx = builder.setBranchId(branchId)
-                .addTxBody(stemContract, "create", params, false)
+                .addTxBody(stemContract, "create", branch, false)
                 .setWallet(TestConstants.wallet())
                 .build();
 
@@ -106,7 +104,6 @@ public class RuntimeTest {
         result.getReceipt().getTxLog().forEach(log::debug);
 
         assertThat(result.getReceipt().isSuccess()).isTrue();
-        System.out.println(result.getChangeValues().get("BRANCH_ID_LIST"));
 
         assert result.getChangeValues().get("BRANCH_ID_LIST")
                 .getAsJsonArray("branchIds")

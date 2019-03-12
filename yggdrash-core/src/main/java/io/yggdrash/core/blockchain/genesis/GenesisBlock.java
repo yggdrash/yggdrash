@@ -8,11 +8,11 @@ import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public class GenesisBlock {
     private final BlockHusk block;
@@ -27,6 +27,12 @@ public class GenesisBlock {
         this.branch = branch;
         this.block = toBlock();
     }
+
+    private GenesisBlock(Branch branch, BlockHusk block) {
+        this.branch = branch;
+        this.block = block;
+    }
+
 
     public BlockHusk getBlock() {
         return block;
@@ -56,8 +62,7 @@ public class GenesisBlock {
     private TransactionBuilder contractTransaction(TransactionBuilder builder) {
         List<BranchContract> contracts = branch.getBranchContracts();
         builder.setBranchId(branch.getBranchId())
-                .setTimeStamp(branch.getTimestamp())
-        ;
+                .setTimeStamp(branch.getTimestamp());
         contracts.forEach(c -> builder.addTxBody(c.getContractVersion(), "init", c.getInit(), c.isSystem()));
         return builder;
     }
@@ -146,6 +151,10 @@ public class GenesisBlock {
     public static GenesisBlock of(InputStream is) throws IOException {
         Branch branch = Branch.of(is);
         return new GenesisBlock(branch);
+    }
+
+    public static GenesisBlock of(Branch branch, BlockHusk block) {
+        return new GenesisBlock(branch, block);
     }
 
 }

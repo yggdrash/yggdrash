@@ -92,6 +92,7 @@ public class Block {
         System.arraycopy(blockBytes, position, bodyBytes, 0, bodyBytes.length);
         position += bodyBytes.length;
         this.body = new BlockBody(bodyBytes);
+
         bodyBytes = null;
 
         if (position != blockBytes.length) {

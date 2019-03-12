@@ -19,12 +19,14 @@ package io.yggdrash.core.contract;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.TransactionHusk;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class TransactionReceiptImpl implements TransactionReceipt {
 
     private String txId;
+    private Long txSize;
     private String blockId;
     private String branchId;
     private final List<String> txLog = new ArrayList<>();
@@ -40,6 +42,8 @@ public class TransactionReceiptImpl implements TransactionReceipt {
 
     public TransactionReceiptImpl(TransactionHusk tx) {
         this.txId = tx.getHash().toString();
+        this.txSize = Long.valueOf(tx.getBody().length());
+
         if (tx.getAddress() != null) {
             this.issuer = tx.getAddress().toString();
         }
@@ -60,6 +64,8 @@ public class TransactionReceiptImpl implements TransactionReceipt {
     public String getTxId() {
         return txId;
     }
+
+    public Long getTxSize() { return txSize; }
 
     public void setTxId(String txId) {
         this.txId = txId;

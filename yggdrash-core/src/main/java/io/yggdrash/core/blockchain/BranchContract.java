@@ -17,7 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.core.contract.ContractVersion;
+import io.yggdrash.common.contract.ContractVersion;
 
 public class BranchContract {
     private final ContractVersion contractVersion;
@@ -26,6 +26,7 @@ public class BranchContract {
     private final String description;
     private final String property;
     private final boolean isSystem;
+    private final JsonObject json;
 
     private BranchContract(JsonObject json) {
         this.init = json.getAsJsonObject("init");
@@ -39,6 +40,7 @@ public class BranchContract {
         } else {
             this.contractVersion = ContractVersion.of(json.get("contractVersion").getAsString());
         }
+        this.json = json;
     }
 
     public static BranchContract of(JsonObject json) {
@@ -67,5 +69,9 @@ public class BranchContract {
 
     public boolean isSystem() {
         return isSystem;
+    }
+
+    public JsonObject getJson() {
+        return json;
     }
 }

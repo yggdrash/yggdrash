@@ -12,11 +12,7 @@
 
 package io.yggdrash.node;
 
-import com.google.protobuf.Message;
 import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BlockChain;
@@ -25,29 +21,21 @@ import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.p2p.Peer;
-import io.yggdrash.node.service.BlockChainService;
-import io.yggdrash.node.service.DiscoveryService;
-import io.yggdrash.node.springboot.grpc.GrpcServerBuilderConfigurer;
-import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.support.AbstractApplicationContext;
-import org.springframework.context.support.GenericApplicationContext;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 
 @RunWith(JUnit4.class)
-public class RpcTest extends AbstractNodeTest {
+public class RpcTest extends TcpNodeTest {
     private static final Logger log = LoggerFactory.getLogger(RpcTest.class);
     private static final int NODE_CNT = 2;
-
-    private final AbstractApplicationContext context = new GenericApplicationContext();
 
     private List<BlockHusk> blockHuskList;
     private List<TransactionHusk> txHuskList;
@@ -56,10 +44,8 @@ public class RpcTest extends AbstractNodeTest {
 
     @Override
     public void setUp() {
-        TestConstants.SlowTest.apply();
-
         super.setUp();
-        context.refresh();
+        TestConstants.SlowTest.apply();
 
         bootstrapNodes(NODE_CNT, true);
 
@@ -68,7 +54,6 @@ public class RpcTest extends AbstractNodeTest {
         Peer peer = nodeList.get(1).peerTableGroup.getOwner();
         ManagedChannel channel = createChannel(peer);
         handler = new GRpcPeerHandler(channel, peer);
-        handler.setTestHelper(testHelper);
 
         setBlockHuskList();
         setTxHuskList();
@@ -147,19 +132,19 @@ public class RpcTest extends AbstractNodeTest {
     }
 
     @Test
-    public void broadcastBlockTest() throws Exception {
+    public void broadcastBlockTest() {
         for (BlockHusk blockHusk : blockHuskList) {
             handler.broadcastBlock(blockHusk);
         }
-        Thread.sleep(3000);
+        handler.stop();
     }
 
     @Test
-    public void broadcastTxTest() throws Exception {
+    public void broadcastTxTest() {
         for (TransactionHusk txHusk : getTmpTxList()) {
             handler.broadcastTx(txHusk);
         }
-        Thread.sleep(3000);
+        handler.stop();
     }
 
     private List<TransactionHusk> getTmpTxList() {
@@ -169,42 +154,4 @@ public class RpcTest extends AbstractNodeTest {
         }
         return txList;
     }
-
-    @Override
-    protected ManagedChannel createChannel(Peer peer) {
-        return ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
-                .build();
-    }
-
-    @Override
-    protected Server createAndStartServer(TestNode node) {
-        GrpcServerBuilderConfigurer configurer = builder -> {
-            builder.addService(new DiscoveryService(node.discoveryConsumer));
-            if (node.blockChainConsumer != null) {
-                builder.addService(new BlockChainService(node.blockChainConsumer));
-            }
-        };
-
-        GrpcServerRunner runner = new GrpcServerRunner(configurer,
-                ServerBuilder.forPort(node.port));
-        runner.setApplicationContext(context);
-        try {
-            runner.run();
-            return runner.getServer();
-        } catch (Exception e) {
-            return null;
-        }
-    }
-
-    private GRpcPeerHandler.TestHelper testHelper = new GRpcPeerHandler.TestHelper() {
-        @Override
-        public void onMessage(Message message) {
-            log.debug("[TestHelper] Message received: {}", message);
-        }
-
-        @Override
-        public void onRpcError(Throwable exception) {
-            log.debug("[TestHelper] Error occurred: {}", exception.getMessage());
-        }
-    };
 }

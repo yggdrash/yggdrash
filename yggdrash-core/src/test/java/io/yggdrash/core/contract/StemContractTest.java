@@ -16,24 +16,28 @@
 
 package io.yggdrash.core.contract;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.common.utils.ContractUtils;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.core.blockchain.BranchBuilder;
-import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
+import io.yggdrash.common.utils.ContractUtils;
+import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractStateStore;
+import io.yggdrash.core.blockchain.Branch;
+import io.yggdrash.core.blockchain.BranchBuilder;
+import io.yggdrash.core.blockchain.BranchId;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -41,6 +45,7 @@ import java.util.Set;
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import static io.yggdrash.common.config.Constants.VALIDATOR;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 
@@ -60,12 +65,10 @@ public class StemContractTest {
 
         stemContract = new StemContract();
 
-        JsonObject json = ContractTestUtils.createSampleBranchJson();
-        stateValue = StemContractStateValue.of(json);
-        JsonObject params = createParams(stateValue.getJson());
+        JsonObject params = ContractTestUtils.createSampleBranchJson();
+        stateValue = StemContractStateValue.of(params);
         TransactionReceipt receipt = new TransactionReceiptImpl();
-        receipt.setIssuer(stateValue.getValidators().get(0));
-
+        receipt.setIssuer(stateValue.getValidators().stream().findFirst().get());
         List<Field> txReceipt = ContractUtils.txReceiptFields(stemContract);
         if (txReceipt.size() == 1) {
             txReceiptField = txReceipt.get(0);
@@ -84,20 +87,64 @@ public class StemContractTest {
         }
     }
 
+    @Test
+    public void getBranchListTest() {
+        Set<String> branchIdList = stemContract.getBranchIdList();
+        if (!branchIdList.isEmpty()) {
+            assertThat(branchIdList).containsOnly(stateValue.getBranchId().toString());
+        }
+    }
 
     @Test
-    @Ignore
+    public void getBranchTest() {
+        JsonObject branch = createParams();
+        JsonObject json = stemContract.getBranch(branch);
+        String branchId = branch.get("branchId").getAsString();
+        JsonObject saved = stateStore.get(branchId);
+        assertThat(saved.equals(json));
+    }
+
+    @Test
+    public void getContractTest() {
+        JsonObject branch = createParams();
+        Set<JsonElement> contractSet = stemContract.getContract(branch);
+        String branchId = branch.get("branchId").getAsString();
+        JsonObject saved = stateStore.get(branchId);
+        assertThat(saved.get("contracts").equals(contractSet));
+    }
+
+    @Test
+    public void getBranchIdByValidatorTest() {
+        JsonObject validatorParams = createValidatorParams();
+        Set<String> branchIdSet = stemContract.getBranchIdByValidator(validatorParams);
+        String validator = validatorParams.get("VALIDATOR").getAsString();
+
+        branchIdSet.stream().forEach(bId -> {
+            JsonObject saved = stateStore.get(bId);
+            saved.get("validator").getAsJsonArray().forEach(v -> {
+                assertThat(v.equals(validator));
+            });
+        });
+
+
+    }
+
+    @Test
+    public void getValidatorTest() {
+        JsonObject branch = createParams();
+        Set<String> validatorSet = stemContract.getValidator(branch);
+        String branchId = branch.get("branchId").getAsString();
+        JsonObject saved = stateStore.get(branchId);
+        assertThat(saved.get("validator").equals(validatorSet));
+    }
+
+    @Test
     public void createTest() {
-        // TODO StemContract Change Spec
         String description = "ETH TO YEED";
-        JsonObject branch = getEthToYeedBranch(description);
-
-        String branchId = BranchId.of(branch).toString();
-        JsonObject params = new JsonObject();
-        params.add(branchId, branch);
-
+        JsonObject params = getEthToYeedBranch(description);
+        BranchId branchId = Branch.of(params).getBranchId();
         TransactionReceipt receipt = new TransactionReceiptImpl();
-        receipt.setIssuer(stateValue.getValidators().get(0));
+        receipt.setIssuer(stateValue.getValidators().stream().findFirst().get());
 
         try {
             txReceiptField.set(stemContract, receipt);
@@ -108,18 +155,14 @@ public class StemContractTest {
 
         assertThat(receipt.isSuccess()).isTrue();
 
-        JsonObject saved = stateStore.get(branchId);
+        JsonObject saved = stateStore.get(branchId.toString());
         assertThat(saved).isNotNull();
         assertThat(saved.get("description").getAsString()).isEqualTo(description);
     }
 
     @Test
     public void updateTest() {
-        String description = "Hello World!";
-        JsonObject json = ContractTestUtils.createSampleBranchJson(description);
-
-        JsonObject params = createParams(json);
-        System.out.println(params);
+        JsonObject params = createUpdateParams();
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer(stateValue.getValidators().iterator().next());
 
@@ -131,55 +174,43 @@ public class StemContractTest {
         }
 
         assertTrue(receipt.isSuccess());
+        JsonArray validators = new JsonArray();
+        validators.add(params.get("validator").getAsString());
+        stemBranchViewTest(validators);
+        /* ========================================================= */
 
-        stemBranchViewTest(description);
+        JsonObject params2 = createUpdateParams2();
+        TransactionReceipt receipt2 = new TransactionReceiptImpl();
+        receipt2.setIssuer(stateValue.getValidators().iterator().next());
+
+        try {
+            txReceiptField.set(stemContract, receipt);
+            receipt2 = stemContract.update(params2);
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+
+        assertTrue(receipt2.isSuccess());
+        validators.add(params2.get("validator").getAsString());
+        stemBranchViewTest(validators);
     }
 
-    private void stemBranchViewTest(String description) {
+    private void stemBranchViewTest(JsonArray validators) {
         JsonObject params = createParams();
-        JsonObject result = stemContract.getBranch(params);
-        assertThat(result.get("description").getAsString()).isEqualTo(description);
-    }
+        JsonObject branchJson = stemContract.getBranch(params);
 
-    @Test
-    public void getBranchIdListTest() {
-        Set<String> branchIdList = stemContract.getBranchIdList();
-        assertThat(branchIdList).containsOnly(stateValue.getBranchId().toString());
-    }
-
-    @Test
-    public void getBranchTest() {
-        JsonObject params = createParams();
-        stemContract.getBranch(params);
-    }
-
-    @Test
-    public void getBranchByTxIDTest() {
-        JsonObject params = createParams();
-        stemContract.getBranchByTxID(params);
-    }
-
-    @Test
-    public void getContractByBranchTest() {
-        JsonObject params = createParams();
-        stemContract.getContractByBranch(params);
-    }
-
-    @Test
-    public void getValidatorTest() {
-        JsonObject params = createParams();
-        //TODO store -> validator set compare to return validator
-        stemContract.getValidator(params);
-    }
-
-    @Test
-    public void getBranchIdByValidatorTest() {
-        JsonObject params = createValidatorParams();
-        stemContract.getBranchIdByValidator(params);
+        if (branchJson.has("updateValidators")) {
+            JsonArray uvs= branchJson.get("updateValidators").getAsJsonArray();
+            assertEquals(uvs, validators);
+        }
     }
 
     private JsonObject createParams() {
         return ContractTestUtils.createParams(BRANCH_ID, stateValue.getBranchId().toString());
+    }
+
+    private JsonObject createParams(String bid) {
+        return ContractTestUtils.createParams(BRANCH_ID, bid);
     }
 
     private JsonObject createValidatorParams() {
@@ -187,9 +218,19 @@ public class StemContractTest {
         return ContractTestUtils.createParams(VALIDATOR, v.get());
     }
 
-    private JsonObject createParams(JsonElement json) {
+    private JsonObject createUpdateParams() {
         JsonObject params = new JsonObject();
-        params.add(stateValue.getBranchId().toString(), json);
+        params.addProperty(BRANCH_ID, stateValue.getBranchId().toString());
+        params.addProperty("validator", "30d0c0e7212642b371082df39824c5121c8ad047");
+        params.addProperty("fee", BigDecimal.valueOf(1000));
+        return params;
+    }
+
+    private JsonObject createUpdateParams2() {
+        JsonObject params = new JsonObject();
+        params.addProperty(BRANCH_ID, stateValue.getBranchId().toString());
+        params.addProperty("validator", "2df39824c5121c8ad04730d0c0e7212642b37108");
+        params.addProperty("fee", BigDecimal.valueOf(2000));
         return params;
     }
 
@@ -197,14 +238,45 @@ public class StemContractTest {
         String name = "Ethereum TO YEED";
         String symbol = "ETH TO YEED";
         String property = "exchange";
+        String timeStamp = "00000166c837f0c9";
 
-        return BranchBuilder.builder()
-                .setName(name)
-                .setDescription(description)
-                .setSymbol(symbol)
-                .setProperty(property)
-                .addValidator(TestConstants.wallet().getHexAddress())
-                .buildJson();
+        String consensusString = new StringBuilder()
+                .append("{\"consensus\": {")
+                .append("    \"algorithm\": \"pbft\",")
+                .append("    \"period\": \"2\",")
+                .append("    \"validator\": {")
+                .append("      \"527e5997e79cc0935d9d86a444380a11cdc296b6bcce2c6df5e5439a3cd7bffb945e77aacf881f36a668284984b628063f5d18a214002ac7ad308e04b67bcad8\": {")
+                .append("        \"host\": \"127.0.0.1\",")
+                .append("        \"port\": \"32911\"")
+                .append("      },")
+                .append("      \"e12133df65a2e7dec4310f3511b1fa6b35599770e900ffb50f795f2a49d0a22b63e013a393affe971ea4db08cc491118a8a93719c3c1f55f2a12af21886d294d\": {")
+                .append("        \"host\": \"127.0.0.1\",")
+                .append("        \"port\": \"32912\"")
+                .append("      },")
+                .append("      \"8d69860332aa6202df489581fd618fc085a6a5af89964d9e556a398d232816c9618fe15e90015d0a2d15037c91587b79465106f145c0f4db6d18b105659d2bc8\": {")
+                .append("        \"host\": \"127.0.0.1\",")
+                .append("        \"port\": \"32913\"")
+                .append("      },")
+                .append("      \"b49fbee055a4b3bd2123a60b24f29d69bc0947e45a75eb4880fe9c5b07904c650729e5edcdaff2523c8839889925079963186bd38c22c96433bdbf4465960527\": {")
+                .append("        \"host\": \"127.0.0.1\",")
+                .append("        \"port\": \"32914\"")
+                .append("      }")
+                .append("    }")
+                .append("  }}").toString();
+        JsonObject consensus = new Gson().fromJson(consensusString, JsonObject.class);
+
+        JsonObject branchJson = BranchBuilder.builder()
+                                .setName(name)
+                                .setDescription(description)
+                                .setSymbol(symbol)
+                                .setProperty(property)
+                                .setTimeStamp(timeStamp)
+                                .addConsensus(consensus)
+                                .addValidator(TestConstants.wallet().getHexAddress())
+                                .buildJson();
+
+        branchJson.addProperty("fee", BigInteger.valueOf(100));
+        return branchJson;
     }
 
 }

@@ -35,10 +35,10 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
@@ -58,68 +58,16 @@ public class GrpcBlockChainServiceTest {
 
     @Before
     public void setUp() {
-        grpcServerRule.getServiceRegistry()
-                .addService(new BlockChainService(blockChainConsumerMock));
+        grpcServerRule.getServiceRegistry().addService(new BlockChainService(blockChainConsumerMock));
 
         tx = BlockChainTestUtils.createTransferTxHusk();
         block = BlockChainTestUtils.genesisBlock();
         branchId = block.getBranchId();
     }
 
-    /*
-    @Test
-    public void simpleBroadcastBlock() {
-        BlockChainGrpc.BlockChainBlockingStub blockChainBlockingStub
-                = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        NetProto.Empty empty = NetProto.Empty.newBuilder().build();
-        Proto.Block block = BlockChainTestUtils.genesisBlock().getInstance();
-        assertEquals(empty, blockChainBlockingStub.simpleBroadcastBlock(block));
-    }
-
-    @Test
-    public void simpleBroadcastTransaction() {
-        BlockChainGrpc.BlockChainBlockingStub blockChainBlockingStub
-                = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        NetProto.Empty empty = NetProto.Empty.newBuilder().build();
-        Proto.Transaction tx = BlockChainTestUtils.createTransferTxHusk().getInstance();
-        assertEquals(empty, blockChainBlockingStub.simpleBroadcastTransaction(tx));
-    }
-
-    @Test
-    public void simpleSyncBlock() {
-        Set<BlockHusk> blocks = new HashSet<>();
-        blocks.add(block);
-        when(blockChainConsumerMock.simpleSyncBlock(branchId, 0L, 100L))
-                .thenReturn(Collections.singletonList(block));
-
-        BlockChainGrpc.BlockChainBlockingStub blockingStub
-                = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        ByteString branch = ByteString.copyFrom(branchId.getBytes());
-        NetProto.SyncLimit syncLimit = NetProto.SyncLimit.newBuilder().setOffset(0).setLimit(100)
-                .setBranch(branch).build();
-        Proto.BlockList list = blockingStub.simpleSyncBlock(syncLimit);
-        assertEquals(1, list.getBlocksCount());
-    }
-
-    @Test
-    public void simpleSyncTransaction() {
-        when(blockChainConsumerMock.simpleSyncTransaction(branchId))
-                .thenReturn(Collections.singletonList(tx));
-
-        BlockChainGrpc.BlockChainBlockingStub blockingStub
-                = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        ByteString branch = ByteString.copyFrom(branchId.getBytes());
-        NetProto.SyncLimit syncLimit
-                = NetProto.SyncLimit.newBuilder().setBranch(branch).build();
-        Proto.TransactionList list = blockingStub.simpleSyncTransaction(syncLimit);
-        assertEquals(1, list.getTransactionsCount());
-    }
-    */
-
     @Test
     public void broadcastBlock() {
-        BlockChainGrpc.BlockChainStub asyncStub =
-                BlockChainGrpc.newStub(grpcServerRule.getChannel());
+        BlockChainGrpc.BlockChainStub asyncStub = BlockChainGrpc.newStub(grpcServerRule.getChannel());
 
         NetProto.Empty empty = NetProto.Empty.newBuilder().build();
         Proto.Block block = BlockChainTestUtils.genesisBlock().getInstance();
@@ -144,6 +92,7 @@ public class GrpcBlockChainServiceTest {
                     }
                 }
         );
+
         requestObserver.onNext(block);
         requestObserver.onCompleted();
 
@@ -158,8 +107,7 @@ public class GrpcBlockChainServiceTest {
 
     @Test
     public void broadcastTx() {
-        BlockChainGrpc.BlockChainStub asyncStub =
-                BlockChainGrpc.newStub(grpcServerRule.getChannel());
+        BlockChainGrpc.BlockChainStub asyncStub = BlockChainGrpc.newStub(grpcServerRule.getChannel());
 
         NetProto.Empty empty = NetProto.Empty.newBuilder().build();
         Proto.Transaction tx = BlockChainTestUtils.createTransferTxHusk().getInstance();
@@ -198,95 +146,34 @@ public class GrpcBlockChainServiceTest {
 
     @Test
     public void syncBlock() {
+        // arrange
+        Set<BlockHusk> blocks = new HashSet<>();
+        blocks.add(block);
         when(blockChainConsumerMock.syncBlock(branchId, 0L, 100L))
                 .thenReturn(Collections.singletonList(block));
 
-        BlockChainGrpc.BlockChainStub asyncStub =
-                BlockChainGrpc.newStub(grpcServerRule.getChannel());
-
+        BlockChainGrpc.BlockChainBlockingStub blockingStub
+                = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
         ByteString branch = ByteString.copyFrom(branchId.getBytes());
-        NetProto.SyncLimit syncLimit = NetProto.SyncLimit.newBuilder().setOffset(0).setLimit(100)
-                .setBranch(branch).build();
-        CompletableFuture<List<BlockHusk>> husksCompletableFuture = new CompletableFuture<>();
-
-        StreamObserver<NetProto.SyncLimit> requestObserver = asyncStub.syncBlock(
-                new StreamObserver<Proto.BlockList>() {
-                    @Override
-                    public void onNext(Proto.BlockList blockList) {
-                        List<BlockHusk> blockHusks = blockList.getBlocksList().stream()
-                                .map(BlockHusk::new).collect(Collectors.toList());
-
-                        husksCompletableFuture.complete(blockHusks);
-                    }
-
-                    @Override
-                    public void onError(Throwable t) {
-
-                    }
-
-                    @Override
-                    public void onCompleted() {
-
-                    }
-                }
-        );
-        requestObserver.onNext(syncLimit);
-        requestObserver.onCompleted();
-
-        if (husksCompletableFuture.isDone()) {
-            try {
-                List<BlockHusk> blockHusks = husksCompletableFuture.get();
-                assertEquals(1, blockHusks.size());
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
+        NetProto.SyncLimit syncLimit =
+                NetProto.SyncLimit.newBuilder().setOffset(0).setLimit(100).setBranch(branch).build();
+        // act
+        Proto.BlockList list = blockingStub.syncBlock(syncLimit);
+        // assert
+        assertEquals(1, list.getBlocksCount());
     }
 
     @Test
-    public void syncTx() {
-        when(blockChainConsumerMock.syncTx(branchId))
-                .thenReturn(Collections.singletonList(tx));
-
-        BlockChainGrpc.BlockChainStub asyncStub =
-                BlockChainGrpc.newStub(grpcServerRule.getChannel());
-
+    public void syncTransaction() {
+        // arrange
+        when(blockChainConsumerMock.syncTx(branchId)).thenReturn(Collections.singletonList(tx));
+        BlockChainGrpc.BlockChainBlockingStub blockingStub
+                = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
         ByteString branch = ByteString.copyFrom(branchId.getBytes());
-        NetProto.SyncLimit syncLimit
-                = NetProto.SyncLimit.newBuilder().setBranch(branch).build();
-        CompletableFuture<List<TransactionHusk>> husksCompletableFuture = new CompletableFuture<>();
-
-        StreamObserver<NetProto.SyncLimit> requestObserver = asyncStub.syncTx(
-                new StreamObserver<Proto.TransactionList>() {
-                    @Override
-                    public void onNext(Proto.TransactionList txList) {
-                        List<TransactionHusk> txHusks = txList.getTransactionsList().stream()
-                                .map(TransactionHusk::new).collect(Collectors.toList());
-
-                        husksCompletableFuture.complete(txHusks);
-                    }
-
-                    @Override
-                    public void onError(Throwable t) {
-
-                    }
-
-                    @Override
-                    public void onCompleted() {
-
-                    }
-                }
-        );
-        requestObserver.onNext(syncLimit);
-        requestObserver.onCompleted();
-
-        if (husksCompletableFuture.isDone()) {
-            try {
-                List<TransactionHusk> txHusks = husksCompletableFuture.get();
-                assertEquals(1, txHusks.size());
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
+        NetProto.SyncLimit syncLimit = NetProto.SyncLimit.newBuilder().setBranch(branch).build();
+        // act
+        Proto.TransactionList list = blockingStub.syncTx(syncLimit);
+        // assert
+        assertEquals(1, list.getTransactionsCount());
     }
 }

@@ -58,6 +58,7 @@ public class NetworkBroadcastTest extends AbstractNodeTest {
             if (node.isSeed()) {
                 continue;
             }
+            node.destory();
             Assert.assertEquals(nodeCount - 1,
                     node.getBranchGroup().getUnconfirmedTxs(TestConstants.yggdrash()).size());
         }

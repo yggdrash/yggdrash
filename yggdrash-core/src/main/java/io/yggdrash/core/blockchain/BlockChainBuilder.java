@@ -17,15 +17,12 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.contract.Contract;
-import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.blockchain.osgi.ContractContainerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
-import io.yggdrash.core.contract.ContractClassLoader;
-import io.yggdrash.core.contract.ContractMeta;
-import io.yggdrash.core.contract.ContractVersion;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
@@ -33,7 +30,6 @@ import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -96,45 +92,23 @@ public class BlockChainBuilder {
         if (branch == null) {
             branch = genesis.getBranch();
         }
+        BranchId branchId = branch.getBranchId();
         if (blockStore == null) {
-            blockStore = storeBuilder.buildBlockStore(genesisBlock.getBranchId());
+            blockStore = storeBuilder.buildBlockStore(branchId);
         }
         if (transactionStore == null) {
-            transactionStore = storeBuilder.buildTxStore(genesisBlock.getBranchId());
+            transactionStore = storeBuilder.buildTxStore(branchId);
         }
         if (metaStore == null) {
-            metaStore = storeBuilder.buildMetaStore(genesisBlock.getBranchId());
+            metaStore = storeBuilder.buildMetaStore(branchId);
         }
         if (stateStore == null) {
-            stateStore = storeBuilder.buildStateStore(genesisBlock.getBranchId());
+            stateStore = storeBuilder.buildStateStore(branchId);
         }
         if (transactionReceiptStore == null) {
             transactionReceiptStore = storeBuilder.buildTransactionReceiptStore(
-                    genesisBlock.getBranchId());
+                    branchId);
         }
-
-//        if (runtime == null) {
-//            runtime = new Runtime(stateStore, transactionReceiptStore);
-//            // TODO Change Branch Spec
-//            List<BranchContract> contracts = branch.getBranchContracts();
-//            contracts.forEach(c -> {
-//                // TODO Get ContractManager for Contract
-//                Contract contract;
-//                // TODO remove branch spec change
-//                if ("STEM".equals(c.getName())) {
-//                    contract = new StemContract();
-//                } else if ("DPoA".equals(c.getName())) {
-//                    contract = new DPoAContract();
-//                } else {
-//                    contract = getContract(c.getContractVersion());
-//                }
-//                runtime.addContract(c.getContractVersion(), contract);
-//            });
-//
-//            // Add System Contract
-//            defaultContract().forEach((key, value) -> runtime.addContract(key, value));
-//
-//        }
 
         ContractContainer contractContainer = null;
         if (policyLoader != null) {
@@ -150,22 +124,6 @@ public class BlockChainBuilder {
 
         return new BlockChain(branch, genesisBlock, blockStore,
                 transactionStore, metaStore, stateStore, transactionReceiptStore, contractContainer);
-    }
-
-    private Contract getContract(ContractVersion contractVersion) {
-        try {
-            // get System Contracts
-            // TODO remove this
-            // TODO Check System Contract
-
-            ContractMeta contractMeta = ContractClassLoader.loadContractByVersion(
-                    storeBuilder.getConfig().getContractPath(), contractVersion);
-            return contractMeta.getContract().getDeclaredConstructor().newInstance();
-
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException
-                | InvocationTargetException e) {
-            throw new FailedOperationException(e);
-        }
     }
 
     private Map<ContractVersion, Contract> defaultContract() {

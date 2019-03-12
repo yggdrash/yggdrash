@@ -1,8 +1,5 @@
 package io.yggdrash.contract.core;
 
-import io.yggdrash.contract.core.ExecuteStatus;
-import io.yggdrash.contract.core.TransactionReceipt;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,6 +37,11 @@ public class TransactionReceiptImpl implements TransactionReceipt {
 
     public String getTxId() {
         return txId;
+    }
+
+    @Override
+    public Long getTxSize() {
+        return null;
     }
 
     public void setTxId(String txId) {
