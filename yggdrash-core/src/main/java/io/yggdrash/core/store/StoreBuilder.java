@@ -18,11 +18,10 @@ package io.yggdrash.core.store;
 
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.store.StateStore;
-import io.yggdrash.core.blockchain.BlockchainMetaInfo;
-import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
+import io.yggdrash.core.blockchain.BranchId;
 
 public class StoreBuilder {
 
@@ -50,7 +49,6 @@ public class StoreBuilder {
 
     public MetaStore buildMetaStore(BranchId branchId) {
         MetaStore store = new MetaStore(getDbSource(branchId + "/meta"));
-        store.put(BlockchainMetaInfo.BRANCH.toString(), branchId.toString());
         return store;
     }
 

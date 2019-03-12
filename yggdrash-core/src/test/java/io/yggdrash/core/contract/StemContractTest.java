@@ -68,7 +68,7 @@ public class StemContractTest {
         JsonObject params = ContractTestUtils.createSampleBranchJson();
         stateValue = StemContractStateValue.of(params);
         TransactionReceipt receipt = new TransactionReceiptImpl();
-        receipt.setIssuer(stateValue.getValidators().get(0));
+        receipt.setIssuer(stateValue.getValidators().stream().findFirst().get());
         List<Field> txReceipt = ContractUtils.txReceiptFields(stemContract);
         if (txReceipt.size() == 1) {
             txReceiptField = txReceipt.get(0);
@@ -144,7 +144,7 @@ public class StemContractTest {
         JsonObject params = getEthToYeedBranch(description);
         BranchId branchId = Branch.of(params).getBranchId();
         TransactionReceipt receipt = new TransactionReceiptImpl();
-        receipt.setIssuer(stateValue.getValidators().get(0));
+        receipt.setIssuer(stateValue.getValidators().stream().findFirst().get());
 
         try {
             txReceiptField.set(stemContract, receipt);

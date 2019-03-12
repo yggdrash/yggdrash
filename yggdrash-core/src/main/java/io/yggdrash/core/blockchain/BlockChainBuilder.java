@@ -96,45 +96,23 @@ public class BlockChainBuilder {
         if (branch == null) {
             branch = genesis.getBranch();
         }
+        BranchId branchId = branch.getBranchId();
         if (blockStore == null) {
-            blockStore = storeBuilder.buildBlockStore(genesisBlock.getBranchId());
+            blockStore = storeBuilder.buildBlockStore(branchId);
         }
         if (transactionStore == null) {
-            transactionStore = storeBuilder.buildTxStore(genesisBlock.getBranchId());
+            transactionStore = storeBuilder.buildTxStore(branchId);
         }
         if (metaStore == null) {
-            metaStore = storeBuilder.buildMetaStore(genesisBlock.getBranchId());
+            metaStore = storeBuilder.buildMetaStore(branchId);
         }
         if (stateStore == null) {
-            stateStore = storeBuilder.buildStateStore(genesisBlock.getBranchId());
+            stateStore = storeBuilder.buildStateStore(branchId);
         }
         if (transactionReceiptStore == null) {
             transactionReceiptStore = storeBuilder.buildTransactionReceiptStore(
-                    genesisBlock.getBranchId());
+                    branchId);
         }
-
-//        if (runtime == null) {
-//            runtime = new Runtime(stateStore, transactionReceiptStore);
-//            // TODO Change Branch Spec
-//            List<BranchContract> contracts = branch.getBranchContracts();
-//            contracts.forEach(c -> {
-//                // TODO Get ContractManager for Contract
-//                Contract contract;
-//                // TODO remove branch spec change
-//                if ("STEM".equals(c.getName())) {
-//                    contract = new StemContract();
-//                } else if ("DPoA".equals(c.getName())) {
-//                    contract = new DPoAContract();
-//                } else {
-//                    contract = getContract(c.getContractVersion());
-//                }
-//                runtime.addContract(c.getContractVersion(), contract);
-//            });
-//
-//            // Add System Contract
-//            defaultContract().forEach((key, value) -> runtime.addContract(key, value));
-//
-//        }
 
         ContractContainer contractContainer = null;
         if (policyLoader != null) {

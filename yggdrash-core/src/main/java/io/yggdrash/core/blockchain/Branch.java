@@ -23,13 +23,14 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import org.apache.commons.io.IOUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 public class Branch {
@@ -42,7 +43,9 @@ public class Branch {
     private final JsonObject json;
     private final List<BranchContract> contracts;
     protected String description;
-    private final List<String> validator; //todo: change to validatorList for integration
+
+    // TODO change ACL Validators
+    private final Set<String> validators;
 
     private final JsonObject consensus;
 
@@ -56,6 +59,7 @@ public class Branch {
 
         this.contracts = new ArrayList<>();
 
+        // TODO Change ContractArray to BranchContract Object List
         JsonArray contractArray = json.getAsJsonArray("contracts");
         // Contracts
         if (contractArray != null) {
@@ -64,7 +68,7 @@ public class Branch {
             }
         }
         this.description = json.get("description").getAsString();
-        this.validator = JsonUtil.convertJsonArrayToStringList(
+        this.validators = JsonUtil.convertJsonArrayToSet(
                 json.get("validator").getAsJsonArray());
         consensus = json.get("consensus").getAsJsonObject();
         this.branchId = BranchId.of(getBranchJson());
@@ -90,13 +94,26 @@ public class Branch {
         return new ArrayList<>(this.contracts);
     }
 
+    public boolean addBranchContract(BranchContract contract) {
+        return this.contracts.add(contract);
+    }
+
     public String getDescription() {
         return description;
     }
 
-    public List<String> getValidators() {
-        return new ArrayList<>(this.validator);
+    public Set<String> getValidators() {
+        return new HashSet<>(this.validators);
     }
+
+    public boolean addValidator(String validator) {
+        return this.validators.add(validator);
+    }
+
+    public boolean removeValidator(String validator) {
+        return this.validators.remove(validator);
+    }
+
 
     public long getTimestamp() {
         return timestamp;
@@ -148,4 +165,26 @@ public class Branch {
                             String.format("Unsupported type %s.", val)));
         }
     }
+
+    // Branch object to JsonObject
+
+    public JsonObject toJsonObject() {
+        JsonObject branchJson = new JsonObject();
+        // branchJson add name , symbol, property, timestamp, BranchContract,
+        // description, validators
+        branchJson.addProperty("name", name);
+        branchJson.addProperty("symbol", symbol);
+        branchJson.addProperty("property", property);
+        branchJson.addProperty("description", description);
+        branchJson.addProperty("timestamp", HexUtil.toHexString(timestamp));
+        JsonArray contractJson = new JsonArray();
+        contracts.stream().forEach(c -> contractJson.add(c.getJson()));
+        branchJson.add("contracts", contractJson);
+        JsonArray validatorArray = new JsonArray();
+        validators.stream().forEach(v -> validatorArray.add(v));
+        branchJson.add("validator", validatorArray);
+        branchJson.add("consensus", consensus);
+        return branchJson;
+    }
+
 }

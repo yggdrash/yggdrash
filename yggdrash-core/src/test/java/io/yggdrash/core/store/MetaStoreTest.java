@@ -17,42 +17,51 @@
 package io.yggdrash.core.store;
 
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.StoreTestUtils;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.common.store.datasource.LevelDbDataSource;
+import io.yggdrash.core.blockchain.Branch;
+import io.yggdrash.core.blockchain.BranchContract;
 import org.assertj.core.api.Assertions;
 import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 public class MetaStoreTest {
     private MetaStore ms;
-    private static final BranchId BRANCH_ID = BranchId.NULL;
+    Logger log = LoggerFactory.getLogger(TempStateStoreTest.class);
+
+    @Before
+    public void setUp() {
+        this.ms = new MetaStore(new HashMapDbSource());
+    }
 
     @After
     public void tearDown() {
-        StoreTestUtils.clearTestDb();
+        this.ms.close();
     }
 
     @Test
     public void shouldBeLoaded() {
-        ms = createMetaStore();
         BlockHusk blockHusk = BlockChainTestUtils.genesisBlock();
         ms.setBestBlockHash(blockHusk.getHash());
 
         Sha3Hash sha3Hash = ms.getBestBlockHash();
         Assertions.assertThat(sha3Hash).isEqualTo(blockHusk.getHash());
 
-        ms.close();
-        ms = createMetaStore();
         Sha3Hash sha3HashAgain = ms.getBestBlockHash();
         Assertions.assertThat(sha3HashAgain).isEqualTo(sha3Hash);
     }
 
     @Test
     public void shouldBePutMeta() {
-        ms = createMetaStore();
         BlockHusk blockHusk = BlockChainTestUtils.genesisBlock();
         ms.setBestBlock(blockHusk);
         Long bestBlock = ms.getBestBlock();
@@ -60,8 +69,73 @@ public class MetaStoreTest {
         Assertions.assertThat(bestBlock).isEqualTo(blockHusk.getIndex());
     }
 
-    private MetaStore createMetaStore() {
-        LevelDbDataSource ds = new LevelDbDataSource(StoreTestUtils.getTestPath(), "meta");
-        return new MetaStore(ds);
+    @Test
+    public void getSetGenesisBlock() {
+        BlockHusk blockHusk = BlockChainTestUtils.genesisBlock();
+        ms.setGenesisBlockHash(blockHusk.getHash());
+
+        Sha3Hash genesis = ms.getGenesisBlockHash();
+        log.debug(blockHusk.getHash().toString());
+        log.debug(genesis.toString());
+
+        assert genesis.equals(blockHusk.getHash());
+
+        Sha3Hash otherGenesisBlock = new Sha3Hash("TEST".getBytes());
+        assert !ms.setGenesisBlockHash(otherGenesisBlock);
+
+        assert ms.getGenesisBlockHash().equals(genesis);
     }
+
+    @Test
+    public void getSetBranch() {
+        TestConstants.yggdrash();
+        Branch branch = TestConstants.TEST_BRANCH;
+        ms.setBranch(branch);
+
+        Branch loadBranch = ms.getBranch();
+        assert branch.getBranchId().equals(loadBranch.getBranchId());
+        assert ms.getBranchId().equals(branch.getBranchId());
+    }
+
+
+    @Test
+    public void getSetValidators() throws IOException {
+        Set<String> validators = new HashSet<>();
+        validators.add("TEST1");
+        validators.add("TEST2");
+        validators.add("TEST3");
+
+        ms.setValidators(validators);
+        assert ms.getValidators().contains("TEST1");
+
+        validators.remove("TEST1");
+        assert ms.getValidators().contains("TEST1");
+
+        ms.setValidators(validators);
+        assert !ms.getValidators().contains("TEST1");
+
+        ms.addValidator("TEST1");
+        assert ms.getValidators().contains("TEST1");
+
+        ms.removeValidator("TEST1");
+        assert !ms.getValidators().contains("TEST1");
+    }
+
+
+    @Test
+    public void branchContracts() {
+        TestConstants.yggdrash();
+        Branch branch = TestConstants.TEST_BRANCH;
+        List<BranchContract> bc = branch.getBranchContracts();
+        ms.setBranchContracts(bc);
+
+        List<BranchContract> bc2 = ms.getBranchContacts();
+
+        assert !bc.equals(bc2);
+        assert bc.size() == bc2.size();
+        assert bc.get(0).getContractVersion().equals(bc2.get(0).getContractVersion());
+        assert bc.get(bc.size()-1).getInit().toString()
+                .equals(bc2.get(bc2.size()-1).getInit().toString());
+    }
+
 }
