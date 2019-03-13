@@ -33,6 +33,10 @@ public class PeerNetworkMock implements PeerNetwork {
     }
 
     @Override
+    public void destroy() {
+    }
+
+    @Override
     public void addNetwork(BranchId branchId) {
     }
 

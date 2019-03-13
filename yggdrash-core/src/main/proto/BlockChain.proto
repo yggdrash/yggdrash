@@ -6,26 +6,16 @@ option java_package = "io.yggdrash.proto";
 option java_outer_classname = "NetProto";
 
 service BlockChain {
-    // Client to server messaging RPC
-    rpc simpleSyncBlock (SyncLimit) returns (BlockList) {
-    }
-    rpc simpleSyncTransaction (SyncLimit) returns (TransactionList) {
-    }
-
     // Client to server simple RPC
-    rpc simpleBroadcastBlock (Block) returns (Empty) {
+    rpc syncBlock (SyncLimit) returns (BlockList) {
     }
-    rpc simpleBroadcastTransaction (Transaction) returns (Empty) {
+    rpc syncTx (SyncLimit) returns (TransactionList) {
     }
 
-    // Bidirectional streaming RPC
-    rpc syncBlock (stream SyncLimit) returns (stream BlockList) {
+    // Client to server streaming RPC.
+    rpc broadcastBlock (stream Block) returns (Empty) {
     }
-    rpc syncTx (stream SyncLimit) returns (stream TransactionList) {
-    }
-    rpc broadcastBlock (stream Block) returns (stream Empty) {
-    }
-    rpc broadcastTx (stream Transaction) returns (stream Empty) {
+    rpc broadcastTx (stream Transaction) returns (Empty) {
     }
 }
 

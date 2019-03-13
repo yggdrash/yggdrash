@@ -71,8 +71,8 @@ public class NodeSyncLimitTest extends TcpNodeTest {
         // act sync block
         node2.bootstrapping();
 
-        node1.destory();
-        node2.destory();
+        node1.shutdown();
+        node2.shutdown();
 
         // assert
         assertThat(node2.getDefaultBranch().getLastIndex()).isEqualTo(node1.getDefaultBranch().getLastIndex());

@@ -286,6 +286,10 @@ public class BlockChain {
     }
 
     public TransactionHusk addTransaction(TransactionHusk tx) {
+        return addTransaction(tx, true);
+    }
+
+    public TransactionHusk addTransaction(TransactionHusk tx, boolean broadcast) {
         if (transactionStore.contains(tx.getHash())) {
             return null;
         } else if (!tx.verify()) {
@@ -294,12 +298,12 @@ public class BlockChain {
 
         try {
             transactionStore.put(tx.getHash(), tx);
-            if (!listenerList.isEmpty()) {
+            if (!listenerList.isEmpty() && broadcast) {
                 listenerList.forEach(listener -> listener.receivedTransaction(tx));
             }
             return tx;
         } catch (Exception e) {
-            throw new FailedOperationException("Transaction");
+            throw new FailedOperationException(e);
         }
     }
 

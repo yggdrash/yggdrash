@@ -34,6 +34,7 @@ import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -44,10 +45,11 @@ public class GRpcPeerHandler implements PeerHandler {
     private static final Logger log = LoggerFactory.getLogger(GRpcPeerHandler.class);
     private static final int DEFAULT_LIMIT = 10000;
 
-    private final ManagedChannel channel;
-    private final PeerGrpc.PeerBlockingStub blockingPeerStub;
-    private final BlockChainGrpc.BlockChainStub asyncStub;
     private final Peer peer;
+
+    private final ManagedChannel channel;
+    private final PeerGrpc.PeerBlockingStub peerBlockingStub;
+    private final BlockChainGrpc.BlockChainStub blockChainAsyncStub;
     private final StreamObserver<NetProto.Empty> emptyResponseStreamObserver;
     private StreamObserver<Proto.Block> broadcastBlockRequestObserver;
     private StreamObserver<Proto.Transaction> broadcastTxRequestObserver;
@@ -60,8 +62,8 @@ public class GRpcPeerHandler implements PeerHandler {
     GRpcPeerHandler(ManagedChannel channel, Peer peer) {
         this.channel = channel;
         this.peer = peer;
-        this.blockingPeerStub = PeerGrpc.newBlockingStub(channel);
-        this.asyncStub =  BlockChainGrpc.newStub(channel);
+        this.peerBlockingStub = PeerGrpc.newBlockingStub(channel);
+        this.blockChainAsyncStub = BlockChainGrpc.newStub(channel);
         this.emptyResponseStreamObserver =
                 new StreamObserver<NetProto.Empty>() {
                     @Override
@@ -91,7 +93,7 @@ public class GRpcPeerHandler implements PeerHandler {
                 .setPort(peer.getPort())
                 .setBranch(ByteString.copyFrom(branchId.getBytes()))
                 .build();
-        return blockingPeerStub.findPeers(targetPeer).getPeersList().stream()
+        return peerBlockingStub.findPeers(targetPeer).getPeersList().stream()
                 .map(peerInfo -> Peer.valueOf(peerInfo.getUrl()))
                 .collect(Collectors.toList());
     }
@@ -103,7 +105,7 @@ public class GRpcPeerHandler implements PeerHandler {
                 .setTo(peer.getYnodeUri())
                 .setBranch(ByteString.copyFrom(branchId.getBytes()))
                 .build();
-        return blockingPeerStub.ping(request).getPong();
+        return peerBlockingStub.ping(request).getPong();
     }
 
     @Override
@@ -115,65 +117,24 @@ public class GRpcPeerHandler implements PeerHandler {
     public void stop() {
         log.debug("Stop for peer=" + peer.getYnodeUri());
 
-        if (channel != null && !channel.isTerminated()) {
+        if (isAlive()) {
             if (broadcastBlockRequestObserver != null) {
-                broadcastBlockRequestObserver.onCompleted();
+                try {
+                    broadcastBlockRequestObserver.onCompleted();
+                } catch (Exception e) {
+                    log.warn(e.getMessage());
+                }
             }
             if (broadcastTxRequestObserver != null) {
-                broadcastTxRequestObserver.onCompleted();
+                try {
+                    broadcastTxRequestObserver.onCompleted();
+                } catch (Exception e) {
+                    log.warn(e.getMessage());
+                }
             }
             channel.shutdown();
         }
     }
-
-    ///**
-    // * Sync block request
-    // *
-    // * @param offset the start block index to sync
-    // * @return the block list
-    // */
-    /*
-    @Override
-    public List<BlockHusk> simpleSyncBlock(BranchId branchId, long offset) {
-        SyncLimit syncLimit = SyncLimit.newBuilder()
-                .setOffset(offset)
-                .setLimit(DEFAULT_LIMIT)
-                .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
-        return blockingBlockChainStub.simpleSyncBlock(syncLimit).getBlocksList().stream()
-                .map(BlockHusk::new)
-                .collect(Collectors.toList());
-    }
-    */
-
-    ///**
-    // * Sync transaction request
-    // *
-    // * @return the transaction list
-    // */
-    /*
-    @Override
-    public List<TransactionHusk> simpleSyncTransaction(BranchId branchId) {
-        SyncLimit syncLimit = SyncLimit.newBuilder()
-                .setBranch(ByteString.copyFrom(branchId.getBytes())).build();
-        return blockingBlockChainStub.simpleSyncTransaction(syncLimit).getTransactionsList().stream()
-                .map(TransactionHusk::new)
-                .collect(Collectors.toList());
-    }
-    */
-
-    /*
-    @Override
-    public void simpleBroadcastTransaction(TransactionHusk tx) {
-        log.trace("Broadcasting txs -> {}", tx.getHash());
-        blockingPeerStub.simpleBroadcastTransaction(tx.getInstance());
-    }
-
-    @Override
-    public void simpleBroadcastBlock(BlockHusk block) {
-        log.trace("Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
-        blockingPeerStub.simpleBroadcastBlock(block.getInstance());
-    }
-    */
 
     @Override
     public Future<List<BlockHusk>> syncBlock(BranchId branchId, long offset) {
@@ -187,7 +148,7 @@ public class GRpcPeerHandler implements PeerHandler {
 
         CompletableFuture<List<BlockHusk>> husksCompletableFuture = new CompletableFuture<>();
 
-        StreamObserver<SyncLimit> requestObserver = asyncStub.syncBlock(
+        blockChainAsyncStub.syncBlock(syncLimit,
                 new StreamObserver<Proto.BlockList>() {
                     @Override
                     public void onNext(Proto.BlockList blockList) {
@@ -200,24 +161,16 @@ public class GRpcPeerHandler implements PeerHandler {
                     @Override
                     public void onError(Throwable t) {
                         log.debug("[PeerHandler] Sync Block Failed: {}", Status.fromThrowable(t));
+                        husksCompletableFuture.completeExceptionally(t);
                     }
 
                     @Override
                     public void onCompleted() {
                         log.debug("[PeerHandler] Sync Block Finished");
+                        husksCompletableFuture.complete(Collections.emptyList());
                     }
                 }
         );
-
-        try {
-            requestObserver.onNext(syncLimit);
-        } catch (RuntimeException e) {
-            // Cancel RPC
-            log.debug("[PeerHandler] Cancel Sync Block RPC: {}", e.getMessage(), e);
-        }
-
-        // Mark the end of requests
-        requestObserver.onCompleted();
 
         return husksCompletableFuture;
     }
@@ -231,7 +184,7 @@ public class GRpcPeerHandler implements PeerHandler {
 
         CompletableFuture<List<TransactionHusk>> husksCompletableFuture = new CompletableFuture<>();
 
-        StreamObserver<SyncLimit> requestObserver = asyncStub.syncTx(
+        blockChainAsyncStub.syncTx(syncLimit,
                 new StreamObserver<Proto.TransactionList>() {
                     @Override
                     public void onNext(Proto.TransactionList txList) {
@@ -245,24 +198,16 @@ public class GRpcPeerHandler implements PeerHandler {
                     @Override
                     public void onError(Throwable t) {
                         log.debug("[PeerHandler] Sync Block Failed: {}", Status.fromThrowable(t));
+                        husksCompletableFuture.completeExceptionally(t);
                     }
 
                     @Override
                     public void onCompleted() {
                         log.debug("[PeerHandler] Sync Tx Finished");
+                        husksCompletableFuture.complete(Collections.emptyList());
                     }
                 }
         );
-
-        try {
-            requestObserver.onNext(syncLimit);
-        } catch (RuntimeException e) {
-            // Cancel RPC
-            log.debug("[PeerHandler] Cancel Sync Tx RPC: {}", e.getMessage(), e);
-        }
-
-        // Mark the end of requests
-        requestObserver.onCompleted();
 
         return husksCompletableFuture;
     }
@@ -275,15 +220,10 @@ public class GRpcPeerHandler implements PeerHandler {
 
         if (this.broadcastBlockRequestObserver == null) {
             this.broadcastBlockRequestObserver =
-                    asyncStub.broadcastBlock(emptyResponseStreamObserver);
+                    blockChainAsyncStub.broadcastBlock(emptyResponseStreamObserver);
         }
 
-        try {
-            broadcastBlockRequestObserver.onNext(blockHusk.getInstance());
-        } catch (RuntimeException e) {
-            // Cancel RPC
-            log.debug("[PeerHandler] Cancel Broadcast Block RPC: {}", e.getMessage(), e);
-        }
+        broadcastBlockRequestObserver.onNext(blockHusk.getInstance());
     }
 
     @Override
@@ -291,84 +231,13 @@ public class GRpcPeerHandler implements PeerHandler {
         log.debug("Broadcasting txs -> {}", txHusk.getHash());
 
         if (this.broadcastTxRequestObserver == null) {
-            this.broadcastTxRequestObserver = asyncStub.broadcastTx(emptyResponseStreamObserver);
+            this.broadcastTxRequestObserver = blockChainAsyncStub.broadcastTx(emptyResponseStreamObserver);
         }
 
-        try {
-            broadcastTxRequestObserver.onNext(txHusk.getInstance());
-        } catch (RuntimeException e) {
-            // Cancel RPC
-            log.debug("[PeerHandler] Cancel Broadcast Tx RPC: {}", e.getMessage(), e);
-        }
+        broadcastTxRequestObserver.onNext(txHusk.getInstance());
     }
 
-    /*
-    @Override
-    public void broadcastBlock(BlockHusk blockHusk) {
-        log.debug("Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
-
-        StreamObserver<Proto.Block> requestObserver = asyncStub.broadcastBlock(
-                new StreamObserver<NetProto.Empty>() {
-                    @Override
-                    public void onNext(NetProto.Empty empty) {
-                        log.debug("[PeerHandler] Empty Received");
-                    }
-
-                    @Override
-                    public void onError(Throwable t) {
-                        log.debug("[PeerHandler] Broadcast Block Failed: {}", Status.fromThrowable(t));
-                    }
-
-                    @Override
-                    public void onCompleted() {
-                        log.debug("[PeerHandler] Broadcast Block Finished");
-                    }
-                }
-        );
-
-        try {
-            log.debug("[PeerHandler] onNext: index=[{}]", blockHusk.getIndex());
-            requestObserver.onNext(blockHusk.getInstance());
-        } catch (RuntimeException e) {
-            // Cancel RPC
-            log.debug("[PeerHandler] Cancel Broadcast Block RPC: {}", e.getMessage(), e);
-        }
-        //requestObserver.onCompleted();
+    private boolean isAlive() {
+        return channel != null && !channel.isTerminated() && !channel.isShutdown();
     }
-
-    @Override
-    public void broadcastTx(TransactionHusk txHusk) {
-        log.debug("Broadcasting txs -> {}", txHusk.getHash());
-
-        StreamObserver<Proto.Transaction> requestObserver = asyncStub.broadcastTx(
-                new StreamObserver<NetProto.Empty>() {
-                    @Override
-                    public void onNext(NetProto.Empty value) {
-                        log.debug("[PeerHandler] Empty Received");
-                    }
-
-                    @Override
-                    public void onError(Throwable t) {
-                        log.debug("[PeerHandler] Broadcast Tx Failed: {}", Status.fromThrowable(t));
-                    }
-
-                    @Override
-                    public void onCompleted() {
-                        log.debug("[PeerHandler] Broadcast Tx Finished");
-                    }
-                }
-        );
-
-        try {
-            requestObserver.onNext(txHusk.getInstance());
-        } catch (RuntimeException e) {
-            // Cancel RPC
-            log.debug("[PeerHandler] Cancel Broadcast Tx RPC: {}", e.getMessage(), e);
-        }
-
-        // Mark the end of requests
-        //requestObserver.onCompleted();
-
-    }
-    */
 }
