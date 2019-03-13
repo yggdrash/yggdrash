@@ -2,6 +2,7 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
@@ -15,19 +16,37 @@ public class BlockChainServiceConsumerTest {
     private BranchGroup branchGroup;
     private BlockChainServiceConsumer blockChainServiceConsumer;
     private static final BranchId branchId = TestConstants.yggdrash();
+    private BlockChain branch;
 
     @Before
     public void setUp() {
         this.branchGroup = BlockChainTestUtils.createBranchGroup();
+        this.branch = branchGroup.getBranch(branchId);
         blockChainServiceConsumer = new BlockChainServiceConsumer(branchGroup);
     }
 
     @Test
     public void syncBlock() {
-        List<BlockHusk> blockHuskList =
-                blockChainServiceConsumer.syncBlock(branchId, 0, 10);
+        blockChainServiceConsumer.setListener(BlockChainSyncManagerMock.getMockWithBranchGroup(branchGroup));
 
-        Assert.assertEquals(blockHuskList.size(), 1);
+        Assert.assertEquals(0, branch.getLastIndex());
+
+        List<BlockHusk> blockHuskList =
+                blockChainServiceConsumer.syncBlock(branchId, 1, 10);
+
+        Assert.assertEquals(0, blockHuskList.size());
+        Assert.assertEquals(99, branch.getLastIndex());
+    }
+
+    @Test
+    public void syncBLockRequestingCatchUp() {
+        BlockChainTestUtils.setBlockHeightOfBlockChain(branch, 10);
+
+        List<BlockHusk> blockHuskList =
+                blockChainServiceConsumer.syncBlock(branchId, 3, 10);
+
+        Assert.assertEquals(8, blockHuskList.size());
+        Assert.assertEquals(10, branch.getLastIndex());
     }
 
     @Test

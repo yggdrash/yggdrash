@@ -43,14 +43,14 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
         this.listener = listener;
     }
 
-    private boolean isValidRequest(long curIndex, long reqIndex, Peer from) {
+    private boolean isNeedBlockSync(long curIndex, long reqIndex, Peer from) {
         // TODO limit maxDiff
         long maxDiffBetweenCurrentAndReceivedBlockHeight = 10000;
         if (curIndex < reqIndex) {
             long diff = reqIndex - curIndex;
+            // TODO 'from' is a bad peer if 'diff' is greater then 10000. Add 'from' peer to the blackList.
             return diff < maxDiffBetweenCurrentAndReceivedBlockHeight;
         }
-        // TODO 'from' is a bad peer! Add 'from' peer to the blacklist
         return false;
     }
 
@@ -63,7 +63,7 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
     public List<BlockHusk> syncBlock(BranchId branchId, long offset, long limit, Peer from) {
         long curBestBlock = branchGroup.getLastIndex(branchId);
         List<BlockHusk> blockHuskList = new ArrayList<>();
-        if (isValidRequest(curBestBlock, offset, from)) {
+        if (isNeedBlockSync(curBestBlock, offset, from)) {
             // Catchup Event!
             if (listener != null) {
                 listener.catchUpRequest(branchId, offset);
