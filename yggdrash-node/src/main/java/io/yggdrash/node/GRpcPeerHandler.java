@@ -34,6 +34,7 @@ import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
@@ -116,12 +117,20 @@ public class GRpcPeerHandler implements PeerHandler {
     public void stop() {
         log.debug("Stop for peer=" + peer.getYnodeUri());
 
-        if (channel != null && !channel.isTerminated()) {
+        if (isAlive()) {
             if (broadcastBlockRequestObserver != null) {
-                broadcastBlockRequestObserver.onCompleted();
+                try {
+                    broadcastBlockRequestObserver.onCompleted();
+                } catch (Exception e) {
+                    log.warn(e.getMessage());
+                }
             }
             if (broadcastTxRequestObserver != null) {
-                broadcastTxRequestObserver.onCompleted();
+                try {
+                    broadcastTxRequestObserver.onCompleted();
+                } catch (Exception e) {
+                    log.warn(e.getMessage());
+                }
             }
             channel.shutdown();
         }
@@ -152,11 +161,13 @@ public class GRpcPeerHandler implements PeerHandler {
                     @Override
                     public void onError(Throwable t) {
                         log.debug("[PeerHandler] Sync Block Failed: {}", Status.fromThrowable(t));
+                        husksCompletableFuture.completeExceptionally(t);
                     }
 
                     @Override
                     public void onCompleted() {
                         log.debug("[PeerHandler] Sync Block Finished");
+                        husksCompletableFuture.complete(Collections.emptyList());
                     }
                 }
         );
@@ -187,11 +198,13 @@ public class GRpcPeerHandler implements PeerHandler {
                     @Override
                     public void onError(Throwable t) {
                         log.debug("[PeerHandler] Sync Block Failed: {}", Status.fromThrowable(t));
+                        husksCompletableFuture.completeExceptionally(t);
                     }
 
                     @Override
                     public void onCompleted() {
                         log.debug("[PeerHandler] Sync Tx Finished");
+                        husksCompletableFuture.complete(Collections.emptyList());
                     }
                 }
         );
@@ -222,5 +235,9 @@ public class GRpcPeerHandler implements PeerHandler {
         }
 
         broadcastTxRequestObserver.onNext(txHusk.getInstance());
+    }
+
+    private boolean isAlive() {
+        return channel != null && !channel.isTerminated() && !channel.isShutdown();
     }
 }

@@ -16,6 +16,7 @@
 
 package io.yggdrash.node.sync;
 
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.node.AbstractNodeTest;
 import org.junit.Assert;
 import org.junit.Test;
@@ -69,8 +70,10 @@ public class NodeSyncTest extends AbstractNodeTest {
         nodeList.get(node1).peerTask.healthCheck();
         generateBlock(node1, 1);
 
-        nodeList.get(node1).destory();
-        nodeList.get(node2).destory();
+        Utils.sleep(500); // wait for broadcast
+
+        nodeList.get(node1).shutdown();
+        nodeList.get(node2).shutdown();
 
         // assert
         Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(),
