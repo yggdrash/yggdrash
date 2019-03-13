@@ -2,9 +2,8 @@ package io.yggdrash.core.blockchain.osgi;
 
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.store.StateStore;
-import io.yggdrash.core.blockchain.BranchContract;
+import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import java.util.List;
 import java.util.Map;
 import org.osgi.framework.launch.FrameworkFactory;
 
@@ -12,7 +11,6 @@ public class ContractContainerBuilder {
     private FrameworkFactory frameworkFactory;
     private Map<String, String> containerConfig;
     private String branchId;
-    private List<BranchContract> contracts;
     private StateStore stateStore;
     private TransactionReceiptStore transactionReceiptStore;
     private DefaultConfig config;

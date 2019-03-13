@@ -230,17 +230,24 @@ public class ContractContainer {
         }
     }
 
-    // TODO check File Exists
-    public void loadUserContract(List<BranchContract> contracts) {
+    public void loadUserContract(List<String> userContracts) {
+        for(String contract : userContracts) {
+            contractManager.install(contract, false);
+        }
+    }
+
+
+    public void copyUserContract(List<BranchContract> contracts) {
         contracts.stream().forEach(c -> {
             URL inputUrl = getClass().getResource(
                     String.format("%s/%s.jar", config.getContractPath(), c.getContractVersion()));
             // Check contract file verify
-            File dest = new File(
+            File destination = new File(
                     contractManager.makeContractPath(c.getContractVersion()+".jar", false));
-            if (!dest.exists()) {
+            // TODO check File Version verify
+            if (!destination.exists()) {
                 try {
-                    FileUtils.copyURLToFile(inputUrl, dest);
+                    FileUtils.copyURLToFile(inputUrl, destination);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }

@@ -23,7 +23,6 @@ import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
-import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.runtime.Runtime;
@@ -41,6 +40,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class BlockChain {
 
@@ -100,11 +100,14 @@ public class BlockChain {
         // load User Contracts
         List<BranchContract> contracts = this.metaStore.getBranchContacts();
         // copy contract to folder
-        contractContainer.loadUserContract(contracts);
+        contractContainer.copyUserContract(contracts);
 
         // install contract in osgi
-        ContractManager manager = contractContainer.getContractManager();
-        contracts.stream().forEach(c -> manager.install(c.getContractVersion().toString(), false));
+        List<String> contractList = contracts
+                .stream()
+                .map(c -> c.getContractVersion().toString())
+                .collect(Collectors.toList());
+        contractContainer.loadUserContract(contractList);
 
         // inject UserContracts
         try {
