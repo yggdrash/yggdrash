@@ -25,6 +25,8 @@ import java.util.List;
 public interface PeerNetwork extends BranchEventListener {
     void init();
 
+    void destroy();
+
     void addNetwork(BranchId branchId);
 
     List<PeerHandler> getHandlerList(BranchId branchId);

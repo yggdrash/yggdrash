@@ -9,6 +9,7 @@ import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.JsonUtil;
@@ -16,7 +17,6 @@ import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
-import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.BranchDto;
 import io.yggdrash.gateway.dto.TransactionDto;
@@ -159,7 +159,7 @@ public class NodeContractDemoClient {
             BranchDto branchDto = branch.get().getValue();
             branchDto.contracts.forEach(contract -> {
                 if ("STEM".equals(contract.get("name"))) {
-                    stemContract = ContractVersion.of((String) contract.get("contractVersion"));
+                    stemContract = ContractVersion.ofNonHex((String) contract.get("contractVersion"));
                 } else if ("YEED".equals(contract.get("name"))) {
                     yeedContract = ContractVersion.ofNonHex((String) contract.get("contractVersion"));
                 }
