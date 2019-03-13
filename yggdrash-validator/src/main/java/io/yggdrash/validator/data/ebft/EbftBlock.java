@@ -35,12 +35,19 @@ import java.util.List;
 public class EbftBlock implements ConsensusBlock {
     private static final Logger log = LoggerFactory.getLogger(EbftBlock.class);
 
-    private static final int BLOCK_HEADER_LENGTH = 124;
-    private static final int SIGNATURE_LENGTH = 65;
-    private static final int MAX_VALIDATOR_COUNT = 100;
-
     private Block block;
     private final List<String> consensusList = new ArrayList<>();
+
+    public EbftBlock(Block block, List<String> consensusList) {
+        this.block = block;
+        if (consensusList != null) {
+            this.consensusList.addAll(consensusList);
+        }
+    }
+
+    public EbftBlock(Block block) {
+        this(block, null);
+    }
 
     public EbftBlock(byte[] bytes) {
         this(JsonUtil.parseJsonObject(new String(bytes, StandardCharsets.UTF_8)));
@@ -54,17 +61,6 @@ public class EbftBlock implements ConsensusBlock {
             for (JsonElement jsonElement : consensusJsonElement.getAsJsonArray()) {
                 this.consensusList.add(jsonElement.getAsString());
             }
-        }
-    }
-
-    public EbftBlock(Block block) {
-        this(block, null);
-    }
-
-    public EbftBlock(Block block, List<String> consensusList) {
-        this.block = block;
-        if (consensusList != null) {
-            this.consensusList.addAll(consensusList);
         }
     }
 
@@ -153,8 +149,12 @@ public class EbftBlock implements ConsensusBlock {
 
     @Override
     public boolean verify() {
+        if (this.block == null) {
+            return false;
+        }
+
         // todo: check consensuses whether validator's signatures or not
-        return getBlock().verify();
+        return this.block.verify();
     }
 
     public static boolean verify(EbftBlock ebftBlock) {
@@ -175,11 +175,9 @@ public class EbftBlock implements ConsensusBlock {
 
     public static EbftProto.EbftBlockList toProtoList(Collection<EbftBlock> collection) {
         EbftProto.EbftBlockList.Builder builder = EbftProto.EbftBlockList.newBuilder();
-
         for (EbftBlock ebftBlock : collection) {
             builder.addEbftBlockList(EbftBlock.toProto(ebftBlock));
         }
-
         return builder.build();
     }
 
