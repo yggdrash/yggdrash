@@ -42,7 +42,7 @@ public class TransactionReceiptImpl implements TransactionReceipt {
 
     public TransactionReceiptImpl(TransactionHusk tx) {
         this.txId = tx.getHash().toString();
-        this.txSize = Long.valueOf(tx.getBody().length());
+        this.txSize = tx.getCoreTransaction().getHeader().getBodyLength();
 
         if (tx.getAddress() != null) {
             this.issuer = tx.getAddress().toString();

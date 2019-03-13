@@ -30,6 +30,7 @@ import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchBuilder;
 import io.yggdrash.core.blockchain.BranchId;
+import org.apache.commons.codec.binary.Base64;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -52,8 +53,8 @@ import static org.junit.Assert.assertTrue;
 public class StemContractTest {
 
     private static final Logger log = LoggerFactory.getLogger(StemContractTest.class);
+    private static final StemContract.StemService stemContract = new StemContract.StemService();
 
-    private StemContract stemContract;
     private StemContractStateValue stateValue;
     private Field txReceiptField;
     private StateStore<JsonObject> stateStore;
@@ -62,8 +63,6 @@ public class StemContractTest {
     @Before
     public void setUp() throws IllegalAccessException {
         stateStore = new StateStore<>(new HashMapDbSource());
-
-        stemContract = new StemContract();
 
         JsonObject params = ContractTestUtils.createSampleBranchJson();
         stateValue = StemContractStateValue.of(params);
@@ -136,6 +135,12 @@ public class StemContractTest {
         String branchId = branch.get("branchId").getAsString();
         JsonObject saved = stateStore.get(branchId);
         assertThat(saved.get("validator").equals(validatorSet));
+    }
+
+    @Test
+    public void test() {
+        JsonObject params = createContractParam();
+        System.out.println(params);
     }
 
     @Test
@@ -232,6 +237,22 @@ public class StemContractTest {
         params.addProperty("validator", "2df39824c5121c8ad04730d0c0e7212642b37108");
         params.addProperty("fee", BigDecimal.valueOf(2000));
         return params;
+    }
+
+    private JsonObject createContractParam() {
+        JsonObject params = new JsonObject();
+        params.addProperty(BRANCH_ID, stateValue.getBranchId().toString());
+        params.addProperty("contract", "user-contract-1.0.0.jar");
+        return params;
+    }
+
+    private void base64(String text) {
+        byte[] encodedBytes = Base64.encodeBase64(text.getBytes());
+        byte[] decodedBytes = Base64.decodeBase64(encodedBytes);
+        System.out.println(encodedBytes.length);
+        System.out.println("인코딩 전 : " + text);
+        System.out.println("인코딩 text : " + new String(encodedBytes));
+        System.out.println("디코딩 text : " + new String(decodedBytes));
     }
 
     private static JsonObject getEthToYeedBranch(String description) {
