@@ -65,7 +65,7 @@ public class DPoAContractTest {
 
     @Test
     public void test(){
-        String a = "systemdpoa-contract";
+        String a = "system-dpoa-contract";
         System.out.println(a.matches("[0-9]*[-]*system-.*"));
     }
 

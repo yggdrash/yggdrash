@@ -42,10 +42,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Ignore
 public class RuntimeTest {
     private static final Logger log = LoggerFactory.getLogger(RuntimeTest.class);
+    private static final StemContract.StemService stemContract = new StemContract.StemService();
 
     @Test
     public void yeedRuntimeTest() {
-        StemContract contract = new StemContract();
         ContractVersion coinContract = Constants.YEED_CONTRACT_VERSION;
         Runtime runtime =
                 new Runtime<>(
@@ -59,7 +59,7 @@ public class RuntimeTest {
                 + " {\"balance\": \"998000000000\"}}}";
 
         JsonObject genesisParams = JsonUtil.parseJsonObject(genesisStr);
-        runtime.addContract(coinContract, contract);
+        runtime.addContract(coinContract, stemContract);
 
         BranchId branchId = TestConstants.yggdrash();
 
@@ -80,14 +80,14 @@ public class RuntimeTest {
 
     @Test
     public void stemRuntimeTest() {
-        ContractVersion stemContract = Constants.STEM_CONTRACT_VERSION;
+        ContractVersion version = Constants.STEM_CONTRACT_VERSION;
 
         StemContract contract = new StemContract();
         Runtime<JsonObject> runtime =
                 new Runtime<>(
                         new StateStore<>(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource()));
-        runtime.addContract(stemContract, contract);
+        runtime.addContract(version, stemContract);
 
         JsonObject branch = ContractTestUtils.createSampleBranchJson();
 
@@ -95,7 +95,7 @@ public class RuntimeTest {
 
         TransactionBuilder builder = new TransactionBuilder();
         TransactionHusk testTx = builder.setBranchId(branchId)
-                .addTxBody(stemContract, "create", branch, false)
+                .addTxBody(version, "create", branch, false)
                 .setWallet(TestConstants.wallet())
                 .build();
 
