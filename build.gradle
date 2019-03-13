@@ -1,7 +1,7 @@
 import org.springframework.boot.gradle.tasks.bundling.BootJar
 
 plugins {
-    id 'org.springframework.boot' version '2.1.3.RELEASE' apply false
+    id 'org.springframework.boot' version '2.1.1.RELEASE' apply false
     id 'com.google.protobuf' version '0.8.7'
     id 'com.palantir.docker' version '0.21.0'
     id 'com.github.kt3k.coveralls' version '2.8.2'
@@ -124,8 +124,12 @@ project(':yggdrash-node') {
     apply plugin: 'io.spring.dependency-management'
 
     dependencies {
-        compile project(':yggdrash-core')
-        compile project(':yggdrash-gateway')
+        compile(project(':yggdrash-core')) {
+            exclude module: 'yggdrash-contract'
+        }
+        compile(project(':yggdrash-gateway')) {
+            exclude module: 'yggdrash-contract'
+        }
         compile "org.springframework.boot:spring-boot-starter-web"
         compile "org.springframework.boot:spring-boot-starter-undertow"
         compile "org.springframework.boot:spring-boot-starter-actuator"
@@ -219,13 +223,13 @@ task jacocoRootReport(type: JacocoReport) {
     description = 'Generates an aggregate report from all subprojects'
     dependsOn = subprojects.test
     sourceDirectories.from = subprojects.sourceSets.main.allSource.srcDirs
-    classDirectories.from =  subprojects.sourceSets.main.output
+    classDirectories.from = subprojects.sourceSets.main.output
     executionData.from = subprojects.jacocoTestReport.executionData
 
     afterEvaluate {
         classDirectories.from = classDirectories.files.collect {
             fileTree(dir: it,
-                exclude: ['io/yggdrash/proto/**']
+                    exclude: ['io/yggdrash/proto/**']
             )
         }
     }

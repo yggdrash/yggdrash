@@ -8,6 +8,7 @@ import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import static org.junit.Assert.assertEquals;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,6 +82,13 @@ public class BranchTest {
         assertThat(branch.getDescription()).isEqualTo(description);
         assertThat(branch.getTimestamp())
                 .isEqualTo(HexUtil.hexStringToLong(timestamp));
+
+        JsonObject toJson = branch.toJsonObject();
+        log.debug(toJson.toString());
+        Branch fromJson = Branch.of(toJson);
+        log.debug(fromJson.getJson().toString());
+        log.debug(branch.getJson().toString());
+        assertEquals(fromJson.getBranchId(), branch.getBranchId());
     }
 
 

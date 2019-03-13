@@ -15,8 +15,10 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class JsonUtil {
     private static final Logger log = LoggerFactory.getLogger(JsonUtil.class);
@@ -66,6 +68,15 @@ public class JsonUtil {
         }
         return stringList;
     }
+
+    public static Set<String> convertJsonArrayToSet(JsonArray array) {
+        Set<String> set = new HashSet<>();
+        for (JsonElement element : array) {
+            set.add(element.getAsString());
+        }
+        return set;
+    }
+
 
     public static String prettyFormat(String jsonString) {
         JsonParser parser = new JsonParser();
