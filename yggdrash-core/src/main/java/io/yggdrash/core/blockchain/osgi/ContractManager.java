@@ -73,7 +73,9 @@ public class ContractManager {
             return;
         }
 
-        boolean isSystemContract = bundle.getLocation().startsWith(String.format("%s%s", ContractContainer.PREFIX_BUNDLE_PATH, systemContractPath));
+        boolean isSystemContract = bundle.getLocation()
+                .startsWith(String.format("%s%s",
+                        ContractContainer.PREFIX_BUNDLE_PATH, systemContractPath));
 
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = framework.getBundleContext().getService(serviceRef);
@@ -85,6 +87,7 @@ public class ContractManager {
         for (Field field : fields) {
             field.setAccessible(true);
             for (Annotation annotation : field.getDeclaredAnnotations()) {
+                // TODO User Contract Store 를 분리할 것인지 결정 하고, 각 컨트렉트 별로 분리한다면, 추가, 분리 안하면 해당 코드 제거
                 if (isSystemContract) {
                     if (annotation.annotationType().equals(ContractStateStore.class)) {
                         field.set(o, stateStore);
@@ -163,7 +166,7 @@ public class ContractManager {
         return true;
     }
 
-    long install(String contractFileName, boolean isSystemContract) {
+    public long install(String contractFileName, boolean isSystemContract) {
         Bundle bundle;
         try {
             bundle = framework.getBundleContext().installBundle(makeContractFullPath(contractFileName, isSystemContract));

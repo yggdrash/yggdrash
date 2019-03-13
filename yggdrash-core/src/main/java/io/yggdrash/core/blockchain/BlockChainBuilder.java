@@ -17,19 +17,17 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.contract.Contract;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.blockchain.osgi.ContractContainerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
-import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -43,7 +41,6 @@ public class BlockChainBuilder {
     private BlockStore blockStore;
     private StateStore stateStore;
     private TransactionReceiptStore transactionReceiptStore;
-    private Runtime runtime;
 
     private ContractPolicyLoader policyLoader;
 
@@ -74,11 +71,6 @@ public class BlockChainBuilder {
 
     public BlockChainBuilder setStateStore(StateStore stateStore) {
         this.stateStore = stateStore;
-        return this;
-    }
-
-    public BlockChainBuilder setRuntime(Runtime runtime) {
-        this.runtime = runtime;
         return this;
     }
 

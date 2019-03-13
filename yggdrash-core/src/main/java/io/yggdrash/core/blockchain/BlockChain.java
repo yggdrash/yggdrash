@@ -23,6 +23,7 @@ import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.runtime.Runtime;
@@ -73,7 +74,6 @@ public class BlockChain {
         this.blockStore = blockStore;
         this.transactionStore = transactionStore;
         this.metaStore = metaStore;
-//        this.runtime = runtime;
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
         this.contractContainer = contractContainer;
@@ -97,6 +97,22 @@ public class BlockChain {
                 e.printStackTrace();
             }
         }
+        // load User Contracts
+        List<BranchContract> contracts = this.metaStore.getBranchContacts();
+        // copy contract to folder
+        contractContainer.loadUserContract(contracts);
+
+        // install contract in osgi
+        ContractManager manager = contractContainer.getContractManager();
+        contracts.stream().forEach(c -> manager.install(c.getContractVersion().toString(), false));
+
+        // inject UserContracts
+        try {
+            contractContainer.reloadInject();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        // Blockchain is Ready
     }
 
     private void initGenesis() {

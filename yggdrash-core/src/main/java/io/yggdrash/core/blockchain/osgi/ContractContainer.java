@@ -2,6 +2,7 @@ package io.yggdrash.core.blockchain.osgi;
 
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.store.StateStore;
+import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -23,7 +24,6 @@ import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 import org.osgi.service.permissionadmin.PermissionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FilePermission;
 import java.io.IOException;
@@ -58,8 +58,9 @@ public class ContractContainer {
 
     private ContractManager contractManager;
 
-    ContractContainer(FrameworkFactory frameworkFactory, Map<String, String> containerConfig, String branchId
-            , StateStore stateStore, TransactionReceiptStore transactionReceiptStore, DefaultConfig config) {
+    ContractContainer(FrameworkFactory frameworkFactory, Map<String, String> containerConfig,
+                      String branchId, StateStore stateStore,
+                      TransactionReceiptStore transactionReceiptStore, DefaultConfig config) {
         this.frameworkFactory = frameworkFactory;
         this.commonContainerConfig = containerConfig;
         this.branchId = branchId;
@@ -86,7 +87,12 @@ public class ContractContainer {
         try {
             framework.start();
             setDefaultPermission(branchId);
+            // TODO Change System contract
             List<String> copiedContracts = copySystemContractToContractPath();
+            //branchContracts.stream().filter(c -> {c.get})
+
+
+            // TODO Load User Contracts
             loadSystemContract(copiedContracts);
             contractManager.setSystemContracts(copiedContracts);
 
@@ -124,10 +130,11 @@ public class ContractContainer {
         }
 
         List<PermissionInfo> permissionInfos = new ArrayList<>();
-        permissionInfos.add(new PermissionInfo(PropertyPermission.class.getName(), "org.osgi.framework", "read"));
 
+        permissionInfos.add(new PermissionInfo(PropertyPermission.class.getName(), "org.osgi.framework", "read"));
         permissionInfos.add(new PermissionInfo(PropertyPermission.class.getName(), "com.fasterxml.jackson.core.util.BufferRecyclers.trackReusableBuffers", "read"));
         permissionInfos.add(new PermissionInfo(RuntimePermission.class.getName(), "*", "accessDeclaredMembers"));
+
         permissionInfos.add(new PermissionInfo(ReflectPermission.class.getName(), "*", "suppressAccessChecks"));
 
         permissionInfos.add(new PermissionInfo(PackagePermission.class.getName(), "*", "import,export,exportonly"));
@@ -223,7 +230,32 @@ public class ContractContainer {
         }
     }
 
+    // TODO check File Exists
+    public void loadUserContract(List<BranchContract> contracts) {
+        contracts.stream().forEach(c -> {
+            URL inputUrl = getClass().getResource(
+                    String.format("%s/%s.jar", config.getContractPath(), c.getContractVersion()));
+            // Check contract file verify
+            File dest = new File(
+                    contractManager.makeContractPath(c.getContractVersion()+".jar", false));
+            if (!dest.exists()) {
+                try {
+                    FileUtils.copyURLToFile(inputUrl, dest);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    }
+
+
     public ContractManager getContractManager() {
         return contractManager;
+    }
+
+    public void reloadInject() throws IllegalAccessException {
+        for (Bundle bundle : framework.getBundleContext().getBundles()) {
+            contractManager.inject(bundle);
+        }
     }
 }

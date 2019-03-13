@@ -25,6 +25,8 @@ import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
+import java.io.IOException;
+import java.io.InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +36,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 @Configuration
 @EnableScheduling
@@ -50,9 +49,11 @@ public class BranchConfiguration {
 
     @Autowired
     BranchConfiguration(StoreBuilder storeBuilder) {
+        log.info("Branch Path : {}", storeBuilder.getConfig().getBranchPath());
         this.storeBuilder = storeBuilder;
     }
 
+    // TODO Remove Default Branch Load
     @Bean
     @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
     BlockChain yggdrash(BranchGroup branchGroup, ContractPolicyLoader contractPolicyLoader) throws IOException {
@@ -93,7 +94,7 @@ public class BranchConfiguration {
     }
 
     private BlockChain createBranch(GenesisBlock genesis, ContractPolicyLoader policyLoader) {
-        log.info("createBranch {} {}",genesis.getBranch().getBranchId(), genesis.getBranch().getName());
+        log.info("createBranch {} {}", genesis.getBranch().getBranchId(), genesis.getBranch().getName());
         try {
             return BlockChainBuilder.Builder()
                     .addGenesis(genesis)
