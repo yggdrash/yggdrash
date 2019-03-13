@@ -25,7 +25,6 @@ import io.yggdrash.proto.Proto;
 import io.yggdrash.validator.data.ConsensusBlock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
@@ -63,6 +62,16 @@ public class PbftBlock implements ConsensusBlock {
     }
 
     @Override
+    public Block getBlock() {
+        return block;
+    }
+
+    @Override
+    public PbftMessageSet getConsensusMessages() {
+        return pbftMessageSet;
+    }
+
+    @Override
     public byte[] getChain() {
         return this.block.getChain();
     }
@@ -79,22 +88,12 @@ public class PbftBlock implements ConsensusBlock {
 
     @Override
     public String getHashHex() {
-        return Hex.toHexString(getHash());
+        return this.block.getHashHex();
     }
 
     @Override
     public byte[] getPrevBlockHash() {
-        return this.block.getHeader().getPrevBlockHash();
-    }
-
-    @Override
-    public Block getBlock() {
-        return block;
-    }
-
-    @Override
-    public PbftMessageSet getConsensusMessages() {
-        return pbftMessageSet;
+        return this.block.getPrevBlockHash();
     }
 
     @Override
@@ -135,25 +134,25 @@ public class PbftBlock implements ConsensusBlock {
 
     @Override
     public boolean verify() {
-        if (this.block == null || getConsensusMessages() == null) {
+        if (this.block == null) {
             return false;
-        }
-
-        if (getIndex() == 0) {
-            return getBlock().verify();
+        } else if (this.block.getIndex() == 0) {
+            return this.block.verify();
+        } else if (this.pbftMessageSet == null) {
+            return false;
         } else {
-            return getBlock().verify()
-                    && PbftMessageSet.verify(getConsensusMessages());
+            return this.block.verify()
+                    && PbftMessageSet.verify(this.pbftMessageSet);
         }
     }
 
     public static boolean verify(PbftBlock block) {
-        if (block == null || block.getBlock() == null || block.getConsensusMessages() == null) {
+        if (block == null || block.getBlock() == null) {
             return false;
-        }
-
-        if (block.getIndex() == 0) {
+        } else if (block.getIndex() == 0) {
             return block.getBlock().verify();
+        } else if (block.getConsensusMessages() == null) {
+            return false;
         } else {
             return block.getBlock().verify()
                     && PbftMessageSet.verify(block.getConsensusMessages());
