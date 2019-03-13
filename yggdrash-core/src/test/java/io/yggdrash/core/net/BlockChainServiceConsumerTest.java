@@ -12,6 +12,8 @@ import org.junit.Test;
 
 import java.util.List;
 
+import static org.junit.Assert.assertEquals;
+
 public class BlockChainServiceConsumerTest {
     private BranchGroup branchGroup;
     private BlockChainServiceConsumer blockChainServiceConsumer;
@@ -27,15 +29,15 @@ public class BlockChainServiceConsumerTest {
 
     @Test
     public void syncBlock() {
+        branchGroup.generateBlock(TestConstants.wallet(), branchId);
         blockChainServiceConsumer.setListener(BlockChainSyncManagerMock.getMockWithBranchGroup(branchGroup));
-
-        Assert.assertEquals(0, branch.getLastIndex());
+        Assert.assertEquals(1, branch.getLastIndex());
 
         List<BlockHusk> blockHuskList =
                 blockChainServiceConsumer.syncBlock(branchId, 1, 10);
 
-        Assert.assertEquals(0, blockHuskList.size());
-        Assert.assertEquals(99, branch.getLastIndex());
+        Assert.assertEquals(1, blockHuskList.size());
+        Assert.assertEquals(1, branch.getLastIndex());
     }
 
     @Test
@@ -51,19 +53,19 @@ public class BlockChainServiceConsumerTest {
 
     @Test
     public void syncTx() {
-        Assert.assertEquals(blockChainServiceConsumer.syncTx(branchId).size(), 0);
+        assertEquals(0, blockChainServiceConsumer.syncTx(branchId).size());
 
         blockChainServiceConsumer.broadcastTx(BlockChainTestUtils.createTransferTxHusk());
 
-        Assert.assertEquals(blockChainServiceConsumer.syncTx(branchId).size(), 1);
+        assertEquals(1, blockChainServiceConsumer.syncTx(branchId).size());
     }
 
     @Test
     public void broadcastBlock() {
-        Assert.assertEquals(branchGroup.getBranch(branchId).getLastIndex(), 0);
+        assertEquals(0, branchGroup.getBranch(branchId).getLastIndex());
 
         blockChainServiceConsumer.broadcastBlock(BlockChainTestUtils.createNextBlock());
 
-        Assert.assertEquals(branchGroup.getBranch(branchId).getLastIndex(), 1);
+        assertEquals(1, branchGroup.getBranch(branchId).getLastIndex());
     }
 }

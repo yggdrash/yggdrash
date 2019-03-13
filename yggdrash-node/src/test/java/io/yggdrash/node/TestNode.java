@@ -28,7 +28,7 @@ public class TestNode extends BootStrapNode {
     private static final Logger log = LoggerFactory.getLogger(TestNode.class);
     private final BranchId branchId = TestConstants.yggdrash();
 
-    public final int port;
+    final int port;
     Server server;
 
     // discovery specific
@@ -51,7 +51,7 @@ public class TestNode extends BootStrapNode {
     }
 
     private void p2pConfiguration(PeerHandlerFactory factory) {
-        this.nodeStatus = NodeStatusMock.mock;
+        this.nodeStatus = NodeStatusMock.create();
         this.peerDialer = new SimplePeerDialer(factory);
         this.peerTableGroup = PeerTestUtils.createTableGroup(port, peerDialer);
         this.discoveryConsumer = new DiscoveryServiceConsumer(peerTableGroup);
@@ -79,6 +79,9 @@ public class TestNode extends BootStrapNode {
         NetworkConfiguration config = new NetworkConfiguration();
         this.peerNetwork = config.peerNetwork(peerTableGroup, peerDialer, branchGroup);
         setSyncManager(config.syncManager(nodeStatus, peerNetwork, branchGroup));
+        if (blockChainConsumer != null) {
+            blockChainConsumer.setListener(getSyncManger());
+        }
     }
 
     public BranchGroup getBranchGroup() {
@@ -108,8 +111,14 @@ public class TestNode extends BootStrapNode {
 
     public void logDebugging() {
         PeerTable peerTable = peerTableGroup.getPeerTable(branchId);
-        log.info("{} => peer={}, bucket={}, active={}",
-                peerTableGroup.getOwner(),
+        String branchInfo = "";
+        if (getDefaultBranch() != null) {
+            branchInfo = String.format(" bestBlock=%d, txCnt=%d, unConfirmed=%d,", getDefaultBranch().getLastIndex(),
+                    getDefaultBranch().transactionCount(), branchGroup.getUnconfirmedTxs(branchId).size());
+        }
+
+        log.info("{} =>{} peer={}, bucket={}, active={}",
+                peerTableGroup.getOwner().toAddress(), branchInfo,
                 String.format("%3d", PeerTableCounter.of(peerTable).totalPeerOfBucket()),
                 peerTable.getBucketsCount(),
                 getActivePeerCount());
