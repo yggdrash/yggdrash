@@ -29,7 +29,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
 @RunWith(JUnit4.class)
-public class NetworkBroadcastTest extends AbstractNodeTest {
+public class SimpleTxBroadcastTest extends AbstractNodeTest {
 
     @Test
     public void test() {
