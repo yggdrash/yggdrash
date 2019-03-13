@@ -23,6 +23,7 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.AESEncrypt;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.crypto.Password;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.FileUtil;
@@ -232,6 +233,17 @@ public class Wallet {
     }
 
     /**
+     * Sign the hashed data by sha3().
+     *
+     * @param hashedData hashed data
+     * @return signature as byte[65]
+     * @deprecated use sign(byte[] data, boolean hashed)
+     */
+    public byte[] signHashedData(byte[] hashedData) {
+        return this.sign(hashedData, true);
+    }
+
+    /**
      * Sign data.
      *
      * @param data   plain data
@@ -247,14 +259,14 @@ public class Wallet {
     }
 
     /**
-     * Sign the hashed data by sha3().
+     * Sign data as hex string.
      *
-     * @param hashedData hashed data
-     * @return signature as byte[65]
-     * @deprecated use sign(byte[] data, boolean hashed)
+     * @param data   plain data
+     * @param hashed whether hashed or not
+     * @return signature as hex string
      */
-    public byte[] signHashedData(byte[] hashedData) {
-        return this.sign(hashedData, true);
+    public String signHex(byte[] data, boolean hashed) {
+        return HexUtil.toHexString(this.sign(data, hashed));
     }
 
     /**
@@ -265,9 +277,7 @@ public class Wallet {
      * @return verification result
      */
     boolean verifyHashedData(byte[] hashedData, byte[] signature) {
-
         ECKey.ECDSASignature sig = new ECKey.ECDSASignature(signature);
-
         return key.verify(hashedData, sig);
     }
 
@@ -279,9 +289,7 @@ public class Wallet {
      * @return verification result
      */
     public boolean verify(byte[] data, byte[] signature) {
-
         ECKey.ECDSASignature sig = new ECKey.ECDSASignature(signature);
-
         return key.verify(HashUtil.sha3(data), sig);
     }
 
@@ -294,7 +302,6 @@ public class Wallet {
      * @return verification result
      */
     public static boolean verify(byte[] data, byte[] signature, boolean hashed) {
-
         // todo: check pubkey or delete method
         return verify(data, signature, hashed, null);
     }
@@ -309,7 +316,6 @@ public class Wallet {
      * @return verification result
      */
     public static boolean verify(byte[] data, byte[] signature, boolean hashed, byte[] pubKey) {
-
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(signature);
         byte[] hashedData = hashed ? data : HashUtil.sha3(data);
         ECKey ecKeyPub;
