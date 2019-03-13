@@ -41,16 +41,7 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
     }
 
     @Override
-    public void getNodeStatus(
-            CommonProto.Chain request,
-            StreamObserver<EbftProto.EbftStatus> responseObserver) {
-        EbftStatus newEbftStatus = ebftService.getMyNodeStatus();
-        responseObserver.onNext(EbftStatus.toProto(newEbftStatus));
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void exchangeNodeStatus(EbftProto.EbftStatus request,
+    public void exchangeEbftStatus(EbftProto.EbftStatus request,
                                    StreamObserver<EbftProto.EbftStatus> responseObserver) {
         EbftStatus blockStatus = new EbftStatus(request);
         updateStatus(blockStatus);
@@ -61,7 +52,7 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
     }
 
     @Override
-    public void broadcastEbftBlock(EbftProto.EbftBlock request,
+    public void multicastEbftBlock(EbftProto.EbftBlock request,
                                    StreamObserver<NetProto.Empty> responseObserver) {
         EbftBlock newEbftBlock = new EbftBlock(request);
         if (!EbftBlock.verify(newEbftBlock) || !ebftService.consensusVerify(newEbftBlock)) {

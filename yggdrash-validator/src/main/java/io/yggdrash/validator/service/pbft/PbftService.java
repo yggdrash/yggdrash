@@ -65,8 +65,8 @@ public class PbftService implements ConsensusService {
 
     private int failCount;
 
-    String grpcHost;
-    int grpcPort;
+    private String grpcHost;
+    private int grpcPort;
 
     public PbftService(Wallet wallet, ConsensusBlockChain blockChain, String grpcHost, int grpcPort) {
         this.wallet = wallet;

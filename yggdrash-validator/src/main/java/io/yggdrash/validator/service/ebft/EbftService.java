@@ -54,8 +54,8 @@ public class EbftService implements ConsensusService {
     private boolean isProposed;
     private boolean isConsensused;
 
-    String grpcHost;
-    int grpcPort;
+    private String grpcHost;
+    private int grpcPort;
 
     public EbftService(Wallet wallet, ConsensusBlockChain blockChain, String grpcHost, int grpcPort) {
         this.wallet = wallet;
@@ -143,18 +143,18 @@ public class EbftService implements ConsensusService {
         if (EbftStatus.verify(ebftStatus)) {
             client.setIsRunning(true);
 
-            if (ebftStatus.getLastConfirmedEbftBlock().getIndex()
+            if (ebftStatus.getIndex()
                     > this.blockChain.getLastConfirmedBlock().getIndex()) {
                 log.debug("this Index: "
                         + this.blockChain.getLastConfirmedBlock().getIndex());
-                log.debug("client Index: " + ebftStatus.getLastConfirmedEbftBlock().getIndex());
+                log.debug("client Index: " + ebftStatus.getIndex());
                 log.debug("client : " + client.getId());
 
                 // blockSyncing
                 this.isSynced = false;
                 blockSyncing(client.getAddr(),
-                        ebftStatus.getLastConfirmedEbftBlock().getIndex());
-            } else if (ebftStatus.getLastConfirmedEbftBlock().getIndex()
+                        ebftStatus.getIndex());
+            } else if (ebftStatus.getIndex()
                     == this.blockChain.getLastConfirmedBlock().getIndex()) {
                 // unconfirmed block update
                 for (EbftBlock ebftBlock : ebftStatus.getUnConfirmedEbftBlockList()) {
@@ -299,7 +299,7 @@ public class EbftService implements ConsensusService {
             }
 
             EbftBlock ebftBlock = unConfirmedEbftBlockMap.get(minKey);
-            String consensus = Hex.toHexString(wallet.signHashedData(ebftBlock.getHash()));
+            String consensus = wallet.signHex(ebftBlock.getHash(), true);
             ebftBlock.getConsensusMessages().add(consensus);
             this.isConsensused = true;
 
@@ -506,9 +506,10 @@ public class EbftService implements ConsensusService {
     }
 
     public EbftStatus getMyNodeStatus() {
-        EbftStatus newEbftStatus = new EbftStatus(this.blockChain.getLastConfirmedBlock(),
-                new ArrayList<>(this.blockChain.getUnConfirmedData().values()));
-        newEbftStatus.setSignature(wallet.sign(newEbftStatus.getDataForSigning()));
+        EbftStatus newEbftStatus =
+                new EbftStatus(this.blockChain.getLastConfirmedBlock().getIndex(),
+                        new ArrayList<>(this.blockChain.getUnConfirmedData().values()));
+        newEbftStatus.setSignature(wallet.sign(newEbftStatus.getHashForSigning(), true));
         return newEbftStatus;
     }
 

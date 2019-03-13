@@ -7,10 +7,6 @@ import "Common.proto";
 option java_package = "io.yggdrash.proto";
 option java_outer_classname = "EbftProto";
 
-message EbftBlockList {
-    repeated EbftBlock ebftBlockList = 1;
-}
-
 message ConsensusList {
     repeated string consensusList = 1;
 }
@@ -20,8 +16,12 @@ message EbftBlock {
     ConsensusList consensusList = 2;
 }
 
+message EbftBlockList {
+    repeated EbftBlock ebftBlockList = 1;
+}
+
 message EbftStatus {
-    EbftBlock lastConfirmedEbftBlock = 1;
+    int64 index = 1;
     EbftBlockList unConfirmedEbftBlockList = 2;
     int64 timestamp = 3;
     bytes signature = 4;
@@ -31,18 +31,12 @@ service EbftService {
     rpc PingPongTime (PingTime) returns (PongTime) {
     }
 
-    rpc getNodeStatus (Chain) returns (EbftStatus) {
-    }
-
-    rpc exchangeNodeStatus (EbftStatus) returns (EbftStatus) {
-    }
-
-    rpc broadcastEbftBlock (EbftBlock) returns (Empty) {
+    rpc exchangeEbftStatus (EbftStatus) returns (EbftStatus) {
     }
 
     rpc getEbftBlockList (Offset) returns (EbftBlockList) {
     }
 
-    rpc exchangeEbftBlockList (EbftBlockList) returns (EbftBlockList) {
+    rpc multicastEbftBlock (EbftBlock) returns (Empty) {
     }
 }
