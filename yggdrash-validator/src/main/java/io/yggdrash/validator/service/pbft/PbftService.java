@@ -237,7 +237,7 @@ public class PbftService implements ConsensusService {
                     + ") "
                     + "["
                     + lastBlock.getIndex()
-                    + "]"
+                    + "] "
                     + lastBlock.getHashHex()
                     + " ("
                     + lastBlock.getConsensusMessages().getPrepareMap().size()

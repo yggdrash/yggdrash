@@ -1,5 +1,6 @@
 package io.yggdrash.validator.data.ebft;
 
+import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.util.TestUtils;
@@ -36,10 +37,14 @@ public class EbftBlockTest {
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        wallet0 = new Wallet(null, "/tmp/", "test0", "Password1234!");
-        wallet1 = new Wallet(null, "/tmp/", "test1", "Password1234!");
-        wallet2 = new Wallet(null, "/tmp/", "test2", "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/", "test3", "Password1234!");
+        wallet0 = new Wallet(null, "/tmp/",
+                "test0" + TimeUtils.time(), "Password1234!");
+        wallet1 = new Wallet(null, "/tmp/",
+                "test1" + TimeUtils.time(), "Password1234!");
+        wallet2 = new Wallet(null, "/tmp/",
+                "test2" + TimeUtils.time(), "Password1234!");
+        wallet3 = new Wallet(null, "/tmp/",
+                "test3" + TimeUtils.time(), "Password1234!");
 
         block0 = new TestUtils(wallet0).sampleBlock(0);
         block1 = new TestUtils(wallet1).sampleBlock(block0.getIndex() + 1, block0.getHash());

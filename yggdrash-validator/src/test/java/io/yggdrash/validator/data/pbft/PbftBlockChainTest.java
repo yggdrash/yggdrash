@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
@@ -59,9 +60,12 @@ public class PbftBlockChainTest {
         defaultConfig = new DefaultConfig();
 
         wallet = new Wallet(defaultConfig);
-        wallet2 = new Wallet(null, "/tmp/", "test2", "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/", "test3", "Password1234!");
-        wallet4 = new Wallet(null, "/tmp/", "test4", "Password1234!");
+        wallet2 = new Wallet(null, "/tmp/",
+                "test2" + TimeUtils.time(), "Password1234!");
+        wallet3 = new Wallet(null, "/tmp/",
+                "test3" + TimeUtils.time(), "Password1234!");
+        wallet4 = new Wallet(null, "/tmp/",
+                "test4" + TimeUtils.time(), "Password1234!");
 
         block = this.genesisBlock();
 
