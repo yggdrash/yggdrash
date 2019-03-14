@@ -19,6 +19,7 @@ package io.yggdrash.node.broadcast;
 import ch.qos.logback.classic.Level;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.node.AbstractNodeTest;
 import io.yggdrash.node.TestNode;
@@ -40,7 +41,7 @@ public class NetworkBroadcastTest extends AbstractNodeTest {
 
     private void broadcastNetworkTest(int nodeCount) {
         // arrange
-        rootLogger.setLevel(Level.ERROR);
+        rootLogger.setLevel(Level.INFO);
 
         bootstrapNodes(nodeCount, true); // 100 nodes  (inProcess=2ms, tcp=8s)
         nodeList.forEach(this::refreshAndHealthCheck); // 100 nodes  (tcp=2s)
@@ -50,15 +51,17 @@ public class NetworkBroadcastTest extends AbstractNodeTest {
             // broadcast 100 nodes (inProcess=300ms, tcp=700ms)
             TransactionHusk tx = BlockChainTestUtils.createTransferTxHusk();
             nodeList.get(i).getBranchGroup().addTransaction(tx);
-            log.error("broadcast finish={}", i);
+            log.info("broadcast finish={}", i);
         }
+
+        Utils.sleep(1000);
 
         // assert
         for (TestNode node : nodeList) {
             if (node.isSeed()) {
                 continue;
             }
-            node.destory();
+            node.shutdown();
             Assert.assertEquals(nodeCount - 1,
                     node.getBranchGroup().getUnconfirmedTxs(TestConstants.yggdrash()).size());
         }

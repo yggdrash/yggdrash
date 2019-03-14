@@ -39,8 +39,8 @@ class GenesisBlock {
         JsonObject frontierObject = getJsonObjectFromFile("./genesis/frontier.json");
         genesisObject.add("frontier", frontierObject.get("frontier"));
 
-        JsonObject nodeListObject = getJsonObjectFromFile("./genesis/node.json");
-        genesisObject.add("node", nodeListObject.get("node"));
+        JsonObject nodeListObject = getJsonObjectFromFile("./genesis/consensus.json");
+        genesisObject.add("consensus", nodeListObject.get("consensus"));
 
         JsonArray jsonArrayTxBody = new JsonArray();
         jsonArrayTxBody.add(genesisObject);

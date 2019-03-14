@@ -179,13 +179,11 @@ public class PbftBlockChainTest {
     @Test
     public void getterTest() {
         assertNotNull(this.pbftBlockChain.getChain());
-        assertNotNull(this.pbftBlockChain.getHost());
-        assertEquals(this.pbftBlockChain.getPort(), 32918);
         assertNotNull(this.pbftBlockChain.getBlockKeyStore());
         assertNotNull(this.pbftBlockChain.getBlockStore());
         assertNotNull(this.pbftBlockChain.getGenesisBlock());
         assertNotNull(this.pbftBlockChain.getGenesisBlock());
-        assertEquals(this.pbftBlockChain.getUnConfirmedMsgMap().size(), 0);
+        assertEquals(this.pbftBlockChain.getUnConfirmedData().size(), 0);
         assertNotNull(this.pbftBlockChain.getTransactionStore());
         assertNotNull(this.pbftBlockChain.getLastConfirmedBlock());
     }

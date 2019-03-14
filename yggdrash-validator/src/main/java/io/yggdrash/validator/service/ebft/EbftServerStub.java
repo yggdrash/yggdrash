@@ -5,20 +5,18 @@ import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.proto.EbftServiceGrpc;
 import io.yggdrash.proto.NetProto;
+import io.yggdrash.validator.data.ConsensusBlockChain;
 import io.yggdrash.validator.data.ebft.EbftBlock;
 import io.yggdrash.validator.data.ebft.EbftBlockChain;
 import io.yggdrash.validator.data.ebft.EbftStatus;
-import org.lognet.springboot.grpc.GRpcService;
+import io.yggdrash.validator.service.ConsensusService;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@GRpcService
-@ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "ebft")
 public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(EbftServerStub.class);
@@ -27,9 +25,9 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
     private final EbftService ebftService; //todo: check security!
 
     @Autowired
-    public EbftServerStub(EbftBlockChain ebftBlockChain, EbftService ebftService) {
-        this.ebftBlockChain = ebftBlockChain;
-        this.ebftService = ebftService;
+    public EbftServerStub(ConsensusBlockChain blockChain, ConsensusService service) {
+        this.ebftBlockChain = (EbftBlockChain) blockChain;
+        this.ebftService = (EbftService) service;
     }
 
     @Override

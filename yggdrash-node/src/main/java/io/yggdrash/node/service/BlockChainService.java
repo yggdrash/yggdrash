@@ -89,7 +89,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
 
             @Override
             public void onError(Throwable t) {
-                log.debug("[BlockChainService] Encountered error in broadcastBlock: {}",
+                log.warn("[BlockChainService] Encountered error in broadcastBlock: {}",
                         Status.fromThrowable(t));
             }
 
@@ -116,7 +116,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
 
             @Override
             public void onError(Throwable t) {
-                log.debug("[BlockChainService] Encountered error in broadcastTx: {}",
+                log.warn("[BlockChainService] Encountered error in broadcastTx: {}",
                         Status.fromThrowable(t));
             }
 
