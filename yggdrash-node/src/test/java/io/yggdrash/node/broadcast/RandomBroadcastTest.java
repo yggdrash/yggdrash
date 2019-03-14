@@ -16,90 +16,43 @@
 
 package io.yggdrash.node.broadcast;
 
-import ch.qos.logback.classic.Level;
-import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.Utils;
-import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.node.AbstractNodeTest;
 import io.yggdrash.node.TestNode;
-import org.junit.Assert;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
 import java.util.Random;
+import java.util.function.Consumer;
 
-@RunWith(JUnit4.class)
-public class RandomBroadcastTest extends AbstractNodeTest {
-    private static final int MAX_NODE_COUNT = 50;
-    private static final int TX_COUNT = 50;
-    private Thread txGeneratorThread;
+class RandomBroadcastTest extends AbstractNodeTest {
 
-    @Test
-    public void test() {
-        TestConstants.SlowTest.apply();
-
-        // arrange
-        rootLogger.setLevel(Level.ERROR);
-
-        bootstrapNodes(MAX_NODE_COUNT, true);
-        nodeList.forEach(this::refreshAndHealthCheck);
-
-        // act
-        broadcastTxByRandomNode();
-
-        stopRandomNode();
-
-        Utils.sleep(2000); // wait for broadcast
-
-        // assert
-        for (TestNode node : nodeList) {
-            if (node.isSeed()) {
-                continue;
-            }
-            node.logDebugging();
-            node.shutdown();
-            log.info("nodePort={} txCount={}", node.port,
-                    node.getBranchGroup().getUnconfirmedTxs(TestConstants.yggdrash()).size());
-            Assert.assertEquals(TX_COUNT, node.getBranchGroup().getUnconfirmedTxs(TestConstants.yggdrash()).size());
-        }
-    }
-
-    private void broadcastTxByRandomNode() {
-        txGeneratorThread = new Thread(() -> {
-            try {
-                for (int i = 0; i < TX_COUNT; i++) {
-                    TransactionHusk tx = BlockChainTestUtils.createTransferTxHusk();
-                    TestNode node = getRandomNode();
-                    node.getBranchGroup().addTransaction(tx);
-                    log.info("broadcast txCount={}", i + 1);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        });
-        txGeneratorThread.start();
-    }
-
-    private void stopRandomNode() {
-        while (true) {
-            if (!txGeneratorThread.isAlive()) {
-                return;
-            }
+    void broadcastByRandomNode(int execute, Consumer<TestNode> consumer) {
+        for (int i = 0; i < execute; i++) {
             TestNode node = getRandomNode();
-            node.shutdown();
-            nodeList.remove(node);
-            log.info("Stop nodePort={}, txGeneratorThread isAlive={}", node.port, txGeneratorThread.isAlive());
-            nodeList.forEach(n -> n.peerTask.healthCheck());
-            Utils.sleep(1000);
+            try {
+                consumer.accept(node);
+            } catch (Exception e) {
+                log.warn(e.getMessage());
+            }
+            // shutdown random node per every 10 action
+            if (i % 10 == 0) {
+                // wait for broadcast
+                Utils.sleep(500);
+
+                shutdownNode(node);
+
+                // for update peer table
+                nodeList.forEach(n -> n.peerTask.healthCheck());
+            }
+
+            log.info("broadcast count={}", i + 1);
         }
+        Utils.sleep(1000); // wait for broadcast
     }
 
     private TestNode getRandomNode() {
         Random r = new Random();
         int nodeIdx = r.nextInt(nodeList.size() - 1);
-        if (nodeIdx == 0) { // exclude seed node
+        if (nodeIdx == 0 ) { // exclude seed node
             nodeIdx = 1;
         }
         return nodeList.get(nodeIdx);

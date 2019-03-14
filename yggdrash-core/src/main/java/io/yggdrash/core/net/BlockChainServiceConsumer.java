@@ -63,6 +63,9 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
     public List<BlockHusk> syncBlock(BranchId branchId, long offset, long limit, Peer from) {
         long curBestBlock = branchGroup.getLastIndex(branchId);
         List<BlockHusk> blockHuskList = new ArrayList<>();
+        if (curBestBlock == 0) {
+            return blockHuskList;
+        }
         if (isValidRequest(curBestBlock, offset, from)) {
             // Catchup Event!
             if (listener != null) {

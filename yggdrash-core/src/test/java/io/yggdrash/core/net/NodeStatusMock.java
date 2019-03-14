@@ -19,4 +19,8 @@ public class NodeStatusMock implements NodeStatus {
     public void sync() {
         status = "sync";
     }
+
+    public static NodeStatus create() {
+        return new NodeStatusMock();
+    }
 }

@@ -128,8 +128,8 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
 
         try {
             List<BlockHusk> blockHusks = futureHusks.get();
-            log.debug("[SyncManager] Synchronize block offset={} receivedSize={}, from={}",
-                    offset, blockHusks.size(), peerHandler.getPeer());
+            log.info("[SyncManager] Synchronize block offset={} receivedSize={}, from={}",
+                    offset, blockHusks.size(), peerHandler.getPeer().toAddress());
 
             for (BlockHusk blockHusk : blockHusks) {
                 if (limitIndex > 0 && limitIndex <= blockHusk.getIndex()) {
@@ -148,8 +148,8 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
 
         try {
             List<TransactionHusk> txHusks = futureHusks.get();
-            log.debug("[SyncManager] Synchronize Tx receivedSize={}, from={}",
-                    txHusks.size(), peerHandler.getPeer());
+            log.info("[SyncManager] Synchronize Tx receivedSize={}, from={}",
+                    txHusks.size(), peerHandler.getPeer().toAddress());
 
             for (TransactionHusk txHusk : txHusks) {
                 try {
@@ -164,6 +164,9 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
     }
 
     private void reqSyncBlockToHandlers(BlockChain blockChain) {
+        if (!nodeStatus.isUpStatus()) {
+            return;
+        }
         BranchId branchId = blockChain.getBranchId();
         nodeStatus.sync();
         for (PeerHandler peerHandler : peerNetwork.getHandlerList(branchId)) {
@@ -171,41 +174,4 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
         }
         nodeStatus.up();
     }
-
-    /*
-    @Override
-    public void syncBlock(PeerHandler peerHandler, BlockChain blockChain, long limitIndex) {
-        List<BlockHusk> blockList;
-        do {
-
-            long offset = blockChain.getLastIndex() + 1;
-            if (limitIndex > 0 && limitIndex <= offset) {
-                return;
-            }
-            blockList = peerHandler.simpleSyncBlock(blockChain.getBranchId(), offset);
-            log.debug("Synchronize block offset={} receivedSize={}, from={}", offset, blockList.size(),
-                    peerHandler.getPeer());
-            for (BlockHusk block : blockList) {
-                if (limitIndex > 0 && limitIndex <= block.getIndex()) {
-                    return;
-                }
-                blockChain.addBlock(block, false);
-            }
-        } while (!blockList.isEmpty());
-    }
-
-    @Override
-    public void syncTransaction(PeerHandler peerHandler, BlockChain blockChain) {
-        List<TransactionHusk> txList = peerHandler.simpleSyncTransaction(blockChain.getBranchId());
-        log.info("Synchronize transaction receivedSize={}, from={}", txList.size(),
-                peerHandler.getPeer());
-        for (TransactionHusk tx : txList) {
-            try {
-                blockChain.addTransaction(tx);
-            } catch (Exception e) {
-                log.warn(e.getMessage());
-            }
-        }
-    }
-    */
 }
