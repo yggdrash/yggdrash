@@ -2,6 +2,7 @@ package io.yggdrash.node.service;
 
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
@@ -46,8 +47,19 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
         List<BlockHusk> blockList = blockChainConsumer.syncBlock(branchId, offset, limit);
         Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
         for (BlockHusk block : blockList) {
+            if (builder.build().getSerializedSize() > Constants.LIMIT.BLOCK_SYNC_SIZE) {
+                log.debug("Serialized size of blockList ({}) is over block_sync_size({})",
+                        builder.build().getSerializedSize(),
+                        Constants.LIMIT.BLOCK_SYNC_SIZE);
+                builder.removeBlocks((int) block.getIndex() - 1);
+                break;
+            }
             builder.addBlocks(block.getInstance());
         }
+
+        log.debug("Return blockList size => {}, cnt => {}",
+                builder.build().getSerializedSize(), builder.build().getBlocksCount());
+
         responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
     }
@@ -89,7 +101,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
 
             @Override
             public void onError(Throwable t) {
-                log.debug("[BlockChainService] Encountered error in broadcastBlock: {}",
+                log.warn("[BlockChainService] Encountered error in broadcastBlock: {}",
                         Status.fromThrowable(t));
             }
 
@@ -116,7 +128,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
 
             @Override
             public void onError(Throwable t) {
-                log.debug("[BlockChainService] Encountered error in broadcastTx: {}",
+                log.warn("[BlockChainService] Encountered error in broadcastTx: {}",
                         Status.fromThrowable(t));
             }
 

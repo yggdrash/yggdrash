@@ -76,15 +76,9 @@ public class RpcTest extends TcpNodeTest {
         }
     }
 
-    private void setSpecificBlockHeightOfBlockChain() {
+    private void setSpecificBlockHeightOfBlockChain(BlockChain branch) {
         log.debug("*** Set specific block height of blockChain ***");
-
-        BranchGroup branchGroup = nodeList.get(1).getBranchGroup();
-        BlockChain branch = branchGroup.getBranch(branchId);
-
-        for (BlockHusk blockHusk : blockHuskList) {
-            branch.addBlock(blockHusk, false);
-        }
+        BlockChainTestUtils.setBlockHeightOfBlockChain(branch, 10);
     }
 
     private void setTxHuskList() {
@@ -120,14 +114,15 @@ public class RpcTest extends TcpNodeTest {
 
     @Test
     public void syncBlockTest() throws Exception {
-        setSpecificBlockHeightOfBlockChain();
+        BranchGroup branchGroup = nodeList.get(1).getBranchGroup();
+        BlockChain branch = branchGroup.getBranch(branchId);
+        setSpecificBlockHeightOfBlockChain(branch);
 
         Future<List<BlockHusk>> futureHusks = handler.syncBlock(branchId, 5);
 
         List<BlockHusk> blockHusks = futureHusks.get();
         for (BlockHusk blockHusk : blockHusks) {
-            int index = (int) blockHusk.getIndex() - 1;
-            Assert.assertEquals(blockHusk.getHash(), blockHuskList.get(index).getHash());
+            Assert.assertEquals(branch.getBlockByIndex(blockHusk.getIndex()), blockHusk);
         }
     }
 

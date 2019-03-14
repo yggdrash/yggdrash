@@ -16,16 +16,16 @@ version = '0.10.0-SNAPSHOT'
 defaultTasks ':yggdrash-node:bootRun'
 
 ext {
-    grpcVersion         = '1.18.0'
-    protobufVersion     = '3.6.1'
-    levelDBVersion      = '0.10'
-    ehcacheVersion      = '3.6.2'
+    grpcVersion         = '1.19.0'
+    protobufVersion     = '3.7.0'
+    levelDBVersion      = '0.11'
+    ehcacheVersion      = '3.6.3'
     scastleVersion      = '1.58.0.0'
     commonsCodecVersion = '1.11'
     commonsIOVersion    = '2.6'
     gsonVersion         = '2.8.5'
     jsonSimpleVersion   = '1.1'
-    jacksonVersion      = '2.9.7'
+    jacksonVersion      = '2.9.8'
     typesafeVersion     = '1.3.3'
     logbackVersion      = '1.2.3'
     annotationVersion   = '1.3.2'
@@ -35,6 +35,7 @@ ext {
     logbackEsAppenderVersion  = '1.6'
     logbackJinoVersion  = '3.0.12'
     equinoxVersion = '3.13.0.v20180226-1711'
+    esVersion = '6.6.1'
 }
 
 allprojects {
@@ -82,14 +83,14 @@ project(':yggdrash-core') {
         compile project(':yggdrash-common')
         implementation project(':yggdrash-contract')
 
-        compile "io.grpc:grpc-protobuf:${grpcVersion}"
-        compile "io.grpc:grpc-stub:${grpcVersion}"
+        compile "io.grpc:grpc-services:${grpcVersion}"
         compile "io.grpc:grpc-netty:${grpcVersion}"
-        compile "com.google.protobuf:protobuf-java:${protobufVersion}"
+        compile "com.google.protobuf:protobuf-java-util:${protobufVersion}"
         compile "org.ehcache:ehcache:${ehcacheVersion}"
         compile "com.google.code.gson:gson:${gsonVersion}"
         compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
         compile "com.typesafe:config:${typesafeVersion}"
+        compile "org.elasticsearch.client:transport:${esVersion}"
         compileOnly "javax.annotation:javax.annotation-api:${annotationVersion}"
         testCompile "org.assertj:assertj-core:${assertjVersion}"
     }
@@ -125,8 +126,12 @@ project(':yggdrash-node') {
     apply plugin: 'io.spring.dependency-management'
 
     dependencies {
-        compile project(':yggdrash-core')
-        compile project(':yggdrash-gateway')
+        compile(project(':yggdrash-core')) {
+            exclude module: 'yggdrash-contract'
+        }
+        compile(project(':yggdrash-gateway')) {
+            exclude module: 'yggdrash-contract'
+        }
         compile "org.springframework.boot:spring-boot-starter-web"
         compile "org.springframework.boot:spring-boot-starter-undertow"
         compile "org.springframework.boot:spring-boot-starter-actuator"
@@ -220,13 +225,13 @@ task jacocoRootReport(type: JacocoReport) {
     description = 'Generates an aggregate report from all subprojects'
     dependsOn = subprojects.test
     sourceDirectories.from = subprojects.sourceSets.main.allSource.srcDirs
-    classDirectories.from =  subprojects.sourceSets.main.output
+    classDirectories.from = subprojects.sourceSets.main.output
     executionData.from = subprojects.jacocoTestReport.executionData
 
     afterEvaluate {
         classDirectories.from = classDirectories.files.collect {
             fileTree(dir: it,
-                exclude: ['io/yggdrash/proto/**']
+                    exclude: ['io/yggdrash/proto/**']
             )
         }
     }

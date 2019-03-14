@@ -17,50 +17,46 @@
 package io.yggdrash.node.broadcast;
 
 import ch.qos.logback.classic.Level;
-import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.node.AbstractNodeTest;
+import io.yggdrash.common.util.Utils;
 import io.yggdrash.node.TestNode;
 import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
+import java.util.function.Consumer;
+
 @RunWith(JUnit4.class)
-public class NetworkBroadcastTest extends AbstractNodeTest {
+public class RandomBroadcastBlockTest extends RandomBroadcastTest {
 
     @Test
     public void test() {
         TestConstants.SlowTest.apply();
-        broadcastNetworkTest(20); // 4s;
-        //broadcastNetworkTest(100); // (inProcess=39s, tcp=80s);
-        //broadcastNetworkTest(300); // 6m
-    }
 
-    private void broadcastNetworkTest(int nodeCount) {
         // arrange
         rootLogger.setLevel(Level.ERROR);
+        final int MAX_NODE_COUNT = 50;
+        final int BLOCK_COUNT = 100;
 
-        bootstrapNodes(nodeCount, true); // 100 nodes  (inProcess=2ms, tcp=8s)
-        nodeList.forEach(this::refreshAndHealthCheck); // 100 nodes  (tcp=2s)
+        bootstrapNodes(MAX_NODE_COUNT, true);
+        nodeList.forEach(this::refreshAndHealthCheck);
 
         // act
-        for (int i = 1; i < nodeCount; i++) {
-            // broadcast 100 nodes (inProcess=300ms, tcp=700ms)
-            TransactionHusk tx = BlockChainTestUtils.createTransferTxHusk();
-            nodeList.get(i).getBranchGroup().addTransaction(tx);
-            log.error("broadcast finish={}", i);
-        }
+        Consumer<TestNode> consumer = (n) -> {
+            n.generateBlock();
+            Utils.sleep(100);
+        };
+        broadcastByRandomNode(BLOCK_COUNT, consumer);
 
         // assert
         for (TestNode node : nodeList) {
             if (node.isSeed()) {
                 continue;
             }
-            node.destory();
-            Assert.assertEquals(nodeCount - 1,
-                    node.getBranchGroup().getUnconfirmedTxs(TestConstants.yggdrash()).size());
+            node.logDebugging();
+            node.shutdown();
+            Assert.assertEquals(BLOCK_COUNT, node.getDefaultBranch().getLastIndex());
         }
     }
 }

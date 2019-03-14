@@ -20,6 +20,7 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
@@ -47,6 +48,13 @@ public class BranchConfiguration {
 
     @Value("classpath:/branch-yggdrash.json")
     Resource yggdrashResource;
+
+    @Value("${es.host:#{null}}")
+    private String esHost;
+    @Value("${es.transport:#{null}}")
+    private String esTransport;
+    @Value("${event.store:#{null}}")
+    private String[] eventStore;
 
     @Autowired
     BranchConfiguration(StoreBuilder storeBuilder) {
@@ -93,12 +101,19 @@ public class BranchConfiguration {
     }
 
     private BlockChain createBranch(GenesisBlock genesis, ContractPolicyLoader policyLoader) {
-        log.info("createBranch {} {}",genesis.getBranch().getBranchId(), genesis.getBranch().getName());
+        log.info("createBranch {} {}", genesis.getBranch().getBranchId(), genesis.getBranch().getName());
+
+        SystemProperties systemProperties = SystemProperties.SystemPropertiesBuilder.aSystemProperties()
+                .withEsHost(esHost)
+                .withEsTransport(esTransport)
+                .withEventStore(eventStore)
+                .build();
         try {
             return BlockChainBuilder.Builder()
                     .addGenesis(genesis)
                     .setStoreBuilder(storeBuilder)
                     .setPolicyLoader(policyLoader)
+                    .setSystemProperties(systemProperties)
                     .build();
         } catch (Exception e) {
             log.warn(e.getMessage(), e);

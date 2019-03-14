@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
 @Service
 public class YggdrashNode extends BootStrapNode {
@@ -75,5 +76,11 @@ public class YggdrashNode extends BootStrapNode {
         if (nodeProperties.isSeed()) {
             log.info("I'm the Bootstrap Node.");
         }
+    }
+
+    @PreDestroy
+    public void destroy() {
+        log.info("Terminating...");
+        peerNetwork.destroy();
     }
 }

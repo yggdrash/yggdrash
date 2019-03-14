@@ -31,6 +31,7 @@ import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
+import io.yggdrash.core.store.output.OutputStore;
 import io.yggdrash.core.wallet.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,11 +64,12 @@ public class BlockChain {
     private BlockHusk prevBlock;
 
     private final ContractContainer contractContainer;
+    private final OutputStore[] outputStores;
 
     public BlockChain(Branch branch, BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, MetaStore metaStore,
                       StateStore stateStore, TransactionReceiptStore transactionReceiptStore,
-                      ContractContainer contractContainer) {
+                      ContractContainer contractContainer, OutputStore[] outputStores) {
         this.branch = branch;
         this.genesisBlock = genesisBlock;
         this.blockStore = blockStore;
@@ -77,6 +79,7 @@ public class BlockChain {
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
         this.contractContainer = contractContainer;
+        this.outputStores = outputStores;
 
 
         // getGenesis Block by Store
@@ -221,7 +224,8 @@ public class BlockChain {
             return null;
         }
         if (!isValidNewBlock(prevBlock, nextBlock)) {
-            throw new NotValidateException("Invalid to chain");
+            String msg = String.format("Invalid to chain cur=%s, new=%s", prevBlock.getIndex(), nextBlock.getIndex());
+            throw new NotValidateException(msg);
         }
         // add best Block
         metaStore.setBestBlock(nextBlock);
@@ -236,6 +240,14 @@ public class BlockChain {
             contractContainer.getContractManager().commitBlockResult(result);
             //runtime.commitBlockResult(result);
             metaStore.setLastExecuteBlock(nextBlock);
+
+            //Store event
+            if (outputStores != null) {
+                for (OutputStore store : outputStores) {
+                    store.put(nextBlock);
+                    store.put(nextBlock.getCoreBlock().getHeader().getIndex(), nextBlock.getCoreBlock().getBody().getBody());
+                }
+            }
         }
 
         // Store Block Index and Block Data
@@ -270,6 +282,10 @@ public class BlockChain {
     }
 
     public TransactionHusk addTransaction(TransactionHusk tx) {
+        return addTransaction(tx, true);
+    }
+
+    public TransactionHusk addTransaction(TransactionHusk tx, boolean broadcast) {
         if (transactionStore.contains(tx.getHash())) {
             return null;
         } else if (!tx.verify()) {
@@ -278,7 +294,7 @@ public class BlockChain {
 
         try {
             transactionStore.put(tx.getHash(), tx);
-            if (!listenerList.isEmpty()) {
+            if (!listenerList.isEmpty() && broadcast) {
                 listenerList.forEach(listener -> listener.receivedTransaction(tx));
             }
             return tx;
