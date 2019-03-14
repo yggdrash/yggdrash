@@ -2,15 +2,15 @@ package io.yggdrash.validator.store.pbft;
 
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.ByteUtil;
-import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.validator.store.BlockKeyStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 
-public class PbftBlockKeyStore implements ReadWriterStore<Long, byte[]> {
+public class PbftBlockKeyStore implements BlockKeyStore<Long, byte[]> {
     private static final Logger log = LoggerFactory.getLogger(PbftBlockKeyStore.class);
 
     private final DbSource<byte[], byte[]> db;
@@ -60,10 +60,12 @@ public class PbftBlockKeyStore implements ReadWriterStore<Long, byte[]> {
         return db.get(ByteUtil.longToBytes(key)) != null;
     }
 
+    @Override
     public long size() {
         return this.size;
     }
 
+    @Override
     public void close() {
         this.db.close();
     }
