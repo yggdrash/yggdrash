@@ -37,7 +37,7 @@ public class EsClient implements OutputStore {
         this.eventSet = eventSet;
     }
 
-    public static EsClient newInstance(String host, int port, String events) {
+    public static EsClient newInstance(String host, int port, String[] events) {
         Settings settings = Settings.builder()
                 .put("client.transport.ignore_cluster_name", true)
                 .build();
@@ -46,7 +46,7 @@ public class EsClient implements OutputStore {
             TransportClient client = new PreBuiltTransportClient(settings)
                     .addTransportAddress(new TransportAddress(InetAddress.getByName(host), port));
 
-            Set<String> eventSet = new HashSet<>(Arrays.asList(events.split(",")));
+            Set<String> eventSet = new HashSet<>(Arrays.asList(events));
             return new EsClient(client, eventSet);
         } catch (Exception e) {
             log.error("Create es client exception: msg - {}", e.getMessage());

@@ -31,7 +31,6 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.output.OutputStore;
 import io.yggdrash.core.store.output.es.EsClient;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -50,6 +49,7 @@ public class BlockChainBuilder {
     private OutputStore[] outputStores;
 
     private ContractPolicyLoader policyLoader;
+    private SystemProperties systemProperties;
 
     public BlockChainBuilder addGenesis(GenesisBlock genesis) {
         this.genesis = genesis;
@@ -91,6 +91,11 @@ public class BlockChainBuilder {
         return this;
     }
 
+    public BlockChainBuilder setSystemProperties(SystemProperties systemProperties) {
+        this.systemProperties = systemProperties;
+        return this;
+    }
+
     public BlockChain build() {
         BlockHusk genesisBlock = genesis.getBlock();
         if (branch == null) {
@@ -123,26 +128,16 @@ public class BlockChainBuilder {
                     .withStateStore(stateStore)
                     .withTransactionReceiptStore(transactionReceiptStore)
                     .withConfig(storeBuilder.getConfig())
+                    .withSystemProperties(systemProperties)
                     .build();
         }
 
-        if (!StringUtils.isEmpty(System.getProperty("es.host"))
-                && !StringUtils.isEmpty(System.getProperty("es.transport"))
-                && !StringUtils.isEmpty(System.getProperty("event.store"))) {
-            String[] splitHost = System.getProperty("es.host").split(":");
-            if (splitHost.length != 2) {
-                throw new RuntimeException("The es.host value must be of the form ip:port.");
-            }
-
-            if (!StringUtils.isNumeric(System.getProperty("es.transport"))) {
-                throw new RuntimeException("The es.transport value must be a number.");
-            }
-
+        if (systemProperties != null && systemProperties.checkEsClient()) {
             outputStores = new OutputStore[]{
                     EsClient.newInstance(
-                            splitHost[0]
-                            , Integer.parseInt(System.getProperty("es.transport"))
-                            , System.getProperty("event.store")
+                            systemProperties.getEsPrefixHost()
+                            , systemProperties.getEsTransport()
+                            , systemProperties.getEventStore()
                     )
             };
         }
