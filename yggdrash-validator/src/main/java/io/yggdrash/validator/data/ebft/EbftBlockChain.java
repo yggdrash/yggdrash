@@ -5,6 +5,7 @@ import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.validator.config.Consensus;
+import io.yggdrash.validator.data.ConsensusBlock;
 import io.yggdrash.validator.data.ConsensusBlockChain;
 import io.yggdrash.validator.store.ebft.EbftBlockKeyStore;
 import io.yggdrash.validator.store.ebft.EbftBlockStore;
@@ -17,6 +18,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 
@@ -35,6 +37,8 @@ public class EbftBlockChain implements ConsensusBlockChain<String, EbftBlock> {
     private EbftBlock lastConfirmedBlock;
 
     private final Consensus consensus;
+
+    private final ReentrantLock lock = new ReentrantLock();
 
     @Autowired
     public EbftBlockChain(Block genesisBlock, String dbPath,
@@ -120,6 +124,22 @@ public class EbftBlockChain implements ConsensusBlockChain<String, EbftBlock> {
 
     public void setLastConfirmedBlock(EbftBlock lastConfirmedBlock) {
         this.lastConfirmedBlock = lastConfirmedBlock;
+    }
+
+    //todo: add in interface
+    public void addBlock(ConsensusBlock block) {
+        if (block == null
+                || block.getIndex() != this.lastConfirmedBlock.getIndex() + 1
+                || !block.verify()) {
+            return;
+        }
+
+        this.blockKeyStore.put(block.getIndex(), block.getHash());
+        this.blockStore.put(block.getHash(), (EbftBlock) block);
+
+        this.lock.lock();
+        this.lastConfirmedBlock = (EbftBlock) block;
+        this.lock.unlock();
     }
 
     /**
