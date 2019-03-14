@@ -79,7 +79,7 @@ public class EbftClientStub {
         return this.ebftStatus;
     }
 
-    public void broadcastEbftBlock(EbftProto.EbftBlock block) {
+    public void multicastEbftBlock(EbftProto.EbftBlock block) {
         blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS)
                 .multicastEbftBlock(block);
     }
