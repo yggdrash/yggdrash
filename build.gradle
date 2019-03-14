@@ -35,6 +35,7 @@ ext {
     logbackEsAppenderVersion = '1.6'
     logbackJinoVersion = '3.0.12'
     equinoxVersion = '3.13.0.v20180226-1711'
+    esVersion = '6.6.1'
 }
 
 allprojects {
@@ -90,6 +91,7 @@ project(':yggdrash-core') {
         compile "com.google.code.gson:gson:${gsonVersion}"
         compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
         compile "com.typesafe:config:${typesafeVersion}"
+        compile "org.elasticsearch.client:transport:${esVersion}"
         compileOnly "javax.annotation:javax.annotation-api:${annotationVersion}"
         testCompile "org.assertj:assertj-core:${assertjVersion}"
     }
