@@ -1,5 +1,6 @@
 package io.yggdrash.validator.data.pbft;
 
+import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.PbftProto;
@@ -67,9 +68,12 @@ public class PbftBlockTest {
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
         wallet = new Wallet();
-        wallet2 = new Wallet(null, "/tmp/", "test2", "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/", "test3", "Password1234!");
-        wallet4 = new Wallet(null, "/tmp/", "test4", "Password1234!");
+        wallet2 = new Wallet(null, "/tmp/", "test2"
+                + TimeUtils.time(), "Password1234!");
+        wallet3 = new Wallet(null, "/tmp/", "test3"
+                + TimeUtils.time(), "Password1234!");
+        wallet4 = new Wallet(null, "/tmp/", "test4"
+                + TimeUtils.time(), "Password1234!");
 
         block = new TestUtils(wallet).sampleBlock();
         block2 = new TestUtils(wallet).sampleBlock(block.getIndex() + 1, block.getHash());
