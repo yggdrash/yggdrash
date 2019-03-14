@@ -7,7 +7,12 @@ import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
+import io.yggdrash.contract.core.annotation.InjectEvent;
+import io.yggdrash.contract.core.annotation.InjectOutputStore;
+import io.yggdrash.contract.core.store.OutputStore;
+import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
@@ -37,17 +42,23 @@ public class ContractManager {
     private final String branchId;
     private final StateStore stateStore;
     private final TransactionReceiptStore transactionReceiptStore;
+    private final Map<OutputType, OutputStore> outputStore;
+    private final SystemProperties systemProperties;
     private final ContractCache contractCache;
 
     private List<String> systemContracts;
 
-    ContractManager(Framework framework, String systemContractPath, String userContractPath, String branchId, StateStore stateStore, TransactionReceiptStore transactionReceiptStore) {
+    ContractManager(Framework framework, String systemContractPath, String userContractPath, String branchId
+            , StateStore stateStore, TransactionReceiptStore transactionReceiptStore
+            , Map<OutputType, OutputStore> outputStore, SystemProperties systemProperties) {
         this.framework = framework;
         this.systemContractPath = systemContractPath;
         this.userContractPath = userContractPath;
         this.branchId = branchId;
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
+        this.outputStore = outputStore;
+        this.systemProperties = systemProperties;
         contractCache = new ContractCache();
     }
 
@@ -89,6 +100,16 @@ public class ContractManager {
                     if (annotation.annotationType().equals(ContractStateStore.class)) {
                         field.set(o, stateStore);
                     }
+                }
+                if (outputStore != null
+                        && annotation.annotationType().equals(InjectOutputStore.class)
+                        && field.getType().isAssignableFrom(outputStore.getClass())) {
+                    field.set(o, outputStore);
+                }
+                if (systemProperties != null
+                        && annotation.annotationType().equals(InjectEvent.class)
+                        && field.getType().isAssignableFrom(systemProperties.getEventStore().getClass())) {
+                    field.set(o, systemProperties.getEventStore());
                 }
             }
         }
@@ -174,6 +195,7 @@ public class ContractManager {
 
             start(bundle.getBundleId());
         } catch (Exception e) {
+            e.printStackTrace();
             log.error("Install bundle exception: branchID - {}, msg - {}", branchId, e.getMessage());
             throw new RuntimeException(e);
         }
@@ -192,7 +214,8 @@ public class ContractManager {
         return action(contractId, ActionType.STOP);
     }
 
-    private Object callContractMethod(Bundle bundle, String methodName, JsonObject params, MethodType methodType, TransactionReceipt txReceipt) {
+    private Object callContractMethod(Bundle bundle, String methodName, JsonObject params, MethodType methodType
+            , TransactionReceipt txReceipt, JsonObject endBlockParams) {
         if (bundle.getRegisteredServices() == null) {
             return null;
         }
@@ -238,9 +261,14 @@ public class ContractManager {
             if (method.getParameterCount() == 0) {
                 return method.invoke(service);
             } else {
-                return method.invoke(service, params);
+                if (methodType == MethodType.EndBlock) {
+                    return method.invoke(service, endBlockParams);
+                } else {
+                    return method.invoke(service, params);
+                }
             }
         } catch (Exception e) {
+            e.printStackTrace();
             log.error("Call contract method : {}", bundle.getBundleId());
         }
 
@@ -253,7 +281,7 @@ public class ContractManager {
         if (bundle == null) {
             return null;
         }
-        return callContractMethod(bundle, methodName, params, MethodType.Query, null);
+        return callContractMethod(bundle, methodName, params, MethodType.Query, null, null);
     }
 
     public Object invoke(String contractFileName, JsonObject txBody, TransactionReceipt txReceipt) {
@@ -269,20 +297,17 @@ public class ContractManager {
         if (bundle == null) {
             return null;
         }
-        return callContractMethod(bundle, txBody.get("method").getAsString(), txBody.getAsJsonObject("params"), MethodType.InvokeTx, txReceipt);
+        return callContractMethod(bundle, txBody.get("method").getAsString(), txBody.getAsJsonObject("params"), MethodType.InvokeTx, txReceipt, null);
     }
 
-    private List<Object> endBlock() {
+    private List<Object> endBlock(JsonObject endBlockParams) {
         List<Object> results = new ArrayList<>();
         for (Bundle bundle : framework.getBundleContext().getBundles()) {
-            ServiceReference serviceRef = bundle.getRegisteredServices()[0];
-            Object service = framework.getBundleContext().getService(serviceRef);
-
             contractCache.cacheContract(bundle, framework);
             Map<String, Method> endBlockMethods = contractCache.getEndBlockMethods().get(bundle.getLocation());
             if (endBlockMethods != null) {
                 endBlockMethods.forEach((k, m) -> {
-                    Object result = callContractMethod(bundle, k, null, MethodType.EndBlock, null);
+                    Object result = callContractMethod(bundle, k, null, MethodType.EndBlock, null, endBlockParams);
                     if (result != null) {
                         results.add(result);
                     }
@@ -321,7 +346,9 @@ public class ContractManager {
             result.addTxReceipt(txReceipt);
             // Save TxReceipt
         }
-        List<Object> endBlockResult = endBlock();
+        JsonObject endBlockParams = new JsonObject();
+        endBlockParams.addProperty("blockNo", nextBlock.getCoreBlock().getIndex());
+        List<Object> endBlockResult = endBlock(endBlockParams);
         // Save BlockStates
 //        result.setBlockResult(blockState.changeValues());
 

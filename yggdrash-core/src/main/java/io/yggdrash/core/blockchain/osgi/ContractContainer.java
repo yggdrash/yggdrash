@@ -4,6 +4,8 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.contract.core.store.OutputStore;
+import io.yggdrash.contract.core.store.OutputType;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -59,10 +61,11 @@ public class ContractContainer {
     private final SystemProperties systemProperties;
 
     private ContractManager contractManager;
+    private Map<OutputType, OutputStore> outputStore;
 
     ContractContainer(FrameworkFactory frameworkFactory, Map<String, String> containerConfig, String branchId
             , StateStore stateStore, TransactionReceiptStore transactionReceiptStore, DefaultConfig config
-            , SystemProperties systemProperties) {
+            , SystemProperties systemProperties, Map<OutputType, OutputStore> outputStore) {
         this.frameworkFactory = frameworkFactory;
         this.commonContainerConfig = containerConfig;
         this.branchId = branchId;
@@ -70,6 +73,7 @@ public class ContractContainer {
         this.transactionReceiptStore = transactionReceiptStore;
         this.config = config;
         this.systemProperties = systemProperties;
+        this.outputStore = outputStore;
     }
 
     void newFramework() {
@@ -85,7 +89,8 @@ public class ContractContainer {
         framework = frameworkFactory.newFramework(containerConfig);
         systemContractPath = String.format("%s/bundles%s", containerPath, SUFFIX_SYSTEM_CONTRACT);
         userContractPath = String.format("%s/bundles%s", containerPath, SUFFIX_USER_CONTRACT);
-        contractManager = new ContractManager(framework, systemContractPath, userContractPath, branchId, stateStore, transactionReceiptStore);
+        contractManager = new ContractManager(framework, systemContractPath, userContractPath, branchId
+                , stateStore, transactionReceiptStore, outputStore, systemProperties);
 
         try {
             framework.start();

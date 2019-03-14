@@ -64,7 +64,7 @@ public class DPoAContractTest {
     }
 
     @Test
-    public void test(){
+    public void test() {
         String a = "systemdpoa-contract";
         System.out.println(a.matches("[0-9]*[-]*system-.*"));
     }
@@ -286,7 +286,7 @@ public class DPoAContractTest {
      */
     @Test
     public void commitAddedValidator() throws Exception {
-        List<Validator> validators = dPoAService.commit();
+        List<Validator> validators = dPoAService.commit(null);
         assertEquals(validatorsArr.size(), validators.size());
         assertEquals("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95", validators.get(0).getAddr());
         assertEquals("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", validators.get(1).getAddr());
@@ -311,7 +311,7 @@ public class DPoAContractTest {
         receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
-        validators = dPoAService.commit();
+        validators = dPoAService.commit(null);
         assertEquals(validatorsArr.size(), validators.size());
         assertEquals("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95", validators.get(0).getAddr());
         assertEquals("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", validators.get(1).getAddr());
@@ -326,7 +326,7 @@ public class DPoAContractTest {
         receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
-        validators = dPoAService.commit();
+        validators = dPoAService.commit(null);
         assertEquals(4, validators.size());
         assertEquals(proposedValidator, validators.get(0).getAddr());
         assertEquals("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95", validators.get(1).getAddr());
@@ -384,7 +384,7 @@ public class DPoAContractTest {
         receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
-        List<Validator> validators = dPoAService.commit();
+        List<Validator> validators = dPoAService.commit(null);
         assertEquals(3, validators.size());
         assertEquals("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95", validators.get(0).getAddr());
         assertEquals("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", validators.get(1).getAddr());
@@ -402,7 +402,7 @@ public class DPoAContractTest {
         receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
-        validators = dPoAService.commit();
+        validators = dPoAService.commit(null);
         assertEquals(3, validators.size());
         assertEquals("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95", validators.get(0).getAddr());
         assertEquals("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", validators.get(1).getAddr());
@@ -420,7 +420,7 @@ public class DPoAContractTest {
         receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
-        validators = dPoAService.commit();
+        validators = dPoAService.commit(null);
         assertEquals(3, validators.size());
         assertEquals("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95", validators.get(0).getAddr());
         assertEquals("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", validators.get(1).getAddr());

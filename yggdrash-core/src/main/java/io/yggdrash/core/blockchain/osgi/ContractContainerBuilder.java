@@ -4,6 +4,8 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.contract.core.store.OutputStore;
+import io.yggdrash.contract.core.store.OutputType;
 import org.osgi.framework.launch.FrameworkFactory;
 
 import java.util.Map;
@@ -16,6 +18,7 @@ public class ContractContainerBuilder {
     private TransactionReceiptStore transactionReceiptStore;
     private DefaultConfig config;
     private SystemProperties systemProperties;
+    private Map<OutputType, OutputStore> outputStore;
 
     private ContractContainerBuilder() {
 
@@ -60,6 +63,11 @@ public class ContractContainerBuilder {
         return this;
     }
 
+    public ContractContainerBuilder withOutputStore(Map<OutputType, OutputStore> outputStore) {
+        this.outputStore = outputStore;
+        return this;
+    }
+
     public ContractContainer build() {
         if (this.frameworkFactory == null) {
             throw new IllegalStateException("Must set frameworkFactory");
@@ -81,6 +89,7 @@ public class ContractContainerBuilder {
                 , this.transactionReceiptStore
                 , this.config
                 , this.systemProperties
+                , this.outputStore
         );
         contractContainer.newFramework();
         return contractContainer;
