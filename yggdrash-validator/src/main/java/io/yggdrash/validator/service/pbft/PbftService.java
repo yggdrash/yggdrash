@@ -103,7 +103,6 @@ public class PbftService implements ConsensusService {
         mainScheduler();
     }
 
-    // todo: chage cron setting to config file or genesis ...
     public void mainScheduler() {
         if (!isValidator) {
             log.info("Node is not validator.");
@@ -558,15 +557,6 @@ public class PbftService implements ConsensusService {
         this.blockChain.getBlockKeyStore().put(block.getIndex(), block.getHash());
         this.blockChain.batchTxs(block);
 
-        log.debug("ConfirmedBlock "
-                + "("
-                + block.getConsensusMessages().getPrePrepare().getViewNumber()
-                + ") "
-                + "["
-                + block.getIndex()
-                + "] "
-                + block.getHashHex());
-
         changeLastConfirmedBlock(block);
     }
 
@@ -630,6 +620,31 @@ public class PbftService implements ConsensusService {
 
         this.viewNumber = index + 1;
         this.seqNumber = index + 1;
+
+        try {
+            log.debug("PbftBlock "
+                    + "("
+                    + block.getConsensusMessages().getPrePrepare().getViewNumber()
+                    + ") "
+                    + "["
+                    + block.getIndex()
+                    + "]"
+                    + block.getHashHex()
+                    + " ("
+                    + block.getConsensusMessages().getPrepareMap().size()
+                    + ")"
+                    + " ("
+                    + block.getConsensusMessages().getCommitMap().size()
+                    + ")"
+                    + " ("
+                    + block.getConsensusMessages().getViewChangeMap().size()
+                    + ")"
+                    + " ("
+                    + block.getBlock().getAddressHex()
+                    + ")");
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+        }
     }
 
     private Map<String, PbftMessage> getMsgMap(long index, String msg) {
