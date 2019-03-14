@@ -49,11 +49,11 @@ public class BranchConfiguration {
     @Value("classpath:/branch-yggdrash.json")
     Resource yggdrashResource;
 
-    @Value("${es.host}")
+    @Value("${es.host:#{null}}")
     private String esHost;
-    @Value("${es.transport}")
+    @Value("${es.transport:#{null}}")
     private String esTransport;
-    @Value("${event.store}")
+    @Value("${event.store:#{null}}")
     private String[] eventStore;
 
     @Autowired
