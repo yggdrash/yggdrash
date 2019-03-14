@@ -118,7 +118,6 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
     @Override
     public void syncBlock(PeerHandler peerHandler, BlockChain blockChain, long limitIndex) {
         long offset = blockChain.getLastIndex() + 1;
-
         if (limitIndex > 0 && limitIndex <= offset) {
             return;
         }
