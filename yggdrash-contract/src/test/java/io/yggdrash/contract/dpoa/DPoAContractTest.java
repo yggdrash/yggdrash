@@ -10,7 +10,6 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.common.utils.JsonUtil;
-import io.yggdrash.contract.coin.CoinContract;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
@@ -29,7 +28,6 @@ import static org.junit.Assert.assertTrue;
 
 public class DPoAContractTest {
     private DPoAContract.DPoAService dPoAService;
-    private CoinContract coinContract;
     private StateStore<JsonObject> store;
     private Field txReceiptField;
     private JsonArray validatorsArr;
@@ -38,16 +36,10 @@ public class DPoAContractTest {
     public void setUp() throws IllegalAccessException {
         store = new StateStore<>(new HashMapDbSource());
         dPoAService = new DPoAContract.DPoAService();
-        coinContract = new CoinContract();
 
         List<Field> txReceipt = ContractUtils.txReceiptFields(dPoAService);
         if (txReceipt.size() == 1) {
             txReceiptField = txReceipt.get(0);
-        }
-
-        for (Field f : ContractUtils.contractFields(coinContract, ContractStateStore.class)) {
-            f.setAccessible(true);
-            f.set(coinContract, store);
         }
 
         for (Field f : ContractUtils.contractFields(dPoAService, ContractStateStore.class)) {

@@ -30,8 +30,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static io.yggdrash.common.util.Utils.sleep;
-
 public class EbftService implements ConsensusService {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(EbftService.class);
@@ -54,8 +52,8 @@ public class EbftService implements ConsensusService {
     private boolean isProposed;
     private boolean isConsensused;
 
-    String grpcHost;
-    int grpcPort;
+    private String grpcHost;
+    private int grpcPort;
 
     public EbftService(Wallet wallet, ConsensusBlockChain blockChain, String grpcHost, int grpcPort) {
         this.wallet = wallet;
@@ -84,38 +82,82 @@ public class EbftService implements ConsensusService {
     }
 
     public void mainScheduler() {
+        if (!isValidator) {
+            log.info("Node is not validator.");
+            return;
+        }
+
+        loggingStatus();
 
         checkNode();
+
+        if (!isActive) {
+            log.info("Validator is not active.");
+            return;
+        }
 
         lock.lock();
         EbftBlock proposedEbftBlock = makeProposedBlock();
         lock.unlock();
         if (proposedEbftBlock != null) {
-            broadcast(proposedEbftBlock.clone());
+            multicast(proposedEbftBlock.clone());
+            if (!waitingProposedBlock()) {
+                log.debug("ProposedBlock count is not enough.");
+            }
         }
-
-        sleep(500);
 
         lock.lock();
         EbftBlock consensusedEbftBlock = makeConsensus();
         lock.unlock();
         if (consensusedEbftBlock != null) {
-            broadcast(consensusedEbftBlock.clone());
+            multicast(consensusedEbftBlock.clone());
+            if (!waitingConsensusedBlock()) {
+                log.debug("ConsensusedBlock count is not enough.");
+            }
         }
-
-        sleep(500);
 
         lock.lock();
         confirmFinalBlock();
         lock.unlock();
+    }
 
-        loggingStatus();
+    private boolean waitingProposedBlock() {
+        for (int i = 0; i < consensusCount; i++) {
+            if (getUnconfirmedEbftBlockCount(blockChain.getUnConfirmedData(),
+                    blockChain.getLastConfirmedBlock().getIndex() + 1)
+                    < consensusCount) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    log.trace(e.getMessage());
+                }
+            } else {
+                return true;
+            }
+        }
+        return false;
+    }
 
+    private boolean waitingConsensusedBlock() {
+        for (int i = 0; i < consensusCount; i++) {
+            for (EbftBlock unConfirmedEbftBlock : blockChain.getUnConfirmedData().values()) {
+                if (unConfirmedEbftBlock.getIndex() ==
+                        blockChain.getLastConfirmedBlock().getIndex() + 1
+                        && unConfirmedEbftBlock.getConsensusMessages().size() > consensusCount) {
+                    return true;
+                }
+            }
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                log.trace(e.getMessage());
+            }
+        }
+        return false;
     }
 
     private void checkNode() {
-        for (String key : totalValidatorMap.keySet()) {
-            EbftClientStub client = totalValidatorMap.get(key);
+        for (EbftClientStub client : totalValidatorMap.values()) {
             if (client.isMyclient()) {
                 continue;
             }
@@ -140,70 +182,70 @@ public class EbftService implements ConsensusService {
     }
 
     private void updateStatus(EbftClientStub client, EbftStatus ebftStatus) {
-        if (EbftStatus.verify(ebftStatus)) {
-            client.setIsRunning(true);
-
-            if (ebftStatus.getLastConfirmedEbftBlock().getIndex()
-                    > this.blockChain.getLastConfirmedBlock().getIndex()) {
-                log.debug("this Index: "
-                        + this.blockChain.getLastConfirmedBlock().getIndex());
-                log.debug("client Index: " + ebftStatus.getLastConfirmedEbftBlock().getIndex());
-                log.debug("client : " + client.getId());
-
-                // blockSyncing
-                this.isSynced = false;
-                blockSyncing(client.getAddr(),
-                        ebftStatus.getLastConfirmedEbftBlock().getIndex());
-            } else if (ebftStatus.getLastConfirmedEbftBlock().getIndex()
-                    == this.blockChain.getLastConfirmedBlock().getIndex()) {
-                // unconfirmed block update
-                for (EbftBlock ebftBlock : ebftStatus.getUnConfirmedEbftBlockList()) {
-                    updateUnconfirmedBlock(ebftBlock);
-                }
-            }
-        } else {
+        if (!EbftStatus.verify(ebftStatus)) {
             client.setIsRunning(false);
+            return;
+        }
+
+        client.setIsRunning(true);
+
+        if (ebftStatus.getIndex()
+                > this.blockChain.getLastConfirmedBlock().getIndex()) {
+            log.debug("this Index: "
+                    + this.blockChain.getLastConfirmedBlock().getIndex());
+            log.debug("client Index: " + ebftStatus.getIndex());
+            log.debug("client : " + client.getId());
+
+            this.isSynced = false;
+            blockSyncing(client.getAddr(), ebftStatus.getIndex());
+        } else if (ebftStatus.getIndex()
+                == this.blockChain.getLastConfirmedBlock().getIndex()) {
+            for (EbftBlock ebftBlock : ebftStatus.getUnConfirmedEbftBlockList()) {
+                updateUnconfirmedBlock(ebftBlock);
+            }
         }
     }
 
     private void blockSyncing(String addr, long index) {
         EbftClientStub client = totalValidatorMap.get(addr);
-        EbftBlock ebftBlock;
-        if (client.isRunning()) {
-            List<EbftBlock> ebftBlockList = new ArrayList<>(client.getEbftBlockList(
-                    this.blockChain.getLastConfirmedBlock().getIndex()));
-
-            log.debug("node: " + client.getId());
-            log.debug("index: " + index);
-            log.debug("ebftBlockList size: " + ebftBlockList.size());
-
-            if (ebftBlockList.size() == 0) {
-                return;
-            }
-
-            int i = 0;
-            for (; i < ebftBlockList.size(); i++) {
-                ebftBlock = ebftBlockList.get(i);
-                if (!EbftBlock.verify(ebftBlock) || !consensusVerify(ebftBlock)) {
-                    log.warn("Verify Fail");
-                    //todo: check verify fail exception
-                    continue;
-                }
-                this.blockChain.getBlockStore().put(ebftBlock.getHash(), ebftBlock);
-                this.blockChain.getBlockKeyStore()
-                        .put(ebftBlock.getIndex(), ebftBlock.getHash());
-            }
-            ebftBlock = ebftBlockList.get(i - 1);
-            //todo: if consensusCount(validator count) is different from previous count,
-            // cannot confirm prevBlock.
-            if (ebftBlock.getConsensusMessages().size() >= consensusCount) {
-                changeLastConfirmedBlock(ebftBlock.clone());
-                this.isProposed = false;
-                this.isConsensused = false;
-            }
-
-            ebftBlockList.clear();
+        log.debug("node: " + client.getId());
+        log.debug("index: " + index);
+        if (!client.isRunning()) {
+            return;
         }
+
+        List<EbftBlock> ebftBlockList = new ArrayList<>(client.getEbftBlockList(
+                this.blockChain.getLastConfirmedBlock().getIndex()));
+        log.debug("ebftBlockList size: " + ebftBlockList.size());
+        if (ebftBlockList.size() == 0) {
+            return;
+        }
+
+        EbftBlock ebftBlock;
+        int i = 0;
+        for (; i < ebftBlockList.size(); i++) {
+            ebftBlock = ebftBlockList.get(i);
+            if (!EbftBlock.verify(ebftBlock) || !consensusVerify(ebftBlock)) {
+                log.warn("Verify Fail");
+                //todo: check verify fail exception
+                continue;
+            }
+            this.blockChain.getBlockStore().put(ebftBlock.getHash(), ebftBlock);
+            this.blockChain.getBlockKeyStore()
+                    .put(ebftBlock.getIndex(), ebftBlock.getHash());
+        }
+
+        ebftBlock = ebftBlockList.get(i - 1);
+
+        //todo: if consensusCount(validator count) is different from previous count,
+        // cannot confirm prevBlock.
+        if (ebftBlock.getConsensusMessages().size() >= consensusCount) {
+            changeLastConfirmedBlock(ebftBlock.clone());
+            this.isProposed = false;
+            this.isConsensused = false;
+        }
+
+        ebftBlockList.clear();
 
         if (this.blockChain.getLastConfirmedBlock().getIndex() < index) {
             blockSyncing(addr, index);
@@ -211,37 +253,34 @@ public class EbftService implements ConsensusService {
     }
 
     private EbftBlock makeProposedBlock() {
-        if (this.isValidator
-                && this.isActive
-                && !this.isProposed
-                && this.isSynced) {
-            long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
-            byte[] prevBlockHash = this.blockChain.getLastConfirmedBlock().getHash();
-
-            Block newBlock = makeNewBlock(index, prevBlockHash);
-            log.trace("newBlock" + newBlock.toString());
-
-            EbftBlock newEbftBlock
-                    = new EbftBlock(newBlock);
-
-            // add in unconfirmed blockMap & unconfirmed block
-            this.blockChain.getUnConfirmedData()
-                    .putIfAbsent(newEbftBlock.getHashHex(), newEbftBlock);
-            this.isProposed = true;
-
-            log.debug("make Proposed Block"
-                    + "["
-                    + newEbftBlock.getIndex()
-                    + "]"
-                    + newEbftBlock.getHashHex()
-                    + " ("
-                    + newEbftBlock.getBlock().getAddressHex()
-                    + ")");
-
-            return newEbftBlock;
+        if (this.isProposed
+                || !this.isSynced) {
+            return null;
         }
 
-        return null;
+        long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
+        byte[] prevBlockHash = this.blockChain.getLastConfirmedBlock().getHash();
+
+        Block newBlock = makeNewBlock(index, prevBlockHash);
+        log.trace("newBlock" + newBlock.toString());
+
+        EbftBlock newEbftBlock = new EbftBlock(newBlock);
+
+        // add in unconfirmed blockMap & unconfirmed block
+        this.blockChain.getUnConfirmedData()
+                .putIfAbsent(newEbftBlock.getHashHex(), newEbftBlock);
+        this.isProposed = true;
+
+        log.debug("make Proposed Block"
+                + "["
+                + newEbftBlock.getIndex()
+                + "]"
+                + newEbftBlock.getHashHex()
+                + " ("
+                + newEbftBlock.getBlock().getAddressHex()
+                + ")");
+
+        return newEbftBlock;
     }
 
     private Block makeNewBlock(long index, byte[] prevBlockHash) {
@@ -274,63 +313,68 @@ public class EbftService implements ConsensusService {
         int unconfirmedEbftBlockCount = getUnconfirmedEbftBlockCount(
                 unConfirmedEbftBlockMap,
                 this.blockChain.getLastConfirmedBlock().getIndex() + 1);
-        if (unconfirmedEbftBlockCount >= getActiveNodeCount()
-                && unconfirmedEbftBlockCount >= consensusCount
-                && checkReceiveProposedEbftBlock()) { //todo: check efficiency
 
-            String minKey = null;
-            for (String key : unConfirmedEbftBlockMap.keySet()) {
-                if (unConfirmedEbftBlockMap.get(key).getIndex()
-                        != this.blockChain.getLastConfirmedBlock().getIndex() + 1) {
-                    continue;
-                }
-                if (minKey == null) {
-                    minKey = key;
-                    if (ABNORMAL_TEST) {
-                        // for test abnormal node(attacker)
-                        break;
-                    }
-                } else {
-                    if (org.spongycastle.util.Arrays.compareUnsigned(Hex.decode(minKey),
-                            Hex.decode(key)) > 0) {
-                        minKey = key;
-                    }
-                }
-            }
-
-            EbftBlock ebftBlock = unConfirmedEbftBlockMap.get(minKey);
-            String consensus = Hex.toHexString(wallet.signHashedData(ebftBlock.getHash()));
-            ebftBlock.getConsensusMessages().add(consensus);
-            this.isConsensused = true;
-
-            log.debug("make Consensus: "
-                    + "["
-                    + ebftBlock.getIndex()
-                    + "] "
-                    + ebftBlock.getHashHex()
-                    + " ("
-                    + consensus
-                    + ")");
-
-            return ebftBlock;
+        //todo : check active count, active status
+        if (unconfirmedEbftBlockCount < getActiveNodeCount()
+                || unconfirmedEbftBlockCount < consensusCount
+                || !checkReceiveProposedEbftBlock()) {
+            log.debug("Cannot makeConsensus: "
+                    + "unConfirmedBlockCount: " + unconfirmedEbftBlockCount
+                    + " getActiveNodeCount: " + getActiveNodeCount()
+                    + " checkReceiveProposedEbftBlock: " + checkReceiveProposedEbftBlock()
+            );
+            return null;
         }
 
-        return null;
+        //todo: check efficiency
+        String minKey = null;
+        for (String key : unConfirmedEbftBlockMap.keySet()) {
+            if (unConfirmedEbftBlockMap.get(key).getIndex()
+                    != this.blockChain.getLastConfirmedBlock().getIndex() + 1) {
+                continue;
+            }
+            if (minKey == null) {
+                minKey = key;
+                if (ABNORMAL_TEST) {
+                    // for test abnormal node(attacker)
+                    break;
+                }
+            } else {
+                if (org.spongycastle.util.Arrays.compareUnsigned(Hex.decode(minKey),
+                        Hex.decode(key)) > 0) {
+                    minKey = key;
+                }
+            }
+        }
+
+        EbftBlock ebftBlock = unConfirmedEbftBlockMap.get(minKey);
+        String consensus = wallet.signHex(ebftBlock.getHash(), true);
+        ebftBlock.getConsensusMessages().add(consensus);
+        this.isConsensused = true;
+
+        log.debug("make Consensus: "
+                + "["
+                + ebftBlock.getIndex()
+                + "] "
+                + ebftBlock.getHashHex()
+                + " ("
+                + consensus
+                + ")");
+
+        return ebftBlock;
+
     }
 
     private boolean checkReceiveProposedEbftBlock() {
         long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
         List<String> proposedAddr = new ArrayList<>();
-        for (String key : this.blockChain.getUnConfirmedData().keySet()) {
-            EbftBlock proposedEbftBlock = this.blockChain.getUnConfirmedData().get(key);
-
+        for (EbftBlock proposedEbftBlock : this.blockChain.getUnConfirmedData().values()) {
             if (proposedEbftBlock.getIndex() == index) {
                 proposedAddr.add(proposedEbftBlock.getBlock().getAddressHex());
             }
         }
 
-        for (String key : this.totalValidatorMap.keySet()) {
-            EbftClientStub client = this.totalValidatorMap.get(key);
+        for (EbftClientStub client : this.totalValidatorMap.values()) {
             if (client.isRunning()) {
                 if (!proposedAddr.contains(client.getAddr())) {
                     return false;
@@ -341,10 +385,10 @@ public class EbftService implements ConsensusService {
         return true;
     }
 
-    private int getUnconfirmedEbftBlockCount(Map<String, EbftBlock> map, long index) {
+    private int getUnconfirmedEbftBlockCount(Map<String, EbftBlock> unConfirmedEbftBlockMap, long index) {
         int count = 0;
-        for (String key : map.keySet()) {
-            if (map.get(key).getIndex() == index) {
+        for (EbftBlock ebftBlock : unConfirmedEbftBlockMap.values()) {
+            if (ebftBlock.getIndex() == index) {
                 count++;
             }
         }
@@ -358,20 +402,16 @@ public class EbftService implements ConsensusService {
             if (unconfirmedBlock == null) {
                 this.blockChain.getUnConfirmedData().remove(key);
                 continue;
-            }
-            if (unconfirmedBlock.getIndex()
+            } else if (unconfirmedBlock.getIndex()
                     <= this.blockChain.getLastConfirmedBlock().getIndex()) {
                 unconfirmedBlock.clear();
                 this.blockChain.getUnConfirmedData().remove(key);
             } else if (unconfirmedBlock.getIndex()
-                    == this.blockChain.getLastConfirmedBlock().getIndex() + 1) {
-                if (unconfirmedBlock.getConsensusMessages().size() >= consensusCount) {
-                    confirmedBlock(unconfirmedBlock);
-                }
-            } else {
-                if (unconfirmedBlock.getConsensusMessages().size() >= consensusCount) {
-                    moreConfirmFlag = true;
-                }
+                    == this.blockChain.getLastConfirmedBlock().getIndex() + 1
+                    && unconfirmedBlock.getConsensusMessages().size() >= consensusCount) {
+                confirmedBlock(unconfirmedBlock);
+            } else if (unconfirmedBlock.getConsensusMessages().size() >= consensusCount) {
+                moreConfirmFlag = true;
             }
         }
 
@@ -381,27 +421,24 @@ public class EbftService implements ConsensusService {
     }
 
     private void confirmedBlock(EbftBlock ebftBlock) {
-        // add newBlock into blockMap
         this.blockChain.getBlockStore().put(ebftBlock.getHash(), ebftBlock);
         this.blockChain.getBlockKeyStore().put(ebftBlock.getIndex(), ebftBlock.getHash());
 
         changeLastConfirmedBlock(ebftBlock.clone());
         this.isProposed = false;
         this.isConsensused = false;
-
-        log.debug("ConfirmedBlock="
-                + "["
-                + this.blockChain.getLastConfirmedBlock().getIndex()
-                + "]"
-                + this.blockChain.getLastConfirmedBlock().getHashHex()
-                + "("
-                + this.blockChain.getLastConfirmedBlock().getConsensusMessages().size()
-                + ")");
     }
 
     private void changeLastConfirmedBlock(EbftBlock ebftBlock) {
-        // change lastConfirmedBlock
         this.blockChain.setLastConfirmedBlock(ebftBlock);
+        log.debug("EbftBlock [" + ebftBlock.getIndex() + "] "
+                + ebftBlock.getHashHex()
+                + " ("
+                + ebftBlock.getBlock().getAddressHex()
+                + ") "
+                + "("
+                + ebftBlock.getConsensusMessages().size()
+                + ")");
 
         // clear unConfirmedBlock
         for (String key : this.blockChain.getUnConfirmedData().keySet()) {
@@ -466,7 +503,7 @@ public class EbftService implements ConsensusService {
         log.debug("");
     }
 
-    private void broadcast(EbftBlock ebftBlock) {
+    private void multicast(EbftBlock ebftBlock) {
         for (String key : totalValidatorMap.keySet()) {
             EbftClientStub client = totalValidatorMap.get(key);
             if (client.isMyclient()) {
@@ -474,9 +511,9 @@ public class EbftService implements ConsensusService {
             }
             if (client.isRunning()) {
                 try {
-                    client.broadcastEbftBlock(EbftBlock.toProto(ebftBlock));
+                    client.multicastEbftBlock(EbftBlock.toProto(ebftBlock));
                 } catch (Exception e) {
-                    log.debug("broadcast exception: " + e.getMessage());
+                    log.debug("multicast exception: " + e.getMessage());
                     log.debug("client: " + client.getId());
                     log.debug("ebftBlock: " + ebftBlock.getHashHex());
                     // continue
@@ -486,6 +523,10 @@ public class EbftService implements ConsensusService {
     }
 
     public void updateUnconfirmedBlock(EbftBlock ebftBlock) {
+        if (ebftBlock == null) {
+            return;
+        }
+
         if (this.blockChain.getUnConfirmedData().containsKey(ebftBlock.getHashHex())) {
             // if exist, update consensus
             if (ebftBlock.getConsensusMessages().size() > 0) {
@@ -506,9 +547,10 @@ public class EbftService implements ConsensusService {
     }
 
     public EbftStatus getMyNodeStatus() {
-        EbftStatus newEbftStatus = new EbftStatus(this.blockChain.getLastConfirmedBlock(),
-                new ArrayList<>(this.blockChain.getUnConfirmedData().values()));
-        newEbftStatus.setSignature(wallet.sign(newEbftStatus.getDataForSigning()));
+        EbftStatus newEbftStatus =
+                new EbftStatus(this.blockChain.getLastConfirmedBlock().getIndex(),
+                        new ArrayList<>(this.blockChain.getUnConfirmedData().values()));
+        newEbftStatus.setSignature(wallet.sign(newEbftStatus.getHashForSigning(), true));
         return newEbftStatus;
     }
 
@@ -553,10 +595,8 @@ public class EbftService implements ConsensusService {
     private EbftClientStub initMyNode() {
         EbftClientStub client = new EbftClientStub(
                 wallet.getHexAddress(), this.grpcHost, this.grpcPort);
-
         client.setMyclient(true);
         client.setIsRunning(true);
-
         return client;
     }
 
@@ -567,8 +607,7 @@ public class EbftService implements ConsensusService {
 
     private List<String> getActiveNodeList() {
         List<String> activeNodeList = new ArrayList<>();
-        for (String key : totalValidatorMap.keySet()) {
-            EbftClientStub client = totalValidatorMap.get(key);
+        for (EbftClientStub client : totalValidatorMap.values()) {
             if (client.isMyclient()) {
                 continue;
             }
@@ -598,8 +637,8 @@ public class EbftService implements ConsensusService {
 
     private int getActiveNodeCount() {
         int count = 0;
-        for (String key : totalValidatorMap.keySet()) {
-            if (totalValidatorMap.get(key).isRunning()) {
+        for (EbftClientStub client : totalValidatorMap.values()) {
+            if (client.isRunning()) {
                 count++;
             }
         }

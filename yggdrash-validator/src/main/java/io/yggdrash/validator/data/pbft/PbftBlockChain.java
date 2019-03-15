@@ -74,6 +74,7 @@ public class PbftBlockChain implements ConsensusBlockChain<String, PbftMessage> 
                     prevPbftBlock.clear();
                     prevPbftBlock = nextPbftBlock;
                 } else {
+                    log.error("PbftBlockStore is not valid.");
                     throw new NotValidateException("PbftBlockStore is not valid.");
                 }
             }

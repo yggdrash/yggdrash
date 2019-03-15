@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.InjectEvent;
@@ -14,9 +15,9 @@ import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.wallet.Address;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
@@ -195,7 +196,6 @@ public class ContractManager {
 
             start(bundle.getBundleId());
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("Install bundle exception: branchID - {}, msg - {}", branchId, e.getMessage());
             throw new RuntimeException(e);
         }
@@ -268,7 +268,6 @@ public class ContractManager {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
             log.error("Call contract method : {}", bundle.getBundleId());
         }
 
@@ -327,7 +326,7 @@ public class ContractManager {
         BlockRuntimeResult result = new BlockRuntimeResult(nextBlock);
 //        TempStateStore blockState = new TempStateStore(stateStore);
         for (TransactionHusk tx : nextBlock.getBody()) {
-            TransactionReceipt txReceipt = new TransactionReceiptImpl(tx);
+            TransactionReceipt txReceipt = createTransactionReceipt(tx);
             // set Block ID
             txReceipt.setBlockId(nextBlock.getHash().toString());
             txReceipt.setBlockHeight(nextBlock.getIndex());
@@ -385,5 +384,16 @@ public class ContractManager {
             ));
         }
         return result;
+    }
+
+    public static TransactionReceipt createTransactionReceipt(TransactionHusk tx) {
+        String txId = tx.getHash().toString();
+        long txSize = tx.getBody().length();
+        Address address = tx.getAddress();
+        String issuer = null;
+        if (address != null) {
+            issuer = address.toString();
+        }
+        return new TransactionReceiptImpl(txId, txSize, issuer);
     }
 }

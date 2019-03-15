@@ -41,16 +41,7 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
     }
 
     @Override
-    public void getNodeStatus(
-            CommonProto.Chain request,
-            StreamObserver<EbftProto.EbftStatus> responseObserver) {
-        EbftStatus newEbftStatus = ebftService.getMyNodeStatus();
-        responseObserver.onNext(EbftStatus.toProto(newEbftStatus));
-        responseObserver.onCompleted();
-    }
-
-    @Override
-    public void exchangeNodeStatus(EbftProto.EbftStatus request,
+    public void exchangeEbftStatus(EbftProto.EbftStatus request,
                                    StreamObserver<EbftProto.EbftStatus> responseObserver) {
         EbftStatus blockStatus = new EbftStatus(request);
         updateStatus(blockStatus);
@@ -61,7 +52,7 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
     }
 
     @Override
-    public void broadcastEbftBlock(EbftProto.EbftBlock request,
+    public void multicastEbftBlock(EbftProto.EbftBlock request,
                                    StreamObserver<NetProto.Empty> responseObserver) {
         EbftBlock newEbftBlock = new EbftBlock(request);
         if (!EbftBlock.verify(newEbftBlock) || !ebftService.consensusVerify(newEbftBlock)) {
@@ -76,14 +67,13 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
         responseObserver.onNext(NetProto.Empty.newBuilder().build());
         responseObserver.onCompleted();
 
-        if (lastEbftBlock.getIndex() == newEbftBlock.getIndex() - 1
+        ebftService.getLock().lock();
+        if (newEbftBlock.getIndex() == lastEbftBlock.getIndex() + 1
                 && Arrays.equals(lastEbftBlock.getHash(),
                 newEbftBlock.getBlock().getPrevBlockHash())) {
-
-            ebftService.getLock().lock();
             ebftService.updateUnconfirmedBlock(newEbftBlock);
-            ebftService.getLock().unlock();
         }
+        ebftService.getLock().unlock();
     }
 
     @Override
@@ -112,15 +102,14 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
 
     private void updateStatus(EbftStatus ebftStatus) {
         if (EbftStatus.verify(ebftStatus)) {
+            ebftService.getLock().lock();
             for (EbftBlock ebftBlock : ebftStatus.getUnConfirmedEbftBlockList()) {
                 if (ebftBlock.getIndex()
-                        <= this.ebftBlockChain.getLastConfirmedBlock().getIndex()) {
-                    continue;
+                        > this.ebftBlockChain.getLastConfirmedBlock().getIndex()) {
+                    ebftService.updateUnconfirmedBlock(ebftBlock);
                 }
-                ebftService.getLock().lock();
-                ebftService.updateUnconfirmedBlock(ebftBlock);
-                ebftService.getLock().unlock();
             }
+            ebftService.getLock().unlock();
         }
     }
 
