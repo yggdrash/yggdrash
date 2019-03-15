@@ -20,6 +20,8 @@ import org.springframework.util.FileCopyUtils;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
@@ -31,134 +33,98 @@ public class PbftBlockChainTest {
     private static final Logger log = LoggerFactory.getLogger(PbftBlockChainTest.class);
 
     private DefaultConfig defaultConfig;
-    private Wallet wallet;
+    private Wallet wallet0;
+    private Wallet wallet1;
     private Wallet wallet2;
     private Wallet wallet3;
-    private Wallet wallet4;
 
-    private Block block;
+    private Block block0;
+    private Block block1;
+    private Block block2;
+    private Block block3;
 
     private PbftBlockChain pbftBlockChain;
-    private PbftBlock pbftBlock;
+    private PbftBlock pbftBlock0;
+    private PbftBlock pbftBlock1;
+    private PbftBlock pbftBlock2;
+    private PbftBlock pbftBlock3;
 
-    private PbftMessage prePrepare;
-    private PbftMessage prepare;
-    private PbftMessage prepare2;
-    private PbftMessage prepare3;
-    private PbftMessage prepare4;
-
-    private PbftMessage commit;
-    private PbftMessage commit2;
-    private PbftMessage commit3;
-    private PbftMessage commit4;
-
-    private PbftMessageSet pbftMessageSet;
+    private PbftMessageSet pbftMessageSet0;
+    private PbftMessageSet pbftMessageSet1;
+    private PbftMessageSet pbftMessageSet2;
+    private PbftMessageSet pbftMessageSet3;
 
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
         defaultConfig = new DefaultConfig();
 
-        wallet = new Wallet(defaultConfig);
-        wallet2 = new Wallet(null, "/tmp/",
+        wallet0 = new Wallet(defaultConfig);
+        wallet1 = new Wallet(null, "/tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/",
+        wallet2 = new Wallet(null, "/tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
-        wallet4 = new Wallet(null, "/tmp/",
+        wallet3 = new Wallet(null, "/tmp/",
                 "test4" + TimeUtils.time(), "Password1234!");
 
-        block = this.genesisBlock();
+        block0 = this.genesisBlock();
+        block1 = new TestUtils(wallet1).sampleBlock(block0.getIndex() + 1, block0.getHash());
+        block2 = new TestUtils(wallet2).sampleBlock(block1.getIndex() + 1, block1.getHash());
+        block3 = new TestUtils(wallet3).sampleBlock(block2.getIndex() + 1, block2.getHash());
 
         StoreTestUtils.clearTestDb();
 
-        this.pbftBlockChain = new PbftBlockChain(block, StoreTestUtils.getTestPath(),
+        this.pbftBlockChain = new PbftBlockChain(block0, StoreTestUtils.getTestPath(),
                 "/pbftKey",
                 "/pbftBlock",
                 "/pbftTx");
 
-        prePrepare = new PbftMessage(PBFT_PREPREPARE,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet,
-                block);
-        log.debug(prePrepare.toJsonObject().toString());
+        this.pbftMessageSet0 = makePbftMessageSet(block0);
+        this.pbftBlock0 = new PbftBlock(this.block0, this.pbftMessageSet0);
 
-        prepare = new PbftMessage(PBFT_PREPARE,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet,
-                null);
-        log.debug(prepare.toJsonObject().toString());
+        this.pbftMessageSet1 = makePbftMessageSet(block1);
+        this.pbftBlock1 = new PbftBlock(this.block1, this.pbftMessageSet1);
 
-        prepare2 = new PbftMessage(PBFT_PREPARE,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet2,
-                null);
-        log.debug(prepare2.toJsonObject().toString());
+        this.pbftMessageSet2 = makePbftMessageSet(block2);
+        this.pbftBlock2 = new PbftBlock(this.block2, this.pbftMessageSet2);
 
-        prepare3 = new PbftMessage(PBFT_PREPARE,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet3,
-                null);
-        log.debug(prepare3.toJsonObject().toString());
+        this.pbftMessageSet3 = makePbftMessageSet(block3);
+        this.pbftBlock3 = new PbftBlock(this.block3, this.pbftMessageSet3);
+    }
 
-        prepare4 = new PbftMessage(PBFT_PREPARE,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet4,
-                null);
-        log.debug(prepare4.toJsonObject().toString());
+    private PbftMessage makePbftMessage(String type, Block block, Wallet wallet) {
+        switch (type) {
+            case PBFT_PREPREPARE:
+                return new PbftMessage(type, block.getIndex(), block.getIndex(), block.getHash(), null, wallet, block);
+            default:
+                return new PbftMessage(type, block.getIndex(), block.getIndex(), block.getHash(), null, wallet, null);
+        }
+    }
 
-        commit = new PbftMessage(PBFT_COMMIT,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet,
-                null);
-        log.debug(commit.toJsonObject().toString());
+    private PbftMessageSet makePbftMessageSet(Block block) {
+        PbftMessage prePrepare = makePbftMessage(PBFT_PREPREPARE, block, wallet0);
 
-        commit2 = new PbftMessage(PBFT_COMMIT,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet2,
-                null);
-        log.debug(commit2.toJsonObject().toString());
+        Map<String, PbftMessage> prepareMap = new TreeMap<>();
+        PbftMessage prepare0 = makePbftMessage(PBFT_PREPARE, block, wallet0);
+        prepareMap.put(prepare0.getSignatureHex(), prepare0);
+        PbftMessage prepare1 = makePbftMessage(PBFT_PREPARE, block, wallet1);
+        prepareMap.put(prepare1.getSignatureHex(), prepare1);
+        PbftMessage prepare2 = makePbftMessage(PBFT_PREPARE, block, wallet2);
+        prepareMap.put(prepare2.getSignatureHex(), prepare2);
+        PbftMessage prepare3 = makePbftMessage(PBFT_PREPARE, block, wallet3);
+        prepareMap.put(prepare3.getSignatureHex(), prepare3);
 
-        commit3 = new PbftMessage(PBFT_COMMIT,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet3,
-                null);
-        log.debug(commit3.toJsonObject().toString());
+        Map<String, PbftMessage> commitMap = new TreeMap<>();
+        PbftMessage commit0 = makePbftMessage(PBFT_COMMIT, block, wallet0);
+        commitMap.put(commit0.getSignatureHex(), commit0);
+        PbftMessage commit1 = makePbftMessage(PBFT_COMMIT, block, wallet1);
+        commitMap.put(commit1.getSignatureHex(), commit1);
+        PbftMessage commit2 = makePbftMessage(PBFT_COMMIT, block, wallet2);
+        commitMap.put(commit2.getSignatureHex(), commit2);
+        PbftMessage commit3 = makePbftMessage(PBFT_COMMIT, block, wallet3);
+        commitMap.put(commit3.getSignatureHex(), commit3);
 
-        commit4 = new PbftMessage(PBFT_COMMIT,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet4,
-                null);
-        log.debug(commit4.toJsonObject().toString());
-
-        this.pbftBlock = new PbftBlock(this.block, this.pbftMessageSet);
-
+        return new PbftMessageSet(prePrepare, prepareMap, commitMap, null);
     }
 
     private Block genesisBlock() {
@@ -194,21 +160,37 @@ public class PbftBlockChainTest {
 
     @Test
     public void getPbftBlockListTest() {
+        PbftBlockChain pbftBlockChain = new PbftBlockChain(block0, StoreTestUtils.getTestPath(),
+                "/pbftKeyTest",
+                "/pbftBlockTest",
+                "/pbftTxTest");
+
         // todo: check speed (put, get)
         int count = 100;
-        PbftBlock newBlock = this.pbftBlockChain.getGenesisBlock();
+        PbftBlock newBlock = pbftBlockChain.getGenesisBlock();
         Block block;
 
         for (int i = 0; i < count; i++) {
-            block = new TestUtils(wallet).sampleBlock(newBlock.getIndex() + 1, newBlock.getHash());
+            block = new TestUtils(wallet0).sampleBlock(newBlock.getIndex() + 1, newBlock.getHash());
             newBlock = new PbftBlock(block, null);
 
-            this.pbftBlockChain.getBlockKeyStore().put(newBlock.getIndex(), newBlock.getHash());
-            this.pbftBlockChain.getBlockStore().put(newBlock.getHash(), newBlock);
+            pbftBlockChain.getBlockKeyStore().put(newBlock.getIndex(), newBlock.getHash());
+            pbftBlockChain.getBlockStore().put(newBlock.getHash(), newBlock);
         }
 
-        List<PbftBlock> pbftBlockList = this.pbftBlockChain.getPbftBlockList(1, 100);
+        List<PbftBlock> pbftBlockList = pbftBlockChain.getPbftBlockList(1, 100);
         assertEquals(pbftBlockList.size(), count);
     }
 
+    @Test
+    public void addBlockTest() {
+        this.pbftBlockChain.addBlock(pbftBlock1);
+        assertEquals(1L, this.pbftBlockChain.getLastConfirmedBlock().getIndex());
+
+        this.pbftBlockChain.addBlock(pbftBlock2);
+        assertEquals(2L, this.pbftBlockChain.getLastConfirmedBlock().getIndex());
+
+        this.pbftBlockChain.addBlock(pbftBlock3);
+        assertEquals(3L, this.pbftBlockChain.getLastConfirmedBlock().getIndex());
+    }
 }

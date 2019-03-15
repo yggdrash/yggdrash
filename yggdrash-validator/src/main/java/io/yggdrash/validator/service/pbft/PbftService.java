@@ -552,14 +552,6 @@ public class PbftService implements ConsensusService {
         }
     }
 
-    private void confirmedBlock(PbftBlock block) {
-        this.blockChain.getBlockStore().put(block.getHash(), block);
-        this.blockChain.getBlockKeyStore().put(block.getIndex(), block.getHash());
-        this.blockChain.batchTxs(block);
-
-        changeLastConfirmedBlock(block);
-    }
-
     private PbftMessage makeViewChangeMsg() {
         if (this.failCount < FAIL_COUNT
                 || this.isViewChanged) {
@@ -601,9 +593,13 @@ public class PbftService implements ConsensusService {
         return viewChangeMsg;
     }
 
-    private void changeLastConfirmedBlock(PbftBlock block) {
+    private void confirmedBlock(PbftBlock block) {
+        this.blockChain.addBlock(block);
+        resetUnConfirmedBlock(block);
+    }
+
+    private void resetUnConfirmedBlock(PbftBlock block) {
         long index = block.getIndex();
-        this.blockChain.setLastConfirmedBlock(block.clone());
         for (String key : this.blockChain.getUnConfirmedData().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedData().get(key);
             if (pbftMessage.getSeqNumber() <= index) {
@@ -620,31 +616,6 @@ public class PbftService implements ConsensusService {
 
         this.viewNumber = index + 1;
         this.seqNumber = index + 1;
-
-        try {
-            log.debug("PbftBlock "
-                    + "("
-                    + block.getConsensusMessages().getPrePrepare().getViewNumber()
-                    + ") "
-                    + "["
-                    + block.getIndex()
-                    + "]"
-                    + block.getHashHex()
-                    + " ("
-                    + block.getConsensusMessages().getPrepareMap().size()
-                    + ")"
-                    + " ("
-                    + block.getConsensusMessages().getCommitMap().size()
-                    + ")"
-                    + " ("
-                    + block.getConsensusMessages().getViewChangeMap().size()
-                    + ")"
-                    + " ("
-                    + block.getBlock().getAddressHex()
-                    + ")");
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-        }
     }
 
     private Map<String, PbftMessage> getMsgMap(long index, String msg) {
@@ -761,19 +732,10 @@ public class PbftService implements ConsensusService {
                     pbftBlockList.clear();
                     return;
                 }
-
-                if (!this.blockChain.getBlockStore().contains(pbftBlock.getHash())) {
-                    this.blockChain.getBlockStore().put(pbftBlock.getHash(), pbftBlock.clone());
-                }
-
-                if (!this.blockChain.getBlockKeyStore().contains(pbftBlock.getIndex())) {
-                    this.blockChain.getBlockKeyStore()
-                            .put(pbftBlock.getIndex(), pbftBlock.getHash());
-                }
-                this.blockChain.batchTxs(pbftBlock);
+                this.blockChain.addBlock(pbftBlock);
             }
             pbftBlock = pbftBlockList.get(i - 1);
-            changeLastConfirmedBlock(pbftBlock);
+            resetUnConfirmedBlock(pbftBlock);
 
             for (PbftBlock pbBlock : pbftBlockList) {
                 pbBlock.clear();
