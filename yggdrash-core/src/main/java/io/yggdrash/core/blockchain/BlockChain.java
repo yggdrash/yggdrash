@@ -25,7 +25,6 @@ import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.BranchStore;
@@ -45,6 +44,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static io.yggdrash.common.config.Constants.LIMIT;
 
@@ -64,9 +64,6 @@ public class BlockChain {
     private final TransactionReceiptStore transactionReceiptStore;
     private final List<Validator> validators = new ArrayList<>();
 
-
-    private Runtime<?> runtime;
-
     private BlockHusk prevBlock;
 
     private final ContractContainer contractContainer;
@@ -81,7 +78,6 @@ public class BlockChain {
         this.blockStore = blockStore;
         this.transactionStore = transactionStore;
         this.branchStore = branchStore;
-//        this.runtime = runtime;
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
         this.contractContainer = contractContainer;
@@ -106,6 +102,31 @@ public class BlockChain {
                 e.printStackTrace();
             }
         }
+        // TODO Load User Contracts
+        /* Load and Install Contracts */
+        List<BranchContract> contracts = this.metaStore.getBranchContacts();
+
+        // Contract Filter (UserContract)
+        List<BranchContract> userContract =
+                contracts.stream().filter(bc -> !bc.isSystem()).collect(Collectors.toList());
+
+        // copy contract to folder
+        contractContainer.copyUserContract(userContract);
+
+        // install contract in osgi
+        List<String> contractList = userContract
+                .stream()
+                .map(c -> c.getContractVersion().toString())
+                .collect(Collectors.toList());
+        contractContainer.loadUserContract(contractList);
+
+        // inject UserContracts
+        try {
+            contractContainer.reloadInject();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        // Blockchain is Ready
     }
 
     private void initGenesis() {
@@ -151,10 +172,6 @@ public class BlockChain {
 
     public void addListener(BranchEventListener listener) {
         listenerList.add(listener);
-    }
-
-    Runtime<?> getRuntime() {
-        return runtime;
     }
 
     public StateStore getStateStore() {
