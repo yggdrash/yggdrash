@@ -37,7 +37,7 @@ public class PbftService implements ConsensusService {
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftService.class);
 
     private static final boolean TEST_MEMORY_LEAK = false;
-    private static final int FAIL_COUNT = 3;
+    private static final int FAIL_COUNT = 2;
 
     private final boolean isValidator;
     private final int bftCount;
@@ -141,7 +141,7 @@ public class PbftService implements ConsensusService {
         } else {
             if (!waitingForMessage("PREPREPA")) {
                 failCount++;
-                return;
+                log.debug("PREPREPA message is not received.");
             }
         }
 
@@ -152,8 +152,7 @@ public class PbftService implements ConsensusService {
         if (prepareMsg != null) {
             multicastMessage(prepareMsg);
             if (!waitingForMessage("PREPAREM")) {
-                failCount++;
-                return;
+                log.debug("PREPAREM messages is not enough.");
             }
         }
 
@@ -164,8 +163,7 @@ public class PbftService implements ConsensusService {
         if (commitMsg != null) {
             multicastMessage(commitMsg);
             if (!waitingForMessage("COMMITMS")) {
-                failCount++;
-                return;
+                log.debug("COMMITMS messages is not enough.");
             }
         }
 
@@ -229,31 +227,7 @@ public class PbftService implements ConsensusService {
         log.debug("isCommitted= " + this.isCommitted);
         log.debug("isViewChanged= " + this.isViewChanged);
 
-        PbftBlock lastBlock = this.blockChain.getLastConfirmedBlock();
-        try {
-            log.info("PbftBlock "
-                    + "("
-                    + lastBlock.getConsensusMessages().getPrePrepare().getViewNumber()
-                    + ") "
-                    + "["
-                    + lastBlock.getIndex()
-                    + "] "
-                    + lastBlock.getHashHex()
-                    + " ("
-                    + lastBlock.getConsensusMessages().getPrepareMap().size()
-                    + ")"
-                    + " ("
-                    + lastBlock.getConsensusMessages().getCommitMap().size()
-                    + ")"
-                    + " ("
-                    + lastBlock.getConsensusMessages().getViewChangeMap().size()
-                    + ")"
-                    + " ("
-                    + lastBlock.getBlock().getAddressHex()
-                    + ")");
-        } catch (Exception e) {
-            log.debug(e.getMessage());
-        }
+        this.blockChain.loggingBlock(this.blockChain.getLastConfirmedBlock());
 
         log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedData().size());
         log.debug("TxStore unConfirmed Tx.size= "
@@ -468,6 +442,10 @@ public class PbftService implements ConsensusService {
     }
 
     private void confirmFinalBlock() {
+        if (!isCommitted) {
+            return;
+        }
+
         int nextCommitCount = 0;
 
         long index = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
@@ -515,8 +493,6 @@ public class PbftService implements ConsensusService {
         }
 
         if (prePrepareMsg == null) {
-            this.failCount++;
-
             for (PbftMessage pbftMessage : prepareMessageMap.values()) {
                 if (pbftMessage != null) {
                     pbftMessage.clear();
@@ -713,7 +689,7 @@ public class PbftService implements ConsensusService {
                     this.blockChain.getLastConfirmedBlock().getIndex());
 
             log.debug("node: " + client.getId());
-            log.debug("index: " + index);
+            log.debug("index: " + (pbftBlockList != null ? pbftBlockList.get(0).getIndex() : null));
             log.debug("blockList size: " + pbftBlockList.size());
 
             if (pbftBlockList.size() == 0) {

@@ -152,7 +152,7 @@ public class PbftBlockChain implements ConsensusBlockChain<String, PbftMessage> 
         this.lock.unlock();
     }
 
-    private void loggingBlock(PbftBlock block) {
+    public void loggingBlock(PbftBlock block) {
         try {
             log.debug("PbftBlock "
                     + "("

@@ -216,7 +216,10 @@ public class EbftService implements ConsensusService {
 
         List<EbftBlock> ebftBlockList = new ArrayList<>(client.getEbftBlockList(
                 this.blockChain.getLastConfirmedBlock().getIndex()));
-        log.debug("ebftBlockList size: " + ebftBlockList.size());
+        log.debug("node: " + client.getId());
+        log.debug("index: " + (ebftBlockList != null ? ebftBlockList.get(0).getIndex() : null));
+        log.debug("blockList size: " + ebftBlockList.size());
+
         if (ebftBlockList.size() == 0) {
             return;
         }
@@ -397,6 +400,10 @@ public class EbftService implements ConsensusService {
     }
 
     private void confirmFinalBlock() {
+        if (!isConsensused) {
+            return;
+        }
+
         boolean moreConfirmFlag = false;
         for (String key : this.blockChain.getUnConfirmedData().keySet()) {
             EbftBlock unconfirmedBlock = this.blockChain.getUnConfirmedData().get(key);
