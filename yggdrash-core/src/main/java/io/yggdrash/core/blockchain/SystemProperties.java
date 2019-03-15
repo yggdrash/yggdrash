@@ -62,6 +62,9 @@ public class SystemProperties {
     }
 
     public Set<String> getEventStore() {
+        if (eventStore == null) {
+            return new HashSet<>();
+        }
         return new HashSet<>(Arrays.asList(eventStore));
     }
 
