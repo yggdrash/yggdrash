@@ -241,10 +241,10 @@ public class BlockHeader {
                 protoBlockHeader.getVersion().toByteArray(),
                 protoBlockHeader.getType().toByteArray(),
                 protoBlockHeader.getPrevBlockHash().toByteArray(),
-                ByteUtil.byteArrayToLong(protoBlockHeader.getIndex().toByteArray()),
-                ByteUtil.byteArrayToLong(protoBlockHeader.getTimestamp().toByteArray()),
+                protoBlockHeader.getIndex(),
+                protoBlockHeader.getTimestamp().getSeconds(),
                 protoBlockHeader.getMerkleRoot().toByteArray(),
-                ByteUtil.byteArrayToLong(protoBlockHeader.getBodyLength().toByteArray())
+                protoBlockHeader.getBodyLength()
         );
 
         return blockHeader;

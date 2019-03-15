@@ -18,10 +18,10 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.Timestamp;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.trie.Trie;
 import io.yggdrash.common.util.TimeUtils;
-import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Address;
 import io.yggdrash.core.wallet.Wallet;
@@ -149,8 +149,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     }
 
     public long getIndex() {
-
-        return ByteUtil.byteArrayToLong(this.protoBlock.getHeader().getIndex().toByteArray());
+        return this.protoBlock.getHeader().getIndex();
     }
 
     public List<TransactionHusk> getBody() {
@@ -230,10 +229,10 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
                 .setVersion(ByteString.copyFrom(version))
                 .setType(ByteString.copyFrom(type))
                 .setPrevBlockHash(ByteString.copyFrom(prevBlockHash))
-                .setIndex(ByteString.copyFrom(ByteUtil.longToBytes(index)))
-                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(timestamp)))
+                .setIndex(index)
+                .setTimestamp(Timestamp.newBuilder().setSeconds(timestamp).build())
                 .setMerkleRoot(ByteString.copyFrom(merkleRoot))
-                .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(bodyLength)))
+                .setBodyLength(bodyLength)
                 .build();
     }
 

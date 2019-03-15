@@ -3,6 +3,7 @@ syntax = "proto3";
 option java_package = "io.yggdrash.proto";
 option java_outer_classname = "Proto";
 
+import "google/protobuf/timestamp.proto";
 
 service Peer {
     rpc findPeers (TargetPeer) returns (PeerList) {
@@ -25,10 +26,10 @@ message Block {
         bytes version = 2;          // Version indicates message protocol version
         bytes type = 3;
         bytes prevBlockHash = 4;    // The hash of the previous block header
-        bytes index = 5;            // The index in the blockchain
-        bytes timestamp = 6;        // google.protobuf.Timestamp timestamp ?
+        uint64 index = 5;            // The index in the blockchain
+        google.protobuf.Timestamp timestamp = 6;        // google.protobuf.Timestamp timestamp ?
         bytes merkleRoot = 7;       // The hash of the BlockBody, by MerkleTree
-        bytes bodyLength = 8;
+        uint64 bodyLength = 8;
     }
 
     Header header = 1;

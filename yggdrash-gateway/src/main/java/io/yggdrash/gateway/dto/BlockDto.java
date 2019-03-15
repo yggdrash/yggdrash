@@ -55,7 +55,7 @@ public class BlockDto {
         blockDto.index = block.getIndex();
         blockDto.timestamp = ByteUtil.byteArrayToLong(header.getTimestamp().toByteArray());
         blockDto.merkleRoot = Hex.toHexString(header.getMerkleRoot().toByteArray());
-        blockDto.bodyLength = ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray());
+        blockDto.bodyLength = header.getBodyLength();
         blockDto.signature = Hex.toHexString(block.getInstance().getSignature().toByteArray());
         blockDto.txSize = block.getBodyCount();
         if (withBody) {

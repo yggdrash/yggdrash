@@ -19,11 +19,11 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.Timestamp;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.trie.Trie;
-import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
@@ -288,17 +288,16 @@ public class Block {
     public static Proto.Block toProtoBlock(Block block) {
         Proto.Block.Header protoHeader;
         protoHeader = Proto.Block.Header.newBuilder()
-            .setChain(ByteString.copyFrom(block.getHeader().getChain()))
-            .setVersion(ByteString.copyFrom(block.getHeader().getVersion()))
-            .setType(ByteString.copyFrom(block.getHeader().getType()))
-            .setPrevBlockHash(ByteString.copyFrom(block.getHeader().getPrevBlockHash()))
-            .setIndex(ByteString.copyFrom(ByteUtil.longToBytes(block.getHeader().getIndex())))
-            .setTimestamp(
-                    ByteString.copyFrom(ByteUtil.longToBytes(block.getHeader().getTimestamp())))
-            .setMerkleRoot(ByteString.copyFrom(block.getHeader().getMerkleRoot()))
-            .setBodyLength(
-                    ByteString.copyFrom(ByteUtil.longToBytes(block.getHeader().getBodyLength())))
-            .build();
+                .setChain(ByteString.copyFrom(block.getHeader().getChain()))
+                .setVersion(ByteString.copyFrom(block.getHeader().getVersion()))
+                .setType(ByteString.copyFrom(block.getHeader().getType()))
+                .setPrevBlockHash(ByteString.copyFrom(block.getHeader().getPrevBlockHash()))
+                .setIndex(block.getHeader().getIndex())
+                .setTimestamp(Timestamp.newBuilder()
+                        .setSeconds(block.getHeader().getTimestamp()).build())
+                .setMerkleRoot(ByteString.copyFrom(block.getHeader().getMerkleRoot()))
+                .setBodyLength(block.getHeader().getBodyLength())
+                .build();
 
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
         for (Transaction tx : block.getBody().getBody()) {
@@ -324,10 +323,10 @@ public class Block {
                 protoBlock.getHeader().getVersion().toByteArray(),
                 protoBlock.getHeader().getType().toByteArray(),
                 protoBlock.getHeader().getPrevBlockHash().toByteArray(),
-                ByteUtil.byteArrayToLong(protoBlock.getHeader().getIndex().toByteArray()),
-                ByteUtil.byteArrayToLong(protoBlock.getHeader().getTimestamp().toByteArray()),
+                protoBlock.getHeader().getIndex(),
+                protoBlock.getHeader().getTimestamp().getSeconds(),
                 protoBlock.getHeader().getMerkleRoot().toByteArray(),
-                ByteUtil.byteArrayToLong(protoBlock.getHeader().getBodyLength().toByteArray())
+                protoBlock.getHeader().getBodyLength()
         );
 
         List<Transaction> txList = new ArrayList<>();
