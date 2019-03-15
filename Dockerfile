@@ -2,6 +2,7 @@
 
 FROM openjdk:8 as builder
 ADD . /yggdrash/
+RUN apt update && apt install -y libatomic1
 RUN \
     cd /yggdrash && \
     ./gradlew clean build -x test && \
