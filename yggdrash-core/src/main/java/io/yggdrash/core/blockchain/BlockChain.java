@@ -104,7 +104,7 @@ public class BlockChain {
         }
         // TODO Load User Contracts
         /* Load and Install Contracts */
-        List<BranchContract> contracts = this.metaStore.getBranchContacts();
+        List<BranchContract> contracts = this.branchStore.getBranchContacts();
 
         // Contract Filter (UserContract)
         List<BranchContract> userContract =
