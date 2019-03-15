@@ -2,13 +2,13 @@ package io.yggdrash.validator.store.pbft;
 
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.DbSource;
-import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.validator.data.pbft.PbftBlock;
+import io.yggdrash.validator.store.BlockStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
-public class PbftBlockStore implements ReadWriterStore<byte[], PbftBlock> {
+public class PbftBlockStore implements BlockStore<byte[], PbftBlock> {
     private static final Logger log = LoggerFactory.getLogger(PbftBlockStore.class);
 
     private final DbSource<byte[], byte[]> db;
@@ -60,6 +60,7 @@ public class PbftBlockStore implements ReadWriterStore<byte[], PbftBlock> {
         return db.get(key) != null;
     }
 
+    @Override
     public void close() {
         this.db.close();
     }

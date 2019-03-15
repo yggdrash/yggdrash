@@ -4,7 +4,6 @@ import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
-import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.proto.EbftServiceGrpc;
@@ -12,7 +11,6 @@ import io.yggdrash.validator.data.ebft.EbftBlock;
 import io.yggdrash.validator.data.ebft.EbftStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +21,7 @@ public class EbftClientStub {
     private static final Logger log = LoggerFactory.getLogger(EbftClientStub.class);
 
     private boolean myclient;
-    private String pubKey;
+    private String addr;
     private String host;
     private int port;
     private String id;
@@ -33,11 +31,11 @@ public class EbftClientStub {
     private ManagedChannel channel;
     private EbftServiceGrpc.EbftServiceBlockingStub blockingStub;
 
-    public EbftClientStub(String pubKey, String host, int port) {
-        this.pubKey = pubKey;
+    public EbftClientStub(String addr, String host, int port) {
+        this.addr = addr;
         this.host = host;
         this.port = port;
-        this.id = this.pubKey + "@" + this.host + ":" + this.port;
+        this.id = this.addr + "@" + this.host + ":" + this.port;
         this.isRunning = false;
 
         this.channel = ManagedChannelBuilder.forAddress(host, port)
@@ -73,7 +71,7 @@ public class EbftClientStub {
         this.ebftStatus =
                 new EbftStatus(blockingStub
                         .withDeadlineAfter(3, TimeUnit.SECONDS)
-                        .exchangeNodeStatus(nodeStatus));
+                        .exchangeEbftStatus(nodeStatus));
         if (Context.current().isCancelled()) {
             return null;
         }
@@ -81,9 +79,9 @@ public class EbftClientStub {
         return this.ebftStatus;
     }
 
-    public void broadcastEbftBlock(EbftProto.EbftBlock block) {
+    public void multicastEbftBlock(EbftProto.EbftBlock block) {
         blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS)
-                .broadcastEbftBlock(block);
+                .multicastEbftBlock(block);
     }
 
     public List<EbftBlock> getEbftBlockList(long index) {
@@ -113,12 +111,12 @@ public class EbftClientStub {
         this.myclient = myclient;
     }
 
-    public String getPubKey() {
-        return pubKey;
+    public String getAddr() {
+        return addr;
     }
 
     public String getAddress() {
-        return Hex.toHexString(Wallet.calculateAddress(Hex.decode(this.pubKey)));
+        return this.addr;
     }
 
     public String getHost() {
@@ -151,7 +149,7 @@ public class EbftClientStub {
 
     @Override
     public String toString() {
-        return this.pubKey + "@" + this.host + ":" + this.port;
+        return this.addr + "@" + this.host + ":" + this.port;
     }
 
 }

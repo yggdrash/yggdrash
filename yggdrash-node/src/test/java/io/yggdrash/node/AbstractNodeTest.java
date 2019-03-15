@@ -111,4 +111,11 @@ public class AbstractNodeTest {
         node.peerTask.refresh();
         node.peerTask.healthCheck();
     }
+
+    protected void shutdownNode(TestNode node) {
+        node.shutdown();
+        log.info("Stop nodePort={}", node.port);
+        nodeList.remove(node);
+    }
+
 }

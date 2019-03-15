@@ -3,6 +3,7 @@ package io.yggdrash.core.blockchain.osgi;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.blockchain.BranchContract;
+import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -55,18 +56,22 @@ public class ContractContainer {
     private final StateStore stateStore;
     private final TransactionReceiptStore transactionReceiptStore;
     private final DefaultConfig config;
+    private final SystemProperties systemProperties;
 
     private ContractManager contractManager;
 
     ContractContainer(FrameworkFactory frameworkFactory, Map<String, String> containerConfig,
                       String branchId, StateStore stateStore,
-                      TransactionReceiptStore transactionReceiptStore, DefaultConfig config) {
+                      TransactionReceiptStore transactionReceiptStore, DefaultConfig config,
+                      SystemProperties systemProperties
+            ) {
         this.frameworkFactory = frameworkFactory;
         this.commonContainerConfig = containerConfig;
         this.branchId = branchId;
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
         this.config = config;
+        this.systemProperties = systemProperties;
     }
 
     void newFramework() {
@@ -151,13 +156,12 @@ public class ContractContainer {
                 permissionInfos.toArray(new PermissionInfo[permissionInfos.size()]),
                 ConditionalPermissionInfo.ALLOW));
 
-        String esHost = System.getProperty("es.host");
         //Allow file permission to system contract
         List<PermissionInfo> systemPermissions = new ArrayList<>();
         systemPermissions.add(new PermissionInfo(FilePermission.class.getName(), String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"));
         systemPermissions.add(new PermissionInfo(FilePermission.class.getName(), String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete"));
-        if (!StringUtils.isEmpty(esHost)) {
-            systemPermissions.add(new PermissionInfo(SocketPermission.class.getName(), esHost, "connect,resolve"));
+        if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
+            systemPermissions.add(new PermissionInfo(SocketPermission.class.getName(), systemProperties.getEsHost(), "connect,resolve"));
         }
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-system-file", permissionKey),
@@ -171,8 +175,8 @@ public class ContractContainer {
         List<PermissionInfo> userPermissions = new ArrayList<>();
         userPermissions.add(new PermissionInfo(FilePermission.class.getName(), String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"));
         userPermissions.add(new PermissionInfo(FilePermission.class.getName(), String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete"));
-        if (!StringUtils.isEmpty(esHost)) {
-            userPermissions.add(new PermissionInfo(SocketPermission.class.getName(), esHost, "connect,resolve"));
+        if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
+            userPermissions.add(new PermissionInfo(SocketPermission.class.getName(), systemProperties.getEsHost(), "connect,resolve"));
         }
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-user-file", permissionKey),

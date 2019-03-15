@@ -19,6 +19,7 @@ package io.yggdrash.core.runtime;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.Contract;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
@@ -26,8 +27,7 @@ import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.core.contract.TransactionReceiptImpl;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.runtime.result.TransactionRuntimeResult;
 import io.yggdrash.core.store.TempStateStore;
@@ -90,7 +90,7 @@ public class Runtime<T> {
         BlockRuntimeResult result = new BlockRuntimeResult(block);
         TempStateStore blockState = new TempStateStore(stateStore);
         for (TransactionHusk tx: block.getBody()) {
-            TransactionReceipt txReceipt = new TransactionReceiptImpl(tx);
+            TransactionReceipt txReceipt = ContractManager.createTransactionReceipt(tx);
             // set Block ID
             txReceipt.setBlockId(block.getHash().toString());
             txReceipt.setBlockHeight(block.getIndex());
@@ -126,7 +126,7 @@ public class Runtime<T> {
 
     // This invoke is temp run Transaction
     public TransactionRuntimeResult invoke(TransactionHusk tx) {
-        TransactionReceipt txReceipt = new TransactionReceiptImpl(tx);
+        TransactionReceipt txReceipt = ContractManager.createTransactionReceipt(tx);
         TransactionRuntimeResult trr = new TransactionRuntimeResult(tx);
         trr.setTransactionReceipt(txReceipt);
 

@@ -33,12 +33,15 @@ import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.store.StoreBuilder;
 
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 public class BlockChainTestUtils {
     private static final GenesisBlock genesis;
 
-    private BlockChainTestUtils() {}
+    private BlockChainTestUtils() {
+    }
 
     static {
         ClassLoader loader = BlockChainTestUtils.class.getClassLoader();
@@ -47,6 +50,13 @@ public class BlockChainTestUtils {
         } catch (Exception e) {
             throw new InvalidSignatureException(e);
         }
+    }
+
+    private static List<BlockHusk> sampleBlockHuskList = createBlockList(
+            new ArrayList<>(), genesisBlock(), null, 100);
+
+    public static List<BlockHusk> getSampleBlockHuskList() {
+        return sampleBlockHuskList;
     }
 
     public static BlockHusk genesisBlock() {
@@ -59,6 +69,10 @@ public class BlockChainTestUtils {
 
     public static BlockHusk createNextBlock(BlockHusk nextBlock) {
         return new BlockHusk(TestConstants.wallet(), Collections.emptyList(), nextBlock);
+    }
+
+    public static BlockHusk createNextBlock(BlockHusk nextBlock, List<TransactionHusk> blockBody) {
+        return new BlockHusk(TestConstants.wallet(), blockBody, nextBlock);
     }
 
     public static TransactionHusk createBranchTxHusk() {
@@ -120,6 +134,41 @@ public class BlockChainTestUtils {
         return branchGroup;
     }
 
+    public static void setBlockHeightOfBlockChain(BlockChain blockChain, int height) {
+        List<BlockHusk> blockHuskList = new ArrayList<>();
+        BlockHusk curBlock = blockChain.getBlockByIndex(blockChain.getLastIndex());
+        BlockHusk nextBlock = createNextBlock(curBlock);
+        blockHuskList = createBlockList(blockHuskList, nextBlock, null, height);
+
+        for (BlockHusk blockHusk : blockHuskList) {
+            blockChain.addBlock(blockHusk, false);
+        }
+    }
+
+    public static List<BlockHusk> createBlockListFilledWithTx(BlockHusk curBlock) {
+        List<BlockHusk> blockHuskList = new ArrayList<>();
+        List<TransactionHusk> blockBody = new ArrayList<>();
+
+        for (int i = 0; i < 110; i++) {
+            blockBody.add(createTransferTxHusk());
+        }
+
+        return createBlockList(blockHuskList, curBlock, blockBody, 100);
+    }
+
+    public static List<BlockHusk> createBlockList(
+            List<BlockHusk> blockHuskList, BlockHusk nextBlock, List<TransactionHusk> blockBody, int height) {
+        while (blockHuskList.size() < height) {
+            blockHuskList.add(nextBlock);
+            if (blockBody != null) {
+                createBlockList(blockHuskList, createNextBlock(nextBlock, blockBody), blockBody, height);
+            } else {
+                createBlockList(blockHuskList, createNextBlock(nextBlock), null, height);
+            }
+        }
+        return blockHuskList.size() > 0 ? blockHuskList : new ArrayList<>();
+    }
+
     public static TransactionHusk createTransferTxHusk() {
         return createTransferTx(TestConstants.TRANSFER_TO, 100);
     }
@@ -132,5 +181,4 @@ public class BlockChainTestUtils {
                 .setBranchId(TestConstants.yggdrash())
                 .build();
     }
-
 }

@@ -28,6 +28,9 @@ import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
+import io.yggdrash.core.store.output.OutputStore;
+import io.yggdrash.core.store.output.es.EsClient;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,8 +44,10 @@ public class BlockChainBuilder {
     private BlockStore blockStore;
     private StateStore stateStore;
     private TransactionReceiptStore transactionReceiptStore;
+    private OutputStore[] outputStores;
 
     private ContractPolicyLoader policyLoader;
+    private SystemProperties systemProperties;
 
     public BlockChainBuilder addGenesis(GenesisBlock genesis) {
         this.genesis = genesis;
@@ -79,6 +84,11 @@ public class BlockChainBuilder {
         return this;
     }
 
+    public BlockChainBuilder setSystemProperties(SystemProperties systemProperties) {
+        this.systemProperties = systemProperties;
+        return this;
+    }
+
     public BlockChain build() {
         BlockHusk genesisBlock = genesis.getBlock();
         if (branch == null) {
@@ -111,11 +121,22 @@ public class BlockChainBuilder {
                     .withStateStore(stateStore)
                     .withTransactionReceiptStore(transactionReceiptStore)
                     .withConfig(storeBuilder.getConfig())
+                    .withSystemProperties(systemProperties)
                     .build();
         }
 
+        if (systemProperties != null && systemProperties.checkEsClient()) {
+            outputStores = new OutputStore[]{
+                    EsClient.newInstance(
+                            systemProperties.getEsPrefixHost()
+                            , systemProperties.getEsTransport()
+                            , systemProperties.getEventStore()
+                    )
+            };
+        }
+
         return new BlockChain(branch, genesisBlock, blockStore,
-                transactionStore, metaStore, stateStore, transactionReceiptStore, contractContainer);
+                transactionStore, metaStore, stateStore, transactionReceiptStore, contractContainer, outputStores);
     }
 
     private Map<ContractVersion, Contract> defaultContract() {

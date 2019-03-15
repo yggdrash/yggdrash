@@ -1,18 +1,17 @@
 package io.yggdrash.validator.data.ebft;
 
-import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.TransactionStore;
+import io.yggdrash.validator.config.Consensus;
+import io.yggdrash.validator.data.ConsensusBlockChain;
 import io.yggdrash.validator.store.ebft.EbftBlockKeyStore;
 import io.yggdrash.validator.store.ebft.EbftBlockStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,13 +20,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 
-public class EbftBlockChain {
+public class EbftBlockChain implements ConsensusBlockChain<String, EbftBlock> {
 
     private static final Logger log = LoggerFactory.getLogger(EbftBlockChain.class);
 
     private final byte[] chain;
-    private final String host;
-    private final int port;
 
     private final EbftBlockKeyStore blockKeyStore;
     private final EbftBlockStore blockStore;
@@ -37,8 +34,11 @@ public class EbftBlockChain {
 
     private EbftBlock lastConfirmedBlock;
 
+    private final Consensus consensus;
+
     @Autowired
-    public EbftBlockChain(Block genesisBlock, DefaultConfig defaultConfig) {
+    public EbftBlockChain(Block genesisBlock, String dbPath,
+                          String blockKeyStorePath, String blockStorePath, String txStorePath) {
         if (genesisBlock.getHeader().getIndex() != 0
                 || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), EMPTY_BYTE32)) {
             log.error("GenesisBlock is not valid.");
@@ -46,19 +46,13 @@ public class EbftBlockChain {
         }
 
         this.chain = genesisBlock.getHeader().getChain();
-        this.host = InetAddress.getLoopbackAddress().getHostAddress();
-        this.port = Integer.parseInt(System.getProperty("grpc.port"));
 
         this.genesisBlock = new EbftBlock(genesisBlock);
         this.lastConfirmedBlock = this.genesisBlock;
         this.blockKeyStore = new EbftBlockKeyStore(
-                new LevelDbDataSource(defaultConfig.getDatabasePath(),
-                        this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
-                                + "/ebftblockkey"));
+                new LevelDbDataSource(dbPath, blockKeyStorePath));
         this.blockStore = new EbftBlockStore(
-                new LevelDbDataSource(defaultConfig.getDatabasePath(),
-                        this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
-                                + "/ebftblock"));
+                new LevelDbDataSource(dbPath, blockStorePath));
 
         EbftBlock ebftBlock = this.genesisBlock;
         if (this.blockKeyStore.size() > 0) {
@@ -86,22 +80,13 @@ public class EbftBlockChain {
         }
 
         this.transactionStore = new TransactionStore(
-                new LevelDbDataSource(defaultConfig.getDatabasePath(),
-                        this.host + "_" + this.port + "/" + Hex.toHexString(this.chain)
-                                + "/txs"));
+                new LevelDbDataSource(dbPath, txStorePath));
 
+        this.consensus = new Consensus(this.genesisBlock.getBlock());
     }
 
     public byte[] getChain() {
         return chain;
-    }
-
-    public String getHost() {
-        return host;
-    }
-
-    public int getPort() {
-        return port;
     }
 
     public EbftBlockStore getBlockStore() {
@@ -124,8 +109,13 @@ public class EbftBlockChain {
         return lastConfirmedBlock;
     }
 
-    public Map<String, EbftBlock> getUnConfirmedBlockMap() {
+    public Map<String, EbftBlock> getUnConfirmedData() {
         return unConfirmedBlockMap;
+    }
+
+    @Override
+    public Consensus getConsensus() {
+        return consensus;
     }
 
     public void setLastConfirmedBlock(EbftBlock lastConfirmedBlock) {
