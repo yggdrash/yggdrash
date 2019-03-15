@@ -25,15 +25,12 @@ import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.wallet.Wallet;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -41,6 +38,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BlockChain {
 
@@ -57,9 +56,6 @@ public class BlockChain {
     private final StateStore stateStore;
     private final TransactionReceiptStore transactionReceiptStore;
     private final List<Validator> validators = new ArrayList<>();
-
-
-    private Runtime<?> runtime;
 
     private BlockHusk prevBlock;
 
@@ -97,13 +93,19 @@ public class BlockChain {
                 e.printStackTrace();
             }
         }
-        // load User Contracts
+        // TODO Load User Contracts
+        /* Load and Install Contracts */
         List<BranchContract> contracts = this.metaStore.getBranchContacts();
+
+        // Contract Filter (UserContract)
+        List<BranchContract> userContract =
+                contracts.stream().filter(bc -> !bc.isSystem()).collect(Collectors.toList());
+
         // copy contract to folder
-        contractContainer.copyUserContract(contracts);
+        contractContainer.copyUserContract(userContract);
 
         // install contract in osgi
-        List<String> contractList = contracts
+        List<String> contractList = userContract
                 .stream()
                 .map(c -> c.getContractVersion().toString())
                 .collect(Collectors.toList());
@@ -161,10 +163,6 @@ public class BlockChain {
 
     public void addListener(BranchEventListener listener) {
         listenerList.add(listener);
-    }
-
-    Runtime<?> getRuntime() {
-        return runtime;
     }
 
     public StateStore getStateStore() {
