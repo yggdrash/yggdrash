@@ -230,7 +230,8 @@ public class BlockChain {
             return null;
         }
         if (!isValidNewBlock(prevBlock, nextBlock)) {
-            throw new NotValidateException("Invalid to chain");
+            String msg = String.format("Invalid to chain cur=%s, new=%s", prevBlock.getIndex(), nextBlock.getIndex());
+            throw new NotValidateException(msg);
         }
         // add best Block
         metaStore.setBestBlock(nextBlock);

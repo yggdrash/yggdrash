@@ -29,8 +29,6 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
-import static io.yggdrash.TestConstants.wallet;
-
 public class PeerHandlerMock implements PeerHandler {
     private static final Logger log = LoggerFactory.getLogger(PeerHandlerMock.class);
     private static final String NODE_URI_PREFIX = "ynode://75bff16c@127.0.0.1:";
@@ -80,58 +78,17 @@ public class PeerHandlerMock implements PeerHandler {
         return null;
     }
 
-    /*
-    @Override
-    public List<BlockHusk> simpleSyncBlock(BranchId branchId, long offset) {
-        if (offset == 1) {
-            BlockHusk prevBlock = BlockChainTestUtils.genesisBlock();
-            BlockHusk newBlock = new BlockHusk(wallet(), Collections.emptyList(), prevBlock);
-            return Collections.singletonList(newBlock);
-        }
-        return Collections.emptyList();
-    }
-
-    @Override
-    public List<TransactionHusk> simpleSyncTransaction(BranchId branchId) {
-        return Collections.singletonList(BlockChainTestUtils.createTransferTxHusk());
-    }
-
-    @Override
-    public void simpleBroadcastBlock(BlockHusk blockHusk) {
-
-    }
-
-    @Override
-    public void simpleBroadcastTransaction(TransactionHusk txHusk) {
-
-    }
-    */
-
     @Override
     public Future<List<BlockHusk>> syncBlock(BranchId branchId, long offset) {
         log.debug("[PeerHandlerMock] SyncBlock branchId={}, offset={}", branchId, offset);
 
         CompletableFuture<List<BlockHusk>> husksCompletableFuture = new CompletableFuture<>();
-        if (offset == 1) {
-            BlockHusk prevBlock = BlockChainTestUtils.genesisBlock();
-            BlockHusk newBlock = new BlockHusk(wallet(), Collections.emptyList(), prevBlock);
-            husksCompletableFuture.complete(Collections.singletonList(newBlock));
+
+        List<BlockHusk> tmp = new ArrayList<>();
+        for (int i = (int) offset; i < (int) offset + 33; i++) {
+            tmp.add(BlockChainTestUtils.getSampleBlockHuskList().get(i));
         }
-
-        /*
-        List<BlockHusk> blockHusks = new ArrayList<>();
-        BlockHusk genesisBlock = BlockChainTestUtils.genesisBlock();
-        BlockHusk firstBlock =  new BlockHusk(wallet(), Collections.emptyList(), genesisBlock);
-        blockHusks.add(firstBlock);
-
-        for (int i = 0; i < 3; i++) {
-            BlockHusk prevBlock = blockHusks.get(i);
-            BlockHusk nextBlock = new BlockHusk(wallet(),  Collections.emptyList(), prevBlock);
-            blockHusks.add(nextBlock);
-        }
-
-        husksCompletableFuture.complete(blockHusks);
-        */
+        husksCompletableFuture.complete(tmp);
         return husksCompletableFuture;
     }
 
