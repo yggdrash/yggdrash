@@ -30,10 +30,10 @@ public class EbftBlockChainTest {
     private static final Logger log = LoggerFactory.getLogger(EbftBlockChainTest.class);
 
     private DefaultConfig defaultConfig;
-    private Wallet wallet;
+    private Wallet wallet0;
+    private Wallet wallet1;
     private Wallet wallet2;
     private Wallet wallet3;
-    private Wallet wallet4;
 
     private Block block0;
     private Block block1;
@@ -51,18 +51,18 @@ public class EbftBlockChainTest {
     public void setUp() throws IOException, InvalidCipherTextException {
         defaultConfig = new DefaultConfig();
 
-        wallet = new Wallet(defaultConfig);
-        wallet2 = new Wallet(null, "/tmp/",
+        wallet0 = new Wallet(defaultConfig);
+        wallet1 = new Wallet(null, "/tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/",
+        wallet2 = new Wallet(null, "/tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
-        wallet4 = new Wallet(null, "/tmp/",
+        wallet3 = new Wallet(null, "/tmp/",
                 "test4" + TimeUtils.time(), "Password1234!");
 
         block0 = this.genesisBlock();
-        block1 = new TestUtils(wallet).sampleBlock(block0.getIndex() + 1, block0.getHash());
-        block2 = new TestUtils(wallet).sampleBlock(block1.getIndex() + 1, block1.getHash());
-        block3 = new TestUtils(wallet).sampleBlock(block2.getIndex() + 1, block2.getHash());
+        block1 = new TestUtils(wallet0).sampleBlock(block0.getIndex() + 1, block0.getHash());
+        block2 = new TestUtils(wallet0).sampleBlock(block1.getIndex() + 1, block1.getHash());
+        block3 = new TestUtils(wallet0).sampleBlock(block2.getIndex() + 1, block2.getHash());
 
         StoreTestUtils.clearTestDb();
 
@@ -74,24 +74,24 @@ public class EbftBlockChainTest {
         this.ebftBlock0 = new EbftBlock(this.block0, null);
 
         List<String> consensusList1 = new ArrayList<>();
-        consensusList1.add(wallet.signHex(block1.getHash(), true));
+        consensusList1.add(wallet0.signHex(block1.getHash(), true));
+        consensusList1.add(wallet1.signHex(block1.getHash(), true));
         consensusList1.add(wallet2.signHex(block1.getHash(), true));
         consensusList1.add(wallet3.signHex(block1.getHash(), true));
-        consensusList1.add(wallet4.signHex(block1.getHash(), true));
         this.ebftBlock1 = new EbftBlock(this.block1, consensusList1);
 
         List<String> consensusList2 = new ArrayList<>();
-        consensusList2.add(wallet.signHex(block2.getHash(), true));
+        consensusList2.add(wallet0.signHex(block2.getHash(), true));
+        consensusList2.add(wallet1.signHex(block2.getHash(), true));
         consensusList2.add(wallet2.signHex(block2.getHash(), true));
         consensusList2.add(wallet3.signHex(block2.getHash(), true));
-        consensusList2.add(wallet4.signHex(block2.getHash(), true));
         this.ebftBlock2 = new EbftBlock(this.block2, consensusList2);
 
         List<String> consensusList3 = new ArrayList<>();
-        consensusList3.add(wallet.signHex(block3.getHash(), true));
+        consensusList3.add(wallet0.signHex(block3.getHash(), true));
+        consensusList3.add(wallet1.signHex(block3.getHash(), true));
         consensusList3.add(wallet2.signHex(block3.getHash(), true));
         consensusList3.add(wallet3.signHex(block3.getHash(), true));
-        consensusList3.add(wallet4.signHex(block3.getHash(), true));
         this.ebftBlock3 = new EbftBlock(this.block3, consensusList3);
 
     }

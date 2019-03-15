@@ -545,8 +545,7 @@ public class EbftService implements ConsensusService {
     public EbftStatus getMyNodeStatus() {
         EbftStatus newEbftStatus =
                 new EbftStatus(this.blockChain.getLastConfirmedBlock().getIndex(),
-                        new ArrayList<>(this.blockChain.getUnConfirmedData().values()));
-        newEbftStatus.setSignature(wallet.sign(newEbftStatus.getHashForSigning(), true));
+                        new ArrayList<>(this.blockChain.getUnConfirmedData().values()), wallet);
         return newEbftStatus;
     }
 
