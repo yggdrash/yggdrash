@@ -17,8 +17,12 @@ import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.Genesis;
+import io.yggdrash.contract.core.annotation.InjectEvent;
+import io.yggdrash.contract.core.annotation.InjectOutputStore;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.annotation.ParamValidation;
+import io.yggdrash.contract.core.store.OutputStore;
+import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import org.apache.commons.collections4.MapUtils;
 import org.osgi.framework.BundleActivator;
@@ -30,6 +34,7 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 public class DPoAContract implements BundleActivator {
     private static final Logger log = LoggerFactory.getLogger(DPoAContract.class);
@@ -50,6 +55,14 @@ public class DPoAContract implements BundleActivator {
     }
 
     public static class DPoAService {
+        private final String validatorSchemeName = "validator";
+        private final String proposedValidatorSchemeName = "proposedValidator";
+        @InjectOutputStore
+        Map<OutputType, OutputStore> outputStore;
+        @InjectEvent
+        Set<String> eventStore;
+
+
         @ContractStateStore
         ReadWriterStore<String, JsonObject> state;
 
@@ -79,6 +92,13 @@ public class DPoAContract implements BundleActivator {
             JsonObject jsonObject = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
             state.put(PrefixKeyEnum.VALIDATORS.toValue(), jsonObject);
             return true;
+        }
+
+        private void sendOutputStore(String schemeName, String id, JsonObject jsonObject) {
+            if (outputStore == null || eventStore == null || !eventStore.contains(validatorSchemeName)) {
+                return;
+            }
+            outputStore.forEach((outputType, store) -> store.put(schemeName, id, jsonObject));
         }
 
         private boolean validateTx(TxPayload txPayload) {
@@ -193,7 +213,7 @@ public class DPoAContract implements BundleActivator {
 
         //todo should receive a set of byzantine and a set of validator that participated in the previous block consensus.
         @ContractEndBlock
-        public List<Validator> commit() {
+        public List<Validator> commit(JsonObject params) {
             boolean isUpdateValidator = false;
             boolean isUpdateProposedValidator = false;
             ValidatorSet validatorSet = getValidatorSet();
@@ -219,14 +239,28 @@ public class DPoAContract implements BundleActivator {
                 }
             }
 
+            JsonObject jsonValidator = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
             if (isUpdateValidator) {
-                state.put(PrefixKeyEnum.VALIDATORS.toValue(), JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet)));
+                state.put(PrefixKeyEnum.VALIDATORS.toValue(), jsonValidator);
+            }
+            JsonObject proposedValidator = null;
+            if (proposeValidatorSet != null) {
+                proposedValidator = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(proposeValidatorSet));
             }
             if (isUpdateProposedValidator) {
-                state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(), JsonUtil.parseJsonObject(JsonUtil.convertObjToString(proposeValidatorSet)));
+                state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(), proposedValidator);
             }
 
-            return validatorSet.order(null);
+            List<Validator> validators = validatorSet.order(null);
+            if (params != null) {
+                if (jsonValidator != null) {
+                    sendOutputStore(validatorSchemeName, params.get("blockNo").getAsString(), jsonValidator);
+                }
+                if (proposedValidator != null) {
+                    sendOutputStore(proposedValidatorSchemeName, params.get("blockNo").getAsString(), proposedValidator);
+                }
+            }
+            return validators;
         }
 
         //todo need to set governance

@@ -65,7 +65,7 @@ public class DPoAClientContract implements BundleActivator, ServiceListener {
             }
 
             DPoAContract.DPoAService dPoAService = (DPoAContract.DPoAService) service;
-            return dPoAService.commit();
+            return dPoAService.commit(null);
         }
     }
 }

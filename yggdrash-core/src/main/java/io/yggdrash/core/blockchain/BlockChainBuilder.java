@@ -28,7 +28,8 @@ import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.core.store.output.OutputStore;
+import io.yggdrash.contract.core.store.OutputStore;
+import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.store.output.es.EsClient;
 
 import java.util.HashMap;
@@ -44,7 +45,7 @@ public class BlockChainBuilder {
     private BlockStore blockStore;
     private StateStore stateStore;
     private TransactionReceiptStore transactionReceiptStore;
-    private OutputStore[] outputStores;
+    private Map<OutputType, OutputStore> outputStores;
 
     private ContractPolicyLoader policyLoader;
     private SystemProperties systemProperties;
@@ -111,8 +112,19 @@ public class BlockChainBuilder {
             transactionReceiptStore = storeBuilder.buildTransactionReceiptStore(
                     branchId);
         }
+        if (outputStores == null) {
+            outputStores = new HashMap<>();
+        }
 
         ContractContainer contractContainer = null;
+        if (systemProperties != null && systemProperties.checkEsClient()) {
+            outputStores.put(OutputType.ES, EsClient.newInstance(
+                    systemProperties.getEsPrefixHost()
+                    , systemProperties.getEsTransport()
+                    , systemProperties.getEventStore()
+            ));
+        }
+
         if (policyLoader != null) {
             contractContainer = ContractContainerBuilder.newInstance()
                     .withFrameworkFactory(policyLoader.getFrameworkFactory())
@@ -122,17 +134,8 @@ public class BlockChainBuilder {
                     .withTransactionReceiptStore(transactionReceiptStore)
                     .withConfig(storeBuilder.getConfig())
                     .withSystemProperties(systemProperties)
+                    .withOutputStore(outputStores)
                     .build();
-        }
-
-        if (systemProperties != null && systemProperties.checkEsClient()) {
-            outputStores = new OutputStore[]{
-                    EsClient.newInstance(
-                            systemProperties.getEsPrefixHost()
-                            , systemProperties.getEsTransport()
-                            , systemProperties.getEventStore()
-                    )
-            };
         }
 
         return new BlockChain(branch, genesisBlock, blockStore,

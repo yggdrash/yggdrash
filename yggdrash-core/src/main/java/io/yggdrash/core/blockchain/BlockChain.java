@@ -16,8 +16,8 @@
 
 package io.yggdrash.core.blockchain;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import static io.yggdrash.common.config.Constants.LIMIT;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.StateStore;
@@ -30,17 +30,23 @@ import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.core.store.output.OutputStore;
+import io.yggdrash.contract.core.store.OutputStore;
+import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.wallet.Wallet;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
+import static io.yggdrash.common.config.Constants.LIMIT;
 
 public class BlockChain {
 
@@ -61,12 +67,12 @@ public class BlockChain {
     private BlockHusk prevBlock;
 
     private final ContractContainer contractContainer;
-    private final OutputStore[] outputStores;
+    private final Map<OutputType, OutputStore> outputStores;
 
     public BlockChain(Branch branch, BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, MetaStore metaStore,
                       StateStore stateStore, TransactionReceiptStore transactionReceiptStore,
-                      ContractContainer contractContainer, OutputStore[] outputStores) {
+                      ContractContainer contractContainer, Map<OutputType, OutputStore> outputStores) {
         this.branch = branch;
         this.genesisBlock = genesisBlock;
         this.blockStore = blockStore;
@@ -259,11 +265,17 @@ public class BlockChain {
             metaStore.setLastExecuteBlock(nextBlock);
 
             //Store event
-            if (outputStores != null) {
-                for (OutputStore store : outputStores) {
-                    store.put(nextBlock);
-                    store.put(nextBlock.getCoreBlock().getHeader().getIndex(), nextBlock.getCoreBlock().getBody().getBody());
-                }
+            if (outputStores != null && outputStores.size() > 0) {
+                Map<String, JsonObject> transactionMap = new HashMap<>();
+                nextBlock.getCoreBlock().getBody().getBody().forEach(tx -> {
+                    String txHash = new TransactionHusk(tx).getHash().toString();
+                    transactionMap.put(txHash, tx.toJsonObject());
+                });
+
+                outputStores.forEach((storeType, store) -> {
+                    store.put(nextBlock.toJsonObject());
+                    store.put(nextBlock.getCoreBlock().getHeader().getIndex(), transactionMap);
+                });
             }
         }
 
