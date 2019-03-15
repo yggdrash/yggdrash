@@ -17,8 +17,10 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.Timestamp;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.util.JsonFormat;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.trie.Trie;
 import io.yggdrash.common.util.TimeUtils;
@@ -32,6 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import static com.google.protobuf.util.Timestamps.fromMillis;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
 
 public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> {
@@ -210,6 +213,17 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         return this.coreBlock.toJsonObject();
     }
 
+    JsonObject toJsonObjectByProto() {
+        try {
+            String print = JsonFormat.printer()
+                    .includingDefaultValueFields().print(this.protoBlock);
+            return new JsonParser().parse(print).getAsJsonObject();
+        } catch (InvalidProtocolBufferException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     private Proto.Block.Header getHeader() {
         return this.protoBlock.getHeader();
     }
@@ -230,7 +244,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
                 .setType(ByteString.copyFrom(type))
                 .setPrevBlockHash(ByteString.copyFrom(prevBlockHash))
                 .setIndex(index)
-                .setTimestamp(Timestamp.newBuilder().setSeconds(timestamp).build())
+                .setTimestamp(fromMillis(timestamp))
                 .setMerkleRoot(ByteString.copyFrom(merkleRoot))
                 .setBodyLength(bodyLength)
                 .build();

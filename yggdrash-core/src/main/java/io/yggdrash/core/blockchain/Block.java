@@ -19,7 +19,6 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
-import com.google.protobuf.Timestamp;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
@@ -39,6 +38,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static com.google.protobuf.util.Timestamps.fromMillis;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 
@@ -293,8 +293,7 @@ public class Block {
                 .setType(ByteString.copyFrom(block.getHeader().getType()))
                 .setPrevBlockHash(ByteString.copyFrom(block.getHeader().getPrevBlockHash()))
                 .setIndex(block.getHeader().getIndex())
-                .setTimestamp(Timestamp.newBuilder()
-                        .setSeconds(block.getHeader().getTimestamp()).build())
+                .setTimestamp(fromMillis(block.getHeader().getTimestamp()))
                 .setMerkleRoot(ByteString.copyFrom(block.getHeader().getMerkleRoot()))
                 .setBodyLength(block.getHeader().getBodyLength())
                 .build();
