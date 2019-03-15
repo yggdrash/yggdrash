@@ -71,7 +71,7 @@ public class EbftClientStub {
         this.ebftStatus =
                 new EbftStatus(blockingStub
                         .withDeadlineAfter(3, TimeUnit.SECONDS)
-                        .exchangeNodeStatus(nodeStatus));
+                        .exchangeEbftStatus(nodeStatus));
         if (Context.current().isCancelled()) {
             return null;
         }
@@ -79,9 +79,9 @@ public class EbftClientStub {
         return this.ebftStatus;
     }
 
-    public void broadcastEbftBlock(EbftProto.EbftBlock block) {
+    public void multicastEbftBlock(EbftProto.EbftBlock block) {
         blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS)
-                .broadcastEbftBlock(block);
+                .multicastEbftBlock(block);
     }
 
     public List<EbftBlock> getEbftBlockList(long index) {
