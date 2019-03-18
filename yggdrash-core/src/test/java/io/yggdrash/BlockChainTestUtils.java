@@ -67,12 +67,12 @@ public class BlockChainTestUtils {
         return new BlockHusk(TestConstants.wallet(), Collections.emptyList(), genesis.getBlock());
     }
 
-    public static BlockHusk createNextBlock(BlockHusk nextBlock) {
-        return new BlockHusk(TestConstants.wallet(), Collections.emptyList(), nextBlock);
+    public static BlockHusk createNextBlock(BlockHusk prevBlock) {
+        return new BlockHusk(TestConstants.wallet(), Collections.emptyList(), prevBlock);
     }
 
-    public static BlockHusk createNextBlock(BlockHusk nextBlock, List<TransactionHusk> blockBody) {
-        return new BlockHusk(TestConstants.wallet(), blockBody, nextBlock);
+    private static BlockHusk createNextBlock(BlockHusk prevBlock, List<TransactionHusk> blockBody) {
+        return new BlockHusk(TestConstants.wallet(), blockBody, prevBlock);
     }
 
     public static TransactionHusk createBranchTxHusk() {
@@ -145,18 +145,18 @@ public class BlockChainTestUtils {
         }
     }
 
-    public static List<BlockHusk> createBlockListFilledWithTx(BlockHusk curBlock) {
+    public static List<BlockHusk> createBlockListFilledWithTx(int height, int txSize) {
         List<BlockHusk> blockHuskList = new ArrayList<>();
         List<TransactionHusk> blockBody = new ArrayList<>();
 
-        for (int i = 0; i < 110; i++) {
+        for (int i = 0; i < txSize; i++) {
             blockBody.add(createTransferTxHusk());
         }
 
-        return createBlockList(blockHuskList, curBlock, blockBody, 100);
+        return createBlockList(blockHuskList, createNextBlock(genesisBlock(), blockBody), blockBody, height);
     }
 
-    public static List<BlockHusk> createBlockList(
+    private static List<BlockHusk> createBlockList(
             List<BlockHusk> blockHuskList, BlockHusk nextBlock, List<TransactionHusk> blockBody, int height) {
         while (blockHuskList.size() < height) {
             blockHuskList.add(nextBlock);
