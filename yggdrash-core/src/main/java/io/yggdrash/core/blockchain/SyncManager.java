@@ -16,7 +16,7 @@ import io.yggdrash.core.p2p.PeerHandler;
 
 public interface SyncManager {
 
-    void syncBlock(PeerHandler peerHandler, BlockChain blockChain, long limitIndex);
+    boolean syncBlock(PeerHandler peerHandler, BlockChain blockChain);
 
     void syncTransaction(PeerHandler peerHandler, BlockChain blockChain);
 }
