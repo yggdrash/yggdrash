@@ -267,21 +267,6 @@ public class PbftBlockKeyStoreTest {
     }
 
     @Test
-    public void closeTest() {
-        blockKeyStore.close();
-        try {
-            blockKeyStore.get(this.pbftBlock.getIndex());
-        } catch (NullPointerException ne) {
-            assert true;
-            this.blockKeyStore = new PbftBlockKeyStore(ds);
-            byte[] newHash = blockKeyStore.get(this.pbftBlock.getIndex());
-            assertArrayEquals(newHash, this.pbftBlock.getHash());
-            return;
-        }
-        assert false;
-    }
-
-    @Test
     public void memoryTest() {
         TestConstants.PerformanceTest.apply();
 
@@ -328,4 +313,18 @@ public class PbftBlockKeyStoreTest {
     }
 
 
+    @Test
+    public void closeTest() {
+        blockKeyStore.close();
+        try {
+            blockKeyStore.get(this.pbftBlock.getIndex());
+        } catch (NullPointerException ne) {
+            assert true;
+            this.blockKeyStore = new PbftBlockKeyStore(ds);
+            byte[] newHash = blockKeyStore.get(this.pbftBlock.getIndex());
+            assertArrayEquals(this.pbftBlock.getHash(), newHash);
+            return;
+        }
+        assert false;
+    }
 }
