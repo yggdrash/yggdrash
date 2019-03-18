@@ -11,6 +11,7 @@ import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
 import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
 import io.yggdrash.validator.util.TestUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -312,19 +313,22 @@ public class PbftBlockKeyStoreTest {
         sleep(20000);
     }
 
-
     @Test
     public void closeTest() {
         blockKeyStore.close();
         try {
             blockKeyStore.get(this.pbftBlock.getIndex());
         } catch (NullPointerException ne) {
-            assert true;
             this.blockKeyStore = new PbftBlockKeyStore(ds);
             byte[] newHash = blockKeyStore.get(this.pbftBlock.getIndex());
             assertArrayEquals(this.pbftBlock.getHash(), newHash);
             return;
         }
         assert false;
+    }
+
+    @After
+    public void tearDown() {
+        StoreTestUtils.clearTestDb();
     }
 }
