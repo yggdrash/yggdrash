@@ -246,13 +246,19 @@ public class StemContractTest {
         return params;
     }
 
+    @Test
+    public void t() {
+        base64("test");
+    }
+
     private void base64(String text) {
         byte[] encodedBytes = Base64.encodeBase64(text.getBytes());
         byte[] decodedBytes = Base64.decodeBase64(encodedBytes);
-        System.out.println(encodedBytes.length);
         System.out.println("인코딩 전 : " + text);
         System.out.println("인코딩 text : " + new String(encodedBytes));
         System.out.println("디코딩 text : " + new String(decodedBytes));
+
+        System.out.println(text.equals(new String(decodedBytes)));
     }
 
     private static JsonObject getEthToYeedBranch(String description) {
