@@ -41,7 +41,7 @@ public class PbftMessage {
         this.hash = hash;
         this.result = result;
         this.signature = signature;
-        this.block = block;
+        this.block = block; // todo: whether check PrePrepare message
     }
 
     public PbftMessage(String type,
@@ -57,7 +57,7 @@ public class PbftMessage {
         this.hash = hash;
         this.result = result;
         this.signature = this.sign(wallet);
-        this.block = block;
+        this.block = block; // todo: whether check PrePrepare message
     }
 
     public PbftMessage(byte[] bytes) {
