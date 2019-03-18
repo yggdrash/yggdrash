@@ -2,15 +2,15 @@ package io.yggdrash.validator.store.ebft;
 
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.ByteUtil;
-import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.validator.store.BlockKeyStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 
-public class EbftBlockKeyStore implements ReadWriterStore<Long, byte[]> {
+public class EbftBlockKeyStore implements BlockKeyStore<Long, byte[]> {
     private static final Logger log = LoggerFactory.getLogger(EbftBlockKeyStore.class);
 
     private final DbSource<byte[], byte[]> db;
@@ -51,7 +51,7 @@ public class EbftBlockKeyStore implements ReadWriterStore<Long, byte[]> {
         return false;
     }
 
-    public int size() {
+    public long size() {
         try {
             return db.getAll().size();
         } catch (IOException e) {

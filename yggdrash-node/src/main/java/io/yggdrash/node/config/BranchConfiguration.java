@@ -20,11 +20,14 @@ import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
+import java.io.IOException;
+import java.io.InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,9 +37,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableScheduling;
-
-import java.io.IOException;
-import java.io.InputStream;
 
 @Configuration
 @EnableScheduling
@@ -48,11 +48,20 @@ public class BranchConfiguration {
     @Value("classpath:/branch-yggdrash.json")
     Resource yggdrashResource;
 
+    @Value("${es.host:#{null}}")
+    private String esHost;
+    @Value("${es.transport:#{null}}")
+    private String esTransport;
+    @Value("${event.store:#{null}}")
+    private String[] eventStore;
+
     @Autowired
     BranchConfiguration(StoreBuilder storeBuilder) {
+        log.info("Branch Path : {}", storeBuilder.getConfig().getBranchPath());
         this.storeBuilder = storeBuilder;
     }
 
+    // TODO Remove Default Branch Load
     @Bean
     @ConditionalOnProperty(name = "yggdrash.node.chain.enabled", matchIfMissing = true)
     BlockChain yggdrash(BranchGroup branchGroup, ContractPolicyLoader contractPolicyLoader) throws IOException {
@@ -93,12 +102,19 @@ public class BranchConfiguration {
     }
 
     private BlockChain createBranch(GenesisBlock genesis, ContractPolicyLoader policyLoader) {
-        log.info("createBranch {} {}",genesis.getBranch().getBranchId(), genesis.getBranch().getName());
+        log.info("createBranch {} {}", genesis.getBranch().getBranchId(), genesis.getBranch().getName());
+
+        SystemProperties systemProperties = SystemProperties.SystemPropertiesBuilder.aSystemProperties()
+                .withEsHost(esHost)
+                .withEsTransport(esTransport)
+                .withEventStore(eventStore)
+                .build();
         try {
             return BlockChainBuilder.Builder()
                     .addGenesis(genesis)
                     .setStoreBuilder(storeBuilder)
                     .setPolicyLoader(policyLoader)
+                    .setSystemProperties(systemProperties)
                     .build();
         } catch (Exception e) {
             log.warn(e.getMessage(), e);

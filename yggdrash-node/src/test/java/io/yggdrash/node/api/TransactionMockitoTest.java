@@ -18,12 +18,12 @@ package io.yggdrash.node.api;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
@@ -35,6 +35,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

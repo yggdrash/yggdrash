@@ -11,7 +11,7 @@ public class BootStrapNodeTest extends BootStrapNode {
         setBranchGroup(branchGroup);
         setNodeStatus(NodeStatusMock.mock);
         setPeerNetwork(PeerNetworkMock.mock);
-        setSyncManager(BlockChainSyncManagerMock.mock);
+        setSyncManager(BlockChainSyncManagerMock.getMockWithBranchGroup(branchGroup));
     }
 
     @Test

@@ -4,7 +4,6 @@ import io.grpc.Context;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
-import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
@@ -12,7 +11,6 @@ import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +21,7 @@ public class PbftClientStub {
     private static final Logger log = LoggerFactory.getLogger(PbftClientStub.class);
 
     private boolean myclient;
-    private String pubKey;
+    private String addr;
     private String host;
     private int port;
     private String id;
@@ -33,11 +31,11 @@ public class PbftClientStub {
     private ManagedChannel channel;
     private PbftServiceGrpc.PbftServiceBlockingStub blockingStub;
 
-    public PbftClientStub(String pubKey, String host, int port) {
-        this.pubKey = pubKey;
+    public PbftClientStub(String addr, String host, int port) {
+        this.addr = addr;
         this.host = host;
         this.port = port;
-        this.id = this.pubKey + "@" + this.host + ":" + this.port;
+        this.id = this.addr + "@" + this.host + ":" + this.port;
         this.isRunning = false;
 
         this.channel = ManagedChannelBuilder.forAddress(host, port)
@@ -110,12 +108,12 @@ public class PbftClientStub {
         this.myclient = myclient;
     }
 
-    public String getPubKey() {
-        return pubKey;
+    public String getAddr() {
+        return addr;
     }
 
     public String getAddress() {
-        return Hex.toHexString(Wallet.calculateAddress(Hex.decode(this.pubKey)));
+        return this.addr;
     }
 
     public String getHost() {
@@ -148,7 +146,7 @@ public class PbftClientStub {
 
     @Override
     public String toString() {
-        return this.pubKey + "@" + this.host + ":" + this.port;
+        return this.addr + "@" + this.host + ":" + this.port;
     }
 
 }

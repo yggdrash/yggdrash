@@ -16,14 +16,6 @@ public interface PeerHandler {
 
     void stop();
 
-    //List<BlockHusk> simpleSyncBlock(BranchId branchId, long offset);
-
-    //List<TransactionHusk> simpleSyncTransaction(BranchId branchId);
-
-    //void simpleBroadcastBlock(BlockHusk blockHusk);
-
-    //void simpleBroadcastTransaction(TransactionHusk txHusk);
-
     Future<List<BlockHusk>> syncBlock(BranchId branchId, long offset);
 
     Future<List<TransactionHusk>> syncTx(BranchId branchId);

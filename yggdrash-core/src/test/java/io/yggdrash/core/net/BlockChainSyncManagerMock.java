@@ -18,8 +18,13 @@ import io.yggdrash.core.blockchain.BranchGroup;
 
 public class BlockChainSyncManagerMock {
     private static final BranchGroup branchGroup = BlockChainTestUtils.createBranchGroup();
+
     public static final BlockChainSyncManager mock = new BlockChainSyncManager(
             NodeStatusMock.mock, PeerNetworkMock.mock, branchGroup);
+
+    public static BlockChainSyncManager getMockWithBranchGroup(BranchGroup branchGroup) {
+        return new BlockChainSyncManager(NodeStatusMock.mock, PeerNetworkMock.mock, branchGroup);
+    }
 
     public static BranchGroup getBranchGroup() {
         return branchGroup;

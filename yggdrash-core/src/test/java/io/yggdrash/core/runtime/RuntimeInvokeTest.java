@@ -20,17 +20,17 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
+import io.yggdrash.common.store.StateStore;
+import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import io.yggdrash.core.blockchain.osgi.ContractManager;
 import io.yggdrash.core.contract.StemContract;
-import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.core.contract.TransactionReceiptImpl;
-import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.store.TempStateStore;
-import io.yggdrash.common.store.datasource.HashMapDbSource;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -40,7 +40,6 @@ import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import static io.yggdrash.common.config.Constants.TX_ID;
 
 public class RuntimeInvokeTest {
-
     private static final StemContract.StemService stemContract = new StemContract.StemService();
 
     TransactionReceipt txReceipt;
@@ -57,7 +56,7 @@ public class RuntimeInvokeTest {
         this.branchId = branchId;
         TransactionHusk createTx = BlockChainTestUtils.createBranchTxHusk(branchId,
                 "create", json);
-        TransactionReceipt receipt = new TransactionReceiptImpl(createTx);
+        TransactionReceipt receipt = ContractManager.createTransactionReceipt(createTx);
 
         this.txReceipt = receipt;
         for (JsonElement txEl: JsonUtil.parseJsonArray(createTx.getBody())) {

@@ -1,6 +1,7 @@
 package io.yggdrash.validator.data.ebft;
 
 import com.google.protobuf.ByteString;
+import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.wallet.Wallet;
@@ -12,16 +13,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EbftStatus {
-    private EbftBlock lastConfirmedEbftBlock;
+    private long index;
     private final List<EbftBlock> unConfirmedEbftBlockList = new ArrayList<>();
     private long timestamp;
     private byte[] signature;
 
-    public EbftStatus(EbftBlock lastConfirmedEbftBlock,
+    public EbftStatus(long index,
                       List<EbftBlock> unConfirmedEbftBlockList,
                       long timestamp,
                       byte[] signature) {
-        this.lastConfirmedEbftBlock = lastConfirmedEbftBlock;
+        this.index = index;
         if (unConfirmedEbftBlockList != null) {
             this.unConfirmedEbftBlockList.addAll(unConfirmedEbftBlockList);
         }
@@ -35,13 +36,13 @@ public class EbftStatus {
         this.signature = signature;
     }
 
-    public EbftStatus(EbftBlock lastConfirmedEbftBlock,
+    public EbftStatus(long index,
                       List<EbftBlock> unConfirmedEbftBlockList) {
-        this(lastConfirmedEbftBlock, unConfirmedEbftBlockList, TimeUtils.time(), null);
+        this(index, unConfirmedEbftBlockList, TimeUtils.time(), null);
     }
 
     public EbftStatus(EbftProto.EbftStatus nodeStatus) {
-        this.lastConfirmedEbftBlock = new EbftBlock(nodeStatus.getLastConfirmedEbftBlock());
+        this.index = nodeStatus.getIndex();
         for (EbftProto.EbftBlock block :
                 nodeStatus.getUnConfirmedEbftBlockList().getEbftBlockListList()) {
             this.unConfirmedEbftBlockList.add(new EbftBlock(block));
@@ -50,8 +51,8 @@ public class EbftStatus {
         this.signature = nodeStatus.getSignature().toByteArray();
     }
 
-    public EbftBlock getLastConfirmedEbftBlock() {
-        return lastConfirmedEbftBlock;
+    public long getIndex() {
+        return index;
     }
 
     public List<EbftBlock> getUnConfirmedEbftBlockList() {
@@ -70,36 +71,33 @@ public class EbftStatus {
         this.signature = signature;
     }
 
-    public byte[] getDataForSigning() {
+    public byte[] getHashForSigning() {
         ByteArrayOutputStream dataForSigning = new ByteArrayOutputStream();
 
         try {
+            dataForSigning.write(ByteUtil.longToBytes(index));
             for (EbftBlock ebftBlock : unConfirmedEbftBlockList) {
                 dataForSigning.write(ebftBlock.getHash());
             }
-
-            dataForSigning.write(lastConfirmedEbftBlock.getHash());
             dataForSigning.write(ByteUtil.longToBytes(timestamp));
         } catch (IOException e) {
             return null;
         }
 
-        return dataForSigning.toByteArray();
+        return HashUtil.sha3(dataForSigning.toByteArray());
     }
 
     public static boolean verify(EbftStatus ebftStatus) {
         if (ebftStatus != null) {
             return Wallet.verify(
-                    ebftStatus.getDataForSigning(), ebftStatus.getSignature(), false);
+                    ebftStatus.getHashForSigning(), ebftStatus.getSignature(), true);
         }
-
         return false;
     }
 
     public static EbftProto.EbftStatus toProto(EbftStatus ebftStatus) {
         EbftProto.EbftStatus.Builder protoBlockStatus = EbftProto.EbftStatus.newBuilder()
-                .setLastConfirmedEbftBlock(
-                        EbftBlock.toProto(ebftStatus.getLastConfirmedEbftBlock()))
+                .setIndex(ebftStatus.getIndex())
                 .setUnConfirmedEbftBlockList(
                         EbftBlock.toProtoList(ebftStatus.getUnConfirmedEbftBlockList()))
                 .setTimestamp(ebftStatus.getTimestamp())

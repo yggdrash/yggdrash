@@ -16,8 +16,8 @@
 
 package io.yggdrash.core.blockchain;
 
+import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import static io.yggdrash.common.config.Constants.LIMIT;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.StateStore;
@@ -25,21 +25,28 @@ import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
+import io.yggdrash.contract.core.store.OutputStore;
+import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.wallet.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
+
+import static io.yggdrash.common.config.Constants.LIMIT;
 
 public class BlockChain {
 
@@ -57,26 +64,24 @@ public class BlockChain {
     private final TransactionReceiptStore transactionReceiptStore;
     private final List<Validator> validators = new ArrayList<>();
 
-
-    private Runtime<?> runtime;
-
     private BlockHusk prevBlock;
 
     private final ContractContainer contractContainer;
+    private final Map<OutputType, OutputStore> outputStores;
 
     public BlockChain(Branch branch, BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, MetaStore metaStore,
                       StateStore stateStore, TransactionReceiptStore transactionReceiptStore,
-                      ContractContainer contractContainer) {
+                      ContractContainer contractContainer, Map<OutputType, OutputStore> outputStores) {
         this.branch = branch;
         this.genesisBlock = genesisBlock;
         this.blockStore = blockStore;
         this.transactionStore = transactionStore;
         this.metaStore = metaStore;
-//        this.runtime = runtime;
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
         this.contractContainer = contractContainer;
+        this.outputStores = outputStores;
 
 
         // getGenesis Block by Store
@@ -97,6 +102,31 @@ public class BlockChain {
                 e.printStackTrace();
             }
         }
+        // TODO Load User Contracts
+        /* Load and Install Contracts */
+        List<BranchContract> contracts = this.metaStore.getBranchContacts();
+
+        // Contract Filter (UserContract)
+        List<BranchContract> userContract =
+                contracts.stream().filter(bc -> !bc.isSystem()).collect(Collectors.toList());
+
+        // copy contract to folder
+        contractContainer.copyUserContract(userContract);
+
+        // install contract in osgi
+        List<String> contractList = userContract
+                .stream()
+                .map(c -> c.getContractVersion().toString())
+                .collect(Collectors.toList());
+        contractContainer.loadUserContract(contractList);
+
+        // inject UserContracts
+        try {
+            contractContainer.reloadInject();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        // Blockchain is Ready
     }
 
     private void initGenesis() {
@@ -142,10 +172,6 @@ public class BlockChain {
 
     public void addListener(BranchEventListener listener) {
         listenerList.add(listener);
-    }
-
-    Runtime<?> getRuntime() {
-        return runtime;
     }
 
     public StateStore getStateStore() {
@@ -221,7 +247,8 @@ public class BlockChain {
             return null;
         }
         if (!isValidNewBlock(prevBlock, nextBlock)) {
-            throw new NotValidateException("Invalid to chain");
+            String msg = String.format("Invalid to chain cur=%s, new=%s", prevBlock.getIndex(), nextBlock.getIndex());
+            throw new NotValidateException(msg);
         }
         // add best Block
         metaStore.setBestBlock(nextBlock);
@@ -236,6 +263,20 @@ public class BlockChain {
             contractContainer.getContractManager().commitBlockResult(result);
             //runtime.commitBlockResult(result);
             metaStore.setLastExecuteBlock(nextBlock);
+
+            //Store event
+            if (outputStores != null && outputStores.size() > 0) {
+                Map<String, JsonObject> transactionMap = new HashMap<>();
+                nextBlock.getCoreBlock().getBody().getBody().forEach(tx -> {
+                    String txHash = new TransactionHusk(tx).getHash().toString();
+                    transactionMap.put(txHash, tx.toJsonObject());
+                });
+
+                outputStores.forEach((storeType, store) -> {
+                    store.put(nextBlock.toJsonObject());
+                    store.put(nextBlock.getCoreBlock().getHeader().getIndex(), transactionMap);
+                });
+            }
         }
 
         // Store Block Index and Block Data

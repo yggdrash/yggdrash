@@ -289,7 +289,6 @@ import static io.yggdrash.common.config.Constants.VALIDATOR;
             return validatorSet;
         }
 
-
         /**
          * @param params branch id
          *

@@ -36,7 +36,6 @@ public abstract class BootStrapNode implements BootStrap {
     @Override
     public void bootstrapping() {
         peerNetwork.init();
-        // TODO 추후 비동기 Sync 에 대한 Pool 필요 (nodStatus.sync 중일 때) => 현재는 동기화 Sync 로
         try {
             nodeStatus.sync();
             for (BlockChain blockChain : branchGroup.getAllBranch()) {
@@ -53,30 +52,6 @@ public abstract class BootStrapNode implements BootStrap {
             nodeStatus.up();
         }
     }
-
-    /*
-    @Override
-    public void catchUpRequest(BlockHusk block) {
-        if (!nodeStatus.isUpStatus()) {
-            return;
-        }
-        BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
-        if (blockChain == null) {
-            return;
-        }
-        List<PeerHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
-        nodeStatus.sync();
-        for (PeerHandler peerHandler : peerHandlerList) {
-            syncManager.syncBlock(peerHandler, blockChain, block.getIndex());
-        }
-        nodeStatus.up();
-        try {
-            blockChain.addBlock(block, true);
-        } catch (Exception e) {
-            log.warn("Catch up block error={}", e.getMessage());
-        }
-    }
-    */
 
     public void setBranchGroup(BranchGroup branchGroup) {
         this.branchGroup = branchGroup;

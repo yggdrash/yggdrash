@@ -17,18 +17,20 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.contract.Contract;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.blockchain.osgi.ContractContainerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
-import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.MetaStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
+import io.yggdrash.contract.core.store.OutputStore;
+import io.yggdrash.contract.core.store.OutputType;
+import io.yggdrash.core.store.output.es.EsClient;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -43,9 +45,10 @@ public class BlockChainBuilder {
     private BlockStore blockStore;
     private StateStore stateStore;
     private TransactionReceiptStore transactionReceiptStore;
-    private Runtime runtime;
+    private Map<OutputType, OutputStore> outputStores;
 
     private ContractPolicyLoader policyLoader;
+    private SystemProperties systemProperties;
 
     public BlockChainBuilder addGenesis(GenesisBlock genesis) {
         this.genesis = genesis;
@@ -77,13 +80,13 @@ public class BlockChainBuilder {
         return this;
     }
 
-    public BlockChainBuilder setRuntime(Runtime runtime) {
-        this.runtime = runtime;
+    public BlockChainBuilder setPolicyLoader(ContractPolicyLoader policyLoader) {
+        this.policyLoader = policyLoader;
         return this;
     }
 
-    public BlockChainBuilder setPolicyLoader(ContractPolicyLoader policyLoader) {
-        this.policyLoader = policyLoader;
+    public BlockChainBuilder setSystemProperties(SystemProperties systemProperties) {
+        this.systemProperties = systemProperties;
         return this;
     }
 
@@ -109,8 +112,19 @@ public class BlockChainBuilder {
             transactionReceiptStore = storeBuilder.buildTransactionReceiptStore(
                     branchId);
         }
+        if (outputStores == null) {
+            outputStores = new HashMap<>();
+        }
 
         ContractContainer contractContainer = null;
+        if (systemProperties != null && systemProperties.checkEsClient()) {
+            outputStores.put(OutputType.ES, EsClient.newInstance(
+                    systemProperties.getEsPrefixHost()
+                    , systemProperties.getEsTransport()
+                    , systemProperties.getEventStore()
+            ));
+        }
+
         if (policyLoader != null) {
             contractContainer = ContractContainerBuilder.newInstance()
                     .withFrameworkFactory(policyLoader.getFrameworkFactory())
@@ -119,11 +133,13 @@ public class BlockChainBuilder {
                     .withStateStore(stateStore)
                     .withTransactionReceiptStore(transactionReceiptStore)
                     .withConfig(storeBuilder.getConfig())
+                    .withSystemProperties(systemProperties)
+                    .withOutputStore(outputStores)
                     .build();
         }
 
         return new BlockChain(branch, genesisBlock, blockStore,
-                transactionStore, metaStore, stateStore, transactionReceiptStore, contractContainer);
+                transactionStore, metaStore, stateStore, transactionReceiptStore, contractContainer, outputStores);
     }
 
     private Map<ContractVersion, Contract> defaultContract() {

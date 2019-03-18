@@ -35,8 +35,7 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -146,9 +145,6 @@ public class GrpcBlockChainServiceTest {
 
     @Test
     public void syncBlock() {
-        // arrange
-        Set<BlockHusk> blocks = new HashSet<>();
-        blocks.add(block);
         when(blockChainConsumerMock.syncBlock(branchId, 0L, 100L))
                 .thenReturn(Collections.singletonList(block));
 
@@ -161,6 +157,25 @@ public class GrpcBlockChainServiceTest {
         Proto.BlockList list = blockingStub.syncBlock(syncLimit);
         // assert
         assertEquals(1, list.getBlocksCount());
+    }
+
+    @Test
+    public void syncBlockByPassingTheLimitSize() {
+        // arrange
+        List<BlockHusk> blockHuskList = BlockChainTestUtils.createBlockListFilledWithTx(block);
+
+        when(blockChainConsumerMock.syncBlock(branchId, 0L, 100L))
+                .thenReturn(blockHuskList);
+
+        BlockChainGrpc.BlockChainBlockingStub blockingStub
+                = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
+        ByteString branch = ByteString.copyFrom(branchId.getBytes());
+        NetProto.SyncLimit syncLimit =
+                NetProto.SyncLimit.newBuilder().setOffset(0).setLimit(100).setBranch(branch).build();
+        // act
+        Proto.BlockList list = blockingStub.syncBlock(syncLimit);
+        // assert
+        assertEquals(90, list.getBlocksCount());
     }
 
     @Test
