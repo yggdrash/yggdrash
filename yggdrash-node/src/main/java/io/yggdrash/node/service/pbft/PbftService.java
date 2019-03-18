@@ -13,6 +13,7 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.pbft.PbftBlock;
+import io.yggdrash.core.blockchain.pbft.PbftBlockChain;
 import io.yggdrash.core.blockchain.pbft.PbftMessage;
 import io.yggdrash.core.blockchain.pbft.PbftMessageSet;
 import io.yggdrash.core.blockchain.pbft.PbftStatus;
@@ -23,7 +24,6 @@ import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -40,7 +40,6 @@ import static io.yggdrash.common.util.Utils.sleep;
 
 @Profile("validator")
 @Service
-@EnableScheduling
 public class PbftService implements CommandLineRunner {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftService.class);
@@ -102,7 +101,6 @@ public class PbftService implements CommandLineRunner {
     }
 
     // todo: chage cron setting to config file or genesis ...
-    @Profile("validator")
     @Scheduled(cron = "*/2 * * * * *")
     public void mainScheduler() {
 
@@ -403,7 +401,7 @@ public class PbftService implements CommandLineRunner {
 
         for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
-            if (pbftMessage == null || pbftMessage.getSeqNumber() < index) {
+            if (pbftMessage.getSeqNumber() < index) {
                 pbftMessage.clear();
                 this.blockChain.getUnConfirmedMsgMap().remove(key);
             } else if (pbftMessage.getSeqNumber() == index) {
@@ -681,7 +679,7 @@ public class PbftService implements CommandLineRunner {
         }
     }
 
-    public void updateUnconfirmedMsg(PbftMessage newPbftMessage) {
+    void updateUnconfirmedMsg(PbftMessage newPbftMessage) {
         this.blockChain.getUnConfirmedMsgMap()
                 .put(newPbftMessage.getSignatureHex(), newPbftMessage);
 
@@ -692,14 +690,14 @@ public class PbftService implements CommandLineRunner {
         }
     }
 
-    public void updateUnconfirmedMsgMap(Map<String, PbftMessage> newPbftMessageMap) {
+    void updateUnconfirmedMsgMap(Map<String, PbftMessage> newPbftMessageMap) {
         for (String key : newPbftMessageMap.keySet()) {
             PbftMessage newPbftMessage = newPbftMessageMap.get(key);
             updateUnconfirmedMsg(newPbftMessage);
         }
     }
 
-    public PbftStatus getMyNodeStatus() {
+    PbftStatus getMyNodeStatus() {
         long index = this.blockChain.getLastConfirmedBlock().getIndex();
         Map<String, PbftMessage> pbftMessageMap = new TreeMap<>();
         ByteArrayOutputStream pbftMessageBytes = new ByteArrayOutputStream();
@@ -808,7 +806,7 @@ public class PbftService implements CommandLineRunner {
     }
 
     // todo: check security
-    public ReentrantLock getLock() {
+    ReentrantLock getLock() {
         return lock;
     }
 }

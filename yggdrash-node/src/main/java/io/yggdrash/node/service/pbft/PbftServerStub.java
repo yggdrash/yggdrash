@@ -2,6 +2,7 @@ package io.yggdrash.node.service.pbft;
 
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.blockchain.pbft.PbftBlock;
+import io.yggdrash.core.blockchain.pbft.PbftBlockChain;
 import io.yggdrash.core.blockchain.pbft.PbftMessage;
 import io.yggdrash.core.blockchain.pbft.PbftStatus;
 import io.yggdrash.node.springboot.grpc.GrpcService;
