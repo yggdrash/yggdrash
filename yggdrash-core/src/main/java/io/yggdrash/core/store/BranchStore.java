@@ -37,11 +37,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MetaStore implements ReadWriterStore<String, String> {
+public class BranchStore implements ReadWriterStore<String, String> {
     private final DbSource<byte[], byte[]> db;
 
     // TODO Change to DAO patten
-    MetaStore(DbSource<byte[], byte[]> dbSource) {
+    BranchStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
     }
 

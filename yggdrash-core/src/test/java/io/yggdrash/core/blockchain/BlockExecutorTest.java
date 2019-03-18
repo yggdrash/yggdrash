@@ -23,7 +23,7 @@ import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.core.contract.StemContract;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
-import io.yggdrash.core.store.MetaStore;
+import io.yggdrash.core.store.BranchStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.junit.Test;
@@ -47,7 +47,7 @@ public class BlockExecutorTest {
         // Blockchain Runtime
         StoreBuilder builder = new StoreBuilder(new DefaultConfig(false));
         BlockStore store = builder.buildBlockStore(BRANCH_ID);
-        MetaStore meta = builder.buildMetaStore(BRANCH_ID);
+        BranchStore meta = builder.buildMetaStore(BRANCH_ID);
 
         BlockExecutor ex = new BlockExecutor(store, meta, runtime);
 

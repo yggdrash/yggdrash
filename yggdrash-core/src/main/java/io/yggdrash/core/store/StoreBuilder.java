@@ -47,8 +47,8 @@ public class StoreBuilder {
         return new PeerStore(getDbSource(branchId + "/peers"));
     }
 
-    public MetaStore buildMetaStore(BranchId branchId) {
-        MetaStore store = new MetaStore(getDbSource(branchId + "/meta"));
+    public BranchStore buildMetaStore(BranchId branchId) {
+        BranchStore store = new BranchStore(getDbSource(branchId + "/meta"));
         return store;
     }
 

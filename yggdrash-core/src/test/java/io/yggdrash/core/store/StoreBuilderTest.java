@@ -42,7 +42,7 @@ public class StoreBuilderTest {
     public void shouldBeBuiltMetaStore() {
         BlockHusk block = BlockChainTestUtils.genesisBlock();
         StoreBuilder builder = new StoreBuilder(new DefaultConfig());
-        MetaStore store = builder.buildMetaStore(BRANCH_ID);
+        BranchStore store = builder.buildMetaStore(BRANCH_ID);
         store.setBestBlock(block);
 
         assertThat(store.getBestBlockHash()).isEqualTo(block.getHash());
