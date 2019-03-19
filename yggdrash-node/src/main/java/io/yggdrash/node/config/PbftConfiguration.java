@@ -15,7 +15,7 @@ public class PbftConfiguration {
 
     @Bean
     PbftBlockChain pbftBlockChain(Peer owner, BlockChain yggdrash, DefaultConfig defaultConfig) {
-        return PbftBlockChainBuilder.Builder()
+        return PbftBlockChainBuilder.newBuilder()
                 .setOwner(owner)
                 .setBlockChain(yggdrash)
                 .setConfig(defaultConfig)

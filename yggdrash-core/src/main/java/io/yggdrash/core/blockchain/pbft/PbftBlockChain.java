@@ -1,5 +1,8 @@
 package io.yggdrash.core.blockchain.pbft;
 
+import com.google.gson.JsonObject;
+import io.yggdrash.core.blockchain.BlockChain;
+import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.pbft.PbftBlockKeyStore;
@@ -12,6 +15,7 @@ public class PbftBlockChain {
 
     private final Peer owner;
 
+    private final BlockChain coreBlockChain;
     private final PbftBlock genesisBlock;
     private final PbftBlockKeyStore blockKeyStore;
     private final PbftBlockStore blockStore;
@@ -21,10 +25,11 @@ public class PbftBlockChain {
 
     private final Map<String, PbftMessage> unConfirmedMsgMap = new ConcurrentHashMap<>();
 
-    public PbftBlockChain(Peer owner, PbftBlock genesisBlock, PbftBlockKeyStore blockKeyStore,
+    public PbftBlockChain(Peer owner, BlockChain blockChain, PbftBlockKeyStore blockKeyStore,
                           PbftBlockStore blockStore, TransactionStore transactionStore) {
         this.owner = owner;
-        this.genesisBlock = genesisBlock;
+        this.coreBlockChain = blockChain;
+        this.genesisBlock = new PbftBlock(blockChain.getBlockByIndex(0).getCoreBlock(), null);
         this.blockKeyStore = blockKeyStore;
         this.blockStore = blockStore;
         this.transactionStore = transactionStore;
@@ -43,12 +48,12 @@ public class PbftBlockChain {
         return genesisBlock.getBlock().getChain();
     }
 
-    public String getHost() {
-        return owner.getHost();
+    public Peer getOwner() {
+        return owner;
     }
 
-    public int getPort() {
-        return owner.getPort();
+    public JsonObject getConsensus() {
+        return coreBlockChain.getBranch().getConsensus();
     }
 
     public PbftBlockKeyStore getBlockKeyStore() {
@@ -77,5 +82,9 @@ public class PbftBlockChain {
 
     public TransactionStore getTransactionStore() {
         return transactionStore;
+    }
+
+    public void addBlockInternal(PbftBlock pbftBlock) {
+        coreBlockChain.addBlock(new BlockHusk(pbftBlock.getBlock()), true);
     }
 }

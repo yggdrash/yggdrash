@@ -64,8 +64,7 @@ public class PbftBlockChainBuilder {
         PbftBlockStore blockStore = new PbftBlockStore(getDbSource(blockStorePath));
         TransactionStore txStore = new TransactionStore(getDbSource(txStorePath));
 
-        PbftBlock genesisBlock = new PbftBlock(blockChain.getBlockByIndex(0).getCoreBlock(), null);
-        return new PbftBlockChain(owner, genesisBlock, blockKeyStore, blockStore, txStore);
+        return new PbftBlockChain(owner, blockChain, blockKeyStore, blockStore, txStore);
     }
 
     private DbSource<byte[], byte[]> getDbSource(String name) {
@@ -76,7 +75,7 @@ public class PbftBlockChainBuilder {
         }
     }
 
-    public static PbftBlockChainBuilder Builder() {
+    public static PbftBlockChainBuilder newBuilder() {
         return new PbftBlockChainBuilder();
     }
 }
