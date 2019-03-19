@@ -76,3 +76,12 @@ yggdrash:
   node:
     chain.gen: true
 
+
+---
+
+spring.profiles: validator
+
+yggdrash:
+  node:
+    validator: true
+

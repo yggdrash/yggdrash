@@ -26,6 +26,8 @@ public class NodeProperties {
     private List<String> seedPeerList;
     private int maxPeers;
     private boolean seed;
+    private boolean validator;
+
     private final Chain chain = new Chain();
 
     public Chain getChain() {
@@ -58,6 +60,14 @@ public class NodeProperties {
 
     public void setSeed(boolean seed) {
         this.seed = seed;
+    }
+
+    public boolean isValidator() {
+        return validator;
+    }
+
+    public void setValidator(boolean validator) {
+        this.validator = validator;
     }
 
     public static class Chain {
