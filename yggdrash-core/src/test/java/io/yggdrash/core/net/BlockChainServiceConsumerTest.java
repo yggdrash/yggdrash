@@ -33,19 +33,34 @@ public class BlockChainServiceConsumerTest {
         blockChainServiceConsumer.setListener(BlockChainSyncManagerMock.getMockWithBranchGroup(branchGroup));
         Assert.assertEquals(1, branch.getLastIndex());
 
-        List<BlockHusk> blockHuskList =
-                blockChainServiceConsumer.syncBlock(branchId, 1, 10);
+        List<BlockHusk> blockHuskList = blockChainServiceConsumer.syncBlock(branchId, 1, 10);
 
         Assert.assertEquals(1, blockHuskList.size());
         Assert.assertEquals(1, branch.getLastIndex());
     }
 
     @Test
+    public void syncBlockByPassingTheLimitSize() {
+        TestConstants.SlowTest.apply();
+        // arrange
+        int height = 110;
+        List<BlockHusk> blockHuskList = BlockChainTestUtils.createBlockListFilledWithTx(height, 100);
+
+        blockHuskList.forEach(b -> branch.addBlock(b, false));
+        Assert.assertEquals(height, branch.getLastIndex());
+
+        // act
+        List<BlockHusk> received = blockChainServiceConsumer.syncBlock(branchId, 1, height);
+
+        // assert
+        Assert.assertEquals(106, received.size());
+    }
+
+    @Test
     public void syncBLockRequestingCatchUp() {
         BlockChainTestUtils.setBlockHeightOfBlockChain(branch, 10);
 
-        List<BlockHusk> blockHuskList =
-                blockChainServiceConsumer.syncBlock(branchId, 3, 10);
+        List<BlockHusk> blockHuskList = blockChainServiceConsumer.syncBlock(branchId, 3, 10);
 
         Assert.assertEquals(8, blockHuskList.size());
         Assert.assertEquals(10, branch.getLastIndex());

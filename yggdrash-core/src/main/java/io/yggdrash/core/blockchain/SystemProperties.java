@@ -2,6 +2,10 @@ package io.yggdrash.core.blockchain;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
+
 public class SystemProperties {
     private String esHost;
     private String esTransport;
@@ -57,8 +61,11 @@ public class SystemProperties {
         return Integer.parseInt(esTransport);
     }
 
-    public String[] getEventStore() {
-        return eventStore;
+    public Set<String> getEventStore() {
+        if (eventStore == null) {
+            return new HashSet<>();
+        }
+        return new HashSet<>(Arrays.asList(eventStore));
     }
 
     public static final class SystemPropertiesBuilder {

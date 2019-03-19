@@ -19,7 +19,7 @@ package io.yggdrash.core.store;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.core.contract.TransactionReceiptImpl;
+import io.yggdrash.contract.core.TransactionReceiptImpl;
 import org.junit.Before;
 import org.junit.Test;
 

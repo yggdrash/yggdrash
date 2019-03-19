@@ -20,6 +20,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import org.junit.Before;
 import org.junit.Test;

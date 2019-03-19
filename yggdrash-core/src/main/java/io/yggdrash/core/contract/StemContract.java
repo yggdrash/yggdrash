@@ -40,7 +40,7 @@ public class StemContract implements Contract {
     @Genesis
     @InvokeTransaction // TODO remove InvokeTransaction
     public TransactionReceipt init(JsonObject param) {
-        txReceipt = create(param);
+        create(param);
         log.info("[StemContract | genesis] SUCCESS! param => " + param);
         return txReceipt;
     }
@@ -94,8 +94,7 @@ public class StemContract implements Contract {
             stateValue = StemContractStateValue.of(preBranchJson);
             BranchId branchId = stateValue.getBranchId();
 
-            if (certificateAuthority(preBranchJson) && stateValue != null
-                    && isBranchExist(branchId.toString())) {
+            if (certificateAuthority(preBranchJson) && isBranchExist(branchId.toString())) {
                 try {
                     updateValue(stateValue, params);
                     addBranchId(branchId);
@@ -147,7 +146,6 @@ public class StemContract implements Contract {
     /**
      * Returns boolean
      *
-     * @param branchId
      * */
     public void messageCall(BranchId branchId) {
         // TODO message call to contract
@@ -211,7 +209,7 @@ public class StemContract implements Contract {
                 return branchIdJson.get("branchId").getAsString();
             }
         }
-        return new String();
+        return "";
     }
 
     /**
@@ -267,10 +265,10 @@ public class StemContract implements Contract {
         String validator = params.get(VALIDATOR).getAsString();
         Set<String> branchIdSet = new HashSet<>();
 
-        getBranchIdList().stream().forEach(id -> {
+        getBranchIdList().forEach(id -> {
             StemContractStateValue stateValue = getBranchStateValue(id);
             if (isEnoughFee(stateValue)) {
-                getBranchStateValue(id).getValidators().stream().forEach(v -> {
+                getBranchStateValue(id).getValidators().forEach(v -> {
                     if (validator.equals(v)) {
                         branchIdSet.add(id);
                     }
@@ -292,7 +290,7 @@ public class StemContract implements Contract {
         if (isBranchExist(branchId)) {
             Long currentHeight = txReceipt.getBlockHeight();
             Long createPointHeight = stateValue.getBlockHeight();
-            Long height = currentHeight - createPointHeight;
+            long height = currentHeight - createPointHeight;
 
             //1block to 1yeed
             BigDecimal currentFee = stateValue.getFee();
@@ -306,17 +304,14 @@ public class StemContract implements Contract {
         if (currentFee.longValue() > 0) {
             Long currentHeight = txReceipt.getBlockHeight();
             Long createPointHeight = stateValue.getBlockHeight();
-            Long overTimeHeight = currentHeight - createPointHeight;
+            long overTimeHeight = currentHeight - createPointHeight;
             return currentFee.subtract(BigDecimal.valueOf(overTimeHeight));
         }
         return BigDecimal.ZERO;
     }
 
     private Boolean isEnoughFee(StemContractStateValue stateValue) {
-        if (feeState(stateValue).longValue() > 0) {
-            return true;
-        }
-        return false;
+        return feeState(stateValue).longValue() > 0;
     }
 
     private boolean isBranchExist(String branchId) {

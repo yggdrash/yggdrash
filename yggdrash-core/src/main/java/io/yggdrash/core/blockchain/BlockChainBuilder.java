@@ -23,13 +23,13 @@ import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.blockchain.osgi.ContractContainerBuilder;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
-import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
-import io.yggdrash.core.store.MetaStore;
+import io.yggdrash.core.store.BranchStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.core.store.output.OutputStore;
+import io.yggdrash.contract.core.store.OutputStore;
+import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.store.output.es.EsClient;
 
 import java.util.HashMap;
@@ -41,12 +41,11 @@ public class BlockChainBuilder {
     private StoreBuilder storeBuilder;
     private Branch branch;
     private TransactionStore transactionStore;
-    private MetaStore metaStore;
+    private BranchStore branchStore;
     private BlockStore blockStore;
     private StateStore stateStore;
     private TransactionReceiptStore transactionReceiptStore;
-    private Runtime runtime;
-    private OutputStore[] outputStores;
+    private Map<OutputType, OutputStore> outputStores;
 
     private ContractPolicyLoader policyLoader;
     private SystemProperties systemProperties;
@@ -66,8 +65,8 @@ public class BlockChainBuilder {
         return this;
     }
 
-    public BlockChainBuilder setMetaStore(MetaStore metaStore) {
-        this.metaStore = metaStore;
+    public BlockChainBuilder setBranchStore(BranchStore branchStore) {
+        this.branchStore = branchStore;
         return this;
     }
 
@@ -78,11 +77,6 @@ public class BlockChainBuilder {
 
     public BlockChainBuilder setStateStore(StateStore stateStore) {
         this.stateStore = stateStore;
-        return this;
-    }
-
-    public BlockChainBuilder setRuntime(Runtime runtime) {
-        this.runtime = runtime;
         return this;
     }
 
@@ -108,8 +102,8 @@ public class BlockChainBuilder {
         if (transactionStore == null) {
             transactionStore = storeBuilder.buildTxStore(branchId);
         }
-        if (metaStore == null) {
-            metaStore = storeBuilder.buildMetaStore(branchId);
+        if (branchStore == null) {
+            branchStore = storeBuilder.buildMetaStore(branchId);
         }
         if (stateStore == null) {
             stateStore = storeBuilder.buildStateStore(branchId);
@@ -118,8 +112,19 @@ public class BlockChainBuilder {
             transactionReceiptStore = storeBuilder.buildTransactionReceiptStore(
                     branchId);
         }
+        if (outputStores == null) {
+            outputStores = new HashMap<>();
+        }
 
         ContractContainer contractContainer = null;
+        if (systemProperties != null && systemProperties.checkEsClient()) {
+            outputStores.put(OutputType.ES, EsClient.newInstance(
+                    systemProperties.getEsPrefixHost()
+                    , systemProperties.getEsTransport()
+                    , systemProperties.getEventStore()
+            ));
+        }
+
         if (policyLoader != null) {
             contractContainer = ContractContainerBuilder.newInstance()
                     .withFrameworkFactory(policyLoader.getFrameworkFactory())
@@ -129,21 +134,12 @@ public class BlockChainBuilder {
                     .withTransactionReceiptStore(transactionReceiptStore)
                     .withConfig(storeBuilder.getConfig())
                     .withSystemProperties(systemProperties)
+                    .withOutputStore(outputStores)
                     .build();
         }
 
-        if (systemProperties != null && systemProperties.checkEsClient()) {
-            outputStores = new OutputStore[]{
-                    EsClient.newInstance(
-                            systemProperties.getEsPrefixHost()
-                            , systemProperties.getEsTransport()
-                            , systemProperties.getEventStore()
-                    )
-            };
-        }
-
         return new BlockChain(branch, genesisBlock, blockStore,
-                transactionStore, metaStore, stateStore, transactionReceiptStore, contractContainer, outputStores);
+                transactionStore, branchStore, stateStore, transactionReceiptStore, contractContainer, outputStores);
     }
 
     private Map<ContractVersion, Contract> defaultContract() {

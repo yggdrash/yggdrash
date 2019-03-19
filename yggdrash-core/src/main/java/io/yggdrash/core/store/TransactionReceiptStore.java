@@ -3,7 +3,7 @@ package io.yggdrash.core.store;
 import com.google.gson.Gson;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.core.contract.TransactionReceiptImpl;
+import io.yggdrash.contract.core.TransactionReceiptImpl;
 
 public class TransactionReceiptStore {
     private final DbSource<byte[], byte[]> db;

@@ -5,13 +5,19 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
+import io.yggdrash.contract.core.annotation.InjectEvent;
+import io.yggdrash.contract.core.annotation.InjectOutputStore;
+import io.yggdrash.contract.core.store.OutputStore;
+import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.core.contract.TransactionReceiptImpl;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.wallet.Address;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
@@ -37,17 +43,23 @@ public class ContractManager {
     private final String branchId;
     private final StateStore stateStore;
     private final TransactionReceiptStore transactionReceiptStore;
+    private final Map<OutputType, OutputStore> outputStore;
+    private final SystemProperties systemProperties;
     private final ContractCache contractCache;
 
     private List<String> systemContracts;
 
-    ContractManager(Framework framework, String systemContractPath, String userContractPath, String branchId, StateStore stateStore, TransactionReceiptStore transactionReceiptStore) {
+    ContractManager(Framework framework, String systemContractPath, String userContractPath, String branchId
+            , StateStore stateStore, TransactionReceiptStore transactionReceiptStore
+            , Map<OutputType, OutputStore> outputStore, SystemProperties systemProperties) {
         this.framework = framework;
         this.systemContractPath = systemContractPath;
         this.userContractPath = userContractPath;
         this.branchId = branchId;
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
+        this.outputStore = outputStore;
+        this.systemProperties = systemProperties;
         contractCache = new ContractCache();
     }
 
@@ -73,7 +85,9 @@ public class ContractManager {
             return;
         }
 
-        boolean isSystemContract = bundle.getLocation().startsWith(String.format("%s%s", ContractContainer.PREFIX_BUNDLE_PATH, systemContractPath));
+        boolean isSystemContract = bundle.getLocation()
+                .startsWith(String.format("%s%s",
+                        ContractContainer.PREFIX_BUNDLE_PATH, systemContractPath));
 
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = framework.getBundleContext().getService(serviceRef);
@@ -85,10 +99,21 @@ public class ContractManager {
         for (Field field : fields) {
             field.setAccessible(true);
             for (Annotation annotation : field.getDeclaredAnnotations()) {
+                // TODO User Contract Store 를 분리할 것인지 결정 하고, 각 컨트렉트 별로 분리한다면, 추가, 분리 안하면 해당 코드 제거
                 if (isSystemContract) {
                     if (annotation.annotationType().equals(ContractStateStore.class)) {
                         field.set(o, stateStore);
                     }
+                }
+                if (outputStore != null
+                        && annotation.annotationType().equals(InjectOutputStore.class)
+                        && field.getType().isAssignableFrom(outputStore.getClass())) {
+                    field.set(o, outputStore);
+                }
+                if (systemProperties != null
+                        && annotation.annotationType().equals(InjectEvent.class)
+                        && field.getType().isAssignableFrom(systemProperties.getEventStore().getClass())) {
+                    field.set(o, systemProperties.getEventStore());
                 }
             }
         }
@@ -163,7 +188,7 @@ public class ContractManager {
         return true;
     }
 
-    long install(String contractFileName, boolean isSystemContract) {
+    public long install(String contractFileName, boolean isSystemContract) {
         Bundle bundle;
         try {
             bundle = framework.getBundleContext().installBundle(makeContractFullPath(contractFileName, isSystemContract));
@@ -192,7 +217,8 @@ public class ContractManager {
         return action(contractId, ActionType.STOP);
     }
 
-    private Object callContractMethod(Bundle bundle, String methodName, JsonObject params, MethodType methodType, TransactionReceipt txReceipt) {
+    private Object callContractMethod(Bundle bundle, String methodName, JsonObject params, MethodType methodType
+            , TransactionReceipt txReceipt, JsonObject endBlockParams) {
         if (bundle.getRegisteredServices() == null) {
             return null;
         }
@@ -238,7 +264,11 @@ public class ContractManager {
             if (method.getParameterCount() == 0) {
                 return method.invoke(service);
             } else {
-                return method.invoke(service, params);
+                if (methodType == MethodType.EndBlock) {
+                    return method.invoke(service, endBlockParams);
+                } else {
+                    return method.invoke(service, params);
+                }
             }
         } catch (Exception e) {
             log.error("Call contract method : {}", bundle.getBundleId());
@@ -253,7 +283,7 @@ public class ContractManager {
         if (bundle == null) {
             return null;
         }
-        return callContractMethod(bundle, methodName, params, MethodType.Query, null);
+        return callContractMethod(bundle, methodName, params, MethodType.Query, null, null);
     }
 
     public Object invoke(String contractFileName, JsonObject txBody, TransactionReceipt txReceipt) {
@@ -269,20 +299,17 @@ public class ContractManager {
         if (bundle == null) {
             return null;
         }
-        return callContractMethod(bundle, txBody.get("method").getAsString(), txBody.getAsJsonObject("params"), MethodType.InvokeTx, txReceipt);
+        return callContractMethod(bundle, txBody.get("method").getAsString(), txBody.getAsJsonObject("params"), MethodType.InvokeTx, txReceipt, null);
     }
 
-    private List<Object> endBlock() {
+    private List<Object> endBlock(JsonObject endBlockParams) {
         List<Object> results = new ArrayList<>();
         for (Bundle bundle : framework.getBundleContext().getBundles()) {
-            ServiceReference serviceRef = bundle.getRegisteredServices()[0];
-            Object service = framework.getBundleContext().getService(serviceRef);
-
             contractCache.cacheContract(bundle, framework);
             Map<String, Method> endBlockMethods = contractCache.getEndBlockMethods().get(bundle.getLocation());
             if (endBlockMethods != null) {
                 endBlockMethods.forEach((k, m) -> {
-                    Object result = callContractMethod(bundle, k, null, MethodType.EndBlock, null);
+                    Object result = callContractMethod(bundle, k, null, MethodType.EndBlock, null, endBlockParams);
                     if (result != null) {
                         results.add(result);
                     }
@@ -302,7 +329,7 @@ public class ContractManager {
         BlockRuntimeResult result = new BlockRuntimeResult(nextBlock);
 //        TempStateStore blockState = new TempStateStore(stateStore);
         for (TransactionHusk tx : nextBlock.getBody()) {
-            TransactionReceipt txReceipt = new TransactionReceiptImpl(tx);
+            TransactionReceipt txReceipt = createTransactionReceipt(tx);
             // set Block ID
             txReceipt.setBlockId(nextBlock.getHash().toString());
             txReceipt.setBlockHeight(nextBlock.getIndex());
@@ -321,7 +348,9 @@ public class ContractManager {
             result.addTxReceipt(txReceipt);
             // Save TxReceipt
         }
-        List<Object> endBlockResult = endBlock();
+        JsonObject endBlockParams = new JsonObject();
+        endBlockParams.addProperty("blockNo", nextBlock.getCoreBlock().getIndex());
+        List<Object> endBlockResult = endBlock(endBlockParams);
         // Save BlockStates
 //        result.setBlockResult(blockState.changeValues());
 
@@ -358,5 +387,16 @@ public class ContractManager {
             ));
         }
         return result;
+    }
+
+    public static TransactionReceipt createTransactionReceipt(TransactionHusk tx) {
+        String txId = tx.getHash().toString();
+        long txSize = tx.getBody().length();
+        Address address = tx.getAddress();
+        String issuer = null;
+        if (address != null) {
+            issuer = address.toString();
+        }
+        return new TransactionReceiptImpl(txId, txSize, issuer);
     }
 }
