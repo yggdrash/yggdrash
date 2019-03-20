@@ -34,13 +34,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class MetaStoreTest {
-    private MetaStore ms;
+public class BranchStoreTest {
+    private BranchStore ms;
     Logger log = LoggerFactory.getLogger(TempStateStoreTest.class);
 
     @Before
     public void setUp() {
-        this.ms = new MetaStore(new HashMapDbSource());
+        this.ms = new BranchStore(new HashMapDbSource());
     }
 
     @After

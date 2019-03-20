@@ -4,6 +4,7 @@ import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
+import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
@@ -86,9 +87,12 @@ public class PbftBlockStoreTest {
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
         wallet = new Wallet();
-        wallet2 = new Wallet(null, "/tmp/", "test2", "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/", "test3", "Password1234!");
-        wallet4 = new Wallet(null, "/tmp/", "test4", "Password1234!");
+        wallet2 = new Wallet(null, "/tmp/",
+                "test2" + TimeUtils.time(), "Password1234!");
+        wallet3 = new Wallet(null, "/tmp/",
+                "test3" + TimeUtils.time(), "Password1234!");
+        wallet4 = new Wallet(null, "/tmp/",
+                "test4" + TimeUtils.time(), "Password1234!");
 
         block = new TestUtils(wallet).sampleBlock();
         block2 = new TestUtils(wallet).sampleBlock(block.getIndex() + 1, block.getHash());

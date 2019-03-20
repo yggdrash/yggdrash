@@ -1,15 +1,21 @@
 package io.yggdrash.validator.data.ebft;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.EbftProto;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class EbftStatus {
@@ -19,26 +25,25 @@ public class EbftStatus {
     private byte[] signature;
 
     public EbftStatus(long index,
-                      List<EbftBlock> unConfirmedEbftBlockList,
-                      long timestamp,
-                      byte[] signature) {
+                      List<EbftBlock> unConfirmedEbftBlockList, Wallet wallet) {
         this.index = index;
         if (unConfirmedEbftBlockList != null) {
             this.unConfirmedEbftBlockList.addAll(unConfirmedEbftBlockList);
         }
-
-        if (timestamp == 0L) {
-            this.timestamp = TimeUtils.time();
-        } else {
-            this.timestamp = timestamp;
-        }
-
-        this.signature = signature;
+        this.timestamp = TimeUtils.time();
+        this.signature = wallet.sign(getHashForSigning(), true);
     }
 
-    public EbftStatus(long index,
-                      List<EbftBlock> unConfirmedEbftBlockList) {
-        this(index, unConfirmedEbftBlockList, TimeUtils.time(), null);
+    public EbftStatus(JsonObject jsonObject) {
+        this.index = jsonObject.get("index").getAsLong();
+        if (jsonObject.get("unConfirmedList") != null) {
+            for (JsonElement pbftMessageJsonElement : jsonObject.get("unConfirmedList").getAsJsonArray()) {
+                EbftBlock ebftBlock = new EbftBlock(pbftMessageJsonElement.getAsJsonObject());
+                this.unConfirmedEbftBlockList.add(ebftBlock);
+            }
+        }
+        this.timestamp = jsonObject.get("timestamp").getAsLong();
+        this.signature = Hex.decode(jsonObject.get("signature").getAsString());
     }
 
     public EbftStatus(EbftProto.EbftStatus nodeStatus) {
@@ -65,10 +70,6 @@ public class EbftStatus {
 
     public byte[] getSignature() {
         return signature;
-    }
-
-    public void setSignature(byte[] signature) {
-        this.signature = signature;
     }
 
     public byte[] getHashForSigning() {
@@ -105,4 +106,41 @@ public class EbftStatus {
         return protoBlockStatus.build();
     }
 
+    public JsonObject toJsonObject() {
+        JsonObject jsonObject = new JsonObject();
+        jsonObject.addProperty("index", this.index);
+
+        JsonArray unConfirmedList = new JsonArray();
+        for (EbftBlock ebftBlock : this.unConfirmedEbftBlockList) {
+            unConfirmedList.add(ebftBlock.toJsonObject());
+        }
+        if (unConfirmedList.size() > 0) {
+            jsonObject.add("unConfirmedList", unConfirmedList);
+        }
+
+        jsonObject.addProperty("timestamp", this.timestamp);
+        jsonObject.addProperty("signature", Hex.toHexString(this.signature));
+
+        return jsonObject;
+    }
+
+    public byte[] toBinary() {
+        return this.toJsonObject().toString().getBytes(StandardCharsets.UTF_8);
+    }
+
+    public boolean equals(EbftStatus newStatus) {
+        if (newStatus == null) {
+            return false;
+        }
+        return Arrays.equals(this.toBinary(), newStatus.toBinary());
+    }
+
+    public void clear() {
+        for (EbftBlock ebftBlock : this.unConfirmedEbftBlockList) {
+            if (ebftBlock != null) {
+                ebftBlock.clear();
+            }
+        }
+        this.unConfirmedEbftBlockList.clear();
+    }
 }

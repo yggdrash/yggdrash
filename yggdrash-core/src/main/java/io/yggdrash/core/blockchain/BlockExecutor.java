@@ -19,22 +19,22 @@ package io.yggdrash.core.blockchain;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.core.runtime.Runtime;
 import io.yggdrash.core.store.BlockStore;
-import io.yggdrash.core.store.MetaStore;
+import io.yggdrash.core.store.BranchStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 class BlockExecutor {
     private final BlockStore store;
-    private final MetaStore metaStore;
+    private final BranchStore branchStore;
     private final Runtime runtime;
     private boolean runExecute;
 
 
     private static final Logger log = LoggerFactory.getLogger(BlockExecutor.class);
 
-    BlockExecutor(BlockStore store, MetaStore metaStore, Runtime runtime) {
+    BlockExecutor(BlockStore store, BranchStore branchStore, Runtime runtime) {
         this.store = store;
-        this.metaStore = metaStore;
+        this.branchStore = branchStore;
         this.runtime = runtime;
     }
 
@@ -51,8 +51,8 @@ class BlockExecutor {
     private void executeBlock() {
         // Run Block
         // GET BEST BLOCK
-        long bestBlock = metaStore.getBestBlock();
-        long lastExecuteBlock = metaStore.getLastExecuteBlockIndex();
+        long bestBlock = branchStore.getBestBlock();
+        long lastExecuteBlock = branchStore.getLastExecuteBlockIndex();
         // TODO Validate Block will be stored
         if (bestBlock > lastExecuteBlock) {
             runExecute = true;
@@ -66,7 +66,7 @@ class BlockExecutor {
                 // TODO get block execute root state
                 runtime.invokeBlock(block);
                 // Set Next ExecuteBlock
-                metaStore.setLastExecuteBlock(block);
+                branchStore.setLastExecuteBlock(block);
                 log.info("Block " + block.getIndex() + " Execute Complete");
             }
             runExecute = false;

@@ -26,7 +26,11 @@ public class ECKeyPairGeneratorTest {
 
     @Test
     public void generateKeyPair() {
-        ECKeyPairGenerator.generateKeyPair();
+        try {
+            ECKeyPairGenerator.generateKeyPair();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
     }
 
     @Test(expected = NoSuchAlgorithmException.class)

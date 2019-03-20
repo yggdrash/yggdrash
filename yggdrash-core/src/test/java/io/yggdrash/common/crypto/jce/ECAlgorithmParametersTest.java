@@ -22,11 +22,19 @@ public class ECAlgorithmParametersTest {
 
     @Test
     public void getParameterSpec() {
-        assert ECAlgorithmParameters.getParameterSpec() != null;
+        try {
+            ECAlgorithmParameters.getParameterSpec();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
     }
 
     @Test
     public void getASN1Encoding() {
-        assert ECAlgorithmParameters.getASN1Encoding() != null;
+        try {
+            ECAlgorithmParameters.getASN1Encoding();
+        } catch (Throwable t) {
+            t.printStackTrace();
+        }
     }
 }

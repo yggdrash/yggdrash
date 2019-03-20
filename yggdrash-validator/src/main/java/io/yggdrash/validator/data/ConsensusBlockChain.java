@@ -23,4 +23,6 @@ public interface ConsensusBlockChain<K, V> {
     ConsensusBlock getLastConfirmedBlock();
 
     Map<K, V> getUnConfirmedData();
+
+    void addBlock(ConsensusBlock block);
 }
