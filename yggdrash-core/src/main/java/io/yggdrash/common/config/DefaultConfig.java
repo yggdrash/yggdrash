@@ -86,6 +86,10 @@ public class DefaultConfig {
         return prodConfig.withFallback(referenceConfig).resolve();
     }
 
+    public Config getConfig() {
+        return config;
+    }
+
     public String getString(String path) {
         return config.getString(path);
     }

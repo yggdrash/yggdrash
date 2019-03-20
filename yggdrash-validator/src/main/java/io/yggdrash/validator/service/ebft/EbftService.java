@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -55,14 +56,18 @@ public class EbftService implements ConsensusService {
     private String grpcHost;
     private int grpcPort;
 
-    public EbftService(Wallet wallet, ConsensusBlockChain blockChain, String grpcHost, int grpcPort) {
+    public EbftService(Wallet wallet,
+                       ConsensusBlockChain blockChain,
+                       Map<String, Object> validatorInfoMap,
+                       String grpcHost,
+                       int grpcPort) {
         this.wallet = wallet;
         this.blockChain = (EbftBlockChain) blockChain;
         this.grpcHost = grpcHost;
         this.grpcPort = grpcPort;
 
         this.myNode = initMyNode();
-        this.totalValidatorMap = initTotalValidator();
+        this.totalValidatorMap = initTotalValidator(validatorInfoMap);
         this.isValidator = initValidator();
         this.isActive = false;
         this.isSynced = false;
@@ -584,6 +589,22 @@ public class EbftService implements ConsensusService {
         }
 
         log.debug("isValidator" + validatorJsonObject.toString());
+        return nodeMap;
+    }
+
+    private Map<String, EbftClientStub> initTotalValidator(Map<String, Object> validatorInfoMap) {
+        Map<String, EbftClientStub> nodeMap = new TreeMap<>();
+        for (String key : validatorInfoMap.keySet()) {
+            EbftClientStub client = new EbftClientStub(key,
+                    ((Map<String, String>) validatorInfoMap.get(key)).get("host"),
+                    ((Map<String, Integer>) validatorInfoMap.get(key)).get("port"));
+            if (client.getId().equals(myNode.getId())) {
+                nodeMap.put(myNode.getAddr(), myNode);
+            } else {
+                nodeMap.put(client.getAddr(), client);
+            }
+        }
+        log.debug("ValidatorInfo: " + nodeMap.toString());
         return nodeMap;
     }
 

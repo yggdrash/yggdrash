@@ -68,14 +68,18 @@ public class PbftService implements ConsensusService {
     private String grpcHost;
     private int grpcPort;
 
-    public PbftService(Wallet wallet, ConsensusBlockChain blockChain, String grpcHost, int grpcPort) {
+    public PbftService(Wallet wallet,
+                       ConsensusBlockChain blockChain,
+                       Map<String, Object> validatorInfoMap,
+                       String grpcHost,
+                       int grpcPort) {
         this.wallet = wallet;
         this.blockChain = (PbftBlockChain) blockChain;
         this.grpcHost = grpcHost;
         this.grpcPort = grpcPort;
 
         this.myNode = initMyNode();
-        this.totalValidatorMap = initTotalValidator();
+        this.totalValidatorMap = initTotalValidator(validatorInfoMap);
         this.isValidator = initValidator();
         if (totalValidatorMap != null) {
             this.bftCount = (totalValidatorMap.size() - 1) / 3;
@@ -797,13 +801,27 @@ public class PbftService implements ConsensusService {
         return nodeMap;
     }
 
+    private TreeMap<String, PbftClientStub> initTotalValidator(Map<String, Object> validatorInfoMap) {
+        TreeMap<String, PbftClientStub> nodeMap = new TreeMap<>();
+        for (String key : validatorInfoMap.keySet()) {
+            PbftClientStub client = new PbftClientStub(key,
+                    ((Map<String, String>) validatorInfoMap.get(key)).get("host"),
+                    ((Map<String, Integer>) validatorInfoMap.get(key)).get("port"));
+            if (client.getId().equals(myNode.getId())) {
+                nodeMap.put(myNode.getAddr(), myNode);
+            } else {
+                nodeMap.put(client.getAddr(), client);
+            }
+        }
+        log.debug("ValidatorInfo: " + nodeMap.toString());
+        return nodeMap;
+    }
+
     private PbftClientStub initMyNode() {
         PbftClientStub client = new PbftClientStub(
                 wallet.getHexAddress(), this.grpcHost, this.grpcPort);
-
         client.setMyclient(true);
         client.setIsRunning(true);
-
         return client;
     }
 

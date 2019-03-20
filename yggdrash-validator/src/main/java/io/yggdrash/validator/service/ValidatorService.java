@@ -19,6 +19,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
 import java.io.IOException;
+import java.util.Map;
 
 public class ValidatorService {
 
@@ -48,9 +49,11 @@ public class ValidatorService {
         this.taskScheduler = threadPoolTaskScheduler();
         this.blockChain = consensusBlockChain();
 
+        Map<String, Object> validatorInfoMap = this.validatorConfig.getConfig().getObject("yggdrash.validator.info").unwrapped();
+
         switch (consensus.getAlgorithm()) {
             case "pbft":
-                consensusService = new PbftService(wallet, blockChain, host, port);
+                consensusService = new PbftService(wallet, blockChain, validatorInfoMap, host, port);
                 taskScheduler.schedule(consensusService, new CronTrigger(consensus.getPeriod()));
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
@@ -62,7 +65,7 @@ public class ValidatorService {
                 }
                 break;
             case "ebft":
-                consensusService = new EbftService(wallet, blockChain, host, port);
+                consensusService = new EbftService(wallet, blockChain, validatorInfoMap, host, port);
                 taskScheduler.schedule(consensusService, new CronTrigger(consensus.getPeriod()));
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
