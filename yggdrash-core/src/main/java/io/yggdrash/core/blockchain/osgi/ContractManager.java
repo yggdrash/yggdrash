@@ -25,10 +25,12 @@ import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.List;
@@ -49,9 +51,10 @@ public class ContractManager {
 
     private List<String> systemContracts;
 
-    ContractManager(Framework framework, String systemContractPath, String userContractPath, String branchId
-            , StateStore stateStore, TransactionReceiptStore transactionReceiptStore
-            , Map<OutputType, OutputStore> outputStore, SystemProperties systemProperties) {
+    ContractManager(Framework framework, String systemContractPath, String userContractPath,
+                    String branchId, StateStore stateStore,
+                    TransactionReceiptStore transactionReceiptStore,
+                    Map<OutputType, OutputStore> outputStore, SystemProperties systemProperties) {
         this.framework = framework;
         this.systemContractPath = systemContractPath;
         this.userContractPath = userContractPath;
@@ -72,7 +75,8 @@ public class ContractManager {
     }
 
     private String makeContractFullPath(String contractName, boolean isSystemContract) {
-        return String.format("%s%s/%s", ContractContainer.PREFIX_BUNDLE_PATH, isSystemContract ? systemContractPath : userContractPath, contractName);
+        return String.format("%s%s/%s", ContractContainer.PREFIX_BUNDLE_PATH,
+                isSystemContract ? systemContractPath : userContractPath, contractName);
     }
 
     private boolean checkSystemContract(String contractName) {
@@ -191,7 +195,10 @@ public class ContractManager {
     public long install(String contractFileName, boolean isSystemContract) {
         Bundle bundle;
         try {
-            bundle = framework.getBundleContext().installBundle(makeContractFullPath(contractFileName, isSystemContract));
+
+            String fullPath = makeContractFullPath(contractFileName, isSystemContract);
+            InputStream stream = Files.newInputStream(Paths.get(fullPath));
+            bundle = framework.getBundleContext().installBundle(contractFileName, stream);
             boolean isPass = verifyManifest(bundle);
             if (!isPass) {
                 uninstall(bundle.getBundleId());
