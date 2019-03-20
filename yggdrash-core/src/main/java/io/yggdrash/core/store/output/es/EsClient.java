@@ -69,7 +69,7 @@ public class EsClient implements OutputStore {
         block.remove("body");
 
         String id = block.getAsJsonObject("header").get("index").getAsString();
-        IndexResponse response = client.prepareIndex(blockIndex, "_doc", id)
+        IndexResponse response = client.prepareIndex("yggdrash", "block", id)
                 .setSource(block.toString(), XContentType.JSON).get();
 
         switch (response.status()) {
