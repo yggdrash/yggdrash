@@ -120,6 +120,10 @@ public class Block {
         return this.header.getChain();
     }
 
+    public String getChainHex() {
+        return Hex.toHexString(this.header.getChain());
+    }
+
     public byte[] getHash() {
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
@@ -155,7 +159,7 @@ public class Block {
         return ecKeyPub.getPubKey();
     }
 
-    public String getPubKeyHexString() {
+    public String getPubKeyHex() {
         return Hex.toHexString(this.getPubKey());
     }
 
