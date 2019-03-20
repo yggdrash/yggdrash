@@ -1,6 +1,6 @@
 package io.yggdrash.validator.data.pbft;
 
-import io.yggdrash.common.utils.Sha3Hash;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.Transaction;

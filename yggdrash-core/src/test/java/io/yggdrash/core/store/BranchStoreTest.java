@@ -18,7 +18,7 @@ package io.yggdrash.core.store;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.common.utils.Sha3Hash;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.Branch;

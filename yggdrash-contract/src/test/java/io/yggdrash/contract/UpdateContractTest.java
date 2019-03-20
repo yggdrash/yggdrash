@@ -9,6 +9,7 @@ import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.dpoa.DPoAContract;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -53,6 +54,7 @@ public class UpdateContractTest {
     }
 
     @Before
+    @Ignore
     public void setUp() throws IllegalAccessException {
         TestClass t = new TestClass();
         ContractVersionControl.ContractVersionControlService contractversionUpdateService = t.getContractVersionControlService();
@@ -71,6 +73,7 @@ public class UpdateContractTest {
     }
 
     @Test
+    @Ignore
     public void updateTest() throws Exception {
 
         String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";

@@ -17,7 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.utils.Sha3Hash;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;

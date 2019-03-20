@@ -18,7 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
-import io.yggdrash.common.utils.Sha3Hash;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.trie.Trie;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.ByteUtil;

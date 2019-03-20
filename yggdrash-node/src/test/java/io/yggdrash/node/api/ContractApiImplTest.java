@@ -23,6 +23,7 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.node.CoinContractTestUtils;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,6 +64,7 @@ public class ContractApiImplTest {
     }
 
     @Test
+    @Ignore
     public void allowance() {
         Map<String, String> params = createParams("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
         params.put("spender", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");

@@ -18,7 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.StoreTestUtils;
-import io.yggdrash.common.utils.Sha3Hash;
+import io.yggdrash.common.Sha3Hash;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
