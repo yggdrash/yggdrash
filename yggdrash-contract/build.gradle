@@ -196,7 +196,7 @@ task removeContract(type: Delete) {
 
 def generateSha1(File file) {
     file.withInputStream {
-        new DigestInputStream(it, MessageDigest.getInstance('Sha1')).withStream {
+        new DigestInputStream(it, MessageDigest.getInstance('sha1')).withStream {
             it.eachByte {}
             it.messageDigest.digest().encodeHex() as String
         }
@@ -206,7 +206,6 @@ def generateSha1(File file) {
 task copyContractToCoreBuildResrouce(type: Copy) {
     dependsOn removeContract
     dependsOn contractsPackage
-    // dependsOn signJar
 
     def copyPath = file('build/libs').absolutePath + '/../../../yggdrash-core/build/resources/main/system-contracts'
     def copyResourcePath = file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts'
@@ -251,7 +250,7 @@ task copyContractToResrouce(type: Copy) {
     dependsOn contractsPackage
     //dependsOn signJar
 
-    def copyPath = file('build/libs').absolutePath + '/../../../resources/contract'
+    def copyPath = file('build/libs').absolutePath + '/../../../.yggdrash/contract'
     // Copy Contract File
 
     from file('build/libs')
