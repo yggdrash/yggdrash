@@ -144,9 +144,17 @@ task noneContract(type: Jar) {
 }
 
 
+task contractsPackage() {
+    dependsOn dpoaContract
+    dependsOn coinContract
+    dependsOn noneContract
+}
+
+/*
 def keystoreFile = new File("${project.projectDir.toString()}/src/main/resources/yggdrash.p12")
 def keystorePass = '098098'
 def keyAlias = 'yggdrash'
+
 task signJar(description: 'to Sign JAR.', group: 'Build') {
 
     dependsOn dpoaContract
@@ -180,6 +188,7 @@ task signJar(description: 'to Sign JAR.', group: 'Build') {
         }
     }
 }
+*/
 
 task removeContract(type: Delete) {
     delete fileTree(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts').include('*')
@@ -196,7 +205,8 @@ def generateSha1(File file) {
 
 task copyContractToCoreBuildResrouce(type: Copy) {
     dependsOn removeContract
-    dependsOn signJar
+    dependsOn contractsPackage
+    // dependsOn signJar
 
     def copyPath = file('build/libs').absolutePath + '/../../../yggdrash-core/build/resources/main/system-contracts'
     def copyResourcePath = file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts'
@@ -238,7 +248,8 @@ task copyContractToCoreBuildResrouce(type: Copy) {
 
 task copyContractToResrouce(type: Copy) {
     dependsOn removeContract
-    dependsOn signJar
+    dependsOn contractsPackage
+    //dependsOn signJar
 
     def copyPath = file('build/libs').absolutePath + '/../../../resources/contract'
     // Copy Contract File
@@ -252,7 +263,10 @@ task copyContractToResrouce(type: Copy) {
         libFiles.each {
             def sha1Name = generateSha1(it)+'.jar'
             def sha1File = file("${copyPath}/"+sha1Name)
-            it.renameTo(sha1File)
+            if (it.getName() != sha1Name) {
+                println it.getName() + ' -> ' + sha1Name
+                it.renameTo(sha1File)
+            }
         }
     }
 }
@@ -260,7 +274,7 @@ task copyContractToResrouce(type: Copy) {
 
 task copyContractToCoreResrouce(type: Copy) {
     dependsOn removeContract
-    dependsOn signJar
+    dependsOn contractsPackage
 
     from file('build/libs')
     into file(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts')
