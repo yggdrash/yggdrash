@@ -171,22 +171,23 @@ public class EbftBlockChain implements ConsensusBlockChain<String, EbftBlock> {
      * @param count count of blocks (1 < count <= 100)
      * @return list of Block
      */
-    public List<EbftBlock> getEbftBlockList(long index, long count) {
+    @Override
+    public List<ConsensusBlock> getBlockList(long index, long count) {
         if (index < 0L || count < 1L || count > 100L) {
-            log.debug("getEbftBlockList() index or count is not valid");
+            log.debug("index or count is not valid");
             return null;
         }
 
         byte[] key;
-        List<EbftBlock> ebftBlockList = new ArrayList<>();
+        List<ConsensusBlock> blockList = new ArrayList<>();
         for (long l = index; l < index + count; l++) {
             key = blockKeyStore.get(l);
             if (key != null) {
-                ebftBlockList.add(blockStore.get(key));
+                blockList.add(blockStore.get(key));
             }
         }
 
-        return ebftBlockList;
+        return blockList;
     }
 
     private void batchTxs(ConsensusBlock block) {
