@@ -1,3 +1,6 @@
+import java.security.DigestInputStream
+import java.security.MessageDigest
+
 ext {
     importPackage =
                     "io.yggdrash.common.contract" +
@@ -182,6 +185,15 @@ task removeContract(type: Delete) {
     delete fileTree(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts').include('*')
 }
 
+def generateSha1(File file) {
+    file.withInputStream {
+        new DigestInputStream(it, MessageDigest.getInstance('Sha1')).withStream {
+            it.eachByte {}
+            it.messageDigest.digest().encodeHex() as String
+        }
+    }
+}
+
 task copyContractToCoreBuildResrouce(type: Copy) {
     dependsOn removeContract
     dependsOn signJar
@@ -223,6 +235,29 @@ task copyContractToCoreBuildResrouce(type: Copy) {
     }
 }
 
+
+task copyContractToResrouce(type: Copy) {
+    dependsOn removeContract
+    dependsOn signJar
+
+    def copyPath = file('build/libs').absolutePath + '/../../../resources/contract'
+    // Copy Contract File
+
+    from file('build/libs')
+    into file("${copyPath}")
+    exclude "${project.name}*"
+
+    doLast {
+        def libFiles = file("${copyPath}").listFiles()
+        libFiles.each {
+            def sha1Name = generateSha1(it)+'.jar'
+            def sha1File = file("${copyPath}/"+sha1Name)
+            it.renameTo(sha1File)
+        }
+    }
+}
+
+
 task copyContractToCoreResrouce(type: Copy) {
     dependsOn removeContract
     dependsOn signJar
@@ -235,6 +270,7 @@ task copyContractToCoreResrouce(type: Copy) {
 jar {
     dependsOn copyContractToCoreBuildResrouce
     dependsOn copyContractToCoreResrouce
+    dependsOn copyContractToResrouce
 }
 
 dependencies {
