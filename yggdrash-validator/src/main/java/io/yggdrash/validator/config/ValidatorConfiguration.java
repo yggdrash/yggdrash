@@ -29,8 +29,7 @@ public class ValidatorConfiguration {
     @Bean
     public void makeValidatorService() throws IOException, InvalidCipherTextException {
 
-        File validatorPath = new File(
-                getClass().getClassLoader().getResource("validator").getFile());
+        File validatorPath = new File(new DefaultConfig().getString("yggdrash.validator.path"));
 
         for (File validatorDir : validatorPath.listFiles()) {
             File validatorConfFile = new File(validatorDir, "validator.conf");

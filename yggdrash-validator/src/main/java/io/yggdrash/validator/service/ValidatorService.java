@@ -84,7 +84,7 @@ public class ValidatorService {
     private ThreadPoolTaskScheduler threadPoolTaskScheduler() {
         ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
         threadPoolTaskScheduler.setPoolSize(5);
-        threadPoolTaskScheduler.setThreadNamePrefix("Validator");
+        threadPoolTaskScheduler.setThreadNamePrefix(host + "_" + port + "_");
         threadPoolTaskScheduler.initialize();
         return threadPoolTaskScheduler;
     }
