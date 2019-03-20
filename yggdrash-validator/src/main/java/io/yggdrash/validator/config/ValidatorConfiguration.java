@@ -1,159 +1,51 @@
 package io.yggdrash.validator.config;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import io.grpc.Server;
-import io.grpc.ServerBuilder;
+import com.typesafe.config.ConfigFactory;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Block;
-import io.yggdrash.core.exception.NotValidateException;
-import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.data.ConsensusBlockChain;
-import io.yggdrash.validator.data.ebft.EbftBlockChain;
-import io.yggdrash.validator.data.pbft.PbftBlockChain;
-import io.yggdrash.validator.service.ConsensusService;
-import io.yggdrash.validator.service.ebft.EbftServerStub;
-import io.yggdrash.validator.service.ebft.EbftService;
-import io.yggdrash.validator.service.pbft.PbftServerStub;
-import io.yggdrash.validator.service.pbft.PbftService;
+import io.yggdrash.validator.service.ValidatorService;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
-import org.spongycastle.util.encoders.Hex;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.scheduling.support.CronTrigger;
-import org.springframework.util.FileCopyUtils;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
-import java.net.InetAddress;
 import java.nio.charset.StandardCharsets;
-
-import static io.yggdrash.common.config.Constants.DEFAULT_PORT;
+import java.util.ArrayList;
+import java.util.List;
 
 @Configuration
 public class ValidatorConfiguration {
 
-    private Server server;
+    private static final Logger log = LoggerFactory.getLogger(ValidatorConfiguration.class);
+
+    private final List<ValidatorService> validatorServiceList = new ArrayList<>();
 
     @Bean
-    String grpcHost() {
-        return InetAddress.getLoopbackAddress().getHostAddress();
-    }
+    public void makeValidatorService() throws IOException, InvalidCipherTextException {
 
-    @Bean
-    int grpcPort() {
-        if (System.getProperty("grpc.port") == null) {
-            return DEFAULT_PORT;
-        } else {
-            return Integer.parseInt(System.getProperty("grpc.port"));
-        }
-    }
+        File validatorPath = new File(
+                getClass().getClassLoader().getResource("validator").getFile());
 
-    @Bean
-    DefaultConfig defaultConfig() {
-        return new DefaultConfig();
-    }
+        for (File validatorDir : validatorPath.listFiles()) {
+            File validatorConfFile = new File(validatorDir, "validator.conf");
+            DefaultConfig validatorConfig = new DefaultConfig(ConfigFactory.parseFile(validatorConfFile));
+            log.debug(validatorConfig.getString("yggdrash.validator.host"));
 
-    @Bean
-    Wallet wallet(DefaultConfig defaultConfig) throws IOException, InvalidCipherTextException {
-        return new Wallet(defaultConfig);
-    }
+            File genesisFile = new File(validatorDir, "genesis.json");
+            FileInputStream is = new FileInputStream(genesisFile);
+            Block genesisBlock = new Block(
+                    JsonUtil.parseJsonObject(
+                            IOUtils.toString(is, StandardCharsets.UTF_8)));
+            log.debug(genesisBlock.toString());
 
-    @Bean
-    Block validatorGenesisBlock() {
-        String genesisString;
-        ClassPathResource cpr = new ClassPathResource("genesis/genesis.json");
-        try {
-            byte[] bdata = FileCopyUtils.copyToByteArray(cpr.getInputStream());
-            genesisString = new String(bdata, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            throw new NotValidateException("Error genesisFile");
+            validatorServiceList.add(new ValidatorService(validatorConfig, genesisBlock));
         }
 
-        return new Block(new Gson().fromJson(genesisString, JsonObject.class));
-    }
-
-    @Bean
-    Consensus consensus(Block validatorGenesisblock) {
-        return new Consensus(validatorGenesisblock);
-    }
-
-    @Bean
-    @DependsOn( {"validatorGenesisBlock", "consensus"})
-    ConsensusBlockChain consensusBlockChain(Block genesisBlock,
-                                            DefaultConfig defaultConfig, Consensus consensus) {
-        String algorithm = consensus.getAlgorithm();
-        String dbPath = defaultConfig.getDatabasePath();
-        String host = grpcHost();
-        String port = Long.toString(grpcPort());
-        String chain = Hex.toHexString(genesisBlock.getHeader().getChain());
-
-        String keyStorePath = host + "_" + port + "/" + chain + "/" + algorithm + "Key";
-        String blockStorePath = host + "_" + port + "/" + chain + "/" + algorithm + "Block";
-        String txStorePath = host + "_" + port + "/" + chain + "/" + algorithm + "Tx";
-
-        switch (algorithm) {
-            case "pbft":
-                return new PbftBlockChain(genesisBlock, dbPath, keyStorePath, blockStorePath,
-                        txStorePath);
-            case "ebft":
-                return new EbftBlockChain(genesisBlock, dbPath, keyStorePath, blockStorePath,
-                        txStorePath);
-
-            default:
-                throw new NotValidateException("Algorithm is not valid.");
-        }
-    }
-
-    @Bean
-    @DependsOn( {"consensusBlockChain", "threadPoolTaskScheduler"})
-    ConsensusService consensusService(Wallet wallet, Consensus consensus,
-                                      ConsensusBlockChain consensusBlockChain,
-                                      ThreadPoolTaskScheduler threadPoolTaskScheduler) {
-        String period = consensus.getPeriod();
-        String host = grpcHost();
-        int port = grpcPort();
-
-        ConsensusService consensusService;
-        switch (consensus.getAlgorithm()) {
-            case "pbft":
-                consensusService = new PbftService(wallet, consensusBlockChain, host, port);
-                threadPoolTaskScheduler.schedule(consensusService, new CronTrigger(period));
-                try {
-                    this.server = ServerBuilder.forPort(grpcPort())
-                            .addService(new PbftServerStub(consensusBlockChain, consensusService))
-                            .build()
-                            .start();
-                } catch (IOException e) {
-                    throw new NotValidateException("Grpc IOException");
-                }
-                return consensusService;
-
-            case "ebft":
-                consensusService = new EbftService(wallet, consensusBlockChain, host, port);
-                threadPoolTaskScheduler.schedule(consensusService, new CronTrigger(period));
-                try {
-                    this.server = ServerBuilder.forPort(grpcPort())
-                            .addService(new EbftServerStub(consensusBlockChain, consensusService))
-                            .build()
-                            .start();
-                } catch (IOException e) {
-                    throw new NotValidateException("Grpc IOException");
-                }
-                return consensusService;
-
-            default:
-                throw new NotValidateException("Algorithm is not valid.");
-        }
-    }
-
-    @Bean
-    public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
-        ThreadPoolTaskScheduler threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
-        threadPoolTaskScheduler.setPoolSize(5);
-        threadPoolTaskScheduler.setThreadNamePrefix("ThreadPoolTaskScheduler");
-        return threadPoolTaskScheduler;
     }
 }
