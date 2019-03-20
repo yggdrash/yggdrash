@@ -17,7 +17,7 @@
 package io.yggdrash.core.store;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.utils.Sha3Hash;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 
 import java.util.LinkedHashMap;

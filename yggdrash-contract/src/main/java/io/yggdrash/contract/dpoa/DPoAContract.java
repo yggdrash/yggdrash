@@ -81,6 +81,7 @@ public class DPoAContract implements BundleActivator {
 
         public boolean saveInitValidator(JsonArray validators) {
             ValidatorSet validatorSet = getValidatorSet();
+
             if (validatorSet != null) {
                 return true;
             }
@@ -90,6 +91,7 @@ public class DPoAContract implements BundleActivator {
                 validatorSet.getValidatorMap().put(validators.get(i).getAsString(), new Validator(validators.get(i).getAsString()));
             }
             JsonObject jsonObject = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
+
             state.put(PrefixKeyEnum.VALIDATORS.toValue(), jsonObject);
             return true;
         }
@@ -121,6 +123,7 @@ public class DPoAContract implements BundleActivator {
 
         @ContractQuery
         public ValidatorSet getValidatorSet() {
+
             ValidatorSet validatorSet = null;
             JsonObject jsonValidatorSet = state.get(PrefixKeyEnum.VALIDATORS.toValue());
             if (jsonValidatorSet != null) {
@@ -177,7 +180,6 @@ public class DPoAContract implements BundleActivator {
         @InvokeTransaction
         public TransactionReceipt voteValidator(JsonObject params) {
             txReceipt.setStatus(ExecuteStatus.FALSE);
-
             //Check validation
             TxValidatorVote txValidatorVote = JsonUtil.generateJsonToClass(params.toString(), TxValidatorVote.class);
             if (!validateTx(txValidatorVote)) {

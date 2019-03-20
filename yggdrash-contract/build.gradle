@@ -18,11 +18,11 @@ ext {
                     ",org.w3c.dom" +
                     ",org.slf4j" +
                     ",java.math" +
+                    ",java.io" +
                     ",io.yggdrash.contract.core" +
                     ",io.yggdrash.contract.core.annotation" +
                     ",io.yggdrash.contract.core.store"
-
-
+    
     excludeList = ["META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/NOTICE"]
 }
 
@@ -48,7 +48,7 @@ task dpoaContract(type: Jar) {
                 'Bundle-SymbolicName': 'io.yggdrash.contract.dpoa.DPoAContract',
                 'Bundle-Version': '1.0.0',
                 'Bundle-Activator': 'io.yggdrash.contract.dpoa.DPoAContract',
-                'Export-Package': "io.yggdrash.contract.dpoa",
+                'Export-Package': "io.yggdrash.contract.dpoa; dpoa=true; mandatory:=dpoa; version=1.0.0",
                 'Import-Package': "${importPackage}"
         )
     }
@@ -77,7 +77,7 @@ task dpoaClientContract(type: Jar) {
                 'Bundle-SymbolicName': 'io.yggdrash.contract.dpoa.DPoAClientContract',
                 'Bundle-Version': '1.0.0',
                 'Bundle-Activator': 'io.yggdrash.contract.dpoa.DPoAClientContract',
-                'Import-Package': "${importPackage},io.yggdrash.contract.dpoa"
+                'Import-Package': "${importPackage}, io.yggdrash.contract.dpoa"
         )
     }
     exclude(excludeList)
@@ -188,7 +188,8 @@ task contractVersionControl(type: Jar) {
                 'Bundle-Vendor': 'YGGDRASH',
                 'Bundle-SymbolicName': 'io.yggdrash.contract.ContractVersionControl',
                 'Bundle-Version': '1.0.0',
-                'Bundle-Activator': 'io.yggdrash.contract.ContractVersionControl'
+                'Bundle-Activator': 'io.yggdrash.contract.ContractVersionControl',
+                'Import-Package': "${importPackage}, io.yggdrash.contract.dpoa; dpoa=true;"
         )
     }
     exclude(excludeList)
@@ -203,7 +204,7 @@ task signJar(description: 'to Sign JAR.', group: 'Build') {
     dependsOn dpoaContract
     dependsOn coinContract
     dependsOn noneContract
-//    dependsOn contractVersionControl
+    dependsOn contractVersionControl
 //    dependsOn stemContract
 //    dependsOn dpoaClientContract
 

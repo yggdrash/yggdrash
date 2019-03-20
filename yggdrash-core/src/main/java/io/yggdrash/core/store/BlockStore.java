@@ -17,7 +17,7 @@
 package io.yggdrash.core.store;
 
 import com.google.common.primitives.Longs;
-import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.utils.Sha3Hash;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BlockHusk;

@@ -10,6 +10,7 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.contract.ContractVersionControl;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
@@ -28,6 +29,7 @@ import static org.junit.Assert.assertTrue;
 
 public class DPoAContractTest {
     private DPoAContract.DPoAService dPoAService;
+    private ContractVersionControl.ContractVersionControlService vuc;
     private StateStore<JsonObject> store;
     private Field txReceiptField;
     private JsonArray validatorsArr;
@@ -67,6 +69,7 @@ public class DPoAContractTest {
         JsonObject genesis = JsonUtil.parseJsonObject(validators);
 
         boolean isSuccess = dPoAService.saveInitValidator(genesis.getAsJsonArray("validator"));
+
         assertTrue(isSuccess);
     }
 
