@@ -137,8 +137,8 @@ public class EbftService implements ConsensusService {
     private boolean waitingConsensusedBlock() {
         for (int i = 0; i < consensusCount; i++) {
             for (EbftBlock unConfirmedEbftBlock : blockChain.getUnConfirmedData().values()) {
-                if (unConfirmedEbftBlock.getIndex() ==
-                        blockChain.getLastConfirmedBlock().getIndex() + 1
+                if (unConfirmedEbftBlock.getIndex()
+                        == blockChain.getLastConfirmedBlock().getIndex() + 1
                         && unConfirmedEbftBlock.getConsensusMessages().size() > consensusCount) {
                     return true;
                 }
@@ -213,7 +213,8 @@ public class EbftService implements ConsensusService {
         List<EbftBlock> ebftBlockList = new ArrayList<>(client.getEbftBlockList(
                 this.blockChain.getLastConfirmedBlock().getIndex()));
         log.debug("node: " + client.getId());
-        log.debug("index: " + (ebftBlockList != null ? ebftBlockList.get(0).getIndex() : null));
+        log.debug("index: "
+                + (ebftBlockList.get(0) != null ? ebftBlockList.get(0).getIndex() : null));
         log.debug("blockList size: " + ebftBlockList.size());
 
         if (ebftBlockList.size() == 0) {
@@ -405,7 +406,6 @@ public class EbftService implements ConsensusService {
             EbftBlock unconfirmedBlock = this.blockChain.getUnConfirmedData().get(key);
             if (unconfirmedBlock == null) {
                 this.blockChain.getUnConfirmedData().remove(key);
-                continue;
             } else if (unconfirmedBlock.getIndex()
                     <= this.blockChain.getLastConfirmedBlock().getIndex()) {
                 unconfirmedBlock.clear();

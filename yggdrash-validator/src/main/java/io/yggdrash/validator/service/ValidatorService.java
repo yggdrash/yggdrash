@@ -49,7 +49,9 @@ public class ValidatorService {
         this.taskScheduler = threadPoolTaskScheduler();
         this.blockChain = consensusBlockChain();
 
-        Map<String, Object> validatorInfoMap = this.validatorConfig.getConfig().getObject("yggdrash.validator.info").unwrapped();
+        Map<String, Object> validatorInfoMap =
+                this.validatorConfig.getConfig()
+                        .getObject("yggdrash.validator.info").unwrapped();
 
         switch (consensus.getAlgorithm()) {
             case "pbft":

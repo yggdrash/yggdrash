@@ -15,7 +15,7 @@ public class PbftBlockKeyStore implements BlockKeyStore<Long, byte[]> {
     private static final Logger log = LoggerFactory.getLogger(PbftBlockKeyStore.class);
 
     private final DbSource<byte[], byte[]> db;
-    private long size = 0;
+    private long size;
 
     private final ReentrantLock lock = new ReentrantLock();
 

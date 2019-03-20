@@ -189,7 +189,7 @@ public class PbftService implements ConsensusService {
     }
 
     private boolean waitingForMessage(String message) {
-        int messageCount = 0;
+        int messageCount;
         for (int i = 0; i < consensusCount; i++) {
             switch (message) {
                 case "PREPREPA":
@@ -405,7 +405,9 @@ public class PbftService implements ConsensusService {
         }
 
         Map<String, PbftMessage> prepareMsgMap = getMsgMap(seqNumber, "PREPAREM");
-        if (prepareMsgMap == null || prepareMsgMap.size() < consensusCount) {
+        if (prepareMsgMap == null) {
+            return null;
+        } else if (prepareMsgMap.size() < consensusCount) {
             prepareMsgMap.clear();
             return null;
         }
@@ -684,7 +686,7 @@ public class PbftService implements ConsensusService {
 
             log.debug("node: " + client.getId());
             log.debug("index: " + (pbftBlockList != null ? pbftBlockList.get(0).getIndex() : null));
-            log.debug("blockList size: " + pbftBlockList.size());
+            log.debug("blockList size: " + (pbftBlockList != null ? pbftBlockList.size() : null));
 
             if (pbftBlockList.size() == 0) {
                 pbftBlockList.clear();

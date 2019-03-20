@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
+import java.util.Arrays;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class PbftBlockStore implements BlockStore<byte[], PbftBlock> {
@@ -43,7 +44,7 @@ public class PbftBlockStore implements BlockStore<byte[], PbftBlock> {
         try {
             if (!contains(key)) {
                 log.trace("put "
-                        + "(key: " + key + ")"
+                        + "(key: " + Arrays.toString(key) + ")"
                         + "(value length: " + valueBin.length + ")");
                 db.put(key, valueBin);
                 size++;

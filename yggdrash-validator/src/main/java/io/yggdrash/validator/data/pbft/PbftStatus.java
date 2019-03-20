@@ -127,19 +127,19 @@ public class PbftStatus {
             throw new NotValidateException("wallet is null");
         }
 
-        return wallet.signHashedData(getHashForSigning());
+        return wallet.sign(getHashForSigning(), true);
     }
 
     public static boolean verify(PbftStatus status) {
-        if (status != null
-                && status.getSignature() != null) {
-            byte[] hashData = status.getHashForSigning();
-            byte[] signature = status.getSignature();
-            if (hashData == null
-                    || signature == null
-                    || !Wallet.verify(hashData, signature, true)) {
-                return false;
-            }
+        if (status == null || status.getSignature() == null) {
+            return false;
+        }
+
+        byte[] hashData = status.getHashForSigning();
+        byte[] signature = status.getSignature();
+        if (hashData == null
+                || !Wallet.verify(hashData, signature, true)) {
+            return false;
         }
 
         for (PbftMessage pbftMessage : status.unConfirmedPbftMessageMap.values()) {

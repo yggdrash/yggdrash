@@ -60,10 +60,10 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
             return;
         }
 
-        EbftBlock lastEbftBlock = this.ebftBlockChain.getLastConfirmedBlock();
-
         responseObserver.onNext(NetProto.Empty.newBuilder().build());
         responseObserver.onCompleted();
+
+        EbftBlock lastEbftBlock = this.ebftBlockChain.getLastConfirmedBlock();
 
         ebftService.getLock().lock();
         if (newEbftBlock.getIndex() == lastEbftBlock.getIndex() + 1

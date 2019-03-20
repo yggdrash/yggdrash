@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Configuration
 public class ValidatorConfiguration {
@@ -31,7 +32,7 @@ public class ValidatorConfiguration {
 
         File validatorPath = new File(new DefaultConfig().getString("yggdrash.validator.path"));
 
-        for (File validatorDir : validatorPath.listFiles()) {
+        for (File validatorDir : Objects.requireNonNull(validatorPath.listFiles())) {
             File validatorConfFile = new File(validatorDir, "validator.conf");
             DefaultConfig validatorConfig = new DefaultConfig(ConfigFactory.parseFile(validatorConfFile));
             log.debug(validatorConfig.getString("yggdrash.validator.host"));
