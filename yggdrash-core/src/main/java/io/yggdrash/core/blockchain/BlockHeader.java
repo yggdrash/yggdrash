@@ -17,6 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
+import com.google.protobuf.util.Timestamps;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.utils.ByteUtil;
@@ -236,17 +237,15 @@ public class BlockHeader {
 
     static BlockHeader toBlockHeader(Proto.Block.Header protoBlockHeader) {
 
-        BlockHeader blockHeader = new BlockHeader(
+        return new BlockHeader(
                 protoBlockHeader.getChain().toByteArray(),
                 protoBlockHeader.getVersion().toByteArray(),
                 protoBlockHeader.getType().toByteArray(),
                 protoBlockHeader.getPrevBlockHash().toByteArray(),
-                ByteUtil.byteArrayToLong(protoBlockHeader.getIndex().toByteArray()),
-                ByteUtil.byteArrayToLong(protoBlockHeader.getTimestamp().toByteArray()),
+                protoBlockHeader.getIndex(),
+                Timestamps.toMillis(protoBlockHeader.getTimestamp()),
                 protoBlockHeader.getMerkleRoot().toByteArray(),
-                ByteUtil.byteArrayToLong(protoBlockHeader.getBodyLength().toByteArray())
+                protoBlockHeader.getBodyLength()
         );
-
-        return blockHeader;
     }
 }
