@@ -133,6 +133,7 @@ project(':yggdrash-node') {
         compile(project(':yggdrash-gateway')) {
             exclude module: 'yggdrash-contract'
         }
+        compile(project(':yggdrash-validator'))
         compile "org.springframework.boot:spring-boot-starter-web"
         compile "org.springframework.boot:spring-boot-starter-undertow"
         compile "org.springframework.boot:spring-boot-starter-actuator"
