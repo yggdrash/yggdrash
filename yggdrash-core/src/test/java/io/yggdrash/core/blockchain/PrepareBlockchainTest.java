@@ -27,17 +27,27 @@ import org.slf4j.LoggerFactory;
 public class PrepareBlockchainTest {
     private static final Logger log = LoggerFactory.getLogger(PrepareBlockchainTest.class);
 
+    @Test
+    public void loadContractFile() {
+        PrepareBlockchain pb = new PrepareBlockchain(new DefaultConfig());
+        ContractVersion version = ContractVersion.of("74df17611373672371cb3872e8a5d4a2e8733fb1");
+        File f = pb.loadContractFile(version);
+        boolean verify = pb.verifyContractFile(f, version);
+
+        assert verify == true;
+
+    }
 
 
     @Test
     public void verifyContractFile() {
         PrepareBlockchain pb = new PrepareBlockchain(new DefaultConfig());
         URL contractFile = getClass().getClassLoader()
-                .getResource("96206ff28aead93a49272379a85191c54f7b33c0.jar");
+                .getResource("74df17611373672371cb3872e8a5d4a2e8733fb1.jar");
         String file = contractFile.getFile();
         log.debug(file);
         File f = new File(file);
-        ContractVersion version = ContractVersion.of("96206ff28aead93a49272379a85191c54f7b33c0");
+        ContractVersion version = ContractVersion.of("74df17611373672371cb3872e8a5d4a2e8733fb1");
 
         boolean verify = pb.verifyContractFile(f, version);
         assert verify == true;

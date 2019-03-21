@@ -299,7 +299,8 @@ public class ContractManager {
                 }
             }
         } catch (Exception e) {
-            log.error("Call contract method : {}", bundle.getBundleId());
+            log.error("Call contract method : {} and bundle {} {} ", methodName,
+                    bundle.getBundleId(), bundle.getLocation());
         }
 
         return null;
@@ -376,9 +377,12 @@ public class ContractManager {
             result.addTxReceipt(txReceipt);
             // Save TxReceipt
         }
+        // TODO end block params
+        /*
         JsonObject endBlockParams = new JsonObject();
         endBlockParams.addProperty("blockNo", nextBlock.getCoreBlock().getIndex());
         List<Object> endBlockResult = endBlock(endBlockParams);
+        */
         // Save BlockStates
 //        result.setBlockResult(blockState.changeValues());
 

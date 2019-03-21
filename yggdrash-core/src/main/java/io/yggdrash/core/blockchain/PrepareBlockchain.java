@@ -32,12 +32,14 @@ public class PrepareBlockchain {
 
     public PrepareBlockchain(DefaultConfig config) {
         this.config = config;
+        log.debug("Contract Path : {} ", config.getContractPath());
     }
 
     public File loadContractFile(ContractVersion version) {
         File contractFile = new File(String.format("%s/%s.jar", config.getContractPath(),
                 version));
         if (!(contractFile.exists() && contractFile.canRead())) {
+            log.debug("Contract file not Exist");
             return null;
         }
         return contractFile;
@@ -67,7 +69,7 @@ public class PrepareBlockchain {
 
             if (contractFile == null) {
                 if(!findContractFile(contractVersion)) {
-                    log.error("Contract %s is not find", contractVersion.toString());
+                    log.error("Contract {} is not exists", contractVersion.toString());
                     return false;
                 }
             }
@@ -75,7 +77,7 @@ public class PrepareBlockchain {
             // verify contract file
             if (!verifyContractFile(contractFile, contractVersion)) {
                 // TODO findContractFile
-                log.error("Contract %s is not verify", contractVersion.toString());
+                log.error("Contract {} is not verify", contractVersion.toString());
                 return false;
             }
         }
@@ -97,7 +99,7 @@ public class PrepareBlockchain {
             inputStream.read(contractBinary);
 
             ContractVersion checkVersion = ContractVersion.of(contractBinary);
-            return contractVersion.equals(checkVersion);
+            return contractVersion.toString().equals(checkVersion.toString());
 
         } catch (IOException e) {
             log.warn(e.getMessage());

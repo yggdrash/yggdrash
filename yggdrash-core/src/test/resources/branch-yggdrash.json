@@ -12,7 +12,7 @@
       "isSystem": true
     },
     {
-      "contractVersion": "system-coin-contract-1.0.0.jar",
+      "contractVersion": "d79ab8e1d735090d2a7ef4f16d13a910457c0d93",
       "isSystem": true,
       "init": {
         "alloc": {
@@ -34,7 +34,7 @@
       "name": "YEED"
     },
     {
-      "contractVersion": "system-dpoa-contract-1.0.0.jar",
+      "contractVersion": "f5f92857982260477387d519f020b6b1fe37b2d5",
       "isSystem": true,
       "init": {
         "validators": [
