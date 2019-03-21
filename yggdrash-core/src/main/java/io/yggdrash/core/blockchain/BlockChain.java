@@ -256,11 +256,8 @@ public class BlockChain {
                 });
 
                 outputStores.forEach((storeType, store) -> {
-                    JsonObject blockJson = nextBlock.toJsonObjectByProto();
-                    String blockId = nextBlock.getHash().toString();
-                    blockJson.addProperty("blockId", blockId);
-                    store.put(blockJson);
-                    store.put(blockId, transactionMap);
+                    store.put(nextBlock.toJsonObjectByProto());
+                    store.put(nextBlock.getHash().toString(), transactionMap);
                 });
             }
         }
