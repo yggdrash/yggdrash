@@ -1,4 +1,4 @@
-package io.yggdrash.contract;
+package io.yggdrash.contract.versioning;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.store.StateStore;

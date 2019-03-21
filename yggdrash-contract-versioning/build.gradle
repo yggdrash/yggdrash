@@ -12,6 +12,8 @@ ext {
                     ",io.yggdrash.common.store.datasource" +
                     ",io.yggdrash.common.utils" +
 
+                    ",io.yggdrash.contract.dpoa" +
+
                     ",org.osgi.framework" +
                     ",org.osgi.util.tracker" +
                     ",com.google.gson" +
@@ -21,99 +23,11 @@ ext {
                     ",io.yggdrash.contract.core" +
                     ",io.yggdrash.contract.core.annotation" +
                     ",io.yggdrash.contract.core.store"
-    
+
     excludeList = ["META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/NOTICE"]
 }
 
-
-task dpoaContract(type: Jar) {
-    //Add current module source
-    from(sourceSets.main.output) {
-        include "**"
-        exclude(["system-contracts"])
-    }
-
-    // Add dependency library
-//    from {
-//        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-//    }
-
-    manifest {
-        attributes(
-                'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'DPoA Contract',
-                'Bundle-Description': 'DPoA Contract',
-                'Bundle-Vendor': 'YGGDRASH',
-                'Bundle-SymbolicName': 'io.yggdrash.contract.dpoa.DPoAContract',
-                'Bundle-Version': '1.0.0',
-                'Bundle-Activator': 'io.yggdrash.contract.dpoa.DPoAContract',
-                'Export-Package': "io.yggdrash.contract.dpoa",
-                'Import-Package': "${importPackage}"
-        )
-    }
-    exclude(excludeList)
-    archiveName "system-dpoa-contract-${manifest.attributes.get('Bundle-Version')}.jar"
-}
-
-task coinContract(type: Jar) {
-    //Add current module source
-    from(sourceSets.main.output) {
-        include "**"
-        exclude(["system-contracts"])
-    }
-
-    // Add dependency library
-//    from {
-//        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-//    }
-
-    manifest {
-        attributes(
-                'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'Coin Contract',
-                'Bundle-Description': 'Coin Contract',
-                'Bundle-Vendor': 'YGGDRASH',
-                'Bundle-SymbolicName': 'io.yggdrash.contract.coin.CoinContract',
-                'Bundle-Version': '1.0.0',
-                'Bundle-Activator': 'io.yggdrash.contract.coin.CoinContract',
-                'Export-Package': "io.yggdrash.contract.coin",
-                'Import-Package': "${importPackage}"
-        )
-    }
-    exclude(excludeList)
-    archiveName "system-coin-contract-${manifest.attributes.get('Bundle-Version')}.jar"
-}
-
-task noneContract(type: Jar) {
-    //Add current module source
-    from(sourceSets.main.output) {
-        include "**"
-        exclude(["system-contracts"])
-    }
-
-    // Add dependency library
-//    from {
-//        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-//    }
-
-    manifest {
-        attributes(
-                'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'None Contract',
-                'Bundle-Description': 'None Contract',
-                'Bundle-Vendor': 'YGGDRASH',
-                'Bundle-SymbolicName': 'io.yggdrash.contract.NoneContract',
-                'Bundle-Version': '1.0.0',
-                'Bundle-Activator': 'io.yggdrash.contract.NoneContract',
-                'Import-Package': "${importPackage}"
-        )
-    }
-    exclude(excludeList)
-    archiveName "system-none-contract-${manifest.attributes.get('Bundle-Version')}.jar"
-}
-
-
-task stemContract(type: Jar) {
+task contractVersionControl(type: Jar) {
     //Add current module source
     from(sourceSets.main.output) {
         include "**"
@@ -128,16 +42,17 @@ task stemContract(type: Jar) {
     manifest {
         attributes(
                 'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'Stem Contract',
-                'Bundle-Description': 'Stem Contract',
+                'Bundle-Name': 'Contract Version Control',
+                'Bundle-Description': 'Contract Version Control',
                 'Bundle-Vendor': 'YGGDRASH',
-                'Bundle-SymbolicName': 'io.yggdrash.core.contract.StemContract',
+                'Bundle-SymbolicName': 'io.yggdrash.contract.ContractVersionControl',
                 'Bundle-Version': '1.0.0',
-                'Bundle-Activator': 'io.yggdrash.core.contract.StemContract'
+                'Bundle-Activator': 'io.yggdrash.contract.ContractVersionControl',
+                'Import-Package': "${importPackage}"
         )
     }
     exclude(excludeList)
-    archiveName "system-stem-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+    archiveName "system-contract-version-control-${manifest.attributes.get('Bundle-Version')}.jar"
 }
 
 def keystoreFile = new File("${project.projectDir.toString()}/src/main/resources/yggdrash.p12")
@@ -145,10 +60,7 @@ def keystorePass = '098098'
 def keyAlias = 'yggdrash'
 task signJar(description: 'to Sign JAR.', group: 'Build') {
 
-    dependsOn dpoaContract
-    dependsOn coinContract
-    dependsOn noneContract
-//    dependsOn stemContract
+    dependsOn contractVersionControl
 
     doLast {
         def libFiles = file('build/libs').listFiles()
@@ -238,4 +150,5 @@ jar {
 
 dependencies {
     compile project(':yggdrash-common')
+    compile project(':yggdrash-contract')
 }

@@ -1,12 +1,14 @@
-package io.yggdrash.contract;
+package io.yggdrash.contract.versioning;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.contract.TxContractUpdatePropose;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
+import io.yggdrash.common.contract.vo.dpoa.tx.TxValidatorVote;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
@@ -62,9 +64,12 @@ public class ContractVersionControl implements BundleActivator, ServiceListener 
     }
 
     public static class ContractVersionControlService {
+        private static final Long MAX_FILE_LENGTH = 5242880L; // default 5MB bytes
         private static final String SUFFIX_UPDATE_CONTRACT = "/update-temp-contracts";
         private static final String SUFFIX = ".jar";
         private final ServiceTracker serviceTracker;
+
+//        public ContractVersionControlService() {}
 
         public ContractVersionControlService(ServiceTracker serviceTracker) {
             this.serviceTracker = serviceTracker;
@@ -87,6 +92,7 @@ public class ContractVersionControl implements BundleActivator, ServiceListener 
                 }
                 FileOutputStream fos;
 
+                //TODO 임시 폴더 파일 위치 동적으로
 //            String containerPath = String.format("%s/%s", Path, branchId);
                 String containerPath = "/Users/haewonwoo/woohae/yggdrash/yggdrash-core/.yggdrash/osgi/8b176b18903237a24d3cd4a5dc88feaa5a0dc746";
                 String tempContractPath = String.format("%s/bundles%s", containerPath, SUFFIX_UPDATE_CONTRACT);
@@ -112,9 +118,54 @@ public class ContractVersionControl implements BundleActivator, ServiceListener 
             return txReceipt;
         }
 
-        public void updateStatus() {
+        @InvokeTransaction
+        public TransactionReceipt vote(JsonObject params) {
+            //TODO 배포 전 벨리데이터들 투표
+            txReceipt.setStatus(ExecuteStatus.FALSE);
+            //Check validation
+            TxValidatorVote txValidatorVote = JsonUtil.generateJsonToClass(params.toString(), TxValidatorVote.class);
+//            if (!validateTx(txValidatorVote)) {
+//                return txReceipt;
+//            }
+//
+//            //Is exists proposed validator
+//            ProposeValidatorSet proposeValidatorSet = getProposeValidatorSet();
+//            if (proposeValidatorSet == null || MapUtils.isEmpty(proposeValidatorSet.getValidatorMap()) || proposeValidatorSet.getValidatorMap().get(txValidatorVote.getValidatorAddr()) == null) {
+//                return txReceipt;
+//            }
+//
+//            //Check available vote
+//            ProposeValidatorSet.Votable votable = proposeValidatorSet.getValidatorMap().get(txValidatorVote.getValidatorAddr());
+//            if (votable.getVotedMap().get(txReceipt.getIssuer()) == null || votable.getVotedMap().get(txReceipt.getIssuer()).isVoted()) {
+//                return txReceipt;
+//            }
+//
+//            //Vote
+//            if (txValidatorVote.isAgree()) {
+//                votable.setAgreeCnt(votable.getAgreeCnt() + 1);
+//            } else {
+//                votable.setDisagreeCnt(votable.getDisagreeCnt() + 1);
+//            }
+//            votable.getVotedMap().get(txReceipt.getIssuer()).setAgree(txValidatorVote.isAgree());
+//            votable.getVotedMap().get(txReceipt.getIssuer()).setVoted(true);
+//
+//            //Save
+//            state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(), JsonUtil.parseJsonObject(JsonUtil.convertObjToString(proposeValidatorSet)));
+//            txReceipt.setStatus(ExecuteStatus.SUCCESS);
 
+            //TODO 임시 폴더 파일 위치
+            //TODO 2/3이상 투표 완료시 임시폴더 파일 컨트랙트 폴더 위치로 이동
+            //TODO 2/3이상일 경우 투표 마감
+            // 과반수가 투표 반대일경우
+
+            return txReceipt;
         }
+
+        @ContractQuery
+        public void updateStatus() {
+            //TODO 투표 상태 및 업데이트 된지 안된지 상태
+        }
+
 
         private boolean validatorVerify() {
             DPoAContract.DPoAService dPoAService = (DPoAContract.DPoAService) serviceTracker.getService();
@@ -130,7 +181,7 @@ public class ContractVersionControl implements BundleActivator, ServiceListener 
         }
 
         private boolean sizeVerify(byte[] binaryFile) {
-            if (binaryFile.length > 10) {
+            if (binaryFile.length > MAX_FILE_LENGTH) {
                 return false;
             }
             return true;
