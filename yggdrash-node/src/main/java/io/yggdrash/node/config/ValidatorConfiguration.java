@@ -20,7 +20,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Profile("validator2")
+@Profile("validator")
 @Configuration
 public class ValidatorConfiguration {
 
