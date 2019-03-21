@@ -34,6 +34,15 @@ public class PrepareBlockchain {
         this.config = config;
     }
 
+    public File loadContractFile(ContractVersion version) {
+        File contractFile = new File(String.format("%s/%s.jar", config.getContractPath(),
+                version));
+        if (!(contractFile.exists() && contractFile.canRead())) {
+            return null;
+        }
+        return contractFile;
+    }
+
 
     public boolean checkBlockChainIsReady(BlockChain blockChain) {
         // Get BranchContract
@@ -53,10 +62,10 @@ public class PrepareBlockchain {
 
         for (BranchContract bc : contractList) {
             ContractVersion contractVersion = bc.getContractVersion();
-            File contractFile = new File(String.format("%s/%s.jar", config.getContractPath(),
-                    contractVersion));
 
-            if (!(contractFile.exists() && contractFile.canRead())) {
+            File contractFile = loadContractFile(contractVersion);
+
+            if (contractFile == null) {
                 if(!findContractFile(contractVersion)) {
                     log.error("Contract %s is not find", contractVersion.toString());
                     return false;

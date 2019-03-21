@@ -19,13 +19,17 @@ package io.yggdrash.node.config;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
+import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.BranchGroup;
+import io.yggdrash.core.blockchain.PrepareBlockchain;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
+import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import org.slf4j.Logger;
@@ -110,12 +114,35 @@ public class BranchConfiguration {
                 .withEventStore(eventStore)
                 .build();
         try {
-            return BlockChainBuilder.Builder()
+            BlockChain bc = BlockChainBuilder.Builder()
                     .addGenesis(genesis)
                     .setStoreBuilder(storeBuilder)
                     .setPolicyLoader(policyLoader)
                     .setSystemProperties(systemProperties)
                     .build();
+
+            // Check BlockChain is Ready
+            PrepareBlockchain prepareBlockchain = new PrepareBlockchain(storeBuilder.getConfig());
+
+            // check block chain is ready
+            if (prepareBlockchain.checkBlockChainIsReady(bc)) {
+                // TODO install bundles
+                // bc.getContractContainer()
+                ContractContainer container = bc.getContractContainer();
+                for(BranchContract contract : bc.getBranchContracts()) {
+                    File branchContractFile = prepareBlockchain.loadContractFile(contract.getContractVersion());
+                    container.installContract(contract.getContractVersion(), branchContractFile, contract.isSystem());
+                }
+                container.reloadInject();
+            } else {
+                // TODO blockchain ready fails
+                log.error("Blockchain is not Ready");
+                return null;
+            }
+
+            log.info("Branch is Ready %s", bc.getBranch().getBranchId());
+
+            return bc;
         } catch (Exception e) {
             log.warn(e.getMessage(), e);
             return null;

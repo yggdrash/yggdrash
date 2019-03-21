@@ -19,6 +19,8 @@ package io.yggdrash.core.blockchain;
 import io.yggdrash.common.contract.Contract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.store.StateStore;
+import io.yggdrash.contract.core.store.OutputStore;
+import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.blockchain.osgi.ContractContainerBuilder;
@@ -28,10 +30,7 @@ import io.yggdrash.core.store.BranchStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.contract.core.store.OutputStore;
-import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.store.output.es.EsClient;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -119,9 +118,9 @@ public class BlockChainBuilder {
         ContractContainer contractContainer = null;
         if (systemProperties != null && systemProperties.checkEsClient()) {
             outputStores.put(OutputType.ES, EsClient.newInstance(
-                    systemProperties.getEsPrefixHost()
-                    , systemProperties.getEsTransport()
-                    , systemProperties.getEventStore()
+                    systemProperties.getEsPrefixHost(),
+                    systemProperties.getEsTransport(),
+                    systemProperties.getEventStore()
             ));
         }
 

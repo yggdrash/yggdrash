@@ -428,4 +428,9 @@ public class BlockChain {
 
     }
 
+    public List<BranchContract> getBranchContracts() {
+        return this.branchStore.getBranchContacts();
+    }
+
+
 }

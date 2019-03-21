@@ -17,6 +17,7 @@
 package io.yggdrash.core.blockchain.osgi;
 
 import java.io.InputStream;
+import java.util.Map;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -43,7 +44,13 @@ public class ContractPolicyLoaderTest {
         ContractPolicyLoader loader = new ContractPolicyLoader();
 
         FrameworkFactory fa = loader.getFrameworkFactory();
-        Framework osgi = fa.newFramework(loader.getContainerConfig());
+        Map config = loader.getContainerConfig();
+
+        if(System.getSecurityManager() != null) {
+            config.remove("org.osgi.framework.security");
+        }
+        Framework osgi = fa.newFramework(config);
+
         osgi.start();
 
         InputStream stream = getClass().getClassLoader()
@@ -61,10 +68,7 @@ public class ContractPolicyLoaderTest {
         log.debug(bd.getSymbolicName());
         log.debug(bd.getVersion().toString());
 
-
-
-
-
+        osgi.stop();
     }
 
 }
