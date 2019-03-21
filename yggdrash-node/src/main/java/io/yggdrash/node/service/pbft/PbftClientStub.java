@@ -6,59 +6,44 @@ import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
 import io.yggdrash.core.blockchain.pbft.PbftBlock;
 import io.yggdrash.core.blockchain.pbft.PbftStatus;
-import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.proto.CommonProto;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.PbftServiceGrpc;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.spongycastle.util.encoders.Hex;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class PbftClientStub {
 
-    private static final Logger log = LoggerFactory.getLogger(PbftClientStub.class);
-
-    private boolean myclient;
-    private String pubKey;
-    private String host;
-    private int port;
-    private String id;
+    private boolean myClient;
+    private Peer owner;
     private boolean isRunning;
-    private PbftStatus pbftStatus;
 
     private ManagedChannel channel;
     private PbftServiceGrpc.PbftServiceBlockingStub blockingStub;
 
-    public PbftClientStub(String pubKey, String host, int port) {
-        this.pubKey = pubKey;
-        this.host = host;
-        this.port = port;
-        this.id = this.pubKey + "@" + this.host + ":" + this.port;
+    PbftClientStub(Peer owner) {
+        this.owner = owner;
         this.isRunning = false;
 
-        this.channel = ManagedChannelBuilder.forAddress(host, port)
-                .usePlaintext()
-                .build();
-        blockingStub = PbftServiceGrpc.newBlockingStub(channel);
+        this.channel = ManagedChannelBuilder.forAddress(owner.getHost(), owner.getPort()).usePlaintext().build();
+        this.blockingStub = PbftServiceGrpc.newBlockingStub(channel);
     }
 
-    public void multicastPbftMessage(PbftProto.PbftMessage pbftMessage) {
-        blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS)
-                .multicastPbftMessage(pbftMessage);
+    void multicastPbftMessage(PbftProto.PbftMessage pbftMessage) {
+        blockingStub.withDeadlineAfter(3, TimeUnit.SECONDS).multicastPbftMessage(pbftMessage);
     }
 
-    public List<PbftBlock> getBlockList(long index) {
+    List<PbftBlock> getBlockList(long index) {
         PbftProto.PbftBlockList protoBlockList = blockingStub
                 .withDeadlineAfter(3, TimeUnit.SECONDS)
-                .getPbftBlockList(
-                        CommonProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
+                .getPbftBlockList(CommonProto.Offset.newBuilder().setIndex(index).setCount(10L).build());
 
         if (Context.current().isCancelled()) {
-            return null;
+            return Collections.emptyList();
         }
 
         List<PbftBlock> newPbftBlockList = new ArrayList<>();
@@ -69,7 +54,7 @@ public class PbftClientStub {
         return newPbftBlockList;
     }
 
-    public long pingPongTime(long timestamp) {
+    long pingPongTime(long timestamp) {
         CommonProto.PingTime pingTime =
                 CommonProto.PingTime.newBuilder().setTimestamp(timestamp).build();
         CommonProto.PongTime pongTime;
@@ -88,67 +73,47 @@ public class PbftClientStub {
         return pongTime.getTimestamp();
     }
 
-    public PbftStatus exchangePbftStatus(PbftProto.PbftStatus pbftStatus) {
-        this.pbftStatus = new PbftStatus(blockingStub
+    PbftStatus exchangePbftStatus(PbftProto.PbftStatus protoPbftStatus) {
+        PbftStatus pbftStatus = new PbftStatus(blockingStub
                 .withDeadlineAfter(5, TimeUnit.SECONDS)
-                .exchangePbftStatus(pbftStatus));
+                .exchangePbftStatus(protoPbftStatus));
         if (Context.current().isCancelled()) {
             return null;
         }
-        return this.pbftStatus;
+        return pbftStatus;
     }
 
     public void shutdown() throws InterruptedException {
         channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
     }
 
-    public boolean isMyclient() {
-        return myclient;
+    boolean isMyClient() {
+        return myClient;
     }
 
-    public void setMyclient(boolean myclient) {
-        this.myclient = myclient;
+    void setMyClient(boolean myClient) {
+        this.myClient = myClient;
     }
 
-    public String getPubKey() {
-        return pubKey;
+    String getPubKey() {
+        return owner.getPubKey().toString();
     }
 
-    public String getAddress() {
-        return Hex.toHexString(Wallet.calculateAddress(Hex.decode(this.pubKey)));
+    String getId() {
+        return owner.toString();
     }
 
-    public String getHost() {
-        return host;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public boolean isRunning() {
+    boolean isRunning() {
         return isRunning;
     }
 
-    public void setIsRunning(boolean isRunning) {
+    void setIsRunning(boolean isRunning) {
         this.isRunning = isRunning;
-    }
-
-    public ManagedChannel getChannel() {
-        return channel;
-    }
-
-    public PbftServiceGrpc.PbftServiceBlockingStub getBlockingStub() {
-        return blockingStub;
     }
 
     @Override
     public String toString() {
-        return this.pubKey + "@" + this.host + ":" + this.port;
+        return owner.getYnodeUri();
     }
 
 }

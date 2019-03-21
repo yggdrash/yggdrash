@@ -71,9 +71,13 @@ public class P2PConfiguration {
     }
 
     @Bean
-    PeerTableGroup peerTableGroup(Wallet wallet, PeerDialer peerDialer) {
-        Peer owner = Peer.valueOf(wallet.getHexAddress(), nodeProperties.getGrpc().getHost(),
+    Peer owner(Wallet wallet) {
+        return Peer.valueOf(wallet.getHexAddress(), nodeProperties.getGrpc().getHost(),
                 nodeProperties.getGrpc().getPort(), nodeProperties.isSeed());
+    }
+
+    @Bean
+    PeerTableGroup peerTableGroup(Peer owner, PeerDialer peerDialer) {
 
         return PeerTableGroupBuilder.Builder()
                 .setOwner(owner)

@@ -15,7 +15,6 @@ import org.spongycastle.util.encoders.Hex;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -160,7 +159,7 @@ public class PbftMessage {
             throw new NotValidateException("wallet is null");
         }
 
-        return wallet.signHashedData(getHashForSigning());
+        return wallet.sign(getHashForSigning(), true);
     }
 
     public static boolean verify(PbftMessage pbftMessage) {
@@ -176,7 +175,7 @@ public class PbftMessage {
             return false;
         }
 
-        if (pbftMessage.type.equals("PREPREPA")) {
+        if (Type.PREPREPA.accept(pbftMessage.type)) {
             if (pbftMessage.getBlock() == null) {
                 return false;
             }
@@ -202,15 +201,6 @@ public class PbftMessage {
             jsonObject.add("block", this.block.toJsonObject());
         }
         return jsonObject;
-    }
-
-    public static List<PbftMessage> toPbftMessageList(
-            PbftProto.PbftMessageList protoPbftMessageList) {
-        List<PbftMessage> pbftMessagesList = new ArrayList<>();
-        for (PbftProto.PbftMessage protoPbftMessage : protoPbftMessageList.getPbftMessageListList()) {
-            pbftMessagesList.add(new PbftMessage(protoPbftMessage));
-        }
-        return pbftMessagesList;
     }
 
     public static PbftProto.PbftMessage toProto(PbftMessage pbftMessage) {
@@ -246,11 +236,21 @@ public class PbftMessage {
         return protoPbftMessageListBuilder.build();
     }
 
-    public boolean equals(PbftMessage newPbftMessage) {
-        if (newPbftMessage == null) {
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        return Arrays.equals(this.toBinary(), newPbftMessage.toBinary());
+        PbftMessage other = (PbftMessage) o;
+        return Arrays.equals(toBinary(), other.toBinary());
+    }
+
+    @Override
+    public int hashCode() {
+        return Arrays.hashCode(toBinary());
     }
 
     public void clear() {
@@ -259,8 +259,11 @@ public class PbftMessage {
         }
     }
 
-    public PbftMessage clone() {
-        return new PbftMessage(toJsonObject());
-    }
+    public enum Type {
+        PREPREPA, PREPAREM, COMMITMS, VIEWCHAN;
 
+        public boolean accept(String other) {
+            return toString().equals(other);
+        }
+    }
 }

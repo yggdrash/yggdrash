@@ -2,6 +2,7 @@ package io.yggdrash.node.service.pbft;
 
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.blockchain.pbft.PbftBlock;
+import io.yggdrash.core.blockchain.pbft.PbftBlockChain;
 import io.yggdrash.core.blockchain.pbft.PbftMessage;
 import io.yggdrash.core.blockchain.pbft.PbftStatus;
 import io.yggdrash.node.springboot.grpc.GrpcService;
@@ -58,7 +59,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
     public void multicastPbftMessage(PbftProto.PbftMessage request,
                                      StreamObserver<NetProto.Empty> responseObserver) {
 
-        log.trace("multicastPbftMessage");
+        log.trace("multicastPbftMessage type={}", request.getType());
         PbftMessage pbftMessage = new PbftMessage(request);
 
         if (!PbftMessage.verify(pbftMessage)) {
@@ -93,8 +94,8 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         long end = Math.min(start - 1 + count,
                 this.blockChain.getLastConfirmedBlock().getIndex());
 
-        log.trace("start: " + start);
-        log.trace("end: " + end);
+        log.trace("start: {}", start);
+        log.trace("end: {}", end);
 
         if (start < end) {
             for (long l = start; l <= end; l++) {
@@ -119,7 +120,7 @@ public class PbftServerStub extends PbftServiceGrpc.PbftServiceImplBase {
         }
 
         pbftService.getLock().lock();
-        pbftService.updateUnconfirmedMsgMap(status.getUnConfirmedPbftMessageMap());
+        status.getUnConfirmedPbftMessageMap().values().forEach(pbftService::updateUnconfirmedMsg);
         pbftService.getLock().unlock();
     }
 }
