@@ -1,40 +1,13 @@
 ext {
-    importPackage =
-                    "io.yggdrash.common.contract" +
-                    ",io.yggdrash.common.contract.method" +
-                    ",io.yggdrash.common.contract.vo" +
-                    ",io.yggdrash.common.contract.vo.dpoa" +
-                    ",io.yggdrash.common.contract.vo.dpoa.tx" +
-                    ",io.yggdrash.common.crypto" +
-                    ",io.yggdrash.common.crypto.jce" +
-                    ",io.yggdrash.common.exception" +
-                    ",io.yggdrash.common.store" +
-                    ",io.yggdrash.common.store.datasource" +
-                    ",io.yggdrash.common.utils" +
-
-                    ",io.yggdrash.contract.dpoa" +
-
-                    ",org.osgi.framework" +
-                    ",org.osgi.util.tracker" +
-                    ",com.google.gson" +
-                    ",org.w3c.dom" +
-                    ",org.slf4j" +
-                    ",java.math" +
-                    ",io.yggdrash.contract.core" +
-                    ",io.yggdrash.contract.core.annotation" +
-                    ",io.yggdrash.contract.core.store"
-
     excludeList = ["META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/NOTICE"]
 }
 
-task contractVersionControl(type: Jar) {
-    //Add current module source
+task versioningContract(type: Jar) {
     from(sourceSets.main.output) {
         include "**"
         exclude(["system-contracts"])
     }
 
-    // Add dependency library
     from {
         configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
     }
@@ -42,17 +15,17 @@ task contractVersionControl(type: Jar) {
     manifest {
         attributes(
                 'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'Contract Version Control',
-                'Bundle-Description': 'Contract Version Control',
+                'Bundle-Name': 'Versioning Contract',
+                'Bundle-Description': 'Versioning Contract',
                 'Bundle-Vendor': 'YGGDRASH',
-                'Bundle-SymbolicName': 'io.yggdrash.contract.ContractVersionControl',
+                'Bundle-SymbolicName': 'io.yggdrash.contract.versioning.VersioningContract',
                 'Bundle-Version': '1.0.0',
-                'Bundle-Activator': 'io.yggdrash.contract.ContractVersionControl',
-                'Import-Package': "${importPackage}"
+                'Bundle-Activator': 'io.yggdrash.contract.versioning.VersioningContract',
+                'Import-Package': "io.yggdrash.contract.dpoa"
         )
     }
     exclude(excludeList)
-    archiveName "system-contract-version-control-${manifest.attributes.get('Bundle-Version')}.jar"
+    archiveName "system-versioning-contract-${manifest.attributes.get('Bundle-Version')}.jar"
 }
 
 def keystoreFile = new File("${project.projectDir.toString()}/src/main/resources/yggdrash.p12")
@@ -60,7 +33,7 @@ def keystorePass = '098098'
 def keyAlias = 'yggdrash'
 task signJar(description: 'to Sign JAR.', group: 'Build') {
 
-    dependsOn contractVersionControl
+    dependsOn versioningContract
 
     doLast {
         def libFiles = file('build/libs').listFiles()

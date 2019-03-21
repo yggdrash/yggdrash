@@ -2,8 +2,6 @@ package io.yggdrash.contract.versioning;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.common.contract.TxContractUpdatePropose;
-import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.contract.vo.dpoa.tx.TxValidatorVote;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
@@ -29,8 +27,8 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Hashtable;
 
-public class ContractVersionControl implements BundleActivator, ServiceListener {
-    private static final Logger log = LoggerFactory.getLogger(ContractVersionControl.class);
+public class VersioningContract implements BundleActivator, ServiceListener {
+    private static final Logger log = LoggerFactory.getLogger(VersioningContract.class);
     private BundleContext bundleContext = null;
     private ServiceTracker serviceTracker = null;
 
@@ -50,7 +48,8 @@ public class ContractVersionControl implements BundleActivator, ServiceListener 
 
         Hashtable<String, String> props = new Hashtable<>();
         props.put("YGGDRASH", "ContractVersionControl");
-        context.registerService(ContractVersionControlService.class.getName(), new ContractVersionControlService(serviceTracker), props);
+//        context.registerService(VersioningContractService.class.getName(), new VersioningContractService(serviceTracker), props);
+        context.registerService(VersioningContractService.class.getName(), new VersioningContractService(), props);
     }
 
     @Override
@@ -63,17 +62,15 @@ public class ContractVersionControl implements BundleActivator, ServiceListener 
 
     }
 
-    public static class ContractVersionControlService {
+    public static class VersioningContractService {
         private static final Long MAX_FILE_LENGTH = 5242880L; // default 5MB bytes
         private static final String SUFFIX_UPDATE_CONTRACT = "/update-temp-contracts";
         private static final String SUFFIX = ".jar";
-        private final ServiceTracker serviceTracker;
+//        private final ServiceTracker serviceTracker;
 
-//        public ContractVersionControlService() {}
-
-        public ContractVersionControlService(ServiceTracker serviceTracker) {
-            this.serviceTracker = serviceTracker;
-        }
+//        public VersioningContractService(ServiceTracker serviceTracker) {
+//            this.serviceTracker = serviceTracker;
+//        }
 
         @ContractStateStore
         ReadWriterStore<String, JsonObject> state;
@@ -83,44 +80,60 @@ public class ContractVersionControl implements BundleActivator, ServiceListener 
 
         @InvokeTransaction
         public TransactionReceipt updateProposer(JsonObject params) throws UnsupportedEncodingException {
-            if (validatorVerify()) {
-                TxContractUpdatePropose txContractUpdatePropose = JsonUtil.generateJsonToClass(params.toString(), TxContractUpdatePropose.class);
-                byte[] binaryFile = base64Dec(txContractUpdatePropose.getContract().getBytes("UTF-8"));
+            // TODO contract name 컨트랙트 조회 - branch store에서 조회
+            String targetVersion = params.get("contractVersion").getAsString();
 
-                if ((binaryFile == null) || sizeVerify(binaryFile)) {
-                    return txReceipt;
-                }
-                FileOutputStream fos;
+            // TODO target block height 저장
 
-                //TODO 임시 폴더 파일 위치 동적으로
-//            String containerPath = String.format("%s/%s", Path, branchId);
-                String containerPath = "/Users/haewonwoo/woohae/yggdrash/yggdrash-core/.yggdrash/osgi/8b176b18903237a24d3cd4a5dc88feaa5a0dc746";
-                String tempContractPath = String.format("%s/bundles%s", containerPath, SUFFIX_UPDATE_CONTRACT);
 
-                File fileDir = new File(tempContractPath);
-                if (!fileDir.exists()) {
-                    fileDir.mkdirs();
-                }
-                ContractVersion version = ContractVersion.of(binaryFile);
-                File destFile = new File(tempContractPath + File.separator + version + SUFFIX);
-                destFile.setReadOnly();
+            String upgradeContract = params.get("contract").getAsString();
+            byte[] binaryFile = base64Dec(upgradeContract.getBytes("UTF-8"));
 
-                try {
-                    fos = new FileOutputStream(destFile);
-                    fos.write(binaryFile);
-                    fos.close();
-                } catch (IOException e) {
-                    log.error(e.toString());
-                }
-
-                txReceipt.setStatus(ExecuteStatus.SUCCESS);
+            if ((binaryFile == null) || sizeVerify(binaryFile)) {
+                return txReceipt;
             }
+            FileOutputStream fos;
+
+//            String containerPath = String.format("%s/%s", Path, branchId);
+            String exportPath = System.getProperty("user.dir");
+            String tempContractPath = String.format("%s/bundles%s", exportPath, SUFFIX_UPDATE_CONTRACT);
+
+            File fileDir = new File(tempContractPath);
+            if (!fileDir.exists()) {
+                fileDir.mkdirs();
+            }
+            ContractVersion version = ContractVersion.of(binaryFile);
+            File destFile = new File(tempContractPath + File.separator + version + SUFFIX);
+            destFile.setReadOnly();
+
+            try {
+                fos = new FileOutputStream(destFile);
+                fos.write(binaryFile);
+                fos.close();
+            } catch (IOException e) {
+                log.error(e.toString());
+            }
+
+            txReceipt.setStatus(ExecuteStatus.SUCCESS);
+
+//            if (validatorVerify()) {
+//            }
             return txReceipt;
         }
 
         @InvokeTransaction
         public TransactionReceipt vote(JsonObject params) {
-            //TODO 배포 전 벨리데이터들 투표
+            // TODO 배포 전 벨리데이터들 투표
+            // TODO 투표하는 동안 validators들이 바뀔 수 있다.
+            // TODO txId로 투표
+            // TODO 임시 폴더 파일 위치
+            // TODO 2/3이상 투표 완료시 임시폴더 파일 컨트랙트 폴더 위치로 이동
+            // TODO 2/3이상일 경우 투표 마감
+            // 과반수가 투표 반대일경우
+
+            // txid 별 issuer 투표상태 저장
+            // 투표 찬성 수 체크
+            // 과반수 이상 동의시 브랜치 스토어에 저장
             txReceipt.setStatus(ExecuteStatus.FALSE);
             //Check validation
             TxValidatorVote txValidatorVote = JsonUtil.generateJsonToClass(params.toString(), TxValidatorVote.class);
@@ -153,10 +166,6 @@ public class ContractVersionControl implements BundleActivator, ServiceListener 
 //            state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(), JsonUtil.parseJsonObject(JsonUtil.convertObjToString(proposeValidatorSet)));
 //            txReceipt.setStatus(ExecuteStatus.SUCCESS);
 
-            //TODO 임시 폴더 파일 위치
-            //TODO 2/3이상 투표 완료시 임시폴더 파일 컨트랙트 폴더 위치로 이동
-            //TODO 2/3이상일 경우 투표 마감
-            // 과반수가 투표 반대일경우
 
             return txReceipt;
         }
@@ -167,18 +176,18 @@ public class ContractVersionControl implements BundleActivator, ServiceListener 
         }
 
 
-        private boolean validatorVerify() {
-            DPoAContract.DPoAService dPoAService = (DPoAContract.DPoAService) serviceTracker.getService();
-//            serviceTracker.waitForService(5000);
-            dPoAService.getValidatorSet();
-
-            ValidatorSet validatorSet = dPoAService.getValidatorSet();
-            if (validatorSet == null || validatorSet.getValidatorMap() == null
-                    || validatorSet.getValidatorMap().get(txReceipt.getIssuer()) == null) {
-                return false;
-            }
-            return true;
-        }
+//        private boolean validatorVerify() {
+//            DPoAContract.DPoAService dPoAService = (DPoAContract.DPoAService) serviceTracker.getService();
+////            serviceTracker.waitForService(5000);
+//            dPoAService.getValidatorSet();
+//
+//            ValidatorSet validatorSet = dPoAService.getValidatorSet();
+//            if (validatorSet == null || validatorSet.getValidatorMap() == null
+//                    || validatorSet.getValidatorMap().get(txReceipt.getIssuer()) == null) {
+//                return false;
+//            }
+//            return true;
+//        }
 
         private boolean sizeVerify(byte[] binaryFile) {
             if (binaryFile.length > MAX_FILE_LENGTH) {

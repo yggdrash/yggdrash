@@ -54,10 +54,6 @@ public class StemContractStateValue extends Branch {
         }
     }
 
-    public void updateContract() {
-
-    }
-
     public static StemContractStateValue of(JsonObject json) {
         return new StemContractStateValue(json.deepCopy());
     }

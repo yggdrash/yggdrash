@@ -171,9 +171,6 @@ import static io.yggdrash.common.config.Constants.VALIDATOR;
             if (params.has("validator")) {
                 stateValue.updateValidatorSet(params.get("validator").getAsString());
             }
-            if (params.has("contract")) {
-                stateValue.updateContract();
-            }
         }
 
         /**

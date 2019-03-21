@@ -86,37 +86,4 @@ public class ContractUtils {
             throw new FailedOperationException("Contract instance Fail");
         }
     }
-
-//    public static byte[] convertVersionToBase64(String contractPath, BranchId branchId) {
-//        File contractFile = contractFile(contractPath, branchId);
-//        if (contractFile.exists()) {
-//            byte[] fileArray = loadContract(contractFile);
-//            return base64Enc(fileArray);
-//        }
-//        return null;
-//    }
-//
-//    static File contractFile(String Path, BranchId branchId) {
-//        String containerPath = String.format("%s/%s", Path, branchId);
-//        String systemContractPath = String.format("%s/bundles%s", containerPath, "/system-contracts");
-//
-//        String result = String.format("%s/%s", systemContractPath, "system-coin-contract-1.0.0.jar");
-//        return new File(result);
-//    }
-//
-//    private static byte[] loadContract(File contractFile) {
-//        byte[] contractBinary;
-//        try (FileInputStream inputStream = new FileInputStream(contractFile)) {
-//            contractBinary = new byte[Math.toIntExact(contractFile.length())];
-//            inputStream.read(contractBinary);
-//        } catch (IOException e) {
-//            return null;
-//        }
-//        return contractBinary;
-//    }
-//
-//    public static byte[] base64Enc(byte[] buffer) {
-//        return Base64.encodeBase64(buffer);
-//    }
-
 }
