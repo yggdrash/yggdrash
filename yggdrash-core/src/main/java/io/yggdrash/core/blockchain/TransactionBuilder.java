@@ -19,8 +19,8 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.wallet.Wallet;
 
 import java.util.LinkedList;
@@ -67,6 +67,17 @@ public class TransactionBuilder {
         txObj.addProperty("method", method);
         txObj.add("params", params);
         txObj.addProperty("isSystem", isSystem);
+        return addTransactionBody(txObj);
+    }
+
+    public TransactionBuilder addTxBody(ContractVersion contractVersion, String method,
+                                        JsonObject params, boolean isSystem, JsonObject consensus) {
+        JsonObject txObj = new JsonObject();
+        txObj.addProperty("contractVersion", contractVersion.toString());
+        txObj.addProperty("method", method);
+        txObj.add("params", params);
+        txObj.addProperty("isSystem", isSystem);
+        txObj.add("consensus", consensus);
         return addTransactionBody(txObj);
     }
 

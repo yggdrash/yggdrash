@@ -1,22 +1,27 @@
 package io.yggdrash.validator.data.ebft;
 
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.validator.config.Consensus;
+import io.yggdrash.validator.data.ConsensusBlock;
 import io.yggdrash.validator.data.ConsensusBlockChain;
 import io.yggdrash.validator.store.ebft.EbftBlockKeyStore;
 import io.yggdrash.validator.store.ebft.EbftBlockStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 
@@ -36,7 +41,8 @@ public class EbftBlockChain implements ConsensusBlockChain<String, EbftBlock> {
 
     private final Consensus consensus;
 
-    @Autowired
+    private final ReentrantLock lock = new ReentrantLock();
+
     public EbftBlockChain(Block genesisBlock, String dbPath,
                           String blockKeyStorePath, String blockStorePath, String txStorePath) {
         if (genesisBlock.getHeader().getIndex() != 0
@@ -85,32 +91,9 @@ public class EbftBlockChain implements ConsensusBlockChain<String, EbftBlock> {
         this.consensus = new Consensus(this.genesisBlock.getBlock());
     }
 
+    @Override
     public byte[] getChain() {
         return chain;
-    }
-
-    public EbftBlockStore getBlockStore() {
-        return blockStore;
-    }
-
-    public EbftBlockKeyStore getBlockKeyStore() {
-        return blockKeyStore;
-    }
-
-    public TransactionStore getTransactionStore() {
-        return transactionStore;
-    }
-
-    public EbftBlock getGenesisBlock() {
-        return genesisBlock;
-    }
-
-    public EbftBlock getLastConfirmedBlock() {
-        return lastConfirmedBlock;
-    }
-
-    public Map<String, EbftBlock> getUnConfirmedData() {
-        return unConfirmedBlockMap;
     }
 
     @Override
@@ -118,34 +101,106 @@ public class EbftBlockChain implements ConsensusBlockChain<String, EbftBlock> {
         return consensus;
     }
 
-    public void setLastConfirmedBlock(EbftBlock lastConfirmedBlock) {
-        this.lastConfirmedBlock = lastConfirmedBlock;
+    @Override
+    public EbftBlockKeyStore getBlockKeyStore() {
+        return blockKeyStore;
+    }
+
+    @Override
+    public EbftBlockStore getBlockStore() {
+        return blockStore;
+    }
+
+    @Override
+    public TransactionStore getTransactionStore() {
+        return transactionStore;
+    }
+
+    @Override
+    public EbftBlock getGenesisBlock() {
+        return genesisBlock;
+    }
+
+    @Override
+    public EbftBlock getLastConfirmedBlock() {
+        return lastConfirmedBlock;
+    }
+
+    @Override
+    public Map<String, EbftBlock> getUnConfirmedData() {
+        return unConfirmedBlockMap;
+    }
+
+    @Override
+    public void addBlock(ConsensusBlock block) {
+        if (block == null
+                || block.getIndex() != this.lastConfirmedBlock.getIndex() + 1
+                || !block.verify()) {
+            return;
+        }
+
+        this.blockKeyStore.put(block.getIndex(), block.getHash());
+        this.blockStore.put(block.getHash(), (EbftBlock) block);
+
+        this.lock.lock();
+        this.lastConfirmedBlock = (EbftBlock) block.clone();
+        loggingBlock(this.lastConfirmedBlock);
+        batchTxs(this.lastConfirmedBlock);
+        this.lock.unlock();
+    }
+
+    private void loggingBlock(EbftBlock block) {
+        try {
+            log.debug("EbftBlock [" + block.getIndex() + "] "
+                    + block.getHashHex()
+                    + " ("
+                    + block.getBlock().getAddressHex()
+                    + ") "
+                    + "("
+                    + block.getConsensusMessages().size()
+                    + ")");
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+        }
     }
 
     /**
-     * Get BlockList from EbftBlockStore with index, count.
-     * 0 <= index && 1 < count <= 100
+     * Get BlockList from BlockStore with index, count.
      *
-     * @param index index of block
-     * @param count count of blocks
-     * @return list of EbftBlock
+     * @param index index of block (0 <= index)
+     * @param count count of blocks (1 < count <= 100)
+     * @return list of Block
      */
-    public List<EbftBlock> getEbftBlockList(long index, long count) {
+    @Override
+    public List<ConsensusBlock> getBlockList(long index, long count) {
         if (index < 0L || count < 1L || count > 100L) {
-            log.debug("getEbftBlockList() index or count is not valid");
+            log.debug("index or count is not valid");
             return null;
         }
 
         byte[] key;
-        List<EbftBlock> ebftBlockList = new ArrayList<>();
+        List<ConsensusBlock> blockList = new ArrayList<>();
         for (long l = index; l < index + count; l++) {
             key = blockKeyStore.get(l);
             if (key != null) {
-                ebftBlockList.add(blockStore.get(key));
+                blockList.add(blockStore.get(key));
             }
         }
 
-        return ebftBlockList;
+        return blockList;
     }
 
+    private void batchTxs(ConsensusBlock block) {
+        if (block == null
+                || block.getBlock() == null
+                || block.getBlock().getBody().length() == 0) {
+            return;
+        }
+        Set<Sha3Hash> keys = new HashSet<>();
+
+        for (Transaction tx : block.getBlock().getBody().getBody()) {
+            keys.add(new Sha3Hash(tx.getHash(), true));
+        }
+        transactionStore.batch(keys);
+    }
 }

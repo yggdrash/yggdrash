@@ -36,7 +36,6 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 
 import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -147,14 +146,14 @@ public class GrpcBlockChainServiceTest {
 
     @Test
     public void syncBlock() {
-        when(blockChainConsumerMock.syncBlock(branchId, 0L, 100L))
+        when(blockChainConsumerMock.syncBlock(branchId, 0L, 200))
                 .thenReturn(Collections.singletonList(block));
 
         BlockChainGrpc.BlockChainBlockingStub blockingStub
                 = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
         ByteString branch = ByteString.copyFrom(branchId.getBytes());
         NetProto.SyncLimit syncLimit =
-                NetProto.SyncLimit.newBuilder().setOffset(0).setLimit(100).setBranch(branch).build();
+                NetProto.SyncLimit.newBuilder().setOffset(0).setLimit(200).setBranch(branch).build();
         // act
         Proto.BlockList list = blockingStub.syncBlock(syncLimit);
         // assert

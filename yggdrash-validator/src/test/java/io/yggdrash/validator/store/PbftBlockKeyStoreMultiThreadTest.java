@@ -4,6 +4,7 @@ import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
+import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.pbft.PbftBlock;
@@ -18,7 +19,6 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
-import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 import java.util.Map;
@@ -30,6 +30,7 @@ import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
 import static io.yggdrash.common.util.Utils.sleep;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(ConcurrentTestRunner.class)
 public class PbftBlockKeyStoreMultiThreadTest {
@@ -81,9 +82,12 @@ public class PbftBlockKeyStoreMultiThreadTest {
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
         wallet = new Wallet();
-        wallet2 = new Wallet(null, "/tmp/", "test2", "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/", "test3", "Password1234!");
-        wallet4 = new Wallet(null, "/tmp/", "test4", "Password1234!");
+        wallet2 = new Wallet(null, "/tmp/",
+                "test2" + TimeUtils.time(), "Password1234!");
+        wallet3 = new Wallet(null, "/tmp/",
+                "test3" + TimeUtils.time(), "Password1234!");
+        wallet4 = new Wallet(null, "/tmp/",
+                "test4" + TimeUtils.time(), "Password1234!");
 
         block = new TestUtils(wallet).sampleBlock();
         block2 = new TestUtils(wallet).sampleBlock(block.getIndex() + 1, block.getHash());
@@ -241,28 +245,27 @@ public class PbftBlockKeyStoreMultiThreadTest {
 
     @Test
     public void putTestMultiThread() {
-        TestConstants.PerformanceTest.apply();
-
         long testNumber = 1000;
-        byte[] result = null;
-
         for (long l = 0L; l < testNumber; l++) {
-            this.blockKeyStore.put((long) this.blockKeyStore.size(), EMPTY_BYTE100K);
-
-            if (this.blockKeyStore.contains(l)) {
-                result = this.blockKeyStore.get(l);
-            }
-            log.debug("blockKeyStore {} {}", l, Hex.toHexString(result));
+            this.blockKeyStore.put(l, EMPTY_BYTE100K);
         }
+        log.debug("blockKeyStore size= " + this.blockKeyStore.size());
+        assertEquals(1000L, this.blockKeyStore.size());
     }
 
-    @After
-    public void tearDown() {
+    @Test
+    public void putMutiThreadMemoryTest() {
         TestConstants.PerformanceTest.apply();
 
-        log.debug("blockKeyStore size= " + this.blockKeyStore.size());
+        this.putTestMultiThread();
 
         System.gc();
         sleep(3000000);
     }
+
+    @After
+    public void tearDown() {
+        StoreTestUtils.clearTestDb();
+    }
+
 }

@@ -40,7 +40,7 @@ public class BlockChainSyncManagerTest {
     public void syncBlock() {
         assertThat(blockChain.getLastIndex()).isEqualTo(0);
 
-        syncManager.syncBlock(handler, blockChain, -1);
+        syncManager.syncBlock(handler, blockChain);
 
         assertThat(blockChain.getLastIndex()).isEqualTo(33);
     }

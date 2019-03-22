@@ -7,6 +7,7 @@ import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.validator.config.Consensus;
+import io.yggdrash.validator.data.ConsensusBlock;
 import io.yggdrash.validator.data.ConsensusBlockChain;
 import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
 import io.yggdrash.validator.store.pbft.PbftBlockStore;
@@ -20,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 
@@ -38,6 +40,8 @@ public class PbftBlockChain implements ConsensusBlockChain<String, PbftMessage> 
     private PbftBlock lastConfirmedBlock;
 
     private final Consensus consensus;
+
+    private final ReentrantLock lock = new ReentrantLock();
 
     public PbftBlockChain(Block genesisBlock, String dbPath,
                           String blockKeyStorePath, String blockStorePath, String txStorePath) {
@@ -90,61 +94,118 @@ public class PbftBlockChain implements ConsensusBlockChain<String, PbftMessage> 
         this.consensus = new Consensus(this.genesisBlock.getBlock());
     }
 
+    @Override
     public byte[] getChain() {
         return chain;
     }
 
-    public PbftBlockKeyStore getBlockKeyStore() {
-        return blockKeyStore;
-    }
-
-    public PbftBlockStore getBlockStore() {
-        return blockStore;
-    }
-
-    public PbftBlock getGenesisBlock() {
-        return genesisBlock;
-    }
-
-    public void setLastConfirmedBlock(PbftBlock lastConfirmedBlock) {
-        this.lastConfirmedBlock = lastConfirmedBlock;
-    }
-
-    public PbftBlock getLastConfirmedBlock() {
-        return lastConfirmedBlock;
-    }
-
-    public Map<String, PbftMessage> getUnConfirmedData() {
-        return unConfirmedMsgMap;
-    }
-
-    public TransactionStore getTransactionStore() {
-        return transactionStore;
-    }
-
+    @Override
     public Consensus getConsensus() {
         return consensus;
     }
 
-    public List<PbftBlock> getPbftBlockList(long index, long count) {
+    @Override
+    public PbftBlockKeyStore getBlockKeyStore() {
+        return blockKeyStore;
+    }
+
+    @Override
+    public PbftBlockStore getBlockStore() {
+        return blockStore;
+    }
+
+    @Override
+    public TransactionStore getTransactionStore() {
+        return transactionStore;
+    }
+
+    @Override
+    public PbftBlock getGenesisBlock() {
+        return genesisBlock;
+    }
+
+    @Override
+    public PbftBlock getLastConfirmedBlock() {
+        return lastConfirmedBlock;
+    }
+
+    @Override
+    public Map<String, PbftMessage> getUnConfirmedData() {
+        return unConfirmedMsgMap;
+    }
+
+    @Override
+    public void addBlock(ConsensusBlock block) {
+        if (block == null
+                || block.getIndex() != this.lastConfirmedBlock.getIndex() + 1
+                || !block.verify()) {
+            return;
+        }
+
+        this.blockKeyStore.put(block.getIndex(), block.getHash());
+        this.blockStore.put(block.getHash(), (PbftBlock) block);
+
+        this.lock.lock();
+        this.lastConfirmedBlock = (PbftBlock) block.clone();
+        loggingBlock(this.lastConfirmedBlock);
+        batchTxs(this.lastConfirmedBlock);
+        this.lock.unlock();
+    }
+
+    public void loggingBlock(PbftBlock block) {
+        try {
+            log.info("PbftBlock "
+                    + "("
+                    + block.getConsensusMessages().getPrePrepare().getViewNumber()
+                    + ") "
+                    + "["
+                    + block.getIndex()
+                    + "]"
+                    + block.getHashHex()
+                    + " ("
+                    + block.getConsensusMessages().getPrepareMap().size()
+                    + ")"
+                    + " ("
+                    + block.getConsensusMessages().getCommitMap().size()
+                    + ")"
+                    + " ("
+                    + block.getConsensusMessages().getViewChangeMap().size()
+                    + ")"
+                    + " ("
+                    + block.getBlock().getAddressHex()
+                    + ")");
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+        }
+    }
+
+    /**
+     * Get BlockList from BlockStore with index, count.
+     *
+     * @param index index of block (0 <= index)
+     * @param count count of blocks (1 < count <= 100)
+     * @return list of Block
+     */
+    @Override
+    public List<ConsensusBlock> getBlockList(long index, long count) {
         if (index < 0L || count < 1L || count > 100L) {
-            log.debug("getPbftBlockList() index or count is not valid");
+            log.debug("index or count is not valid");
             return null;
         }
 
         byte[] key;
-        List<PbftBlock> pbftBlockList = new ArrayList<>();
+        List<ConsensusBlock> blockList = new ArrayList<>();
         for (long l = index; l < index + count; l++) {
             key = blockKeyStore.get(l);
             if (key != null) {
-                pbftBlockList.add(blockStore.get(key));
+                blockList.add(blockStore.get(key));
             }
         }
 
-        return pbftBlockList;
+        return blockList;
     }
 
-    public void batchTxs(PbftBlock block) {
+    private void batchTxs(ConsensusBlock block) {
         if (block == null
                 || block.getBlock() == null
                 || block.getBlock().getBody().length() == 0) {
@@ -157,4 +218,5 @@ public class PbftBlockChain implements ConsensusBlockChain<String, PbftMessage> 
         }
         transactionStore.batch(keys);
     }
+
 }

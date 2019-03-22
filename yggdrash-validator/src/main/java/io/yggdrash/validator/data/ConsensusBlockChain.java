@@ -5,6 +5,7 @@ import io.yggdrash.validator.config.Consensus;
 import io.yggdrash.validator.store.BlockKeyStore;
 import io.yggdrash.validator.store.BlockStore;
 
+import java.util.List;
 import java.util.Map;
 
 public interface ConsensusBlockChain<K, V> {
@@ -23,4 +24,8 @@ public interface ConsensusBlockChain<K, V> {
     ConsensusBlock getLastConfirmedBlock();
 
     Map<K, V> getUnConfirmedData();
+
+    void addBlock(ConsensusBlock block);
+
+    List<ConsensusBlock> getBlockList(long index, long count);
 }

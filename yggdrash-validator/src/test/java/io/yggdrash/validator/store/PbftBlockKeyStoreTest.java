@@ -3,6 +3,7 @@ package io.yggdrash.validator.store;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
+import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.pbft.PbftBlock;
@@ -10,6 +11,7 @@ import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
 import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
 import io.yggdrash.validator.util.TestUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -82,9 +84,12 @@ public class PbftBlockKeyStoreTest {
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
         wallet = new Wallet();
-        wallet2 = new Wallet(null, "/tmp/", "test2", "Password1234!");
-        wallet3 = new Wallet(null, "/tmp/", "test3", "Password1234!");
-        wallet4 = new Wallet(null, "/tmp/", "test4", "Password1234!");
+        wallet2 = new Wallet(null, "/tmp/",
+                "test2" + TimeUtils.time(), "Password1234!");
+        wallet3 = new Wallet(null, "/tmp/",
+                "test3" + TimeUtils.time(), "Password1234!");
+        wallet4 = new Wallet(null, "/tmp/",
+                "test4" + TimeUtils.time(), "Password1234!");
 
         block = new TestUtils(wallet).sampleBlock();
         block2 = new TestUtils(wallet).sampleBlock(block.getIndex() + 1, block.getHash());
@@ -263,21 +268,6 @@ public class PbftBlockKeyStoreTest {
     }
 
     @Test
-    public void closeTest() {
-        blockKeyStore.close();
-        try {
-            blockKeyStore.get(this.pbftBlock.getIndex());
-        } catch (NullPointerException ne) {
-            assert true;
-            this.blockKeyStore = new PbftBlockKeyStore(ds);
-            byte[] newHash = blockKeyStore.get(this.pbftBlock.getIndex());
-            assertArrayEquals(newHash, this.pbftBlock.getHash());
-            return;
-        }
-        assert false;
-    }
-
-    @Test
     public void memoryTest() {
         TestConstants.PerformanceTest.apply();
 
@@ -323,5 +313,22 @@ public class PbftBlockKeyStoreTest {
         sleep(20000);
     }
 
+    @Test
+    public void closeTest() {
+        blockKeyStore.close();
+        try {
+            blockKeyStore.get(this.pbftBlock.getIndex());
+        } catch (NullPointerException ne) {
+            this.blockKeyStore = new PbftBlockKeyStore(ds);
+            byte[] newHash = blockKeyStore.get(this.pbftBlock.getIndex());
+            assertArrayEquals(this.pbftBlock.getHash(), newHash);
+            return;
+        }
+        assert false;
+    }
 
+    @After
+    public void tearDown() {
+        StoreTestUtils.clearTestDb();
+    }
 }

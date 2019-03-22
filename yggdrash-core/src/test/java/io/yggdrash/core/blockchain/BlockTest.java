@@ -145,9 +145,9 @@ public class BlockTest {
     @Test
     public void testBlockKey() {
         Block block2 = block1.clone();
-        log.debug("block2 pubKey=" + block2.getPubKeyHexString());
+        log.debug("block2 pubKey=" + block2.getPubKeyHex());
 
-        assertThat(block1.getPubKeyHexString()).isEqualTo(block2.getPubKeyHexString());
+        assertThat(block1.getPubKeyHex()).isEqualTo(block2.getPubKeyHex());
         assertThat(block1.getPubKey()).isEqualTo(block2.getPubKey());
         assertThat(block1.getPubKey()).isEqualTo(wallet.getPubicKey());
 

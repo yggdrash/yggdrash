@@ -7,7 +7,6 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
 import org.osgi.framework.launch.FrameworkFactory;
-
 import java.util.Map;
 
 public class ContractContainerBuilder {
@@ -82,14 +81,14 @@ public class ContractContainerBuilder {
         }
 
         ContractContainer contractContainer = new ContractContainer(
-                this.frameworkFactory
-                , this.containerConfig
-                , this.branchId
-                , this.stateStore
-                , this.transactionReceiptStore
-                , this.config
-                , this.systemProperties
-                , this.outputStore
+                this.frameworkFactory,
+                this.containerConfig,
+                this.branchId,
+                this.stateStore,
+                this.transactionReceiptStore,
+                this.config,
+                this.systemProperties,
+                this.outputStore
         );
         contractContainer.newFramework();
         return contractContainer;

@@ -112,20 +112,14 @@ public class BlockChainServiceConsumer implements BlockChainConsumer {
             if (nextIndex < receivedIndex) {
                 // Catchup Event!
                 if (listener != null) {
+                    log.info("CatchUp required. received={} expected={}", receivedIndex, nextIndex);
                     listener.catchUpRequest(block);
-                } else {
-                    log.debug("[BlockChainServiceConsumer] No listener!");
                 }
             } else {
                 branchGroup.addBlock(block, true);
             }
         } catch (Exception e) {
             log.warn("[BlockChainServiceConsumer] BroadcastBlock ERR={}", e.getMessage());
-            /*
-            if (listener != null) {
-                listener.catchUpRequest(block);
-            }
-            */
         }
     }
 
