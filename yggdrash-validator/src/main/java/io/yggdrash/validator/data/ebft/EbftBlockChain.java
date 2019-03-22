@@ -13,7 +13,6 @@ import io.yggdrash.validator.store.ebft.EbftBlockKeyStore;
 import io.yggdrash.validator.store.ebft.EbftBlockStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -44,7 +43,6 @@ public class EbftBlockChain implements ConsensusBlockChain<String, EbftBlock> {
 
     private final ReentrantLock lock = new ReentrantLock();
 
-    @Autowired
     public EbftBlockChain(Block genesisBlock, String dbPath,
                           String blockKeyStorePath, String blockStorePath, String txStorePath) {
         if (genesisBlock.getHeader().getIndex() != 0

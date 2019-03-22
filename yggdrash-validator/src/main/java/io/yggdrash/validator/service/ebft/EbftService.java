@@ -1,8 +1,5 @@
 package io.yggdrash.validator.service.ebft;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
@@ -18,16 +15,11 @@ import io.yggdrash.validator.data.ebft.EbftStatus;
 import io.yggdrash.validator.service.ConsensusService;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.util.FileCopyUtils;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class EbftService implements ConsensusService {
@@ -55,14 +47,18 @@ public class EbftService implements ConsensusService {
     private String grpcHost;
     private int grpcPort;
 
-    public EbftService(Wallet wallet, ConsensusBlockChain blockChain, String grpcHost, int grpcPort) {
+    public EbftService(Wallet wallet,
+                       ConsensusBlockChain blockChain,
+                       Map<String, Object> validatorInfoMap,
+                       String grpcHost,
+                       int grpcPort) {
         this.wallet = wallet;
         this.blockChain = (EbftBlockChain) blockChain;
         this.grpcHost = grpcHost;
         this.grpcPort = grpcPort;
 
         this.myNode = initMyNode();
-        this.totalValidatorMap = initTotalValidator();
+        this.totalValidatorMap = initTotalValidator(validatorInfoMap);
         this.isValidator = initValidator();
         this.isActive = false;
         this.isSynced = false;
@@ -141,8 +137,8 @@ public class EbftService implements ConsensusService {
     private boolean waitingConsensusedBlock() {
         for (int i = 0; i < consensusCount; i++) {
             for (EbftBlock unConfirmedEbftBlock : blockChain.getUnConfirmedData().values()) {
-                if (unConfirmedEbftBlock.getIndex() ==
-                        blockChain.getLastConfirmedBlock().getIndex() + 1
+                if (unConfirmedEbftBlock.getIndex()
+                        == blockChain.getLastConfirmedBlock().getIndex() + 1
                         && unConfirmedEbftBlock.getConsensusMessages().size() > consensusCount) {
                     return true;
                 }
@@ -217,7 +213,8 @@ public class EbftService implements ConsensusService {
         List<EbftBlock> ebftBlockList = new ArrayList<>(client.getEbftBlockList(
                 this.blockChain.getLastConfirmedBlock().getIndex()));
         log.debug("node: " + client.getId());
-        log.debug("index: " + (ebftBlockList != null ? ebftBlockList.get(0).getIndex() : null));
+        log.debug("index: "
+                + (ebftBlockList.get(0) != null ? ebftBlockList.get(0).getIndex() : null));
         log.debug("blockList size: " + ebftBlockList.size());
 
         if (ebftBlockList.size() == 0) {
@@ -409,7 +406,6 @@ public class EbftService implements ConsensusService {
             EbftBlock unconfirmedBlock = this.blockChain.getUnConfirmedData().get(key);
             if (unconfirmedBlock == null) {
                 this.blockChain.getUnConfirmedData().remove(key);
-                continue;
             } else if (unconfirmedBlock.getIndex()
                     <= this.blockChain.getLastConfirmedBlock().getIndex()) {
                 unconfirmedBlock.clear();
@@ -556,34 +552,19 @@ public class EbftService implements ConsensusService {
         log.info("isValidator: " + this.isValidator);
     }
 
-    private Map<String, EbftClientStub> initTotalValidator() {
-        String jsonString;
-        ClassPathResource cpr = new ClassPathResource("validator-config.json");
-        try {
-            byte[] bdata = FileCopyUtils.copyToByteArray(cpr.getInputStream());
-            jsonString = new String(bdata, StandardCharsets.UTF_8);
-        } catch (IOException e) {
-            log.debug("Error validator.json");
-            return null;
-        }
-
-        JsonObject validatorJsonObject = new Gson().fromJson(jsonString, JsonObject.class);
-        Map<String, EbftClientStub> nodeMap = new ConcurrentHashMap<>();
-
-        Set<Map.Entry<String, JsonElement>> entrySet =
-                validatorJsonObject.get("validator").getAsJsonObject().entrySet();
-        for (Map.Entry<String, JsonElement> entry : entrySet) {
-            EbftClientStub client = new EbftClientStub(entry.getKey(),
-                    entry.getValue().getAsJsonObject().get("host").getAsString(),
-                    entry.getValue().getAsJsonObject().get("port").getAsInt());
+    private Map<String, EbftClientStub> initTotalValidator(Map<String, Object> validatorInfoMap) {
+        Map<String, EbftClientStub> nodeMap = new TreeMap<>();
+        for (String key : validatorInfoMap.keySet()) {
+            EbftClientStub client = new EbftClientStub(key,
+                    ((Map<String, String>) validatorInfoMap.get(key)).get("host"),
+                    ((Map<String, Integer>) validatorInfoMap.get(key)).get("port"));
             if (client.getId().equals(myNode.getId())) {
                 nodeMap.put(myNode.getAddr(), myNode);
             } else {
                 nodeMap.put(client.getAddr(), client);
             }
         }
-
-        log.debug("isValidator" + validatorJsonObject.toString());
+        log.debug("ValidatorInfo: " + nodeMap.toString());
         return nodeMap;
     }
 

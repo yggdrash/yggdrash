@@ -154,7 +154,7 @@ public class PbftBlockChain implements ConsensusBlockChain<String, PbftMessage> 
 
     public void loggingBlock(PbftBlock block) {
         try {
-            log.debug("PbftBlock "
+            log.info("PbftBlock "
                     + "("
                     + block.getConsensusMessages().getPrePrepare().getViewNumber()
                     + ") "
