@@ -207,6 +207,7 @@ def generateSha1(File file) {
 }
 
 task copyContractToCoreBuildResrouce(type: Copy) {
+    dependsOn contractsPackage
     dependsOn removeContract
     dependsOn contractsPackage
 
@@ -249,11 +250,13 @@ task copyContractToCoreBuildResrouce(type: Copy) {
 
 
 task copyContractToResrouce(type: Copy) {
+    dependsOn contractsPackage
     dependsOn removeContract
     dependsOn contractsPackage
     //dependsOn signJar
 
-    def copyPath = file('build/libs').absolutePath + '/../../out/contract'
+    def copyPath = file('build/libs').absolutePath + '/../contract'
+    file("${copyPath}").mkdirs()
 
     // Copy Contract File
     from file('build/libs')
@@ -273,41 +276,39 @@ task copyContractToResrouce(type: Copy) {
     }
 }
 task copyContractToProject(type: Copy) {
-    def copyPath = file('build/libs').absolutePath + '/../../out/contract'
+    dependsOn copyContractToResrouce
+
+    def copyPath = file('build/libs').absolutePath + '/../contract'
     def projectContractPath = file('build/libs').absolutePath + '/../../../resources/contract'
     from file("${copyPath}")
     into file("${projectContractPath}")
 }
 
-
-task copyContract(type: Copy) {
-    dependsOn copyContractToProject
-
+task copyProjectContractToCoreProject(type: Copy) {
     def projectContractPath = file('build/libs').absolutePath + '/../../../resources/contract'
 
     def coreContractPath = file('build/libs').absolutePath + '/../../../yggdrash-core/.yggdrash/contract'
+
     from file("${projectContractPath}")
     into file("${coreContractPath}")
+}
 
+task copyProjectContractToNodeProject(type: Copy) {
+    dependsOn copyContractToProject
+
+    def projectContractPath = file('build/libs').absolutePath + '/../../../resources/contract'
     def nodeContractPath = file('build/libs').absolutePath + '/../../../yggdrash-node/.yggdrash/contract'
+    file(nodeContractPath).mkdirs()
+
     from file("${projectContractPath}")
     into file("${nodeContractPath}")
 }
 
-task copyContractToCoreResrouce(type: Copy) {
-    dependsOn removeContract
-    dependsOn contractsPackage
 
-    from file('build/libs')
-    into file(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts')
-    exclude "${project.name}*"
-}
 
 jar {
-    dependsOn copyContractToCoreBuildResrouce
-    dependsOn copyContractToCoreResrouce
-    dependsOn copyContractToResrouce
-    dependsOn copyContract
+    dependsOn copyProjectContractToCoreProject
+    dependsOn copyProjectContractToNodeProject
 }
 
 dependencies {
