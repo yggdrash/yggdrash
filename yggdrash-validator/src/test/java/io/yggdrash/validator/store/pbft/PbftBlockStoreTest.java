@@ -1,6 +1,5 @@
-package io.yggdrash.validator.store;
+package io.yggdrash.validator.store.pbft;
 
-import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.crypto.HashUtil;
@@ -12,31 +11,32 @@ import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
-import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
-import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import io.yggdrash.validator.util.TestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
-import static org.junit.Assert.assertEquals;
+import static io.yggdrash.common.util.Utils.sleep;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
 
-@RunWith(ConcurrentTestRunner.class)
-public class PbftBlockStoreMultiThreadTest {
-
-    private static final Logger log = LoggerFactory.getLogger(PbftBlockStoreMultiThreadTest.class);
+public class PbftBlockStoreTest {
+    private static final Logger log = LoggerFactory.getLogger(PbftBlockStoreTest.class);
 
     private Wallet wallet;
     private Wallet wallet2;
@@ -77,7 +77,7 @@ public class PbftBlockStoreMultiThreadTest {
     private final Map<String, PbftMessage> commitMap = new TreeMap<>();
     private final Map<String, PbftMessage> viewChangeMap = new TreeMap<>();
 
-    private LevelDbDataSource ds;
+    private LevelDbDataSource blockKeyDs;
     private PbftBlockKeyStore blockKeyStore;
 
     private LevelDbDataSource blockDs;
@@ -242,37 +242,86 @@ public class PbftBlockStoreMultiThreadTest {
 
         StoreTestUtils.clearTestDb();
 
-        this.ds = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockKeyStoreTest");
-        this.blockKeyStore = new PbftBlockKeyStore(ds);
+        this.blockKeyDs = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockKeyStoreTest");
+        this.blockKeyStore = new PbftBlockKeyStore(blockKeyDs);
         this.blockKeyStore.put(this.pbftBlock.getIndex(), this.pbftBlock.getHash());
 
         this.blockDs = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockStoreTest");
         this.blockStore = new PbftBlockStore(blockDs);
         this.blockStore.put(this.pbftBlock.getHash(), this.pbftBlock);
-
     }
 
     @Test
-    public void putTestMultiThread() {
-        long testNumber = 1000;
-        for (long l = 0L; l < testNumber; l++) {
-            this.blockStore.put(HashUtil.sha3(ByteUtil.longToBytes(l)), pbftBlock);
+    public void putGetTest() {
+        byte[] newHash = blockKeyStore.get(this.pbftBlock.getIndex());
+        PbftBlock newBlock = blockStore.get(newHash);
+        assertTrue(newBlock.equals(this.pbftBlock));
+        assertTrue(blockStore.contains(this.pbftBlock.getHash()));
+        assertFalse(blockStore.contains(EMPTY_BYTE32));
+    }
+
+    @Test
+    public void closeTest() {
+        blockStore.close();
+        try {
+            blockStore.get(this.pbftBlock.getHash());
+        } catch (NullPointerException ne) {
+            assert true;
+            this.blockStore = new PbftBlockStore(blockDs);
+            PbftBlock newBlock = blockStore.get(this.pbftBlock.getHash());
+            assertTrue(newBlock.equals(this.pbftBlock));
+            return;
         }
-        log.debug("blockStore size= " + this.blockStore.size());
-        assertEquals(testNumber + 1, this.blockStore.size());
+        assert false;
     }
 
     @Test
-    public void putMutiThreadMemoryTest() throws InterruptedException {
+    public void memoryTest() {
         TestConstants.PerformanceTest.apply();
 
-        System.gc();
-        Thread.sleep(20000);
+        long testNumber = 100000;
+        PbftBlock result;
+        List<PbftBlock> resultList = new ArrayList<>();
 
-        this.putTestMultiThread();
+        log.debug("Before free memory: " + Runtime.getRuntime().freeMemory());
+        for (long l = 0L; l < testNumber; l++) {
+            this.blockStore.put(HashUtil.sha3(ByteUtil.longToBytes(l)), this.pbftBlock);
+            result = this.blockStore.get(HashUtil.sha3(ByteUtil.longToBytes(l)));
+            resultList.add(result);
+        }
+
+        for (PbftBlock pbftBlock : resultList) {
+            pbftBlock.clear();
+        }
+        resultList.clear();
+
+        log.debug("After free memory: " + Runtime.getRuntime().freeMemory());
 
         System.gc();
-        Thread.sleep(3000000);
+        sleep(20000);
+    }
+
+    @Test
+    public void memoryTest2() {
+        TestConstants.PerformanceTest.apply();
+
+        long testNumber = 10000;
+
+        for (long l = 1; l < testNumber; l++) {
+            Block newBlock = new TestUtils(wallet).sampleBlock(l, block.getHash());
+            PbftBlock newPbftBlock = new PbftBlock(newBlock, this.pbftMessageSet);
+
+            this.blockKeyStore.put(l, newPbftBlock.getHash());
+            this.blockStore.put(newPbftBlock.getHash(), newPbftBlock);
+        }
+
+        for (long l = 0; l < testNumber; l++) {
+            log.debug("blockKeyStore: " + l + " " + Hex.toHexString(this.blockKeyStore.get(l)));
+            log.debug("blockStore: " + this.blockStore.get(this.blockKeyStore.get(l)).getIndex());
+        }
+
+        System.gc();
+        sleep(300000);
     }
 
     @After

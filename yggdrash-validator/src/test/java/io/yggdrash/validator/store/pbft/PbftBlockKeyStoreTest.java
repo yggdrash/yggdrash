@@ -1,4 +1,4 @@
-package io.yggdrash.validator.store;
+package io.yggdrash.validator.store.pbft;
 
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
@@ -9,7 +9,6 @@ import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
-import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
 import io.yggdrash.validator.util.TestUtils;
 import org.junit.After;
 import org.junit.Before;
