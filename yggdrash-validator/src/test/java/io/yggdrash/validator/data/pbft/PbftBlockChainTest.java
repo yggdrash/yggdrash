@@ -103,8 +103,6 @@ public class PbftBlockChainTest {
     }
 
     private PbftMessageSet makePbftMessageSet(Block block) {
-        PbftMessage prePrepare = makePbftMessage(PBFT_PREPREPARE, block, wallet0);
-
         Map<String, PbftMessage> prepareMap = new TreeMap<>();
         PbftMessage prepare0 = makePbftMessage(PBFT_PREPARE, block, wallet0);
         prepareMap.put(prepare0.getSignatureHex(), prepare0);
@@ -125,6 +123,7 @@ public class PbftBlockChainTest {
         PbftMessage commit3 = makePbftMessage(PBFT_COMMIT, block, wallet3);
         commitMap.put(commit3.getSignatureHex(), commit3);
 
+        PbftMessage prePrepare = makePbftMessage(PBFT_PREPREPARE, block, wallet0);
         return new PbftMessageSet(prePrepare, prepareMap, commitMap, null);
     }
 
