@@ -2,28 +2,26 @@ package io.yggdrash.node.service.pbft;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
-import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.pbft.PbftBlock;
+import io.yggdrash.core.blockchain.pbft.PbftBlockChain;
 import io.yggdrash.core.blockchain.pbft.PbftMessage;
+import io.yggdrash.core.blockchain.pbft.PbftMessage.Type;
 import io.yggdrash.core.blockchain.pbft.PbftMessageSet;
 import io.yggdrash.core.blockchain.pbft.PbftStatus;
 import io.yggdrash.core.exception.NotValidateException;
+import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.wallet.Wallet;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
@@ -37,25 +35,25 @@ import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static io.yggdrash.common.util.Utils.sleep;
+import static io.yggdrash.core.blockchain.pbft.PbftMessage.Type.PREPAREM;
+import static io.yggdrash.core.blockchain.pbft.PbftMessage.Type.PREPREPA;
+import static io.yggdrash.core.blockchain.pbft.PbftMessage.Type.VIEWCHAN;
 
 @Profile("validator")
 @Service
-@EnableScheduling
 public class PbftService implements CommandLineRunner {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftService.class);
     private static final int FAIL_COUNT = 2;
 
     private final boolean isValidator;
-    private final int bftCount;
     private final int consensusCount;
 
     private final Wallet wallet;
     private final PbftBlockChain blockChain;
-    private final BranchGroup branchGroup;
 
     private final PbftClientStub myNode;
-    private final Map<String, PbftClientStub> totalValidatorMap;
+    private final Map<String, PbftClientStub> totalValidatorMap = new TreeMap<>();
 
     private final ReentrantLock lock = new ReentrantLock();
 
@@ -67,26 +65,26 @@ public class PbftService implements CommandLineRunner {
     private boolean isViewChanged;
 
     private boolean isPrimary;
-    private String currentPrimaryPubKey;
 
     private int failCount;
     private final Map<String, PbftMessage> viewChangeMap = new TreeMap<>();
 
     @Autowired
-    public PbftService(Wallet wallet, PbftBlockChain pbftBlockChain, BranchGroup branchGroup) {
+    public PbftService(Wallet wallet, PbftBlockChain pbftBlockChain) {
         this.wallet = wallet;
         this.blockChain = pbftBlockChain;
-        this.branchGroup = branchGroup;
+
         this.myNode = initMyNode();
-        this.totalValidatorMap = initTotalValidator();
-        this.isValidator = initValidator();
-        if (totalValidatorMap != null) {
-            this.bftCount = (totalValidatorMap.size() - 1) / 3;
-            this.consensusCount = bftCount * 2 + 1;
-        } else {
-            this.consensusCount = 0;
+        initTotalValidator();
+
+        this.isValidator = isValidator();
+        if (totalValidatorMap.isEmpty()) {
             throw new NotValidateException();
+        } else {
+            int bftCount = (totalValidatorMap.size() - 1) / 3;
+            this.consensusCount = bftCount * 2 + 1;
         }
+
         this.isActive = false;
         this.isSynced = false;
         this.isPrePrepared = false;
@@ -102,7 +100,6 @@ public class PbftService implements CommandLineRunner {
     }
 
     // todo: chage cron setting to config file or genesis ...
-    @Profile("validator")
     @Scheduled(cron = "*/2 * * * * *")
     public void mainScheduler() {
 
@@ -156,60 +153,43 @@ public class PbftService implements CommandLineRunner {
     }
 
     private void loggingStatus() {
-        log.trace("loggingStatus");
-        log.debug("failCount= " + this.failCount);
-        log.debug("isAcitve=" + this.isActive);
-        log.debug("isSynced=" + this.isSynced);
-        log.debug("isPrePrepared= " + this.isPrePrepared);
-        log.debug("isPrepared= " + this.isPrepared);
-        log.debug("isCommitted= " + this.isCommitted);
-        log.debug("isViewChanged= " + this.isViewChanged);
+        log.debug("failCount: {}", failCount);
+        log.debug("isAcitve: {}", isActive);
+        log.debug("isSynced: {}", isSynced);
+        log.debug("isPrePrepared: {}", isPrePrepared);
+        log.debug("isPrepared: {}", isPrepared);
+        log.debug("isCommitted: {}", isCommitted);
+        log.debug("isViewChanged: {}", isViewChanged);
+        log.debug("unConfirmedMsgMap size: {}", blockChain.getUnConfirmedMsgMap().size());
+        log.debug("TxStore unConfirmed Tx.size: {}", blockChain.getTransactionStore().getUnconfirmedTxs().size());
 
         PbftBlock lastBlock = this.blockChain.getLastConfirmedBlock();
-        try {
-            log.info("PbftBlock "
-                    + "("
-                    + lastBlock.getPbftMessageSet().getPrePrepare().getViewNumber()
-                    + ") "
-                    + "["
-                    + lastBlock.getIndex()
-                    + "]"
-                    + lastBlock.getHashHex()
-                    + " ("
-                    + lastBlock.getPbftMessageSet().getPrepareMap().size()
-                    + ")"
-                    + " ("
-                    + lastBlock.getPbftMessageSet().getCommitMap().size()
-                    + ")"
-                    + " ("
-                    + lastBlock.getPbftMessageSet().getViewChangeMap().size()
-                    + ")"
-                    + " ("
-                    + lastBlock.getBlock().getAddressHex()
-                    + ")");
-        } catch (Exception e) {
-            log.debug(e.getMessage());
+        if (lastBlock.getPbftMessageSet() == null) {
+            return;
         }
 
-        log.debug("unConfirmedMsgMap size= " + this.blockChain.getUnConfirmedMsgMap().size());
-        log.debug("TxStore unConfirmed Tx.size= "
-                + this.blockChain.getTransactionStore().getUnconfirmedTxs().size());
-        log.debug("");
+        log.info("PbftBlock viewNumber={}, ViewChangeMapSize={},",
+                lastBlock.getPbftMessageSet().getPrePrepare().getViewNumber(),
+                lastBlock.getPbftMessageSet().getViewChangeMap().size());
+        log.debug("prepareMapSize={}, commitMapSize={}",
+                lastBlock.getPbftMessageSet().getPrepareMap().size(),
+                lastBlock.getPbftMessageSet().getCommitMap().size());
+        log.debug("lastBlock index={}, hash={}, addrHex={}", lastBlock.getIndex(), lastBlock.getHashHex(),
+                lastBlock.getBlock().getAddressHex());
     }
 
     private void multicastMessage(PbftMessage message) {
-        for (String key : totalValidatorMap.keySet()) {
-            PbftClientStub client = totalValidatorMap.get(key);
-            if (client.isMyclient()) {
+        for (PbftClientStub client : totalValidatorMap.values()) {
+            if (client.isMyClient()) {
                 continue;
             }
             if (client.isRunning()) {
                 try {
                     client.multicastPbftMessage(PbftMessage.toProto(message));
                 } catch (Exception e) {
-                    log.debug("multicast exception: " + e.getMessage());
-                    log.debug("client: " + client.getId());
-                    log.debug("message: " + message.toString());
+                    log.debug("multicast exception: {}", e.getMessage());
+                    log.debug("client: {}", client.getId());
+                    log.debug("message: {}", message);
                     // continue
                 }
             }
@@ -229,11 +209,11 @@ public class PbftService implements CommandLineRunner {
         byte[] prevBlockHash = this.blockChain.getLastConfirmedBlock().getHash();
 
         Block newBlock = makeNewBlock(seqNumber, prevBlockHash);
-        log.trace("newBlock" + newBlock.toString());
+        log.trace("newBlock {}", newBlock);
 
         long viewNumber = getCurrentViewNumber(seqNumber);
         PbftMessage prePrepare = new PbftMessage(
-                "PREPREPA",
+                Type.PREPREPA.toString(),
                 viewNumber,
                 seqNumber,
                 newBlock.getHash(),
@@ -247,17 +227,8 @@ public class PbftService implements CommandLineRunner {
         this.blockChain.getUnConfirmedMsgMap().put(prePrepare.getSignatureHex(), prePrepare);
         this.isPrePrepared = true;
 
-        log.debug("make PrePrepareMsg "
-                + "("
-                + viewNumber
-                + ") "
-                + "["
-                + newBlock.getIndex()
-                + "] "
-                + newBlock.getHashHex()
-                + " ("
-                + newBlock.getAddressHex()
-                + ")");
+        log.debug("make PrePrepareMsg viewNumber={}", viewNumber);
+        log.debug("newBlock [{}] {} ({})", newBlock.getIndex(), newBlock.getHashHex(), newBlock.getAddressHex());
 
         return prePrepare;
     }
@@ -272,7 +243,7 @@ public class PbftService implements CommandLineRunner {
 
     private long getNextActiveValidatorIndex(long index) {
         long validatorCount = this.totalValidatorMap.size();
-        log.trace("Before ValidatorIndex: " + index + " " + validatorCount);
+        log.trace("Before ValidatorIndex: {} {}", index, validatorCount);
 
         for (long l = index + 1; l <= index + validatorCount; l++) {
             // next validator sequence 0 ~ n
@@ -280,7 +251,7 @@ public class PbftService implements CommandLineRunner {
             PbftClientStub client =
                     (PbftClientStub) this.totalValidatorMap.values().toArray()[validatorSeq];
             if (client.isRunning()) {
-                log.trace("NextActiveValidatorIndex: " + l);
+                log.trace("NextActiveValidatorIndex: {}", l);
                 return l;
             }
         }
@@ -326,7 +297,7 @@ public class PbftService implements CommandLineRunner {
 
         long viewNumber = getCurrentViewNumber(seqNumber);
         PbftMessage prepareMsg = new PbftMessage(
-                "PREPAREM",
+                Type.PREPAREM.toString(),
                 viewNumber,
                 seqNumber,
                 prePrepareMsg.getHash(),
@@ -366,12 +337,12 @@ public class PbftService implements CommandLineRunner {
 
         long seqNumber = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
         Map<String, PbftMessage> prepareMsgMap = getPrepareMsgMap(seqNumber);
-        if (prepareMsgMap == null || prepareMsgMap.size() < consensusCount) {
+        if (prepareMsgMap.size() < consensusCount) {
             return null;
         }
 
         long viewNumber = getCurrentViewNumber(seqNumber);
-        PbftMessage commitMsg = new PbftMessage("COMMITMS", viewNumber, seqNumber,
+        PbftMessage commitMsg = new PbftMessage(Type.COMMITMS.toString(), viewNumber, seqNumber,
                 ((PbftMessage) prepareMsgMap.values().toArray()[0]).getHash(), null, wallet, null);
         if (commitMsg.getSignature() == null) {
             return null;
@@ -401,34 +372,16 @@ public class PbftService implements CommandLineRunner {
         Map<String, PbftMessage> prepareMessageMap = new TreeMap<>();
         Map<String, PbftMessage> commitMessageMap = new TreeMap<>();
 
-        for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
-            PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
-            if (pbftMessage == null || pbftMessage.getSeqNumber() < index) {
+        for (Map.Entry<String, PbftMessage> entry : blockChain.getUnConfirmedMsgMap().entrySet()) {
+            PbftMessage pbftMessage = entry.getValue();
+            String key = entry.getKey();
+            if (pbftMessage.getSeqNumber() < index) {
                 pbftMessage.clear();
                 this.blockChain.getUnConfirmedMsgMap().remove(key);
             } else if (pbftMessage.getSeqNumber() == index) {
-                switch (pbftMessage.getType()) {
-                    case "PREPREPA":
-                        if (prePrepareMsg != null) {
-                            // todo: for debugging log
-                            log.debug("PrePrepare msg is duplicated.");
-                        }
-                        prePrepareMsg = pbftMessage;
-                        break;
-                    case "PREPAREM":
-                        prepareMessageMap.put(key, pbftMessage);
-                        break;
-                    case "COMMITMS":
-                        commitMessageMap.put(key, pbftMessage);
-                        break;
-                    case "VIEWCHAN":
-                        break;
-                    default:
-                        log.debug("Invalid message type :" + pbftMessage.getType());
-                        break;
-                }
+                prePrepareMsg = getPbftMessage(prePrepareMsg, prepareMessageMap, commitMessageMap, pbftMessage, key);
             } else if (pbftMessage.getSeqNumber() == index + 1
-                    && pbftMessage.getType().equals("COMMITMS")) {
+                    && Type.COMMITMS.accept(pbftMessage.getType())) {
                 nextCommitCount++;
             }
         }
@@ -451,22 +404,42 @@ public class PbftService implements CommandLineRunner {
         }
     }
 
-    private void confirmedBlock(PbftBlock block) {
-        this.blockChain.getBlockStore().put(block.getHash(), block);
-        this.blockChain.getBlockKeyStore().put(block.getIndex(), block.getHash());
+    private PbftMessage getPbftMessage(PbftMessage prePrepareMsg, Map<String, PbftMessage> prepareMessageMap,
+                                       Map<String, PbftMessage> commitMessageMap, PbftMessage pbftMessage, String key) {
+        switch (Type.valueOf(pbftMessage.getType())) {
+            case PREPREPA:
+                if (prePrepareMsg != null) {
+                    // todo: for debugging log
+                    log.debug("PrePrepare msg is duplicated.");
+                }
+                prePrepareMsg = pbftMessage;
+                break;
+            case PREPAREM:
+                prepareMessageMap.put(key, pbftMessage);
+                break;
+            case COMMITMS:
+                commitMessageMap.put(key, pbftMessage);
+                break;
+            case VIEWCHAN:
+                break;
+            default:
+                log.debug("Invalid message type : {}", pbftMessage.getType());
+                break;
+        }
+        return prePrepareMsg;
+    }
 
-        this.branchGroup.addBlock(new BlockHusk(block.getBlock()), true);
+    private void confirmedBlock(PbftBlock block) {
+        blockChain.getBlockStore().put(block.getHash(), block);
+        blockChain.getBlockKeyStore().put(block.getIndex(), block.getHash());
+        blockChain.addBlockInternal(block);
 
         changeLastConfirmedBlock(block);
 
-        log.debug("ConfirmedBlock "
-                + "("
-                + block.getPbftMessageSet().getPrePrepare().getViewNumber()
-                + ") "
-                + "["
-                + this.blockChain.getLastConfirmedBlock().getIndex()
-                + "] "
-                + this.blockChain.getLastConfirmedBlock().getHashHex());
+        log.debug("ConfirmedBlock ({}) [{}] {}",
+                block.getPbftMessageSet().getPrePrepare().getViewNumber(),
+                blockChain.getLastConfirmedBlock().getIndex(),
+                blockChain.getLastConfirmedBlock().getHashHex());
     }
 
     private PbftMessage makeViewChangeMsg() {
@@ -479,7 +452,7 @@ public class PbftService implements CommandLineRunner {
         }
 
         Block block = this.blockChain.getLastConfirmedBlock().getBlock();
-        log.trace("block" + block.toString());
+        log.trace("block: {}", block);
         long seqNumber = block.getIndex() + 1;
         long newViewNumber = getNextActiveValidatorIndex(seqNumber);
         if (newViewNumber < 0) {
@@ -487,7 +460,7 @@ public class PbftService implements CommandLineRunner {
         }
 
         PbftMessage viewChangeMsg = new PbftMessage(
-                "VIEWCHAN",
+                VIEWCHAN.toString(),
                 newViewNumber,
                 seqNumber,
                 block.getHash(),
@@ -501,13 +474,7 @@ public class PbftService implements CommandLineRunner {
         this.blockChain.getUnConfirmedMsgMap().put(viewChangeMsg.getSignatureHex(), viewChangeMsg);
         this.isViewChanged = true;
 
-        log.warn("ViewChanged"
-                + " ("
-                + seqNumber
-                + ") ->"
-                + " ("
-                + newViewNumber
-                + ")");
+        log.warn("ViewChanged ({}) -> ({})", seqNumber, newViewNumber);
 
         return viewChangeMsg;
     }
@@ -531,8 +498,7 @@ public class PbftService implements CommandLineRunner {
         Map<String, PbftMessage> prepareMsgMap = new TreeMap<>();
         for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
-            if (pbftMessage.getSeqNumber() == index
-                    && pbftMessage.getType().equals("PREPAREM")) {
+            if (pbftMessage.getSeqNumber() == index && PREPAREM.accept(pbftMessage.getType())) {
                 prepareMsgMap.put(key, pbftMessage);
             }
         }
@@ -542,8 +508,7 @@ public class PbftService implements CommandLineRunner {
     private PbftMessage getPrePrepareMsg(long index) {
         for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
-            if (pbftMessage.getSeqNumber() == index
-                    && pbftMessage.getType().equals("PREPREPA")) {
+            if (pbftMessage.getSeqNumber() == index && PREPREPA.accept(pbftMessage.getType())) {
                 return pbftMessage;
             }
         }
@@ -554,11 +519,11 @@ public class PbftService implements CommandLineRunner {
         long blockIndex = this.blockChain.getLastConfirmedBlock().getIndex() + 1;
 
         int primaryIndex = (int) (checkViewChange(blockIndex) % totalValidatorMap.size());
-        currentPrimaryPubKey = (String) totalValidatorMap.keySet().toArray()[primaryIndex];
+        String currentPrimaryPubKey = (String) totalValidatorMap.keySet().toArray()[primaryIndex];
 
-        log.debug("Block Index: " + blockIndex);
-        log.debug("Primary Index: " + primaryIndex);
-        log.debug("currentPrimaryPubKey: " + currentPrimaryPubKey);
+        log.debug("Block Index: {}", blockIndex);
+        log.debug("Primary Index: {}", primaryIndex);
+        log.debug("currentPrimaryPubKey: {}", currentPrimaryPubKey);
 
         this.isPrimary = currentPrimaryPubKey.equals(this.myNode.getPubKey());
     }
@@ -572,7 +537,7 @@ public class PbftService implements CommandLineRunner {
 
         Map<String, PbftMessage> viewChangeMsgMap = getViewChangeMsgMap(index);
 
-        log.debug("viewChangeMsgMap size: " + viewChangeMsgMap.size());
+        log.debug("viewChangeMsgMap size: {}", viewChangeMsgMap.size());
         // todo: check viewNumber
         if (viewChangeMsgMap.size() < consensusCount) {
             return index;
@@ -587,8 +552,7 @@ public class PbftService implements CommandLineRunner {
         Map<String, PbftMessage> viewChangeMsgMap = new TreeMap<>();
         for (String key : this.blockChain.getUnConfirmedMsgMap().keySet()) {
             PbftMessage pbftMessage = this.blockChain.getUnConfirmedMsgMap().get(key);
-            if (pbftMessage.getSeqNumber() == index
-                    && pbftMessage.getType().equals("VIEWCHAN")) {
+            if (pbftMessage.getSeqNumber() == index && VIEWCHAN.accept(pbftMessage.getType())) {
                 viewChangeMsgMap.put(key, pbftMessage);
             }
         }
@@ -596,9 +560,8 @@ public class PbftService implements CommandLineRunner {
     }
 
     private void checkNode() {
-        for (String key : totalValidatorMap.keySet()) {
-            PbftClientStub client = totalValidatorMap.get(key);
-            if (client.isMyclient()) {
+        for (PbftClientStub client : totalValidatorMap.values()) {
+            if (client.isMyClient()) {
                 continue;
             }
 
@@ -629,15 +592,15 @@ public class PbftService implements CommandLineRunner {
                     > this.blockChain.getLastConfirmedBlock().getIndex()) {
                 log.debug("this Index: "
                         + this.blockChain.getLastConfirmedBlock().getIndex());
-                log.debug("client Index: " + pbftStatus.getIndex());
-                log.debug("client : " + client.getId());
+                log.debug("client Index: {}", pbftStatus.getIndex());
+                log.debug("client : {}", client.getId());
 
                 this.isSynced = false;
                 blockSyncing(client.getPubKey(), pbftStatus.getIndex());
             } else if (pbftStatus.getIndex()
                     == this.blockChain.getLastConfirmedBlock().getIndex()) {
                 // update unConfirm pbftMessage
-                updateUnconfirmedMsgMap(pbftStatus.getUnConfirmedPbftMessageMap());
+                pbftStatus.getUnConfirmedPbftMessageMap().values().forEach(this::updateUnconfirmedMsg);
             }
         } else {
             client.setIsRunning(false);
@@ -648,14 +611,13 @@ public class PbftService implements CommandLineRunner {
         PbftClientStub client = totalValidatorMap.get(pubKey);
         PbftBlock pbftBlock;
         if (client.isRunning()) {
-            List<PbftBlock> pbftBlockList = new ArrayList<>(client.getBlockList(
-                    this.blockChain.getLastConfirmedBlock().getIndex()));
+            List<PbftBlock> pbftBlockList = client.getBlockList(blockChain.getLastConfirmedBlock().getIndex());
 
-            log.debug("node: " + client.getId());
-            log.debug("index: " + index);
-            log.debug("blockList size: " + pbftBlockList.size());
+            log.debug("node: {}", client.getId());
+            log.debug("index: {}", index);
+            log.debug("blockList size: {}", pbftBlockList.size());
 
-            if (pbftBlockList.size() == 0) {
+            if (pbftBlockList.isEmpty()) {
                 return;
             }
 
@@ -666,11 +628,9 @@ public class PbftService implements CommandLineRunner {
                     log.warn("Verify Fail");
                     return;
                 }
-                this.blockChain.getBlockStore().put(pbftBlock.getHash(), pbftBlock);
-                this.blockChain.getBlockKeyStore()
-                        .put(pbftBlock.getIndex(), pbftBlock.getHash());
-
-                this.branchGroup.addBlock(new BlockHusk(pbftBlock.getBlock()), true);
+                blockChain.getBlockStore().put(pbftBlock.getHash(), pbftBlock);
+                blockChain.getBlockKeyStore().put(pbftBlock.getIndex(), pbftBlock.getHash());
+                blockChain.addBlockInternal(pbftBlock);
             }
             pbftBlock = pbftBlockList.get(i - 1);
             changeLastConfirmedBlock(pbftBlock);
@@ -681,25 +641,17 @@ public class PbftService implements CommandLineRunner {
         }
     }
 
-    public void updateUnconfirmedMsg(PbftMessage newPbftMessage) {
+    void updateUnconfirmedMsg(PbftMessage newPbftMessage) {
         this.blockChain.getUnConfirmedMsgMap()
                 .put(newPbftMessage.getSignatureHex(), newPbftMessage);
 
-        if (newPbftMessage.getType().equals("PREPREPA")
-                && newPbftMessage.getSeqNumber()
-                == this.blockChain.getLastConfirmedBlock().getIndex() + 1) {
+        if (newPbftMessage.getSeqNumber() == this.blockChain.getLastConfirmedBlock().getIndex() + 1
+                && PREPREPA.accept(newPbftMessage.getType())) {
             this.isPrePrepared = true;
         }
     }
 
-    public void updateUnconfirmedMsgMap(Map<String, PbftMessage> newPbftMessageMap) {
-        for (String key : newPbftMessageMap.keySet()) {
-            PbftMessage newPbftMessage = newPbftMessageMap.get(key);
-            updateUnconfirmedMsg(newPbftMessage);
-        }
-    }
-
-    public PbftStatus getMyNodeStatus() {
+    PbftStatus getMyNodeStatus() {
         long index = this.blockChain.getLastConfirmedBlock().getIndex();
         Map<String, PbftMessage> pbftMessageMap = new TreeMap<>();
         ByteArrayOutputStream pbftMessageBytes = new ByteArrayOutputStream();
@@ -720,64 +672,42 @@ public class PbftService implements CommandLineRunner {
     }
 
     private void printInitInfo() {
+        String pubKey = Hex.toHexString(wallet.getPubicKey());
         log.info("Node Started");
-        log.info("wallet address: " + wallet.getHexAddress());
-        log.info("wallet pubKey: " + Hex.toHexString(wallet.getPubicKey()));
-        log.info("isValidator: " + this.isValidator);
+        log.info("wallet address: {}", wallet.getHexAddress());
+        log.info("wallet pubKey: {}", pubKey);
+        log.info("isValidator: {}", isValidator);
     }
 
-    private TreeMap<String, PbftClientStub> initTotalValidator() {
-        JsonObject validatorJsonObject =
-                branchGroup.getBranch(new BranchId(new Sha3Hash(blockChain.getChain(), true)))
-                        .getBranch().getConsensus();
-        TreeMap<String, PbftClientStub> nodeMap = new TreeMap<>();
+    private void initTotalValidator() {
+        JsonObject consensus = blockChain.getConsensus();
+        log.debug("consensus={}", consensus);
 
-        Set<Map.Entry<String, JsonElement>> entrySet =
-                validatorJsonObject.get("validator").getAsJsonObject().entrySet();
+        Set<Map.Entry<String, JsonElement>> entrySet = consensus.get("validator").getAsJsonObject().entrySet();
         for (Map.Entry<String, JsonElement> entry : entrySet) {
-            PbftClientStub client = new PbftClientStub(entry.getKey(),
+            Peer peer = Peer.valueOf(entry.getKey(),
                     entry.getValue().getAsJsonObject().get("host").getAsString(),
                     entry.getValue().getAsJsonObject().get("port").getAsInt());
-            if (client.getId().equals(myNode.getId())) {
-                nodeMap.put(myNode.getPubKey(), myNode);
+            if (myNode.getPubKey().equals(peer.getPubKey().toString())) {
+                totalValidatorMap.put(myNode.getPubKey(), myNode);
             } else {
-                nodeMap.put(client.getPubKey(), client);
+                PbftClientStub client = new PbftClientStub(peer);
+                totalValidatorMap.put(client.getPubKey(), client);
             }
         }
-
-        log.debug("isValidator" + validatorJsonObject.toString());
-        return nodeMap;
     }
 
     private PbftClientStub initMyNode() {
-        PbftClientStub client = new PbftClientStub(
-                wallet.getPubicKeyHex().substring(2),
-                this.blockChain.getHost(),
-                this.blockChain.getPort());
+        PbftClientStub stub = new PbftClientStub(blockChain.getOwner());
+        stub.setMyClient(true);
+        stub.setIsRunning(true);
 
-        client.setMyclient(true);
-        client.setIsRunning(true);
-
-        return client;
+        return stub;
     }
 
-    private boolean initValidator() {
-        log.debug("MyNode ID: " + this.myNode.getId());
+    private boolean isValidator() {
+        log.debug("MyNode ID: {}",  myNode.getId());
         return totalValidatorMap.containsKey(this.myNode.getPubKey());
-    }
-
-    private List<String> getActiveNodeList() {
-        List<String> activeNodeList = new ArrayList<>();
-        for (String key : totalValidatorMap.keySet()) {
-            PbftClientStub client = totalValidatorMap.get(key);
-            if (client.isMyclient()) {
-                continue;
-            }
-            if (client.isRunning()) {
-                activeNodeList.add(client.getId());
-            }
-        }
-        return activeNodeList;
     }
 
     private void setActiveMode() {
@@ -794,13 +724,13 @@ public class PbftService implements CommandLineRunner {
             }
         }
 
-        log.debug("running node: " + runningNodeCount);
+        log.debug("running node: {}", runningNodeCount);
     }
 
     private int getActiveNodeCount() {
         int count = 0;
-        for (String key : totalValidatorMap.keySet()) {
-            if (totalValidatorMap.get(key).isRunning()) {
+        for (PbftClientStub client : totalValidatorMap.values()) {
+            if (client.isRunning()) {
                 count++;
             }
         }
@@ -808,7 +738,7 @@ public class PbftService implements CommandLineRunner {
     }
 
     // todo: check security
-    public ReentrantLock getLock() {
+    ReentrantLock getLock() {
         return lock;
     }
 }
