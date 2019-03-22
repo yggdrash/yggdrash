@@ -274,7 +274,7 @@ task copyContractToResrouce(type: Copy) {
 }
 task copyContractToProject(type: Copy) {
     def copyPath = file('build/libs').absolutePath + '/../../out/contract'
-    def projectContractPath = file('build/libs').absolutePath + '/../../../contract'
+    def projectContractPath = file('build/libs').absolutePath + '/../../../resources/contract'
     from file("${copyPath}")
     into file("${projectContractPath}")
 }
@@ -283,7 +283,7 @@ task copyContractToProject(type: Copy) {
 task copyContract(type: Copy) {
     dependsOn copyContractToProject
 
-    def projectContractPath = file('build/libs').absolutePath + '/../../../contract'
+    def projectContractPath = file('build/libs').absolutePath + '/../../../resources/contract'
 
     def coreContractPath = file('build/libs').absolutePath + '/../../../yggdrash-core/.yggdrash/contract'
     from file("${projectContractPath}")
