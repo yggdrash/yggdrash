@@ -26,7 +26,6 @@ import java.util.concurrent.Future;
 
 public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListener {
     private static final Logger log = LoggerFactory.getLogger(BlockChainSyncManager.class);
-    private static final long limitIndex = 10000;
 
     private NodeStatus nodeStatus;
     private BranchGroup branchGroup;
@@ -116,29 +115,28 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
     }
 
     @Override
-    public void syncBlock(PeerHandler peerHandler, BlockChain blockChain, long limitIndex) {
+    public boolean syncBlock(PeerHandler peerHandler, BlockChain blockChain) {
         long offset = blockChain.getLastIndex() + 1;
-        if (limitIndex > 0 && limitIndex <= offset) {
-            return;
-        }
 
         BranchId branchId = blockChain.getBranchId();
         Future<List<BlockHusk>> futureHusks = peerHandler.syncBlock(branchId, offset);
 
         try {
             List<BlockHusk> blockHusks = futureHusks.get();
+            if (blockHusks.isEmpty()) {
+                return true;
+            }
             log.info("[SyncManager] Synchronize block offset={} receivedSize={}, from={}",
                     offset, blockHusks.size(), peerHandler.getPeer().toAddress());
 
             for (BlockHusk blockHusk : blockHusks) {
-                if (limitIndex > 0 && limitIndex <= blockHusk.getIndex()) {
-                    return;
-                }
                 blockChain.addBlock(blockHusk, false);
             }
         } catch (InterruptedException | ExecutionException e) {
             log.debug("[SyncManager] Sync Block ERR occurred: {}", e.getMessage(), e);
         }
+
+        return false;
     }
 
     @Override
@@ -169,7 +167,7 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
         BranchId branchId = blockChain.getBranchId();
         nodeStatus.sync();
         for (PeerHandler peerHandler : peerNetwork.getHandlerList(branchId)) {
-            syncBlock(peerHandler, blockChain, limitIndex);
+            syncBlock(peerHandler, blockChain);
         }
         nodeStatus.up();
     }
