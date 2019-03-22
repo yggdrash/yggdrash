@@ -8,6 +8,7 @@ import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.validator.data.ConsensusBlock;
 import io.yggdrash.validator.util.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -178,8 +179,8 @@ public class PbftBlockChainTest {
             pbftBlockChain.getBlockStore().put(newBlock.getHash(), newBlock);
         }
 
-        List<PbftBlock> pbftBlockList = pbftBlockChain.getPbftBlockList(1, 100);
-        assertEquals(pbftBlockList.size(), count);
+        List<ConsensusBlock> blockList = pbftBlockChain.getBlockList(1, 100);
+        assertEquals(blockList.size(), count);
     }
 
     @Test

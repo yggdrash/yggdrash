@@ -12,6 +12,7 @@ import io.yggdrash.validator.data.ebft.EbftBlockChain;
 import io.yggdrash.validator.data.pbft.PbftBlockChain;
 import io.yggdrash.validator.service.ebft.EbftServerStub;
 import io.yggdrash.validator.service.ebft.EbftService;
+import io.yggdrash.validator.service.node.NodeServerStub;
 import io.yggdrash.validator.service.pbft.PbftServerStub;
 import io.yggdrash.validator.service.pbft.PbftService;
 import org.spongycastle.crypto.InvalidCipherTextException;
@@ -60,6 +61,7 @@ public class ValidatorService {
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
                             .addService(new PbftServerStub(blockChain, consensusService))
+                            .addService(new NodeServerStub(blockChain))
                             .build()
                             .start();
                 } catch (IOException e) {
@@ -72,6 +74,7 @@ public class ValidatorService {
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
                             .addService(new EbftServerStub(blockChain, consensusService))
+                            .addService(new NodeServerStub(blockChain))
                             .build()
                             .start();
                 } catch (IOException e) {

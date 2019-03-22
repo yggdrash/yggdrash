@@ -1,4 +1,4 @@
-package io.yggdrash.validator.service;
+package io.yggdrash.validator.service.node;
 
 import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
@@ -13,9 +13,9 @@ import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class NodeGrpcClient {
+public class NodeClientStub {
 
-    private static final Logger log = LoggerFactory.getLogger(NodeGrpcClient.class);
+    private static final Logger log = LoggerFactory.getLogger(NodeClientStub.class);
     private static final int DEFAULT_LIMIT = 10;
 
     private String host;
@@ -26,7 +26,7 @@ public class NodeGrpcClient {
     private final BlockChainGrpc.BlockChainBlockingStub blockingBlockChainStub;
     private final BlockChainGrpc.BlockChainStub asyncBlockChainStub;
 
-    public NodeGrpcClient(String host, int port) {
+    public NodeClientStub(String host, int port) {
         this.host = host;
         this.port = port;
         this.channel = ManagedChannelBuilder.forAddress(host, port)
