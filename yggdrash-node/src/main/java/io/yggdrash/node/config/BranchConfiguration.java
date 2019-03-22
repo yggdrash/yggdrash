@@ -110,12 +110,16 @@ public class BranchConfiguration {
                 .withEventStore(eventStore)
                 .build();
         try {
-            return BlockChainBuilder.Builder()
+            BlockChain bc = BlockChainBuilder.Builder()
                     .addGenesis(genesis)
                     .setStoreBuilder(storeBuilder)
                     .setPolicyLoader(policyLoader)
                     .setSystemProperties(systemProperties)
                     .build();
+
+            log.info("Branch is Ready {}", bc.getBranch().getBranchId());
+
+            return bc;
         } catch (Exception e) {
             log.warn(e.getMessage(), e);
             return null;

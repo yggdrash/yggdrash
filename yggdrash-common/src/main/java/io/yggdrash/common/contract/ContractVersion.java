@@ -63,7 +63,7 @@ public class ContractVersion {
         return Hex.toHexString(data);
     }
 
-    static ContractVersion of(byte[] contractBytes) {
+    public static ContractVersion of(byte[] contractBytes) {
         return new ContractVersion(HashUtil.sha1(contractBytes));
     }
 

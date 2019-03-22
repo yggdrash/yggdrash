@@ -30,6 +30,9 @@ public class TransactionBuilder {
     private BranchId branchId;
     private Wallet wallet;
     private final List<JsonObject> txBody = new LinkedList<>();
+    private byte[] version = new byte[8];
+    private byte[] type = new byte[8];
+    private JsonArray txArray;
 
     private long timestamp = -1L;
 
@@ -61,6 +64,17 @@ public class TransactionBuilder {
         return this;
     }
 
+    public TransactionBuilder setVersion(byte[] version) {
+        this.version = version;
+        return this;
+    }
+
+    public TransactionBuilder setType(byte[] type) {
+        this.type = type;
+        return this;
+    }
+
+
     public TransactionBuilder addTxBody(ContractVersion contractVersion, String method, JsonObject params, boolean isSystem) {
         JsonObject txObj = new JsonObject();
         txObj.addProperty("contractVersion", contractVersion.toString());
@@ -81,16 +95,14 @@ public class TransactionBuilder {
         return addTransactionBody(txObj);
     }
 
-    private Transaction createTx(Wallet wallet, BranchId txBranchId, JsonArray body) {
-
+    private Transaction createTx() {
+        //Wallet wallet, byte[] version, byte[] type, BranchId txBranchId, JsonArray body
         Transaction tx;
 
         TransactionBody txBody;
-        txBody = new TransactionBody(body);
+        txBody = new TransactionBody(txArray);
 
-        byte[] chain = txBranchId.getBytes();
-        byte[] version = new byte[8];
-        byte[] type = new byte[8];
+        byte[] chain = branchId.getBytes();
         // Check timeStamp
         if (timestamp == -1L) {
             timestamp = TimeUtils.time();
@@ -117,15 +129,14 @@ public class TransactionBuilder {
     }
 
     public Transaction buildTransaction() {
-        JsonArray txArray;
+//        JsonArray txArray;
         if (branchId == null || txBody.size() == 0) {
             return  null;
         } else {
-
             txArray = new JsonArray();
             txBody.forEach(txArray::add);
         }
-        return createTx(wallet, branchId, txArray);
+        return createTx();
     }
 
     public TransactionHusk build() {
