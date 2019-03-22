@@ -184,7 +184,7 @@ public class BlockChain {
         return branch.getBranchId();
     }
 
-    BlockHusk getGenesisBlock() {
+    public BlockHusk getGenesisBlock() {
         return this.genesisBlock;
     }
 
@@ -245,7 +245,7 @@ public class BlockChain {
                 });
 
                 outputStores.forEach((storeType, store) -> {
-                    store.put(nextBlock.toJsonObject());
+                    store.put(nextBlock.toJsonObjectByProto());
                     store.put(nextBlock.getCoreBlock().getHeader().getIndex(), transactionMap);
                 });
             }

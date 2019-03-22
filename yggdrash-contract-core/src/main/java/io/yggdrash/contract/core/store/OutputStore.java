@@ -8,7 +8,7 @@ import java.util.Set;
 public interface OutputStore {
     String put(String schemeName, String id, JsonObject jsonObject);
 
-    String put(JsonObject blockJson);
+    void put(JsonObject blockJson);
 
     Set<String> put(long blockNo, Map<String, JsonObject> transactionMap);
 }

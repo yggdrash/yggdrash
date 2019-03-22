@@ -8,11 +8,11 @@ import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.Transaction;
 import io.yggdrash.core.blockchain.TransactionBuilder;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
-import java.util.Set;
 
 public class GenesisBlock {
     private final BlockHusk block;
@@ -63,13 +63,18 @@ public class GenesisBlock {
         List<BranchContract> contracts = branch.getBranchContracts();
         builder.setBranchId(branch.getBranchId())
                 .setTimeStamp(branch.getTimestamp());
-        contracts.forEach(c -> builder.addTxBody(c.getContractVersion(), "init", c.getInit(), c.isSystem()));
+
+        for (BranchContract c : contracts) {
+            builder.addTxBody(c.getContractVersion(), "init", c.getInit(), c.isSystem(),
+                    branch.getConsensus());
+        }
         return builder;
     }
 
-
     private Block generatorGenesisBlock(Transaction tx) {
+
         BlockBody blockBody = new BlockBody(Collections.singletonList(tx));
+
         BlockHeader blockHeader = new BlockHeader(
                 branch.getBranchId().getBytes(),
                 new byte[8],

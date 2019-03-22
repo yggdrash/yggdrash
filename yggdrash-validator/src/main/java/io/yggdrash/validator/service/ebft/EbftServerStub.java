@@ -11,7 +11,6 @@ import io.yggdrash.validator.data.ebft.EbftBlockChain;
 import io.yggdrash.validator.data.ebft.EbftStatus;
 import io.yggdrash.validator.service.ConsensusService;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -24,7 +23,6 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
     private final EbftBlockChain ebftBlockChain;
     private final EbftService ebftService; //todo: check security!
 
-    @Autowired
     public EbftServerStub(ConsensusBlockChain blockChain, ConsensusService service) {
         this.ebftBlockChain = (EbftBlockChain) blockChain;
         this.ebftService = (EbftService) service;
@@ -62,10 +60,10 @@ public class EbftServerStub extends EbftServiceGrpc.EbftServiceImplBase {
             return;
         }
 
-        EbftBlock lastEbftBlock = this.ebftBlockChain.getLastConfirmedBlock();
-
         responseObserver.onNext(NetProto.Empty.newBuilder().build());
         responseObserver.onCompleted();
+
+        EbftBlock lastEbftBlock = this.ebftBlockChain.getLastConfirmedBlock();
 
         ebftService.getLock().lock();
         if (newEbftBlock.getIndex() == lastEbftBlock.getIndex() + 1

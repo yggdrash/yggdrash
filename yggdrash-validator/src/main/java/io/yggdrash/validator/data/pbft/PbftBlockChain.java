@@ -154,7 +154,7 @@ public class PbftBlockChain implements ConsensusBlockChain<String, PbftMessage> 
 
     public void loggingBlock(PbftBlock block) {
         try {
-            log.debug("PbftBlock "
+            log.info("PbftBlock "
                     + "("
                     + block.getConsensusMessages().getPrePrepare().getViewNumber()
                     + ") "
@@ -179,22 +179,30 @@ public class PbftBlockChain implements ConsensusBlockChain<String, PbftMessage> 
         }
     }
 
-    public List<PbftBlock> getPbftBlockList(long index, long count) {
+    /**
+     * Get BlockList from BlockStore with index, count.
+     *
+     * @param index index of block (0 <= index)
+     * @param count count of blocks (1 < count <= 100)
+     * @return list of Block
+     */
+    @Override
+    public List<ConsensusBlock> getBlockList(long index, long count) {
         if (index < 0L || count < 1L || count > 100L) {
-            log.debug("getPbftBlockList() index or count is not valid");
+            log.debug("index or count is not valid");
             return null;
         }
 
         byte[] key;
-        List<PbftBlock> pbftBlockList = new ArrayList<>();
+        List<ConsensusBlock> blockList = new ArrayList<>();
         for (long l = index; l < index + count; l++) {
             key = blockKeyStore.get(l);
             if (key != null) {
-                pbftBlockList.add(blockStore.get(key));
+                blockList.add(blockStore.get(key));
             }
         }
 
-        return pbftBlockList;
+        return blockList;
     }
 
     private void batchTxs(ConsensusBlock block) {
