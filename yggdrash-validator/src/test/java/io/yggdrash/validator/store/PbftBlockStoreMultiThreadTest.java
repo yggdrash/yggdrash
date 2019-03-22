@@ -3,14 +3,17 @@ package io.yggdrash.validator.store;
 import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
 import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
+import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import io.yggdrash.validator.util.TestUtils;
 import org.junit.After;
 import org.junit.Before;
@@ -24,18 +27,16 @@ import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE100K;
 import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
-import static io.yggdrash.common.util.Utils.sleep;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(ConcurrentTestRunner.class)
-public class PbftBlockKeyStoreMultiThreadTest {
+public class PbftBlockStoreMultiThreadTest {
 
-    private static final Logger log = LoggerFactory.getLogger(PbftBlockKeyStoreMultiThreadTest.class);
+    private static final Logger log = LoggerFactory.getLogger(PbftBlockStoreMultiThreadTest.class);
 
     private Wallet wallet;
     private Wallet wallet2;
@@ -78,6 +79,9 @@ public class PbftBlockKeyStoreMultiThreadTest {
 
     private LevelDbDataSource ds;
     private PbftBlockKeyStore blockKeyStore;
+
+    private LevelDbDataSource blockDs;
+    private PbftBlockStore blockStore;
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
@@ -241,26 +245,34 @@ public class PbftBlockKeyStoreMultiThreadTest {
         this.ds = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockKeyStoreTest");
         this.blockKeyStore = new PbftBlockKeyStore(ds);
         this.blockKeyStore.put(this.pbftBlock.getIndex(), this.pbftBlock.getHash());
+
+        this.blockDs = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockStoreTest");
+        this.blockStore = new PbftBlockStore(blockDs);
+        this.blockStore.put(this.pbftBlock.getHash(), this.pbftBlock);
+
     }
 
     @Test
     public void putTestMultiThread() {
         long testNumber = 1000;
         for (long l = 0L; l < testNumber; l++) {
-            this.blockKeyStore.put(l, EMPTY_BYTE100K);
+            this.blockStore.put(HashUtil.sha3(ByteUtil.longToBytes(l)), pbftBlock);
         }
-        log.debug("blockKeyStore size= " + this.blockKeyStore.size());
-        assertEquals(1000L, this.blockKeyStore.size());
+        log.debug("blockStore size= " + this.blockStore.size());
+        assertEquals(testNumber + 1, this.blockStore.size());
     }
 
     @Test
-    public void putMutiThreadMemoryTest() {
+    public void putMutiThreadMemoryTest() throws InterruptedException {
         TestConstants.PerformanceTest.apply();
+
+        System.gc();
+        Thread.sleep(20000);
 
         this.putTestMultiThread();
 
         System.gc();
-        sleep(3000000);
+        Thread.sleep(3000000);
     }
 
     @After

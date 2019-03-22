@@ -8,10 +8,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
+import java.util.concurrent.locks.ReentrantLock;
+
 public class PbftBlockStore implements BlockStore<byte[], PbftBlock> {
     private static final Logger log = LoggerFactory.getLogger(PbftBlockStore.class);
 
     private final DbSource<byte[], byte[]> db;
+    private long size = 0;
+
+    private final ReentrantLock lock = new ReentrantLock();
 
     public PbftBlockStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
@@ -33,11 +38,21 @@ public class PbftBlockStore implements BlockStore<byte[], PbftBlock> {
             return;
         }
 
-        log.trace("put "
-                + "(key: " + Hex.toHexString(key) + ")"
-                + "(value length: " + valueBin.length + ")");
+        lock.lock();
 
-        db.put(key, valueBin);
+        try {
+            if (!contains(key)) {
+                log.trace("put "
+                        + "(key: " + key + ")"
+                        + "(value length: " + valueBin.length + ")");
+                db.put(key, valueBin);
+                size++;
+            }
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -58,6 +73,11 @@ public class PbftBlockStore implements BlockStore<byte[], PbftBlock> {
         }
 
         return db.get(key) != null;
+    }
+
+    @Override
+    public long size() {
+        return this.size;
     }
 
     @Override
