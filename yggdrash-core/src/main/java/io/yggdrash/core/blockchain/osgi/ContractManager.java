@@ -2,6 +2,7 @@ package io.yggdrash.core.blockchain.osgi;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.TransactionReceipt;
@@ -25,7 +26,9 @@ import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -49,9 +52,10 @@ public class ContractManager {
 
     private List<String> systemContracts;
 
-    ContractManager(Framework framework, String systemContractPath, String userContractPath, String branchId
-            , StateStore stateStore, TransactionReceiptStore transactionReceiptStore
-            , Map<OutputType, OutputStore> outputStore, SystemProperties systemProperties) {
+    ContractManager(Framework framework, String systemContractPath, String userContractPath,
+                    String branchId, StateStore stateStore,
+                    TransactionReceiptStore transactionReceiptStore,
+                    Map<OutputType, OutputStore> outputStore, SystemProperties systemProperties) {
         this.framework = framework;
         this.systemContractPath = systemContractPath;
         this.userContractPath = userContractPath;
@@ -72,7 +76,8 @@ public class ContractManager {
     }
 
     private String makeContractFullPath(String contractName, boolean isSystemContract) {
-        return String.format("%s%s/%s", ContractContainer.PREFIX_BUNDLE_PATH, isSystemContract ? systemContractPath : userContractPath, contractName);
+        return String.format("%s%s/%s", ContractContainer.PREFIX_BUNDLE_PATH,
+                isSystemContract ? systemContractPath : userContractPath, contractName);
     }
 
     private boolean checkSystemContract(String contractName) {
@@ -191,7 +196,10 @@ public class ContractManager {
     public long install(String contractFileName, boolean isSystemContract) {
         Bundle bundle;
         try {
-            bundle = framework.getBundleContext().installBundle(makeContractFullPath(contractFileName, isSystemContract));
+
+            String fullPath = makeContractFullPath(contractFileName, isSystemContract);
+            InputStream stream = new FileInputStream(fullPath);
+            bundle = framework.getBundleContext().installBundle(contractFileName, stream);
             boolean isPass = verifyManifest(bundle);
             if (!isPass) {
                 uninstall(bundle.getBundleId());
@@ -205,6 +213,26 @@ public class ContractManager {
         return bundle.getBundleId();
     }
 
+    public long install(ContractVersion version, File file, boolean isSystem) {
+        Bundle bundle;
+        try {
+            InputStream fileStream = new FileInputStream(file.getAbsoluteFile());
+            bundle = framework.getBundleContext().installBundle(version.toString(),fileStream);
+
+            boolean isPass = verifyManifest(bundle);
+            if (!isPass) {
+                uninstall(bundle.getBundleId());
+            }
+            start(bundle.getBundleId());
+        } catch (Exception e) {
+            log.error("Install bundle exception: branchID - {}, msg - {}", branchId, e.getMessage());
+            throw new RuntimeException(e);
+        }
+
+        return bundle.getBundleId();
+    }
+
+
     private boolean uninstall(long contractId) {
         return action(contractId, ActionType.UNINSTALL);
     }
@@ -217,7 +245,7 @@ public class ContractManager {
         return action(contractId, ActionType.STOP);
     }
 
-    private Object callContractMethod(Bundle bundle, String methodName, JsonObject params, MethodType methodType
+    private Object callContractMethod(Bundle bundle, String methodName, JsonObject params,MethodType methodType
             , TransactionReceipt txReceipt, JsonObject endBlockParams) {
         if (bundle.getRegisteredServices() == null) {
             return null;
@@ -271,7 +299,8 @@ public class ContractManager {
                 }
             }
         } catch (Exception e) {
-            log.error("Call contract method : {}", bundle.getBundleId());
+            log.error("Call contract method : {} and bundle {} {} ", methodName,
+                    bundle.getBundleId(), bundle.getLocation());
         }
 
         return null;
@@ -348,9 +377,12 @@ public class ContractManager {
             result.addTxReceipt(txReceipt);
             // Save TxReceipt
         }
+        // TODO end block params
+        /*
         JsonObject endBlockParams = new JsonObject();
         endBlockParams.addProperty("blockNo", nextBlock.getCoreBlock().getIndex());
         List<Object> endBlockResult = endBlock(endBlockParams);
+        */
         // Save BlockStates
 //        result.setBlockResult(blockState.changeValues());
 
