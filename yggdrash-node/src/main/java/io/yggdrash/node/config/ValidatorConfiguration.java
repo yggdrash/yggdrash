@@ -2,6 +2,7 @@ package io.yggdrash.node.config;
 
 import com.typesafe.config.ConfigFactory;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BranchGroup;
@@ -36,6 +37,12 @@ public class ValidatorConfiguration {
 
         for (File branchPath : Objects.requireNonNull(validatorPath.listFiles())) {
             Block genesisBlock = null;
+            String branchPathName = branchPath.getName();
+            if (branchPathName.length() != Constants.BRANCH_HEX_LENGTH
+                    || !branchPathName.matches("^[0-9a-fA-F]+$")) {
+                continue;
+            }
+
             BranchId branchId = new BranchId(new Sha3Hash(branchPath.getName()));
             try {
                 genesisBlock = branchGroup.getBranch(branchId).getGenesisBlock().getCoreBlock();
