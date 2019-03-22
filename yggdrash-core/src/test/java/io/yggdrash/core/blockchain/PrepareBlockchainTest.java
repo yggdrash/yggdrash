@@ -43,7 +43,7 @@ public class PrepareBlockchainTest {
     public void verifyContractFile() {
         PrepareBlockchain pb = new PrepareBlockchain(new DefaultConfig());
         URL contractFile = getClass().getClassLoader()
-                .getResource("74df17611373672371cb3872e8a5d4a2e8733fb1.jar");
+                .getResource("contracts/74df17611373672371cb3872e8a5d4a2e8733fb1.jar");
         String file = contractFile.getFile();
         log.debug(file);
         File f = new File(file);

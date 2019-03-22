@@ -50,18 +50,26 @@ public class ContractPolicyLoaderTest {
             config.remove("org.osgi.framework.security");
         }
         Framework osgi = fa.newFramework(config);
-
+        log.debug(osgi.getLocation());
+        log.debug(osgi.getSymbolicName());
         osgi.start();
 
         InputStream stream = getClass().getClassLoader()
-                .getResourceAsStream("96206ff28aead93a49272379a85191c54f7b33c0.jar");
+                .getResourceAsStream("contracts/96206ff28aead93a49272379a85191c54f7b33c0.jar");
 
         BundleContext context = osgi.getBundleContext();
         log.debug(context.getClass().getName());
 
         // Test unsigned Jar
+        for (Bundle b : context.getBundles()) {
+            log.debug(b.getSymbolicName());
+            if (b.getSymbolicName().startsWith("io.yggdrash")) {
+                b.uninstall();
+            }
+        }
+
         Bundle bd = context
-                .installBundle("96206ff28aead93a49272379a85191c54f7b33c0.jar", stream);
+                .installBundle("contracts/96206ff28aead93a49272379a85191c54f7b33c0.jar", stream);
 
         bd.start();
         log.debug(Long.toString(bd.getBundleId()));

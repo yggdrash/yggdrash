@@ -5,11 +5,10 @@
   "description": "TRUST-based Multi-dimensional Blockchains",
   "contracts": [
     {
-      "contractVersion": "system-stem-contract-1.0.0.jar",
+      "contractVersion": "74df17611373672371cb3872e8a5d4a2e8733fb1",
       "init": {},
       "description": "The Basis of the YGGDRASH Ecosystem. It is also an aggregate and a blockchain containing information of all Branch Chains.",
-      "name": "STEM",
-      "isSystem": true
+      "name": "STEM"
     },
     {
       "contractVersion": "d79ab8e1d735090d2a7ef4f16d13a910457c0d93",

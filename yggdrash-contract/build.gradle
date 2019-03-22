@@ -253,9 +253,9 @@ task copyContractToResrouce(type: Copy) {
     dependsOn contractsPackage
     //dependsOn signJar
 
-    def copyPath = file('build/libs').absolutePath + '/../../../.yggdrash/contract'
-    // Copy Contract File
+    def copyPath = file('build/libs').absolutePath + '/../../out/contract'
 
+    // Copy Contract File
     from file('build/libs')
     into file("${copyPath}")
     exclude "${project.name}*"
@@ -273,6 +273,23 @@ task copyContractToResrouce(type: Copy) {
     }
 }
 
+task copyContract(type: Copy) {
+    dependsOn copyContractToResrouce
+
+    def copyPath = file('build/libs').absolutePath + '/../../out/contract'
+
+    def porjectContractPath = file('build/libs').absolutePath + '/../../../contract'
+    from file("${copyPath}")
+    into file("${porjectContractPath}")
+
+    def coreContractPath = file('build/libs').absolutePath + '/../../../yggdrash-core/.yggdrash/contract'
+    from file("${copyPath}")
+    into file("${coreContractPath}")
+
+    def nodeContractPath = file('build/libs').absolutePath + '/../../../yggdrash-node/.yggdrash/contract'
+    from file("${copyPath}")
+    into file("${nodeContractPath}")
+}
 
 task copyContractToCoreResrouce(type: Copy) {
     dependsOn removeContract
@@ -287,6 +304,7 @@ jar {
     dependsOn copyContractToCoreBuildResrouce
     dependsOn copyContractToCoreResrouce
     dependsOn copyContractToResrouce
+    dependsOn copyContract
 }
 
 dependencies {
