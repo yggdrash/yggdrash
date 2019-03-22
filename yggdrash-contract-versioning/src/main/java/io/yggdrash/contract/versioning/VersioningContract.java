@@ -80,45 +80,68 @@ public class VersioningContract implements BundleActivator, ServiceListener {
 
         @InvokeTransaction
         public TransactionReceipt updateProposer(JsonObject params) throws UnsupportedEncodingException {
+
+            // 컨트랙트 업데이트 되는 정보들의 집합인 컨트랙트 셋을 하나 만들고 컨트랙트 버전 별로 투표상황과 결과값을 저장하는 객체를 하나 만들었다.
+            // 컨트랙트는 임시 폴더에 권한관리 체크안하고 일단 업로드한 상태이고
+            // 투표는 아직 못짯다
+
+            // 컨트랙트 버저닝는 따로 패키징 하였는대, 그래들 작업하는게.. 버저닝 띄우는게 어렵다 아직 해결 못했다.
+
             // TODO contract name 컨트랙트 조회 - branch store에서 조회
-            String targetVersion = params.get("contractVersion").getAsString();
-
-            // TODO target block height 저장
-
-
-            String upgradeContract = params.get("contract").getAsString();
-            byte[] binaryFile = base64Dec(upgradeContract.getBytes("UTF-8"));
-
-            if ((binaryFile == null) || sizeVerify(binaryFile)) {
-                return txReceipt;
-            }
-            FileOutputStream fos;
-
-//            String containerPath = String.format("%s/%s", Path, branchId);
-            String exportPath = System.getProperty("user.dir");
-            String tempContractPath = String.format("%s/bundles%s", exportPath, SUFFIX_UPDATE_CONTRACT);
-
-            File fileDir = new File(tempContractPath);
-            if (!fileDir.exists()) {
-                fileDir.mkdirs();
-            }
-            ContractVersion version = ContractVersion.of(binaryFile);
-            File destFile = new File(tempContractPath + File.separator + version + SUFFIX);
-            destFile.setReadOnly();
-
+            VersioningContractStateValue stateValue;
             try {
-                fos = new FileOutputStream(destFile);
-                fos.write(binaryFile);
-                fos.close();
-            } catch (IOException e) {
-                log.error(e.toString());
+                stateValue = VersioningContractStateValue.of(params);
+                stateValue.init();
+
+                if (!validatorVerify()) {
+                    return txReceipt;
+                }
+
+                String upgradeContract = params.get("contract").getAsString();
+                byte[] binaryFile = base64Dec(upgradeContract.getBytes("UTF-8"));
+
+                if ((binaryFile == null) || !sizeVerify(binaryFile)) {
+                    return txReceipt;
+                }
+
+                setStateValue(stateValue, binaryFile);
+
+                System.out.println(stateValue.getJson());
+                FileOutputStream fos;
+
+                String exportPath = System.getProperty("user.dir");
+                // TODO file 권한
+                String tempContractPath = String.format("%s/src/main/resources%s", exportPath, SUFFIX_UPDATE_CONTRACT);
+
+                File fileDir = new File(tempContractPath);
+                if (!fileDir.exists()) {
+                    fileDir.mkdirs();
+                    // TODO 존재하면
+                }
+                ContractVersion version = ContractVersion.of(binaryFile);
+                File destFile = new File(tempContractPath + File.separator + version + SUFFIX);
+                destFile.setReadOnly();
+
+                try {
+                    fos = new FileOutputStream(destFile);
+                    fos.write(binaryFile);
+                    fos.close();
+                } catch (IOException e) {
+                    log.error(e.toString());
+                }
+
+                txReceipt.setStatus(ExecuteStatus.SUCCESS);
+
+            } catch (Exception e) {
+                log.warn("Failed to convert Branch = {}", params);
             }
-
-            txReceipt.setStatus(ExecuteStatus.SUCCESS);
-
-//            if (validatorVerify()) {
-//            }
             return txReceipt;
+        }
+
+        private void setStateValue(VersioningContractStateValue stateValue, byte[] contractBinary) {
+            stateValue.setBlockHeight(txReceipt.getBlockHeight());
+            stateValue.setUpdateContract(contractBinary);
+            stateValue.setTxId(txReceipt.getTxId());
         }
 
         @InvokeTransaction
@@ -176,7 +199,7 @@ public class VersioningContract implements BundleActivator, ServiceListener {
         }
 
 
-//        private boolean validatorVerify() {
+        private boolean validatorVerify() {
 //            DPoAContract.DPoAService dPoAService = (DPoAContract.DPoAService) serviceTracker.getService();
 ////            serviceTracker.waitForService(5000);
 //            dPoAService.getValidatorSet();
@@ -186,8 +209,8 @@ public class VersioningContract implements BundleActivator, ServiceListener {
 //                    || validatorSet.getValidatorMap().get(txReceipt.getIssuer()) == null) {
 //                return false;
 //            }
-//            return true;
-//        }
+            return true;
+        }
 
         private boolean sizeVerify(byte[] binaryFile) {
             if (binaryFile.length > MAX_FILE_LENGTH) {

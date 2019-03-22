@@ -10,18 +10,20 @@ public class Contract implements Serializable, Comparable<Contract> {
     private ProposeValidatorSet.Votable votedHistory;
     private boolean isUpgrade;
     private long targetBlockHeight;
+    private byte[] updateContract;
+    private String txId;
 
     public Contract() {
     }
 
     public Contract(String version) { this.version = version; }
 
-    public String getAddr() {
+    public String getVersion() {
         return version;
     }
 
-    public void setAddr(String addr) {
-        this.version = addr;
+    public void setVersion(String version) {
+        this.version = version;
     }
 
     public ProposeValidatorSet.Votable getVotedHistory() {
@@ -44,8 +46,24 @@ public class Contract implements Serializable, Comparable<Contract> {
         return targetBlockHeight;
     }
 
-    public void settargetBlockHeight(long targetBlockHeight) {
+    public void setTargetBlockHeight(long targetBlockHeight) {
         this.targetBlockHeight = targetBlockHeight;
+    }
+
+    public byte[] getUpdateContract() {
+        return updateContract;
+    }
+
+    public void setUpdateContract(byte[] updateContract) {
+        this.updateContract = updateContract;
+    }
+
+    public String getTxId() {
+        return this.txId;
+    }
+
+    public void setTxId(String txId) {
+        this.txId = txId;
     }
 
     @Override
