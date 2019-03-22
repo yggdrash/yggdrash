@@ -62,22 +62,23 @@ public class EsClient implements OutputStore {
     }
 
     @Override
-    public String put(JsonObject block) {
-        if (!eventSet.contains(blockIndex)) {
-            return null;
+    public void put(JsonObject block) {
+        if (!eventSet.contains(blockIndex) || block == null) {
+            return;
         }
         block.remove("body");
 
-        String id = String.valueOf(block.getAsJsonObject("header").get("index").getAsString());
+        String id = block.getAsJsonObject("header").get("index").getAsString();
         IndexResponse response = client.prepareIndex(blockIndex, "_doc", id)
                 .setSource(block.toString(), XContentType.JSON).get();
 
         switch (response.status()) {
             case OK:
             case CREATED:
-                return id;
+                return;
+            default:
+                log.warn("Failed save to elasticsearch");
         }
-        return null;
     }
 
     @Override
