@@ -173,6 +173,10 @@ public class BlockChainTestUtils {
         return createTransferTx(TestConstants.TRANSFER_TO, 100);
     }
 
+    public static TransactionHusk createTransferTxHusk(int amount) {
+        return createTransferTx(TestConstants.TRANSFER_TO, amount);
+    }
+
     private static TransactionHusk createTransferTx(String to, int amount) {
         JsonArray txBody = ContractTestUtils.transferTxBodyJson(to, amount);
         TransactionBuilder builder = new TransactionBuilder();

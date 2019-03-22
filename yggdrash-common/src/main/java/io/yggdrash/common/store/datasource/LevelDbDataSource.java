@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -178,5 +179,22 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
             }
         }
         return valueList;
+    }
+
+    public List<byte[]> getKeySetByValue(byte[] req) throws IOException {
+        List<byte[]> keyList = new ArrayList<>();
+
+        try (DBIterator iterator = db.iterator()) {
+            for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
+                byte[] key = iterator.peekNext().getKey();
+                byte[] value = iterator.peekNext().getValue();
+
+                if (Arrays.equals(req, value)) {
+                    keyList.add(key);
+                }
+            }
+        }
+
+        return keyList;
     }
 }

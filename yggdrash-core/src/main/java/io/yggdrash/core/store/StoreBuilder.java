@@ -60,6 +60,10 @@ public class StoreBuilder {
         return new TransactionReceiptStore(getDbSource(branchId + "/txreceipt"));
     }
 
+    public TransactionIndexStore buildTransactionIndexStore(BranchId branchId, String tag) {
+        return new TransactionIndexStore(getDbSource(branchId + "/txIndex/" + tag));
+    }
+
     private DbSource<byte[], byte[]> getDbSource(String name) {
         if (config.isProductionMode()) {
             return new LevelDbDataSource(config.getDatabasePath(), name);

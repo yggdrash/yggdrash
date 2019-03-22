@@ -21,13 +21,12 @@ import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.SystemProperties;
+import io.yggdrash.core.blockchain.TransactionKVIndexer;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.node.ChainTask;
-import java.io.IOException;
-import java.io.InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +36,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableScheduling;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 @Configuration
 @EnableScheduling
@@ -73,6 +75,11 @@ public class BranchConfiguration {
     @Bean
     BranchGroup branchGroup() {
         return new BranchGroup();
+    }
+
+    @Bean
+    TransactionKVIndexer transactionKVIndexer(BranchGroup branchGroup) {
+        return new TransactionKVIndexer().buildTxIndexStoreMap(branchGroup, storeBuilder);
     }
 
     @Bean

@@ -17,6 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.utils.ByteUtil;
@@ -86,6 +87,11 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         return this.protoTransaction.getBody().toStringUtf8();
     }
 
+    public String getPropertyByTag(String tag) { // TODO Why is the txBody a list?
+        JsonObject objOfTxBody = new JsonParser().parse(getBody()).getAsJsonArray().get(0).getAsJsonObject();
+        return objOfTxBody.get(tag).getAsString();
+    }
+
     public long getLength() {
         return Constants.TX_HEADER_LENGTH + Constants.TX_SIG_LENGTH + coreTransaction.getHeader().getBodyLength();
     }
@@ -106,6 +112,10 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
 
     public Sha3Hash getHash() {
         return new Sha3Hash(this.coreTransaction.getHash(), true);
+    }
+
+    public byte[] getHashByte() {
+        return this.coreTransaction.getHash();
     }
 
     public Sha3Hash getHashForSigning() {

@@ -24,16 +24,19 @@ import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.core.wallet.Account;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
 import org.spongycastle.util.encoders.Hex;
+
 import java.io.IOException;
 import java.security.SignatureException;
 
 import static io.yggdrash.TestConstants.TRANSFER_TO;
 import static org.assertj.core.api.Assertions.assertThat;
+
 
 public class TransactionHuskTest  extends TestConstants.SlowTest {
 
@@ -157,5 +160,11 @@ public class TransactionHuskTest  extends TestConstants.SlowTest {
                 .setBranchId(TestConstants.yggdrash())
                 .addTransactionBody(txBody)
                 .build();
+    }
+
+    @Test
+    public void getPropertyByTag() {
+        TransactionHusk tx = createTransferTx();
+        Assert.assertEquals("transfer", tx.getPropertyByTag("method"));
     }
 }

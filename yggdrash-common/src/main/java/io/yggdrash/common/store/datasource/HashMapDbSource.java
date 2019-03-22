@@ -16,9 +16,11 @@
 
 package io.yggdrash.common.store.datasource;
 
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,6 +37,10 @@ public class HashMapDbSource implements DbSource<byte[], byte[]> {
     @Override
     public byte[] get(byte[] key) {
         return db.get(Hex.encodeHexString(key));
+    }
+
+    public byte[] get(String key) {
+        return db.get(key);
     }
 
     @Override
@@ -55,5 +61,21 @@ public class HashMapDbSource implements DbSource<byte[], byte[]> {
     @Override
     public void delete(byte[] key) {
         db.remove(Hex.encodeHexString(key));
+    }
+
+    public List<byte[]> getKeySetByValue(byte[] value) {
+        List<byte[]> keySet = new ArrayList<>();
+
+        for (String key : db.keySet()) {
+            if (Arrays.equals(get(key), value)) {
+                try {
+                    keySet.add(Hex.decodeHex(key));
+                } catch (DecoderException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        return keySet;
     }
 }
