@@ -20,24 +20,25 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class TransactionKVIndexerTest {
+public class TransactionKvIndexerTest {
 
     private final BranchId branchId = BlockChainTestUtils.createTransferTxHusk().getBranchId();
-    private TransactionKVIndexer txIndexer;
-    private Set<TransactionHusk> txs;
+    private TransactionKvIndexer txIndexer;
+    private List<TransactionHusk> txs;
 
     @Before
     public void setUp() {
         Set<String> tagsToIndex = new HashSet<>(Arrays.asList("txHash", "method"));
         BranchGroup branchGroup = BlockChainTestUtils.createBranchGroup();
         StoreBuilder storeBuilder = new StoreBuilder(new DefaultConfig());
-        txIndexer = new TransactionKVIndexer()
+        txIndexer = new TransactionKvIndexer()
                 .setIndexTags(tagsToIndex)
                 .setIndexAllTags(false)
                 .buildTxIndexStoreMap(branchGroup, storeBuilder);
@@ -56,12 +57,16 @@ public class TransactionKVIndexerTest {
         Assert.assertEquals(2, txIndexer.getTxIndexStoreMap().get(branchId).size());
     }
 
-    private void add15TxsBatch() {
-        txs = new HashSet<>();
+    private void create15Txs() {
+        txs = new ArrayList<>();
 
         for (int amount = 0; amount < 15; amount++) {
             txs.add(BlockChainTestUtils.createTransferTxHusk(amount));
         }
+    }
+
+    private void add15TxsBatch() {
+        create15Txs();
         txIndexer.addBatch(txs);
     }
 
@@ -119,4 +124,16 @@ public class TransactionKVIndexerTest {
         }
     }
 
+    @Test
+    public void chainedBlock() {
+        create15Txs();
+        BlockHusk chainedBlock = BlockChainTestUtils.createNextBlock(BlockChainTestUtils.genesisBlock(), txs);
+        txIndexer.chainedBlock(chainedBlock);
+
+        for (TransactionHusk tx : txs) {
+            Assert.assertTrue(txs.contains(txIndexer.getTxByHash(branchId, tx.getHash())));
+            Assert.assertEquals(tx, txIndexer.getTxByHash(branchId, tx.getHash()));
+            Assert.assertEquals(tx, txIndexer.getTxByHash(branchId, tx.getHash().getBytes()));
+        }
+    }
 }

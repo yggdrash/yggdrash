@@ -12,13 +12,14 @@
 
 package io.yggdrash.core.blockchain;
 
+import java.util.List;
 import java.util.Set;
 
-public interface TransactionIndexer {
+public interface TransactionIndexer extends BranchEventListener {
 
     // Analyzes, indexes and stores a batch of transactions
     // Batch groups together multiple index operations to be performed at the same time
-    void addBatch(Set<TransactionHusk> txs);
+    void addBatch(List<TransactionHusk> txs);
 
     // Analyzes, indexes and stores a single transaction
     void index(TransactionHusk tx);

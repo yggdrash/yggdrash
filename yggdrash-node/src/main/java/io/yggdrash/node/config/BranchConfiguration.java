@@ -21,7 +21,7 @@ import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.SystemProperties;
-import io.yggdrash.core.blockchain.TransactionKVIndexer;
+import io.yggdrash.core.blockchain.TransactionKvIndexer;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
@@ -78,8 +78,21 @@ public class BranchConfiguration {
     }
 
     @Bean
-    TransactionKVIndexer transactionKVIndexer(BranchGroup branchGroup) {
-        return new TransactionKVIndexer().buildTxIndexStoreMap(branchGroup, storeBuilder);
+    TransactionKvIndexer transactionKvIndexer(BranchGroup branchGroup) {
+        /*
+        Set<String> tagsToIndex = new HashSet<>(Arrays.asList("txHash", "method"));
+        TransactionKvIndexer txKvIndexer = new TransactionKvIndexer()
+                .setIndexTags(tagsToIndex)
+                .setIndexAllTags(false)
+                .buildTxIndexStoreMap(branchGroup, storeBuilder);
+        */
+        TransactionKvIndexer txKvIndexer = new TransactionKvIndexer()
+                .setIndexTag("txHash")
+                .setIndexAllTags(false)
+                .buildTxIndexStoreMap(branchGroup, storeBuilder);
+
+        branchGroup.getAllBranchId().forEach(branchId -> branchGroup.getBranch(branchId).addListener(txKvIndexer));
+        return txKvIndexer;
     }
 
     @Bean

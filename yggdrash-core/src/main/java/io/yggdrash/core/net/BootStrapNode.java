@@ -19,6 +19,7 @@ package io.yggdrash.core.net;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.SyncManager;
+import io.yggdrash.core.blockchain.TransactionKvIndexer;
 import io.yggdrash.core.p2p.PeerHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,6 +33,7 @@ public abstract class BootStrapNode implements BootStrap {
     protected PeerNetwork peerNetwork;
     protected BranchGroup branchGroup;
     protected SyncManager syncManager;
+    private TransactionKvIndexer txKvIndexer;
 
     @Override
     public void bootstrapping() {
@@ -43,6 +45,7 @@ public abstract class BootStrapNode implements BootStrap {
 
                 fullSyncBlock(blockChain, peerHandlerList);
 
+                // TODO Change TransactionStore to TransactionMemPool
                 for (PeerHandler peerHandler : peerHandlerList) {
                     syncManager.syncTransaction(peerHandler, blockChain);
                 }
@@ -82,5 +85,9 @@ public abstract class BootStrapNode implements BootStrap {
 
     public void setSyncManager(SyncManager syncManager) {
         this.syncManager = syncManager;
+    }
+
+    protected void setTxKvIndexer(TransactionKvIndexer txKvIndexer) {
+        this.txKvIndexer = txKvIndexer;
     }
 }

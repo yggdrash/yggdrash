@@ -71,7 +71,7 @@ public class BlockChainTestUtils {
         return new BlockHusk(TestConstants.wallet(), Collections.emptyList(), prevBlock);
     }
 
-    private static BlockHusk createNextBlock(BlockHusk prevBlock, List<TransactionHusk> blockBody) {
+    public static BlockHusk createNextBlock(BlockHusk prevBlock, List<TransactionHusk> blockBody) {
         return new BlockHusk(TestConstants.wallet(), blockBody, prevBlock);
     }
 

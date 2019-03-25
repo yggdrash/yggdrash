@@ -15,20 +15,23 @@ package io.yggdrash.core.blockchain;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionIndexStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class TransactionKVIndexer implements TransactionIndexer {
-
+public class TransactionKvIndexer implements TransactionIndexer {
+    private static final Logger log = LoggerFactory.getLogger(TransactionKvIndexer.class);
     private Map<BranchId, Map<String, TransactionIndexStore>> txIndexStoreMap; // <BranchId, <Tag, TxIndexStore>>
     private Set<String> tagsToIndex;
     private boolean indexAllTags;
 
 
-    public TransactionKVIndexer() {
+    public TransactionKvIndexer() {
         // TODO Get tags from nodeProperties.
         //  The tags to be indexed by each branch will be different.
         //  Need to consider how to index which tags to branch.
@@ -38,25 +41,25 @@ public class TransactionKVIndexer implements TransactionIndexer {
     }
 
     // IndexTags is an option for setting which tags to index.
-    public TransactionKVIndexer setIndexTag(String tag) {
+    public TransactionKvIndexer setIndexTag(String tag) {
         this.tagsToIndex = new HashSet<>();
         tagsToIndex.add(tag);
         return this;
     }
 
-    TransactionKVIndexer setIndexTags(Set<String> tags) {
+    public TransactionKvIndexer setIndexTags(Set<String> tags) {
         tagsToIndex = tags;
         return this;
     }
 
     // IndexAllTags is an option for indexing all tags. (not currently used)
-    TransactionKVIndexer setIndexAllTags(boolean on) {
+    public TransactionKvIndexer setIndexAllTags(boolean on) {
         indexAllTags = on;
         return this;
     }
 
     // BuildTxIndexStoreMap creates new KV indexer for each branch and builds the store map
-    public TransactionKVIndexer buildTxIndexStoreMap(BranchGroup branchGroup, StoreBuilder storeBuilder) {
+    public TransactionKvIndexer buildTxIndexStoreMap(BranchGroup branchGroup, StoreBuilder storeBuilder) {
         txIndexStoreMap = new HashMap<>();
 
         for (BranchId branchId : branchGroup.getAllBranchId()) {
@@ -81,7 +84,7 @@ public class TransactionKVIndexer implements TransactionIndexer {
 
     // AddBatch indexes a batch of transactions using the given list of tags.
     @Override
-    public void addBatch(Set<TransactionHusk> txs) {
+    public void addBatch(List<TransactionHusk> txs) {
         for (TransactionHusk tx : txs) {
             index(tx);
         }
@@ -109,7 +112,7 @@ public class TransactionKVIndexer implements TransactionIndexer {
     }
 
     // Search performs a search using the given query.
-    // We don't provide the conditions of the range queries (like 'tx.height > 5").
+    // TODO We provide the conditions of the range queries (like 'tx.height > 5").
     // For each condition, it queries the DB index.
     // One special use cases here :
     // if "tx.hash" is found, it returns tx result for it ==> we'll just return txs(don't have spec yet)
@@ -143,6 +146,17 @@ public class TransactionKVIndexer implements TransactionIndexer {
         return searchTxHashes(branchId, hashes);
     }
 
+    @Override
+    public void chainedBlock(BlockHusk block) {
+        // Extracts txs from block and indexes them by tags
+        addBatch(block.getBody());
+    }
+
+    @Override
+    public void receivedTransaction(TransactionHusk tx) {
+
+    }
+
     Set<TransactionHusk> searchTxHashes(BranchId branchId, Set<byte[]> txHashes) {
         Set<TransactionHusk> res = new HashSet<>();
 
@@ -171,6 +185,11 @@ public class TransactionKVIndexer implements TransactionIndexer {
                 //txIndexStoreMap.get(branchId).get(tag).put(keyForTag, txHash); // <txProperty, txHash>
                 // TODO Considering create an unique key by a separator like slash or a character.
                 txIndexStoreMap.get(branchId).get(tag).put(txHash, keyForTag); // <txHash, txProperty>
+
+                log.debug("[TxIndexer] indexByTags :: Size of ({})store => {}",
+                        tag, txIndexStoreMap.get(branchId).get(tag).size());
+                log.debug("[TxIndexer] indexByTags :: ({})Store contains txHash({}) => {}",
+                        tag, tx.getHash(), txIndexStoreMap.get(branchId).get(tag).contains(txHash));
             }
         }
     }
@@ -181,5 +200,10 @@ public class TransactionKVIndexer implements TransactionIndexer {
         byte[] txData = tx.getData();
 
         txIndexStoreMap.get(branchId).get("txHash").put(txHash, txData); // <txHash, tx>
+
+        log.debug("[TxIndexer] IndexTxByHash :: Size of (TxHash)store => {}",
+                txIndexStoreMap.get(branchId).get("txHash").size());
+        log.debug("[TxIndexer] IndexTxByHash :: (TxHash])Store contains txHash({}) => {}",
+                tx.getHash(), txIndexStoreMap.get(branchId).get("txHash").contains(txHash));
     }
 }

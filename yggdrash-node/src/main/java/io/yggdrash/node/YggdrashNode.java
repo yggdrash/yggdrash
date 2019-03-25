@@ -19,6 +19,7 @@ package io.yggdrash.node;
 import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.SyncManager;
+import io.yggdrash.core.blockchain.TransactionKvIndexer;
 import io.yggdrash.core.net.BlockChainConsumer;
 import io.yggdrash.core.net.BootStrapNode;
 import io.yggdrash.core.net.NodeStatus;
@@ -56,6 +57,11 @@ public class YggdrashNode extends BootStrapNode {
     @Autowired
     public void setBranchGroup(BranchGroup branchGroup) {
         super.setBranchGroup(branchGroup);
+    }
+
+    @Autowired
+    public void setTransactionKvIndexer(TransactionKvIndexer txKvIndexer) {
+        super.setTxKvIndexer(txKvIndexer);
     }
 
     @Autowired
