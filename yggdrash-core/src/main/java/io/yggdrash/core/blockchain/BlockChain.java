@@ -17,6 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
+import io.reactivex.Observable;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.exception.FailedOperationException;
@@ -242,7 +243,7 @@ public class BlockChain {
      * @param nextBlock the next block
      * @throws NotValidateException the not validate exception
      */
-    public BlockHusk addBlock(BlockHusk nextBlock, boolean broadcast) {
+    public Observable<BlockHusk> addBlock(BlockHusk nextBlock, boolean broadcast) {
         if (blockStore.contains(nextBlock.getHash())) {
             return null;
         }
@@ -263,20 +264,8 @@ public class BlockChain {
             contractContainer.getContractManager().commitBlockResult(result);
             //runtime.commitBlockResult(result);
             branchStore.setLastExecuteBlock(nextBlock);
+            saveToOutputStore(nextBlock);
 
-            //Store event
-            if (outputStores != null && outputStores.size() > 0) {
-                Map<String, JsonObject> transactionMap = new HashMap<>();
-                nextBlock.getBody().forEach(tx -> {
-                    String txHash = tx.getHash().toString();
-                    transactionMap.put(txHash, tx.toJsonObjectFromProto());
-                });
-
-                outputStores.forEach((storeType, store) -> {
-                    store.put(nextBlock.toJsonObjectByProto());
-                    store.put(nextBlock.getHash().toString(), transactionMap);
-                });
-            }
         }
 
         // Store Block Index and Block Data
@@ -289,7 +278,24 @@ public class BlockChain {
         }
         log.debug("Added idx=[{}], tx={}, branch={}, blockHash={}", nextBlock.getIndex(),
                 nextBlock.getBodyCount(), getBranchId(), nextBlock.getHash());
-        return nextBlock;
+
+        return Observable.just(nextBlock);
+    }
+
+    private void saveToOutputStore(BlockHusk nextBlock) {
+        //Store event
+        if (outputStores != null && outputStores.size() > 0) {
+            Map<String, JsonObject> transactionMap = new HashMap<>();
+            nextBlock.getBody().forEach(tx -> {
+                String txHash = tx.getHash().toString();
+                transactionMap.put(txHash, tx.toJsonObjectFromProto());
+            });
+
+            outputStores.forEach((storeType, store) -> {
+                store.put(nextBlock.toJsonObjectByProto());
+                store.put(nextBlock.getHash().toString(), transactionMap);
+            });
+        }
     }
 
     private boolean isValidNewBlock(BlockHusk prevBlock, BlockHusk nextBlock) {

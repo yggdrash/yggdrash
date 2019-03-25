@@ -37,6 +37,7 @@ ext {
     logbackJinoVersion  = '3.0.12'
     equinoxVersion = '3.13.0.v20180226-1711'
     esVersion = '6.6.1'
+    rxJavaVersion = '2.2.7'
 }
 
 allprojects {
@@ -92,6 +93,7 @@ project(':yggdrash-core') {
         compile "com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}"
         compile "com.typesafe:config:${typesafeVersion}"
         compile "org.elasticsearch.client:transport:${esVersion}"
+        implementation "io.reactivex.rxjava2:rxjava:${rxJavaVersion}"
         compileOnly "javax.annotation:javax.annotation-api:${annotationVersion}"
         testCompile "org.assertj:assertj-core:${assertjVersion}"
     }
