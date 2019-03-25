@@ -18,11 +18,11 @@ package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
-import java.io.File;
-import java.net.URL;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.File;
+import java.net.URL;
 
 public class PrepareBlockchainTest {
     private static final Logger log = LoggerFactory.getLogger(PrepareBlockchainTest.class);

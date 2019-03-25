@@ -19,6 +19,13 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.wallet.Address;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.Version;
+import org.osgi.framework.launch.Framework;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -30,13 +37,6 @@ import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
 import java.util.jar.Manifest;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.Version;
-import org.osgi.framework.launch.Framework;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class ContractManager {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
@@ -59,6 +59,7 @@ public class ContractManager {
         this.outputStore = outputStore;
         this.systemProperties = systemProperties;
         contractCache = new ContractCache();
+
     }
 
     void inject(Bundle bundle) throws IllegalAccessException {
@@ -204,15 +205,17 @@ public class ContractManager {
                     ContractContainer.SUFFIX_USER_CONTRACT;
 
             String location = String.format("%s/%s", locationPrefix, version.toString());
-
             // set Location
             bundle = framework.getBundleContext().installBundle(location, fileStream);
             log.debug("installed  {} {}", version.toString(), bundle.getLocation());
+            /*
             boolean isPass = verifyManifest(bundle);
             if (!isPass) {
                 uninstall(bundle.getBundleId());
             }
+            */
             start(bundle.getBundleId());
+            contractCache.cacheContract(bundle, framework);
         } catch (Exception e) {
             log.error("Install bundle exception: branchID - {}, msg - {}", branchId, e.getMessage());
             throw new RuntimeException(e);
