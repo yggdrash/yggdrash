@@ -55,8 +55,11 @@ class ContractCache {
         }
         // Store Full contract location
         String location = bundle.getLocation();
-        String contractName = location.substring(location.lastIndexOf("/")+1);
-        fullLocation.put(contractName, location);
+        if (!fullLocation.containsValue(location)) {
+            String contractName = location.substring(location.lastIndexOf("/")+1);
+            fullLocation.put(contractName, location);
+        }
+
         // Assume one service
         ServiceReference serviceRef = bundle.getRegisteredServices()[0];
         Object service = framework.getBundleContext().getService(serviceRef);

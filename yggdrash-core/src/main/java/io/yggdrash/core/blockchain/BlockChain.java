@@ -34,6 +34,7 @@ import io.yggdrash.core.store.BranchStore;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.wallet.Wallet;
+import java.io.File;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.IOException;
@@ -81,6 +82,28 @@ public class BlockChain {
         this.outputStores = outputStores;
 
 
+        // Check BlockChain is Ready
+        PrepareBlockchain prepareBlockchain = new PrepareBlockchain(contractContainer.getContractPath());
+        // check block chain is ready
+        if (prepareBlockchain.checkBlockChainIsReady(this)) {
+            // install bundles
+            // bc.getContractContainer()
+            ContractContainer container = getContractContainer();
+            for(BranchContract contract : prepareBlockchain.getContractList()) {
+                File branchContractFile = prepareBlockchain.loadContractFile(contract.getContractVersion());
+                container.installContract(contract.getContractVersion(), branchContractFile, contract.isSystem());
+            }
+
+            try {
+                container.reloadInject();
+            } catch (IllegalAccessException e) {
+                log.error(e.getMessage());
+            }
+        } else {
+            // TODO blockchain ready fails
+            log.error("Blockchain is not Ready");
+        }
+
         // getGenesis Block by Store
         Sha3Hash blockHash = branchStore.getGenesisBlockHash();
         if (blockHash == null || !blockStore.contains(blockHash)) {
@@ -98,6 +121,8 @@ public class BlockChain {
                 // TODO throws Validator error
                 e.printStackTrace();
             }
+
+            // load contract
         }
     }
 
@@ -401,7 +426,12 @@ public class BlockChain {
     }
 
     public List<BranchContract> getBranchContracts() {
-        return this.branchStore.getBranchContacts();
+        if (this.branchStore.getBranchContacts() == null) {
+            return this.getBranch().getBranchContracts();
+        } else {
+            return this.branchStore.getBranchContacts();
+        }
+
     }
 
 

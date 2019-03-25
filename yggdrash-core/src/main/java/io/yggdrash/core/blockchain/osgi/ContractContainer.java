@@ -186,9 +186,8 @@ public class ContractContainer {
 
     public long installContract(ContractVersion contract, File contractFile, boolean isSystem) {
         // copy System or UserContract
-        Manifest m = null;
         try {
-            m = new JarFile(contractFile).getManifest();
+            Manifest m = new JarFile(contractFile).getManifest();
             //String symbolicName = m.getAttributes("Bundle-SymbolicName");
             if (contractManager.verifyManifest(m)) {
                 String symbolicName = m.getMainAttributes().getValue("Bundle-SymbolicName");
@@ -218,4 +217,10 @@ public class ContractContainer {
             contractManager.inject(bundle);
         }
     }
+
+    public String getContractPath() {
+        return this.config.getContractPath();
+    }
+
+
 }

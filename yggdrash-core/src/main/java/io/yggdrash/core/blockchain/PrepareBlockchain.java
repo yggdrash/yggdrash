@@ -16,7 +16,6 @@
 
 package io.yggdrash.core.blockchain;
 
-import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
 import java.io.File;
 import java.io.FileInputStream;
@@ -28,15 +27,17 @@ import org.slf4j.LoggerFactory;
 public class PrepareBlockchain {
     private static final Logger log = LoggerFactory.getLogger(PrepareBlockchain.class);
 
-    DefaultConfig config;
+    String contractPath;
+    List<BranchContract> contractList;
 
-    public PrepareBlockchain(DefaultConfig config) {
-        this.config = config;
-        log.debug("Contract Path : {} ", config.getContractPath());
+
+    public PrepareBlockchain(String contractPath) {
+        this.contractPath = contractPath;
+        log.debug("Contract Path : {} ", contractPath);
     }
 
     public File loadContractFile(ContractVersion version) {
-        File contractFile = new File(String.format("%s/%s.jar", config.getContractPath(),
+        File contractFile = new File(String.format("%s/%s.jar", contractPath,
                 version));
         if (!(contractFile.exists() && contractFile.canRead())) {
             log.debug("Contract file not Exist");
@@ -48,10 +49,10 @@ public class PrepareBlockchain {
 
     public boolean checkBlockChainIsReady(BlockChain blockChain) {
         // Get BranchContract
-        List<BranchContract> contractList = blockChain.getBranchContracts();
+        contractList = blockChain.getBranchContracts();
         if(blockChain.getLastIndex() == 0 && contractList.size() == 0) {
             // is Genesis Blockchain
-            contractList = blockChain.getBranchContracts();
+            contractList = blockChain.getBranch().getBranchContracts();
         }
 
         // TODO check branch contract file exist
@@ -107,6 +108,10 @@ public class PrepareBlockchain {
 
         return false;
 
+    }
+
+    public List<BranchContract> getContractList() {
+        return this.contractList;
     }
 
 }
