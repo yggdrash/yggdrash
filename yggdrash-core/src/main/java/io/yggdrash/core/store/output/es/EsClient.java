@@ -55,8 +55,9 @@ public class EsClient implements OutputStore {
             case OK:
             case CREATED:
                 return id;
+            default:
+                return null;
         }
-        return null;
     }
 
     @Override
@@ -67,7 +68,7 @@ public class EsClient implements OutputStore {
         block.remove("body");
 
         String id = block.getAsJsonObject("header").get("index").getAsString();
-        IndexResponse response = client.prepareIndex(INDEX, "block", id)
+        IndexResponse response = client.prepareIndex(INDEX+"-block", "_doc", id)
                 .setSource(block.toString(), XContentType.JSON).get();
 
         switch (response.status()) {
@@ -88,7 +89,7 @@ public class EsClient implements OutputStore {
         BulkRequestBuilder bulkRequest = client.prepareBulk();
         transactionMap.forEach((txHash, tx) -> {
             tx.addProperty("blockId", blockId);
-            bulkRequest.add(client.prepareIndex(INDEX, "tx", txHash)
+            bulkRequest.add(client.prepareIndex(INDEX+"-tx", "_doc", txHash)
                     .setSource(tx.toString(), XContentType.JSON));
         });
 
