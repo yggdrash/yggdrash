@@ -29,7 +29,7 @@ public class PrepareBlockchainTest {
 
     @Test
     public void loadContractFile() {
-        PrepareBlockchain pb = new PrepareBlockchain(new DefaultConfig());
+        PrepareBlockchain pb = new PrepareBlockchain(new DefaultConfig().getContractPath());
         ContractVersion version = ContractVersion.of("74df17611373672371cb3872e8a5d4a2e8733fb1");
         File f = pb.loadContractFile(version);
         boolean verify = pb.verifyContractFile(f, version);
