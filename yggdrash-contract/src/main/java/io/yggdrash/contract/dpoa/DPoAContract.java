@@ -57,6 +57,7 @@ public class DPoAContract implements BundleActivator {
     public static class DPoAService {
         private final String validatorSchemeName = "validator";
         private final String proposedValidatorSchemeName = "proposedValidator";
+
         @InjectOutputStore
         Map<OutputType, OutputStore> outputStore;
         @InjectEvent
@@ -88,16 +89,17 @@ public class DPoAContract implements BundleActivator {
 
             validatorSet = new ValidatorSet();
             for (int i = 0; i < validators.size(); i++) {
-                validatorSet.getValidatorMap().put(validators.get(i).getAsString(), new Validator(validators.get(i).getAsString()));
+                validatorSet.getValidatorMap().put(validators.get(i).getAsString(),
+                        new Validator(validators.get(i).getAsString()));
             }
             JsonObject jsonObject = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
-
             state.put(PrefixKeyEnum.VALIDATORS.toValue(), jsonObject);
             return true;
         }
 
         private void sendOutputStore(String schemeName, String id, JsonObject jsonObject) {
-            if (outputStore == null || eventStore == null || !eventStore.contains(validatorSchemeName)) {
+            if (outputStore == null || eventStore == null
+                    || !eventStore.contains(validatorSchemeName)) {
                 return;
             }
             outputStore.forEach((outputType, store) -> store.put(schemeName, id, jsonObject));
@@ -115,7 +117,8 @@ public class DPoAContract implements BundleActivator {
             ProposeValidatorSet proposeValidatorSet = null;
             JsonObject jsonProposeValidatorSet = state.get(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue());
             if (jsonProposeValidatorSet != null) {
-                proposeValidatorSet = JsonUtil.generateJsonToClass(jsonProposeValidatorSet.toString(), ProposeValidatorSet.class);
+                proposeValidatorSet = JsonUtil.generateJsonToClass(
+                        jsonProposeValidatorSet.toString(), ProposeValidatorSet.class);
             }
 
             return proposeValidatorSet;
@@ -138,14 +141,16 @@ public class DPoAContract implements BundleActivator {
             txReceipt.setStatus(ExecuteStatus.FALSE);
 
             //Check validation
-            TxValidatorPropose txValidatorPropose = JsonUtil.generateJsonToClass(params.toString(), TxValidatorPropose.class);
+            TxValidatorPropose txValidatorPropose =
+                    JsonUtil.generateJsonToClass(params.toString(), TxValidatorPropose.class);
             if (!validateTx(txValidatorPropose)) {
                 return txReceipt;
             }
 
             //Is exists proposer
             ValidatorSet validatorSet = getValidatorSet();
-            if (validatorSet == null || validatorSet.getValidatorMap() == null || validatorSet.getValidatorMap().get(txReceipt.getIssuer()) == null) {
+            if (validatorSet == null || validatorSet.getValidatorMap() == null
+                    || validatorSet.getValidatorMap().get(txReceipt.getIssuer()) == null) {
                 return txReceipt;
             }
 
@@ -158,7 +163,8 @@ public class DPoAContract implements BundleActivator {
 
                 //Is the proposed Validator voting complete
                 for (String s : proposeValidatorSet.getValidatorMap().keySet()) {
-                    if (txReceipt.getIssuer().equals(proposeValidatorSet.getValidatorMap().get(s).getProposalValidatorAddr())) {
+                    if (txReceipt.getIssuer().equals(proposeValidatorSet
+                            .getValidatorMap().get(s).getProposalValidatorAddr())) {
                         return txReceipt;
                     }
                 }
@@ -172,7 +178,8 @@ public class DPoAContract implements BundleActivator {
             proposeValidatorSet.getValidatorMap().put(txValidatorPropose.getValidatorAddr(), votable);
 
             //Save
-            state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(), JsonUtil.parseJsonObject(JsonUtil.convertObjToString(proposeValidatorSet)));
+            state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(),
+                    JsonUtil.parseJsonObject(JsonUtil.convertObjToString(proposeValidatorSet)));
             txReceipt.setStatus(ExecuteStatus.SUCCESS);
             return txReceipt;
         }
@@ -227,8 +234,11 @@ public class DPoAContract implements BundleActivator {
             ValidatorSet validatorSet = getValidatorSet();
 
             ProposeValidatorSet proposeValidatorSet = getProposeValidatorSet();
-            if (proposeValidatorSet != null && proposeValidatorSet.getValidatorMap() != null) {
-                for (Iterator<Map.Entry<String, ProposeValidatorSet.Votable>> it = proposeValidatorSet.getValidatorMap().entrySet().iterator(); it.hasNext(); ) {
+            if (proposeValidatorSet != null
+                    && proposeValidatorSet.getValidatorMap() != null) {
+
+                for (Iterator<Map.Entry<String, ProposeValidatorSet.Votable>> it =
+                     proposeValidatorSet.getValidatorMap().entrySet().iterator(); it.hasNext(); ) {
                     Map.Entry<String, ProposeValidatorSet.Votable> entry = it.next();
                     switch (entry.getValue().status()) {
                         case AGREE:
@@ -262,10 +272,14 @@ public class DPoAContract implements BundleActivator {
             List<Validator> validators = validatorSet.order(null);
             if (params != null) {
                 if (jsonValidator != null) {
-                    sendOutputStore(validatorSchemeName, params.get("blockNo").getAsString(), jsonValidator);
+                    sendOutputStore(validatorSchemeName,
+                            params.get("blockNo").getAsString(),
+                            jsonValidator);
                 }
                 if (proposedValidator != null) {
-                    sendOutputStore(proposedValidatorSchemeName, params.get("blockNo").getAsString(), proposedValidator);
+                    sendOutputStore(proposedValidatorSchemeName,
+                            params.get("blockNo").getAsString(),
+                            proposedValidator);
                 }
             }
             return validators;

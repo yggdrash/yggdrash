@@ -82,7 +82,7 @@ project(':yggdrash-core') {
     dependencies {
         compile project(':yggdrash-common')
         implementation project(':yggdrash-contract')
-        implementation project(':yggdrash-contract-versioning')
+//        implementation project(':yggdrash-contract-versioning')
 
         compile "io.grpc:grpc-services:${grpcVersion}"
         compile "io.grpc:grpc-netty:${grpcVersion}"
