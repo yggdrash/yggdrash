@@ -1,6 +1,7 @@
 package io.yggdrash.validator.store.pbft;
 
 import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
+import com.anarsoft.vmlens.concurrent.junit.ThreadCount;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
@@ -18,17 +19,17 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE100K;
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
-import static io.yggdrash.common.util.Utils.sleep;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(ConcurrentTestRunner.class)
@@ -243,23 +244,70 @@ public class PbftBlockKeyStoreMultiThreadTest {
     }
 
     @Test
+    @ThreadCount(8)
     public void putTestMultiThread() {
-        long testNumber = 1000;
+        long testNumber = 100000;
         for (long l = 0L; l < testNumber; l++) {
-            this.blockKeyStore.put(l, EMPTY_BYTE100K);
+            this.blockKeyStore.put(l, EMPTY_BYTE32);
         }
         log.debug("blockKeyStore size= " + this.blockKeyStore.size());
-        assertEquals(1000L, this.blockKeyStore.size());
+        assertEquals(testNumber, this.blockKeyStore.size());
     }
 
     @Test
-    public void putMutiThreadMemoryTest() {
+    public void putMutiThreadMemoryTest() throws InterruptedException {
         TestConstants.PerformanceTest.apply();
+
+        System.gc();
+        Thread.sleep(20000);
 
         this.putTestMultiThread();
 
         System.gc();
-        sleep(3000000);
+        Thread.sleep(3000000);
+    }
+
+    @Test
+    public void getMutiThreadMemoryTest() throws InterruptedException {
+        TestConstants.PerformanceTest.apply();
+
+        System.gc();
+        Thread.sleep(20000);
+
+        this.putTestMultiThread();
+
+        System.gc();
+        Thread.sleep(20000);
+
+        for (long l = 0L; l < this.blockKeyStore.size(); l++) {
+            log.debug("{} {}", l, Hex.toHexString(this.blockKeyStore.get(l)));
+        }
+
+        System.gc();
+        Thread.sleep(3000000);
+    }
+
+
+    @Test
+    public void containsMutiThreadMemoryTest() throws InterruptedException {
+        TestConstants.PerformanceTest.apply();
+
+        System.gc();
+        Thread.sleep(20000);
+
+        this.putTestMultiThread();
+
+        System.gc();
+        Thread.sleep(20000);
+
+        for (long l = 0L; l < this.blockKeyStore.size(); l++) {
+            if (this.blockKeyStore.contains(l)) {
+                log.debug("{} {}", l, Hex.toHexString(this.blockKeyStore.get(l)));
+            }
+        }
+
+        System.gc();
+        Thread.sleep(3000000);
     }
 
     @After

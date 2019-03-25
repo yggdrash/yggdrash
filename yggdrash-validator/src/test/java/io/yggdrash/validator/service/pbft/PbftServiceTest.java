@@ -9,8 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import static io.yggdrash.common.util.Utils.sleep;
-
 @Ignore
 @RunWith(SpringRunner.class)
 @SpringBootTest(classes = YggdrashValidator.class)
@@ -26,12 +24,12 @@ public class PbftServiceTest {
     }
 
     @Test
-    public void checkNodeTest() {
+    public void checkNodeTest() throws InterruptedException {
         for (int i = 0; i < 1000; i++) {
             pbftService.checkNode();
         }
 
         System.gc();
-        sleep(3600000);
+        Thread.sleep(3600000);
     }
 }

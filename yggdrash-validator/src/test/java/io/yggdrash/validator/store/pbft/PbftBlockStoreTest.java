@@ -31,7 +31,6 @@ import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
-import static io.yggdrash.common.util.Utils.sleep;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -276,7 +275,7 @@ public class PbftBlockStoreTest {
     }
 
     @Test
-    public void memoryTest() {
+    public void memoryTest() throws InterruptedException {
         TestConstants.PerformanceTest.apply();
 
         long testNumber = 100000;
@@ -298,11 +297,11 @@ public class PbftBlockStoreTest {
         log.debug("After free memory: " + Runtime.getRuntime().freeMemory());
 
         System.gc();
-        sleep(20000);
+        Thread.sleep(20000);
     }
 
     @Test
-    public void memoryTest2() {
+    public void memoryTest2() throws InterruptedException {
         TestConstants.PerformanceTest.apply();
 
         long testNumber = 10000;
@@ -321,7 +320,7 @@ public class PbftBlockStoreTest {
         }
 
         System.gc();
-        sleep(300000);
+        Thread.sleep(300000);
     }
 
     @After

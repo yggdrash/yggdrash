@@ -28,7 +28,6 @@ import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
-import static io.yggdrash.common.util.Utils.sleep;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -267,7 +266,7 @@ public class PbftBlockKeyStoreTest {
     }
 
     @Test
-    public void memoryTest() {
+    public void memoryTest() throws InterruptedException {
         TestConstants.PerformanceTest.apply();
 
         long testNumber = 1000000;
@@ -286,11 +285,11 @@ public class PbftBlockKeyStoreTest {
         assertEquals(this.blockKeyStore.size(), testNumber);
 
         System.gc();
-        sleep(20000);
+        Thread.sleep(20000);
     }
 
     @Test
-    public void memoryTestMultiThread() {
+    public void memoryTestMultiThread() throws InterruptedException {
         TestConstants.PerformanceTest.apply();
 
         long testNumber = 1000000;
@@ -309,7 +308,7 @@ public class PbftBlockKeyStoreTest {
         assertEquals(this.blockKeyStore.size(), testNumber);
 
         System.gc();
-        sleep(20000);
+        Thread.sleep(20000);
     }
 
     @Test
