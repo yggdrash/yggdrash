@@ -7,18 +7,6 @@ import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.store.TransactionReceiptStore;
-import java.io.File;
-import java.io.FilePermission;
-import java.io.IOException;
-import java.lang.reflect.ReflectPermission;
-import java.net.SocketPermission;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.PropertyPermission;
-import java.util.jar.JarFile;
-import java.util.jar.Manifest;
 import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -37,18 +25,27 @@ import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 import org.osgi.service.permissionadmin.PermissionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.File;
+import java.io.FilePermission;
+import java.io.IOException;
+import java.lang.reflect.ReflectPermission;
+import java.net.SocketPermission;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.PropertyPermission;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 public class ContractContainer {
     private static final Logger log = LoggerFactory.getLogger(ContractContainer.class);
 
     // TODO remove prefix and suffix
-    static final String PREFIX_BUNDLE_PATH = "file:";
-    private static final String SUFFIX_SYSTEM_CONTRACT = "/system-contracts";
-    private static final String SUFFIX_USER_CONTRACT = "/user-contracts";
+    public static final String SUFFIX_SYSTEM_CONTRACT = "contract/system/";
+    public static final String SUFFIX_USER_CONTRACT = "contract/user/";
 
     private Framework framework;
-    private String systemContractPath;
-    private String userContractPath;
 
     private final FrameworkFactory frameworkFactory;
     private final Map<String, String> commonContainerConfig;
@@ -88,8 +85,8 @@ public class ContractContainer {
 
         framework = frameworkFactory.newFramework(containerConfig);
 
-        contractManager = new ContractManager(framework, systemContractPath, userContractPath,
-                branchId, stateStore, transactionReceiptStore, outputStore, systemProperties);
+        contractManager = new ContractManager(framework, branchId, stateStore,
+                transactionReceiptStore, outputStore, systemProperties);
 
         try {
             framework.start();
@@ -161,7 +158,7 @@ public class ContractContainer {
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-system-file", permissionKey),
                 new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName()
-                        , new String[]{"contract/system/*"})
+                        , new String[]{String.format("%s*", SUFFIX_SYSTEM_CONTRACT)})
                 },
                 systemPermissions.toArray(new PermissionInfo[systemPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
@@ -179,7 +176,7 @@ public class ContractContainer {
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-user-file", permissionKey),
                 new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName()
-                        , new String[]{"contract/user/*"})
+                        , new String[]{String.format("%s*", SUFFIX_USER_CONTRACT)})
                 },
                 userPermissions.toArray(new PermissionInfo[userPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));

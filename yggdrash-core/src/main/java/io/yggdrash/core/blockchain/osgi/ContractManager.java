@@ -42,8 +42,6 @@ public class ContractManager {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
 
     private final Framework framework;
-    private final String systemContractPath;
-    private final String userContractPath;
     private final String branchId;
     private final StateStore stateStore;
     private final TransactionReceiptStore transactionReceiptStore;
@@ -51,16 +49,10 @@ public class ContractManager {
     private final SystemProperties systemProperties;
     private final ContractCache contractCache;
 
-    private static final String SYSTEM_CONTRACT_PREFIX = "contract/system/";
-    private static final String USER_CONTRACT_PREFIX = "contract/system/";
-
-    ContractManager(Framework framework, String systemContractPath, String userContractPath,
-                    String branchId, StateStore stateStore,
+    ContractManager(Framework framework, String branchId, StateStore stateStore,
                     TransactionReceiptStore transactionReceiptStore,
                     Map<OutputType, OutputStore> outputStore, SystemProperties systemProperties) {
         this.framework = framework;
-        this.systemContractPath = systemContractPath;
-        this.userContractPath = userContractPath;
         this.branchId = branchId;
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
@@ -76,7 +68,7 @@ public class ContractManager {
         }
 
         boolean isSystemContract = bundle.getLocation()
-                .startsWith(SYSTEM_CONTRACT_PREFIX);
+                .startsWith(ContractContainer.SUFFIX_SYSTEM_CONTRACT);
 
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = framework.getBundleContext().getService(serviceRef);
@@ -208,7 +200,8 @@ public class ContractManager {
             InputStream fileStream = new FileInputStream(file.getAbsoluteFile());
 
             // set location
-            String locationPrefix = isSystem ? SYSTEM_CONTRACT_PREFIX : USER_CONTRACT_PREFIX;
+            String locationPrefix = isSystem ? ContractContainer.SUFFIX_SYSTEM_CONTRACT :
+                    ContractContainer.SUFFIX_USER_CONTRACT;
 
             String location = String.format("%s/%s", locationPrefix, version.toString());
 
