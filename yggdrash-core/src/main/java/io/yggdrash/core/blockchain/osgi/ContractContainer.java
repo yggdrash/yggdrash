@@ -42,8 +42,8 @@ public class ContractContainer {
     private static final Logger log = LoggerFactory.getLogger(ContractContainer.class);
 
     // TODO remove prefix and suffix
-    public static final String SUFFIX_SYSTEM_CONTRACT = "contract/system/";
-    public static final String SUFFIX_USER_CONTRACT = "contract/user/";
+    public static final String SUFFIX_SYSTEM_CONTRACT = "contract/system";
+    public static final String SUFFIX_USER_CONTRACT = "contract/user";
 
     private Framework framework;
 
@@ -91,7 +91,6 @@ public class ContractContainer {
         try {
             framework.start();
             setDefaultPermission(branchId);
-
         } catch (Exception e) {
             e.printStackTrace();
             log.error("Load contract container exception: branchID - {}, msg - {}", branchId, e.getMessage());
@@ -158,7 +157,7 @@ public class ContractContainer {
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-system-file", permissionKey),
                 new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName()
-                        , new String[]{String.format("%s*", SUFFIX_SYSTEM_CONTRACT)})
+                        , new String[]{String.format("%s/*", SUFFIX_SYSTEM_CONTRACT)})
                 },
                 systemPermissions.toArray(new PermissionInfo[systemPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
@@ -176,7 +175,7 @@ public class ContractContainer {
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-user-file", permissionKey),
                 new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName()
-                        , new String[]{String.format("%s*", SUFFIX_USER_CONTRACT)})
+                        , new String[]{String.format("%s/*", SUFFIX_USER_CONTRACT)})
                 },
                 userPermissions.toArray(new PermissionInfo[userPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
