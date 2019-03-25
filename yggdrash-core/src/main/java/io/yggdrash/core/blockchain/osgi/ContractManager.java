@@ -141,9 +141,12 @@ public class ContractManager {
                 case STOP:
                     bundle.stop();
                     break;
+                default:
+                    throw new Exception("Action is not Exist");
             }
         } catch (Exception e) {
-            log.error("Execute bundle exception: contractId:{}, path:{}, stack:{}", bundle.getBundleId(), bundle.getLocation(), ExceptionUtils.getStackTrace(e));
+            log.error("Execute bundle exception: contractId:{}, path:{}, stack:{}",
+                    bundle.getBundleId(), bundle.getLocation(), ExceptionUtils.getStackTrace(e));
             throw new RuntimeException(e);
         }
         return true;
@@ -184,7 +187,7 @@ public class ContractManager {
 
 
     public boolean checkExistContract(String symbol, String version) {
-        for(Bundle b : framework.getBundleContext().getBundles()) {
+        for (Bundle b : framework.getBundleContext().getBundles()) {
             if (
                     b.getVersion().toString().equals(version)
                             && b.getSymbolicName().equals(symbol)
@@ -259,6 +262,9 @@ public class ContractManager {
             case EndBlock:
                 methodMap = contractCache.getEndBlockMethods().get(bundle.getLocation());
                 break;
+            default:
+                log.error("Method Type is not exist");
+                return null;
         }
 
         if (methodMap == null || methodMap.get(methodName) == null) {
@@ -267,19 +273,17 @@ public class ContractManager {
 
         Method method = methodMap.get(methodName);
         try {
-            switch (methodType) {
-                case InvokeTx:
-                    // Inject field
-                    Map<Field, List<Annotation>> fields = contractCache.getInjectingFields().get(bundle.getLocation());
-                    for (Field field : fields.keySet()) {
-                        field.setAccessible(true);
-                        for (Annotation a : field.getDeclaredAnnotations()) {
-                            if (a.annotationType().equals(ContractTransactionReceipt.class)) {
-                                field.set(service, txReceipt);
-                            }
+            if (methodType == MethodType.InvokeTx) {
+                // Inject field
+                Map<Field, List<Annotation>> fields = contractCache.getInjectingFields().get(bundle.getLocation());
+                for (Field field : fields.keySet()) {
+                    field.setAccessible(true);
+                    for (Annotation a : field.getDeclaredAnnotations()) {
+                        if (a.annotationType().equals(ContractTransactionReceipt.class)) {
+                            field.set(service, txReceipt);
                         }
                     }
-                    break;
+                }
             }
 
             if (method.getParameterCount() == 0) {
@@ -322,7 +326,8 @@ public class ContractManager {
         if (bundle == null) {
             return null;
         }
-        return callContractMethod(bundle, txBody.get("method").getAsString(), txBody.getAsJsonObject("params"), MethodType.InvokeTx, txReceipt, null);
+        return callContractMethod(bundle, txBody.get("method").getAsString(),
+                txBody.getAsJsonObject("params"), MethodType.InvokeTx, txReceipt, null);
     }
 
     private List<Object> endBlock(JsonObject endBlockParams) {
@@ -350,7 +355,8 @@ public class ContractManager {
         }
 
         BlockRuntimeResult result = new BlockRuntimeResult(nextBlock);
-//        TempStateStore blockState = new TempStateStore(stateStore);
+        // TODO tempStateStore
+        // TempStateStore blockState = new TempStateStore(stateStore);
         for (TransactionHusk tx : nextBlock.getBody()) {
             TransactionReceipt txReceipt = createTransactionReceipt(tx);
             // set Block ID
@@ -376,7 +382,8 @@ public class ContractManager {
         List<Object> endBlockResult = endBlock(endBlockParams);
         */
         // Save BlockStates
-//        result.setBlockResult(blockState.changeValues());
+        // TODO tempStateStore
+        // result.setBlockResult(blockState.changeValues());
 
         return result;
     }

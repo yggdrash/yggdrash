@@ -3,6 +3,9 @@ package io.yggdrash.core.blockchain.osgi;
 import io.yggdrash.contract.core.annotation.ContractEndBlock;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.launch.Framework;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -12,9 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.launch.Framework;
 
 class ContractCache {
     //Map<contractName, Map<field, List<Annotation>>>
@@ -56,7 +56,7 @@ class ContractCache {
         // Store Full contract location
         String location = bundle.getLocation();
         if (!fullLocation.containsValue(location)) {
-            String contractName = location.substring(location.lastIndexOf("/")+1);
+            String contractName = location.substring(location.lastIndexOf("/") + 1);
             fullLocation.put(contractName, location);
         }
 
@@ -66,8 +66,12 @@ class ContractCache {
 
         if (injectingFields.get(bundle.getLocation()) == null) {
             Map<Field, List<Annotation>> fields = Arrays.stream(service.getClass().getDeclaredFields())
-                    .filter(field -> field.getDeclaredAnnotations() != null && field.getDeclaredAnnotations().length > 0)
-                    .collect(Collectors.toMap(field -> field, field -> Arrays.asList(field.getDeclaredAnnotations())));
+                    .filter(field ->
+                        field.getDeclaredAnnotations() != null
+                                && field.getDeclaredAnnotations().length > 0
+                    )
+                    .collect(Collectors.toMap(
+                            field -> field, field -> Arrays.asList(field.getDeclaredAnnotations())));
             injectingFields.put(bundle.getLocation(), fields);
         }
 

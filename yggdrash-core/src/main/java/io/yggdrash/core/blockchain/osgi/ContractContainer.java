@@ -61,8 +61,7 @@ public class ContractContainer {
     ContractContainer(FrameworkFactory frameworkFactory, Map<String, String> containerConfig,
                       String branchId, StateStore stateStore,
                       TransactionReceiptStore transactionReceiptStore, DefaultConfig config,
-                      SystemProperties systemProperties, Map<OutputType, OutputStore> outputStore
-            ) {
+                      SystemProperties systemProperties, Map<OutputType, OutputStore> outputStore) {
         this.frameworkFactory = frameworkFactory;
         this.commonContainerConfig = containerConfig;
         this.branchId = branchId;
@@ -105,7 +104,8 @@ public class ContractContainer {
         String permissionKey = String.format("%s-container-permission", branchId);
 
 
-        ServiceReference<ConditionalPermissionAdmin> ref = context.getServiceReference(ConditionalPermissionAdmin.class);
+        ServiceReference<ConditionalPermissionAdmin> ref =
+                context.getServiceReference(ConditionalPermissionAdmin.class);
         ConditionalPermissionAdmin admin = context.getService(ref);
         ConditionalPermissionUpdate update = admin.newConditionalPermissionUpdate();
         List<ConditionalPermissionInfo> infos = update.getConditionalPermissionInfos();
@@ -121,17 +121,24 @@ public class ContractContainer {
 
         List<PermissionInfo> permissionInfos = new ArrayList<>();
 
-        permissionInfos.add(new PermissionInfo(PropertyPermission.class.getName(), "org.osgi.framework", "read"));
-        permissionInfos.add(new PermissionInfo(PropertyPermission.class.getName(), "com.fasterxml.jackson.core.util.BufferRecyclers.trackReusableBuffers", "read"));
-        permissionInfos.add(new PermissionInfo(RuntimePermission.class.getName(), "*", "accessDeclaredMembers"));
-
-        permissionInfos.add(new PermissionInfo(ReflectPermission.class.getName(), "*", "suppressAccessChecks"));
-
-        permissionInfos.add(new PermissionInfo(PackagePermission.class.getName(), "*", "import,export,exportonly"));
-        permissionInfos.add(new PermissionInfo(CapabilityPermission.class.getName(), "osgi.ee", "require"));
-        permissionInfos.add(new PermissionInfo(CapabilityPermission.class.getName(), "osgi.native", "require"));
-        permissionInfos.add(new PermissionInfo(ServicePermission.class.getName(), "*", "get,register"));
-        permissionInfos.add(new PermissionInfo(BundlePermission.class.getName(), "*", "provide,require,host,fragment"));
+        permissionInfos.add(new PermissionInfo(PropertyPermission.class.getName(),
+                "org.osgi.framework", "read"));
+        permissionInfos.add(new PermissionInfo(PropertyPermission.class.getName(),
+                "com.fasterxml.jackson.core.util.BufferRecyclers.trackReusableBuffers", "read"));
+        permissionInfos.add(new PermissionInfo(RuntimePermission.class.getName(),
+                "*", "accessDeclaredMembers"));
+        permissionInfos.add(new PermissionInfo(ReflectPermission.class.getName(),
+                "*", "suppressAccessChecks"));
+        permissionInfos.add(new PermissionInfo(PackagePermission.class.getName(),
+                "*", "import,export,exportonly"));
+        permissionInfos.add(new PermissionInfo(CapabilityPermission.class.getName(),
+                "osgi.ee", "require"));
+        permissionInfos.add(new PermissionInfo(CapabilityPermission.class.getName(),
+                "osgi.native", "require"));
+        permissionInfos.add(new PermissionInfo(ServicePermission.class.getName(),
+                "*", "get,register"));
+        permissionInfos.add(new PermissionInfo(BundlePermission.class.getName(),
+                "*", "provide,require,host,fragment"));
 
         infos.add(admin.newConditionalPermissionInfo(
                 permissionKey,
@@ -147,17 +154,22 @@ public class ContractContainer {
         // 컨트렉트 폴더 읽기/쓰기 권한
         // TODO 아카식 시스템 폴더 읽기/쓰기 권한
         List<PermissionInfo> systemPermissions = new ArrayList<>();
-        systemPermissions.add(new PermissionInfo(FilePermission.class.getName(), String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"));
-        systemPermissions.add(new PermissionInfo(FilePermission.class.getName(), String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete"));
+        systemPermissions.add(
+                new PermissionInfo(FilePermission.class.getName(),
+                        String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"));
+        systemPermissions.add(
+                new PermissionInfo(FilePermission.class.getName(),
+                        String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete"));
         if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
-            systemPermissions.add(new PermissionInfo(SocketPermission.class.getName(), systemProperties.getEsHost(), "connect,resolve"));
+            systemPermissions.add(new PermissionInfo(
+                    SocketPermission.class.getName(), systemProperties.getEsHost(), "connect,resolve"));
         }
         // Bundle 파일의 위치로 권한을 할당한다.
         // {BID}-container-permission-system-file
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-system-file", permissionKey),
-                new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName()
-                        , new String[]{String.format("%s/*", SUFFIX_SYSTEM_CONTRACT)})
+                new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName(),
+                        new String[]{String.format("%s/*", SUFFIX_SYSTEM_CONTRACT)})
                 },
                 systemPermissions.toArray(new PermissionInfo[systemPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
@@ -167,15 +179,21 @@ public class ContractContainer {
         // Branch State Store 권한 추가 - 읽기 권한
         // {BID}-container-permission-user-file
         List<PermissionInfo> userPermissions = new ArrayList<>();
-        userPermissions.add(new PermissionInfo(FilePermission.class.getName(), String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"));
-        userPermissions.add(new PermissionInfo(FilePermission.class.getName(), String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete"));
+        userPermissions.add(
+                new PermissionInfo(FilePermission.class.getName(),
+                    String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"));
+        userPermissions.add(
+                new PermissionInfo(FilePermission.class.getName(),
+                    String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete"));
         if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
-            userPermissions.add(new PermissionInfo(SocketPermission.class.getName(), systemProperties.getEsHost(), "connect,resolve"));
+            userPermissions.add(
+                    new PermissionInfo(SocketPermission.class.getName(),
+                            systemProperties.getEsHost(), "connect,resolve"));
         }
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-user-file", permissionKey),
-                new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName()
-                        , new String[]{String.format("%s/*", SUFFIX_USER_CONTRACT)})
+                new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName(),
+                        new String[]{String.format("%s/*", SUFFIX_USER_CONTRACT)})
                 },
                 userPermissions.toArray(new PermissionInfo[userPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
