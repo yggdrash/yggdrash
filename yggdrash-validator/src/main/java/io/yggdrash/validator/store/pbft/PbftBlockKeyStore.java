@@ -38,7 +38,6 @@ public class PbftBlockKeyStore implements BlockKeyStore<Long, byte[]> {
         }
 
         lock.lock();
-
         try {
             if (!contains(key)) {
                 log.trace("put "
