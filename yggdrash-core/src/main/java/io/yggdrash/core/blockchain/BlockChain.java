@@ -239,14 +239,14 @@ public class BlockChain {
             //Store event
             if (outputStores != null && outputStores.size() > 0) {
                 Map<String, JsonObject> transactionMap = new HashMap<>();
-                nextBlock.getCoreBlock().getBody().getBody().forEach(tx -> {
-                    String txHash = new TransactionHusk(tx).getHash().toString();
-                    transactionMap.put(txHash, tx.toJsonObject());
+                nextBlock.getBody().forEach(tx -> {
+                    String txHash = tx.getHash().toString();
+                    transactionMap.put(txHash, tx.toJsonObjectFromProto());
                 });
 
                 outputStores.forEach((storeType, store) -> {
                     store.put(nextBlock.toJsonObjectByProto());
-                    store.put(nextBlock.getCoreBlock().getHeader().getIndex(), transactionMap);
+                    store.put(nextBlock.getHash().toString(), transactionMap);
                 });
             }
         }
