@@ -26,7 +26,14 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.util.List;
 
-public class TransactionDto {
+public class
+
+
+
+
+
+
+TransactionDto {
 
     public String branchId;
     public String version;

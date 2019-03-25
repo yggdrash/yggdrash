@@ -188,13 +188,18 @@ public class DPoAContract implements BundleActivator {
 
             //Is exists proposed validator
             ProposeValidatorSet proposeValidatorSet = getProposeValidatorSet();
-            if (proposeValidatorSet == null || MapUtils.isEmpty(proposeValidatorSet.getValidatorMap()) || proposeValidatorSet.getValidatorMap().get(txValidatorVote.getValidatorAddr()) == null) {
+            if (proposeValidatorSet == null
+                    || MapUtils.isEmpty(proposeValidatorSet.getValidatorMap())
+                    || proposeValidatorSet.getValidatorMap()
+                    .get(txValidatorVote.getValidatorAddr()) == null) {
                 return txReceipt;
             }
 
             //Check available vote
-            ProposeValidatorSet.Votable votable = proposeValidatorSet.getValidatorMap().get(txValidatorVote.getValidatorAddr());
-            if (votable.getVotedMap().get(txReceipt.getIssuer()) == null || votable.getVotedMap().get(txReceipt.getIssuer()).isVoted()) {
+            ProposeValidatorSet.Votable votable = proposeValidatorSet
+                    .getValidatorMap().get(txValidatorVote.getValidatorAddr());
+            if (votable.getVotedMap().get(txReceipt.getIssuer()) == null
+                    || votable.getVotedMap().get(txReceipt.getIssuer()).isVoted()) {
                 return txReceipt;
             }
 
@@ -208,7 +213,8 @@ public class DPoAContract implements BundleActivator {
             votable.getVotedMap().get(txReceipt.getIssuer()).setVoted(true);
 
             //Save
-            state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(), JsonUtil.parseJsonObject(JsonUtil.convertObjToString(proposeValidatorSet)));
+            state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(),
+                    JsonUtil.parseJsonObject(JsonUtil.convertObjToString(proposeValidatorSet)));
             txReceipt.setStatus(ExecuteStatus.SUCCESS);
             return txReceipt;
         }

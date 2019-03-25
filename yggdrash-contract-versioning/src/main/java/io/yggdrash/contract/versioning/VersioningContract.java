@@ -2,7 +2,7 @@ package io.yggdrash.contract.versioning;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.common.contract.vo.dpoa.tx.TxValidatorVote;
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.util.Hashtable;
 
@@ -48,8 +47,8 @@ public class VersioningContract implements BundleActivator, ServiceListener {
 
         Hashtable<String, String> props = new Hashtable<>();
         props.put("YGGDRASH", "ContractVersionControl");
-//        context.registerService(VersioningContractService.class.getName(), new VersioningContractService(serviceTracker), props);
-        context.registerService(VersioningContractService.class.getName(), new VersioningContractService(), props);
+        context.registerService(VersioningContractService.class.getName(), new VersioningContractService(serviceTracker), props);
+//        context.registerService(VersioningContractService.class.getName(), new VersioningContractService(), props);
     }
 
     @Override
@@ -66,11 +65,11 @@ public class VersioningContract implements BundleActivator, ServiceListener {
         private static final Long MAX_FILE_LENGTH = 5242880L; // default 5MB bytes
         private static final String SUFFIX_UPDATE_CONTRACT = "/update-temp-contracts";
         private static final String SUFFIX = ".jar";
-//        private final ServiceTracker serviceTracker;
+        private final ServiceTracker serviceTracker;
 
-//        public VersioningContractService(ServiceTracker serviceTracker) {
-//            this.serviceTracker = serviceTracker;
-//        }
+        public VersioningContractService(ServiceTracker serviceTracker) {
+            this.serviceTracker = serviceTracker;
+        }
 
         @ContractStateStore
         ReadWriterStore<String, JsonObject> state;
@@ -80,17 +79,11 @@ public class VersioningContract implements BundleActivator, ServiceListener {
 
         @InvokeTransaction
         public TransactionReceipt updateProposer(JsonObject params) throws UnsupportedEncodingException {
-
-            // 컨트랙트 업데이트 되는 정보들의 집합인 컨트랙트 셋을 하나 만들고 컨트랙트 버전 별로 투표상황과 결과값을 저장하는 객체를 하나 만들었다.
-            // 컨트랙트는 임시 폴더에 권한관리 체크안하고 일단 업로드한 상태이고
-            // 투표는 아직 못짯다
-
-            // 컨트랙트 버저닝는 따로 패키징 하였는대, 그래들 작업하는게.. 버저닝 띄우는게 어렵다 아직 해결 못했다.
-
             // TODO contract name 컨트랙트 조회 - branch store에서 조회
+
             VersioningContractStateValue stateValue;
             try {
-                stateValue = VersioningContractStateValue.of(params);
+                stateValue = VersioningContractStateValue.of(txReceipt.getTxId());
                 stateValue.init();
 
                 if (!validatorVerify()) {
@@ -104,113 +97,124 @@ public class VersioningContract implements BundleActivator, ServiceListener {
                     return txReceipt;
                 }
 
-                setStateValue(stateValue, binaryFile);
-
-                System.out.println(stateValue.getJson());
-                FileOutputStream fos;
-
-                String exportPath = System.getProperty("user.dir");
-                // TODO file 권한
-                String tempContractPath = String.format("%s/src/main/resources%s", exportPath, SUFFIX_UPDATE_CONTRACT);
-
-                File fileDir = new File(tempContractPath);
-                if (!fileDir.exists()) {
-                    fileDir.mkdirs();
-                    // TODO 존재하면
-                }
-                ContractVersion version = ContractVersion.of(binaryFile);
-                File destFile = new File(tempContractPath + File.separator + version + SUFFIX);
-                destFile.setReadOnly();
-
                 try {
+                    setStateValue(stateValue, binaryFile, params.get("contractVersion").getAsString());
+                    FileOutputStream fos;
+                    String exportPath = System.getProperty("user.dir");
+                    // TODO file 권한
+                    String tempContractPath = String.format("%s/src/main/resources%s", exportPath, SUFFIX_UPDATE_CONTRACT);
+
+                    File fileDir = new File(tempContractPath);
+                    if (!fileDir.exists()) {
+                        fileDir.mkdirs();
+                    }
+                    ContractVersion version = ContractVersion.of(binaryFile);
+                    File destFile = new File(tempContractPath + File.separator + version + SUFFIX);
+                    destFile.setReadOnly();
+
                     fos = new FileOutputStream(destFile);
                     fos.write(binaryFile);
                     fos.close();
-                } catch (IOException e) {
+
+                    state.put(txReceipt.getTxId(),
+                            stateValue.getJson().get(txReceipt.getTxId()).getAsJsonObject());
+                    txReceipt.setStatus(ExecuteStatus.SUCCESS);
+                    log.info("[Contract | update] TX Id => " + txReceipt.getTxId());
+                    log.info("[Contract | update] Contract State => " + stateValue.getJson());
+                } catch (Exception e) {
                     log.error(e.toString());
+                    txReceipt.setStatus(ExecuteStatus.FALSE);
                 }
 
-                txReceipt.setStatus(ExecuteStatus.SUCCESS);
-
             } catch (Exception e) {
-                log.warn("Failed to convert Branch = {}", params);
+                log.warn("Failed to convert json = {}", params);
             }
             return txReceipt;
         }
 
-        private void setStateValue(VersioningContractStateValue stateValue, byte[] contractBinary) {
+        private void setStateValue(VersioningContractStateValue stateValue, byte[] contractBinary, String targetVersion) {
+            stateValue.setTargetContractVersion(targetVersion);
             stateValue.setBlockHeight(txReceipt.getBlockHeight());
             stateValue.setUpdateContract(contractBinary);
-            stateValue.setTxId(txReceipt.getTxId());
         }
 
         @InvokeTransaction
         public TransactionReceipt vote(JsonObject params) {
-            // TODO 배포 전 벨리데이터들 투표
-            // TODO 투표하는 동안 validators들이 바뀔 수 있다.
-            // TODO txId로 투표
-            // TODO 임시 폴더 파일 위치
-            // TODO 2/3이상 투표 완료시 임시폴더 파일 컨트랙트 폴더 위치로 이동
-            // TODO 2/3이상일 경우 투표 마감
-            // 과반수가 투표 반대일경우
-
-            // txid 별 issuer 투표상태 저장
-            // 투표 찬성 수 체크
-            // 과반수 이상 동의시 브랜치 스토어에 저장
             txReceipt.setStatus(ExecuteStatus.FALSE);
-            //Check validation
-            TxValidatorVote txValidatorVote = JsonUtil.generateJsonToClass(params.toString(), TxValidatorVote.class);
-//            if (!validateTx(txValidatorVote)) {
-//                return txReceipt;
-//            }
-//
-//            //Is exists proposed validator
-//            ProposeValidatorSet proposeValidatorSet = getProposeValidatorSet();
-//            if (proposeValidatorSet == null || MapUtils.isEmpty(proposeValidatorSet.getValidatorMap()) || proposeValidatorSet.getValidatorMap().get(txValidatorVote.getValidatorAddr()) == null) {
-//                return txReceipt;
-//            }
-//
-//            //Check available vote
-//            ProposeValidatorSet.Votable votable = proposeValidatorSet.getValidatorMap().get(txValidatorVote.getValidatorAddr());
-//            if (votable.getVotedMap().get(txReceipt.getIssuer()) == null || votable.getVotedMap().get(txReceipt.getIssuer()).isVoted()) {
-//                return txReceipt;
-//            }
-//
-//            //Vote
-//            if (txValidatorVote.isAgree()) {
-//                votable.setAgreeCnt(votable.getAgreeCnt() + 1);
-//            } else {
-//                votable.setDisagreeCnt(votable.getDisagreeCnt() + 1);
-//            }
-//            votable.getVotedMap().get(txReceipt.getIssuer()).setAgree(txValidatorVote.isAgree());
-//            votable.getVotedMap().get(txReceipt.getIssuer()).setVoted(true);
-//
-//            //Save
-//            state.put(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue(), JsonUtil.parseJsonObject(JsonUtil.convertObjToString(proposeValidatorSet)));
-//            txReceipt.setStatus(ExecuteStatus.SUCCESS);
 
+            VersioningContractStateValue stateValue;
+            try {
+                ContractVote contractVote = JsonUtil.generateJsonToClass(params.toString(), ContractVote.class);
+                Contract contract = getProposerContract(contractVote.getTxId());
+                DPoAContract.DPoAService dPoAService = (DPoAContract.DPoAService) serviceTracker.getService();
+                ValidatorSet validatorSet = dPoAService.getValidatorSet();
+                Contract.Votable votable = new Contract.Votable(txReceipt.getIssuer(), validatorSet);
+                if (votable.getVotedMap().get(txReceipt.getIssuer()) == null
+                        || votable.getVotedMap().get(txReceipt.getIssuer()).isVoted()) {
+                    return txReceipt;
+                }
+                contract.setVotedHistory(votable);
 
+                if (contractVote.isAgree()) {
+                    votable.setAgreeCnt(votable.getAgreeCnt() + 1);
+                } else {
+                    votable.setDisagreeCnt(votable.getDisagreeCnt() + 1);
+                }
+                votable.getVotedMap().get(txReceipt.getIssuer()).setAgree(contractVote.isAgree());
+                votable.getVotedMap().get(txReceipt.getIssuer()).setVoted(true);
+
+                if (contractVote.isAgree()) {
+                    votable.setAgreeCnt(votable.getAgreeCnt() + 1);
+                } else {
+                    votable.setDisagreeCnt(votable.getDisagreeCnt() + 1);
+                }
+                votable.getVotedMap().get(txReceipt.getIssuer()).setAgree(contractVote.isAgree());
+                votable.getVotedMap().get(txReceipt.getIssuer()).setVoted(true);
+
+                stateValue = VersioningContractStateValue.of(contractVote.getTxId());
+                stateValue.setContract(contract);
+                txReceipt.setStatus(ExecuteStatus.SUCCESS);
+            } catch (Exception e) {
+                log.warn("Failed to convert json = {}", params);
+            }
             return txReceipt;
         }
 
         @ContractQuery
-        public void updateStatus() {
-            //TODO 투표 상태 및 업데이트 된지 안된지 상태
+        public Contract updateStatus(JsonObject params) {
+            Contract contract = null;
+            String txId = params.get("txId").getAsString();
+            JsonObject json = state.get(txId);
+            if (json != null) {
+                contract = JsonUtil.generateJsonToClass(json.toString(), Contract.class);
+            }
+            return contract;
         }
 
 
         private boolean validatorVerify() {
-//            DPoAContract.DPoAService dPoAService = (DPoAContract.DPoAService) serviceTracker.getService();
-////            serviceTracker.waitForService(5000);
-//            dPoAService.getValidatorSet();
-//
-//            ValidatorSet validatorSet = dPoAService.getValidatorSet();
-//            if (validatorSet == null || validatorSet.getValidatorMap() == null
-//                    || validatorSet.getValidatorMap().get(txReceipt.getIssuer()) == null) {
-//                return false;
-//            }
+            DPoAContract.DPoAService dPoAService = (DPoAContract.DPoAService) serviceTracker.getService();
+//            serviceTracker.waitForService(5000);
+            dPoAService.getValidatorSet();
+
+            ValidatorSet validatorSet = dPoAService.getValidatorSet();
+            if (validatorSet == null || validatorSet.getValidatorMap() == null
+                    || validatorSet.getValidatorMap().get(txReceipt.getIssuer()) == null) {
+                return false;
+            }
             return true;
         }
+
+        @ContractQuery
+        public Contract getProposerContract(String txId) {
+            Contract contract = null;
+            JsonObject json = state.get(txId);
+            if (json != null) {
+                contract = JsonUtil.generateJsonToClass(json.toString(), Contract.class);
+            }
+            return contract;
+        }
+
 
         private boolean sizeVerify(byte[] binaryFile) {
             if (binaryFile.length > MAX_FILE_LENGTH) {

@@ -3,23 +3,26 @@ package io.yggdrash.contract.versioning;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.utils.JsonUtil;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /**
  * updatable contract version
  *
  */
 public class VersioningContractStateValue {
 
-    private static String targetContractVersion;
-    private static ContractSet contractSet = new ContractSet();
-    private static Contract contract = new Contract();
+    private static Contract contract;
     private static JsonObject json;
+    private static String txId;
+    private static Map<String, Contract> contractMap = new HashMap<>();
 
-    public VersioningContractStateValue(JsonObject json) {
-        targetContractVersion = json.get("contractVersion").getAsString();
+    public VersioningContractStateValue(String txId) {
+        this.txId = txId;
     }
 
     public void init() {
-        contract = new Contract(targetContractVersion);
+        contract = new Contract(txId);
         contract.setTargetBlockHeight(0L);
         convertJson();
     }
@@ -28,8 +31,25 @@ public class VersioningContractStateValue {
         return this.json;
     }
 
-    public void updateContract() {
+    public void upgrade() {
 
+    }
+
+    public void voting() {
+
+    }
+
+    public Contract getContract() {
+        return contract;
+    }
+
+    public Map<String, Contract> getContractMap() {
+        return contractMap;
+    }
+
+    public void setTargetContractVersion(String targetVersion) {
+        contract.setTargetVersion(targetVersion);
+        convertJson();
     }
 
     public void setBlockHeight(Long blockHeight) {
@@ -42,17 +62,18 @@ public class VersioningContractStateValue {
         convertJson();
     }
 
-    public void setTxId(String txId) {
-        contract.setTxId(txId);
+    public void setContract(Contract c) {
+        contract = c;
         convertJson();
     }
 
-    public static VersioningContractStateValue of(JsonObject json) {
-        return new VersioningContractStateValue(json.deepCopy());
+    public static VersioningContractStateValue of(String txId) {
+        return new VersioningContractStateValue(txId);
     }
 
     private void convertJson() {
-        contractSet.getContractMap().put(targetContractVersion, contract);
-        json = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(contractSet.getContractMap()));
+        contractMap.put(txId, contract);
+        json = JsonUtil.convertMapToJson(contractMap);
+
     }
 }
