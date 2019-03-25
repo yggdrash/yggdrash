@@ -133,20 +133,24 @@ public class EbftBlockChain implements ConsensusBlockChain<String, EbftBlock> {
 
     @Override
     public void addBlock(ConsensusBlock block) {
-        if (block == null
-                || block.getIndex() != this.lastConfirmedBlock.getIndex() + 1
-                || !block.verify()) {
-            return;
-        }
-
-        this.blockKeyStore.put(block.getIndex(), block.getHash());
-        this.blockStore.put(block.getHash(), (EbftBlock) block);
-
         this.lock.lock();
-        this.lastConfirmedBlock = (EbftBlock) block.clone();
-        loggingBlock(this.lastConfirmedBlock);
-        batchTxs(this.lastConfirmedBlock);
-        this.lock.unlock();
+        try {
+            if (block == null
+                    || block.getIndex() != this.lastConfirmedBlock.getIndex() + 1
+                    || !block.verify()) {
+                log.debug("Block is not valid.");
+                return;
+            }
+
+            this.blockKeyStore.put(block.getIndex(), block.getHash());
+            this.blockStore.put(block.getHash(), (EbftBlock) block);
+
+            this.lastConfirmedBlock = (EbftBlock) block.clone();
+            loggingBlock(this.lastConfirmedBlock);
+            batchTxs(this.lastConfirmedBlock);
+        } finally {
+            this.lock.unlock();
+        }
     }
 
     private void loggingBlock(EbftBlock block) {
