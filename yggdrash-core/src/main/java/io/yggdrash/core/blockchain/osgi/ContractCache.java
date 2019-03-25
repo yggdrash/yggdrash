@@ -3,10 +3,6 @@ package io.yggdrash.core.blockchain.osgi;
 import io.yggdrash.contract.core.annotation.ContractEndBlock;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.launch.Framework;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -16,6 +12,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.launch.Framework;
 
 class ContractCache {
     //Map<contractName, Map<field, List<Annotation>>>
@@ -26,6 +25,8 @@ class ContractCache {
     private final Map<String, Map<String, Method>> queryMethods = new HashMap<>();
 
     private final Map<String, Map<String, Method>> endBlockMethods = new HashMap<>();
+
+    private final Map<String, String> fullLocation = new HashMap<>();
 
     Map<String, Map<Field, List<Annotation>>> getInjectingFields() {
         return injectingFields;
@@ -43,11 +44,19 @@ class ContractCache {
         return endBlockMethods;
     }
 
+    String getFullLocation(String contractName) {
+        return fullLocation.get(contractName);
+    }
+
+
     void cacheContract(Bundle bundle, Framework framework) {
         if (bundle.getRegisteredServices() == null) {
             return;
         }
-
+        // Store Full contract location
+        String location = bundle.getLocation();
+        String contractName = location.substring(location.lastIndexOf("/"));
+        fullLocation.put(contractName, location);
         // Assume one service
         ServiceReference serviceRef = bundle.getRegisteredServices()[0];
         Object service = framework.getBundleContext().getService(serviceRef);

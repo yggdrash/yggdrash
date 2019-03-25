@@ -32,7 +32,6 @@ import java.util.Map;
 import java.util.jar.Manifest;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.osgi.framework.Bundle;
-import org.osgi.framework.BundleException;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
@@ -52,7 +51,8 @@ public class ContractManager {
     private final SystemProperties systemProperties;
     private final ContractCache contractCache;
 
-    private List<String> systemContracts;
+    private static final String SYSTEM_CONTRACT_PREFIX = "contract/system/";
+    private static final String USER_CONTRACT_PREFIX = "contract/system/";
 
     ContractManager(Framework framework, String systemContractPath, String userContractPath,
                     String branchId, StateStore stateStore,
@@ -69,26 +69,6 @@ public class ContractManager {
         contractCache = new ContractCache();
     }
 
-    void setSystemContracts(List<String> systemContracts) {
-        this.systemContracts = systemContracts;
-    }
-
-    String makeContractPath(String contractName, boolean isSystemContract) {
-        return String.format("%s/%s", isSystemContract ? systemContractPath : userContractPath, contractName);
-    }
-
-    // TODO Contract Branch Check
-    private String makeContractFullPath(String contractName, boolean isSystemContract) {
-        return String.format("%s%s/%s", ContractContainer.PREFIX_BUNDLE_PATH,
-                isSystemContract ? systemContractPath : userContractPath, contractName);
-    }
-
-
-    // TODO RUN Branch Contract
-    private boolean checkSystemContract(String contractName) {
-        return contractName.matches("[0-9]*[-]*system-.*");
-    }
-
     void inject(Bundle bundle) throws IllegalAccessException {
         ServiceReference<?>[] serviceRefs = bundle.getRegisteredServices();
         if (serviceRefs == null) {
@@ -96,8 +76,7 @@ public class ContractManager {
         }
 
         boolean isSystemContract = bundle.getLocation()
-                .startsWith(String.format("%s%s",
-                        ContractContainer.PREFIX_BUNDLE_PATH, systemContractPath));
+                .startsWith(SYSTEM_CONTRACT_PREFIX);
 
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = framework.getBundleContext().getService(serviceRef);
@@ -211,26 +190,6 @@ public class ContractManager {
     }
 
 
-    public long install(String contractFileName, boolean isSystemContract) {
-        Bundle bundle;
-        try {
-
-            String fullPath = makeContractFullPath(contractFileName, isSystemContract);
-            InputStream stream = new FileInputStream(fullPath);
-            bundle = framework.getBundleContext().installBundle(contractFileName, stream);
-            boolean isPass = verifyManifest(bundle);
-            if (!isPass) {
-                uninstall(bundle.getBundleId());
-            }
-
-            start(bundle.getBundleId());
-        } catch (Exception e) {
-            log.error("Install bundle exception: branchID - {}, msg - {}", branchId, e.getMessage());
-            throw new RuntimeException(e);
-        }
-        return bundle.getBundleId();
-    }
-
     public boolean checkExistContract(String symbol, String version) {
         for(Bundle b : framework.getBundleContext().getBundles()) {
             if (
@@ -249,7 +208,7 @@ public class ContractManager {
             InputStream fileStream = new FileInputStream(file.getAbsoluteFile());
 
             // set location
-            String locationPrefix = isSystem ? "contract/system/" : "contract/user/";
+            String locationPrefix = isSystem ? SYSTEM_CONTRACT_PREFIX : USER_CONTRACT_PREFIX;
 
             String location = String.format("%s/%s", locationPrefix, version.toString());
 
@@ -261,9 +220,6 @@ public class ContractManager {
                 uninstall(bundle.getBundleId());
             }
             start(bundle.getBundleId());
-        } catch (BundleException b) {
-            b.getCause();
-            throw new RuntimeException(b);
         } catch (Exception e) {
             log.error("Install bundle exception: branchID - {}, msg - {}", branchId, e.getMessage());
             throw new RuntimeException(e);
@@ -285,8 +241,9 @@ public class ContractManager {
         return action(contractId, ActionType.STOP);
     }
 
-    private Object callContractMethod(Bundle bundle, String methodName, JsonObject params,MethodType methodType
-            , TransactionReceipt txReceipt, JsonObject endBlockParams) {
+    private Object callContractMethod(Bundle bundle, String methodName, JsonObject params,
+                                      MethodType methodType, TransactionReceipt txReceipt,
+                                      JsonObject endBlockParams) {
         if (bundle.getRegisteredServices() == null) {
             return null;
         }
@@ -347,16 +304,17 @@ public class ContractManager {
     }
 
     public Object query(String contractVersion, String methodName, JsonObject params) {
-        String contractFileName = makeContractFullPath(contractVersion, checkSystemContract(contractVersion));
-        Bundle bundle = getBundle(contractFileName);
+        String contractBundleLocation = contractCache.getFullLocation(contractVersion);
+        Bundle bundle = getBundle(contractBundleLocation);
         if (bundle == null) {
             return null;
         }
         return callContractMethod(bundle, methodName, params, MethodType.Query, null, null);
     }
 
-    public Object invoke(String contractFileName, JsonObject txBody, TransactionReceipt txReceipt) {
-        Bundle bundle = getBundle(contractFileName);
+    public Object invoke(String contractVersion, JsonObject txBody, TransactionReceipt txReceipt) {
+        String contractBundleLocation = contractCache.getFullLocation(contractVersion);
+        Bundle bundle = getBundle(contractBundleLocation);
         if (bundle == null) {
             return null;
         }
@@ -408,9 +366,7 @@ public class ContractManager {
                 JsonObject txBody = transactionElement.getAsJsonObject();
                 String contractVersion = txBody.get("contractVersion").getAsString();
                 Object contractResult = invoke(
-                        makeContractFullPath(contractVersion, checkSystemContract(contractVersion))
-                        , txBody
-                        , txReceipt
+                        contractVersion, txBody, txReceipt
                 );
                 log.debug("{} is {}", txReceipt.getTxId(), txReceipt.isSuccess());
             }

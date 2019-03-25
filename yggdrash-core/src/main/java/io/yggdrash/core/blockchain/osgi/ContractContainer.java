@@ -10,11 +10,8 @@ import io.yggdrash.core.store.TransactionReceiptStore;
 import java.io.File;
 import java.io.FilePermission;
 import java.io.IOException;
-import java.io.InputStream;
 import java.lang.reflect.ReflectPermission;
 import java.net.SocketPermission;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,8 +19,6 @@ import java.util.Map;
 import java.util.PropertyPermission;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -46,6 +41,7 @@ import org.slf4j.LoggerFactory;
 public class ContractContainer {
     private static final Logger log = LoggerFactory.getLogger(ContractContainer.class);
 
+    // TODO remove prefix and suffix
     static final String PREFIX_BUNDLE_PATH = "file:";
     private static final String SUFFIX_SYSTEM_CONTRACT = "/system-contracts";
     private static final String SUFFIX_USER_CONTRACT = "/user-contracts";
@@ -92,14 +88,6 @@ public class ContractContainer {
 
         framework = frameworkFactory.newFramework(containerConfig);
 
-        // TOOD remove all file method
-
-        /*systemContractPath = String.format("%s/bundles%s", containerPath, SUFFIX_SYSTEM_CONTRACT);
-        log.debug("systemContractPath Path : {}", systemContractPath);
-
-        userContractPath = String.format("%s/bundles%s", containerPath, SUFFIX_USER_CONTRACT);
-        log.debug("userContractPath Path : {}", userContractPath);
-        */
         contractManager = new ContractManager(framework, systemContractPath, userContractPath,
                 branchId, stateStore, transactionReceiptStore, outputStore, systemProperties);
 
@@ -113,7 +101,7 @@ public class ContractContainer {
             throw new IllegalStateException(e.getCause());
         }
 
-        log.info("✨Load contract container: branchID - {}", branchId);
+        log.info("Load contract container: branchID - {}", branchId);
     }
 
     private void setDefaultPermission(String branchId) {
@@ -198,44 +186,6 @@ public class ContractContainer {
 
         boolean isSuccess = update.commit();
         log.info("Load complete policy: branchID - {}, isSuccess - {}", branchId, isSuccess);
-    }
-
-    private List<String> copySystemContractToContractPath() {
-        List<String> contracts = new ArrayList<>();
-
-        InputStream in = null;
-        try {
-            //Read system contract files
-            in = Thread.currentThread().getContextClassLoader().getResourceAsStream(String.format("%s/contracts", SUFFIX_SYSTEM_CONTRACT));
-            in = in == null ? getClass().getResourceAsStream(String.format("%s/contracts", SUFFIX_SYSTEM_CONTRACT)) : in;
-            if (in == null) {
-                return contracts;
-            }
-            contracts = IOUtils.readLines(in, StandardCharsets.UTF_8);
-
-            //Copy contract
-            for (int i = contracts.size() - 1; i >= 0; i--) {
-                String contract = contracts.get(i);
-                URL inputUrl = getClass().getResource(String.format("%s/%s", SUFFIX_SYSTEM_CONTRACT, contract));
-                File dest = new File(contractManager.makeContractPath(contract, true));
-                if (dest.exists()) {
-                    dest.delete();
-                }
-                FileUtils.copyURLToFile(inputUrl, dest);
-            }
-        } catch (IOException e) {
-            log.error("Copy system contract exception: branchID - {}, msg - {}", branchId, e.getMessage());
-            throw new RuntimeException(e.getCause());
-        } finally {
-            if (in != null) {
-                try {
-                    in.close();
-                } catch (IOException e) {
-                }
-            }
-        }
-
-        return contracts;
     }
 
     public long installContract(ContractVersion contract, File contractFile, boolean isSystem) {
