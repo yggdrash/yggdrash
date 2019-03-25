@@ -20,7 +20,6 @@ import com.google.protobuf.ByteString;
 import io.grpc.stub.StreamObserver;
 import io.grpc.testing.GrpcServerRule;
 import io.yggdrash.BlockChainTestUtils;
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
@@ -39,7 +38,6 @@ import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.when;
 
@@ -158,27 +156,6 @@ public class GrpcBlockChainServiceTest {
         Proto.BlockList list = blockingStub.syncBlock(syncLimit);
         // assert
         assertEquals(1, list.getBlocksCount());
-    }
-
-    @Test
-    public void syncBlockByPassingTheLimitSize() {
-        // arrange
-        List<BlockHusk> blockHuskList = BlockChainTestUtils.createBlockListFilledWithTx(block);
-
-        when(blockChainConsumerMock.syncBlock(branchId, 0L, 100L))
-                .thenReturn(blockHuskList);
-
-        BlockChainGrpc.BlockChainBlockingStub blockingStub
-                = BlockChainGrpc.newBlockingStub(grpcServerRule.getChannel());
-        ByteString branch = ByteString.copyFrom(branchId.getBytes());
-        NetProto.SyncLimit syncLimit =
-                NetProto.SyncLimit.newBuilder().setOffset(0).setLimit(100).setBranch(branch).build();
-        // act
-        Proto.BlockList list = blockingStub.syncBlock(syncLimit);
-        // assert
-        int serializedSize = list.getSerializedSize();
-        long blockSyncSize = Constants.LIMIT.BLOCK_SYNC_SIZE;
-        assertThat(serializedSize).isLessThan((int) blockSyncSize);
     }
 
     @Test
