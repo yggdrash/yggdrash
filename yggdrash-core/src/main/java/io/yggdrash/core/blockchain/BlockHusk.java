@@ -17,11 +17,13 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.util.JsonFormat;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.trie.Trie;
 import io.yggdrash.common.util.TimeUtils;
-import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Address;
 import io.yggdrash.core.wallet.Wallet;
@@ -32,6 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import static com.google.protobuf.util.Timestamps.fromMillis;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
 
 public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> {
@@ -149,8 +152,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
     }
 
     public long getIndex() {
-
-        return ByteUtil.byteArrayToLong(this.protoBlock.getHeader().getIndex().toByteArray());
+        return this.protoBlock.getHeader().getIndex();
     }
 
     public List<TransactionHusk> getBody() {
@@ -211,6 +213,17 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         return this.coreBlock.toJsonObject();
     }
 
+    JsonObject toJsonObjectByProto() {
+        try {
+            String print = JsonFormat.printer()
+                    .includingDefaultValueFields().print(this.protoBlock);
+            return new JsonParser().parse(print).getAsJsonObject();
+        } catch (InvalidProtocolBufferException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     private Proto.Block.Header getHeader() {
         return this.protoBlock.getHeader();
     }
@@ -230,10 +243,10 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
                 .setVersion(ByteString.copyFrom(version))
                 .setType(ByteString.copyFrom(type))
                 .setPrevBlockHash(ByteString.copyFrom(prevBlockHash))
-                .setIndex(ByteString.copyFrom(ByteUtil.longToBytes(index)))
-                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(timestamp)))
+                .setIndex(index)
+                .setTimestamp(fromMillis(timestamp))
                 .setMerkleRoot(ByteString.copyFrom(merkleRoot))
-                .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(bodyLength)))
+                .setBodyLength(bodyLength)
                 .build();
     }
 

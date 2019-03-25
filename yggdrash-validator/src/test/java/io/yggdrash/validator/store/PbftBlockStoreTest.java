@@ -14,6 +14,7 @@ import io.yggdrash.validator.data.pbft.PbftMessageSet;
 import io.yggdrash.validator.store.pbft.PbftBlockKeyStore;
 import io.yggdrash.validator.store.pbft.PbftBlockStore;
 import io.yggdrash.validator.util.TestUtils;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -323,6 +324,11 @@ public class PbftBlockStoreTest {
 
         System.gc();
         sleep(300000);
+    }
+
+    @After
+    public void tearDown() {
+        StoreTestUtils.clearTestDb();
     }
 
 }

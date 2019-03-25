@@ -39,10 +39,11 @@ public abstract class BootStrapNode implements BootStrap {
         try {
             nodeStatus.sync();
             for (BlockChain blockChain : branchGroup.getAllBranch()) {
-                List<PeerHandler> peerHandlerList =
-                        peerNetwork.getHandlerList(blockChain.getBranchId());
+                List<PeerHandler> peerHandlerList = peerNetwork.getHandlerList(blockChain.getBranchId());
+
+                fullSyncBlock(blockChain, peerHandlerList);
+
                 for (PeerHandler peerHandler : peerHandlerList) {
-                    syncManager.syncBlock(peerHandler, blockChain, -1);
                     syncManager.syncTransaction(peerHandler, blockChain);
                 }
             }
@@ -50,6 +51,20 @@ public abstract class BootStrapNode implements BootStrap {
             log.warn(e.getMessage(), e);
         } finally {
             nodeStatus.up();
+        }
+    }
+
+    private void fullSyncBlock(BlockChain blockChain, List<PeerHandler> peerHandlerList) {
+        boolean retry = true;
+
+        while (retry) {
+            retry = false;
+            for (PeerHandler peerHandler : peerHandlerList) {
+                boolean syncFinish = syncManager.syncBlock(peerHandler, blockChain);
+                if (!syncFinish) {
+                    retry = true;
+                }
+            }
         }
     }
 

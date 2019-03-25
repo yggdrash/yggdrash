@@ -8,6 +8,7 @@ import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
+import io.yggdrash.validator.data.ConsensusBlock;
 import io.yggdrash.validator.util.TestUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -102,8 +103,6 @@ public class PbftBlockChainTest {
     }
 
     private PbftMessageSet makePbftMessageSet(Block block) {
-        PbftMessage prePrepare = makePbftMessage(PBFT_PREPREPARE, block, wallet0);
-
         Map<String, PbftMessage> prepareMap = new TreeMap<>();
         PbftMessage prepare0 = makePbftMessage(PBFT_PREPARE, block, wallet0);
         prepareMap.put(prepare0.getSignatureHex(), prepare0);
@@ -124,6 +123,7 @@ public class PbftBlockChainTest {
         PbftMessage commit3 = makePbftMessage(PBFT_COMMIT, block, wallet3);
         commitMap.put(commit3.getSignatureHex(), commit3);
 
+        PbftMessage prePrepare = makePbftMessage(PBFT_PREPREPARE, block, wallet0);
         return new PbftMessageSet(prePrepare, prepareMap, commitMap, null);
     }
 
@@ -178,8 +178,8 @@ public class PbftBlockChainTest {
             pbftBlockChain.getBlockStore().put(newBlock.getHash(), newBlock);
         }
 
-        List<PbftBlock> pbftBlockList = pbftBlockChain.getPbftBlockList(1, 100);
-        assertEquals(pbftBlockList.size(), count);
+        List<ConsensusBlock> blockList = pbftBlockChain.getBlockList(1, 100);
+        assertEquals(blockList.size(), count);
     }
 
     @Test

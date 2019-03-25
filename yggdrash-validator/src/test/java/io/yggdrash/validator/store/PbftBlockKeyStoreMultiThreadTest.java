@@ -19,7 +19,6 @@ import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
-import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 import java.util.Map;
@@ -31,6 +30,7 @@ import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
 import static io.yggdrash.common.util.Utils.sleep;
+import static org.junit.Assert.assertEquals;
 
 @RunWith(ConcurrentTestRunner.class)
 public class PbftBlockKeyStoreMultiThreadTest {
@@ -245,28 +245,27 @@ public class PbftBlockKeyStoreMultiThreadTest {
 
     @Test
     public void putTestMultiThread() {
-        TestConstants.PerformanceTest.apply();
-
         long testNumber = 1000;
-        byte[] result = null;
-
         for (long l = 0L; l < testNumber; l++) {
-            this.blockKeyStore.put((long) this.blockKeyStore.size(), EMPTY_BYTE100K);
-
-            if (this.blockKeyStore.contains(l)) {
-                result = this.blockKeyStore.get(l);
-            }
-            log.debug("blockKeyStore {} {}", l, Hex.toHexString(result));
+            this.blockKeyStore.put(l, EMPTY_BYTE100K);
         }
+        log.debug("blockKeyStore size= " + this.blockKeyStore.size());
+        assertEquals(1000L, this.blockKeyStore.size());
     }
 
-    @After
-    public void tearDown() {
+    @Test
+    public void putMutiThreadMemoryTest() {
         TestConstants.PerformanceTest.apply();
 
-        log.debug("blockKeyStore size= " + this.blockKeyStore.size());
+        this.putTestMultiThread();
 
         System.gc();
         sleep(3000000);
     }
+
+    @After
+    public void tearDown() {
+        StoreTestUtils.clearTestDb();
+    }
+
 }

@@ -19,6 +19,8 @@ package io.yggdrash.core.blockchain;
 import io.yggdrash.common.contract.Contract;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.store.StateStore;
+import io.yggdrash.contract.core.store.OutputStore;
+import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.blockchain.osgi.ContractContainerBuilder;
@@ -28,14 +30,16 @@ import io.yggdrash.core.store.BranchStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.contract.core.store.OutputStore;
-import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.store.output.es.EsClient;
-
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BlockChainBuilder {
+
+    private static final Logger log = LoggerFactory.getLogger(BlockChainBuilder.class);
 
     private GenesisBlock genesis;
     private StoreBuilder storeBuilder;
@@ -119,9 +123,9 @@ public class BlockChainBuilder {
         ContractContainer contractContainer = null;
         if (systemProperties != null && systemProperties.checkEsClient()) {
             outputStores.put(OutputType.ES, EsClient.newInstance(
-                    systemProperties.getEsPrefixHost()
-                    , systemProperties.getEsTransport()
-                    , systemProperties.getEventStore()
+                    systemProperties.getEsPrefixHost(),
+                    systemProperties.getEsTransport(),
+                    systemProperties.getEventStore()
             ));
         }
 
@@ -138,8 +142,34 @@ public class BlockChainBuilder {
                     .build();
         }
 
-        return new BlockChain(branch, genesisBlock, blockStore,
+        BlockChain bc = new BlockChain(branch, genesisBlock, blockStore,
                 transactionStore, branchStore, stateStore, transactionReceiptStore, contractContainer, outputStores);
+
+        // Check BlockChain is Ready
+        PrepareBlockchain prepareBlockchain = new PrepareBlockchain(storeBuilder.getConfig());
+        // check block chain is ready
+        if (prepareBlockchain.checkBlockChainIsReady(bc)) {
+            // install bundles
+            // bc.getContractContainer()
+            ContractContainer container = bc.getContractContainer();
+            for(BranchContract contract : bc.getBranchContracts()) {
+                File branchContractFile = prepareBlockchain.loadContractFile(contract.getContractVersion());
+                container.installContract(contract.getContractVersion(), branchContractFile, contract.isSystem());
+            }
+
+            try {
+                container.reloadInject();
+            } catch (IllegalAccessException e) {
+                log.error(e.getMessage());
+                return null;
+            }
+        } else {
+            // TODO blockchain ready fails
+            log.error("Blockchain is not Ready");
+            return null;
+        }
+
+        return bc;
     }
 
     private Map<ContractVersion, Contract> defaultContract() {

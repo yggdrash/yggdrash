@@ -16,6 +16,7 @@
 
 package io.yggdrash.gateway.dto;
 
+import com.google.protobuf.util.Timestamps;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.proto.Proto;
@@ -53,9 +54,9 @@ public class BlockDto {
         blockDto.type = Hex.toHexString(header.getType().toByteArray());
         blockDto.prevBlockId = Hex.toHexString(block.getPrevHash().getBytes());
         blockDto.index = block.getIndex();
-        blockDto.timestamp = ByteUtil.byteArrayToLong(header.getTimestamp().toByteArray());
+        blockDto.timestamp = Timestamps.toMillis(header.getTimestamp());
         blockDto.merkleRoot = Hex.toHexString(header.getMerkleRoot().toByteArray());
-        blockDto.bodyLength = ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray());
+        blockDto.bodyLength = header.getBodyLength();
         blockDto.signature = Hex.toHexString(block.getInstance().getSignature().toByteArray());
         blockDto.txSize = block.getBodyCount();
         if (withBody) {
