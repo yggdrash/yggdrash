@@ -1,33 +1,27 @@
-package io.yggdrash.validator.service;
+package io.yggdrash.validator.service.node;
 
 import io.grpc.stub.StreamObserver;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.Proto;
-import io.yggdrash.validator.data.ebft.EbftBlock;
-import io.yggdrash.validator.data.ebft.EbftBlockChain;
-import org.lognet.springboot.grpc.GRpcService;
+import io.yggdrash.validator.data.ConsensusBlock;
+import io.yggdrash.validator.data.ConsensusBlockChain;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-@GRpcService
-@ConditionalOnProperty(name = "yggdrash.validator.consensus.algorithm", havingValue = "ebft")
-public class NodeGrpcService extends BlockChainGrpc.BlockChainImplBase {
-    private static final Logger log = LoggerFactory.getLogger(NodeGrpcService.class);
+public class NodeServerStub extends BlockChainGrpc.BlockChainImplBase {
+    private static final Logger log = LoggerFactory.getLogger(NodeServerStub.class);
     private static final NetProto.Empty EMPTY = NetProto.Empty.getDefaultInstance();
 
-    private final EbftBlockChain ebftBlockChain;
+    private final ConsensusBlockChain blockChain;
 
-    @Autowired
-    public NodeGrpcService(EbftBlockChain ebftBlockChain) {
-        this.ebftBlockChain = ebftBlockChain;
+    public NodeServerStub(ConsensusBlockChain blockChain) {
+        this.blockChain = blockChain;
     }
 
     @Override
@@ -39,12 +33,12 @@ public class NodeGrpcService extends BlockChainGrpc.BlockChainImplBase {
         log.debug("syncBlock() request offset={}, limit={}", offset, limit);
 
         Proto.BlockList.Builder builder = Proto.BlockList.newBuilder();
-        if (Arrays.equals(syncLimit.getBranch().toByteArray(), ebftBlockChain.getChain())
+        if (Arrays.equals(syncLimit.getBranch().toByteArray(), blockChain.getChain())
                 && offset >= 0
-                && offset <= ebftBlockChain.getLastConfirmedBlock().getIndex()) {
-            List<EbftBlock> ebftBlockList = ebftBlockChain.getEbftBlockList(offset, limit);
-            for (EbftBlock ebftBlock : ebftBlockList) {
-                builder.addBlocks(ebftBlock.getBlock().toProtoBlock());
+                && offset <= blockChain.getLastConfirmedBlock().getIndex()) {
+            List<ConsensusBlock> blockList = blockChain.getBlockList(offset, limit);
+            for (ConsensusBlock consensusBlock : blockList) {
+                builder.addBlocks(consensusBlock.getBlock().toProtoBlock());
             }
         }
 
@@ -61,10 +55,10 @@ public class NodeGrpcService extends BlockChainGrpc.BlockChainImplBase {
         log.debug("syncTransaction() request offset={}, limit={}", offset, limit);
 
         Proto.TransactionList.Builder builder = Proto.TransactionList.newBuilder();
-        if (Arrays.equals(syncLimit.getBranch().toByteArray(), ebftBlockChain.getChain())) {
+        if (Arrays.equals(syncLimit.getBranch().toByteArray(), blockChain.getChain())) {
             //todo: check memory leak
             for (TransactionHusk husk :
-                    new ArrayList<>(ebftBlockChain.getTransactionStore().getUnconfirmedTxs())) {
+                    new ArrayList<>(blockChain.getTransactionStore().getUnconfirmedTxs())) {
                 builder.addTransactions(husk.getInstance());
             }
         }
@@ -104,8 +98,8 @@ public class NodeGrpcService extends BlockChainGrpc.BlockChainImplBase {
                 log.debug("NodeService broadcastTransaction");
                 log.debug("Received transaction: {}", value);
                 TransactionHusk tx = new TransactionHusk(value);
-                if (Arrays.equals(tx.getBranchId().getBytes(), ebftBlockChain.getChain())) {
-                    ebftBlockChain.getTransactionStore().put(tx.getHash(), tx);
+                if (Arrays.equals(tx.getBranchId().getBytes(), blockChain.getChain())) {
+                    blockChain.getTransactionStore().put(tx.getHash(), tx);
                 }
             }
 

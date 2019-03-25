@@ -93,8 +93,7 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
         return new StreamObserver<Proto.Block>() {
             @Override
             public void onNext(Proto.Block block) {
-                long id = ByteUtil.byteArrayToLong(
-                        block.getHeader().getIndex().toByteArray());
+                long id = block.getHeader().getIndex();
                 BlockHusk blockHusk = new BlockHusk(block);
                 log.debug("[BlockChainService] Received block: id=[{}], hash={}",
                         id, blockHusk.getHash());

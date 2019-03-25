@@ -1,6 +1,7 @@
 package io.yggdrash.core.blockchain.osgi;
 
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.SystemProperties;
@@ -80,7 +81,7 @@ public class ContractContainer {
 
     void newFramework() {
         String containerPath = String.format("%s/%s", config.getOsgiPath(), branchId);
-
+        log.debug("Container Path : {}", containerPath);
         Map<String, String> containerConfig = new HashMap<>();
         containerConfig.put("org.osgi.framework.storage", containerPath);
         containerConfig.putAll(commonContainerConfig);
@@ -89,26 +90,32 @@ public class ContractContainer {
         }
 
         framework = frameworkFactory.newFramework(containerConfig);
+
+        // TOOD remove all file method
+
         systemContractPath = String.format("%s/bundles%s", containerPath, SUFFIX_SYSTEM_CONTRACT);
+        log.debug("systemContractPath Path : {}", systemContractPath);
+
         userContractPath = String.format("%s/bundles%s", containerPath, SUFFIX_USER_CONTRACT);
-        contractManager = new ContractManager(framework, systemContractPath, userContractPath, branchId
-                , stateStore, transactionReceiptStore, outputStore, systemProperties);
+        log.debug("userContractPath Path : {}", userContractPath);
+        contractManager = new ContractManager(framework, systemContractPath, userContractPath,
+                branchId, stateStore, transactionReceiptStore, outputStore, systemProperties);
 
         try {
             framework.start();
             setDefaultPermission(branchId);
             // TODO Change System contract
-            List<String> copiedContracts = copySystemContractToContractPath();
+//            List<String> copiedContracts = copySystemContractToContractPath();
             //branchContracts.stream().filter(c -> {c.get})
 
 
             // TODO Load User Contracts
-            loadSystemContract(copiedContracts);
-            contractManager.setSystemContracts(copiedContracts);
+//            loadSystemContract(copiedContracts);
+//            contractManager.setSystemContracts(copiedContracts);
 
-            for (Bundle bundle : framework.getBundleContext().getBundles()) {
-                contractManager.inject(bundle);
-            }
+//            for (Bundle bundle : framework.getBundleContext().getBundles()) {
+//                contractManager.inject(bundle);
+//            }
 //            Arrays.asList(framework.getBundleContext().getBundles()).forEach(b -> log.info("Bundle: {}", b.getSymbolicName()));
 //            Arrays.asList(framework.getRegisteredServices()).forEach(s -> log.info("Service reference: {}", s.toString()));
         } catch (Exception e) {
@@ -233,16 +240,22 @@ public class ContractContainer {
         return contracts;
     }
 
+    // TODO remove function
     private void loadSystemContract(List<String> copiedContracts) {
         for (String copiedContract : copiedContracts) {
             contractManager.install(copiedContract, true);
         }
     }
 
+    // TODO remove function
     public void loadUserContract(List<String> userContracts) {
         for(String contract : userContracts) {
             contractManager.install(contract, false);
         }
+    }
+
+    public long installContract(ContractVersion contract, File contractFile, boolean isSystem) {
+        return contractManager.install(contract, contractFile, isSystem);
     }
 
 

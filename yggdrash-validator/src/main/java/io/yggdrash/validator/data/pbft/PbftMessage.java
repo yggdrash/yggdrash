@@ -160,7 +160,7 @@ public class PbftMessage {
             throw new NotValidateException("wallet is null");
         }
 
-        return wallet.signHashedData(getHashForSigning());
+        return wallet.sign(getHashForSigning(), true);
     }
 
     public static boolean verify(PbftMessage pbftMessage) {
