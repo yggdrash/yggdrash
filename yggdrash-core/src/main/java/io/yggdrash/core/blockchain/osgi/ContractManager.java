@@ -19,13 +19,6 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.wallet.Address;
-import org.apache.commons.lang3.exception.ExceptionUtils;
-import org.osgi.framework.Bundle;
-import org.osgi.framework.ServiceReference;
-import org.osgi.framework.Version;
-import org.osgi.framework.launch.Framework;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -36,6 +29,15 @@ import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
+import java.util.jar.Manifest;
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.osgi.framework.Bundle;
+import org.osgi.framework.BundleException;
+import org.osgi.framework.ServiceReference;
+import org.osgi.framework.Version;
+import org.osgi.framework.launch.Framework;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ContractManager {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
@@ -75,11 +77,14 @@ public class ContractManager {
         return String.format("%s/%s", isSystemContract ? systemContractPath : userContractPath, contractName);
     }
 
+    // TODO Contract Branch Check
     private String makeContractFullPath(String contractName, boolean isSystemContract) {
         return String.format("%s%s/%s", ContractContainer.PREFIX_BUNDLE_PATH,
                 isSystemContract ? systemContractPath : userContractPath, contractName);
     }
 
+
+    // TODO RUN Branch Contract
     private boolean checkSystemContract(String contractName) {
         return contractName.matches("[0-9]*[-]*system-.*");
     }
@@ -172,11 +177,23 @@ public class ContractManager {
         return true;
     }
 
-    private boolean verifyManifest(Bundle bundle) {
+
+    public boolean verifyManifest(Manifest manifest) {
+        String manifestVersion = manifest.getMainAttributes().getValue("Bundle-ManifestVersion");
+        String bundleSymbolicName = manifest.getMainAttributes().getValue("Bundle-SymbolicName");
+        String bundleVersion = manifest.getMainAttributes().getValue("Bundle-Version");
+        return verifyManifest(manifestVersion, bundleSymbolicName, bundleVersion);
+    }
+
+    public boolean verifyManifest(Bundle bundle) {
         String bundleManifestVersion = bundle.getHeaders().get("Bundle-ManifestVersion");
         String bundleSymbolicName = bundle.getHeaders().get("Bundle-SymbolicName");
         String bundleVersion = bundle.getHeaders().get("Bundle-Version");
-        if (!"2".equals(bundleManifestVersion)) {
+        return verifyManifest(bundleManifestVersion, bundleSymbolicName, bundleVersion);
+    }
+
+    public boolean verifyManifest(String manifestVersion, String bundleSymbolicName, String bundleVersion) {
+        if (!"2".equals(manifestVersion)) {
             log.error("Must set Bundle-ManifestVersion to 2");
             return false;
         }
@@ -192,6 +209,7 @@ public class ContractManager {
 
         return true;
     }
+
 
     public long install(String contractFileName, boolean isSystemContract) {
         Bundle bundle;
@@ -213,17 +231,39 @@ public class ContractManager {
         return bundle.getBundleId();
     }
 
+    public boolean checkExistContract(String symbol, String version) {
+        for(Bundle b : framework.getBundleContext().getBundles()) {
+            if (
+                    b.getVersion().toString().equals(version)
+                            && b.getSymbolicName().equals(symbol)
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public long install(ContractVersion version, File file, boolean isSystem) {
         Bundle bundle;
         try {
             InputStream fileStream = new FileInputStream(file.getAbsoluteFile());
-            bundle = framework.getBundleContext().installBundle(version.toString(),fileStream);
 
+            // set location
+            String locationPrefix = isSystem ? "contract/system/" : "contract/user/";
+
+            String location = String.format("%s/%s", locationPrefix, version.toString());
+
+            // set Location
+            bundle = framework.getBundleContext().installBundle(location, fileStream);
+            log.debug("installed  {} {}", version.toString(), bundle.getLocation());
             boolean isPass = verifyManifest(bundle);
             if (!isPass) {
                 uninstall(bundle.getBundleId());
             }
             start(bundle.getBundleId());
+        } catch (BundleException b) {
+            b.getCause();
+            throw new RuntimeException(b);
         } catch (Exception e) {
             log.error("Install bundle exception: branchID - {}, msg - {}", branchId, e.getMessage());
             throw new RuntimeException(e);

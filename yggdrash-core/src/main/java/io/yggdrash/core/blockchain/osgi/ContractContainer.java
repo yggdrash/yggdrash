@@ -3,11 +3,25 @@ package io.yggdrash.core.blockchain.osgi;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.store.StateStore;
-import io.yggdrash.core.blockchain.BranchContract;
-import io.yggdrash.core.blockchain.SystemProperties;
-import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
+import io.yggdrash.core.blockchain.SystemProperties;
+import io.yggdrash.core.store.TransactionReceiptStore;
+import java.io.File;
+import java.io.FilePermission;
+import java.io.IOException;
+import java.io.InputStream;
+import java.lang.reflect.ReflectPermission;
+import java.net.SocketPermission;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.PropertyPermission;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -28,19 +42,6 @@ import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 import org.osgi.service.permissionadmin.PermissionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import java.io.File;
-import java.io.FilePermission;
-import java.io.IOException;
-import java.io.InputStream;
-import java.lang.reflect.ReflectPermission;
-import java.net.SocketPermission;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.PropertyPermission;
 
 public class ContractContainer {
     private static final Logger log = LoggerFactory.getLogger(ContractContainer.class);
@@ -93,31 +94,19 @@ public class ContractContainer {
 
         // TOOD remove all file method
 
-        systemContractPath = String.format("%s/bundles%s", containerPath, SUFFIX_SYSTEM_CONTRACT);
+        /*systemContractPath = String.format("%s/bundles%s", containerPath, SUFFIX_SYSTEM_CONTRACT);
         log.debug("systemContractPath Path : {}", systemContractPath);
 
         userContractPath = String.format("%s/bundles%s", containerPath, SUFFIX_USER_CONTRACT);
         log.debug("userContractPath Path : {}", userContractPath);
+        */
         contractManager = new ContractManager(framework, systemContractPath, userContractPath,
                 branchId, stateStore, transactionReceiptStore, outputStore, systemProperties);
 
         try {
             framework.start();
             setDefaultPermission(branchId);
-            // TODO Change System contract
-//            List<String> copiedContracts = copySystemContractToContractPath();
-            //branchContracts.stream().filter(c -> {c.get})
 
-
-            // TODO Load User Contracts
-//            loadSystemContract(copiedContracts);
-//            contractManager.setSystemContracts(copiedContracts);
-
-//            for (Bundle bundle : framework.getBundleContext().getBundles()) {
-//                contractManager.inject(bundle);
-//            }
-//            Arrays.asList(framework.getBundleContext().getBundles()).forEach(b -> log.info("Bundle: {}", b.getSymbolicName()));
-//            Arrays.asList(framework.getRegisteredServices()).forEach(s -> log.info("Service reference: {}", s.toString()));
         } catch (Exception e) {
             e.printStackTrace();
             log.error("Load contract container exception: branchID - {}, msg - {}", branchId, e.getMessage());
@@ -169,21 +158,30 @@ public class ContractContainer {
                 ConditionalPermissionInfo.ALLOW));
 
         //Allow file permission to system contract
+        // 시스템 컨트렉트 권한
+        // Branch State Store 권한추가 - 읽기/쓰기 권한
+        // 컨트렉트 폴더 읽기/쓰기 권한
+        // TODO 아카식 시스템 폴더 읽기/쓰기 권한
         List<PermissionInfo> systemPermissions = new ArrayList<>();
         systemPermissions.add(new PermissionInfo(FilePermission.class.getName(), String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"));
         systemPermissions.add(new PermissionInfo(FilePermission.class.getName(), String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete"));
         if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
             systemPermissions.add(new PermissionInfo(SocketPermission.class.getName(), systemProperties.getEsHost(), "connect,resolve"));
         }
+        // Bundle 파일의 위치로 권한을 할당한다.
+        // {BID}-container-permission-system-file
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-system-file", permissionKey),
                 new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName()
-                        , new String[]{String.format("file:%s/*", systemContractPath)})
+                        , new String[]{"contract/system/*"})
                 },
                 systemPermissions.toArray(new PermissionInfo[systemPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
 
         //Allow file permission to user contract
+        // 사용자 컨트렉트 권한
+        // Branch State Store 권한 추가 - 읽기 권한
+        // {BID}-container-permission-user-file
         List<PermissionInfo> userPermissions = new ArrayList<>();
         userPermissions.add(new PermissionInfo(FilePermission.class.getName(), String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"));
         userPermissions.add(new PermissionInfo(FilePermission.class.getName(), String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete"));
@@ -193,7 +191,7 @@ public class ContractContainer {
         infos.add(admin.newConditionalPermissionInfo(
                 String.format("%s-user-file", permissionKey),
                 new ConditionInfo[]{new ConditionInfo(BundleLocationCondition.class.getName()
-                        , new String[]{String.format("file:%s/*", userContractPath)})
+                        , new String[]{"contract/user/*"})
                 },
                 userPermissions.toArray(new PermissionInfo[userPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
@@ -240,43 +238,30 @@ public class ContractContainer {
         return contracts;
     }
 
-    // TODO remove function
-    private void loadSystemContract(List<String> copiedContracts) {
-        for (String copiedContract : copiedContracts) {
-            contractManager.install(copiedContract, true);
-        }
-    }
-
-    // TODO remove function
-    public void loadUserContract(List<String> userContracts) {
-        for(String contract : userContracts) {
-            contractManager.install(contract, false);
-        }
-    }
-
     public long installContract(ContractVersion contract, File contractFile, boolean isSystem) {
+        // copy System or UserContract
+        Manifest m = null;
+        try {
+            m = new JarFile(contractFile).getManifest();
+            //String symbolicName = m.getAttributes("Bundle-SymbolicName");
+            if (contractManager.verifyManifest(m)) {
+                String symbolicName = m.getMainAttributes().getValue("Bundle-SymbolicName");
+                String version = m.getMainAttributes().getValue("Bundle-Version");
+                if (contractManager.checkExistContract(symbolicName, version)) {
+                    log.error("Contract SymbolicName and Version exist {}-{}", symbolicName, version);
+                    return -1L;
+                }
+            } else {
+                log.error("Contract Manifest is not verify");
+                return -1L;
+            }
+        } catch (IOException e) {
+            log.error("Contract file don't Load");
+            return -1L;
+        }
+
         return contractManager.install(contract, contractFile, isSystem);
     }
-
-
-    public void copyUserContract(List<BranchContract> contracts) {
-        contracts.stream().forEach(c -> {
-            URL inputUrl = getClass().getResource(
-                    String.format("%s/%s.jar", config.getContractPath(), c.getContractVersion()));
-            // Check contract file verify
-            File destination = new File(
-                    contractManager.makeContractPath(c.getContractVersion()+".jar", false));
-            // TODO check File Version verify
-            if (!destination.exists()) {
-                try {
-                    FileUtils.copyURLToFile(inputUrl, destination);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
 
     public ContractManager getContractManager() {
         return contractManager;
