@@ -1,5 +1,7 @@
 package io.yggdrash.validator.store.ebft;
 
+import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
+import com.anarsoft.vmlens.concurrent.junit.ThreadCount;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
@@ -12,23 +14,22 @@ import io.yggdrash.validator.util.TestUtils;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
+import org.spongycastle.util.encoders.Hex;
 
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE1K;
-import static org.junit.Assert.assertArrayEquals;
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
 
-public class EbftBlockKeyStoreTest {
-    private static final Logger log = LoggerFactory.getLogger(EbftBlockKeyStoreTest.class);
+@RunWith(ConcurrentTestRunner.class)
+public class EbftBlockKeyStoreMultiThreadTest {
+    private static final Logger log = LoggerFactory.getLogger(EbftBlockKeyStoreMultiThreadTest.class);
 
     private LevelDbDataSource ds;
     private EbftBlockKeyStore blockKeyStore;
@@ -81,63 +82,77 @@ public class EbftBlockKeyStoreTest {
     }
 
     @Test
-    public void putGetTest() {
-        byte[] newHash = blockKeyStore.get(this.ebftBlock.getIndex());
-        assertArrayEquals(this.ebftBlock.getHash(), newHash);
-        assertTrue(blockKeyStore.contains(this.ebftBlock.getIndex()));
-        assertFalse(blockKeyStore.contains(this.ebftBlock.getIndex() + 1));
-        assertFalse(blockKeyStore.contains(-1L));
-        assertEquals(blockKeyStore.size(), 1);
+    @ThreadCount(8)
+    public void putTestMultiThread() {
+        long testNumber = 10000;
+        for (long l = 0L; l < testNumber; l++) {
+            this.blockKeyStore.put(l, EMPTY_BYTE32);
+        }
+        log.debug("blockKeyStore size= " + this.blockKeyStore.size());
+        assertEquals(testNumber, this.blockKeyStore.size());
     }
 
     @Test
-    public void putTest_NegativeNumber() {
-        long beforeSize = blockKeyStore.size();
-        blockKeyStore.put(-1L, this.ebftBlock.getHash());
-        assertEquals(blockKeyStore.size(), beforeSize);
-    }
-
-    @Test
-    public void getTest_NegativeNumber() {
-        assertNull(blockKeyStore.get(-1L));
-    }
-
-    @Test
-    public void memoryTest() throws InterruptedException {
+    @ThreadCount(8)
+    public void putMutiThreadMemoryTest() throws InterruptedException {
         TestConstants.PerformanceTest.apply();
 
         System.gc();
         Thread.sleep(20000);
 
-        long testNumber = 1000000;
-        byte[] result;
-        List<byte[]> resultList = new ArrayList<>();
+        this.putTestMultiThread();
 
-        for (long l = 0L; l < testNumber; l++) {
-            this.blockKeyStore.put(l, EMPTY_BYTE1K);
-            result = this.blockKeyStore.get(l);
-            resultList.add(result);
-        }
-        resultList.clear();
-        log.debug("blockKeyStore size: " + this.blockKeyStore.size());
-        assertEquals(this.blockKeyStore.size(), testNumber);
+        System.gc();
+        Thread.sleep(3000000);
+    }
+
+
+    @Test
+    @ThreadCount(8)
+    public void getMutiThreadMemoryTest() throws InterruptedException {
+        TestConstants.PerformanceTest.apply();
 
         System.gc();
         Thread.sleep(20000);
+
+        this.putTestMultiThread();
+
+        System.gc();
+        Thread.sleep(10000);
+
+        for (long l = 0L; l < this.blockKeyStore.size(); l++) {
+            log.debug("{} {}", l, Hex.toHexString(this.blockKeyStore.get(l)));
+        }
+
+        log.debug("blockKeyStore size= " + this.blockKeyStore.size());
+
+        System.gc();
+        Thread.sleep(3000000);
     }
 
     @Test
-    public void closeTest() {
-        blockKeyStore.close();
-        try {
-            blockKeyStore.get(this.ebftBlock.getIndex());
-        } catch (NullPointerException ne) {
-            this.blockKeyStore = new EbftBlockKeyStore(ds);
-            byte[] newHash = blockKeyStore.get(this.ebftBlock.getIndex());
-            assertArrayEquals(this.ebftBlock.getHash(), newHash);
-            return;
+    @ThreadCount(8)
+    public void containsMutiThreadMemoryTest() throws InterruptedException {
+        TestConstants.PerformanceTest.apply();
+
+        System.gc();
+        Thread.sleep(20000);
+
+        this.putTestMultiThread();
+
+        System.gc();
+        Thread.sleep(10000);
+
+        for (long l = 0L; l < this.blockKeyStore.size(); l++) {
+            if (this.blockKeyStore.contains(l)) {
+                log.debug("{} {}", l, Hex.toHexString(this.blockKeyStore.get(l)));
+            }
         }
-        assert false;
+
+        log.debug("blockKeyStore size= " + this.blockKeyStore.size());
+
+        System.gc();
+        Thread.sleep(3000000);
     }
 
     @After

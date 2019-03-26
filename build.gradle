@@ -145,7 +145,7 @@ project(':yggdrash-validator') {
     }
 
     bootJar {
-        enabled = false
+        enabled = true
     }
 }
 

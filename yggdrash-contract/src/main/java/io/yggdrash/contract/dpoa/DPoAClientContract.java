@@ -27,10 +27,10 @@ public class DPoAClientContract implements BundleActivator, ServiceListener {
 
         bundleContext = context;
         serviceTracker = new ServiceTracker(
-                bundleContext
-                , bundleContext.createFilter(
-                "(&(objectClass=" + DPoAContract.DPoAService.class.getName() + ")" +
-                        "(YGGDRASH=DPoA))"),
+                bundleContext,
+                bundleContext.createFilter(
+                "(&(objectClass=" + DPoAContract.DPoAService.class.getName() + ")"
+                        + "(YGGDRASH=DPoA))"),
                 null
         );
         serviceTracker.open();
@@ -64,8 +64,8 @@ public class DPoAClientContract implements BundleActivator, ServiceListener {
                 return null;
             }
 
-            DPoAContract.DPoAService dPoAService = (DPoAContract.DPoAService) service;
-            return dPoAService.commit(null);
+            DPoAContract.DPoAService dpoaService = (DPoAContract.DPoAService) service;
+            return dpoaService.commit(null);
         }
     }
 }

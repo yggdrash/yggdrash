@@ -119,8 +119,8 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
 
     void updateByBatch(Map<byte[], byte[]> rows) {
         resetDbLock.readLock().lock();
+        WriteBatch batch = db.createWriteBatch();
         try {
-            WriteBatch batch = db.createWriteBatch();
             rows.forEach((key, value) -> {
                 if (value == null) {
                     batch.delete(key);
@@ -130,6 +130,11 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
             });
             db.write(batch);
         } finally {
+            try {
+                batch.close();
+            } catch (IOException e) {
+                log.debug(e.getMessage());
+            }
             resetDbLock.readLock().unlock();
         }
     }
@@ -171,11 +176,14 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
 
     public List<byte[]> getAll() throws IOException {
         List<byte[]> valueList = new ArrayList<>();
-        try (DBIterator iterator = db.iterator()) {
+        DBIterator iterator = db.iterator();
+        try {
             for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
                 byte[] value = iterator.peekNext().getValue();
                 valueList.add(value);
             }
+        } finally {
+            iterator.close();
         }
         return valueList;
     }

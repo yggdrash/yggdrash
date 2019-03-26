@@ -282,11 +282,11 @@ public class ByteUtil {
             throw new Error("value is not number");
         }
 
-        BigInteger bInt = new BigInteger(val);
+        BigInteger bigInt = new BigInteger(val);
         int bytes = 0;
 
-        while (!bInt.equals(BigInteger.ZERO)) {
-            bInt = bInt.shiftRight(8);
+        while (!bigInt.equals(BigInteger.ZERO)) {
+            bigInt = bigInt.shiftRight(8);
             ++bytes;
         }
         if (bytes == 0) {
@@ -459,8 +459,8 @@ public class ByteUtil {
     /**
      * Parses fixed number of bytes starting from {@code offset} in {@code input} array.
      * If {@code input} has not enough bytes return array will be right padded with zero bytes.
-     * I.e. if {@code offset} is higher than {@code input.length}
-     * then zero byte array of length {@code len} will be returned
+     * I.e. if {@code offset} is higher than {@code input.length} then zero byte array of length
+     * {@code len} will be returned
      */
     public static byte[] parseBytes(byte[] input, int offset, int len) {
 

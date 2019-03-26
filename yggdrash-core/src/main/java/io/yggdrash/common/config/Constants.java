@@ -32,6 +32,8 @@ public class Constants {
     public static final byte[] EMPTY_BYTE100K = new byte[102400];
     public static final byte[] EMPTY_BYTE1M = new byte[1024000];
 
+    public static final int BLOCK_HASH_LENGTH = 32;
+
     public static final int TX_HEADER_LENGTH = 84;
     public static final int TX_SIG_LENGTH = 65;
     public static final int TX_BODY_MAX_LENGTH = 10000000; // 10 Mb

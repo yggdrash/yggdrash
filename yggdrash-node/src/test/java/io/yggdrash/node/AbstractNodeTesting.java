@@ -49,7 +49,7 @@ public class AbstractNodeTesting {
     }
 
     @Rule
-    public GrpcCleanupRule gRpcCleanup = new GrpcCleanupRule();
+    public GrpcCleanupRule grpcCleanup = new GrpcCleanupRule();
 
     @Before
     public void setUp() {
@@ -60,7 +60,7 @@ public class AbstractNodeTesting {
     private void setPeerHandlerFactory() {
         this.factory = peer -> {
             ManagedChannel managedChannel = createChannel(peer);
-            gRpcCleanup.register(managedChannel);
+            grpcCleanup.register(managedChannel);
             return new GRpcPeerHandler(managedChannel, peer);
         };
     }
@@ -69,7 +69,7 @@ public class AbstractNodeTesting {
         TestNode node = new TestNode(factory, port, enableBranch);
         nodeList.add(node);
         createAndStartServer(node);
-        gRpcCleanup.register(node.server);
+        grpcCleanup.register(node.server);
         return node;
     }
 
