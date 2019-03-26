@@ -31,11 +31,10 @@ import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.output.es.EsClient;
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BlockChainBuilder {
 
@@ -142,32 +141,10 @@ public class BlockChainBuilder {
                     .build();
         }
 
+
+
         BlockChain bc = new BlockChain(branch, genesisBlock, blockStore,
                 transactionStore, branchStore, stateStore, transactionReceiptStore, contractContainer, outputStores);
-
-        // Check BlockChain is Ready
-        PrepareBlockchain prepareBlockchain = new PrepareBlockchain(storeBuilder.getConfig());
-        // check block chain is ready
-        if (prepareBlockchain.checkBlockChainIsReady(bc)) {
-            // install bundles
-            // bc.getContractContainer()
-            ContractContainer container = bc.getContractContainer();
-            for(BranchContract contract : bc.getBranchContracts()) {
-                File branchContractFile = prepareBlockchain.loadContractFile(contract.getContractVersion());
-                container.installContract(contract.getContractVersion(), branchContractFile, contract.isSystem());
-            }
-
-            try {
-                container.reloadInject();
-            } catch (IllegalAccessException e) {
-                log.error(e.getMessage());
-                return null;
-            }
-        } else {
-            // TODO blockchain ready fails
-            log.error("Blockchain is not Ready");
-            return null;
-        }
 
         return bc;
     }

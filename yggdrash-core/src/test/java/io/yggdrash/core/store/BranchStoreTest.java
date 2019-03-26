@@ -134,8 +134,8 @@ public class BranchStoreTest {
         assert !bc.equals(bc2);
         assert bc.size() == bc2.size();
         assert bc.get(0).getContractVersion().equals(bc2.get(0).getContractVersion());
-        assert bc.get(bc.size()-1).getInit().toString()
-                .equals(bc2.get(bc2.size()-1).getInit().toString());
+        assert bc.get(bc.size() - 1).getInit().toString()
+                .equals(bc2.get(bc2.size() - 1).getInit().toString());
     }
 
 }

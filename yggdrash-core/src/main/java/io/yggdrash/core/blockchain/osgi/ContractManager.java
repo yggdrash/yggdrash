@@ -36,13 +36,12 @@ import java.util.ArrayList;
 import java.util.Dictionary;
 import java.util.List;
 import java.util.Map;
+import java.util.jar.Manifest;
 
 public class ContractManager {
     private static final Logger log = LoggerFactory.getLogger(ContractManager.class);
 
     private final Framework framework;
-    private final String systemContractPath;
-    private final String userContractPath;
     private final String branchId;
     private final StateStore stateStore;
     private final TransactionReceiptStore transactionReceiptStore;
@@ -50,38 +49,17 @@ public class ContractManager {
     private final SystemProperties systemProperties;
     private final ContractCache contractCache;
 
-    private List<String> systemContracts;
-
-    ContractManager(Framework framework, String systemContractPath, String userContractPath,
-                    String branchId, StateStore stateStore,
+    ContractManager(Framework framework, String branchId, StateStore stateStore,
                     TransactionReceiptStore transactionReceiptStore,
                     Map<OutputType, OutputStore> outputStore, SystemProperties systemProperties) {
         this.framework = framework;
-        this.systemContractPath = systemContractPath;
-        this.userContractPath = userContractPath;
         this.branchId = branchId;
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
         this.outputStore = outputStore;
         this.systemProperties = systemProperties;
         contractCache = new ContractCache();
-    }
 
-    void setSystemContracts(List<String> systemContracts) {
-        this.systemContracts = systemContracts;
-    }
-
-    String makeContractPath(String contractName, boolean isSystemContract) {
-        return String.format("%s/%s", isSystemContract ? systemContractPath : userContractPath, contractName);
-    }
-
-    private String makeContractFullPath(String contractName, boolean isSystemContract) {
-        return String.format("%s%s/%s", ContractContainer.PREFIX_BUNDLE_PATH,
-                isSystemContract ? systemContractPath : userContractPath, contractName);
-    }
-
-    private boolean checkSystemContract(String contractName) {
-        return contractName.matches("[0-9]*[-]*system-.*");
     }
 
     void inject(Bundle bundle) throws IllegalAccessException {
@@ -91,8 +69,7 @@ public class ContractManager {
         }
 
         boolean isSystemContract = bundle.getLocation()
-                .startsWith(String.format("%s%s",
-                        ContractContainer.PREFIX_BUNDLE_PATH, systemContractPath));
+                .startsWith(ContractContainer.SUFFIX_SYSTEM_CONTRACT);
 
         for (ServiceReference serviceRef : serviceRefs) {
             Object service = framework.getBundleContext().getService(serviceRef);
@@ -164,19 +141,34 @@ public class ContractManager {
                 case STOP:
                     bundle.stop();
                     break;
+                default:
+                    throw new Exception("Action is not Exist");
             }
         } catch (Exception e) {
-            log.error("Execute bundle exception: contractId:{}, path:{}, stack:{}", bundle.getBundleId(), bundle.getLocation(), ExceptionUtils.getStackTrace(e));
+            log.error("Execute bundle exception: contractId:{}, path:{}, stack:{}",
+                    bundle.getBundleId(), bundle.getLocation(), ExceptionUtils.getStackTrace(e));
             throw new RuntimeException(e);
         }
         return true;
     }
 
-    private boolean verifyManifest(Bundle bundle) {
+
+    public boolean verifyManifest(Manifest manifest) {
+        String manifestVersion = manifest.getMainAttributes().getValue("Bundle-ManifestVersion");
+        String bundleSymbolicName = manifest.getMainAttributes().getValue("Bundle-SymbolicName");
+        String bundleVersion = manifest.getMainAttributes().getValue("Bundle-Version");
+        return verifyManifest(manifestVersion, bundleSymbolicName, bundleVersion);
+    }
+
+    public boolean verifyManifest(Bundle bundle) {
         String bundleManifestVersion = bundle.getHeaders().get("Bundle-ManifestVersion");
         String bundleSymbolicName = bundle.getHeaders().get("Bundle-SymbolicName");
         String bundleVersion = bundle.getHeaders().get("Bundle-Version");
-        if (!"2".equals(bundleManifestVersion)) {
+        return verifyManifest(bundleManifestVersion, bundleSymbolicName, bundleVersion);
+    }
+
+    public boolean verifyManifest(String manifestVersion, String bundleSymbolicName, String bundleVersion) {
+        if (!"2".equals(manifestVersion)) {
             log.error("Must set Bundle-ManifestVersion to 2");
             return false;
         }
@@ -193,37 +185,40 @@ public class ContractManager {
         return true;
     }
 
-    public long install(String contractFileName, boolean isSystemContract) {
-        Bundle bundle;
-        try {
 
-            String fullPath = makeContractFullPath(contractFileName, isSystemContract);
-            InputStream stream = new FileInputStream(fullPath);
-            bundle = framework.getBundleContext().installBundle(contractFileName, stream);
-            boolean isPass = verifyManifest(bundle);
-            if (!isPass) {
-                uninstall(bundle.getBundleId());
+    public boolean checkExistContract(String symbol, String version) {
+        for (Bundle b : framework.getBundleContext().getBundles()) {
+            if (
+                    b.getVersion().toString().equals(version)
+                            && b.getSymbolicName().equals(symbol)
+            ) {
+                return true;
             }
-
-            start(bundle.getBundleId());
-        } catch (Exception e) {
-            log.error("Install bundle exception: branchID - {}, msg - {}", branchId, e.getMessage());
-            throw new RuntimeException(e);
         }
-        return bundle.getBundleId();
+        return false;
     }
 
     public long install(ContractVersion version, File file, boolean isSystem) {
         Bundle bundle;
         try {
             InputStream fileStream = new FileInputStream(file.getAbsoluteFile());
-            bundle = framework.getBundleContext().installBundle(version.toString(),fileStream);
 
+            // set location
+            String locationPrefix = isSystem ? ContractContainer.SUFFIX_SYSTEM_CONTRACT :
+                    ContractContainer.SUFFIX_USER_CONTRACT;
+
+            String location = String.format("%s/%s", locationPrefix, version.toString());
+            // set Location
+            bundle = framework.getBundleContext().installBundle(location, fileStream);
+            log.debug("installed  {} {}", version.toString(), bundle.getLocation());
+            /*
             boolean isPass = verifyManifest(bundle);
             if (!isPass) {
                 uninstall(bundle.getBundleId());
             }
+            */
             start(bundle.getBundleId());
+            contractCache.cacheContract(bundle, framework);
         } catch (Exception e) {
             log.error("Install bundle exception: branchID - {}, msg - {}", branchId, e.getMessage());
             throw new RuntimeException(e);
@@ -245,8 +240,9 @@ public class ContractManager {
         return action(contractId, ActionType.STOP);
     }
 
-    private Object callContractMethod(Bundle bundle, String methodName, JsonObject params,MethodType methodType
-            , TransactionReceipt txReceipt, JsonObject endBlockParams) {
+    private Object callContractMethod(Bundle bundle, String methodName, JsonObject params,
+                                      MethodType methodType, TransactionReceipt txReceipt,
+                                      JsonObject endBlockParams) {
         if (bundle.getRegisteredServices() == null) {
             return null;
         }
@@ -266,6 +262,9 @@ public class ContractManager {
             case EndBlock:
                 methodMap = contractCache.getEndBlockMethods().get(bundle.getLocation());
                 break;
+            default:
+                log.error("Method Type is not exist");
+                return null;
         }
 
         if (methodMap == null || methodMap.get(methodName) == null) {
@@ -274,19 +273,17 @@ public class ContractManager {
 
         Method method = methodMap.get(methodName);
         try {
-            switch (methodType) {
-                case InvokeTx:
-                    // Inject field
-                    Map<Field, List<Annotation>> fields = contractCache.getInjectingFields().get(bundle.getLocation());
-                    for (Field field : fields.keySet()) {
-                        field.setAccessible(true);
-                        for (Annotation a : field.getDeclaredAnnotations()) {
-                            if (a.annotationType().equals(ContractTransactionReceipt.class)) {
-                                field.set(service, txReceipt);
-                            }
+            if (methodType == MethodType.InvokeTx) {
+                // Inject field
+                Map<Field, List<Annotation>> fields = contractCache.getInjectingFields().get(bundle.getLocation());
+                for (Field field : fields.keySet()) {
+                    field.setAccessible(true);
+                    for (Annotation a : field.getDeclaredAnnotations()) {
+                        if (a.annotationType().equals(ContractTransactionReceipt.class)) {
+                            field.set(service, txReceipt);
                         }
                     }
-                    break;
+                }
             }
 
             if (method.getParameterCount() == 0) {
@@ -307,16 +304,17 @@ public class ContractManager {
     }
 
     public Object query(String contractVersion, String methodName, JsonObject params) {
-        String contractFileName = makeContractFullPath(contractVersion, checkSystemContract(contractVersion));
-        Bundle bundle = getBundle(contractFileName);
+        String contractBundleLocation = contractCache.getFullLocation(contractVersion);
+        Bundle bundle = getBundle(contractBundleLocation);
         if (bundle == null) {
             return null;
         }
         return callContractMethod(bundle, methodName, params, MethodType.Query, null, null);
     }
 
-    public Object invoke(String contractFileName, JsonObject txBody, TransactionReceipt txReceipt) {
-        Bundle bundle = getBundle(contractFileName);
+    public Object invoke(String contractVersion, JsonObject txBody, TransactionReceipt txReceipt) {
+        String contractBundleLocation = contractCache.getFullLocation(contractVersion);
+        Bundle bundle = getBundle(contractBundleLocation);
         if (bundle == null) {
             return null;
         }
@@ -328,7 +326,8 @@ public class ContractManager {
         if (bundle == null) {
             return null;
         }
-        return callContractMethod(bundle, txBody.get("method").getAsString(), txBody.getAsJsonObject("params"), MethodType.InvokeTx, txReceipt, null);
+        return callContractMethod(bundle, txBody.get("method").getAsString(),
+                txBody.getAsJsonObject("params"), MethodType.InvokeTx, txReceipt, null);
     }
 
     private List<Object> endBlock(JsonObject endBlockParams) {
@@ -356,7 +355,8 @@ public class ContractManager {
         }
 
         BlockRuntimeResult result = new BlockRuntimeResult(nextBlock);
-//        TempStateStore blockState = new TempStateStore(stateStore);
+        // TODO tempStateStore
+        // TempStateStore blockState = new TempStateStore(stateStore);
         for (TransactionHusk tx : nextBlock.getBody()) {
             TransactionReceipt txReceipt = createTransactionReceipt(tx);
             // set Block ID
@@ -368,9 +368,7 @@ public class ContractManager {
                 JsonObject txBody = transactionElement.getAsJsonObject();
                 String contractVersion = txBody.get("contractVersion").getAsString();
                 Object contractResult = invoke(
-                        makeContractFullPath(contractVersion, checkSystemContract(contractVersion))
-                        , txBody
-                        , txReceipt
+                        contractVersion, txBody, txReceipt
                 );
                 log.debug("{} is {}", txReceipt.getTxId(), txReceipt.isSuccess());
             }
@@ -384,7 +382,8 @@ public class ContractManager {
         List<Object> endBlockResult = endBlock(endBlockParams);
         */
         // Save BlockStates
-//        result.setBlockResult(blockState.changeValues());
+        // TODO tempStateStore
+        // result.setBlockResult(blockState.changeValues());
 
         return result;
     }
