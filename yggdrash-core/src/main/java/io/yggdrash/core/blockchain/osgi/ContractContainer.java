@@ -153,13 +153,26 @@ public class ContractContainer {
         // Branch State Store 권한추가 - 읽기/쓰기 권한
         // 컨트렉트 폴더 읽기/쓰기 권한
         // TODO 아카식 시스템 폴더 읽기/쓰기 권한
+
+        String stateStorePath = String.format("%s/%s/state", config.getDatabasePath(), branchId);
+        String stateStoreFile = String.format("%s/%s/state/*", config.getDatabasePath(), branchId);
+
+        String branchStorePath = String.format("%s/%s/branch", config.getDatabasePath(), branchId);
+        String branchStoreFile = String.format("%s/%s/branch/*", config.getDatabasePath(), branchId);
+
+        String filePermissionName = FilePermission.class.getName();
+
         List<PermissionInfo> systemPermissions = new ArrayList<>();
         systemPermissions.add(
-                new PermissionInfo(FilePermission.class.getName(),
-                        String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"));
+                new PermissionInfo(filePermissionName, stateStorePath, "read"));
         systemPermissions.add(
-                new PermissionInfo(FilePermission.class.getName(),
-                        String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete"));
+                new PermissionInfo(filePermissionName, stateStoreFile, "read,write,delete"));
+        
+        // Add Branch Store Read / Write
+        systemPermissions.add(
+                new PermissionInfo(filePermissionName, branchStorePath, "read"));
+        systemPermissions.add(
+                new PermissionInfo(filePermissionName, branchStoreFile, "read,write,delete"));
         if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
             systemPermissions.add(new PermissionInfo(
                     SocketPermission.class.getName(), systemProperties.getEsHost(), "connect,resolve"));
@@ -180,11 +193,15 @@ public class ContractContainer {
         // {BID}-container-permission-user-file
         List<PermissionInfo> userPermissions = new ArrayList<>();
         userPermissions.add(
-                new PermissionInfo(FilePermission.class.getName(),
-                    String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"));
+                new PermissionInfo(filePermissionName, stateStorePath, "read"));
         userPermissions.add(
-                new PermissionInfo(FilePermission.class.getName(),
-                    String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete"));
+                new PermissionInfo(filePermissionName, stateStoreFile, "read,write,delete"));
+        // Branch Store Read
+        userPermissions.add(
+                new PermissionInfo(filePermissionName, branchStorePath, "read"));
+        userPermissions.add(
+                new PermissionInfo(filePermissionName, branchStoreFile, "read"));
+
         if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
             userPermissions.add(
                     new PermissionInfo(SocketPermission.class.getName(),
