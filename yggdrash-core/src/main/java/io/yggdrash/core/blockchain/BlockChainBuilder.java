@@ -94,7 +94,6 @@ public class BlockChainBuilder {
     }
 
     public BlockChain build() {
-        BlockHusk genesisBlock = genesis.getBlock();
         if (branch == null) {
             branch = genesis.getBranch();
         }
@@ -141,7 +140,7 @@ public class BlockChainBuilder {
                     .build();
         }
 
-
+        BlockHusk genesisBlock = genesis.getBlock();
 
         BlockChain bc = new BlockChain(branch, genesisBlock, blockStore,
                 transactionStore, branchStore, stateStore, transactionReceiptStore, contractContainer, outputStores);

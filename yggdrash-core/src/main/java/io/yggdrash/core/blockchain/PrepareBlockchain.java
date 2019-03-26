@@ -50,7 +50,7 @@ public class PrepareBlockchain {
     public boolean checkBlockChainIsReady(BlockChain blockChain) {
         // Get BranchContract
         contractList = blockChain.getBranchContracts();
-        if(blockChain.getLastIndex() == 0 && contractList.size() == 0) {
+        if (blockChain.getLastIndex() == 0 && contractList.size() == 0) {
             // is Genesis Blockchain
             contractList = blockChain.getBranch().getBranchContracts();
         }
@@ -69,7 +69,7 @@ public class PrepareBlockchain {
             File contractFile = loadContractFile(contractVersion);
 
             if (contractFile == null) {
-                if(!findContractFile(contractVersion)) {
+                if (!findContractFile(contractVersion)) {
                     log.error("Contract {} is not exists", contractVersion.toString());
                     return false;
                 }

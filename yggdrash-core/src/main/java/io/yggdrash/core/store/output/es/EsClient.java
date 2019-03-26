@@ -9,6 +9,7 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,11 +53,8 @@ public class EsClient implements OutputStore {
     public String put(String schemeName, String id, JsonObject jsonObject) {
         IndexResponse response = client.prepareIndex(schemeName, "_doc", id)
                 .setSource(jsonObject.toString(), XContentType.JSON).get();
-
-        switch (response.status()) {
-            case OK:
-            case CREATED:
-                return id;
+        if (response.status() == RestStatus.OK || response.status() == RestStatus.CREATED) {
+            return id;
         }
         return null;
     }

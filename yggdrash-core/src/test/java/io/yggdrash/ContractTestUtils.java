@@ -66,9 +66,9 @@ public class ContractTestUtils {
         final String name = "STEM";
         final String symbol = "STEM";
         final String property = "ecosystem";
-        final String description = "The Basis of the YGGDRASH Ecosystem." +
-                "It is also an aggregate and a blockchain containing information" +
-                "of all Branch Chains.";
+        final String description = "The Basis of the YGGDRASH Ecosystem."
+                + "It is also an aggregate and a blockchain containing information"
+                + "of all Branch Chains.";
         final BigDecimal fee = BigDecimal.valueOf(100);
 
         JsonObject contractSample = new JsonObject();
@@ -128,9 +128,6 @@ public class ContractTestUtils {
         JsonObject consensus = new Gson().fromJson(consensusString, JsonObject.class);
         branch.add("consensus", consensus);
         branch.addProperty("fee", fee);
-
-//        branchSample.add("branch", branch);
-//        branchSample.addProperty("fee", fee);
 
         return branch;
     }
