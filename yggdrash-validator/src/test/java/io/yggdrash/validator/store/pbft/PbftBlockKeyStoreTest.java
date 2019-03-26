@@ -23,12 +23,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE1K;
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
-import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
-import static io.yggdrash.common.util.Utils.sleep;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -38,218 +36,91 @@ import static org.junit.Assert.assertTrue;
 public class PbftBlockKeyStoreTest {
     private static final Logger log = LoggerFactory.getLogger(PbftBlockKeyStoreTest.class);
 
-    private Wallet wallet;
+    private Wallet wallet0;
+    private Wallet wallet1;
     private Wallet wallet2;
     private Wallet wallet3;
-    private Wallet wallet4;
 
-    private Block block;
-    private Block block2;
-    private Block block3;
-    private Block block4;
-
-    private PbftBlock pbftBlock;
+    private PbftBlock pbftBlock0;
+    private PbftBlock pbftBlock1;
     private PbftBlock pbftBlock2;
     private PbftBlock pbftBlock3;
-    private PbftBlock pbftBlock4;
-
-    private PbftMessage prePrepare;
-    private PbftMessage prepare;
-    private PbftMessage prepare2;
-    private PbftMessage prepare3;
-    private PbftMessage prepare4;
-
-    private PbftMessage commit;
-    private PbftMessage commit2;
-    private PbftMessage commit3;
-    private PbftMessage commit4;
-
-    private PbftMessage viewChange;
-    private PbftMessage viewChange2;
-    private PbftMessage viewChange3;
-    private PbftMessage viewChange4;
-
-    private PbftMessageSet pbftMessageSet;
-    private PbftMessageSet pbftMessageSet2;
-    private PbftMessageSet pbftMessageSet3;
-    private PbftMessageSet pbftMessageSet4;
-    private final Map<String, PbftMessage> prepareMap = new TreeMap<>();
-    private final Map<String, PbftMessage> commitMap = new TreeMap<>();
-    private final Map<String, PbftMessage> viewChangeMap = new TreeMap<>();
 
     private LevelDbDataSource ds;
     private PbftBlockKeyStore blockKeyStore;
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        wallet = new Wallet();
+        wallet0 = new Wallet(null, "/tmp/",
+                "test0" + TimeUtils.time(), "Password1234!");
+        wallet1 = new Wallet(null, "/tmp/",
+                "test1" + TimeUtils.time(), "Password1234!");
         wallet2 = new Wallet(null, "/tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
         wallet3 = new Wallet(null, "/tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
-        wallet4 = new Wallet(null, "/tmp/",
-                "test4" + TimeUtils.time(), "Password1234!");
 
-        block = new TestUtils(wallet).sampleBlock();
-        block2 = new TestUtils(wallet).sampleBlock(block.getIndex() + 1, block.getHash());
-        block3 = new TestUtils(wallet).sampleBlock(block2.getIndex() + 1, block2.getHash());
-        block4 = new TestUtils(wallet).sampleBlock(block3.getIndex() + 1, block3.getHash());
-
-        prePrepare = new PbftMessage(PBFT_PREPREPARE,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet,
-                block);
-        log.debug(prePrepare.toJsonObject().toString());
-
-        prepare = new PbftMessage(PBFT_PREPARE,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet,
-                null);
-        log.debug(prepare.toJsonObject().toString());
-
-        prepare2 = new PbftMessage(PBFT_PREPARE,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet2,
-                null);
-        log.debug(prepare2.toJsonObject().toString());
-
-        prepare3 = new PbftMessage(PBFT_PREPARE,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet3,
-                null);
-        log.debug(prepare3.toJsonObject().toString());
-
-        prepare4 = new PbftMessage(PBFT_PREPARE,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet4,
-                null);
-        log.debug(prepare4.toJsonObject().toString());
-
-        commit = new PbftMessage(PBFT_COMMIT,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet,
-                null);
-        log.debug(commit.toJsonObject().toString());
-
-        commit2 = new PbftMessage(PBFT_COMMIT,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet2,
-                null);
-        log.debug(commit2.toJsonObject().toString());
-
-        commit3 = new PbftMessage(PBFT_COMMIT,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet3,
-                null);
-        log.debug(commit3.toJsonObject().toString());
-
-        commit4 = new PbftMessage(PBFT_COMMIT,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet4,
-                null);
-        log.debug(commit4.toJsonObject().toString());
-
-        viewChange = new PbftMessage(PBFT_VIEWCHANGE,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet,
-                null);
-        log.debug(viewChange.toJsonObject().toString());
-
-        viewChange2 = new PbftMessage(PBFT_VIEWCHANGE,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet2,
-                null);
-        log.debug(viewChange2.toJsonObject().toString());
-
-        viewChange3 = new PbftMessage(PBFT_VIEWCHANGE,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet3,
-                null);
-        log.debug(viewChange3.toJsonObject().toString());
-
-        viewChange4 = new PbftMessage(PBFT_VIEWCHANGE,
-                0L,
-                0L,
-                block.getHash(),
-                null,
-                wallet4,
-                null);
-        log.debug(viewChange4.toJsonObject().toString());
-
-        prepareMap.put(prepare.getSignatureHex(), prepare);
-        prepareMap.put(prepare2.getSignatureHex(), prepare2);
-        prepareMap.put(prepare3.getSignatureHex(), prepare3);
-        prepareMap.put(prepare4.getSignatureHex(), prepare4);
-
-        commitMap.put(commit.getSignatureHex(), commit);
-        commitMap.put(commit2.getSignatureHex(), commit2);
-        commitMap.put(commit3.getSignatureHex(), commit3);
-        commitMap.put(commit4.getSignatureHex(), commit4);
-
-        viewChangeMap.put(viewChange.getSignatureHex(), viewChange);
-        viewChangeMap.put(viewChange2.getSignatureHex(), viewChange2);
-        viewChangeMap.put(viewChange3.getSignatureHex(), viewChange3);
-        viewChangeMap.put(viewChange4.getSignatureHex(), viewChange4);
-
-        pbftMessageSet = new PbftMessageSet(prePrepare, prepareMap, commitMap, null);
-        pbftMessageSet2 = new PbftMessageSet(prePrepare, null, null, null);
-        pbftMessageSet3 = new PbftMessageSet(prePrepare, prepareMap, null, null);
-        pbftMessageSet4 = new PbftMessageSet(prePrepare, prepareMap, commitMap, viewChangeMap);
-
-        this.pbftBlock = new PbftBlock(this.block, this.pbftMessageSet);
-        this.pbftBlock2 = new PbftBlock(this.block2, this.pbftMessageSet2);
-        this.pbftBlock3 = new PbftBlock(this.block3, this.pbftMessageSet3);
-        this.pbftBlock4 = new PbftBlock(this.block4, this.pbftMessageSet4);
+        this.pbftBlock0 = makePbftBlock(0L, EMPTY_BYTE32);
+        this.pbftBlock1 = makePbftBlock(pbftBlock0.getIndex() + 1, pbftBlock0.getHash());
+        this.pbftBlock2 = makePbftBlock(pbftBlock1.getIndex() + 1, pbftBlock1.getHash());
+        this.pbftBlock3 = makePbftBlock(pbftBlock2.getIndex() + 1, pbftBlock2.getHash());
 
         StoreTestUtils.clearTestDb();
 
         this.ds = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockKeyStoreTest");
         this.blockKeyStore = new PbftBlockKeyStore(ds);
-        this.blockKeyStore.put(this.pbftBlock.getIndex(), this.pbftBlock.getHash());
+        this.blockKeyStore.put(this.pbftBlock0.getIndex(), this.pbftBlock0.getHash());
+    }
+
+    private Block makeBlock(long index, byte[] prevHash) {
+        return new TestUtils(wallet0).sampleBlock(index, prevHash);
+    }
+
+    private PbftBlock makePbftBlock(long index, byte[] prevHash) {
+        Block block = makeBlock(index, prevHash);
+        return new PbftBlock(block, makePbftMessageSet(block));
+    }
+
+    private PbftMessage makePbftMessage(String type, Block block, Wallet wallet) {
+        switch (type) {
+            case PBFT_PREPREPARE:
+                return new PbftMessage(type, block.getIndex(), block.getIndex(), block.getHash(), null, wallet, block);
+            default:
+                return new PbftMessage(type, block.getIndex(), block.getIndex(), block.getHash(), null, wallet, null);
+        }
+    }
+
+    private PbftMessageSet makePbftMessageSet(Block block) {
+        Map<String, PbftMessage> prepareMap = new TreeMap<>();
+        PbftMessage prepare0 = makePbftMessage(PBFT_PREPARE, block, wallet0);
+        prepareMap.put(prepare0.getSignatureHex(), prepare0);
+        PbftMessage prepare1 = makePbftMessage(PBFT_PREPARE, block, wallet1);
+        prepareMap.put(prepare1.getSignatureHex(), prepare1);
+        PbftMessage prepare2 = makePbftMessage(PBFT_PREPARE, block, wallet2);
+        prepareMap.put(prepare2.getSignatureHex(), prepare2);
+        PbftMessage prepare3 = makePbftMessage(PBFT_PREPARE, block, wallet3);
+        prepareMap.put(prepare3.getSignatureHex(), prepare3);
+
+        Map<String, PbftMessage> commitMap = new TreeMap<>();
+        PbftMessage commit0 = makePbftMessage(PBFT_COMMIT, block, wallet0);
+        commitMap.put(commit0.getSignatureHex(), commit0);
+        PbftMessage commit1 = makePbftMessage(PBFT_COMMIT, block, wallet1);
+        commitMap.put(commit1.getSignatureHex(), commit1);
+        PbftMessage commit2 = makePbftMessage(PBFT_COMMIT, block, wallet2);
+        commitMap.put(commit2.getSignatureHex(), commit2);
+        PbftMessage commit3 = makePbftMessage(PBFT_COMMIT, block, wallet3);
+        commitMap.put(commit3.getSignatureHex(), commit3);
+
+        PbftMessage prePrepare = makePbftMessage(PBFT_PREPREPARE, block, wallet0);
+        return new PbftMessageSet(prePrepare, prepareMap, commitMap, null);
     }
 
     @Test
     public void putGetTest() {
-        byte[] newHash = blockKeyStore.get(this.pbftBlock.getIndex());
-        assertArrayEquals(this.pbftBlock.getHash(), newHash);
-        assertTrue(blockKeyStore.contains(this.pbftBlock.getIndex()));
-        assertFalse(blockKeyStore.contains(this.pbftBlock.getIndex() + 1));
+        byte[] newHash = blockKeyStore.get(this.pbftBlock0.getIndex());
+        assertArrayEquals(this.pbftBlock0.getHash(), newHash);
+        assertTrue(blockKeyStore.contains(this.pbftBlock0.getIndex()));
+        assertFalse(blockKeyStore.contains(this.pbftBlock0.getIndex() + 1));
         assertFalse(blockKeyStore.contains(-1L));
         assertEquals(blockKeyStore.size(), 1);
     }
@@ -257,7 +128,7 @@ public class PbftBlockKeyStoreTest {
     @Test
     public void putTest_NegativeNumber() {
         long beforeSize = blockKeyStore.size();
-        blockKeyStore.put(-1L, this.pbftBlock.getHash());
+        blockKeyStore.put(-1L, this.pbftBlock0.getHash());
         assertEquals(blockKeyStore.size(), beforeSize);
     }
 
@@ -267,60 +138,37 @@ public class PbftBlockKeyStoreTest {
     }
 
     @Test
-    public void memoryTest() {
+    public void memoryTest() throws InterruptedException {
         TestConstants.PerformanceTest.apply();
+        System.gc();
+        Thread.sleep(10000);
 
         long testNumber = 1000000;
         byte[] result;
         List<byte[]> resultList = new ArrayList<>();
 
-        log.debug("Before free memory: " + Runtime.getRuntime().freeMemory());
         for (long l = 0L; l < testNumber; l++) {
-            this.blockKeyStore.put(l, EMPTY_BYTE1K);
+            this.blockKeyStore.put(l, EMPTY_BYTE32);
             result = this.blockKeyStore.get(l);
             resultList.add(result);
         }
         resultList.clear();
         log.debug("blockKeyStore size: " + this.blockKeyStore.size());
-        log.debug("After free memory: " + Runtime.getRuntime().freeMemory());
-        assertEquals(this.blockKeyStore.size(), testNumber);
+        assertEquals(testNumber, this.blockKeyStore.size());
 
         System.gc();
-        sleep(20000);
-    }
-
-    @Test
-    public void memoryTestMultiThread() {
-        TestConstants.PerformanceTest.apply();
-
-        long testNumber = 1000000;
-        byte[] result;
-        List<byte[]> resultList = new ArrayList<>();
-
-        log.debug("Before free memory: " + Runtime.getRuntime().freeMemory());
-        for (long l = 0L; l < testNumber; l++) {
-            this.blockKeyStore.put(l, EMPTY_BYTE1K);
-            result = this.blockKeyStore.get(l);
-            resultList.add(result);
-        }
-        resultList.clear();
-        log.debug("blockKeyStore size: " + this.blockKeyStore.size());
-        log.debug("After free memory: " + Runtime.getRuntime().freeMemory());
-        assertEquals(this.blockKeyStore.size(), testNumber);
-
-        System.gc();
-        sleep(20000);
+        Thread.sleep(20000);
     }
 
     @Test
     public void closeTest() {
         blockKeyStore.close();
         try {
-            blockKeyStore.get(this.pbftBlock.getIndex());
+            blockKeyStore.get(this.pbftBlock0.getIndex());
         } catch (NullPointerException ne) {
             this.blockKeyStore = new PbftBlockKeyStore(ds);
-            byte[] newHash = blockKeyStore.get(this.pbftBlock.getIndex());
-            assertArrayEquals(this.pbftBlock.getHash(), newHash);
+            byte[] newHash = blockKeyStore.get(this.pbftBlock0.getIndex());
+            assertArrayEquals(this.pbftBlock0.getHash(), newHash);
             return;
         }
         assert false;
