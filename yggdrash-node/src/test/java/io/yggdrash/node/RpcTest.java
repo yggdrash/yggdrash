@@ -33,7 +33,7 @@ import java.util.List;
 import java.util.concurrent.Future;
 
 @RunWith(JUnit4.class)
-public class RpcTest extends TcpNodeTest {
+public class RpcTest extends TcpNodeTesting {
     private static final Logger log = LoggerFactory.getLogger(RpcTest.class);
     private static final int NODE_CNT = 2;
 

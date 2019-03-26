@@ -17,13 +17,13 @@
 package io.yggdrash.node.broadcast;
 
 import io.yggdrash.common.util.Utils;
-import io.yggdrash.node.AbstractNodeTest;
+import io.yggdrash.node.AbstractNodeTesting;
 import io.yggdrash.node.TestNode;
 
 import java.util.Random;
 import java.util.function.Consumer;
 
-class RandomBroadcastTest extends AbstractNodeTest {
+class RandomBroadcastTesting extends AbstractNodeTesting {
 
     void broadcastByRandomNode(int execute, Consumer<TestNode> consumer) {
         for (int i = 0; i < execute; i++) {

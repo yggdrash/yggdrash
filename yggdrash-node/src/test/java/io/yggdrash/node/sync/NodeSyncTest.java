@@ -17,14 +17,11 @@
 package io.yggdrash.node.sync;
 
 import io.yggdrash.common.util.Utils;
-import io.yggdrash.node.AbstractNodeTest;
+import io.yggdrash.node.AbstractNodeTesting;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
-@RunWith(JUnit4.class)
-public class NodeSyncTest extends AbstractNodeTest {
+public class NodeSyncTest extends AbstractNodeTesting {
 
     @Test
     public void bootstrapBlockSyncTest() {
@@ -35,7 +32,7 @@ public class NodeSyncTest extends AbstractNodeTest {
         int node1 = 1;
         bootstrapSyncNode(node1);
         generateBlock(node1, 4);
-        Assert.assertEquals(nodeList.get(node1).getDefaultBranch().getLastIndex(), 4);
+        Assert.assertEquals(4, nodeList.get(node1).getDefaultBranch().getLastIndex());
 
         // act
         int node2 = 2;

@@ -23,7 +23,6 @@ import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.proto.BlockChainGrpc;
-import io.yggdrash.proto.NetProto;
 import io.yggdrash.proto.PeerGrpc;
 import io.yggdrash.proto.Proto;
 import org.junit.Before;
@@ -59,15 +58,6 @@ public class GRpcPeerHandlerTest extends TestConstants.CiTest {
 
     @Captor
     private ArgumentCaptor<Proto.TargetPeer> findPeersTargetCaptor;
-
-    @Captor
-    private ArgumentCaptor<Proto.Block> blockArgumentCaptor;
-
-    @Captor
-    private ArgumentCaptor<Proto.Transaction> transactionArgumentCaptor;
-
-    @Captor
-    private ArgumentCaptor<NetProto.SyncLimit> syncLimitRequestCaptor;
 
     private GRpcPeerHandler peerHandler;
 
@@ -119,76 +109,4 @@ public class GRpcPeerHandlerTest extends TestConstants.CiTest {
         assertEquals("127.0.0.1", findPeersTargetCaptor.getValue().getIp());
         assertEquals(32918, findPeersTargetCaptor.getValue().getPort());
     }
-
-    /*
-    @Test
-    public void simpleBroadcastBlock() {
-        doAnswer((invocationOnMock) -> {
-            StreamObserver<Proto.Block> blockStreamObserver = invocationOnMock.getArgument(1);
-            blockStreamObserver.onNext(null);
-            blockStreamObserver.onCompleted();
-            return null;
-        }).when(blockChainService).simpleBroadcastBlock(blockArgumentCaptor.capture(), any());
-
-        peerHandler.simpleBroadcastBlock(BlockChainTestUtils.genesisBlock());
-
-        verify(blockChainService).simpleBroadcastBlock(blockArgumentCaptor.capture(), any());
-
-        assertEquals(2, blockArgumentCaptor.getAllValues().size());
-    }
-
-    @Test
-    public void simpleBroadcastTransaction() {
-        doAnswer((invocationOnMock) -> {
-            StreamObserver<Proto.Transaction> transactionStreamObserver
-                    = invocationOnMock.getArgument(1);
-            transactionStreamObserver.onNext(null);
-            transactionStreamObserver.onCompleted();
-            return null;
-        }).when(blockChainService).simpleBroadcastTransaction(transactionArgumentCaptor.capture(), any());
-
-        peerHandler.simpleBroadcastTransaction(BlockChainTestUtils.createTransferTxHusk());
-
-        verify(blockChainService).simpleBroadcastTransaction(transactionArgumentCaptor.capture(), any());
-
-        assertEquals(2, transactionArgumentCaptor.getAllValues().size());
-    }
-    */
-
-    /*
-    @Test
-    public void simpleSyncBlock() {
-        doAnswer((invocationOnMock) -> {
-            StreamObserver<Proto.BlockList> argument = invocationOnMock.getArgument(1);
-            argument.onNext(null);
-            argument.onCompleted();
-            return null;
-        }).when(blockChainService).simpleSyncBlock(syncLimitRequestCaptor.capture(), any());
-
-        long offset = 0;
-
-        peerHandler.syncBlock(BranchId.NULL, offset);
-
-        verify(blockChainService).simpleSyncBlock(syncLimitRequestCaptor.capture(), any());
-
-        assertEquals(offset, syncLimitRequestCaptor.getValue().getOffset());
-    }
-
-    @Test
-    public void simpleSyncTransaction() {
-        doAnswer((invocationOnMock) -> {
-            StreamObserver<Proto.Transaction> argument = invocationOnMock.getArgument(1);
-            argument.onNext(null);
-            argument.onCompleted();
-            return null;
-        }).when(blockChainService).simpleSyncTransaction(syncLimitRequestCaptor.capture(), any());
-
-        peerHandler.simpleSyncTransaction(BranchId.NULL);
-
-        verify(blockChainService).simpleSyncTransaction(syncLimitRequestCaptor.capture(), any());
-
-        BranchId branch = BranchId.of(syncLimitRequestCaptor.getValue().getBranch().toByteArray());
-        assertEquals(BranchId.NULL, branch);
-    }
-    */
 }
