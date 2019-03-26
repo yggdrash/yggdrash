@@ -44,6 +44,10 @@ public class StoreContainer {
         return this.branch;
     }
 
+    public BranchStore getBranchStore() {
+        return this.branchStore;
+    }
+
     public StateStore getStateStore() {
         return this.stateStore;
     }
@@ -60,7 +64,14 @@ public class StoreContainer {
         return this.transactionReceiptStore;
     }
 
+    public void close() {
+        this.branchStore.close();
+        this.branchStore.close();
+        this.blockStore.close();
+        this.transactionStore.close();
+        this.transactionReceiptStore.close();
 
+    }
 
 
 

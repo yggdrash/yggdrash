@@ -44,22 +44,10 @@ public class ContractContainerBuilder {
         return this;
     }
 
-    // TODO remove state store
-    public ContractContainerBuilder withStateStore(StateStore stateStore) {
-        this.stateStore = stateStore;
-        return this;
-    }
-
     public ContractContainerBuilder withStoreContainer(StoreContainer storeContainer) {
         this.storeContainer = storeContainer;
         return this;
 
-    }
-
-    // TODO remove transctionReceiptStore
-    public ContractContainerBuilder withTransactionReceiptStore(TransactionReceiptStore transactionReceiptStore) {
-        this.transactionReceiptStore = transactionReceiptStore;
-        return this;
     }
 
     public ContractContainerBuilder withConfig(DefaultConfig config) {

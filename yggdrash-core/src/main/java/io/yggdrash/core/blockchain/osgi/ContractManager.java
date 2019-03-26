@@ -86,9 +86,9 @@ public class ContractManager {
                     if (annotation.annotationType().equals(ContractStateStore.class)) {
                         field.set(o, storeContainer.getStateStore());
                     }
-                    // TODO Branch Store 추가
+                    // Branch Store
                     if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
-                        //field.set(o, st);
+                        field.set(o, storeContainer.getBranchStore());
                     }
                 }
                 if (outputStore != null

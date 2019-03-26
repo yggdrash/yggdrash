@@ -34,7 +34,6 @@ public class ContractContainerBuilderTest {
     @Test
     public void build() {
         // check builder config
-        StateStore store = new StateStore(new HashMapDbSource());
         DefaultConfig config = new DefaultConfig();
         ContractPolicyLoader loader = new ContractPolicyLoader();
         Map output = new HashMap();
@@ -43,7 +42,6 @@ public class ContractContainerBuilderTest {
                 .withConfig(config)
                 .withFrameworkFactory(loader.getFrameworkFactory())
                 .withContainerConfig(loader.getContainerConfig())
-                .withStateStore(store)
                 .withOutputStore(output)
                 .withBranchId("test")
                 .build();
