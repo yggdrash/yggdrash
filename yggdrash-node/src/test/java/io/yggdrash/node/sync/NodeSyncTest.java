@@ -16,6 +16,7 @@
 
 package io.yggdrash.node.sync;
 
+import io.yggdrash.PeerTestUtils;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.node.AbstractNodeTesting;
 import org.junit.Assert;
@@ -27,7 +28,7 @@ public class NodeSyncTest extends AbstractNodeTesting {
     public void bootstrapBlockSyncTest() {
         // arrange
         // bs node
-        createAndStartNode(SEED_PORT, false).bootstrapping();
+        bootstrapSeedNode();
         // bootstrap -> generate block
         int node1 = 1;
         bootstrapSyncNode(node1);
@@ -47,7 +48,7 @@ public class NodeSyncTest extends AbstractNodeTesting {
     public void catchUpBlockSyncTest() {
         ////// arrange //////
         // 1) bs node: bootstrap
-        createAndStartNode(SEED_PORT, false).bootstrapping();
+        bootstrapSeedNode();
         // 2) node1: bootstrap and generate block
         int node1 = 1;
         bootstrapSyncNode(node1);
@@ -78,7 +79,11 @@ public class NodeSyncTest extends AbstractNodeTesting {
     }
 
     private void bootstrapSyncNode(int nodeIdx) {
-        createAndStartNode(SEED_PORT + nodeIdx, true).bootstrapping();
+        createAndStartNode(PeerTestUtils.SEED_PORT + nodeIdx, true).bootstrapping();
+    }
+
+    private void bootstrapSeedNode() {
+        createAndStartNode(PeerTestUtils.SEED_PORT, false).bootstrapping();
     }
 
     private void generateBlock(int nodeIdx, int count) {

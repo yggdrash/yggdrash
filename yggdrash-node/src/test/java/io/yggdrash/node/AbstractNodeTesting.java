@@ -21,6 +21,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.testing.GrpcCleanupRule;
+import io.yggdrash.PeerTestUtils;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerHandlerFactory;
 import io.yggdrash.node.service.BlockChainService;
@@ -38,8 +39,6 @@ public class AbstractNodeTesting {
     protected static final Logger log = LoggerFactory.getLogger(AbstractNodeTesting.class);
     protected static final ch.qos.logback.classic.Logger rootLogger =
             (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
-
-    protected static final int SEED_PORT = 32918;
 
     protected PeerHandlerFactory factory;
 
@@ -79,7 +78,7 @@ public class AbstractNodeTesting {
     }
 
     protected void createAndStartServer(TestNode node) {
-        String ynodeUri = node.peerTableGroup.getOwner().getYnodeUri();
+        String ynodeUri = node.getPeer().getYnodeUri();
         InProcessServerBuilder serverBuilder = InProcessServerBuilder.forName(ynodeUri).directExecutor().addService(
                 new DiscoveryService(node.discoveryConsumer));
 
@@ -99,7 +98,7 @@ public class AbstractNodeTesting {
     }
 
     protected void bootstrapNodes(int nodeCount, boolean enableBranch) {
-        for (int i = SEED_PORT; i < SEED_PORT + nodeCount; i++) {
+        for (int i = PeerTestUtils.SEED_PORT; i < PeerTestUtils.SEED_PORT + nodeCount; i++) {
             TestNode node = createAndStartNode(i, enableBranch);
             node.bootstrapping();
         }
