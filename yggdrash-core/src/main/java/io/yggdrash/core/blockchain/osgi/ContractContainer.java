@@ -6,6 +6,7 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.SystemProperties;
+import io.yggdrash.core.store.StoreContainer;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.Bundle;
@@ -41,7 +42,6 @@ import java.util.jar.Manifest;
 public class ContractContainer {
     private static final Logger log = LoggerFactory.getLogger(ContractContainer.class);
 
-    // TODO remove prefix and suffix
     public static final String SUFFIX_SYSTEM_CONTRACT = "contract/system";
     public static final String SUFFIX_USER_CONTRACT = "contract/user";
 
@@ -50,8 +50,7 @@ public class ContractContainer {
     private final FrameworkFactory frameworkFactory;
     private final Map<String, String> commonContainerConfig;
     private final String branchId;
-    private final StateStore stateStore;
-    private final TransactionReceiptStore transactionReceiptStore;
+    private final StoreContainer storeContainer;
     private final DefaultConfig config;
     private final SystemProperties systemProperties;
 
@@ -59,14 +58,12 @@ public class ContractContainer {
     private Map<OutputType, OutputStore> outputStore;
 
     ContractContainer(FrameworkFactory frameworkFactory, Map<String, String> containerConfig,
-                      String branchId, StateStore stateStore,
-                      TransactionReceiptStore transactionReceiptStore, DefaultConfig config,
+                      String branchId, StoreContainer storeContainer, DefaultConfig config,
                       SystemProperties systemProperties, Map<OutputType, OutputStore> outputStore) {
         this.frameworkFactory = frameworkFactory;
         this.commonContainerConfig = containerConfig;
         this.branchId = branchId;
-        this.stateStore = stateStore;
-        this.transactionReceiptStore = transactionReceiptStore;
+        this.storeContainer = storeContainer;
         this.config = config;
         this.systemProperties = systemProperties;
         this.outputStore = outputStore;
@@ -84,8 +81,7 @@ public class ContractContainer {
 
         framework = frameworkFactory.newFramework(containerConfig);
 
-        contractManager = new ContractManager(framework, branchId, stateStore,
-                transactionReceiptStore, outputStore, systemProperties);
+        contractManager = new ContractManager(framework, branchId, storeContainer, outputStore, systemProperties);
 
         try {
             framework.start();
@@ -248,6 +244,7 @@ public class ContractContainer {
     }
 
     public void reloadInject() throws IllegalAccessException {
+        // TODO load After call
         for (Bundle bundle : framework.getBundleContext().getBundles()) {
             contractManager.inject(bundle);
         }

@@ -99,6 +99,7 @@ public class BlockChain {
                 container.reloadInject();
             } catch (IllegalAccessException e) {
                 log.error(e.getMessage());
+                // TODO throw Runtiome Exception
             }
         } else {
             // TODO blockchain ready fails
@@ -434,6 +435,5 @@ public class BlockChain {
         }
 
     }
-
 
 }
