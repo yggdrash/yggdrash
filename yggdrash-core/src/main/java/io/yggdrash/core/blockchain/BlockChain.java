@@ -90,7 +90,7 @@ public class BlockChain {
             // install bundles
             // bc.getContractContainer()
             ContractContainer container = getContractContainer();
-            for(BranchContract contract : prepareBlockchain.getContractList()) {
+            for (BranchContract contract : prepareBlockchain.getContractList()) {
                 File branchContractFile = prepareBlockchain.loadContractFile(contract.getContractVersion());
                 container.installContract(contract.getContractVersion(), branchContractFile, contract.isSystem());
             }

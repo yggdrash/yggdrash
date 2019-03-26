@@ -145,7 +145,8 @@ public class Runtime<T> {
             for (JsonElement transactionElement: JsonUtil.parseJsonArray(tx.getBody())) {
                 JsonObject txBody = transactionElement.getAsJsonObject();
                 // check contract Version
-                ContractVersion txContractVersion = ContractVersion.ofNonHex(txBody.get("contractVersion").getAsString());
+                String contractVersion = txBody.get("contractVersion").getAsString();
+                ContractVersion txContractVersion = ContractVersion.ofNonHex(contractVersion);
                 RuntimeContractWrap wrap = contracts.get(txContractVersion);
                 // TODO remove this (retry if not system contract)
                 if (wrap == null) {

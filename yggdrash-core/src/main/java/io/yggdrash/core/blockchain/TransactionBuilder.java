@@ -75,7 +75,8 @@ public class TransactionBuilder {
     }
 
 
-    public TransactionBuilder addTxBody(ContractVersion contractVersion, String method, JsonObject params, boolean isSystem) {
+    public TransactionBuilder addTxBody(ContractVersion contractVersion, String method,
+                                        JsonObject params, boolean isSystem) {
         JsonObject txObj = new JsonObject();
         txObj.addProperty("contractVersion", contractVersion.toString());
         txObj.addProperty("method", method);
@@ -129,7 +130,6 @@ public class TransactionBuilder {
     }
 
     public Transaction buildTransaction() {
-//        JsonArray txArray;
         if (branchId == null || txBody.size() == 0) {
             return  null;
         } else {

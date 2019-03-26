@@ -47,7 +47,8 @@ public class DPoAContractTest {
             f.set(dPoAService, store);
         }
 
-        String validators = "{\"validator\": [\"a2b0f5fce600eb6c595b28d6253bed92be0568ed\",\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\",\"d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95\"]}";
+        String validators = "{\"validator\": [\"a2b0f5fce600eb6c595b28d6253bed92be0568ed\""
+                + ",\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\",\"d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95\"]}";
         JsonObject genesis = JsonUtil.parseJsonObject(validators);
         validatorsArr = genesis.getAsJsonArray("validator");
 
@@ -80,7 +81,8 @@ public class DPoAContractTest {
         String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
         TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
 
-        TransactionReceipt receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
+        TransactionReceipt receipt = dPoAService.proposeValidator(
+                JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         ProposeValidatorSet proposeValidatorSet = dPoAService.getProposeValidatorSet();
@@ -124,7 +126,8 @@ public class DPoAContractTest {
         String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
         TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
 
-        TransactionReceipt receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
+        TransactionReceipt receipt = dPoAService.proposeValidator(
+                JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
     }
 
@@ -141,10 +144,12 @@ public class DPoAContractTest {
         String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
         TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
 
-        TransactionReceipt receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
+        TransactionReceipt receipt = dPoAService.proposeValidator(
+                JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
-        receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
+        receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject(
+                JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
     }
 
@@ -161,11 +166,13 @@ public class DPoAContractTest {
         String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
         TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
 
-        TransactionReceipt receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
+        TransactionReceipt receipt = dPoAService.proposeValidator(
+                JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         tx = new TxValidatorPropose("51e5ae98cd821fa044d1eb49f03fb81a7acf3617");
-        receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
+        receipt = dPoAService.proposeValidator(
+                JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
     }
 
@@ -179,12 +186,14 @@ public class DPoAContractTest {
         //Propose validator
         String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
         TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
-        TransactionReceipt receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
+        TransactionReceipt receipt = dPoAService.proposeValidator(
+                JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         //Vote
         TxValidatorVote txValidatorVote = new TxValidatorVote(proposedValidator, true);
-        TransactionReceipt votingReceipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
+        TransactionReceipt votingReceipt = dPoAService.voteValidator(
+                JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, votingReceipt.getStatus());
 
         ProposeValidatorSet proposeValidatorSet = dPoAService.getProposeValidatorSet();
@@ -230,7 +239,8 @@ public class DPoAContractTest {
         txReceiptField.set(dPoAService, preReceipt);
 
         TxValidatorVote txValidatorVote = new TxValidatorVote("51e5ae98cd821fa044d1eb49f03fb81a7acf3617", false);
-        TransactionReceipt receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
+        TransactionReceipt receipt = dPoAService.voteValidator(
+                JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         //Propose validator
@@ -258,7 +268,8 @@ public class DPoAContractTest {
         //Propose validator
         String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
         TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
-        TransactionReceipt receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
+        TransactionReceipt receipt = dPoAService.proposeValidator(
+                JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
 
@@ -269,7 +280,8 @@ public class DPoAContractTest {
         txReceiptField.set(dPoAService, preReceipt);
 
         TxValidatorVote txValidatorVote = new TxValidatorVote(proposedValidator, false);
-        receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
+        receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(
+                JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
     }
 
@@ -291,7 +303,8 @@ public class DPoAContractTest {
 
         String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
         TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
-        TransactionReceipt receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
+        TransactionReceipt receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject(
+                JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         //Vote (agree 1/3)
@@ -364,7 +377,8 @@ public class DPoAContractTest {
 
         String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
         TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
-        TransactionReceipt receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
+        TransactionReceipt receipt = dPoAService.proposeValidator(
+                JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         //Vote (disagree 1/3)
