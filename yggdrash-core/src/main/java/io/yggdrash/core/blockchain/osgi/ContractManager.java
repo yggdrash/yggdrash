@@ -140,7 +140,10 @@ public class ContractManager {
                     break;
                 case START:
                     bundle.start();
-                    inject(bundle);
+                    // StoreContainer is null in Test
+                    if (storeContainer != null) {
+                        inject(bundle);
+                    }
                     break;
                 case STOP:
                     bundle.stop();
