@@ -41,7 +41,14 @@
       },
       "name": "DPoA",
       "description": "This contract is for a validator."
-    }
+    },
+    {
+      "contractVersion": "017c8a5187332979bb8d721a9b5df99cb0dd3142",
+      "isSystem": true,
+      "init": {},
+      "name": "Versioning",
+      "description": "This contract is for a versioning contract."
+    },
   ],
   "timestamp": "000001674dc56231",
   "validator": [

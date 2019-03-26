@@ -1,6 +1,7 @@
 package io.yggdrash.contract.versioning;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.utils.JsonUtil;
 
 import java.util.HashMap;
@@ -15,6 +16,8 @@ public class VersioningContractStateValue {
     private static Contract contract;
     private static JsonObject json;
     private static String txId;
+    private static ProposeContractSet proposeContractSet;
+    private static ProposeContractSet.Votable votable;
     private static Map<String, Contract> contractMap = new HashMap<>();
 
     public VersioningContractStateValue(String txId) {
@@ -23,6 +26,7 @@ public class VersioningContractStateValue {
 
     public void init() {
         contract = new Contract(txId);
+        proposeContractSet = new ProposeContractSet();
         contract.setTargetBlockHeight(0L);
         convertJson();
     }
@@ -65,6 +69,12 @@ public class VersioningContractStateValue {
     public void setContract(Contract c) {
         contract = c;
         convertJson();
+    }
+
+    public void setVotable(String txId, ValidatorSet v) {
+        ProposeContractSet.Votable votable = new ProposeContractSet.Votable(txId, v);
+        proposeContractSet.getContractVote().put(txId, votable);
+        contract.setVotedHistory(votable);
     }
 
     public static VersioningContractStateValue of(String txId) {

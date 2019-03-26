@@ -1,3 +1,5 @@
+import java.security.MessageDigest
+
 ext {
     importPackage =
             "io.yggdrash.common.contract" +
@@ -18,7 +20,6 @@ ext {
                     ",org.w3c.dom" +
                     ",org.slf4j" +
                     ",java.math" +
-                    ",java.io" +
                     ",io.yggdrash.contract.dpoa" +
                     ",io.yggdrash.contract.core" +
                     ",io.yggdrash.contract.core.annotation" +
@@ -33,10 +34,6 @@ task versioningContract(type: Jar) {
         exclude(["system-contracts"])
     }
 
-    from {
-        configurations.compile.collect { it.isDirectory() ? it : zipTree(it) }
-    }
-
     manifest {
         attributes(
                 'Bundle-ManifestVersion': '2',
@@ -49,51 +46,32 @@ task versioningContract(type: Jar) {
                 'Import-Package': "${importPackage}"
         )
     }
+    
+    preserveFileTimestamps = false
     exclude(excludeList)
     archiveName "system-versioning-contract-${manifest.attributes.get('Bundle-Version')}.jar"
 }
 
-def keystoreFile = new File("${project.projectDir.toString()}/src/main/resources/yggdrash.p12")
-def keystorePass = '098098'
-def keyAlias = 'yggdrash'
-task signJar(description: 'to Sign JAR.', group: 'Build') {
-
+task contractsPackage() {
     dependsOn versioningContract
-
-    doLast {
-        def libFiles = file('build/libs').listFiles()
-        libFiles.each {
-            if (it.name.startsWith("${project.name}")) {
-                return
-            }
-            ant.jar(destfile: it, update: true) {
-                delegate.manifest {
-                    attribute(name: 'permissions', value: 'all-permissions')
-                    attribute(name: 'codebase', value: '*')
-                }
-            }
-
-            ant.signjar(
-                    tsaurl: 'http://sha256timestamp.ws.symantec.com/sha256/timestamp',
-                    alias: keyAlias,
-                    jar: it,
-                    keystore: "${keystoreFile.absolutePath}",
-                    storepass: keystorePass,
-                    destDir: 'build/libs',
-                    verbose: true,
-                    preservelastmodified: 'true'
-            )
-        }
-    }
 }
 
 task removeContract(type: Delete) {
     delete fileTree(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts').include('*')
 }
 
+def generateSha1(File file) {
+    MessageDigest md = MessageDigest.getInstance("SHA-1");
+    file.eachByte 4096, {bytes, size ->
+        md.update(bytes, 0, size);
+    }
+    return md.digest().collect {String.format "%02x", it}.join();
+}
+
 task copyContractToCoreBuildResrouce(type: Copy) {
+    dependsOn contractsPackage
     dependsOn removeContract
-    dependsOn signJar
+    dependsOn contractsPackage
 
     def copyPath = file('build/libs').absolutePath + '/../../../yggdrash-core/build/resources/main/system-contracts'
     def copyResourcePath = file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts'
@@ -132,18 +110,67 @@ task copyContractToCoreBuildResrouce(type: Copy) {
     }
 }
 
-task copyContractToCoreResrouce(type: Copy) {
-    dependsOn removeContract
-    dependsOn signJar
 
+task copyContractToResrouce(type: Copy) {
+    dependsOn contractsPackage
+    dependsOn removeContract
+    dependsOn contractsPackage
+    //dependsOn signJar
+
+    def copyPath = file('build/libs').absolutePath + '/../contract'
+    file("${copyPath}").mkdirs()
+
+    // Copy Contract File
     from file('build/libs')
-    into file(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts')
+    into file("${copyPath}")
     exclude "${project.name}*"
+
+    doLast {
+        def libFiles = file("${copyPath}").listFiles()
+        libFiles.each {
+            def sha1Name = generateSha1(it)+'.jar'
+            def sha1File = file("${copyPath}/"+sha1Name)
+            if (it.getName().endsWith('.jar') && it.getName() != sha1Name) {
+                println it.getName() + ' -> ' + sha1Name
+                it.renameTo(sha1File)
+            }
+        }
+    }
+}
+task copyContractToProject(type: Copy) {
+    dependsOn copyContractToResrouce
+
+    def copyPath = file('build/libs').absolutePath + '/../contract'
+    def projectContractPath = file('build/libs').absolutePath + '/../../../resources/contract'
+    from file("${copyPath}")
+    into file("${projectContractPath}")
 }
 
+task copyProjectContractToCoreProject(type: Copy) {
+    def projectContractPath = file('build/libs').absolutePath + '/../../../resources/contract'
+
+    def coreContractPath = file('build/libs').absolutePath + '/../../../yggdrash-core/.yggdrash/contract'
+
+    from file("${projectContractPath}")
+    into file("${coreContractPath}")
+}
+
+task copyProjectContractToNodeProject(type: Copy) {
+    dependsOn copyContractToProject
+
+    def projectContractPath = file('build/libs').absolutePath + '/../../../resources/contract'
+    def nodeContractPath = file('build/libs').absolutePath + '/../../../yggdrash-node/.yggdrash/contract'
+    file(nodeContractPath).mkdirs()
+
+    from file("${projectContractPath}")
+    into file("${nodeContractPath}")
+}
+
+
+
 jar {
-    dependsOn copyContractToCoreBuildResrouce
-    dependsOn copyContractToCoreResrouce
+    dependsOn copyProjectContractToCoreProject
+    dependsOn copyProjectContractToNodeProject
 }
 
 dependencies {
