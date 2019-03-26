@@ -16,6 +16,8 @@
 
 package io.yggdrash.node.config;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
@@ -23,6 +25,7 @@ import io.yggdrash.core.blockchain.SyncManager;
 import io.yggdrash.core.net.KademliaPeerNetwork;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerNetwork;
+import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerTableGroup;
 import io.yggdrash.node.PeerTask;
@@ -32,21 +35,39 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
 @Configuration
 @EnableScheduling
+@DependsOn("branchLoader")
 public class NetworkConfiguration {
+
+    private final NodeProperties nodeProperties;
 
     @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
     @Autowired(required = false)
     BlockChain yggdrash;
 
+    public NetworkConfiguration(NodeProperties nodeProperties) {
+        this.nodeProperties = nodeProperties;
+    }
+
+    public void setYggdrash(BlockChain yggdrash) {
+        this.yggdrash = yggdrash;
+    }
+
     @Bean
-    @DependsOn("branchLoader")
     public PeerNetwork peerNetwork(PeerTableGroup peerTableGroup, PeerDialer peerDialer, BranchGroup branchGroup) {
-        PeerNetwork peerNetwork = new KademliaPeerNetwork(peerTableGroup, peerDialer);
+        KademliaPeerNetwork peerNetwork = new KademliaPeerNetwork(peerTableGroup, peerDialer);
         for (BlockChain blockChain : branchGroup.getAllBranch()) {
             blockChain.addListener(peerNetwork);
             peerNetwork.addNetwork(blockChain.getBranchId());
+            if (nodeProperties.isDelivery() && yggdrash != null) {
+                peerNetwork.setValidator(yggdrash.getBranchId(), parseValidator(blockChain.getBranch().getConsensus()));
+            }
         }
         return peerNetwork;
     }
@@ -60,8 +81,20 @@ public class NetworkConfiguration {
     }
 
     @Bean
-    public SyncManager syncManager(
-            NodeStatus nodeStatus, PeerNetwork peerNetwork, BranchGroup branchGroup) {
+    public SyncManager syncManager(NodeStatus nodeStatus, PeerNetwork peerNetwork, BranchGroup branchGroup) {
         return new BlockChainSyncManager(nodeStatus, peerNetwork, branchGroup);
     }
+
+    private List<Peer> parseValidator(JsonObject consensus) {
+        List<Peer> validatorList = new ArrayList<>();
+        Set<Map.Entry<String, JsonElement>> entrySet = consensus.get("validator").getAsJsonObject().entrySet();
+        for (Map.Entry<String, JsonElement> entry : entrySet) {
+            Peer peer = Peer.valueOf(entry.getKey(),
+                    entry.getValue().getAsJsonObject().get("host").getAsString(),
+                    entry.getValue().getAsJsonObject().get("port").getAsInt());
+            validatorList.add(peer);
+        }
+        return validatorList;
+    }
+
 }

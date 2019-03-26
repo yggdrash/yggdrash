@@ -49,6 +49,7 @@ public class SimplePeerDialer implements PeerDialer {
     @Override
     public void destroyAll() {
         handlerMap.values().forEach(PeerHandler::stop);
+        handlerMap.clear();
     }
 
     @Override
@@ -96,20 +97,13 @@ public class SimplePeerDialer implements PeerDialer {
 
     @Override
     public List<PeerHandler> getHandlerList(List<Peer> peerList) {
-        if (handlerMap.isEmpty()) {
-            log.trace("Active peer is empty.");
-            return Collections.emptyList();
-        }
-
         if (peerList == null || peerList.isEmpty()) {
             return Collections.emptyList();
         }
-        List<PeerHandler> handlerList = new ArrayList<>(peerList.size());
+        List<PeerHandler> handlerList = new ArrayList<>();
         for (Peer peer : peerList) {
-            PeerHandler handler = handlerMap.get(peer.toAddress());
-            if (handler != null) {
-                handlerList.add(handler);
-            }
+            PeerHandler handler = getPeerHandler(peer);
+            handlerList.add(handler);
         }
         return handlerList;
     }
@@ -120,7 +114,7 @@ public class SimplePeerDialer implements PeerDialer {
         if (peerHandler == null) {
             peerHandler = peerHandlerFactory.create(peer);
             handlerMap.put(peer.toAddress(), peerHandler);
-            log.debug("Added size={}, id={}, handler={}", handlerCount(), peerHandler, peer.toAddress());
+            log.debug("Added size={}, id={}, handler={}", handlerCount(), peerHandler, peer.getYnodeUri());
         }
         return peerHandler;
     }
