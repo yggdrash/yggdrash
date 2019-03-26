@@ -36,6 +36,9 @@ yggdrash:
   node:
     seed-peer-list:
         "ynode://00@localhost:32918"
+    broadcast-peer-list:
+      - "ynode://00@localhost:32920"
+      - "ynode://00@localhost:32921"
 
 management.endpoints.web.exposure.include: "*"
 
