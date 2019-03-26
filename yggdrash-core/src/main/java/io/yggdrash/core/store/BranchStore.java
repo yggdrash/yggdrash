@@ -251,7 +251,7 @@ public class BranchStore implements ReadWriterStore<String, String> {
         JsonParser parser = new JsonParser();
         JsonArray json = parser.parse(new String(contractBytes)).getAsJsonArray();
 
-        for(int i=0; i < json.size(); i++) {
+        for (int i = 0; i < json.size(); i++) {
             if (json.get(i).isJsonObject()) {
                 JsonObject branchContract = json.get(i).getAsJsonObject();
                 contracts.add(BranchContract.of(branchContract));

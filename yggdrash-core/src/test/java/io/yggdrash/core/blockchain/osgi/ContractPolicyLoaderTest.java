@@ -16,8 +16,6 @@
 
 package io.yggdrash.core.blockchain.osgi;
 
-import java.io.InputStream;
-import java.util.Map;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -26,6 +24,8 @@ import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.io.InputStream;
+import java.util.Map;
 
 public class ContractPolicyLoaderTest {
     private static final Logger log = LoggerFactory.getLogger(ContractPolicyLoaderTest.class);
@@ -46,7 +46,7 @@ public class ContractPolicyLoaderTest {
         FrameworkFactory fa = loader.getFrameworkFactory();
         Map config = loader.getContainerConfig();
 
-        if(System.getSecurityManager() != null) {
+        if (System.getSecurityManager() != null) {
             config.remove("org.osgi.framework.security");
         }
         Framework osgi = fa.newFramework(config);

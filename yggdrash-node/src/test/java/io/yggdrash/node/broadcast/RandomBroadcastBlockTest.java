@@ -36,10 +36,10 @@ public class RandomBroadcastBlockTest extends RandomBroadcastTest {
 
         // arrange
         rootLogger.setLevel(Level.ERROR);
-        final int MAX_NODE_COUNT = 50;
-        final int BLOCK_COUNT = 100;
+        final int maxNodeCount = 50;
+        final int blockCount = 100;
 
-        bootstrapNodes(MAX_NODE_COUNT, true);
+        bootstrapNodes(maxNodeCount, true);
         nodeList.forEach(this::refreshAndHealthCheck);
 
         // act
@@ -47,7 +47,7 @@ public class RandomBroadcastBlockTest extends RandomBroadcastTest {
             n.generateBlock();
             Utils.sleep(100);
         };
-        broadcastByRandomNode(BLOCK_COUNT, consumer);
+        broadcastByRandomNode(blockCount, consumer);
 
         // assert
         for (TestNode node : nodeList) {
@@ -56,7 +56,7 @@ public class RandomBroadcastBlockTest extends RandomBroadcastTest {
             }
             node.logDebugging();
             node.shutdown();
-            Assert.assertEquals(BLOCK_COUNT, node.getDefaultBranch().getLastIndex());
+            Assert.assertEquals(blockCount, node.getDefaultBranch().getLastIndex());
         }
     }
 }
