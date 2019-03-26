@@ -37,9 +37,6 @@ yggdrash:
   node:
     seed-peer-list:
         "ynode://00@localhost:32918"
-    broadcast-peer-list:
-      - "ynode://00@localhost:32920"
-      - "ynode://00@localhost:32921"
 
 management.endpoints.web.exposure.include: "*"
 
@@ -83,9 +80,22 @@ yggdrash:
 
 ---
 
+spring.profiles: delivery
+
+yggdrash:
+  node:
+    validator-list:
+      - "ynode://77283a04b3410fe21ba5ed04c7bd3ba89e70b78c@127.0.0.1:32801"
+      - "ynode://9911fb4663637706811a53a0e0b4bcedeee38686@127.0.0.1:32802"
+
+---
+
 spring.profiles: validator
 
 yggdrash:
   node:
     validator: true
+    broadcast-peer-list:
+      - "ynode://00@localhost:32920"
+      - "ynode://00@localhost:32921"
 

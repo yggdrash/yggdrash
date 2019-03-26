@@ -14,6 +14,7 @@ import io.yggdrash.core.net.BootStrapNode;
 import io.yggdrash.core.net.DiscoveryConsumer;
 import io.yggdrash.core.net.DiscoveryServiceConsumer;
 import io.yggdrash.core.net.NodeStatusMock;
+import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerHandlerFactory;
 import io.yggdrash.core.p2p.PeerTable;
@@ -24,6 +25,9 @@ import io.yggdrash.node.config.NetworkConfiguration;
 import io.yggdrash.node.config.NodeProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class TestNode extends BootStrapNode {
     private static final Logger log = LoggerFactory.getLogger(TestNode.class);
@@ -53,9 +57,15 @@ public class TestNode extends BootStrapNode {
     }
 
     TestNode(PeerHandlerFactory factory, int port, boolean enableBranch) {
-        this(factory, port, new NodeProperties());
+        this(factory, port, createNodeProperties(new ArrayList<>()));
         this.enableBranch = enableBranch;
         config();
+    }
+
+    private static NodeProperties createNodeProperties(List<String> validatorList) {
+        NodeProperties nodeProperties = new NodeProperties();
+        nodeProperties.setValidatorList(validatorList);
+        return nodeProperties;
     }
 
     private void config() {
@@ -91,12 +101,15 @@ public class TestNode extends BootStrapNode {
 
     private void networkConfiguration() {
         NetworkConfiguration config = new NetworkConfiguration(nodeProperties);
-        config.setYggdrash(getDefaultBranch());
         this.peerNetwork = config.peerNetwork(peerTableGroup, peerDialer, branchGroup);
         setSyncManager(config.syncManager(nodeStatus, peerNetwork, branchGroup));
         if (blockChainConsumer != null) {
             blockChainConsumer.setListener(getSyncManger());
         }
+    }
+
+    public Peer getPeer() {
+        return peerTableGroup.getOwner();
     }
 
     public BranchGroup getBranchGroup() {
@@ -147,10 +160,9 @@ public class TestNode extends BootStrapNode {
         return port == PeerTestUtils.SEED_PORT;
     }
 
-    public static TestNode createDeliveryNode(PeerHandlerFactory factory, int port) {
-        NodeProperties nodeProperties = new NodeProperties();
-        nodeProperties.setDelivery(true);
-        TestNode node = new TestNode(factory, port, nodeProperties);
+    public static TestNode createDeliveryNode(PeerHandlerFactory factory, List<String> validatorList) {
+        NodeProperties nodeProperties = createNodeProperties(validatorList);
+        TestNode node = new TestNode(factory, PeerTestUtils.OWNER_PORT, nodeProperties);
         node.config();
         return node;
     }

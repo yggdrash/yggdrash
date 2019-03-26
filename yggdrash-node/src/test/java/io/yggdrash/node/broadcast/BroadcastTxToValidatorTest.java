@@ -21,21 +21,23 @@ import io.yggdrash.common.util.Utils;
 import io.yggdrash.node.TcpNodeTesting;
 import io.yggdrash.node.TestNode;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+
+import java.util.Collections;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(JUnit4.class)
 public class BroadcastTxToValidatorTest extends TcpNodeTesting {
 
     @Test
     public void test() {
         // arrange
-        TestNode deliveryNode = TestNode.createDeliveryNode(factory, SEED_PORT + 1);
-        createAndStartServer(deliveryNode);
+        // validator
+        TestNode validatorNode = createAndStartNode(32801, true);
+        List<String> validatorList = Collections.singletonList(validatorNode.getPeer().getYnodeUri());
+        // delivery
+        TestNode deliveryNode = TestNode.createDeliveryNode(factory, validatorList);
         deliveryNode.bootstrapping();
-        TestNode validatorNode = createAndStartNode(32911, true);
 
         // act
         deliveryNode.getDefaultBranch().addTransaction(BlockChainTestUtils.createTransferTxHusk());

@@ -25,10 +25,10 @@ public class NodeProperties {
     private final Grpc grpc = new Grpc();
     private List<String> seedPeerList;
     private List<String> broadcastPeerList;
+    private List<String> validatorList;
     private int maxPeers;
     private boolean seed;
     private boolean validator;
-    private boolean delivery;
 
     private final Chain chain = new Chain();
 
@@ -80,12 +80,12 @@ public class NodeProperties {
         this.validator = validator;
     }
 
-    public boolean isDelivery() {
-        return delivery;
+    public List<String> getValidatorList() {
+        return validatorList;
     }
 
-    public void setDelivery(boolean delivery) {
-        this.delivery = delivery;
+    public void setValidatorList(List<String> validatorList) {
+        this.validatorList = validatorList;
     }
 
     public static class Chain {

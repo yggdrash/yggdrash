@@ -16,8 +16,6 @@
 
 package io.yggdrash.node.config;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainSyncManager;
 import io.yggdrash.core.blockchain.BranchGroup;
@@ -35,28 +33,22 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableScheduling
 @DependsOn("branchLoader")
 public class NetworkConfiguration {
 
-    private final NodeProperties nodeProperties;
+    private final List<Peer> validatorList;
 
     @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
     @Autowired(required = false)
     BlockChain yggdrash;
 
     public NetworkConfiguration(NodeProperties nodeProperties) {
-        this.nodeProperties = nodeProperties;
-    }
-
-    public void setYggdrash(BlockChain yggdrash) {
-        this.yggdrash = yggdrash;
+        this.validatorList = nodeProperties.getValidatorList().stream().map(Peer::valueOf).collect(Collectors.toList());
     }
 
     @Bean
@@ -65,9 +57,7 @@ public class NetworkConfiguration {
         for (BlockChain blockChain : branchGroup.getAllBranch()) {
             blockChain.addListener(peerNetwork);
             peerNetwork.addNetwork(blockChain.getBranchId());
-            if (nodeProperties.isDelivery() && yggdrash != null) {
-                peerNetwork.setValidator(yggdrash.getBranchId(), parseValidator(blockChain.getBranch().getConsensus()));
-            }
+            peerNetwork.setValidator(blockChain.getBranchId(), validatorList);
         }
         return peerNetwork;
     }
@@ -84,17 +74,4 @@ public class NetworkConfiguration {
     public SyncManager syncManager(NodeStatus nodeStatus, PeerNetwork peerNetwork, BranchGroup branchGroup) {
         return new BlockChainSyncManager(nodeStatus, peerNetwork, branchGroup);
     }
-
-    private List<Peer> parseValidator(JsonObject consensus) {
-        List<Peer> validatorList = new ArrayList<>();
-        Set<Map.Entry<String, JsonElement>> entrySet = consensus.get("validator").getAsJsonObject().entrySet();
-        for (Map.Entry<String, JsonElement> entry : entrySet) {
-            Peer peer = Peer.valueOf(entry.getKey(),
-                    entry.getValue().getAsJsonObject().get("host").getAsString(),
-                    entry.getValue().getAsJsonObject().get("port").getAsInt());
-            validatorList.add(peer);
-        }
-        return validatorList;
-    }
-
 }
