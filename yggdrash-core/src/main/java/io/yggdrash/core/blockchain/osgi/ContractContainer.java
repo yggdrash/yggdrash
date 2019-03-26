@@ -119,25 +119,25 @@ public class ContractContainer {
             }
         }
 
-        List<PermissionInfo> permissionInfos = new ArrayList<>();
+        List<PermissionInfo> defaultPermissions = new ArrayList<>();
 
-        permissionInfos.add(new PermissionInfo(PropertyPermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(PropertyPermission.class.getName(),
                 "org.osgi.framework", "read"));
-        permissionInfos.add(new PermissionInfo(PropertyPermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(PropertyPermission.class.getName(),
                 "com.fasterxml.jackson.core.util.BufferRecyclers.trackReusableBuffers", "read"));
-        permissionInfos.add(new PermissionInfo(RuntimePermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(RuntimePermission.class.getName(),
                 "*", "accessDeclaredMembers"));
-        permissionInfos.add(new PermissionInfo(ReflectPermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(ReflectPermission.class.getName(),
                 "*", "suppressAccessChecks"));
-        permissionInfos.add(new PermissionInfo(PackagePermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(PackagePermission.class.getName(),
                 "*", "import,export,exportonly"));
-        permissionInfos.add(new PermissionInfo(CapabilityPermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(CapabilityPermission.class.getName(),
                 "osgi.ee", "require"));
-        permissionInfos.add(new PermissionInfo(CapabilityPermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(CapabilityPermission.class.getName(),
                 "osgi.native", "require"));
-        permissionInfos.add(new PermissionInfo(ServicePermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(ServicePermission.class.getName(),
                 "*", "get,register"));
-        permissionInfos.add(new PermissionInfo(BundlePermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(BundlePermission.class.getName(),
                 "*", "provide,require,host,fragment"));
 
         infos.add(admin.newConditionalPermissionInfo(
@@ -145,7 +145,7 @@ public class ContractContainer {
                 new ConditionInfo[]{
                         new ConditionInfo(BundleLocationCondition.class.getName(), new String[]{"*"})
                 },
-                permissionInfos.toArray(new PermissionInfo[permissionInfos.size()]),
+                defaultPermissions.toArray(new PermissionInfo[defaultPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
 
         //Allow file permission to system contract
@@ -167,7 +167,7 @@ public class ContractContainer {
                 new PermissionInfo(filePermissionName, stateStorePath, "read"));
         systemPermissions.add(
                 new PermissionInfo(filePermissionName, stateStoreFile, "read,write,delete"));
-        
+
         // Add Branch Store Read / Write
         systemPermissions.add(
                 new PermissionInfo(filePermissionName, branchStorePath, "read"));
