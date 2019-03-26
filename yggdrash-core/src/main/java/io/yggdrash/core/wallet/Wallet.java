@@ -233,17 +233,6 @@ public class Wallet {
     }
 
     /**
-     * Sign the hashed data by sha3().
-     *
-     * @param hashedData hashed data
-     * @return signature as byte[65]
-     * @deprecated use sign(byte[] data, boolean hashed)
-     */
-    public byte[] signHashedData(byte[] hashedData) {
-        return this.sign(hashedData, true);
-    }
-
-    /**
      * Sign data.
      *
      * @param data   plain data
@@ -256,6 +245,18 @@ public class Wallet {
         } else {
             return key.sign(HashUtil.sha3(data)).toBinary();
         }
+    }
+
+
+    /**
+     * Sign the hashed data by sha3().
+     *
+     * @param hashedData hashed data
+     * @return signature as byte[65]
+     * @deprecated use sign(byte[] data, boolean hashed)
+     */
+    public byte[] signHashedData(byte[] hashedData) {
+        return this.sign(hashedData, true);
     }
 
     /**

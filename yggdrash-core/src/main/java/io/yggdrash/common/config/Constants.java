@@ -1,7 +1,7 @@
 package io.yggdrash.common.config;
 
-import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.contract.ContractVersion;
+import io.yggdrash.common.crypto.HexUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.math.BigInteger;
@@ -9,6 +9,8 @@ import java.math.BigInteger;
 public class Constants {
 
     public static final int DEFAULT_PORT = 32918;
+
+    public static final int BRANCH_HEX_LENGTH = 40;
 
     private static final String STEM = "STEM";
     private static final String YEED = "YEED";

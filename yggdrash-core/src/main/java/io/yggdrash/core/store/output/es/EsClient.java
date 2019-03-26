@@ -20,8 +20,7 @@ import java.util.Set;
 public class EsClient implements OutputStore {
     private static final Logger log = LoggerFactory.getLogger(EsClient.class);
 
-    private final String blockIndex = "block";
-    private final String txIndex = "tx";
+    private static final String INDEX = "yggdrash";
 
     public TransportClient client;
     private Set<String> eventSet;
@@ -40,8 +39,7 @@ public class EsClient implements OutputStore {
             TransportClient client = new PreBuiltTransportClient(settings)
                     .addTransportAddress(new TransportAddress(InetAddress.getByName(host), port));
 
-            Set<String> eventSet = events;
-            return new EsClient(client, eventSet);
+            return new EsClient(client, events);
         } catch (Exception e) {
             log.error("Create es client exception: msg - {}", e.getMessage());
             throw new RuntimeException(e);
@@ -57,45 +55,47 @@ public class EsClient implements OutputStore {
             case OK:
             case CREATED:
                 return id;
+            default:
+                return null;
         }
-        return null;
     }
 
     @Override
-    public String put(JsonObject block) {
-        if (!eventSet.contains(blockIndex)) {
-            return null;
+    public void put(JsonObject block) {
+        if (!eventSet.contains("block") || block == null) {
+            return;
         }
         block.remove("body");
 
-        String id = String.valueOf(block.getAsJsonObject("header").get("index").getAsString());
-        IndexResponse response = client.prepareIndex(blockIndex, "_doc", id)
+        String id = block.getAsJsonObject("header").get("index").getAsString();
+        IndexResponse response = client.prepareIndex(INDEX+"-block", "_doc", id)
                 .setSource(block.toString(), XContentType.JSON).get();
 
         switch (response.status()) {
             case OK:
             case CREATED:
-                return id;
+                return;
+            default:
+                log.warn("Failed save block to elasticsearch");
         }
-        return null;
     }
 
     @Override
-    public Set<String> put(long blockNo, Map<String, JsonObject> transactionMap) {
-        if (!eventSet.contains(txIndex) || transactionMap == null || transactionMap.size() == 0) {
-            return null;
+    public void put(String blockId, Map<String, JsonObject> transactionMap) {
+        if (!eventSet.contains("tx") || transactionMap == null || transactionMap.size() == 0) {
+            return;
         }
 
         BulkRequestBuilder bulkRequest = client.prepareBulk();
         transactionMap.forEach((txHash, tx) -> {
-            tx.addProperty("blockNo", blockNo);
-            bulkRequest.add(client.prepareIndex(txIndex, "_doc", txHash).setSource(tx.toString(), XContentType.JSON));
+            tx.addProperty("blockId", blockId);
+            bulkRequest.add(client.prepareIndex(INDEX+"-tx", "_doc", txHash)
+                    .setSource(tx.toString(), XContentType.JSON));
         });
 
         BulkResponse bulkResponse = bulkRequest.get();
         if (bulkResponse.hasFailures()) {
-            return null;
+            log.warn("Failed save transaction to elasticsearch");
         }
-        return transactionMap.keySet();
     }
 }

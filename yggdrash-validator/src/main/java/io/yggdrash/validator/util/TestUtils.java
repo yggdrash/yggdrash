@@ -195,7 +195,7 @@ public class TestUtils {
         txHeader = new TransactionHeader(chain, version, type, timestamp, txBody);
 
         try {
-            txSig = nodeWallet.signHashedData(txHeader.getHashForSigning());
+            txSig = nodeWallet.sign(txHeader.getHashForSigning(), true);
             tx = new Transaction(txHeader, txSig, txBody);
 
             return tx.toJsonObject();
@@ -372,7 +372,7 @@ public class TestUtils {
                     EMPTY_BYTE20, EMPTY_BYTE8, EMPTY_BYTE8, prevBlockHash, index, timestamp,
                     blockBody.getMerkleRoot(), blockBody.length());
 
-            byte[] blockSig = wallet.signHashedData(blockHeader.getHashForSigning());
+            byte[] blockSig = wallet.sign(blockHeader.getHashForSigning(), true);
 
             Block block = new Block(blockHeader, blockSig, blockBody);
 

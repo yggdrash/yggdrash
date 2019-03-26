@@ -17,6 +17,9 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.util.JsonFormat;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.utils.ByteUtil;
@@ -188,6 +191,19 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         return this.coreTransaction.toJsonObject();
     }
 
+    public JsonObject toJsonObjectFromProto() {
+        try {
+            String print = JsonFormat.printer()
+                    .includingDefaultValueFields().print(this.protoTransaction);
+            JsonObject asJsonObject = new JsonParser().parse(print).getAsJsonObject();
+            asJsonObject.addProperty("txId", getHash().toString());
+            return asJsonObject;
+        } catch (InvalidProtocolBufferException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     @Override
     public int compareTo(TransactionHusk o) {
         return Long.compare(
@@ -196,5 +212,4 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
                 ByteUtil.byteArrayToLong(
                         o.getInstance().getHeader().getTimestamp().toByteArray()));
     }
-
 }
