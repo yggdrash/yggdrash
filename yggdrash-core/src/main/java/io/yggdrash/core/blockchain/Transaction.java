@@ -19,10 +19,10 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.util.Timestamps;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
@@ -353,11 +353,9 @@ public class Transaction {
             .setChain(ByteString.copyFrom(tx.getHeader().getChain()))
             .setVersion(ByteString.copyFrom(tx.getHeader().getVersion()))
             .setType(ByteString.copyFrom(tx.getHeader().getType()))
-            .setTimestamp(ByteString.copyFrom(
-                    ByteUtil.longToBytes(tx.getHeader().getTimestamp())))
+            .setTimestamp(Timestamps.fromMillis(tx.getHeader().getTimestamp()))
             .setBodyHash(ByteString.copyFrom(tx.getHeader().getBodyHash()))
-            .setBodyLength(ByteString.copyFrom(
-                    ByteUtil.longToBytes(tx.getHeader().getBodyLength())))
+            .setBodyLength(tx.getHeader().getBodyLength())
             .build();
 
         Proto.Transaction protoTransaction = Proto.Transaction.newBuilder()
@@ -376,11 +374,9 @@ public class Transaction {
                 protoTransaction.getHeader().getChain().toByteArray(),
                 protoTransaction.getHeader().getVersion().toByteArray(),
                 protoTransaction.getHeader().getType().toByteArray(),
-                ByteUtil.byteArrayToLong(
-                        protoTransaction.getHeader().getTimestamp().toByteArray()),
+                Timestamps.toMillis(protoTransaction.getHeader().getTimestamp()),
                 protoTransaction.getHeader().getBodyHash().toByteArray(),
-                ByteUtil.byteArrayToLong(
-                        protoTransaction.getHeader().getBodyLength().toByteArray())
+                protoTransaction.getHeader().getBodyLength()
                 );
 
         TransactionBody txBody = new TransactionBody(

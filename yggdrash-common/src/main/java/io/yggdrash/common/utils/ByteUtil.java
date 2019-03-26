@@ -278,6 +278,9 @@ public class ByteUtil {
      * @return number of min bytes used to encode the number
      */
     public static int numBytes(String val) {
+        if (!val.matches("^[0-9]+$")) {
+            throw new Error("value is not number");
+        }
 
         BigInteger bigInt = new BigInteger(val);
         int bytes = 0;

@@ -17,6 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
@@ -38,6 +39,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class TransactionHuskTest  extends TestConstants.SlowTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHuskTest.class);
+
+    @Test
+    public void shouldGetJsonObjectFromProto() {
+        TransactionHusk tx = createTransferTx();
+        JsonObject jsonObj = tx.toJsonObjectFromProto();
+        assertThat(jsonObj).isNotNull();
+        assertThat(jsonObj.toString()).contains(tx.getHash().toString());
+    }
 
     @Test
     public void shouldBeNotEquals() {

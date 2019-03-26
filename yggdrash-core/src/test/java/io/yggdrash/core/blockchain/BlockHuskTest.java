@@ -76,6 +76,6 @@ public class BlockHuskTest {
         String jsonString = jsonObject.toString();
         assertThat(jsonObject).isNotNull();
         assertThat(jsonObject.getAsJsonObject("header").get("index").getAsString()).isEqualTo("0");
-        assertThat(jsonString).startsWith("{");
+        assertThat(jsonString).contains(genesisBlock.getHash().toString());
     }
 }
