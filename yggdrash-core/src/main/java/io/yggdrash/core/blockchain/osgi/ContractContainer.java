@@ -2,12 +2,10 @@ package io.yggdrash.core.blockchain.osgi;
 
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.store.StoreContainer;
-import io.yggdrash.core.store.TransactionReceiptStore;
 import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -216,27 +214,32 @@ public class ContractContainer {
     }
 
     public long installContract(ContractVersion contract, File contractFile, boolean isSystem) {
-        // copy System or UserContract
+        long bundleId = -1L;
         try {
             Manifest m = new JarFile(contractFile).getManifest();
             //String symbolicName = m.getAttributes("Bundle-SymbolicName");
-            if (contractManager.verifyManifest(m)) {
+            if (m != null && contractManager.verifyManifest(m)) {
                 String symbolicName = m.getMainAttributes().getValue("Bundle-SymbolicName");
                 String version = m.getMainAttributes().getValue("Bundle-Version");
                 if (contractManager.checkExistContract(symbolicName, version)) {
                     log.error("Contract SymbolicName and Version exist {}-{}", symbolicName, version);
-                    return -1L;
+                    return bundleId;
                 }
             } else {
                 log.error("Contract Manifest is not verify");
-                return -1L;
+                return bundleId;
             }
         } catch (IOException e) {
             log.error("Contract file don't Load");
-            return -1L;
+            return bundleId;
         }
-
-        return contractManager.install(contract, contractFile, isSystem);
+        try {
+            bundleId = contractManager.install(contract, contractFile, isSystem);
+        } catch (RuntimeException e) {
+            log.error(e.getMessage());
+            bundleId = -2;
+        }
+        return bundleId;
     }
 
     public ContractManager getContractManager() {

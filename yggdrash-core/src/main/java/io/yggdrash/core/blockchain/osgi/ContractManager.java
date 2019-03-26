@@ -215,12 +215,11 @@ public class ContractManager {
             // set Location
             bundle = framework.getBundleContext().installBundle(location, fileStream);
             log.debug("installed  {} {}", version.toString(), bundle.getLocation());
-            /*
+
             boolean isPass = verifyManifest(bundle);
             if (!isPass) {
                 uninstall(bundle.getBundleId());
             }
-            */
             start(bundle.getBundleId());
             contractCache.cacheContract(bundle, framework);
         } catch (Exception e) {

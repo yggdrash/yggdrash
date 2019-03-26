@@ -51,9 +51,6 @@ public class ContractContainerBuilderTest {
 
 
         // Contract File
-        InputStream stream = getClass().getClassLoader()
-                .getResourceAsStream("contracts/96206ff28aead93a49272379a85191c54f7b33c0.jar");
-
         String filePath = getClass().getClassLoader()
                 .getResource("contracts/96206ff28aead93a49272379a85191c54f7b33c0.jar")
                 .getFile();
