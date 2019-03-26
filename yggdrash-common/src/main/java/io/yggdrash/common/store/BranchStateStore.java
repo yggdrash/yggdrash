@@ -20,7 +20,9 @@ import io.yggdrash.common.Sha3Hash;
 import java.util.Set;
 
 public interface BranchStateStore {
-    public Long getBestBlock();
+    public Long getLastExecuteBlockIndex();
+
+    public Sha3Hash getLastExecuteBlockHash();
 
     public Sha3Hash getGenesisBlockHash();
 
