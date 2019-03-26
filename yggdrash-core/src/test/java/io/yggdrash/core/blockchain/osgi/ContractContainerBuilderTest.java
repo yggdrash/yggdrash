@@ -59,9 +59,8 @@ public class ContractContainerBuilderTest {
                 .getFile();
         File contractFile = new File(filePath);
 
-
         ContractVersion version = ContractVersion.of("TEST".getBytes());
-        if (!container.getContractManager().checkExistContract(
+        if (contractFile.exists() && !container.getContractManager().checkExistContract(
                 "io.yggdrash.contract.coin.CoinContract","1.0.0")) {
             long bundle = container.installContract(version, contractFile, true);
             assert bundle > 0L;
