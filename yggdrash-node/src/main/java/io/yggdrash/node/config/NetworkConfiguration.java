@@ -33,6 +33,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,7 +49,12 @@ public class NetworkConfiguration {
     BlockChain yggdrash;
 
     public NetworkConfiguration(NodeProperties nodeProperties) {
-        this.validatorList = nodeProperties.getValidatorList().stream().map(Peer::valueOf).collect(Collectors.toList());
+        if (nodeProperties.getValidatorList() == null) {
+            this.validatorList = Collections.emptyList();
+        } else {
+            this.validatorList = nodeProperties.getValidatorList().stream().map(Peer::valueOf)
+                    .collect(Collectors.toList());
+        }
     }
 
     @Bean
