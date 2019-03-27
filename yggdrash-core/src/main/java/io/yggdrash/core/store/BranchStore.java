@@ -21,6 +21,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BlockHusk;
@@ -37,7 +38,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class BranchStore implements ReadWriterStore<String, String> {
+public class BranchStore implements ReadWriterStore<String, String>, BranchStateStore {
     private final DbSource<byte[], byte[]> db;
 
     // TODO Change to DAO patten
@@ -147,8 +148,12 @@ public class BranchStore implements ReadWriterStore<String, String> {
     }
 
     public BranchId getBranchId() {
+        return new BranchId(getBranchIdHash());
+    }
+
+    public Sha3Hash getBranchIdHash() {
         byte[] branchIdBytes = db.get(BlockchainMetaInfo.BRANCH_ID.toString().getBytes());
-        return new BranchId(new Sha3Hash(branchIdBytes, true));
+        return new Sha3Hash(branchIdBytes, true);
     }
 
     // TODO UPDATE Branch - Version History
@@ -187,8 +192,8 @@ public class BranchStore implements ReadWriterStore<String, String> {
         db.put(BlockchainMetaInfo.VALIDATORS.toString().getBytes(), valiatorsByteArray);
     }
 
-    // TODO Get Validator
-    public Set<String> getValidators() throws IOException {
+    // Get Validator
+    public Set<String> getValidators() {
         byte[] valiatorsByteArray = db.get(BlockchainMetaInfo.VALIDATORS.toString().getBytes());
         if (valiatorsByteArray == null) {
             return null;
@@ -196,39 +201,14 @@ public class BranchStore implements ReadWriterStore<String, String> {
         ByteArrayInputStream bais = new ByteArrayInputStream(valiatorsByteArray);
         DataInputStream in = new DataInputStream(bais);
         Set<String> validatorSet = new HashSet<>();
-        while (in.available() > 0) {
-            validatorSet.add(in.readUTF());
+        try {
+            while (in.available() > 0) {
+                validatorSet.add(in.readUTF());
+            }
+        } catch (IOException e) {
+            return null;
         }
         return validatorSet;
-    }
-
-    // Add validator
-    public boolean addValidator(String validator) {
-        Set<String> validators = null;
-        try {
-            validators = getValidators();
-            validators.add(validator);
-            setValidators(validators);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
-
-    }
-
-    // Remove Validator
-    public boolean removeValidator(String validator) {
-        Set<String> validators = null;
-        try {
-            validators = getValidators();
-            validators.remove(validator);
-            setValidators(validators);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 
     // Set Contracts

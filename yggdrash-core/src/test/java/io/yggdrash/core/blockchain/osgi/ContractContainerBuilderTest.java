@@ -18,13 +18,10 @@ package io.yggdrash.core.blockchain.osgi;
 
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.common.store.StateStore;
-import io.yggdrash.common.store.datasource.HashMapDbSource;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.io.File;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -34,7 +31,6 @@ public class ContractContainerBuilderTest {
     @Test
     public void build() {
         // check builder config
-        StateStore store = new StateStore(new HashMapDbSource());
         DefaultConfig config = new DefaultConfig();
         ContractPolicyLoader loader = new ContractPolicyLoader();
         Map output = new HashMap();
@@ -43,7 +39,6 @@ public class ContractContainerBuilderTest {
                 .withConfig(config)
                 .withFrameworkFactory(loader.getFrameworkFactory())
                 .withContainerConfig(loader.getContainerConfig())
-                .withStateStore(store)
                 .withOutputStore(output)
                 .withBranchId("test")
                 .build();
@@ -53,17 +48,13 @@ public class ContractContainerBuilderTest {
 
 
         // Contract File
-        InputStream stream = getClass().getClassLoader()
-                .getResourceAsStream("contracts/96206ff28aead93a49272379a85191c54f7b33c0.jar");
-
         String filePath = getClass().getClassLoader()
                 .getResource("contracts/96206ff28aead93a49272379a85191c54f7b33c0.jar")
                 .getFile();
         File contractFile = new File(filePath);
 
-
         ContractVersion version = ContractVersion.of("TEST".getBytes());
-        if (!container.getContractManager().checkExistContract(
+        if (contractFile.exists() && !container.getContractManager().checkExistContract(
                 "io.yggdrash.contract.coin.CoinContract","1.0.0")) {
             long bundle = container.installContract(version, contractFile, true);
             assert bundle > 0L;

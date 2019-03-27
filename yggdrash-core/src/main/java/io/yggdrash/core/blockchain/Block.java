@@ -61,7 +61,7 @@ public class Block {
     }
 
     public Block(BlockHeader header, Wallet wallet, BlockBody body) {
-        this(header, wallet.signHashedData(header.getHashForSigning()), body);
+        this(header, wallet.sign(header.getHashForSigning(), true), body);
     }
 
     public Block(JsonObject jsonObject) {

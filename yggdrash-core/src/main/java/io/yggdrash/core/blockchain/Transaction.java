@@ -73,7 +73,7 @@ public class Transaction {
      * @param body   transaction body
      */
     public Transaction(TransactionHeader header, Wallet wallet, TransactionBody body) {
-        this(header, wallet.signHashedData(header.getHashForSigning()), body);
+        this(header, wallet.sign(header.getHashForSigning(), true), body);
     }
 
     /**

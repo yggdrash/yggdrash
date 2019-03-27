@@ -7,6 +7,7 @@ import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.InjectEvent;
@@ -17,6 +18,7 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.runtime.result.BlockRuntimeResult;
+import io.yggdrash.core.store.StoreContainer;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.wallet.Address;
 import org.apache.commons.lang3.exception.ExceptionUtils;
@@ -43,19 +45,17 @@ public class ContractManager {
 
     private final Framework framework;
     private final String branchId;
-    private final StateStore stateStore;
-    private final TransactionReceiptStore transactionReceiptStore;
+    private final StoreContainer storeContainer;
+
     private final Map<OutputType, OutputStore> outputStore;
     private final SystemProperties systemProperties;
     private final ContractCache contractCache;
 
-    ContractManager(Framework framework, String branchId, StateStore stateStore,
-                    TransactionReceiptStore transactionReceiptStore,
+    ContractManager(Framework framework, String branchId, StoreContainer storeContainer,
                     Map<OutputType, OutputStore> outputStore, SystemProperties systemProperties) {
         this.framework = framework;
         this.branchId = branchId;
-        this.stateStore = stateStore;
-        this.transactionReceiptStore = transactionReceiptStore;
+        this.storeContainer = storeContainer;
         this.outputStore = outputStore;
         this.systemProperties = systemProperties;
         contractCache = new ContractCache();
@@ -84,7 +84,11 @@ public class ContractManager {
                 // TODO User Contract Store 를 분리할 것인지 결정 하고, 각 컨트렉트 별로 분리한다면, 추가, 분리 안하면 해당 코드 제거
                 if (isSystemContract) {
                     if (annotation.annotationType().equals(ContractStateStore.class)) {
-                        field.set(o, stateStore);
+                        field.set(o, storeContainer.getStateStore());
+                    }
+                    // Branch Store
+                    if (annotation.annotationType().equals(ContractBranchStateStore.class)) {
+                        field.set(o, storeContainer.getBranchStore());
                     }
                 }
                 if (outputStore != null
@@ -136,7 +140,10 @@ public class ContractManager {
                     break;
                 case START:
                     bundle.start();
-                    inject(bundle);
+                    // StoreContainer is null in Test
+                    if (storeContainer != null) {
+                        inject(bundle);
+                    }
                     break;
                 case STOP:
                     bundle.stop();
@@ -211,12 +218,11 @@ public class ContractManager {
             // set Location
             bundle = framework.getBundleContext().installBundle(location, fileStream);
             log.debug("installed  {} {}", version.toString(), bundle.getLocation());
-            /*
+
             boolean isPass = verifyManifest(bundle);
             if (!isPass) {
                 uninstall(bundle.getBundleId());
             }
-            */
             start(bundle.getBundleId());
             contractCache.cacheContract(bundle, framework);
         } catch (Exception e) {
@@ -391,8 +397,10 @@ public class ContractManager {
     public void commitBlockResult(BlockRuntimeResult result) {
         // TODO store transaction bybatch
         Map<String, JsonObject> changes = result.getBlockResult();
+        TransactionReceiptStore transactionReceiptStore = storeContainer.getTransactionReceiptStore();
         result.getTxReceipts().forEach(transactionReceiptStore::put);
         if (!changes.isEmpty()) {
+            StateStore stateStore = storeContainer.getStateStore();
             changes.forEach(stateStore::put);
         }
         // TODO make transaction Receipt Event

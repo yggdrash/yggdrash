@@ -2,11 +2,10 @@ package io.yggdrash.core.blockchain.osgi;
 
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.store.OutputStore;
 import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.SystemProperties;
-import io.yggdrash.core.store.TransactionReceiptStore;
+import io.yggdrash.core.store.StoreContainer;
 import org.apache.commons.lang3.StringUtils;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -41,7 +40,6 @@ import java.util.jar.Manifest;
 public class ContractContainer {
     private static final Logger log = LoggerFactory.getLogger(ContractContainer.class);
 
-    // TODO remove prefix and suffix
     public static final String SUFFIX_SYSTEM_CONTRACT = "contract/system";
     public static final String SUFFIX_USER_CONTRACT = "contract/user";
 
@@ -50,8 +48,7 @@ public class ContractContainer {
     private final FrameworkFactory frameworkFactory;
     private final Map<String, String> commonContainerConfig;
     private final String branchId;
-    private final StateStore stateStore;
-    private final TransactionReceiptStore transactionReceiptStore;
+    private final StoreContainer storeContainer;
     private final DefaultConfig config;
     private final SystemProperties systemProperties;
 
@@ -59,14 +56,12 @@ public class ContractContainer {
     private Map<OutputType, OutputStore> outputStore;
 
     ContractContainer(FrameworkFactory frameworkFactory, Map<String, String> containerConfig,
-                      String branchId, StateStore stateStore,
-                      TransactionReceiptStore transactionReceiptStore, DefaultConfig config,
+                      String branchId, StoreContainer storeContainer, DefaultConfig config,
                       SystemProperties systemProperties, Map<OutputType, OutputStore> outputStore) {
         this.frameworkFactory = frameworkFactory;
         this.commonContainerConfig = containerConfig;
         this.branchId = branchId;
-        this.stateStore = stateStore;
-        this.transactionReceiptStore = transactionReceiptStore;
+        this.storeContainer = storeContainer;
         this.config = config;
         this.systemProperties = systemProperties;
         this.outputStore = outputStore;
@@ -84,8 +79,7 @@ public class ContractContainer {
 
         framework = frameworkFactory.newFramework(containerConfig);
 
-        contractManager = new ContractManager(framework, branchId, stateStore,
-                transactionReceiptStore, outputStore, systemProperties);
+        contractManager = new ContractManager(framework, branchId, storeContainer, outputStore, systemProperties);
 
         try {
             framework.start();
@@ -119,25 +113,25 @@ public class ContractContainer {
             }
         }
 
-        List<PermissionInfo> permissionInfos = new ArrayList<>();
+        List<PermissionInfo> defaultPermissions = new ArrayList<>();
 
-        permissionInfos.add(new PermissionInfo(PropertyPermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(PropertyPermission.class.getName(),
                 "org.osgi.framework", "read"));
-        permissionInfos.add(new PermissionInfo(PropertyPermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(PropertyPermission.class.getName(),
                 "com.fasterxml.jackson.core.util.BufferRecyclers.trackReusableBuffers", "read"));
-        permissionInfos.add(new PermissionInfo(RuntimePermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(RuntimePermission.class.getName(),
                 "*", "accessDeclaredMembers"));
-        permissionInfos.add(new PermissionInfo(ReflectPermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(ReflectPermission.class.getName(),
                 "*", "suppressAccessChecks"));
-        permissionInfos.add(new PermissionInfo(PackagePermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(PackagePermission.class.getName(),
                 "*", "import,export,exportonly"));
-        permissionInfos.add(new PermissionInfo(CapabilityPermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(CapabilityPermission.class.getName(),
                 "osgi.ee", "require"));
-        permissionInfos.add(new PermissionInfo(CapabilityPermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(CapabilityPermission.class.getName(),
                 "osgi.native", "require"));
-        permissionInfos.add(new PermissionInfo(ServicePermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(ServicePermission.class.getName(),
                 "*", "get,register"));
-        permissionInfos.add(new PermissionInfo(BundlePermission.class.getName(),
+        defaultPermissions.add(new PermissionInfo(BundlePermission.class.getName(),
                 "*", "provide,require,host,fragment"));
 
         infos.add(admin.newConditionalPermissionInfo(
@@ -145,7 +139,7 @@ public class ContractContainer {
                 new ConditionInfo[]{
                         new ConditionInfo(BundleLocationCondition.class.getName(), new String[]{"*"})
                 },
-                permissionInfos.toArray(new PermissionInfo[permissionInfos.size()]),
+                defaultPermissions.toArray(new PermissionInfo[defaultPermissions.size()]),
                 ConditionalPermissionInfo.ALLOW));
 
         //Allow file permission to system contract
@@ -153,13 +147,26 @@ public class ContractContainer {
         // Branch State Store 권한추가 - 읽기/쓰기 권한
         // 컨트렉트 폴더 읽기/쓰기 권한
         // TODO 아카식 시스템 폴더 읽기/쓰기 권한
+
+        String stateStorePath = String.format("%s/%s/state", config.getDatabasePath(), branchId);
+        String stateStoreFile = String.format("%s/%s/state/*", config.getDatabasePath(), branchId);
+
+        String branchStorePath = String.format("%s/%s/branch", config.getDatabasePath(), branchId);
+        String branchStoreFile = String.format("%s/%s/branch/*", config.getDatabasePath(), branchId);
+
+        String filePermissionName = FilePermission.class.getName();
+
         List<PermissionInfo> systemPermissions = new ArrayList<>();
         systemPermissions.add(
-                new PermissionInfo(FilePermission.class.getName(),
-                        String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"));
+                new PermissionInfo(filePermissionName, stateStorePath, "read"));
         systemPermissions.add(
-                new PermissionInfo(FilePermission.class.getName(),
-                        String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete"));
+                new PermissionInfo(filePermissionName, stateStoreFile, "read,write,delete"));
+
+        // Add Branch Store Read / Write
+        systemPermissions.add(
+                new PermissionInfo(filePermissionName, branchStorePath, "read"));
+        systemPermissions.add(
+                new PermissionInfo(filePermissionName, branchStoreFile, "read,write,delete"));
         if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
             systemPermissions.add(new PermissionInfo(
                     SocketPermission.class.getName(), systemProperties.getEsHost(), "connect,resolve"));
@@ -180,11 +187,15 @@ public class ContractContainer {
         // {BID}-container-permission-user-file
         List<PermissionInfo> userPermissions = new ArrayList<>();
         userPermissions.add(
-                new PermissionInfo(FilePermission.class.getName(),
-                    String.format("%s/%s/state", config.getDatabasePath(), branchId), "read"));
+                new PermissionInfo(filePermissionName, stateStorePath, "read"));
         userPermissions.add(
-                new PermissionInfo(FilePermission.class.getName(),
-                    String.format("%s/%s/state/*", config.getDatabasePath(), branchId), "read,write,delete"));
+                new PermissionInfo(filePermissionName, stateStoreFile, "read,write,delete"));
+        // Branch Store Read
+        userPermissions.add(
+                new PermissionInfo(filePermissionName, branchStorePath, "read"));
+        userPermissions.add(
+                new PermissionInfo(filePermissionName, branchStoreFile, "read"));
+
         if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
             userPermissions.add(
                     new PermissionInfo(SocketPermission.class.getName(),
@@ -203,27 +214,32 @@ public class ContractContainer {
     }
 
     public long installContract(ContractVersion contract, File contractFile, boolean isSystem) {
-        // copy System or UserContract
+        long bundleId = -1L;
         try {
             Manifest m = new JarFile(contractFile).getManifest();
             //String symbolicName = m.getAttributes("Bundle-SymbolicName");
-            if (contractManager.verifyManifest(m)) {
+            if (m != null && contractManager.verifyManifest(m)) {
                 String symbolicName = m.getMainAttributes().getValue("Bundle-SymbolicName");
                 String version = m.getMainAttributes().getValue("Bundle-Version");
                 if (contractManager.checkExistContract(symbolicName, version)) {
                     log.error("Contract SymbolicName and Version exist {}-{}", symbolicName, version);
-                    return -1L;
+                    return bundleId;
                 }
             } else {
                 log.error("Contract Manifest is not verify");
-                return -1L;
+                return bundleId;
             }
         } catch (IOException e) {
             log.error("Contract file don't Load");
-            return -1L;
+            return bundleId;
         }
-
-        return contractManager.install(contract, contractFile, isSystem);
+        try {
+            bundleId = contractManager.install(contract, contractFile, isSystem);
+        } catch (RuntimeException e) {
+            log.error(e.getMessage());
+            bundleId = -2;
+        }
+        return bundleId;
     }
 
     public ContractManager getContractManager() {
@@ -231,6 +247,7 @@ public class ContractContainer {
     }
 
     public void reloadInject() throws IllegalAccessException {
+        // TODO load After call
         for (Bundle bundle : framework.getBundleContext().getBundles()) {
             contractManager.inject(bundle);
         }

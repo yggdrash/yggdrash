@@ -9,9 +9,11 @@ import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.contract.vo.dpoa.tx.TxPayload;
 import io.yggdrash.common.contract.vo.dpoa.tx.TxValidatorPropose;
 import io.yggdrash.common.contract.vo.dpoa.tx.TxValidatorVote;
+import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
+import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractEndBlock;
 import io.yggdrash.contract.core.annotation.ContractQuery;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
@@ -68,6 +70,9 @@ public class DPoAContract implements BundleActivator {
 
         @ContractTransactionReceipt
         TransactionReceipt txReceipt;
+
+        @ContractBranchStateStore
+        BranchStateStore branchStateStore;
 
         @Genesis
         @ParamValidation

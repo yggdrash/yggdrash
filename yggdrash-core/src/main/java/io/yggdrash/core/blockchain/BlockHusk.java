@@ -106,7 +106,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
 
             Proto.Block protoBlock = Proto.Block.newBuilder()
                     .setHeader(blockHeader)
-                    .setSignature(ByteString.copyFrom(wallet.signHashedData(hashDataForSign)))
+                    .setSignature(ByteString.copyFrom(wallet.sign(hashDataForSign, true)))
                     .setBody(txBuilder.build())
                     .build();
 

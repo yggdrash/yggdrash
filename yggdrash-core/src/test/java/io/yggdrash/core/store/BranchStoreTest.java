@@ -113,12 +113,6 @@ public class BranchStoreTest {
 
         ms.setValidators(validators);
         assert !ms.getValidators().contains("TEST1");
-
-        ms.addValidator("TEST1");
-        assert ms.getValidators().contains("TEST1");
-
-        ms.removeValidator("TEST1");
-        assert !ms.getValidators().contains("TEST1");
     }
 
 

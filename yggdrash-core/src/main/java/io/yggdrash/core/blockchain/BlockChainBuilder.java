@@ -28,6 +28,7 @@ import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.BranchStore;
 import io.yggdrash.core.store.StoreBuilder;
+import io.yggdrash.core.store.StoreContainer;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.output.es.EsClient;
@@ -118,6 +119,9 @@ public class BlockChainBuilder {
             outputStores = new HashMap<>();
         }
 
+        StoreContainer storeContainer = new StoreContainer(branch, branchStore, stateStore, blockStore,
+                transactionStore, transactionReceiptStore);
+
         ContractContainer contractContainer = null;
         if (systemProperties != null && systemProperties.checkEsClient()) {
             outputStores.put(OutputType.ES, EsClient.newInstance(
@@ -132,8 +136,7 @@ public class BlockChainBuilder {
                     .withFrameworkFactory(policyLoader.getFrameworkFactory())
                     .withContainerConfig(policyLoader.getContainerConfig())
                     .withBranchId(branch.getBranchId().toString())
-                    .withStateStore(stateStore)
-                    .withTransactionReceiptStore(transactionReceiptStore)
+                    .withStoreContainer(storeContainer)
                     .withConfig(storeBuilder.getConfig())
                     .withSystemProperties(systemProperties)
                     .withOutputStore(outputStores)
@@ -141,7 +144,7 @@ public class BlockChainBuilder {
         }
 
         BlockHusk genesisBlock = genesis.getBlock();
-
+        // TODO used storeContainer
         BlockChain bc = new BlockChain(branch, genesisBlock, blockStore,
                 transactionStore, branchStore, stateStore, transactionReceiptStore, contractContainer, outputStores);
 
