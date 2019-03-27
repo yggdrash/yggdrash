@@ -17,6 +17,8 @@ import org.springframework.context.annotation.Profile;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,10 +30,10 @@ public class ValidatorConfiguration {
     private static final Logger log
             = LoggerFactory.getLogger(io.yggdrash.validator.config.ValidatorConfiguration.class);
 
-    private final Map<BranchId, ValidatorService> validatorServiceMap = new ConcurrentHashMap<>();
+    private final Map<BranchId, List<ValidatorService>> validatorServiceMap = new ConcurrentHashMap<>();
 
     @Bean
-    public Map<BranchId, ValidatorService> makeValidatorService(BranchGroup branchGroup)
+    public Map<BranchId, List<ValidatorService>> makeValidatorService(BranchGroup branchGroup)
             throws IOException, InvalidCipherTextException {
         File validatorPath = new File(new DefaultConfig().getString("yggdrash.validator.path"));
 
@@ -53,16 +55,16 @@ public class ValidatorConfiguration {
             }
             log.debug(genesisBlock.toString());
 
+            List<ValidatorService> validatorServiceList = new ArrayList<>();
             for (File validatorServicePath : Objects.requireNonNull(branchPath.listFiles())) {
                 File validatorConfFile = new File(validatorServicePath, "validator.conf");
                 DefaultConfig validatorConfig
                         = new DefaultConfig(ConfigFactory.parseFile(validatorConfFile));
                 log.debug(validatorConfig.getString("yggdrash.validator.host"));
-                validatorServiceMap.put(branchId,
-                        new ValidatorService(validatorConfig, genesisBlock));
+                validatorServiceList.add(new ValidatorService(validatorConfig, genesisBlock));
             }
+            validatorServiceMap.put(branchId, validatorServiceList);
         }
         return validatorServiceMap;
     }
-
 }
