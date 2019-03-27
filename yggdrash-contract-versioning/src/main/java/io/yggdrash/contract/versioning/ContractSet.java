@@ -2,19 +2,19 @@ package io.yggdrash.contract.versioning;
 
 import java.io.Serializable;
 
-public class Contract implements Serializable, Comparable<Contract> {
+public class ContractSet implements Serializable, Comparable<ContractSet> {
 
     private String targetVersion;
-    private ProposeContractSet.Votable votedHistory;
+    private ProposeContractSet.Votable votedState;
     private boolean isUpgrade;
     private long targetBlockHeight;
     private byte[] updateContract;
     private String txId;
 
-    public Contract() {
+    public ContractSet() {
     }
 
-    public Contract(String txId) {
+    public ContractSet(String txId) {
         this.isUpgrade = false;
     }
 
@@ -27,11 +27,11 @@ public class Contract implements Serializable, Comparable<Contract> {
     }
 
     public ProposeContractSet.Votable getVotedState() {
-        return votedHistory;
+        return votedState;
     }
 
-    public void setVotedState(ProposeContractSet.Votable votedHistory) {
-        this.votedHistory = votedHistory;
+    public void setVotedState(ProposeContractSet.Votable votedState) {
+        this.votedState = votedState;
     }
 
     public boolean isUpgrade() {
@@ -59,7 +59,7 @@ public class Contract implements Serializable, Comparable<Contract> {
     }
 
     @Override
-    public int compareTo(Contract o) {
+    public int compareTo(ContractSet o) {
         return targetVersion.compareTo(o.targetVersion);
 
     }

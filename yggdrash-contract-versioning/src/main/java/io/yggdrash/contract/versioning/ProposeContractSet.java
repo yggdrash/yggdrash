@@ -21,28 +21,18 @@ public class ProposeContractSet {
     }
 
     public static class Votable implements Serializable {
-        private String issuer;
         private int totalVotableCnt;
         private int agreeCnt;
         private int disagreeCnt;
-        private Map<String, Votable.Vote> votedHistory;
+        private Map<String, Vote> votedHistory;
 
         public Votable() {
         }
 
-        public Votable(String issuer, Set<String> validatorSet) {
-            this.issuer = issuer;
+        public Votable(Set<String> validatorSet) {
             this.totalVotableCnt = validatorSet.size();
             this.votedHistory = new HashMap<>();
             validatorSet.stream().forEach(k -> this.votedHistory.put(k, new Votable.Vote()));
-        }
-
-        public String getIssuer() {
-            return issuer;
-        }
-
-        public void setIssuer(String issuer) {
-            this.issuer = issuer;
         }
 
         public int getTotalVotableCnt() {
@@ -69,11 +59,11 @@ public class ProposeContractSet {
             this.disagreeCnt = disagreeCnt;
         }
 
-        public Map<String, Votable.Vote> getVotedHistory() {
+        public Map<String, Vote> getVotedHistory() {
             return votedHistory;
         }
 
-        public void setVotedHistory(Map<String, Votable.Vote> votedHistory) {
+        public void setVotedHistory(Map<String, Vote> votedHistory) {
             this.votedHistory = votedHistory;
         }
 

@@ -10,6 +10,7 @@ import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
@@ -42,6 +43,7 @@ public class VersioningContractTest {
         }
 
         @Test
+        @Ignore
         public void updateTest() throws Exception {
             String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
             TransactionReceipt preReceipt = new TransactionReceiptImpl();
@@ -55,14 +57,37 @@ public class VersioningContractTest {
             String result = String.format("%s/%s", s2, "contract");
             JsonObject params = createUpdateParams(result);
             service.updateProposer(params);
+        }
 
+        @Test
+        @Ignore
+        public void votingTest() throws Exception {
+            String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
+            TransactionReceipt preReceipt = new TransactionReceiptImpl();
+            preReceipt.setBlockHeight(10L);
+            preReceipt.setIssuer(issuer);
+            preReceipt.setTxId("a2b0f5fce600eb6c595b28d6253bed92be0568eda2b0f5fce600eb6c595b28d6253bed92be0568ed");
+            txReceiptField.set(service, preReceipt);
+            Path currentRelativePath = Paths.get("");
+            String s = currentRelativePath.toAbsolutePath().toString();
+            String s2 = String.format("%s/%s", s, "build");
+            String result = String.format("%s/%s", s2, "contract");
+            JsonObject params = createUpdateParams(result);
+            service.updateProposer(params);
+
+            service.vote(createVoteParams());
+        }
+
+        private JsonObject createVoteParams() {
+            JsonObject params = new JsonObject();
+            params.addProperty("txId", "a2b0f5fce600eb6c595b28d6253bed92be0568eda2b0f5fce600eb6c595b28d6253bed92be0568ed");
+            params.addProperty("agree", true);
+            return params;
         }
 
         private JsonObject createUpdateParams(String path) {
             String bash64String = new String(convertVersionToBase64(path));
-
             JsonObject params = new JsonObject();
-
             params.addProperty("contractVersion", "4adc453cbd99b3be960118e9eced4b5dad435d0f");
             params.addProperty("contract", bash64String);
             return params;

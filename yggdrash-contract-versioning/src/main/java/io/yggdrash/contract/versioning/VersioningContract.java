@@ -93,23 +93,7 @@ public class VersioningContract implements BundleActivator, ServiceListener {
                 }
 
                 try {
-                    setStateValue(stateValue, binaryFile, params.get("contractVersion").getAsString());
-                    FileOutputStream fos;
-                    String exportPath = System.getProperty("user.dir");
-                    String tempContractPath = String.format("%s/src/main/resources%s", exportPath, SUFFIX_UPDATE_CONTRACT);
-
-                    File fileDir = new File(tempContractPath);
-                    if (!fileDir.exists()) {
-                        fileDir.mkdirs();
-                    }
-                    ContractVersion version = ContractVersion.of(binaryFile);
-                    File destFile = new File(tempContractPath + File.separator + version + SUFFIX);
-                    destFile.setReadOnly();
-
-                    fos = new FileOutputStream(destFile);
-                    fos.write(binaryFile);
-                    fos.close();
-
+                    writeTempContract(stateValue, binaryFile, params);
                     state.put(txReceipt.getTxId(),
                             stateValue.getJson().get(txReceipt.getTxId()).getAsJsonObject());
                     txReceipt.setStatus(ExecuteStatus.SUCCESS);
@@ -131,7 +115,6 @@ public class VersioningContract implements BundleActivator, ServiceListener {
             stateValue.setBlockHeight(txReceipt.getBlockHeight());
             stateValue.setUpdateContract(contractBinary);
 
-
             //TODO set validatoreSet in branch store
             Set<String> validatorSet = new HashSet<>();
             JsonObject validators = state.get("validatorSet");
@@ -141,82 +124,82 @@ public class VersioningContract implements BundleActivator, ServiceListener {
             stateValue.setVotable(txReceipt.getIssuer(), validatorSet);
         }
 
-//        @InvokeTransaction
-//        public TransactionReceipt vote(JsonObject params) {
-//            txReceipt.setStatus(ExecuteStatus.FALSE);
-//
-//            VersioningContractStateValue stateValue;
-//            try {
-//                ContractVote contractVote = JsonUtil.generateJsonToClass(params.toString(), ContractVote.class);
-//                ProposeContractSet proposeContractSet = getProposerContract(contractVote.getTxId());
-//
-//                //TODO set validatoreSet in branch store
-//                DPoAContract.DPoAService dPoAService = new DPoAContract.DPoAService();
-//                ValidatorSet validatorSet = dPoAService.getValidatorSet();
-//                ProposeContractSet.Votable votable = new ProposeContractSet.Votable(txReceipt.getIssuer(), validatorSet);
-//                if (votable.getVotedMap().get(txReceipt.getIssuer()) == null
-//                        || votable.getVotedMap().get(txReceipt.getIssuer()).isVoted()) {
-//                    return txReceipt;
-//                }
-//
-//                if (contractVote.isAgree()) {
-//                    votable.setAgreeCnt(votable.getAgreeCnt() + 1);
-//                } else {
-//                    votable.setDisagreeCnt(votable.getDisagreeCnt() + 1);
-//                }
-//                votable.getVotedMap().get(txReceipt.getIssuer()).setAgree(contractVote.isAgree());
-//                votable.getVotedMap().get(txReceipt.getIssuer()).setVoted(true);
-//
-//                if (contractVote.isAgree()) {
-//                    votable.setAgreeCnt(votable.getAgreeCnt() + 1);
-//                } else {
-//                    votable.setDisagreeCnt(votable.getDisagreeCnt() + 1);
-//                }
-//                votable.getVotedMap().get(txReceipt.getIssuer()).setAgree(contractVote.isAgree());
-//                votable.getVotedMap().get(txReceipt.getIssuer()).setVoted(true);
-//
-//                stateValue = VersioningContractStateValue.of(contractVote.getTxId());
-//                stateValue.setContract(getContract(contractVote.getTxId()));
-//                stateValue.setVotable(txReceipt.getIssuer(), validatorSet);
-//                txReceipt.setStatus(ExecuteStatus.SUCCESS);
-//            } catch (Exception e) {
-//                log.warn("Failed to convert json = {}", params);
-//            }
-//            return txReceipt;
-//        }
+        private void writeTempContract(VersioningContractStateValue stateValue, byte[] binaryFile, JsonObject params) {
+            try {
+                setStateValue(stateValue, binaryFile, params.get("contractVersion").getAsString());
+                FileOutputStream fos;
+                String exportPath = System.getProperty("user.dir");
+                String tempContractPath = String.format("%s/src/main/resources%s", exportPath, SUFFIX_UPDATE_CONTRACT);
 
-        @ContractQuery
-        public Contract updateStatus(JsonObject params) {
-            Contract contract = null;
-            String txId = params.get("txId").getAsString();
-            JsonObject json = state.get(txId);
-            if (json != null) {
-                contract = JsonUtil.generateJsonToClass(json.toString(), Contract.class);
+                File fileDir = new File(tempContractPath);
+                if (!fileDir.exists()) {
+                    fileDir.mkdirs();
+                }
+                ContractVersion version = ContractVersion.of(binaryFile);
+                File destFile = new File(tempContractPath + File.separator + version + SUFFIX);
+                destFile.setReadOnly();
+
+                fos = new FileOutputStream(destFile);
+                fos.write(binaryFile);
+                fos.close();
+            } catch (Exception e) {
+                log.error(e.toString());
+                txReceipt.setStatus(ExecuteStatus.FALSE);
             }
-            return contract;
+        }
+
+        @InvokeTransaction
+        public TransactionReceipt vote(JsonObject params) {
+            txReceipt.setStatus(ExecuteStatus.FALSE);
+
+            VersioningContractStateValue stateValue;
+            try {
+                ContractVote contractVote = JsonUtil.generateJsonToClass(params.toString(), ContractVote.class);
+                stateValue = VersioningContractStateValue.of(getContractSet(contractVote.getTxId()));
+                setVote(stateValue, contractVote, txReceipt.getIssuer());
+                System.out.println(stateValue.getJson());
+//                stateValue.setVotable(txReceipt.getIssuer(), validatorSet);
+                txReceipt.setStatus(ExecuteStatus.SUCCESS);
+            } catch (Exception e) {
+                log.warn("Failed to convert json = {}", params);
+            }
+            return txReceipt;
+        }
+
+        private void setVote(VersioningContractStateValue stateValue, ContractVote contractVote, String issuer) {
+            stateValue.voting(contractVote, issuer);
+        }
+        
+        @ContractQuery
+        public ContractSet updateStatus(JsonObject params) {
+            ContractSet contractSet = null;
+            JsonObject json = state.get(params.get("txId").getAsString());
+            if (json != null) {
+                contractSet = JsonUtil.generateJsonToClass(json.toString(), ContractSet.class);
+            }
+            return contractSet;
         }
 
         private boolean validatorVerify() {
             //TODO change get validator in branch store
-//            DPoAContract.DPoAService dPoAService = (DPoAContract.DPoAService) serviceTracker.getService();
-//            dPoAService.getValidatorSet();
-//
-//            ValidatorSet validatorSet = dPoAService.getValidatorSet();
-//            if (validatorSet == null || validatorSet.getValidatorMap() == null
-//                    || validatorSet.getValidatorMap().get(txReceipt.getIssuer()) == null) {
-//                return false;
-//            }
-            return true;
+            JsonObject validators = state.get("validatorSet");
+            for (String v : validators.keySet()) {
+                if (!v.isEmpty() && v.equals(txReceipt.getIssuer())) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @ContractQuery
-        public Contract getContract(String txId) {
-            Contract contract = null;
+        public ContractSet getContractSet(String txId) {
+            ContractSet contractSet = null;
             JsonObject json = state.get(txId);
+            // TODO let's through state store intreface
             if (json != null) {
-                contract = JsonUtil.generateJsonToClass(json.toString(), Contract.class);
+                contractSet = JsonUtil.generateJsonToClass(json.toString(), ContractSet.class);
             }
-            return contract;
+            return contractSet;
         }
 
 

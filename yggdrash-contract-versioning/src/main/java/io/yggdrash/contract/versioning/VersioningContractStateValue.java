@@ -13,21 +13,25 @@ import java.util.Set;
  */
 public class VersioningContractStateValue {
 
-    private static Contract contract;
+    private static ContractSet contractSet;
     private static JsonObject json;
     private static String txId;
     private static ProposeContractSet proposeContractSet;
     private static ProposeContractSet.Votable votable;
-    private static Map<String, Contract> contractMap = new HashMap<>();
+    private static Map<String, ContractSet> contractMap = new HashMap<>();
 
     public VersioningContractStateValue(String txId) {
         this.txId = txId;
     }
 
+    public VersioningContractStateValue(ContractSet contractSet) {
+        this.contractSet = contractSet;
+    }
+
     public void init() {
-        contract = new Contract();
+        contractSet = new ContractSet();
         proposeContractSet = new ProposeContractSet();
-        contract.setTargetBlockHeight(0L);
+        contractSet.setTargetBlockHeight(0L);
         convertJson();
     }
 
@@ -39,52 +43,66 @@ public class VersioningContractStateValue {
 
     }
 
-    public void voting() {
+    public void voting(ContractVote contractVote, String issuer) {
+        //TODO 시간이 지나고 벨리데이터 셋 변경사항 체크
+        ProposeContractSet.Votable votable = contractSet.getVotedState();
+        if (contractVote.isAgree()) {
+            votable.setAgreeCnt(votable.getAgreeCnt() + 1);
+        } else {
+            votable.setDisagreeCnt(votable.getDisagreeCnt() + 1);
+        }
+        votable.getVotedHistory().get(issuer).setAgree(contractVote.isAgree());
+        votable.getVotedHistory().get(issuer).setVoted(true);
 
+        //TODO set ContractSet votable
+        contractSet.setVotedState(votable);
+        convertJson();
     }
 
-    public Contract getContract() {
-        return contract;
+    public ContractSet getContract() {
+        return contractSet;
     }
 
-    public Map<String, Contract> getContractMap() {
+    public Map<String, ContractSet> getContractMap() {
         return contractMap;
     }
 
     public void setTargetContractVersion(String targetVersion) {
-        contract.setTargetVersion(targetVersion);
+        contractSet.setTargetVersion(targetVersion);
         convertJson();
     }
 
     public void setBlockHeight(Long blockHeight) {
-        contract.setTargetBlockHeight(blockHeight);
+        contractSet.setTargetBlockHeight(blockHeight);
         convertJson();
     }
 
     public void setUpdateContract(byte[] updateContract) {
-        contract.setUpdateContract(updateContract);
+        contractSet.setUpdateContract(updateContract);
         convertJson();
     }
 
-    public void setContract(Contract c) {
-        contract = c;
+    public void setContract(ContractSet c) {
+        contractSet = c;
         convertJson();
     }
 
     public void setVotable(String txId, Set<String> v) {
-        ProposeContractSet.Votable votable = new ProposeContractSet.Votable(txId, v);
+        ProposeContractSet.Votable votable = new ProposeContractSet.Votable(v);
         proposeContractSet.getContractVote().put(txId, votable);
-        contract.setVotedState(votable);
-        System.out.println(contract);
+        contractSet.setVotedState(votable);
         convertJson();
     }
 
     public static VersioningContractStateValue of(String txId) {
         return new VersioningContractStateValue(txId);
     }
+    public static VersioningContractStateValue of(ContractSet contractSet) {
+        return new VersioningContractStateValue(contractSet);
+    }
 
     private void convertJson() {
-        contractMap.put(txId, contract);
+        contractMap.put(txId, contractSet);
         json = JsonUtil.convertMapToJson(contractMap);
 
     }
