@@ -93,6 +93,7 @@ public class DPoAContract implements BundleActivator {
                         new Validator(validators.get(i).getAsString()));
             }
             JsonObject jsonObject = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
+            System.out.println(jsonObject);
             state.put(PrefixKeyEnum.VALIDATORS.toValue(), jsonObject);
             return true;
         }

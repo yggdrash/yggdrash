@@ -1,11 +1,9 @@
 package io.yggdrash.contract.versioning;
 
-import io.yggdrash.common.contract.vo.dpoa.Validator;
-import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
-
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public class ProposeContractSet {
     private Map<String, Votable> contractVote;
@@ -27,17 +25,16 @@ public class ProposeContractSet {
         private int totalVotableCnt;
         private int agreeCnt;
         private int disagreeCnt;
-        private Map<String, Votable.Vote> votedMap;
+        private Map<String, Votable.Vote> votedHistory;
 
         public Votable() {
         }
 
-        public Votable(String issuer, ValidatorSet validatorSet) {
+        public Votable(String issuer, Set<String> validatorSet) {
             this.issuer = issuer;
-            Map<String, Validator> validatorMap = validatorSet.getValidatorMap();
-            this.totalVotableCnt = validatorMap.size();
-            this.votedMap = new HashMap<>();
-            validatorMap.forEach((k, v) -> this.votedMap.put(k, new Votable.Vote()));
+            this.totalVotableCnt = validatorSet.size();
+            this.votedHistory = new HashMap<>();
+            validatorSet.stream().forEach(k -> this.votedHistory.put(k, new Votable.Vote()));
         }
 
         public String getIssuer() {
@@ -72,12 +69,12 @@ public class ProposeContractSet {
             this.disagreeCnt = disagreeCnt;
         }
 
-        public Map<String, Votable.Vote> getVotedMap() {
-            return votedMap;
+        public Map<String, Votable.Vote> getVotedHistory() {
+            return votedHistory;
         }
 
-        public void setVotedMap(Map<String, Votable.Vote> votedMap) {
-            this.votedMap = votedMap;
+        public void setVotedHistory(Map<String, Votable.Vote> votedHistory) {
+            this.votedHistory = votedHistory;
         }
 
         public static class Vote implements Serializable {

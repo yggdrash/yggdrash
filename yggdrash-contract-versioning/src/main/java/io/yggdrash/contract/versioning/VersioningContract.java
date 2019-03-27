@@ -3,7 +3,6 @@ package io.yggdrash.contract.versioning;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
-import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
@@ -12,7 +11,6 @@ import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.store.ReadWriterStore;
-import io.yggdrash.contract.dpoa.DPoAContract;
 import org.apache.commons.codec.binary.Base64;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
@@ -25,7 +23,9 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.UnsupportedEncodingException;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 
 public class VersioningContract implements BundleActivator, ServiceListener {
     private static final Logger log = LoggerFactory.getLogger(VersioningContract.class);
@@ -35,20 +35,8 @@ public class VersioningContract implements BundleActivator, ServiceListener {
     @Override
     public void start(BundleContext context) throws Exception {
         log.info("⚪ Start contract version control");
-
-        bundleContext = context;
-        serviceTracker = new ServiceTracker(
-                bundleContext
-                , bundleContext.createFilter(
-                "(&(objectClass=" + DPoAContract.DPoAService.class.getName() + ")" +
-                        "(YGGDRASH=DPoA))"),
-                null
-        );
-        serviceTracker.open();
-
         Hashtable<String, String> props = new Hashtable<>();
         props.put("YGGDRASH", "ContractVersionControl");
-//        context.registerService(VersioningContractService.class.getName(), new VersioningContractService(serviceTracker), props);
         context.registerService(VersioningContractService.class.getName(), new VersioningContractService(), props);
     }
 
@@ -66,11 +54,6 @@ public class VersioningContract implements BundleActivator, ServiceListener {
         private static final Long MAX_FILE_LENGTH = 5242880L; // default 5MB bytes
         private static final String SUFFIX_UPDATE_CONTRACT = "/update-temp-contracts";
         private static final String SUFFIX = ".jar";
-//        private final ServiceTracker serviceTracker;
-
-//        public VersioningContractService(ServiceTracker serviceTracker) {
-//            this.serviceTracker = serviceTracker;
-//        }
 
         @ContractStateStore
         ReadWriterStore<String, JsonObject> state;
@@ -147,56 +130,60 @@ public class VersioningContract implements BundleActivator, ServiceListener {
             stateValue.setTargetContractVersion(targetVersion);
             stateValue.setBlockHeight(txReceipt.getBlockHeight());
             stateValue.setUpdateContract(contractBinary);
-            DPoAContract.DPoAService dPoAService = new DPoAContract.DPoAService();
+
+
             //TODO set validatoreSet in branch store
-            ValidatorSet validatorSet = dPoAService.getValidatorSet();
+            Set<String> validatorSet = new HashSet<>();
+            JsonObject validators = state.get("validatorSet");
+            for (String v : validators.keySet()) {
+                validatorSet.add(v);
+            }
             stateValue.setVotable(txReceipt.getIssuer(), validatorSet);
         }
 
-        @InvokeTransaction
-        public TransactionReceipt vote(JsonObject params) {
-            txReceipt.setStatus(ExecuteStatus.FALSE);
-
-            VersioningContractStateValue stateValue;
-            try {
-                ContractVote contractVote = JsonUtil.generateJsonToClass(params.toString(), ContractVote.class);
-                ProposeContractSet proposeContractSet = getProposerContract(contractVote.getTxId());
-
-
-//                DPoAContract.DPoAService dPoAService = (DPoAContract.DPoAService) serviceTracker.getService();
-                DPoAContract.DPoAService dPoAService = new DPoAContract.DPoAService();
-                ValidatorSet validatorSet = dPoAService.getValidatorSet();
-                ProposeContractSet.Votable votable = new ProposeContractSet.Votable(txReceipt.getIssuer(), validatorSet);
-                if (votable.getVotedMap().get(txReceipt.getIssuer()) == null
-                        || votable.getVotedMap().get(txReceipt.getIssuer()).isVoted()) {
-                    return txReceipt;
-                }
-
-                if (contractVote.isAgree()) {
-                    votable.setAgreeCnt(votable.getAgreeCnt() + 1);
-                } else {
-                    votable.setDisagreeCnt(votable.getDisagreeCnt() + 1);
-                }
-                votable.getVotedMap().get(txReceipt.getIssuer()).setAgree(contractVote.isAgree());
-                votable.getVotedMap().get(txReceipt.getIssuer()).setVoted(true);
-
-                if (contractVote.isAgree()) {
-                    votable.setAgreeCnt(votable.getAgreeCnt() + 1);
-                } else {
-                    votable.setDisagreeCnt(votable.getDisagreeCnt() + 1);
-                }
-                votable.getVotedMap().get(txReceipt.getIssuer()).setAgree(contractVote.isAgree());
-                votable.getVotedMap().get(txReceipt.getIssuer()).setVoted(true);
-
-                stateValue = VersioningContractStateValue.of(contractVote.getTxId());
-                stateValue.setContract(getContract(contractVote.getTxId()));
-                stateValue.setVotable(txReceipt.getIssuer(), validatorSet);
-                txReceipt.setStatus(ExecuteStatus.SUCCESS);
-            } catch (Exception e) {
-                log.warn("Failed to convert json = {}", params);
-            }
-            return txReceipt;
-        }
+//        @InvokeTransaction
+//        public TransactionReceipt vote(JsonObject params) {
+//            txReceipt.setStatus(ExecuteStatus.FALSE);
+//
+//            VersioningContractStateValue stateValue;
+//            try {
+//                ContractVote contractVote = JsonUtil.generateJsonToClass(params.toString(), ContractVote.class);
+//                ProposeContractSet proposeContractSet = getProposerContract(contractVote.getTxId());
+//
+//                //TODO set validatoreSet in branch store
+//                DPoAContract.DPoAService dPoAService = new DPoAContract.DPoAService();
+//                ValidatorSet validatorSet = dPoAService.getValidatorSet();
+//                ProposeContractSet.Votable votable = new ProposeContractSet.Votable(txReceipt.getIssuer(), validatorSet);
+//                if (votable.getVotedMap().get(txReceipt.getIssuer()) == null
+//                        || votable.getVotedMap().get(txReceipt.getIssuer()).isVoted()) {
+//                    return txReceipt;
+//                }
+//
+//                if (contractVote.isAgree()) {
+//                    votable.setAgreeCnt(votable.getAgreeCnt() + 1);
+//                } else {
+//                    votable.setDisagreeCnt(votable.getDisagreeCnt() + 1);
+//                }
+//                votable.getVotedMap().get(txReceipt.getIssuer()).setAgree(contractVote.isAgree());
+//                votable.getVotedMap().get(txReceipt.getIssuer()).setVoted(true);
+//
+//                if (contractVote.isAgree()) {
+//                    votable.setAgreeCnt(votable.getAgreeCnt() + 1);
+//                } else {
+//                    votable.setDisagreeCnt(votable.getDisagreeCnt() + 1);
+//                }
+//                votable.getVotedMap().get(txReceipt.getIssuer()).setAgree(contractVote.isAgree());
+//                votable.getVotedMap().get(txReceipt.getIssuer()).setVoted(true);
+//
+//                stateValue = VersioningContractStateValue.of(contractVote.getTxId());
+//                stateValue.setContract(getContract(contractVote.getTxId()));
+//                stateValue.setVotable(txReceipt.getIssuer(), validatorSet);
+//                txReceipt.setStatus(ExecuteStatus.SUCCESS);
+//            } catch (Exception e) {
+//                log.warn("Failed to convert json = {}", params);
+//            }
+//            return txReceipt;
+//        }
 
         @ContractQuery
         public Contract updateStatus(JsonObject params) {
@@ -220,17 +207,6 @@ public class VersioningContract implements BundleActivator, ServiceListener {
 //                return false;
 //            }
             return true;
-        }
-
-        @ContractQuery
-        public ProposeContractSet getProposerContract(String txId) {
-            ProposeContractSet proposeContractSet = null;
-            JsonObject json = state.get(txId);
-
-            if (json != null) {
-                proposeContractSet = JsonUtil.generateJsonToClass(json.toString(), ProposeContractSet.class);
-            }
-            return proposeContractSet;
         }
 
         @ContractQuery

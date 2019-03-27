@@ -1,11 +1,11 @@
 package io.yggdrash.contract.versioning;
 
 import com.google.gson.JsonObject;
-import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.utils.JsonUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * updatable contract version
@@ -25,7 +25,7 @@ public class VersioningContractStateValue {
     }
 
     public void init() {
-        contract = new Contract(txId);
+        contract = new Contract();
         proposeContractSet = new ProposeContractSet();
         contract.setTargetBlockHeight(0L);
         convertJson();
@@ -71,10 +71,12 @@ public class VersioningContractStateValue {
         convertJson();
     }
 
-    public void setVotable(String txId, ValidatorSet v) {
+    public void setVotable(String txId, Set<String> v) {
         ProposeContractSet.Votable votable = new ProposeContractSet.Votable(txId, v);
         proposeContractSet.getContractVote().put(txId, votable);
-        contract.setVotedHistory(votable);
+        contract.setVotedState(votable);
+        System.out.println(contract);
+        convertJson();
     }
 
     public static VersioningContractStateValue of(String txId) {

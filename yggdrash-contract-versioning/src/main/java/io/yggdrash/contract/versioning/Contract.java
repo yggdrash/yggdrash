@@ -15,7 +15,6 @@ public class Contract implements Serializable, Comparable<Contract> {
     }
 
     public Contract(String txId) {
-        this.txId = txId;
         this.isUpgrade = false;
     }
 
@@ -27,11 +26,11 @@ public class Contract implements Serializable, Comparable<Contract> {
         this.targetVersion = targetVersion;
     }
 
-    public ProposeContractSet.Votable getVotedHistory() {
+    public ProposeContractSet.Votable getVotedState() {
         return votedHistory;
     }
 
-    public void setVotedHistory(ProposeContractSet.Votable votedHistory) {
+    public void setVotedState(ProposeContractSet.Votable votedHistory) {
         this.votedHistory = votedHistory;
     }
 
