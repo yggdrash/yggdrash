@@ -82,7 +82,8 @@ project(':yggdrash-core') {
 
     dependencies {
         compile project(':yggdrash-common')
-        implementation project(':yggdrash-contract')
+        implementation project(':yggdrash-contract-coin')
+        implementation project(':yggdrash-contract-dpoa')
 
         compile "io.grpc:grpc-services:${grpcVersion}"
         compile "io.grpc:grpc-netty:${grpcVersion}"
@@ -155,13 +156,13 @@ project(':yggdrash-node') {
 
     dependencies {
         compile(project(':yggdrash-core')) {
-            exclude module: 'yggdrash-contract'
+            exclude module: 'yggdrash-contract-dpoa'
         }
         compile(project(':yggdrash-validator')) {
-            exclude module: 'yggdrash-contract'
+            exclude module: 'yggdrash-contract-dpoa'
         }
         compile(project(':yggdrash-gateway')) {
-            exclude module: 'yggdrash-contract'
+            exclude module: 'yggdrash-contract-dpoa'
         }
         compile "org.springframework.boot:spring-boot-starter-web"
         compile "org.springframework.boot:spring-boot-starter-undertow"
