@@ -1,3 +1,19 @@
+/*
+ * Copyright 2019 Akashic Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.yggdrash.contract.dpoa;
 
 import com.google.gson.JsonArray;
@@ -32,6 +48,7 @@ import org.osgi.framework.BundleContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -59,8 +76,10 @@ public class DPoAContract implements BundleActivator {
     public static class DPoAService {
         private final String validatorSchemeName = "validator";
         private final String proposedValidatorSchemeName = "proposedValidator";
+
         @InjectOutputStore
         Map<OutputType, OutputStore> outputStore;
+
         @InjectEvent
         Set<String> eventStore;
 
@@ -85,18 +104,23 @@ public class DPoAContract implements BundleActivator {
         }
 
         public boolean saveInitValidator(JsonArray validators) {
+            log.debug("saveInitValidator {}", validators.toString());
             ValidatorSet validatorSet = getValidatorSet();
             if (validatorSet != null) {
+                log.error("initial validator is not null");
                 return true;
             }
 
             validatorSet = new ValidatorSet();
+            Map<String, Validator> validatorMap = new HashMap<>();
             for (int i = 0; i < validators.size(); i++) {
-                validatorSet.getValidatorMap().put(validators.get(i).getAsString(),
+                validatorMap.put(validators.get(i).getAsString(),
                         new Validator(validators.get(i).getAsString()));
             }
-            JsonObject jsonObject = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
-            state.put(PrefixKeyEnum.VALIDATORS.toValue(), jsonObject);
+            validatorSet.setValidatorMap(validatorMap);
+
+            branchStateStore.setValidators(validatorSet);
+
             return true;
         }
 
@@ -128,19 +152,13 @@ public class DPoAContract implements BundleActivator {
 
         @ContractQuery
         public ValidatorSet getValidatorSet() {
-            ValidatorSet validatorSet = null;
-            JsonObject jsonValidatorSet = state.get(PrefixKeyEnum.VALIDATORS.toValue());
-            if (jsonValidatorSet != null) {
-                validatorSet = JsonUtil.generateJsonToClass(jsonValidatorSet.toString(), ValidatorSet.class);
-            }
-
-            return validatorSet;
+            return branchStateStore.getValidators();
         }
 
         @InvokeTransaction
         public TransactionReceipt proposeValidator(JsonObject params) {
             txReceipt.setStatus(ExecuteStatus.FALSE);
-
+            log.debug("proposeValidator {}", params.toString());
             //Check validation
             TxValidatorPropose txValidatorPropose = JsonUtil.generateJsonToClass(params.toString(),
                     TxValidatorPropose.class);
@@ -152,6 +170,7 @@ public class DPoAContract implements BundleActivator {
             ValidatorSet validatorSet = getValidatorSet();
             if (validatorSet == null || validatorSet.getValidatorMap() == null
                     || validatorSet.getValidatorMap().get(txReceipt.getIssuer()) == null) {
+                log.error("ISSUER IS NOT validator {} {}", txReceipt.getIssuer(), validatorSet.getValidatorMap().size());
                 return txReceipt;
             }
 
@@ -258,7 +277,8 @@ public class DPoAContract implements BundleActivator {
 
             JsonObject jsonValidator = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
             if (isUpdateValidator) {
-                state.put(PrefixKeyEnum.VALIDATORS.toValue(), jsonValidator);
+                // Save
+                branchStateStore.setValidators(validatorSet);
             }
             JsonObject proposedValidator = null;
             if (proposeValidatorSet != null) {

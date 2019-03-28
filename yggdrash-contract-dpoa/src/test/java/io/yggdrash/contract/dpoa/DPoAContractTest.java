@@ -1,11 +1,30 @@
+/*
+ * Copyright 2019 Akashic Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package io.yggdrash.contract.dpoa;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.vo.dpoa.ProposeValidatorSet;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.contract.vo.dpoa.tx.TxValidatorPropose;
 import io.yggdrash.common.contract.vo.dpoa.tx.TxValidatorVote;
+import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.ContractUtils;
@@ -13,10 +32,12 @@ import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
+import io.yggdrash.contract.core.annotation.ContractBranchStateStore;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import org.junit.Before;
 import org.junit.Test;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
@@ -27,14 +48,51 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 public class DPoAContractTest {
+    private static final Logger log = LoggerFactory.getLogger(DPoAContractTest.class);
+
     private DPoAContract.DPoAService dPoAService;
     private StateStore<JsonObject> store;
+    private BranchStateStore branchStateStore;
     private Field txReceiptField;
     private JsonArray validatorsArr;
 
     @Before
     public void setUp() throws IllegalAccessException {
         store = new StateStore<>(new HashMapDbSource());
+        branchStateStore = new BranchStateStore() {
+            ValidatorSet validators;
+
+            @Override
+            public Long getLastExecuteBlockIndex() {
+                return null;
+            }
+
+            @Override
+            public Sha3Hash getLastExecuteBlockHash() {
+                return null;
+            }
+
+            @Override
+            public Sha3Hash getGenesisBlockHash() {
+                return null;
+            }
+
+            @Override
+            public Sha3Hash getBranchIdHash() {
+                return null;
+            }
+
+            @Override
+            public ValidatorSet getValidators() {
+                return validators;
+            }
+
+            @Override
+            public void setValidators(ValidatorSet validators) {
+                this.validators = validators;
+            }
+        };
+
         dPoAService = new DPoAContract.DPoAService();
 
         List<Field> txReceipt = ContractUtils.txReceiptFields(dPoAService);
@@ -47,6 +105,11 @@ public class DPoAContractTest {
             f.set(dPoAService, store);
         }
 
+        for (Field f : ContractUtils.contractFields(dPoAService, ContractBranchStateStore.class)) {
+            f.setAccessible(true);
+            f.set(dPoAService, branchStateStore);
+        }
+
         String validators = "{\"validator\": [\"a2b0f5fce600eb6c595b28d6253bed92be0568ed\""
                 + ",\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\",\"d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95\"]}";
         JsonObject genesis = JsonUtil.parseJsonObject(validators);
@@ -57,13 +120,8 @@ public class DPoAContractTest {
     }
 
     @Test
-    public void test() {
-        String a = "systemdpoa-contract";
-        System.out.println(a.matches("[0-9]*[-]*system-.*"));
-    }
-
-    @Test
     public void saveInitValidator() {
+        log.debug("saveInitValidator");
         String validators = "{\"validator\": [\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"]}";
         JsonObject genesis = JsonUtil.parseJsonObject(validators);
 
@@ -73,6 +131,7 @@ public class DPoAContractTest {
 
     @Test
     public void proposeValidator() throws Exception {
+        log.debug("validator 추가 프로세스 start");
         String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
         TransactionReceipt preReceipt = new TransactionReceiptImpl();
         preReceipt.setIssuer(issuer);
@@ -80,9 +139,12 @@ public class DPoAContractTest {
 
         String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
         TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
+        log.debug("proposeValidator {} , {} ", issuer, proposedValidator);
 
         TransactionReceipt receipt = dPoAService.proposeValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
+
+
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         ProposeValidatorSet proposeValidatorSet = dPoAService.getProposeValidatorSet();
@@ -90,6 +152,7 @@ public class DPoAContractTest {
         assertNotNull(proposeValidatorSet.getValidatorMap());
         assertNotNull(proposeValidatorSet.getValidatorMap().get(proposedValidator));
 
+        // vote
         ProposeValidatorSet.Votable votable = proposeValidatorSet.getValidatorMap().get(proposedValidator);
         assertEquals(issuer, votable.getProposalValidatorAddr());
         assertEquals(0, votable.getAgreeCnt());

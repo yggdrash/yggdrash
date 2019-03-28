@@ -129,7 +129,8 @@ public class BlockChain {
         // Add Meta Information
         branchStore.setBranch(branch);
         branchStore.setGenesisBlockHash(genesisBlock.getHash());
-        branchStore.setValidators(branch.getValidators());
+        // TODO new Validators
+        //branchStore.setValidators(branch.getValidators());
         branchStore.setBranchContracts(branch.getBranchContracts());
     }
 
