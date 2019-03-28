@@ -214,6 +214,10 @@ public class PbftMessage {
     }
 
     public static PbftProto.PbftMessage toProto(PbftMessage pbftMessage) {
+        if (pbftMessage == null) {
+            return null;
+        }
+
         PbftProto.PbftMessage.Builder protoPbftMessageBuilder = PbftProto.PbftMessage.newBuilder();
         protoPbftMessageBuilder.setType(pbftMessage.getType());
         protoPbftMessageBuilder.setViewNumber(pbftMessage.getViewNumber());
@@ -228,7 +232,7 @@ public class PbftMessage {
             protoPbftMessageBuilder.setSignature(ByteString.copyFrom(pbftMessage.getSignature()));
         }
         if (pbftMessage.getBlock() != null) {
-            protoPbftMessageBuilder.setBlock(pbftMessage.getBlock().toProtoBlock());
+            protoPbftMessageBuilder.setBlock(Block.toProtoBlock(pbftMessage.getBlock()));
         }
         return protoPbftMessageBuilder.build();
     }

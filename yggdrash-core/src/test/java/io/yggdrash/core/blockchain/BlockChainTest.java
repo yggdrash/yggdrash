@@ -175,7 +175,7 @@ public class BlockChainTest extends CiTest {
                     tmpBlockBody);
 
             Block block = new Block(newBlockHeader, TestConstants.wallet(), tmpBlockBody);
-            return new BlockHusk(block.toProtoBlock());
+            return new BlockHusk(Block.toProtoBlock(block));
         } catch (Exception e) {
             throw new NotValidateException(e);
         }

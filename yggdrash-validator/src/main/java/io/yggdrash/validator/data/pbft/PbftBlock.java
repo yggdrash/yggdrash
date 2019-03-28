@@ -160,7 +160,11 @@ public class PbftBlock implements ConsensusBlock {
     }
 
     public static PbftProto.PbftBlock toProto(PbftBlock pbftBlock) {
-        Proto.Block protoBlock = pbftBlock.getBlock().toProtoBlock();
+        if (pbftBlock == null || pbftBlock.getBlock() == null) {
+            return null;
+        }
+
+        Proto.Block protoBlock = Block.toProtoBlock(pbftBlock.getBlock());
         PbftProto.PbftMessageSet protoPbftMessageSet =
                 PbftMessageSet.toProto(pbftBlock.getConsensusMessages());
 

@@ -246,6 +246,10 @@ public class Block {
     }
 
     public JsonObject toJsonObject() {
+        if (this.header == null || this.signature == null || this.body == null) {
+            return null;
+        }
+
         JsonObject jsonObject = new JsonObject();
         jsonObject.add("header", this.header.toJsonObject());
         jsonObject.addProperty("signature", Hex.toHexString(this.signature));
@@ -286,11 +290,16 @@ public class Block {
                 && this.getBody().equals(newBlock.getBody());
     }
 
+    @Deprecated
     public Proto.Block toProtoBlock() {
         return toProtoBlock(this);
     }
 
     public static Proto.Block toProtoBlock(Block block) {
+        if (block == null || block.getHeader() == null) {
+            return null;
+        }
+
         Proto.Block.Header protoHeader;
         protoHeader = Proto.Block.Header.newBuilder()
                 .setChain(ByteString.copyFrom(block.getHeader().getChain()))

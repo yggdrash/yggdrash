@@ -117,6 +117,10 @@ public class EbftBlock implements ConsensusBlock {
 
     @Override
     public JsonObject toJsonObject() {
+        if (this.block == null) {
+            return null;
+        }
+
         JsonObject jsonObject = new JsonObject();
         jsonObject.add("block", this.block.toJsonObject());
         if (this.consensusList.size() > 0) {
@@ -166,8 +170,13 @@ public class EbftBlock implements ConsensusBlock {
     }
 
     public static EbftProto.EbftBlock toProto(EbftBlock ebftBlock) {
+        if (ebftBlock == null || ebftBlock.getBlock() == null
+                || ebftBlock.getBlock().getHeader() == null) {
+            return null;
+        }
+
         EbftProto.EbftBlock.Builder protoBlock = EbftProto.EbftBlock.newBuilder()
-                .setBlock(ebftBlock.getBlock().toProtoBlock())
+                .setBlock(Block.toProtoBlock(ebftBlock.getBlock()))
                 .setConsensusList(EbftProto.ConsensusList.newBuilder()
                         .addAllConsensusList(ebftBlock.getConsensusMessages()).build());
         return protoBlock.build();

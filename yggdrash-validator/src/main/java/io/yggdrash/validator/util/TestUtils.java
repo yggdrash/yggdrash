@@ -77,7 +77,7 @@ public class TestUtils {
                     TimeUtils.time(),
                     tmpBlockBody);
 
-            return new Block(newBlockHeader, wallet, tmpBlockBody).toProtoBlock();
+            return Block.toProtoBlock(new Block(newBlockHeader, wallet, tmpBlockBody));
         } catch (Exception e) {
             throw new NotValidateException();
         }

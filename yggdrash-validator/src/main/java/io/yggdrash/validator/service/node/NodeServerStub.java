@@ -1,6 +1,7 @@
 package io.yggdrash.validator.service.node;
 
 import io.grpc.stub.StreamObserver;
+import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.proto.BlockChainGrpc;
 import io.yggdrash.proto.NetProto;
@@ -38,7 +39,9 @@ public class NodeServerStub extends BlockChainGrpc.BlockChainImplBase {
                 && offset <= blockChain.getLastConfirmedBlock().getIndex()) {
             List<ConsensusBlock> blockList = blockChain.getBlockList(offset, limit);
             for (ConsensusBlock consensusBlock : blockList) {
-                builder.addBlocks(consensusBlock.getBlock().toProtoBlock());
+                if (consensusBlock.getBlock() != null) {
+                    builder.addBlocks(Block.toProtoBlock(consensusBlock.getBlock()));
+                }
             }
         }
 

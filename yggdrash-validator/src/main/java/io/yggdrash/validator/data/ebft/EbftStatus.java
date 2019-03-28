@@ -97,6 +97,10 @@ public class EbftStatus {
     }
 
     public static EbftProto.EbftStatus toProto(EbftStatus ebftStatus) {
+        if (ebftStatus == null) {
+            return null;
+        }
+
         EbftProto.EbftStatus.Builder protoBlockStatus = EbftProto.EbftStatus.newBuilder()
                 .setIndex(ebftStatus.getIndex())
                 .setUnConfirmedEbftBlockList(
