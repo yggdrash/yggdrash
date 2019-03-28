@@ -115,6 +115,11 @@ public class EbftService implements ConsensusService {
         lock.lock();
         confirmFinalBlock();
         lock.unlock();
+
+
+        if (log.isTraceEnabled()) {
+            System.gc();
+        }
     }
 
     private boolean waitingProposedBlock() {

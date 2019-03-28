@@ -1,57 +1,68 @@
-package io.yggdrash.validator.store.pbft;
+package io.yggdrash.validator.data.pbft;
 
 import com.anarsoft.vmlens.concurrent.junit.ConcurrentTestRunner;
 import com.anarsoft.vmlens.concurrent.junit.ThreadCount;
+import com.google.gson.Gson;
+import com.google.gson.JsonObject;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.common.store.datasource.LevelDbDataSource;
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
-import io.yggdrash.validator.data.pbft.PbftBlock;
-import io.yggdrash.validator.data.pbft.PbftMessage;
-import io.yggdrash.validator.data.pbft.PbftMessageSet;
 import io.yggdrash.validator.util.TestUtils;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.crypto.InvalidCipherTextException;
-import org.spongycastle.util.encoders.Hex;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.util.FileCopyUtils;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
-import static org.junit.Assert.assertEquals;
+import static java.lang.Thread.sleep;
 
 @RunWith(ConcurrentTestRunner.class)
-public class PbftBlockKeyStoreMultiThreadTest {
+public class PbftBlockChainMultiThreadTest {
+    private static final Logger log = LoggerFactory.getLogger(PbftBlockChainMultiThreadTest.class);
 
-    private static final Logger log = LoggerFactory.getLogger(PbftBlockKeyStoreMultiThreadTest.class);
-
+    private DefaultConfig defaultConfig;
     private Wallet wallet0;
     private Wallet wallet1;
     private Wallet wallet2;
     private Wallet wallet3;
 
+    private Block block0;
+    private Block block1;
+    private Block block2;
+    private Block block3;
+
+    private PbftBlockChain pbftBlockChain;
     private PbftBlock pbftBlock0;
     private PbftBlock pbftBlock1;
     private PbftBlock pbftBlock2;
     private PbftBlock pbftBlock3;
 
-    private LevelDbDataSource ds;
-    private PbftBlockKeyStore blockKeyStore;
+    private PbftMessageSet pbftMessageSet0;
+    private PbftMessageSet pbftMessageSet1;
+    private PbftMessageSet pbftMessageSet2;
+    private PbftMessageSet pbftMessageSet3;
+
 
     @Before
     public void setUp() throws IOException, InvalidCipherTextException {
-        wallet0 = new Wallet();
+        defaultConfig = new DefaultConfig();
+
+        wallet0 = new Wallet(defaultConfig);
         wallet1 = new Wallet(null, "/tmp/",
                 "test2" + TimeUtils.time(), "Password1234!");
         wallet2 = new Wallet(null, "/tmp/",
@@ -59,27 +70,30 @@ public class PbftBlockKeyStoreMultiThreadTest {
         wallet3 = new Wallet(null, "/tmp/",
                 "test4" + TimeUtils.time(), "Password1234!");
 
-        this.pbftBlock0 = makePbftBlock(0L, EMPTY_BYTE32);
-        this.pbftBlock1 = makePbftBlock(pbftBlock0.getIndex() + 1, pbftBlock0.getHash());
-        this.pbftBlock2 = makePbftBlock(pbftBlock1.getIndex() + 1, pbftBlock1.getHash());
-        this.pbftBlock3 = makePbftBlock(pbftBlock2.getIndex() + 1, pbftBlock2.getHash());
+        block0 = this.genesisBlock();
+        block1 = new TestUtils(wallet1).sampleBlock(block0.getIndex() + 1, block0.getHash());
+        block2 = new TestUtils(wallet2).sampleBlock(block1.getIndex() + 1, block1.getHash());
+        block3 = new TestUtils(wallet3).sampleBlock(block2.getIndex() + 1, block2.getHash());
 
         StoreTestUtils.clearTestDb();
 
-        this.ds = new LevelDbDataSource(StoreTestUtils.getTestPath(), "pbftBlockKeyStoreTest");
-        this.blockKeyStore = new PbftBlockKeyStore(ds);
-        this.blockKeyStore.put(this.pbftBlock0.getIndex(), this.pbftBlock0.getHash());
-    }
+        this.pbftBlockChain = new PbftBlockChain(block0, StoreTestUtils.getTestPath(),
+                "/pbftKey",
+                "/pbftBlock",
+                "/pbftTx");
 
-    private Block makeBlock(long index, byte[] prevHash) {
-        return new TestUtils(wallet0).sampleBlock(index, prevHash);
-    }
+        this.pbftMessageSet0 = makePbftMessageSet(block0);
+        this.pbftBlock0 = new PbftBlock(this.block0, this.pbftMessageSet0);
 
-    private PbftBlock makePbftBlock(long index, byte[] prevHash) {
-        Block block = makeBlock(index, prevHash);
-        return new PbftBlock(block, makePbftMessageSet(block));
-    }
+        this.pbftMessageSet1 = makePbftMessageSet(block1);
+        this.pbftBlock1 = new PbftBlock(this.block1, this.pbftMessageSet1);
 
+        this.pbftMessageSet2 = makePbftMessageSet(block2);
+        this.pbftBlock2 = new PbftBlock(this.block2, this.pbftMessageSet2);
+
+        this.pbftMessageSet3 = makePbftMessageSet(block3);
+        this.pbftBlock3 = new PbftBlock(this.block3, this.pbftMessageSet3);
+    }
 
     private PbftMessage makePbftMessage(String type, Block block, Wallet wallet) {
         switch (type) {
@@ -115,83 +129,49 @@ public class PbftBlockKeyStoreMultiThreadTest {
         return new PbftMessageSet(prePrepare, prepareMap, commitMap, null);
     }
 
-    @Test
-    @ThreadCount(8)
-    public void putTestMultiThread() {
-        long testNumber = 10000;
-        for (long l = 0L; l < testNumber; l++) {
-            this.blockKeyStore.put(l, EMPTY_BYTE32);
+    private Block genesisBlock() {
+        String genesisString;
+        ClassPathResource cpr = new ClassPathResource("genesis/genesis.json");
+        try {
+            byte[] bdata = FileCopyUtils.copyToByteArray(cpr.getInputStream());
+            genesisString = new String(bdata, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new NotValidateException("Error genesisFile");
         }
-        log.debug("blockKeyStore size= " + this.blockKeyStore.size());
-        assertEquals(testNumber, this.blockKeyStore.size());
+
+        return new Block(new Gson().fromJson(genesisString, JsonObject.class));
+    }
+
+    private Block makeBlock(long index, byte[] prevHash) {
+        return new TestUtils(wallet0).sampleBlock(index, prevHash);
+    }
+
+    private PbftBlock makePbftBlock(long index, byte[] prevHash) {
+        Block block = makeBlock(index, prevHash);
+        return new PbftBlock(block, makePbftMessageSet(block));
     }
 
     @Test
     @ThreadCount(8)
-    public void putMutiThreadMemoryTest() throws InterruptedException {
+    public void addBlockMultiThreadTest() throws InterruptedException {
         TestConstants.PerformanceTest.apply();
 
         System.gc();
-        Thread.sleep(20000);
+        sleep(20000);
 
-        this.putTestMultiThread();
+        long testCount = 2000;
+        for (long l = 0; l < testCount; l++) {
+            long index = this.pbftBlockChain.getLastConfirmedBlock().getIndex() + 1;
+            byte[] prevHash = this.pbftBlockChain.getLastConfirmedBlock().getHash();
 
-        System.gc();
-        Thread.sleep(3000000);
-    }
-
-    @Test
-    @ThreadCount(8)
-    public void getMutiThreadMemoryTest() throws InterruptedException {
-        TestConstants.PerformanceTest.apply();
-
-        System.gc();
-        Thread.sleep(20000);
-
-        this.putTestMultiThread();
-
-        System.gc();
-        Thread.sleep(10000);
-
-        for (long l = 0L; l < this.blockKeyStore.size(); l++) {
-            log.debug("{} {}", l, Hex.toHexString(this.blockKeyStore.get(l)));
+            PbftBlock pbftBlock = makePbftBlock(index, prevHash);
+            this.pbftBlockChain.addBlock(pbftBlock);
         }
 
-        log.debug("blockKeyStore size= " + this.blockKeyStore.size());
+        log.debug("BlockKeyStore size: {}", this.pbftBlockChain.getBlockKeyStore().size());
+        log.debug("BlockStore size: {}", this.pbftBlockChain.getBlockStore().size());
 
         System.gc();
-        Thread.sleep(3000000);
+        sleep(3000000);
     }
-
-
-    @Test
-    @ThreadCount(8)
-    public void containsMutiThreadMemoryTest() throws InterruptedException {
-        TestConstants.PerformanceTest.apply();
-
-        System.gc();
-        Thread.sleep(20000);
-
-        this.putTestMultiThread();
-
-        System.gc();
-        Thread.sleep(10000);
-
-        for (long l = 0L; l < this.blockKeyStore.size(); l++) {
-            if (this.blockKeyStore.contains(l)) {
-                log.debug("{} {}", l, Hex.toHexString(this.blockKeyStore.get(l)));
-            }
-        }
-
-        log.debug("blockKeyStore size= " + this.blockKeyStore.size());
-
-        System.gc();
-        Thread.sleep(3000000);
-    }
-
-    @After
-    public void tearDown() {
-        StoreTestUtils.clearTestDb();
-    }
-
 }

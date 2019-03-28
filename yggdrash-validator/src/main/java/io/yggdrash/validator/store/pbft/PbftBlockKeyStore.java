@@ -1,5 +1,6 @@
 package io.yggdrash.validator.store.pbft;
 
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.exception.NotValidateException;
@@ -31,13 +32,12 @@ public class PbftBlockKeyStore implements BlockKeyStore<Long, byte[]> {
 
     @Override
     public void put(Long key, byte[] value) {
-        if (key < 0) {
-            log.debug("Key is not vaild.");
+        if (key < 0 || value.length != Constants.BLOCK_HASH_LENGTH) {
+            log.debug("Key or value are not vaild. {} {}", key, value.length);
             return;
         }
 
         lock.lock();
-
         try {
             if (!contains(key)) {
                 log.trace("put "
