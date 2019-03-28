@@ -149,7 +149,7 @@ public class PbftBlockChain implements ConsensusBlockChain<String, PbftMessage> 
             this.blockStore.put(block.getHash(), (PbftBlock) block);
 
             this.lastConfirmedBlock = (PbftBlock) block.clone();
-            loggingBlock(this.lastConfirmedBlock);
+            loggingBlock(this.lastConfirmedBlock.clone());
             batchTxs(this.lastConfirmedBlock);
         } finally {
             this.lock.unlock();
