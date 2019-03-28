@@ -76,6 +76,10 @@ public class VersioningContractTest {
             service.updateProposer(params);
 
             service.vote(createVoteParams());
+            String issuer2 = "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95";
+            preReceipt.setIssuer(issuer2);
+
+            service.vote(createVoteParams());
         }
 
         private JsonObject createVoteParams() {
@@ -103,7 +107,7 @@ public class VersioningContractTest {
         }
 
         private static File contractFile(String Path) {
-            String result = String.format("%s/%s", Path, "4adc453cbd99b3be960118e9eced4b5dad435d0f.jar");
+            String result = String.format("%s/%s", Path, "84a3384724f69f2c7ea8b9bb932b59d5037f4a7f.jar");
             return new File(result);
         }
 

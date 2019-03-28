@@ -103,7 +103,7 @@ public class ProposeContractSet {
             NOT_YET
         }
 
-        public Votable.VoteStatus status() {
+        public VoteStatus status() {
             int cnt = totalVotableCnt;
             if (totalVotableCnt != 2) {
                 cnt = (totalVotableCnt / 3) * 2;

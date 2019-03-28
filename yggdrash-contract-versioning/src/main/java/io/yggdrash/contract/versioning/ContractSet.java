@@ -6,8 +6,9 @@ public class ContractSet implements Serializable, Comparable<ContractSet> {
 
     private String targetVersion;
     private ProposeContractSet.Votable votedState;
-    private boolean isUpgrade;
+    private boolean isUpgradable;
     private long targetBlockHeight;
+    private long applyBlockHeight;
     private byte[] updateContract;
     private String txId;
 
@@ -15,7 +16,7 @@ public class ContractSet implements Serializable, Comparable<ContractSet> {
     }
 
     public ContractSet(String txId) {
-        this.isUpgrade = false;
+        this.isUpgradable = false;
     }
 
     public String getTargetVersion() {
@@ -34,20 +35,28 @@ public class ContractSet implements Serializable, Comparable<ContractSet> {
         this.votedState = votedState;
     }
 
-    public boolean isUpgrade() {
-        return isUpgrade;
+    public boolean isUpgradable() {
+        return isUpgradable;
     }
 
-    public void setUpgrade(boolean upgrade) {
-        isUpgrade = upgrade;
+    public void setUpgradable(boolean isUpgradable) {
+        this.isUpgradable = isUpgradable;
     }
 
-    public long gettargetBlockHeight() {
+    public long getTargetBlockHeight() {
         return targetBlockHeight;
     }
 
     public void setTargetBlockHeight(long targetBlockHeight) {
         this.targetBlockHeight = targetBlockHeight;
+    }
+
+    public long getApplyBlockHeight() {
+        return applyBlockHeight;
+    }
+
+    public void setApplyBlockHeight(long applyBlockHeight) {
+        this.applyBlockHeight = applyBlockHeight;
     }
 
     public byte[] getUpdateContract() {

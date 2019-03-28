@@ -13,6 +13,9 @@ import java.util.Set;
  */
 public class VersioningContractStateValue {
 
+    private static final Long BLOCK_PEORID = 60480L; // default 7 days
+    private static final Long HOUR = 1440L; // 1hour to minute
+    private static final Long DAYS = 8640L; // 1days block
     private static ContractSet contractSet;
     private static JsonObject json;
     private static String txId;
@@ -44,7 +47,6 @@ public class VersioningContractStateValue {
     }
 
     public void voting(ContractVote contractVote, String issuer) {
-        //TODO 시간이 지나고 벨리데이터 셋 변경사항 체크
         ProposeContractSet.Votable votable = contractSet.getVotedState();
         if (contractVote.isAgree()) {
             votable.setAgreeCnt(votable.getAgreeCnt() + 1);
@@ -53,13 +55,16 @@ public class VersioningContractStateValue {
         }
         votable.getVotedHistory().get(issuer).setAgree(contractVote.isAgree());
         votable.getVotedHistory().get(issuer).setVoted(true);
-
-        //TODO set ContractSet votable
         contractSet.setVotedState(votable);
+
+        if (contractSet.getVotedState().status()
+                .equals(ProposeContractSet.Votable.VoteStatus.AGREE)) {
+            contractSet.setUpgradable(true);
+        }
         convertJson();
     }
 
-    public ContractSet getContract() {
+    public ContractSet getContractSet() {
         return contractSet;
     }
 
@@ -73,7 +78,16 @@ public class VersioningContractStateValue {
     }
 
     public void setBlockHeight(Long blockHeight) {
-        contractSet.setTargetBlockHeight(blockHeight);
+        Long targetBlockHeight = blockHeight + BLOCK_PEORID;
+        contractSet.setTargetBlockHeight(targetBlockHeight);
+        contractSet.setApplyBlockHeight(targetBlockHeight + DAYS);
+        convertJson();
+    }
+
+    public void setBlockHeight(Long blockHeight, Long peorid) {
+        Long targetBlockHeight = blockHeight + convertTargetBlockHeight(peorid);
+        contractSet.setTargetBlockHeight(targetBlockHeight);
+        contractSet.setApplyBlockHeight(targetBlockHeight + DAYS);
         convertJson();
     }
 
@@ -104,6 +118,14 @@ public class VersioningContractStateValue {
     private void convertJson() {
         contractMap.put(txId, contractSet);
         json = JsonUtil.convertMapToJson(contractMap);
+    }
 
+    private Long convertTargetBlockHeight(Long peorid) {
+        // default more than 3 dyas
+        if (peorid < 3) {
+            return BLOCK_PEORID;
+        }
+        Long hour = peorid * HOUR;
+        return hour * 6;
     }
 }

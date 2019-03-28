@@ -2,7 +2,6 @@ package io.yggdrash.contract.versioning;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.contract.ContractVersion;
-import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
@@ -61,34 +60,18 @@ public class VersioningContract implements BundleActivator, ServiceListener {
         @ContractTransactionReceipt
         TransactionReceipt txReceipt;
 
-        public ProposeContractSet getProposeValidatorSet(String txId) {
-            ProposeContractSet proposeContractSet = null;
-            JsonObject json = state.get(PrefixKeyEnum.PROPOSE_VALIDATORS.toValue());
-            if (json != null) {
-                proposeContractSet = JsonUtil.generateJsonToClass(
-                        json.toString(), ProposeContractSet.class);
-            }
-
-            return proposeContractSet;
-        }
-
         @InvokeTransaction
         public TransactionReceipt updateProposer(JsonObject params) throws UnsupportedEncodingException {
-            // TODO contract name 컨트랙트 조회 - branch store에서 조회
-
+            // TODO 컨트랙트 조회
             VersioningContractStateValue stateValue;
             try {
                 stateValue = VersioningContractStateValue.of(txReceipt.getTxId());
                 stateValue.init();
 
-                if (!validatorVerify()) {
-                    return txReceipt;
-                }
-
                 String upgradeContract = params.get("contract").getAsString();
                 byte[] binaryFile = base64Dec(upgradeContract.getBytes("UTF-8"));
 
-                if ((binaryFile == null) || !sizeVerify(binaryFile)) {
+                if (!validatorVerify() || (binaryFile == null) || !sizeVerify(binaryFile)) {
                     return txReceipt;
                 }
 
@@ -110,11 +93,16 @@ public class VersioningContract implements BundleActivator, ServiceListener {
             return txReceipt;
         }
 
-        private void setStateValue(VersioningContractStateValue stateValue, byte[] contractBinary, String targetVersion) {
-            stateValue.setTargetContractVersion(targetVersion);
-            stateValue.setBlockHeight(txReceipt.getBlockHeight());
+        private void setStateValue(VersioningContractStateValue stateValue
+                , byte[] contractBinary, JsonObject params) {
+            if (params.has("votePeorid")) {
+                stateValue.setBlockHeight(txReceipt.getBlockHeight(),
+                        params.get("votePeorid").getAsLong());
+            } else {
+                stateValue.setBlockHeight(txReceipt.getBlockHeight());
+            }
+            stateValue.setTargetContractVersion(params.get("contractVersion").getAsString());
             stateValue.setUpdateContract(contractBinary);
-
             //TODO set validatoreSet in branch store
             Set<String> validatorSet = new HashSet<>();
             JsonObject validators = state.get("validatorSet");
@@ -126,7 +114,7 @@ public class VersioningContract implements BundleActivator, ServiceListener {
 
         private void writeTempContract(VersioningContractStateValue stateValue, byte[] binaryFile, JsonObject params) {
             try {
-                setStateValue(stateValue, binaryFile, params.get("contractVersion").getAsString());
+                setStateValue(stateValue, binaryFile, params);
                 FileOutputStream fos;
                 String exportPath = System.getProperty("user.dir");
                 String tempContractPath = String.format("%s/src/main/resources%s", exportPath, SUFFIX_UPDATE_CONTRACT);
@@ -156,12 +144,26 @@ public class VersioningContract implements BundleActivator, ServiceListener {
             try {
                 ContractVote contractVote = JsonUtil.generateJsonToClass(params.toString(), ContractVote.class);
                 stateValue = VersioningContractStateValue.of(getContractSet(contractVote.getTxId()));
+                Long targetBlockHeight = stateValue.getContractSet().getTargetBlockHeight();
+                Long currentBlockHeight = txReceipt.getBlockHeight();
+
+                if (currentBlockHeight > targetBlockHeight ) {
+                    //TODO remove temp contract
+                    txReceipt.setStatus(ExecuteStatus.FALSE);
+                    return txReceipt;
+                }
+                //TODO boolean vote
                 setVote(stateValue, contractVote, txReceipt.getIssuer());
-                System.out.println(stateValue.getJson());
-//                stateValue.setVotable(txReceipt.getIssuer(), validatorSet);
+
+                state.put(contractVote.getTxId(),
+                        stateValue.getJson().get(contractVote.getTxId()).getAsJsonObject());
                 txReceipt.setStatus(ExecuteStatus.SUCCESS);
+                log.info("[Contract | Vote] Possible Upgrade  => " +
+                        stateValue.getJson().get(contractVote.getTxId()).getAsJsonObject().get("upgradable"));
+                log.info("[Contract | Vote] Contract State => " +
+                        stateValue.getJson().get(contractVote.getTxId()).getAsJsonObject().get("votedState"));
             } catch (Exception e) {
-                log.warn("Failed to convert json = {}", params);
+                log.warn("Failed to vote = {}", params);
             }
             return txReceipt;
         }
@@ -169,7 +171,7 @@ public class VersioningContract implements BundleActivator, ServiceListener {
         private void setVote(VersioningContractStateValue stateValue, ContractVote contractVote, String issuer) {
             stateValue.voting(contractVote, issuer);
         }
-        
+
         @ContractQuery
         public ContractSet updateStatus(JsonObject params) {
             ContractSet contractSet = null;
@@ -191,17 +193,14 @@ public class VersioningContract implements BundleActivator, ServiceListener {
             return false;
         }
 
-        @ContractQuery
-        public ContractSet getContractSet(String txId) {
+        private ContractSet getContractSet(String txId) {
             ContractSet contractSet = null;
             JsonObject json = state.get(txId);
-            // TODO let's through state store intreface
             if (json != null) {
                 contractSet = JsonUtil.generateJsonToClass(json.toString(), ContractSet.class);
             }
             return contractSet;
         }
-
 
         private boolean sizeVerify(byte[] binaryFile) {
             if (binaryFile.length > MAX_FILE_LENGTH) {
