@@ -21,22 +21,19 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.contract.vo.PrefixKeyEnum;
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.store.datasource.DbSource;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class BranchStore implements ReadWriterStore<String, String>, BranchStateStore {
     private final DbSource<byte[], byte[]> db;
@@ -54,6 +51,20 @@ public class BranchStore implements ReadWriterStore<String, String>, BranchState
     @Override
     public String get(String key) {
         return new String(db.get(key.getBytes()));
+    }
+
+    private JsonObject getJson(String key) {
+        byte[] result = db.get(key.getBytes());
+        if (result == null) {
+            return null;
+        }
+        String tempValue = new String(result, StandardCharsets.UTF_8);
+        return JsonUtil.parseJsonObject(tempValue);
+    }
+
+    private void putJson(String key, JsonObject value) {
+        byte[] tempValue = value.toString().getBytes(StandardCharsets.UTF_8);
+        db.put(key.getBytes(), tempValue);
     }
 
     @Override
@@ -177,36 +188,17 @@ public class BranchStore implements ReadWriterStore<String, String>, BranchState
     }
 
     // Set Validator
-    public void setValidators(Set<String> validators) {
-        // TODO Set Validators
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        DataOutputStream out = new DataOutputStream(baos);
-        for (String element : validators) {
-            try {
-                out.writeUTF(element);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        byte[] valiatorsByteArray = baos.toByteArray();
-        db.put(BlockchainMetaInfo.VALIDATORS.toString().getBytes(), valiatorsByteArray);
+    public void setValidators(ValidatorSet validatorSet) {
+        JsonObject jsonValidator = JsonUtil.parseJsonObject(JsonUtil.convertObjToString(validatorSet));
+        putJson(PrefixKeyEnum.VALIDATORS.toValue(), jsonValidator);
     }
 
     // Get Validator
-    public Set<String> getValidators() {
-        byte[] valiatorsByteArray = db.get(BlockchainMetaInfo.VALIDATORS.toString().getBytes());
-        if (valiatorsByteArray == null) {
-            return null;
-        }
-        ByteArrayInputStream bais = new ByteArrayInputStream(valiatorsByteArray);
-        DataInputStream in = new DataInputStream(bais);
-        Set<String> validatorSet = new HashSet<>();
-        try {
-            while (in.available() > 0) {
-                validatorSet.add(in.readUTF());
-            }
-        } catch (IOException e) {
-            return null;
+    public ValidatorSet getValidators() {
+        ValidatorSet validatorSet = null;
+        JsonObject jsonValidatorSet = getJson(PrefixKeyEnum.VALIDATORS.toValue());
+        if (jsonValidatorSet != null) {
+            validatorSet = JsonUtil.generateJsonToClass(jsonValidatorSet.toString(), ValidatorSet.class);
         }
         return validatorSet;
     }
