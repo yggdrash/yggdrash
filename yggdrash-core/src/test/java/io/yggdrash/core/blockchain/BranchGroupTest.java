@@ -101,6 +101,7 @@ public class BranchGroupTest {
         }
 
         branchGroup.generateBlock(wallet(), blockChain.getBranchId());
+        assertThat(blockChain.transactionCount()).isEqualTo(101); // include genesis tx
     }
 
     @Test

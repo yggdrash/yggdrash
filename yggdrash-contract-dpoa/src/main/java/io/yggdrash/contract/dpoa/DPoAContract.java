@@ -170,7 +170,8 @@ public class DPoAContract implements BundleActivator {
             ValidatorSet validatorSet = getValidatorSet();
             if (validatorSet == null || validatorSet.getValidatorMap() == null
                     || validatorSet.getValidatorMap().get(txReceipt.getIssuer()) == null) {
-                log.error("ISSUER IS NOT validator {} {}", txReceipt.getIssuer(), validatorSet.getValidatorMap().size());
+                log.error("ISSUER IS NOT validator {} {}", txReceipt.getIssuer(),
+                        validatorSet.getValidatorMap().size());
                 return txReceipt;
             }
 

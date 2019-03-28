@@ -91,8 +91,4 @@ public class UtilsTest {
         Assert.assertEquals("1b", Utils.sizeToStr(1));
     }
 
-    @Test
-    public void sleep() {
-        Utils.sleep(10);
-    }
 }

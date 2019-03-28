@@ -108,8 +108,4 @@ public class PeerTask {
     public void copyLiveNode() {
         peerTableGroup.copyLiveNode();
     }
-
-    public PeerDialer getPeerDialer() { //For Test
-        return peerDialer;
-    }
 }

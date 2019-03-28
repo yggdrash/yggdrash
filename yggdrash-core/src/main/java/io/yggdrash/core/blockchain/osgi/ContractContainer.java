@@ -154,20 +154,16 @@ public class ContractContainer {
 
         String branchStorePath = String.format("%s/%s/branch", config.getDatabasePath(), branchId);
         String branchStoreFile = String.format("%s/%s/branch/*", config.getDatabasePath(), branchId);
-
+        String allPermission = "read,write,delete";
         String filePermissionName = FilePermission.class.getName();
 
         List<PermissionInfo> systemPermissions = new ArrayList<>();
-        systemPermissions.add(
-                new PermissionInfo(filePermissionName, stateStorePath, "read"));
-        systemPermissions.add(
-                new PermissionInfo(filePermissionName, stateStoreFile, "read,write,delete"));
+        systemPermissions.add(new PermissionInfo(filePermissionName, stateStorePath, "read"));
+        systemPermissions.add(new PermissionInfo(filePermissionName, stateStoreFile, allPermission));
 
         // Add Branch Store Read / Write
-        systemPermissions.add(
-                new PermissionInfo(filePermissionName, branchStorePath, "read"));
-        systemPermissions.add(
-                new PermissionInfo(filePermissionName, branchStoreFile, "read,write,delete"));
+        systemPermissions.add(new PermissionInfo(filePermissionName, branchStorePath, "read"));
+        systemPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, allPermission));
         if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
             systemPermissions.add(new PermissionInfo(
                     SocketPermission.class.getName(), systemProperties.getEsHost(), "connect,resolve"));
@@ -187,15 +183,11 @@ public class ContractContainer {
         // Branch State Store 권한 추가 - 읽기 권한
         // {BID}-container-permission-user-file
         List<PermissionInfo> userPermissions = new ArrayList<>();
-        userPermissions.add(
-                new PermissionInfo(filePermissionName, stateStorePath, "read"));
-        userPermissions.add(
-                new PermissionInfo(filePermissionName, stateStoreFile, "read,write,delete"));
+        userPermissions.add(new PermissionInfo(filePermissionName, stateStorePath, "read"));
+        userPermissions.add(new PermissionInfo(filePermissionName, stateStoreFile, allPermission));
         // Branch Store Read
-        userPermissions.add(
-                new PermissionInfo(filePermissionName, branchStorePath, "read"));
-        userPermissions.add(
-                new PermissionInfo(filePermissionName, branchStoreFile, "read"));
+        userPermissions.add(new PermissionInfo(filePermissionName, branchStorePath, "read"));
+        userPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, "read"));
 
         if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
             userPermissions.add(
@@ -218,7 +210,6 @@ public class ContractContainer {
         long bundleId = -1L;
         try (JarFile jar = new JarFile(contractFile)) {
             Manifest m = jar.getManifest();
-            //String symbolicName = m.getAttributes("Bundle-SymbolicName");
             if (m != null && contractManager.verifyManifest(m)) {
                 String symbolicName = m.getMainAttributes().getValue("Bundle-SymbolicName");
                 String version = m.getMainAttributes().getValue("Bundle-Version");

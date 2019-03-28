@@ -47,6 +47,11 @@ public class PeerTableGroupTest {
 
     @Test
     public void copyLiveNode() {
+        KademliaPeerTable peerTable = (KademliaPeerTable)peerTableGroup.getPeerTable(yggdrash);
+        Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32921");
+        peerTable.addPeer(peer);
+        assertEquals(0, peerTable.getPeerStore().size());
         peerTableGroup.copyLiveNode();
+        assertEquals(1, peerTable.getPeerStore().size());
     }
 }

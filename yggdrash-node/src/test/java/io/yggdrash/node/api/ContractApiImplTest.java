@@ -23,6 +23,7 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.node.CoinContractTestUtils;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -109,6 +110,7 @@ public class ContractApiImplTest {
 
     private void sendTransaction(JsonArray txBody) {
         TransactionHusk tx = BlockChainTestUtils.createTxHusk(TestConstants.yggdrash(), txBody);
+        Assert.assertTrue(tx.verify());
         try {
             TX_API.sendTransaction(TransactionDto.createBy(tx));
         } catch (Exception e) {

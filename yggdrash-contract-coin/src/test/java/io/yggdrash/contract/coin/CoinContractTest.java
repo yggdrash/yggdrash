@@ -25,6 +25,12 @@ import static org.junit.Assert.assertTrue;
 public class CoinContractTest {
     private static final CoinContract.CoinService coinContract = new CoinContract.CoinService();
     private static final Logger log = LoggerFactory.getLogger(CoinContractTest.class);
+
+    private static final String ADDRESS_1 = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
+    private static final String ADDRESS_2 = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e";
+    private static final String ADDRESS_FORMAT = "{\"address\" : \"%s\"}";
+    private static final String ADDRESS_JSON_1 = String.format(ADDRESS_FORMAT, ADDRESS_1);
+    private static final String ADDRESS_JSON_2 = String.format(ADDRESS_FORMAT, ADDRESS_2);
     private Field txReceiptField;
 
     @Before
@@ -55,9 +61,8 @@ public class CoinContractTest {
             txReceiptField.set(coinContract, result);
             coinContract.init(createParams(genesisStr));
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            log.warn(e.getMessage());
         }
-
 
         assertTrue(result.isSuccess());
         assertEquals(4, result.getTxLog().size());
@@ -72,9 +77,8 @@ public class CoinContractTest {
 
     @Test
     public void balanceOf() {
-        String paramStr = "{\"address\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}";
+        BigInteger res = coinContract.balanceOf(createParams(ADDRESS_JSON_1));
 
-        BigInteger res = coinContract.balanceOf(createParams(paramStr));
         assertEquals(BigInteger.valueOf(1000000000), res);
     }
 
@@ -90,60 +94,48 @@ public class CoinContractTest {
 
     @Test
     public void transfer() {
-        final String paramStr = "{\"to\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\","
-                + "\"amount\" : \"10\"}";
+        final String paramStr = "{\"to\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\",\"amount\" : \"10\"}";
 
         // tx 가 invoke 되지 않아 baseContract 에 sender 가 세팅되지 않아서 설정해줌
-        String balanceOf = "{\"address\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}";
-        String toBalnce = "{\"address\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\"}";
-
-        log.debug("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94 : "
-                + coinContract.balanceOf(createParams(balanceOf)).toString());
-        log.debug("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e : "
-                + coinContract.balanceOf(createParams(toBalnce)).toString());
+        log.debug("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94:{}", coinContract.balanceOf(createParams(ADDRESS_JSON_1)));
+        log.debug("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e:{}", coinContract.balanceOf(createParams(ADDRESS_JSON_2)));
 
         JsonObject param = createParams(paramStr);
 
         TransactionReceipt result = new TransactionReceiptImpl();
-        result.setIssuer("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        result.setIssuer(ADDRESS_1);
         try {
             txReceiptField.set(coinContract, result);
             result = coinContract.transfer(param);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            log.warn(e.getMessage());
         }
 
         assertTrue(result.isSuccess());
 
-        String paramStr2 = "{\"address\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\"}";
-        String paramStr3 = "{\"address\" : \"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\"}";
-
-        assertEquals(BigInteger.valueOf(1000000010),
-                coinContract.balanceOf(createParams(paramStr2)));
-        assertEquals(BigInteger.valueOf(999999990),
-                coinContract.balanceOf(createParams(paramStr3)));
+        assertEquals(BigInteger.valueOf(999999990), coinContract.balanceOf(createParams(ADDRESS_JSON_1)));
+        assertEquals(BigInteger.valueOf(1000000010), coinContract.balanceOf(createParams(ADDRESS_JSON_2)));
 
         // To many amount
-        param.addProperty("amount", BigInteger.valueOf(1000000010));
+        addAmount(param, BigInteger.valueOf(1000000010));
         result = coinContract.transfer(param);
         assertFalse(result.isSuccess());
 
         // Same amount
-        param.addProperty("amount", BigInteger.valueOf(999999990));
+        addAmount(param, BigInteger.valueOf(999999990));
         result = coinContract.transfer(param);
         assertTrue(result.isSuccess());
-
     }
 
     @Test
     public void transferFrom() {
-        String owner = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
-        String spender = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e";
-        approveByOwner(owner, spender, "1000");
-
+        String owner = ADDRESS_1;
+        String spender = ADDRESS_2;
         String to = "cee3d4755e47055b530deeba062c5bd0c17eb00f";
-        String transferParams = "{\"from\" : \"" + owner + "\","
-                + "\"to\" : \"" + to + "\",\"amount\" : \"700\"}";
+
+        approveByOwner(to, owner, spender, "1000");
+
+        String transferParams = "{\"from\" : \"" + owner + "\", \"to\" : \"" + to + "\",\"amount\" : \"700\"}";
 
         JsonObject transferFromObject = createParams(transferParams);
 
@@ -153,35 +145,42 @@ public class CoinContractTest {
             txReceiptField.set(coinContract, result);
             result = coinContract.transferFrom(transferFromObject);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            log.warn(e.getMessage());
         }
 
         assertTrue(result.isSuccess());
         assertEquals(BigInteger.valueOf(300), getAllowance(owner, spender));
-        log.debug(to + ": " + getBalance(to).toString());
-        log.debug(owner + ": " + getBalance(owner).toString());
-        log.debug(spender + ": " + getBalance(spender).toString());
-        log.debug("getAllowance : " + getAllowance(owner, spender));
+        String logFormat = "{}: {}";
+        log.debug(logFormat, to, getBalance(to));
+        log.debug(logFormat, owner, getBalance(owner));
+        log.debug(logFormat, spender, getBalance(spender));
+        log.debug("getAllowance : {}", getAllowance(owner, spender));
 
         TransactionReceipt result2 = new TransactionReceiptImpl();
         try {
             txReceiptField.set(coinContract, result);
             coinContract.transferFrom(transferFromObject);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            log.warn(e.getMessage());
         }
 
         // not enough amount allowed
         assertFalse(result2.isSuccess());
 
-        transferFromObject.addProperty("amount", getAllowance(owner, spender));
+        addAmount(transferFromObject, getAllowance(owner, spender));
         result2 = coinContract.transferFrom(transferFromObject);
         assertTrue(result2.isSuccess());
         // reset
         assertEquals(BigInteger.ZERO, getAllowance(owner, spender));
     }
 
-    private void approveByOwner(String owner, String spender, String amount) {
+    @Test
+    public void metaCoinTest() {
+        MetaCoinContract metaCoinContract = new MetaCoinContract();
+        assertTrue(metaCoinContract.hello(new JsonObject()).isSuccess());
+    }
+
+    private void approveByOwner(String to, String owner, String spender, String amount) {
         String approveParams = "{\"spender\" : \"" + spender + "\","
                 + "\"amount\" : \"" + amount + "\"}";
 
@@ -191,43 +190,39 @@ public class CoinContractTest {
             txReceiptField.set(coinContract, result);
             coinContract.approve(createParams(approveParams));
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            log.warn(e.getMessage());
         }
 
         assertTrue(result.isSuccess());
 
-        String spenderParams = "{\"address\" : \"" + spender + "\"}";
-        String senderParams = "{\"address\" : \"" + owner + "\"}";
+        String spenderParams = String.format(ADDRESS_FORMAT, spender);
+        String senderParams = String.format(ADDRESS_FORMAT, owner);
 
         assertEquals(BigInteger.valueOf(1000000000),
                 coinContract.balanceOf(createParams(spenderParams)));
         assertEquals(BigInteger.valueOf(1000000000),
                 coinContract.balanceOf(createParams(senderParams)));
 
-        String allowanceParams = "{\"owner\" : \"" + owner + "\","
-                + "\"spender\" : \"" + spender + "\"}";
-
-        assertEquals(new BigInteger(amount), coinContract.allowance(createParams(allowanceParams)));
+        assertTransferFrom(to, owner, spender);
     }
 
     private void assertTransferFrom(String to, String owner, String spender) {
 
-        String allowanceParams = "{\"owner\" : \"" + owner + "\","
-                + "\"spender\" : \"" + spender + "\"}";
-        assertEquals(BigInteger.valueOf(300),
-                coinContract.allowance(createParams(allowanceParams)));
+        String allowanceParams = "{\"owner\" : \"" + owner + "\", \"spender\" : \"" + spender + "\"}";
+        assertEquals(BigInteger.valueOf(1000), coinContract.allowance(createParams(allowanceParams)));
 
-        String toParams = "{\"address\" : \"" + to + "\"}";
-        assertEquals(BigInteger.valueOf(998000000700L),
-                coinContract.balanceOf(createParams(toParams)));
+        String toParams = String.format(ADDRESS_FORMAT, to);
+        assertEquals(BigInteger.valueOf(998000000000L), coinContract.balanceOf(createParams(toParams)));
 
-        String fromParams = "{\"address\" : \"" + owner + "\"}";
-        assertEquals(BigInteger.valueOf(999999300),
-                coinContract.balanceOf(createParams(fromParams)));
+        String fromParams = String.format(ADDRESS_FORMAT, owner);
+        assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(fromParams)));
 
-        String spenderParams = "{\"address\" : \"" + spender + "\"}";
-        assertEquals(BigInteger.valueOf(1000000000),
-                coinContract.balanceOf(createParams(spenderParams)));
+        String spenderParams = String.format(ADDRESS_FORMAT, spender);
+        assertEquals(BigInteger.valueOf(1000000000), coinContract.balanceOf(createParams(spenderParams)));
+    }
+
+    private void addAmount(JsonObject param, BigInteger amount) {
+        param.addProperty("amount", amount);
     }
 
     private JsonObject createParams(String paramStr) {
@@ -235,11 +230,11 @@ public class CoinContractTest {
     }
 
     private class MetaCoinContract extends CoinContract {
-        public TransactionReceipt hello(JsonObject params) {
+        TransactionReceipt hello(JsonObject params) {
             TransactionReceipt txReceipt = new TransactionReceiptImpl();
             txReceipt.addLog(params.toString());
             txReceipt.setStatus(ExecuteStatus.SUCCESS);
-            log.info(txReceipt.toString());
+            log.info("{}", txReceipt);
             return txReceipt;
         }
     }
