@@ -13,40 +13,29 @@ import io.yggdrash.contract.core.store.ReadWriterStore;
 import org.apache.commons.codec.binary.Base64;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
-import org.osgi.framework.ServiceEvent;
-import org.osgi.framework.ServiceListener;
-import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.UnsupportedEncodingException;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
 
-public class VersioningContract implements BundleActivator, ServiceListener {
+public class VersioningContract implements BundleActivator{
     private static final Logger log = LoggerFactory.getLogger(VersioningContract.class);
-    private BundleContext bundleContext = null;
-    private ServiceTracker serviceTracker = null;
 
     @Override
     public void start(BundleContext context) throws Exception {
-        log.info("⚪ Start contract version control");
+        log.info("⚪ Start versioning contract");
         Hashtable<String, String> props = new Hashtable<>();
-        props.put("YGGDRASH", "ContractVersionControl");
+        props.put("YGGDRASH", "ContractVersioning");
         context.registerService(VersioningContractService.class.getName(), new VersioningContractService(), props);
     }
 
     @Override
     public void stop(BundleContext context) {
-        log.info("⚫ Stop contract version control");
-    }
-
-    @Override
-    public void serviceChanged(ServiceEvent event) {
-
+        log.info("⚫ Stop versioning contract");
     }
 
     public static class VersioningContractService {
@@ -61,7 +50,7 @@ public class VersioningContract implements BundleActivator, ServiceListener {
         TransactionReceipt txReceipt;
 
         @InvokeTransaction
-        public TransactionReceipt updateProposer(JsonObject params) throws UnsupportedEncodingException {
+        public TransactionReceipt updateProposer(JsonObject params) {
             // TODO 컨트랙트 조회
             VersioningContractStateValue stateValue;
             try {

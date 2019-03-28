@@ -48,7 +48,7 @@ public class StoreBuilder {
     }
 
     public BranchStore buildMetaStore(BranchId branchId) {
-        BranchStore store = new BranchStore(getDbSource(branchId + "/meta"));
+        BranchStore store = new BranchStore(getDbSource(branchId + "/branch"));
         return store;
     }
 

@@ -106,7 +106,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
 
             Proto.Block protoBlock = Proto.Block.newBuilder()
                     .setHeader(blockHeader)
-                    .setSignature(ByteString.copyFrom(wallet.signHashedData(hashDataForSign)))
+                    .setSignature(ByteString.copyFrom(wallet.sign(hashDataForSign, true)))
                     .setBody(txBuilder.build())
                     .build();
 
@@ -217,7 +217,9 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         try {
             String print = JsonFormat.printer()
                     .includingDefaultValueFields().print(this.protoBlock);
-            return new JsonParser().parse(print).getAsJsonObject();
+            JsonObject jsonObject = new JsonParser().parse(print).getAsJsonObject();
+            jsonObject.addProperty("blockId", getHash().toString());
+            return jsonObject;
         } catch (InvalidProtocolBufferException e) {
             e.printStackTrace();
         }

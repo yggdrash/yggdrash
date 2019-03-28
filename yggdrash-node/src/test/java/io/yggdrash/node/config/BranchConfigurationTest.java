@@ -24,9 +24,9 @@ import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
+import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.store.StoreBuilder;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -38,7 +38,6 @@ import org.spongycastle.util.encoders.Hex;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;

@@ -28,14 +28,14 @@ import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.BranchStore;
 import io.yggdrash.core.store.StoreBuilder;
+import io.yggdrash.core.store.StoreContainer;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.output.es.EsClient;
-import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.HashMap;
+import java.util.Map;
 
 public class BlockChainBuilder {
 
@@ -95,7 +95,6 @@ public class BlockChainBuilder {
     }
 
     public BlockChain build() {
-        BlockHusk genesisBlock = genesis.getBlock();
         if (branch == null) {
             branch = genesis.getBranch();
         }
@@ -120,6 +119,9 @@ public class BlockChainBuilder {
             outputStores = new HashMap<>();
         }
 
+        StoreContainer storeContainer = new StoreContainer(branch, branchStore, stateStore, blockStore,
+                transactionStore, transactionReceiptStore);
+
         ContractContainer contractContainer = null;
         if (systemProperties != null && systemProperties.checkEsClient()) {
             outputStores.put(OutputType.ES, EsClient.newInstance(
@@ -134,40 +136,17 @@ public class BlockChainBuilder {
                     .withFrameworkFactory(policyLoader.getFrameworkFactory())
                     .withContainerConfig(policyLoader.getContainerConfig())
                     .withBranchId(branch.getBranchId().toString())
-                    .withStateStore(stateStore)
-                    .withTransactionReceiptStore(transactionReceiptStore)
+                    .withStoreContainer(storeContainer)
                     .withConfig(storeBuilder.getConfig())
                     .withSystemProperties(systemProperties)
                     .withOutputStore(outputStores)
                     .build();
         }
 
+        BlockHusk genesisBlock = genesis.getBlock();
+        // TODO used storeContainer
         BlockChain bc = new BlockChain(branch, genesisBlock, blockStore,
                 transactionStore, branchStore, stateStore, transactionReceiptStore, contractContainer, outputStores);
-
-        // Check BlockChain is Ready
-        PrepareBlockchain prepareBlockchain = new PrepareBlockchain(storeBuilder.getConfig());
-        // check block chain is ready
-        if (prepareBlockchain.checkBlockChainIsReady(bc)) {
-            // install bundles
-            // bc.getContractContainer()
-            ContractContainer container = bc.getContractContainer();
-            for(BranchContract contract : bc.getBranchContracts()) {
-                File branchContractFile = prepareBlockchain.loadContractFile(contract.getContractVersion());
-                container.installContract(contract.getContractVersion(), branchContractFile, contract.isSystem());
-            }
-
-            try {
-                container.reloadInject();
-            } catch (IllegalAccessException e) {
-                log.error(e.getMessage());
-                return null;
-            }
-        } else {
-            // TODO blockchain ready fails
-            log.error("Blockchain is not Ready");
-            return null;
-        }
 
         return bc;
     }

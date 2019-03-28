@@ -23,6 +23,7 @@ import io.yggdrash.core.blockchain.SyncManager;
 import io.yggdrash.core.net.KademliaPeerNetwork;
 import io.yggdrash.core.net.NodeStatus;
 import io.yggdrash.core.net.PeerNetwork;
+import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerTableGroup;
 import io.yggdrash.node.PeerTask;
@@ -32,21 +33,37 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Configuration
 @EnableScheduling
+@DependsOn("branchLoader")
 public class NetworkConfiguration {
+
+    private final List<Peer> validatorList;
 
     @SuppressWarnings("SpringJavaAutowiredFieldsWarningInspection")
     @Autowired(required = false)
     BlockChain yggdrash;
 
+    public NetworkConfiguration(NodeProperties nodeProperties) {
+        if (nodeProperties.getValidatorList() == null) {
+            this.validatorList = Collections.emptyList();
+        } else {
+            this.validatorList = nodeProperties.getValidatorList().stream().map(Peer::valueOf)
+                    .collect(Collectors.toList());
+        }
+    }
+
     @Bean
-    @DependsOn("branchLoader")
     public PeerNetwork peerNetwork(PeerTableGroup peerTableGroup, PeerDialer peerDialer, BranchGroup branchGroup) {
-        PeerNetwork peerNetwork = new KademliaPeerNetwork(peerTableGroup, peerDialer);
+        KademliaPeerNetwork peerNetwork = new KademliaPeerNetwork(peerTableGroup, peerDialer);
         for (BlockChain blockChain : branchGroup.getAllBranch()) {
             blockChain.addListener(peerNetwork);
             peerNetwork.addNetwork(blockChain.getBranchId());
+            peerNetwork.setValidator(blockChain.getBranchId(), validatorList);
         }
         return peerNetwork;
     }
@@ -60,8 +77,7 @@ public class NetworkConfiguration {
     }
 
     @Bean
-    public SyncManager syncManager(
-            NodeStatus nodeStatus, PeerNetwork peerNetwork, BranchGroup branchGroup) {
+    public SyncManager syncManager(NodeStatus nodeStatus, PeerNetwork peerNetwork, BranchGroup branchGroup) {
         return new BlockChainSyncManager(nodeStatus, peerNetwork, branchGroup);
     }
 }

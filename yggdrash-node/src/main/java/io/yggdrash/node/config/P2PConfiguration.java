@@ -30,6 +30,8 @@ import io.yggdrash.core.p2p.SimplePeerDialer;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.node.GRpcPeerHandlerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -42,6 +44,7 @@ import java.util.Arrays;
 @Configuration
 @EnableConfigurationProperties(NodeProperties.class)
 public class P2PConfiguration {
+    private static final Logger log = LoggerFactory.getLogger(P2PConfiguration.class);
 
     private final NodeProperties nodeProperties;
     private final StoreBuilder storeBuilder;
@@ -55,7 +58,7 @@ public class P2PConfiguration {
             try {
                 nodeProperties.getGrpc().setHost(InetAddress.getLocalHost().getHostAddress());
             } catch (Exception e) {
-                e.printStackTrace();
+                log.warn(e.getMessage());
             }
         }
     }

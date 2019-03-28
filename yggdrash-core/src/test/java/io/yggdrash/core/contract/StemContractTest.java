@@ -22,8 +22,6 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
-import static io.yggdrash.common.config.Constants.BRANCH_ID;
-import static io.yggdrash.common.config.Constants.VALIDATOR;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.ContractUtils;
@@ -33,10 +31,6 @@ import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchBuilder;
 import io.yggdrash.core.blockchain.BranchId;
-import org.apache.commons.codec.binary.Base64;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -47,6 +41,12 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+
+import static io.yggdrash.common.config.Constants.BRANCH_ID;
+import static io.yggdrash.common.config.Constants.VALIDATOR;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 
 public class StemContractTest {
@@ -146,7 +146,6 @@ public class StemContractTest {
     public void createTest() {
         String description = "ETH TO YEED";
         JsonObject params = getEthToYeedBranch(description);
-        BranchId branchId = Branch.of(params).getBranchId();
         TransactionReceipt receipt = new TransactionReceiptImpl();
         receipt.setIssuer(stateValue.getValidators().stream().findFirst().get());
 
@@ -159,6 +158,7 @@ public class StemContractTest {
 
         assertThat(receipt.isSuccess()).isTrue();
 
+        BranchId branchId = Branch.of(params).getBranchId();
         JsonObject saved = stateStore.get(branchId.toString());
         assertThat(saved).isNotNull();
         assertThat(saved.get("description").getAsString()).isEqualTo(description);
@@ -204,7 +204,7 @@ public class StemContractTest {
         JsonObject branchJson = stemContract.getBranch(params);
 
         if (branchJson.has("updateValidators")) {
-            JsonArray uvs= branchJson.get("updateValidators").getAsJsonArray();
+            JsonArray uvs = branchJson.get("updateValidators").getAsJsonArray();
             assertEquals(uvs, validators);
         }
     }
@@ -243,21 +243,6 @@ public class StemContractTest {
         params.addProperty(BRANCH_ID, stateValue.getBranchId().toString());
         params.addProperty("contract", "user-contract-1.0.0.jar");
         return params;
-    }
-
-    @Test
-    public void t() {
-        base64("test");
-    }
-
-    private void base64(String text) {
-        byte[] encodedBytes = Base64.encodeBase64(text.getBytes());
-        byte[] decodedBytes = Base64.decodeBase64(encodedBytes);
-        System.out.println("인코딩 전 : " + text);
-        System.out.println("인코딩 text : " + new String(encodedBytes));
-        System.out.println("디코딩 text : " + new String(decodedBytes));
-
-        System.out.println(text.equals(new String(decodedBytes)));
     }
 
     private static JsonObject getEthToYeedBranch(String description) {

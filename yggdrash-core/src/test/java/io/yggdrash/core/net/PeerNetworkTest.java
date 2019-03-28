@@ -12,7 +12,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 public class PeerNetworkTest {
-    private PeerNetwork peerNetwork;
+    private KademliaPeerNetwork peerNetwork;
     private final BlockHusk genesis = BlockChainTestUtils.genesisBlock();
 
     @Before

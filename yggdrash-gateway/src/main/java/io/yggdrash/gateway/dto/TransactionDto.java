@@ -18,7 +18,7 @@ package io.yggdrash.gateway.dto;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.protobuf.ByteString;
-import io.yggdrash.common.utils.ByteUtil;
+import com.google.protobuf.util.Timestamps;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.proto.Proto;
@@ -51,9 +51,9 @@ TransactionDto {
                 .setChain(ByteString.copyFrom(Hex.decode(dto.branchId)))
                 .setVersion(ByteString.copyFrom(Hex.decode(dto.version)))
                 .setType(ByteString.copyFrom(Hex.decode(dto.type)))
-                .setTimestamp(ByteString.copyFrom(ByteUtil.longToBytes(dto.timestamp)))
+                .setTimestamp(Timestamps.fromMillis(dto.timestamp))
                 .setBodyHash(ByteString.copyFrom(Hex.decode(dto.bodyHash)))
-                .setBodyLength(ByteString.copyFrom(ByteUtil.longToBytes(dto.bodyLength)))
+                .setBodyLength(dto.bodyLength)
                 .build();
 
         Proto.Transaction tx = Proto.Transaction.newBuilder()
@@ -71,11 +71,9 @@ TransactionDto {
         transactionDto.branchId = Hex.toHexString(header.getChain().toByteArray());
         transactionDto.version = Hex.toHexString(header.getVersion().toByteArray());
         transactionDto.type = Hex.toHexString(header.getType().toByteArray());
-        transactionDto.timestamp =
-                ByteUtil.byteArrayToLong(header.getTimestamp().toByteArray());
+        transactionDto.timestamp = Timestamps.toMillis(header.getTimestamp());
         transactionDto.bodyHash = Hex.toHexString(header.getBodyHash().toByteArray());
-        transactionDto.bodyLength =
-                ByteUtil.byteArrayToLong(header.getBodyLength().toByteArray());
+        transactionDto.bodyLength = header.getBodyLength();
         transactionDto.signature = Hex.toHexString(tx.getInstance().getSignature().toByteArray());
         try {
             transactionDto.body = new ObjectMapper().readValue(tx.getBody(), List.class);

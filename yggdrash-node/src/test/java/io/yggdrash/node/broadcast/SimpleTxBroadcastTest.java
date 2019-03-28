@@ -21,15 +21,12 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.Utils;
 import io.yggdrash.core.blockchain.TransactionHusk;
-import io.yggdrash.node.AbstractNodeTest;
+import io.yggdrash.node.AbstractNodeTesting;
 import io.yggdrash.node.TestNode;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
-@RunWith(JUnit4.class)
-public class SimpleTxBroadcastTest extends AbstractNodeTest {
+public class SimpleTxBroadcastTest extends AbstractNodeTesting {
 
     @Test
     public void test() {

@@ -53,6 +53,7 @@ public class GRpcPeerHandler implements PeerHandler {
     private final StreamObserver<NetProto.Empty> emptyResponseStreamObserver;
     private StreamObserver<Proto.Block> broadcastBlockRequestObserver;
     private StreamObserver<Proto.Transaction> broadcastTxRequestObserver;
+    private boolean alive;
 
     GRpcPeerHandler(Peer peer) {
         this(ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
@@ -74,6 +75,7 @@ public class GRpcPeerHandler implements PeerHandler {
                     @Override
                     public void onError(Throwable t) {
                         log.warn("[PeerHandler] Broadcast Failed: {}", Status.fromThrowable(t));
+                        alive = false;
                     }
 
                     @Override
@@ -115,9 +117,9 @@ public class GRpcPeerHandler implements PeerHandler {
 
     @Override
     public void stop() {
-        log.debug("Stop for peer=" + peer.getYnodeUri());
+        log.debug("Stop for peer={}", peer.getYnodeUri());
 
-        if (isAlive()) {
+        if (channel != null) {
             if (broadcastBlockRequestObserver != null) {
                 try {
                     broadcastBlockRequestObserver.onCompleted();
@@ -216,9 +218,10 @@ public class GRpcPeerHandler implements PeerHandler {
     // Use the asynchronous stub for this method.
     @Override
     public void broadcastBlock(BlockHusk blockHusk) {
-        log.debug("Broadcasting blocks -> {}", peer.getHost() + ":" + peer.getPort());
+        log.debug("Broadcasting blocks -> {}", peer.getYnodeUri());
 
-        if (this.broadcastBlockRequestObserver == null) {
+        if (!alive) {
+            alive = true;
             this.broadcastBlockRequestObserver =
                     blockChainAsyncStub.broadcastBlock(emptyResponseStreamObserver);
         }
@@ -228,16 +231,13 @@ public class GRpcPeerHandler implements PeerHandler {
 
     @Override
     public void broadcastTx(TransactionHusk txHusk) {
-        log.debug("Broadcasting txs -> {}", txHusk.getHash());
+        log.debug("Broadcasting txs -> {}", peer.getYnodeUri());
 
-        if (this.broadcastTxRequestObserver == null) {
+        if (!alive) {
+            alive = true;
             this.broadcastTxRequestObserver = blockChainAsyncStub.broadcastTx(emptyResponseStreamObserver);
         }
 
         broadcastTxRequestObserver.onNext(txHusk.getInstance());
-    }
-
-    private boolean isAlive() {
-        return channel != null && !channel.isTerminated() && !channel.isShutdown();
     }
 }

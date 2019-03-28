@@ -42,9 +42,9 @@ message Transaction {
         bytes chain = 1;
         bytes version = 2;
         bytes type = 3;
-        bytes timestamp = 4;
+        google.protobuf.Timestamp timestamp = 4;
         bytes bodyHash = 5;
-        bytes bodyLength = 6;
+        uint64 bodyLength = 6;
     }
     Header header = 1;
     bytes signature = 2;

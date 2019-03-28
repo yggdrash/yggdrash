@@ -27,7 +27,5 @@ public interface PeerNetwork extends BranchEventListener {
 
     void destroy();
 
-    void addNetwork(BranchId branchId);
-
     List<PeerHandler> getHandlerList(BranchId branchId);
 }
