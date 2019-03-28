@@ -17,6 +17,7 @@
 package io.yggdrash.common.store.datasource;
 
 import org.apache.commons.codec.binary.Hex;
+import org.iq80.leveldb.Options;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,12 @@ public class HashMapDbSource implements DbSource<byte[], byte[]> {
 
     @Override
     public DbSource<byte[], byte[]> init() {
+        db = new ConcurrentHashMap<>();
+        return this;
+    }
+
+    @Override
+    public DbSource<byte[], byte[]> init(Options options) {
         db = new ConcurrentHashMap<>();
         return this;
     }

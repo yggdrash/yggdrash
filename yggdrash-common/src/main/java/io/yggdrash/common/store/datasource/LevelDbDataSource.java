@@ -79,6 +79,30 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         return this;
     }
 
+    public DbSource<byte[], byte[]> init(Options options) {
+        resetDbLock.writeLock().lock();
+        try {
+            log.info("Initialize db: {}", name);
+
+            if (isAlive()) {
+                log.warn("DbSource is alive.");
+            }
+
+            if (name == null) {
+                throw new NullPointerException("no name set to the dbStore");
+            }
+
+            openDb(options);
+            alive = true;
+        } catch (IOException e) {
+            throw new FailedOperationException("Can't initialize db");
+        } finally {
+            resetDbLock.writeLock().unlock();
+        }
+
+        return this;
+    }
+
     private void openDb(Options options) throws IOException {
         try {
             db = Iq80DBFactory.factory.open(getDbFile(), options);
