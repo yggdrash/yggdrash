@@ -5,26 +5,31 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.ContractUtils;
+import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import org.apache.commons.codec.binary.Base64;
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.stream.Stream;
+
+import static org.junit.Assert.assertEquals;
 
 public class VersioningContractTest {
          private VersioningContract.VersioningContractService service;
         private StateStore<JsonObject> store;
         private Field txReceiptField;
+        private File contractFile;
 
         @Before
         public void setUp() throws IllegalAccessException {
@@ -43,7 +48,6 @@ public class VersioningContractTest {
         }
 
         @Test
-        @Ignore
         public void updateTest() throws Exception {
             String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
             TransactionReceipt preReceipt = new TransactionReceiptImpl();
@@ -60,8 +64,7 @@ public class VersioningContractTest {
         }
 
         @Test
-        @Ignore
-        public void votingTest() throws Exception {
+        public void votingSuccessTest() throws Exception {
             String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
             TransactionReceipt preReceipt = new TransactionReceiptImpl();
             preReceipt.setBlockHeight(10L);
@@ -75,17 +78,67 @@ public class VersioningContractTest {
             JsonObject params = createUpdateParams(result);
             service.updateProposer(params);
 
-            service.vote(createVoteParams());
+            service.vote(createVoteParams(true));
             String issuer2 = "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95";
             preReceipt.setIssuer(issuer2);
 
-            service.vote(createVoteParams());
+            service.vote(createVoteParams(true));
+
+            String issuer3 = "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95";
+            preReceipt.setIssuer(issuer3);
+            service.vote(createVoteParams(false));
         }
 
-        private JsonObject createVoteParams() {
+        @Test
+        public void votingFailTest() throws Exception {
+            String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
+            TransactionReceipt preReceipt = new TransactionReceiptImpl();
+            preReceipt.setBlockHeight(10L);
+            preReceipt.setIssuer(issuer);
+            preReceipt.setTxId("a2b0f5fce600eb6c595b28d6253bed92be0568eda2b0f5fce600eb6c595b28d6253bed92be0568ed");
+            txReceiptField.set(service, preReceipt);
+            Path currentRelativePath = Paths.get("");
+            String s = currentRelativePath.toAbsolutePath().toString();
+            String s2 = String.format("%s/%s", s, "build");
+            String result = String.format("%s/%s", s2, "contract");
+            JsonObject params = createUpdateParams(result);
+            service.updateProposer(params);
+
+            service.vote(createVoteParams(true));
+            String issuer2 = "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95";
+            preReceipt.setIssuer(issuer2);
+
+            service.vote(createVoteParams(false));
+
+            String issuer3 = "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95";
+            preReceipt.setIssuer(issuer3);
+            TransactionReceipt receipt = service.vote(createVoteParams(false));
+
+//            assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
+        }
+
+        @Test
+        public void notValidatorvotingTest() throws Exception {
+            String issuer = "0dc4393d2a5721e885f3abc5aab0ac4ed2b1cd95";
+            TransactionReceipt preReceipt = new TransactionReceiptImpl();
+            preReceipt.setBlockHeight(10L);
+            preReceipt.setIssuer(issuer);
+            preReceipt.setTxId("a2b0f5fce600eb6c595b28d6253bed92be0568eda2b0f5fce600eb6c595b28d6253bed92be0568ed");
+            txReceiptField.set(service, preReceipt);
+            Path currentRelativePath = Paths.get("");
+            String s = currentRelativePath.toAbsolutePath().toString();
+            String s2 = String.format("%s/%s", s, "build");
+            String result = String.format("%s/%s", s2, "contract");
+            JsonObject params = createUpdateParams(result);
+            service.updateProposer(params);
+            TransactionReceipt receipt = service.vote(createVoteParams(true));
+            assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
+        }
+
+        private JsonObject createVoteParams(boolean vote) {
             JsonObject params = new JsonObject();
             params.addProperty("txId", "a2b0f5fce600eb6c595b28d6253bed92be0568eda2b0f5fce600eb6c595b28d6253bed92be0568ed");
-            params.addProperty("agree", true);
+            params.addProperty("agree", vote);
             return params;
         }
 
@@ -97,8 +150,8 @@ public class VersioningContractTest {
             return params;
         }
 
-        private static byte[] convertVersionToBase64(String contractPath) {
-            File contractFile = contractFile(contractPath);
+        private byte[] convertVersionToBase64(String contractPath) {
+            contractFile(contractPath);
             if (contractFile.exists()) {
                 byte[] fileArray = loadContract(contractFile);
                 return base64Enc(fileArray);
@@ -106,9 +159,15 @@ public class VersioningContractTest {
             return null;
         }
 
-        private static File contractFile(String Path) {
-            String result = String.format("%s/%s", Path, "84a3384724f69f2c7ea8b9bb932b59d5037f4a7f.jar");
-            return new File(result);
+        private void contractFile(String path) {
+            try (Stream<Path> filePathStream = Files.walk(Paths.get(String.valueOf(path)))) {
+                filePathStream.forEach(p -> {
+                    File contractPath = new File(p.toString());
+                    this.contractFile = contractPath;
+                });
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
 
         private static byte[] loadContract(File contractFile) {

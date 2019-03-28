@@ -18,6 +18,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Set;
@@ -105,8 +107,8 @@ public class VersioningContract implements BundleActivator{
             try {
                 setStateValue(stateValue, binaryFile, params);
                 FileOutputStream fos;
-                String exportPath = System.getProperty("user.dir");
-                String tempContractPath = String.format("%s/src/main/resources%s", exportPath, SUFFIX_UPDATE_CONTRACT);
+                Path path = Paths.get(System.getProperty("user.dir"));
+                String tempContractPath = String.format("%s/.yggdrash/contract/%s", path.getParent(), SUFFIX_UPDATE_CONTRACT);
 
                 File fileDir = new File(tempContractPath);
                 if (!fileDir.exists()) {
@@ -127,8 +129,9 @@ public class VersioningContract implements BundleActivator{
 
         @InvokeTransaction
         public TransactionReceipt vote(JsonObject params) {
-            txReceipt.setStatus(ExecuteStatus.FALSE);
 
+
+            txReceipt.setStatus(ExecuteStatus.FALSE);
             VersioningContractStateValue stateValue;
             try {
                 ContractVote contractVote = JsonUtil.generateJsonToClass(params.toString(), ContractVote.class);
@@ -141,7 +144,14 @@ public class VersioningContract implements BundleActivator{
                     txReceipt.setStatus(ExecuteStatus.FALSE);
                     return txReceipt;
                 }
-                //TODO boolean vote
+
+                //TODO updatable 이면 컨트랙트 파일 이동
+//            if (stateValue.getContractSet().isUpgradable()) {
+//
+//            } else {
+
+//            }
+
                 setVote(stateValue, contractVote, txReceipt.getIssuer());
 
                 state.put(contractVote.getTxId(),
@@ -152,6 +162,7 @@ public class VersioningContract implements BundleActivator{
                 log.info("[Contract | Vote] Contract State => " +
                         stateValue.getJson().get(contractVote.getTxId()).getAsJsonObject().get("votedState"));
             } catch (Exception e) {
+                txReceipt.setStatus(ExecuteStatus.FALSE);
                 log.warn("Failed to vote = {}", params);
             }
             return txReceipt;
