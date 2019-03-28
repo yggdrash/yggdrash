@@ -266,7 +266,7 @@ coveralls {
 
 sonarqube {
     properties {
-        property "sonar.exclusions", "**/io/yggdrash/proto/*"
+        property "sonar.exclusions", "**/io/yggdrash/proto/*, **/io/yggdrash/common/crypto/**"
     }
 }
 

@@ -29,7 +29,7 @@ public class CoinContractTest {
 
     @Before
     public void setUp() throws IllegalAccessException {
-        StateStore<JsonObject> coinContractStateStore = new StateStore<>(new HashMapDbSource());
+        StateStore coinContractStateStore = new StateStore(new HashMapDbSource());
 
         List<Field> txReceipt = ContractUtils.txReceiptFields(coinContract);
         if (txReceipt.size() == 1) {

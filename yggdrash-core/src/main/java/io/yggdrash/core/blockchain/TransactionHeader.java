@@ -48,6 +48,8 @@ public class TransactionHeader {
     private final byte[] bodyHash;    // 32 Bytes
     private final long bodyLength;    // 8 Bytes
 
+    private byte[] binary;
+
     public TransactionHeader(
             byte[] chain,
             byte[] version,
@@ -100,7 +102,6 @@ public class TransactionHeader {
         System.arraycopy(txHeaderBytes, pos, timestampBytes, 0, timestampBytes.length);
         this.timestamp = ByteUtil.byteArrayToLong(timestampBytes);
         pos += timestampBytes.length;
-        timestampBytes = null;
 
         this.bodyHash = new byte[BODYHASH_LENGTH];
         System.arraycopy(txHeaderBytes, pos, this.bodyHash, 0, this.bodyHash.length);
@@ -110,7 +111,6 @@ public class TransactionHeader {
         System.arraycopy(txHeaderBytes, pos, bodyLengthBytes, 0, bodyLengthBytes.length);
         this.bodyLength = ByteUtil.byteArrayToLong(bodyLengthBytes);
         pos += bodyLengthBytes.length;
-        bodyLengthBytes = null;
 
         if (pos != txHeaderBytes.length) {
             log.debug("Transaction Header Length is not valid.");
@@ -158,6 +158,9 @@ public class TransactionHeader {
      * @return the binary data of TransactionHeader (84 byte)
      */
     public byte[] toBinary() {
+        if (binary != null) {
+            return binary;
+        }
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
         try {
             bao.write(this.chain);
@@ -167,7 +170,8 @@ public class TransactionHeader {
             bao.write(this.bodyHash);
             bao.write(ByteUtil.longToBytes(this.bodyLength));
 
-            return bao.toByteArray();
+            binary = bao.toByteArray();
+            return binary;
         } catch (IOException e) {
             throw new InternalErrorException("toBinary error");
         }
@@ -197,7 +201,7 @@ public class TransactionHeader {
         return this.toJsonObject().toString();
     }
 
-    public TransactionHeader clone() {
+    public TransactionHeader copy() {
         return new TransactionHeader(this.chain.clone(),
                 this.version.clone(),
                 this.type.clone(),

@@ -26,6 +26,7 @@ import org.osgi.framework.Version;
 import org.osgi.framework.launch.Framework;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -200,8 +201,7 @@ public class ContractManager {
 
     public long install(ContractVersion version, File file, boolean isSystem) {
         Bundle bundle;
-        try {
-            InputStream fileStream = new FileInputStream(file.getAbsoluteFile());
+        try (InputStream fileStream = new FileInputStream(file.getAbsoluteFile())) {
 
             // set location
             String locationPrefix = isSystem ? ContractContainer.SUFFIX_SYSTEM_CONTRACT :

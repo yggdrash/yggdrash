@@ -6,6 +6,7 @@ import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.ServiceReference;
 import org.osgi.framework.launch.Framework;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -56,7 +57,7 @@ class ContractCache {
         // Store Full contract location
         String location = bundle.getLocation();
         if (!fullLocation.containsValue(location)) {
-            String contractName = location.substring(location.lastIndexOf("/") + 1);
+            String contractName = location.substring(location.lastIndexOf('/') + 1);
             fullLocation.put(contractName, location);
         }
 

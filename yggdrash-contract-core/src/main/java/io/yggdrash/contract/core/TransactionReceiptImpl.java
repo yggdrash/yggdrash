@@ -33,7 +33,6 @@ public class TransactionReceiptImpl implements TransactionReceipt {
     private String methodName;
 
     public TransactionReceiptImpl() {
-        //init;
     }
 
     public TransactionReceiptImpl(String txId, Long txSize, String issuer) {

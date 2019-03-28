@@ -16,6 +16,7 @@
 
 package io.yggdrash.common.util;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -30,49 +31,49 @@ public class UtilsTest {
 
     @Test
     public void longToTimePeriod() {
-        assert Utils.longToTimePeriod(1).equals("1ms");
+        Assert.assertEquals("1ms", Utils.longToTimePeriod(1));
     }
 
     @Test
     public void getRandom() {
-        assert Utils.getRandom() != null;
+        Assert.assertNotNull(Utils.getRandom());
     }
 
     @Test
     public void getJavaVersion() {
-        assert Utils.getJavaVersion() > 1;
+        Assert.assertTrue(Utils.getJavaVersion() > 1);
     }
 
     @Test
     public void getNodeIdShort() {
-        assert Utils.getNodeIdShort("abcdefghijkl").equals("abcdefgh");
-        assert Utils.getNodeIdShort(null).equals("<null>");
+        Assert.assertEquals("abcdefgh", Utils.getNodeIdShort("abcdefghijkl"));
+        Assert.assertEquals("<null>", Utils.getNodeIdShort(null));
     }
 
     @Test
     public void toUnixTime() {
-        assert Utils.toUnixTime(1000) == 1;
+        Assert.assertEquals(1, Utils.toUnixTime(1000));
     }
 
     @Test
     public void fromUnixTime() {
-        assert Utils.fromUnixTime(1) == 1000;
+        Assert.assertEquals(1000, Utils.fromUnixTime(1));
     }
 
     @Test
     public void mergeArrays() {
-        assert Utils.mergeArrays(new String[] {"a", "b"}).length == 2;
+        Assert.assertEquals(2, Utils.mergeArrays(new String[] {"a", "b"}).length);
     }
 
     @Test
     public void align() {
-        assert Utils.align("test", 'c', 1, true).equals("test");
-        assert Utils.align("test", '0', 6, true).equals("00test");
+        Assert.assertEquals("test", Utils.align("test", 'c', 1, true));
+        Assert.assertEquals("00test", Utils.align("test", '0', 6, true));
     }
 
     @Test
     public void repeat() {
-        assert Utils.repeat("a", 2).equals("aa");
+        Assert.assertEquals("aa", Utils.repeat("a", 2));
     }
 
     @Test(expected = RuntimeException.class)
@@ -80,14 +81,14 @@ public class UtilsTest {
         Utils.showErrorAndExit("test");
     }
 
-    @Test()
+    @Test
     public void showWarn() {
         Utils.showWarn("test");
     }
 
     @Test
     public void sizeToStr() {
-        assert Utils.sizeToStr(1).equals("1b");
+        Assert.assertEquals("1b", Utils.sizeToStr(1));
     }
 
     @Test

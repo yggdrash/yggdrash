@@ -28,6 +28,8 @@ import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Address;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.Proto;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -38,11 +40,12 @@ import static com.google.protobuf.util.Timestamps.fromMillis;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
 
 public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> {
+    private static final Logger log = LoggerFactory.getLogger(TransactionHusk.class);
+
     private static final byte[] EMPTY_BYTE = new byte[32];
-    static final Sha3Hash EMPTY_HASH = Sha3Hash.createByHashed(EMPTY_BYTE);
 
     private Proto.Block protoBlock;
-    private Block coreBlock;
+    private transient Block coreBlock;
     private List<TransactionHusk> body;
 
     public BlockHusk(byte[] bytes) {
@@ -104,13 +107,12 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         try {
             byte[] hashDataForSign = BlockHeader.toBlockHeader(blockHeader).getHashForSigning();
 
-            Proto.Block protoBlock = Proto.Block.newBuilder()
+            this.protoBlock = Proto.Block.newBuilder()
                     .setHeader(blockHeader)
-                    .setSignature(ByteString.copyFrom(wallet.signHashedData(hashDataForSign)))
+                    .setSignature(ByteString.copyFrom(wallet.sign(hashDataForSign, true)))
                     .setBody(txBuilder.build())
                     .build();
 
-            this.protoBlock = protoBlock;
             this.coreBlock = Block.toBlock(this.protoBlock);
 
         } catch (Exception e) {
@@ -221,7 +223,7 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
             jsonObject.addProperty("blockId", getHash().toString());
             return jsonObject;
         } catch (InvalidProtocolBufferException e) {
-            e.printStackTrace();
+            log.warn(e.getMessage());
         }
         return null;
     }

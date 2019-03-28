@@ -151,21 +151,21 @@ public class Wallet {
             }
 
             Path path = Paths.get(keyFilePathName);
-            String keyPath = path.getParent().toString();
-            String keyName = path.getFileName().toString();
+            String keyPathStr = path.getParent().toString();
+            String keyNameStr = path.getFileName().toString();
 
             try {
-                decryptKeyFileInit(keyPath, keyName, keyPassword);
+                decryptKeyFileInit(keyPathStr, keyNameStr, keyPassword);
             } catch (Exception e) {
                 logger.debug("Key file is not exist. Create New key file.");
 
                 try {
-                    encryptKeyFileInit(key, keyPath, keyName, keyPassword);
+                    encryptKeyFileInit(key, keyPathStr, keyNameStr, keyPassword);
                 } catch (IOException ioe) {
-                    logger.error("Cannot generate the Key file at " + keyPath + keyName);
+                    logger.error("Cannot generate the Key file at {}", keyPathStr + keyNameStr);
                     throw new IOException("Cannot generate the Key file");
                 } catch (InvalidCipherTextException ice) {
-                    logger.error("Error InvalidCipherTextException: " + keyPath + keyName);
+                    logger.error("Error InvalidCipherTextException: {}", keyPathStr + keyNameStr);
                     throw new InvalidCipherTextException("Error InvalidCipherTextException");
                 }
             }
@@ -247,18 +247,6 @@ public class Wallet {
         }
     }
 
-
-    /**
-     * Sign the hashed data by sha3().
-     *
-     * @param hashedData hashed data
-     * @return signature as byte[65]
-     * @deprecated use sign(byte[] data, boolean hashed)
-     */
-    public byte[] signHashedData(byte[] hashedData) {
-        return this.sign(hashedData, true);
-    }
-
     /**
      * Sign data as hex string.
      *
@@ -323,7 +311,7 @@ public class Wallet {
         try {
             ecKeyPub = ECKey.signatureToKey(hashedData, ecdsaSignature);
         } catch (SignatureException e) {
-            logger.debug("Invalid signature" + e.getMessage());
+            logger.debug("Invalid signature err={}", e.getMessage());
             return false;
         }
 
@@ -343,8 +331,8 @@ public class Wallet {
         try {
             ecKeyPub = ECKey.signatureToKey(hashedData, ecdsaSignature);
         } catch (SignatureException e) {
-            logger.debug("Invalid signature" + e.getMessage());
-            return null;
+            logger.debug("Invalid signature err={}", e.getMessage());
+            return new byte[0];
         }
 
         return ecKeyPub.getPubKey();
@@ -411,9 +399,6 @@ public class Wallet {
                 Hex.toHexString(salt),
                 Hex.toHexString(mac));
 
-        iv = null;
-        salt = null;
-
         FileUtil.writeFile(file,
                 new GsonBuilder().setPrettyPrinting().create().toJson(keyJsonObject).getBytes());
 
@@ -456,7 +441,7 @@ public class Wallet {
         String json = FileUtil.readFileToString(keyFile, StandardCharsets.UTF_8);
         JsonObject keyJsonObject = JsonUtil.parseJsonObject(json);
 
-        byte[] salt = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
+        byte[] salt = Hex.decode(getCryptoJsonObect(keyJsonObject)
                 .getAsJsonObject("kdfparams")
                 .get("salt")
                 .getAsString());
@@ -466,21 +451,21 @@ public class Wallet {
                 WALLET_PBKDF2_ITERATION,
                 WALLET_PBKDF2_DKLEN,
                 WALLET_PBKDF2_ALGORITHM);
-        byte[] encData = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
+        byte[] encData = Hex.decode(getCryptoJsonObect(keyJsonObject)
                 .get("ciphertext")
                 .getAsString());
 
         byte[] newMac = HashUtil.hash(
                 ByteUtil.merge(ByteUtil.parseBytes(kdfPass, 16, 16), encData),
                 WALLET_PBKDF2_HMAC_HASH);
-        byte[] mac = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
+        byte[] mac = Hex.decode(getCryptoJsonObect(keyJsonObject)
                 .get("mac")
                 .getAsString());
         if (!Arrays.equals(newMac, mac)) {
             throw new InvalidCipherTextException("mac is not valid");
         }
 
-        byte[] iv = Hex.decode(keyJsonObject.getAsJsonObject("crypto")
+        byte[] iv = Hex.decode(getCryptoJsonObect(keyJsonObject)
                 .getAsJsonObject("cipherparams")
                 .get("iv")
                 .getAsString());
@@ -492,6 +477,10 @@ public class Wallet {
         this.keyName = keyName;
         this.address = key.getAddress();
         this.publicKey = key.getPubKey();
+    }
+
+    private JsonObject getCryptoJsonObect(JsonObject keyJsonObject) {
+        return keyJsonObject.getAsJsonObject("crypto");
     }
 
     @Override

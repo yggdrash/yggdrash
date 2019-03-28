@@ -23,20 +23,22 @@ import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
-import org.assertj.core.api.Assertions;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 public class BranchStoreTest {
+    private static final Logger log = LoggerFactory.getLogger(BranchStoreTest.class);
     private BranchStore ms;
-    Logger log = LoggerFactory.getLogger(TempStateStoreTest.class);
 
     @Before
     public void setUp() {
@@ -54,10 +56,10 @@ public class BranchStoreTest {
         ms.setBestBlockHash(blockHusk.getHash());
 
         Sha3Hash sha3Hash = ms.getBestBlockHash();
-        Assertions.assertThat(sha3Hash).isEqualTo(blockHusk.getHash());
+        assertThat(sha3Hash).isEqualTo(blockHusk.getHash());
 
         Sha3Hash sha3HashAgain = ms.getBestBlockHash();
-        Assertions.assertThat(sha3HashAgain).isEqualTo(sha3Hash);
+        assertThat(sha3HashAgain).isEqualTo(sha3Hash);
     }
 
     @Test
@@ -66,7 +68,7 @@ public class BranchStoreTest {
         ms.setBestBlock(blockHusk);
         Long bestBlock = ms.getBestBlock();
 
-        Assertions.assertThat(bestBlock).isEqualTo(blockHusk.getIndex());
+        assertThat(bestBlock).isEqualTo(blockHusk.getIndex());
     }
 
     @Test
@@ -78,12 +80,12 @@ public class BranchStoreTest {
         log.debug(blockHusk.getHash().toString());
         log.debug(genesis.toString());
 
-        assert genesis.equals(blockHusk.getHash());
+        assertThat(genesis).isEqualTo(blockHusk.getHash());
 
         Sha3Hash otherGenesisBlock = new Sha3Hash("TEST".getBytes());
-        assert !ms.setGenesisBlockHash(otherGenesisBlock);
+        assertThat(ms.setGenesisBlockHash(otherGenesisBlock)).isFalse();
 
-        assert ms.getGenesisBlockHash().equals(genesis);
+        assertThat(ms.getGenesisBlockHash()).isEqualTo(genesis);
     }
 
     @Test
@@ -93,10 +95,9 @@ public class BranchStoreTest {
         ms.setBranch(branch);
 
         Branch loadBranch = ms.getBranch();
-        assert branch.getBranchId().equals(loadBranch.getBranchId());
-        assert ms.getBranchId().equals(branch.getBranchId());
+        assertThat(branch.getBranchId()).isEqualTo(loadBranch.getBranchId());
+        assertThat(ms.getBranchId()).isEqualTo(branch.getBranchId());
     }
-
 
     @Test
     public void getSetValidators() throws IOException {
@@ -106,21 +107,20 @@ public class BranchStoreTest {
         validators.add("TEST3");
 
         ms.setValidators(validators);
-        assert ms.getValidators().contains("TEST1");
+        assertThat(ms.getValidators()).contains("TEST1");
 
         validators.remove("TEST1");
-        assert ms.getValidators().contains("TEST1");
+        assertThat(ms.getValidators()).contains("TEST1");
 
         ms.setValidators(validators);
-        assert !ms.getValidators().contains("TEST1");
+        assertThat(ms.getValidators()).doesNotContain("TEST1");
 
         ms.addValidator("TEST1");
-        assert ms.getValidators().contains("TEST1");
+        assertThat(ms.getValidators()).contains("TEST1");
 
         ms.removeValidator("TEST1");
-        assert !ms.getValidators().contains("TEST1");
+        assertThat(ms.getValidators()).doesNotContain("TEST1");
     }
-
 
     @Test
     public void branchContracts() {
@@ -131,11 +131,11 @@ public class BranchStoreTest {
 
         List<BranchContract> bc2 = ms.getBranchContacts();
 
-        assert !bc.equals(bc2);
-        assert bc.size() == bc2.size();
-        assert bc.get(0).getContractVersion().equals(bc2.get(0).getContractVersion());
-        assert bc.get(bc.size() - 1).getInit().toString()
-                .equals(bc2.get(bc2.size() - 1).getInit().toString());
+        assertThat(bc).isNotEqualTo(bc2);
+        assertThat(bc.size()).isEqualTo(bc2.size());
+        assertThat(bc.get(0).getContractVersion()).isEqualTo(bc2.get(0).getContractVersion());
+        assertThat(bc.get(bc.size() - 1).getInit().toString())
+                .isEqualTo((bc2.get(bc2.size() - 1).getInit().toString()));
     }
 
 }

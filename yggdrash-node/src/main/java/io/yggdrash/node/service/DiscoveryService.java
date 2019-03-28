@@ -7,15 +7,12 @@ import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.node.springboot.grpc.GrpcService;
 import io.yggdrash.proto.PeerGrpc;
 import io.yggdrash.proto.Proto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
 
 @GrpcService
 public class DiscoveryService extends PeerGrpc.PeerImplBase {
-    private static final Logger log = LoggerFactory.getLogger(DiscoveryService.class);
 
     private final DiscoveryConsumer discoveryConsumer;
 
@@ -48,7 +45,6 @@ public class DiscoveryService extends PeerGrpc.PeerImplBase {
         from.setBestBlock(request.getBestBlock());
         Peer to = Peer.valueOf(request.getTo());
         BranchId branchId = BranchId.of(request.getBranch().toByteArray());
-        //log.debug("{} received. from={} -> to={}", request.getPing(), from.toAddress(), to.toAddress());
         String reply = discoveryConsumer.ping(branchId, from, to, request.getPing());
         Proto.Pong pong = Proto.Pong.newBuilder().setPong(reply).build();
         responseObserver.onNext(pong);

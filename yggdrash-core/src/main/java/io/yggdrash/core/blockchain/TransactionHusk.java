@@ -31,7 +31,6 @@ import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.Objects;
 
 public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable<TransactionHusk> {
@@ -39,7 +38,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
     private static final Logger log = LoggerFactory.getLogger(TransactionHusk.class);
 
     private Proto.Transaction protoTransaction;
-    private Transaction coreTransaction;
+    private transient Transaction coreTransaction;
 
     public TransactionHusk(Proto.Transaction transaction) {
         this.protoTransaction = transaction;
@@ -131,11 +130,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
     }
 
     public byte[] toBinary() {
-        try {
-            return this.coreTransaction.toBinary();
-        } catch (IOException e) {
-            throw new NotValidateException(e);
-        }
+        return this.coreTransaction.toBinary();
     }
 
     @Override
@@ -191,7 +186,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         return this.coreTransaction.toJsonObject();
     }
 
-    public JsonObject toJsonObjectFromProto() {
+    JsonObject toJsonObjectFromProto() {
         try {
             String print = JsonFormat.printer()
                     .includingDefaultValueFields().print(this.protoTransaction);
@@ -199,7 +194,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
             asJsonObject.addProperty("txId", getHash().toString());
             return asJsonObject;
         } catch (InvalidProtocolBufferException e) {
-            e.printStackTrace();
+            log.warn(e.getMessage());
         }
         return null;
     }

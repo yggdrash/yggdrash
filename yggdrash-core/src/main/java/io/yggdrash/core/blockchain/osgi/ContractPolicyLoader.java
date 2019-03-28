@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.ServiceLoader;
 
 public class ContractPolicyLoader {
-    private final String EXTRA_PACKAGES = "io.yggdrash.common.contract"
+    private static final String EXTRA_PACKAGES = "io.yggdrash.common.contract"
             + ",io.yggdrash.common.contract.method"
             + ",io.yggdrash.common.contract.vo"
             + ",io.yggdrash.common.contract.vo.dpoa"

@@ -26,12 +26,16 @@ public class JsonUtil {
     private static final ObjectMapper mapper = new ObjectMapper();
     private static final JsonParser jsonParser = new JsonParser();
 
+    private JsonUtil() {
+        throw new IllegalStateException("Utility class");
+    }
+
     public static JsonObject convertMapToJson(Map map) {
         String json = convertObjToString(map);
         return parseJsonObject(json);
     }
 
-    public static HashMap convertJsonToMap(JsonElement json) {
+    public static Map convertJsonToMap(JsonElement json) {
         try {
             return mapper.readValue(json.toString(), HashMap.class);
         } catch (IOException e) {

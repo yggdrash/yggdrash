@@ -11,15 +11,11 @@ public class SystemProperties {
     private String esTransport;
     private String[] eventStore;
 
-    public boolean checkEsClient() {
-        if (!StringUtils.isEmpty(esHost)
+    boolean checkEsClient() {
+        return !StringUtils.isEmpty(esHost)
                 && !StringUtils.isEmpty(esTransport)
                 && eventStore != null
-                && eventStore.length > 0) {
-            return true;
-        }
-
-        return false;
+                && eventStore.length > 0;
     }
 
     private String[] splitHost() {
@@ -27,7 +23,7 @@ public class SystemProperties {
         if (esHost != null) {
             splitHost = esHost.split(":");
             if (splitHost.length != 2) {
-                throw new RuntimeException("The es.host value must be of the form ip:port.");
+                throw new IllegalArgumentException("The es.host value must be of the form ip:port.");
             }
         }
 
@@ -38,7 +34,7 @@ public class SystemProperties {
         return esHost;
     }
 
-    public String getEsPrefixHost() {
+    String getEsPrefixHost() {
         String[] splitHost = splitHost();
         if (splitHost == null) {
             return null;
@@ -54,9 +50,9 @@ public class SystemProperties {
         return Integer.parseInt(splitHost[1]);
     }
 
-    public int getEsTransport() {
+    int getEsTransport() {
         if (!StringUtils.isNumeric(esTransport)) {
-            throw new RuntimeException("The es.transport value must be a number.");
+            throw new IllegalArgumentException("The es.transport value must be a number.");
         }
         return Integer.parseInt(esTransport);
     }

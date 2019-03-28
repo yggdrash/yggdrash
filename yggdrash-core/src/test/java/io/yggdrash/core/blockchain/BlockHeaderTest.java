@@ -71,7 +71,7 @@ public class BlockHeaderTest {
                 new TransactionSignature(TestConstants.wallet(), txHeader.getHashForSigning());
 
         Transaction tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
-        Transaction tx2 = tx1.clone();
+        Transaction tx2 = new Transaction(tx1.toBinary());
 
         List<Transaction> txs1 = new ArrayList<>();
         txs1.add(tx1);
@@ -84,7 +84,7 @@ public class BlockHeaderTest {
                 chain, version, type, prevBlockHash, index, timestamp,
                 blockBody1.getMerkleRoot(), blockBody1.length());
 
-        BlockHeader blockHeader2 = blockHeader1.clone();
+        BlockHeader blockHeader2 = new BlockHeader(blockHeader1.toBinary());
         assertEquals(blockHeader1.toJsonObject(), blockHeader2.toJsonObject());
         assertArrayEquals(blockHeader1.getHashForSigning(), blockHeader2.getHashForSigning());
 

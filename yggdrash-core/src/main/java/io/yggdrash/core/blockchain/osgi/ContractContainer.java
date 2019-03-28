@@ -25,6 +25,7 @@ import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 import org.osgi.service.permissionadmin.PermissionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FilePermission;
 import java.io.IOException;
@@ -42,8 +43,8 @@ public class ContractContainer {
     private static final Logger log = LoggerFactory.getLogger(ContractContainer.class);
 
     // TODO remove prefix and suffix
-    public static final String SUFFIX_SYSTEM_CONTRACT = "contract/system";
-    public static final String SUFFIX_USER_CONTRACT = "contract/user";
+    static final String SUFFIX_SYSTEM_CONTRACT = "contract/system";
+    static final String SUFFIX_USER_CONTRACT = "contract/user";
 
     private Framework framework;
 
@@ -91,8 +92,6 @@ public class ContractContainer {
             framework.start();
             setDefaultPermission(branchId);
         } catch (Exception e) {
-            e.printStackTrace();
-            log.error("Load contract container exception: branchID - {}, msg - {}", branchId, e.getMessage());
             throw new IllegalStateException(e.getCause());
         }
 
@@ -111,11 +110,13 @@ public class ContractContainer {
         List<ConditionalPermissionInfo> infos = update.getConditionalPermissionInfos();
 
         //Check existence
-        if (infos != null) {
-            for (ConditionalPermissionInfo conditionalPermissionInfo : infos) {
-                if (conditionalPermissionInfo.getName().equals(permissionKey)) {
-                    return;
-                }
+        if (infos == null) {
+            return;
+        }
+
+        for (ConditionalPermissionInfo conditionalPermissionInfo : infos) {
+            if (conditionalPermissionInfo.getName().equals(permissionKey)) {
+                return;
             }
         }
 
@@ -140,13 +141,12 @@ public class ContractContainer {
         permissionInfos.add(new PermissionInfo(BundlePermission.class.getName(),
                 "*", "provide,require,host,fragment"));
 
-        infos.add(admin.newConditionalPermissionInfo(
-                permissionKey,
-                new ConditionInfo[]{
-                        new ConditionInfo(BundleLocationCondition.class.getName(), new String[]{"*"})
-                },
+        ConditionalPermissionInfo info = admin.newConditionalPermissionInfo(permissionKey,
+                new ConditionInfo[] { new ConditionInfo(BundleLocationCondition.class.getName(), new String[]{"*"}) },
                 permissionInfos.toArray(new PermissionInfo[permissionInfos.size()]),
-                ConditionalPermissionInfo.ALLOW));
+                ConditionalPermissionInfo.ALLOW);
+        infos.add(info);
+
 
         //Allow file permission to system contract
         // 시스템 컨트렉트 권한
@@ -204,8 +204,8 @@ public class ContractContainer {
 
     public long installContract(ContractVersion contract, File contractFile, boolean isSystem) {
         // copy System or UserContract
-        try {
-            Manifest m = new JarFile(contractFile).getManifest();
+        try (JarFile jar = new JarFile(contractFile)) {
+            Manifest m = jar.getManifest();
             //String symbolicName = m.getAttributes("Bundle-SymbolicName");
             if (contractManager.verifyManifest(m)) {
                 String symbolicName = m.getMainAttributes().getValue("Bundle-SymbolicName");

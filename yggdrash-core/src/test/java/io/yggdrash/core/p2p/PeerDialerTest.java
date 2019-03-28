@@ -1,6 +1,7 @@
 package io.yggdrash.core.p2p;
 
 import io.yggdrash.TestConstants;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -13,9 +14,7 @@ public class PeerDialerTest {
     @Before
     public void setUp() {
         this.peerDialer = new SimplePeerDialer(PeerHandlerMock.factory);
-        peerDialer.setPeerEventListener(peer -> {
-            assert peer != null;
-        });
+        peerDialer.setPeerEventListener(Assert::assertNotNull);
     }
 
     /**
@@ -27,7 +26,7 @@ public class PeerDialerTest {
     public void healthCheck() {
         healthCheckForAddHandler();
         peerDialer.healthCheck(TestConstants.yggdrash(), OWNER, TARGET); // Pong null 응답
-        assert peerDialer.getActivePeerList().isEmpty();
+        Assert.assertTrue(peerDialer.getActivePeerList().isEmpty());
     }
 
     @Test
@@ -38,12 +37,12 @@ public class PeerDialerTest {
 
     @Test
     public void getActivePeerListOf() {
-        assert peerDialer.getActiveAddressList().size() == 0;
+        Assert.assertTrue(peerDialer.getActiveAddressList().isEmpty());
     }
 
     private void healthCheckForAddHandler() {
-        assert peerDialer.getActivePeerList().isEmpty();
+        Assert.assertTrue(peerDialer.getActivePeerList().isEmpty());
         peerDialer.healthCheck(TestConstants.yggdrash(), OWNER, TARGET);
-        assert !peerDialer.getActivePeerList().isEmpty();
+        Assert.assertFalse(peerDialer.getActivePeerList().isEmpty());
     }
 }

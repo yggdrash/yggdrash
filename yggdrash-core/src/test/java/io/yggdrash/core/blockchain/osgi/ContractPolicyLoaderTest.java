@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.blockchain.osgi;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -24,20 +25,19 @@ import org.osgi.framework.launch.Framework;
 import org.osgi.framework.launch.FrameworkFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.InputStream;
 import java.util.Map;
 
 public class ContractPolicyLoaderTest {
     private static final Logger log = LoggerFactory.getLogger(ContractPolicyLoaderTest.class);
 
-
     @Test
     public void contractPolicyLoader() {
         ContractPolicyLoader loader = new ContractPolicyLoader();
 
-        assert loader.getFrameworkFactory() != null;
+        Assert.assertNotNull(loader.getFrameworkFactory());
     }
-
 
     @Test
     public void loadFramework() throws BundleException {
@@ -77,6 +77,7 @@ public class ContractPolicyLoaderTest {
         log.debug(bd.getVersion().toString());
 
         osgi.stop();
+        Assert.assertEquals(32, osgi.getState());
     }
 
 }

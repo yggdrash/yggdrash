@@ -14,6 +14,7 @@ import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -28,13 +29,13 @@ import static org.junit.Assert.assertTrue;
 
 public class DPoAContractTest {
     private DPoAContract.DPoAService dPoAService;
-    private StateStore<JsonObject> store;
+    private StateStore store;
     private Field txReceiptField;
     private JsonArray validatorsArr;
 
     @Before
     public void setUp() throws IllegalAccessException {
-        store = new StateStore<>(new HashMapDbSource());
+        store = new StateStore(new HashMapDbSource());
         dPoAService = new DPoAContract.DPoAService();
 
         List<Field> txReceipt = ContractUtils.txReceiptFields(dPoAService);
@@ -59,7 +60,7 @@ public class DPoAContractTest {
     @Test
     public void test() {
         String a = "systemdpoa-contract";
-        System.out.println(a.matches("[0-9]*[-]*system-.*"));
+        Assert.assertFalse(a.matches("[0-9]*[-]*system-.*"));
     }
 
     @Test

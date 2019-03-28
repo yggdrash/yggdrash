@@ -18,6 +18,10 @@ public class AESEncrypt {
 
     private static final int AES_KEY_LENGTH = 128;
 
+    private AESEncrypt() {
+        throw new IllegalStateException("Utility class");
+    }
+
     /**
      * encrypt data as AES.
      *

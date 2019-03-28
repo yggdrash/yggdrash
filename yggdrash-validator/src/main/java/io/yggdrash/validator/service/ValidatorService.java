@@ -19,6 +19,7 @@ import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 
@@ -97,13 +98,11 @@ public class ValidatorService {
     private ConsensusBlockChain consensusBlockChain() {
         String algorithm = consensus.getAlgorithm();
         String dbPath = validatorConfig.getDatabasePath();
-        String host = this.host;
-        int port = this.port;
         String chain = genesisBlock.getChainHex();
 
-        String keyStorePath = host + "_" + port + "/" + chain + "/" + algorithm + "Key";
-        String blockStorePath = host + "_" + port + "/" + chain + "/" + algorithm + "Block";
-        String txStorePath = host + "_" + port + "/" + chain + "/" + algorithm + "Tx";
+        String keyStorePath = host + "_" + port + File.separator + chain + File.separator + algorithm + "Key";
+        String blockStorePath = host + "_" + port + File.separator + chain + File.separator + algorithm + "Block";
+        String txStorePath = host + "_" + port + File.separator + chain + File.separator + algorithm + "Tx";
 
         switch (algorithm) {
             case "pbft":
@@ -116,5 +115,9 @@ public class ValidatorService {
             default:
                 throw new NotValidateException("Algorithm is not valid.");
         }
+    }
+
+    public void shutdown() {
+        grpcServer.shutdown();
     }
 }

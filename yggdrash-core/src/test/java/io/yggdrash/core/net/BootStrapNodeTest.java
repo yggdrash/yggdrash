@@ -2,6 +2,7 @@ package io.yggdrash.core.net;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.core.blockchain.BranchGroup;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class BootStrapNodeTest extends BootStrapNode {
@@ -17,5 +18,6 @@ public class BootStrapNodeTest extends BootStrapNode {
     @Test
     public void bootstrappingTest() {
         bootstrapping();
+        Assert.assertTrue(nodeStatus.isUpStatus());
     }
 }

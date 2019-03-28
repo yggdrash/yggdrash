@@ -27,6 +27,9 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
@@ -38,6 +41,8 @@ import java.util.List;
 import java.util.Set;
 
 public class BranchStore implements ReadWriterStore<String, String> {
+    private static final Logger log = LoggerFactory.getLogger(PeerStore.class);
+
     private final DbSource<byte[], byte[]> db;
 
     // TODO Change to DAO patten
@@ -180,7 +185,7 @@ public class BranchStore implements ReadWriterStore<String, String> {
             try {
                 out.writeUTF(element);
             } catch (IOException e) {
-                e.printStackTrace();
+                log.warn(e.getMessage());
             }
         }
         byte[] valiatorsByteArray = baos.toByteArray();
@@ -190,12 +195,12 @@ public class BranchStore implements ReadWriterStore<String, String> {
     // TODO Get Validator
     public Set<String> getValidators() throws IOException {
         byte[] valiatorsByteArray = db.get(BlockchainMetaInfo.VALIDATORS.toString().getBytes());
+        Set<String> validatorSet = new HashSet<>();
         if (valiatorsByteArray == null) {
-            return null;
+            return validatorSet;
         }
         ByteArrayInputStream bais = new ByteArrayInputStream(valiatorsByteArray);
         DataInputStream in = new DataInputStream(bais);
-        Set<String> validatorSet = new HashSet<>();
         while (in.available() > 0) {
             validatorSet.add(in.readUTF());
         }
@@ -204,14 +209,14 @@ public class BranchStore implements ReadWriterStore<String, String> {
 
     // Add validator
     public boolean addValidator(String validator) {
-        Set<String> validators = null;
+        Set<String> validators;
         try {
             validators = getValidators();
             validators.add(validator);
             setValidators(validators);
             return true;
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn(e.getMessage());
         }
         return false;
 
@@ -219,14 +224,14 @@ public class BranchStore implements ReadWriterStore<String, String> {
 
     // Remove Validator
     public boolean removeValidator(String validator) {
-        Set<String> validators = null;
+        Set<String> validators;
         try {
             validators = getValidators();
             validators.remove(validator);
             setValidators(validators);
             return true;
         } catch (IOException e) {
-            e.printStackTrace();
+            log.warn(e.getMessage());
         }
         return false;
     }
@@ -235,7 +240,7 @@ public class BranchStore implements ReadWriterStore<String, String> {
     // Save Contracts initial values
     public void setBranchContracts(List<BranchContract> contracts) {
         JsonArray array = new JsonArray();
-        contracts.stream().forEach(c -> array.add(c.getJson()));
+        contracts.forEach(c -> array.add(c.getJson()));
         byte[] contractBytes = array.toString().getBytes();
         db.put(BlockchainMetaInfo.BRANCH_CONTRACTS.toString().getBytes(), contractBytes);
     }

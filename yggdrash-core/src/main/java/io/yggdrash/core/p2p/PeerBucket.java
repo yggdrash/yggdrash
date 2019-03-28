@@ -28,7 +28,7 @@ public class PeerBucket {
     }
 
     private Peer lastPeerOf(Set<Peer> list) {
-        return list.stream().skip(list.size() - 1).findFirst().orElse(null);
+        return list.stream().skip(list.size() - 1L).findFirst().orElse(null);
     }
 
     synchronized void dropPeer(Peer peer) {
@@ -71,13 +71,13 @@ public class PeerBucket {
     // last entry in the bucket. If 'last' isn't the last entry, it has either been replaced
     // with someone else or became active.
     synchronized Peer replace(Peer last) {
-        if (peers.size() == 0 || getLastPeer() != last) {
+        if (peers.isEmpty() || getLastPeer() != last) {
             // Entry has moved, don't replace it
             return null;
         }
 
         // Still the last entry
-        if (replacements.size() == 0) {
+        if (replacements.isEmpty()) {
             dropPeer(last);
             return null;
         }
