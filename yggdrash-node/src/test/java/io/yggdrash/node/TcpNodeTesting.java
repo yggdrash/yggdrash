@@ -18,7 +18,6 @@ package io.yggdrash.node;
 
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
-import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.node.service.BlockChainService;
@@ -28,7 +27,7 @@ import io.yggdrash.node.springboot.grpc.GrpcServerRunner;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.context.support.GenericApplicationContext;
 
-public class TcpNodeTest extends AbstractNodeTest {
+public class TcpNodeTesting extends AbstractNodeTesting {
 
     private final AbstractApplicationContext context = new GenericApplicationContext();
 
@@ -40,12 +39,11 @@ public class TcpNodeTest extends AbstractNodeTest {
 
     @Override
     protected ManagedChannel createChannel(Peer peer) {
-        return ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext()
-                .build();
+        return ManagedChannelBuilder.forAddress(peer.getHost(), peer.getPort()).usePlaintext().build();
     }
 
     @Override
-    protected Server createAndStartServer(TestNode node) {
+    protected void createAndStartServer(TestNode node) {
         GrpcServerBuilderConfigurer configurer = builder -> {
             builder.addService(new DiscoveryService(node.discoveryConsumer));
             if (node.blockChainConsumer != null) {
@@ -53,14 +51,13 @@ public class TcpNodeTest extends AbstractNodeTest {
             }
         };
 
-        GrpcServerRunner runner = new GrpcServerRunner(configurer,
-                ServerBuilder.forPort(node.port));
+        GrpcServerRunner runner = new GrpcServerRunner(configurer, ServerBuilder.forPort(node.port));
         runner.setApplicationContext(context);
         try {
             runner.run();
-            return runner.getServer();
+            node.server = runner.getServer();
         } catch (Exception e) {
-            return null;
+            log.warn(e.getMessage());
         }
     }
 }

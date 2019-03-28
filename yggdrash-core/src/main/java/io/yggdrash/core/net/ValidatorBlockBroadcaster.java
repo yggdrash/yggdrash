@@ -17,39 +17,39 @@
 package io.yggdrash.core.net;
 
 import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.BranchEventListener;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.p2p.Peer;
+import io.yggdrash.core.p2p.PeerDialer;
 import io.yggdrash.core.p2p.PeerHandler;
-import io.yggdrash.core.p2p.PeerHandlerMock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class PeerNetworkMock implements PeerNetwork {
-    public static final PeerNetwork mock = new PeerNetworkMock();
+public class ValidatorBlockBroadcaster implements BranchEventListener {
+    private static final Logger log = LoggerFactory.getLogger(ValidatorBlockBroadcaster.class);
 
-    @Override
-    public void init() {
-    }
+    private final PeerDialer peerDialer;
+    private final List<Peer> broadcastPeerList;
 
-    @Override
-    public void destroy() {
-    }
-
-    public List<PeerHandler> getHandlerList(BranchId branchId) {
-        List<PeerHandler> peerHandlerList = new ArrayList<>();
-        for (int port = 32919; port < 32922; port++) {
-            peerHandlerList.add(PeerHandlerMock.dummy(Peer.valueOf("ynode://75bff16c@127.0.0.1:" + port)));
-        }
-        return peerHandlerList;
-    }
-
-    @Override
-    public void receivedTransaction(TransactionHusk tx) {
+    public ValidatorBlockBroadcaster(PeerDialer peerDialer, List<Peer> broadcastPeerList) {
+        this.peerDialer = peerDialer;
+        this.broadcastPeerList = broadcastPeerList;
+        log.debug("Broadcast peerSize={}", broadcastPeerList.size());
     }
 
     @Override
     public void chainedBlock(BlockHusk block) {
+
+        for (Peer peer : broadcastPeerList) {
+            PeerHandler peerHandler = peerDialer.getPeerHandler(peer);
+            peerHandler.broadcastBlock(block);
+        }
+    }
+
+    @Override
+    public void receivedTransaction(TransactionHusk tx) {
+        // ignore handle tx
     }
 }

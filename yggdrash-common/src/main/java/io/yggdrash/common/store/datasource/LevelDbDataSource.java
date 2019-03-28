@@ -16,6 +16,7 @@
 
 package io.yggdrash.common.store.datasource;
 
+import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.utils.FileUtil;
 import org.iq80.leveldb.DB;
 import org.iq80.leveldb.DBIterator;
@@ -70,7 +71,7 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
             openDb(options);
             alive = true;
         } catch (IOException e) {
-            throw new RuntimeException("Can't initialize db");
+            throw new FailedOperationException("Can't initialize db");
         } finally {
             resetDbLock.writeLock().unlock();
         }
@@ -119,8 +120,7 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
 
     void updateByBatch(Map<byte[], byte[]> rows) {
         resetDbLock.readLock().lock();
-        WriteBatch batch = db.createWriteBatch();
-        try {
+        try (WriteBatch batch = db.createWriteBatch()) {
             rows.forEach((key, value) -> {
                 if (value == null) {
                     batch.delete(key);
@@ -129,12 +129,9 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
                 }
             });
             db.write(batch);
+        } catch (IOException e) {
+            log.debug(e.getMessage());
         } finally {
-            try {
-                batch.close();
-            } catch (IOException e) {
-                log.debug(e.getMessage());
-            }
             resetDbLock.readLock().unlock();
         }
     }
@@ -176,14 +173,11 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
 
     public List<byte[]> getAll() throws IOException {
         List<byte[]> valueList = new ArrayList<>();
-        DBIterator iterator = db.iterator();
-        try {
+        try (DBIterator iterator = db.iterator()) {
             for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
                 byte[] value = iterator.peekNext().getValue();
                 valueList.add(value);
             }
-        } finally {
-            iterator.close();
         }
         return valueList;
     }
