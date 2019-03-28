@@ -116,7 +116,6 @@ public class EbftService implements ConsensusService {
         confirmFinalBlock();
         lock.unlock();
 
-
         if (log.isTraceEnabled()) {
             System.gc();
         }
@@ -450,18 +449,6 @@ public class EbftService implements ConsensusService {
         log.trace("loggingStatus");
 
         try {
-            EbftBlock lastBlock = this.blockChain.getLastConfirmedBlock();
-            if (lastBlock != null) {
-                log.info("EbftBlock [" + lastBlock.getIndex() + "] "
-                        + lastBlock.getHashHex()
-                        + " ("
-                        + lastBlock.getBlock().getAddressHex()
-                        + ") "
-                        + "("
-                        + lastBlock.getConsensusMessages().size()
-                        + ")");
-            }
-
             if (log.isDebugEnabled()) {
                 log.debug("map size= " + this.blockChain.getBlockStore().size());
                 log.debug("key size= " + this.blockChain.getBlockKeyStore().size());
@@ -544,10 +531,15 @@ public class EbftService implements ConsensusService {
     }
 
     public EbftStatus getMyNodeStatus() {
-        EbftStatus newEbftStatus =
-                new EbftStatus(this.blockChain.getLastConfirmedBlock().getIndex(),
-                        new ArrayList<>(this.blockChain.getUnConfirmedData().values()), wallet);
-        return newEbftStatus;
+        long index = this.blockChain.getLastConfirmedBlock().getIndex();
+        List<EbftBlock> unConfirmedBlockList = new ArrayList<>();
+        for (EbftBlock ebftBlock : this.blockChain.getUnConfirmedData().values()) {
+            if (ebftBlock != null && ebftBlock.getBlock() != null
+                    && ebftBlock.getIndex() == index + 1) {
+                unConfirmedBlockList.add(ebftBlock.clone());
+            }
+        }
+        return new EbftStatus(index, unConfirmedBlockList, wallet);
     }
 
     private void printInitInfo() {

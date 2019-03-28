@@ -155,7 +155,7 @@ public class EbftBlockChain implements ConsensusBlockChain<String, EbftBlock> {
 
     private void loggingBlock(EbftBlock block) {
         try {
-            log.debug("EbftBlock [" + block.getIndex() + "] "
+            log.info("EbftBlock [" + block.getIndex() + "] "
                     + block.getHashHex()
                     + " ("
                     + block.getBlock().getAddressHex()
