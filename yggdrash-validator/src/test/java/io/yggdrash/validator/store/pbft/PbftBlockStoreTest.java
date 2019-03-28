@@ -31,6 +31,7 @@ import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_VIEWCHANGE;
+import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -262,16 +263,11 @@ public class PbftBlockStoreTest {
     @Test
     public void closeTest() {
         blockStore.close();
-        try {
-            blockStore.get(this.pbftBlock.getHash());
-        } catch (NullPointerException ne) {
-            assert true;
-            this.blockStore = new PbftBlockStore(blockDs);
-            PbftBlock newBlock = blockStore.get(this.pbftBlock.getHash());
-            assertTrue(newBlock.equals(this.pbftBlock));
-            return;
-        }
-        assert false;
+        assertNull(blockStore.get(this.pbftBlock.getHash()));
+
+        this.blockStore = new PbftBlockStore(blockDs);
+        PbftBlock newBlock = blockStore.get(this.pbftBlock.getHash());
+        assertTrue(newBlock.equals(this.pbftBlock));
     }
 
     @Test
