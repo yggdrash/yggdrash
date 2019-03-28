@@ -18,16 +18,13 @@ package io.yggdrash.node.discovery;
 
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.p2p.KademliaOptions;
-import io.yggdrash.node.TcpNodeTest;
+import io.yggdrash.node.TcpNodeTesting;
 import io.yggdrash.node.TestNode;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(JUnit4.class)
-public class NodeTcpDiscoveryTest extends TcpNodeTest {
+public class NodeTcpDiscoveryTest extends TcpNodeTesting {
 
     @Test
     public void test() {
