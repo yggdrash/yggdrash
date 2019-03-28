@@ -18,7 +18,6 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.common.config.Constants.LIMIT;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.StateStore;
@@ -38,7 +37,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -61,7 +59,6 @@ public class BlockChain {
     private final BranchStore branchStore;
     private final StateStore stateStore;
     private final TransactionReceiptStore transactionReceiptStore;
-    private final List<Validator> validators = new ArrayList<>();
 
     private BlockHusk prevBlock;
 
@@ -99,6 +96,7 @@ public class BlockChain {
                 container.reloadInject();
             } catch (IllegalAccessException e) {
                 log.error(e.getMessage());
+                // TODO throw Runtiome Exception
             }
         } else {
             // TODO blockchain ready fails
@@ -115,14 +113,6 @@ public class BlockChain {
             // Load Block Chain Information
             loadTransaction();
 
-            // Load Validator
-            try {
-                branchStore.getValidators().forEach(v -> validators.add(new Validator(v)));
-            } catch (IOException e) {
-                // TODO throws Validator error
-                log.warn(e.getMessage());
-            }
-
             // load contract
         }
     }
@@ -138,10 +128,9 @@ public class BlockChain {
         // Add Meta Information
         branchStore.setBranch(branch);
         branchStore.setGenesisBlockHash(genesisBlock.getHash());
-        branchStore.setValidators(branch.getValidators());
+        // TODO new Validators
+        //branchStore.setValidators(branch.getValidators());
         branchStore.setBranchContracts(branch.getBranchContracts());
-
-        branch.getValidators().forEach(v -> validators.add(new Validator(v)));
     }
 
     private void loadTransaction() {
@@ -432,6 +421,5 @@ public class BlockChain {
         }
 
     }
-
 
 }

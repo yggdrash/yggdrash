@@ -19,6 +19,8 @@ package io.yggdrash.core.store;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.contract.vo.dpoa.Validator;
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.Branch;
@@ -100,26 +102,20 @@ public class BranchStoreTest {
     }
 
     @Test
-    public void getSetValidators() throws IOException {
-        Set<String> validators = new HashSet<>();
-        validators.add("TEST1");
-        validators.add("TEST2");
-        validators.add("TEST3");
+    public void getSetValidators() {
+        ValidatorSet validatorSet = new ValidatorSet();
+        Map<String, Validator> validatorMap = new HashMap<>();
+        validatorMap.put("TEST1",
+                new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
+        validatorMap.put("TEST2",
+                new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
+        validatorMap.put("TEST3",
+                new Validator("a2b0f5fce600eb6c595b28d6253bed92be0568ed"));
+        validatorSet.setValidatorMap(validatorMap);
 
-        ms.setValidators(validators);
-        assertThat(ms.getValidators()).contains("TEST1");
+        ms.setValidators(validatorSet);
 
-        validators.remove("TEST1");
-        assertThat(ms.getValidators()).contains("TEST1");
-
-        ms.setValidators(validators);
-        assertThat(ms.getValidators()).doesNotContain("TEST1");
-
-        ms.addValidator("TEST1");
-        assertThat(ms.getValidators()).contains("TEST1");
-
-        ms.removeValidator("TEST1");
-        assertThat(ms.getValidators()).doesNotContain("TEST1");
+        assertThat(ms.getValidators().getValidatorMap()).containsKey("TEST1")).isTrue();
     }
 
     @Test
