@@ -125,7 +125,7 @@ public class AdminApiImpl implements AdminApi {
         header.addProperty("bodyLength", Hex.toHexString(bodyLength));
 
         // create signature
-        String signature = Hex.toHexString(wallet.signHashedData(getDataHashForSignHeader(header)));
+        String signature = Hex.toHexString(wallet.sign(getDataHashForSignHeader(header), true));
 
         JsonObject returnObject = new JsonObject();
         returnObject.add("header", header);
@@ -241,7 +241,7 @@ public class AdminApiImpl implements AdminApi {
         header.addProperty("bodyLength", Hex.toHexString(bodyLength));
 
         // create signature
-        String signature = Hex.toHexString(wallet.signHashedData(getDataHashForSignHeader(header)));
+        String signature = Hex.toHexString(wallet.sign(getDataHashForSignHeader(header), true));
 
         JsonObject returnObject = new JsonObject();
         returnObject.add("header", header);

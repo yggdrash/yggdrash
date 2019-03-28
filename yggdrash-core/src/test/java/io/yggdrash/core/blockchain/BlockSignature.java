@@ -27,7 +27,7 @@ public class BlockSignature {
     }
 
     public BlockSignature(Wallet wallet, byte[] headerHash) {
-        this(wallet.signHashedData(headerHash));
+        this(wallet.sign(headerHash, true));
     }
 
     public byte[] getSignature() {

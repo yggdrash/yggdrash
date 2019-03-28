@@ -202,7 +202,7 @@ public class TransactionTest extends SlowTest {
         log.debug("tx2 address=" + tx2.getAddressToString());
         log.debug("wallet address=" + wallet.getHexAddress());
         log.debug("wallet signature=" + Hex.toHexString(
-                wallet.signHashedData(tx1.getHeader().getHashForSigning())));
+                wallet.sign(tx1.getHeader().getHashForSigning(), true)));
         log.debug("wallet pubKey=" + Hex.toHexString(
                 wallet.getPubicKey()));
 
