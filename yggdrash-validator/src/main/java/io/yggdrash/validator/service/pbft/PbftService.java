@@ -751,7 +751,6 @@ public class PbftService implements ConsensusService {
             }
         }
         long timestamp = TimeUtils.time();
-
         return new PbftStatus(index, pbftMessageMap, timestamp, wallet);
     }
 
@@ -789,20 +788,6 @@ public class PbftService implements ConsensusService {
     private boolean initValidator() {
         log.debug("MyNode ID: " + this.myNode.getId());
         return totalValidatorMap.containsKey(this.myNode.getAddr());
-    }
-
-    private List<String> getActiveNodeList() {
-        List<String> activeNodeList = new ArrayList<>();
-        for (String key : totalValidatorMap.keySet()) {
-            PbftClientStub client = totalValidatorMap.get(key);
-            if (client.isMyclient()) {
-                continue;
-            }
-            if (client.isRunning()) {
-                activeNodeList.add(client.getId());
-            }
-        }
-        return activeNodeList;
     }
 
     private void setActiveMode() {
