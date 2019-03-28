@@ -22,18 +22,15 @@ import io.yggdrash.core.p2p.KademliaOptions;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerTable;
 import io.yggdrash.core.util.PeerTableCounter;
-import io.yggdrash.node.AbstractNodeTest;
+import io.yggdrash.node.AbstractNodeTesting;
 import io.yggdrash.node.TestNode;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-@RunWith(JUnit4.class)
-public class NodeInProcessDiscoveryTest extends AbstractNodeTest {
+public class NodeInProcessDiscoveryTest extends AbstractNodeTesting {
 
     @Test
     public void underDefaultBucketSizeNetworkTest() {
@@ -92,10 +89,5 @@ public class NodeInProcessDiscoveryTest extends AbstractNodeTest {
         log.info("nodeCount={}, discoveredPeerSize={}, maxPeers={}, maxBuckets={}",
                 nodeCount, peerSet.size(), maxPeers, maxBucket);
         assert peerSet.size() == nodeCount;
-
-        if (nodeCount == 50) {
-            assert maxPeers == 42;
-            assert maxBucket == 7;
-        }
     }
 }

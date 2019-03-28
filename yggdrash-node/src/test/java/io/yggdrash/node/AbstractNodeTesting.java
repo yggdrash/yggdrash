@@ -18,10 +18,10 @@ package io.yggdrash.node;
 
 import ch.qos.logback.classic.Level;
 import io.grpc.ManagedChannel;
-import io.grpc.Server;
 import io.grpc.inprocess.InProcessChannelBuilder;
 import io.grpc.inprocess.InProcessServerBuilder;
 import io.grpc.testing.GrpcCleanupRule;
+import io.yggdrash.PeerTestUtils;
 import io.yggdrash.core.p2p.Peer;
 import io.yggdrash.core.p2p.PeerHandlerFactory;
 import io.yggdrash.node.service.BlockChainService;
@@ -35,14 +35,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class AbstractNodeTest {
-    protected static final Logger log = LoggerFactory.getLogger(AbstractNodeTest.class);
+public class AbstractNodeTesting {
+    protected static final Logger log = LoggerFactory.getLogger(AbstractNodeTesting.class);
     protected static final ch.qos.logback.classic.Logger rootLogger =
             (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
 
-    protected static final int SEED_PORT = 32918;
-
-    private PeerHandlerFactory factory;
+    protected PeerHandlerFactory factory;
 
     protected List<TestNode> nodeList;
 
@@ -70,7 +68,7 @@ public class AbstractNodeTest {
     protected TestNode createAndStartNode(int port, boolean enableBranch) {
         TestNode node = new TestNode(factory, port, enableBranch);
         nodeList.add(node);
-        node.server = createAndStartServer(node);
+        createAndStartServer(node);
         grpcCleanup.register(node.server);
         return node;
     }
@@ -79,20 +77,19 @@ public class AbstractNodeTest {
         return InProcessChannelBuilder.forName(peer.getYnodeUri()).directExecutor().build();
     }
 
-    protected Server createAndStartServer(TestNode node) {
-        String ynodeUri = node.peerTableGroup.getOwner().getYnodeUri();
-        InProcessServerBuilder builder = InProcessServerBuilder.forName(ynodeUri).directExecutor().addService(
+    protected void createAndStartServer(TestNode node) {
+        String ynodeUri = node.getPeer().getYnodeUri();
+        InProcessServerBuilder serverBuilder = InProcessServerBuilder.forName(ynodeUri).directExecutor().addService(
                 new DiscoveryService(node.discoveryConsumer));
 
         if (node.blockChainConsumer != null) {
-            builder.addService(new BlockChainService(node.blockChainConsumer));
+            serverBuilder.addService(new BlockChainService(node.blockChainConsumer));
         }
-        Server server = builder.build();
+        node.server = serverBuilder.build();
         try {
-            return server.start();
+            node.server.start();
         } catch (Exception e) {
             log.debug(e.getMessage());
-            return server;
         }
     }
 
@@ -101,7 +98,7 @@ public class AbstractNodeTest {
     }
 
     protected void bootstrapNodes(int nodeCount, boolean enableBranch) {
-        for (int i = SEED_PORT; i < SEED_PORT + nodeCount; i++) {
+        for (int i = PeerTestUtils.SEED_PORT; i < PeerTestUtils.SEED_PORT + nodeCount; i++) {
             TestNode node = createAndStartNode(i, enableBranch);
             node.bootstrapping();
         }

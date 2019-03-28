@@ -19,20 +19,14 @@ package io.yggdrash.node.sync;
 import ch.qos.logback.classic.Level;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
-import io.yggdrash.node.TcpNodeTest;
+import io.yggdrash.node.TcpNodeTesting;
 import io.yggdrash.node.TestNode;
-import org.junit.Ignore;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(JUnit4.class)
-public class NodeSyncLimitTest extends TcpNodeTest {
+public class NodeSyncLimitTesting extends TcpNodeTesting {
 
-    @Test
-    @Ignore
+    //@Test
     public void testLargeBlockList() {
         rootLogger.setLevel(Level.INFO);
 
@@ -53,8 +47,7 @@ public class NodeSyncLimitTest extends TcpNodeTest {
         assertThat(node2.getDefaultBranch().getLastIndex()).isEqualTo(21);
     }
 
-    @Test
-    @Ignore
+    //@Test
     public void testLargeBlock() {
         rootLogger.setLevel(Level.INFO);
 

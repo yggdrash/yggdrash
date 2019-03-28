@@ -24,8 +24,12 @@ import java.util.List;
 public class NodeProperties {
     private final Grpc grpc = new Grpc();
     private List<String> seedPeerList;
+    private List<String> broadcastPeerList;
+    private List<String> validatorList;
     private int maxPeers;
     private boolean seed;
+    private boolean validator;
+
     private final Chain chain = new Chain();
 
     public Chain getChain() {
@@ -44,6 +48,14 @@ public class NodeProperties {
         this.seedPeerList = seedPeerList;
     }
 
+    public List<String> getBroadcastPeerList() {
+        return broadcastPeerList;
+    }
+
+    public void setBroadcastPeerList(List<String> broadcastPeerList) {
+        this.broadcastPeerList = broadcastPeerList;
+    }
+
     public void setMaxPeers(int maxPeers) {
         this.maxPeers = maxPeers;
     }
@@ -58,6 +70,22 @@ public class NodeProperties {
 
     public void setSeed(boolean seed) {
         this.seed = seed;
+    }
+
+    public boolean isValidator() {
+        return validator;
+    }
+
+    public void setValidator(boolean validator) {
+        this.validator = validator;
+    }
+
+    public List<String> getValidatorList() {
+        return validatorList;
+    }
+
+    public void setValidatorList(List<String> validatorList) {
+        this.validatorList = validatorList;
     }
 
     public static class Chain {

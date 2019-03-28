@@ -22,13 +22,10 @@ import io.yggdrash.common.util.Utils;
 import io.yggdrash.node.TestNode;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 
 import java.util.function.Consumer;
 
-@RunWith(JUnit4.class)
-public class RandomBroadcastBlockTest extends RandomBroadcastTest {
+public class RandomBroadcastBlockTest extends RandomBroadcastTesting {
 
     @Test
     public void test() {

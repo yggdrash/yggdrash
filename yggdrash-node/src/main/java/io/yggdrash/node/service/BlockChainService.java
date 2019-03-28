@@ -48,21 +48,6 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
         for (BlockHusk block : blockList) {
             builder.addBlocks(block.getInstance());
         }
-        /*
-        for (BlockHusk block : blockList) {
-            if (builder.build().getSerializedSize() > Constants.LIMIT.BLOCK_SYNC_SIZE) {
-                log.debug("Serialized size of blockList ({}) is over block_sync_size({})",
-                        builder.build().getSerializedSize(),
-                        Constants.LIMIT.BLOCK_SYNC_SIZE);
-                builder.removeBlocks((int) block.getIndex() - 1);
-                break;
-            }
-            builder.addBlocks(block.getInstance());
-        }
-
-        log.debug("Return blockList size => {}, cnt => {}",
-                builder.build().getSerializedSize(), builder.build().getBlocksCount());
-        */
         responseObserver.onNext(builder.build());
         responseObserver.onCompleted();
     }
@@ -123,15 +108,14 @@ public class BlockChainService extends BlockChainGrpc.BlockChainImplBase {
             @Override
             public void onNext(Proto.Transaction tx) {
                 TransactionHusk txHusk = new TransactionHusk(tx);
-                log.debug("[BlockChainService] Received transaction: hash={}", txHusk.getHash());
+                log.debug("Received transaction: hash={}, {}", txHusk.getHash(), this);
 
                 blockChainConsumer.broadcastTx(txHusk);
             }
 
             @Override
             public void onError(Throwable t) {
-                log.warn("[BlockChainService] Encountered error in broadcastTx: {}",
-                        Status.fromThrowable(t));
+                log.warn("Encountered error in broadcastTx: {}", Status.fromThrowable(t));
             }
 
             @Override

@@ -55,6 +55,6 @@ public class DiscoveryServiceConsumerTest extends TestConstants.SlowTest {
 
         //assert
         lastIndex = BlockChainSyncManagerMock.getBranchGroup().getBranch(yggdrash).getLastIndex();
-        assertEquals(1, lastIndex);
+        assertEquals(99, lastIndex);
     }
 }
