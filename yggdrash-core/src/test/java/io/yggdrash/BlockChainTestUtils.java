@@ -177,8 +177,17 @@ public class BlockChainTestUtils {
         return createTransferTx(TestConstants.TRANSFER_TO, amount);
     }
 
+    public static TransactionHusk createMultiTransferTxHusk(int length) {
+        JsonArray txBody = ContractTestUtils.multiTransferTxBodyJson(TestConstants.TRANSFER_TO, length);
+        return buildTx(txBody);
+    }
+
     private static TransactionHusk createTransferTx(String to, int amount) {
         JsonArray txBody = ContractTestUtils.transferTxBodyJson(to, amount);
+        return buildTx(txBody);
+    }
+
+    private static TransactionHusk buildTx(JsonArray txBody) {
         TransactionBuilder builder = new TransactionBuilder();
         return builder.addTransactionBody(txBody)
                 .setWallet(TestConstants.wallet())

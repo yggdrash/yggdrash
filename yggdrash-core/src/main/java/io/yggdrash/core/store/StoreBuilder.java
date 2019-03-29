@@ -60,8 +60,16 @@ public class StoreBuilder {
         return new TransactionReceiptStore(getDbSource(branchId + "/txreceipt"));
     }
 
-    public TransactionIndexStore buildTransactionIndexStore(BranchId branchId, String tag) {
-        return new TransactionIndexStore(getDbSource(branchId + "/txIndex/" + tag));
+    public TransactionKvIndexerStore buildTransactionKvIndexerStore(BranchId branchId) {
+        return new TransactionKvIndexerStore(getDbSource(branchId + "/txindexer/tag"));
+    }
+
+    public TransactionHashStore buildTransactionHashStore(BranchId branchId) {
+        return new TransactionHashStore(getDbSource(branchId + "/txindexer/hash"));
+    }
+
+    public TransactionHeightStore buildTransactionHeightStore(BranchId branchId) {
+        return new TransactionHeightStore(getDbSource(branchId + "/txindexer/height"));
     }
 
     private DbSource<byte[], byte[]> getDbSource(String name) {

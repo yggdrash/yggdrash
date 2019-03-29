@@ -30,6 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable<TransactionHusk> {
@@ -87,9 +89,20 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         return this.protoTransaction.getBody().toStringUtf8();
     }
 
-    public String getPropertyByTag(String tag) { // TODO Why is the txBody a list?
+    // i.e. txHash/0, txHash/1 ...
+    String getPropertyByTag(String tag) {
         JsonObject objOfTxBody = new JsonParser().parse(getBody()).getAsJsonArray().get(0).getAsJsonObject();
         return objOfTxBody.get(tag).getAsString();
+    }
+
+    List<String> getPropertiesByTag(String tag) {
+        List<String> tags = new ArrayList<>();
+        new JsonParser()
+                .parse(getBody())
+                .getAsJsonArray()
+                .forEach(txEle -> tags.add(txEle.getAsJsonObject().get(tag).getAsString()));
+
+        return tags;
     }
 
     public long getLength() {

@@ -26,6 +26,8 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ContractTestUtils {
 
@@ -43,16 +45,41 @@ public class ContractTestUtils {
         return txBodyJson(TestConstants.YEED_CONTRACT,"transfer", params);
     }
 
+    // TxBody contains multiple transfer transactions.
+    public static JsonArray multiTransferTxBodyJson(String to, int length) {
+        Set<JsonObject> txObjs = new HashSet<>();
+        for (int i = 0; i < length; i++) {
+            JsonObject params = new JsonObject();
+            params.addProperty("to", to);
+            params.addProperty("amount", 100 + i);
+
+            txObjs.add(getTxObj(TestConstants.YEED_CONTRACT.toString(), "transfer", params));
+        }
+
+        return txBodyJson(txObjs);
+    }
+
     public static JsonArray txBodyJson(ContractVersion contractVersion, String method, JsonObject params) {
+        JsonArray txBody = new JsonArray();
+        txBody.add(getTxObj(contractVersion.toString(), method, params));
+
+        return txBody;
+    }
+
+    public static JsonArray txBodyJson(Set<JsonObject> txObjs) {
+        JsonArray txBody = new JsonArray();
+        txObjs.forEach(txBody::add);
+
+        return txBody;
+    }
+
+    private static JsonObject getTxObj(String contractVersion, String method, JsonObject params) {
         JsonObject txObj = new JsonObject();
         txObj.addProperty("contractVersion", contractVersion.toString());
         txObj.addProperty("method", method);
         txObj.add("params", params);
 
-        JsonArray txBody = new JsonArray();
-        txBody.add(txObj);
-
-        return txBody;
+        return txObj;
     }
 
     public static JsonObject createSampleBranchJson() {
@@ -66,9 +93,9 @@ public class ContractTestUtils {
         final String name = "STEM";
         final String symbol = "STEM";
         final String property = "ecosystem";
-        final String description = "The Basis of the YGGDRASH Ecosystem." +
-                "It is also an aggregate and a blockchain containing information" +
-                "of all Branch Chains.";
+        final String description = "The Basis of the YGGDRASH Ecosystem."
+                + "It is also an aggregate and a blockchain containing information"
+                + "of all Branch Chains.";
         final BigDecimal fee = BigDecimal.valueOf(100);
 
         JsonObject contractSample = new JsonObject();
@@ -129,8 +156,8 @@ public class ContractTestUtils {
         branch.add("consensus", consensus);
         branch.addProperty("fee", fee);
 
-//        branchSample.add("branch", branch);
-//        branchSample.addProperty("fee", fee);
+        //branchSample.add("branch", branch);
+        //branchSample.addProperty("fee", fee);
 
         return branch;
     }

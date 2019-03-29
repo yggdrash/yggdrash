@@ -95,6 +95,7 @@ public class TransactionQuery {
     }
 
     private void setConditions() {
+
         for (Integer opCode : query.keySet()) {
             for (String tag : query.get(opCode).keySet()) {
                 String value = query.get(opCode).get(tag);

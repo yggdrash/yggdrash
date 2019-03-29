@@ -79,17 +79,10 @@ public class BranchConfiguration {
 
     @Bean
     TransactionKvIndexer transactionKvIndexer(BranchGroup branchGroup) {
-        /*
-        Set<String> tagsToIndex = new HashSet<>(Arrays.asList("txHash", "method"));
-        TransactionKvIndexer txKvIndexer = new TransactionKvIndexer()
-                .setIndexTags(tagsToIndex)
-                .setIndexAllTags(false)
-                .buildTxIndexStoreMap(branchGroup, storeBuilder);
-        */
         TransactionKvIndexer txKvIndexer = new TransactionKvIndexer()
                 .setIndexTag("txHash")
                 .setIndexAllTags(false)
-                .buildTxIndexStoreMap(branchGroup, storeBuilder);
+                .buildTxKvIndexerStoreMap(branchGroup, storeBuilder);
 
         branchGroup.getAllBranchId().forEach(branchId -> branchGroup.getBranch(branchId).addListener(txKvIndexer));
         return txKvIndexer;
