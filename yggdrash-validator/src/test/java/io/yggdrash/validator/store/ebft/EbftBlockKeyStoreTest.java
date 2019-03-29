@@ -9,6 +9,7 @@ import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.validator.data.ebft.EbftBlock;
 import io.yggdrash.validator.util.TestUtils;
+import junit.framework.TestCase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -129,15 +130,11 @@ public class EbftBlockKeyStoreTest {
     @Test
     public void closeTest() {
         blockKeyStore.close();
-        try {
-            blockKeyStore.get(this.ebftBlock.getIndex());
-        } catch (NullPointerException ne) {
-            this.blockKeyStore = new EbftBlockKeyStore(ds);
-            byte[] newHash = blockKeyStore.get(this.ebftBlock.getIndex());
-            assertArrayEquals(this.ebftBlock.getHash(), newHash);
-            return;
-        }
-        assert false;
+        TestCase.assertNull(blockKeyStore.get(this.ebftBlock.getIndex()));
+
+        this.blockKeyStore = new EbftBlockKeyStore(ds);
+        byte[] newHash = blockKeyStore.get(0L);
+        assertArrayEquals(this.ebftBlock.getHash(), newHash);
     }
 
     @After
