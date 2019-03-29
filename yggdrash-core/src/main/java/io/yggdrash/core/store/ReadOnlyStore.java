@@ -32,7 +32,7 @@ public class ReadOnlyStore<K, V> implements ReadWriterStore<K, V> {
     }
 
     @Override
-    public <V> V get(K key) {
+    public V get(K key) {
         return stateStore.get(key);
     }
 
