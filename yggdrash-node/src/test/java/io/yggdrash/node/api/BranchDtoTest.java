@@ -17,9 +17,10 @@
 package io.yggdrash.node.api;
 
 import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.yggdrash.common.utils.FileUtil;
+import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.gateway.dto.BranchDto;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,15 +35,13 @@ public class BranchDtoTest {
 
     @Test
     public void convertBranchDto() throws IOException {
-        File genesisFile = new File(
-                getClass().getClassLoader().getResource("./branch-yggdrash.json").getFile());
+        File genesisFile = new File(getClass().getClassLoader().getResource("./branch-yggdrash.json").getFile());
 
         String genesisString = FileUtil.readFileToString(genesisFile, StandardCharsets.UTF_8);
-        JsonObject branch = new JsonParser().parse(genesisString).getAsJsonObject();
+        JsonObject branch = JsonUtil.parseJsonObject(genesisString);
 
         BranchDto dto = BranchDto.of(branch);
-        log.debug(dto.toString());
-
-
+        log.debug("{}", dto);
+        Assert.assertEquals(dto.name, branch.get("name").getAsString());
     }
 }

@@ -17,7 +17,7 @@
 package io.yggdrash.common.store;
 
 import io.yggdrash.common.Sha3Hash;
-import java.util.Set;
+import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 
 public interface BranchStateStore {
     public Long getLastExecuteBlockIndex();
@@ -28,7 +28,7 @@ public interface BranchStateStore {
 
     public Sha3Hash getBranchIdHash();
 
-    public Set<String> getValidators();
+    public ValidatorSet getValidators();
 
-    public void setValidators(Set<String> validators);
+    public void setValidators(ValidatorSet validatorSet);
 }

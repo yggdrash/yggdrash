@@ -61,11 +61,24 @@ Launch es by running: `docker-compose -f docker-compose-es.yml up`.
 ## Integrate node with es
 - logging only
 ```shell
-> docker run --rm -e es.host=host:9200 -e es.prefix.index=INDEX_NAME -p 8080:8080 yggdrash/yggdrash-node
+> docker run --rm -e es.host=<host>:9200 -e es.prefix.index=INDEX_NAME -p 8080:8080 yggdrash/yggdrash-node
 ```
 - block and transaction transport
 ```shell
-> docker run --rm -e es.host=host:9200 -e es.prefix.index=INDEX_NAME -e es.transport=9300 -e event.store=block,tx -e spring.profiles.active=prod,master,gateway -p 8080:8080 yggdrash/yggdrash-node
+> docker run --rm -e es.host=<host>:9200 -e es.prefix.index=INDEX_NAME -e es.transport=9300 -e event.store=block,tx -e spring.profiles.active=prod,master,gateway -p 8080:8080 yggdrash/yggdrash-node
+```
+
+# SonarQube Docker Compose
+
+## Usage
+
+Launch es by running: `docker-compose -f docker-compose-sonar.yml up`.
+
+Execute the Scanner for Gradle from your computer
+```
+./gradlew sonarqube \
+  -Dsonar.host.url=http://<host>:9000 \
+  -Dsonar.login=<access_token_you_generated>
 ```
 
 #### TODO

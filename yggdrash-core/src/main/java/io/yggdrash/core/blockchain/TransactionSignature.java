@@ -55,8 +55,4 @@ public class TransactionSignature {
     public String toString() {
         return this.toJsonObject().toString();
     }
-
-    public TransactionSignature clone() {
-        return new TransactionSignature(this.signature.clone());
-    }
 }

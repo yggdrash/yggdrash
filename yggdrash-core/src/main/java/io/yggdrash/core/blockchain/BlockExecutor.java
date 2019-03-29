@@ -38,7 +38,7 @@ class BlockExecutor {
         this.runtime = runtime;
     }
 
-    public boolean isRunExecute() {
+    boolean isRunExecute() {
         return runExecute;
     }
 
@@ -67,7 +67,7 @@ class BlockExecutor {
                 runtime.invokeBlock(block);
                 // Set Next ExecuteBlock
                 branchStore.setLastExecuteBlock(block);
-                log.info("Block " + block.getIndex() + " Execute Complete");
+                log.info("Block {} Execute Complete", block.getIndex());
             }
             runExecute = false;
         }

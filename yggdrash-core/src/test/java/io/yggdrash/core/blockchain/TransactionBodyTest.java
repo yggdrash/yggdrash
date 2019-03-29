@@ -75,7 +75,7 @@ public class TransactionBodyTest {
 
         log.debug("txBody count=" + txBody.getBodyCount());
 
-        assertEquals(txBody.getBodyCount(), 2);
+        assertEquals(2, txBody.getBodyCount());
 
         TransactionBody txBody2 = new TransactionBody(jsonArray.toString());
         log.debug("txBody1 Hex String=" + txBody.toHexString());

@@ -2,6 +2,10 @@ package io.yggdrash.common.crypto;
 
 public class Password {
 
+    private Password() {
+        throw new IllegalStateException("Utility class");
+    }
+
     /**
      * Password validation check.
      *

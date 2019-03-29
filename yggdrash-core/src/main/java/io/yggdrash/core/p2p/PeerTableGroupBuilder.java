@@ -16,6 +16,7 @@
 
 package io.yggdrash.core.p2p;
 
+import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.core.store.StoreBuilder;
 
 import java.util.List;
@@ -55,7 +56,7 @@ public class PeerTableGroupBuilder {
     public PeerTableGroup build() {
         PeerTableGroup peerTableGroup;
         if ("dht".equals(type)) {
-            throw new RuntimeException("not implemented");
+            throw new FailedOperationException("not implemented");
         } else {
             peerTableGroup = new KademliaPeerTableGroup(owner, storeBuilder, peerDialer);
         }
@@ -66,7 +67,7 @@ public class PeerTableGroupBuilder {
         return peerTableGroup;
     }
 
-    public static PeerTableGroupBuilder Builder() {
+    public static PeerTableGroupBuilder newBuilder() {
         return new PeerTableGroupBuilder();
     }
 

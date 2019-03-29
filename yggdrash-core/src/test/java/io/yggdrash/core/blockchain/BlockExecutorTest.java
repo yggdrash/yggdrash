@@ -26,6 +26,7 @@ import io.yggdrash.core.store.BlockStore;
 import io.yggdrash.core.store.BranchStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
+import org.junit.Assert;
 import org.junit.Test;
 
 public class BlockExecutorTest {
@@ -36,9 +37,8 @@ public class BlockExecutorTest {
     public void executorTest() {
 
         StemContract contract = new StemContract();
-        Runtime runtime =
-                new Runtime<>(
-                        new StateStore<>(new HashMapDbSource()),
+        Runtime runtime = new Runtime(
+                        new StateStore(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource())
                 );
         runtime.addContract(ContractVersion.of("c10e873655becf550c4aece75a091f4553d6202d"), contract);
@@ -54,6 +54,6 @@ public class BlockExecutorTest {
         // BlockStore add genesis block and other
 
         ex.runExecuteBlocks();
-
+        Assert.assertFalse(ex.isRunExecute());
     }
 }

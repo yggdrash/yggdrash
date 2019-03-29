@@ -84,8 +84,7 @@ public class GenesisBlock {
                 branch.getTimestamp(),
                 blockBody.getMerkleRoot(),
                 blockBody.length());
-        Block genesisBlock = new Block(blockHeader, new byte[]{}, blockBody);
-        return genesisBlock;
+        return new Block(blockHeader, new byte[]{}, blockBody);
     }
 
 

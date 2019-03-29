@@ -1,11 +1,11 @@
 package io.yggdrash.core.exception;
 
-public class InternalErrorException extends InternalError {
-    public static final int code = -10005;
-    public static final String msg = "Internal error";
+public class InternalErrorException extends RuntimeException {
+    public static final int CODE = -10005;
+    public static final String MSG = "Internal error";
 
     public InternalErrorException() {
-        super(msg);
+        super(MSG);
     }
 
     public InternalErrorException(String message) {

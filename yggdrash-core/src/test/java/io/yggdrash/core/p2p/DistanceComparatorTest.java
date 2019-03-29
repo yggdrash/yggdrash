@@ -1,5 +1,6 @@
 package io.yggdrash.core.p2p;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,8 +31,7 @@ public class DistanceComparatorTest {
         peerArrayList.add(p1);
         peerArrayList.sort(distanceComparator);
         assert peerArrayList.get(0).equals(p1);
-        assert peerArrayList.get(0).getPeerId().distanceTo(OWNER.getPeerId().getBytes())
-                == shortDistance;
+        Assert.assertEquals(shortDistance,peerArrayList.get(0).getPeerId().distanceTo(OWNER.getPeerId().getBytes()));
     }
 
     @Test
@@ -75,6 +75,6 @@ public class DistanceComparatorTest {
         assert result.get(String.valueOf(32928)).equals(158);
 
         assert peerArrayList.get(5).getPort() == 32919;
-        assert result.get(String.valueOf(32919)).equals(159);
+        Assert.assertEquals(159, (int) result.get(String.valueOf(32919)));
     }
 }

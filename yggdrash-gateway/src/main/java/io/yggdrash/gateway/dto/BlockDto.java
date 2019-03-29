@@ -17,7 +17,6 @@
 package io.yggdrash.gateway.dto;
 
 import com.google.protobuf.util.Timestamps;
-import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.proto.Proto;
 import org.spongycastle.util.encoders.Hex;

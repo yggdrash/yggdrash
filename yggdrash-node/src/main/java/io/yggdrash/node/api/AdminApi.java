@@ -17,7 +17,7 @@ public interface AdminApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = FailedOperationException.class,
-                    code = FailedOperationException.code)})
+                    code = FailedOperationException.CODE)})
     String nodeHello(@JsonRpcParam(value = "command") AdminDto command);
 
     /**
@@ -27,7 +27,7 @@ public interface AdminApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = FailedOperationException.class,
-                    code = FailedOperationException.code)})
+                    code = FailedOperationException.CODE)})
     String requestCommand(@JsonRpcParam(value = "command") AdminDto command);
 
 }

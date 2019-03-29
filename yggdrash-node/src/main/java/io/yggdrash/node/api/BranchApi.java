@@ -16,6 +16,6 @@ public interface BranchApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
+                    code = NonExistObjectException.CODE)})
     Map<String, BranchDto> getBranches();
 }

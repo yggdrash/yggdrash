@@ -33,9 +33,4 @@ public class BlockSignature {
     public byte[] getSignature() {
         return this.signature;
     }
-
-    public BlockSignature clone() {
-        return new BlockSignature(this.signature.clone());
-    }
-
 }

@@ -42,7 +42,7 @@ public class PeerTestUtils {
 
     public static PeerTableGroup createTableGroup(int port, PeerDialer peerDialer) {
         Peer owner = Peer.valueOf(NODE_URI_PREFIX + port);
-        return PeerTableGroupBuilder.Builder()
+        return PeerTableGroupBuilder.newBuilder()
                 .setOwner(owner)
                 .setStoreBuilder(storeBuilder)
                 .setPeerDialer(peerDialer)

@@ -1,5 +1,6 @@
 package io.yggdrash.common.crypto;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.spongycastle.crypto.params.ECPublicKeyParameters;
 import org.spongycastle.util.encoders.Hex;
@@ -14,6 +15,6 @@ public class ECIESPublicKeyEncoderTest {
     public void getEncoded() {
         ECPublicKeyParameters param = new ECPublicKeyParameters(CURVE.getCurve().decodePoint(pubKey), CURVE);
         ECIESPublicKeyEncoder encoder = new ECIESPublicKeyEncoder();
-        assert encoder.getEncoded(param) != null;
+        Assert.assertNotNull(encoder.getEncoded(param));
     }
 }

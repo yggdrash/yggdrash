@@ -1,6 +1,7 @@
 package io.yggdrash.core.p2p;
 
 import io.yggdrash.TestConstants;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,9 +54,9 @@ public class PeerTableLargeTest {
         int totalVisitCount = 0;
         for (PeerTable table : peerTableMap.values()) {
             List<PeerTable> visitTarget = new ArrayList<>(peerTableMap.values());
-            assert visitTarget.size() == nodeCount - 1; // exclude seed
+            Assert.assertEquals(visitTarget.size(), nodeCount - 1); // exclude seed
             totalVisitCount = recursiveVisit(table, visitTarget, limit);
-            assert visitTarget.size() == 0;
+            Assert.assertTrue(visitTarget.isEmpty());
             //break; // test first node only
         }
 

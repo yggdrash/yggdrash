@@ -27,7 +27,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 
 public class ChainTask {
     private static final Logger log = LoggerFactory.getLogger(ChainTask.class);
-    private static final String cronValue = "*/10 * * * * *";
 
     @Autowired
     private NodeStatus nodeStatus;
@@ -38,7 +37,7 @@ public class ChainTask {
     @Autowired
     private Wallet wallet;
 
-    @Scheduled(cron = cronValue)
+    @Scheduled(cron = "*/10 * * * * *")
     public void generateBlock() {
         if (!nodeStatus.isUpStatus()) {
             log.debug("Waiting for up status...");

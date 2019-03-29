@@ -18,7 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
-import io.yggdrash.common.contract.vo.dpoa.Validator;
+import io.yggdrash.common.config.Constants.LIMIT;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
@@ -35,6 +35,7 @@ import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.wallet.Wallet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -43,8 +44,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import static io.yggdrash.common.config.Constants.LIMIT;
 
 public class BlockChain {
 
@@ -129,7 +128,8 @@ public class BlockChain {
         // Add Meta Information
         branchStore.setBranch(branch);
         branchStore.setGenesisBlockHash(genesisBlock.getHash());
-        branchStore.setValidators(branch.getValidators());
+        // TODO new Validators
+        //branchStore.setValidators(branch.getValidators());
         branchStore.setBranchContracts(branch.getBranchContracts());
     }
 
@@ -283,8 +283,6 @@ public class BlockChain {
         if (prevBlock == null) {
             return true;
         }
-        // log.trace("prev : " + prevBlock.getHash());
-        // log.trace("new  : " + nextBlock.getHash());
 
         if (prevBlock.getIndex() + 1 != nextBlock.getIndex()) {
             log.warn("invalid index: prev:{} / new:{}", prevBlock.getIndex(), nextBlock.getIndex());
@@ -415,7 +413,7 @@ public class BlockChain {
 
     }
 
-    public List<BranchContract> getBranchContracts() {
+    List<BranchContract> getBranchContracts() {
         if (this.branchStore.getBranchContacts() == null) {
             return this.getBranch().getBranchContracts();
         } else {

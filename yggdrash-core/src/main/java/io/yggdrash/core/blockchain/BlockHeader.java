@@ -29,6 +29,7 @@ import org.spongycastle.util.encoders.Hex;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Objects;
 
 
 public class BlockHeader {
@@ -51,6 +52,8 @@ public class BlockHeader {
     private final long timestamp;         // 8 Bytes
     private final byte[] merkleRoot;      // 32 Bytes
     private final long bodyLength;        // 8 Bytes
+
+    private byte[] binary;
 
     public BlockHeader(
             byte[] chain,
@@ -117,13 +120,11 @@ public class BlockHeader {
         System.arraycopy(blockHeaderBytes, pos, indexBytes, 0, indexBytes.length);
         pos += indexBytes.length;
         this.index = ByteUtil.byteArrayToLong(indexBytes);
-        indexBytes = null;
 
         byte[] timestampBytes = new byte[TIMESTAMP_LENGTH];
         System.arraycopy(blockHeaderBytes, pos, timestampBytes, 0, timestampBytes.length);
         pos += timestampBytes.length;
         this.timestamp = ByteUtil.byteArrayToLong(timestampBytes);
-        timestampBytes = null;
 
         this.merkleRoot = new byte[MERKLEROOT_LENGTH];
         System.arraycopy(blockHeaderBytes, pos, this.merkleRoot, 0, this.merkleRoot.length);
@@ -133,7 +134,6 @@ public class BlockHeader {
         System.arraycopy(blockHeaderBytes, pos, bodyLengthBytes, 0, bodyLengthBytes.length);
         pos += bodyLengthBytes.length;
         this.bodyLength = ByteUtil.byteArrayToLong(bodyLengthBytes);
-        bodyLengthBytes = null;
 
         if (pos != blockHeaderBytes.length) {
             throw new NotValidateException();
@@ -173,6 +173,10 @@ public class BlockHeader {
     }
 
     public byte[] toBinary() {
+        if (binary != null) {
+            return binary;
+        }
+
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
         try {
             bao.write(chain);
@@ -184,7 +188,8 @@ public class BlockHeader {
             bao.write(merkleRoot);
             bao.write(ByteUtil.longToBytes(bodyLength));
 
-            return bao.toByteArray();
+            binary = bao.toByteArray();
+            return binary;
         } catch (IOException e) {
             throw new InternalErrorException("toBinary error");
         }
@@ -220,19 +225,22 @@ public class BlockHeader {
         return this.toJsonObject().toString();
     }
 
-    public BlockHeader clone() {
-        return new BlockHeader(this.chain.clone(),
-                this.version.clone(),
-                this.type.clone(),
-                this.prevBlockHash.clone(),
-                this.index,
-                this.timestamp,
-                this.merkleRoot.clone(),
-                this.bodyLength);
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        BlockHeader other = (BlockHeader) o;
+        return Arrays.equals(toBinary(), other.toBinary());
     }
 
-    public boolean equals(BlockHeader newBlockHeader) {
-        return Arrays.equals(this.getHashForSigning(), newBlockHeader.getHashForSigning());
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(toBinary());
     }
 
     static BlockHeader toBlockHeader(Proto.Block.Header protoBlockHeader) {

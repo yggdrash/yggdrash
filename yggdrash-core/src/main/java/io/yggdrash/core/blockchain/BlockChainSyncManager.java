@@ -127,13 +127,14 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
                 return true;
             }
             log.info("[SyncManager] Synchronize block offset={} receivedSize={}, from={}",
-                    offset, blockHusks.size(), peerHandler.getPeer().toAddress());
+                    offset, blockHusks.size(), peerHandler.getPeer().getYnodeUri());
 
             for (BlockHusk blockHusk : blockHusks) {
                 blockChain.addBlock(blockHusk, false);
             }
         } catch (InterruptedException | ExecutionException e) {
             log.debug("[SyncManager] Sync Block ERR occurred: {}", e.getMessage(), e);
+            Thread.currentThread().interrupt();
         }
 
         return false;
@@ -146,17 +147,22 @@ public class BlockChainSyncManager implements SyncManager, CatchUpSyncEventListe
         try {
             List<TransactionHusk> txHusks = futureHusks.get();
             log.info("[SyncManager] Synchronize Tx receivedSize={}, from={}",
-                    txHusks.size(), peerHandler.getPeer().toAddress());
+                    txHusks.size(), peerHandler.getPeer().getYnodeUri());
+            addTransaction(blockChain, txHusks);
 
-            for (TransactionHusk txHusk : txHusks) {
-                try {
-                    blockChain.addTransaction(txHusk);
-                } catch (Exception e) {
-                    log.warn("[SyncManager] Add Tx ERR occurred: {}", e.getMessage());
-                }
-            }
         } catch (InterruptedException | ExecutionException e) {
             log.debug("[SyncManager] Sync Tx ERR occurred: {}", e.getMessage(), e);
+            Thread.currentThread().interrupt();
+        }
+    }
+
+    private void addTransaction(BlockChain blockChain, List<TransactionHusk> txHusks) {
+        for (TransactionHusk txHusk : txHusks) {
+            try {
+                blockChain.addTransaction(txHusk);
+            } catch (Exception e) {
+                log.warn("[SyncManager] Add Tx ERR occurred: {}", e.getMessage());
+            }
         }
     }
 

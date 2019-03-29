@@ -3,6 +3,7 @@ package io.yggdrash.common.config;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigValue;
+import io.yggdrash.common.exception.FailedOperationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +20,7 @@ public class DefaultConfig {
     private static final Logger logger = LoggerFactory.getLogger("general");
     private static final String YGG_DATA_PATH = "YGG_DATA_PATH";
     private static final String PROPERTY_KEYPATH = "key.path";
-    private static final String PROPERTY_KEYPASSWORD = "key.password"; // todo: change to CLI
+    private static final String PROPERTY_KEKPASS = "key.password"; // todo: change to CLI
     private static final String PROPERTY_NODE_NAME = "node.name";
     private static final String PROPERTY_NODE_VER = "node.version";
     private static final String PROPERTY_NETWORK_ID = "network.id";
@@ -61,7 +62,7 @@ public class DefaultConfig {
             config = javaSystemProperties.withFallback(config).resolve();
         } catch (Exception e) {
             logger.error("Can't read config.");
-            throw new RuntimeException(e);
+            throw new FailedOperationException(e);
         }
     }
 
@@ -100,18 +101,16 @@ public class DefaultConfig {
 
     public String toString() {
 
-        StringBuilder config = null;
+        StringBuilder sb = new StringBuilder();
         for (Map.Entry<String, ConfigValue> entry : this.config.entrySet()) {
-            if (config == null) {
-                config = new StringBuilder("{" + entry.getKey() + ":" + entry.getValue() + "}"
-                        + "\n,");
-
+            if (sb.length() == 0) {
+                sb.append("{" + entry.getKey() + ":" + entry.getValue() + "}\n,");
             }
-            config.append("{").append(entry.getKey()).append(":").append(entry.getValue())
+            sb.append("{").append(entry.getKey()).append(":").append(entry.getValue())
                     .append("}").append("\n,");
         }
 
-        return "DefaultConfig{" + config.substring(0, config.length() - 1) + "}";
+        return "DefaultConfig{" + sb.substring(0, sb.length() - 1) + "}";
     }
 
     public boolean isProductionMode() {
@@ -123,7 +122,7 @@ public class DefaultConfig {
     }
 
     public String getKeyPassword() {
-        return config.getString(PROPERTY_KEYPASSWORD);
+        return config.getString(PROPERTY_KEKPASS);
     }
 
     public String getNodeName() {

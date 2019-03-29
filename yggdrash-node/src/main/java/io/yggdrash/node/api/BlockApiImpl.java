@@ -7,8 +7,6 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.NonExistObjectException;
 import io.yggdrash.gateway.dto.BlockDto;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,7 +14,6 @@ import org.springframework.stereotype.Service;
 @AutoJsonRpcServiceImpl
 public class BlockApiImpl implements BlockApi {
 
-    private static final Logger log = LoggerFactory.getLogger(BlockApiImpl.class);
     private final BranchGroup branchGroup;
 
     @Autowired
