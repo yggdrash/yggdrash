@@ -134,13 +134,6 @@ public class TransactionKvIndexer implements TransactionIndexer {
         byte[] checkedTxHash = isTxHash(txHash);
         return txHashStoreMap.containsKey(branchId) && txHashStoreMap.get(branchId).contains(checkedTxHash)
                 ? new TransactionHusk(txHashStoreMap.get(branchId).get(checkedTxHash)) : null;
-
-        /*
-        if (txIndexStoreMap.containsKey(branchId) && txIndexStoreMap.get(branchId).get("txHash").contains(txHash)) {
-            return new TransactionHusk(txIndexStoreMap.get(branchId).get("txHash").get(txHash));
-        }
-        return null;
-        */
     }
 
     // SearchTxHash and SearchTxHashes are only for searching txHash

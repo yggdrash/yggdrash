@@ -182,21 +182,4 @@ public class LevelDbDataSource implements DbSource<byte[], byte[]> {
         }
         return valueList;
     }
-
-    public List<byte[]> getKeySetByValue(byte[] req) throws IOException {
-        List<byte[]> keyList = new ArrayList<>();
-
-        try (DBIterator iterator = db.iterator()) {
-            for (iterator.seekToFirst(); iterator.hasNext(); iterator.next()) {
-                byte[] key = iterator.peekNext().getKey();
-                byte[] value = iterator.peekNext().getValue();
-
-                if (Arrays.equals(req, value)) {
-                    keyList.add(key);
-                }
-            }
-        }
-
-        return keyList;
-    }
 }

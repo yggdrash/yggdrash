@@ -63,19 +63,4 @@ public class HashMapDbSource implements DbSource<byte[], byte[]> {
         db.remove(Hex.encodeHexString(key));
     }
 
-    public List<byte[]> getKeySetByValue(byte[] value) {
-        List<byte[]> keySet = new ArrayList<>();
-
-        for (String key : db.keySet()) {
-            if (Arrays.equals(get(key), value)) {
-                try {
-                    keySet.add(Hex.decodeHex(key));
-                } catch (DecoderException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        return keySet;
-    }
 }

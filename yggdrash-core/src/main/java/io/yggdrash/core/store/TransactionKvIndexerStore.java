@@ -26,9 +26,9 @@ import java.util.Set;
 
 public class TransactionKvIndexerStore implements ReadWriterStore<byte[], byte[]> {
     private final String tagKeySeparator = "/";
-    private final String tagKeyFormat = "%s/%s/%d";
+    private final String tagKeyFormat = "%s/%s/%d"; // TODO => account/nonce : txHash
     private final DbSource<byte[], byte[]> db;
-    private Map<String, Integer> heightMap;
+    private Map<String, Integer> heightMap; // TODO load origin height
 
     TransactionKvIndexerStore(DbSource<byte[], byte[]> db) {
         this.db = db.init();

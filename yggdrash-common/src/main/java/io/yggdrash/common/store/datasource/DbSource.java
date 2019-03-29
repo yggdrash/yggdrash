@@ -31,6 +31,4 @@ public interface DbSource<K, V> {
     void close();
 
     void delete(K key);
-
-    List<K> getKeySetByValue(V req) throws IOException;
 }
