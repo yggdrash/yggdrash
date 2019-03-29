@@ -298,7 +298,8 @@ public class CoinContract implements BundleActivator, ServiceListener {
         }
 
         public boolean saveInitValidator(JsonArray validators) {
-            ValidatorSet validatorSet = store.get(PrefixKeyEnum.VALIDATORS.toValue());
+            ValidatorSet validatorSet = JsonUtil.generateJsonToClass(
+                    store.get(PrefixKeyEnum.VALIDATORS.toValue()).toString(), ValidatorSet.class);
             if (validatorSet != null || validators == null) {
                 return true;
             }
