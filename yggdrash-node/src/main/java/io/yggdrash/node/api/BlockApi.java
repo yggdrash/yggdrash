@@ -18,7 +18,7 @@ public interface BlockApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
+                    code = NonExistObjectException.CODE)})
     long blockNumber(@JsonRpcParam(value = BRANCH_ID) String branchId);
 
     /**
@@ -31,7 +31,7 @@ public interface BlockApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
+                    code = NonExistObjectException.CODE)})
     BlockDto getBlockByHash(@JsonRpcParam(value = BRANCH_ID) String branchId,
                              @JsonRpcParam(value = BLOCK_ID) String blockId,
                              @JsonRpcParam(value = "bool") Boolean bool);
@@ -46,7 +46,7 @@ public interface BlockApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
+                    code = NonExistObjectException.CODE)})
     BlockDto getBlockByNumber(@JsonRpcParam(value = BRANCH_ID) String branchId,
                               @JsonRpcParam(value = "numOfBlock") long numOfBlock,
                               @JsonRpcParam(value = "bool") Boolean bool);
@@ -56,7 +56,7 @@ public interface BlockApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = InternalErrorException.class,
-                    code = InternalErrorException.code)})
+                    code = InternalErrorException.CODE)})
     int newBlockFilter();
 
     /**
@@ -65,6 +65,6 @@ public interface BlockApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
+                    code = NonExistObjectException.CODE)})
     BlockDto getLastBlock(@JsonRpcParam(value = BRANCH_ID) String branchId);
 }

@@ -24,6 +24,7 @@ import org.osgi.service.condpermadmin.ConditionalPermissionUpdate;
 import org.osgi.service.permissionadmin.PermissionInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FilePermission;
 import java.io.IOException;
@@ -40,8 +41,8 @@ import java.util.jar.Manifest;
 public class ContractContainer {
     private static final Logger log = LoggerFactory.getLogger(ContractContainer.class);
 
-    public static final String SUFFIX_SYSTEM_CONTRACT = "contract/system";
-    public static final String SUFFIX_USER_CONTRACT = "contract/user";
+    static final String SUFFIX_SYSTEM_CONTRACT = "contract/system";
+    static final String SUFFIX_USER_CONTRACT = "contract/user";
 
     private Framework framework;
 
@@ -85,8 +86,6 @@ public class ContractContainer {
             framework.start();
             setDefaultPermission(branchId);
         } catch (Exception e) {
-            e.printStackTrace();
-            log.error("Load contract container exception: branchID - {}, msg - {}", branchId, e.getMessage());
             throw new IllegalStateException(e.getCause());
         }
 
@@ -105,11 +104,13 @@ public class ContractContainer {
         List<ConditionalPermissionInfo> infos = update.getConditionalPermissionInfos();
 
         //Check existence
-        if (infos != null) {
-            for (ConditionalPermissionInfo conditionalPermissionInfo : infos) {
-                if (conditionalPermissionInfo.getName().equals(permissionKey)) {
-                    return;
-                }
+        if (infos == null) {
+            return;
+        }
+
+        for (ConditionalPermissionInfo conditionalPermissionInfo : infos) {
+            if (conditionalPermissionInfo.getName().equals(permissionKey)) {
+                return;
             }
         }
 
@@ -153,20 +154,16 @@ public class ContractContainer {
 
         String branchStorePath = String.format("%s/%s/branch", config.getDatabasePath(), branchId);
         String branchStoreFile = String.format("%s/%s/branch/*", config.getDatabasePath(), branchId);
-
+        String allPermission = "read,write,delete";
         String filePermissionName = FilePermission.class.getName();
 
         List<PermissionInfo> systemPermissions = new ArrayList<>();
-        systemPermissions.add(
-                new PermissionInfo(filePermissionName, stateStorePath, "read"));
-        systemPermissions.add(
-                new PermissionInfo(filePermissionName, stateStoreFile, "read,write,delete"));
+        systemPermissions.add(new PermissionInfo(filePermissionName, stateStorePath, "read"));
+        systemPermissions.add(new PermissionInfo(filePermissionName, stateStoreFile, allPermission));
 
         // Add Branch Store Read / Write
-        systemPermissions.add(
-                new PermissionInfo(filePermissionName, branchStorePath, "read"));
-        systemPermissions.add(
-                new PermissionInfo(filePermissionName, branchStoreFile, "read,write,delete"));
+        systemPermissions.add(new PermissionInfo(filePermissionName, branchStorePath, "read"));
+        systemPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, allPermission));
         if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
             systemPermissions.add(new PermissionInfo(
                     SocketPermission.class.getName(), systemProperties.getEsHost(), "connect,resolve"));
@@ -186,15 +183,11 @@ public class ContractContainer {
         // Branch State Store 권한 추가 - 읽기 권한
         // {BID}-container-permission-user-file
         List<PermissionInfo> userPermissions = new ArrayList<>();
-        userPermissions.add(
-                new PermissionInfo(filePermissionName, stateStorePath, "read"));
-        userPermissions.add(
-                new PermissionInfo(filePermissionName, stateStoreFile, "read,write,delete"));
+        userPermissions.add(new PermissionInfo(filePermissionName, stateStorePath, "read"));
+        userPermissions.add(new PermissionInfo(filePermissionName, stateStoreFile, allPermission));
         // Branch Store Read
-        userPermissions.add(
-                new PermissionInfo(filePermissionName, branchStorePath, "read"));
-        userPermissions.add(
-                new PermissionInfo(filePermissionName, branchStoreFile, "read"));
+        userPermissions.add(new PermissionInfo(filePermissionName, branchStorePath, "read"));
+        userPermissions.add(new PermissionInfo(filePermissionName, branchStoreFile, "read"));
 
         if (systemProperties != null && !StringUtils.isEmpty(systemProperties.getEsHost())) {
             userPermissions.add(
@@ -215,9 +208,8 @@ public class ContractContainer {
 
     public long installContract(ContractVersion contract, File contractFile, boolean isSystem) {
         long bundleId = -1L;
-        try {
-            Manifest m = new JarFile(contractFile).getManifest();
-            //String symbolicName = m.getAttributes("Bundle-SymbolicName");
+        try (JarFile jar = new JarFile(contractFile)) {
+            Manifest m = jar.getManifest();
             if (m != null && contractManager.verifyManifest(m)) {
                 String symbolicName = m.getMainAttributes().getValue("Bundle-SymbolicName");
                 String version = m.getMainAttributes().getValue("Bundle-Version");

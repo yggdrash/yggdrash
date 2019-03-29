@@ -39,10 +39,8 @@ public class ValidatorConfiguration {
 
             File genesisFile = new File(validatorDir, "genesis.json");
             FileInputStream is = new FileInputStream(genesisFile);
-            Block genesisBlock = new Block(
-                    JsonUtil.parseJsonObject(
-                            IOUtils.toString(is, StandardCharsets.UTF_8)));
-            log.debug(genesisBlock.toString());
+            Block genesisBlock = new Block(JsonUtil.parseJsonObject(IOUtils.toString(is, StandardCharsets.UTF_8)));
+            log.debug(genesisBlock.getChainHex());
 
             validatorServiceList.add(new ValidatorService(validatorConfig, genesisBlock));
         }

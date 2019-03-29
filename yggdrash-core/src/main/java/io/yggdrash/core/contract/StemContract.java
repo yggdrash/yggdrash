@@ -1,3 +1,4 @@
+
 package io.yggdrash.core.contract;
 
 import com.google.gson.JsonArray;
@@ -29,26 +30,25 @@ import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import static io.yggdrash.common.config.Constants.TX_ID;
-import static io.yggdrash.common.config.Constants.VALIDATOR;
 
 
-    public class StemContract implements BundleActivator, ServiceListener {
-        private static final Logger log = LoggerFactory.getLogger(StemContract.class);
+public class StemContract implements BundleActivator, ServiceListener {
+    private static final Logger log = LoggerFactory.getLogger(StemContract.class);
 
-        @Override
-        public void start(BundleContext context) {
-            log.info("⚪ Start stem contract");
+    @Override
+    public void start(BundleContext context) {
+        log.info("⚪ Start stem contract");
 
-            //Find for service in another bundle
-            Hashtable<String, String> props = new Hashtable<>();
-            props.put("YGGDRASH", "Stem");
-            context.registerService(StemService.class.getName(), new StemService(), props);
-        }
+        //Find for service in another bundle
+        Hashtable<String, String> props = new Hashtable<>();
+        props.put("YGGDRASH", "Stem");
+        context.registerService(StemService.class.getName(), new StemService(), props);
+    }
 
-        @Override
-        public void stop(BundleContext context) {
-            log.info("⚫ Stop stem contract");
-        }
+    @Override
+    public void stop(BundleContext context) {
+        log.info("⚫ Stop stem contract");
+    }
 
     @Override
     public void serviceChanged(ServiceEvent event) {
@@ -272,6 +272,7 @@ import static io.yggdrash.common.config.Constants.VALIDATOR;
          */
         @ContractQuery
         public Set<String> getValidator(JsonObject params) {
+            System.out.println(params);
             String branchId = params.get(BRANCH_ID).getAsString();
             Set<String> validatorSet = new HashSet<>();
             StemContractStateValue stateValue = getBranchStateValue(branchId);
@@ -293,7 +294,7 @@ import static io.yggdrash.common.config.Constants.VALIDATOR;
          */
         @ContractQuery
         public Set<String> getBranchIdByValidator(JsonObject params) {
-            String validator = params.get(VALIDATOR).getAsString();
+            String validator = params.get("validator").getAsString();
             Set<String> branchIdSet = new HashSet<>();
 
             getBranchIdList().stream().forEach(id -> {

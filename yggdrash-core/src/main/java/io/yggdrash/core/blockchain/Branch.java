@@ -23,6 +23,7 @@ import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import org.apache.commons.io.IOUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -146,7 +147,7 @@ public class Branch {
 
         public static BranchType of(String val) {
             return Arrays.stream(BranchType.values())
-                    .filter(e -> e.toString().toLowerCase().equals(val))
+                    .filter(e -> e.toString().equalsIgnoreCase(val))
                     .findFirst()
                     .orElseThrow(() -> new IllegalStateException(
                             String.format("Unsupported type %s.", val)));
@@ -164,10 +165,10 @@ public class Branch {
         branchJson.addProperty("description", description);
         branchJson.addProperty("timestamp", HexUtil.toHexString(timestamp));
         JsonArray contractJson = new JsonArray();
-        contracts.stream().forEach(c -> contractJson.add(c.getJson()));
+        contracts.forEach(c -> contractJson.add(c.getJson()));
         branchJson.add("contracts", contractJson);
         JsonArray validatorArray = new JsonArray();
-        validators.stream().forEach(v -> validatorArray.add(v));
+        validators.forEach(validatorArray::add);
         branchJson.add("validator", validatorArray);
         branchJson.add("consensus", consensus);
         return branchJson;

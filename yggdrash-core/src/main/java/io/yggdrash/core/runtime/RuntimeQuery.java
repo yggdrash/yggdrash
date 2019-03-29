@@ -25,13 +25,13 @@ import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.store.ReadOnlyStore;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 
 class RuntimeQuery {
     private final Contract contract;
     private final Map<String, ContractMethod> queryMethods;
-    private ReadOnlyStore store;
 
     RuntimeQuery(Contract contract) {
         this.contract = ContractUtils.contractInstance(contract);
@@ -39,13 +39,12 @@ class RuntimeQuery {
     }
 
     public void setStore(ReadWriterStore store) {
-        this.store = new ReadOnlyStore(store);
+        ReadOnlyStore readOnlyStore = new ReadOnlyStore(store);
         List<Field> stateField = ContractUtils.stateStoreFields(contract);
-        ContractUtils.updateContractFields(this.contract, stateField, this.store);
+        ContractUtils.updateContractFields(this.contract, stateField, readOnlyStore);
     }
 
-
-    public Object query(String method, JsonObject params) throws Exception {
+    public Object query(String method, JsonObject params) throws InvocationTargetException, IllegalAccessException {
         // Find query method and query
         ContractMethod query = queryMethods.get(method);
         if (query != null) {

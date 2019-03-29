@@ -20,6 +20,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import org.junit.After;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -52,6 +53,6 @@ public class TempStateStoreTest {
         assert store.get("TEST").equals(testObj);
         store.close();
 
-        assert store.get("TEST").equals(originObj);
+        Assert.assertEquals(originObj, store.get("TEST"));
     }
 }

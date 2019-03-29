@@ -17,11 +17,14 @@
 package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.contract.ContractVersion;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
 
 public class PrepareBlockchain {
@@ -50,7 +53,7 @@ public class PrepareBlockchain {
     public boolean checkBlockChainIsReady(BlockChain blockChain) {
         // Get BranchContract
         contractList = blockChain.getBranchContracts();
-        if (blockChain.getLastIndex() == 0 && contractList.size() == 0) {
+        if (blockChain.getLastIndex() == 0 && contractList.isEmpty()) {
             // is Genesis Blockchain
             contractList = blockChain.getBranch().getBranchContracts();
         }
@@ -59,7 +62,7 @@ public class PrepareBlockchain {
         if (contractList == null) {
             contractList = blockChain.getBranch().getBranchContracts();
         }
-        if (contractList.size() == 0) {
+        if (contractList.isEmpty()) {
             log.error("Branch Contract is Null");
         }
 
@@ -68,17 +71,15 @@ public class PrepareBlockchain {
 
             File contractFile = loadContractFile(contractVersion);
 
-            if (contractFile == null) {
-                if (!findContractFile(contractVersion)) {
-                    log.error("Contract {} is not exists", contractVersion.toString());
-                    return false;
-                }
+            if (contractFile == null && !findContractFile(contractVersion)) {
+                log.error("Contract {} is not exists", contractVersion);
+                return false;
             }
 
             // verify contract file
             if (!verifyContractFile(contractFile, contractVersion)) {
                 // TODO findContractFile
-                log.error("Contract {} is not verify", contractVersion.toString());
+                log.error("Contract {} is not verify", contractVersion);
                 return false;
             }
         }
@@ -93,12 +94,8 @@ public class PrepareBlockchain {
     public boolean verifyContractFile(File contractFile, ContractVersion contractVersion) {
         // Contract Path + contract Version + .jar
         // check contractVersion Hex
-        byte[] contractBinary;
-        try {
-            FileInputStream inputStream = new FileInputStream(contractFile);
-            contractBinary = new byte[Math.toIntExact(contractFile.length())];
-            inputStream.read(contractBinary);
-
+        try (InputStream is = new FileInputStream(contractFile)) {
+            byte[] contractBinary = IOUtils.toByteArray(is);
             ContractVersion checkVersion = ContractVersion.of(contractBinary);
             return contractVersion.toString().equals(checkVersion.toString());
 

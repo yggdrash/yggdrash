@@ -38,6 +38,7 @@ import java.lang.reflect.InvocationTargetException;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
 import static io.yggdrash.common.config.Constants.TX_ID;
+import static org.junit.Assert.assertTrue;
 
 public class RuntimeInvokeTest {
     private static final StemContract.StemService stemContract = new StemContract.StemService();
@@ -49,7 +50,7 @@ public class RuntimeInvokeTest {
     public void initTest() throws InvocationTargetException, IllegalAccessException {
         RuntimeInvoke invoke = new RuntimeInvoke(stemContract);
 
-        ReadWriterStore tempStore = new StateStore<>(new HashMapDbSource());
+        ReadWriterStore tempStore = new StateStore(new HashMapDbSource());
 
         JsonObject json = ContractTestUtils.createSampleBranchJson();
         BranchId branchId = Branch.of(json).getBranchId();
@@ -62,8 +63,8 @@ public class RuntimeInvokeTest {
         for (JsonElement txEl: JsonUtil.parseJsonArray(createTx.getBody())) {
             TempStateStore store = invoke.invokeTransaction(
                     txEl.getAsJsonObject(), receipt, tempStore);
-            assert receipt.isSuccess();
-            assert store.changeValues().size() > 0;
+            assertTrue(receipt.isSuccess());
+            assertTrue(store.changeValues().size() > 0);
         }
     }
 

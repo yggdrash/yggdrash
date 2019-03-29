@@ -26,27 +26,24 @@ import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.Hashtable;
 import java.util.List;
 
 public class DPoAClientContract implements BundleActivator, ServiceListener {
     private static final Logger log = LoggerFactory.getLogger(DPoAClientContract.class);
 
-    // Bundle's context.
-    private BundleContext bundleContext = null;
-    // The service tacker object.
-    private ServiceTracker serviceTracker = null;
-
     @Override
     public void start(BundleContext context) throws Exception {
         log.info("⚪ Start dpoa client contract");
 
-        bundleContext = context;
-        serviceTracker = new ServiceTracker(
-                bundleContext,
-                bundleContext.createFilter(
-                "(&(objectClass=" + DPoAContract.DPoAService.class.getName() + ")"
-                        + "(YGGDRASH=DPoA))"),
+        // Bundle's context.
+        // The service tacker object.
+        ServiceTracker serviceTracker = new ServiceTracker(
+                context,
+                context.createFilter(
+                        "(&(objectClass=" + DPoAContract.DPoAService.class.getName() + ")"
+                                + "(YGGDRASH=DPoA))"),
                 null
         );
         serviceTracker.open();
@@ -64,7 +61,7 @@ public class DPoAClientContract implements BundleActivator, ServiceListener {
 
     @Override
     public void serviceChanged(ServiceEvent event) {
-
+        log.info("serviceChanged called");
     }
 
     public static class DPoAClientService {
@@ -77,8 +74,8 @@ public class DPoAClientContract implements BundleActivator, ServiceListener {
         @ContractQuery
         public List<Validator> commit() {
             Object service = serviceTracker.getService();
-            if (service == null || !(service instanceof DPoAContract.DPoAService)) {
-                return null;
+            if (!(service instanceof DPoAContract.DPoAService)) {
+                return Collections.emptyList();
             }
 
             DPoAContract.DPoAService dpoaService = (DPoAContract.DPoAService) service;

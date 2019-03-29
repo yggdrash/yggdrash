@@ -22,6 +22,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants.KEY;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.ContractUtils;
@@ -35,6 +36,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -43,7 +45,6 @@ import java.util.Optional;
 import java.util.Set;
 
 import static io.yggdrash.common.config.Constants.BRANCH_ID;
-import static io.yggdrash.common.config.Constants.VALIDATOR;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -56,12 +57,12 @@ public class StemContractTest {
 
     private StemContractStateValue stateValue;
     private Field txReceiptField;
-    private StateStore<JsonObject> stateStore;
+    private StateStore stateStore;
 
 
     @Before
     public void setUp() throws IllegalAccessException {
-        stateStore = new StateStore<>(new HashMapDbSource());
+        stateStore = new StateStore(new HashMapDbSource());
 
         JsonObject params = ContractTestUtils.createSampleBranchJson();
         stateValue = StemContractStateValue.of(params);
@@ -115,15 +116,15 @@ public class StemContractTest {
     @Test
     public void getBranchIdByValidatorTest() {
         JsonObject validatorParams = createValidatorParams();
-        Set<String> branchIdSet = stemContract.getBranchIdByValidator(validatorParams);
-        String validator = validatorParams.get("VALIDATOR").getAsString();
+        if (stemContract.getBranchIdByValidator(validatorParams) != null) {
+            Set<String> branchIdSet = stemContract.getBranchIdByValidator(validatorParams);
+            String validator = validatorParams.get(KEY.VALIDATOR).getAsString();
 
-        branchIdSet.forEach(bId -> {
-            JsonObject saved = stateStore.get(bId);
-            saved.get("validator").getAsJsonArray().forEach(v -> assertThat(v).isEqualTo(validator));
-        });
-
-
+            branchIdSet.forEach(bId -> {
+                JsonObject saved = stateStore.get(bId);
+                saved.get("validator").getAsJsonArray().forEach(v -> assertThat(v).isEqualTo(validator));
+            });
+        }
     }
 
     @Test
@@ -219,7 +220,7 @@ public class StemContractTest {
 
     private JsonObject createValidatorParams() {
         Optional<String> v = stateValue.getValidators().stream().findFirst();
-        return ContractTestUtils.createParams(VALIDATOR, v.get());
+        return ContractTestUtils.createParams(KEY.VALIDATOR, v.get());
     }
 
     private JsonObject createUpdateParams() {

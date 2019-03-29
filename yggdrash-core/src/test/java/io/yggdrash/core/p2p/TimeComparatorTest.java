@@ -1,6 +1,7 @@
 package io.yggdrash.core.p2p;
 
 import io.yggdrash.common.util.Utils;
+import org.junit.Assert;
 import org.junit.Test;
 
 import java.util.ArrayList;
@@ -17,13 +18,13 @@ public class TimeComparatorTest {
 
         long earlyJoinPeer = p1.getModified();
         long latestJoinPeer = p2.getModified();
-        assert earlyJoinPeer < latestJoinPeer;
-        assert timeComparator.compare(p1, p2) > 0;
+        Assert.assertTrue(earlyJoinPeer < latestJoinPeer);
+        Assert.assertTrue(timeComparator.compare(p1, p2) > 0);
 
         ArrayList<Peer> peerArrayList = new ArrayList<>();
         peerArrayList.add(p1);
         peerArrayList.add(p2);
         peerArrayList.sort(timeComparator);
-        assert peerArrayList.get(0).equals(p2);
+        Assert.assertEquals(p2, peerArrayList.get(0));
     }
 }

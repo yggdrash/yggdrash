@@ -20,9 +20,9 @@ import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -55,39 +55,30 @@ public class BranchLoader {
         }
     }
 
-    public File loadBranchDirectory(BranchId branchId) {
-        File branchDir = new File(branchRoot, branchId.toString());
-        return branchDir;
-    }
-
-    public boolean saveBranch(Branch branch) {
+    boolean saveBranch(Branch branch) {
         // Make branch Dir
         File branchDir = loadBranchDirectory(branch.getBranchId());
         if (!branchDir.exists()) { // IF not exist
             branchDir.mkdir();
             File branchFile = new File(branchDir, BRANCH_FILE);
-            try {
+            try (FileOutputStream outputStream = new FileOutputStream(branchFile)) {
                 // Copy Branch File
-                FileOutputStream outputStream = new FileOutputStream(branchFile);
                 byte[] branchJson = branch.getJson().toString().getBytes();
                 outputStream.write(branchJson);
-                outputStream.close();
                 return true;
-            } catch (FileNotFoundException e) {
-                log.error(e.getMessage());
-                e.printStackTrace();
             } catch (IOException e) {
                 log.error(e.getMessage());
-                e.printStackTrace();
             }
         }
-
         return false;
-
     }
 
     public List<GenesisBlock> getGenesisBlockList() {
         return genesisBlockList;
+    }
+
+    private File loadBranchDirectory(BranchId branchId) {
+        return new File(branchRoot, branchId.toString());
     }
 
 }

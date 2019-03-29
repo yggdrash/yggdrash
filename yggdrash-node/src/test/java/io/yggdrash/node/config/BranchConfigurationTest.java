@@ -38,12 +38,14 @@ import org.spongycastle.util.encoders.Hex;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 
+@Ignore
 public class BranchConfigurationTest {
     private static final Logger log = LoggerFactory.getLogger(BranchConfigurationTest.class);
 
@@ -60,7 +62,6 @@ public class BranchConfigurationTest {
     }
 
     @Test
-    @Ignore
     public void branchLoaderTest() throws IOException {
         JsonObject branchJson = getBranchJson();
         BranchId branchId = BranchId.of(branchJson);

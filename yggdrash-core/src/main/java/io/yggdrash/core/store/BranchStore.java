@@ -23,7 +23,6 @@ import com.google.gson.JsonParser;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
-import io.yggdrash.common.store.BranchStateStore;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
@@ -31,11 +30,13 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
+
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-public class BranchStore implements ReadWriterStore<String, String>, BranchStateStore {
+public class BranchStore implements ReadWriterStore<String, String> {
+
     private final DbSource<byte[], byte[]> db;
 
     // TODO Change to DAO patten
@@ -162,7 +163,7 @@ public class BranchStore implements ReadWriterStore<String, String>, BranchState
         return new BranchId(getBranchIdHash());
     }
 
-    public Sha3Hash getBranchIdHash() {
+    private Sha3Hash getBranchIdHash() {
         byte[] branchIdBytes = db.get(BlockchainMetaInfo.BRANCH_ID.toString().getBytes());
         return new Sha3Hash(branchIdBytes, true);
     }
@@ -207,7 +208,7 @@ public class BranchStore implements ReadWriterStore<String, String>, BranchState
     // Save Contracts initial values
     public void setBranchContracts(List<BranchContract> contracts) {
         JsonArray array = new JsonArray();
-        contracts.stream().forEach(c -> array.add(c.getJson()));
+        contracts.forEach(c -> array.add(c.getJson()));
         byte[] contractBytes = array.toString().getBytes();
         db.put(BlockchainMetaInfo.BRANCH_CONTRACTS.toString().getBytes(), contractBytes);
     }

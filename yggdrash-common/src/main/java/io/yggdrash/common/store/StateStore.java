@@ -5,14 +5,11 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
 
+public class StateStore implements ReadWriterStore<String, JsonObject> {
 
-public class StateStore<T> implements ReadWriterStore<String, JsonObject> {
-    private static final Logger log = LoggerFactory.getLogger(StateStore.class);
     private final DbSource<byte[], byte[]> db;
     private long dbSize = 0L;
     private static final byte[] DATABASE_SIZE = "DATABASE_SIZE".getBytes();
@@ -29,8 +26,7 @@ public class StateStore<T> implements ReadWriterStore<String, JsonObject> {
     public long getStateSize() {
         return dbSize;
     }
-
-
+    
     @Override
     public void put(String key, JsonObject value) {
         // Check exist

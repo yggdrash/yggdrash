@@ -27,14 +27,14 @@ import static org.junit.Assert.assertEquals;
 
 public class VersioningContractTest {
          private VersioningContract.VersioningContractService service;
-        private StateStore<JsonObject> store;
+        private StateStore store;
         private Field txReceiptField;
         private File contractFile;
 
         @Before
         public void setUp() throws IllegalAccessException {
             service = new VersioningContract.VersioningContractService();
-            store = new StateStore<>(new HashMapDbSource());
+            store = new StateStore(new HashMapDbSource());
             List<Field> txReceipt = ContractUtils.txReceiptFields(service);
             if (txReceipt.size() == 1) {
                 txReceiptField = txReceipt.get(0);

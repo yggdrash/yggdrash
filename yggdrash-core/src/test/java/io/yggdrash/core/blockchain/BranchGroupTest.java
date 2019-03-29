@@ -101,6 +101,7 @@ public class BranchGroupTest {
         }
 
         branchGroup.generateBlock(wallet(), blockChain.getBranchId());
+        assertThat(blockChain.transactionCount()).isEqualTo(101); // include genesis tx
     }
 
     @Test
@@ -121,6 +122,8 @@ public class BranchGroupTest {
     @Test
     public void specificBlockHeightOfBlockChain() {
         addMultipleBlock(block);
+        BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
+        assertThat(blockChain.getLastIndex()).isEqualTo(10);
     }
 
     private void addMultipleBlock(BlockHusk block) {

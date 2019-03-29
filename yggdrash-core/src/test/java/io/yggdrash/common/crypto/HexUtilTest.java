@@ -1,5 +1,6 @@
 package io.yggdrash.common.crypto;
 
+import org.junit.Assert;
 import org.junit.Test;
 import org.spongycastle.util.encoders.Hex;
 
@@ -76,23 +77,22 @@ public class HexUtilTest {
 
     @Test
     public void unifiedNumericToBigInteger() {
-        assert HexUtil.unifiedNumericToBigInteger("1").intValue() == 1;
+        Assert.assertEquals(1, HexUtil.unifiedNumericToBigInteger("1").intValue());
     }
 
     @Test
     public void isValidAddress() {
-        assert HexUtil.isValidAddress(HexUtil.addressStringToBytes(VALID_ADDR));
+        Assert.assertTrue(HexUtil.isValidAddress(HexUtil.addressStringToBytes(VALID_ADDR)));
     }
 
     @Test
     public void getAddressShortString() {
-        assert HexUtil.getAddressShortString(HexUtil.addressStringToBytes(VALID_ADDR))
-                .equals("6c386a...");
+        Assert.assertEquals("6c386a...", HexUtil.getAddressShortString(HexUtil.addressStringToBytes(VALID_ADDR)));
     }
 
     @Test
     public void getHashListShort() {
         List<byte[]> hashList = java.util.Arrays.asList("a".getBytes(), "b".getBytes());
-        assert HexUtil.getHashListShort(hashList).equals(" 61...62");
+        Assert.assertEquals(" 61...62", HexUtil.getHashListShort(hashList));
     }
 }

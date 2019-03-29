@@ -111,6 +111,7 @@ public class VersioningContractStateValue {
     public static VersioningContractStateValue of(String txId) {
         return new VersioningContractStateValue(txId);
     }
+
     public static VersioningContractStateValue of(ContractSet contractSet) {
         return new VersioningContractStateValue(contractSet);
     }

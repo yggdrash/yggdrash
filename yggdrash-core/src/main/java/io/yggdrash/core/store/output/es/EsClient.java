@@ -1,6 +1,7 @@
 package io.yggdrash.core.store.output.es;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.contract.core.store.OutputStore;
 import org.elasticsearch.action.bulk.BulkRequestBuilder;
 import org.elasticsearch.action.bulk.BulkResponse;
@@ -9,12 +10,12 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Set;
 
@@ -23,8 +24,8 @@ public class EsClient implements OutputStore {
 
     private static final String INDEX = "yggdrash";
 
-    public TransportClient client;
-    private Set<String> eventSet;
+    private final TransportClient client;
+    private final Set<String> eventSet;
 
     private EsClient(TransportClient client, Set<String> eventSet) {
         this.client = client;
@@ -36,14 +37,11 @@ public class EsClient implements OutputStore {
                 .put("client.transport.ignore_cluster_name", true)
                 .build();
 
-        try {
-            TransportClient client = new PreBuiltTransportClient(settings)
-                    .addTransportAddress(new TransportAddress(InetAddress.getByName(host), port));
-
+        try (TransportClient client = new PreBuiltTransportClient(settings)) {
+            client.addTransportAddress(new TransportAddress(InetAddress.getByName(host), port));
             return new EsClient(client, events);
-        } catch (Exception e) {
-            log.error("Create es client exception: msg - {}", e.getMessage());
-            throw new RuntimeException(e);
+        } catch (UnknownHostException e) {
+            throw new FailedOperationException(e);
         }
     }
 
@@ -68,7 +66,7 @@ public class EsClient implements OutputStore {
         block.remove("body");
 
         String id = block.getAsJsonObject("header").get("index").getAsString();
-        IndexResponse response = client.prepareIndex(INDEX+"-block", "_doc", id)
+        IndexResponse response = client.prepareIndex(INDEX + "-block", "_doc", id)
                 .setSource(block.toString(), XContentType.JSON).get();
 
         switch (response.status()) {
@@ -89,7 +87,7 @@ public class EsClient implements OutputStore {
         BulkRequestBuilder bulkRequest = client.prepareBulk();
         transactionMap.forEach((txHash, tx) -> {
             tx.addProperty("blockId", blockId);
-            bulkRequest.add(client.prepareIndex(INDEX+"-tx", "_doc", txHash)
+            bulkRequest.add(client.prepareIndex(INDEX + "-tx", "_doc", txHash)
                     .setSource(tx.toString(), XContentType.JSON));
         });
 

@@ -66,8 +66,4 @@ public class TransactionBody {
     public byte[] toBinary() {
         return this.body.toString().getBytes(StandardCharsets.UTF_8);
     }
-
-    public TransactionBody clone() {
-        return new TransactionBody(this.body);
-    }
 }

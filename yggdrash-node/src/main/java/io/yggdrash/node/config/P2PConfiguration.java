@@ -82,7 +82,7 @@ public class P2PConfiguration {
     @Bean
     PeerTableGroup peerTableGroup(Peer owner, PeerDialer peerDialer) {
 
-        return PeerTableGroupBuilder.Builder()
+        return PeerTableGroupBuilder.newBuilder()
                 .setOwner(owner)
                 .setStoreBuilder(storeBuilder)
                 .setPeerDialer(peerDialer)

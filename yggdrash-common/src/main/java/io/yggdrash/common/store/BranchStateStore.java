@@ -18,7 +18,6 @@ package io.yggdrash.common.store;
 
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
-import java.util.Set;
 
 public interface BranchStateStore {
     public Long getLastExecuteBlockIndex();

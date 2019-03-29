@@ -104,22 +104,23 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, TransactionHu
     }
 
     public void batch(Set<Sha3Hash> keys) {
-        LOCK.lock();
-        if (keys.size() > 0) {
-            Map<Sha3Hash, TransactionHusk> map = pendingPool.getAll(keys);
-            int countOfBatchedTxs = map.size();
-            for (Sha3Hash key : map.keySet()) {
-                TransactionHusk foundTx = map.get(key);
-                if (foundTx != null) {
-                    db.put(key.getBytes(), foundTx.getData());
-                    addReadCache(foundTx);
-                } else {
-                    countOfBatchedTxs -= 1;
-                }
-            }
-            this.countOfTxs += countOfBatchedTxs;
-            this.flush(keys);
+        if (keys.isEmpty()) {
+            return;
         }
+        LOCK.lock();
+        Map<Sha3Hash, TransactionHusk> map = pendingPool.getAll(keys);
+        int countOfBatchedTxs = map.size();
+        for (Map.Entry<Sha3Hash, TransactionHusk> entry : map.entrySet()) {
+            TransactionHusk foundTx = entry.getValue();
+            if (foundTx != null) {
+                db.put(entry.getKey().getBytes(), foundTx.getData());
+                addReadCache(foundTx);
+            } else {
+                countOfBatchedTxs -= 1;
+            }
+        }
+        this.countOfTxs += countOfBatchedTxs;
+        this.flush(keys);
         LOCK.unlock();
     }
 
@@ -137,14 +138,13 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, TransactionHu
         List<TransactionHusk> unconfirmedTxs = new ArrayList<>(pendingKeys.size());
         for (Sha3Hash key : pendingKeys) {
             TransactionHusk tx = pendingPool.get(key);
-            if (tx == null) {
-                continue;
+            if (tx != null) {
+                bodySizeSum += tx.getLength();
+                if (bodySizeSum > limit) {
+                    break;
+                }
+                unconfirmedTxs.add(tx);
             }
-            bodySizeSum += tx.getLength();
-            if (bodySizeSum > limit) {
-                break;
-            }
-            unconfirmedTxs.add(tx);
         }
         LOCK.unlock();
         return unconfirmedTxs;
@@ -153,7 +153,7 @@ public class TransactionStore implements ReadWriterStore<Sha3Hash, TransactionHu
     public Collection<TransactionHusk> getUnconfirmedTxs() {
         LOCK.lock();
         Collection<TransactionHusk> unconfirmedTxs = pendingPool.getAll(pendingKeys).values();
-        if (unconfirmedTxs.size() > 0) {
+        if (!unconfirmedTxs.isEmpty()) {
             log.debug("unconfirmedKeys={} unconfirmedTxs={}", pendingKeys.size(), unconfirmedTxs.size());
         }
         LOCK.unlock();

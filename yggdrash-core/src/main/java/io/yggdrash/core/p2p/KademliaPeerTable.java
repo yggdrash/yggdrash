@@ -1,10 +1,12 @@
 package io.yggdrash.core.p2p;
 
 import com.google.common.annotations.VisibleForTesting;
+import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.core.store.PeerStore;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,12 +18,18 @@ public class KademliaPeerTable implements PeerTable {
     private static final Logger log = LoggerFactory.getLogger(KademliaPeerTable.class);
 
     private final Peer owner;  // our node
-    private final transient PeerStore peerStore;
-    private transient PeerBucket[] buckets;
+    private final PeerStore peerStore;
+    private PeerBucket[] buckets;
+    private final Random rand; // SecureRandom is preferred to Random
 
     public KademliaPeerTable(Peer owner, PeerStore peerStore) {
         this.owner = owner;
         this.peerStore = peerStore;
+        try {
+            this.rand = SecureRandom.getInstanceStrong();
+        } catch (Exception e) {
+            throw new FailedOperationException(e);
+        }
         init();
     }
 
@@ -51,23 +59,6 @@ public class KademliaPeerTable implements PeerTable {
         }
     }
 
-    // resolve searches for a specific peer with the given ID.
-    // It returns null if the node could not be found.
-    Peer resolve(Peer peer) {
-        // If the node is present in the local table, no network interaction is required.
-        List<Peer> closest = getClosestPeers(peer, 1);
-        if (closest.size() > 0 && closest.contains(peer)) {
-            return peer;
-        }
-
-        // Otherwise, do a network lookup (TODO network lookup implementation)
-        // (The current network lookup is the dht task of kademliaDiscovery.)
-        // Set<Peer> res = lookup(peer);
-        // if (res.contains(peer)) { return peer; }
-
-        return null;
-    }
-
     // addPeer attempts to add the given peer to its corresponding bucket.
     // If the bucket has space available, adding the peer succeeds immediately.
     // Otherwise, the node is added if the least recently active node in the bucket
@@ -76,11 +67,6 @@ public class KademliaPeerTable implements PeerTable {
     public synchronized void addPeer(Peer peer) {
         peer.setDistance(owner);
         buckets[getBucketId(peer)].addPeer(peer);
-
-        /*
-        log.trace("peerTable :: addPeer => {}, peersCnt => {}, bucketSize => {}",
-                peer.toAddress(), getAllPeers().size(), getBucketsCount());
-                */
     }
 
     public synchronized boolean contains(Peer p) {
@@ -98,7 +84,6 @@ public class KademliaPeerTable implements PeerTable {
         long baseTime = System.currentTimeMillis();
         for (Peer peer : getAllPeers()) {
             if (baseTime - peer.getModified() < minTableTime) {
-                //updatePeerStore(peer);
                 peerList.add(peer);
             }
         }
@@ -217,16 +202,13 @@ public class KademliaPeerTable implements PeerTable {
     // returns the last node in a random, non-empty bucket
     @Override
     public Peer peerToRevalidate() {
-        Random r = new Random();
         int cnt = 1;
-        int startIndex = r.nextInt(KademliaOptions.BINS);
+        int startIndex = rand.nextInt(KademliaOptions.BINS);
 
         for (; cnt < KademliaOptions.BINS; startIndex++, cnt++) {
             if (startIndex == 0 || startIndex == KademliaOptions.BINS) {
                 startIndex = 1;
             }
-
-            //log.debug("peerTask :: bucketIndex => " + startIndex);
 
             PeerBucket bucket = getBucketByIndex(startIndex);
 

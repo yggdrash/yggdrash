@@ -170,7 +170,8 @@ public class DPoAContract implements BundleActivator {
             ValidatorSet validatorSet = getValidatorSet();
             if (validatorSet == null || validatorSet.getValidatorMap() == null
                     || validatorSet.getValidatorMap().get(txReceipt.getIssuer()) == null) {
-                log.error("ISSUER IS NOT validator {} {}", txReceipt.getIssuer(), validatorSet.getValidatorMap().size());
+                log.error("ISSUER IS NOT validator {} {}", txReceipt.getIssuer(),
+                        validatorSet.getValidatorMap().size());
                 return txReceipt;
             }
 
@@ -255,8 +256,8 @@ public class DPoAContract implements BundleActivator {
 
             ProposeValidatorSet proposeValidatorSet = getProposeValidatorSet();
             if (proposeValidatorSet != null && proposeValidatorSet.getValidatorMap() != null) {
-                for (Iterator<Map.Entry<String, ProposeValidatorSet.Votable>> it =
-                     proposeValidatorSet.getValidatorMap().entrySet().iterator(); it.hasNext(); ) {
+                for (Iterator<Map.Entry<String, ProposeValidatorSet.Votable>> it = proposeValidatorSet
+                        .getValidatorMap().entrySet().iterator(); it.hasNext(); ) {
                     Map.Entry<String, ProposeValidatorSet.Votable> entry = it.next();
                     switch (entry.getValue().status()) {
                         case AGREE:

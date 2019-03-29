@@ -53,8 +53,8 @@ public class StoreBuilderTest {
         BlockHusk block = BlockChainTestUtils.genesisBlock();
         BlockStore store = builder.buildBlockStore(BRANCH_ID);
         store.put(block.getHash(), block);
-        assert store.contains(block.getHash());
-        assert store.get(block.getHash()).equals(block);
+        assertThat(store.contains(block.getHash())).isTrue();
+        assertThat(store.get(block.getHash())).isEqualTo(block);
     }
 
     @Test
@@ -62,8 +62,8 @@ public class StoreBuilderTest {
         TransactionHusk tx = BlockChainTestUtils.createTransferTxHusk();
         TransactionStore store = builder.buildTxStore(BRANCH_ID);
         store.put(tx.getHash(), tx);
-        assert store.contains(tx.getHash());
-        assert store.get(tx.getHash()).equals(tx);
+        assertThat(store.contains(tx.getHash())).isTrue();
+        assertThat(store.get(tx.getHash())).isEqualTo(tx);
     }
 
     @Test
@@ -71,7 +71,7 @@ public class StoreBuilderTest {
         Peer peer = Peer.valueOf("ynode://75bff16c@127.0.0.1:32918");
         PeerStore store = builder.buildPeerStore(TestConstants.yggdrash());
         store.put(peer.getPeerId(), peer);
-        assert store.contains(peer.getPeerId());
-        assert store.get(peer.getPeerId()).equals(peer);
+        assertThat(store.contains(peer.getPeerId())).isTrue();
+        assertThat(store.get(peer.getPeerId())).isEqualTo(peer);
     }
 }

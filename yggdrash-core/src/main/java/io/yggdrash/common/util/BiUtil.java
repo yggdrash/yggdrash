@@ -22,6 +22,10 @@ import java.math.BigInteger;
 
 public class BiUtil {
 
+    private BiUtil() {
+        throw new IllegalStateException("Utility class");
+    }
+
     /**
      * @param value - not null
      * @return true - if the param is zero

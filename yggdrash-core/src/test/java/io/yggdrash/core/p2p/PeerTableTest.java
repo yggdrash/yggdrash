@@ -10,6 +10,8 @@ import org.junit.Test;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 public class PeerTableTest {
@@ -32,7 +34,7 @@ public class PeerTableTest {
         peerTable.dropPeer(peer);
 
         // assert
-        assert !peerTable.contains(peer);
+        assertFalse(peerTable.contains(peer));
     }
 
     @Test
@@ -44,7 +46,7 @@ public class PeerTableTest {
         Peer peerForRevalidate = peerTable.peerToRevalidate();
 
         // assert
-        assert peerForRevalidate == null;
+        assertNull(peerForRevalidate);
     }
 
     @Test
@@ -59,7 +61,7 @@ public class PeerTableTest {
         Peer peerForRevalidate = peerTable.peerToRevalidate();
 
         // assert
-        assert peer.equals(peerForRevalidate);
+        assertEquals(peer, peerForRevalidate);
     }
 
     @Test
@@ -77,7 +79,7 @@ public class PeerTableTest {
         long touchedTime = peer2.getModified();
         List<Peer> latestPeerList = peerTable.getLatestPeers(touchedTime);
 
-        assertEquals(latestPeerList.size(), 1);
+        assertEquals(1, latestPeerList.size());
         assertTrue(!latestPeerList.contains(peer1));
         assertTrue(latestPeerList.contains(peer2));
     }
@@ -117,12 +119,12 @@ public class PeerTableTest {
         peerTable.copyLiveNode(5);
 
         // assert
-        assertEquals(peerTable.getPeerStore().size(), 0);
+        assertEquals(0, peerTable.getPeerStore().size());
 
         // act
         peerTable.copyLiveNode(500);
         // assert
-        assertEquals(peerTable.getPeerStore().size(), 2);
+        assertEquals(2, peerTable.getPeerStore().size());
 
         // arrange(2)
         Peer peer3 = Peer.valueOf("ynode://75bff16c@127.0.0.1:32920");
@@ -131,14 +133,14 @@ public class PeerTableTest {
         peerTable.addPeer(peer3);
         peerTable.addPeer(peer4);
         peerTable.addPeer(peer5);
-        assertEquals(peerTable.getPeerStore().size(), 2);
+        assertEquals(2, peerTable.getPeerStore().size());
 
         // act
         Utils.sleep(10);
         peerTable.copyLiveNode(15);
 
         //assert
-        assertEquals(peerTable.getPeerStore().size(), 3);
+        assertEquals(3, peerTable.getPeerStore().size());
     }
 
     @Test

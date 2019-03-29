@@ -24,7 +24,10 @@ import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.contract.StemContract;
 import org.junit.Ignore;
 import org.junit.Test;
+
 import java.math.BigInteger;
+
+import static org.junit.Assert.assertEquals;
 
 @Ignore
 public class RuntimeQueryTest {
@@ -32,13 +35,13 @@ public class RuntimeQueryTest {
 
     @Test
     public void querySomeContract() throws Exception {
-        ReadWriterStore<String,JsonObject> tempStore = new StateStore<>(new HashMapDbSource());
+        ReadWriterStore<String,JsonObject> tempStore = new StateStore(new HashMapDbSource());
         tempStore.put("TOTAL_SUPPLY",
                 new JsonParser().parse("{\"balance\":10000}").getAsJsonObject());
         RuntimeQuery query = new RuntimeQuery(stemContract);
         query.setStore(tempStore);
 
         Object result = query.query("totalSupply", null);
-        assert BigInteger.valueOf(10000).equals(result);
+        assertEquals(BigInteger.valueOf(10000), result);
     }
 }

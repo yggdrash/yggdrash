@@ -18,6 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,6 +29,7 @@ public class PrepareBlockchainTest {
     private static final Logger log = LoggerFactory.getLogger(PrepareBlockchainTest.class);
 
     @Test
+    @Ignore
     public void loadContractFile() {
         PrepareBlockchain pb = new PrepareBlockchain(new DefaultConfig().getContractPath());
         ContractVersion version = ContractVersion.of("74df17611373672371cb3872e8a5d4a2e8733fb1");
