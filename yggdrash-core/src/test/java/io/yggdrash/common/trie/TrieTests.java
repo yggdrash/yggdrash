@@ -11,6 +11,7 @@ import org.spongycastle.util.encoders.Hex;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -60,13 +61,13 @@ public class TrieTests {
         // 3. test with tx 0
         txsList = new ArrayList<>();
         merkleRoot = Trie.getMerkleRootHusk(txsList);
-        assertEquals(0, merkleRoot.length);
+        assertEquals(EMPTY_BYTE32.length, merkleRoot.length);
 
         log.debug("MerkleRoot with tx 0 = null");
 
         // 4. test with tx null
         merkleRoot = Trie.getMerkleRootHusk(null);
-        assertEquals(0, merkleRoot.length);
+        assertEquals(EMPTY_BYTE32.length, merkleRoot.length);
 
         log.debug("MerkleRoot with tx null = null");
 
@@ -78,7 +79,7 @@ public class TrieTests {
 
         txsList.add(null);
         merkleRoot = Trie.getMerkleRootHusk(txsList);
-        assertEquals(0, merkleRoot.length);
+        assertEquals(EMPTY_BYTE32.length, merkleRoot.length);
     }
 
     @Test

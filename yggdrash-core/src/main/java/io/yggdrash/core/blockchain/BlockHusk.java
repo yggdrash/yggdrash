@@ -82,9 +82,6 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         }
 
         byte[] merkleRoot = Trie.getMerkleRootHusk(body);
-        if (merkleRoot == null) {
-            merkleRoot = EMPTY_BYTE;
-        }
 
         long length = 0;
 
