@@ -29,6 +29,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.boot.actuate.health.Health;
 import org.springframework.boot.actuate.health.Status;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
 @RunWith(MockitoJUnitRunner.Silent.class)
@@ -51,23 +52,23 @@ public class NodeHealthIndicatorTest {
     @Test
     public void health() {
         Health health = nodeHealthIndicator.health();
-        assert health.getStatus() == Status.DOWN;
-        assert health.getDetails().get("name").equals("yggdrash");
+        assertEquals(Status.DOWN, health.getStatus());
+        assertEquals("yggdrash", health.getDetails().get("name"));
         assertNotNull(health.getDetails().get("branches"));
-        assert (int) health.getDetails().get("activePeers") == 0;
+        assertEquals(0, (int) health.getDetails().get("activePeers"));
     }
 
     @Test
     public void up() {
-        assert nodeHealthIndicator.health().getStatus() == Status.DOWN;
+        assertEquals(Status.DOWN, nodeHealthIndicator.health().getStatus());
         nodeHealthIndicator.up();
-        assert nodeHealthIndicator.health().getStatus() == Status.UP;
+        assertEquals(Status.UP, nodeHealthIndicator.health().getStatus());
     }
 
     @Test
     public void sync() {
-        assert nodeHealthIndicator.health().getStatus() == Status.DOWN;
+        assertEquals(Status.DOWN, nodeHealthIndicator.health().getStatus());
         nodeHealthIndicator.sync();
-        assert nodeHealthIndicator.health().getStatus().getCode().equals(SYNC.getCode());
+        assertEquals(SYNC.getCode(), nodeHealthIndicator.health().getStatus().getCode());
     }
 }

@@ -22,6 +22,8 @@ import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.core.annotation.ContractTransactionReceipt;
 import io.yggdrash.contract.core.annotation.ParamValidation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
@@ -33,6 +35,11 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ContractUtils {
+    private static final Logger log = LoggerFactory.getLogger(ContractUtils.class);
+
+    private ContractUtils() {
+        throw new IllegalStateException("Utility class");
+    }
 
     public static Boolean contractValidation(Object contract) {
         Map<String, ContractMethod> validationMethods =
@@ -55,16 +62,15 @@ public class ContractUtils {
                 f.setAccessible(true);
                 f.set(contract, store);
             } catch (IllegalAccessException e) {
-                e.printStackTrace();
+                log.warn(e.getMessage());
             }
         }
     }
 
     public static List<Field> contractFields(Object contract, Class<? extends Annotation> annotationClass) {
-        List<Field> fields = Arrays.stream(contract.getClass().getDeclaredFields())
+        return Arrays.stream(contract.getClass().getDeclaredFields())
                 .filter(field -> field.isAnnotationPresent(annotationClass))
                 .collect(Collectors.toList());
-        return fields;
     }
 
     public static Map<String, ContractMethod> contractMethods(
@@ -77,12 +83,11 @@ public class ContractUtils {
                 );
     }
 
-    public static Contract contractInstance(Contract contract) throws FailedOperationException {
+    public static Contract contractInstance(Contract contract) {
         try {
-            Contract instance = contract.getClass().getDeclaredConstructor().newInstance();
-            return instance;
+            return contract.getClass().getDeclaredConstructor().newInstance();
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn(e.getMessage());
             throw new FailedOperationException("Contract instance Fail");
         }
     }

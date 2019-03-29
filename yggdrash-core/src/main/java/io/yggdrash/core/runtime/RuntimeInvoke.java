@@ -22,7 +22,6 @@ import io.yggdrash.common.contract.methods.ContractMethod;
 import io.yggdrash.common.utils.ContractUtils;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.store.TempStateStore;
@@ -32,24 +31,21 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Map;
 
-class RuntimeInvoke<T> {
+class RuntimeInvoke {
     // This Class is Invoke Transaction for Contract
 
     // TODO contract change meta Class
-    private final Contract<T> contract;
+    private final Contract contract;
 
     private final Map<String, ContractMethod> invokeMethods;
-    private ContractMethod genesis;
     private Field transactionReceiptField;
     private final List<Field> stateField;
 
-    RuntimeInvoke(Contract<T> contract) {
+    RuntimeInvoke(Contract contract) {
         // contract Instance
         // TODO change contract to contractMeta
         this.contract = ContractUtils.contractInstance(contract);
         invokeMethods = getInvokeMethods(contract);
-        // Genesis
-        //genesis = getGenesisMethod(contract);
         stateField = ContractUtils.stateStoreFields(contract);
         transactionReceipt();
     }
@@ -64,20 +60,8 @@ class RuntimeInvoke<T> {
 
     // TODO Change Meta info
     // TODO filter invoke jSonObject
-    private Map<String, ContractMethod> getInvokeMethods(Contract<T> contract) {
+    private Map<String, ContractMethod> getInvokeMethods(Contract contract) {
         return ContractUtils.contractMethods(contract, InvokeTransaction.class);
-    }
-
-    // TODO remove
-    private ContractMethod getGenesisMethod(Contract<T> contract) {
-        Map<String, ContractMethod> genesisMethods = ContractUtils.contractMethods(contract, Genesis.class);
-        Map.Entry<String, ContractMethod> genesisEntry = genesisMethods.isEmpty()
-                ? null : genesisMethods.entrySet().iterator().next();
-
-        if (genesisEntry != null) {
-            return genesisEntry.getValue();
-        }
-        return null;
     }
 
     TempStateStore invokeTransaction(JsonObject txBody, TransactionReceipt txReceipt, ReadWriterStore origin)

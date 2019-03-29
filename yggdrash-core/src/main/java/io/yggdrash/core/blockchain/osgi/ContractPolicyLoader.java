@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.ServiceLoader;
 
 public class ContractPolicyLoader {
-    private final String extraPackages = "io.yggdrash.common.contract"
+    private static final String EXTRA_PACKAGES = "io.yggdrash.common.contract"
             + ",io.yggdrash.common.contract.method"
             + ",io.yggdrash.common.contract.vo"
             + ",io.yggdrash.common.contract.vo.dpoa"
@@ -51,7 +51,7 @@ public class ContractPolicyLoader {
         frameworkFactory = iterator.next();
 
         containerConfig = new HashMap<>();
-        containerConfig.put("org.osgi.framework.system.packages.extra", extraPackages);
+        containerConfig.put("org.osgi.framework.system.packages.extra", EXTRA_PACKAGES);
         containerConfig.put("org.osgi.framework.security", "osgi");
     }
 

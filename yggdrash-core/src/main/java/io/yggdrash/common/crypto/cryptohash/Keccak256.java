@@ -73,6 +73,7 @@ public class Keccak256 extends KeccakCore {
     /**
      * @see org.ethereum.crypto.cryptohash.Digest
      */
+    @Override
     public int engineGetDigestLength() {
         return 32;
     }

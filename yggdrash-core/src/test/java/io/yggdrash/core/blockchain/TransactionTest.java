@@ -85,15 +85,14 @@ public class TransactionTest extends SlowTest {
     }
 
     @Test
-    public void testTransactionConstructor() throws Exception {
+    public void testTransactionConstructor() {
         Transaction tx2 = new Transaction(tx1.toJsonObject());
         assertTrue(tx2.verify());
         log.debug("tx2=" + tx2.toJsonObject());
         log.debug("tx2=" + tx2.toString());
         assertEquals(tx1.toJsonObject(), tx2.toJsonObject());
 
-        Transaction tx3
-                = new Transaction(txHeader.clone(), tx1.getSignature().clone(), txBody.clone());
+        Transaction tx3 = new Transaction(tx1.toBinary());
         assertTrue(tx3.verify());
 
         log.debug("tx3=" + tx3.toJsonObject());
@@ -136,14 +135,14 @@ public class TransactionTest extends SlowTest {
     }
 
     @Test
-    public void testTransactionRawConstructor() throws Exception {
+    public void testTransactionRawConstructor() {
         Transaction tx2 = new Transaction(tx1.toBinary());
         assertArrayEquals(tx1.toBinary(), tx2.toBinary());
     }
 
     @Test
     public void testTransactionClone() {
-        Transaction tx2 = tx1.clone();
+        Transaction tx2 = new Transaction(tx1.toBinary());
         log.debug("tx2=" + tx2.toJsonObject());
 
         assertEquals(tx1.toJsonObject(), tx2.toJsonObject());
@@ -161,7 +160,7 @@ public class TransactionTest extends SlowTest {
 
     @Test
     public void testTransactionField() {
-        Transaction tx2 = tx1.clone();
+        Transaction tx2 = new Transaction(tx1.toBinary());
         log.debug("tx2=" + tx2.toJsonObject());
 
         assertEquals(txHeader.toJsonObject().toString(),
@@ -172,7 +171,7 @@ public class TransactionTest extends SlowTest {
 
     @Test
     public void testTransactionGetHash() {
-        Transaction tx2 = tx1.clone();
+        Transaction tx2 = new Transaction(tx1.toBinary());
         log.debug("tx2=" + tx2.toJsonObject());
 
         assertEquals(tx1.getHashString(), tx2.getHashString());
@@ -189,7 +188,7 @@ public class TransactionTest extends SlowTest {
 
     @Test
     public void testTransactionKey() throws Exception {
-        Transaction tx2 = tx1.clone();
+        Transaction tx2 = new Transaction(tx1.toBinary());
         log.debug("tx2 pubKey=" + tx2.getPubKeyHexString());
         log.debug("tx2 headerHash=" + Hex.toHexString(tx2.getHeader().getHashForSigning()));
         log.debug("tx2 pubKey=" + Hex.toHexString(tx2.getPubKey()));
@@ -201,10 +200,8 @@ public class TransactionTest extends SlowTest {
         log.debug("tx1 address=" + tx1.getAddressToString());
         log.debug("tx2 address=" + tx2.getAddressToString());
         log.debug("wallet address=" + wallet.getHexAddress());
-        log.debug("wallet signature=" + Hex.toHexString(
-                wallet.signHashedData(tx1.getHeader().getHashForSigning())));
-        log.debug("wallet pubKey=" + Hex.toHexString(
-                wallet.getPubicKey()));
+        log.debug("wallet signature=" + Hex.toHexString(wallet.sign(tx1.getHeader().getHashForSigning(), true)));
+        log.debug("wallet pubKey=" + Hex.toHexString(wallet.getPubicKey()));
 
         assertArrayEquals(tx1.getAddress(), tx2.getAddress());
         assertArrayEquals(tx1.getAddress(), wallet.getAddress());
@@ -212,7 +209,7 @@ public class TransactionTest extends SlowTest {
 
     @Test
     public void testTransactionToProto() throws Exception {
-        Transaction tx2 = tx1.clone();
+        Transaction tx2 = new Transaction(tx1.toBinary());
         log.debug("tx2 pubKey=" + tx2.getPubKeyHexString());
 
         assertEquals(tx1.getPubKeyHexString(), tx2.getPubKeyHexString());

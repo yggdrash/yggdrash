@@ -30,7 +30,6 @@ import org.spongycastle.util.encoders.Hex;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 
-
 public class TransactionSignatureTest {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionSignatureTest.class);
@@ -83,7 +82,7 @@ public class TransactionSignatureTest {
 
     @Test
     public void testTransactionSignatureClone() {
-        TransactionSignature txSig2 = txSig1.clone();
+        TransactionSignature txSig2 = new TransactionSignature(txSig1.toJsonObject());
         log.debug("txSig1=" + txSig1.getSignatureHexString());
         log.debug("txSig2=" + txSig2.getSignatureHexString());
 

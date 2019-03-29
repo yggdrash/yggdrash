@@ -120,7 +120,7 @@ public class BlockChainTestUtils {
         } else {
             storeBuilder = new StoreBuilder(new DefaultConfig());
         }
-        return BlockChainBuilder.Builder()
+        return BlockChainBuilder.newBuilder()
                 .addGenesis(genesis)
                 .setStoreBuilder(storeBuilder)
                 .setPolicyLoader(new ContractPolicyLoader())

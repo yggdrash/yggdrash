@@ -28,6 +28,10 @@ public class ByteUtil {
     private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
     private static final byte[] ZERO_BYTE_ARRAY = new byte[] {0};
 
+    private ByteUtil() {
+        throw new IllegalStateException("Utility class");
+    }
+
     /**
      * Creates a copy of bytes and appends b to the end of it
      */
@@ -356,7 +360,7 @@ public class ByteUtil {
         int posByte = data.length - 1 - pos / 8;
         int posBit = pos % 8;
         byte dataByte = data[posByte];
-        return Math.min(1, (dataByte & (1 << (posBit))));
+        return Math.min(1, ((dataByte & 0xff) & (1 << (posBit))));
     }
 
     public static byte[] and(byte[] b1, byte[] b2) {

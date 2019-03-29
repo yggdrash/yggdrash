@@ -19,16 +19,16 @@ public class NoneContract implements BundleActivator {
     private static final Logger log = LoggerFactory.getLogger(NoneContract.class);
 
     @Override
-    public void start(BundleContext context) throws Exception {
+    public void start(BundleContext context) {
         log.info("⚪ Start none contract");
         //Find for service in another bundle
-        Hashtable<String, String> props = new Hashtable();
+        Hashtable<String, String> props = new Hashtable<>();
         props.put("YGGDRASH", "None");
         context.registerService(NoneService.class.getName(), new NoneService(), props);
     }
 
     @Override
-    public void stop(BundleContext context) throws Exception {
+    public void stop(BundleContext context) {
         log.info("⚫ Stop none contract");
     }
 

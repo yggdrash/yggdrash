@@ -20,6 +20,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.vo.dpoa.ProposeValidatorSet;
+import io.yggdrash.common.contract.vo.dpoa.ProposeValidatorSet.Votable.Vote;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.contract.vo.dpoa.tx.TxValidatorPropose;
@@ -38,6 +39,7 @@ import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
@@ -49,17 +51,19 @@ import static org.junit.Assert.assertTrue;
 
 public class DPoAContractTest {
     private static final Logger log = LoggerFactory.getLogger(DPoAContractTest.class);
+    private static final String ISSUER = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
+    private static final String PROPOSED_VALIDATOR = "db0c9f45be6b121aaeef9e382320e0b156487b57";
+    private static final String VALIDATOR_1 = "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95";
+    private static final String VALIDATOR_2 = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
 
     private DPoAContract.DPoAService dPoAService;
-    private StateStore<JsonObject> store;
-    private BranchStateStore branchStateStore;
     private Field txReceiptField;
     private JsonArray validatorsArr;
 
     @Before
     public void setUp() throws IllegalAccessException {
-        store = new StateStore<>(new HashMapDbSource());
-        branchStateStore = new BranchStateStore() {
+        StateStore store = new StateStore(new HashMapDbSource());
+        BranchStateStore branchStateStore = new BranchStateStore() {
             ValidatorSet validators;
 
             @Override
@@ -130,31 +134,28 @@ public class DPoAContractTest {
     }
 
     @Test
-    public void proposeValidator() throws Exception {
+    public void proposeValidator() throws IllegalAccessException {
         log.debug("validator 추가 프로세스 start");
-        String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
         TransactionReceipt preReceipt = new TransactionReceiptImpl();
-        preReceipt.setIssuer(issuer);
+        preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
-        String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
-        TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
-        log.debug("proposeValidator {} , {} ", issuer, proposedValidator);
+        TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
+        log.debug("proposeValidator {} , {} ", ISSUER, PROPOSED_VALIDATOR);
 
         TransactionReceipt receipt = dPoAService.proposeValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
-
 
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         ProposeValidatorSet proposeValidatorSet = dPoAService.getProposeValidatorSet();
         assertNotNull(proposeValidatorSet);
         assertNotNull(proposeValidatorSet.getValidatorMap());
-        assertNotNull(proposeValidatorSet.getValidatorMap().get(proposedValidator));
+        assertNotNull(proposeValidatorSet.getValidatorMap().get(PROPOSED_VALIDATOR));
 
         // vote
-        ProposeValidatorSet.Votable votable = proposeValidatorSet.getValidatorMap().get(proposedValidator);
-        assertEquals(issuer, votable.getProposalValidatorAddr());
+        ProposeValidatorSet.Votable votable = proposeValidatorSet.getValidatorMap().get(PROPOSED_VALIDATOR);
+        assertEquals(ISSUER, votable.getProposalValidatorAddr());
         assertEquals(0, votable.getAgreeCnt());
         assertEquals(0, votable.getDisagreeCnt());
         assertEquals(validatorsArr.size(), votable.getTotalVotableCnt());
@@ -166,10 +167,9 @@ public class DPoAContractTest {
      * TxValidatorPropose Tx가 잘못된 경우.
      */
     @Test
-    public void proposeValidatorFailTxValidation() throws Exception {
-        String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
+    public void proposeValidatorFailTxValidation() throws IllegalAccessException {
         TransactionReceipt preReceipt = new TransactionReceiptImpl();
-        preReceipt.setIssuer(issuer);
+        preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
         TransactionReceipt receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject("{}"));
@@ -180,14 +180,13 @@ public class DPoAContractTest {
      * Validator를 추천하는 Validator가 Validator Set에 존재하지 않는 경우.
      */
     @Test
-    public void proposeValidatorFailTxValidationNotExists() throws Exception {
+    public void proposeValidatorFailTxValidationNotExists() throws IllegalAccessException {
         String issuer = "a809913b5a5193b477c51b4ba4aa0e1268ed6d13";
         TransactionReceipt preReceipt = new TransactionReceiptImpl();
         preReceipt.setIssuer(issuer);
         txReceiptField.set(dPoAService, preReceipt);
 
-        String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
-        TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
+        TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
 
         TransactionReceipt receipt = dPoAService.proposeValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
@@ -198,14 +197,12 @@ public class DPoAContractTest {
      * 추천하는 Validator가 이미 추천 리스트에 존재하는 경우.
      */
     @Test
-    public void proposeValidatorFailTxValidationAlreadyExists() throws Exception {
-        String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
+    public void proposeValidatorFailTxValidationAlreadyExists() throws IllegalAccessException {
         TransactionReceipt preReceipt = new TransactionReceiptImpl();
-        preReceipt.setIssuer(issuer);
+        preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
-        String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
-        TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
+        TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
 
         TransactionReceipt receipt = dPoAService.proposeValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
@@ -220,14 +217,12 @@ public class DPoAContractTest {
      * Validator가 추천한 Validator에 대한 투표가 아직 완료되지 않아 새로운 Validator를 추천할 수 없는 경우.
      */
     @Test
-    public void proposeValidatorFailTxValidationNotYetCompleteVoting() throws Exception {
-        String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
+    public void proposeValidatorFailTxValidationNotYetCompleteVoting() throws IllegalAccessException {
         TransactionReceipt preReceipt = new TransactionReceiptImpl();
-        preReceipt.setIssuer(issuer);
+        preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
-        String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
-        TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
+        TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
 
         TransactionReceipt receipt = dPoAService.proposeValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
@@ -240,21 +235,19 @@ public class DPoAContractTest {
     }
 
     @Test
-    public void voteValidator() throws Exception {
-        String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
+    public void voteValidator() throws IllegalAccessException {
         TransactionReceipt preReceipt = new TransactionReceiptImpl();
-        preReceipt.setIssuer(issuer);
+        preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
         //Propose validator
-        String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
-        TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
+        TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
         TransactionReceipt receipt = dPoAService.proposeValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         //Vote
-        TxValidatorVote txValidatorVote = new TxValidatorVote(proposedValidator, true);
+        TxValidatorVote txValidatorVote = new TxValidatorVote(PROPOSED_VALIDATOR, true);
         TransactionReceipt votingReceipt = dPoAService.voteValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, votingReceipt.getStatus());
@@ -262,28 +255,27 @@ public class DPoAContractTest {
         ProposeValidatorSet proposeValidatorSet = dPoAService.getProposeValidatorSet();
         assertNotNull(proposeValidatorSet);
         assertNotNull(proposeValidatorSet.getValidatorMap());
-        assertNotNull(proposeValidatorSet.getValidatorMap().get(proposedValidator));
+        assertNotNull(proposeValidatorSet.getValidatorMap().get(PROPOSED_VALIDATOR));
 
-        ProposeValidatorSet.Votable votable = proposeValidatorSet.getValidatorMap().get(proposedValidator);
-        assertEquals(issuer, votable.getProposalValidatorAddr());
+        ProposeValidatorSet.Votable votable = proposeValidatorSet.getValidatorMap().get(PROPOSED_VALIDATOR);
+        assertEquals(ISSUER, votable.getProposalValidatorAddr());
         assertEquals(1, votable.getAgreeCnt());
         assertEquals(0, votable.getDisagreeCnt());
         assertEquals(validatorsArr.size(), votable.getTotalVotableCnt());
         assertEquals(validatorsArr.size(), votable.getVotedMap().size());
         assertEquals(ProposeValidatorSet.Votable.VoteStatus.NOT_YET, votable.status());
-        assertTrue(votable.getVotedMap().get(issuer).isVoted());
-        assertTrue(votable.getVotedMap().get(issuer).isAgree());
+        assertTrue(votable.getVotedMap().get(ISSUER).isVoted());
+        assertTrue(votable.getVotedMap().get(ISSUER).isAgree());
     }
 
     /**
      * TxValidatorVote Tx가 잘못된 경우.
      */
     @Test
-    public void voteValidatorFailTxValidation() throws Exception {
+    public void voteValidatorFailTxValidation() throws IllegalAccessException {
         //Vote
-        String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
         TransactionReceipt preReceipt = new TransactionReceiptImpl();
-        preReceipt.setIssuer(issuer);
+        preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
         TransactionReceipt receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject("{}"));
@@ -294,11 +286,10 @@ public class DPoAContractTest {
      * 투표하고자 하는 Validator가 제안된 Validator가 아닌 경우.
      */
     @Test
-    public void voteValidatorNotExistsProposedValidator() throws Exception {
+    public void voteValidatorNotExistsProposedValidator() throws IllegalAccessException {
         //Vote
-        String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
         TransactionReceipt preReceipt = new TransactionReceiptImpl();
-        preReceipt.setIssuer(issuer);
+        preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
         TxValidatorVote txValidatorVote = new TxValidatorVote("51e5ae98cd821fa044d1eb49f03fb81a7acf3617", false);
@@ -307,8 +298,7 @@ public class DPoAContractTest {
         assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
 
         //Propose validator
-        String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
-        TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
+        TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
         receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
@@ -321,28 +311,25 @@ public class DPoAContractTest {
      * 투표에 참여할 수 없는 Validator가 투표를 진행하는 겨웅.
      */
     @Test
-    public void voteValidatorNotAvailableVotingValidator() throws Exception {
+    public void voteValidatorNotAvailableVotingValidator() throws IllegalAccessException {
         //Vote
-        String issuer = "a2b0f5fce600eb6c595b28d6253bed92be0568ed";
         TransactionReceipt preReceipt = new TransactionReceiptImpl();
-        preReceipt.setIssuer(issuer);
+        preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
         //Propose validator
-        String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
-        TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
+        TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
         TransactionReceipt receipt = dPoAService.proposeValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
-
         //Vote
-        issuer = "33d2f8d22755e65fb0d92883f02413495ec3d9df";
+        String issuer = "33d2f8d22755e65fb0d92883f02413495ec3d9df";
         preReceipt = new TransactionReceiptImpl();
         preReceipt.setIssuer(issuer);
         txReceiptField.set(dPoAService, preReceipt);
 
-        TxValidatorVote txValidatorVote = new TxValidatorVote(proposedValidator, false);
+        TxValidatorVote txValidatorVote = new TxValidatorVote(PROPOSED_VALIDATOR, false);
         receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(
                 JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.FALSE, receipt.getStatus());
@@ -352,71 +339,70 @@ public class DPoAContractTest {
      * 새로운 Validator 찬성 투표 결과에 의해 다음 블록검증에 참여할 Validator Set 업데이트.
      */
     @Test
-    public void commitAddedValidator() throws Exception {
+    public void commitAddedValidator() throws IllegalAccessException {
         List<Validator> validators = dPoAService.commit(null);
         assertEquals(validatorsArr.size(), validators.size());
-        assertEquals("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95", validators.get(0).getAddr());
-        assertEquals("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", validators.get(1).getAddr());
-        assertEquals("a2b0f5fce600eb6c595b28d6253bed92be0568ed", validators.get(2).getAddr());
+        assertEquals(VALIDATOR_1, validators.get(0).getAddr());
+        assertEquals(VALIDATOR_2, validators.get(1).getAddr());
+        assertEquals(ISSUER, validators.get(2).getAddr());
 
         //Propose validator
         TransactionReceipt preReceipt = new TransactionReceiptImpl();
-        preReceipt.setIssuer("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95");
+        preReceipt.setIssuer(VALIDATOR_1);
         txReceiptField.set(dPoAService, preReceipt);
 
-        String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
-        TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
+        TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
         TransactionReceipt receipt = dPoAService.proposeValidator(JsonUtil.parseJsonObject(
                 JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         //Vote (agree 1/3)
         preReceipt = new TransactionReceiptImpl();
-        preReceipt.setIssuer("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95");
+        preReceipt.setIssuer(VALIDATOR_1);
         txReceiptField.set(dPoAService, preReceipt);
 
-        TxValidatorVote txValidatorVote = new TxValidatorVote(proposedValidator, true);
+        TxValidatorVote txValidatorVote = new TxValidatorVote(PROPOSED_VALIDATOR, true);
         receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         validators = dPoAService.commit(null);
         assertEquals(validatorsArr.size(), validators.size());
-        assertEquals("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95", validators.get(0).getAddr());
-        assertEquals("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", validators.get(1).getAddr());
-        assertEquals("a2b0f5fce600eb6c595b28d6253bed92be0568ed", validators.get(2).getAddr());
+        assertEquals(VALIDATOR_1, validators.get(0).getAddr());
+        assertEquals(VALIDATOR_2, validators.get(1).getAddr());
+        assertEquals(ISSUER, validators.get(2).getAddr());
 
         //Vote (agree 2/3)
         preReceipt = new TransactionReceiptImpl();
-        preReceipt.setIssuer("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        preReceipt.setIssuer(VALIDATOR_2);
         txReceiptField.set(dPoAService, preReceipt);
 
-        txValidatorVote = new TxValidatorVote(proposedValidator, true);
+        txValidatorVote = new TxValidatorVote(PROPOSED_VALIDATOR, true);
         receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         validators = dPoAService.commit(null);
         assertEquals(4, validators.size());
-        assertEquals(proposedValidator, validators.get(0).getAddr());
-        assertEquals("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95", validators.get(1).getAddr());
-        assertEquals("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", validators.get(2).getAddr());
-        assertEquals("a2b0f5fce600eb6c595b28d6253bed92be0568ed", validators.get(3).getAddr());
+        assertEquals(PROPOSED_VALIDATOR, validators.get(0).getAddr());
+        assertEquals(VALIDATOR_1, validators.get(1).getAddr());
+        assertEquals(VALIDATOR_2, validators.get(2).getAddr());
+        assertEquals(ISSUER, validators.get(3).getAddr());
 
         ProposeValidatorSet.Votable votedHistory = validators.get(0).getVotedHistory();
         assertEquals(validatorsArr.size(), votedHistory.getTotalVotableCnt());
         assertEquals(2, votedHistory.getAgreeCnt());
         assertEquals(0, votedHistory.getDisagreeCnt());
 
-        Map<String, ProposeValidatorSet.Votable.Vote> votedMap = votedHistory.getVotedMap();
-        for (String validatorAddr : votedMap.keySet()) {
-            switch (validatorAddr) {
-                case "d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95":
-                case "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94":
-                    assertTrue(votedMap.get(validatorAddr).isVoted());
-                    assertTrue(votedMap.get(validatorAddr).isAgree());
+        Map<String, Vote> votedMap = votedHistory.getVotedMap();
+        for (Map.Entry<String, Vote> entry : votedMap.entrySet()) {
+            switch (entry.getKey()) {
+                case VALIDATOR_1:
+                case VALIDATOR_2:
+                    assertTrue(entry.getValue().isVoted());
+                    assertTrue(entry.getValue().isAgree());
                     break;
-                case "a2b0f5fce600eb6c595b28d6253bed92be0568ed":
-                    assertFalse(votedMap.get(validatorAddr).isVoted());
-                    assertFalse(votedMap.get(validatorAddr).isAgree());
+                case ISSUER:
+                    assertFalse(entry.getValue().isVoted());
+                    assertFalse(entry.getValue().isAgree());
                     break;
                 default:
                     break;
@@ -429,71 +415,70 @@ public class DPoAContractTest {
     }
 
     /**
-     * 새로운 Validator 반대 투표 결과에 의해 제안된 List에서 제거.
+     * 새로운 Validator 반대 투표 결과에 의해 제안된 List 에서 제거.
      */
     @Test
-    public void commitDisagreeValidator() throws Exception {
+    public void commitDisagreeValidator() throws IllegalAccessException {
         //Propose validator
         TransactionReceipt preReceipt = new TransactionReceiptImpl();
-        preReceipt.setIssuer("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95");
+        preReceipt.setIssuer(VALIDATOR_1);
         txReceiptField.set(dPoAService, preReceipt);
 
-        String proposedValidator = "db0c9f45be6b121aaeef9e382320e0b156487b57";
-        TxValidatorPropose tx = new TxValidatorPropose(proposedValidator);
+        TxValidatorPropose tx = new TxValidatorPropose(PROPOSED_VALIDATOR);
         TransactionReceipt receipt = dPoAService.proposeValidator(
                 JsonUtil.parseJsonObject(JsonUtil.convertObjToString(tx)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         //Vote (disagree 1/3)
         preReceipt = new TransactionReceiptImpl();
-        preReceipt.setIssuer("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95");
+        preReceipt.setIssuer(VALIDATOR_1);
         txReceiptField.set(dPoAService, preReceipt);
 
-        TxValidatorVote txValidatorVote = new TxValidatorVote(proposedValidator, false);
+        TxValidatorVote txValidatorVote = new TxValidatorVote(PROPOSED_VALIDATOR, false);
         receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         List<Validator> validators = dPoAService.commit(null);
         assertEquals(3, validators.size());
-        assertEquals("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95", validators.get(0).getAddr());
-        assertEquals("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", validators.get(1).getAddr());
-        assertEquals("a2b0f5fce600eb6c595b28d6253bed92be0568ed", validators.get(2).getAddr());
+        assertEquals(VALIDATOR_1, validators.get(0).getAddr());
+        assertEquals(VALIDATOR_2, validators.get(1).getAddr());
+        assertEquals(ISSUER, validators.get(2).getAddr());
 
         ProposeValidatorSet proposeValidatorSet = dPoAService.getProposeValidatorSet();
         assertEquals(1, proposeValidatorSet.getValidatorMap().size());
 
         //Vote (agree 2/3)
         preReceipt = new TransactionReceiptImpl();
-        preReceipt.setIssuer("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94");
+        preReceipt.setIssuer(VALIDATOR_2);
         txReceiptField.set(dPoAService, preReceipt);
 
-        txValidatorVote = new TxValidatorVote(proposedValidator, true);
+        txValidatorVote = new TxValidatorVote(PROPOSED_VALIDATOR, true);
         receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         validators = dPoAService.commit(null);
         assertEquals(3, validators.size());
-        assertEquals("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95", validators.get(0).getAddr());
-        assertEquals("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", validators.get(1).getAddr());
-        assertEquals("a2b0f5fce600eb6c595b28d6253bed92be0568ed", validators.get(2).getAddr());
+        assertEquals(VALIDATOR_1, validators.get(0).getAddr());
+        assertEquals(VALIDATOR_2, validators.get(1).getAddr());
+        assertEquals(ISSUER, validators.get(2).getAddr());
 
         proposeValidatorSet = dPoAService.getProposeValidatorSet();
         assertEquals(1, proposeValidatorSet.getValidatorMap().size());
 
         //Vote (disagree 2/3, agree 1/3)
         preReceipt = new TransactionReceiptImpl();
-        preReceipt.setIssuer("a2b0f5fce600eb6c595b28d6253bed92be0568ed");
+        preReceipt.setIssuer(ISSUER);
         txReceiptField.set(dPoAService, preReceipt);
 
-        txValidatorVote = new TxValidatorVote(proposedValidator, false);
+        txValidatorVote = new TxValidatorVote(PROPOSED_VALIDATOR, false);
         receipt = dPoAService.voteValidator(JsonUtil.parseJsonObject(JsonUtil.convertObjToString(txValidatorVote)));
         assertEquals(ExecuteStatus.SUCCESS, receipt.getStatus());
 
         validators = dPoAService.commit(null);
         assertEquals(3, validators.size());
-        assertEquals("d2a5721e80dc439385f3abc5aab0ac4ed2b1cd95", validators.get(0).getAddr());
-        assertEquals("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94", validators.get(1).getAddr());
-        assertEquals("a2b0f5fce600eb6c595b28d6253bed92be0568ed", validators.get(2).getAddr());
+        assertEquals(VALIDATOR_1, validators.get(0).getAddr());
+        assertEquals(VALIDATOR_2, validators.get(1).getAddr());
+        assertEquals(ISSUER, validators.get(2).getAddr());
 
         proposeValidatorSet = dPoAService.getProposeValidatorSet();
         assertEquals(0, proposeValidatorSet.getValidatorMap().size());

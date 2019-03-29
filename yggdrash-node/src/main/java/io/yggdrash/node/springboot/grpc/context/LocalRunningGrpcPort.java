@@ -26,7 +26,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.FIELD, ElementType.METHOD, ElementType.PARAMETER,
         ElementType.ANNOTATION_TYPE})
 @Retention(RetentionPolicy.RUNTIME)
-@Value("${" + LocalRunningGrpcPort.propertyName + "}")
+@Value("${" + LocalRunningGrpcPort.PROPERTY_NAME + "}")
 public @interface LocalRunningGrpcPort {
-    String propertyName = "local.grpc.port";
+    String PROPERTY_NAME = "local.grpc.port";
 }

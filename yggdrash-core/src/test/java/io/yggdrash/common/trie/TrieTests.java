@@ -11,7 +11,6 @@ import org.spongycastle.util.encoders.Hex;
 import java.util.ArrayList;
 import java.util.List;
 
-import static junit.framework.TestCase.assertNull;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
@@ -61,13 +60,13 @@ public class TrieTests {
         // 3. test with tx 0
         txsList = new ArrayList<>();
         merkleRoot = Trie.getMerkleRootHusk(txsList);
-        assertNull(merkleRoot);
+        assertEquals(0, merkleRoot.length);
 
         log.debug("MerkleRoot with tx 0 = null");
 
         // 4. test with tx null
         merkleRoot = Trie.getMerkleRootHusk(null);
-        assertNull(merkleRoot);
+        assertEquals(0, merkleRoot.length);
 
         log.debug("MerkleRoot with tx null = null");
 
@@ -79,8 +78,7 @@ public class TrieTests {
 
         txsList.add(null);
         merkleRoot = Trie.getMerkleRootHusk(txsList);
-        assertNull(merkleRoot);
-
+        assertEquals(0, merkleRoot.length);
     }
 
     @Test
@@ -98,8 +96,7 @@ public class TrieTests {
 
         byte[] result1 = Trie.getMerkleRoot(tree1, algorithm);
         log.info(Hex.toHexString(result1));
-        assertEquals(Hex.toHexString(result1),
-                "0123456789012345678901234567890123456789012345678901234567890123");
+        assertEquals("0123456789012345678901234567890123456789012345678901234567890123", Hex.toHexString(result1));
 
         ArrayList<byte[]> tree1Double = new ArrayList<>();
         for (String input : inputs1) {
@@ -109,8 +106,7 @@ public class TrieTests {
         byte[] result1Double = Trie.getMerkleRoot(tree1Double, algorithm, true);
         assert result1Double != null;
         log.info(Hex.toHexString(result1Double));
-        assertEquals(Hex.toHexString(result1Double),
-                "0123456789012345678901234567890123456789012345678901234567890123");
+        assertEquals("0123456789012345678901234567890123456789012345678901234567890123", Hex.toHexString(result1Double));
     }
 
     @Test
@@ -128,8 +124,7 @@ public class TrieTests {
 
         byte[] result = Trie.getMerkleRoot(tree, algorithm);
         log.info(Hex.toHexString(result));
-        assertEquals(Hex.toHexString(result),
-                "657eb7d33674849942a420f00f3f67e9195e2b003a646ec4dad2f8c9e4a9a5a9");
+        assertEquals("657eb7d33674849942a420f00f3f67e9195e2b003a646ec4dad2f8c9e4a9a5a9", Hex.toHexString(result));
 
         ArrayList<byte[]> treeDouble = new ArrayList<>();
         for (String input : inputs) {
@@ -139,8 +134,7 @@ public class TrieTests {
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
         assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
-        assertEquals(Hex.toHexString(resultDouble),
-                "d6be2369c291d80a1663d990020705f36c1ab669d7d98248851304045dc20af2");
+        assertEquals("d6be2369c291d80a1663d990020705f36c1ab669d7d98248851304045dc20af2", Hex.toHexString(resultDouble));
 
     }
 
@@ -160,8 +154,7 @@ public class TrieTests {
 
         byte[] result = Trie.getMerkleRoot(tree, algorithm);
         log.info(Hex.toHexString(result));
-        assertEquals(Hex.toHexString(result),
-                "1fde90e914c974be374168a23dd4b764cf0ea6ff751af379932e810c33585540");
+        assertEquals("1fde90e914c974be374168a23dd4b764cf0ea6ff751af379932e810c33585540", Hex.toHexString(result));
 
         ArrayList<byte[]> treeDouble = new ArrayList<>();
         for (String input : inputs) {
@@ -171,8 +164,7 @@ public class TrieTests {
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
         assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
-        assertEquals(Hex.toHexString(resultDouble),
-                "499360821ab840409ea59057c9452c1f3082ddea5ade6bea5ece3675c437fa5f");
+        assertEquals("499360821ab840409ea59057c9452c1f3082ddea5ade6bea5ece3675c437fa5f", Hex.toHexString(resultDouble));
 
     }
 
@@ -194,8 +186,7 @@ public class TrieTests {
 
         byte[] result = Trie.getMerkleRoot(tree, algorithm);
         log.info(Hex.toHexString(result));
-        assertEquals(Hex.toHexString(result),
-                "1fde90e914c974be374168a23dd4b764cf0ea6ff751af379932e810c33585540");
+        assertEquals("1fde90e914c974be374168a23dd4b764cf0ea6ff751af379932e810c33585540", Hex.toHexString(result));
 
         ArrayList<byte[]> treeDouble = new ArrayList<>();
         for (String input : inputs) {
@@ -205,8 +196,7 @@ public class TrieTests {
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
         assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
-        assertEquals(Hex.toHexString(resultDouble),
-                "499360821ab840409ea59057c9452c1f3082ddea5ade6bea5ece3675c437fa5f");
+        assertEquals("499360821ab840409ea59057c9452c1f3082ddea5ade6bea5ece3675c437fa5f", Hex.toHexString(resultDouble));
 
     }
 
@@ -229,8 +219,7 @@ public class TrieTests {
 
         byte[] result = Trie.getMerkleRoot(tree, algorithm);
         log.info(Hex.toHexString(result));
-        assertEquals(Hex.toHexString(result),
-                "fef5038a242cd86f80b49b873320d89399158c44bb4f20a1470e028c5f11e6a3");
+        assertEquals("fef5038a242cd86f80b49b873320d89399158c44bb4f20a1470e028c5f11e6a3", Hex.toHexString(result));
 
         ArrayList<byte[]> treeDouble = new ArrayList<>();
         for (String input : inputs) {
@@ -240,8 +229,7 @@ public class TrieTests {
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
         assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
-        assertEquals(Hex.toHexString(resultDouble),
-                "8cc04dba0093dd7da136c396a5f1fc27b2d2fbc104cf9eec412bc74da4ea3360");
+        assertEquals("8cc04dba0093dd7da136c396a5f1fc27b2d2fbc104cf9eec412bc74da4ea3360", Hex.toHexString(resultDouble));
 
     }
 
@@ -260,8 +248,7 @@ public class TrieTests {
 
         byte[] result1 = Trie.getMerkleRoot(tree1, algorithm);
         log.info(Hex.toHexString(result1));
-        assertEquals(Hex.toHexString(result1),
-                "0123456789012345678901234567890123456789012345678901234567890123");
+        assertEquals("0123456789012345678901234567890123456789012345678901234567890123", Hex.toHexString(result1));
 
         ArrayList<byte[]> tree1Double = new ArrayList<>();
         for (String input : inputs1) {
@@ -271,8 +258,7 @@ public class TrieTests {
         byte[] result1Double = Trie.getMerkleRoot(tree1Double, algorithm, true);
         assert result1Double != null;
         log.info(Hex.toHexString(result1Double));
-        assertEquals(Hex.toHexString(result1Double),
-                "0123456789012345678901234567890123456789012345678901234567890123");
+        assertEquals("0123456789012345678901234567890123456789012345678901234567890123", Hex.toHexString(result1Double));
     }
 
     @Test
@@ -291,8 +277,7 @@ public class TrieTests {
 
         byte[] result2 = Trie.getMerkleRoot(tree2, algorithm);
         log.info(Hex.toHexString(result2));
-        assertEquals(Hex.toHexString(result2),
-                "a4a06b07a00cf0160b383b9686d01144b36bfdf30dd8d8916d27057e1e314b81");
+        assertEquals("a4a06b07a00cf0160b383b9686d01144b36bfdf30dd8d8916d27057e1e314b81", Hex.toHexString(result2));
 
         ArrayList<byte[]> tree2Double = new ArrayList<>();
         for (String input : inputs2) {
@@ -302,8 +287,7 @@ public class TrieTests {
         byte[] result2Double = Trie.getMerkleRoot(tree2Double, algorithm, true);
         assert result2Double != null;
         log.info(Hex.toHexString(result2Double));
-        assertEquals(Hex.toHexString(result2Double),
-                "5ca442bee9f7e49fea6f12a727f0a3d89149b762bbbb328f745cf57173b3dd36");
+        assertEquals("5ca442bee9f7e49fea6f12a727f0a3d89149b762bbbb328f745cf57173b3dd36", Hex.toHexString(result2Double));
 
     }
 
@@ -324,8 +308,7 @@ public class TrieTests {
 
         byte[] result = Trie.getMerkleRoot(tree, algorithm);
         log.info(Hex.toHexString(result));
-        assertEquals(Hex.toHexString(result),
-                "cd3df5f3fc34e4c414011104827abbccc9c8a6c4db8b90bf63620ff1bdf51274");
+        assertEquals("cd3df5f3fc34e4c414011104827abbccc9c8a6c4db8b90bf63620ff1bdf51274", Hex.toHexString(result));
 
         ArrayList<byte[]> treeDouble = new ArrayList<>();
         for (String input : inputs) {
@@ -335,8 +318,7 @@ public class TrieTests {
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
         assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
-        assertEquals(Hex.toHexString(resultDouble),
-                "b128ac9fde01b3e89ef20e46f9a6bacb6b69515ecb795f98078fd9c8a6d1e14a");
+        assertEquals("b128ac9fde01b3e89ef20e46f9a6bacb6b69515ecb795f98078fd9c8a6d1e14a", Hex.toHexString(resultDouble));
 
     }
 
@@ -358,8 +340,7 @@ public class TrieTests {
 
         byte[] result = Trie.getMerkleRoot(tree, algorithm);
         log.info(Hex.toHexString(result));
-        assertEquals(Hex.toHexString(result),
-                "cd3df5f3fc34e4c414011104827abbccc9c8a6c4db8b90bf63620ff1bdf51274");
+        assertEquals("cd3df5f3fc34e4c414011104827abbccc9c8a6c4db8b90bf63620ff1bdf51274", Hex.toHexString(result));
 
         ArrayList<byte[]> treeDouble = new ArrayList<>();
         for (String input : inputs) {
@@ -369,8 +350,7 @@ public class TrieTests {
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
         assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
-        assertEquals(Hex.toHexString(resultDouble),
-                "b128ac9fde01b3e89ef20e46f9a6bacb6b69515ecb795f98078fd9c8a6d1e14a");
+        assertEquals("b128ac9fde01b3e89ef20e46f9a6bacb6b69515ecb795f98078fd9c8a6d1e14a", Hex.toHexString(resultDouble));
 
     }
 
@@ -393,8 +373,7 @@ public class TrieTests {
 
         byte[] result = Trie.getMerkleRoot(tree, algorithm);
         log.info(Hex.toHexString(result));
-        assertEquals(Hex.toHexString(result),
-                "2308c48b3d114b20c425b818ed9d740f3c311e47d5e0ed283a78a3d5fe338169");
+        assertEquals("2308c48b3d114b20c425b818ed9d740f3c311e47d5e0ed283a78a3d5fe338169", Hex.toHexString(result));
 
         ArrayList<byte[]> treeDouble = new ArrayList<>();
         for (String input : inputs) {
@@ -404,8 +383,7 @@ public class TrieTests {
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
         assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
-        assertEquals(Hex.toHexString(resultDouble),
-                "3a7a8543647800a660311d960e53ed9175b17ab58c12dacde4f41b3a2368bfa5");
+        assertEquals("3a7a8543647800a660311d960e53ed9175b17ab58c12dacde4f41b3a2368bfa5", Hex.toHexString(resultDouble));
 
     }
 
@@ -424,8 +402,7 @@ public class TrieTests {
 
         byte[] result = Trie.getMerkleRoot(tree, algorithm);
         log.info(Hex.toHexString(result));
-        assertEquals(Hex.toHexString(result),
-                "0123456789012345678901234567890123456789012345678901234567890123");
+        assertEquals("0123456789012345678901234567890123456789012345678901234567890123", Hex.toHexString(result));
 
         ArrayList<byte[]> treeDouble = new ArrayList<>();
         for (String input : inputs) {
@@ -435,8 +412,7 @@ public class TrieTests {
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
         assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
-        assertEquals(Hex.toHexString(resultDouble),
-                "0123456789012345678901234567890123456789012345678901234567890123");
+        assertEquals("0123456789012345678901234567890123456789012345678901234567890123", Hex.toHexString(resultDouble));
     }
 
     @Test
@@ -456,8 +432,7 @@ public class TrieTests {
 
         byte[] result = Trie.getMerkleRoot(tree, algorithm);
         log.info(Hex.toHexString(result));
-        assertEquals(Hex.toHexString(result),
-                "8a876df2135c3a2096b0232b3445ce959321c5874eef40d935c46669d4b69ca9");
+        assertEquals("8a876df2135c3a2096b0232b3445ce959321c5874eef40d935c46669d4b69ca9", Hex.toHexString(result));
 
         ArrayList<byte[]> treeDouble = new ArrayList<>();
         for (String input : inputs) {
@@ -467,8 +442,7 @@ public class TrieTests {
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
         assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
-        assertEquals(Hex.toHexString(resultDouble),
-                "d788be966d089f0676c8cec86022086929b52884963915b0129e896c1ec5f3b2");
+        assertEquals("d788be966d089f0676c8cec86022086929b52884963915b0129e896c1ec5f3b2", Hex.toHexString(resultDouble));
     }
 
     @Test
@@ -489,8 +463,7 @@ public class TrieTests {
 
         byte[] result = Trie.getMerkleRoot(tree, algorithm);
         log.info(Hex.toHexString(result));
-        assertEquals(Hex.toHexString(result),
-                "bb5bd6e69fd04787dd31f73c76d0e219787a5548069dcef2c7cf8b701caa7fa9");
+        assertEquals("bb5bd6e69fd04787dd31f73c76d0e219787a5548069dcef2c7cf8b701caa7fa9", Hex.toHexString(result));
 
         ArrayList<byte[]> treeDouble = new ArrayList<>();
         for (String input : inputs) {
@@ -500,8 +473,7 @@ public class TrieTests {
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
         assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
-        assertEquals(Hex.toHexString(resultDouble),
-                "0b718469b6e14b0872d1d81ebb893700c0a664c83c10162c9452afa536e71413");
+        assertEquals("0b718469b6e14b0872d1d81ebb893700c0a664c83c10162c9452afa536e71413", Hex.toHexString(resultDouble));
     }
 
     @Test
@@ -523,8 +495,7 @@ public class TrieTests {
 
         byte[] result = Trie.getMerkleRoot(tree, algorithm);
         log.info(Hex.toHexString(result));
-        assertEquals(Hex.toHexString(result),
-                "bb5bd6e69fd04787dd31f73c76d0e219787a5548069dcef2c7cf8b701caa7fa9");
+        assertEquals("bb5bd6e69fd04787dd31f73c76d0e219787a5548069dcef2c7cf8b701caa7fa9", Hex.toHexString(result));
 
         ArrayList<byte[]> treeDouble = new ArrayList<>();
         for (String input : inputs) {
@@ -534,8 +505,7 @@ public class TrieTests {
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
         assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
-        assertEquals(Hex.toHexString(resultDouble),
-                "0b718469b6e14b0872d1d81ebb893700c0a664c83c10162c9452afa536e71413");
+        assertEquals("0b718469b6e14b0872d1d81ebb893700c0a664c83c10162c9452afa536e71413", Hex.toHexString(resultDouble));
     }
 
     @Test
@@ -558,8 +528,7 @@ public class TrieTests {
 
         byte[] result = Trie.getMerkleRoot(tree, algorithm);
         log.info(Hex.toHexString(result));
-        assertEquals(Hex.toHexString(result),
-                "fae6bbfc7c40c8ff7cdee46e2bb9c50bf544cae2f2c6851c5c1ef880c735dedd");
+        assertEquals("fae6bbfc7c40c8ff7cdee46e2bb9c50bf544cae2f2c6851c5c1ef880c735dedd", Hex.toHexString(result));
 
         ArrayList<byte[]> treeDouble = new ArrayList<>();
         for (String input : inputs) {
@@ -569,8 +538,7 @@ public class TrieTests {
         byte[] resultDouble = Trie.getMerkleRoot(treeDouble, algorithm, true);
         assert resultDouble != null;
         log.info(Hex.toHexString(resultDouble));
-        assertEquals(Hex.toHexString(resultDouble),
-                "88e84a3cb5986ffec233920ee531639ba63bb117e13b1195e57eda030bbc4879");
+        assertEquals("88e84a3cb5986ffec233920ee531639ba63bb117e13b1195e57eda030bbc4879", Hex.toHexString(resultDouble));
     }
 
 }

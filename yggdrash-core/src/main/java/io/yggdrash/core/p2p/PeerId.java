@@ -64,7 +64,7 @@ public class PeerId {
             } else {
                 int cnt = 0;
                 for (int i = 7; i >= 0; i--) {
-                    boolean a = (b & (1 << i)) == 0;
+                    boolean a = ((b & 0xff) & (1 << i)) == 0;
                     if (a) {
                         cnt++;
                     } else {

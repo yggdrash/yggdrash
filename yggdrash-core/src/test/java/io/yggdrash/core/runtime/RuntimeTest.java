@@ -34,6 +34,7 @@ import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 import java.math.BigInteger;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,9 +47,8 @@ public class RuntimeTest {
     public void yeedRuntimeTest() {
         StemContract contract = new StemContract();
         ContractVersion coinContract = Constants.YEED_CONTRACT_VERSION;
-        Runtime runtime =
-                new Runtime<>(
-                        new StateStore<>(new HashMapDbSource()),
+        Runtime runtime = new Runtime(
+                        new StateStore(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource())
                 );
 
@@ -82,9 +82,8 @@ public class RuntimeTest {
         ContractVersion stemContract = Constants.STEM_CONTRACT_VERSION;
 
         StemContract contract = new StemContract();
-        Runtime<JsonObject> runtime =
-                new Runtime<>(
-                        new StateStore<>(new HashMapDbSource()),
+        Runtime runtime = new Runtime(
+                        new StateStore(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource()));
         runtime.addContract(stemContract, contract);
 

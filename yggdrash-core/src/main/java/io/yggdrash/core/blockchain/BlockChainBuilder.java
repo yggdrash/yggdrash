@@ -32,14 +32,11 @@ import io.yggdrash.core.store.StoreContainer;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
 import io.yggdrash.core.store.output.es.EsClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import java.util.HashMap;
 import java.util.Map;
 
 public class BlockChainBuilder {
-
-    private static final Logger log = LoggerFactory.getLogger(BlockChainBuilder.class);
 
     private GenesisBlock genesis;
     private StoreBuilder storeBuilder;
@@ -145,10 +142,8 @@ public class BlockChainBuilder {
 
         BlockHusk genesisBlock = genesis.getBlock();
         // TODO used storeContainer
-        BlockChain bc = new BlockChain(branch, genesisBlock, blockStore,
+        return new BlockChain(branch, genesisBlock, blockStore,
                 transactionStore, branchStore, stateStore, transactionReceiptStore, contractContainer, outputStores);
-
-        return bc;
     }
 
     private Map<ContractVersion, Contract> defaultContract() {
@@ -163,7 +158,7 @@ public class BlockChainBuilder {
 
     }
 
-    public static BlockChainBuilder Builder() {
+    public static BlockChainBuilder newBuilder() {
         return new BlockChainBuilder();
     }
 }

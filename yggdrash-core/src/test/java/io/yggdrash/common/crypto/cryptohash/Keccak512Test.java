@@ -16,6 +16,7 @@
 
 package io.yggdrash.common.crypto.cryptohash;
 
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -31,17 +32,17 @@ public class Keccak512Test {
     @Test
     public void copy() {
         Digest digest = keccak512.copy();
-        assert digest != null;
+        Assert.assertNotNull(digest);
     }
 
     @Test
     public void engineGetDigestLength() {
-        assert keccak512.engineGetDigestLength() == 64;
+        Assert.assertEquals(64, keccak512.engineGetDigestLength());
     }
 
     @Test
     public void engineDigest() {
-        keccak512.engineDigest();
+        Assert.assertNull(keccak512.engineDigest());
     }
 
     @Test

@@ -17,20 +17,14 @@
 package io.yggdrash.node.config;
 
 import com.googlecode.jsonrpc4j.spring.AutoJsonRpcServiceImplExporter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class JsonRpcConfiguration {
-    private static final Logger log = LoggerFactory.getLogger(JsonRpcConfiguration.class);
 
     @Bean
     public AutoJsonRpcServiceImplExporter autoJsonRpcServiceImplExporter() {
-        //in here you can provide custom HTTP status code providers etc. eg:
-        //exp.setHttpStatusCodeProvider();
-        //exp.setErrorResolver();
         return new AutoJsonRpcServiceImplExporter();
     }
 }
