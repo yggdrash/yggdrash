@@ -116,9 +116,9 @@ public class PbftBlockKeyStoreMultiThreadTest {
     }
 
     @Test
-    @ThreadCount(8)
+    @ThreadCount(4)
     public void putTestMultiThread() {
-        long testNumber = 10000;
+        long testNumber = 1000;
         for (long l = 0L; l < testNumber; l++) {
             this.blockKeyStore.put(l, EMPTY_BYTE32);
         }
@@ -127,26 +127,22 @@ public class PbftBlockKeyStoreMultiThreadTest {
     }
 
     @Test
-    @ThreadCount(8)
+    @ThreadCount(4)
     public void putMutiThreadMemoryTest() throws InterruptedException {
         TestConstants.PerformanceTest.apply();
-
         System.gc();
-        Thread.sleep(20000);
 
         this.putTestMultiThread();
 
         System.gc();
-        Thread.sleep(3000000);
+        Thread.sleep(30000);
     }
 
     @Test
-    @ThreadCount(8)
+    @ThreadCount(4)
     public void getMutiThreadMemoryTest() throws InterruptedException {
         TestConstants.PerformanceTest.apply();
-
         System.gc();
-        Thread.sleep(20000);
 
         this.putTestMultiThread();
 
@@ -160,17 +156,15 @@ public class PbftBlockKeyStoreMultiThreadTest {
         log.debug("blockKeyStore size= " + this.blockKeyStore.size());
 
         System.gc();
-        Thread.sleep(3000000);
+        Thread.sleep(30000);
     }
 
 
     @Test
-    @ThreadCount(8)
+    @ThreadCount(4)
     public void containsMutiThreadMemoryTest() throws InterruptedException {
         TestConstants.PerformanceTest.apply();
-
         System.gc();
-        Thread.sleep(20000);
 
         this.putTestMultiThread();
 
@@ -186,7 +180,7 @@ public class PbftBlockKeyStoreMultiThreadTest {
         log.debug("blockKeyStore size= " + this.blockKeyStore.size());
 
         System.gc();
-        Thread.sleep(3000000);
+        Thread.sleep(30000);
     }
 
     @After

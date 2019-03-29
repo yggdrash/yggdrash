@@ -10,6 +10,7 @@ import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.data.pbft.PbftMessage;
 import io.yggdrash.validator.data.pbft.PbftMessageSet;
 import io.yggdrash.validator.util.TestUtils;
+import junit.framework.TestCase;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -146,7 +147,6 @@ public class PbftBlockKeyStoreTest {
         long testNumber = 1000000;
         byte[] result;
         List<byte[]> resultList = new ArrayList<>();
-
         for (long l = 0L; l < testNumber; l++) {
             this.blockKeyStore.put(l, EMPTY_BYTE32);
             result = this.blockKeyStore.get(l);
@@ -163,15 +163,11 @@ public class PbftBlockKeyStoreTest {
     @Test
     public void closeTest() {
         blockKeyStore.close();
-        try {
-            blockKeyStore.get(this.pbftBlock0.getIndex());
-        } catch (NullPointerException ne) {
-            this.blockKeyStore = new PbftBlockKeyStore(ds);
-            byte[] newHash = blockKeyStore.get(this.pbftBlock0.getIndex());
-            assertArrayEquals(this.pbftBlock0.getHash(), newHash);
-            return;
-        }
-        assert false;
+        TestCase.assertNull(blockKeyStore.get(this.pbftBlock0.getIndex()));
+
+        this.blockKeyStore = new PbftBlockKeyStore(ds);
+        byte[] newHash = blockKeyStore.get(0L);
+        assertArrayEquals(this.pbftBlock0.getHash(), newHash);
     }
 
     @After

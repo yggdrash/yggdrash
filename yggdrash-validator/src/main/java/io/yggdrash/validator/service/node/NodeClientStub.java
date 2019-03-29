@@ -18,10 +18,10 @@ public class NodeClientStub {
     private static final Logger log = LoggerFactory.getLogger(NodeClientStub.class);
     private static final int DEFAULT_LIMIT = 10;
 
-    private String host;
-    private int port;
+    private final String host;
+    private final int port;
 
-    private ManagedChannel channel;
+    private final ManagedChannel channel;
     private final PeerGrpc.PeerBlockingStub blockingPeerStub;
     private final BlockChainGrpc.BlockChainBlockingStub blockingBlockChainStub;
     private final BlockChainGrpc.BlockChainStub asyncBlockChainStub;

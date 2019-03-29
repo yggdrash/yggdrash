@@ -32,7 +32,7 @@ public class TransactionSignature {
         this.signature = Hex.decode(jsonObject.get("signature").getAsString());
     }
 
-    TransactionSignature(Wallet wallet, byte[] headerHash) {
+    public TransactionSignature(Wallet wallet, byte[] headerHash) {
         this(wallet.sign(headerHash, true));
     }
 
@@ -54,5 +54,9 @@ public class TransactionSignature {
 
     public String toString() {
         return this.toJsonObject().toString();
+    }
+
+    public TransactionSignature clone() {
+        return new TransactionSignature(this.signature.clone());
     }
 }

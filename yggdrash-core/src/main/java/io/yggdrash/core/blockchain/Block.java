@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.google.protobuf.util.Timestamps.fromMillis;
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.KEY.BODY;
 import static io.yggdrash.common.config.Constants.KEY.HEADER;
 import static io.yggdrash.common.config.Constants.KEY.SIGNATURE;
@@ -240,15 +239,16 @@ public class Block {
         check &= this.header.getTimestamp() > TIMESTAMP_2018;
         check &= !(this.header.getBodyLength() < 0
                 || this.header.getBodyLength() != this.getBody().length());
-        check &= Arrays.equals(
-                Arrays.equals(this.header.getMerkleRoot(),
-                        EMPTY_BYTE32) ? null : this.header.getMerkleRoot(),
-                Trie.getMerkleRoot(this.body.getBody()));
+        check &= Arrays.equals(this.header.getMerkleRoot(), Trie.getMerkleRoot(this.body.getBody()));
 
         return check;
     }
 
     public JsonObject toJsonObject() {
+        if (this.header == null || this.signature == null || this.body == null) {
+            return null;
+        }
+
         JsonObject jsonObject = new JsonObject();
         jsonObject.add(HEADER, this.header.toJsonObject());
         jsonObject.addProperty(SIGNATURE, Hex.toHexString(this.signature));
@@ -304,11 +304,16 @@ public class Block {
         return Objects.hashCode(toBinary());
     }
 
+    @Deprecated
     public Proto.Block toProtoBlock() {
         return toProtoBlock(this);
     }
 
     public static Proto.Block toProtoBlock(Block block) {
+        if (block == null || block.getHeader() == null) {
+            return null;
+        }
+
         Proto.Block.Header protoHeader;
         protoHeader = Proto.Block.Header.newBuilder()
                 .setChain(ByteString.copyFrom(block.getHeader().getChain()))

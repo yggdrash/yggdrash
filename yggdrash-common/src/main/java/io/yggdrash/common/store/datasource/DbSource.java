@@ -16,11 +16,15 @@
 
 package io.yggdrash.common.store.datasource;
 
+import org.iq80.leveldb.Options;
+
 import java.io.IOException;
 import java.util.List;
 
 public interface DbSource<K, V> {
     DbSource<K, V> init();
+
+    DbSource<K, V> init(Options options);
 
     V get(K key);
 

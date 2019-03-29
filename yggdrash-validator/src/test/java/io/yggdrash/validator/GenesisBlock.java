@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Scanner;
 
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
@@ -96,7 +97,7 @@ class GenesisBlock {
         File file;
         Scanner scanner;
         try {
-            file = new File(classLoader.getResource(fileName).getFile());
+            file = new File(Objects.requireNonNull(classLoader.getResource(fileName)).getFile());
             scanner = new Scanner(file);
         } catch (Exception e) {
             throw new NotValidateException();

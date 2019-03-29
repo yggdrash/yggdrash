@@ -55,7 +55,7 @@ public class GenesisBlock {
         // Make Genesis Block
         Block coreBlock = generatorGenesisBlock(tx);
 
-        return new BlockHusk(coreBlock.toProtoBlock());
+        return new BlockHusk(Block.toProtoBlock(coreBlock));
     }
 
     // Contract initial value

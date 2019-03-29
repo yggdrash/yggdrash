@@ -2,51 +2,61 @@ package io.yggdrash.validator.store.pbft;
 
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.DbSource;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.validator.data.pbft.PbftBlock;
 import io.yggdrash.validator.store.BlockStore;
+import org.iq80.leveldb.CompressionType;
+import org.iq80.leveldb.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.util.encoders.Hex;
 
-import java.util.Arrays;
+import java.io.IOException;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class PbftBlockStore implements BlockStore<byte[], PbftBlock> {
     private static final Logger log = LoggerFactory.getLogger(PbftBlockStore.class);
 
     private final DbSource<byte[], byte[]> db;
-    private long size = 0;
+    private long size;
 
     private final ReentrantLock lock = new ReentrantLock();
 
     public PbftBlockStore(DbSource<byte[], byte[]> dbSource) {
-        this.db = dbSource.init();
+        Options options = new Options();
+        options.createIfMissing(true);
+        options.compressionType(CompressionType.NONE);
+        options.blockSize(10 * 1024 * 1024);
+        options.writeBufferSize(10 * 1024 * 1024);
+        options.cacheSize(0);
+        options.paranoidChecks(true);
+        options.verifyChecksums(true);
+        options.maxOpenFiles(32);
+        this.db = dbSource.init(options);
+
+        try {
+            this.size = this.db.getAll().size();
+        } catch (IOException e) {
+            log.debug(e.getMessage());
+            throw new NotValidateException("Store is not valid.");
+        }
     }
 
     @Override
     public void put(byte[] key, PbftBlock value) {
-        if (key == null || value == null) {
+        if (key == null || value == null
+                || value.toBinary().length > Constants.MAX_MEMORY) {
             log.debug("Key or value are not vaild.");
             return;
         }
 
-        byte[] valueBin = value.toBinary();
-        if (valueBin.length > Constants.MAX_MEMORY) {
-            log.error("Block size is not valid.");
-            log.error("put "
-                    + "(key: " + Hex.toHexString(key) + ")"
-                    + "(value length: " + valueBin.length + ")");
-            return;
-        }
-
         lock.lock();
-
         try {
             if (!contains(key)) {
                 log.trace("put "
-                        + "(key: " + Arrays.toString(key) + ")"
-                        + "(value length: " + valueBin.length + ")");
-                db.put(key, valueBin);
+                        + "(key: " + Hex.toHexString(key) + ")"
+                        + "(blockHash " + value.getHashHex() + ")");
+                db.put(key, value.toBinary());
                 size++;
             }
         } catch (Exception e) {
@@ -63,8 +73,16 @@ public class PbftBlockStore implements BlockStore<byte[], PbftBlock> {
             return null;
         }
 
-        log.trace("get " + "(" + Hex.toHexString(key) + ")");
-        return new PbftBlock(db.get(key));
+        lock.lock();
+        try {
+            log.trace("get " + "(" + Hex.toHexString(key) + ")");
+            return new PbftBlock(db.get(key));
+        } catch (Exception e) {
+            log.debug(e.getMessage());
+            return null;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -78,11 +96,21 @@ public class PbftBlockStore implements BlockStore<byte[], PbftBlock> {
 
     @Override
     public long size() {
-        return this.size;
+        lock.lock();
+        try {
+            return this.size;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public void close() {
-        this.db.close();
+        lock.lock();
+        try {
+            this.db.close();
+        } finally {
+            lock.unlock();
+        }
     }
 }

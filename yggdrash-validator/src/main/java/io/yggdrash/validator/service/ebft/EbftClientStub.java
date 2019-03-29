@@ -21,15 +21,15 @@ public class EbftClientStub {
     private static final Logger log = LoggerFactory.getLogger(EbftClientStub.class);
 
     private boolean myclient;
-    private String addr;
-    private String host;
-    private int port;
-    private String id;
+    private final String addr;
+    private final String host;
+    private final int port;
+    private final String id;
     private boolean isRunning;
     private EbftStatus ebftStatus;
 
     private ManagedChannel channel;
-    private EbftServiceGrpc.EbftServiceBlockingStub blockingStub;
+    private final EbftServiceGrpc.EbftServiceBlockingStub blockingStub;
 
     public EbftClientStub(String addr, String host, int port) {
         this.addr = addr;

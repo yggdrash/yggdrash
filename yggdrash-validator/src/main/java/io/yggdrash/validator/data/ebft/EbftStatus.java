@@ -19,10 +19,10 @@ import java.util.Arrays;
 import java.util.List;
 
 public class EbftStatus {
-    private long index;
+    private final long index;
     private final List<EbftBlock> unConfirmedEbftBlockList = new ArrayList<>();
-    private long timestamp;
-    private byte[] signature;
+    private final long timestamp;
+    private final byte[] signature;
 
     public EbftStatus(long index,
                       List<EbftBlock> unConfirmedEbftBlockList, Wallet wallet) {
@@ -97,6 +97,10 @@ public class EbftStatus {
     }
 
     public static EbftProto.EbftStatus toProto(EbftStatus ebftStatus) {
+        if (ebftStatus == null) {
+            return null;
+        }
+
         EbftProto.EbftStatus.Builder protoBlockStatus = EbftProto.EbftStatus.newBuilder()
                 .setIndex(ebftStatus.getIndex())
                 .setUnConfirmedEbftBlockList(

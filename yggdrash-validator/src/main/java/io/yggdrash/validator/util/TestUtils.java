@@ -77,7 +77,7 @@ public class TestUtils {
                     TimeUtils.time(),
                     tmpBlockBody);
 
-            return new Block(newBlockHeader, wallet, tmpBlockBody).toProtoBlock();
+            return Block.toProtoBlock(new Block(newBlockHeader, wallet, tmpBlockBody));
         } catch (Exception e) {
             throw new NotValidateException();
         }
@@ -252,10 +252,9 @@ public class TestUtils {
         String type = "immunity";
         String description = "ETH TO YEED";
         String version = "0xb5790adeafbb9ac6c9be60955484ab1547ab0b76";
-        String referenceAddress = branchId;
         String reserveAddress = "0x1F8f8A219550f89f9D372ab2eE0D1f023EC665a3";
         return createBranch(name, symbol, property, type, description,
-                version, referenceAddress, reserveAddress);
+                version, branchId, reserveAddress);
     }
 
     private static JsonObject createBranch(String name,

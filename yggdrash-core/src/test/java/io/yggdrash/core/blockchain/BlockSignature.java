@@ -26,11 +26,15 @@ public class BlockSignature {
         this.signature = signature;
     }
 
-    BlockSignature(Wallet wallet, byte[] headerHash) {
+    public BlockSignature(Wallet wallet, byte[] headerHash) {
         this(wallet.sign(headerHash, true));
     }
 
     public byte[] getSignature() {
         return this.signature;
+    }
+
+    public BlockSignature clone() {
+        return new BlockSignature(this.signature.clone());
     }
 }
