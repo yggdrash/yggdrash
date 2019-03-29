@@ -104,7 +104,13 @@ def generateSha1(File file) {
     return md.digest().collect {String.format "%02x", it}.join();
 }
 
+task deleteOutputContract(type: Delete) {
+    def copyPath = file('build/libs').absolutePath + '/../contract'
+    delete copyPath
+}
+
 task copyContractToResrouce(type: Copy) {
+    dependsOn deleteOutputContract
     dependsOn contractsPackage
     //dependsOn signJar
 
