@@ -129,7 +129,7 @@ public class BranchGroupTest {
     private void addMultipleBlock(BlockHusk block) {
         BlockChain blockChain = branchGroup.getBranch(block.getBranchId());
         while (blockChain.getLastIndex() < 10) {
-            System.out.println(blockChain.getLastIndex());
+            log.debug("Last Index : {}", blockChain.getLastIndex());
             branchGroup.addBlock(block);
             BlockHusk nextBlockHusk = newBlock(new ArrayList<>(), block);
             addMultipleBlock(nextBlockHusk);

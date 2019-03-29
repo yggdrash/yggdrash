@@ -272,7 +272,7 @@ public class StemContract implements BundleActivator, ServiceListener {
          */
         @ContractQuery
         public Set<String> getValidator(JsonObject params) {
-            System.out.println(params);
+            log.debug(params.toString());
             String branchId = params.get(BRANCH_ID).getAsString();
             Set<String> validatorSet = new HashSet<>();
             StemContractStateValue stateValue = getBranchStateValue(branchId);

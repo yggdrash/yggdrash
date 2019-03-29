@@ -229,7 +229,7 @@ public class VersioningContract implements BundleActivator {
             ContractVersion version = ContractVersion
                     .of(stateValue.getContractSet().getUpdateContract());
             Path file = Paths.get(String.format("%s/%s", getTempContractPath(), version.toString() + SUFFIX));
-            System.out.println(version);
+            log.debug(version.toString());
             Path movePath = Paths.get(getContractPath());
             File f = new File(String.format("%s/%s", getContractPath(), version.toString() + SUFFIX));
             if (f.isFile()) {

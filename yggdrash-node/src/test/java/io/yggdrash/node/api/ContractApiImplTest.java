@@ -101,8 +101,8 @@ public class ContractApiImplTest {
             BigInteger value = (BigInteger)CONTRACT_API
                     .query(branchId.toString(), TestConstants.YEED_CONTRACT.toString(),
                             method, params);
-            System.out.println(value);
-            System.out.println(expected);
+            log.debug("query : {}", value);
+            log.debug("expected {}", expected);
             assertThat(value).isEqualTo(expected);
         } catch (Exception e) {
             // TODO exception is test fail
