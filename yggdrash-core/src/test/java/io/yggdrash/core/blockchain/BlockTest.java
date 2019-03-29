@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -95,6 +96,17 @@ public class BlockTest {
 
         BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSigning());
         block1 = new Block(blockHeader, blockSig.getSignature(), blockBody1);
+    }
+
+    @Test
+    public void testEmptyBlockVerify() {
+        BlockBody blockBody = new BlockBody(Collections.emptyList());
+        BlockHeader blockHeader = new BlockHeader(
+                chain, version, type, prevBlockHash, 0, TimeUtils.time(),
+                blockBody.getMerkleRoot(), blockBody.length());
+        BlockSignature blockSig = new BlockSignature(wallet, blockHeader.getHashForSigning());
+        Block emptyBlock = new Block(blockHeader, blockSig.getSignature(), blockBody);
+        assertThat(emptyBlock.verify()).isTrue();
     }
 
     @Test
