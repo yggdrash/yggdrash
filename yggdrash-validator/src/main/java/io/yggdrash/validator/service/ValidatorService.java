@@ -19,6 +19,7 @@ import org.spongycastle.crypto.InvalidCipherTextException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
+import java.io.File;
 import java.io.IOException;
 
 public class ValidatorService {
