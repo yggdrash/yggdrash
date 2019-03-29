@@ -1,5 +1,6 @@
 package io.yggdrash.validator.service.pbft;
 
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
@@ -35,6 +36,7 @@ public class PbftService implements ConsensusService {
     private final int bftCount;
     private final int consensusCount;
 
+    private final DefaultConfig defaultConfig;
     private final Wallet wallet;
     private final PbftBlockChain blockChain;
 
@@ -62,16 +64,17 @@ public class PbftService implements ConsensusService {
 
     public PbftService(Wallet wallet,
                        ConsensusBlockChain blockChain,
-                       Map<String, Object> validatorInfoMap,
+                       DefaultConfig defaultConfig,
                        String grpcHost,
                        int grpcPort) {
         this.wallet = wallet;
         this.blockChain = (PbftBlockChain) blockChain;
+        this.defaultConfig = defaultConfig;
         this.grpcHost = grpcHost;
         this.grpcPort = grpcPort;
 
         this.myNode = initMyNode();
-        this.totalValidatorMap = initTotalValidator(validatorInfoMap);
+        this.totalValidatorMap = initTotalValidator();
         this.isValidator = initValidator();
         if (totalValidatorMap != null) {
             this.bftCount = (totalValidatorMap.size() - 1) / 3;
@@ -761,12 +764,15 @@ public class PbftService implements ConsensusService {
         log.info("isValidator: " + this.isValidator);
     }
 
-    private TreeMap<String, PbftClientStub> initTotalValidator(Map<String, Object> validatorInfoMap) {
+    @SuppressWarnings("unchecked")
+    private TreeMap<String, PbftClientStub> initTotalValidator() {
         TreeMap<String, PbftClientStub> nodeMap = new TreeMap<>();
+        Map<String, Object> validatorInfoMap =
+                this.defaultConfig.getConfig().getConfig("yggdrash.validator.info").root().unwrapped();
         for (String key : validatorInfoMap.keySet()) {
-            PbftClientStub client = new PbftClientStub(key,
-                    ((Map<String, String>) validatorInfoMap.get(key)).get("host"),
-                    ((Map<String, Integer>) validatorInfoMap.get(key)).get("port"));
+            String host = ((Map<String, String>) validatorInfoMap.get(key)).get("host");
+            int port = ((Map<String, Integer>) validatorInfoMap.get(key)).get("port");
+            PbftClientStub client = new PbftClientStub(key, host, port);
             if (client.getId().equals(myNode.getId())) {
                 nodeMap.put(myNode.getAddr(), myNode);
             } else {

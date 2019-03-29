@@ -37,8 +37,9 @@ public class NodeServerStub extends BlockChainGrpc.BlockChainImplBase {
         if (Arrays.equals(syncLimit.getBranch().toByteArray(), blockChain.getChain())
                 && offset >= 0
                 && offset <= blockChain.getLastConfirmedBlock().getIndex()) {
-            List<ConsensusBlock> blockList = blockChain.getBlockList(offset, limit);
-            for (ConsensusBlock consensusBlock : blockList) {
+            List blockList = blockChain.getBlockList(offset, limit);
+            for (Object object : blockList) {
+                ConsensusBlock consensusBlock = (ConsensusBlock) object;
                 if (consensusBlock.getBlock() != null) {
                     builder.addBlocks(Block.toProtoBlock(consensusBlock.getBlock()));
                 }

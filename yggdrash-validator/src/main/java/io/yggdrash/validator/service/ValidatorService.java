@@ -20,11 +20,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
 import java.io.IOException;
-import java.util.Map;
 
 public class ValidatorService {
 
-    private final DefaultConfig validatorConfig;
+    private final DefaultConfig defaultConfig;
     private final Consensus consensus;
 
     private final String host;
@@ -39,24 +38,20 @@ public class ValidatorService {
     private final Server grpcServer;
 
     public ValidatorService(
-            DefaultConfig validatorConfig, Block genesisBlock) throws IOException, InvalidCipherTextException {
-        this.validatorConfig = validatorConfig;
-        this.host = validatorConfig.getString("yggdrash.validator.host");
-        this.port = validatorConfig.getInt("yggdrash.validator.port");
-        this.wallet = new Wallet(validatorConfig.getString("yggdrash.validator.key.path"),
-                validatorConfig.getString("yggdrash.validator.key.password"));
+            DefaultConfig defaultConfig, Block genesisBlock) throws IOException, InvalidCipherTextException {
+        this.defaultConfig = defaultConfig;
+        this.host = defaultConfig.getString("yggdrash.validator.host");
+        this.port = defaultConfig.getInt("yggdrash.validator.port");
+        this.wallet = new Wallet(defaultConfig.getString("yggdrash.validator.key.path"),
+                defaultConfig.getString("yggdrash.validator.key.password"));
         this.consensus = new Consensus(genesisBlock);
         this.genesisBlock = genesisBlock;
         this.taskScheduler = threadPoolTaskScheduler();
         this.blockChain = consensusBlockChain();
 
-        Map<String, Object> validatorInfoMap =
-                this.validatorConfig.getConfig()
-                        .getObject("yggdrash.validator.info").unwrapped();
-
         switch (consensus.getAlgorithm()) {
             case "pbft":
-                consensusService = new PbftService(wallet, blockChain, validatorInfoMap, host, port);
+                consensusService = new PbftService(wallet, blockChain, defaultConfig, host, port);
                 taskScheduler.schedule(consensusService, new CronTrigger(consensus.getPeriod()));
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
@@ -69,7 +64,7 @@ public class ValidatorService {
                 }
                 break;
             case "ebft":
-                consensusService = new EbftService(wallet, blockChain, validatorInfoMap, host, port);
+                consensusService = new EbftService(wallet, blockChain, defaultConfig, host, port);
                 taskScheduler.schedule(consensusService, new CronTrigger(consensus.getPeriod()));
                 try {
                     this.grpcServer = ServerBuilder.forPort(port)
@@ -96,7 +91,7 @@ public class ValidatorService {
 
     private ConsensusBlockChain consensusBlockChain() {
         String algorithm = consensus.getAlgorithm();
-        String dbPath = validatorConfig.getDatabasePath();
+        String dbPath = defaultConfig.getDatabasePath();
         String host = this.host;
         int port = this.port;
         String chain = genesisBlock.getChainHex();

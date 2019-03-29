@@ -1,5 +1,6 @@
 package io.yggdrash.validator.service.ebft;
 
+import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
@@ -33,6 +34,7 @@ public class EbftService implements ConsensusService {
 
     private final Wallet wallet;
     private final EbftBlockChain blockChain;
+    private final DefaultConfig defaultConfig;
 
     private final EbftClientStub myNode;
     private final Map<String, EbftClientStub> totalValidatorMap;
@@ -49,16 +51,17 @@ public class EbftService implements ConsensusService {
 
     public EbftService(Wallet wallet,
                        ConsensusBlockChain blockChain,
-                       Map<String, Object> validatorInfoMap,
+                       DefaultConfig defaultConfig,
                        String grpcHost,
                        int grpcPort) {
         this.wallet = wallet;
         this.blockChain = (EbftBlockChain) blockChain;
+        this.defaultConfig = defaultConfig;
         this.grpcHost = grpcHost;
         this.grpcPort = grpcPort;
 
         this.myNode = initMyNode();
-        this.totalValidatorMap = initTotalValidator(validatorInfoMap);
+        this.totalValidatorMap = initTotalValidator();
         this.isValidator = initValidator();
         this.isActive = false;
         this.isSynced = false;
@@ -549,12 +552,15 @@ public class EbftService implements ConsensusService {
         log.info("isValidator: " + this.isValidator);
     }
 
-    private Map<String, EbftClientStub> initTotalValidator(Map<String, Object> validatorInfoMap) {
-        Map<String, EbftClientStub> nodeMap = new TreeMap<>();
+    @SuppressWarnings("unchecked")
+    private TreeMap<String, EbftClientStub> initTotalValidator() {
+        TreeMap<String, EbftClientStub> nodeMap = new TreeMap<>();
+        Map<String, Object> validatorInfoMap =
+                this.defaultConfig.getConfig().getConfig("yggdrash.validator.info").root().unwrapped();
         for (String key : validatorInfoMap.keySet()) {
-            EbftClientStub client = new EbftClientStub(key,
-                    ((Map<String, String>) validatorInfoMap.get(key)).get("host"),
-                    ((Map<String, Integer>) validatorInfoMap.get(key)).get("port"));
+            String host = ((Map<String, String>) validatorInfoMap.get(key)).get("host");
+            int port = ((Map<String, Integer>) validatorInfoMap.get(key)).get("port");
+            EbftClientStub client = new EbftClientStub(key, host, port);
             if (client.getId().equals(myNode.getId())) {
                 nodeMap.put(myNode.getAddr(), myNode);
             } else {
