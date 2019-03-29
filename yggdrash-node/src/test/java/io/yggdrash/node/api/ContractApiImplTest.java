@@ -23,8 +23,8 @@ import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.node.CoinContractTestUtils;
-import org.junit.Ignore;
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,25 +43,21 @@ public class ContractApiImplTest {
     private final BranchId branchId = BranchId.of("272c5946c6735ab24a30e3286c33c88df3f59623");
 
     @Test
-    @Ignore
     public void contractApiIsNotNull() {
         assertThat(CONTRACT_API).isNotNull();
     }
 
     @Test
-    @Ignore
     public void TransactionApiIsNotNull() {
         assertThat(TX_API).isNotNull();
     }
 
     @Test
-    @Ignore
     public void totalSupply() {
         queryAndAssert("totalSupply", null, BigInteger.valueOf(1000000000000L));
     }
 
     @Test
-    @Ignore
     public void balanceOf() {
         Map params = createParams("address",
                 "cee3d4755e47055b530deeba062c5bd0c17eb00f");
@@ -69,7 +65,6 @@ public class ContractApiImplTest {
     }
 
     @Test
-    @Ignore
     public void allowance() {
         Map<String, String> params = createParams("owner", "cee3d4755e47055b530deeba062c5bd0c17eb00f");
         params.put("spender", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");

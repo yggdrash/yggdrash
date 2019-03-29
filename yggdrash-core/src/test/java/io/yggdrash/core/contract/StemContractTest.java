@@ -18,7 +18,6 @@ package io.yggdrash.core.contract;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.ContractTestUtils;
 import io.yggdrash.TestConstants;
@@ -94,26 +93,6 @@ public class StemContractTest {
     }
 
     @Test
-    public void getBranchTest() {
-        JsonObject branch = createParams();
-        JsonObject json = stemContract.getBranch(branch);
-        String branchId = branch.get("branchId").getAsString();
-        JsonObject saved = stateStore.get(branchId);
-        // fee is not enough
-        //assertThat(saved).isEqualTo(json);
-    }
-
-    @Test
-    public void getContractTest() {
-        JsonObject branch = createParams();
-        Set<JsonElement> contractSet = stemContract.getContract(branch);
-        String branchId = branch.get("branchId").getAsString();
-        JsonObject saved = stateStore.get(branchId);
-        // fee is not enough
-        //assertThat(saved.get("contracts")).isEqualTo(contractSet);
-    }
-
-    @Test
     public void getBranchIdByValidatorTest() {
         JsonObject validatorParams = createValidatorParams();
         if (stemContract.getBranchIdByValidator(validatorParams) != null) {
@@ -125,22 +104,6 @@ public class StemContractTest {
                 saved.get("validator").getAsJsonArray().forEach(v -> assertThat(v).isEqualTo(validator));
             });
         }
-    }
-
-    @Test
-    public void getValidatorTest() {
-        JsonObject branch = createParams();
-        Set<String> validatorSet = stemContract.getValidator(branch);
-        String branchId = branch.get("branchId").getAsString();
-        JsonObject saved = stateStore.get(branchId);
-        // fee is not enough
-        //assertThat(saved.get("validator")).isEqualTo(validatorSet);
-    }
-
-    @Test
-    public void test() {
-        JsonObject params = createContractParam();
-        System.out.println(params);
     }
 
     @Test
