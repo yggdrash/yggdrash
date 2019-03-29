@@ -49,9 +49,12 @@ public class ContractPolicyLoaderTest {
         if (System.getSecurityManager() != null) {
             config.remove("org.osgi.framework.security");
         }
+
+
         Framework osgi = fa.newFramework(config);
         log.debug(osgi.getLocation());
         log.debug(osgi.getSymbolicName());
+
         osgi.start();
 
         InputStream stream = getClass().getClassLoader()
@@ -62,6 +65,7 @@ public class ContractPolicyLoaderTest {
 
         // Test unsigned Jar
         for (Bundle b : context.getBundles()) {
+            log.debug("BID {} , State : {}", b.getBundleId(), b.getState());
             log.debug(b.getSymbolicName());
             if (b.getSymbolicName().startsWith("io.yggdrash")) {
                 b.uninstall();
@@ -72,12 +76,13 @@ public class ContractPolicyLoaderTest {
                 .installBundle("contracts/96206ff28aead93a49272379a85191c54f7b33c0.jar", stream);
 
         bd.start();
+        log.debug("BID {} , State : {}", bd.getBundleId(), bd.getState());
         log.debug(Long.toString(bd.getBundleId()));
         log.debug(bd.getSymbolicName());
         log.debug(bd.getVersion().toString());
+        Assert.assertEquals(osgi.ACTIVE, osgi.getState());
 
         osgi.stop();
-        Assert.assertEquals(32, osgi.getState());
     }
 
 }
