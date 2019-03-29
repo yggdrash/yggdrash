@@ -19,10 +19,10 @@ import java.util.Arrays;
 import java.util.List;
 
 public class EbftStatus {
-    private long index;
+    private final long index;
     private final List<EbftBlock> unConfirmedEbftBlockList = new ArrayList<>();
-    private long timestamp;
-    private byte[] signature;
+    private final long timestamp;
+    private final byte[] signature;
 
     public EbftStatus(long index,
                       List<EbftBlock> unConfirmedEbftBlockList, Wallet wallet) {

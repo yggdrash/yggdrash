@@ -18,7 +18,7 @@ public class EbftBlockStore implements BlockStore<byte[], EbftBlock> {
     private static final Logger log = LoggerFactory.getLogger(EbftBlockStore.class);
 
     private final DbSource<byte[], byte[]> db;
-    private long size = 0;
+    private long size;
 
     private final ReentrantLock lock = new ReentrantLock();
 

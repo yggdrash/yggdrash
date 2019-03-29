@@ -59,8 +59,8 @@ public class PbftService implements ConsensusService {
 
     private int failCount;
 
-    private String grpcHost;
-    private int grpcPort;
+    private final String grpcHost;
+    private final int grpcPort;
 
     public PbftService(Wallet wallet,
                        ConsensusBlockChain blockChain,
@@ -691,7 +691,9 @@ public class PbftService implements ConsensusService {
             log.debug("index: " + (pbftBlockList != null ? pbftBlockList.get(0).getIndex() : null));
             log.debug("blockList size: " + (pbftBlockList != null ? pbftBlockList.size() : null));
 
-            if (pbftBlockList.size() == 0) {
+            if (pbftBlockList == null) {
+                return;
+            } else if (pbftBlockList.size() == 0) {
                 pbftBlockList.clear();
                 return;
             }

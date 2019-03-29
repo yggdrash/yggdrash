@@ -46,7 +46,7 @@ public class PbftBlockKeyStore implements BlockKeyStore<Long, byte[]> {
     public void put(Long key, byte[] value) {
         if (key < 0 || value == null
                 || value.length != Constants.BLOCK_HASH_LENGTH) {
-            log.debug("Key or value are not vaild. {} {}", key, value.length);
+            log.debug("Key or value are not vaild. {}", key);
             return;
         }
 

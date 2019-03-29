@@ -147,7 +147,6 @@ public class PbftBlockKeyStoreTest {
         long testNumber = 1000000;
         byte[] result;
         List<byte[]> resultList = new ArrayList<>();
-
         for (long l = 0L; l < testNumber; l++) {
             this.blockKeyStore.put(l, EMPTY_BYTE32);
             result = this.blockKeyStore.get(l);

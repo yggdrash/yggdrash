@@ -113,7 +113,6 @@ public class EbftBlockKeyStoreTest {
         long testNumber = 1000000;
         byte[] result;
         List<byte[]> resultList = new ArrayList<>();
-
         for (long l = 0L; l < testNumber; l++) {
             this.blockKeyStore.put(l, EMPTY_BYTE1K);
             result = this.blockKeyStore.get(l);

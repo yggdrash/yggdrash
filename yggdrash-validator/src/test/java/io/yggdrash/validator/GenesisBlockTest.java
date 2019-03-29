@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.nio.charset.StandardCharsets;
+import java.util.Objects;
 
 public class GenesisBlockTest {
 
@@ -30,7 +31,8 @@ public class GenesisBlockTest {
         String genesisString = null;
 
         try {
-            genesisFile = new File(classLoader.getResource("./genesis/genesis.json").getFile());
+            genesisFile = new File(Objects.requireNonNull(
+                    classLoader.getResource("./genesis/genesis.json")).getFile());
             genesisString = FileUtil.readFileToString(genesisFile, StandardCharsets.UTF_8);
         } catch (Exception e) {
             assert false;

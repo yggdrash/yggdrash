@@ -35,7 +35,7 @@ import java.util.List;
 public class EbftBlock implements ConsensusBlock {
     private static final Logger log = LoggerFactory.getLogger(EbftBlock.class);
 
-    private Block block;
+    private final Block block;
     private final List<String> consensusList = new ArrayList<>();
 
     public EbftBlock(Block block, List<String> consensusList) {

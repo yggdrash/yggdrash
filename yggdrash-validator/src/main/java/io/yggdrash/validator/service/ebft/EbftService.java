@@ -46,8 +46,8 @@ public class EbftService implements ConsensusService {
     private boolean isProposed;
     private boolean isConsensused;
 
-    private String grpcHost;
-    private int grpcPort;
+    private final String grpcHost;
+    private final int grpcPort;
 
     public EbftService(Wallet wallet,
                        ConsensusBlockChain blockChain,

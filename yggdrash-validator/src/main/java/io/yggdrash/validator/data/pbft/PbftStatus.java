@@ -24,10 +24,10 @@ public class PbftStatus {
 
     private static final org.slf4j.Logger log = LoggerFactory.getLogger(PbftStatus.class);
 
-    private long index;
+    private final long index;
     private final Map<String, PbftMessage> unConfirmedPbftMessageMap = new TreeMap<>();
-    private long timestamp;
-    private byte[] signature;
+    private final long timestamp;
+    private final byte[] signature;
 
     public PbftStatus(long index,
                       Map<String, PbftMessage> unConfirmedPbftMessageMap,
