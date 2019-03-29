@@ -8,6 +8,7 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.crypto.HashUtil.HASH_256_ALGORITHM_NAME;
 
 /**
@@ -15,7 +16,6 @@ import static io.yggdrash.common.crypto.HashUtil.HASH_256_ALGORITHM_NAME;
  * <br> referenced <a href="https://github.com/bitcoinj"> bitcoinj </a>
  */
 public class Trie {
-    private static final byte[] EMPTY = new byte[0];
 
     private Trie() {
         throw new IllegalStateException("Utility class");
@@ -31,7 +31,7 @@ public class Trie {
     public static byte[] getMerkleRootHusk(List<TransactionHusk> txs) {
 
         if (txs == null || txs.isEmpty() || txs.contains(null)) {
-            return EMPTY;
+            return EMPTY_BYTE32;
         }
 
         List<byte[]> tree = new ArrayList<>();
@@ -52,7 +52,7 @@ public class Trie {
     public static byte[] getMerkleRoot(List<Transaction> txs) {
 
         if (txs == null || txs.isEmpty() || txs.contains(null)) {
-            return EMPTY;
+            return EMPTY_BYTE32;
         }
 
         List<byte[]> tree = new ArrayList<>();
@@ -78,15 +78,15 @@ public class Trie {
 
         try {
             if (hashTree == null || hashTree.contains(null)) {
-                return EMPTY;
+                return EMPTY_BYTE32;
             }
 
             treeSize = hashTree.size();
             if (treeSize == 0) {
-                return EMPTY;
+                return EMPTY_BYTE32;
             }
         } catch (Exception e) {
-            return EMPTY;
+            return EMPTY_BYTE32;
         }
 
         for (int levelSize = treeSize; levelSize > 1; levelSize = (levelSize + 1) / 2) {
