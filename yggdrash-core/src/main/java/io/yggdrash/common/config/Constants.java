@@ -8,7 +8,9 @@ import java.math.BigInteger;
 
 public class Constants {
 
-    public static final int DEFAULT_PORT = 32918;
+    private Constants() {
+        throw new IllegalStateException("Constants class");
+    }
 
     public static final int BRANCH_HEX_LENGTH = 40;
 
@@ -32,6 +34,8 @@ public class Constants {
     public static final byte[] EMPTY_BYTE100K = new byte[102400];
     public static final byte[] EMPTY_BYTE1M = new byte[1024000];
 
+    public static final int BLOCK_HASH_LENGTH = 32;
+
     public static final int TX_HEADER_LENGTH = 84;
     public static final int TX_SIG_LENGTH = 65;
     public static final int TX_BODY_MAX_LENGTH = 10000000; // 10 Mb
@@ -48,12 +52,21 @@ public class Constants {
     private static final BigInteger SECP256K1N = new BigInteger("fffffffffffffffffffffffffff"
             + "ffffebaaedce6af48a03bbfd25e8cd0364141", 16);
 
-    private Constants() {
+    public final class LIMIT {
+        private LIMIT() {
+        }
 
+        public static final long BLOCK_SYNC_SIZE = 3 * 1024 * 1024L; // 3MB
     }
 
-    public interface LIMIT {
-        long BLOCK_SYNC_SIZE = 3 * 1024 * 1024; // 3MB
+    public final class KEY {
+        private KEY() {
+        }
+
+        public static final String HEADER = "header";
+        public static final String SIGNATURE = "signature";
+        public static final String BODY = "body";
+        public static final String VALIDATOR = "validator";
     }
 
     // TODO Contract Version fix

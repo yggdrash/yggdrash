@@ -22,7 +22,6 @@ import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import org.junit.Before;
 import org.junit.Test;
-
 import java.util.Collection;
 import java.util.Set;
 import java.util.stream.Collectors;

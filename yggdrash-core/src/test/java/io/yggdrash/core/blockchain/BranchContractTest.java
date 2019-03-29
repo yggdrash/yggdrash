@@ -18,6 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import org.junit.Assert;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -39,15 +40,8 @@ public class BranchContractTest {
         BranchContract bc = BranchContract.of(contract);
 
         log.debug(bc.toString());
-        assert contract.get("contractVersion").getAsString()
-                .equals(bc.getContractVersion().toString());
-        assert contract.get("init").isJsonObject();
-
-
-
-
-
-
+        Assert.assertEquals(contract.get("contractVersion").getAsString(), bc.getContractVersion().toString());
+        Assert.assertTrue(contract.get("init").isJsonObject());
     }
 
 }

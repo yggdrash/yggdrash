@@ -16,27 +16,31 @@
 
 package io.yggdrash.core.blockchain;
 
-import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class PrepareBlockchain {
     private static final Logger log = LoggerFactory.getLogger(PrepareBlockchain.class);
 
-    DefaultConfig config;
+    String contractPath;
+    List<BranchContract> contractList;
 
-    public PrepareBlockchain(DefaultConfig config) {
-        this.config = config;
-        log.debug("Contract Path : {} ", config.getContractPath());
+
+    public PrepareBlockchain(String contractPath) {
+        this.contractPath = contractPath;
+        log.debug("Contract Path : {} ", contractPath);
     }
 
     public File loadContractFile(ContractVersion version) {
-        File contractFile = new File(String.format("%s/%s.jar", config.getContractPath(),
+        File contractFile = new File(String.format("%s/%s.jar", contractPath,
                 version));
         if (!(contractFile.exists() && contractFile.canRead())) {
             log.debug("Contract file not Exist");
@@ -48,17 +52,17 @@ public class PrepareBlockchain {
 
     public boolean checkBlockChainIsReady(BlockChain blockChain) {
         // Get BranchContract
-        List<BranchContract> contractList = blockChain.getBranchContracts();
-        if(blockChain.getLastIndex() == 0 && contractList.size() == 0) {
+        contractList = blockChain.getBranchContracts();
+        if (blockChain.getLastIndex() == 0 && contractList.isEmpty()) {
             // is Genesis Blockchain
-            contractList = blockChain.getBranchContracts();
+            contractList = blockChain.getBranch().getBranchContracts();
         }
 
         // TODO check branch contract file exist
         if (contractList == null) {
             contractList = blockChain.getBranch().getBranchContracts();
         }
-        if (contractList.size() == 0) {
+        if (contractList.isEmpty()) {
             log.error("Branch Contract is Null");
         }
 
@@ -67,17 +71,15 @@ public class PrepareBlockchain {
 
             File contractFile = loadContractFile(contractVersion);
 
-            if (contractFile == null) {
-                if(!findContractFile(contractVersion)) {
-                    log.error("Contract {} is not exists", contractVersion.toString());
-                    return false;
-                }
+            if (contractFile == null && !findContractFile(contractVersion)) {
+                log.error("Contract {} is not exists", contractVersion);
+                return false;
             }
 
             // verify contract file
             if (!verifyContractFile(contractFile, contractVersion)) {
                 // TODO findContractFile
-                log.error("Contract {} is not verify", contractVersion.toString());
+                log.error("Contract {} is not verify", contractVersion);
                 return false;
             }
         }
@@ -92,12 +94,8 @@ public class PrepareBlockchain {
     public boolean verifyContractFile(File contractFile, ContractVersion contractVersion) {
         // Contract Path + contract Version + .jar
         // check contractVersion Hex
-        byte[] contractBinary;
-        try {
-            FileInputStream inputStream = new FileInputStream(contractFile);
-            contractBinary = new byte[Math.toIntExact(contractFile.length())];
-            inputStream.read(contractBinary);
-
+        try (InputStream is = new FileInputStream(contractFile)) {
+            byte[] contractBinary = IOUtils.toByteArray(is);
             ContractVersion checkVersion = ContractVersion.of(contractBinary);
             return contractVersion.toString().equals(checkVersion.toString());
 
@@ -107,6 +105,10 @@ public class PrepareBlockchain {
 
         return false;
 
+    }
+
+    public List<BranchContract> getContractList() {
+        return this.contractList;
     }
 
 }

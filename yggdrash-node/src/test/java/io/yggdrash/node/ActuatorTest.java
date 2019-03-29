@@ -18,6 +18,7 @@ package io.yggdrash.node;
 
 import io.yggdrash.TestConstants;
 import io.yggdrash.node.config.NodeProperties;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,11 +50,11 @@ public class ActuatorTest extends TestConstants.CiTest {
 
     @Test
     public void getGrpc() {
-        assert properties.getGrpc().getHost().equals("127.0.0.1");
+        Assert.assertEquals("127.0.0.1", properties.getGrpc().getHost());
     }
 
     @Test
     public void getPeer() {
-        assert properties.getSeedPeerList().size() > 0;
+        Assert.assertTrue(properties.getSeedPeerList().size() > 0);
     }
 }

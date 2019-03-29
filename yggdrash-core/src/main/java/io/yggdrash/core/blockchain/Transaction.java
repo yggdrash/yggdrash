@@ -19,10 +19,10 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import com.google.protobuf.ByteString;
+import com.google.protobuf.util.Timestamps;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
-import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
@@ -36,6 +36,9 @@ import java.io.IOException;
 import java.security.SignatureException;
 import java.util.Arrays;
 
+import static io.yggdrash.common.config.Constants.KEY.BODY;
+import static io.yggdrash.common.config.Constants.KEY.HEADER;
+import static io.yggdrash.common.config.Constants.KEY.SIGNATURE;
 import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 import static io.yggdrash.common.config.Constants.TX_BODY_MAX_LENGTH;
 import static io.yggdrash.common.config.Constants.TX_HEADER_LENGTH;
@@ -51,6 +54,8 @@ public class Transaction {
     private final TransactionHeader header;
     private final byte[] signature;
     private final TransactionBody body;
+
+    private byte[] binary;
 
     /**
      * Transaction Constructor.
@@ -73,7 +78,7 @@ public class Transaction {
      * @param body   transaction body
      */
     public Transaction(TransactionHeader header, Wallet wallet, TransactionBody body) {
-        this(header, wallet.signHashedData(header.getHashForSigning()), body);
+        this(header, wallet.sign(header.getHashForSigning(), true), body);
     }
 
     /**
@@ -82,9 +87,9 @@ public class Transaction {
      * @param jsonObject jsonObject transaction.
      */
     public Transaction(JsonObject jsonObject) {
-        this(new TransactionHeader(jsonObject.getAsJsonObject("header")),
-                Hex.decode(jsonObject.get("signature").getAsString()),
-                new TransactionBody(jsonObject.getAsJsonArray("body")));
+        this(new TransactionHeader(jsonObject.getAsJsonObject(HEADER)),
+                Hex.decode(jsonObject.get(SIGNATURE).getAsString()),
+                new TransactionBody(jsonObject.getAsJsonArray(BODY)));
     }
 
     /**
@@ -99,7 +104,6 @@ public class Transaction {
         System.arraycopy(txBytes, 0, headerBytes, 0, headerBytes.length);
         this.header = new TransactionHeader(headerBytes);
         position += headerBytes.length;
-        headerBytes = null;
 
         byte[] sigBytes = new byte[TX_SIG_LENGTH];
         System.arraycopy(txBytes, position, sigBytes, 0, sigBytes.length);
@@ -115,7 +119,6 @@ public class Transaction {
         System.arraycopy(txBytes, position, bodyBytes, 0, bodyBytes.length);
         position += bodyBytes.length;
         this.body = new TransactionBody(bodyBytes);
-        bodyBytes = null;
 
         if (position != txBytes.length) {
             throw new NotValidateException();
@@ -161,7 +164,7 @@ public class Transaction {
             bao.write(this.signature);
         } catch (IOException e) {
             log.warn(e.getMessage());
-            return null;
+            return new byte[0];
         }
         return HashUtil.sha3(bao.toByteArray());
     }
@@ -257,7 +260,7 @@ public class Transaction {
         boolean result = !(data == null || data.length != length);
 
         if (!result) {
-            log.debug(msg + " is not valid.");
+            log.debug("{} is not valid.", msg);
         }
 
         return result;
@@ -283,12 +286,12 @@ public class Transaction {
                 this.header.getBodyHash(), TransactionHeader.BODYHASH_LENGTH, "bodyHash");
         check &= !(this.header.getBodyLength() <= 0
                 || this.header.getBodyLength() != this.getBody().length());
-        check &= verifyCheckLengthNotNull(this.signature, SIGNATURE_LENGTH, "signature");
+        check &= verifyCheckLengthNotNull(this.signature, SIGNATURE_LENGTH, SIGNATURE);
 
         // check bodyHash
-        if (!Arrays.equals(this.header.getBodyHash(), HashUtil.sha3(this.body.toBinary()))) {
-            log.debug("bodyHash is not equal to body :"
-                    + Hex.toHexString(this.header.getBodyHash()));
+        if (!Arrays.equals(this.header.getBodyHash(), HashUtil.sha3(body.toBinary()))) {
+            String bodyHash = Hex.toHexString(header.getBodyHash());
+            log.debug("bodyHash is not equal to body :{}", bodyHash);
             return false;
         }
 
@@ -303,9 +306,9 @@ public class Transaction {
     public JsonObject toJsonObject() {
 
         JsonObject jsonObject = new JsonObject();
-        jsonObject.add("header", this.header.toJsonObject());
-        jsonObject.addProperty("signature", Hex.toHexString(this.signature));
-        jsonObject.add("body", this.body.getBody());
+        jsonObject.add(HEADER, this.header.toJsonObject());
+        jsonObject.addProperty(SIGNATURE, Hex.toHexString(this.signature));
+        jsonObject.add(BODY, this.body.getBody());
 
         return jsonObject;
     }
@@ -328,21 +331,23 @@ public class Transaction {
      * Get a binary transaction data.
      *
      * @return a binary transaction data.
-     * @throws IOException IOException
      */
-    public byte[] toBinary() throws IOException {
-
+    public byte[] toBinary() {
+        if (binary != null) {
+            return binary;
+        }
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        try {
+            bao.write(this.header.toBinary());
+            bao.write(this.signature);
+            bao.write(this.body.toBinary());
 
-        bao.write(this.header.toBinary());
-        bao.write(this.signature);
-        bao.write(this.body.toBinary());
-
-        return bao.toByteArray();
-    }
-
-    public Transaction clone() {
-        return new Transaction(this.header.clone(), this.signature.clone(), this.body.clone());
+            binary = bao.toByteArray();
+            return binary;
+        } catch (IOException e) {
+            log.warn("Transaction toBinary() IOException");
+            throw new NotValidateException();
+        }
     }
 
     public static Proto.Transaction toProtoTransaction(Transaction tx) {
@@ -353,20 +358,16 @@ public class Transaction {
             .setChain(ByteString.copyFrom(tx.getHeader().getChain()))
             .setVersion(ByteString.copyFrom(tx.getHeader().getVersion()))
             .setType(ByteString.copyFrom(tx.getHeader().getType()))
-            .setTimestamp(ByteString.copyFrom(
-                    ByteUtil.longToBytes(tx.getHeader().getTimestamp())))
+            .setTimestamp(Timestamps.fromMillis(tx.getHeader().getTimestamp()))
             .setBodyHash(ByteString.copyFrom(tx.getHeader().getBodyHash()))
-            .setBodyLength(ByteString.copyFrom(
-                    ByteUtil.longToBytes(tx.getHeader().getBodyLength())))
+            .setBodyLength(tx.getHeader().getBodyLength())
             .build();
 
-        Proto.Transaction protoTransaction = Proto.Transaction.newBuilder()
+        return Proto.Transaction.newBuilder()
                 .setHeader(protoHeader)
                 .setSignature(ByteString.copyFrom(tx.getSignature()))
                 .setBody(ByteString.copyFrom(tx.getBody().toBinary()))
                 .build();
-
-        return protoTransaction;
     }
 
     static Transaction toTransaction(Proto.Transaction protoTransaction) {
@@ -376,11 +377,9 @@ public class Transaction {
                 protoTransaction.getHeader().getChain().toByteArray(),
                 protoTransaction.getHeader().getVersion().toByteArray(),
                 protoTransaction.getHeader().getType().toByteArray(),
-                ByteUtil.byteArrayToLong(
-                        protoTransaction.getHeader().getTimestamp().toByteArray()),
+                Timestamps.toMillis(protoTransaction.getHeader().getTimestamp()),
                 protoTransaction.getHeader().getBodyHash().toByteArray(),
-                ByteUtil.byteArrayToLong(
-                        protoTransaction.getHeader().getBodyLength().toByteArray())
+                protoTransaction.getHeader().getBodyLength()
                 );
 
         TransactionBody txBody = new TransactionBody(

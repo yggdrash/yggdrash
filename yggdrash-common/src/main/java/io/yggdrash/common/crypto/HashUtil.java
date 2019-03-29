@@ -19,8 +19,7 @@
 package io.yggdrash.common.crypto;
 
 import io.yggdrash.common.crypto.jce.SpongyCastleProvider;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import io.yggdrash.common.exception.FailedOperationException;
 import org.spongycastle.crypto.CipherParameters;
 import org.spongycastle.crypto.Digest;
 import org.spongycastle.crypto.digests.KeccakDigest;
@@ -36,9 +35,11 @@ import static java.util.Arrays.copyOfRange;
 
 public class HashUtil {
 
-    private static final Logger LOG = LoggerFactory.getLogger(HashUtil.class);
+    private HashUtil() {
+        throw new IllegalStateException("Utility class");
+    }
 
-    private static final String HASH_256_ALGORITHM_NAME = "KECCAK-256";
+    public static final String HASH_256_ALGORITHM_NAME = "KECCAK-256";
     private static final String HASH_SHA_256_ALGORITHM_NAME = "SHA-256";
     private static final String HASH_SHA_512_ALGORITHM_NAME = "SHA-512";
     private static final String HASH_SHA3_256_ALGORITHM_NAME = "SHA3-256";
@@ -117,8 +118,7 @@ public class HashUtil {
             MessageDigest digest = MessageDigest.getInstance(algorithm);
             return doubleHash ? digest.digest(digest.digest(input)) : digest.digest(input);
         } catch (NoSuchAlgorithmException e) {
-            LOG.error("Can't find such algorithm", e);
-            throw new RuntimeException(e);
+            throw new FailedOperationException(e);
         }
     }
 

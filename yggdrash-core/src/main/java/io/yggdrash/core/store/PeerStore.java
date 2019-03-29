@@ -33,7 +33,7 @@ public class PeerStore implements ReadWriterStore<PeerId, Peer> {
 
     private static final Logger log = LoggerFactory.getLogger(PeerStore.class);
     private final DbSource<byte[], byte[]> db;
-    private final transient Map<PeerId, Peer> peers = new HashMap<>();
+    private final Map<PeerId, Peer> peers = new HashMap<>();
 
     PeerStore(DbSource<byte[], byte[]> dbSource) {
         this.db = dbSource.init();
@@ -67,16 +67,11 @@ public class PeerStore implements ReadWriterStore<PeerId, Peer> {
     }
 
     public void overwrite(List<Peer> peerList) {
-        //log.debug("[PeerStore] before remove all :: peers => {}", peers);
-        //log.debug("[PeerStore] before remove all :: db => {}", getAll().size());
 
         peers.keySet().stream().map(PeerId::getBytes).forEach(db::delete);
         peers.keySet().removeIf(peers::containsKey);
 
         peerList.forEach(this::put);
-
-        //log.debug("[PeerStore] before add all :: peers => {}", peers);
-        //log.debug("[PeerStore] before add all :: db => {}", getAll().size());
     }
 
     public void close() {

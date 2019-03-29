@@ -24,9 +24,9 @@ import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchGroup;
 import io.yggdrash.core.blockchain.BranchId;
-import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
+import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.store.StoreBuilder;
 import org.apache.commons.io.FileUtils;
 import org.junit.Before;
@@ -45,6 +45,7 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 
+@Ignore
 public class BranchConfigurationTest {
     private static final Logger log = LoggerFactory.getLogger(BranchConfigurationTest.class);
 
@@ -61,7 +62,6 @@ public class BranchConfigurationTest {
     }
 
     @Test
-    @Ignore
     public void branchLoaderTest() throws IOException {
         JsonObject branchJson = getBranchJson();
         BranchId branchId = BranchId.of(branchJson);

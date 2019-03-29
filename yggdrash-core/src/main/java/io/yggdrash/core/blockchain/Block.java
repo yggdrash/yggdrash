@@ -38,9 +38,13 @@ import java.security.SignatureException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static com.google.protobuf.util.Timestamps.fromMillis;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
+import static io.yggdrash.common.config.Constants.KEY.BODY;
+import static io.yggdrash.common.config.Constants.KEY.HEADER;
+import static io.yggdrash.common.config.Constants.KEY.SIGNATURE;
 import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 
 public class Block {
@@ -54,6 +58,8 @@ public class Block {
     private byte[] signature;
     private BlockBody body;
 
+    private byte[] binary;
+
     public Block(BlockHeader header, byte[] signature, BlockBody body) {
         this.header = header;
         this.signature = signature;
@@ -61,13 +67,13 @@ public class Block {
     }
 
     public Block(BlockHeader header, Wallet wallet, BlockBody body) {
-        this(header, wallet.signHashedData(header.getHashForSigning()), body);
+        this(header, wallet.sign(header.getHashForSigning(), true), body);
     }
 
     public Block(JsonObject jsonObject) {
-        this(new BlockHeader(jsonObject.getAsJsonObject("header")),
-                Hex.decode(jsonObject.get("signature").getAsString()),
-                new BlockBody(jsonObject.getAsJsonArray("body")));
+        this(new BlockHeader(jsonObject.getAsJsonObject(HEADER)),
+                Hex.decode(jsonObject.get(SIGNATURE).getAsString()),
+                new BlockBody(jsonObject.getAsJsonArray(BODY)));
     }
 
     public Block(byte[] blockBytes) {
@@ -77,7 +83,6 @@ public class Block {
         System.arraycopy(blockBytes, 0, headerBytes, 0, headerBytes.length);
         this.header = new BlockHeader(headerBytes);
         position += headerBytes.length;
-        headerBytes = null;
 
         byte[] sigBytes = new byte[SIGNATURE_LENGTH];
         System.arraycopy(blockBytes, position, sigBytes, 0, sigBytes.length);
@@ -93,8 +98,6 @@ public class Block {
         System.arraycopy(blockBytes, position, bodyBytes, 0, bodyBytes.length);
         position += bodyBytes.length;
         this.body = new BlockBody(bodyBytes);
-
-        bodyBytes = null;
 
         if (position != blockBytes.length) {
             throw new NotValidateException();
@@ -149,7 +152,7 @@ public class Block {
 
     public byte[] getPubKey() {
         ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(this.signature);
-        ECKey ecKeyPub = null;
+        ECKey ecKeyPub;
         try {
             ecKeyPub = ECKey.signatureToKey(this.header.getHashForSigning(), ecdsaSignature);
         } catch (SignatureException e) {
@@ -160,7 +163,7 @@ public class Block {
         return ecKeyPub.getPubKey();
     }
 
-    public String getPubKeyHex() {
+    String getPubKeyHex() {
         return Hex.toHexString(this.getPubKey());
     }
 
@@ -206,7 +209,7 @@ public class Block {
         boolean result = !(data == null || data.length != length);
 
         if (!result) {
-            log.debug(msg + " is not valid.");
+            log.debug("{} is not valid.", msg);
         }
 
         return result;
@@ -231,7 +234,7 @@ public class Block {
                 this.header.getMerkleRoot(), BlockHeader.MERKLEROOT_LENGTH, "merkleRootLength");
         if (header.getIndex() != 0) {
             // Genesis Block is not check signature
-            check &= verifyCheckLengthNotNull(this.signature, SIGNATURE_LENGTH, "signature");
+            check &= verifyCheckLengthNotNull(this.signature, SIGNATURE_LENGTH, SIGNATURE);
         }
         check &= this.header.getIndex() >= 0;
         check &= this.header.getTimestamp() > TIMESTAMP_2018;
@@ -247,9 +250,9 @@ public class Block {
 
     public JsonObject toJsonObject() {
         JsonObject jsonObject = new JsonObject();
-        jsonObject.add("header", this.header.toJsonObject());
-        jsonObject.addProperty("signature", Hex.toHexString(this.signature));
-        jsonObject.add("body", this.body.toJsonArray());
+        jsonObject.add(HEADER, this.header.toJsonObject());
+        jsonObject.addProperty(SIGNATURE, Hex.toHexString(this.signature));
+        jsonObject.add(BODY, this.body.toJsonArray());
         return jsonObject;
     }
 
@@ -262,28 +265,43 @@ public class Block {
     }
 
     public byte[] toBinary() {
+        if (binary != null) {
+            return binary;
+        }
+
         ByteArrayOutputStream bao = new ByteArrayOutputStream();
 
         try {
             bao.write(this.header.toBinary());
             bao.write(this.signature);
             bao.write(this.body.toBinary());
+
+            binary = bao.toByteArray();
+            return binary;
         } catch (IOException e) {
             log.warn("Block toBinary() IOException");
             throw new NotValidateException();
         }
-
-        return bao.toByteArray();
     }
 
-    public Block clone() {
-        return new Block(this.header.clone(), this.signature.clone(), this.body.clone());
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        Block other = (Block) o;
+        return this.getHeader().equals(other.getHeader())
+                && Arrays.equals(this.signature, other.getSignature())
+                && this.getBody().equals(other.getBody());
     }
 
-    public boolean equals(Block newBlock) {
-        return this.getHeader().equals(newBlock.getHeader())
-                && Arrays.equals(this.signature, newBlock.getSignature())
-                && this.getBody().equals(newBlock.getBody());
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(toBinary());
     }
 
     public Proto.Block toProtoBlock() {
@@ -308,13 +326,11 @@ public class Block {
             builder.addTransactions(Transaction.toProtoTransaction(tx));
         }
 
-        Proto.Block protoBlock = Proto.Block.newBuilder()
+        return Proto.Block.newBuilder()
                 .setHeader(protoHeader)
                 .setSignature(ByteString.copyFrom(block.getSignature()))
                 .setBody(builder.build())
                 .build();
-
-        return protoBlock;
     }
 
     public static Block toBlock(Proto.Block protoBlock) {
@@ -353,7 +369,6 @@ public class Block {
         byte[] headerBytes = new byte[HEADER_LENGTH];
         System.arraycopy(bytes, 0, headerBytes, 0, headerBytes.length);
         BlockHeader header = new BlockHeader(headerBytes);
-        headerBytes = null;
         long bodyLength = header.getBodyLength();
 
         return (long) HEADER_LENGTH + (long) SIGNATURE_LENGTH + bodyLength;

@@ -20,6 +20,7 @@ import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,6 +40,7 @@ public class TransactionReceiptStoreTest {
         receipt.setStatus(ExecuteStatus.SUCCESS);
 
         store.put(receipt);
+        Assert.assertNotNull(store.get("TEST_TRANSACTION"));
     }
 
     @Test
@@ -50,9 +52,8 @@ public class TransactionReceiptStoreTest {
 
         TransactionReceipt receipt2 = store.get("TEST_TRANSACTION_1234512345");
 
-        assert receipt.getTxId().equalsIgnoreCase(receipt2.getTxId());
-        assert receipt.getStatus() == receipt2.getStatus();
-
+        Assert.assertTrue(receipt.getTxId().equalsIgnoreCase(receipt2.getTxId()));
+        Assert.assertEquals(receipt.getStatus(), receipt2.getStatus());
     }
 
 }

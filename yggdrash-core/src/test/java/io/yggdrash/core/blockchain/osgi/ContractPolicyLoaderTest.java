@@ -16,8 +16,7 @@
 
 package io.yggdrash.core.blockchain.osgi;
 
-import java.io.InputStream;
-import java.util.Map;
+import org.junit.Assert;
 import org.junit.Test;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
@@ -27,17 +26,18 @@ import org.osgi.framework.launch.FrameworkFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.InputStream;
+import java.util.Map;
+
 public class ContractPolicyLoaderTest {
     private static final Logger log = LoggerFactory.getLogger(ContractPolicyLoaderTest.class);
-
 
     @Test
     public void contractPolicyLoader() {
         ContractPolicyLoader loader = new ContractPolicyLoader();
 
-        assert loader.getFrameworkFactory() != null;
+        Assert.assertNotNull(loader.getFrameworkFactory());
     }
-
 
     @Test
     public void loadFramework() throws BundleException {
@@ -46,12 +46,15 @@ public class ContractPolicyLoaderTest {
         FrameworkFactory fa = loader.getFrameworkFactory();
         Map config = loader.getContainerConfig();
 
-        if(System.getSecurityManager() != null) {
+        if (System.getSecurityManager() != null) {
             config.remove("org.osgi.framework.security");
         }
+
+
         Framework osgi = fa.newFramework(config);
         log.debug(osgi.getLocation());
         log.debug(osgi.getSymbolicName());
+
         osgi.start();
 
         InputStream stream = getClass().getClassLoader()
@@ -62,6 +65,7 @@ public class ContractPolicyLoaderTest {
 
         // Test unsigned Jar
         for (Bundle b : context.getBundles()) {
+            log.debug("BID {} , State : {}", b.getBundleId(), b.getState());
             log.debug(b.getSymbolicName());
             if (b.getSymbolicName().startsWith("io.yggdrash")) {
                 b.uninstall();
@@ -72,9 +76,11 @@ public class ContractPolicyLoaderTest {
                 .installBundle("contracts/96206ff28aead93a49272379a85191c54f7b33c0.jar", stream);
 
         bd.start();
+        log.debug("BID {} , State : {}", bd.getBundleId(), bd.getState());
         log.debug(Long.toString(bd.getBundleId()));
         log.debug(bd.getSymbolicName());
         log.debug(bd.getVersion().toString());
+        Assert.assertEquals(osgi.ACTIVE, osgi.getState());
 
         osgi.stop();
     }

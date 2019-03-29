@@ -20,7 +20,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.util.TimeUtils;
-import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,11 +36,8 @@ public class BlockBodyTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockBodyTest.class);
 
-    private Transaction tx1;
-    private Transaction tx2;
-
-    @Before
-    public void setUp() {
+    @Test
+    public void testBlockBodyTest() {
 
         JsonObject jsonParam1 = new JsonObject();
         jsonParam1.addProperty("address", "5db10750e8caff27f906b41c71b3471057dd2000");
@@ -74,12 +70,8 @@ public class BlockBodyTest {
         TransactionSignature txSig =
                 new TransactionSignature(TestConstants.wallet(), txHeader.getHashForSigning());
 
-        tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
-        tx2 = tx1.clone();
-    }
-
-    @Test
-    public void testBlockBodyTest() {
+        Transaction tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
+        Transaction tx2 = new Transaction(tx1.toBinary());
 
         log.debug("tx1=" + tx1.toString());
         log.debug("tx2=" + tx2.toString());
@@ -91,7 +83,7 @@ public class BlockBodyTest {
         log.debug("txs=" + txs1.toString());
 
         BlockBody bb1 = new BlockBody(txs1);
-        BlockBody bb2 = bb1.clone();
+        BlockBody bb2 = new BlockBody(bb1.toBinary());
 
         log.debug("bb1=" + bb1.toString());
         log.debug("bb2=" + bb2.toString());
@@ -105,14 +97,14 @@ public class BlockBodyTest {
 
         log.debug("bb1.getBodyCount=" + bb1.getBodyCount());
         log.debug("bb2.getBodyCount=" + bb2.getBodyCount());
-        assertEquals(bb1.getBodyCount(), 2);
+        assertEquals(2, bb1.getBodyCount());
         assertEquals(bb1.getBodyCount(), bb2.getBodyCount());
 
         log.debug("bb1.merkleRoot=" + Hex.toHexString(bb1.getMerkleRoot()));
         log.debug("bb2.merkleRoot=" + Hex.toHexString(bb2.getMerkleRoot()));
 
         assertArrayEquals(bb1.getMerkleRoot(), bb2.getMerkleRoot());
-        assertEquals(bb1.getMerkleRoot().length, 32);
+        assertEquals(32, bb1.getMerkleRoot().length);
     }
 
 }

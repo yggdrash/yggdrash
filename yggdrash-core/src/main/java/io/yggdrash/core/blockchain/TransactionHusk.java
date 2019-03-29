@@ -18,6 +18,8 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.util.JsonFormat;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.utils.ByteUtil;
@@ -29,7 +31,6 @@ import io.yggdrash.proto.Proto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -39,7 +40,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
     private static final Logger log = LoggerFactory.getLogger(TransactionHusk.class);
 
     private Proto.Transaction protoTransaction;
-    private Transaction coreTransaction;
+    private transient Transaction coreTransaction;
 
     public TransactionHusk(Proto.Transaction transaction) {
         this.protoTransaction = transaction;
@@ -151,11 +152,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
     }
 
     public byte[] toBinary() {
-        try {
-            return this.coreTransaction.toBinary();
-        } catch (IOException e) {
-            throw new NotValidateException(e);
-        }
+        return this.coreTransaction.toBinary();
     }
 
     @Override
@@ -211,6 +208,19 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
         return this.coreTransaction.toJsonObject();
     }
 
+    JsonObject toJsonObjectFromProto() {
+        try {
+            String print = JsonFormat.printer()
+                    .includingDefaultValueFields().print(this.protoTransaction);
+            JsonObject asJsonObject = new JsonParser().parse(print).getAsJsonObject();
+            asJsonObject.addProperty("txId", getHash().toString());
+            return asJsonObject;
+        } catch (InvalidProtocolBufferException e) {
+            log.warn(e.getMessage());
+        }
+        return null;
+    }
+
     @Override
     public int compareTo(TransactionHusk o) {
         return Long.compare(
@@ -219,5 +229,4 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
                 ByteUtil.byteArrayToLong(
                         o.getInstance().getHeader().getTimestamp().toByteArray()));
     }
-
 }

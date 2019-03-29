@@ -18,8 +18,8 @@ package io.yggdrash.core.store;
 
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.StoreTestUtils;
-import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
+import io.yggdrash.core.blockchain.BlockHusk;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
 
@@ -27,8 +27,7 @@ public class BlockStoreTest {
 
     @Test
     public void shouldBeGotBlock() {
-        LevelDbDataSource ds =
-                new LevelDbDataSource(StoreTestUtils.getTestPath(), "block-store-test");
+        LevelDbDataSource ds = new LevelDbDataSource(StoreTestUtils.getTestPath(), "block-store-test");
         BlockStore blockStore = new BlockStore(ds);
         BlockHusk blockHuskFixture = BlockChainTestUtils.genesisBlock();
         blockStore.put(blockHuskFixture.getHash(), blockHuskFixture);

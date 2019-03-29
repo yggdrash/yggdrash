@@ -156,9 +156,6 @@ public class ContractTestUtils {
         branch.add("consensus", consensus);
         branch.addProperty("fee", fee);
 
-        //branchSample.add("branch", branch);
-        //branchSample.addProperty("fee", fee);
-
         return branch;
     }
 

@@ -49,6 +49,9 @@ import static io.yggdrash.common.crypto.ECKey.CURVE;
 
 public class ECIESCoder {
 
+    private ECIESCoder() {
+        throw new IllegalStateException("Utility class");
+    }
 
     public static final int KEY_SIZE = 128;
 
@@ -197,20 +200,6 @@ public class ECIESCoder {
         SecureRandom random = new SecureRandom();
         KeyGenerationParameters gParam = new ECKeyGenerationParameters(CURVE, random);
         eGen.init(gParam);
-
-//        AsymmetricCipherKeyPairGenerator testGen = new AsymmetricCipherKeyPairGenerator() {
-//            ECKey priv = ECKey.fromPrivate(Hex.decode("d0b043b4c5d657670778242d82d68a29d25d7d711127d17b8e299f156dad361a"));
-//
-//            @Override
-//            public void init(KeyGenerationParameters keyGenerationParameters) {
-//            }
-//
-//            @Override
-//            public AsymmetricCipherKeyPair generateKeyPair() {
-//                return new AsymmetricCipherKeyPair(new ECPublicKeyParameters(priv.getPubKeyPoint(), CURVE),
-//                        new ECPrivateKeyParameters(priv.getPrivKey(), CURVE));
-//            }
-//        };
 
         EphemeralKeyPairGenerator ephemeralKeyPairGenerator =
                 new EphemeralKeyPairGenerator(/*testGen*/eGen, new ECIESPublicKeyEncoder());

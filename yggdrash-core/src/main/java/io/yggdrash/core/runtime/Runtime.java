@@ -39,10 +39,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-public class Runtime<T> {
+public class Runtime {
     private static final Logger log = LoggerFactory.getLogger(Runtime.class);
 
-    private final StateStore<T> stateStore;
+    private final StateStore stateStore;
     private final TransactionReceiptStore txReceiptStore;
     private final Map<ContractVersion, RuntimeContractWrap> contracts = new HashMap<>();
 
@@ -52,11 +52,9 @@ public class Runtime<T> {
 
     // FIX runtime run contract will init
     // TODO Runtime get multi Contract
-    public Runtime(StateStore<T> stateStore,
-                   TransactionReceiptStore txReceiptStore) {
+    public Runtime(StateStore stateStore, TransactionReceiptStore txReceiptStore) {
         this.stateStore = stateStore;
         this.txReceiptStore = txReceiptStore;
-
     }
 
     public Set<ContractVersion> executeAbleContract() {
@@ -145,7 +143,8 @@ public class Runtime<T> {
             for (JsonElement transactionElement: JsonUtil.parseJsonArray(tx.getBody())) {
                 JsonObject txBody = transactionElement.getAsJsonObject();
                 // check contract Version
-                ContractVersion txContractVersion = ContractVersion.ofNonHex(txBody.get("contractVersion").getAsString());
+                String contractVersion = txBody.get("contractVersion").getAsString();
+                ContractVersion txContractVersion = ContractVersion.ofNonHex(contractVersion);
                 RuntimeContractWrap wrap = contracts.get(txContractVersion);
                 // TODO remove this (retry if not system contract)
                 if (wrap == null) {
@@ -162,7 +161,7 @@ public class Runtime<T> {
             }
 
         } catch (Throwable e) {
-            e.printStackTrace();
+            log.warn(e.getMessage());
             txReceipt.setStatus(ExecuteStatus.ERROR);
             JsonObject errorLog = new JsonObject();
             errorLog.addProperty("error", e.getMessage());
@@ -177,7 +176,7 @@ public class Runtime<T> {
     }
 
     // TODO Remove This
-    public StateStore<T> getStateStore() {
+    public StateStore getStateStore() {
         return this.stateStore;
     }
 

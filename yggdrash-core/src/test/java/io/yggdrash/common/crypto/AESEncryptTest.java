@@ -193,5 +193,6 @@ public class AESEncryptTest extends SlowTest {
         byte[] plainData = AESEncrypt.decrypt(
                 encData, ByteUtil.parseBytes(kdfPass, 0, 16), iv);
         log.debug("decrypt: {}", Hex.toHexString(plainData));
+        assertArrayEquals(plainBytes, plainData);
     }
 }

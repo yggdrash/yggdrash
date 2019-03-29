@@ -8,11 +8,18 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.yggdrash.common.crypto.HashUtil.HASH_256_ALGORITHM_NAME;
+
 /**
  * Trie Class.
  * <br> referenced <a href="https://github.com/bitcoinj"> bitcoinj </a>
  */
 public class Trie {
+    private static final byte[] EMPTY = new byte[0];
+
+    private Trie() {
+        throw new IllegalStateException("Utility class");
+    }
 
     /**
      * Get merkle root value.
@@ -23,16 +30,16 @@ public class Trie {
      */
     public static byte[] getMerkleRootHusk(List<TransactionHusk> txs) {
 
-        if (txs == null || txs.size() < 1 || txs.contains(null)) {
-            return null;
+        if (txs == null || txs.isEmpty() || txs.contains(null)) {
+            return EMPTY;
         }
 
-        ArrayList<byte[]> tree = new ArrayList<>();
+        List<byte[]> tree = new ArrayList<>();
         for (TransactionHusk tx : txs) {
             tree.add(tx.getHash().getBytes());
         }
 
-        return getMerkleRoot(tree);
+        return getMerkleRoot(tree, HASH_256_ALGORITHM_NAME);
     }
 
     /**
@@ -44,16 +51,16 @@ public class Trie {
      */
     public static byte[] getMerkleRoot(List<Transaction> txs) {
 
-        if (txs == null || txs.size() < 1 || txs.contains(null)) {
-            return null;
+        if (txs == null || txs.isEmpty() || txs.contains(null)) {
+            return EMPTY;
         }
 
-        ArrayList<byte[]> tree = new ArrayList<>();
+        List<byte[]> tree = new ArrayList<>();
         for (Transaction tx : txs) {
             tree.add(tx.getHash());
         }
 
-        return getMerkleRoot(tree);
+        return getMerkleRoot(tree, HASH_256_ALGORITHM_NAME);
     }
 
     /**
@@ -64,23 +71,22 @@ public class Trie {
      * @param doubleHash Whether double hash or not
      * @return merkle root data
      */
-    public static byte[] getMerkleRoot(
-            ArrayList<byte[]> hashTree, String algorithm, boolean doubleHash) {
+    public static byte[] getMerkleRoot(List<byte[]> hashTree, String algorithm, boolean doubleHash) {
 
-        int treeSize = 0;
+        int treeSize;
         int levelOffset = 0;
 
         try {
             if (hashTree == null || hashTree.contains(null)) {
-                return null;
+                return EMPTY;
             }
 
             treeSize = hashTree.size();
             if (treeSize == 0) {
-                return null;
+                return EMPTY;
             }
         } catch (Exception e) {
-            return null;
+            return EMPTY;
         }
 
         for (int levelSize = treeSize; levelSize > 1; levelSize = (levelSize + 1) / 2) {
@@ -98,12 +104,7 @@ public class Trie {
         return hashTree.get(hashTree.size() - 1);
     }
 
-    public static byte[] getMerkleRoot(ArrayList<byte[]> hashTree, String algorithm) {
+    public static byte[] getMerkleRoot(List<byte[]> hashTree, String algorithm) {
         return getMerkleRoot(hashTree, algorithm, false);
     }
-
-    private static byte[] getMerkleRoot(ArrayList<byte[]> hashTree) {
-        return getMerkleRoot(hashTree, "KECCAK-256");
-    }
-
 }

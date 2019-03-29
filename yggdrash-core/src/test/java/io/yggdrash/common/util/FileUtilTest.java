@@ -38,14 +38,14 @@ public class FileUtilTest {
     public void getFileNameTest() {
         String testName = "tmp/tmp01/tmp011/tmp01.txt";
 
-        assertEquals(FileUtil.getFileName(testName), "tmp01.txt");
+        assertEquals("tmp01.txt", FileUtil.getFileName(testName));
     }
 
     @Test
     public void getFilePath() {
         String testPath = "tmp/tmp01/tmp011/tmp01.txt";
 
-        assertEquals(FileUtil.getFilePath(testPath), "tmp/tmp01/tmp011/");
+        assertEquals("tmp/tmp01/tmp011/", FileUtil.getFilePath(testPath));
     }
 
 }

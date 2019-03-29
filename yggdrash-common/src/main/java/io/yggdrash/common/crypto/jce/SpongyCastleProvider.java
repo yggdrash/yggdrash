@@ -25,6 +25,10 @@ import java.security.Security;
 
 public final class SpongyCastleProvider {
 
+    private SpongyCastleProvider() {
+        throw new IllegalStateException("Singleton class");
+    }
+
     public static Provider getInstance() {
         return Holder.INSTANCE;
     }

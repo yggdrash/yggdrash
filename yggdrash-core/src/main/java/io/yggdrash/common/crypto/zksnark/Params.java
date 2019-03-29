@@ -28,6 +28,10 @@ import java.math.BigInteger;
  */
 class Params {
 
+    private Params() {
+        throw new IllegalStateException("Constants class");
+    }
+
     /**
      * "p" field parameter of F_p, F_p2, F_p6 and F_p12
      */
@@ -63,5 +67,5 @@ class Params {
             new BigInteger("3505843767911556378687030309984248845540243509899259641013678093033130930403")
     );
 
-    static final BigInteger PAIRING_FINAL_EXPONENT_Z = new BigInteger("4965661367192848881");
+    static final BigInteger PAIRING_FINAL_EXPONENT_Z = BigInteger.valueOf(4965661367192848881L);
 }

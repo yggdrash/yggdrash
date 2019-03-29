@@ -30,7 +30,7 @@ import java.util.Collections;
 
 public class PeerTestUtils {
     public static final int SEED_PORT = 32918;
-    private static final int OWNER_PORT = 32920;
+    public static final int OWNER_PORT = 32920;
     private static final String NODE_URI_PREFIX = "ynode://75bff16c@127.0.0.1:";
     private static final StoreBuilder storeBuilder = new StoreBuilder(new DefaultConfig());
 
@@ -42,7 +42,7 @@ public class PeerTestUtils {
 
     public static PeerTableGroup createTableGroup(int port, PeerDialer peerDialer) {
         Peer owner = Peer.valueOf(NODE_URI_PREFIX + port);
-        return PeerTableGroupBuilder.Builder()
+        return PeerTableGroupBuilder.newBuilder()
                 .setOwner(owner)
                 .setStoreBuilder(storeBuilder)
                 .setPeerDialer(peerDialer)

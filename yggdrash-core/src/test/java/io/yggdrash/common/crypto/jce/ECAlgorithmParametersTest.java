@@ -16,6 +16,7 @@
 
 package io.yggdrash.common.crypto.jce;
 
+import org.junit.Assert;
 import org.junit.Test;
 
 public class ECAlgorithmParametersTest {
@@ -23,7 +24,7 @@ public class ECAlgorithmParametersTest {
     @Test
     public void getParameterSpec() {
         try {
-            ECAlgorithmParameters.getParameterSpec();
+            Assert.assertNotNull(ECAlgorithmParameters.getParameterSpec());
         } catch (Throwable t) {
             t.printStackTrace();
         }
@@ -32,7 +33,7 @@ public class ECAlgorithmParametersTest {
     @Test
     public void getASN1Encoding() {
         try {
-            ECAlgorithmParameters.getASN1Encoding();
+            Assert.assertNotNull(ECAlgorithmParameters.getASN1Encoding());
         } catch (Throwable t) {
             t.printStackTrace();
         }

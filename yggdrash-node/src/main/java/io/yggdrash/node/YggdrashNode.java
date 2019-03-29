@@ -40,21 +40,25 @@ public class YggdrashNode extends BootStrapNode {
     private final NodeProperties nodeProperties;
 
     @Autowired
+    @Override
     public void setSyncManager(SyncManager syncManager) {
         super.setSyncManager(syncManager);
     }
 
     @Autowired
+    @Override
     public void setNodeStatus(NodeStatus nodeStatus) {
         super.setNodeStatus(nodeStatus);
     }
 
     @Autowired
+    @Override
     public void setPeerNetwork(PeerNetwork peerNetwork) {
         super.setPeerNetwork(peerNetwork);
     }
 
     @Autowired
+    @Override
     public void setBranchGroup(BranchGroup branchGroup) {
         super.setBranchGroup(branchGroup);
     }
@@ -76,6 +80,11 @@ public class YggdrashNode extends BootStrapNode {
 
     @PostConstruct
     public void init() {
+        if (nodeProperties.isValidator()) {
+            log.info("I'm the Validator Node.");
+            return;
+        }
+
         log.info("Bootstrapping...");
         bootstrapping();
 

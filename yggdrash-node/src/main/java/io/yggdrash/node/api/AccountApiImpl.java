@@ -12,8 +12,8 @@ import java.util.ArrayList;
 @AutoJsonRpcServiceImpl
 public class AccountApiImpl implements AccountApi {
 
+    private static final long BALANCE = 100000;
     private final ArrayList<String> addresses = new ArrayList<>();
-    private final long balance = 100000;
 
     @Override
     public String createAccount() {
@@ -45,7 +45,7 @@ public class AccountApiImpl implements AccountApi {
     @Override
     public long getBalance(String address, int blockNumber) {
         try {
-            return balance;
+            return BALANCE;
         } catch (Exception exception) {
             throw new NonExistObjectException("address or blockNumber");
         }
@@ -54,7 +54,7 @@ public class AccountApiImpl implements AccountApi {
     @Override
     public long getBalance(String address, String tag) {
         try {
-            return balance;
+            return BALANCE;
         } catch (Exception exception) {
             throw new NonExistObjectException("address or tag");
         }

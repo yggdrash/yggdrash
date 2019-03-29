@@ -75,7 +75,7 @@ public class BlockTest {
         TransactionSignature txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());
 
         Transaction tx1 = new Transaction(txHeader, txSig.getSignature(), txBody);
-        Transaction tx2 = tx1.clone();
+        Transaction tx2 = new Transaction(tx1.toBinary());
 
         List<Transaction> txs1 = new ArrayList<>();
         txs1.add(tx1);
@@ -109,16 +109,15 @@ public class BlockTest {
 
     @Test
     public void testBlockConstructor() {
-        BlockHeader blockHeader2 = block1.getHeader().clone();
-        BlockBody blockBody2 = block1.getBody().clone();
+        BlockHeader blockHeader2 = new BlockHeader(block1.getHeader().toBinary());
+        BlockBody blockBody2 = new BlockBody(block1.getBody().toBinary());
         BlockSignature blockSig2 = new BlockSignature(wallet, blockHeader2.getHashForSigning());
         Block block2 = new Block(blockHeader2, blockSig2.getSignature(), blockBody2);
 
         assertThat(block2.verify()).isTrue();
         assertThat(block1.toJsonObject()).isEqualTo(block2.toJsonObject());
 
-        Block block3 = new Block(
-                blockHeader2.clone(), wallet, block2.getBody().clone());
+        Block block3 = new Block(blockHeader2, wallet, block2.getBody());
 
         assertThat(block3.verify()).isTrue();
         assertThat(block1.toJsonObject()).isEqualTo(block3.toJsonObject());
@@ -134,7 +133,7 @@ public class BlockTest {
 
     @Test
     public void testBlockClone() {
-        Block block2 = block1.clone();
+        Block block2 = new Block(block1.toBinary());
         log.debug("block2=" + block2.toJsonObject());
 
         assertThat(block1.getHashHex()).isEqualTo(block2.getHashHex());
@@ -144,7 +143,7 @@ public class BlockTest {
 
     @Test
     public void testBlockKey() {
-        Block block2 = block1.clone();
+        Block block2 = new Block(block1.toBinary());
         log.debug("block2 pubKey=" + block2.getPubKeyHex());
 
         assertThat(block1.getPubKeyHex()).isEqualTo(block2.getPubKeyHex());

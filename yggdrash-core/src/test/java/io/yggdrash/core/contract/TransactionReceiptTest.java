@@ -22,6 +22,7 @@ import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.core.blockchain.TransactionHusk;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -39,14 +40,14 @@ public class TransactionReceiptTest {
         JsonObject testLog = new JsonObject();
         testLog.addProperty("key", "value");
         txReceipt.addLog(testLog.toString());
-        assert txReceipt.getTxLog().get(0).equals("{\"key\":\"value\"}");
+        Assert.assertEquals("{\"key\":\"value\"}", txReceipt.getTxLog().get(0));
     }
 
     @Test
     public void statusTest() {
-        assert !txReceipt.isSuccess();
+        Assert.assertFalse(txReceipt.isSuccess());
         txReceipt.setStatus(ExecuteStatus.SUCCESS);
-        assert txReceipt.isSuccess();
+        Assert.assertTrue(txReceipt.isSuccess());
     }
 
     @Test
@@ -54,7 +55,7 @@ public class TransactionReceiptTest {
         TransactionHusk tx = BlockChainTestUtils.createTransferTxHusk();
         String txId = tx.getHash().toString();
         txReceipt.setTxId(txId);
-        assert txReceipt.getTxId().equals(txId);
+        Assert.assertEquals(txId, txReceipt.getTxId());
     }
 
 }

@@ -123,7 +123,7 @@ public class BranchConfiguration {
                 .withEventStore(eventStore)
                 .build();
         try {
-            BlockChain bc = BlockChainBuilder.Builder()
+            BlockChain bc = BlockChainBuilder.newBuilder()
                     .addGenesis(genesis)
                     .setStoreBuilder(storeBuilder)
                     .setPolicyLoader(policyLoader)

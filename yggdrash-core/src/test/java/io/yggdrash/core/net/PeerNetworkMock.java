@@ -37,17 +37,6 @@ public class PeerNetworkMock implements PeerNetwork {
     public void destroy() {
     }
 
-    @Override
-    public void addNetwork(BranchId branchId) {
-    }
-
-    /*
-    @Override
-    public List<PeerHandler> getHandlerList(BranchId branchId) {
-        return Collections.singletonList(PeerHandlerMock.dummy());
-    }
-    */
-
     public List<PeerHandler> getHandlerList(BranchId branchId) {
         List<PeerHandler> peerHandlerList = new ArrayList<>();
         for (int port = 32919; port < 32922; port++) {

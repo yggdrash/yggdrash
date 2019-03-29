@@ -17,14 +17,10 @@ import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.TestConstants;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockHusk;
-import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.blockchain.BranchId;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.p2p.Peer;
 import org.junit.Assert;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,15 +28,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Future;
 
-@RunWith(JUnit4.class)
-public class RpcTest extends TcpNodeTest {
+public class RpcTest extends TcpNodeTesting {
     private static final Logger log = LoggerFactory.getLogger(RpcTest.class);
     private static final int NODE_CNT = 2;
 
     private List<BlockHusk> blockHuskList;
     private List<TransactionHusk> txHuskList;
     private GRpcPeerHandler handler;
-    private BranchId branchId;
 
     @Override
     public void setUp() {
@@ -49,7 +43,6 @@ public class RpcTest extends TcpNodeTest {
 
         bootstrapNodes(NODE_CNT, true);
 
-        branchId = BlockChainTestUtils.genesisBlock().getBranchId();
         // Peer to send rpc msg
         Peer peer = nodeList.get(1).peerTableGroup.getOwner();
         ManagedChannel channel = createChannel(peer);
@@ -59,8 +52,7 @@ public class RpcTest extends TcpNodeTest {
         setTxHuskList();
 
         log.debug("{} nodes bootstrapped", NODE_CNT);
-        log.debug("The branchId for testing: {}", branchId);
-        log.debug("BlockHuskList and TxHuskList are set: size of BlockHuskList={}, TxHustList={}",
+        log.debug("BlockHuskList and TxHuskList are set: size of BlockHuskList={}, TxHuskList={}",
                 blockHuskList.size(), txHuskList.size());
     }
 
@@ -91,8 +83,7 @@ public class RpcTest extends TcpNodeTest {
 
     private void addDummyTx() {
         log.debug("*** Add dummy txs ***");
-        BranchGroup branchGroup = nodeList.get(1).getBranchGroup();
-        BlockChain branch = branchGroup.getBranch(branchId);
+        BlockChain branch = nodeList.get(1).getDefaultBranch();
 
         for (TransactionHusk txHusk : txHuskList) {
             branch.addTransaction(txHusk);
@@ -103,7 +94,8 @@ public class RpcTest extends TcpNodeTest {
     public void syncTxTest() throws Exception {
         addDummyTx();
 
-        Future<List<TransactionHusk>> futureHusks = handler.syncTx(branchId);
+        BlockChain branch = nodeList.get(1).getDefaultBranch();
+        Future<List<TransactionHusk>> futureHusks = handler.syncTx(branch.getBranchId());
 
         List<TransactionHusk> txHusks = futureHusks.get();
         for (TransactionHusk txHusk : txHusks) {
@@ -114,11 +106,10 @@ public class RpcTest extends TcpNodeTest {
 
     @Test
     public void syncBlockTest() throws Exception {
-        BranchGroup branchGroup = nodeList.get(1).getBranchGroup();
-        BlockChain branch = branchGroup.getBranch(branchId);
+        BlockChain branch = nodeList.get(1).getDefaultBranch();
         setSpecificBlockHeightOfBlockChain(branch);
 
-        Future<List<BlockHusk>> futureHusks = handler.syncBlock(branchId, 5);
+        Future<List<BlockHusk>> futureHusks = handler.syncBlock(branch.getBranchId(), 5);
 
         List<BlockHusk> blockHusks = futureHusks.get();
         for (BlockHusk blockHusk : blockHusks) {

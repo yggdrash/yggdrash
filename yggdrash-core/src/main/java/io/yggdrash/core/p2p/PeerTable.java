@@ -35,9 +35,15 @@ public interface PeerTable {
 
     int getBucketsCount();
 
-    Map<Integer, List<Peer>> getBucketIdAndPeerList(); //for debugging {ynode://pubkey@ip:port}
+    /**
+     * for debugging {ynode://pubkey@ip:port}
+     */
+    Map<Integer, List<Peer>> getBucketIdAndPeerList();
 
-    List<String> getAllPeerAddressList(); //for debugging {ip:port}
+    /**
+     * for debugging {ip:port}
+     */
+    List<String> getAllPeerAddressList();
 
     PeerBucket getBucketByIndex(int index);
 

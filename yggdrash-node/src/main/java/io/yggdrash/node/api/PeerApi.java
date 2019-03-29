@@ -15,6 +15,6 @@ public interface PeerApi {
      */
     @JsonRpcErrors({
             @JsonRpcError(exception = NonExistObjectException.class,
-                    code = NonExistObjectException.code)})
+                    code = NonExistObjectException.CODE)})
     List<String> getAllActivePeer();
 }
