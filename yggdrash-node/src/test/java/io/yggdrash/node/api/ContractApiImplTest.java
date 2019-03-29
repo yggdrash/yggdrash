@@ -40,7 +40,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 public class ContractApiImplTest {
     private static final Logger log = LoggerFactory.getLogger(ContractApiImplTest.class);
 
-    private final BranchId branchId = BranchId.of("272c5946c6735ab24a30e3286c33c88df3f59623");
+    private final BranchId branchId = TestConstants.yggdrash();
 
     @Test
     public void contractApiIsNotNull() {
@@ -73,7 +73,6 @@ public class ContractApiImplTest {
     }
 
     @Test
-    @Ignore
     public void transfer() {
         JsonArray txBody = CoinContractTestUtils.createTransferBody(
                 "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigInteger("1000"));
@@ -81,7 +80,6 @@ public class ContractApiImplTest {
     }
 
     @Test
-    @Ignore
     public void approve() {
         JsonArray txBody = CoinContractTestUtils.createApproveBody(
                 "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e", new BigInteger("1000"));
@@ -89,7 +87,6 @@ public class ContractApiImplTest {
     }
 
     @Test
-    @Ignore
     public void transferFrom() {
         JsonArray txBody = CoinContractTestUtils.createTransferFromBody(
                 "cee3d4755e47055b530deeba062c5bd0c17eb00f",
