@@ -15,9 +15,11 @@ import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
+import io.yggdrash.core.blockchain.TransactionBuilder;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.exception.NonExistObjectException;
+import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.gateway.dto.BranchDto;
 import io.yggdrash.gateway.dto.TransactionDto;
 import io.yggdrash.gateway.dto.TransactionReceiptDto;
@@ -65,10 +67,22 @@ public class NodeContractDemoClient {
     private static ContractVersion yeedContract;
 
     private static String lastTransactionId;
+    private static Wallet wallet;
+
 
     public static void main(String[] args) throws Exception {
         setServerAddress();
         setBranchAndContract();
+
+        String testWalletFile = NodeContractDemoClient.class.getClassLoader()
+                .getResource("keys/101167aaf090581b91c08480f6e559acdd9a3ddd.json")
+                .getFile()
+                ;
+
+        String password = "Aa1234567890!";
+
+        wallet = new Wallet(testWalletFile, password);
+
 
         while (true) {
             run();
@@ -387,7 +401,7 @@ public class NodeContractDemoClient {
         }
         json.addProperty(CONTRACT_VERSION, contractId);
 
-        ContractTestUtils.signBranch(TestConstants.wallet(), json);
+        ContractTestUtils.signBranch(wallet, json);
         Branch branch = Branch.of(json);
         saveBranchAsFile(branch);
     }
@@ -508,7 +522,11 @@ public class NodeContractDemoClient {
     }
 
     private static TransactionHusk createTxHusk(BranchId branchId, JsonArray txBody) {
-        return BlockChainTestUtils.createTxHusk(branchId, txBody);
+        TransactionBuilder builder = new TransactionBuilder();
+        return builder.addTransactionBody(txBody)
+                .setWallet(wallet)
+                .setBranchId(branchId)
+                .build();
     }
 
     static class MethodNameParser {
