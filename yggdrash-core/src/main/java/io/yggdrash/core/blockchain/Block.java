@@ -41,7 +41,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static com.google.protobuf.util.Timestamps.fromMillis;
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.KEY.BODY;
 import static io.yggdrash.common.config.Constants.KEY.HEADER;
 import static io.yggdrash.common.config.Constants.KEY.SIGNATURE;
@@ -240,10 +239,7 @@ public class Block {
         check &= this.header.getTimestamp() > TIMESTAMP_2018;
         check &= !(this.header.getBodyLength() < 0
                 || this.header.getBodyLength() != this.getBody().length());
-        check &= Arrays.equals(
-                Arrays.equals(this.header.getMerkleRoot(),
-                        EMPTY_BYTE32) ? null : this.header.getMerkleRoot(),
-                Trie.getMerkleRoot(this.body.getBody()));
+        check &= Arrays.equals(this.header.getMerkleRoot(), Trie.getMerkleRoot(this.body.getBody()));
 
         return check;
     }
