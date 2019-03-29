@@ -9,7 +9,6 @@ import org.elasticsearch.client.transport.TransportClient;
 import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.TransportAddress;
 import org.elasticsearch.common.xcontent.XContentType;
-import org.elasticsearch.rest.RestStatus;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +67,7 @@ public class EsClient implements OutputStore {
         block.remove("body");
 
         String id = block.getAsJsonObject("header").get("index").getAsString();
-        IndexResponse response = client.prepareIndex(INDEX+"-block", "_doc", id)
+        IndexResponse response = client.prepareIndex(INDEX + "-block", "_doc", id)
                 .setSource(block.toString(), XContentType.JSON).get();
 
         switch (response.status()) {
@@ -89,7 +88,7 @@ public class EsClient implements OutputStore {
         BulkRequestBuilder bulkRequest = client.prepareBulk();
         transactionMap.forEach((txHash, tx) -> {
             tx.addProperty("blockId", blockId);
-            bulkRequest.add(client.prepareIndex(INDEX+"-tx", "_doc", txHash)
+            bulkRequest.add(client.prepareIndex(INDEX + "-tx", "_doc", txHash)
                     .setSource(tx.toString(), XContentType.JSON));
         });
 

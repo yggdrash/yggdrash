@@ -31,7 +31,7 @@ public class TempStateStore implements ReadWriterStore<String, JsonObject> {
     // TODO check State root
     Sha3Hash stateRoot;
 
-    public TempStateStore(ReadWriterStore originStore) {
+    public TempStateStore(ReadWriterStore<String, JsonObject> originStore) {
         this.stateStore = originStore;
     }
 

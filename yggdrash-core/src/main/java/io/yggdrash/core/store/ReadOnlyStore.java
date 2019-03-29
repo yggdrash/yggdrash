@@ -22,7 +22,7 @@ import io.yggdrash.contract.core.store.ReadWriterStore;
 public class ReadOnlyStore<K, V> implements ReadWriterStore<K, V> {
     private final ReadWriterStore<K, V> stateStore;
 
-    public ReadOnlyStore(ReadWriterStore originStore) {
+    public ReadOnlyStore(ReadWriterStore<K, V> originStore) {
         this.stateStore = originStore;
     }
 
