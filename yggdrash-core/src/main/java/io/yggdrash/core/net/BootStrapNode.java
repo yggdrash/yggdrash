@@ -33,7 +33,7 @@ public abstract class BootStrapNode implements BootStrap {
     protected PeerNetwork peerNetwork;
     protected BranchGroup branchGroup;
     protected SyncManager syncManager;
-    private TransactionKvIndexer txKvIndexer;
+    protected TransactionKvIndexer txKvIndexer;
 
     @Override
     public void bootstrapping() {
