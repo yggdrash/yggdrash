@@ -8,6 +8,7 @@ public enum PrefixKeyEnum {
     GOVERNANCE("g-"),
     ACCOUNT("ac-"),
     PROPOSE_VALIDATORS("pv-"),
+    PROPOSE_CONTRACTS("pc-"),
     VALIDATORS("vl-");
 
     private final String value;
@@ -27,6 +28,8 @@ public enum PrefixKeyEnum {
                 return ACCOUNT;
             case "rv-":
                 return PROPOSE_VALIDATORS;
+            case "pc-":
+                return PROPOSE_CONTRACTS;
             case "vl-":
                 return VALIDATORS;
             default:

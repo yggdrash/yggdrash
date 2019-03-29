@@ -130,6 +130,7 @@ public class DPoAContractTest {
         JsonObject genesis = JsonUtil.parseJsonObject(validators);
 
         boolean isSuccess = dPoAService.saveInitValidator(genesis.getAsJsonArray("validator"));
+
         assertTrue(isSuccess);
     }
 

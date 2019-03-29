@@ -256,8 +256,8 @@ public class DPoAContract implements BundleActivator {
 
             ProposeValidatorSet proposeValidatorSet = getProposeValidatorSet();
             if (proposeValidatorSet != null && proposeValidatorSet.getValidatorMap() != null) {
-                for (Iterator<Map.Entry<String, ProposeValidatorSet.Votable>> it =
-                        proposeValidatorSet.getValidatorMap().entrySet().iterator(); it.hasNext(); ) {
+                for (Iterator<Map.Entry<String, ProposeValidatorSet.Votable>> it = proposeValidatorSet
+                        .getValidatorMap().entrySet().iterator(); it.hasNext(); ) {
                     Map.Entry<String, ProposeValidatorSet.Votable> entry = it.next();
                     switch (entry.getValue().status()) {
                         case AGREE:

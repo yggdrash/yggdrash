@@ -72,7 +72,7 @@ public class Branch {
         this.validators = JsonUtil.convertJsonArrayToSet(
                 json.get("validator").getAsJsonArray());
         consensus = json.get("consensus").getAsJsonObject();
-        this.branchId = BranchId.of(getBranchJson());
+        this.branchId = BranchId.of(toJsonObject());
     }
 
     public BranchId getBranchId() {
@@ -128,19 +128,6 @@ public class Branch {
         return consensus;
     }
 
-    private JsonObject getBranchJson() {
-        JsonObject branch = new JsonObject();
-        branch.addProperty("name", name);
-        branch.addProperty("symbol", symbol);
-        branch.addProperty("property", property);
-        branch.addProperty("description", description);
-        branch.addProperty("timestamp", timestamp);
-        branch.add("contracts", json.getAsJsonArray("contracts"));
-        branch.add("validator", json.get("validator").getAsJsonArray());
-        branch.add("consensus", consensus);
-        return branch;
-    }
-
     public boolean isYggdrash() {
         return Constants.YGGDRASH.equals(symbol);
     }
@@ -166,7 +153,6 @@ public class Branch {
                             String.format("Unsupported type %s.", val)));
         }
     }
-
     // Branch object to JsonObject
 
     public JsonObject toJsonObject() {

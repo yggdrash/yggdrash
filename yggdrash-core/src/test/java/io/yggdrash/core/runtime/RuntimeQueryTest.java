@@ -31,14 +31,14 @@ import static org.junit.Assert.assertEquals;
 
 @Ignore
 public class RuntimeQueryTest {
+    private static final StemContract.StemService stemContract = new StemContract.StemService();
 
     @Test
     public void querySomeContract() throws Exception {
-        StemContract contract = new StemContract();
         ReadWriterStore<String,JsonObject> tempStore = new StateStore(new HashMapDbSource());
         tempStore.put("TOTAL_SUPPLY",
                 new JsonParser().parse("{\"balance\":10000}").getAsJsonObject());
-        RuntimeQuery query = new RuntimeQuery(contract);
+        RuntimeQuery query = new RuntimeQuery(stemContract);
         query.setStore(tempStore);
 
         Object result = query.query("totalSupply", null);

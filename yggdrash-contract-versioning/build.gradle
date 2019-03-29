@@ -18,7 +18,7 @@ import java.security.MessageDigest
 
 ext {
     importPackage =
-                    "io.yggdrash.common.contract" +
+            "io.yggdrash.common.contract" +
                     ",io.yggdrash.common.contract.method" +
                     ",io.yggdrash.common.contract.vo" +
                     ",io.yggdrash.common.contract.vo.dpoa" +
@@ -40,10 +40,8 @@ ext {
                     ",io.yggdrash.contract.core.annotation" +
                     ",io.yggdrash.contract.core.store"
 
-
     excludeList = ["META-INF/LICENSE", "META-INF/NOTICE", "META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "META-INF/NOTICE"]
 }
-
 
 task contractsPackage(type: Jar) {
     //Add current module source
@@ -52,24 +50,27 @@ task contractsPackage(type: Jar) {
         exclude(["system-contracts"])
     }
 
-
     manifest {
         attributes(
                 'Bundle-ManifestVersion': '2',
-                'Bundle-Name': 'Coin Contract',
-                'Bundle-Description': 'Coin Contract',
+                'Bundle-Name': 'Versioning Contract',
+                'Bundle-Description': 'Versioning Contract',
                 'Bundle-Vendor': 'YGGDRASH',
-                'Bundle-SymbolicName': 'io.yggdrash.contract.coin.CoinContract',
+                'Bundle-SymbolicName': 'io.yggdrash.contract.versioning.VersioningContract',
                 'Bundle-Version': '1.0.0',
-                'Bundle-Activator': 'io.yggdrash.contract.coin.CoinContract',
+                'Bundle-Activator': 'io.yggdrash.contract.versioning.VersioningContract',
+                'Export-Package': "io.yggdrash.contract.versioning",
                 'Import-Package': "${importPackage}"
         )
     }
-    preserveFileTimestamps = false
     exclude(excludeList)
-    archiveName "system-coin-contract-${manifest.attributes.get('Bundle-Version')}.jar"
+    preserveFileTimestamps = false
+    archiveName "system-versioning-contract-${manifest.attributes.get('Bundle-Version')}.jar"
 }
 
+task removeContract(type: Delete) {
+    delete fileTree(file('build/libs').absolutePath + '/../../../yggdrash-core/src/main/resources/system-contracts').include('*')
+}
 
 def generateSha1(File file) {
     MessageDigest md = MessageDigest.getInstance("SHA-1");

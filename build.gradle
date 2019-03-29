@@ -84,6 +84,7 @@ project(':yggdrash-core') {
         compile project(':yggdrash-common')
         implementation project(':yggdrash-contract-coin')
         implementation project(':yggdrash-contract-dpoa')
+        implementation project(':yggdrash-contract-versioning')
 
         compile "io.grpc:grpc-services:${grpcVersion}"
         compile "io.grpc:grpc-netty:${grpcVersion}"

@@ -32,6 +32,7 @@ import org.junit.Test;
 public class BlockExecutorTest {
 
     private static final BranchId BRANCH_ID = BranchId.NULL;
+    private static final StemContract.StemService stemContract = new StemContract.StemService();
 
     @Test
     public void executorTest() {
@@ -41,7 +42,7 @@ public class BlockExecutorTest {
                         new StateStore(new HashMapDbSource()),
                         new TransactionReceiptStore(new HashMapDbSource())
                 );
-        runtime.addContract(ContractVersion.of("c10e873655becf550c4aece75a091f4553d6202d"), contract);
+        runtime.addContract(ContractVersion.of("c10e873655becf550c4aece75a091f4553d6202d"), stemContract);
 
         // Block Store
         // Blockchain Runtime

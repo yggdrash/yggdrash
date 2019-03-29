@@ -41,16 +41,14 @@ import static io.yggdrash.common.config.Constants.TX_ID;
 import static org.junit.Assert.assertTrue;
 
 public class RuntimeInvokeTest {
+    private static final StemContract.StemService stemContract = new StemContract.StemService();
 
-    private TransactionReceipt txReceipt;
-    private StemContract stemContract;
-    private BranchId branchId;
+    TransactionReceipt txReceipt;
+    BranchId branchId;
 
     @Test
     public void initTest() throws InvocationTargetException, IllegalAccessException {
-        StemContract contract = new StemContract();
-        stemContract = contract;
-        RuntimeInvoke invoke = new RuntimeInvoke(contract);
+        RuntimeInvoke invoke = new RuntimeInvoke(stemContract);
 
         ReadWriterStore tempStore = new StateStore(new HashMapDbSource());
 

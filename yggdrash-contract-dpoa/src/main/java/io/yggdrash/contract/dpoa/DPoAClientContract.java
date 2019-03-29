@@ -50,7 +50,8 @@ public class DPoAClientContract implements BundleActivator, ServiceListener {
 
         Hashtable<String, String> props = new Hashtable<>();
         props.put("YGGDRASH", "DPoAClient");
-        context.registerService(DPoAClientService.class.getName(), new DPoAClientService(serviceTracker), props);
+        context.registerService(DPoAClientService.class.getName(),
+                new DPoAClientService(serviceTracker), props);
     }
 
     @Override
