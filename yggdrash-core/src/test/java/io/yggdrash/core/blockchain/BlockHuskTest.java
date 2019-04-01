@@ -69,13 +69,4 @@ public class BlockHuskTest {
         assert block2.getIndex() == genesisBlock.getIndex();
         assertThat(genesisBlock.toJsonObject().toString()).isEqualTo(block2.toJsonObject().toString());
     }
-
-    @Test
-    public void testToJsonObjectFromProtoObject() {
-        JsonObject jsonObject = genesisBlock.toJsonObjectByProto();
-        String jsonString = jsonObject.toString();
-        assertThat(jsonObject).isNotNull();
-        assertThat(jsonObject.getAsJsonObject("header").get("index").getAsString()).isEqualTo("0");
-        assertThat(jsonString).contains(genesisBlock.getHash().toString());
-    }
 }

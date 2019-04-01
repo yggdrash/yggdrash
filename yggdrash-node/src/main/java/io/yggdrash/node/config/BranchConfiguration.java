@@ -16,18 +16,18 @@
 
 package io.yggdrash.node.config;
 
+import com.google.common.collect.Sets;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockChainBuilder;
 import io.yggdrash.core.blockchain.BranchGroup;
-import io.yggdrash.core.blockchain.SystemProperties;
 import io.yggdrash.core.blockchain.genesis.BranchLoader;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.blockchain.osgi.ContractPolicyLoader;
 import io.yggdrash.core.store.StoreBuilder;
+import io.yggdrash.core.store.output.es.EsClient;
+import io.yggdrash.node.BlockChainCollector;
 import io.yggdrash.node.ChainTask;
-import java.io.IOException;
-import java.io.InputStream;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +37,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.annotation.EnableScheduling;
+
+import java.io.IOException;
+import java.io.InputStream;
 
 @Configuration
 @EnableScheduling
@@ -104,22 +107,21 @@ public class BranchConfiguration {
     private BlockChain createBranch(GenesisBlock genesis, ContractPolicyLoader policyLoader) {
         log.info("createBranch {} {}", genesis.getBranch().getBranchId(), genesis.getBranch().getName());
 
-        SystemProperties systemProperties = SystemProperties.SystemPropertiesBuilder.aSystemProperties()
-                .withEsHost(esHost)
-                .withEsTransport(esTransport)
-                .withEventStore(eventStore)
+        //TODO Read properties from application.yml
+//        SystemProperties systemProperties = SystemProperties.SystemPropertiesBuilder.aSystemProperties()
+//                .withEsHost(esHost)
+//                .withEsTransport(esTransport)
+//                .withEventStore(eventStore)
+//                .build();
+
+        BlockChain blockChain = BlockChainBuilder.Builder()
+                .addGenesis(genesis)
+                .setStoreBuilder(storeBuilder)
+                .setPolicyLoader(policyLoader)
                 .build();
-        try {
-            return BlockChainBuilder.Builder()
-                    .addGenesis(genesis)
-                    .setStoreBuilder(storeBuilder)
-                    .setPolicyLoader(policyLoader)
-                    .setSystemProperties(systemProperties)
-                    .build();
-        } catch (Exception e) {
-            log.warn(e.getMessage(), e);
-            return null;
-        }
+        blockChain.addListener(new BlockChainCollector(
+                EsClient.newInstance("localhost", 9300, Sets.newHashSet())));
+        return blockChain;
     }
 
     /**

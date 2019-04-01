@@ -213,19 +213,6 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         return this.coreBlock.toJsonObject();
     }
 
-    JsonObject toJsonObjectByProto() {
-        try {
-            String print = JsonFormat.printer()
-                    .includingDefaultValueFields().print(this.protoBlock);
-            JsonObject jsonObject = new JsonParser().parse(print).getAsJsonObject();
-            jsonObject.addProperty("blockId", getHash().toString());
-            return jsonObject;
-        } catch (InvalidProtocolBufferException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     private Proto.Block.Header getHeader() {
         return this.protoBlock.getHeader();
     }

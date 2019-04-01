@@ -28,9 +28,6 @@ import io.yggdrash.core.store.BranchStore;
 import io.yggdrash.core.store.StoreBuilder;
 import io.yggdrash.core.store.TransactionReceiptStore;
 import io.yggdrash.core.store.TransactionStore;
-import io.yggdrash.contract.core.store.OutputStore;
-import io.yggdrash.contract.core.store.OutputType;
-import io.yggdrash.core.store.output.es.EsClient;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -45,10 +42,8 @@ public class BlockChainBuilder {
     private BlockStore blockStore;
     private StateStore stateStore;
     private TransactionReceiptStore transactionReceiptStore;
-    private Map<OutputType, OutputStore> outputStores;
 
     private ContractPolicyLoader policyLoader;
-    private SystemProperties systemProperties;
 
     public BlockChainBuilder addGenesis(GenesisBlock genesis) {
         this.genesis = genesis;
@@ -85,11 +80,6 @@ public class BlockChainBuilder {
         return this;
     }
 
-    public BlockChainBuilder setSystemProperties(SystemProperties systemProperties) {
-        this.systemProperties = systemProperties;
-        return this;
-    }
-
     public BlockChain build() {
         BlockHusk genesisBlock = genesis.getBlock();
         if (branch == null) {
@@ -112,18 +102,8 @@ public class BlockChainBuilder {
             transactionReceiptStore = storeBuilder.buildTransactionReceiptStore(
                     branchId);
         }
-        if (outputStores == null) {
-            outputStores = new HashMap<>();
-        }
 
         ContractContainer contractContainer = null;
-        if (systemProperties != null && systemProperties.checkEsClient()) {
-            outputStores.put(OutputType.ES, EsClient.newInstance(
-                    systemProperties.getEsPrefixHost()
-                    , systemProperties.getEsTransport()
-                    , systemProperties.getEventStore()
-            ));
-        }
 
         if (policyLoader != null) {
             contractContainer = ContractContainerBuilder.newInstance()
@@ -133,13 +113,11 @@ public class BlockChainBuilder {
                     .withStateStore(stateStore)
                     .withTransactionReceiptStore(transactionReceiptStore)
                     .withConfig(storeBuilder.getConfig())
-                    .withSystemProperties(systemProperties)
-                    .withOutputStore(outputStores)
                     .build();
         }
 
         return new BlockChain(branch, genesisBlock, blockStore,
-                transactionStore, branchStore, stateStore, transactionReceiptStore, contractContainer, outputStores);
+                transactionStore, branchStore, stateStore, transactionReceiptStore, contractContainer);
     }
 
     private Map<ContractVersion, Contract> defaultContract() {

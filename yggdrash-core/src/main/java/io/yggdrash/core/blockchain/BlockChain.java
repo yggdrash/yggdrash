@@ -16,15 +16,12 @@
 
 package io.yggdrash.core.blockchain;
 
-import com.google.gson.JsonObject;
 import io.reactivex.Observable;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.contract.vo.dpoa.Validator;
 import io.yggdrash.common.exception.FailedOperationException;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.contract.core.TransactionReceipt;
-import io.yggdrash.contract.core.store.OutputStore;
-import io.yggdrash.contract.core.store.OutputType;
 import io.yggdrash.core.blockchain.osgi.ContractContainer;
 import io.yggdrash.core.exception.InvalidSignatureException;
 import io.yggdrash.core.exception.NotValidateException;
@@ -40,10 +37,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -68,12 +63,11 @@ public class BlockChain {
     private BlockHusk prevBlock;
 
     private final ContractContainer contractContainer;
-    private final Map<OutputType, OutputStore> outputStores;
 
     public BlockChain(Branch branch, BlockHusk genesisBlock, BlockStore blockStore,
                       TransactionStore transactionStore, BranchStore branchStore,
                       StateStore stateStore, TransactionReceiptStore transactionReceiptStore,
-                      ContractContainer contractContainer, Map<OutputType, OutputStore> outputStores) {
+                      ContractContainer contractContainer) {
         this.branch = branch;
         this.genesisBlock = genesisBlock;
         this.blockStore = blockStore;
@@ -82,8 +76,6 @@ public class BlockChain {
         this.stateStore = stateStore;
         this.transactionReceiptStore = transactionReceiptStore;
         this.contractContainer = contractContainer;
-        this.outputStores = outputStores;
-
 
         // getGenesis Block by Store
         Sha3Hash blockHash = branchStore.getGenesisBlockHash();
@@ -172,6 +164,7 @@ public class BlockChain {
     }
 
     public void addListener(BranchEventListener listener) {
+        log.debug("Add [{}] Listener to BlockChain", listener.getClass().getSimpleName());
         listenerList.add(listener);
     }
 
@@ -264,8 +257,6 @@ public class BlockChain {
             contractContainer.getContractManager().commitBlockResult(result);
             //runtime.commitBlockResult(result);
             branchStore.setLastExecuteBlock(nextBlock);
-            saveToOutputStore(nextBlock);
-
         }
 
         // Store Block Index and Block Data
@@ -280,22 +271,6 @@ public class BlockChain {
                 nextBlock.getBodyCount(), getBranchId(), nextBlock.getHash());
 
         return Observable.just(nextBlock);
-    }
-
-    private void saveToOutputStore(BlockHusk nextBlock) {
-        //Store event
-        if (outputStores != null && outputStores.size() > 0) {
-            Map<String, JsonObject> transactionMap = new HashMap<>();
-            nextBlock.getBody().forEach(tx -> {
-                String txHash = tx.getHash().toString();
-                transactionMap.put(txHash, tx.toJsonObjectFromProto());
-            });
-
-            outputStores.forEach((storeType, store) -> {
-                store.put(nextBlock.toJsonObjectByProto());
-                store.put(nextBlock.getHash().toString(), transactionMap);
-            });
-        }
     }
 
     private boolean isValidNewBlock(BlockHusk prevBlock, BlockHusk nextBlock) {

@@ -62,12 +62,12 @@ public class EsClient implements OutputStore {
 
     @Override
     public void put(JsonObject block) {
-        if (!eventSet.contains("block") || block == null) {
+        if (block == null) {
             return;
         }
         block.remove("body");
 
-        String id = block.getAsJsonObject("header").get("index").getAsString();
+        String id = block.get("index").getAsString();
         IndexResponse response = client.prepareIndex(INDEX+"-block", "_doc", id)
                 .setSource(block.toString(), XContentType.JSON).get();
 
