@@ -9,8 +9,13 @@ import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.BranchEventListener;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import io.yggdrash.gateway.dto.BlockDto;
+import io.yggdrash.gateway.dto.TransactionDto;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 블록체인에서 발생되는 정보들을 외부 저장소에 수집합니다.
@@ -41,18 +46,23 @@ public class BlockChainCollector implements BranchEventListener {
 
         outputStores.put(jsonObject);
 
-        //TODO TX
-//        Map<String, JsonObject> transactionMap = new HashMap<>();
-//        block.getBody().forEach(tx -> {
-//            String txHash = tx.getHash().toString();
-//            try {
-//                mapper.writeValueAsString(TransactionDto.createBy(tx));
-//                transactionMap.put(txHash, tx.toJsonObjectFromProto());
-//            } catch (JsonProcessingException e) {
-//                e.printStackTrace();
-//            }
-//        });
-//        outputStores.put(block.getHash().toString(), transactionMap);
+        if (block.getBodyCount() > 0) {
+            Map<String, JsonObject> transactionMap = new HashMap<>();
+            List<TransactionHusk> txs = block.getBody();
+            String txHash;
+            for (TransactionHusk tx : txs) {
+                try {
+                    txHash = tx.getHash().toString();
+                    json = mapper.writeValueAsString(TransactionDto.createBy(tx));
+                    jsonObject = new JsonParser().parse(json).getAsJsonObject();
+                    transactionMap.put(txHash, jsonObject);
+                } catch (JsonProcessingException e) {
+                    log.warn(e.getMessage());
+                }
+            }
+
+            outputStores.put(block.getHash().toString(), transactionMap);
+        }
     }
 
     @Override

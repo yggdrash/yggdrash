@@ -82,7 +82,7 @@ public class EsClient implements OutputStore {
 
     @Override
     public void put(String blockId, Map<String, JsonObject> transactionMap) {
-        if (!eventSet.contains("tx") || transactionMap == null || transactionMap.size() == 0) {
+        if (transactionMap == null || transactionMap.size() == 0) {
             return;
         }
 
