@@ -26,6 +26,7 @@ public class DefaultConfig {
     private static final String PROPERTY_NETWORK_ID = "network.id";
     private static final String PROPERTY_NETWORK_P2P_VER = "network.p2p.version";
 
+    private static final String VALIDATOR_PATH = "validator.path";
     private static final String CONTRACT_PATH = "contract.path";
     private static final String OSGI_PATH = "osgi.path";
     private static final String BRANCH_PATH = "branch.path";
@@ -159,6 +160,10 @@ public class DefaultConfig {
 
     public String getYggDataPath() {
         return config.getString(YGG_DATA_PATH);
+    }
+
+    public String getValidatorPath() {
+        return config.getString(VALIDATOR_PATH);
     }
 
     enum Network {
