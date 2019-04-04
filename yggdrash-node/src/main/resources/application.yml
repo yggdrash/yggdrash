@@ -7,6 +7,10 @@ yggdrash:
     chain.enabled: true
     chain.gen: false
 
+es:
+  host: "localhost"
+  transport: 9300
+
 logging:
   level:
     io.yggdrash: debug

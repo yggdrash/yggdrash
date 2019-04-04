@@ -54,7 +54,7 @@ public class BranchConfiguration {
     @Value("${es.host:#{null}}")
     private String esHost;
     @Value("${es.transport:#{null}}")
-    private String esTransport;
+    private int esTransport;
     @Value("${event.store:#{null}}")
     private String[] eventStore;
 
@@ -107,23 +107,21 @@ public class BranchConfiguration {
     private BlockChain createBranch(GenesisBlock genesis, ContractPolicyLoader policyLoader) {
         log.info("createBranch {} {}", genesis.getBranch().getBranchId(), genesis.getBranch().getName());
 
-        //TODO Read properties from application.yml
-//        SystemProperties systemProperties = SystemProperties.SystemPropertiesBuilder.aSystemProperties()
-//                .withEsHost(esHost)
-//                .withEsTransport(esTransport)
-//                .withEventStore(eventStore)
-//                .build();
-
         BlockChain blockChain = BlockChainBuilder.Builder()
                 .addGenesis(genesis)
                 .setStoreBuilder(storeBuilder)
                 .setPolicyLoader(policyLoader)
                 .build();
-        blockChain.addListener(new BlockChainCollector(
-                EsClient.newInstance("localhost", 9300, Sets.newHashSet())));
         return blockChain;
     }
 
+    @Bean
+    @ConditionalOnProperty("yggdrash.node.chain.enabled")
+    public BlockChain EsClient(BlockChain blockChain) {
+        blockChain.addListener(new BlockChainCollector(
+                EsClient.newInstance(esHost, esTransport, Sets.newHashSet())));
+        return blockChain;
+    }
     /**
      * Scheduling Beans
      */

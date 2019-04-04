@@ -31,6 +31,7 @@ public class EsClient implements OutputStore {
     }
 
     public static EsClient newInstance(String host, int port, Set<String> events) {
+        //TODO parameters move to yaml
         Settings settings = Settings.builder()
                 .put("client.transport.ignore_cluster_name", true)
                 .build();
