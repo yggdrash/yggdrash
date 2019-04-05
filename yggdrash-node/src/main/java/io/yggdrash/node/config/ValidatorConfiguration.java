@@ -1,5 +1,6 @@
 package io.yggdrash.node.config;
 
+import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
@@ -51,27 +52,29 @@ public class ValidatorConfiguration {
     }
 
     @Bean
-    public Map<BranchId, List<ValidatorService>> validatorServiceMap(BranchGroup branchGroup) {
+    public Map<BranchId, List<ValidatorService>> validatorServiceMap(
+            BranchGroup branchGroup, DefaultConfig defaultConfig) {
 
         Map<BranchId, List<ValidatorService>> validatorServiceMap = new HashMap<>();
-        File validatorPath = new File(new DefaultConfig().getString("yggdrash.validator.path"));
+        File validatorPath = new File(defaultConfig.getValidatorPath());
 
         for (File branchPath : Objects.requireNonNull(validatorPath.listFiles())) {
 
-            BlockHusk genesisBlock = genesisBlock(branchPath, branchGroup);
-
-            if (genesisBlock == null) {
+            BranchId branchId = parseBranchId(branchPath);
+            BlockChain branch = branchGroup.getBranch(branchId);
+            if (branch == null) {
+                log.warn("Not found branch for [{}]", branchPath);
                 continue;
             }
-            BranchId branchId = genesisBlock.getBranchId();
-            List<ValidatorService> validatorServiceList = loadValidatorService(branchPath, genesisBlock);
+            List<ValidatorService> validatorServiceList =
+                    loadValidatorService(branchPath, branch.getGenesisBlock(), defaultConfig);
             validatorServiceMap.put(branchId, validatorServiceList);
         }
 
         return validatorServiceMap;
     }
 
-    private BlockHusk genesisBlock(File branchPath, BranchGroup branchGroup) {
+    private BranchId parseBranchId(File branchPath) {
 
         String branchPathName = branchPath.getName();
         if (branchPathName.length() != Constants.BRANCH_HEX_LENGTH
@@ -79,19 +82,21 @@ public class ValidatorConfiguration {
             return null;
         }
 
-        BranchId branchId = new BranchId(new Sha3Hash(branchPath.getName()));
-
-        return branchGroup.getBranch(branchId).getGenesisBlock();
+        return new BranchId(new Sha3Hash(branchPath.getName()));
     }
 
-    private List<ValidatorService> loadValidatorService(File branchPath, BlockHusk genesisBlock) {
+    private List<ValidatorService> loadValidatorService(File branchPath, BlockHusk genesisBlock,
+                                                        DefaultConfig defaultConfig) {
 
         List<ValidatorService> validatorServiceList = new ArrayList<>();
         for (File validatorServicePath : Objects.requireNonNull(branchPath.listFiles())) {
             File validatorConfFile = new File(validatorServicePath, "validator.conf");
-            DefaultConfig validatorConfig
-                    = new DefaultConfig(ConfigFactory.parseFile(validatorConfFile));
-            log.debug(validatorConfig.getString("yggdrash.validator.host"));
+            Config referenceConfig = ConfigFactory.parseFile(validatorConfFile);
+            Config config = defaultConfig.getConfig().withFallback(referenceConfig);
+            DefaultConfig validatorConfig = new DefaultConfig(config, defaultConfig.isProductionMode());
+            log.debug("{}:{}, key={}", validatorConfig.getString("yggdrash.validator.host"),
+                    validatorConfig.getString("yggdrash.validator.port"),
+                    validatorConfig.getString("yggdrash.validator.key.path"));
             try {
                 validatorServiceList.add(new ValidatorService(validatorConfig, genesisBlock.getCoreBlock()));
             } catch (Exception e) {
