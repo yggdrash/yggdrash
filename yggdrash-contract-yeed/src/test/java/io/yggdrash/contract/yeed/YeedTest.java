@@ -190,12 +190,6 @@ public class YeedTest {
         assertEquals(BigInteger.ZERO, getAllowance(owner, spender));
     }
 
-    @Test
-    public void metaCoinTest() {
-        MetaCoinContract metaCoinContract = new MetaCoinContract();
-        assertTrue(metaCoinContract.hello(new JsonObject()).isSuccess());
-    }
-
     private void approveByOwner(String to, String owner, String spender, String amount) {
         String approveParams = "{\"spender\" : \"" + spender + "\","
                 + "\"amount\" : \"" + amount + "\"}";
@@ -243,16 +237,6 @@ public class YeedTest {
 
     private JsonObject createParams(String paramStr) {
         return JsonUtil.parseJsonObject(paramStr);
-    }
-
-    private class MetaCoinContract extends YeedContract {
-        TransactionReceipt hello(JsonObject params) {
-            TransactionReceipt txReceipt = new TransactionReceiptImpl();
-            txReceipt.addLog(params.toString());
-            txReceipt.setStatus(ExecuteStatus.SUCCESS);
-            log.info("{}", txReceipt);
-            return txReceipt;
-        }
     }
 
     private BigInteger getBalance(String address) {

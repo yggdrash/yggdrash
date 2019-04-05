@@ -25,6 +25,7 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.pqc.math.linearalgebra.ByteUtils;
+import org.spongycastle.util.encoders.Hex;
 import java.math.BigInteger;
 import java.util.Arrays;
 
@@ -76,9 +77,18 @@ public class SwapEthTokenTest {
         log.debug("send Token {}", token2Amount);
 
 
+        String burnTokenRawTx = "0xf8aa808504e3b2920083011db094b5a5f22694352c15b00323844ad545abb2b1"
+                + "102880b844a9059cbb0000000000000000000000000000000000000000000000000000000000000000"
+                + "000000000000000000000000000000000000000000000025f273933db57000001ca040809cb1a31738"
+                + "2b6a9c48fb349c2274fdaabf9fc3ec294a7bdacb87b57f4ea4a066e68feab9307fb7dc454d02a78323"
+                + "dfd302fe9b49fab52d21839389375ffbee";
 
+        EthToken token3 = new EthToken(HexUtil.hexStringToBytes(burnTokenRawTx));
+        log.debug("Tx : {}", HexUtil.toHexString(token3.getTxHash()));
+        log.debug("Receive : {}", HexUtil.toHexString(token3.getParam()[0]));
+        assert ByteUtils.equals(token3.getParam()[0], new byte[32]);
 
-
+        log.debug("Amount : {}", new BigInteger(token3.getParam()[1]));
     }
 
 }

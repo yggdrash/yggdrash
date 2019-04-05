@@ -33,7 +33,7 @@ public class SwapEthTest {
     private static final Logger log = LoggerFactory.getLogger(SwapEthTest.class);
 
     @Test
-    public void testEthereumTransactionRLP() {
+    public void testEthereumTransactionRlp() {
         String ethHexString = "0xf86f830414ac850df847580082afc894c3cf7a283a4415ce3c41f5374934612389"
                 + "334780880de0b6b3a76400008026a0c9938e35c6281a2003531ef19c0368fb0ec680d1bc073ee2881"
                 + "3602616ce172ca03885e6218dbd7a09fc250ce4eb982114cc25c0974f4adfbd08c4e834f9c74dc3";
