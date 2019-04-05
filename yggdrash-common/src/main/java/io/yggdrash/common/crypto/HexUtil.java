@@ -1,28 +1,24 @@
 /*
- * Copyright (c) [2016] [ <ether.camp> ]
- * This file is part of the ethereumJ library.
+ * Copyright 2019 Akashic Foundation
  *
- * The ethereumJ library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The ethereumJ library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with the ethereumJ library. If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package io.yggdrash.common.crypto;
 
 import io.yggdrash.common.utils.ByteUtil;
-import io.yggdrash.core.exception.NotValidateException;
 import org.spongycastle.util.encoders.DecoderException;
 import org.spongycastle.util.encoders.Hex;
-
 import java.math.BigInteger;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -134,7 +130,7 @@ public class HexUtil {
     public static String getAddressShortString(byte[] addr) {
 
         if (!isValidAddress(addr)) {
-            throw new NotValidateException("not an address");
+            throw new RuntimeException("not an address");
         }
 
         String addrShort = Hex.toHexString(addr, 0, 3);

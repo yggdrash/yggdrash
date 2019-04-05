@@ -1,4 +1,20 @@
-package io.yggdrash.contract.coin;
+/*
+ * Copyright 2019 Akashic Foundation
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package io.yggdrash.contract.yeed;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -30,23 +46,23 @@ import java.math.BigInteger;
 import java.util.Hashtable;
 import java.util.Map;
 
-public class CoinContract implements BundleActivator, ServiceListener {
-    private static final Logger log = LoggerFactory.getLogger(CoinContract.class);
+public class YeedContract implements BundleActivator, ServiceListener {
+    private static final Logger log = LoggerFactory.getLogger(YeedContract.class);
     private static final String AMOUNT = "amount";
     private static final String BALANCE = "balance";
 
     @Override
     public void start(BundleContext context) {
-        log.info("⚪ Start coin contract");
+        log.info("Start Yeed contract");
         //Find for service in another bundle
         Hashtable<String, String> props = new Hashtable<>();
-        props.put("YGGDRASH", "Coin");
-        context.registerService(CoinService.class.getName(), new CoinService(), props);
+        props.put("YGGDRASH", "Yeed");
+        context.registerService(YeedService.class.getName(), new YeedService(), props);
     }
 
     @Override
     public void stop(BundleContext context) {
-        log.info("⚫ Stop coin contract");
+        log.info("Stop Yeed contract");
     }
 
     @Override
@@ -54,7 +70,7 @@ public class CoinContract implements BundleActivator, ServiceListener {
         log.info("serviceChanged called");
     }
 
-    public static class CoinService implements CoinStandard {
+    public static class YeedService implements CoinStandard {
         private static final String TOTAL_SUPPLY = "TOTAL_SUPPLY";
 
         @ContractTransactionReceipt
@@ -339,5 +355,11 @@ public class CoinContract implements BundleActivator, ServiceListener {
             // same is  0, more is 1
             return targetBalance.subtract(amount).compareTo(BigInteger.ZERO) >= 0;
         }
+
+
+        // TODO interTransfer ETH to YEED
+
+        // TODO interTransfer TOKEN to YEED
+
     }
 }

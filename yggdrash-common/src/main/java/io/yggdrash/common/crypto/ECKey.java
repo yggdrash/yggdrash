@@ -1,24 +1,21 @@
-/* CHECKSTYLE:OFF
- * Copyright (c) [2016] [ <ether.camp> ]
- * This file is part of the ethereumJ library.
+/*
+ * Copyright 2019 Akashic Foundation
  *
- * The ethereumJ library is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Lesser General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
  *
- * The ethereumJ library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Lesser General Public License for more details.
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
- * You should have received a copy of the GNU Lesser General Public License
- * along with the ethereumJ library. If not, see <http://www.gnu.org/licenses/>.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
 
 package io.yggdrash.common.crypto;
 
-import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.jce.ECKeyFactory;
 import io.yggdrash.common.crypto.jce.ECKeyPairGenerator;
 import io.yggdrash.common.crypto.jce.ECSignatureFactory;
@@ -48,7 +45,6 @@ import org.spongycastle.math.ec.ECPoint;
 import org.spongycastle.util.encoders.Base64;
 import org.spongycastle.util.encoders.Hex;
 
-import javax.annotation.Nullable;
 import java.io.IOException;
 import java.io.Serializable;
 import java.math.BigInteger;
@@ -67,7 +63,6 @@ import java.security.interfaces.ECPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
 
-import static io.yggdrash.common.util.BiUtil.isLessThan;
 import static io.yggdrash.common.utils.ByteUtil.bigIntegerToBytes;
 
 /**
@@ -90,6 +85,9 @@ public class ECKey implements Serializable {
      */
     public static final ECDomainParameters CURVE;
     public static final ECParameterSpec CURVE_SPEC;
+    private static final BigInteger SECP256K1N = new BigInteger("fffffffffffffffffffffffffff"
+            + "ffffebaaedce6af48a03bbfd25e8cd0364141", 16);
+
     /**
      * Equal to CURVE.getN().shiftRight(1), used for canonicalising the S value of a signature.
      * ECDSA signatures are mutable in the sense that for a given (R, S) pair,
@@ -177,7 +175,7 @@ public class ECKey implements Serializable {
      * <p>
      * All private key operations will use the provider.
      */
-    public ECKey(Provider provider, @Nullable PrivateKey privKey, ECPoint pub) {
+    public ECKey(Provider provider, PrivateKey privKey, ECPoint pub) {
         this.provider = provider;
 
         if (privKey == null || isECPrivateKey(privKey)) {
@@ -201,7 +199,7 @@ public class ECKey implements Serializable {
      * <p>
      * BouncyCastle will be used as the Java Security Provider
      */
-    public ECKey(@Nullable BigInteger priv, ECPoint pub) {
+    public ECKey(BigInteger priv, ECPoint pub) {
         this(
                 SpongyCastleProvider.getInstance(),
                 privateKeyFromBigInteger(priv),
@@ -553,7 +551,7 @@ public class ECKey implements Serializable {
      * @param messageHash Hash of the data that was signed.
      * @return 65-byte encoded public key
      */
-    @Nullable
+    
     public static byte[] recoverPubBytesFromSignature(int recId, ECDSASignature sig, byte[] messageHash) {
         check(recId >= 0, "recId must be positive");
         check(sig.r.signum() >= 0, "r must be positive");
@@ -615,7 +613,7 @@ public class ECKey implements Serializable {
      * @param messageHash Hash of the data that was signed.
      * @return 20-byte address
      */
-    @Nullable
+    
     public static byte[] recoverAddressFromSignature(int recId, ECDSASignature sig, byte[] messageHash) {
         final byte[] pubBytes = recoverPubBytesFromSignature(recId, sig, messageHash);
         if (pubBytes == null) {
@@ -631,7 +629,7 @@ public class ECKey implements Serializable {
      * @param messageHash Hash of the data that was signed.
      * @return ECKey
      */
-    @Nullable
+    
     public static ECKey recoverFromSignature(int recId, ECDSASignature sig, byte[] messageHash) {
         final byte[] pubBytes = recoverPubBytesFromSignature(recId, sig, messageHash);
         if (pubBytes == null) {
@@ -838,7 +836,7 @@ public class ECKey implements Serializable {
      *
      * @return -
      */
-    @Nullable
+    
     public byte[] getPrivKeyBytes() {
         if (privKey == null) {
             return null;
@@ -934,17 +932,17 @@ public class ECKey implements Serializable {
                 return false;
             }
 
-            if (isLessThan(r, BigInteger.ONE)) {
+            if (r.compareTo(BigInteger.ONE) < 0) {
                 return false;
             }
-            if (isLessThan(s, BigInteger.ONE)) {
+            if (s.compareTo(BigInteger.ONE) < 0) {
                 return false;
             }
 
-            if (!isLessThan(r, Constants.getSECP256K1N())) {
+            if (!(r.compareTo(SECP256K1N) < 0)) {
                 return false;
             }
-            return isLessThan(s, Constants.getSECP256K1N());
+            return s.compareTo(SECP256K1N) < 0;
         }
 
         public static ECDSASignature decodeFromDER(byte[] bytes) {
