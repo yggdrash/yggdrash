@@ -96,6 +96,7 @@ project(':yggdrash-core') {
         compile "org.elasticsearch.client:transport:${esVersion}"
         compileOnly "javax.annotation:javax.annotation-api:${annotationVersion}"
         testCompile "org.assertj:assertj-core:${assertjVersion}"
+        testCompile "org.mongodb:bson:3.10.1"
     }
 
     protobuf {

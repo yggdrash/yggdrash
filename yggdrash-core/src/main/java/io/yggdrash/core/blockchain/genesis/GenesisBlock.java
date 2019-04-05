@@ -14,6 +14,10 @@ import java.io.InputStream;
 import java.util.Collections;
 import java.util.List;
 
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE65;
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
+
 public class GenesisBlock {
     private final BlockHusk block;
     private final Branch branch;
@@ -77,14 +81,14 @@ public class GenesisBlock {
 
         BlockHeader blockHeader = new BlockHeader(
                 branch.getBranchId().getBytes(),
-                new byte[8],
-                new byte[8],
-                new byte[32],
+                EMPTY_BYTE8,
+                EMPTY_BYTE8,
+                EMPTY_BYTE32,
                 0L,
                 branch.getTimestamp(),
                 blockBody.getMerkleRoot(),
                 blockBody.length());
-        return new Block(blockHeader, new byte[]{}, blockBody);
+        return new Block(blockHeader, EMPTY_BYTE65, blockBody);
     }
 
 

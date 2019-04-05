@@ -26,6 +26,8 @@ import io.yggdrash.core.wallet.Wallet;
 import java.util.LinkedList;
 import java.util.List;
 
+import static io.yggdrash.common.config.Constants.EMPTY_BYTE65;
+
 public class TransactionBuilder {
     private BranchId branchId;
     private Wallet wallet;
@@ -112,7 +114,7 @@ public class TransactionBuilder {
         txHeader = new TransactionHeader(chain, version, type, timestamp, transactionBody);
 
         try {
-            byte[] sign = new byte[]{};
+            byte[] sign = EMPTY_BYTE65;
             if (wallet != null) {
                 TransactionSignature txSig;
                 txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());

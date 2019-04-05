@@ -29,6 +29,7 @@ public class Constants {
     public static final byte[] EMPTY_BYTE8 = new byte[8];
     public static final byte[] EMPTY_BYTE20 = new byte[20];
     public static final byte[] EMPTY_BYTE32 = new byte[32];
+    public static final byte[] EMPTY_BYTE65 = new byte[65];
     public static final byte[] EMPTY_BYTE1K = new byte[1024];
     public static final byte[] EMPTY_BYTE10K = new byte[10240];
     public static final byte[] EMPTY_BYTE100K = new byte[102400];
