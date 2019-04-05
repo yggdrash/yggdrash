@@ -74,7 +74,16 @@ public class TransactionBuilder {
         return this;
     }
 
+    public TransactionBuilder addTxBody(ContractVersion contractVersion, String method,
+                                        JsonObject params) {
+        JsonObject txObj = new JsonObject();
+        txObj.addProperty("contractVersion", contractVersion.toString());
+        txObj.addProperty("method", method);
+        txObj.add("params", params);
+        return addTransactionBody(txObj);
+    }
 
+    // TODO remove isSystem params
     public TransactionBuilder addTxBody(ContractVersion contractVersion, String method,
                                         JsonObject params, boolean isSystem) {
         JsonObject txObj = new JsonObject();
@@ -85,6 +94,7 @@ public class TransactionBuilder {
         return addTransactionBody(txObj);
     }
 
+    // TODO remove consensus object
     public TransactionBuilder addTxBody(ContractVersion contractVersion, String method,
                                         JsonObject params, boolean isSystem, JsonObject consensus) {
         JsonObject txObj = new JsonObject();
