@@ -18,9 +18,10 @@ package io.yggdrash.validator.data.pbft;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import io.yggdrash.common.utils.JsonUtil;
+import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.validator.data.ConsensusBlock;
@@ -28,10 +29,12 @@ import io.yggdrash.validator.data.ConsensusBlock;
 import java.util.Arrays;
 import java.util.List;
 
-public class PbftBlock implements ConsensusBlock {
+public class PbftBlock implements ConsensusBlock<PbftProto.PbftBlock> {
 
-    private final Block block;
-    private final PbftMessageSet pbftMessageSet;
+    private PbftProto.PbftBlock protoBlock;
+
+    private final transient Block block;
+    private final transient PbftMessageSet pbftMessageSet;
 
     public PbftBlock(Block block, PbftMessageSet pbftMessageSet) {
         this.block = block;
@@ -39,7 +42,13 @@ public class PbftBlock implements ConsensusBlock {
     }
 
     public PbftBlock(byte[] bytes) {
-        this(JsonUtil.parseJsonObject(SerializationUtil.deserializeString(bytes)));
+        try {
+            this.protoBlock = PbftProto.PbftBlock.parseFrom(bytes);
+            this.block = Block.toBlock(protoBlock.getBlock());
+            this.pbftMessageSet = new PbftMessageSet(protoBlock.getPbftMessageSet());
+        } catch (InvalidProtocolBufferException e) {
+            throw new NotValidateException(e);
+        }
     }
 
     public PbftBlock(JsonObject jsonObject) {
@@ -54,6 +63,7 @@ public class PbftBlock implements ConsensusBlock {
     }
 
     public PbftBlock(PbftProto.PbftBlock protoBlock) {
+        this.protoBlock = protoBlock;
         this.block = Block.toBlock(protoBlock.getBlock());
         this.pbftMessageSet = new PbftMessageSet(protoBlock.getPbftMessageSet());
     }
@@ -96,6 +106,20 @@ public class PbftBlock implements ConsensusBlock {
     @Override
     public byte[] toBinary() {
         return SerializationUtil.serializeJson(toJsonObject());
+    }
+
+    @Override
+    public byte[] getData() {
+        return getInstance().toByteArray();
+    }
+
+    @Override
+    public PbftProto.PbftBlock getInstance() {
+        if (protoBlock != null) {
+            return protoBlock;
+        }
+        protoBlock = toProto();
+        return protoBlock;
     }
 
     @Override
@@ -154,6 +178,10 @@ public class PbftBlock implements ConsensusBlock {
             return block.getBlock().verify()
                     && PbftMessageSet.verify(block.getConsensusMessages());
         }
+    }
+
+    private PbftProto.PbftBlock toProto() {
+        return toProto(this);
     }
 
     public static PbftProto.PbftBlock toProto(PbftBlock pbftBlock) {

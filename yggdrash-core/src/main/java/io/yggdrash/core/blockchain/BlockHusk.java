@@ -115,10 +115,6 @@ public class BlockHusk implements ProtoHusk<Proto.Block>, Comparable<BlockHusk> 
         }
     }
 
-    public Proto.Block getProtoBlock() {
-        return protoBlock;
-    }
-
     public Block getCoreBlock() {
         return coreBlock;
     }
