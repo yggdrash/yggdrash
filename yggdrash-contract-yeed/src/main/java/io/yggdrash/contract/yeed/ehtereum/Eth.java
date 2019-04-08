@@ -104,8 +104,12 @@ public class Eth {
     }
 
     private Integer extractChainIdFromRawSignature(BigInteger bv, byte[] r, byte[] s) {
-        if (r == null && s == null) return bv.intValue();  // EIP 86
-        if (bv.bitLength() > 31) return Integer.MAX_VALUE; // chainId is limited to 31 bits, longer are not valid for now
+        if (r == null && s == null) {
+            return bv.intValue();  // EIP 86
+        }
+        if (bv.bitLength() > 31) {
+            return Integer.MAX_VALUE; // chainId is limited to 31 bits, longer are not valid for now
+        }
         long v = bv.longValue();
         log.debug("{} V", v);
         if (v == LOWER_REAL_V || v == (LOWER_REAL_V + 1)) return null;
@@ -119,7 +123,9 @@ public class Eth {
         if (v == LOWER_REAL_V || v == (LOWER_REAL_V + 1)) return (byte) v;
         byte realV = LOWER_REAL_V;
         int inc = 0;
-        if ((int) v % 2 == 0) inc = 1;
+        if ((int) v % 2 == 0) {
+            inc = 1;
+        }
         return (byte) (realV + inc);
     }
 

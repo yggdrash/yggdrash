@@ -167,16 +167,16 @@ public class YeedContract implements BundleActivator, ServiceListener {
             */
 
             // check fee but now is allow 0
-            BigInteger fee = params.get(FEE).getAsBigInteger();
+            BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : BigInteger.ZERO;
             // amount, fee check
             if (amount.compareTo(BigInteger.ZERO) <= 0 || fee.compareTo(BigInteger.ZERO) < 0) {
                 txReceipt.addLog(String.format("{} Amount not enought", from));
                 return txReceipt;
             }
-
+            log.debug("transfer {} {} {} {}",from, to, amount, fee);
             boolean isTransfer = transfer(from, to, amount, fee);
 
-            txReceipt.setStatus(isTransfer ? ExecuteStatus.SUCCESS : ExecuteStatus.ERROR);
+            txReceipt.setStatus(isTransfer ? ExecuteStatus.SUCCESS : ExecuteStatus.FALSE);
 
             if (log.isDebugEnabled() && isTransfer) {
                 log.debug("\n[Transferred] Transfer {} from {} to {}", amount, from, to);
@@ -185,6 +185,28 @@ public class YeedContract implements BundleActivator, ServiceListener {
             }
             return txReceipt;
         }
+
+        // Transfer A to B include fee
+        protected boolean transfer(String from, String to, BigInteger amount, BigInteger fee) {
+            BigInteger fromBalance = getBalance(from);
+            BigInteger feeAmount = amount.add(fee);
+
+            // check from account balance
+            if (isTransferable(fromBalance, feeAmount)) {
+                fromBalance = fromBalance.subtract(feeAmount);
+                addBalanceTo(to, amount);
+                putBalance(from, fromBalance);
+                // fee account
+                addBalanceTo(txReceipt.getBranchId(), fee);
+                txReceipt.addLog(String.format("Transfer from {} to {} value {} fee {} ",
+                        from, to, amount, fee));
+                return true;
+            } else {
+                txReceipt.addLog(String.format("{} transfer Error", from));
+                return false;
+            }
+        }
+
 
         /**
          * Approve the passed address to spend the specified amount of tokens on behalf of tx.sender
@@ -201,7 +223,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
             String spender = params.get("spender").getAsString().toLowerCase();
             BigInteger amount = params.get(AMOUNT).getAsBigInteger();
-            BigInteger fee = params.get(FEE).getAsBigInteger();
+            BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : BigInteger.ZERO;
 
             String sender = txReceipt.getIssuer();
 
@@ -226,7 +248,10 @@ public class YeedContract implements BundleActivator, ServiceListener {
             }
 
             // spend fee
-            transfer(sender, sender, BigInteger.ZERO, fee);
+            if (fee.compareTo(BigInteger.ZERO) != 0) {
+                transfer(sender, sender, BigInteger.ZERO, fee);
+            }
+
 
             return txReceipt;
         }
@@ -252,19 +277,20 @@ public class YeedContract implements BundleActivator, ServiceListener {
             String approveKey = approveKey(from, sender);
             log.debug("approve Key : {}", approveKey);
             if (getBalance(approveKey).compareTo(BigInteger.ZERO) == 0) {
-                log.debug("\n[ERR] {} has no balance!", from);
+                txReceipt.addLog(String.format("{} has no balance", from));
+                txReceipt.setStatus(ExecuteStatus.ERROR);
                 return txReceipt;
             }
             // check from amount
             BigInteger fromValue = getBalance(from);
             BigInteger approveValue = getBalance(approveKey);
             BigInteger amount = params.get(AMOUNT).getAsBigInteger();
-            BigInteger fee = params.get(FEE).getAsBigInteger();
+            BigInteger fee = params.has(FEE) ? params.get(FEE).getAsBigInteger() : BigInteger.ZERO;
             BigInteger amountFee = amount.add(fee);
 
             // TODO Check Fee
             if (isTransferable(fromValue, amountFee) && isTransferable(approveValue, amountFee)) {
-
+                // Transfer Coin
                 boolean isTransfer = transfer(from, to, amount, fee);
                 if (isTransfer) {
                     approveValue = approveValue.subtract(amountFee);
@@ -382,28 +408,9 @@ public class YeedContract implements BundleActivator, ServiceListener {
         }
 
 
-        // Transfer A to B include fee
-        public boolean transfer(String from, String to, BigInteger amount, BigInteger fee) {
-            BigInteger fromBalance = getBalance(from);
-            BigInteger feeAmount = amount.add(fee);
 
-            // check from account balance
-            if (isTransferable(fromBalance, feeAmount)) {
-                fromBalance = fromBalance.subtract(feeAmount);
-                addBalanceTo(to, amount);
-                putBalance(from, fromBalance);
-                // fee account
-                addBalanceTo(txReceipt.getBranchId(), fee);
-                txReceipt.addLog(String.format("Transfer from {} to {} value {} fee {} ",
-                        from, to, amount, fee ));
-                return true;
-            } else {
-                txReceipt.addLog(String.format("{} transfer Error", from));
-                return false;
-            }
-        }
 
-        // TODO withdraw fee amount
+        // TODO withdraw fee amount by branchId
 
         // TODO interTransfer ETH to YEED
 

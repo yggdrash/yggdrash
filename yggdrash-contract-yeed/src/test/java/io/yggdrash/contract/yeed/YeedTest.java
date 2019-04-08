@@ -16,6 +16,7 @@
 
 package io.yggdrash.contract.yeed;
 
+import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
@@ -44,6 +45,7 @@ public class YeedTest {
 
     private static final String ADDRESS_1 = "c91e9d46dd4b7584f0b6348ee18277c10fd7cb94";
     private static final String ADDRESS_2 = "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e";
+    private static final String BRANCH_ID = "0x00";
     private static final String ADDRESS_FORMAT = "{\"address\" : \"%s\"}";
     private static final String ADDRESS_JSON_1 = String.format(ADDRESS_FORMAT, ADDRESS_1);
     private static final String ADDRESS_JSON_2 = String.format(ADDRESS_FORMAT, ADDRESS_2);
@@ -110,36 +112,40 @@ public class YeedTest {
 
     @Test
     public void transfer() {
-        final String paramStr = "{\"to\" : \"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\",\"amount\" : \"10\"}";
+        JsonObject paramObj = new JsonObject();
+        paramObj.addProperty("to", "1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e");
+        paramObj.addProperty("amount", 10);
+        paramObj.addProperty("fee", 1);
 
         // tx 가 invoke 되지 않아 baseContract 에 sender 가 세팅되지 않아서 설정해줌
         log.debug("c91e9d46dd4b7584f0b6348ee18277c10fd7cb94:{}", yeedContract.balanceOf(createParams(ADDRESS_JSON_1)));
         log.debug("1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e:{}", yeedContract.balanceOf(createParams(ADDRESS_JSON_2)));
 
-        JsonObject param = createParams(paramStr);
+
 
         TransactionReceipt result = new TransactionReceiptImpl();
         result.setIssuer(ADDRESS_1);
+        result.setBranchId(BRANCH_ID);
         try {
             txReceiptField.set(yeedContract, result);
-            result = yeedContract.transfer(param);
+            result = yeedContract.transfer(paramObj);
         } catch (IllegalAccessException e) {
             log.warn(e.getMessage());
         }
 
         assertTrue(result.isSuccess());
 
-        assertEquals(BigInteger.valueOf(999999990), yeedContract.balanceOf(createParams(ADDRESS_JSON_1)));
+        assertEquals(BigInteger.valueOf(999999989), yeedContract.balanceOf(createParams(ADDRESS_JSON_1)));
         assertEquals(BigInteger.valueOf(1000000010), yeedContract.balanceOf(createParams(ADDRESS_JSON_2)));
 
         // To many amount
-        addAmount(param, BigInteger.valueOf(1000000010));
-        result = yeedContract.transfer(param);
+        addAmount(paramObj, BigInteger.valueOf(1000000010));
+        result = yeedContract.transfer(paramObj);
         assertFalse(result.isSuccess());
 
         // Same amount
-        addAmount(param, BigInteger.valueOf(999999990));
-        result = yeedContract.transfer(param);
+        addAmount(paramObj, BigInteger.valueOf(999999988));
+        result = yeedContract.transfer(paramObj);
         assertTrue(result.isSuccess());
     }
 
@@ -156,6 +162,7 @@ public class YeedTest {
         JsonObject transferFromObject = createParams(transferParams);
 
         TransactionReceipt result = new TransactionReceiptImpl();
+        result.setBranchId(BRANCH_ID);
         result.setIssuer(spender);
         try {
             txReceiptField.set(yeedContract, result);
@@ -173,6 +180,7 @@ public class YeedTest {
         log.debug("getAllowance : {}", getAllowance(owner, spender));
 
         TransactionReceipt result2 = new TransactionReceiptImpl();
+        result2.setBranchId(BRANCH_ID);
         try {
             txReceiptField.set(yeedContract, result);
             yeedContract.transferFrom(transferFromObject);
@@ -191,14 +199,15 @@ public class YeedTest {
     }
 
     private void approveByOwner(String to, String owner, String spender, String amount) {
-        String approveParams = "{\"spender\" : \"" + spender + "\","
-                + "\"amount\" : \"" + amount + "\"}";
+        JsonObject paramObj = new JsonObject();
+        paramObj.addProperty("spender", spender);
+        paramObj.addProperty("amount", amount);
 
         TransactionReceipt result = new TransactionReceiptImpl();
         result.setIssuer(owner);
         try {
             txReceiptField.set(yeedContract, result);
-            yeedContract.approve(createParams(approveParams));
+            yeedContract.approve(paramObj);
         } catch (IllegalAccessException e) {
             log.warn(e.getMessage());
         }
