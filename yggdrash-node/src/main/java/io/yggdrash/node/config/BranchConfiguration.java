@@ -54,7 +54,7 @@ public class BranchConfiguration {
     @Value("${es.host:#{null}}")
     private String esHost;
     @Value("${es.transport:#{null}}")
-    private int esTransport;
+    private String esTransport;
     @Value("${event.store:#{null}}")
     private String[] eventStore;
 
@@ -116,12 +116,13 @@ public class BranchConfiguration {
     }
 
     @Bean
-    @ConditionalOnProperty("yggdrash.node.chain.enabled")
+    @ConditionalOnProperty("es.host")
     public BlockChain EsClient(BlockChain blockChain) {
         blockChain.addListener(new BlockChainCollector(
-                EsClient.newInstance(esHost, esTransport, Sets.newHashSet())));
+                EsClient.newInstance(esHost, Integer.parseInt(esTransport), Sets.newHashSet())));
         return blockChain;
     }
+
     /**
      * Scheduling Beans
      */

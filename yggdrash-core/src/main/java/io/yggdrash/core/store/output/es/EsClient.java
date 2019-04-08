@@ -31,7 +31,6 @@ public class EsClient implements OutputStore {
     }
 
     public static EsClient newInstance(String host, int port, Set<String> events) {
-        //TODO parameters move to yaml
         Settings settings = Settings.builder()
                 .put("client.transport.ignore_cluster_name", true)
                 .build();
@@ -69,7 +68,7 @@ public class EsClient implements OutputStore {
         block.remove("body");
 
         String id = block.get("index").getAsString();
-        IndexResponse response = client.prepareIndex(INDEX+"-block", "_doc", id)
+        IndexResponse response = client.prepareIndex(INDEX + "-block", "_doc", id)
                 .setSource(block.toString(), XContentType.JSON).get();
 
         switch (response.status()) {
