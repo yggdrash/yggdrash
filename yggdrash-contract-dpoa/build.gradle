@@ -125,7 +125,7 @@ task copyContractToResrouce(type: Copy) {
     doLast {
         def libFiles = file("${copyPath}").listFiles()
         libFiles.each {
-            def sha1Name = generateSha3(it)+'.jar'
+            def sha1Name = generateSha1(it)+'.jar'
             def sha1File = file("${copyPath}/"+sha1Name)
             if (it.getName().endsWith('.jar') && it.getName() != sha1Name) {
                 println it.getName() + ' -> ' + sha1Name
