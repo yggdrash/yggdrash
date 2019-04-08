@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.TimeUtils;
@@ -26,7 +27,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Scanner;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.EMPTY_BYTE8;
 
 class GenesisBlock {
@@ -63,8 +63,8 @@ class GenesisBlock {
         // todo: change values(version, type) using the configuration.
         txHeader = new TransactionHeader(
                 chain,
-                new byte[8],
-                new byte[8],
+                EMPTY_BYTE8,
+                EMPTY_BYTE8,
                 timestamp,
                 txBody);
 
@@ -81,7 +81,7 @@ class GenesisBlock {
                 chain,
                 EMPTY_BYTE8,
                 EMPTY_BYTE8,
-                EMPTY_BYTE32,
+                Constants.EMPTY_HASH,
                 0L,
                 timestamp,
                 blockBody.getMerkleRoot(),

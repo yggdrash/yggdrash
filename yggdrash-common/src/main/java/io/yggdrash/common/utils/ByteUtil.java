@@ -25,7 +25,7 @@ import java.util.Arrays;
 
 public class ByteUtil {
 
-    private static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
+    public static final byte[] EMPTY_BYTE_ARRAY = new byte[0];
     private static final byte[] ZERO_BYTE_ARRAY = new byte[] {0};
 
     private ByteUtil() {

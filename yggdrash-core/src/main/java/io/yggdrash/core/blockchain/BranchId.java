@@ -18,16 +18,15 @@ package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HashUtil;
 import org.spongycastle.util.encoders.Hex;
 
 import java.nio.charset.StandardCharsets;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE20;
-
 public class BranchId {
 
-    public static final BranchId NULL = new BranchId(EMPTY_BYTE20);
+    public static final BranchId NULL = new BranchId(Constants.EMPTY_BRANCH);
 
     private final Sha3Hash id;
 

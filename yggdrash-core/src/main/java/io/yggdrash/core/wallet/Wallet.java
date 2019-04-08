@@ -46,6 +46,8 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
 
+import static io.yggdrash.common.utils.ByteUtil.EMPTY_BYTE_ARRAY;
+
 /**
  * Wallet Class.
  */
@@ -332,7 +334,7 @@ public class Wallet {
             ecKeyPub = ECKey.signatureToKey(hashedData, ecdsaSignature);
         } catch (SignatureException e) {
             logger.debug("Invalid signature err={}", e.getMessage());
-            return new byte[0];
+            return EMPTY_BYTE_ARRAY;
         }
 
         return ecKeyPub.getPubKey();

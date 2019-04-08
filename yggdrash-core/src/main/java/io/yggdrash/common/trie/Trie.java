@@ -1,5 +1,6 @@
 package io.yggdrash.common.trie;
 
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.core.blockchain.Transaction;
@@ -8,7 +9,6 @@ import io.yggdrash.core.blockchain.TransactionHusk;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.crypto.HashUtil.HASH_256_ALGORITHM_NAME;
 
 /**
@@ -31,7 +31,7 @@ public class Trie {
     public static byte[] getMerkleRootHusk(List<TransactionHusk> txs) {
 
         if (txs == null || txs.isEmpty() || txs.contains(null)) {
-            return EMPTY_BYTE32;
+            return Constants.EMPTY_HASH;
         }
 
         List<byte[]> tree = new ArrayList<>();
@@ -52,7 +52,7 @@ public class Trie {
     public static byte[] getMerkleRoot(List<Transaction> txs) {
 
         if (txs == null || txs.isEmpty() || txs.contains(null)) {
-            return EMPTY_BYTE32;
+            return Constants.EMPTY_HASH;
         }
 
         List<byte[]> tree = new ArrayList<>();
@@ -78,15 +78,15 @@ public class Trie {
 
         try {
             if (hashTree == null || hashTree.contains(null)) {
-                return EMPTY_BYTE32;
+                return Constants.EMPTY_HASH;
             }
 
             treeSize = hashTree.size();
             if (treeSize == 0) {
-                return EMPTY_BYTE32;
+                return Constants.EMPTY_HASH;
             }
         } catch (Exception e) {
-            return EMPTY_BYTE32;
+            return Constants.EMPTY_HASH;
         }
 
         for (int levelSize = treeSize; levelSize > 1; levelSize = (levelSize + 1) / 2) {

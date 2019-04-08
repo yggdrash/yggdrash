@@ -1,5 +1,6 @@
 package io.yggdrash.validator.service.pbft;
 
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
@@ -350,8 +351,8 @@ public class PbftService implements ConsensusService {
 
         BlockHeader newBlockHeader = new BlockHeader(
                 blockChain.getChain(),
-                new byte[8],
-                new byte[8],
+                Constants.EMPTY_BYTE8,
+                Constants.EMPTY_BYTE8,
                 prevBlockHash,
                 index,
                 TimeUtils.time(),
