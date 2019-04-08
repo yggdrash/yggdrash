@@ -20,9 +20,8 @@ import com.google.gson.JsonObject;
 import io.yggdrash.common.Sha3Hash;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.utils.SerializationUtil;
 import org.spongycastle.util.encoders.Hex;
-
-import java.nio.charset.StandardCharsets;
 
 public class BranchId {
 
@@ -81,6 +80,6 @@ public class BranchId {
     }
 
     private static byte[] getRawBranch(JsonObject branch) {
-        return branch.toString().getBytes(StandardCharsets.UTF_8);
+        return SerializationUtil.serializeString(branch.toString());
     }
 }

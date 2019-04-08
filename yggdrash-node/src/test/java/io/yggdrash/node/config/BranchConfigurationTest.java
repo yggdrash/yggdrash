@@ -19,6 +19,7 @@ package io.yggdrash.node.config;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.DefaultConfig;
+import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.BlockChain;
 import io.yggdrash.core.blockchain.BlockHusk;
@@ -43,7 +44,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
-import java.nio.charset.StandardCharsets;
 
 @Ignore
 public class BranchConfigurationTest {
@@ -96,7 +96,7 @@ public class BranchConfigurationTest {
 
     private JsonObject getBranchJson() throws IOException {
         Resource resource = resourceLoader.getResource("classpath:/branch/branch-yggdrash.json");
-        Reader json = new InputStreamReader(resource.getInputStream(), StandardCharsets.UTF_8);
+        Reader json = new InputStreamReader(resource.getInputStream(), FileUtil.DEFAULT_CHARSET);
         return JsonUtil.parseJsonObject(json);
     }
 
@@ -106,7 +106,7 @@ public class BranchConfigurationTest {
             log.error("can't create at " + branchDir);
         }
         File file = new File(branchDir, BranchLoader.BRANCH_FILE);
-        FileUtils.writeStringToFile(file, branch.toString(), StandardCharsets.UTF_8);
+        FileUtils.writeStringToFile(file, branch.toString(), FileUtil.DEFAULT_CHARSET);
     }
 
 }

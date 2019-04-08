@@ -6,12 +6,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.BlockChainTestUtils;
 import io.yggdrash.ContractTestUtils;
-import io.yggdrash.TestConstants;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchId;
@@ -38,7 +38,6 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -208,7 +207,7 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static void sendGeneralTxOrQuery() throws Exception {
+    private static void sendGeneralTxOrQuery() {
         // TODO change Spec
         String branchId = getBranchId();
         List<String> methodList = (List<String>)rpc.proxyOf(TARGET_SERVER, ContractApi.class)
@@ -354,7 +353,7 @@ public class NodeContractDemoClient {
         }
     }
 
-    private static void view() throws Exception {
+    private static void view() {
         String branchId = getBranchId();
         Map params = ContractApiImplTest.createParams(BRANCH_ID, branchId);
 
@@ -410,7 +409,7 @@ public class NodeContractDemoClient {
         rpc.proxyOf(TARGET_SERVER, BranchApi.class).getBranches();
     }
 
-    private static void balance() throws Exception {
+    private static void balance() {
         System.out.println("조회할 주소를 적어주세요\n>");
         Map params = ContractApiImplTest.createParams("address", scan.nextLine());
 
@@ -487,7 +486,7 @@ public class NodeContractDemoClient {
         String seedPath = String.format("classpath:/%s/%s", dir, fileName);
         Resource resource = new DefaultResourceLoader().getResource(seedPath);
         try (InputStream is = resource.getInputStream()) {
-            Reader json = new InputStreamReader(is, StandardCharsets.UTF_8);
+            Reader json = new InputStreamReader(is, FileUtil.DEFAULT_CHARSET);
             JsonObject jsonObject = JsonUtil.parseJsonObject(json);
             if (!jsonObject.has("timestamp")) {
                 long timestamp = TimeUtils.time();

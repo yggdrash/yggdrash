@@ -20,20 +20,17 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.proto.EbftProto;
 import io.yggdrash.validator.data.ConsensusBlock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
 public class EbftBlock implements ConsensusBlock {
-    private static final Logger log = LoggerFactory.getLogger(EbftBlock.class);
 
     private final Block block;
     private final List<String> consensusList = new ArrayList<>();
@@ -50,7 +47,7 @@ public class EbftBlock implements ConsensusBlock {
     }
 
     public EbftBlock(byte[] bytes) {
-        this(JsonUtil.parseJsonObject(new String(bytes, StandardCharsets.UTF_8)));
+        this(JsonUtil.parseJsonObject(SerializationUtil.deserializeString(bytes)));
     }
 
     public EbftBlock(JsonObject jsonObject) {
@@ -112,7 +109,7 @@ public class EbftBlock implements ConsensusBlock {
 
     @Override
     public byte[] toBinary() {
-        return this.toJsonObject().toString().getBytes(StandardCharsets.UTF_8);
+        return SerializationUtil.serializeJson(toJsonObject());
     }
 
     @Override
@@ -123,7 +120,7 @@ public class EbftBlock implements ConsensusBlock {
 
         JsonObject jsonObject = new JsonObject();
         jsonObject.add("block", this.block.toJsonObject());
-        if (this.consensusList.size() > 0) {
+        if (!consensusList.isEmpty()) {
             JsonArray consensusJsonArray = new JsonArray();
             for (String consensus : consensusList) {
                 consensusJsonArray.add(consensus);

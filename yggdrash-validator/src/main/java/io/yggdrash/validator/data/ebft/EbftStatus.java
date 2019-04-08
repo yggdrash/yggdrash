@@ -7,13 +7,13 @@ import com.google.protobuf.ByteString;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.common.utils.ByteUtil;
+import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.wallet.Wallet;
 import io.yggdrash.proto.EbftProto;
 import org.spongycastle.util.encoders.Hex;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -72,7 +72,7 @@ public class EbftStatus {
         return signature;
     }
 
-    public byte[] getHashForSigning() {
+    private byte[] getHashForSigning() {
         ByteArrayOutputStream dataForSigning = new ByteArrayOutputStream();
 
         try {
@@ -129,7 +129,7 @@ public class EbftStatus {
     }
 
     public byte[] toBinary() {
-        return this.toJsonObject().toString().getBytes(StandardCharsets.UTF_8);
+        return SerializationUtil.serializeJson(toJsonObject());
     }
 
     public boolean equals(EbftStatus newStatus) {

@@ -21,7 +21,6 @@ import org.spongycastle.crypto.InvalidCipherTextException;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -124,7 +123,7 @@ class GenesisBlock {
             File genesisFile = new File(classLoader.getResource("./genesis/genesis.json").getFile());
             FileUtil.writeStringToFile(genesisFile,
                     new GsonBuilder().setPrettyPrinting().create().toJson(jsonObject),
-                    StandardCharsets.UTF_8, false);
+                    FileUtil.DEFAULT_CHARSET, false);
         } catch (Exception e) {
             throw new NotValidateException();
         }

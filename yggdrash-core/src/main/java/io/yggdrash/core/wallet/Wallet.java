@@ -35,7 +35,6 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -440,7 +439,7 @@ public class Wallet {
     private void decryptKeyFileInit(String keyPath, String keyName, String password)
             throws IOException, InvalidCipherTextException {
         File keyFile = FileUtil.getFile(keyPath, keyName);
-        String json = FileUtil.readFileToString(keyFile, StandardCharsets.UTF_8);
+        String json = FileUtil.readFileToString(keyFile, FileUtil.DEFAULT_CHARSET);
         JsonObject keyJsonObject = JsonUtil.parseJsonObject(json);
 
         byte[] salt = Hex.decode(getCryptoJsonObect(keyJsonObject)

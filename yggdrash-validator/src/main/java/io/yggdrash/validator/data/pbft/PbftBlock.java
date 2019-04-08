@@ -19,19 +19,16 @@ package io.yggdrash.validator.data.pbft;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.proto.PbftProto;
 import io.yggdrash.proto.Proto;
 import io.yggdrash.validator.data.ConsensusBlock;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 
 public class PbftBlock implements ConsensusBlock {
-    private static final Logger log = LoggerFactory.getLogger(PbftBlock.class);
 
     private final Block block;
     private final PbftMessageSet pbftMessageSet;
@@ -42,7 +39,7 @@ public class PbftBlock implements ConsensusBlock {
     }
 
     public PbftBlock(byte[] bytes) {
-        this(JsonUtil.parseJsonObject(new String(bytes, StandardCharsets.UTF_8)));
+        this(JsonUtil.parseJsonObject(SerializationUtil.deserializeString(bytes)));
     }
 
     public PbftBlock(JsonObject jsonObject) {
@@ -98,7 +95,7 @@ public class PbftBlock implements ConsensusBlock {
 
     @Override
     public byte[] toBinary() {
-        return this.toJsonObject().toString().getBytes(StandardCharsets.UTF_8);
+        return SerializationUtil.serializeJson(toJsonObject());
     }
 
     @Override

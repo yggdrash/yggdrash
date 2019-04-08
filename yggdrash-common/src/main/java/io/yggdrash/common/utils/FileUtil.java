@@ -2,9 +2,14 @@ package io.yggdrash.common.utils;
 
 import com.google.common.base.Strings;
 import org.apache.commons.io.FileUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Objects;
@@ -14,6 +19,9 @@ import java.util.Objects;
  * extends org.apache.commons.io.FileUtils.
  */
 public class FileUtil extends org.apache.commons.io.FileUtils {
+    private static final Logger log = LoggerFactory.getLogger(FileUtil.class);
+
+    public static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
     /**
      * write file as byte[].
@@ -113,7 +121,7 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
         return file.exists();
     }
 
-    public static boolean recursiveDelete(Path path) {
+    public static void recursiveDelete(Path path) {
         File file = path.toFile();
         if (file.exists()) {
             if (file.isDirectory()) {
@@ -122,9 +130,15 @@ public class FileUtil extends org.apache.commons.io.FileUtils {
                         .forEachOrdered(FileUtil::recursiveDelete);
             }
 
-            file.setWritable(true);
-            return file.delete();
+            if (!file.setWritable(true)) {
+                log.debug("{} writable fail", file);
+            }
+
+            try {
+                Files.delete(path);
+            } catch (IOException e) {
+                log.debug(e.getMessage());
+            }
         }
-        return false;
     }
 }

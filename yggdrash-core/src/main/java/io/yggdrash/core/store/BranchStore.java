@@ -25,13 +25,13 @@ import io.yggdrash.common.contract.vo.PrefixKeyEnum;
 import io.yggdrash.common.contract.vo.dpoa.ValidatorSet;
 import io.yggdrash.common.store.datasource.DbSource;
 import io.yggdrash.common.utils.JsonUtil;
+import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.contract.core.store.ReadWriterStore;
 import io.yggdrash.core.blockchain.BlockHusk;
 import io.yggdrash.core.blockchain.Branch;
 import io.yggdrash.core.blockchain.BranchContract;
 import io.yggdrash.core.blockchain.BranchId;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -59,12 +59,12 @@ public class BranchStore implements ReadWriterStore<String, String> {
         if (result == null) {
             return null;
         }
-        String tempValue = new String(result, StandardCharsets.UTF_8);
+        String tempValue = SerializationUtil.deserializeString(result);
         return JsonUtil.parseJsonObject(tempValue);
     }
 
     private void putJson(String key, JsonObject value) {
-        byte[] tempValue = value.toString().getBytes(StandardCharsets.UTF_8);
+        byte[] tempValue = SerializationUtil.serializeJson(value);
         db.put(key.getBytes(), tempValue);
     }
 
