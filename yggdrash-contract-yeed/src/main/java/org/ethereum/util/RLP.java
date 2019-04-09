@@ -504,7 +504,7 @@ public class RLP {
 
             while (pos < endPos) {
 
-                logger.debug("fullTraverse: level: " + level + " startPos: " + pos + " endPos: " + endPos);
+                //logger.debug("fullTraverse: level: " + level + " startPos: " + pos + " endPos: " + endPos);
 
 
                 // It's a list with a payload more than 55 bytes

@@ -35,6 +35,8 @@ import io.yggdrash.contract.core.annotation.Genesis;
 import io.yggdrash.contract.core.annotation.InvokeTransaction;
 import io.yggdrash.contract.core.annotation.ParamValidation;
 import io.yggdrash.contract.core.store.ReadWriterStore;
+import io.yggdrash.contract.yeed.propose.ProposeInterChain;
+import io.yggdrash.contract.yeed.propose.ProposeType;
 import org.osgi.framework.BundleActivator;
 import org.osgi.framework.BundleContext;
 import org.osgi.framework.ServiceEvent;
@@ -412,7 +414,53 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
         // TODO withdraw fee amount by branchId
 
-        // TODO issue InterTransfer Eth(or Toke) To YEED
+        // Issue InterTransfer Eth(or Token) To YEED
+        @InvokeTransaction
+        public void issuePropose(JsonObject params) {
+
+            BigInteger stakeYeed = params.get("stake").getAsBigInteger();
+            BigInteger fee = params.get(FEE).getAsBigInteger();
+            String issuer = this.txReceipt.getIssuer();
+            // Check Issuer FEE
+
+            // check Issuer has YEED
+            BigInteger stakeFee = stakeYeed.add(fee);
+            BigInteger balance = getBalance(issuer);
+            if (balance.compareTo(stakeFee) < 0) {
+                throw new RuntimeException(String.format("{} has not enough balance", issuer));
+            }
+
+
+            String txId = this.txReceipt.getTxId();
+            String receiveAddress = params.get("receiveAddress").getAsString();
+            BigInteger receiveEth = params.get("receiveEth").getAsBigInteger();
+            Integer receiveChainId = params.get("chainId").getAsInt();
+            ProposeType proposeType = ProposeType.fromInteger(params.get("type").getAsInt());
+
+            String senderAddress = null;
+            String inputData = null;
+            if (ProposeType.ETHER_TO_YEED.equals(proposeType)) {
+                senderAddress = params.get("senderAddress").getAsString();
+                inputData = null;
+            }
+            long target = params.get("blockHeight").getAsLong();
+
+            // Issue Propose
+            ProposeInterChain propose = new ProposeInterChain(txId, receiveAddress,
+                    receiveEth, receiveChainId, proposeType, senderAddress, inputData, stakeYeed,
+                    target, fee, issuer);
+
+            String proposeId = propose.getProposeId();
+
+            // Fee is send to Later
+            transfer(issuer, proposeId, stakeFee, BigInteger.ZERO);
+
+            // TODO Save propose
+
+        }
+
+
+
 
         // TODO interTransfer ETH to YEED
 

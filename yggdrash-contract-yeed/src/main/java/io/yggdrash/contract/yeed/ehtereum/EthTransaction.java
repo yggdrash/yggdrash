@@ -20,7 +20,7 @@ public class EthTransaction {
     byte[] gasPrice;
     byte[] gasLimit;
     byte[] receiveAddress;
-    byte[] value;
+    BigInteger value;
     byte[] data;
 
     public byte[] getTxHash() {
@@ -43,7 +43,7 @@ public class EthTransaction {
         return receiveAddress;
     }
 
-    public byte[] getValue() {
+    public BigInteger getValue() {
         return value;
     }
 
@@ -81,7 +81,7 @@ public class EthTransaction {
         gasPrice = ethTx.get(1).getRLPData();
         gasLimit = ethTx.get(2).getRLPData();
         receiveAddress = ethTx.get(3).getRLPData();
-        value = ethTx.get(4).getRLPData();
+        value = ByteUtil.bytesToBigInteger(ethTx.get(4).getRLPData());
         data = ethTx.get(5).getRLPData();
 
         ECKey.ECDSASignature signature = null;
@@ -99,7 +99,6 @@ public class EthTransaction {
             log.debug("RLP encoded tx is not signed!");
         }
         txHash = HashUtil.sha3(rawTransaction);
-        log.debug(HexUtil.toHexString(txHash));
 
         try {
             sendAddress = ECKey.signatureToAddress(txHash, signature);
@@ -116,7 +115,6 @@ public class EthTransaction {
             return Integer.MAX_VALUE; // chainId is limited to 31 bits, longer are not valid for now
         }
         long v = bv.longValue();
-        log.debug("{} V", v);
         if (v == LOWER_REAL_V || v == (LOWER_REAL_V + 1)) return null;
         return (int) ((v - CHAIN_ID_INC) / 2);
     }

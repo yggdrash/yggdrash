@@ -39,7 +39,7 @@ public class SwapEthTransactionTest {
         log.debug("Chain ID {} ", ethTransaction.getChainId());
         log.debug("Sender {}", HexUtil.toHexString(ethTransaction.getSendAddress()));
         log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
-        log.debug("value {}", new BigInteger(ethTransaction.getValue()));
+        log.debug("value {}", ethTransaction.getValue());
         log.debug("data {}", ethTransaction.getData());
     }
 
