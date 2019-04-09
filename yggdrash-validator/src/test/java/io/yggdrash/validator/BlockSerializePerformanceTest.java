@@ -2,6 +2,7 @@ package io.yggdrash.validator;
 
 import com.google.gson.JsonObject;
 import com.google.protobuf.InvalidProtocolBufferException;
+import io.yggdrash.TestConstants;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.utils.FileUtil;
@@ -40,7 +41,7 @@ import java.security.SignatureException;
 
 import static org.junit.Assert.assertTrue;
 
-public class BlockSerializePerformanceTest {
+public class BlockSerializePerformanceTest extends TestConstants.PerformanceTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockSerializePerformanceTest.class);
 
