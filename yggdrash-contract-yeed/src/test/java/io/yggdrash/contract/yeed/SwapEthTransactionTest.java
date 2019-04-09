@@ -16,21 +16,15 @@
 
 package io.yggdrash.contract.yeed;
 
-import io.yggdrash.common.crypto.ECKey;
-import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.contract.yeed.ehtereum.Eth;
-import org.ethereum.util.ByteUtil;
-import org.ethereum.util.RLP;
-import org.ethereum.util.RLPList;
+import io.yggdrash.contract.yeed.ehtereum.EthTransaction;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.math.BigInteger;
-import java.security.SignatureException;
 
-public class SwapEthTest {
-    private static final Logger log = LoggerFactory.getLogger(SwapEthTest.class);
+public class SwapEthTransactionTest {
+    private static final Logger log = LoggerFactory.getLogger(SwapEthTransactionTest.class);
 
     @Test
     public void testEthereumTransactionRlp() {
@@ -40,13 +34,13 @@ public class SwapEthTest {
 
         byte[] etheSendEncode = HexUtil.hexStringToBytes(ethHexString);
 
-        Eth eth = new Eth(etheSendEncode);
+        EthTransaction ethTransaction = new EthTransaction(etheSendEncode);
 
-        log.debug("Chain ID {} ", eth.getChainId());
-        log.debug("Sender {}", HexUtil.toHexString(eth.getSendAddress()));
-        log.debug("Receiver {}", HexUtil.toHexString(eth.getReceiveAddress()));
-        log.debug("value {}", new BigInteger(eth.getValue()));
-        log.debug("data {}", eth.getData());
+        log.debug("Chain ID {} ", ethTransaction.getChainId());
+        log.debug("Sender {}", HexUtil.toHexString(ethTransaction.getSendAddress()));
+        log.debug("Receiver {}", HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        log.debug("value {}", new BigInteger(ethTransaction.getValue()));
+        log.debug("data {}", ethTransaction.getData());
     }
 
 }

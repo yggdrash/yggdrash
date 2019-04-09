@@ -4,18 +4,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.Arrays;
 
-public class EthToken extends Eth {
+public class EthTokenTransaction extends EthTransaction {
 
-    private static final Logger log = LoggerFactory.getLogger(EthToken.class);
+    private static final Logger log = LoggerFactory.getLogger(EthTokenTransaction.class);
 
     byte[] method;
     byte[][] params;
 
-    public EthToken(byte[] rawTransaction) {
+    public EthTokenTransaction(byte[] rawTransaction) {
         super(rawTransaction);
         byte[] data = this.getData();
 
-        log.debug("is EthToken  : {}", (data.length - 4) % 32);
+        log.debug("is EthTokenTransaction  : {}", (data.length - 4) % 32);
         if ((data.length - 4) % 32 == 0) {
             // 4byte is method
             method = Arrays.copyOfRange(data, 0, 4);

@@ -17,20 +17,16 @@
 package io.yggdrash.contract.yeed;
 
 import io.yggdrash.common.crypto.HexUtil;
-import io.yggdrash.contract.yeed.ehtereum.Eth;
-import io.yggdrash.contract.yeed.ehtereum.EthToken;
-import org.ethereum.util.RLP;
-import org.ethereum.util.RLPList;
+import io.yggdrash.contract.yeed.ehtereum.EthTokenTransaction;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.spongycastle.pqc.math.linearalgebra.ByteUtils;
-import org.spongycastle.util.encoders.Hex;
 import java.math.BigInteger;
 import java.util.Arrays;
 
-public class SwapEthTokenTest {
-    private static final Logger log = LoggerFactory.getLogger(SwapEthTokenTest.class);
+public class SwapEthTransactionTokenTest {
+    private static final Logger log = LoggerFactory.getLogger(SwapEthTransactionTokenTest.class);
 
     @Test
     public void testEthereumTokenTransactionRlp() {
@@ -42,10 +38,10 @@ public class SwapEthTokenTest {
 
         byte[] etheSendEncode = HexUtil.hexStringToBytes(ethHexString);
 
-        EthToken token = new EthToken(etheSendEncode);
+        EthTokenTransaction token = new EthTokenTransaction(etheSendEncode);
         log.debug("transaction hash {}",HexUtil.toHexString(token.getTxHash()));
 
-        log.debug("Eth Data {} ", HexUtil.toHexString(token.getData()));
+        log.debug("EthTransaction Data {} ", HexUtil.toHexString(token.getData()));
 
         log.debug(HexUtil.toHexString(token.getMethod()));
         log.debug("{} param", token.getParam().length);
@@ -69,7 +65,7 @@ public class SwapEthTokenTest {
                 + "ea5dafbefe81b322b38eb66ea4a79fcc3581ebceff7a06106a00a5b7b5a22297fc3df87b641b59b766"
                 + "29ed865459e83f993b9770c1bf675dc9a";
         byte[] ethSendTokenEncode = HexUtil.hexStringToBytes(ethTokenRawTx);
-        EthToken token2 = new EthToken(ethSendTokenEncode);
+        EthTokenTransaction token2 = new EthTokenTransaction(ethSendTokenEncode);
         log.debug("Token Method {}", HexUtil.toHexString(token2.getMethod()));
 
 
@@ -83,7 +79,7 @@ public class SwapEthTokenTest {
                 + "2b6a9c48fb349c2274fdaabf9fc3ec294a7bdacb87b57f4ea4a066e68feab9307fb7dc454d02a78323"
                 + "dfd302fe9b49fab52d21839389375ffbee";
 
-        EthToken token3 = new EthToken(HexUtil.hexStringToBytes(burnTokenRawTx));
+        EthTokenTransaction token3 = new EthTokenTransaction(HexUtil.hexStringToBytes(burnTokenRawTx));
         log.debug("Tx : {}", HexUtil.toHexString(token3.getTxHash()));
         log.debug("Receive : {}", HexUtil.toHexString(token3.getParam()[0]));
         assert ByteUtils.equals(token3.getParam()[0], new byte[32]);

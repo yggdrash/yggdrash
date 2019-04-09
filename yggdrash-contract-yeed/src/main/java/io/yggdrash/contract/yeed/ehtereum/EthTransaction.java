@@ -14,7 +14,7 @@ import java.security.SignatureException;
 
 
 
-public class Eth {
+public class EthTransaction {
     byte[] txHash;
     byte[] nonce;
     byte[] gasPrice;
@@ -63,14 +63,19 @@ public class Eth {
 
     Integer chainId = -1;
 
-    private static final Logger log = LoggerFactory.getLogger(Eth.class);
+    private static final Logger log = LoggerFactory.getLogger(EthTransaction.class);
     private static final int CHAIN_ID_INC = 35;
     private static final int LOWER_REAL_V = 27;
 
 
-    public Eth(byte[] rawTransaction) {
+    public EthTransaction(byte[] rawTransaction) {
+        // check rawTransaction
         RLPList decodedTxList = RLP.decode2(rawTransaction);
         RLPList ethTx = (RLPList) decodedTxList.get(0);
+
+        if (ethTx.size() != 8) {
+            // not Ethereum Transction
+        }
 
         nonce = ethTx.get(0).getRLPData();
         gasPrice = ethTx.get(1).getRLPData();
