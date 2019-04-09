@@ -412,8 +412,13 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
         // TODO withdraw fee amount by branchId
 
+        // TODO issue InterTransfer Eth(or Toke) To YEED
+
         // TODO interTransfer ETH to YEED
 
         // TODO interTransfer TOKEN to YEED
+
+        // TODO validator or truth node can validate propose
+
     }
 }
