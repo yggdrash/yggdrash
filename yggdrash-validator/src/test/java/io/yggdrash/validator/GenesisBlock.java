@@ -130,4 +130,7 @@ class GenesisBlock {
         }
     }
 
+    public Block getGenesisBlock() {
+        return genesisBlock;
+    }
 }
