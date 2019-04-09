@@ -112,7 +112,7 @@ public class BlockSerializePerformanceTest extends TestConstants.PerformanceTest
 
     private byte[] convertBlockBodyToBson(BlockBody blockbody) throws IOException {
         BsonDocument bsonDocument = new BsonDocument();
-        bsonDocument.append("chain", new BsonBinary(blockbody.toBinary()));
+        bsonDocument.append("body", new BsonBinary(blockbody.toBinary()));
 
         BasicOutputBuffer buffer;
         BsonBinaryWriter writer;
