@@ -5,12 +5,18 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.yggdrash.TestConstants;
 import io.yggdrash.common.crypto.ECKey;
 import io.yggdrash.common.crypto.HashUtil;
+import io.yggdrash.common.utils.ByteUtil;
 import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
 import io.yggdrash.core.blockchain.BlockHusk;
+import io.yggdrash.core.blockchain.Transaction;
+import io.yggdrash.core.blockchain.TransactionBody;
+import io.yggdrash.core.blockchain.TransactionHeader;
+import io.yggdrash.core.exception.InternalErrorException;
 import io.yggdrash.core.exception.InvalidSignatureException;
+import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.proto.Proto;
 import org.bson.BsonBinary;
 import org.bson.BsonBinaryReader;
@@ -138,6 +144,89 @@ public class BlockSerializePerformanceTest extends TestConstants.PerformanceTest
         return DOCUMENT_CODEC.decode(bsonReader, DecoderContext.builder().build());
     }
 
+
+    public byte[] toBinaryBlockHeader(BlockHeader header) {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        try {
+            bao.write(header.getChain());
+            bao.write(header.getVersion());
+            bao.write(header.getType());
+            bao.write(header.getPrevBlockHash());
+            bao.write(ByteUtil.longToBytes(header.getIndex()));
+            bao.write(ByteUtil.longToBytes(header.getTimestamp()));
+            bao.write(header.getMerkleRoot());
+            bao.write(ByteUtil.longToBytes(header.getBodyLength()));
+            bao.close();
+            return bao.toByteArray();
+        } catch (IOException e) {
+            throw new InternalErrorException("toBinary error");
+        }
+    }
+
+    public byte[] toBinaryTxHeader(TransactionHeader header) {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        try {
+            bao.write(header.getChain());
+            bao.write(header.getVersion());
+            bao.write(header.getType());
+            bao.write(ByteUtil.longToBytes(header.getTimestamp()));
+            bao.write(header.getBodyHash());
+            bao.write(ByteUtil.longToBytes(header.getBodyLength()));
+            bao.close();
+            return bao.toByteArray();
+        } catch (IOException e) {
+            throw new InternalErrorException("toBinary error");
+        }
+    }
+
+    public byte[] toBinaryTx(Transaction tx) {
+        TransactionHeader header = tx.getHeader();
+        TransactionBody body = tx.getBody();
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        try {
+            bao.write(toBinaryTxHeader(header));
+            bao.write(tx.getSignature());
+            bao.write(body.toBinary());
+            bao.close();
+            return bao.toByteArray();
+        } catch (IOException e) {
+            log.warn("Transaction toBinary() IOException");
+            throw new NotValidateException();
+        }
+    }
+
+    public byte[] toBinaryBlockBody(BlockBody body) {
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+        try {
+            for (Transaction tx : body.getBody()) {
+                bao.write(toBinaryTx(tx));
+            }
+            bao.close();
+            return bao.toByteArray();
+        } catch (IOException e) {
+            throw new InternalErrorException("toBinary error");
+        }
+    }
+
+    public byte[] toBinaryBlock(Block block) {
+        BlockHeader header = block.getHeader();
+        byte[] signature = block.getSignature();
+        BlockBody body = block.getBody();
+
+        ByteArrayOutputStream bao = new ByteArrayOutputStream();
+
+        try {
+            bao.write(toBinaryBlockHeader(header));
+            bao.write(signature);
+            bao.write(toBinaryBlockBody(body));
+            bao.close();
+            return bao.toByteArray();
+        } catch (IOException e) {
+            log.warn("Block toBinary() IOException");
+            throw new NotValidateException();
+        }
+    }
+
     @Test
     public void testBlockToBinary() {
         long startTime;
@@ -147,7 +236,7 @@ public class BlockSerializePerformanceTest extends TestConstants.PerformanceTest
 
         startTime = System.nanoTime();
         for (long l = 0; l < MAX; l++) {
-            Block newBlock = new Block(block.toBinary());
+            Block newBlock = new Block(toBinaryBlock(block));
             assertTrue(newBlock.verify());
         }
         endTime = System.nanoTime();

@@ -135,7 +135,7 @@ public class TransactionHeader {
         return this.timestamp;
     }
 
-    byte[] getBodyHash() {
+    public byte[] getBodyHash() {
         return this.bodyHash;
     }
 
