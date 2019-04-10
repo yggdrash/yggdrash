@@ -626,20 +626,12 @@ public class EbftService implements ConsensusService {
 
     private boolean initValidator() {
         log.debug("MyNode ID: " + this.myNode.getId());
-        return totalValidatorMap.containsKey(this.myNode.getAddr());
-    }
-
-    private List<String> getActiveNodeList() {
-        List<String> activeNodeList = new ArrayList<>();
-        for (EbftClientStub client : totalValidatorMap.values()) {
-            if (client.isMyclient()) {
-                continue;
-            }
-            if (client.isRunning()) {
-                activeNodeList.add(client.getId());
+        for (EbftClientStub clientStub : totalValidatorMap.values()) {
+            if (this.myNode.getId().equals(clientStub.getId())) {
+                return true;
             }
         }
-        return activeNodeList;
+        return false;
     }
 
     private void setActiveMode() {

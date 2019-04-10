@@ -1,6 +1,7 @@
 package io.yggdrash.validator.service.pbft;
 
 import com.typesafe.config.ConfigException;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
@@ -355,8 +356,8 @@ public class PbftService implements ConsensusService {
 
         BlockHeader newBlockHeader = new BlockHeader(
                 blockChain.getChain(),
-                new byte[8],
-                new byte[8],
+                Constants.EMPTY_BYTE8,
+                Constants.EMPTY_BYTE8,
                 prevBlockHash,
                 index,
                 TimeUtils.time(),
@@ -818,8 +819,8 @@ public class PbftService implements ConsensusService {
 
     private boolean initValidator() {
         log.debug("MyNode ID: " + this.myNode.getId());
-        for (PbftClientStub pbftClientStub : totalValidatorMap.values()) {
-            if (this.myNode.getId().equals(pbftClientStub.getId())) {
+        for (PbftClientStub clientStub : totalValidatorMap.values()) {
+            if (this.myNode.getId().equals(clientStub.getId())) {
                 return true;
             }
         }
