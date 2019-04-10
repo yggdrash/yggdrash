@@ -11,7 +11,8 @@ public enum PrefixKeyEnum {
     PROPOSE_VALIDATORS("pv-"),
     PROPOSE_CONTRACTS("pc-"),
     VALIDATORS("vl-"),
-    PROPOSE_INTER_CHAIN("pi-")
+    PROPOSE_INTER_CHAIN("pi-"),
+    PROPOSE_INTER_CHAIN_STATUS("pis-")
     ;
 
     private final String value;
@@ -39,6 +40,8 @@ public enum PrefixKeyEnum {
                 return VALIDATORS;
             case "pi-":
                 return PROPOSE_INTER_CHAIN;
+            case "pis-":
+                return PROPOSE_INTER_CHAIN_STATUS;
             default:
                 return null;
         }

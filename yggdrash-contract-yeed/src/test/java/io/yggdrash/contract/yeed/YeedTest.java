@@ -28,7 +28,9 @@ import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
 import io.yggdrash.contract.yeed.propose.ProposeType;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,6 +53,9 @@ public class YeedTest {
     private static final String ADDRESS_JSON_1 = String.format(ADDRESS_FORMAT, ADDRESS_1);
     private static final String ADDRESS_JSON_2 = String.format(ADDRESS_FORMAT, ADDRESS_2);
     private Field txReceiptField;
+
+    @Rule
+    public ExpectedException thrown = ExpectedException.none();
 
     @Before
     public void setUp() throws IllegalAccessException {
@@ -335,8 +340,84 @@ public class YeedTest {
         log.debug(queryPropose.toString());
 
         assert receiveAddress.equals(queryPropose.get("receiveAddress").getAsString());
+    }
+
+    @Test
+    public void closeIssueFail() {
+        // require issuePropose
+        issuePropose();
+        String transactionId = "0x01";
+        String issuer = "d3cf7a283a4415ce3c41f5374934612389334780";
+        JsonObject param = new JsonObject();
+        String proposeId = "3bc37802368aaf705e8364c4d52194b2a250828aff3c7a41640451db1bafaba2";
+        param.addProperty("proposeId", proposeId);
+        TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 1000000L);
+
+        thrown.expect(RuntimeException.class);
+        thrown.expectMessage("issuer is not propose issuer");
+        yeedContract.closePropose(param);
+    }
+
+    @Test
+    public void closeIssueFail2() {
+        // require issuePropose
+        issuePropose();
+        String transactionId = "0x01";
+        String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
+        JsonObject param = new JsonObject();
+        String proposeId = "3bc37802368aaf705e8364c4d52194b2a250828aff3c7a41640451db1bafaba2";
+        param.addProperty("proposeId", proposeId);
+        TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 100L);
+        thrown.expect(RuntimeException.class);
+        thrown.expectMessage("propose is not expired");
+
+        yeedContract.closePropose(param);
+    }
+
+    @Test
+    public void closeIssueFail3() {
+        closeIssue();
+
+        String transactionId = "0x01";
+        String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
+        JsonObject param = new JsonObject();
+        String proposeId = "3bc37802368aaf705e8364c4d52194b2a250828aff3c7a41640451db1bafaba2";
+        param.addProperty("proposeId", proposeId);
+
+        TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 1000001L);
+
+        thrown.expect(RuntimeException.class);
+        thrown.expectMessage("propose is not issued");
+
+        yeedContract.closePropose(param);
+    }
 
 
+
+    @Test
+    public void closeIssue() {
+        // require issuePropose
+        issuePropose();
+        String transactionId = "0x01";
+        String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
+        JsonObject param = new JsonObject();
+        String proposeId = "3bc37802368aaf705e8364c4d52194b2a250828aff3c7a41640451db1bafaba2";
+        param.addProperty("proposeId", proposeId);
+
+        TransactionReceipt receipt = null;
+
+        // Success case
+        receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 1000000L);
+
+
+        BigInteger proposeYeed = yeedContract.getBalance(proposeId);
+
+        yeedContract.closePropose(param);
+
+        BigInteger proposeCloseYeed = yeedContract.getBalance(proposeId);
+        assert receipt.getStatus() == ExecuteStatus.SUCCESS;
+        assert proposeYeed.compareTo(BigInteger.ZERO) > 0;
+        assert proposeCloseYeed.compareTo(BigInteger.ZERO) == 0;
 
     }
 

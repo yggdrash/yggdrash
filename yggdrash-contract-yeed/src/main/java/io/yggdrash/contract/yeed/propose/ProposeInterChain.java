@@ -78,6 +78,22 @@ public class ProposeInterChain {
         return issuer;
     }
 
+    public ProposeInterChain(JsonObject object) {
+        this.transactionId = object.get("transactionId").getAsString();
+        this.receiveAddress = object.get("receiveAddress").getAsString();
+        this.receiveEth = object.get("receiveEth").getAsBigInteger();
+        this.receiveChainId = object.get("receiveChainId").getAsInt();
+        this.proposeType = ProposeType.fromValue(object.get("proposeType").getAsInt());
+        this.senderAddress = object.get("senderAddress").getAsString();
+        this.inputData = object.get("inputData").isJsonNull() ? null : object.get("inputData").getAsString();
+        this.stakeYeed = object.get("stakeYeed").getAsBigInteger();
+        this.blockHeight = object.get("blockHeight").getAsLong();
+        this.fee = object.get("fee").getAsBigInteger();
+        this.issuer = object.get("issuer").getAsString();
+        generateProposeId();
+    }
+
+
     public ProposeInterChain(String transactionId, String receiveAddress, BigInteger receiveEth,
                              int receiveChainId, ProposeType proposeType, String senderAddress,
                              String inputData, BigInteger stakeYeed, long blockHeight,
@@ -138,6 +154,7 @@ public class ProposeInterChain {
 
     public JsonObject toJsonObject() {
         JsonObject proposal = new JsonObject();
+        proposal.addProperty("proposeId", proposeId);
         proposal.addProperty("transactionId", transactionId);
         proposal.addProperty("receiveAddress", receiveAddress);
         proposal.addProperty("receiveEth", receiveEth);

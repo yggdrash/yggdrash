@@ -5,7 +5,7 @@ public enum ProposeStatus {
     PROCESSING(2),
     DONE(3),
     CONGLUTINATION(4),
-    RETURN(5);
+    CLOSED(5);
 
     private final int value;
 
@@ -15,5 +15,14 @@ public enum ProposeStatus {
 
     public int toValue() {
         return this.value;
+    }
+
+    public static ProposeStatus fromValue(int value) {
+        for(ProposeStatus ps : values()) {
+            if (ps.toValue() == value) {
+                return ps;
+            }
+        }
+        return null;
     }
 }

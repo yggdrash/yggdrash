@@ -17,7 +17,7 @@ public enum ProposeType {
         return this.value;
     }
 
-    public static ProposeType fromInteger(int x) {
+    public static ProposeType fromValue(int x) {
         switch(x) {
             case 1:
                 return YEED_TO_ETHER;
