@@ -2,6 +2,7 @@ package io.yggdrash.validator.store.pbft;
 
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HashUtil;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.common.util.TimeUtils;
@@ -26,7 +27,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static io.yggdrash.common.config.Constants.PBFT_COMMIT;
 import static io.yggdrash.common.config.Constants.PBFT_PREPARE;
 import static io.yggdrash.common.config.Constants.PBFT_PREPREPARE;
@@ -257,7 +257,7 @@ public class PbftBlockStoreTest {
         PbftBlock newBlock = blockStore.get(newHash);
         assertTrue(newBlock.equals(this.pbftBlock));
         assertTrue(blockStore.contains(this.pbftBlock.getHash()));
-        assertFalse(blockStore.contains(EMPTY_BYTE32));
+        assertFalse(blockStore.contains(Constants.EMPTY_HASH));
     }
 
     @Test

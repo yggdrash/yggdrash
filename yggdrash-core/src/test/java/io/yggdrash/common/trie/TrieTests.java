@@ -1,6 +1,7 @@
 package io.yggdrash.common.trie;
 
 import io.yggdrash.BlockChainTestUtils;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.TransactionHusk;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,7 +12,6 @@ import org.spongycastle.util.encoders.Hex;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
@@ -47,7 +47,7 @@ public class TrieTests {
 
         byte[] merkleRoot;
         merkleRoot = Trie.getMerkleRootHusk(txsList);
-        assertThat(merkleRoot).isNotEqualTo(EMPTY_BYTE32);
+        assertThat(merkleRoot).isNotEqualTo(Constants.EMPTY_HASH);
 
         log.debug("MerkleRoot with tx 7=" + Hex.toHexString(merkleRoot));
 
@@ -55,27 +55,27 @@ public class TrieTests {
         txsList = new ArrayList<>();
         txsList.add(this.tx1);
         merkleRoot = Trie.getMerkleRootHusk(txsList);
-        assertThat(merkleRoot).isNotEqualTo(EMPTY_BYTE32);
+        assertThat(merkleRoot).isNotEqualTo(Constants.EMPTY_HASH);
 
         log.debug("MerkleRoot with tx 1=" + Hex.toHexString(merkleRoot));
 
         // 3. test with tx 0
         txsList = new ArrayList<>();
         merkleRoot = Trie.getMerkleRootHusk(txsList);
-        assertArrayEquals(EMPTY_BYTE32, merkleRoot);
+        assertArrayEquals(Constants.EMPTY_HASH, merkleRoot);
 
         log.debug("MerkleRoot with tx 0 = null");
 
         // 4. test with tx null
         merkleRoot = Trie.getMerkleRootHusk(null);
-        assertArrayEquals(EMPTY_BYTE32, merkleRoot);
+        assertArrayEquals(Constants.EMPTY_HASH, merkleRoot);
 
         log.debug("MerkleRoot with tx null = null");
 
         // 5. null list Test
         txsList.add(null);
         merkleRoot = Trie.getMerkleRootHusk(txsList);
-        assertArrayEquals(EMPTY_BYTE32, merkleRoot);
+        assertArrayEquals(Constants.EMPTY_HASH, merkleRoot);
     }
 
     @Test

@@ -44,8 +44,7 @@ public class EbftBlockKeyStore implements BlockKeyStore<Long, byte[]> {
 
     @Override
     public void put(Long key, byte[] value) {
-        if (key < 0 || value == null
-                || value.length != Constants.BLOCK_HASH_LENGTH) {
+        if (key < 0 || value == null || value.length != Constants.HASH_LENGTH) {
             log.debug("Key or value are not vaild. {}", key);
             return;
         }

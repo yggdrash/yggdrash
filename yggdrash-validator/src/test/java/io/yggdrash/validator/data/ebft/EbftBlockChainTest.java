@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import io.yggdrash.StoreTestUtils;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
+import io.yggdrash.common.utils.SerializationUtil;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.exception.NotValidateException;
 import io.yggdrash.core.wallet.Wallet;
@@ -18,7 +19,6 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.FileCopyUtils;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -101,7 +101,7 @@ public class EbftBlockChainTest {
         ClassPathResource cpr = new ClassPathResource("genesis/genesis.json");
         try {
             byte[] bdata = FileCopyUtils.copyToByteArray(cpr.getInputStream());
-            genesisString = new String(bdata, StandardCharsets.UTF_8);
+            genesisString = SerializationUtil.deserializeString(bdata);
             log.debug("geneis: " + genesisString);
         } catch (IOException e) {
             throw new NotValidateException("Error genesisFile");
@@ -113,7 +113,7 @@ public class EbftBlockChainTest {
     @Test
     public void constuctorTest() {
         assertNotNull(this.ebftBlockChain);
-        assertEquals(this.ebftBlockChain.getLastConfirmedBlock().getIndex(), 0L);
+        assertEquals(0L, this.ebftBlockChain.getLastConfirmedBlock().getIndex());
     }
 
     @Test
@@ -123,7 +123,7 @@ public class EbftBlockChainTest {
         assertNotNull(this.ebftBlockChain.getBlockStore());
         assertNotNull(this.ebftBlockChain.getGenesisBlock());
         assertNotNull(this.ebftBlockChain.getGenesisBlock());
-        assertEquals(this.ebftBlockChain.getUnConfirmedData().size(), 0);
+        assertEquals(0, this.ebftBlockChain.getUnConfirmedData().size());
         assertNotNull(this.ebftBlockChain.getTransactionStore());
         assertNotNull(this.ebftBlockChain.getLastConfirmedBlock());
     }

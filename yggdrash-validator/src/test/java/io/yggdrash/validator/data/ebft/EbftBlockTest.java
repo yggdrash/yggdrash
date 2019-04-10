@@ -92,7 +92,7 @@ public class EbftBlockTest {
         EbftBlock testEbftBlock3 = new EbftBlock(testEbftBlock1.toJsonObject());
         assertTrue(testEbftBlock1.equals(testEbftBlock3));
 
-        EbftBlock testEbftBlock4 = new EbftBlock(testEbftBlock1.toBinary());
+        EbftBlock testEbftBlock4 = new EbftBlock(testEbftBlock1.getData());
         assertTrue(testEbftBlock1.equals(testEbftBlock4));
 
         EbftBlock testEbftBlock5 = new EbftBlock(EbftBlock.toProto(testEbftBlock1));

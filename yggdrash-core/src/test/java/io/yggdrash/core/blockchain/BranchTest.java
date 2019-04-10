@@ -16,7 +16,6 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -88,7 +87,7 @@ public class BranchTest {
         File genesisFile = new File(
                 getClass().getClassLoader().getResource("./branch-yggdrash.json").getFile());
 
-        String genesisString = FileUtil.readFileToString(genesisFile, StandardCharsets.UTF_8);
+        String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
         JsonObject branch = new JsonParser().parse(genesisString).getAsJsonObject();
         Branch yggdrashBranch = Branch.of(branch);
         Assert.assertEquals("YGGDRASH", yggdrashBranch.getName());
@@ -99,7 +98,7 @@ public class BranchTest {
         File genesisFile = new File(
                 getClass().getClassLoader().getResource("./branch-yggdrash.json").getFile());
 
-        String genesisString = FileUtil.readFileToString(genesisFile, StandardCharsets.UTF_8);
+        String genesisString = FileUtil.readFileToString(genesisFile, FileUtil.DEFAULT_CHARSET);
         JsonObject branch = new JsonParser().parse(genesisString).getAsJsonObject();
         Branch yggdrashBranch = Branch.of(branch);
 

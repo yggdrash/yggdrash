@@ -58,7 +58,7 @@ public class EbftBlockKeyStoreTest {
                 new LevelDbDataSource(StoreTestUtils.getTestPath(), "ebftBlockKeyStoreTest");
         this.blockKeyStore = new EbftBlockKeyStore(ds);
 
-        this.ebftBlock = makeEbftBlock(0L, Constants.EMPTY_BYTE32);
+        this.ebftBlock = makeEbftBlock(0L, Constants.EMPTY_HASH);
 
         this.blockKeyStore.put(this.ebftBlock.getIndex(), this.ebftBlock.getHash());
     }
@@ -88,7 +88,7 @@ public class EbftBlockKeyStoreTest {
         assertTrue(blockKeyStore.contains(this.ebftBlock.getIndex()));
         assertFalse(blockKeyStore.contains(this.ebftBlock.getIndex() + 1));
         assertFalse(blockKeyStore.contains(-1L));
-        assertEquals(blockKeyStore.size(), 1);
+        assertEquals(1, blockKeyStore.size());
     }
 
     @Test

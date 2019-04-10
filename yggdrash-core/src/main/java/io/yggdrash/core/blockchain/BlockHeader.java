@@ -34,6 +34,8 @@ import java.util.Objects;
 
 public class BlockHeader {
 
+    static final int LENGTH = 124;
+
     static final int CHAIN_LENGTH = 20;
     static final int VERSION_LENGTH = 8;
     static final int TYPE_LENGTH = 8;

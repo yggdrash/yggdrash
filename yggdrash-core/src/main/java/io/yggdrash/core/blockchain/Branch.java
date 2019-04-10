@@ -21,12 +21,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.crypto.HexUtil;
+import io.yggdrash.common.utils.FileUtil;
 import io.yggdrash.common.utils.JsonUtil;
 import org.apache.commons.io.IOUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -133,7 +133,7 @@ public class Branch {
     }
 
     public static Branch of(InputStream is) throws IOException {
-        String branchString = IOUtils.toString(is, StandardCharsets.UTF_8);
+        String branchString = IOUtils.toString(is, FileUtil.DEFAULT_CHARSET);
         JsonObject json = JsonUtil.parseJsonObject(branchString);
         return of(json);
     }

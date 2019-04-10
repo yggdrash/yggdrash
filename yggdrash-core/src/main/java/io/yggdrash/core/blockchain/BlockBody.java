@@ -17,6 +17,7 @@
 package io.yggdrash.core.blockchain;
 
 import com.google.gson.JsonArray;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.trie.Trie;
 import io.yggdrash.core.exception.InternalErrorException;
 
@@ -28,9 +29,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class BlockBody {
-
-    private static final int TX_HEADER_LENGTH = 84;
-    private static final int SIGNATURE_LENGTH = 65;
 
     private final List<Transaction> body = new ArrayList<>();
 
@@ -52,18 +50,17 @@ public class BlockBody {
     }
 
     public BlockBody(byte[] bodyBytes) {
-        if (bodyBytes.length <= TX_HEADER_LENGTH + SIGNATURE_LENGTH) {
+        if (bodyBytes.length <= TransactionHeader.LENGTH + Constants.SIGNATURE_LENGTH) {
             return;
         }
 
         int pos = 0;
-        byte[] txHeaderBytes = new byte[TX_HEADER_LENGTH];
-        byte[] txSigBytes = new byte[SIGNATURE_LENGTH];
+        byte[] txHeaderBytes = new byte[TransactionHeader.LENGTH];
+        byte[] txSigBytes = new byte[Constants.SIGNATURE_LENGTH];
         byte[] txBodyBytes;
 
         TransactionHeader txHeader;
         TransactionBody txBody;
-        List<Transaction> txList = new ArrayList<>();
 
         do {
             System.arraycopy(bodyBytes, pos, txHeaderBytes, 0, txHeaderBytes.length);
@@ -80,10 +77,8 @@ public class BlockBody {
 
             txBody = new TransactionBody(txBodyBytes);
 
-            txList.add(new Transaction(txHeader, txSigBytes, txBody));
+            body.add(new Transaction(txHeader, txSigBytes, txBody));
         } while (pos < bodyBytes.length);
-
-        this.body.addAll(txList);
     }
 
     public List<Transaction> getBody() {

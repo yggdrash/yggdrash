@@ -7,10 +7,6 @@ yggdrash:
     chain.enabled: true
     chain.gen: false
 
-logging:
-  level:
-    io.yggdrash: debug
-
 spring:
   output:
     ansi:

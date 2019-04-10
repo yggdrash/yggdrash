@@ -1,5 +1,6 @@
 package io.yggdrash.validator.data.ebft;
 
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.config.DefaultConfig;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.Block;
@@ -16,7 +17,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -63,7 +63,7 @@ public class EbftStatusTest {
         wallet3 = new Wallet(null, "/tmp/",
                 "test3" + TimeUtils.time(), "Password1234!");
 
-        block0 = new TestUtils(wallet0).sampleBlock(0, EMPTY_BYTE32);
+        block0 = new TestUtils(wallet0).sampleBlock(0, Constants.EMPTY_HASH);
         block1 = new TestUtils(wallet1).sampleBlock(block0.getIndex() + 1, block0.getHash());
         block11 = new TestUtils(wallet2).sampleBlock(block0.getIndex() + 1, block0.getHash());
         block12 = new TestUtils(wallet3).sampleBlock(block0.getIndex() + 1, block0.getHash());
@@ -120,9 +120,9 @@ public class EbftStatusTest {
 
     @Test
     public void constuctorTest_Default() {
-        assertEquals(ebftStatus1.getUnConfirmedEbftBlockList().size(), 3);
-        assertEquals(ebftStatus2.getUnConfirmedEbftBlockList().size(), 3);
-        assertEquals(ebftStatus3.getUnConfirmedEbftBlockList().size(), 3);
+        assertEquals(3, ebftStatus1.getUnConfirmedEbftBlockList().size());
+        assertEquals(3, ebftStatus2.getUnConfirmedEbftBlockList().size());
+        assertEquals(3, ebftStatus3.getUnConfirmedEbftBlockList().size());
     }
 
     @Test

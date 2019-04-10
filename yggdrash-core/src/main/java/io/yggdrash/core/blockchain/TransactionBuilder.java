@@ -19,6 +19,7 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.contract.ContractVersion;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.wallet.Wallet;
@@ -30,8 +31,8 @@ public class TransactionBuilder {
     private BranchId branchId;
     private Wallet wallet;
     private final List<JsonObject> txBody = new LinkedList<>();
-    private byte[] version = new byte[8];
-    private byte[] type = new byte[8];
+    private byte[] version = Constants.EMPTY_BYTE8;
+    private byte[] type = Constants.EMPTY_BYTE8;
     private JsonArray txArray;
 
     private long timestamp = -1L;
@@ -112,7 +113,7 @@ public class TransactionBuilder {
         txHeader = new TransactionHeader(chain, version, type, timestamp, transactionBody);
 
         try {
-            byte[] sign = new byte[]{};
+            byte[] sign = Constants.EMPTY_SIGNATURE;
             if (wallet != null) {
                 TransactionSignature txSig;
                 txSig = new TransactionSignature(wallet, txHeader.getHashForSigning());

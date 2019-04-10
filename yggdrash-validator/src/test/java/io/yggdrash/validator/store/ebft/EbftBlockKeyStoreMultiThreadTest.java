@@ -24,7 +24,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
 import static org.junit.Assert.assertEquals;
 
 @RunWith(ConcurrentTestRunner.class)
@@ -58,7 +57,7 @@ public class EbftBlockKeyStoreMultiThreadTest {
                 new LevelDbDataSource(StoreTestUtils.getTestPath(), "ebftBlockKeyStoreTest");
         this.blockKeyStore = new EbftBlockKeyStore(ds);
 
-        this.ebftBlock = makeEbftBlock(0L, Constants.EMPTY_BYTE32);
+        this.ebftBlock = makeEbftBlock(0L, Constants.EMPTY_HASH);
 
         this.blockKeyStore.put(this.ebftBlock.getIndex(), this.ebftBlock.getHash());
     }
@@ -86,7 +85,7 @@ public class EbftBlockKeyStoreMultiThreadTest {
     public void putTestMultiThread() {
         long testNumber = 10000;
         for (long l = 0L; l < testNumber; l++) {
-            this.blockKeyStore.put(l, EMPTY_BYTE32);
+            this.blockKeyStore.put(l, Constants.EMPTY_HASH);
         }
         log.debug("blockKeyStore size= " + this.blockKeyStore.size());
         assertEquals(testNumber, this.blockKeyStore.size());

@@ -35,7 +35,6 @@ import org.spongycastle.util.encoders.Hex;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -45,6 +44,8 @@ import java.security.SignatureException;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
+
+import static io.yggdrash.common.utils.ByteUtil.EMPTY_BYTE_ARRAY;
 
 /**
  * Wallet Class.
@@ -332,7 +333,7 @@ public class Wallet {
             ecKeyPub = ECKey.signatureToKey(hashedData, ecdsaSignature);
         } catch (SignatureException e) {
             logger.debug("Invalid signature err={}", e.getMessage());
-            return new byte[0];
+            return EMPTY_BYTE_ARRAY;
         }
 
         return ecKeyPub.getPubKey();
@@ -438,7 +439,7 @@ public class Wallet {
     private void decryptKeyFileInit(String keyPath, String keyName, String password)
             throws IOException, InvalidCipherTextException {
         File keyFile = FileUtil.getFile(keyPath, keyName);
-        String json = FileUtil.readFileToString(keyFile, StandardCharsets.UTF_8);
+        String json = FileUtil.readFileToString(keyFile, FileUtil.DEFAULT_CHARSET);
         JsonObject keyJsonObject = JsonUtil.parseJsonObject(json);
 
         byte[] salt = Hex.decode(getCryptoJsonObect(keyJsonObject)

@@ -166,7 +166,6 @@ public class TransactionTest extends SlowTest {
         assertEquals(txHeader.toJsonObject().toString(),
                 tx2.getHeader().toJsonObject().toString());
         assertArrayEquals(txSig.getSignature(), txSig.getSignature());
-        assertEquals(txBody.toHexString(), tx2.getBody().toHexString());
     }
 
     @Test

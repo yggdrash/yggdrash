@@ -1,6 +1,7 @@
 package io.yggdrash.validator.data.ebft;
 
 import io.yggdrash.common.Sha3Hash;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.store.datasource.LevelDbDataSource;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.Transaction;
@@ -23,8 +24,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static io.yggdrash.common.config.Constants.EMPTY_BYTE32;
-
 public class EbftBlockChain implements ConsensusBlockChain<String, EbftBlock> {
 
     private static final Logger log = LoggerFactory.getLogger(EbftBlockChain.class);
@@ -46,7 +45,7 @@ public class EbftBlockChain implements ConsensusBlockChain<String, EbftBlock> {
     public EbftBlockChain(Block genesisBlock, String dbPath,
                           String blockKeyStorePath, String blockStorePath, String txStorePath) {
         if (genesisBlock.getHeader().getIndex() != 0
-                || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), EMPTY_BYTE32)) {
+                || !Arrays.equals(genesisBlock.getHeader().getPrevBlockHash(), Constants.EMPTY_HASH)) {
             log.error("GenesisBlock is not valid.");
             throw new NotValidateException();
         }

@@ -36,19 +36,16 @@ import java.io.IOException;
 import java.security.SignatureException;
 import java.util.Arrays;
 
+import static io.yggdrash.common.config.Constants.EMPTY_HASH;
 import static io.yggdrash.common.config.Constants.KEY.BODY;
 import static io.yggdrash.common.config.Constants.KEY.HEADER;
 import static io.yggdrash.common.config.Constants.KEY.SIGNATURE;
 import static io.yggdrash.common.config.Constants.TIMESTAMP_2018;
 import static io.yggdrash.common.config.Constants.TX_BODY_MAX_LENGTH;
-import static io.yggdrash.common.config.Constants.TX_HEADER_LENGTH;
-import static io.yggdrash.common.config.Constants.TX_SIG_LENGTH;
 
 public class Transaction {
 
     private static final Logger log = LoggerFactory.getLogger(Transaction.class);
-
-    private static final int SIGNATURE_LENGTH = 65;
 
     // Transaction Data Format v0.0.3
     private final TransactionHeader header;
@@ -100,12 +97,12 @@ public class Transaction {
     public Transaction(byte[] txBytes) {
         int position = 0;
 
-        byte[] headerBytes = new byte[TX_HEADER_LENGTH];
+        byte[] headerBytes = new byte[TransactionHeader.LENGTH];
         System.arraycopy(txBytes, 0, headerBytes, 0, headerBytes.length);
         this.header = new TransactionHeader(headerBytes);
         position += headerBytes.length;
 
-        byte[] sigBytes = new byte[TX_SIG_LENGTH];
+        byte[] sigBytes = new byte[Constants.SIGNATURE_LENGTH];
         System.arraycopy(txBytes, position, sigBytes, 0, sigBytes.length);
         position += sigBytes.length;
         this.signature = sigBytes;
@@ -164,7 +161,7 @@ public class Transaction {
             bao.write(this.signature);
         } catch (IOException e) {
             log.warn(e.getMessage());
-            return new byte[0];
+            return EMPTY_HASH;
         }
         return HashUtil.sha3(bao.toByteArray());
     }
@@ -226,7 +223,7 @@ public class Transaction {
      * @return tx length
      */
     public long length() {
-        return Constants.TX_HEADER_LENGTH + this.signature.length + this.body.length();
+        return TransactionHeader.LENGTH + Constants.SIGNATURE_LENGTH + this.body.length();
     }
 
     /**
@@ -286,7 +283,7 @@ public class Transaction {
                 this.header.getBodyHash(), TransactionHeader.BODYHASH_LENGTH, "bodyHash");
         check &= !(this.header.getBodyLength() <= 0
                 || this.header.getBodyLength() != this.getBody().length());
-        check &= verifyCheckLengthNotNull(this.signature, SIGNATURE_LENGTH, SIGNATURE);
+        check &= verifyCheckLengthNotNull(this.signature, Constants.SIGNATURE_LENGTH, SIGNATURE);
 
         // check bodyHash
         if (!Arrays.equals(this.header.getBodyHash(), HashUtil.sha3(body.toBinary()))) {

@@ -19,6 +19,7 @@ package io.yggdrash.core.blockchain;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.yggdrash.TestConstants;
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.common.util.TimeUtils;
 import io.yggdrash.core.blockchain.genesis.GenesisBlock;
 import io.yggdrash.core.wallet.Wallet;
@@ -39,10 +40,10 @@ public class BlockTest {
 
     private static final Logger log = LoggerFactory.getLogger(BlockTest.class);
 
-    private final byte[] chain = new byte[20];
-    private final byte[] version = new byte[8];
-    private final byte[] type = new byte[8];
-    private final byte[] prevBlockHash = new byte[32];
+    private final byte[] chain = Constants.EMPTY_BRANCH;
+    private final byte[] version = Constants.EMPTY_BYTE8;
+    private final byte[] type = Constants.EMPTY_BYTE8;
+    private final byte[] prevBlockHash = Constants.EMPTY_HASH;
 
     private final Wallet wallet = TestConstants.wallet();
     private Block block1;
