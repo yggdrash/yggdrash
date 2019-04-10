@@ -88,6 +88,58 @@ public class BlockSerializePerformanceTest extends TestConstants.PerformanceTest
         log.info("Bson serialize size: {}", bsonBytes.length);
     }
 
+    @Test
+    public void testBlockToBinary() {
+        long startTime;
+        long endTime;
+
+        Block block = this.genesisBlock.getGenesisBlock();
+
+        startTime = System.nanoTime();
+        for (long l = 0; l < MAX; l++) {
+            Block newBlock = new Block(toBinaryBlock(block));
+            assertTrue(verifyBlock(newBlock));
+        }
+        endTime = System.nanoTime();
+
+        log.info("testBlockToBinary {} Time: {} ", MAX, endTime - startTime);
+    }
+
+    @Test
+    public void testBlockHuskToBinary() throws InvalidProtocolBufferException {
+        long startTime;
+        long endTime;
+
+        BlockHusk blockHusk = new BlockHusk(genesisBlock.getGenesisBlock());
+
+        startTime = System.nanoTime();
+        for (long l = 0; l < MAX; l++) {
+            Proto.Block newProtoBlock = Proto.Block.parseFrom(blockHusk.getData());
+            assertTrue(verifyProto(newProtoBlock));
+        }
+        endTime = System.nanoTime();
+
+        log.info("testBlockHuskToBinary {} Time: {} ", MAX, endTime - startTime);
+    }
+
+    @Test
+    public void testBsonToBinary() throws IOException {
+        Block block = this.genesisBlock.getGenesisBlock();
+        Document bsonDoc = new Document();
+        bsonDoc.append("header", new BsonBinary(convertBlockHeaderToBson(block.getHeader())))
+                .append("signature", new BsonBinary(block.getSignature()))
+                .append("body", new BsonBinary(convertBlockBodyToBson(block.getBody())));
+
+        long startTime = System.nanoTime();
+        for (long l = 0; l < MAX; l++) {
+            Document newBsonDoc = toDocument(toBinary(bsonDoc));
+            assertTrue(verifyBson(newBsonDoc));
+        }
+        long endTime = System.nanoTime();
+
+        log.info("testBsonToBinary {} Time: {} ", MAX, endTime - startTime);
+    }
+
     private byte[] convertBlockToBson(Block block) throws IOException {
         Document bsonDoc = new Document();
         bsonDoc.append("header", new BsonBinary(convertBlockHeaderToBson(block.getHeader())))
@@ -227,56 +279,17 @@ public class BlockSerializePerformanceTest extends TestConstants.PerformanceTest
         }
     }
 
-    @Test
-    public void testBlockToBinary() {
-        long startTime;
-        long endTime;
-
-        Block block = this.genesisBlock.getGenesisBlock();
-
-        startTime = System.nanoTime();
-        for (long l = 0; l < MAX; l++) {
-            Block newBlock = new Block(toBinaryBlock(block));
-            assertTrue(newBlock.verify());
+    public boolean verifyBlock(Block block) {
+        ECKey.ECDSASignature ecdsaSignature = new ECKey.ECDSASignature(block.getSignature());
+        byte[] hashedHeader = HashUtil.sha3(block.getHeader().toBinary());
+        ECKey ecKeyPub;
+        try {
+            ecKeyPub = ECKey.signatureToKey(hashedHeader, ecdsaSignature);
+        } catch (SignatureException e) {
+            throw new InvalidSignatureException(e);
         }
-        endTime = System.nanoTime();
 
-        log.info("testBlockToBinary {} Time: {} ", MAX, endTime - startTime);
-    }
-
-    @Test
-    public void testBlockHuskToBinary() throws InvalidProtocolBufferException {
-        long startTime;
-        long endTime;
-
-        BlockHusk blockHusk = new BlockHusk(genesisBlock.getGenesisBlock());
-
-        startTime = System.nanoTime();
-        for (long l = 0; l < MAX; l++) {
-            Proto.Block newProtoBlock = Proto.Block.parseFrom(blockHusk.getData());
-            assertTrue(verifyProto(newProtoBlock));
-        }
-        endTime = System.nanoTime();
-
-        log.info("testBlockHuskToBinary {} Time: {} ", MAX, endTime - startTime);
-    }
-
-    @Test
-    public void testBsonToBinary() throws IOException {
-        Block block = this.genesisBlock.getGenesisBlock();
-        Document bsonDoc = new Document();
-        bsonDoc.append("header", new BsonBinary(convertBlockHeaderToBson(block.getHeader())))
-                .append("signature", new BsonBinary(block.getSignature()))
-                .append("body", new BsonBinary(convertBlockBodyToBson(block.getBody())));
-
-        long startTime = System.nanoTime();
-        for (long l = 0; l < MAX; l++) {
-            Document newBsonDoc = toDocument(toBinary(bsonDoc));
-            assertTrue(verifyBson(newBsonDoc));
-        }
-        long endTime = System.nanoTime();
-
-        log.info("testBsonToBinary {} Time: {} ", MAX, endTime - startTime);
+        return ecKeyPub.verify(hashedHeader, ecdsaSignature);
     }
 
     private boolean verifyProto(Proto.Block protoBlock) {
