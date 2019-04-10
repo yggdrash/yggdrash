@@ -18,7 +18,7 @@ package io.yggdrash.core.blockchain;
 
 import java.io.Serializable;
 
-interface ProtoHusk<T> extends Serializable {
+public interface ProtoHusk<T> extends Serializable {
     byte[] getData();
 
     T getInstance();

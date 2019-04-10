@@ -1,5 +1,6 @@
 package io.yggdrash.core.blockchain.genesis;
 
+import io.yggdrash.common.config.Constants;
 import io.yggdrash.core.blockchain.Block;
 import io.yggdrash.core.blockchain.BlockBody;
 import io.yggdrash.core.blockchain.BlockHeader;
@@ -77,81 +78,16 @@ public class GenesisBlock {
 
         BlockHeader blockHeader = new BlockHeader(
                 branch.getBranchId().getBytes(),
-                new byte[8],
-                new byte[8],
-                new byte[32],
+                Constants.EMPTY_BYTE8,
+                Constants.EMPTY_BYTE8,
+                Constants.EMPTY_HASH,
                 0L,
                 branch.getTimestamp(),
                 blockBody.getMerkleRoot(),
                 blockBody.length());
-        return new Block(blockHeader, new byte[]{}, blockBody);
+        return new Block(blockHeader, Constants.EMPTY_SIGNATURE, blockBody);
     }
 
-
-    /*
-    private JsonObject toJsonObjectBlock() throws IOException {
-        JsonObject jsonObjectTx = toJsonObjectTx();
-        JsonArray jsonArrayBody = new JsonArray();
-        jsonObjectTx.addProperty("signature", "");
-        jsonArrayBody.add(jsonObjectTx);
-
-        BlockBody blockBody = new BlockBody(jsonArrayBody);
-
-        // todo: change values(version, type) using the configuration.
-        BlockHeader blockHeader = new BlockHeader(
-                branch.getBranchId().getBytes(),
-                EMPTY_BYTE8,
-                EMPTY_BYTE8,
-                EMPTY_BYTE32,
-                0L,
-                branch.getTimestamp(),
-                blockBody.getMerkleRoot(),
-                blockBody.length());
-
-        return toJsonObject(blockHeader.toJsonObject(), jsonArrayBody);
-    }
-
-    private JsonObject toJsonObjectTx() {
-        JsonArray jsonArrayBody = toJsonArrayTxBody();
-        // todo: change values(version, type) using the configuration.
-        // TODO jsonFormat convert to Transaction
-        TransactionHeader txHeader = new TransactionHeader(
-                branch.getBranchId().getBytes(),
-                EMPTY_BYTE8,
-                EMPTY_BYTE8,
-                branch.getTimestamp(),
-                new TransactionBody(jsonArrayBody));
-        log.debug(txHeader.toString());
-
-
-        return toJsonObject(txHeader.toJsonObject(), jsonArrayBody);
-    }
-
-    private JsonArray toJsonArrayTxBody() {
-        JsonArray jsonArrayTxBody = new JsonArray();
-        JsonObject jsonObjectTx = new JsonObject();
-        jsonArrayTxBody.add(jsonObjectTx);
-
-        jsonObjectTx.addProperty("method", "genesis");
-        JsonObject params = toGenesisParams();
-        jsonObjectTx.add("params", params);
-        jsonObjectTx.add("branch", branch.getJson());
-
-        return jsonArrayTxBody;
-    }
-
-    // TODO change Genesis Spec
-    private JsonObject toGenesisParams() {
-        return branch.getJson().getAsJsonObject("genesis");
-    }
-
-    private JsonObject toJsonObject(JsonObject header, JsonArray body) {
-        JsonObject jsonObject = new JsonObject();
-        jsonObject.add("header", header);
-        jsonObject.add("body", body);
-        return jsonObject;
-    }
-    */
     public static GenesisBlock of(InputStream is) throws IOException {
         Branch branch = Branch.of(is);
         return new GenesisBlock(branch);

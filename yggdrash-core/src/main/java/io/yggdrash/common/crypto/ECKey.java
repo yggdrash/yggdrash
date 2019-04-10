@@ -999,7 +999,7 @@ public class ECKey implements Serializable {
          * @return -
          */
         public String toBase64() {
-            byte[] sigData = new byte[65];  // 1 header + 32 bytes for R + 32 bytes for S
+            byte[] sigData = new byte[Constants.SIGNATURE_LENGTH];  // 1 header + 32 bytes for R + 32 bytes for S
             sigData[0] = v;
             System.arraycopy(bigIntegerToBytes(this.r, 32), 0, sigData, 1, 32);
             System.arraycopy(bigIntegerToBytes(this.s, 32), 0, sigData, 33, 32);
@@ -1012,7 +1012,7 @@ public class ECKey implements Serializable {
          * @return signature as byte[65]
          */
         public byte[] toBinary() {
-            byte[] sigData = new byte[65];  // 1 byte for V + 32 bytes for R + 32 bytes for S
+            byte[] sigData = new byte[Constants.SIGNATURE_LENGTH];  // 1 byte for V + 32 bytes for R + 32 bytes for S
             sigData[0] = v;
             System.arraycopy(bigIntegerToBytes(this.r, 32), 0, sigData, 1, 32);
             System.arraycopy(bigIntegerToBytes(this.s, 32), 0, sigData, 33, 32);

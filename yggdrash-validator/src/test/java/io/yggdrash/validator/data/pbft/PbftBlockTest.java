@@ -269,25 +269,25 @@ public class PbftBlockTest {
     @Test
     public void constuctorTest_Bytes() {
         {
-            PbftBlock newBlock = new PbftBlock(this.pbftBlock.toBinary());
+            PbftBlock newBlock = new PbftBlock(this.pbftBlock.getData());
             log.debug(newBlock.toJsonObject().toString());
             assertTrue(newBlock.equals(this.pbftBlock));
         }
 
         {
-            PbftBlock newBlock = new PbftBlock(this.pbftBlock2.toBinary());
+            PbftBlock newBlock = new PbftBlock(this.pbftBlock2.getData());
             log.debug(newBlock.toJsonObject().toString());
             assertTrue(newBlock.equals(this.pbftBlock2));
         }
 
         {
-            PbftBlock newBlock = new PbftBlock(this.pbftBlock3.toBinary());
+            PbftBlock newBlock = new PbftBlock(this.pbftBlock3.getData());
             log.debug(newBlock.toJsonObject().toString());
             assertTrue(newBlock.equals(this.pbftBlock3));
         }
 
         {
-            PbftBlock newBlock = new PbftBlock(this.pbftBlock4.toBinary());
+            PbftBlock newBlock = new PbftBlock(this.pbftBlock4.getData());
             log.debug(newBlock.toJsonObject().toString());
             assertTrue(newBlock.equals(this.pbftBlock4));
         }

@@ -26,6 +26,7 @@ import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
+import static io.yggdrash.common.utils.ByteUtil.EMPTY_BYTE_ARRAY;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.fail;
@@ -331,7 +332,7 @@ public class ByteUtilTest {
         bytes = ByteUtil.intToBytesNoLeadZeroes(256);
         assertArrayEquals(bytes, Hex.decode("0100"));
         bytes = ByteUtil.intToBytesNoLeadZeroes(0);
-        assertArrayEquals(bytes, new byte[0]);
+        assertArrayEquals(EMPTY_BYTE_ARRAY, bytes);
 
         bytes = ByteUtil.intToBytes(-1);
         assertArrayEquals(bytes, Hex.decode("ffffffff"));
@@ -353,7 +354,7 @@ public class ByteUtilTest {
         bytes = ByteUtil.longToBytesNoLeadZeroes(1L << 32);
         assertArrayEquals(bytes, Hex.decode("0100000000"));
         bytes = ByteUtil.longToBytesNoLeadZeroes(0);
-        assertArrayEquals(bytes, new byte[0]);
+        assertArrayEquals(EMPTY_BYTE_ARRAY, bytes);
 
         bytes = ByteUtil.longToBytes(-1);
         assertArrayEquals(bytes, Hex.decode("ffffffffffffffff"));

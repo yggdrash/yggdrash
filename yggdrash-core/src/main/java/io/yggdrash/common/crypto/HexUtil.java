@@ -27,6 +27,8 @@ import java.math.BigInteger;
 import java.util.List;
 import java.util.regex.Pattern;
 
+import static io.yggdrash.common.utils.ByteUtil.EMPTY_BYTE_ARRAY;
+
 public class HexUtil {
 
     private HexUtil() {
@@ -68,7 +70,7 @@ public class HexUtil {
      */
     public static byte[] hexStringToBytes(String data) {
         if (data == null) {
-            return new byte[0];
+            return EMPTY_BYTE_ARRAY;
         }
         if (data.startsWith("0x")) {
             data = data.substring(2);
@@ -118,13 +120,13 @@ public class HexUtil {
         try {
             addr = Hex.decode(hex);
         } catch (DecoderException addressIsNotValid) {
-            return new byte[0];
+            return EMPTY_BYTE_ARRAY;
         }
 
         if (isValidAddress(addr)) {
             return addr;
         }
-        return new byte[0];
+        return EMPTY_BYTE_ARRAY;
     }
 
     /**

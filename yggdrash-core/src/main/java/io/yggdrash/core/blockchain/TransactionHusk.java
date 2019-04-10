@@ -89,7 +89,7 @@ public class TransactionHusk implements ProtoHusk<Proto.Transaction>, Comparable
     }
 
     public long getLength() {
-        return Constants.TX_HEADER_LENGTH + Constants.TX_SIG_LENGTH + coreTransaction.getHeader().getBodyLength();
+        return TransactionHeader.LENGTH + Constants.SIGNATURE_LENGTH + coreTransaction.getHeader().getBodyLength();
     }
 
     void sign(Wallet wallet) {

@@ -33,6 +33,8 @@ public class TransactionHeader {
 
     private static final Logger log = LoggerFactory.getLogger(TransactionHeader.class);
 
+    static final int LENGTH = 84;
+
     static final int CHAIN_LENGTH = 20;
     static final int VERSION_LENGTH = 8;
     static final int TYPE_LENGTH = 8;

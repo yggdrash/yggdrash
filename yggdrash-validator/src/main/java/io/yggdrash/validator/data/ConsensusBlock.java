@@ -1,10 +1,12 @@
 package io.yggdrash.validator.data;
 
 import com.google.gson.JsonObject;
+import io.yggdrash.core.blockchain.Block;
+import io.yggdrash.core.blockchain.ProtoHusk;
 
-public interface ConsensusBlock {
+public interface ConsensusBlock<T> extends ProtoHusk<T> {
 
-    io.yggdrash.core.blockchain.Block getBlock();
+    Block getBlock();
 
     Object getConsensusMessages();
 
