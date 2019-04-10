@@ -18,6 +18,7 @@ package io.yggdrash.contract.yeed;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
 import com.google.gson.JsonObject;
+import io.yggdrash.common.crypto.HexUtil;
 import io.yggdrash.common.store.StateStore;
 import io.yggdrash.common.store.datasource.HashMapDbSource;
 import io.yggdrash.common.utils.ContractUtils;
@@ -26,6 +27,8 @@ import io.yggdrash.contract.core.ExecuteStatus;
 import io.yggdrash.contract.core.TransactionReceipt;
 import io.yggdrash.contract.core.TransactionReceiptImpl;
 import io.yggdrash.contract.core.annotation.ContractStateStore;
+import io.yggdrash.contract.yeed.ehtereum.EthTransaction;
+import io.yggdrash.contract.yeed.propose.ProposeInterChain;
 import io.yggdrash.contract.yeed.propose.ProposeType;
 import org.junit.Before;
 import org.junit.Rule;
@@ -36,7 +39,10 @@ import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
 import java.math.BigInteger;
+import java.nio.file.Path;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -78,7 +84,8 @@ public class YeedTest {
                 + "{\"c91e9d46dd4b7584f0b6348ee18277c10fd7cb94\":{\"balance\": \"1000000000\"},"
                 + "\"1a0cdead3d1d1dbeef848fef9053b4f0ae06db9e\":{\"balance\": \"1000000000\"},"
                 + "\"cee3d4755e47055b530deeba062c5bd0c17eb00f\":{\"balance\": \"998000000000\"},"
-                + "\"c3cf7a283a4415ce3c41f5374934612389334780\":{\"balance\": \"10000000000000000000000\"}"
+                + "\"c3cf7a283a4415ce3c41f5374934612389334780\":{\"balance\": \"10000000000000000000000\"},"
+                + "\"4d01e237570022440aa126ca0b63065d7f5fd589\":{\"balance\": \"10000000000000000000000\"}"
                 + "}}";
 
         TransactionReceipt result = new TransactionReceiptImpl();
@@ -89,9 +96,7 @@ public class YeedTest {
         } catch (IllegalAccessException e) {
             log.warn(e.getMessage());
         }
-
         assertTrue(result.isSuccess());
-        assertEquals(5, result.getTxLog().size());
     }
 
     @Test
@@ -421,4 +426,75 @@ public class YeedTest {
 
     }
 
+
+    @Test
+    public void processingPropose() {
+        String transactionId = "0x02";
+        String receiveAddress = "c3cf7a283a4415ce3c41f5374934612389334780";
+        BigInteger receiveEth = new BigInteger("1000000000000000000");
+        int receiveChainId = 1;
+        ProposeType proposeType = ProposeType.YEED_TO_ETHER;
+
+        String senderAddress = "4d01e237570022440aa126ca0b63065d7f5fd589";
+
+        String inputData = null;
+        BigInteger stakeYeed = new BigInteger("1000000000000000000");
+        long targetBlockHeight = 1000000L;
+        BigInteger fee = new BigInteger("10000000000000000");
+        String issuer = "c3cf7a283a4415ce3c41f5374934612389334780";
+
+        JsonObject proposal = new JsonObject();
+        proposal.addProperty("receiveAddress", receiveAddress);
+        proposal.addProperty("receiveEth", receiveEth);
+        proposal.addProperty("receiveChainId", receiveChainId);
+        proposal.addProperty("proposeType", proposeType.toValue());
+        proposal.addProperty("senderAddress", senderAddress);
+        proposal.addProperty("inputData", inputData);
+        proposal.addProperty("stakeYeed", stakeYeed);
+        proposal.addProperty("blockHeight", targetBlockHeight);
+        proposal.addProperty("fee", fee);
+
+        BigInteger issuerOriginBalance = getBalance(issuer);
+
+        TransactionReceipt receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 1);
+
+        // issue propose
+        yeedContract.issuePropose(proposal);
+
+        assert receipt.getStatus() == ExecuteStatus.SUCCESS;
+
+        String proposeIssue = receipt.getTxLog().get(1);
+        log.debug("Log 1 : {} ",proposeIssue);
+        String proposeIssueIdPatten = "Propose [a-f0-9]{64} ISSUED";
+        Pattern p = Pattern.compile(proposeIssueIdPatten);
+        Matcher matcher = p.matcher(proposeIssue);
+        matcher.find();
+
+        String proposeIssueId = matcher.group();
+        proposeIssueId = proposeIssueId.replaceAll("Propose ","")
+                .replaceAll(" ISSUED", "");
+
+        log.debug("propose Issue ID : {}", proposeIssueId);
+
+        String ethRawTransaction = "0xf86f830414ac850df847580082afc894c3cf7a283a4415ce3c41f5374934612389"
+                + "334780880de0b6b3a76400008026a0c9938e35c6281a2003531ef19c0368fb0ec680d1bc073ee2881"
+                + "3602616ce172ca03885e6218dbd7a09fc250ce4eb982114cc25c0974f4adfbd08c4e834f9c74dc3";
+
+
+        byte[] etheSendEncode = HexUtil.hexStringToBytes(ethRawTransaction);
+
+        EthTransaction ethTransaction = new EthTransaction(etheSendEncode);
+        log.debug(HexUtil.toHexString(ethTransaction.getSendAddress()));
+        log.debug(HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+        log.debug("{} ETH", ethTransaction.getValue());
+
+        JsonObject processJson = new JsonObject();
+        processJson.addProperty("proposeId", proposeIssueId);
+        processJson.addProperty("rawTransaction", ethRawTransaction);
+        processJson.addProperty("fee", BigInteger.ZERO);
+        receipt = setTxReceipt(transactionId, issuer, BRANCH_ID, 10);
+        yeedContract.processPropose(processJson);
+        receipt.getTxLog().stream().forEach(l -> log.debug(l));
+        assert receipt.getStatus() == ExecuteStatus.SUCCESS;
+    }
 }

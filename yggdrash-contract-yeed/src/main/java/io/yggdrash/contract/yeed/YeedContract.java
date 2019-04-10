@@ -489,18 +489,21 @@ public class YeedContract implements BundleActivator, ServiceListener {
                     throw new RuntimeException("fee required");
                 }
             }
+            log.debug("issuer Check");
             // issuer Check
             if (propose.getProposeType() == ProposeType.YEED_TO_ETHER) {
                 byte[] etheSendEncode = HexUtil.hexStringToBytes(rawTransaction);
                 EthTransaction ethTransaction = new EthTransaction(etheSendEncode);
                 // check propose
-                boolean checkPropose = false;
+                boolean checkPropose = true;
                 String senderAddress = HexUtil.toHexString(ethTransaction.getSendAddress());
                 String receiveAddress = HexUtil.toHexString(ethTransaction.getReceiveAddress());
                 checkPropose &= propose.getReceiveAddress().equals(receiveAddress);
                 checkPropose &= propose.getReceiveChainId() == ethTransaction.getChainId();
                 // TODO sender is option
                 checkPropose &= propose.getSenderAddress().equals(senderAddress);
+
+                log.debug("check Propose : {}", checkPropose);
 
                 if (checkPropose) {
                     BigInteger receiveEth = ethTransaction.getValue();

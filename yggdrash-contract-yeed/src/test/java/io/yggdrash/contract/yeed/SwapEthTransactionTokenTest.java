@@ -24,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import org.spongycastle.pqc.math.linearalgebra.ByteUtils;
 import java.math.BigInteger;
 import java.util.Arrays;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SwapEthTransactionTokenTest {
     private static final Logger log = LoggerFactory.getLogger(SwapEthTransactionTokenTest.class);
@@ -85,6 +87,20 @@ public class SwapEthTransactionTokenTest {
         assert ByteUtils.equals(token3.getParam()[0], new byte[32]);
 
         log.debug("Amount : {}", new BigInteger(token3.getParam()[1]));
+    }
+
+
+    @Test
+    public void pattenTest() {
+        String proposeIssue = "Propose 6a95d72869643550a485cbea0a4a8aac1092b4b185f58903b1d348383068ca42 ISSUED ";
+        String proposeIssueIdPatten = "[a-f0-9]{64}";
+        Pattern p = Pattern.compile(proposeIssueIdPatten);
+
+        Matcher matcher = p.matcher(proposeIssue);
+        if(matcher.find()) {
+            log.debug(matcher.group());
+        }
+
     }
 
 }
