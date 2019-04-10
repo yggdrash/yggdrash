@@ -496,7 +496,8 @@ public class YeedContract implements BundleActivator, ServiceListener {
                 // check propose
                 boolean checkPropose = false;
                 String senderAddress = HexUtil.toHexString(ethTransaction.getSendAddress());
-                checkPropose &= propose.getReceiveAddress().equals(HexUtil.toHexString(ethTransaction.getReceiveAddress()));
+                String receiveAddress = HexUtil.toHexString(ethTransaction.getReceiveAddress());
+                checkPropose &= propose.getReceiveAddress().equals(receiveAddress);
                 checkPropose &= propose.getReceiveChainId() == ethTransaction.getChainId();
                 // TODO sender is option
                 checkPropose &= propose.getSenderAddress().equals(senderAddress);
@@ -508,6 +509,7 @@ public class YeedContract implements BundleActivator, ServiceListener {
 
                     BigInteger transferYeed = ratio.multiply(receiveEth);
                     BigInteger stakeBalance = getBalance(propose.getProposeId());
+                    stakeBalance = stakeBalance.subtract(propose.getFee());
                     // balance check if transferYeed over stakeBalance, set stakeBalance
                     if (stakeBalance.compareTo(transferYeed) < 0) {
                         transferYeed = stakeBalance;
@@ -516,11 +518,19 @@ public class YeedContract implements BundleActivator, ServiceListener {
                     // issuer
                     if (propose.getIssuer().equals(this.txReceipt.getIssuer())) {
                         transfer(propose.getProposeId(), senderAddress, transferYeed, fee);
-
+                        stakeBalance = stakeBalance.subtract(transferYeed);
                         // All stake YEED is transfer to sendAddress
-                        if (transferYeed.compareTo(stakeBalance) == 0) {
+                        if (stakeBalance.compareTo(BigInteger.ZERO) <= 0) {
                             setProposeStatus(propose.getProposeId(), ProposeStatus.DONE);
-                            this.txReceipt.addLog(String.format("propose %s %s",propose.getProposeId(), ProposeStatus.DONE));
+                            this.txReceipt.addLog(String.format("propose %s %s", propose.getProposeId(), ProposeStatus.DONE));
+                            BigInteger proposeFee = propose.getFee();
+                            // send network fee to branch
+                            if(receiveEth.compareTo(propose.getReceiveEth()) == 0) {
+                                BigInteger returnFee = proposeFee.divide(BigInteger.valueOf(2L));
+                                proposeFee = proposeFee.subtract(returnFee);
+                                transfer(propose.getProposeId(), propose.getIssuer(), returnFee, BigInteger.ZERO);
+                                transfer(propose.getProposeId(), this.txReceipt.getBranchId(), proposeFee, BigInteger.ZERO);
+                            }
                         } else {
                             setProposeStatus(propose.getProposeId(), ProposeStatus.PROCESSING);
                             this.txReceipt.addLog(String.format("propose %s %s",propose.getProposeId(), ProposeStatus.PROCESSING));
