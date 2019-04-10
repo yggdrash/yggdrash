@@ -44,6 +44,8 @@ public class ProposeInterChainTest {
                 targetBlockHeight, fee, issuer);
 
         assertNotEquals(testPropose.getProposeId(), testPropose2.getProposeId());
+        ProposeInterChain recover = new ProposeInterChain(testPropose.toJsonObject());
+        assert recover.getProposeId().equals(testPropose.getProposeId());
     }
 
     @Test
